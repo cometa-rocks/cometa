@@ -1,0 +1,62 @@
+# listen on port 443 with ssl certificates
+Listen 80
+Listen 443
+SSLEngine on
+SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
+SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
+
+#error_page  404              /404.html;
+Header set Access-Control-Allow-Origin "*"
+Header set X-Forwarded-Host "https"
+
+# redirect server error pages to the static page /50x.html
+#
+ErrorDocument 500 /50x.html
+ErrorDocument 502 /50x.html
+ErrorDocument 503 /50x.html
+ErrorDocument 504 /50x.html
+<Location /50x.html>
+    Redirect 301 /
+</Location>
+
+########################################
+#### OIDC CONFIGURATION STARTS HERE ####
+########################################
+
+# PORT 80 to 443 redirect
+RewriteEngine on
+RewriteCond %{HTTPS} !on
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+# set log level to debug
+# LogLevel debug
+
+# load the openidc module
+LoadModule auth_openidc_module modules/mod_auth_openidc.so
+
+OIDCProviderMetadataURL @@METADATA_URL@@
+
+# application client id and client secrect
+OIDCClientID @@OAUTH_CLIENTID@@
+OIDCClientSecret @@OAUTH_CLIENT_SECRET@@
+
+# OIDCRedirectURI is a vanity URL that must point to a path protected by this module but must NOT point to any content
+OIDCRedirectURI @@OAUTH_REDIRECT_URL@@
+OIDCCryptoPassphrase @@CRYPTO_PASSPHRASE@@
+
+OIDCScope "openid email profile"
+OIDCInfoHook userinfo
+
+OIDCOAuthRemoteUserClaim email
+OIDCRemoteUserClaim email
+
+OIDCAuthNHeader REMOTE_USER
+
+# session timeouts
+OIDCSessionInactivityTimeout 86400
+OIDCSessionMaxDuration 86400
+
+KeepAliveTimeout 600

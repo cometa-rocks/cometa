@@ -19,7 +19,6 @@ backups/
 migrations/
 downloads/
 videos/
-schedules/
 
 crontab
 
