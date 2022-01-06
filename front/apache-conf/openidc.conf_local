@@ -1,0 +1,82 @@
+# listen on port 443 with ssl certificates
+Listen 80
+Listen 443
+SSLEngine on
+SSLCertificateFile /etc/ssl/certs/apache-self-signed.crt
+SSLCertificateKeyFile /etc/ssl/certs/apache-self-signed.key
+
+#error_page  404              /404.html;
+Header set Access-Control-Allow-Origin "*"
+# redirect server error pages to the static page /50x.html
+#
+ErrorDocument 500 /50x.html
+ErrorDocument 502 /50x.html
+ErrorDocument 503 /50x.html
+ErrorDocument 504 /50x.html
+<Location /50x.html>
+    Redirect 301 /
+</Location>
+
+# PORT 80 to 443 redirect
+RewriteEngine on
+RewriteCond %{HTTPS} !on
+RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+<IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+#
+# if request contains @@BRANCH@@ rewrite that DEV
+# .. on stage and prod this would be removed in the deployment process
+#    with .gitlab-ci.yml
+#
+RewriteRule ^(.+)/@@BRANCH@@/(.+)$ https://%{HTTP_HOST}/$1/dev/$2 [R=301,L]
+
+
+
+########################################
+#### OIDC CONFIGURATION STARTS HERE ####
+########################################
+
+# set log level to debug
+# LogLevel debug
+
+# load the openidc module
+LoadModule auth_openidc_module modules/mod_auth_openidc.so
+
+# provide multiple providers data
+OIDCMetadataDir /code/apache-conf/metadata
+OIDCDiscoverURL /welcome.html
+RequestHeader set X-Forwarded-Proto "https" early
+
+# OIDCRedirectURI is a vanity URL that must point to a path protected by this module but must NOT point to any content
+OIDCRedirectURI /callback
+OIDCCryptoPassphrase thisIsCo.Meta
+
+# do not validate issuer this results in error if provider does not allow https
+OIDCValidateIssuer Off
+
+OIDCScope "openid email profile"
+OIDCInfoHook userinfo
+
+OIDCOAuthRemoteUserClaim email
+OIDCRemoteUserClaim email
+
+OIDCAuthNHeader REMOTE_USER
+
+# session timeouts
+OIDCSessionInactivityTimeout 86400
+OIDCSessionMaxDuration 86400
+
+# SERVER SETTINGS
+RequestHeader set X-Server "Local"
+
+# ###
+# DEBUG SETTINGS
+# LEAVE IT COMMENTED IF NOT USING
+# ###
+
+ProxyPassMatch "^/debug/(.*)" "http://localhost:4200/debug/$1"
+ProxyPassReverse "^/debug/(.*)" "http://localhost:4200/debug/$1"
+ProxyPassMatch "^/sockjs-node/(.*)" "http://localhost:4200/sockjs-node/$1"
+ProxyPassReverse "^/sockjs-node/(.*)" "http://localhost:4200/sockjs-node/$1"
