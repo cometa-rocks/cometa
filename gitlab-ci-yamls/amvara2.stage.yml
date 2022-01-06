@@ -1,0 +1,33 @@
+# create a basic configuration script for
+# selected server change extension name to
+# match filename
+.amvara2.stage:
+  # set main variable for selected server
+  variables:
+    #########################################################
+    # BACKEND
+    #########################################################
+    DEPLOY_BACKEND_FOLDER: "/home/amvara/projects/cometa/cometa"
+    COMETA_DOMAIN: "stage.cometa.rocks"
+    COMETA_DEBUG: "False"
+    COMETA_EMAIL_HOST: 'mail.amvara.de'
+    COMETA_EMAIL_USER: 'tec_dev@amvara.de'
+    COMETA_EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+    COMETA_PROXY_ENABLED: 'False'
+    COMETA_PROXY: ''
+    #########################################################
+    # FRONTEND
+    #########################################################
+    DOCKER_HTTP_PORT: 8082
+    DOCKER_OPENIDC_CONFIG_EXT: "stage"
+  before_script:
+    #########################################################
+    # FRONTEND
+    #########################################################
+    # remove port 443 from docker-compose since amvara servers use haproxy to loadbalance ssl requests
+    - sed -i "/443:443/d" docker-compose.yml
+  tags: # on what runners we'd like to run this job
+    - amvara2
+  only: # on what branch we'd like to run this job
+    refs:
+      - stage

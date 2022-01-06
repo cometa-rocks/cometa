@@ -1,0 +1,119 @@
+# ######################################## #
+# This file executes command on merge-requests
+# for every installation / server / client
+# ######################################## #
+# Changelog:
+# 2022-01-06 RRO Added gunicorn reload for behave and django
+# ######################################## #
+
+# include all server configuration
+# files from local repository
+include:
+  - 'gitlab-ci-yamls/*.yml'
+
+# set GIT_STRATEGY to none to avoid 
+# pulling content accidentally and 
+# losing old changes
+variables:
+#  CI_DEBUG_TRACE: "true" # show verbose information 
+#  GIT_STRATEGY: none
+  COMETA_EMAIL_ENABLED: 'True'
+  COMETA_REPLACE_FAVICON_IN: "front/src/index.html front/src/manifest.json front/src/welcome.html"
+
+# set deploy order in which jobs
+# will be executed
+stages:
+  - deploy
+
+# main script anchor to avoid code
+# redundancy.
+.deployment_script: &deployment_script
+  stage: deploy
+  script:
+    #########################################################
+    # OLD REPOSITORY CODE
+    #########################################################
+    # cd to DEPLOY_BACKEND_FOLDER before doing anything
+    # - cd $DEPLOY_BACKEND_FOLDER
+    # stash old changes before pulling new changes
+    # - sudo git stash
+    # make sure we are in correct branch
+    # - sudo git checkout $CI_COMMIT_BRANCH
+    # pull new changes
+    # - sudo git pull
+    #########################################################
+    
+    #########################################################
+    # BACKEND
+    #########################################################
+    # save all environment variables that start with COMETA_ to secret_variables.py
+    # these variables come from CI/CD variables from gitlab and variables set inside
+    # gitlab-ci yaml files.
+    - env | grep "^COMETA_" | sed -E "s/([A-Z_])=(.*)/\1='\2'/" > secret_variables.py
+    # Build Selenoid browsers
+    - echo -e "\e[0Ksection_start:`date +%s`:deploy_selenoid\r\e[0KRunning selenoid deployment script"
+    - bash backend/selenoid/deploy_selenoid.sh
+    - echo -e "\e[0Ksection_end:`date +%s`:deploy_selenoid\r\e[0K"
+    # Install new python packages in django and behave container
+    - docker exec cometa_django poetry install
+    - docker exec cometa_behave poetry install
+    # Detect & Install Django migration
+    - docker exec cometa_django python manage.py makemigrations
+    - docker exec cometa_django python manage.py migrate
+    # Update steps in database
+    - echo -e "\e[0Ksection_start:`date +%s`:parse_actions\r\e[0KParsing actions to update databse"
+    - docker exec cometa_django bash -c "curl http://localhost:8000/parseActions/ --silent --retry 5 --retry-delay 5"
+    - echo -e "\e[0Ksection_end:`date +%s`:parse_actions\r\e[0K"
+    # Update selenoid browsers in database
+    - echo -e "\e[0Ksection_start:`date +%s`:parse_browsers\r\e[0KParsing selenoid browsers to update database"
+    - docker exec cometa_django bash -c "curl http://localhost:8000/parseBrowsers/ --silent --retry 5 --retry-delay 5"
+    - echo -e "\e[0Ksection_end:`date +%s`:parse_browsers\r\e[0K"
+    # Reload project files in gunicorn
+    - echo -e "\e[0Ksection_start:`date +%s`:reloading_gunicorn\r\e[0KPreparing to reload project in gunicorn"
+    - echo -e "Now reloading gunicorn for django"
+    - docker exec cometa_django fuser -k -HUP 8000/tcp
+    - echo -e "Now reloading gunicorn for behave"
+    - docker exec cometa_behave fuser -k -HUP 8001/tcp
+    - echo -e "\e[0Ksection_end:`date +%s`:reloading_gunicorn\r\e[0K"
+
+    #########################################################
+    # FRONTEND
+    #########################################################
+    # Replace secrets in openidc
+    - sed -i 's/@@COMETA_CRYPTO_PASSPHRASE@@/'$COMETA_CRYPTO_PASSPHRASE'/g' front/apache-conf/openidc.conf_${DOCKER_OPENIDC_CONFIG_EXT}
+    # Replace google client information
+    - sed -i 's/@@COMETA_GOOGLE_CLIENTID@@/'$COMETA_GOOGLE_CLIENTID'/g' front/apache-conf/metadata/accounts.google.com.client
+    - sed -i 's/@@COMETA_GOOGLE_SECRETKEY@@/'$COMETA_GOOGLE_SECRETKEY'/g' front/apache-conf/metadata/accounts.google.com.client
+    # Replace Stripe client keys
+    - sed -i 's/@@COMETA_STRIPE_PUBLIC_LIVE_KEY@@/'$COMETA_STRIPE_PUBLIC_LIVE_KEY/'g' front/src/app/deploy-tokens.ts
+    - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
+    # update docker-compose file depending on server variables
+    - sed -i 's/<outside_port>/'$DOCKER_HTTP_PORT'/g;s/<server>/'$DOCKER_OPENIDC_CONFIG_EXT'/g' docker-compose.yml
+    # Replace co.meta favicon depending on the branch
+    - for FILE in ${COMETA_REPLACE_FAVICON_IN}; do sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
+    # start container or if already started then compile else start from zero
+    - echo "Checking if cometa_front is already running else start it..."
+    - echo "If there are changes to docker-compose file it will recreate the container..."
+    - docker-compose up -d apache 2>&1 | grep "up-to-date" && docker exec cometa_front bash -c "cd /code/; ./start.sh $script_options" || ( timeout 360 docker-compose logs -f apache || true )
+
+# create a deploy job for amvara2 for branch stage
+deploy:amvara2.stage:
+  <<: *deployment_script
+  extends: .amvara2.stage
+
+# create a deploy job for amvara3 for branch prod
+# deploy:amvara3.prod:
+#   <<: *deployment_script
+#   extends: .amvara3.prod
+
+# create a deploy job for client01 for branch prod
+# deploy:client01.int:
+#   <<: *deployment_script
+#   extends: .client01.int
+
+# create a deploy job for client01 for branch prod
+# deploy:client01.prod:
+#   <<: *deployment_script
+#   extends: .client01.prod
+
+# DONE
