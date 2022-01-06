@@ -1,0 +1,70 @@
+# listen on port 80 & 443
+Listen 80
+Listen 443
+
+# Create virtual hosts for 443 just for SSL Certificate
+<VirtualHost *:443>
+    SSLEngine on
+    SSLCertificateChainFile /etc/ssl/certs/chain.pem
+    SSLCertificateFile /etc/ssl/certs/cert.pem
+    SSLCertificateKeyFile /etc/ssl/certs/privkey.pem
+</VirtualHost>
+
+#error_page  404              /404.html;
+Header set Access-Control-Allow-Origin "*"
+Header set X-Forwarded-Host "https"
+
+# redirect server error pages to the static page /50x.html
+#
+ErrorDocument 500 /50x.html
+ErrorDocument 502 /50x.html
+ErrorDocument 503 /50x.html
+ErrorDocument 504 /50x.html
+<Location /50x.html>
+    Redirect 301 /
+</Location>
+
+########################################
+#### OIDC CONFIGURATION STARTS HERE ####
+########################################
+
+# set log level to debug
+# LogLevel debug
+
+# load the openidc module
+LoadModule auth_openidc_module modules/mod_auth_openidc.so
+
+# provide multiple providers data
+OIDCMetadataDir /code/apache-conf/metadata
+OIDCDiscoverURL /welcome.html
+RequestHeader set X-Forwarded-Proto "https" early
+
+# OIDCRedirectURI is a vanity URL that must point to a path protected by this module but must NOT point to any content
+OIDCRedirectURI /callback
+OIDCCryptoPassphrase @@COMETA_CRYPTO_PASSPHRASE@@
+
+OIDCScope "openid email profile"
+OIDCInfoHook userinfo
+
+OIDCOAuthRemoteUserClaim email
+OIDCRemoteUserClaim email
+
+OIDCAuthNHeader REMOTE_USER
+
+# session timeouts
+OIDCSessionInactivityTimeout 86400
+OIDCSessionMaxDuration 86400
+
+
+# Specify the maximum number of state cookies i.e. the maximum number of parallel outstanding
+# authentication requests. See: https://github.com/zmartzone/mod_auth_openidc/issues/331
+# Setting this to 0 means unlimited, until the browser or server gives up which is the
+# behavior of mod_auth_openidc < 2.3.8, which did not have this configuration option.
+#
+# The optional second boolean parameter if the oldest state cookie(s) will be deleted,
+# even if still valid; see #399.
+#
+# When not defined, the default is 7 and "false", thus the oldest cookie(s) will not be deleted.
+OIDCStateMaxNumberOfCookies 8 true
+
+KeepAliveTimeout 600
