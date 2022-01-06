@@ -1,0 +1,5 @@
+{
+    "client_id" : "***REMOVED***",
+    "client_secret" : "***REMOVED***",
+    "response_type" : "id_token"
+}
