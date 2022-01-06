@@ -1,0 +1,23 @@
+<div class="amvara">
+  <i></i>
+  <span>AMVARA</span>
+</div>
+<div class="right">
+  <ng-container *ngLet="_socketService.connectionStatus$ | async as status">
+    <div matTooltip="WebSocket Server connection" class="websocket" [class.connected]="status">
+      <i class="status"></i>
+      <div class="status-text">
+        <ng-container *ngIf="status; else disconnected">
+          Connected
+        </ng-container>
+        <ng-template #disconnected>
+          Connecting...
+        </ng-template> 
+      </div>
+    </div>
+  </ng-container>
+  <div class="version">
+    <div class="front">Front: {{ version$ | async }}</div>
+    <div class="backend">Backend: {{ serverVersion$ | async }}</div>
+  </div>
+</div>

@@ -1,0 +1,12 @@
+
+@import 'breakpoints';
+
+:host {
+    display: block;
+    flex: 1;
+    line-height: 30px;
+    margin-bottom: 20px;
+    @include for-tablet-portrait-up {
+        margin-bottom: 0;
+    }
+}

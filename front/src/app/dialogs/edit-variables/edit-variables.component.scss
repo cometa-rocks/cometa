@@ -1,0 +1,81 @@
+
+@import 'color';
+
+.variable-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    .key {
+        margin-right: 5px;
+    }
+    .value {
+        margin-left: 5px;
+    }
+    .key,
+    .value {
+        flex: 0 50%;
+        max-width: 50%;
+        color: $blue;
+        font-weight: bold;
+        padding-left: 5px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+    }
+    .secret {
+        flex: 0 60px;
+        margin-left: 10px;
+        color: $blue;
+        font-weight: bold;
+    }
+    .remove {
+        flex: 0 50px;
+        margin-left: 10px;
+    }
+}
+
+.variable-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    margin-bottom: 10px;
+    .key {
+        margin-right: 5px;
+    }
+    .value {
+        margin-left: 5px;
+    }
+    .key,
+    .value {
+        flex: 0 50%;
+        max-width: 50%;
+        input {
+            background-color: transparent;
+            border: 1px solid rgba(black, .1);
+            border-radius: 3px;
+            padding: 10px;
+            box-sizing: border-box;
+            width: 100%;
+            outline: 0;
+        }
+    }
+    .secret {
+        margin-left: 10px;
+        flex: 0 60px;
+        text-align: center;
+    }
+    &:hover .remove {
+        opacity: .9;
+    }
+    .remove {
+        flex: 0 50px;
+        margin-left: 10px;
+        opacity: .45;
+    }
+}
+
+.add {
+    margin-top: 20px;
+    font-weight: bold;
+}

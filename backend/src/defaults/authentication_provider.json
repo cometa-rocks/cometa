@@ -1,0 +1,26 @@
+[
+    {
+        "model": "backend.AuthenticationProvider",
+        "pk": 1,
+        "fields": {
+            "name": "Google",
+            "issuer": "https%3A%2F%2Faccounts.google.com",
+            "icon": "assets/icons/google.svg",
+            "background_color": "#1565C0",
+            "active": true,
+            "useCaptcha": false
+        }
+    },
+    {
+        "model": "backend.AuthenticationProvider",
+        "pk": 2,
+        "fields": {
+            "name": "Gitlab",
+            "issuer": "https%3A%2F%2Fgit.amvara.de",
+            "icon": "assets/icons/gitlab.svg",
+            "background_color": "#292961",
+            "active": true,
+            "useCaptcha": false
+        }
+    }
+]

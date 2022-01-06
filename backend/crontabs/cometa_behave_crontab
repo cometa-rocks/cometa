@@ -1,0 +1,15 @@
+
+#
+# DANGERZONE ... must still be implemented ... #2802
+# ... needs a script to reconstruct the actual behave crontab based on database entries
+# ... database entries should go inside the container, no backup needed
+# ... if the script to reconstruct works well  
+# 
+
+
+# ####
+# This is the crontab which goes inside cometa behave container via mounted volume from docker-compose
+# ####
+# Changelog:
+# 2021-08-24 RRO created
+# ####

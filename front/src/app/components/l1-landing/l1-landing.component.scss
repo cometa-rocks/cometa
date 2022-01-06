@@ -1,0 +1,365 @@
+// l1-landing.component.scss
+
+// Scss file for the main new landing file
+
+// Author: dph000
+
+@import 'color';
+@import 'breakpoints';
+
+:host {
+    display: block;
+    height: 100%;
+}
+
+.container {
+    display: flex;
+    position: relative;
+    height: 100%;
+}
+
+// Add-feature icon on mobile. The size of 21 pixels is due to the lack of padding on the icon
+.icon {
+    cursor: pointer;
+    outline: 0;
+    i {
+        display: block;
+        height: 21px;
+        width: 21px;
+        &.feature-icon {
+            background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
+            background-size: contain;
+            stroke-width: 3;
+            height: 21px;
+        }
+    }
+}
+
+.backdrop {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: $high-black;
+    z-index: 5;
+    opacity: 0;
+    pointer-events: none;
+    @include for-phone-only{
+        &.opened {
+            pointer-events: unset;
+            opacity: 1;
+        }
+    }
+    transition: opacity .15s ease-in-out;
+}
+
+.searcher {
+    display: block;
+    flex: 0 var(--sidenav-width);
+    min-width: var(--sidenav-width);
+    border-right: 1px solid $border-color;
+    min-height: 45px;
+    height: 100%;
+    background: $body-bg-color;
+    max-height: calc(100vh - var(--header-height));
+    transition: all .15s ease-in-out;
+    box-sizing: border-box;
+    transform: translateX(-100vw);
+    position: absolute;
+    @include for-phone-only {
+        width: 85vw;
+        transform: translateX(-100vw);
+        z-index: 10;
+        margin-left: unset;
+        &.opened {
+            transform: translateX(0);
+            margin-left: unset;
+        }
+    }
+    &.closed {
+        position: relative;
+        transform: translateX(0);
+        margin-left: unset;
+        @include for-phone-only {
+            position: absolute;
+            transform: translateX(-100vw);
+        }
+    }
+    .add-from-sidenav {
+        display: flex;
+        flex-wrap: wrap;
+        width: 70%;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 15px 15px;
+        box-sizing: border-box;
+        .addIcon, .addFeatureIcon, .addFolderIcon {
+            width: auto;
+            height: 40px;
+            background: $blue;
+            padding: 0 10px;
+        }
+        .addFolderIcon {
+            position: absolute;
+            visibility: visible;
+            top: 70px;
+            transition: all .3s ease-in-out;
+            z-index: 102;
+        }
+        .addFeatureIcon {
+            position: absolute;
+            visibility: visible;
+            top: 125px;
+            transition: all .3s ease-in-out;
+            z-index: 102;
+            // Add-feature icon on desktop. The size of 21 pixels is due to the lack of padding on the icon
+            .icon {
+                outline: 0;
+                float: left;
+                margin-top: 8px;
+                padding-right: 5px;
+                i {
+                    height: 21px;
+                    width: 21px;
+                    &.feature-icon {
+                        background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
+                        background-size: contain;
+                        stroke-width: 3;
+                        height: 21px;
+                    }
+                }
+            }
+        }
+        button {
+            color: $white-text;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        .hideAdd {
+            visibility: hidden;
+            opacity: 0;
+            top: 60px;
+            transition: all .3s ease-in-out;
+        }
+        @include for-phone-only {
+            display: none;
+        }
+    }
+    .folder-tree {
+        overflow: auto;
+        height: calc(100% - 70px);
+    }
+    .filter-icon {
+        float: left;
+        display: block;
+        height: 50px;
+        width: 52px;
+        cursor: pointer;
+        background-image: url(^assets/filter.svg);
+        background-repeat: no-repeat;
+        background-size: 20px;
+        background-position: 16px 18px;
+        top: 0;
+        left: 0;
+    }
+}
+
+.list {
+    display: block;
+    float: left;
+    position: relative;
+}
+
+.viewer {
+    display: flex;
+    flex-direction: column;
+    flex: 1 100%;
+    .features_folders_count {
+        padding-bottom: 20px;
+        padding-left: 10px;
+        .blue {
+            color: $blue;
+            font-weight: bold;
+        }
+    }
+}
+
+.feature-list {
+    flex: 1;
+    padding: 25px 10px 0;
+    max-height: calc(100vh - var(--header-height) - var(--new-landing-filters-height));
+    overflow-x: hidden;
+    box-sizing: border-box;
+    @include for-phone-only {
+        max-width: 100vw;
+        padding: 20px 0 0 5px;
+    }
+    &.hide-features {
+        display: none;
+    }
+}
+
+p {
+    text-align: center;
+}
+
+.features-header {
+    display: flex;
+    padding: 0 10px;
+    justify-content: space-between;
+    align-items: center;
+    height: 40px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: $high-dark;
+    .view-selector {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex: 0 80px;
+        height: 100%;
+        border-radius: 5px;
+        overflow: hidden;
+        box-shadow: 0 3px 1px -2px $table-low-shadow, 0 2px 2px 0 $table-medium-shadow, 0 1px 5px 0 $table-low-shadow;
+        .view {
+            flex: 0 40px;
+            height: 40px;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+            cursor: pointer;
+            background-color: $transparent-white;
+            &.selected {
+                background-color: rgba($blue, .85);
+                &:after {
+                    filter: brightness(1);
+                    opacity: 1;
+                }
+            }
+            &:after {
+                content: "";
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                background-repeat: no-repeat;
+                background-position: center;
+                filter: brightness(0.1);
+                opacity: .5;
+            }
+            &.tiles:after {
+                background-image: url(^assets/icons/tiles-view.svg);
+                background-size: 15px;
+            }
+            &.list:after {
+                background-image: url(^assets/icons/list-view.svg);
+                background-size: 20px;
+            }
+        }
+    }
+}
+
+.add-button, .add-feature, .add-folder {
+    display: none;
+    position: fixed;
+    z-index: 102;
+    @include for-phone-only {
+        display: unset;
+    }
+}
+
+.addIcon {
+    background: $blue;
+    mat-icon {
+        color: $body-bg-color;
+    }
+}
+
+.add-button {
+    bottom: 20px;
+    right: 20px;
+}
+
+.add-feature {
+    bottom: 140px;
+    right: 20px;
+    transition: all .3s ease-in-out;
+}
+
+.add-folder {
+    bottom: 80px;
+    right: 20px;
+    transition: all .3s ease-in-out;
+}
+
+.add-feature-tooltip {
+    display: none;
+    z-index: 102;
+    @include for-phone-only {
+        position: fixed;
+        display: unset;
+        bottom: 156px;
+        right: 95px;
+        background: $body-bg-color;
+        color: $primary-color;
+        padding: 3px 5px;
+        border-radius: 3px;
+        transition: all .3s ease-in-out;
+    }
+}
+
+.add-folder-tooltip {
+    display: none;
+    z-index: 102;
+    @include for-phone-only {
+        position: fixed;
+        display: unset;
+        bottom: 95px;
+        right: 95px;
+        background: $body-bg-color;
+        color: $primary-color;
+        padding: 3px 5px;
+        border-radius: 3px;
+        transition: all .3s ease-in-out;
+    }
+}
+
+.hide-add {
+    bottom: 20px;
+    right: 20px;
+    opacity: 0;
+    transition: all .3s ease-in-out;
+}
+
+.new-feature-text {
+    color: $blue;
+    cursor: pointer;
+}
+
+.mobile_backdrop {
+    background: $transparent-bg;
+    position: absolute;
+    top: -85px;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 101;
+    transition: all .3s ease-in-out;
+    @include for-tablet-portrait-up {
+        display: none;
+    }
+}
+
+.desktop_backdrop {
+    display: none;
+    @include for-tablet-portrait-up {
+        display: unset;
+        background: none;
+        position: absolute;
+        top: -85px;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 101;
+        transition: all .3s ease-in-out;
+    }
+}

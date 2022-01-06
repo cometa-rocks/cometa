@@ -1,0 +1,27 @@
+<!-- folder-tree-item.component.html
+
+Component containing each single directory in the folder tree
+
+Author: dph000
+
+-->
+<ng-container *ngLet="expanded$ | async as expanded">
+    <div [class.opened]="expanded" [style.paddingLeft.px]="level * 25" matRipple class="row" *ngLet="lastFolder$ | async as lastFolder" [class.selected]="lastFolder === folder.folder_id">
+        <!-- Arrow to show / hide the folder -->
+        <mat-icon class="arrow" (click)="toggleExpandFromArrow($event)" [class.hidden]="folder.folders.length === 0">keyboard_arrow_right</mat-icon>
+        <!-- Folder icon and name -->
+        <div class="item" (click)="toggleExpand()">
+            <!-- Show different depending if the item is a folder or department -->
+            <mat-icon *ngIf="department === true; else folderIcon">domain</mat-icon>
+            <ng-template #folderIcon>
+                <mat-icon>folder</mat-icon>
+            </ng-template>
+            <div class="folderName">{{ folder.name }}</div>
+        </div>
+    </div>
+    <div *ngIf="expanded" class="container">
+        <!-- Recursion of directories -->
+        <!-- The department boolean is used to know wheter the sent object is a department or not -->
+        <cometa-folder-item-tree [department]="false" [parent]="parent.concat(folder)" [level]="level + 1" [folder]="folder" *ngFor="let folder of folder.folders"></cometa-folder-item-tree>
+    </div>
+</ng-container>

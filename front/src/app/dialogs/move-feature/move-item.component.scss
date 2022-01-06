@@ -1,0 +1,16 @@
+
+@import 'breakpoints';
+
+.folders-container {
+    min-width: 400px;
+    min-height: 300px;
+    border: 1px solid rgba(black, .3);
+    border-radius: 3px;
+    @include for-phone-only {
+        min-width: 238px;
+    }
+}
+
+.mat-dialog-content {
+    width: auto !important;
+}

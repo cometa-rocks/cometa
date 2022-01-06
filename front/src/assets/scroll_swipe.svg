@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="Scroll_Swipe"
+   data-name="Scroll_Swipe"
+   viewBox="0 0 477.85 258.09"
+   version="1.1"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="DIP_ICON_ScrollSwipeView.svg">
+  <metadata
+     id="metadata61">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>DIP_ICON_ScrollSwipeView</dc:title>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Luis Torroja</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>AmvaraConsulting</dc:title>
+          </cc:Agent>
+        </dc:rights>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="640"
+     inkscape:window-height="480"
+     id="namedview59"
+     showgrid="false"
+     inkscape:zoom="0.83499005"
+     inkscape:cx="238.925"
+     inkscape:cy="129.045"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="Capa_1" />
+  <defs
+     id="defs3">
+    <style
+       id="style5">.cls-1{fill:#e6e6e6;}.cls-2{fill:#111;}.cls-3{fill:#58585a;}.cls-4{fill:#868789;}.cls-5{fill:none;stroke:#f7ae15;}.cls-5,.cls-6{stroke-miterlimit:10;}.cls-6{fill:#f7ae15;stroke:#111;stroke-width:0.25px;}</style>
+  </defs>
+  <title
+     id="title7">DIP_ICON_ScrollSwipeView</title>
+  <path
+     class="cls-1"
+     d="M210.27,267.54A11.49,11.49,0,0,1,198.81,279H23.14a11.49,11.49,0,0,1-11.45-11.46V32.37A11.5,11.5,0,0,1,23.14,20.91H198.81a11.49,11.49,0,0,1,11.46,11.46Z"
+     transform="translate(-11.69 -20.91)"
+     id="path9" />
+  <rect
+     class="cls-2"
+     x="19.25"
+     y="21.96"
+     width="160.07"
+     height="214.17"
+     id="rect11" />
+  <circle
+     class="cls-3"
+     cx="99.29"
+     cy="11.78"
+     r="2.55"
+     id="circle13" />
+  <circle
+     class="cls-4"
+     cx="99.29"
+     cy="246.32"
+     r="4.46"
+     id="circle15" />
+  <line
+     class="cls-5"
+     x1="88.31"
+     y1="95.48"
+     x2="110.11"
+     y2="95.48"
+     id="line17" />
+  <line
+     class="cls-5"
+     x1="88.31"
+     y1="106.85"
+     x2="110.11"
+     y2="106.85"
+     id="line19" />
+  <line
+     class="cls-5"
+     x1="88.31"
+     y1="118.23"
+     x2="110.11"
+     y2="118.23"
+     id="line21" />
+  <line
+     class="cls-5"
+     x1="88.31"
+     y1="129.6"
+     x2="110.11"
+     y2="129.6"
+     id="line23" />
+  <line
+     class="cls-5"
+     x1="88.31"
+     y1="140.98"
+     x2="110.11"
+     y2="140.98"
+     id="line25" />
+  <line
+     class="cls-5"
+     x1="88.31"
+     y1="152.36"
+     x2="110.11"
+     y2="152.36"
+     id="line27" />
+  <line
+     class="cls-5"
+     x1="88.31"
+     y1="163.73"
+     x2="110.11"
+     y2="163.73"
+     id="line29" />
+  <path
+     class="cls-6"
+     d="M110.1,80.9h1.81l10,23.72h-2.26l-8.69-21-8.74,21H100Z"
+     transform="translate(-11.69 -20.91)"
+     id="path31" />
+  <path
+     class="cls-6"
+     d="M111.86,219h-1.81l-10-23.72h2.26l8.69,21,8.74-21H122Z"
+     transform="translate(-11.69 -20.91)"
+     id="path33" />
+  <path
+     class="cls-1"
+     d="M489.54,267.54A11.49,11.49,0,0,1,478.08,279H302.41A11.49,11.49,0,0,1,291,267.54V32.37a11.5,11.5,0,0,1,11.45-11.46H478.08a11.49,11.49,0,0,1,11.46,11.46Z"
+     transform="translate(-11.69 -20.91)"
+     id="path35" />
+  <rect
+     class="cls-2"
+     x="298.52"
+     y="21.96"
+     width="160.07"
+     height="214.17"
+     id="rect37" />
+  <circle
+     class="cls-3"
+     cx="378.56"
+     cy="11.78"
+     r="2.55"
+     id="circle39" />
+  <circle
+     class="cls-4"
+     cx="378.56"
+     cy="246.32"
+     r="4.46"
+     id="circle41" />
+  <line
+     class="cls-5"
+     x1="406.21"
+     y1="118.07"
+     x2="406.21"
+     y2="139.87"
+     id="line43" />
+  <line
+     class="cls-5"
+     x1="394.83"
+     y1="118.07"
+     x2="394.83"
+     y2="139.87"
+     id="line45" />
+  <line
+     class="cls-5"
+     x1="383.46"
+     y1="118.07"
+     x2="383.46"
+     y2="139.87"
+     id="line47" />
+  <line
+     class="cls-5"
+     x1="372.08"
+     y1="118.07"
+     x2="372.08"
+     y2="139.87"
+     id="line49" />
+  <line
+     class="cls-5"
+     x1="360.71"
+     y1="118.07"
+     x2="360.71"
+     y2="139.87"
+     id="line51" />
+  <line
+     class="cls-5"
+     x1="349.33"
+     y1="118.07"
+     x2="349.33"
+     y2="139.87"
+     id="line53" />
+  <path
+     class="cls-6"
+     d="M453.38,149.07v1.81l-23.72,10v-2.26l21-8.69-21-8.74V139Z"
+     transform="translate(-11.69 -20.91)"
+     id="path55" />
+  <path
+     class="cls-6"
+     d="M327.11,150.84V149l23.72-10v2.26l-21,8.69,21,8.74v2.26Z"
+     transform="translate(-11.69 -20.91)"
+     id="path57" />
+</svg>

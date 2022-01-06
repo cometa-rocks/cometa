@@ -1,0 +1,34 @@
+
+@import 'color';
+
+.grid-schedule {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    margin-bottom: 10px;
+}
+
+:host::ng-deep .grid-schedule .mat-form-field-label-wrapper {
+    text-align: center
+}
+
+:host::ng-deep .info .mat-icon {
+    position: relative;
+    top: 3px;
+    margin-right: 5px;
+}
+
+:host::ng-deep .grid-schedule .mat-form-field-infix {
+    width: auto !important;
+}
+
+input {
+    text-align: center;
+}
+
+.info {
+    color: $blue;
+    cursor: pointer;
+    &:hover {
+        text-decoration: underline;
+    }
+}

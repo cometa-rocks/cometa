@@ -1,0 +1,67 @@
+
+@import 'color';
+@import 'breakpoints';
+
+.mat-dialog-title {
+  color: $blue;
+}
+
+:host::ng-deep .mat-tab-label {
+  opacity: 1;
+  font-weight: bold;
+}
+
+:host::ng-deep .mat-tab-body {
+  margin: 20px 0 10px;
+}
+
+:host::ng-deep .mat-form-field {
+  width: 100%;
+}
+
+.int-icon {
+  display: inline-block;
+  height: 20px;
+  width: 20px;
+  margin-right: 10px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  &.Discord {
+    background-image: url(^assets/icons/discord.svg);
+  }
+  &.Slack {
+    background-image: url(^assets/icons/slack.svg);
+  }
+  &.Mattermost {
+    background-image: url(^assets/icons/mattermost.svg);
+  }
+}
+
+.mat-radio-button ~ .mat-radio-button {
+  margin-left: 16px;
+}
+
+.mat-radio-group {
+  display: block;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  mat-label {
+    margin-right: 10px;
+    display: block;
+    margin-bottom: 15px;
+    @include for-tablet-portrait-up {
+      display: inline;
+      margin-bottom: 0;
+    }
+  }
+}
+
+.custom-value-label {
+  display: flex;
+  align-items: center;
+}
+
+:host::ng-deep .mat-form-field-appearance-fill .mat-form-field-infix {
+  padding: 0.5em 0 0.6em 0;
+}

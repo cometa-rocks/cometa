@@ -1,0 +1,285 @@
+/**
+ * l1-filter.components.ts
+ *
+ * Contains the functions for the filter bar of the new-landing. It includes the breadcrumbs, search bar and all other filters. It also shows
+ * the currently active filters.
+ *
+ * Changelog:
+ *
+ * @author: dph000
+ */
+
+import { ChangeDetectionStrategy, Component, HostListener, Input, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { Dispatch } from '@ngxs-labs/dispatch-decorator';
+import { Select, Store } from '@ngxs/store';
+import { CustomSelectors } from '@others/custom-selectors';
+import { SharedActionsService } from '@services/shared-actions.service';
+import { Configuration } from '@store/actions/config.actions';
+import { Features } from '@store/actions/features.actions';
+import { ApplicationsState } from '@store/applications.state';
+import { EnvironmentsState } from '@store/environments.state';
+import { FeaturesState } from '@store/features.state';
+import { UserState } from '@store/user.state';
+import { BehaviorSubject, Observable } from 'rxjs';
+
+@UntilDestroy()
+@Component({
+  selector: 'cometa-l1-filter',
+  templateUrl: './l1-filter.component.html',
+  styleUrls: ['./l1-filter.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class L1FilterComponent implements OnInit {
+
+  constructor(
+    public _sharedActions: SharedActionsService,
+    private _store: Store
+  ) { }
+
+  /**
+   * Declaration of variables used in the class
+   */
+  @Select(FeaturesState.GetNewSelectionFolders) currentRoute$: Observable<ReturnType<typeof FeaturesState.GetNewSelectionFolders>>;
+  @Select(CustomSelectors.GetConfigProperty('openedSearch')) openedSearch$: Observable<boolean>;
+  @Input() filters$; // Filter list
+
+  /**
+   * Global variables
+   */
+  moreOrLessSteps = new FormControl('is');
+  finder = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSearch'));
+  searchInput: string;
+  dialogs = {
+    dept: new BehaviorSubject<boolean>(false),
+    app: new BehaviorSubject<boolean>(false),
+    env: new BehaviorSubject<boolean>(false),
+    test: new BehaviorSubject<boolean>(false),
+    steps: new BehaviorSubject<boolean>(false),
+    date: new BehaviorSubject<boolean>(false),
+    ok: new BehaviorSubject<boolean>(false),
+    fails: new BehaviorSubject<boolean>(false),
+    skipped: new BehaviorSubject<boolean>(false),
+    department: new BehaviorSubject<boolean>(false),
+    execution_time: new BehaviorSubject<boolean>(false),
+    pixel_diff: new BehaviorSubject<boolean>(false)
+  };
+
+  /**
+   * Once the file loads, subscribes to the specified variables and updates them on change
+   */
+  ngOnInit() {
+    this.moreOrLessSteps.valueChanges.pipe(
+      untilDestroyed(this)
+    ).subscribe(value => {
+      this._store.dispatch( new Features.SetMoreOrLessSteps(value) );
+    });
+    this.openedSearch$.subscribe(value => this.finder = value);
+  }
+
+  /**
+   * Go to the parent folder whenever the breadcrumbs back arrow is clicked on mobile view
+   * @param folder
+   *
+   * @returns parent_id of the current folder
+   */
+
+  @Dispatch()
+  returnParent() {
+    return new Features.ReturnToParentRoute();
+  }
+
+  /**
+   * Whenever the home button is clicked in breadcrumbs sets the current folder as home
+   *
+   * @returns root folder
+   */
+  @Dispatch()
+  returnToRoot() {
+    this.toggleListType('list');
+    return new Features.ReturnToFolderRoute(0);
+  }
+
+  /**
+   * Changes the current folder to the one clicked on breadcrumbs (only on desktop)
+   *
+   * @param folder
+   * @returns id of the clicked folder
+   */
+  @Dispatch()
+  returnFolder(folder: Partial<Folder>) {
+    return new Features.ReturnToFolderRoute(folder.folder_id);
+  }
+
+  // Gets and sets the variable from config file to open/close the sidenav
+  /**
+   * Opens the sidenav whenever the user clicks on the toggle sidenav button on mobile
+   * or closes it if the user clicks outside of the sidenav container or goes to another folder
+   *
+   * @return sets the current status of the sidenav on mobile
+   */
+  @Dispatch() toggleSidenav() {
+    const opened = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
+    return new Configuration.SetProperty('openedSidenav', !opened);
+  }
+
+  /**
+   * Toggles the status of the search bar
+   *
+   * @return sets the current status of the search bar
+   */
+  @Dispatch() toggleSearch() {
+    this.finder = !this.finder;
+    return new Configuration.SetProperty('openedSearch', this.finder);
+  }
+
+  /**
+   * Removes a filter whenever the cross is pressed on the active filters div
+   *
+   * @param filter
+   * @return removes a filter
+   */
+  @Dispatch()
+  removeFilter(filter: Filter) {
+    return new Features.RemoveFilter(filter);
+  }
+
+  /**
+   * Removes a filter whenever the cross is pressed on the active filters div
+   *
+   * @param filter
+   * @return removes a filter
+   */
+   @Dispatch()
+   removeSearchFilter() {
+     return new Features.RemoveSearchFilter();
+   }
+
+  // Checks which filter to add and if it's ok then add it
+  @Dispatch()
+  addFilterOK(id: string, value?: any, value2?: any) {
+    const filters = this._store.selectSnapshot(CustomSelectors.GetConfigProperty('filters'));
+    let customFilter = { ...filters.find(filter => filter.id === id) };
+    switch (id) {
+      case 'date':
+        customFilter.range1 = value;
+        customFilter.range2 = value2;
+        break;
+      case 'steps':
+      case 'ok':
+        customFilter.more = value2;
+        customFilter.value = value;
+        break;
+      case 'help':
+        break;
+      default:
+        customFilter.value = value;
+    }
+    // Check if filter requires a value
+    if (customFilter.hasOwnProperty('value')) {
+        this.dialogs[id].next(false);
+    }
+    this.toggleSearch();
+    return new Features.AddFilter(customFilter);
+  }
+
+  // Adds a filter
+  addFilter(filter: Filter) {
+    // Check if filter requires a value
+    if (filter.hasOwnProperty('value')) {
+      this.dialogs[filter.id].next(true);
+      setTimeout(() => {
+        if (filter.id === 'test') {
+          try {
+            (document.querySelector('.dialog input[type=text]') as HTMLInputElement).focus();
+          } catch (err) { }
+        }
+      })
+    } else {
+      this.addFilterOK('help')
+    }
+  }
+
+  /**
+   * If there is text inside of the search input, executes the function to check if the filter is valid
+   * and empties the search input
+   */
+  searchFeature() {
+    if (this.searchInput) {
+      this.toggleListType('list');
+      this.addFilterOK('test', this.searchInput);
+      this.searchInput = "";
+    }
+  }
+
+  getId(item: Feature) {
+    return item.feature_id;
+  }
+
+  /**
+   * If the search bar is closed, opens it and focuses on the search input
+   */
+  open_search() {
+    this.toggleSearch();
+    (document.querySelector('.search-input-box') as HTMLInputElement).focus();
+  }
+
+  /**
+   * If the search bar is open, closes it and empties the search input
+   */
+  close_search() {
+    (document.querySelector('.search-input-box') as HTMLInputElement).value = "";
+    this.searchInput = "";
+    if (this.finder) {
+      this.toggleSearch();
+    }
+  }
+
+  /**
+   * Toggle the recent list variable in the store
+   * @returns new Configuration of co_active_list
+   * @author dph000
+   * @date 11-10-21
+   * @lastModification 11-10-21
+   */
+   @Dispatch()
+   toggleListType(listType: string) {
+     return new Configuration.SetProperty('co_active_list', listType, true);
+   }
+
+  /**
+   * HotKey event listeners
+   */
+
+  // Hotkey Shift-Alt-f ... opens the finder
+  @HostListener('document:keydown.Shift.Alt.f', ['$event'])
+  hotkey_shift_alt_f(event: KeyboardEvent) {
+    if (this.filters$.length == 0) {
+      this.open_search();
+      event.stopPropagation();
+    }
+  }
+
+  // Hotkey Shift-Alt-h ... goes to root-Folder
+  @HostListener('document:keydown.Shift.Alt.h', ['$event'])
+  hotkey_shift_alt_h(event: KeyboardEvent) {
+    this.returnToRoot();
+    event.preventDefault();
+  }
+
+  // Hotkey Escape ... closes search component
+  @HostListener('document:keydown.Escape', ['$event'])
+  hotkey_escape(event: KeyboardEvent) {
+    this.close_search();
+    event.preventDefault();
+  }
+
+  // Hotkey Shift-Alt-X ... Remove Filter
+  @HostListener('document:keydown.Shift.Alt.x', ['$event'])
+  hotkey_shift_alt_x(event: KeyboardEvent) {
+    if (!this.finder) {
+      this.removeSearchFilter();
+    }
+  }
+}

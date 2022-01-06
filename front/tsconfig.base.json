@@ -1,0 +1,42 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "module": "esnext",
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "noImplicitAny": false,
+    "target": "es2018",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "lib": [
+      "es2017",
+      "dom"
+    ],
+    "baseUrl": "src",
+    "paths": {
+      "@services/*": ["app/services/*"],
+      "@components/*": ["app/components/*"],
+      "@pipes/*": ["app/pipes/*"],
+      "@common/*": ["app/common/*"],
+      "@others/*": ["app/others/*"],
+      "@dialogs/*": ["app/dialogs/*"],
+      "@directives/*": ["app/directives/*"],
+      "@modules/*": ["app/modules/*"],
+      "@store/*": ["app/store/*"],
+      "@actions/*": ["app/store/actions/*"],
+      "@guards/*": ["app/guards/*"],
+      "@plugins/*": ["app/plugins/*"]
+    }
+  },
+  "include": [
+    "src/**/*.d.ts"
+  ]
+}

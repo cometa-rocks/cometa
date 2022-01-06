@@ -1,0 +1,18 @@
+[
+    {
+        "model": "backend.Cloud",
+        "pk": 1,
+        "fields": {
+            "name": "local",
+            "active": true
+        }
+    },
+    {
+        "model": "backend.Cloud",
+        "pk": 2,
+        "fields": {
+            "name": "browserstack",
+            "active": true
+        }
+    }
+]

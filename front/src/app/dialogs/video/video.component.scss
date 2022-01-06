@@ -1,0 +1,34 @@
+@import 'color';
+@import 'breakpoints';
+
+:host {
+  display: block;
+  margin-bottom: -1px;
+  margin-right: -1px;
+  min-width: 300px;
+}
+
+video {
+  width: 100%;
+  height: auto;
+  border-radius: 3px;
+  max-width: 80vw;
+  outline: 0;
+  display: block;
+  @include for-tablet-portrait-up {
+    max-width: 70vw;
+  }
+}
+
+:host::ng-deep .mat-spinner {
+  margin: 120px auto;
+}
+
+::ng-deep .video-player-panel .mat-dialog-container {
+  padding: 0;
+  overflow: hidden;
+}
+
+::ng-deep .video-player-backdrop {
+  background-color: rgba(black, .75);
+}

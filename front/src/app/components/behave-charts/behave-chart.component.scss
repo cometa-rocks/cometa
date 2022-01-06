@@ -1,0 +1,14 @@
+
+:host {
+  flex: 1 100%;
+  max-width: 100%;
+}
+
+.graphic {
+  height: 100%;
+  padding: 0 10px;
+}
+
+:host::ng-deep .highcharts-range-selector-buttons {
+  transform: translate(20px, 0);
+}

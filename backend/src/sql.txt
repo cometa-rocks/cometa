@@ -1,0 +1,14 @@
+BEGIN;
+--
+-- Create model Feature
+--
+CREATE TABLE "backend_feature" ("id" serial NOT NULL PRIMARY KEY, "name" varchar(100) NOT NULL, "steps" integer NOT NULL CHECK ("steps" >= 0), "ok" boolean NOT NULL, "execution_time" numeric(10, 2) NOT NULL, "pixel_diff" integer NOT NULL CHECK ("pixel_diff" >= 0));
+--
+-- Create model Step
+--
+CREATE TABLE "backend_step" ("id" serial NOT NULL PRIMARY KEY, "name" varchar(100) NOT NULL, "execution_time" numeric(10, 2) NOT NULL, "pixel_diff" integer NOT NULL CHECK ("pixel_diff" >= 0));
+--
+-- Create model Test
+--
+CREATE TABLE "backend_test" ("id" serial NOT NULL PRIMARY KEY, "app" varchar(100) NOT NULL, "environment" varchar(10) NOT NULL, "date" timestamp with time zone NOT NULL, "total" integer NOT NULL, "fails" integer NOT NULL, "ok" integer NOT NULL, "skipped" integer NOT NULL, "execution_time" numeric(10, 2) NOT NULL, "pixel_diff" integer NOT NULL CHECK ("pixel_diff" >= 0), "success_rate" integer NOT NULL);
+COMMIT;

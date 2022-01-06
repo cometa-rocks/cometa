@@ -1,0 +1,35 @@
+<!-- folder-tree.component.html
+
+Component containing the main structure of the folder tree of the main landing
+
+Author: dph000
+
+-->
+<!-- Home button -->
+<div (click)="toggleList('list')" [class.selected]="(route$ | async).length == 0 && (activeList$ | async) === 'list'">
+  <mat-icon>home</mat-icon>
+  Home
+</div>
+<!-- Departments and folders recursive item tree -->
+<!-- The department boolean is used to know wheter the sent object is a department or not -->
+<cometa-folder-item-tree [department]="true" [folder]="folder" [parent]="[folder]" [level]="0" *ngFor="let folder of folders$ | async"></cometa-folder-item-tree>
+<!-- Team shared features and foldes list button -->
+<div (click)="toggleList('team')" [class.selected]="(activeList$ | async) === 'team'">
+  <mat-icon>people</mat-icon>
+  Team drives
+</div>
+<!-- Recently modified features list button -->
+<div (click)="toggleList('recent')" [class.selected]="(activeList$ | async) === 'recent'">
+  <mat-icon>restore</mat-icon>
+  Recent
+</div>
+<!-- Starred features list button -->
+<div (click)="toggleList('starred')" [class.selected]="(activeList$ | async) === 'starred'">
+  <mat-icon>star_border</mat-icon>
+  Starred
+</div>
+<!-- Trash bin list button -->
+<div (click)="toggleList('trashbin')" [class.selected]="(activeList$ | async) === 'trashbin'">
+  <mat-icon>delete</mat-icon>
+  Trash bin
+</div>

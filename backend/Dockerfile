@@ -1,0 +1,3 @@
+FROM node:10
+
+EXPOSE 3001

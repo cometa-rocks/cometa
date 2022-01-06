@@ -1,0 +1,239 @@
+
+@import "color";
+@import "breakpoints";
+
+:host {
+    display: block;
+    width: 100%;
+    overflow-x: hidden;
+    max-height: calc(100vh - var(--header-height));
+}
+
+.charts {
+    display: block;
+    width: 100%;
+    height: 350px;
+    .behave-charts {
+        height: 100%;
+        padding: 50px 0 0;
+        margin: 0 auto;
+        display: flex;
+        box-sizing: border-box;
+        text-align: center;
+        @include maxWidth(700px) {
+            padding: 40px 0 0;
+        }
+    }
+}
+
+:host::ng-deep .cell.show {
+    display: initial;
+}
+
+:host::ng-deep .cell.hide {
+    display: none !important;
+}
+
+:host::ng-deep .more {
+    height: 30px;
+    width: 30px;
+    opacity: .7;
+    background-image: url(^assets/icons/more-white.svg);
+    background-repeat: no-repeat;
+    background-size: 22px;
+    background-position: center;
+    transform: scale(1);
+    transition: transform .2s ease-in-out;
+    &:hover {
+        transform: scale(1.2);
+    }
+}
+
+:host::ng-deep .status-bar {
+    flex: 0 5px;
+    max-width: 5px;
+    height: 100%;
+    &.success {
+        background-color: $good;
+    }
+    &.failed {
+        background-color: $bad;
+    }
+    @include for-tablet-landscape-up {
+        display: none !important;
+    }
+}
+
+:host::ng-deep .all-options {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+    margin-left: auto;
+    @include for-tablet-portrait-up {
+        padding-left: 35px;
+    }
+}
+
+::ng-deep .cdk-header-item {
+    display: flex !important;
+    align-items: center;
+    padding-left: 10px !important;
+    &.cdk-drag-preview {
+        background-color: white;
+    }
+    &:hover .move-vertical {
+        opacity: .8;
+    }
+    .mat-checkbox {
+        display: flex;
+        flex: 1;
+        .mat-checkbox-layout {
+            display: flex;
+            flex: 1;
+            .mat-checkbox-label {
+                flex: 1;
+            }
+        }
+    }
+}
+
+::ng-deep .move-vertical {
+    display: block;
+    height: 20px;
+    width: 25px;
+    margin-right: 10px;
+    background-image: url(^assets/move-row.svg);
+    background-size: 20px;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: .5;
+}
+
+.show-mobile {
+    white-space: nowrap;
+}
+
+.current_filters {
+    margin: 15px 20px 0;
+    @include for-tablet-portrait-up {
+        margin: 20px 30px 0;
+    }
+    display: flex;
+    flex-wrap: wrap;
+    br {
+        line-height: 25px;
+    }
+}
+
+.mobile-info {
+    display: none;
+    @include maxWidth(750px) {
+        display: flex;
+    }
+    &.header {
+        .steps, .browser, .last_test {
+            color: #3782d8;
+            font-weight: bold;
+            font-size: 20px;
+        }
+    }
+    &:not(.header) {
+        font-size: 18px;
+        color: rgba(0,0,0,.5);
+        margin-bottom: 20px;
+        font-style: italic;
+        font-weight: bold;
+    }
+    .last_test .ok {
+        color: #00a99d;
+    }
+    .last_test .nok {
+        color: #d4145a;
+    }
+    .steps, .browser, .last_test {
+        flex: 1 50%;
+        text-align: center;
+        padding: 0 0 10px 0;
+    }
+    .last-result-status {
+        &.success {
+            color: $good;
+        }
+        &.failed {
+            color: $bad;
+        }
+    }
+}
+
+.view-mode {
+    // Allow the user to select text
+    // user-select: none;
+    position: fixed;
+    bottom: 80px;
+    color: $secondary-color;
+    cursor: pointer;
+    font-size: 23pt;
+    font-family: "CorpoS";
+    line-height: 60px;
+    text-align: center;
+    right: 30px;
+    height: 60px;
+    width: 60px;
+    background-color: #343434;
+    border-radius: 50%;
+}
+
+.firstLetterUppercase::first-letter {
+    text-transform: uppercase;
+}
+
+:host::ng-deep .no-tests {
+    font-size: 13pt;
+    display: block;
+    text-align: center;
+    margin: 30px auto;
+    font-weight: bold;
+}
+
+.greyed {
+    opacity: .5;
+}
+
+::ng-deep .add-step-panel .mat-dialog-content {
+    @media (max-width: 700px) {
+        width: 350px;
+    }
+}
+
+.pixel-difference {
+    position: relative;
+}
+
+.view-pixel-difference {
+    display: block;
+    margin-left: 15px;
+    height: 20px;
+    width: 20px;
+    right: 20px;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    position: absolute;
+    background-image: url(^assets/eye-dark.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: .5;
+}
+
+:host::ng-deep .skeleton-rows {
+    .skeleton-row:nth-child(odd) {
+        background-color: #e6e6e6;
+        border-bottom: 2px solid rgba(black, .05);
+    }
+    .skeleton-row:nth-child(even) {
+        background-color: #f2f2f2;
+        border-bottom: 2px solid rgba(black, .1);
+    }
+}

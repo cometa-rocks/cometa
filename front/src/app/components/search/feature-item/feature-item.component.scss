@@ -1,0 +1,271 @@
+
+@import 'color';
+
+:host {
+  display: block;
+  padding: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 130px;
+  margin-bottom: 30px;
+  @media screen and (min-width: 600px) {
+      width: 50%;
+  }
+  @media screen and (min-width: 1000px) {
+      width: 33.333333%;
+  }
+  @media screen and (min-width: 1300px) {
+      width: 25%;
+  }
+  @media screen and (min-width: 1600px) {
+      width: 20%;
+  }
+  float: left;
+  position: relative;
+  .wrapper {
+    height: 100%;
+    .help-needed {
+      position: absolute;
+      right: 0;
+      height: 100%;
+      width: 4px;
+      top: 0;
+      bottom: 0;
+      margin: auto;
+      background-color: rgba(255, 255, 255, 0.7);
+    }
+    &.running {
+      .run span,
+      .run .run-test {
+        display: none;
+      }
+      .run:after {
+        content: "View";
+        vertical-align: middle;
+      }
+    }
+    .top-buttons-container {
+      position: absolute;
+      top: -26px;
+      right: 0;
+      .state {
+        height: 20px;
+        &.success {
+          background-color: $success;
+          .triangle {
+            border-bottom-color: $success;
+          }
+        }
+        &.canceled {
+          $orange: #f57c00;
+          background-color: $orange;
+          .triangle {
+            border-bottom-color: $orange;
+          }
+        }
+        &.failed {
+          background-color: lighten($remove, 10);
+          .triangle {
+            border-bottom-color: lighten($remove, 10);
+          }
+        }
+        &.running {
+          background-color: $medium;
+          .triangle {
+            border-bottom-color: $medium;
+          }
+        }
+        padding: 3px 10px 3px 0;
+        padding-right: 20px;
+        display: inline-block;
+        color: white;
+        vertical-align: middle;
+        position: relative;
+        font-size: .9rem;
+        .triangle {
+            position: absolute;
+            bottom: 0;
+            left: -15px;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-bottom: 26px solid transparent;
+        }
+      }
+      .run {
+        height: 20px;
+        background-color: $blue;
+        padding: 3px 10px 3px 0;
+        color: white;
+        display: inline-block;
+        position: relative;
+        vertical-align: middle;
+        font-size: .9rem;
+        border-top-right-radius: 5px;
+        .run-test {
+          height: 12px;
+          width: 10px;
+          background-image: url(^assets/play-button_2.svg);
+          background-repeat: no-repeat;
+          background-size: contain;
+          vertical-align: middle;
+        }
+        .triangle {
+            position: absolute;
+            bottom: 0;
+            left: -15px;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-bottom: 26px solid $blue;
+        }
+      }
+    }
+    padding: 10px;
+    box-sizing: border-box;
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all .2s ease-in-out;
+    box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
+  }
+  .options {
+      position: absolute;
+      margin: auto;
+      top: 0;
+      right: 0;
+  }
+  .name {
+      color: $blue;
+      font-size: 21pt;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      width: 100%;
+      padding-right: 30px;
+      box-sizing: border-box;
+  }
+  .steps {
+      margin-top: 10px;
+  }
+  .exec_time {
+      color: $bad;
+  }
+  .browser {
+      color: #546e7a;
+      margin-top: 10px;
+  }
+}
+
+.state-icon {
+  height: 14px !important;
+  width: 15px !important;
+  vertical-align: middle !important;
+  margin-right: 6px !important;
+  font-size: 16px !important;
+}
+
+input {
+  border: 0;
+  background-color: transparent;
+  outline: 0;
+  color: inherit;
+  font-size: inherit;
+  padding: 3px 5px 3px 0;
+  border-bottom: 2px solid transparent;
+  box-sizing: border-box;
+  width: calc(100% - 25px);
+  &:focus {
+    border-bottom-color: $blue;
+  }
+}
+
+.feature-id {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  font-weight: bold;
+  color: rgba(black, .35);
+}
+
+.top-left-container {
+  position: absolute;
+  opacity: 0;
+  left: 15px;
+  transition: all .2s ease-in-out;
+  pointer-events: none;
+  &.visible {
+    opacity: 1;
+    left: -1.5px;
+    pointer-events: initial;
+  }
+  top: -27px;
+  width: 100%;
+  max-width: 50%;
+  overflow: hidden;
+  .current-step {
+    border-top-left-radius: 3px;
+    padding: 4px 10px;
+    padding-right: 0;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    max-width: calc(100% - 15px);
+    background-color: $step;
+    color: white;
+    font-size: .9rem;
+    height: 26px;
+    line-height: 16px;
+    position: relative;
+    .mat-icon {
+      margin-right: 8px !important;
+      color: rgba(white, .95);
+    }
+    span {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      display: inline-block;
+      width: 100%
+    }
+    .triangle {
+      position: absolute;
+      right: -15px;
+      width: 0;
+      height: 0;
+      border-right: 15px solid transparent;
+      border-bottom: 26px solid $step;
+    }
+  }
+}
+
+:host::ng-deep .item-loader {
+  margin-bottom: -5px;
+  display: inline-block;
+  height: 13px;
+  circle {
+    stroke: white;
+  }
+}
+
+:host::ng-deep {
+  .mat-progress-spinner-indeterminate-animation {
+    /* keep anim slow to avoid wobble from rounding errors */
+    animation-duration: 9s !important;
+  }
+  .mat-progress-spinner-indeterminate-animation circle {
+    animation-name: progress-spinner-stroke-rotate !important;
+    animation-timing-function: linear !important;
+    animation-duration: 4s !important;
+  }
+  @keyframes progress-spinner-stroke-rotate {
+    $start: 200%; /* approx 2/3 of circle circumference */
+    $end: 20%;
+    0%   { stroke-dashoffset: $start; }
+    50%  { stroke-dashoffset: $end; }
+    /* removing transform: rotate(720deg) causes wobble */
+    100% { stroke-dashoffset: $start; transform: rotate(720deg); }
+  }
+}

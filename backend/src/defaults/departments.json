@@ -1,0 +1,10 @@
+[
+    {
+        "model": "backend.Department",
+        "pk": 1,
+        "fields": {
+            "department_name": "Default",
+            "slug": "Default"
+        }
+    }
+]

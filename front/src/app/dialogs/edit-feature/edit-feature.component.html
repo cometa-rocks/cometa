@@ -1,0 +1,219 @@
+<form [formGroup]="featureForm">
+  <ng-container *ngIf="data.mode === 'new'; else editTitle">
+    <h2 mat-dialog-title>Create new feature</h2>
+  </ng-container>
+  <ng-template #editTitle>
+    <ng-container *ngIf="data.mode === 'edit'; else cloneTitle">
+      <h2 mat-dialog-title>Edit feature {{ featureForm.get('feature_name').value }}</h2>
+    </ng-container>
+    <ng-template #cloneTitle>
+      <h2 mat-dialog-title>Clone feature</h2>
+    </ng-template>
+  </ng-template>
+  <mat-dialog-content>
+    <mat-accordion multi>
+      <mat-expansion-panel [expanded]="!config$.toggles.hideInformation">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Information</span>
+          </mat-panel-title>
+          <mat-panel-description>Edit information of the feature</mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <div class="edit-feature-info">
+            <mat-form-field appearance="fill" class="edit-dep">
+              <mat-label>Department</mat-label>
+              <mat-select [(ngModel)]="selected_department" [disabled]="data.mode === 'edit'" formControlName="department_name">
+                <mat-option *ngFor="let dep of departments$ | sortBy:'department_name'" [value]="dep.department_name">
+                  {{ dep.department_name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="fill" class="edit-app">
+              <mat-label>Application</mat-label>
+              <mat-select [(ngModel)]="selected_application" formControlName="app_name">
+                <mat-option *ngFor="let app of applications$ | sortBy:'app_name'" [value]="app.app_name">
+                  {{ app.app_name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="fill" class="edit-env">
+              <mat-label>Environment</mat-label>
+              <mat-select [(ngModel)]="selected_environment" formControlName="environment_name">
+                <mat-option *ngFor="let env of environments$ | sortBy:'environment_name'" [value]="env.environment_name">
+                  {{ env.environment_name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="fill" class="edit-name">
+              <mat-label>Name</mat-label>
+              <input matInput spellcheck="false" formControlName="feature_name">
+            </mat-form-field>
+            <mat-form-field appearance="fill" class="edit-description">
+              <mat-label>Description</mat-label>
+              <textarea spellcheck="false" formControlName="description" matInput rows="1"></textarea>
+            </mat-form-field>
+          </div>
+          <div *ngIf="featureForm.value.department_name.value === 'Default' && departments$.length > 1" class="department-warning">
+            <mat-icon>info</mat-icon>
+            <span>Selecting <strong>Default</strong> department will make this feature visible to everyone, use it with caution!</span>
+          </div>
+          <div class="depends">
+            <mat-checkbox color="primary" formControlName="depends_on_others">Depends on other feature</mat-checkbox>
+            <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="send_mail">Send mail on finish</mat-checkbox>
+            <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video">Record video</mat-checkbox>
+            <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
+              <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">Continue on failure</mat-checkbox>
+            </ng-container>
+            <mat-checkbox formControlName="need_help" color="primary" [matTooltip]="'need_help.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
+            <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
+              <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+                <button color="primary" [disabled]="disableVariables" (click)="editVariables()" mat-stroked-button>Edit environment variables</button>
+              </span>
+            </ng-container>
+          </div>
+        </ng-template>
+      </mat-expansion-panel>
+      <mat-expansion-panel *ngIf="featureForm.value.send_mail && !featureForm.value.depends_on_others" [expanded]="!config$.toggles.hideSendMail">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Email template</span>
+          </mat-panel-title>
+          <mat-panel-description>Edit email address, subject and body</mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Email address, use tab to separate emails. </mat-label>
+            <mat-chip-list #chipList>
+              <mat-chip *ngFor="let addr of featureForm.get('email_address').value" [removable]="true" (removed)="removeAddress(addr)">{{ addr }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+              <input formControlName="address_to_add"
+                    [matChipInputFor]="chipList"
+                    [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                    [matChipInputAddOnBlur]="true"
+                    (matChipInputTokenEnd)="addAddress($event)">
+            </mat-chip-list>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Subject. Leave it empty for a default subject. </mat-label>
+            <input matInput spellcheck="false" formControlName="email_subject">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label>Message Body. Leave it empty for a default message with info about the feature.</mat-label>
+            <textarea matInput spellcheck="false" formControlName="email_body"></textarea>
+          </mat-form-field>
+          <mat-radio-group formControlName="send_mail_on_error">
+            When to send email:
+            <mat-radio-button color="primary" [value]="false">Always</mat-radio-button>
+            <mat-radio-button color="primary" [value]="true">On error</mat-radio-button>
+          </mat-radio-group>
+          <button (click)="openEmailHelp()" stopPropagation [matTooltip]="'menu.help' | translate" matTooltipPosition="left" class="edit-feature-help-icon" color="primary" mat-icon-button>
+            <mat-icon>help_outline</mat-icon>
+          </button>
+        </ng-template>
+      </mat-expansion-panel>
+      <mat-expansion-panel [expanded]="!config$.toggles.hideBrowsers" *ngIf="!featureForm.value.depends_on_others">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Browser selection</span>
+            <ng-container *ngIf="hasSubscription">
+              ({{ (browserstackBrowsers | async).length }} selected)
+            </ng-container>
+          </mat-panel-title>
+          <mat-panel-description>Select which browsers will run this feature</mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <ng-container *ngIf="hasSubscription; else noCloudsAvailable">
+            <cometa-browser-selection *ngIf="feature | async as feat" [feature]="feat" (selectionChange)="handleBrowserChange($event)"></cometa-browser-selection>
+          </ng-container>
+          <ng-template #noCloudsAvailable>
+            <div class="no-clouds">No clouds are available. Please go see our <a (click)="dialogRef.close()" routerLink="/pricing">pricing</a> page.</div>
+          </ng-template>
+        </ng-template>
+      </mat-expansion-panel>
+      <mat-expansion-panel [expanded]="!config$.toggles.hideSteps">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Steps definition</span>
+            ({{ (steps$ | async).length }} defined)
+          </mat-panel-title>
+          <mat-panel-description>Edit the steps for the current feature (applies to all selected browsers)</mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <cometa-step-editor *ngIf="feature | async as feat" [mode]="data.mode" [feature]="feat" [name]="featureForm.get('feature_name').value"></cometa-step-editor>
+        </ng-template>
+      </mat-expansion-panel>
+      <mat-expansion-panel [expanded]="!config$.toggles.hideSchedule">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Schedule</span>
+          </mat-panel-title>
+          <mat-panel-description>When the feature will be executed</mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <h5 (click)="openScheduleHelp()" class="schedule-help">How to format a cron schedule (click)</h5>
+          <div class="run-now">
+            <!-- The run_now values have been inverted as now the schedule checkbox behaviour will be the opposite from the previous version -->
+            <mat-checkbox formControlName="run_now" color="primary">Enable schedule</mat-checkbox>
+          </div>
+          <table *ngIf="featureForm.value.run_now" class="schedule">
+            <tr>
+              <td>
+                <mat-form-field class="form-field-blue">
+                  <mat-label>Minute</mat-label>
+                  <input matInput [disabled]="!featureForm.value.schedule" formControlName="minute" disableAutocomplete>
+                  <mat-error *ngIf="featureForm.get('minute').hasError('pattern')">Invalid format</mat-error>
+                </mat-form-field>
+              </td>
+              <td>
+                <mat-form-field class="form-field-blue">
+                  <mat-label>Hour</mat-label>
+                  <input matInput type="text" [disabled]="!featureForm.value.schedule" formControlName="hour" disableAutocomplete>
+                  <mat-error *ngIf="featureForm.get('hour').hasError('pattern')">Invalid format</mat-error>
+                </mat-form-field>
+              </td>
+              <td>
+                <mat-form-field class="form-field-blue">
+                  <mat-label>Day (month)</mat-label>
+                  <input matInput type="text" [disabled]="!featureForm.value.schedule" formControlName="day_month" disableAutocomplete>
+                  <mat-error *ngIf="featureForm.get('day_month').hasError('pattern')">Invalid format</mat-error>
+                </mat-form-field>
+              </td>
+              <td>
+                <mat-form-field class="form-field-blue">
+                  <mat-label>Month</mat-label>
+                  <input matInput type="text" [disabled]="!featureForm.value.schedule" formControlName="month" disableAutocomplete>
+                  <mat-error *ngIf="featureForm.get('month').hasError('pattern')">Invalid format</mat-error>
+                </mat-form-field>
+              </td>
+              <td>
+                <mat-form-field class="form-field-blue">
+                  <mat-label>Day (week)</mat-label>
+                  <input matInput type="text" [disabled]="!featureForm.value.schedule" formControlName="day_week" disableAutocomplete>
+                  <mat-error *ngIf="featureForm.get('day_week').hasError('pattern')">Invalid format</mat-error>
+                </mat-form-field>
+              </td>
+            </tr>
+          </table>
+        </ng-template>
+      </mat-expansion-panel>
+    </mat-accordion>
+    <div class="last-edition" [matTooltip]="edition.email" matTooltipPosition="after" *ngIf="(feature | async)?.last_edited as edition">
+      <b>Last edit by:</b> {{ edition.name }}
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <div class="right">
+      <ng-container *ngLet="saving$ | async as saving">
+        <button color="warn" [disabled]="saving" mat-stroked-button mat-dialog-close>CANCEL</button>
+        <span style="margin-left: 8px;" matTooltipPosition="above" [matTooltip]="'tooltips.invalid_edit_form' | translate" [matTooltipDisabled]="featureForm.valid">
+          <button color="primary" [disabled]="saving || featureForm.invalid" mat-stroked-button class="submit" (click)="editOrCreate()">
+            <ng-container *ngIf="data.mode === 'new'; else editText">CREATE</ng-container>
+            <ng-template #editText>SAVE</ng-template>
+          </button>
+        </span>
+      </ng-container>
+    </div>
+  </mat-dialog-actions>
+</form>

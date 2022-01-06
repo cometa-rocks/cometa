@@ -1,0 +1,195 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+    <head>
+        <title> cometa report </title>
+        <style type="text/css">
+         @page {
+            size: a4 portrait;
+            @frame header_frame {           /* Static Frame */
+                -pdf-frame-content: header_content;
+                left: 0pt; width: 100%; top: 0pt; height: 40pt;
+            }
+            @frame content_frame {          /* Content Frame */
+                left: 50pt; width: 512pt; top: 40pt; height: 780pt;
+            }
+            @frame footer_frame {           /* Another static Frame */
+                -pdf-frame-content: footer_content;
+                left: 0pt; width: 100%; top: 825pt; height: 70pt;
+            }
+        }
+
+            body {
+                font-weight: 200;
+                font-size: 14px;
+                font-family: CorpoS, sans-serif;
+            }
+
+            *{
+                font-family: CorpoS, sans-serif;
+            }
+            #header_content {
+                background-color: #e6e6e6;
+            }
+            #footer_content {
+                background-color: #e6e6e6;
+                background-color:#e6e6e6;
+                padding-top:5px;
+            }
+            .header {
+                font-size: 20px;
+                font-weight: 100;
+                text-align: center;
+            }
+            .title {
+                font-size: 22px;
+                font-weight: 100;
+               /* text-align: right;*/
+               padding: 10px 20px 0px 20px;
+            }
+            .details {
+                padding: 10px 20px 0px 20px;
+                text-align: left !important;
+                /*margin-left: 40%;*/
+            }
+            .hrItem {
+                border: none;
+                height: 1px;
+                /* Set the hr color */
+                color: #cecece; /* old IE */
+                background-color: #fff; /* Modern Browsers */
+            }
+            table{
+                text-align: center;
+            }
+
+            table tr:nth-child(even){
+                background-color: #e6e6e6;
+            }
+
+            th{
+                color: white;
+                background-color: #474747;
+                padding: 7px 0px 0px 0px;
+                border: 1px solid #474747;
+            }
+            td{
+                padding: 6px 0px 5px 0px;
+            }
+
+            .firsttd{
+                text-align: left !important;
+            }
+
+            .stats{
+                width: 55%;
+                text-align: center;
+            }
+
+            img{
+               margin: 10px 0px 10px 0px;
+               border: 1px solid black;
+            }
+
+        </style>
+    </head>
+    <body>
+
+        <div id="header_content">
+            <div class='wrapper'>
+                <div class='header'>
+                    <p class='title'> <b> <span style="color: #e5b355">co.</span><span style="color: black">meta</span> Feature Report: </b><i>{{ invoice_id }} </i></p>
+                </div>
+            </div>
+        </div>
+
+        <div class='details'>
+            <p> <B> App: </b> {{ featureinfo.app_name }} | <b> Environment: </b> {{ featureinfo.environment_name}} | <b> Test Name: </b> {{featureinfo.feature_name }} | <b> Browser:</b> {{ browserinfo }}</p>
+            Executed on {{ date }}<br/>
+            <hr class='hrItem' />
+        </div>
+        <div class="stats" >
+            <div class="totaltest" style="width: 55%">
+                <pre> <span style="font-size: 30px;">         {{ featureinfo.total }}            </span>  <span style="color: rgb(0, 169, 157); font-size: 30px;"> {{ featureinfo.ok }} ({{ percentok }}%)          </span> <span style="color: red; font-size: 30px;"> {{ totalnok }} ({{ percentnok }}%) </span></pre>
+                <pre>  TOTAL STEPS                 OK                      NOK </pre>
+            </div>
+        <div>
+            <table>
+             <th> STEP </th>
+             <th> RESULT </th>
+             <th> TIME </th>
+             <th> PIXEL DIFFERENCE </th>
+             {% for step in stepsarray %}
+
+                <tr>
+                    <td width="55%" class="firsttd">{{forloop.counter}}. {{ step.step_name }} </a> </td>
+
+                    {% if step.success == True %}
+                        <td style="color: #00a99d; font-weight: bold;"> OK </td>
+                    {% else %}
+                        <td style="color: #d4145a; font-weight: bold;"> NOK </td>
+                    {% endif %}
+
+                    <td style="color: #d4145a; font-weight: bold;"> {{ step.execution_time }}s</td>
+
+                    {% if step.pixel_diff == 0 %}
+                        <td> - </td>
+                    {% else %}
+                        <td> {{ step.pixel_diff }}</td>
+                    {% endif %}
+                </tr>
+
+            {% endfor %}
+            </table>
+
+            <hr class='hrItem' />
+            <div>see next pages for screenshots of steps</div>
+
+            <div id="footer_content">
+                <span style="color: #e5b355; font-weight: bold;">CO.</span>META - page <pdf:pagenumber> of <pdf:pagecount>
+            </div>
+
+            <div>
+                <pdf:nextpage />
+            </div>
+
+            {% for key, values in screenshots_array.items %}
+                {% if values.4.photo1 is not None %}
+                <div class="collectionOfScreenshots">
+                    <p style="color: rgba(0,0,0,.6); text-align: left; font-size: 16px;"> &nbsp; &nbsp; <b>{{values.7.count}} - Step Name: </b> {{ values.0.step_name }}</p>
+                    {% if values.4.photo1 is not None and values.5.photo2 is None and values.6.photo3 is None %}
+                    <p style="text-align: left">Actual Screenshot<br />
+                        <img src="data:image/png;base64,{{values.4.photo1}}" style="width: 510pt; ">
+                    </p>
+                    {% endif %}
+
+                    {% if values.4.photo1 is not None and values.5.photo2 is not None or values.6.photo3 is not None %}
+                    <p>
+                        Actual Screenshot
+                        <img src="data:image/png;base64,{{values.4.photo1}}" style="width: 510pt; ">
+                    </p>
+                    {% endif %}
+                    <table>
+                    <tr>
+                        <td>
+                        {% if values.5.photo2 is not None %}
+                                Screenshot Template<br />
+                                <img src="data:image/png;base64,{{values.5.photo2}}" style="width: 250px;">
+                        {% endif %}
+                        </td>
+
+                        <td>
+                        {% if values.6.photo3 is not None %}
+                                Screenshot difference<br />
+                                <img src="data:image/png;base64,{{values.6.photo3}}" style="width: 250px;">
+                        {% endif %}
+                        </td>
+                    </tr>
+                    </table>
+                </div>
+                <!-- Add next page after each step, except for last -->
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    </body>
+</html>

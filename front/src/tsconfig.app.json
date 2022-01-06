@@ -1,0 +1,36 @@
+{
+  "extends": "../tsconfig.base.json",
+  "angularCompilerOptions": {
+    "disableTypeScriptVersionCheck": true
+  },
+  "compilerOptions": {
+    "outDir": "../out-tsc/app",
+    "baseUrl": "./",
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "strictNullChecks": false,
+    "paths": {
+      "@services/*": ["app/services/*"],
+      "@modules/*": ["app/modules/*"],
+      "@dialogs/*": ["app/dialogs/*"],
+      "@components/*": ["app/components/*"],
+      "@environments/*": ["environments/*"],
+      "@pipes/*": ["app/pipes/*"],
+      "@directives/*": ["app/directives/*"],
+      "@others/*": ["app/others/*"],
+      "@store/*": ["app/store/*"],
+      "@actions/*": ["app/store/actions/*"],
+      "@guards/*": ["app/guards/*"],
+      "@plugins/*": ["app/plugins/*"],
+      "@common/*": ["app/common/*"]
+    }
+  },
+  "files": [
+    "main.ts",
+    "polyfills.ts"
+  ],
+  "include": [
+    "./**/*.d.ts"
+  ]
+}

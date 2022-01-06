@@ -1,0 +1,51 @@
+
+@import 'color';
+
+.paginated-rows {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    line-height: 40px;
+    font-weight: bold;
+    &::ng-deep .mat-spinner {
+        margin-top: 10px;
+    }
+    &::ng-deep .mat-icon {
+        font-size: 30px;
+        height: 30px;
+        width: 30px;
+    }
+    .before {
+        margin-right: 10px;
+    }
+    .after {
+        margin-left: 10px;
+    }
+}
+
+:host::ng-deep .loading-pagination {
+    margin: 100px auto 0;
+}
+
+:host::ng-deep .mat-paginator-page-size-label {
+    white-space: nowrap;
+}
+
+.skeleton-rows {
+    .skeleton-row:after {
+        content: "";
+        display: block;
+        height: 100%;
+        width: 100%;
+        @include skeleton;
+    }
+}

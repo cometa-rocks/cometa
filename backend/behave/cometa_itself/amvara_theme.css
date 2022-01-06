@@ -1,0 +1,31 @@
+.amvaratestheader { background-color:#0a3440; color: #cecece; font-size:24pt; padding:25px; height:15px; position:relative; }
+.cometa_0 { width:33%; position:absolute; bottom:19px; }
+.cometa_1 {color: #8f602d; }
+.cometa_2 {color: #e7e6e6; }
+.cometa_3 {color: #236f8b; width:33%; float:left; font-size:0.5em; position:absolute; right:0px; bottom:20px; text-align:right; padding-right:20px; }
+.dataclass { color: #eaa459; font-size:0.3em; margin-left:5%; }
+.testtitle {color: #ffffff; width: 33%; float:left; font-size:0.5em; position:absolute; bottom:20px; left:33%; text-align:center;}
+.amvarapixel {  }
+.amvarafile { clear:both; float:left; width:80%; padding-bottom:5px; }
+.footer { clear:both; margin-top:15px; padding:25px; height:15px; color:#ffffff; background-color: #343435;  border-top:1px solid #666667;  position:relative;}
+.footer_text { float:left; position:absolute; bottom:19px; }
+.amvarafile:hover, .junit_result_toggle:hover, .screenshot_result_toggle:hover { cursor:pointer; color:#79aebf; }
+.screenshot_result_toggle, .junit_result_toggle { font-weight:700; font-size:16pt; padding:50px;}
+.junitresult {    font-family: monospace; white-space: pre; display:none; }
+.junit_iframe { width:90%; height:80%; border:1px solid lightgrey; margin-left:50px; }
+.screenshotresult { display:none; padding-left:10%; }
+.amvaralogo { position:absolute; bottom:11px; right:25px; }
+.amvaralogo img { width:215px; float:right; }
+.amvaraimgs { display:none; }
+.amvaraimg { margin-left:30px; width:80%;text-align:center; margin-bottom:5px; position:relative;  }
+.diff {  padding-left:15px; background-size:70%; background-repeat:no-repeat;background-position:center; height:400px; }
+.screen { padding-left:15px; background-size:70%; background-repeat:no-repeat; background-position:center; height:400px }
+.style {  padding-left:15px; background-size:70%; background-repeat:no-repeat; background-position:center; height:400px}
+.dot { width:15px; border-radius:15px; border:5px solid; height:15px; position: absolute; top:15px; left:75px;}
+.reddot { border-color:red; background-color:red;}
+.greendot { border-color:green; background-color:green;}
+.yellowdot { border-color:yellow;background-color:yellow; }
+
+.amvaraimg img { width:66%; padding:1% }
+hr { border:1px solid lightgrey; }
+body { font-family: "Corpo S", "Arial", "Verdana"; padding:0px; margin:0px; color: #020202; background-color:#f2f2f2; }

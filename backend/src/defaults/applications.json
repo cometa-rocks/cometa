@@ -1,0 +1,10 @@
+[
+    {
+        "model": "backend.Application",
+        "pk": 1,
+        "fields": {
+            "app_name": "Default",
+            "slug": "Default"
+        }
+    }
+]

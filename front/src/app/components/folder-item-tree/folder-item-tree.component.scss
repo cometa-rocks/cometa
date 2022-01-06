@@ -1,0 +1,57 @@
+// folder-item-tree.component.scss
+
+// Scss file for each folder tree item
+
+// Author: dph000
+@import 'color';
+
+.row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    line-height: 30px;
+    font-size: 15px;
+    font-weight: 600;
+    color: $darker-step;
+    padding: 0px 10px;
+    box-sizing: border-box;
+    .item {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        flex: 1;
+        mat-icon {
+            flex: 0 24px;
+            margin-right: 8px;
+        }
+    }
+    mat-icon {
+        flex: 0 20px;
+        cursor: unset;
+        transition: transform .15s ease-in-out;
+    }
+    &:hover {
+        background: $medium-black;
+    }
+}
+
+.selected {
+    background-color: rgba($blue, .1) !important;
+}
+
+.selected .item{
+    cursor: unset;
+    .folderName {
+        color: $blue;
+    }
+}
+
+.opened {
+    .arrow {
+        transform: rotate(90deg);
+    }
+}
+
+.hidden {
+    visibility: hidden;
+}

@@ -1,0 +1,82 @@
+[
+    {
+        "model": "backend.Permissions",
+        "pk": 1,
+        "fields": {
+            "permission_name": "SUPERUSER",
+            "create_account": true,
+            "edit_account": true,
+            "delete_account": true,
+            "view_accounts": true,
+            "create_application": true,
+            "edit_application": true,
+            "delete_application": true,
+            "create_environment": true,
+            "edit_environment": true,
+            "delete_environment": true,
+            "create_department": true,
+            "edit_department": true,
+            "delete_department": true,
+            "create_browser": true,
+            "edit_browser": true,
+            "delete_browser": true,
+            "create_feature": true,
+            "edit_feature": true,
+            "delete_feature": true,
+            "run_feature": true,
+            "view_feature": true,
+            "remove_screenshot": true,
+            "remove_feature_result": true,
+            "download_result_files": true,
+            "remove_feature_runs": true,
+            "view_admin_panel": true,
+            "view_departments_panel": true,
+            "view_applications_panel": true,
+            "view_browsers_panel": true,
+            "view_environments_panel": true,
+            "view_features_panel": true,
+            "view_accounts_panel": true,
+            "create_variable": true,
+            "edit_variable": true,
+            "delete_variable": true
+        }
+    },
+    {
+        "model": "backend.Permissions",
+        "pk": 2,
+        "fields": {
+            "permission_name": "DEVOPS",
+            "create_feature": true,
+            "edit_feature": true,
+            "run_feature": true,
+            "view_feature": true,
+            "create_variable": true,
+            "edit_variable": true,
+            "download_result_files": true
+        }
+    },
+    {
+        "model": "backend.Permissions",
+        "pk": 3,
+        "fields": {
+            "permission_name": "ANALYSIS",
+            "create_feature": true,
+            "run_feature": true,
+            "view_feature": true,
+            "download_result_files": true
+        }
+    },
+    {
+        "model": "backend.Permissions",
+        "pk": 4,
+        "fields": {
+            "permission_name": "ANONYMOUS",
+            "create_feature": true,
+            "edit_feature": true,
+            "run_feature": true,
+            "view_feature": true,
+            "create_variable": true,
+            "edit_variable": true
+        }
+    }
+]

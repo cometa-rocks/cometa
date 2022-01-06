@@ -1,0 +1,9 @@
+[
+    {
+        "model": "backend.Browser",
+        "pk": 1,
+        "fields": {
+            "browser_json": {"os": "Generic", "device": null, "browser": "chrome", "os_version": "Selenium", "real_mobile": false, "browser_version": "69", "cloud": "local"}
+        }
+    }
+]

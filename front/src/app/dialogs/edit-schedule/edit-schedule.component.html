@@ -1,0 +1,40 @@
+<form [formGroup]="schedule"> 
+  <h2 mat-dialog-title>Edit schedule</h2>
+  <mat-dialog-content>
+    <div class="grid-schedule">
+      <mat-form-field floatLabel="always">
+        <mat-label>Minute</mat-label>
+        <input formControlName="minute" disableAutocomplete matInput>
+        <mat-error *ngIf="schedule.get('minute').hasError('pattern')">Invalid format</mat-error>
+      </mat-form-field>
+      <mat-form-field floatLabel="always">
+        <mat-label>Hour</mat-label>
+        <input formControlName="hour" disableAutocomplete matInput>
+        <mat-error *ngIf="schedule.get('hour').hasError('pattern')">Invalid format</mat-error>
+      </mat-form-field>
+      <mat-form-field floatLabel="always">
+        <mat-label>Day</mat-label>
+        <input formControlName="day" disableAutocomplete matInput>
+        <mat-error *ngIf="schedule.get('day').hasError('pattern')">Invalid format</mat-error>
+      </mat-form-field>
+      <mat-form-field floatLabel="always">
+        <mat-label>Month</mat-label>
+        <input formControlName="month" disableAutocomplete matInput>
+        <mat-error *ngIf="schedule.get('month').hasError('pattern')">Invalid format</mat-error>
+      </mat-form-field>
+      <mat-form-field floatLabel="always">
+        <mat-label>Day of week</mat-label>
+        <input formControlName="dayWeek" disableAutocomplete matInput>
+        <mat-error *ngIf="schedule.get('dayWeek').hasError('pattern')">Invalid format</mat-error>
+      </mat-form-field>
+    </div>
+    <mat-slide-toggle style="display:block;" color="primary" [checked]="enableSchedule | async" (change)="changeSchedule($event)">Enable schedule</mat-slide-toggle>
+    <br>
+    <span class="info" (click)="getHelp()"><mat-icon [inline]="true">info</mat-icon>Schedule format</span>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <span style="margin-left: 8px;" matTooltipPosition="above" [matTooltip]="'tooltips.invalid_edit_form' | translate" [matTooltipDisabled]="schedule.valid">
+      <button [disabled]="(enableSchedule | async) && !schedule.valid" color="primary" mat-stroked-button class="submit" (click)="updateSchedule()">SAVE</button>
+    </span>
+  </mat-dialog-actions>
+</form>

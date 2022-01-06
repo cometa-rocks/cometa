@@ -1,0 +1,41 @@
+<!-- Header -->
+<div mat-dialog-title>
+  <div class="title">{{ 'whats_new.title' | translate }}</div>
+  <div class="date" *ngIf="date">{{ date }}</div>
+  <div class="close" [mat-dialog-close]></div>
+</div>
+<!-- Content -->
+<mat-dialog-content>
+  <img class="poster" [src]="poster">
+  <div class="body">
+    <!-- New Features -->
+    <ng-container *ngIf="changes.feature && changes.feature.length > 0">
+      <div class="header">
+        <div class="title">{{ 'whats_new.new_features' | translate }}</div>
+        <div class="bar"></div>
+      </div>
+      <ul>
+        <li *ngFor="let change of changes.feature">
+          <strong [innerHTML]="change.title | safeHtml"></strong>:&nbsp;
+          <span [innerHTML]="change.text | safeHtml">{{ change.text }}</span>
+        </li>
+      </ul>
+    </ng-container>
+    <!-- Bugfixes -->
+    <ng-container *ngIf="changes.bugfix && changes.bugfix.length > 0">
+      <div class="header">
+        <div class="title">{{ 'whats_new.bugfixes' | translate }}</div>
+        <div class="bar"></div>
+      </div>
+      <ul>
+        <li *ngFor="let change of changes.bugfix">
+          <span [innerHTML]="change.text | safeHtml"></span>
+        </li>
+      </ul>
+    </ng-container>
+  </div>
+</mat-dialog-content>
+<!-- Bottom buttons -->
+<mat-dialog-actions align="end">
+  <button color="primary" [mat-dialog-close] mat-raised-button>{{ 'whats_new.close' | translate }}</button>
+</mat-dialog-actions>

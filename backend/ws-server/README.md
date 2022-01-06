@@ -1,0 +1,1 @@
+The WS-Server is used to send websocket information to the clients

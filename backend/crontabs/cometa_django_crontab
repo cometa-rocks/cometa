@@ -1,0 +1,10 @@
+# ####
+# This is the crontab which goes inside cometa django container via mounted volume from docker-compose
+# ####
+# Changelog:
+# 2021-08-24 RRO created
+# ####
+# ---
+# Execute housekeeping videos and feature results, every day at 1:00 am
+# ---
+1 0 * * * /usr/local/bin/python /opt/code/manage.py cleanup_videos; /usr/local/bin/python /opt/code/manage.py cleanup_results --all-departments;

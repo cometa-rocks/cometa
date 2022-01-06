@@ -1,0 +1,159 @@
+<h3>USER</h3>
+<ng-container *ngLet="details$ | async as details">
+  <ng-container *ngLet="account$ | async as account">
+    <div class="user-info">
+      <div class="name">{{ account.name }}<span *ngIf="account.email"> - ({{ account.email }})</span></div>
+      <div class="type">{{ account.user_permissions.permission_name }}</div>
+    </div>
+    <div class="extra-info">
+      <strong>Created on: </strong>{{ account.created_on | amParse | amDateFormat:'yyyy-MM-dd HH:mm a' }}
+    </div>
+    <div class="extra-info">
+      <strong>Last login: </strong>{{ account.last_login | amParse | amDateFormat:'yyyy-MM-dd HH:mm a' }}
+    </div>
+    <div class="user-options">
+      <button (click)="inviteUser()" class="see-again" mat-stroked-button>Invite to my team</button>
+    </div>
+    <ng-container *ngIf="account.stripe_customer_id">
+      <h3>PAYMENTS</h3>
+      <button (click)="goCustomerPortal()" class="see-again stripe" mat-button>Stripe Customer Portal</button>
+      <br>
+      <br>
+      <p>The above button will redirect you to your custom portal in Stripe, there you will be able to manage your subscriptions, payment methods and invoices.</p>
+      <h3>USAGE INVOICES</h3>
+      <ng-container *ngIf="invoices$ | async as invoices">
+        <ng-container *ngIf="invoices.length > 0; else noInvoices">
+          <table class="invoices">
+            <thead>
+              <tr>
+                <th>Period start</th>
+                <th>Period end</th>
+                <th>Usage</th>
+                <th>Cloud</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>View invoice</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let invoice of invoices">
+                <td>{{ invoice.period_start | amParse | amDateFormat:'dd.MM.yyyy' }}</td>
+                <td>{{ invoice.period_end | amParse | amDateFormat:'dd.MM.yyyy' }}</td>
+                <td>{{ invoice.hours }} hours</td>
+                <td>{{ invoice.cloud | titlecase }}</td>
+                <td>
+                  <ng-container *ngIf="invoice.total > 0; else free">
+                    {{ invoice.total }}
+                  </ng-container>
+                  <ng-template #free>Free</ng-template>
+                </td>
+                <td>{{ invoice.status | titlecase }}</td>
+                <td>
+                  <button (click)="goInvoice(invoice.id)" mat-icon-button>
+                    <mat-icon>link</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </ng-container>
+        <ng-template #noInvoices>
+          No invoices found.
+        </ng-template>
+      </ng-container>
+      <h3>BUDGETS</h3>
+      <p *ngIf="details?.usage_money">Current usage: {{ details.usage_money }} €</p>
+      <p>You can select a maximum amount of money you want to spend on running features.</p>
+      <div class="description-option">
+        <mat-slide-toggle color="primary" [checked]="account.settings?.enable_budget" (change)="handleAccountSetting($event, 'enable_budget')">Enable maximum budget</mat-slide-toggle>
+        <mat-form-field appearance="outline" class="budget-digit expand-on-show" [class.show]="account.settings?.enable_budget">
+          <mat-label>Select budget</mat-label>
+          <input matInput [value]="account.settings?.budget || 0" (change)="handleAccountSetting($event, 'budget')" type="number">
+          <span matSuffix>EUR</span>
+        </mat-form-field>
+      </div>
+      <ng-container *ngIf="account.settings?.enable_budget">
+        <br>
+        <p>Behavior on scheduled features:</p>
+        <mat-radio-group [value]="account.settings?.budget_schedule_behavior || 'prevent'" (change)="handleAccountSetting($event, 'budget_schedule_behavior')">
+          <mat-radio-button color="primary" value="prevent">
+            Prevent feature from running
+          </mat-radio-button><br /><br />
+          <mat-radio-button color="primary" value="continue">
+            Ignore budget and run feature
+          </mat-radio-button><br />
+        </mat-radio-group>
+      </ng-container>
+    </ng-container>
+    <h3>SETTINGS</h3>
+    <p>Language:
+      <!-- Language selection options -->
+      <mat-form-field>
+        <mat-select [value]="config$.language">
+          <mat-option (click)="setLang(lang.key)" *ngFor="let lang of config$.languageCodes | keyvalue | sortBy:'key'" [value]="lang.key">{{ lang.value }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </p>
+    <button (click)="reloadLang()" class="reload-translations" mat-stroked-button>Reload language files</button>
+    <br />
+    <br />
+    <mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.continue_on_failure" (change)="handleAccountSetting($event, 'continue_on_failure')">Continue on failure</mat-slide-toggle>
+    <br /><br />
+    <mat-slide-toggle color="primary" [checked]="config.disableAnimations" (change)="handleDisableAnimations($event)">Disable Animations</mat-slide-toggle>
+    <br /><br />
+    <mat-slide-toggle color="primary" [checked]="config.percentMode" (change)="handlePercentMode()">Show percent values in details</mat-slide-toggle>
+    <br /><br />
+    <mat-slide-toggle color="primary" labelPosition="after" [checked]="config.useNewDashboard" (change)="toggleNewDashboard($event)">Use new dashboard by default</mat-slide-toggle>
+    <br /><br />
+    <!-- Toggle for people who can help on features -->
+    <mat-slide-toggle *ngIf="!(isDefaultDepartment$ | async)" color="primary" matTooltipPosition="after" [matTooltip]="'need_help.can_help' | translate" [checked]="account.settings?.can_help" (change)="handleAccountSetting($event, 'can_help')">I can help</mat-slide-toggle>
+    <br /><br />
+    <mat-slide-toggle color="primary" labelPosition="after" [checked]="config$.logWebsockets" (change)="toggleLogWebsockets($event)">Log WebSockets into Console</mat-slide-toggle>
+    <br /><br />
+    <div class="edit-feature-toggles">
+      Select which sections of Add/Edit feature are closed by default.
+      <ul>
+        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="config.toggles.hideInformation" (change)="handleToggle($event, 'hideInformation')">Information</mat-slide-toggle></li>
+        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="config.toggles.hideSendMail" (change)="handleToggle($event, 'hideSendMail')">Email</mat-slide-toggle></li>
+        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="config.toggles.hideBrowsers" (change)="handleToggle($event, 'hideBrowsers')">Browser selection</mat-slide-toggle></li>
+        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="config.toggles.hideSteps" (change)="handleToggle($event, 'hideSteps')">Steps definition</mat-slide-toggle></li>
+        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="config.toggles.hideSchedule" (change)="handleToggle($event, 'hideSchedule')">Schedule</mat-slide-toggle></li>
+      </ul>
+    </div>
+    <ng-container *ngLet="tours$ | async as tours">
+      <h3>BADGES</h3>
+      <ng-container *ngLet="tours | filterByProperty:'completed':true as toursCompleted">
+        <ng-container *ngIf="toursCompleted.length > 0; else noBadges">
+          <div [matTooltip]="tour.description" class="badge" *ngFor="let tour of toursCompleted">
+            <i class="icon"></i>
+            <div class="text">You have completed the <i>{{ tour.name }}</i> tour</div>
+            <button (click)="startTour(tour)" class="see-again" mat-button>See again</button>
+          </div>
+        </ng-container>
+        <ng-template #noBadges>No badges found.</ng-template>
+      </ng-container>
+      <h3>TOURS</h3>
+      <p>{{ 'user.tour_description' | translate }}</p>
+      <div [matTooltip]="tour.description" class="tour" (click)="startTour(tour)" *ngFor="let tour of tours">{{ tour.name }}</div>
+      <h3>{{ 'integrations.title' | translate | uppercase }}</h3>
+      <p>{{ 'user.webhooks_desc' | translate }}</p>
+      <div class="int-dept" *ngFor="let dept of integrationsDept | keyvalue">
+        <div class="dept-name">Department {{ dept.key }}:</div>
+        <div class="integration" *ngFor="let integration of dept.value; let i = index;">
+          <div class="icon" [ngClass]="integration.application"></div>
+          <div class="details">
+            <div class="description" *ngIf="integration.description as desc">Description: {{ desc }}</div>
+            <div class="hook">Webhook URL: {{ integration.hook }}</div>
+            <div class="send">{{ 'integrations.send_on' | translate }}: {{ integration.send_on | sendOn }}</div>
+          </div>
+          <div [matTooltip]="'integrations.edit' | translate" class="edit" (click)="_sharedActions.editIntegration({ type: 'edit', integration: integration })"></div>
+          <div [matTooltip]="'integrations.delete' | translate" class="delete" (click)="removeIntegration(integration.id)"></div>
+        </div>
+      </div>
+      <button (click)="_sharedActions.editIntegration({ type: 'new' })" class="see-again" mat-stroked-button>
+        <mat-icon>add</mat-icon>
+        {{ 'integrations.add' | translate }}
+      </button>
+    </ng-container>
+  </ng-container>
+</ng-container>

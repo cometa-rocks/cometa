@@ -1,0 +1,5 @@
+<ng-container *ngIf="feature$ | async as feature">
+    <span *ngIf="feature.app_name as app"><b>App</b>: {{ app }}</span>
+    <span *ngIf="feature.environment_name as env"> | <b>Environment</b>: {{ env }}</span>
+    <span *ngIf="feature.feature_name as name" [matTooltip]="feature.description"> | <b>Test</b>: {{ name }}</span>
+</ng-container>

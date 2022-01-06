@@ -1,0 +1,1 @@
+docker exec -it cometa_django python3 manage.py createsuperuser --username ralf@cometa.rocks --email=ralf@cometa.rocks

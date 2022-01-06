@@ -1,0 +1,46 @@
+<h2 mat-dialog-title>Edit environment variables</h2>
+<mat-dialog-content>
+  <ng-container *ngIf="variablesForm.controls.length > 0; else text">
+    <!-- Variables header -->
+    <div class="variable-header">
+      <div class="key">Key</div>
+      <div class="value">Value</div>
+      <div class="secret">Encrypt</div>
+      <div class="remove" *ngIf="canDelete"></div>
+    </div>
+    <!-- Variables list -->
+    <ng-container *ngFor="let variable of variablesForm.controls; index as i; trackBy: trackIndex">
+      <div class="variable-row" [formGroup]="variable">
+        <!-- Variable name -->
+        <div class="key">
+          <input [disabled]="!canEdit" placeholder="Key" disableAutocomplete formControlName="variable_name">
+        </div>
+        <!-- Variable value -->
+        <div class="value">
+          <input [disabled]="!canEdit" [type]="variable.value.encrypted ? 'password' : 'text'" disableAutocomplete placeholder="Value" formControlName="variable_value">
+        </div>
+        <!-- Variable encrypted? -->
+        <div class="secret">
+          <mat-spinner class="align-center" *ngIf="variable.value.loading; else checkbox" diameter="20" color="primary"></mat-spinner>
+          <ng-template #checkbox>
+            <mat-checkbox (change)="handleSecretChange(i, $event)" [checked]="variable.value.encrypted" color="primary"></mat-checkbox>
+          </ng-template>
+        </div>
+        <!-- Delete variable -->
+        <div *ngIf="canDelete" class="remove">
+          <button (click)="deleteVar(i)" mat-icon-button>
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+  <ng-template #text>
+    <div>This environment has no variables yet.</div>
+  </ng-template>
+  <button color="primary" *ngIf="canCreate" (click)="add()" class="add" mat-stroked-button>Add variable</button>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
+  <button mat-stroked-button [disabled]="variablesForm.invalid" (click)="save()" color="primary">Save</button>
+</mat-dialog-actions>

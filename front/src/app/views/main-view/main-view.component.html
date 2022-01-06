@@ -1,0 +1,52 @@
+<div class="current_filters">
+  <cometa-feature-titles></cometa-feature-titles>
+  <cometa-feature-actions></cometa-feature-actions>
+</div>
+<ng-container *ngLet="paginatedList?.pagination$ | async as pagination">
+  <div class="charts">
+    <div class="behave-charts">
+      <!-- Highchart -->
+      <behave-chart-desktop-steps *ngIf="pagination?.results as results" [data]="results"></behave-chart-desktop-steps>
+    </div>
+  </div>
+  <!-- Mobile Header -->
+  <div class="mobile-info header">
+    <div class="steps">Steps #</div>
+    <div class="browser">Browsers</div>
+    <div class="last_test">Last test</div>
+  </div>
+  <!-- Mobile Stats -->
+  <div class="mobile-info" *ngIf="pagination?.results[0] as lastRun">
+    <div class="steps">{{ lastRun.feature_results | sumByProperty:'total' }}</div>
+    <div class="steps">{{ lastRun.feature_results.length }}</div>
+    <div class="steps last-result-status" *ngLet="lastRun | featureRunPassed as passed" [ngClass]="passed ? 'success' : 'failed'">{{ passed ? 'OK' : 'NOK' }}</div>
+  </div>
+</ng-container>
+<network-paginated-list *ngLet="featureId$ | async as featureId"
+  [listId]="'runs_' + featureId"
+  [endpointUrl]="featureRunsUrl$ | async"
+  [headerTemplate]="headTemplate"
+  [noItemsTemplate]="noItemsFound"
+  [injectIndex]="false"
+  [useSkeletons]="true"
+  skeletonsHeight="50px"
+  [showHeaderOnNoResults]="true"
+  trackByKey="run_id"
+  [itemTemplate]="listItem">
+    <ng-template #listItem let-item>
+      <!-- Feature Result Runs-->
+      <cometa-feature-run [run]="item"></cometa-feature-run>
+    </ng-template>
+    <ng-template #headTemplate>
+        <cometa-main-view-header></cometa-main-view-header>
+    </ng-template>
+    <ng-template #noItemsFound>
+      <div class="no-tests">
+        <p>Please execute your first feature clicking the blue run-button. </p>
+        <br />
+        <p class="greyed">If you just added a feature and it's executing now you will have to wait until it's finished.</p>
+        <br />
+        <p class="greyed">These results are reloaded automatically.</p>
+      </div>
+    </ng-template>
+</network-paginated-list>
