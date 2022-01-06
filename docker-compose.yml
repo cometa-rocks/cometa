@@ -28,7 +28,6 @@ services:
     working_dir: /opt/code
     environment:
       - PYTHONUNBUFFERED=1
-      - ENVIRONMENT=DEV
     ports:
       - "8000:8000"
     depends_on:
@@ -56,7 +55,6 @@ services:
     working_dir: /opt/code/behave_django
     environment:
       - PYTHONUNBUFFERED=1
-      - ENVIRONMENT=DEV
     networks:
      - testing
     restart: always
@@ -128,7 +126,7 @@ services:
       - "4200:4200"
     command: bash /code/start.sh openidc basic angular compile
     networks:
-      -  testing
+      - testing
     restart: always
 
 networks:
