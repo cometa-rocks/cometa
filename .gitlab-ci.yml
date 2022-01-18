@@ -65,7 +65,7 @@ stages:
     # save all environment variables that start with COMETA_ to secret_variables.py
     # these variables come from CI/CD variables from gitlab and variables set inside
     # gitlab-ci yaml files.
-    - env | grep "^COMETA_" | sed -E "s/([A-Z_])=(.*)/\1='\2'/" > secret_variables.py
+    - env | grep "^COMETA_" | sed -E "s/([A-Z_])=(.*)/\1='\2'/" > backend/secret_variables.py
     # Build Selenoid browsers
     - echo -e "\e[0Ksection_start:`date +%s`:deploy_selenoid\r\e[0KRunning selenoid deployment script"
     - bash backend/selenoid/deploy_selenoid.sh

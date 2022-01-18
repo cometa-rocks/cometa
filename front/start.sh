@@ -115,8 +115,8 @@ function install_openidc(){
 	apt-get install -y autoconf automake libtool
 	apt-get install -y libssl-dev libjansson-dev libcurl4-openssl-dev check
 	apt-get install -y libpcre3-dev zlib1g-dev
-	wget https://mod-auth-openidc.org/download/libcjose0_0.6.1.5-1~bionic+1_amd64.deb
-	wget https://mod-auth-openidc.org/download/libcjose-dev_0.6.1.5-1~bionic+1_amd64.deb
+	wget --no-check-certificate https://mod-auth-openidc.org/download/libcjose0_0.6.1.5-1~bionic+1_amd64.deb
+	wget --no-check-certificate https://mod-auth-openidc.org/download/libcjose-dev_0.6.1.5-1~bionic+1_amd64.deb
 	dpkg -i libcjose0_0.6.1.5-1~bionic+1_amd64.deb
 	dpkg -i libcjose-dev_0.6.1.5-1~bionic+1_amd64.deb
 	cd -
