@@ -54,12 +54,12 @@ function install_essentials(){
 # @params:
 # #########
 function install_angular(){
-	echo -e "\e[37mInstalling @angular/cli...\e[0m"
-	npm install -g @angular/cli >> output.log 2>&1
-	echo -e "\e[32mOK\e[0m"
+	# echo -e "\e[37mInstalling @angular/cli...\e[0m"
+	# npm install -g @angular/cli >> output.log 2>&1
+	# echo -e "\e[32mOK\e[0m"
 	echo -e "\e[37mInstalling npm packages...\e[0m"
-	npm install >> output.log 2>&1
-	sed -i "s/CanvasPathMethods/CanvasPath/g" /code/node_modules/\@types/d3-shape/index.d.ts
+	npm ci >> output.log 2>&1
+	# sed -i "s/CanvasPathMethods/CanvasPath/g" /code/node_modules/\@types/d3-shape/index.d.ts
 	echo -e "\e[32mOK\e[0m"
 }
 
@@ -74,7 +74,7 @@ function build_project(){
 	# get uid and gid of user that owns content outside
 	UIDGID=$(stat -c "%u:%g" /code)
 	echo -e "\e[37mCompiling...\e[0m"
-	ng build -c production >> output.log 2>&1
+	npx ng build -c production >> output.log 2>&1
 	# If building the App went wrong throw error on purpose
 	if [ $? -ne 0 ]; then
 		echo -e "\e[1;31mSomething went wrong while compiling the App, check output.log for more details...\e[0m"
@@ -98,7 +98,7 @@ function build_project(){
 # @params:
 # #########
 function serve_project(){
-	ng serve
+	npx ng serve
 }
 
 # #########

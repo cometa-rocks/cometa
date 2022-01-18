@@ -3,30 +3,8 @@
         "model": "auth.user",
         "pk": 1,
         "fields": {
-            "username": "rroeber",
-            "password": "pbkdf2_sha256$216000$Sx2HHs0mG6h6$2SSA9Er6S7jeY89IoVFHVJUPBSiM+x3mNJiU8cXNkRM=",
-            "is_superuser": true,
-            "is_staff": true,
-            "is_active": true
-        }
-    },
-    { 
-        "model": "auth.user",
-        "pk": 2,
-        "fields": {
-            "username": "alex",
-            "password": "pbkdf2_sha256$216000$Sx2HHs0mG6h6$2SSA9Er6S7jeY89IoVFHVJUPBSiM+x3mNJiU8cXNkRM=",
-            "is_superuser": true,
-            "is_staff": true,
-            "is_active": true
-        }
-    },
-    { 
-        "model": "auth.user",
-        "pk": 3,
-        "fields": {
-            "username": "arslansb",
-            "password": "pbkdf2_sha256$216000$75OUMHFs4bDb$xKWevyZxtnIGKHSVFoR5DfkSWPxGlFKTiJfPbEoTT/w=",
+            "username": "admin",
+            "password": "***REMOVED***",
             "is_superuser": true,
             "is_staff": true,
             "is_active": true
