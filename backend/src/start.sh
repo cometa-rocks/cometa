@@ -73,7 +73,7 @@ poetry install --no-interaction --no-ansi
 # Upgrade PIP
 pip install -U pip
 # Run Django migrations
-python manage.py makemigrations
+python manage.py makemigrations backend
 python manage.py migrate
 
 # if this is the first time initializing co.meta
