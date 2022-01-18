@@ -38,7 +38,7 @@ testem.log
 core*
 
 # npm
-package-lock.json
+# package-lock.json
 report.*
 
 # e2e
