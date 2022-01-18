@@ -1,13 +1,13 @@
 {
   "MicrosoftEdge": {
-    "default": "96.0",
+    "default": "95.0",
     "versions": {
       "95.0": {
         "image": "browsers/edge:95.0",
         "port": "4444",
         "path": "/",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "94.0": {
@@ -15,7 +15,7 @@
         "port": "4444",
         "path": "/",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "93.0": {
@@ -23,7 +23,7 @@
         "port": "4444",
         "path": "/",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "92.0": {
@@ -31,7 +31,7 @@
         "port": "4444",
         "path": "/",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "91.0": {
@@ -39,7 +39,7 @@
         "port": "4444",
         "path": "/",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "90.0": {
@@ -47,7 +47,7 @@
         "port": "4444",
         "path": "/",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "89.0": {
@@ -55,7 +55,7 @@
         "port": "4444",
         "path": "/",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "88.0": {
@@ -63,28 +63,20 @@
         "port": "4444",
         "path": "/",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
-        ]
-      },
-      "96.0": {
-        "image": "browsers/edge:96.0",
-        "port": "4444",
-        "path": "/",
-        "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       }
     }
   },
   "firefox": {
-    "default": "95.0",
+    "default": "94.0",
     "versions": {
       "94.0": {
         "image": "selenoid/vnc_firefox:94.0",
         "port": "4444",
         "path": "/wd/hub",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "93.0": {
@@ -92,7 +84,7 @@
         "port": "4444",
         "path": "/wd/hub",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "92.0": {
@@ -100,7 +92,7 @@
         "port": "4444",
         "path": "/wd/hub",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "91.0": {
@@ -108,7 +100,7 @@
         "port": "4444",
         "path": "/wd/hub",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "90.0": {
@@ -116,7 +108,7 @@
         "port": "4444",
         "path": "/wd/hub",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "89.0": {
@@ -124,7 +116,7 @@
         "port": "4444",
         "path": "/wd/hub",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "88.0": {
@@ -132,7 +124,7 @@
         "port": "4444",
         "path": "/wd/hub",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "87.0": {
@@ -140,15 +132,7 @@
         "port": "4444",
         "path": "/wd/hub",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
-        ]
-      },
-      "95.0": {
-        "image": "selenoid/vnc_firefox:95.0",
-        "port": "4444",
-        "path": "/wd/hub",
-        "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       }
     }
@@ -160,131 +144,124 @@
         "image": "selenoid/vnc_chrome:95.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "94.0": {
         "image": "selenoid/vnc_chrome:94.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "93.0": {
         "image": "selenoid/vnc_chrome:93.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "92.0": {
         "image": "selenoid/vnc_chrome:92.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "91.0": {
         "image": "selenoid/vnc_chrome:91.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "90.0": {
         "image": "selenoid/vnc_chrome:90.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "89.0": {
         "image": "selenoid/vnc_chrome:89.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "88.0": {
         "image": "selenoid/vnc_chrome:88.0-1",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "96.0": {
         "image": "selenoid/vnc_chrome:96.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       }
     }
   },
   "opera": {
-    "default": "82.0",
+    "default": "81.0",
     "versions": {
       "81.0": {
         "image": "selenoid/vnc_opera:81.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "80.0": {
         "image": "selenoid/vnc_opera:80.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "79.0": {
         "image": "selenoid/vnc_opera:79.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "78.0": {
         "image": "selenoid/vnc_opera:78.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "77.0": {
         "image": "selenoid/vnc_opera:77.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "76.0": {
         "image": "selenoid/vnc_opera:76.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "75.0": {
         "image": "selenoid/vnc_opera:75.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       },
       "74.0": {
         "image": "selenoid/vnc_opera:74.0",
         "port": "4444",
         "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
-        ]
-      },
-      "82.0": {
-        "image": "selenoid/vnc_opera:82.0",
-        "port": "4444",
-        "volumes": [
-          "/var/projects/public/cometa/backend/selenoid/amvara.png:/usr/share/images/fluxbox/aerokube.png"
+          "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
         ]
       }
     }
