@@ -120,9 +120,9 @@ deploy:amvara2.stage:
   extends: .amvara2.stage
 
 # create a deploy job for amvara3 for branch prod
-# deploy:amvara3.prod:
-#   <<: *deployment_script
-#   extends: .amvara3.prod
+deploy:amvara3.prod:
+  <<: *deployment_script
+  extends: .amvara3.prod
 
 # create a deploy job for client01 for branch prod
 deploy:client01.int:
