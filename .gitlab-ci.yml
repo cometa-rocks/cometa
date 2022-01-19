@@ -75,7 +75,7 @@ stages:
     # BACKEND
     #########################################################
     # spin up dockers if not started yet
-    - docker-compose up -d db django behave ws selenoid novnc
+    # - docker-compose up -d db django behave ws selenoid novnc
     # save all environment variables that start with COMETA_ to secret_variables.py
     # these variables come from CI/CD variables from gitlab and variables set inside
     # gitlab-ci yaml files.
