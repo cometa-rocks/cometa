@@ -74,6 +74,8 @@ stages:
     #########################################################
     # BACKEND
     #########################################################
+    # spin up dockers if not started yet
+    # - docker-compose up -d db django behave ws selenoid novnc
     # save all environment variables that start with COMETA_ to secret_variables.py
     # these variables come from CI/CD variables from gitlab and variables set inside
     # gitlab-ci yaml files.
@@ -110,7 +112,7 @@ stages:
     # start container or if already started then compile else start from zero
     - echo "Checking if cometa_front is already running else start it..."
     - echo "If there are changes to docker-compose file it will recreate the container..."
-    - docker-compose up -d apache 2>&1 | grep "up-to-date" && docker exec cometa_front bash -c "cd /code/; ./start.sh $script_options" || ( timeout 360 docker-compose logs -f apache || true )
+    - docker-compose up -d apache 2>&1 | grep "up-to-date" && docker exec cometa_front bash -c "cd /code/; ./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
 
 # create a deploy job for amvara2 for branch stage
 deploy:amvara2.stage:
@@ -118,14 +120,14 @@ deploy:amvara2.stage:
   extends: .amvara2.stage
 
 # create a deploy job for amvara3 for branch prod
-# deploy:amvara3.prod:
-#   <<: *deployment_script
-#   extends: .amvara3.prod
+deploy:amvara3.prod:
+  <<: *deployment_script
+  extends: .amvara3.prod
 
 # create a deploy job for client01 for branch prod
-# deploy:client01.int:
-#   <<: *deployment_script
-#   extends: .client01.int
+deploy:client01.int:
+  <<: *deployment_script
+  extends: .client01.int
 
 # create a deploy job for client01 for branch prod
 # deploy:client01.prod:
