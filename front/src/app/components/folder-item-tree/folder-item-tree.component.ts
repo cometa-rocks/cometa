@@ -40,15 +40,18 @@ export class FolderItemTreeComponent implements OnInit {
 
   // NgOnInit
   ngOnInit() {
+
+    // small change as per #3358, check the modification reasoning in redmine
     if (this.folder.folder_id === 0) {
-      this.expanded$ = new BehaviorSubject<boolean>(true);
-    } else {
       this.expanded$ = new BehaviorSubject<boolean>(false);
+    } else {
+      this.expanded$ = new BehaviorSubject<boolean>(true);
     }
     const isFolderInRoute = this._store.selectSnapshot(CustomSelectors.IsFolderInRoute(this.folder));
     if (isFolderInRoute) {
       this.expanded$.next(true);
     }
+    console.log(this.folder);
   }
 
   /**
