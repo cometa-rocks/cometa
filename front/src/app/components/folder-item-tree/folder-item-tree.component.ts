@@ -41,7 +41,7 @@ export class FolderItemTreeComponent implements OnInit {
   // NgOnInit
   ngOnInit() {
 
-    // small change as per #3358, check the modification reasoning in redmine
+    // small change as per #3358,  check the modification reasoning in redmine
     if (this.folder.folder_id === 0) {
       this.expanded$ = new BehaviorSubject<boolean>(false);
     } else {
