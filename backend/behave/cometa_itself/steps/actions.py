@@ -175,7 +175,11 @@ def done( *_args, **_kwargs ):
                         variable_value = str(key['variable_value'])
                         if args[0].text:
                             # Replace in step description for multiline step values
-                            args[0].text = args[0].text.replace(("$%s" % variable_name), returnDecrypted(variable_value))
+                            args[0].text = re.sub(r'\$%s\b' % variable_name, returnDecrypted(variable_value), args[0].text)
+                            # ###
+                            # variable was not being replaced correctly if variable contained another variable name in itself.
+                            # ###
+                            # args[0].text = args[0].text.replace(("$%s" % variable_name), returnDecrypted(variable_value))
                         if re.search(r'\$%s\b' % variable_name, kwargs[parameter]):
                             # Replace in step content
                             kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
