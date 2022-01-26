@@ -7,7 +7,7 @@
 COMETA is a 100% open source software suite for visual and functional regression testing, to help QA Managers, DevOps and Business Owners get rid of repeating manual tests. <a  href="https://cometa.rocks/"><strong>Learn more</strong></a>
 <br>
 <br>
-<a  href="https://t.me/joinchat/bFquCBGPBCAwYWZk">Telegram</a>
+Support: <a  href="https://t.me/joinchat/bFquCBGPBCAwYWZk">Telegram</a>
 ·
 <a href="https://matrix.to/#/!LqMzSzyPqrUFRqNiCt:matrix.org?via=matrix.org">Matrix</a>
 
@@ -72,44 +72,45 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 	python manage.py loaddata defaults/*.json
 	```
 
-5. (optional) Create superuser for the Backend Admin:
+5. (optional) Create superuser for the Backend Admin
 
-Default superuser is created on runtime as `admin:admin`
+	Default superuser is created on runtime as `admin:admin`.
 
-	```bash
+	```
+	bash
 	docker exec -it cometa_django bash
 	root@cometa_django:/opt/code# python manage.py createsuperuser
-	```
+	``` 
 
 6. Run the selenoid setup
 
-`./selenoid/deploy_selenoid.sh`.
+	`./selenoid/deploy_selenoid.sh`.
 
-This will configure and pull the Docker images for Selenoid.
+	This will configure and pull the Docker images for Selenoid.
 
-Selenoid image are the browser that you will be able use and select in cometa. 
+	Selenoid image are the browser that you will be able use and select in cometa. 
 
-Of course there are options to include browserstack, headspin or sourcelabs browsers. But that is a bit something you would not want to configure on your first setup.
+	Of course there are options to include browserstack, headspin or sourcelabs browsers. But that is a bit something you would not want to configure on your first setup.
 
-This step will take some time as all the default browser images are being pulled.
+	This step will take some time as all the default browser images are being pulled.
 
 7. See cometa rocks in your browser
 
-Test server access `curl -k  https://<yourdomain>:<specified port - default 443>/`
+	Test server access `curl -k  https://<yourdomain>:<specified port - default 443>/`
 
-Example `curl -k  https://localhost:8443/`
+	Example `curl -k  https://localhost:8443/`
 
-You should see something like this:
-<p>The document has moved <i>here</i>.</p>
+	You should see something like this:
+	<p>The document has moved <i>here</i>.</p>
 
 
 8. Run your first test
 
-Click on the "+" on the very top. Select Department, Environment and Feature Name
+	Click on the "+" on the very top. Select Department, Environment and Feature Name
 
-And import this JSON to search for "cometa Rocks" on google
+	And import this JSON to search for "cometa Rocks" on google
 
-```[{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"Goto URL \"https://www.google.de/\"","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":false,"step_keyword":"Given","compare":false,"step_content":"Maximize the browser","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"wait until I can see \"google\" on page","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"I move mouse to \"//button[2]\" and click","step_type":"normal","continue_on_failure":true,"timeout":5},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"I move mouse to \"//input\" and click","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"Send keys \"cometa rocks\"","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"Press Enter","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"wait until I can see \"cometa rocks\" on page","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":true,"step_content":"I sleep \"1\" seconds","step_type":"normal","continue_on_failure":false,"timeout":60}]```
+	```[{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"Goto URL \"https://www.google.de/\"","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":false,"step_keyword":"Given","compare":false,"step_content":"Maximize the browser","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"wait until I can see \"google\" on page","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"I move mouse to \"//button[2]\" and click","step_type":"normal","continue_on_failure":true,"timeout":5},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"I move mouse to \"//input\" and click","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"Send keys \"cometa rocks\"","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"Press Enter","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"wait until I can see \"cometa rocks\" on page","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":true,"step_content":"I sleep \"1\" seconds","step_type":"normal","continue_on_failure":false,"timeout":60}]```
 
 
 #### Notes

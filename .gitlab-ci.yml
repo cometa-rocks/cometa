@@ -3,6 +3,7 @@
 # for every installation / server / client
 # ######################################## #
 # Changelog:
+# 2022-01-26 RRO Added GITCLIENTID, GITCLIENTSECRET
 # 2022-01-06 RRO Added gunicorn reload for behave and django
 # ######################################## #
 
@@ -53,6 +54,9 @@ stages:
     # Replace google client information
     - sed -i 's/@@COMETA_GOOGLE_CLIENTID@@/'$COMETA_GOOGLE_CLIENTID'/g' front/apache-conf/metadata/accounts.google.com.client
     - sed -i 's/@@COMETA_GOOGLE_SECRETKEY@@/'$COMETA_GOOGLE_SECRETKEY'/g' front/apache-conf/metadata/accounts.google.com.client
+    # Replace git client secret for access to git.amvara.de
+    - sed -i 's/@@GITCLIENTID@@/'$GITCLIENTID'/g' front/apache-conf/metadata/git.amvara.de.client
+    - sed -i 's/@@GITCLIENTSECRET@@/'$GITCLIENTSECRET'/g' front/apache-conf/metadata/git.amvara.de.client
     # Replace Stripe client keys
     - sed -i 's/@@COMETA_STRIPE_PUBLIC_LIVE_KEY@@/'$COMETA_STRIPE_PUBLIC_LIVE_KEY/'g' front/src/app/deploy-tokens.ts
     - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
@@ -120,9 +124,9 @@ deploy:amvara2.stage:
   extends: .amvara2.stage
 
 # create a deploy job for amvara3 for branch prod
-# deploy:amvara3.prod:
-#   <<: *deployment_script
-#   extends: .amvara3.prod
+deploy:amvara3.prod:
+  <<: *deployment_script
+  extends: .amvara3.prod
 
 # create a deploy job for client01 for branch prod
 deploy:client01.int:
