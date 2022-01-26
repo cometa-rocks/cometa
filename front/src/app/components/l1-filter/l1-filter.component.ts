@@ -73,7 +73,7 @@ export class L1FilterComponent implements OnInit {
     this.moreOrLessSteps.valueChanges.pipe(
       untilDestroyed(this)
     ).subscribe(value => {
-      this._store.dispatch( new Features.SetMoreOrLessSteps(value) );
+      this._store.dispatch(new Features.SetMoreOrLessSteps(value));
     });
     this.openedSearch$.subscribe(value => this.finder = value);
   }
@@ -120,7 +120,9 @@ export class L1FilterComponent implements OnInit {
    * @return sets the current status of the sidenav on mobile
    */
   @Dispatch() toggleSidenav() {
-    const opened = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
+    // get current state of side navbar after clicking toggle arrow icon
+    const opened = this.getSidebarState();
+
     return new Configuration.SetProperty('openedSidenav', !opened);
   }
 
@@ -151,10 +153,10 @@ export class L1FilterComponent implements OnInit {
    * @param filter
    * @return removes a filter
    */
-   @Dispatch()
-   removeSearchFilter() {
-     return new Features.RemoveSearchFilter();
-   }
+  @Dispatch()
+  removeSearchFilter() {
+    return new Features.RemoveSearchFilter();
+  }
 
   // Checks which filter to add and if it's ok then add it
   @Dispatch()
@@ -178,7 +180,7 @@ export class L1FilterComponent implements OnInit {
     }
     // Check if filter requires a value
     if (customFilter.hasOwnProperty('value')) {
-        this.dialogs[id].next(false);
+      this.dialogs[id].next(false);
     }
     this.toggleSearch();
     return new Features.AddFilter(customFilter);
@@ -217,6 +219,11 @@ export class L1FilterComponent implements OnInit {
     return item.feature_id;
   }
 
+  // returns sidebar state boolean  true/false = open/closed
+  getSidebarState() {
+    return this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
+  }
+
   /**
    * If the search bar is closed, opens it and focuses on the search input
    */
@@ -243,10 +250,10 @@ export class L1FilterComponent implements OnInit {
    * @date 11-10-21
    * @lastModification 11-10-21
    */
-   @Dispatch()
-   toggleListType(listType: string) {
-     return new Configuration.SetProperty('co_active_list', listType, true);
-   }
+  @Dispatch()
+  toggleListType(listType: string) {
+    return new Configuration.SetProperty('co_active_list', listType, true);
+  }
 
   /**
    * HotKey event listeners

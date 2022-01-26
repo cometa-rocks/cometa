@@ -27,12 +27,29 @@
     i {
         height: 18px;
         width: 18px;
-        background-image: url(^assets/internal/COM_Menu_Icon_Sidemap.svg);
+        background-image: url(^assets/internal/COM_Menu_Icon_Sidemap_Arrow.svg);
         background-repeat: no-repeat;
         background-position: center;
         background-size: contain;
         display: inline-block;
         vertical-align: middle;
+        
+        // #3358 
+        //setting round border to folder toggle icon
+        border: 1px solid $darker-step;
+        border-radius: 50%;
+
+        //rotate when in mobile mode, reason: sidebar closes automatically when it is displayed in mobile device, so icon must rotate to indicate 'open navbar'
+        @include for-phone-only { transform: rotate(180deg); }
+        
+
+        &.sidebar-closed {
+            transform: rotate(180deg);
+        }
+
+        &:hover {
+            background-color: rgba($blue, .1) !important;
+        }
     }
 }
 
@@ -203,5 +220,5 @@
 
 .toggle-search {
     display: none;
-    transition: display .15s ease-in-out
+    transition: display .15s ease-in-out;
 }
