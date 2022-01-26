@@ -52,10 +52,11 @@
     transition: opacity .15s ease-in-out;
 }
 
+
 .searcher {
     display: block;
     flex: 0 var(--sidenav-width);
-    min-width: var(--sidenav-width);
+    width: 150px;
     border-right: 1px solid $border-color;
     min-height: 45px;
     height: 100%;
@@ -66,7 +67,7 @@
     transform: translateX(-100vw);
     position: absolute;
     @include for-phone-only {
-        width: 85vw;
+        width: 55vw;
         transform: translateX(-100vw);
         z-index: 10;
         margin-left: unset;
@@ -84,6 +85,38 @@
             transform: translateX(-100vw);
         }
     }
+
+    // hide sidebar leaves icons visible
+    /*@include for-phone-only {
+        // when sidebar is open in mobile devices
+        &.opened {
+
+            // adjust folder treen container width
+            .folder-tree {
+                width: 150px;
+                font-size: 0;
+            }
+        }
+    }
+
+    // when sidebar is closed, in any device
+    &.closed {
+
+        // reduce width, untill only icons are visible and hide overflow, so content doesnt overwrite dashboard
+        max-width: 57px;
+        overflow: hidden;
+
+        // remove text from add button and leave only '+' logo
+        .add-from-sidenav {
+            .addIcon {
+                margin-left: 2px;
+                mat-icon {
+                    margin-right: 7px;
+                }
+            }
+        }
+    }*/
+
     .add-from-sidenav {
         display: flex;
         flex-wrap: wrap;
