@@ -56,7 +56,7 @@
 .searcher {
     display: block;
     flex: 0 var(--sidenav-width);
-    width: 150px;
+    width: var(--sidenav-width); // fixed width of 300 px for sidenav by default
     border-right: 1px solid $border-color;
     min-height: 45px;
     height: 100%;
@@ -66,8 +66,9 @@
     box-sizing: border-box;
     transform: translateX(-100vw);
     position: absolute;
+
     @include for-phone-only {
-        width: 55vw;
+        width: 55vw; // sidenav will take approximately 50% of current screen size, only when app is reproduced in small device
         transform: translateX(-100vw);
         z-index: 10;
         margin-left: unset;
