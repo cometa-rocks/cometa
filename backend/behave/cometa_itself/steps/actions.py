@@ -1639,6 +1639,8 @@ def step_impl(context, feature_name):
 @done(u'Run Javascript function')
 def step_impl(context, function):
     js_function = context.text
+    # FIXME ... needs to set the script timeout accordingly to what was selected in cometa - see https://www.selenium.dev/selenium/docs/api/py/webdriver_remote/selenium.webdriver.remote.webdriver.html#selenium.webdriver.remote.webdriver.WebDriver.set_script_timeout
+    # driver.set_script_timeout(30)
     context.browser.execute_script("""
 %s
     """ % js_function)
