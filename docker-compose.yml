@@ -116,8 +116,6 @@ services:
       - ./front/apache-conf/openidc.conf_<server>:/usr/local/apache2/conf/openidc.conf
       - ./front/apache-conf/paths.conf:/usr/local/apache2/conf/paths.conf
       - ./front/apache-conf/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
-      - ./front/apache-conf/apache-self-signed.key:/etc/ssl/certs/apache-self-signed.key
-      - ./front/apache-conf/apache-self-signed.crt:/etc/ssl/certs/apache-self-signed.crt
       - /data/cometa/screenshots:/screenshots
     working_dir: /code
     ports:
