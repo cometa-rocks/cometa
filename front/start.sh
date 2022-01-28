@@ -101,7 +101,7 @@ function check_ssl_certificate() {
 	echo "Generating a new certificate..."
 	# generate a new certificate
 	openssl req -days 365 -nodes -x509 -newkey rsa:4096 -keyout ${PRIVKEY} -out ${CERTFILE} -sha256 -days 365 -subj '/CN=localhost'
-	
+
 	echo -e "\e[32mOK\e[0m"
 }
 
@@ -243,14 +243,15 @@ do
 done
 
 # #########
+# Execute function depending on what is found on cmd
+# #########
+test "${OPENIDC:-FALSE}" == "TRUE" && install_openidc
+
+# #########
 # FIX SSL Certificate
 # #########
 check_ssl_certificate
 
-# #########
-# Execute function depending on what is found on cmd
-# #########
-test "${OPENIDC:-FALSE}" == "TRUE" && install_openidc
 test "${BASIC:-FALSE}" == "TRUE" && install_essentials
 test "${ANGULAR:-FALSE}" == "TRUE" && install_angular
 test "${COMPILE:-FALSE}" == "TRUE" && build_project
