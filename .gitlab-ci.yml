@@ -12,12 +12,11 @@
 include:
   - 'gitlab-ci-yamls/*.yml'
 
-# set GIT_STRATEGY to none to avoid 
 # pulling content accidentally and 
 # losing old changes
 variables:
 #  CI_DEBUG_TRACE: "true" # show verbose information 
-#  GIT_STRATEGY: none
+  GIT_STRATEGY: clone
   COMETA_EMAIL_ENABLED: 'True'
   COMETA_REPLACE_FAVICON_IN: "front/src/index.html front/src/manifest.json front/src/welcome.html"
 
