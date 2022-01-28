@@ -5,9 +5,8 @@ Listen 443
 # Create virtual hosts for 443 just for SSL Certificate
 <VirtualHost *:443>
     SSLEngine on
-    SSLCertificateChainFile /etc/ssl/certs/chain.pem
-    SSLCertificateFile /etc/ssl/certs/cert.pem
-    SSLCertificateKeyFile /etc/ssl/certs/privkey.pem
+    SSLCertificateFile /etc/ssl/certs/apache-self-signed.crt
+    SSLCertificateKeyFile /etc/ssl/certs/apache-self-signed.key
 </VirtualHost>
 
 #error_page  404              /404.html;
