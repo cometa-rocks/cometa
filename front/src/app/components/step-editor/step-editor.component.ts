@@ -128,7 +128,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // Get current step input
     const input = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLInputElement;
     // Get where the first parameter starts and ends
-    const parameterRegex = /(?<=\")\{[a-z\d\-_\s]+\}(?=\")|\{[a-z\d\-_\s]+\}/i;
+    const parameterRegex = /\{[a-z\d\-_\s]+\}/i;
     const match = parameterRegex.exec(step);
     if (match) {
       // Select first parameter
