@@ -5,6 +5,7 @@
 # Ralf Roeber
 #
 # Changelog
+# 01.02.2022 RRO Cleaning up :-)
 # 21.11.2017 Compare.sh fuer besseren  Vergleich von Images angelegt
 # 12.11.2017 PoC Arbeiten abgeschlossen
 #
@@ -1013,39 +1014,6 @@ def step_impl(context):
 def step_impl(context):
     context.browser.refresh()
 
-# # Logins in the system with the desired credentials ... FIXME ... this is legacy, should by MIF unspecific
-# @step(u'Login as "{user}" using password "{password}" and PIN "{pin}"')
-# @done(u'Login as "{user}" using password and PIN')
-# def step_impl_login_as_user(context,user,password,pin):
-#     print("Trying login as user using password ")
-#     MyLogin(context,user,password,pin)
-
-# def MyLogin(context,user,password,pin):
-#     if ( password == '******' ):
-#         mypass = context.pwmiftest4env0
-#     else:
-#         mypass = password
-#     search_box = waitSelector(context, "id", 'USERNAME-FIELD')
-#     search_box.send_keys(user)
-#     search_box = waitSelector(context, "id", 'PASSWORD-FIELD')
-#     search_box.send_keys(mypass)
-#     search_box = waitSelector(context, "id", 'PIN-FIELD')
-#     search_box.send_keys(pin)
-#     search_box.submit()
-#     time.sleep(2)
-#     pageSource = context.browser.page_source
-#     # if intermediate page is seen, then click through to homepage
-#     if ("goHomeID_link" in pageSource):
-#         waitSelector(context, "id", "goHomeID_link").click()
-#     # check if Homepage found
-#     if ( "IBM Cognos content" in pageSource ):
-#         print("Found IBM Cognos Homepage")
-#         try:
-#             elem = waitSelector(context, "css", 'td.welcomeToolHeadingContainer')
-#             elem[0].click()
-#         except:
-#             print("Strange, we seem to be on intermidate page, but click goHomeId_link not possible.")
-
 # Scrolls the page to a given amount of pixels in the Y axis
 @step(u'Scroll to "{amount}"px')
 @done(u'Scroll to "{amount}"px')
@@ -1058,42 +1026,6 @@ def step_iml(context, amount):
 def step_iml(context, amount, selector):
     elements = waitSelector(context, "css", selector)
     context.browser.execute_script("arguments[0].scrollTo(0,%s)" % amount, elements[0])
-
-# Compare images with a desired prefix name
-# @step(u'Compare Images "{fileprefix}"')
-# def step_iml(context, fileprefix):
-#     start_time = time.time()
-#     context.COMPARE_IMAGE = context.SCREENSHOT_PATH + context.SCREENSHOT_FILE
-#     context.STYLE_IMAGE = context.SCREENSHOT_PATH+context.SCREENSHOT_FILE+'_style.png'
-#     context.DIFF_IMAGE = context.SCREENSHOT_PATH+context.SCREENSHOT_FILE+'_diff.png'
-#     if not os.path.isfile(context.STYLE_IMAGE):
-#         shutil.copy2(context.COMPARE_IMAGE, context.STYLE_IMAGE)
-#     try:
-#         compareImage(context)
-#         saveToDatabase('Compare Images with Prefix', time.time() - start_time, 0, True, context)
-#     except Exception as e:
-#         saveToDatabase('Compare Images with Prefix', time.time() - start_time, 0, False, context)
-#         assert(3==5)
-
-# Do a commpare images and saves it
-# @step(u'Compare Images')
-# def step_iml(context):
-#     start_time = time.time()
-#     context.COMPARE_IMAGE = context.SCREENSHOT_PATH + context.SCREENSHOT_FILE
-#     context.STYLE_IMAGE = context.SCREENSHOT_PATH+context.SCREENSHOT_FILE+'_style.png'
-#     context.DIFF_IMAGE = context.SCREENSHOT_PATH+context.SCREENSHOT_FILE+'_diff.png'
-#     if not os.path.isfile(context.STYLE_IMAGE):
-#         shutil.copy2(context.COMPARE_IMAGE, context.STYLE_IMAGE)
-#     try:
-#         compareImage(context)
-#         saveToDatabase('Compare Images ', time.time() - start_time, 0, True, context)
-#     except Exception as e:
-#         saveToDatabase('Compare Images ', time.time() - start_time, 0, False, context)
-#         assert(3==5)
-# """
-#     Check if STYLE IMAGE exists
-#     if not existing, copy actual Screenshot as style
-# """
 
 # Set a value on an element, normally used for inputs
 @step(u'Set value "{text}" on "{selector}"')
