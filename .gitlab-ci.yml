@@ -61,6 +61,7 @@ stages:
     - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
     # Replace co.meta favicon depending on the branch
     - for FILE in ${COMETA_REPLACE_FAVICON_IN}; do sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
+   
 
     #########################################################
     # COPY CODE TO DEPLOY_BACKEND_FOLDER
