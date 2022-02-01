@@ -14,7 +14,7 @@ import { LiveStepsComponent } from '@dialogs/live-steps/live-steps.component';
 import { MoveItemDialog } from '@dialogs/move-feature/move-item.component';
 import { SureRemoveFeatureComponent } from '@dialogs/sure-remove-feature/sure-remove-feature.component';
 import { Dispatch } from '@ngxs-labs/dispatch-decorator';
-import { Store } from '@ngxs/store';
+import { Store, Select } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Features } from '@store/actions/features.actions';
 import { WebSockets } from '@store/actions/results.actions';
@@ -47,6 +47,12 @@ export class SharedActionsService {
     this._store.select(CustomSelectors.RetrieveResultHeaders(false)).subscribe(headers => this.headers$.next(headers));
   }
 
+  // clears localstorage corresponding to searchFilters(see it at ctrl + f11/features/filters)
+  @Dispatch()
+  removeSearchFilter() {
+    return new Features.RemoveSearchFilter();
+  }
+
   dialogActive = false;
   goToFeature(featureId: number) {
     const feature = this._store.selectSnapshot<Feature>(CustomSelectors.GetFeatureInfo(featureId))
@@ -55,6 +61,9 @@ export class SharedActionsService {
       feature.environment_name,
       feature.feature_id
     ]);
+
+    // remove search filter when acceding to any features
+    this.removeSearchFilter();
   }
 
   editSchedule(featureId: number) {
@@ -119,11 +128,11 @@ export class SharedActionsService {
     } else {
       // Check if the feature has at least 1 browser selected, if not, show a warning
       if (feature.browsers.length > 0) {
-        this._store.dispatch( new LoadingActions.SetLoading(featureId, true) )
+        this._store.dispatch(new LoadingActions.SetLoading(featureId, true))
         this._api.runFeature(feature.feature_id, false).pipe(
           filter(json => !!json.success),
-          switchMap(_ => this._store.dispatch( new WebSockets.FeatureTaskQueued(featureId))),
-          finalize(() => this._store.dispatch( new LoadingActions.SetLoading(featureId, false) ))
+          switchMap(_ => this._store.dispatch(new WebSockets.FeatureTaskQueued(featureId))),
+          finalize(() => this._store.dispatch(new LoadingActions.SetLoading(featureId, false)))
         ).subscribe(_ => {
           this._snackBar.open(`Feature ${feature.feature_name} is running...`, 'OK');
           // Make view live steps popup optional
@@ -149,7 +158,7 @@ export class SharedActionsService {
       // Get data of feature and steps
       this._api.getFeatureSteps(featureId, { loading: 'translate:tooltips.loading_feature' }).subscribe(steps => {
         // Save steps into NGXS Store
-        this._store.dispatch( new StepDefinitions.SetStepsForFeature(mode === 'clone' ? 0 : featureId, steps) );
+        this._store.dispatch(new StepDefinitions.SetStepsForFeature(mode === 'clone' ? 0 : featureId, steps));
         // Open Edit Feature
         this._dialog.open(EditFeature, {
           disableClose: true,
@@ -204,7 +213,7 @@ export class SharedActionsService {
   sequentialStoreDispatch(actions: any[]) {
     return from(actions).pipe(
       // Convert each action to Store Action
-      concatMap(action => this._store.dispatch( action )),
+      concatMap(action => this._store.dispatch(action)),
       // Merge all actions
       toArray()
     )
