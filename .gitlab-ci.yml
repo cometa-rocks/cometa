@@ -12,12 +12,11 @@
 include:
   - 'gitlab-ci-yamls/*.yml'
 
-# set GIT_STRATEGY to none to avoid 
 # pulling content accidentally and 
 # losing old changes
 variables:
 #  CI_DEBUG_TRACE: "true" # show verbose information 
-#  GIT_STRATEGY: none
+  GIT_STRATEGY: clone
   COMETA_EMAIL_ENABLED: 'True'
   COMETA_REPLACE_FAVICON_IN: "front/src/index.html front/src/manifest.json front/src/welcome.html"
 
@@ -62,6 +61,7 @@ stages:
     - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
     # Replace co.meta favicon depending on the branch
     - for FILE in ${COMETA_REPLACE_FAVICON_IN}; do sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
+   
 
     #########################################################
     # COPY CODE TO DEPLOY_BACKEND_FOLDER
@@ -102,12 +102,17 @@ stages:
     - echo -e "\e[0Ksection_start:`date +%s`:parse_browsers\r\e[0KParsing selenoid browsers to update database"
     - docker exec cometa_django bash -c "curl http://localhost:8000/parseBrowsers/ --silent --retry 5 --retry-delay 5"
     - echo -e "\e[0Ksection_end:`date +%s`:parse_browsers\r\e[0K"
+
     # Reload project files in gunicorn
     - echo -e "\e[0Ksection_start:`date +%s`:reloading_gunicorn\r\e[0KPreparing to reload project in gunicorn"
+    # stop frontend here before restarting gunicors to avoid segmentation fault
+    - docker exec cometa_front httpd -k stop || true # if cometa_front is not running yet
     - echo -e "Now reloading gunicorn for django"
     - docker exec cometa_django fuser -k -HUP 8000/tcp
     - echo -e "Now reloading gunicorn for behave"
     - docker exec cometa_behave fuser -k -HUP 8001/tcp
+    # start frontend here
+    - docker exec cometa_front httpd -k start || true # if cometa_front is not running yet
     - echo -e "\e[0Ksection_end:`date +%s`:reloading_gunicorn\r\e[0K"
 
     #########################################################

@@ -34,18 +34,10 @@ function install_essentials(){
 	echo -e "\e[37mInstalling some useful packages...\e[0m"
 	apt-get install -y vim nano git curl gnupg2 >> output.log 2>&1
 	echo -e "\e[32mOK\e[0m"
+
 	echo -e "\e[37mInstalling NodeJS & NPM...\e[0m"
-	if [[ "$USEPROXY" == "TRUE" ]]; then
-		echo "proxy = 192.168.200.200:53128" > ~/.curlrc
-	fi
 	curl -sL https://deb.nodesource.com/setup_14.x | bash - >> output.log 2>&1
 	apt-get install -y nodejs >> output.log 2>&1
-	if [[ "$USEPROXY" == "TRUE" ]]; then
-		npm config set strict-ssl false
-		npm config set registry "http://registry.npmjs.org/"
-		npm config set proxy http://192.168.200.200:53128
-		npm config set https-proxy http://192.168.200.200:53128
-	fi
 	echo -e "\e[32mOK\e[0m"
 }
 
@@ -60,6 +52,56 @@ function install_angular(){
 	echo -e "\e[37mInstalling npm packages...\e[0m"
 	npm ci >> output.log 2>&1
 	# sed -i "s/CanvasPathMethods/CanvasPath/g" /code/node_modules/\@types/d3-shape/index.d.ts
+	echo -e "\e[32mOK\e[0m"
+}
+
+# #########
+# This function checks if self signed SSL certificate exists
+# and it is not expired if so or missing it will create one
+# @params:
+# #########
+function check_ssl_certificate() {
+
+	echo -e "\e[37mChecking SSL certificate...\e[0m"
+
+	# set cert file
+	CERTFILE="/etc/ssl/certs/apache-self-signed.crt"
+	# set privkey file
+	PRIVKEY="/etc/ssl/certs/apache-self-signed.key"
+
+	# check if all three files exist
+	test ! -f ${CERTFILE} && CREATE_NEW=TRUE
+	test ! -f ${PRIVKEY} && CREATE_NEW=TRUE
+	
+	# check if we need to create a new SSL certificate
+	if [[ "${CREATE_NEW:-FALSE}" == "FALSE" ]]; then
+		echo "SSL certificate exists ... checking expiration date"
+
+		# check the expiration date for the cert file
+		EXPIRATION_DATE_CERT=`date --date="$(openssl x509 -enddate -noout -in $CERTFILE |cut -d= -f 2)" +"%s"`
+		# get current date
+		CURRENT_DATE=`date +"%s"`
+		# date difference between two dates
+		DIFFERENCE_BETWEEN=$(($EXPIRATION_DATE_CERT-$CURRENT_DATE))
+
+		echo "SSL certificate expires on:" $(date -d @${EXPIRATION_DATE_CERT} +"%Y-%m-%d")
+
+		# number of days difference before considering it exipired
+		DAYS_DIFFERENCE="10"
+		# days difference in seconds
+		DAYS_DIFFERENCE_SECONDS=$(($DAYS_DIFFERENCE*24*60*60))
+		# check if certificate is valid
+		if [[ $DIFFERENCE_BETWEEN -gt $DAYS_DIFFERENCE_SECONDS ]]; then
+			echo "SSL Certificate is valid ... meaning it's not expiring in ${DAYS_DIFFERENCE} days."
+			# do nothing certificate is valid
+			return
+		fi
+	fi
+
+	echo "Generating a new certificate..."
+	# generate a new certificate
+	openssl req -days 365 -nodes -x509 -newkey rsa:4096 -keyout ${PRIVKEY} -out ${CERTFILE} -sha256 -days 365 -subj '/CN=localhost'
+
 	echo -e "\e[32mOK\e[0m"
 }
 
@@ -204,6 +246,12 @@ done
 # Execute function depending on what is found on cmd
 # #########
 test "${OPENIDC:-FALSE}" == "TRUE" && install_openidc
+
+# #########
+# FIX SSL Certificate
+# #########
+check_ssl_certificate
+
 test "${BASIC:-FALSE}" == "TRUE" && install_essentials
 test "${ANGULAR:-FALSE}" == "TRUE" && install_angular
 test "${COMPILE:-FALSE}" == "TRUE" && build_project
@@ -214,7 +262,7 @@ echo -e "\e[32mSuccessful\e[0m"
 
 if [[ "${NORESTART:-FALSE}" == "FALSE" ]]; then
 	# #########################################
-	# Start apache server
+	# Restart apache server
 	# #########################################
 	httpd -k restart
 
