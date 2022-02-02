@@ -8,8 +8,6 @@ COMETA is a 100% open source software suite for visual and functional regression
 <br>
 <br>
 Support: <a  href="https://t.me/joinchat/bFquCBGPBCAwYWZk">Telegram</a>
-·
-<a href="https://matrix.to/#/!LqMzSzyPqrUFRqNiCt:matrix.org?via=matrix.org">Matrix</a>
 
 </p>
 
@@ -156,10 +154,10 @@ That's all, easy peasy.
 
 ## License
 
-Copyright 2021 COMETA ROCKS S.L.
+Copyright 2022 COMETA ROCKS S.L.
 
 Portions of this software are licensed as follows:
 
-* All content that resides under "ee/" directory of this repository (Enterprise Edition) is licensed under the license defined in "ee/LICENSE".
+* All content that resides under "ee/" directory of this repository (Enterprise Edition) is licensed under the license defined in "ee/LICENSE". (Work in porgress)
 * All third party components incorporated into the cometa.rocks Software are licensed under the original license provided by the owner of the applicable component.
 * Content outside of the above mentioned directories or restrictions above is available under the "AGPLv3" license as defined in `LICENSE` file.
