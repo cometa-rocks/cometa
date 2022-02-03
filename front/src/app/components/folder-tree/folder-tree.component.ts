@@ -27,15 +27,21 @@ export class FolderTreeComponent implements OnInit {
   @Select(CustomSelectors.GetConfigProperty('co_active_list')) activeList$: Observable<string>; // Checks if the recent list is active
   @Select(FeaturesState.GetCurrentRouteNew) route$: Observable<ReturnType<typeof FeaturesState.GetCurrentRouteNew>>; // Get the current route
 
-  /**
-   * Global variables
-   */
+  // Global variables
   folders$: Observable<Folder[]>;
 
-  // NgOnInit
   ngOnInit() {
     this.folders$ = this._store.select<Folder[]>(CustomSelectors.GetDepartmentFolders()); // Get the list of departments available to the user
     this.activeList$.subscribe(value => localStorage.setItem('co_active_list', value)); // Initialize the recentList_active variable in the local storage
+
+    // as soon as the view is loaded, get the route of the folder that was selected last
+    // the last selected folder route is saved in localstorage from store/actions/features.state.ts in a function called setFolderRoute
+    // it is actualized ever time any folder is clicked
+    const last_selected_folder = JSON.parse(localStorage.getItem('co_last_selected_folder_route'));
+
+    // dispach recieved route to features state manager to adapt the path of the currently selected folder accordingly
+    // this will load the same folder path that user was working on, before reloading browser window
+    this._store.dispatch(new Features.SetFolderRoute(last_selected_folder));
   }
 
   /**
