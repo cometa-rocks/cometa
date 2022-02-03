@@ -179,7 +179,7 @@ export class FeaturesState {
    * @lastModification 14-10-21
    */
   @Action(Features.RemoveSearchFilter)
-  removeSearchFilter({ setState }: StateContext<IFeaturesState>, {  }: Features.RemoveSearchFilter) {
+  removeSearchFilter({ setState }: StateContext<IFeaturesState>, { }: Features.RemoveSearchFilter) {
     setState(
       produce((ctx: IFeaturesState) => {
         const filters = [];
@@ -254,7 +254,7 @@ export class FeaturesState {
         ctx.currentRoute.push(folder);
       })
     );
-    dispatch( new Paginations.ResetPagination(['search_with_depends', 'search_without_depends']) );
+    dispatch(new Paginations.ResetPagination(['search_with_depends', 'search_without_depends']));
   }
 
   /**
@@ -264,16 +264,16 @@ export class FeaturesState {
   newAddFolderRoute({ setState, dispatch }: StateContext<IFeaturesState>, { folder }: Features.NewAddFolderRoute) {
     setState(
       produce((ctx: IFeaturesState) => {
-          let departmentsList = this._store.select<Folder[]>(CustomSelectors.GetDepartmentFolders()); // Get the list of existing departments
-          let department;
-          // Adds the department variable
-          departmentsList.subscribe(val => department = val.filter(department => department.department == folder.department));
-          if (ctx.currentRouteNew.length == 0) {
-            // Pushes the department folder when the current route length is 0, meaning the user is at root directory
-            ctx.currentRouteNew.push(department[0]);
-          }
-          // Pushes the folder to the current route new state
-          ctx.currentRouteNew.push(folder);
+        let departmentsList = this._store.select<Folder[]>(CustomSelectors.GetDepartmentFolders()); // Get the list of existing departments
+        let department;
+        // Adds the department variable
+        departmentsList.subscribe(val => department = val.filter(department => department.department == folder.department));
+        if (ctx.currentRouteNew.length == 0) {
+          // Pushes the department folder when the current route length is 0, meaning the user is at root directory
+          ctx.currentRouteNew.push(department[0]);
+        }
+        // Pushes the folder to the current route new state
+        ctx.currentRouteNew.push(folder);
       })
     );
   }
@@ -304,9 +304,9 @@ export class FeaturesState {
         let department;
         let path;
         // Check if the department path already exists, if not add it
-        if (!folder[0].type) {
+        if (!folder[0]?.type) {
           // Adds the department variable
-          departmentsList.subscribe(val => department = val.filter(department => department.department == folder[0].department));
+          departmentsList.subscribe(val => department = val.filter(department => department.department == folder[0]?.department));
           // Empties the folder array to save space
           department.folders = [];
           // Adds the department to the first position of the folder array
@@ -320,13 +320,18 @@ export class FeaturesState {
         ctx.currentRouteNew = path || []; // Set the new current route
       })
     );
+
+    // #3399 ----------------------------------------------------------------------------start
+    // save the last selected folder's path in localstorage in order to maintain it on reload, on view destory, etc...
+    this.saveLastFolderPath(folder);
+    // #3399 ------------------------------------------------------------------------------en
   }
 
   @Action(Features.ReturnToFolderRoute)
   returnToFolderRoute({ patchState, getState, dispatch }: StateContext<IFeaturesState>, { folderId }: Features.ReturnToFolderRoute) {
     // Removing a folder from the folders array makes no sense,
     // therefore is preferable to return to a previous folder name and remove the subsequent folders
-    let currentRoute = [ ...getState().currentRoute ];
+    let currentRoute = [...getState().currentRoute];
     // Check folder id
     if (folderId) {
       const indexOfName = currentRoute.findIndex(route => route.folder_id === folderId);
@@ -339,14 +344,14 @@ export class FeaturesState {
     patchState({
       currentRoute: [...currentRoute]
     });
-    dispatch( new Paginations.ResetPagination(['search_with_depends', 'search_without_depends']) );
+    dispatch(new Paginations.ResetPagination(['search_with_depends', 'search_without_depends']));
   }
 
   @Action(Features.ReturnToFolderRoute)
   newReturnToFolderRoute({ patchState, getState, dispatch }: StateContext<IFeaturesState>, { folderId }: Features.ReturnToFolderRoute) {
     // Removing a folder from the folders array makes no sense,
     // therefore is preferable to return to a previous folder name and remove the subsequent folders
-    let currentRouteNew = [ ...getState().currentRouteNew ];
+    let currentRouteNew = [...getState().currentRouteNew];
     // Check folder id
     if (folderId) {
       const indexOfName = currentRouteNew.findIndex(route => route.folder_id === folderId);
@@ -359,7 +364,13 @@ export class FeaturesState {
     patchState({
       currentRouteNew: [...currentRouteNew]
     });
-    dispatch( new Paginations.ResetPagination(['search_with_depends', 'search_without_depends']) );
+
+    // #3399 ----------------------------------------------------------------------------start
+    // save the last selected folder's path in localstorage in order to maintain it on reload, on view destory, etc...
+    this.saveLastFolderPath(currentRouteNew);
+    // #3399 ------------------------------------------------------------------------------en
+
+    dispatch(new Paginations.ResetPagination(['search_with_depends', 'search_without_depends']));
   }
 
   @Action(Features.SetDepartmentFilter)
@@ -449,6 +460,14 @@ export class FeaturesState {
   saveFilters(filters: Filter[]) {
     localStorage.setItem('filters', JSON.stringify(filters));
   }
+
+  // #3399 ------------------------------start
+  saveLastFolderPath(folders: Partial<Folder>[]) {
+    // save the last selected folder's path in localstorage in order to maintain it on reload, on view destory, etc...
+    // this instance of localstorage is used in folder-tree.component.ts in ngOnInit().  
+    localStorage.setItem('co_last_selected_folder_route', JSON.stringify(folders));
+  }
+  // #3399 --------------------------------end
 
   @Selector()
   @ImmutableSelector()
@@ -541,18 +560,18 @@ export class FeaturesState {
           // Filter features by name
           features = features.filter(feature => details[feature].feature_name.toLowerCase().includes(filter.value.toString().toLowerCase()));
           break;
-          case 'steps':
-          case 'ok':
-          case 'fails':
-          case 'skipped':
-          case 'execution_time':
-          case 'pixel_diff':
-            // Filter features by given "greater, equal or smaller than" filters
-            features = this.computeEvaluation(filter.id, features, details, filter.value, filter.more);
-            break;
-          case 'help':
-            // Filter by "Asking for Help"
-            features = features.filter(id => details[id]?.need_help)
+        case 'steps':
+        case 'ok':
+        case 'fails':
+        case 'skipped':
+        case 'execution_time':
+        case 'pixel_diff':
+          // Filter features by given "greater, equal or smaller than" filters
+          features = this.computeEvaluation(filter.id, features, details, filter.value, filter.more);
+          break;
+        case 'help':
+          // Filter by "Asking for Help"
+          features = features.filter(id => details[id]?.need_help)
       }
     });
     return features;
@@ -610,9 +629,9 @@ export class FeaturesState {
         let search = state.filters; // Get the currently existing filters
         // If there are no filters, get the features and folders from the current directory
         if (search.length == 0) {
-        // Get the data in the current directory
-        folders = this.getCurrentDirectoryData(state, folders);
-        // If there is any filter, filter the folders and features by it
+          // Get the data in the current directory
+          folders = this.getCurrentDirectoryData(state, folders);
+          // If there is any filter, filter the folders and features by it
         } else {
           // Process resulting features with selected filters
           folders = this.newProcessFilters(state, search, folders);
@@ -637,14 +656,14 @@ export class FeaturesState {
    * @date 04-10-21
    * @lastModification 08-10-21
    */
-   static getRecentFeatures(state: IFeaturesState, user_id: number): FoldersResponse {
+  static getRecentFeatures(state: IFeaturesState, user_id: number): FoldersResponse {
     let features: Feature[] = Object.values(JSON.parse(JSON.stringify(state.details))); // Get all the features
     // Filter the data rows by the modification user id, removing the rows that are not equal to the current user's id
     features = features.filter(val => val.last_edited?.user_id === user_id);
     // Sorts the features by modification date
-    let sorted: any = features.sort(function(a: any, b: any) { return (b.last_edited_date < a.last_edited_date) ? -1 : 1});
+    let sorted: any = features.sort(function (a: any, b: any) { return (b.last_edited_date < a.last_edited_date) ? -1 : 1 });
     sorted = (sorted.length > 10) ? sorted.slice(0, 10) : sorted; // Limit the results to 10 rows
-    let result = {folders: [], features: sorted};
+    let result = { folders: [], features: sorted };
     result.features = sorted.map(val => val.feature_id); // Store only the id of each feature
     return result;
   }

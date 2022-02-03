@@ -143,8 +143,8 @@ export class FolderItemTreeComponent implements OnInit {
 
     // console currently clicked folder and its state(opened/closed)
     // behaves as desired
-    console.log(this.folder);
-    console.log(this.expanded$.getValue());
+    // console.log(this.folder);
+    // console.log(this.expanded$.getValue());
 
     // modify existing folder state, or add new instance of folder with its state
     this.folderState[this.folder.name] = {
