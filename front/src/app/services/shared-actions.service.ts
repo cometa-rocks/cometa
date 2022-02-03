@@ -14,7 +14,7 @@ import { LiveStepsComponent } from '@dialogs/live-steps/live-steps.component';
 import { MoveItemDialog } from '@dialogs/move-feature/move-item.component';
 import { SureRemoveFeatureComponent } from '@dialogs/sure-remove-feature/sure-remove-feature.component';
 import { Dispatch } from '@ngxs-labs/dispatch-decorator';
-import { Store, Select } from '@ngxs/store';
+import { Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Features } from '@store/actions/features.actions';
 import { WebSockets } from '@store/actions/results.actions';
@@ -47,11 +47,14 @@ export class SharedActionsService {
     this._store.select(CustomSelectors.RetrieveResultHeaders(false)).subscribe(headers => this.headers$.next(headers));
   }
 
+  // #3397 -----------------------------------start
   // clears localstorage corresponding to searchFilters(see it at ctrl + f11/features/filters)
   @Dispatch()
   removeSearchFilter() {
     return new Features.RemoveSearchFilter();
   }
+  // #3397 ------------------------------------end
+
 
   dialogActive = false;
   goToFeature(featureId: number) {
@@ -62,8 +65,10 @@ export class SharedActionsService {
       feature.feature_id
     ]);
 
+    // #3397 -----------------------------------start
     // remove search filter when acceding to any features
     this.removeSearchFilter();
+    // #3397 -------------------------------------end
   }
 
   editSchedule(featureId: number) {
