@@ -56,23 +56,23 @@ export class UserComponent implements OnInit {
     this.tours$ = this.settings$.pipe(
       map(settings => {
         return Object.entries(this._tours)
-              // Remove injected services
-              .filter(entry => !entry[0].startsWith('_'))
-              // Map to value
-              .map(entry => entry[1])
-              // Add custom properties
-              .map((tour: Tour) => {
-                let completed
-                try {
-                  completed = settings.tours_completed[tour.id] >= tour.version
-                } catch (err) {
-                  completed = false
-                }
-                return {
-                    ...tour,
-                    completed: completed
-                }
-              })
+          // Remove injected services
+          .filter(entry => !entry[0].startsWith('_'))
+          // Map to value
+          .map(entry => entry[1])
+          // Add custom properties
+          .map((tour: Tour) => {
+            let completed
+            try {
+              completed = settings.tours_completed[tour.id] >= tour.version
+            } catch (err) {
+              completed = false
+            }
+            return {
+              ...tour,
+              completed: completed
+            }
+          })
       })
     )
   }
@@ -93,7 +93,7 @@ export class UserComponent implements OnInit {
       this._api.deleteIntegration(id),
       'Deleting integration'
     ).subscribe({
-      next: () => this._store.dispatch( new Integrations.RemoveOne(id) ),
+      next: () => this._store.dispatch(new Integrations.RemoveOne(id)),
       error: () => this._snack.open('An error ocurred', 'OK')
     })
   }
@@ -154,7 +154,13 @@ export class UserComponent implements OnInit {
     let routerConfig = this._router.config;
     // Toggles all the home redirects to /new or /search
     routerConfig[0].redirectTo = event.checked ? 'new' : 'search';
+
     return [
+      // save modified account settings ---------------
+      // add new property called useNewDashboard with a boolean value to user account settings, and save it to backend
+      // event.checked returns true if newDashboard is selected as default
+      new User.SetSetting({ useNewDashboard: event.checked }),
+
       new Configuration.SetProperty('useNewDashboard', event.checked, true)
     ]
   }
@@ -166,9 +172,9 @@ export class UserComponent implements OnInit {
       // Add exception if for Budgets
       if (prop === 'enable_budget' && ev.checked) {
         return new User.SetSetting({
-            budget: this._store.selectSnapshot(UserState.RetrieveSettings).budget || 0,
-            enable_budget: ev.checked,
-            budget_schedule_behavior: this._store.selectSnapshot(UserState.RetrieveSettings).budget_schedule_behavior || 'prevent'
+          budget: this._store.selectSnapshot(UserState.RetrieveSettings).budget || 0,
+          enable_budget: ev.checked,
+          budget_schedule_behavior: this._store.selectSnapshot(UserState.RetrieveSettings).budget_schedule_behavior || 'prevent'
         })
       }
       // Handle as checkbox
