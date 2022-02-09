@@ -9,7 +9,7 @@
  */
 
 import { animate, query, stagger, state, style, transition, trigger } from '@angular/animations';
-import { ChangeDetectionStrategy, Component, OnInit, Renderer2 } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { Store, Select } from '@ngxs/store';
 import { FeaturesState } from '@store/features.state';
@@ -24,6 +24,7 @@ import { Configuration } from '@store/actions/config.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { Observable } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
 @UntilDestroy()
 @Component({
@@ -60,7 +61,8 @@ export class L1LandingComponent implements OnInit {
   constructor(
     private _dialog: MatDialog,
     private _store: Store,
-    public _sharedActions: SharedActionsService
+    public _sharedActions: SharedActionsService,
+    private activatedRoute: ActivatedRoute
     ) {
     const filtersStorage = localStorage.getItem('filters');
     if (!!filtersStorage) {
@@ -88,6 +90,7 @@ export class L1LandingComponent implements OnInit {
   // Checks if the user has an active subscription
   @ViewSelectSnapshot(UserState.HasOneActiveSubscription) hasSubscription: boolean;
 
+
   // Global variables
   minADate = new FormControl('', Validators.required);
   maxADate = new FormControl('', Validators.required);
@@ -97,6 +100,9 @@ export class L1LandingComponent implements OnInit {
   sidenavClosed = false;
 
   ngOnInit() {
+    // check if there are folder ids in url params, if so redirect to that folder
+    this.redirect_with_url_params(); 
+
     this.moreOrLessSteps.valueChanges.pipe(
       untilDestroyed(this)
     ).subscribe(value => {
@@ -156,4 +162,48 @@ export class L1LandingComponent implements OnInit {
   SAopenCreateFeature() {
     this._sharedActions.openEditFeature();
   }
+
+
+  redirect_with_url_params() {
+    // get url params - which contains a path created with folder ids, like 2:13:15 for example
+    let folderIdRoute = this.activatedRoute.snapshot.paramMap.get('breadcrumb');
+
+    // if there are folder ids in browser path
+    if(folderIdRoute) {
+      // remove first ':' from url params
+      folderIdRoute = folderIdRoute.indexOf(":") == 0 ? folderIdRoute.slice(1) : folderIdRoute;
+
+      // split the url string to get array or folder ids base on ':'
+      const folderIDS = folderIdRoute.split(":");
+
+      // removes the first item from array, which is departmentId and saves it in variable, not neccessary for now
+      // const departmentId = folderIDS.shift();
+
+      // removes the first item from array, which is departmentId
+      folderIDS.shift();
+
+      let currentRoute = [];
+
+      // get folders from state
+      let folders = this._store.snapshot().features.folders.folders;
+
+      // filter folders with the first id of params
+      let folder = folders.filter(folder => folder.folder_id == folderIDS[0]);
+
+      // array.prototype.filter returns an array, but we need to push an object in currentRoutes, so the final resut is array of objects, not array of arrays
+      // thats why we dont push folder array itself, but first and only item it has
+      currentRoute.push(folder[0]);
+
+      // search recursively ids that are recieved from url params, search startpoint is the first folder
+      // the next filter is always performed on previus filter result (recursive filtering)
+      for(let i = 1; i<folderIDS.length; i++ ) {
+        folder = folder[0].folders.filter(folder => folder.folder_id == folderIDS[i]);
+        currentRoute.push(folder[0]);
+      }
+
+      // save the final folder path in localstorage
+      localStorage.setItem('co_last_selected_folder_route', JSON.stringify(currentRoute));
+    }
+  }
 }
+

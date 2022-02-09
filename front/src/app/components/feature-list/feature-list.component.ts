@@ -7,12 +7,10 @@
  */
 
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Select, Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { FeatureFilledInfo } from '@pipes/fill-feature-info.pipe';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { Configuration } from '@store/actions/config.actions';
 import { Observable } from 'rxjs';
 
 @Component({

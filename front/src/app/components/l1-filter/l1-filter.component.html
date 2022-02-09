@@ -7,7 +7,7 @@ Author: dph000
 -->
 <div class="upper-container">
   <div (click)="toggleSidenav()" class="showFolders" matTooltip="Show+Hide Folders" [class.toggle-search]="openedSearch$ | async">
-      <i></i>
+      <i [class.sidebar-closed]="getSidebarState()"></i>
   </div>
   <div class="return-search" [class.toggle-search]="!(openedSearch$ | async)" (click)="close_search()">
     <mat-icon>keyboard_backspace</mat-icon>
