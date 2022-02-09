@@ -10,7 +10,7 @@
  */
 
 import { ChangeDetectionStrategy, Component, HostListener, Input, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Select, Store } from '@ngxs/store';
@@ -18,10 +18,7 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
-import { ApplicationsState } from '@store/applications.state';
-import { EnvironmentsState } from '@store/environments.state';
 import { FeaturesState } from '@store/features.state';
-import { UserState } from '@store/user.state';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 @UntilDestroy()
