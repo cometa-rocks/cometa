@@ -12,6 +12,7 @@ import { animate, query, stagger, state, style, transition, trigger } from '@ang
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { Store, Select } from '@ngxs/store';
+import { Router } from '@angular/router';
 import { FeaturesState } from '@store/features.state';
 import { MatDialog } from '@angular/material/dialog';
 import { Dispatch } from '@ngxs-labs/dispatch-decorator';
@@ -59,11 +60,12 @@ import { ActivatedRoute } from '@angular/router';
 export class L1LandingComponent implements OnInit {
 
   constructor(
+    private _router: Router,
     private _dialog: MatDialog,
     private _store: Store,
     public _sharedActions: SharedActionsService,
     private activatedRoute: ActivatedRoute
-    ) {
+  ) {
     const filtersStorage = localStorage.getItem('filters');
     if (!!filtersStorage) {
       try {
@@ -71,6 +73,8 @@ export class L1LandingComponent implements OnInit {
         this._store.dispatch(new Features.SetFilters(parsedFilters));
       } catch (err) { }
     }
+
+    this._router.routeReuseStrategy.shouldReuseRoute = () => false;
   }
 
   // Contains all the features and folders data
