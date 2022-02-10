@@ -100,8 +100,10 @@ export class L1LandingComponent implements OnInit {
   sidenavClosed = false;
 
   ngOnInit() {
+    // #3414 -------------------------------------------------start
     // check if there are folder ids in url params, if so redirect to that folder
     this.redirect_with_url_params(); 
+    // #3414 --------------------------------------------------end
 
     this.moreOrLessSteps.valueChanges.pipe(
       untilDestroyed(this)
@@ -164,6 +166,8 @@ export class L1LandingComponent implements OnInit {
   }
 
 
+  // #3414 -----------------------------------------------------------------------------------------start
+  // generates a folder path with folder ids retrieved from url and redirect to there to show content
   redirect_with_url_params() {
     // get url params - which contains a path created with folder ids, like 2:13:15 for example
     let folderIdRoute = this.activatedRoute.snapshot.paramMap.get('breadcrumb');
@@ -205,5 +209,6 @@ export class L1LandingComponent implements OnInit {
       localStorage.setItem('co_last_selected_folder_route', JSON.stringify(currentRoute));
     }
   }
+  // #3414 ------------------------------------------------------------------------------------------end
 }
 

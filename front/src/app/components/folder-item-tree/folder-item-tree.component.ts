@@ -6,9 +6,9 @@
  * @author: dph000
  */
 import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
-import { Location } from '@angular/common';
 import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Select, Store } from '@ngxs/store';
+import { SharedActionsService } from '@services/shared-actions.service';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
@@ -26,7 +26,7 @@ export class FolderItemTreeComponent implements OnInit {
   // stores state for each folder in hierarchy
   folderState = {};
 
-  constructor(private _store: Store, private location: Location) {
+  constructor(private _store: Store, public _sharedActions: SharedActionsService,) {
     // get folder hierarchy state from localstorage, in case it is users first time entering, default department´s state will be set to false(closed)
     // if localstorage is empty, then set default values
     this.folderState =
@@ -116,16 +116,8 @@ export class FolderItemTreeComponent implements OnInit {
     };
 
     // #3414 -------------------------------------------------start
-    // folder url base
-    let folderUrl = "/new/";
-
-    // concat folder names to create path to clicked folder
-    this.parent.forEach(folder => {
-      folderUrl += `:${folder.folder_id}`;
-    })
-
-    // change url without redirection
-    this.location.go(folderUrl);
+    // change browser url, add folder ids as params
+    this._sharedActions.set_url_folder_params(this.parent);
     // #3414 ---------------------------------------------------end
 
     // refresh localstorage, so the next time this component view is rendered, it behaves correctly
