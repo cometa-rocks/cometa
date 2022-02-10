@@ -261,7 +261,12 @@ export class L1FilterComponent implements OnInit {
     return new Configuration.SetProperty('co_active_list', listType, true);
   }
 
-  // Hotkey Shift-Alt-f ... opens the finder ------------------------------- new
+  /**
+   * HotKey event listeners
+   */
+
+   // #3420 ------------------------------------------------ start
+  // Hotkey Shift-Alt-f ... opens the finder
   @HostListener('document:keydown.Shift.Alt.f', ['$event'])
   hotkey_shift_alt_f(event: KeyboardEvent) {
 
@@ -273,6 +278,7 @@ export class L1FilterComponent implements OnInit {
     // open searchbar
     this.open_search();
   }
+  // #3420 -------------------------------------------------- end
 
   // Hotkey Shift-Alt-h ... goes to root-Folder
   @HostListener('document:keydown.Shift.Alt.h', ['$event'])
