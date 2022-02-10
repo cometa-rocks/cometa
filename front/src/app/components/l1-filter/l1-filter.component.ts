@@ -19,6 +19,7 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
+import { Console } from 'console';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 @UntilDestroy()
@@ -104,9 +105,17 @@ export class L1FilterComponent implements OnInit {
    * @param folder
    * @returns id of the clicked folder
    */
-  @Dispatch()
   returnFolder(folder: Partial<Folder>) {
-    return new Features.ReturnToFolderRoute(folder.folder_id);
+    // dispach folder path change
+    this._store.dispatch(new Features.ReturnToFolderRoute(folder.folder_id));
+
+    // #3414 -------------------------------------------------start
+    // path to currently displayed folder
+    const currentRoute = this._store.snapshot().features.currentRouteNew;
+
+    // change browser url, add folder id as params
+    this._sharedActions.set_url_folder_params(currentRoute);
+    // #3414 ---------------------------------------------------end
   }
 
   // Gets and sets the variable from config file to open/close the sidenav
@@ -252,17 +261,17 @@ export class L1FilterComponent implements OnInit {
     return new Configuration.SetProperty('co_active_list', listType, true);
   }
 
-  /**
-   * HotKey event listeners
-   */
-
-  // Hotkey Shift-Alt-f ... opens the finder
+  // Hotkey Shift-Alt-f ... opens the finder ------------------------------- new
   @HostListener('document:keydown.Shift.Alt.f', ['$event'])
   hotkey_shift_alt_f(event: KeyboardEvent) {
-    if (this.filters$.length == 0) {
-      this.open_search();
-      event.stopPropagation();
+
+    // remove filter term if exists
+    if (this.filters$.length > 0) {
+      this.removeSearchFilter();
     }
+
+    // open searchbar
+    this.open_search();
   }
 
   // Hotkey Shift-Alt-h ... goes to root-Folder

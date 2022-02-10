@@ -15,6 +15,7 @@ import { MoveItemDialog } from '@dialogs/move-feature/move-item.component';
 import { SureRemoveFeatureComponent } from '@dialogs/sure-remove-feature/sure-remove-feature.component';
 import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Store } from '@ngxs/store';
+import { Location } from '@angular/common';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Features } from '@store/actions/features.actions';
 import { WebSockets } from '@store/actions/results.actions';
@@ -42,10 +43,30 @@ export class SharedActionsService {
     private _snackBar: MatSnackBar,
     private _router: Router,
     private _snack: MatSnackBar,
-    private _socket: SocketService
+    private _socket: SocketService,
+    private _location: Location
   ) {
     this._store.select(CustomSelectors.RetrieveResultHeaders(false)).subscribe(headers => this.headers$.next(headers));
   }
+
+
+  // #3414 -----------------------------------start
+  // adds the ids of folders to browser url each time folders in foldertree or breadcrum are clicked
+  set_url_folder_params (currentRoute: any) {
+    // folder url base
+    let folderUrl = "/new/";
+
+    // concat folder names to create path to clicked folder
+    currentRoute.forEach(folder => {
+      folderUrl += `:${folder.folder_id}`;
+    })
+
+    // change url without redirection
+    this._location.go(folderUrl);
+  }
+  // #3414 ------------------------------------end
+
+
 
   // #3397 -----------------------------------start
   // clears localstorage corresponding to searchFilters(see it at ctrl + f11/features/filters)
