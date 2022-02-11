@@ -103,18 +103,6 @@ stages:
     - docker exec cometa_django bash -c "curl http://localhost:8000/parseBrowsers/ --silent --retry 5 --retry-delay 5"
     - echo -e "\e[0Ksection_end:`date +%s`:parse_browsers\r\e[0K"
 
-    # Reload project files in gunicorn
-    - echo -e "\e[0Ksection_start:`date +%s`:reloading_gunicorn\r\e[0KPreparing to reload project in gunicorn"
-    # stop frontend here before restarting gunicors to avoid segmentation fault
-    - docker exec cometa_front httpd -k stop || true # if cometa_front is not running yet
-    - echo -e "Now reloading gunicorn for django"
-    - docker exec cometa_django fuser -k -HUP 8000/tcp
-    - echo -e "Now reloading gunicorn for behave"
-    - docker exec cometa_behave fuser -k -HUP 8001/tcp
-    # start frontend here
-    - docker exec cometa_front httpd -k start || true # if cometa_front is not running yet
-    - echo -e "\e[0Ksection_end:`date +%s`:reloading_gunicorn\r\e[0K"
-
     #########################################################
     # FRONTEND
     #########################################################
@@ -122,6 +110,17 @@ stages:
     - echo "Checking if cometa_front is already running else start it..."
     - echo "If there are changes to docker-compose file it will recreate the container..."
     - docker-compose up -d apache 2>&1 | grep "up-to-date" && docker exec cometa_front bash -c "cd /code/; ./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
+
+    #########################################################
+    # RELOAD GUNICORNS
+    #########################################################
+    # Reload project files in gunicorn
+    - echo -e "\e[0Ksection_start:`date +%s`:reloading_gunicorn\r\e[0KPreparing to reload project in gunicorn"
+    - echo -e "Now reloading gunicorn for django"
+    - docker exec cometa_django fuser -k -HUP 8000/tcp
+    - echo -e "Now reloading gunicorn for behave"
+    - docker exec cometa_behave fuser -k -HUP 8001/tcp
+    - echo -e "\e[0Ksection_end:`date +%s`:reloading_gunicorn\r\e[0K"
 
 # create a deploy job for amvara2 for branch stage
 deploy:amvara2.stage:
