@@ -3325,6 +3325,22 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     serializer_class = ScheduleSerializer
     renderer_classes = (JSONRenderer, )
 
+    def list(self, request, *args, **kwargs):
+        # get all schedules whom delete date is not due yet
+        schedules = Schedule.objects.filter(Q(delete_on__gt=datetime.datetime.now()) | Q(delete_on=None))
+        
+        # save all schedules here
+        cronSchedules = []
+
+        # loop over all schedules and generate a line of crontab
+        for schedule in schedules:
+            cronString = "%s %s %s" % (schedule.schedule, schedule.command, schedule.comment)
+            cronString = cronString.replace("<jobId>", str(schedule.id))
+            cronSchedules.append(cronString)
+
+        # Return reponse
+        return JsonResponse({ "success": True, "schedules": cronSchedules })
+
     def create(self, request, *args, **kwargs):
         # get request payload
         data = json.loads(request.body)

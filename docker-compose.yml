@@ -118,6 +118,13 @@ services:
       - testing
     restart: always
 
+  crontab:
+    image: cometa_crontab:1.0
+    container_name: cometa_crontab
+    networks:
+      - testing
+    restart: always
+
   apache:
     image: "httpd:2.4.48"
     container_name: cometa_front

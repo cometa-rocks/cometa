@@ -1216,6 +1216,7 @@ class Schedule(models.Model):
     schedule = models.CharField(max_length=255)
     command = models.CharField(max_length=255, blank=True, null=True)
     comment = models.CharField(max_length=255, blank=True, null=True)
+    owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, related_name="schedule_owner")
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     delete_after_days = models.IntegerField(default=1)
     delete_on = models.DateTimeField(null=True, blank=True)
@@ -1226,14 +1227,14 @@ class Schedule(models.Model):
     
     def save(self, *args, **kwargs):
         # update delete time
-        if self.delete_after_days != 0:
+        if self.delete_after_days != 0 or self.delete_on is not None:
             self.delete_on = self.created_on + datetime.timedelta(days=self.delete_after_days)
-        else:
-            self.delete_on = None
         # create the command
-        self.command = """root curl --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA_ORIGIN: CRONTAB" -X POST http://django:8000/exectest/""" % self.feature.feature_id
+        if self.command is not None:
+            self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA_ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST http://django:8000/exectest/""" % (self.feature.feature_id, self.owner.user_id)
         # create the comment
-        self.comment = "# added by cometa JobID: <jobId> on %s, to be deleted on %s" % (self.created_on.strftime("%Y-%m-%d"), self.delete_on.strftime("%Y-%m-%d"))
+        if self.comment is not None:
+            self.comment = "# added by cometa JobID: <jobId> on %s, to be deleted on %s" % (self.created_on.strftime("%Y-%m-%d"), self.delete_on.strftime("%Y-%m-%d") if self.delete_on is not None else "***never***")
 
         # check if schedule has a <today> and <tomorrow> in string
         if "<today>" in self.schedule:
