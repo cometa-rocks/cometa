@@ -187,6 +187,15 @@ export class L1FeatureListComponent implements OnInit{
         break;
       case 'folder':
         this.setFolder(row.route);
+
+        // #3414 -------------------------------------------------start
+        // path to currently displayed folder
+        const currentRoute = this._store.snapshot().features.currentRouteNew;
+
+        // change browser url, add folder id as params
+        this._sharedActions.set_url_folder_params(currentRoute);
+        // #3414 ---------------------------------------------------end
+
         // close add feature or folder menu
         this.closeAddButtons();
         break;
