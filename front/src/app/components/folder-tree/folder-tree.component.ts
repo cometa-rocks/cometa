@@ -13,6 +13,7 @@ import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'cometa-folder-tree',
@@ -22,7 +23,7 @@ import { FeaturesState } from '@store/features.state';
 })
 export class FolderTreeComponent implements OnInit {
 
-  constructor(private _store: Store) { }
+  constructor(private _store: Store, private _router: Router) { }
 
   @Select(CustomSelectors.GetConfigProperty('co_active_list')) activeList$: Observable<string>; // Checks if the recent list is active
   @Select(FeaturesState.GetCurrentRouteNew) route$: Observable<ReturnType<typeof FeaturesState.GetCurrentRouteNew>>; // Get the current route
@@ -60,6 +61,7 @@ export class FolderTreeComponent implements OnInit {
    */
   @Dispatch()
   toggleListType(listType: string) {
+    this._router.navigate(['/new']);
     return new Configuration.SetProperty('co_active_list', listType, true);
   }
 

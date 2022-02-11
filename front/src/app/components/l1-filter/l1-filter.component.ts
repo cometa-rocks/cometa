@@ -10,7 +10,8 @@
  */
 
 import { ChangeDetectionStrategy, Component, HostListener, Input, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl } from '@angular/forms';
+import { Router } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Select, Store } from '@ngxs/store';
@@ -18,10 +19,7 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
-import { ApplicationsState } from '@store/applications.state';
-import { EnvironmentsState } from '@store/environments.state';
 import { FeaturesState } from '@store/features.state';
-import { UserState } from '@store/user.state';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 @UntilDestroy()
@@ -35,7 +33,8 @@ export class L1FilterComponent implements OnInit {
 
   constructor(
     public _sharedActions: SharedActionsService,
-    private _store: Store
+    private _store: Store,
+    private _router: Router
   ) { }
 
   /**
@@ -97,6 +96,7 @@ export class L1FilterComponent implements OnInit {
    */
   @Dispatch()
   returnToRoot() {
+    this._router.navigate(['/new']);
     this.toggleListType('list');
     return new Features.ReturnToFolderRoute(0);
   }
@@ -107,9 +107,17 @@ export class L1FilterComponent implements OnInit {
    * @param folder
    * @returns id of the clicked folder
    */
-  @Dispatch()
   returnFolder(folder: Partial<Folder>) {
-    return new Features.ReturnToFolderRoute(folder.folder_id);
+    // dispach folder path change
+    this._store.dispatch(new Features.ReturnToFolderRoute(folder.folder_id));
+
+    // #3414 -------------------------------------------------start
+    // path to currently displayed folder
+    const currentRoute = this._store.snapshot().features.currentRouteNew;
+
+    // change browser url, add folder id as params
+    this._sharedActions.set_url_folder_params(currentRoute);
+    // #3414 ---------------------------------------------------end
   }
 
   // Gets and sets the variable from config file to open/close the sidenav
@@ -259,14 +267,20 @@ export class L1FilterComponent implements OnInit {
    * HotKey event listeners
    */
 
+   // #3420 ------------------------------------------------ start
   // Hotkey Shift-Alt-f ... opens the finder
   @HostListener('document:keydown.Shift.Alt.f', ['$event'])
   hotkey_shift_alt_f(event: KeyboardEvent) {
-    if (this.filters$.length == 0) {
-      this.open_search();
-      event.stopPropagation();
+
+    // remove filter term if exists
+    if (this.filters$.length > 0) {
+      this.removeSearchFilter();
     }
+
+    // open searchbar
+    this.open_search();
   }
+  // #3420 -------------------------------------------------- end
 
   // Hotkey Shift-Alt-h ... goes to root-Folder
   @HostListener('document:keydown.Shift.Alt.h', ['$event'])
