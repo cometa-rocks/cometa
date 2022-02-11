@@ -103,7 +103,7 @@
     <br /><br />
     <mat-slide-toggle color="primary" [checked]="config.percentMode" (change)="handlePercentMode()">Show percent values in details</mat-slide-toggle>
     <br /><br />
-    <mat-slide-toggle color="primary" labelPosition="after" [checked]="config.useNewDashboard" (change)="toggleNewDashboard($event)">Use new dashboard by default</mat-slide-toggle>
+    <mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.useNewDashboard" (change)="toggleNewDashboard($event)">Use new dashboard by default</mat-slide-toggle>
     <br /><br />
     <!-- Toggle for people who can help on features -->
     <mat-slide-toggle *ngIf="!(isDefaultDepartment$ | async)" color="primary" matTooltipPosition="after" [matTooltip]="'need_help.can_help' | translate" [checked]="account.settings?.can_help" (change)="handleAccountSetting($event, 'can_help')">I can help</mat-slide-toggle>

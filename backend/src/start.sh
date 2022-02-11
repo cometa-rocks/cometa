@@ -16,6 +16,8 @@ create_secret_variables() {
         RANDOM_ENCRYPTION_PASSPHRASE=$(openssl rand -base64 46)
         # make a random secret key for django
         RANDOM_DJANGO_SECRETKEY=$(openssl rand -base64 31)
+        # make a random secret key for behave
+        RANDOM_BEHAVE_SECRETKEY=$(openssl rand -base64 31)
         # generate a bare minimum secret_variables file to work with
         cat <<EOF > /code/secret_variables.py
 COMETA_STRIPE_CHARGE_AUTOMATICALLY='False'
@@ -34,6 +36,7 @@ COMETA_ENCRYPTION_PASSPHRASE='$RANDOM_ENCRYPTION_PASSPHRASE'
 COMETA_STRIPE_TEST_WEBHOOK_SECRET=''
 COMETA_STAGE_ENABLE_PAYMENT='False'
 COMETA_DJANGO_SECRETKEY='$RANDOM_DJANGO_SECRETKEY'
+COMETA_BEHAVE_SECRETKEY='$RANDOM_BEHAVE_SECRETKEY'
 COMETA_STRIPE_LIVE_WEBHOOK_SECRET=''
 COMETA_SCREENSHOT_PREFIX='AMVARA_'
 COMETA_EMAIL_ENABLED='False'
