@@ -11,6 +11,7 @@
 
 import { ChangeDetectionStrategy, Component, HostListener, Input, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { Router } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Select, Store } from '@ngxs/store';
@@ -19,7 +20,6 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
-import { Console } from 'console';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 @UntilDestroy()
@@ -33,7 +33,8 @@ export class L1FilterComponent implements OnInit {
 
   constructor(
     public _sharedActions: SharedActionsService,
-    private _store: Store
+    private _store: Store,
+    private _router: Router
   ) { }
 
   /**
@@ -95,6 +96,7 @@ export class L1FilterComponent implements OnInit {
    */
   @Dispatch()
   returnToRoot() {
+    this._router.navigate(['/new']);
     this.toggleListType('list');
     return new Features.ReturnToFolderRoute(0);
   }
