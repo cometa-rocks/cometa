@@ -301,7 +301,7 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
             # Take actual screenshot
             takeScreenshot(context, step_id)
             # Take actual HTML
-            takeHTMLSnapshot(context, step_id)
+            # takeHTMLSnapshot(context, step_id)
         # Check if feature needs compare
         if context.step_data['compare']:
             # --------------------
