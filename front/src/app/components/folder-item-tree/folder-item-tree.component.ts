@@ -26,7 +26,7 @@ export class FolderItemTreeComponent implements OnInit {
   // stores state for each folder in hierarchy
   folderState = {};
 
-  constructor(private _store: Store, public _sharedActions: SharedActionsService,) {
+  constructor(private _store: Store, public _sharedActions: SharedActionsService) {
     // get folder hierarchy state from localstorage, in case it is users first time entering, default department´s state will be set to false(closed)
     // if localstorage is empty, then set default values
     this.folderState =

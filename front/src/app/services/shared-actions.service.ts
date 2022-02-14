@@ -4,6 +4,7 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { LoadingSnack } from '@components/snacks/loading/loading.snack';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
@@ -41,26 +42,26 @@ export class SharedActionsService {
     private _api: ApiService,
     private _snackBar: MatSnackBar,
     private _router: Router,
+    private _location: Location,
     private _snack: MatSnackBar,
     private _socket: SocketService
   ) {
     this._store.select(CustomSelectors.RetrieveResultHeaders(false)).subscribe(headers => this.headers$.next(headers));
   }
 
-
   // #3414 -----------------------------------start
   // adds the ids of folders to browser url each time folders in foldertree or breadcrum are clicked
   set_url_folder_params (currentRoute: any) {
     // folder url base
-    let folderUrl = "";
+    let folderUrl = "/new/";
 
-    // concat folder names to create path to clicked folder
+    // concat folder ids to create path to clicked folder
     currentRoute.forEach(folder => {
       folderUrl += `:${folder.folder_id}`;
     })
 
     // change url without redirection
-    this._router.navigate(["/new", folderUrl]);
+    this._location.go(folderUrl);
   }
   // #3414 ------------------------------------end
 
