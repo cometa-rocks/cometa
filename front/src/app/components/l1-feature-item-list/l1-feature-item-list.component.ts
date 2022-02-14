@@ -91,7 +91,7 @@ export class L1FeatureItemListComponent implements OnInit {
     // get absolute path of current route, including department
     const currentRoute = this._store.snapshot().features.currentRouteNew;
 
-    // add clicked folder's id to url params
+    // add clicked folder's id hierarchy to url params
     this._sharedActions.set_url_folder_params(currentRoute);
   }
 
