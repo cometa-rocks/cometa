@@ -86,7 +86,7 @@ stages:
     - env | grep "^COMETA_" | sed -E "s/([A-Z_])=(.*)/\1='\2'/" > backend/secret_variables.py
     # Build Selenoid browsers
     - echo -e "\e[0Ksection_start:`date +%s`:deploy_selenoid\r\e[0KRunning selenoid deployment script"
-    # - bash backend/selenoid/deploy_selenoid.sh
+    - bash backend/selenoid/deploy_selenoid.sh
     - echo -e "\e[0Ksection_end:`date +%s`:deploy_selenoid\r\e[0K"
     # Install new python packages in django and behave container
     - docker exec cometa_django poetry install
@@ -96,11 +96,11 @@ stages:
     - docker exec cometa_django python manage.py migrate
     # Update steps in database
     - echo -e "\e[0Ksection_start:`date +%s`:parse_actions\r\e[0KParsing actions to update databse"
-    - docker exec cometa_django bash -c "curl http://localhost:8000/parseActions/ --silent --retry 5 --retry-delay 5"
+    # - docker exec cometa_django bash -c "curl http://localhost:8000/parseActions/ --silent --retry 5 --retry-delay 5"
     - echo -e "\e[0Ksection_end:`date +%s`:parse_actions\r\e[0K"
     # Update selenoid browsers in database
     - echo -e "\e[0Ksection_start:`date +%s`:parse_browsers\r\e[0KParsing selenoid browsers to update database"
-    - docker exec cometa_django bash -c "curl http://localhost:8000/parseBrowsers/ --silent --retry 5 --retry-delay 5"
+    # - docker exec cometa_django bash -c "curl http://localhost:8000/parseBrowsers/ --silent --retry 5 --retry-delay 5"
     - echo -e "\e[0Ksection_end:`date +%s`:parse_browsers\r\e[0K"
 
     #########################################################
