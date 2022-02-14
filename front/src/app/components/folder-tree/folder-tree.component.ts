@@ -61,7 +61,7 @@ export class FolderTreeComponent implements OnInit {
    */
   @Dispatch()
   toggleListType(listType: string) {
-    this._router.navigate(['/new']);
+    this._router.navigate(['/']);
     return new Configuration.SetProperty('co_active_list', listType, true);
   }
 
