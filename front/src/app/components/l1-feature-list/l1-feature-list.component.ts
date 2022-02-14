@@ -192,7 +192,7 @@ export class L1FeatureListComponent implements OnInit{
         // path to currently displayed folder
         const currentRoute = this._store.snapshot().features.currentRouteNew;
 
-        // change browser url, add folder id as params
+        // change browser url, add folder id hierarchy as params
         this._sharedActions.set_url_folder_params(currentRoute);
         // #3414 ---------------------------------------------------end
 
