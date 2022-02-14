@@ -16,7 +16,7 @@ include:
 # losing old changes
 variables:
 #  CI_DEBUG_TRACE: "true" # show verbose information 
-  GIT_STRATEGY: clone
+#  GIT_STRATEGY: clone
   COMETA_EMAIL_ENABLED: 'True'
   COMETA_REPLACE_FAVICON_IN: "front/src/index.html front/src/manifest.json front/src/welcome.html"
 
