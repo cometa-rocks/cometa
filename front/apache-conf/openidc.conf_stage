@@ -51,3 +51,6 @@ RequestHeader set X-Server "Amvara-Stage"
 
 # Enable CoreDumps
 CoreDumpDirectory /tmp
+
+# cache in file
+OIDCCacheType file
