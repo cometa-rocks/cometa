@@ -29,20 +29,7 @@ stages:
 # redundancy.
 .deployment_script: &deployment_script
   stage: deploy
-  script:
-    #########################################################
-    # OLD REPOSITORY CODE
-    #########################################################
-    # cd to DEPLOY_BACKEND_FOLDER before doing anything
-    # - cd $DEPLOY_BACKEND_FOLDER
-    # stash old changes before pulling new changes
-    # - sudo git stash
-    # make sure we are in correct branch
-    # - sudo git checkout $CI_COMMIT_BRANCH
-    # pull new changes
-    # - sudo git pull
-    #########################################################
-    
+  script:    
     #########################################################
     # REPLACE
     #########################################################
@@ -109,7 +96,7 @@ stages:
     # start container or if already started then compile else start from zero
     - echo "Checking if cometa_front is already running else start it..."
     - echo "If there are changes to docker-compose file it will recreate the container..."
-    # - docker-compose up -d apache 2>&1 | grep "up-to-date" && docker exec cometa_front bash -c "cd /code/; ./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
+    - docker-compose up -d apache 2>&1 | grep "up-to-date" && docker exec cometa_front bash -c "cd /code/; ./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
 
     #########################################################
     # RELOAD GUNICORNS
