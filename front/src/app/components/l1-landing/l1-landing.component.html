@@ -54,7 +54,7 @@ Author: dph000
           <div>
             <div class="features-header">
               <!-- How many features and folders were found -->
-              <div *ngIf="table.rows.length > 0" class="features_folders_count">
+              <div *ngIf="table?.rows?.length > 0" class="features_folders_count">
                 Found <span *ngIf='table.featureCount > 0'><span class="blue">{{ table.featureCount }}</span> features </span> <span *ngIf='table.folderCount > 0 && table.featureCount > 0'>and </span><span *ngIf='table.folderCount > 0'><span class="blue">{{ table.folderCount }}</span> folders</span>
               </div>
               <!-- Feature list view selector -->
@@ -63,7 +63,7 @@ Author: dph000
                 <div matRipple (click)="setView('with', 'list')" matTooltip="List view" [class.selected]="itemsViewWith === 'list'" class="list view"></div>
               </div>
             </div>
-            <ng-container *ngIf="table.rows.length > 0; else noFeaturesFound">
+            <ng-container *ngIf="table?.rows?.length > 0; else noFeaturesFound">
               <!-- Feature list with item view -->
               <ng-container *ngIf="itemsViewWith === 'tiles'; else listView">
                 <cometa-l1-feature-item-list [item]="item" class="feature-item" [feature_id]="item.id" *ngFor="let item of table.rows"></cometa-l1-feature-item-list>
