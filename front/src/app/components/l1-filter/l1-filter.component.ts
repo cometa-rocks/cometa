@@ -96,7 +96,7 @@ export class L1FilterComponent implements OnInit {
    */
   @Dispatch()
   returnToRoot() {
-    this._router.navigate(['/new']);
+    this._router.navigate(['/']);
     this.toggleListType('list');
     return new Features.ReturnToFolderRoute(0);
   }
