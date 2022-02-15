@@ -264,7 +264,7 @@ if [[ "${NORESTART:-FALSE}" == "FALSE" ]]; then
 	# #########################################
 	# Restart apache server
 	# #########################################
-	httpd -k restart
+	# httpd -k restart
 
 	find /proc -mindepth 2 -maxdepth 2 -name exe -exec ls -lh {} \; 2>/dev/null  | grep -q "/usr/bin/tail" || tail -f /usr/local/apache2/logs/error_log /usr/local/apache2/logs/access.log
 fi
