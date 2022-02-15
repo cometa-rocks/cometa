@@ -29,20 +29,7 @@ stages:
 # redundancy.
 .deployment_script: &deployment_script
   stage: deploy
-  script:
-    #########################################################
-    # OLD REPOSITORY CODE
-    #########################################################
-    # cd to DEPLOY_BACKEND_FOLDER before doing anything
-    # - cd $DEPLOY_BACKEND_FOLDER
-    # stash old changes before pulling new changes
-    # - sudo git stash
-    # make sure we are in correct branch
-    # - sudo git checkout $CI_COMMIT_BRANCH
-    # pull new changes
-    # - sudo git pull
-    #########################################################
-    
+  script:    
     #########################################################
     # REPLACE
     #########################################################

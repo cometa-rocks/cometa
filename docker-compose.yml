@@ -108,7 +108,7 @@ services:
     restart: always
 
   apache:
-    image: "httpd:latest"
+    image: "httpd:2.4"
     container_name: cometa_front
     volumes:
       - ./front/:/code
@@ -118,6 +118,7 @@ services:
       - ./front/apache-conf/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
       - /data/cometa/screenshots:/screenshots
     working_dir: /code
+    privileged: true
     ports:
       - "<outside_port>:80"
       - "443:443"
