@@ -48,3 +48,6 @@ OIDCSessionMaxDuration 86400
 
 # SERVER SETTINGS
 RequestHeader set X-Server "Amvara-Stage"
+
+# Enable CoreDumps
+CoreDumpDirectory /tmp
