@@ -6,7 +6,7 @@ Author: dph000
 
 -->
 <!-- Home button -->
-<div (click)="toggleList('list')" [class.selected]="(route$ | async).length == 0 && (activeList$ | async) === 'list'">
+<div (click)="toggleList('home')" [class.selected]="(route$ | async).length == 0 && (activeList$ | async) === 'home'">
   <mat-icon>home</mat-icon>
   Home
 </div>
