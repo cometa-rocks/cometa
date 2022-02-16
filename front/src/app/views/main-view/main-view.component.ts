@@ -7,10 +7,8 @@ import { NetworkPaginatedListComponent } from '@components/network-paginated-lis
 import { WebSockets } from '@store/actions/results.actions';
 import { map } from 'rxjs/operators';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { SharedActionsService } from '@services/shared-actions.service';
 import { startWith } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
-import { User } from '@store/actions/user.actions';
 import { MainViewFieldsDesktop, MainViewFieldsMobile, MainViewFieldsTabletLandscape, MainViewFieldsTabletPortrait } from '@others/variables';
 
 @UntilDestroy()
@@ -29,7 +27,6 @@ export class MainViewComponent implements OnInit, AfterViewInit {
   constructor(
     private _route: ActivatedRoute,
     private _actions: Actions,
-    private _sharedActions: SharedActionsService,
     private _store: Store
   ) { }
 
