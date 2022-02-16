@@ -758,6 +758,13 @@ export class FeaturesState {
       columns.date = null;
       columns.time = null;
       columns.total = null;
+
+      // #3427 ----------------------------------------------- start
+      // set default value to null
+      columns.ok = null;
+      columns.fails = null;
+      // #3427 ------------------------------------------------- end
+
       columns.department = folder.department; // Name of the department
       columns.app = null;
       columns.environment = null;
@@ -914,5 +921,4 @@ export class FeaturesState {
         return features;
     }
   }
-
 }
