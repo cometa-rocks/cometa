@@ -35,7 +35,7 @@ Author: dph000
             (rowClick)="openContent($event.rowData)"
             (page)="storePagination($event)"
             (sortChange)="saveSort($event)"
-            [cellTemplate]="{orderType: runningTpl, id: idTpl, name: nameTpl, status: statusTpl, date: dateTpl, time: timeTpl, total: totalTpl, department: departmentTpl, app: applicationTpl, environment: environmentTpl, browsers: browsersTpl, schedule: scheduleTpl, reference: optionsTpl}"
+            [cellTemplate]="{orderType: runningTpl, id: idTpl, name: nameTpl, status: statusTpl, date: dateTpl, time: timeTpl, total: totalTpl, ok: okTpl, fails: failsTpl, browsers: browsersTpl, schedule: scheduleTpl, reference: optionsTpl}"
             [pageSizeOptions]="[10, 25, 50, 100, 200]">
     </mtx-grid>
   </div>
