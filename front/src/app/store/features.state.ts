@@ -707,14 +707,6 @@ export class FeaturesState {
       let feature = state.details[id]; // Variable with the feature data
       // Gets the needed variables and inserts them into the columns variable
       columns.type = "feature"; // Type of data row
-
-      // #3427 ----------------------------------------------- start
-      // as per ticket description we intend to hide department, environment and application columns in feature data-grid
-      // and show successfully executes steps and failed steps
-      columns.ok = feature.info?.ok; // cuantity of successful steps of features
-      columns.fails = feature.info?.total - feature.info?.ok; // cuantity of failed steps of features
-      // #3427 ------------------------------------------------- end
-
       columns.orderType = feature.depends_on_others ? '3' : '2'; // set order type, makes it easy to sort groups.
       columns.reference = feature; // Reference of the feature
       columns.id = feature.feature_id; // Id of the feature
@@ -726,7 +718,14 @@ export class FeaturesState {
       columns.total = feature.info?.total; // Amount of total steps of the last execution
 
       // #3427 ----------------------------------------------- start
-      // For now we hide these properties, but there is no need to liminate them from here, we remove them from html where they are used
+      // as per ticket description we intend to hide department, environment and application columns in feature data-grid
+      // and show successfully executes steps and failed steps
+      columns.ok = feature.info?.ok; // cuantity of successful steps of features
+      columns.fails = feature.info?.total - feature.info?.ok; // cuantity of failed steps of features
+      // #3427 ------------------------------------------------- end
+
+      // #3427 ----------------------------------------------- start
+      // For now we hide these properties, but there is no need to eliminate them from here, we remove them from html where they are used
       // this way we can use them whenever needed in future
       columns.department = feature.department_name; // Name of the department
       columns.environment = feature.environment_name; // Name of the environment
@@ -761,13 +760,6 @@ export class FeaturesState {
       columns.total = null;
       columns.department = folder.department; // Name of the department
       columns.app = null;
-
-      // #3427 ----------------------------------------------- start
-      // default values for successful and failed steps of feature
-      columns.ok = null;
-      columns.fails = null;
-      // #3427 ------------------------------------------------- end
-
       columns.environment = null;
       columns.browsers = null;
       columns.schedule = null;
