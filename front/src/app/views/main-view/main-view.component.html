@@ -3,11 +3,17 @@
   <cometa-feature-actions></cometa-feature-actions>
 </div>
 <ng-container *ngLet="paginatedList?.pagination$ | async as pagination">
-  <div class="charts">
+  <!--charts will be displayed when test has been performed more than 10 times-->
+  <div *ngIf="pagination?.results.length > 10" class="charts">
     <div class="behave-charts">
       <!-- Highchart -->
       <behave-chart-desktop-steps *ngIf="pagination?.results as results" [data]="results"></behave-chart-desktop-steps>
     </div>
+  </div>
+  <!-- will be shown if the test has not been performed 10 times-->
+  <div class="no-chart" *ngIf="pagination?.results.length <= 10">
+    <img src="assets/img/poster_2.svg" alt="shown when there is no charts">
+    <p>This screen shows the results of your testruns. <br><br> Once you have more then 10 results, co.meta will show you a beautiful linechart with execution times and more.</p>
   </div>
   <!-- Mobile Header -->
   <div class="mobile-info header">
