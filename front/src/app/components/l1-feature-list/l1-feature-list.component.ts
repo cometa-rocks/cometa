@@ -74,10 +74,14 @@ export class L1FeatureListComponent implements OnInit{
     // hide department, application, environment and show successfull and files steps cuantity
     {header: 'OK', field: 'ok', sortable: true},
     {header: 'NOK', field: 'fails', sortable: true},
-    // {header: 'Department', field: 'department', sortable: true},
-    // {header: 'Application', field: 'app', sortable: true},
-    // {header: 'Environment', field: 'environment', sortable: true},
     // #3427 ---------------------------------------------------------- end
+
+    // #3427 -------------------------------------------------------- start
+    // by default these columns will not be shown
+    {header: 'Department', field: 'department', sortable: true, hide: true},
+    {header: 'Application', field: 'app', sortable: true, hide: true},
+    {header: 'Environment', field: 'environment', sortable: true, hide: true},
+    // #3427 -------------------------------------------------------- start
 
     {header: 'Browsers', field: 'browsers', sortable: true},
     {header: 'Schedule', field: 'schedule', sortable: true},
