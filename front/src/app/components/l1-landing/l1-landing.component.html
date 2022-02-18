@@ -115,7 +115,13 @@ Author: dph000
         </div>
       </div>
     </ng-container>
-    <!-- Containers for the team drives, recent, starred and trashbin lists -->
+
+
+    <!-- Cometa welcome page-->
+    <!-- home -->
+    <ng-container *ngIf="(aciveList$ | async) == 'home'">
+      <cometa-welcome> </cometa-welcome>
+    </ng-container>
 
     <!-- List of the features within team drives -->
     <!-- TEAM DRIVE -->
