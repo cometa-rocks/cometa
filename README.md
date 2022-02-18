@@ -82,7 +82,7 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 
 6. Run the selenoid setup
 
-	`./selenoid/deploy_selenoid.sh`.
+	`./backend/selenoid/deploy_selenoid.sh`.
 
 	This will configure and pull the Docker images for Selenoid.
 
@@ -141,6 +141,10 @@ That's all, easy peasy.
 * Selenoid Dashboard: http://localhost:4444/dashboard/
 * Django: http://localhost:8000/admin
 
+## Reading changed actions.py
+
+On first start you have to manually parse the actions.py file. This enables cometa to use any steps defined in  the UI. The user can then choose from the steps in the UI.
+`https://localhost/backend/api/parseActions` ... as a result cometa will show all actions that have been parsed and are now available for selection in cometa-front.
 ## Directory Layout
 
 * `./behave` Behave related files
