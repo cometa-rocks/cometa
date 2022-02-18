@@ -4,6 +4,7 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { LoadingSnack } from '@components/snacks/loading/loading.snack';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
@@ -14,7 +15,7 @@ import { LiveStepsComponent } from '@dialogs/live-steps/live-steps.component';
 import { MoveItemDialog } from '@dialogs/move-feature/move-item.component';
 import { SureRemoveFeatureComponent } from '@dialogs/sure-remove-feature/sure-remove-feature.component';
 import { Dispatch } from '@ngxs-labs/dispatch-decorator';
-import { Store, Select } from '@ngxs/store';
+import { Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Features } from '@store/actions/features.actions';
 import { WebSockets } from '@store/actions/results.actions';
@@ -41,17 +42,39 @@ export class SharedActionsService {
     private _api: ApiService,
     private _snackBar: MatSnackBar,
     private _router: Router,
+    private _location: Location,
     private _snack: MatSnackBar,
     private _socket: SocketService
   ) {
     this._store.select(CustomSelectors.RetrieveResultHeaders(false)).subscribe(headers => this.headers$.next(headers));
   }
 
+  // #3414 -----------------------------------start
+  // adds the ids of folders to browser url each time folders in foldertree or breadcrum are clicked
+  set_url_folder_params (currentRoute: any) {
+    // folder url base
+    let folderUrl = "/new/";
+
+    // concat folder ids to create path to clicked folder
+    currentRoute.forEach(folder => {
+      folderUrl += `:${folder.folder_id}`;
+    })
+
+    // change url without redirection
+    this._location.go(folderUrl);
+  }
+  // #3414 ------------------------------------end
+
+
+
+  // #3397 -----------------------------------start
   // clears localstorage corresponding to searchFilters(see it at ctrl + f11/features/filters)
   @Dispatch()
   removeSearchFilter() {
     return new Features.RemoveSearchFilter();
   }
+  // #3397 ------------------------------------end
+
 
   dialogActive = false;
   goToFeature(featureId: number) {
@@ -62,8 +85,10 @@ export class SharedActionsService {
       feature.feature_id
     ]);
 
+    // #3397 -----------------------------------start
     // remove search filter when acceding to any features
     this.removeSearchFilter();
+    // #3397 -------------------------------------end
   }
 
   editSchedule(featureId: number) {

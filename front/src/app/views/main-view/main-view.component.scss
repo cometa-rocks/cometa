@@ -9,6 +9,26 @@
     max-height: calc(100vh - var(--header-height));
 }
 
+.no-chart {
+    max-height: 400px;
+    padding: 10px 5%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    img {
+        width: 30%;
+        height: auto;
+    }
+
+    p {
+        font-size: 3vw;
+        padding: 0 5%;
+        @include for-tablet-portrait-up {
+            font-size: 2vw;
+        }
+    }
+}
+
 .charts {
     display: block;
     width: 100%;

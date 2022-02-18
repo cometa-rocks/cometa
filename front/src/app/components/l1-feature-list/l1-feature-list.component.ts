@@ -69,9 +69,16 @@ export class L1FeatureListComponent implements OnInit{
     {header: 'Last run', field: 'date', sortable: true},
     {header: 'Last duration', field: 'time', sortable: true},
     {header: 'Last steps', field: 'total', sortable: true},
-    {header: 'Department', field: 'department', sortable: true},
-    {header: 'Application', field: 'app', sortable: true},
-    {header: 'Environment', field: 'environment', sortable: true},
+
+    // #3427 -------------------------------------------------------- start
+    // hide department, application, environment and show successfull and files steps cuantity
+    {header: 'OK', field: 'ok', sortable: true},
+    {header: 'NOK', field: 'fails', sortable: true},
+    // {header: 'Department', field: 'department', sortable: true},
+    // {header: 'Application', field: 'app', sortable: true},
+    // {header: 'Environment', field: 'environment', sortable: true},
+    // #3427 ---------------------------------------------------------- end
+
     {header: 'Browsers', field: 'browsers', sortable: true},
     {header: 'Schedule', field: 'schedule', sortable: true},
     {header: 'Options', field: 'reference'}
@@ -187,6 +194,15 @@ export class L1FeatureListComponent implements OnInit{
         break;
       case 'folder':
         this.setFolder(row.route);
+
+        // #3414 -------------------------------------------------start
+        // path to currently displayed folder
+        const currentRoute = this._store.snapshot().features.currentRouteNew;
+
+        // change browser url, add folder id hierarchy as params
+        this._sharedActions.set_url_folder_params(currentRoute);
+        // #3414 ---------------------------------------------------end
+
         // close add feature or folder menu
         this.closeAddButtons();
         break;

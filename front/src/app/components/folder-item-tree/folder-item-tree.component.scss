@@ -15,8 +15,9 @@
     color: $darker-step;
     padding: 0px 10px;
     box-sizing: border-box;
+    cursor: pointer;
     .item {
-        cursor: pointer;
+        
         display: flex;
         align-items: center;
         flex: 1;
@@ -27,7 +28,6 @@
     }
     mat-icon {
         flex: 0 20px;
-        cursor: unset;
         transition: transform .15s ease-in-out;
     }
     &:hover {
@@ -39,8 +39,7 @@
     background-color: rgba($blue, .1) !important;
 }
 
-.selected .item{
-    cursor: unset;
+.selected .item {
     .folderName {
         color: $blue;
     }
