@@ -18,7 +18,7 @@ services:
     image: python:3.9
     logging:
       driver: json-file
-    command: sh start.sh
+    command: sh start.sh -dev
     volumes:
       - /data/cometa/screenshots:/code/behave/screenshots
       - /data/cometa/videos:/code/behave/videos
