@@ -705,7 +705,6 @@ export class FeaturesState {
     for (const id of folders.features) {
       let columns: any = {}; // Variable to store the feature values
       let feature = state.details[id]; // Variable with the feature data
-
       // Gets the needed variables and inserts them into the columns variable
       columns.type = "feature"; // Type of data row
       columns.orderType = feature.depends_on_others ? '3' : '2'; // set order type, makes it easy to sort groups.
@@ -717,9 +716,23 @@ export class FeaturesState {
       columns.date = feature.info?.result_date; // Date of the last execution
       columns.time = feature.info?.execution_time; // Elapsed time of the last execution
       columns.total = feature.info?.total; // Amount of total steps of the last execution
+
+      // #3427 ----------------------------------------------- start
+      // as per ticket description we intend to hide department, environment and application columns in feature data-grid
+      // and show successfully executes steps and failed steps
+      columns.ok = feature.info?.ok; // cuantity of successful steps of features
+      columns.fails = feature.info?.total - feature.info?.ok; // cuantity of failed steps of features
+      // #3427 ------------------------------------------------- end
+
+      // #3427 ----------------------------------------------- start
+      // For now we hide these properties, but there is no need to eliminate them from here, we remove them from html where they are used
+      // this way we can use them whenever needed in future
       columns.department = feature.department_name; // Name of the department
-      columns.app = feature.app_name; // Name of the application
       columns.environment = feature.environment_name; // Name of the environment
+      columns.app = feature.app_name; // Name of the application
+      // #3427 ------------------------------------------------- end
+
+
       columns.browsers = feature.browsers; // List of browsers used to test the feature
       columns.schedule = feature.schedule; // Schedule to said feature
       columns.depends_on_others = feature.depends_on_others;
@@ -745,6 +758,13 @@ export class FeaturesState {
       columns.date = null;
       columns.time = null;
       columns.total = null;
+
+      // #3427 ----------------------------------------------- start
+      // set default value to null
+      columns.ok = null;
+      columns.fails = null;
+      // #3427 ------------------------------------------------- end
+
       columns.department = folder.department; // Name of the department
       columns.app = null;
       columns.environment = null;
@@ -901,5 +921,4 @@ export class FeaturesState {
         return features;
     }
   }
-
 }
