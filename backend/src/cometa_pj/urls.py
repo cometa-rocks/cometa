@@ -26,6 +26,8 @@ router.register(r'account_roles', views.AccountRoleViewSet)
 router.register(r'feature_results/(?P<feature_result_id>[0-9]+)', views.FeatureResultViewSet)
 router.register(r'feature_results', views.FeatureResultViewSet)
 router.register(r'feature_results/(?P<feature_id>[0-9]+)/step_results/(?P<feature_result_id>[0-9]+)', views.StepResultViewSet)
+# ask for all feature results by feature_id
+router.register(r'feature_results_by_featureid/(?P<feature_id>[0-9]+)', views.FeatureResultByFeatureIdViewSet)
 router.register(r'step_result/(?P<step_result_id>[0-9]+)', views.StepResultViewSet)
 router.register(r'environments/(?P<environment_id>[0-9]+)/(?P<environment_name>[0-9a-zA-Z -_.]+)', views.EnvironmentViewSet)
 router.register(r'environments/(?P<environment_id>[0-9]+)', views.EnvironmentViewSet)
