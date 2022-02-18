@@ -84,9 +84,15 @@ export class L1FeatureItemListComponent implements OnInit {
   */
 
   // Go to the clicked folder
-  @Dispatch()
   goFolder(route: Folder[]) {
-    return new Features.SetFolderRoute(route);
+    // dispach the route of clicked folder
+    this._store.dispatch(new Features.SetFolderRoute(route));
+
+    // get absolute path of current route, including department
+    const currentRoute = this._store.snapshot().features.currentRouteNew;
+
+    // add clicked folder's id hierarchy to url params
+    this._sharedActions.set_url_folder_params(currentRoute);
   }
 
   // Modify the clicked folder

@@ -29,6 +29,9 @@ export class UserState {
   getUser({ patchState, dispatch }: StateContext<UserInfo>) {
     return this._api.doOIDCLogin().pipe(
       tap(account => {
+        // check if user selected dashboard v2 as default dashboard and save it in localstorage
+        localStorage.setItem('co_use_newdashboard', account.settings?.useNewDashboard);
+
         if (typeof account.favourite_browsers === 'object') account.favourite_browsers = JSON.stringify(account.favourite_browsers);
         // Cross-join available clouds with subscriptions
         if (account.requires_payment) {
@@ -43,7 +46,7 @@ export class UserState {
         for (const cloud of account.clouds) {
           switch (cloud.name) {
             case 'local':
-              dispatch( new Browsers.GetBrowsers );
+              dispatch(new Browsers.GetBrowsers);
               break;
             case 'browserstack':
               dispatch(new Browserstack.GetBrowserstack);

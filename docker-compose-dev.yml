@@ -18,7 +18,7 @@ services:
     image: python:3.9
     logging:
       driver: json-file
-    command: sh start.sh
+    command: sh start.sh -dev
     volumes:
       - /data/cometa/screenshots:/code/behave/screenshots
       - /data/cometa/videos:/code/behave/videos
@@ -108,7 +108,7 @@ services:
     restart: always
 
   apache:
-    image: "httpd:latest"
+    image: "httpd:2.4.48"
     container_name: cometa_front
     volumes:
       - ./front/:/code
