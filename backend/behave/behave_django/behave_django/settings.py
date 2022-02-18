@@ -42,7 +42,7 @@ if SENTRY_BEHAVE:
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '@!3#b5y$8o#vdj@-*t+0672eskvxf@5eo&eexasiae#djyat@t'
+SECRET_KEY = getattr(secret_variables, 'COMETA_BEHAVE_SECRETKEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

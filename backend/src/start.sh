@@ -1,5 +1,42 @@
 #!/bin/bash
 
+# #######
+# This is the backend entrypoint, which starts the DJANGO Server
+# #######
+# 
+# As deault it will start gunicorn service compiling django, which is the fastest way and saves a lot of resources.
+# Only using gunicorn, you will be able to serve hundreds of users and executions on a small server setup.
+#
+# For development it is recommended to use the python django compiling on each change, so that you can change, see, tests and debug.
+# The Django server will be invoked using the parameter "-dev" on this script
+#
+# #######
+
+# set default to prod ... can be overwritten here or with commandline setting
+# prod executes gunicorn
+# dev executes ptyhon manage.py runserver
+ENVIRONMENT="prod"
+
+while [[ $# -gt 0 ]]
+do
+        key="$1"
+        case $key in
+                -d|--debug)
+                        set -x
+                        DEBUG=TRUE
+                        shift
+                        ;;
+                -dev|--development)
+                        echo "###################################################"
+                        echo "==> Setting development option requested from cli  "
+                        echo "###################################################"
+                        ENVIRONMENT="dev"
+                        shift
+                        ;;
+        esac
+done
+
+
 install_cron() {
     apt install -y cron
     touch /etc/cron.d/crontab
@@ -16,6 +53,8 @@ create_secret_variables() {
         RANDOM_ENCRYPTION_PASSPHRASE=$(openssl rand -base64 46)
         # make a random secret key for django
         RANDOM_DJANGO_SECRETKEY=$(openssl rand -base64 31)
+        # make a random secret key for behave
+        RANDOM_BEHAVE_SECRETKEY=$(openssl rand -base64 31)
         # generate a bare minimum secret_variables file to work with
         cat <<EOF > /code/secret_variables.py
 COMETA_STRIPE_CHARGE_AUTOMATICALLY='False'
@@ -34,6 +73,7 @@ COMETA_ENCRYPTION_PASSPHRASE='$RANDOM_ENCRYPTION_PASSPHRASE'
 COMETA_STRIPE_TEST_WEBHOOK_SECRET=''
 COMETA_STAGE_ENABLE_PAYMENT='False'
 COMETA_DJANGO_SECRETKEY='$RANDOM_DJANGO_SECRETKEY'
+COMETA_BEHAVE_SECRETKEY='$RANDOM_BEHAVE_SECRETKEY'
 COMETA_STRIPE_LIVE_WEBHOOK_SECRET=''
 COMETA_SCREENSHOT_PREFIX='AMVARA_'
 COMETA_EMAIL_ENABLED='False'
@@ -83,13 +123,30 @@ if [ ! -f "/code/.initiated" ]; then
     touch /code/.initiated
 fi
 
-# Start Django server
-# python manage.py runserver 0.0.0.0:8000
+#
+# in DEVMODE Start Django server
+#
+if [ "$ENVIRONMENT" = "dev" ]; then
+    echo "###################################################"
+    echo "# Running in DEV mode                             #"
+    echo "###################################################"
+    echo "Devmode was requested ... starting python manage.py runserver"
+    python manage.py runserver 0.0.0.0:8000
+fi
 
-# get processor cores
-CPUCORES=`getconf _NPROCESSORS_ONLN`
-# calculate workers
-GUNI_WORKERS=$((($CPUCORES*2+1)))
+#
+# In Production mode start gunicorn
+#
+if [ "$ENVIRONMENT" != "dev" ]; then
+    # get processor cores
+    CPUCORES=`getconf _NPROCESSORS_ONLN`
+    # calculate workers
+    GUNI_WORKERS=$((($CPUCORES*2+1)))
 
-# spin up gunicorn
-gunicorn cometa_pj.wsgi:application --workers=${WORKERS:-$GUNI_WORKERS} --threads=${THREADS:-2} --worker-class=gthread --bind 0.0.0.0:8000
+    # spin up gunicorn
+    echo "########################################################"
+    echo "# Running in production mode - starting gunicorn       #"
+    echo "# to enable dev mode, use parameter '-dev' on start.sh #"
+    echo "########################################################"
+    gunicorn cometa_pj.wsgi:application --workers=${WORKERS:-$GUNI_WORKERS} --threads=${THREADS:-2} --worker-class=gthread --bind 0.0.0.0:8000
+fi

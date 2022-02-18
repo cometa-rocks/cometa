@@ -9,9 +9,10 @@
  */
 
 import { animate, query, stagger, state, style, transition, trigger } from '@angular/animations';
-import { ChangeDetectionStrategy, Component, OnInit, Renderer2 } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { Store, Select } from '@ngxs/store';
+import { Router } from '@angular/router';
 import { FeaturesState } from '@store/features.state';
 import { MatDialog } from '@angular/material/dialog';
 import { Dispatch } from '@ngxs-labs/dispatch-decorator';
@@ -24,6 +25,7 @@ import { Configuration } from '@store/actions/config.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { Observable } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 
 @UntilDestroy()
 @Component({
@@ -58,10 +60,12 @@ import { Observable } from 'rxjs';
 export class L1LandingComponent implements OnInit {
 
   constructor(
+    private _router: Router,
     private _dialog: MatDialog,
     private _store: Store,
-    public _sharedActions: SharedActionsService
-    ) {
+    public _sharedActions: SharedActionsService,
+    private activatedRoute: ActivatedRoute
+  ) {
     const filtersStorage = localStorage.getItem('filters');
     if (!!filtersStorage) {
       try {
@@ -69,6 +73,10 @@ export class L1LandingComponent implements OnInit {
         this._store.dispatch(new Features.SetFilters(parsedFilters));
       } catch (err) { }
     }
+
+    // forces the components content to reload when url parameters are changed manually
+    this._router.routeReuseStrategy.shouldReuseRoute = () => false;
+    
   }
 
   // Contains all the features and folders data
@@ -88,6 +96,7 @@ export class L1LandingComponent implements OnInit {
   // Checks if the user has an active subscription
   @ViewSelectSnapshot(UserState.HasOneActiveSubscription) hasSubscription: boolean;
 
+
   // Global variables
   minADate = new FormControl('', Validators.required);
   maxADate = new FormControl('', Validators.required);
@@ -97,6 +106,11 @@ export class L1LandingComponent implements OnInit {
   sidenavClosed = false;
 
   ngOnInit() {
+    // #3414 -------------------------------------------------start
+    // check if there are folder ids in url params, if so redirect to that folder
+    this.redirect_with_url_params(); 
+    // #3414 --------------------------------------------------end
+
     this.moreOrLessSteps.valueChanges.pipe(
       untilDestroyed(this)
     ).subscribe(value => {
@@ -156,4 +170,73 @@ export class L1LandingComponent implements OnInit {
   SAopenCreateFeature() {
     this._sharedActions.openEditFeature();
   }
-}
+
+
+  // #3414 -----------------------------------------------------------------------------------------start
+  // generates a folder path with folder ids retrieved from url and redirect to there to show content
+  redirect_with_url_params() {
+    // get url params - which contains a path created with folder ids, like 2:13:15 for example
+    let folderIdRoute = this.activatedRoute.snapshot.paramMap.get('breadcrumb');
+
+    // if there are folder ids in browser path
+    if(folderIdRoute) {      
+      // remove first ':' from url params
+      folderIdRoute = folderIdRoute.indexOf(":") == 0 ? folderIdRoute.slice(1) : folderIdRoute;
+
+      // split the url string to get array or folder ids base on ':'
+      const folderIDS = folderIdRoute.split(":");
+
+      // checks if there is more than one id in url params
+      // if so it means that user is currently inside a folder within department, so we load that folders content
+      // if there is only one id it means user is currently in department, so we load all the folders that belong to that department
+      folderIDS.length > 1 ? this.show_folder_content(folderIDS) : this.show_department_content(folderIDS)
+    }
+  }
+  // #3414 ------------------------------------------------------------------------------------------end
+
+
+  // #3414 -----------------------------------------------------------------------------------------start
+  show_folder_content (folderIDS: any) {
+    // removes the first item from array, which is departmentId
+    folderIDS.shift();
+
+    let currentRoute = [];
+
+    // get folders from state
+    let folders = this._store.snapshot().features.folders.folders;
+
+    // filter folders with the first id of params
+    let folder = folders.filter(folder => folder.folder_id == folderIDS[0]);
+
+    // array.prototype.filter returns an array, but we need to push an object in currentRoutes, so the final resut is array of objects, not array of arrays
+    // thats why we dont push folder array itself, but first and only item it has
+    currentRoute.push(folder[0]);
+
+    // search recursively ids that are recieved from url params, search startpoint is the first folder
+    // the next filter is always performed on previus filter result (recursive filtering)
+    for(let i = 1; i<folderIDS.length; i++ ) {
+      folder = folder[0].folders.filter(folder => folder.folder_id == folderIDS[i]);
+      currentRoute.push(folder[0]);
+    }
+
+    // save the final folder path in localstorage
+    localStorage.setItem('co_last_selected_folder_route', JSON.stringify(currentRoute));
+  }
+  // #3414 ------------------------------------------------------------------------------------------end
+
+
+  // #3414 -----------------------------------------------------------------------------------------start
+  // filters folders to show only the ones that belong to department id present in url params
+  show_department_content(folderIDS: any) {
+    let department = [];
+    this._store.select(CustomSelectors.GetDepartmentFolders())
+      .subscribe(
+        data => {
+          department = data.filter(department => department.folder_id == Number(folderIDS[0]));
+        }
+      );
+      localStorage.setItem('co_last_selected_folder_route', JSON.stringify(department));
+  }
+  // #3414 ------------------------------------------------------------------------------------------end
+  }
+

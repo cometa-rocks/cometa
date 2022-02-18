@@ -7,7 +7,7 @@ Author: dph000
 -->
 <div class="upper-container">
   <div (click)="toggleSidenav()" class="showFolders" matTooltip="Show+Hide Folders" [class.toggle-search]="openedSearch$ | async">
-      <i></i>
+      <i [class.sidebar-closed]="getSidebarState()"></i>
   </div>
   <div class="return-search" [class.toggle-search]="!(openedSearch$ | async)" (click)="close_search()">
     <mat-icon>keyboard_backspace</mat-icon>
@@ -28,7 +28,7 @@ Author: dph000
       </div>
   </div>
   <!-- Search bar -->
-  <div *ngIf="filters$.length == 0" class="new-search-input" [class.search-opened]="openedSearch$ | async">
+  <div class="new-search-input" [class.search-opened]="openedSearch$ | async">
     <mat-form-field>
       <input matInput class="search-input-box" type="text" [(ngModel)]="searchInput" (keydown.enter)="searchFeature()" disableAutocomplete placeholder="Search in co.meta" #addTest>
     </mat-form-field>
