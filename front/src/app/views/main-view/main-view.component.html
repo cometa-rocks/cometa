@@ -4,14 +4,14 @@
 </div>
 <ng-container *ngLet="paginatedList?.pagination$ | async as pagination">
   <!--charts will be displayed when test has been performed more than 10 times-->
-  <div *ngIf="pagination?.results.length >= 10" class="charts">
+  <div *ngIf="isloaded && pagination?.results?.length >= 10" class="charts">
     <div class="behave-charts">
       <!-- Highchart -->
       <behave-chart-desktop-steps *ngIf="pagination?.results as results" [data]="results"></behave-chart-desktop-steps>
     </div>
   </div>
   <!-- will be shown if the test has not been performed 10 times-->
-  <div class="no-chart" *ngIf="pagination?.results.length < 10">
+  <div *ngIf="isloaded && pagination?.results?.length < 10" class="no-chart">
     <img src="assets/img/poster_2.svg" alt="shown when there is no charts">
     <p>This screen shows the results of your testruns. <br><br> Once you have more then 10 results, co.meta will show you a beautiful linechart with execution times and more.</p>
   </div>
@@ -40,7 +40,6 @@
   trackByKey="run_id"
   [itemTemplate]="listItem">
     <ng-template #listItem let-item>
-      <!-- Feature Result Runs-->
       <cometa-feature-run [run]="item"></cometa-feature-run>
     </ng-template>
     <ng-template #headTemplate>
@@ -56,3 +55,32 @@
       </div>
     </ng-template>
 </network-paginated-list>
+<!-- <div *ngLet="featureId$ | async as featureId">
+  <mtx-grid [data]="item"
+            [columns]="columns"
+            [showToolbar]="true"
+            [sortOnFront]="true"
+            [sortDisableClear]="true"
+            [sortDisabled]="false"
+            [pageSize]="featuresPagination$ | async"
+            [multiSelectable]="multiSelectable"
+            [rowSelectable]="rowSelectable"
+            [columnHideable]="columnHideable"
+            [columnHideableChecked]="columnHideableChecked"
+            [hideRowSelectionCheckbox]="hideRowSelectionCheckbox"
+            [columnMovable]="columnMovable"
+            [showColumnMenuHeader]="true"
+            [columnMenuHeaderText]="'Columns Settings'"
+            sortStart="asc"
+            [cellTemplate]="{status: statusTpl, date: dateTpl, time: timeTpl, total: totalTpl, ok: okTpl, fails: failsTpl, department: departmentTpl, app: applicationTpl, environment: environmentTpl, browsers: browsersTpl, schedule: scheduleTpl, reference: optionsTpl}" 
+            [pageSizeOptions]="[10, 25, 50, 100, 200]">
+    </mtx-grid>
+
+    <ng-template #okTpl let-item let-index="index" let-col="colDef">
+      <ng.container>
+        <div>
+          {{ item.ok }}
+        </div>
+      </ng.container>
+    </ng-template>
+</div> -->
