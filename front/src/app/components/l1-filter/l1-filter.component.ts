@@ -272,6 +272,8 @@ export class L1FilterComponent implements OnInit {
   @HostListener('document:keydown.Shift.Alt.f', ['$event'])
   hotkey_shift_alt_f(event: KeyboardEvent) {
 
+    event.preventDefault();
+
     // remove filter term if exists
     if (this.filters$.length > 0) {
       this.removeSearchFilter();
