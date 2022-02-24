@@ -350,17 +350,22 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
             # --------------------
             # Spawn thread to compare HTML
             # fn can take some time to compare html differences, therefore we will send a request to django once we have the result
-            html_params = {
-                'HTML_PATH': context.HTML_PATH,
-                'SOURCE_HTML': context.SOURCE_HTML,
-                'COMPARE_HTML_FILE': context.COMPARE_HTML_FILE,
-                'COMPARE_HTML_FILE_EXT': context.COMPARE_HTML_FILE_EXT,
-                'feature_id': context.feature_id,
-                'counters': {
-                    'index': context.counters['index']
-                },
-                'step_id': step_id
-            }
+
+            # Error since 18.3. 18:15pm File "steps/actions.py", line 355, in saveToDatabase 'SOURCE_HTML': context.SOURCE_HTML
+            # therefore commenting the follwing
+
+#            html_params = {
+#                'HTML_PATH': context.HTML_PATH,
+#                'SOURCE_HTML': context.SOURCE_HTML,
+#                'COMPARE_HTML_FILE': context.COMPARE_HTML_FILE,
+#                'COMPARE_HTML_FILE_EXT': context.COMPARE_HTML_FILE_EXT,
+#                'feature_id': context.feature_id,
+#                'counters': {
+#                    'index': context.counters['index']
+#                },
+#                'step_id': step_id
+#            }
+
             # t = Thread(target=compareHTML, args=(html_params, ))
             # t.start()
             # Template should be actual screenshot of very first run, not of the last run
