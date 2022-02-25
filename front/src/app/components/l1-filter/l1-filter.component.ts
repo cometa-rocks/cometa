@@ -16,6 +16,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Select, Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
+import { LogService } from '@services/log.service';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
@@ -34,7 +35,8 @@ export class L1FilterComponent implements OnInit {
   constructor(
     public _sharedActions: SharedActionsService,
     private _store: Store,
-    private _router: Router
+    private _router: Router,
+    private log: LogService
   ) { }
 
   /**
@@ -69,6 +71,7 @@ export class L1FilterComponent implements OnInit {
    * Once the file loads, subscribes to the specified variables and updates them on change
    */
   ngOnInit() {
+    this.log.msg("1","Inicializing component...","filter");
     this.moreOrLessSteps.valueChanges.pipe(
       untilDestroyed(this)
     ).subscribe(value => {
@@ -86,6 +89,7 @@ export class L1FilterComponent implements OnInit {
 
   @Dispatch()
   returnParent() {
+    this.log.msg("1","Returning to parent folder...","filter");
     return new Features.ReturnToParentRoute();
   }
 
@@ -96,6 +100,7 @@ export class L1FilterComponent implements OnInit {
    */
   @Dispatch()
   returnToRoot() {
+    this.log.msg("1","Returning to root directory...","filter");
     this._router.navigate(['/']);
     this.toggleListType('list');
     return new Features.ReturnToFolderRoute(0);
@@ -108,6 +113,7 @@ export class L1FilterComponent implements OnInit {
    * @returns id of the clicked folder
    */
   returnFolder(folder: Partial<Folder>) {
+    this.log.msg("1","Changing current route path...","filter");
     // dispach folder path change
     this._store.dispatch(new Features.ReturnToFolderRoute(folder.folder_id));
 
@@ -115,6 +121,7 @@ export class L1FilterComponent implements OnInit {
     // path to currently displayed folder
     const currentRoute = this._store.snapshot().features.currentRouteNew;
 
+    this.log.msg("1","Setting url params, adding current folder's id...","filter");
     // change browser url, add folder id as params
     this._sharedActions.set_url_folder_params(currentRoute);
     // #3414 ---------------------------------------------------end
@@ -130,6 +137,7 @@ export class L1FilterComponent implements OnInit {
   @Dispatch() toggleSidenav() {
     // get current state of side navbar after clicking toggle arrow icon
     const opened = this.getSidebarState();
+    this.log.msg("1","Toggling sidenav...","filter");
 
     return new Configuration.SetProperty('openedSidenav', !opened);
   }
@@ -140,6 +148,7 @@ export class L1FilterComponent implements OnInit {
    * @return sets the current status of the search bar
    */
   @Dispatch() toggleSearch() {
+    this.log.msg("1","Toggling searchbar...","filter");
     this.finder = !this.finder;
     return new Configuration.SetProperty('openedSearch', this.finder);
   }
@@ -152,6 +161,7 @@ export class L1FilterComponent implements OnInit {
    */
   @Dispatch()
   removeFilter(filter: Filter) {
+    this.log.msg("1","Removing searchbar filter term...","filter");
     return new Features.RemoveFilter(filter);
   }
 
@@ -163,6 +173,7 @@ export class L1FilterComponent implements OnInit {
    */
   @Dispatch()
   removeSearchFilter() {
+    this.log.msg("1","Clearing searchbar filter terms...","filter");
     return new Features.RemoveSearchFilter();
   }
 
@@ -196,6 +207,7 @@ export class L1FilterComponent implements OnInit {
 
   // Adds a filter
   addFilter(filter: Filter) {
+    this.log.msg("1","Adding searchbar filter terms...","filter");
     // Check if filter requires a value
     if (filter.hasOwnProperty('value')) {
       this.dialogs[filter.id].next(true);
@@ -217,6 +229,8 @@ export class L1FilterComponent implements OnInit {
    */
   searchFeature() {
     if (this.searchInput) {
+      this.log.msg("1","Searching feature...","filter", this.searchInput);
+
       this.toggleListType('list');
       this.addFilterOK('test', this.searchInput);
       this.searchInput = "";
@@ -229,6 +243,7 @@ export class L1FilterComponent implements OnInit {
 
   // returns sidebar state boolean  true/false = open/closed
   getSidebarState() {
+    this.log.msg("1","Getting sidebar state...","filter");
     return this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
   }
 
