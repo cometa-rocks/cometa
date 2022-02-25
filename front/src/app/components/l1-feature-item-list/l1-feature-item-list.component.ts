@@ -20,6 +20,7 @@ import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
 import { ApiService } from '@services/api.service';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'cometa-l1-feature-item-list',
@@ -34,7 +35,9 @@ export class L1FeatureItemListComponent implements OnInit {
     public _sharedActions: SharedActionsService,
     private _dialog: MatDialog,
     private _api: ApiService,
-    private _snackBar: MatSnackBar
+    private _snackBar: MatSnackBar,
+    private log: LogService
+
   ) { }
 
   // Receives the item from the parent component
@@ -54,6 +57,8 @@ export class L1FeatureItemListComponent implements OnInit {
 
   // NgOnInit
   ngOnInit() {
+    this.log.msg("1","Inicializing component...","feature-item-list");
+
     this.feature$ = this._store.select(CustomSelectors.GetFeatureInfo(this.feature_id));
     // Subscribe to the running state comming from NGXS
     this.featureRunning$ = this._store.select(CustomSelectors.GetFeatureRunningStatus(this.feature_id));
@@ -85,6 +90,7 @@ export class L1FeatureItemListComponent implements OnInit {
 
   // Go to the clicked folder
   goFolder(route: Folder[]) {
+    this.log.msg("1","Opening folder...","feature-item-list", route);
     // dispach the route of clicked folder
     this._store.dispatch(new Features.SetFolderRoute(route));
 
@@ -109,6 +115,7 @@ export class L1FeatureItemListComponent implements OnInit {
   // Delete the clicked folder
   @Subscribe()
   delete(folder: Folder) {
+    this.log.msg("1","Deleting folder...","feature-item-list", folder);
     return this._api.removeFolder(folder.folder_id).pipe(
       switchMap(_ => this._store.dispatch( new Features.GetFolders )),
       tap(_ => this._snackBar.open(`Folder ${folder.name} removed`, 'OK'))
@@ -117,11 +124,13 @@ export class L1FeatureItemListComponent implements OnInit {
 
   // Moves the selected folder
   SAmoveFolder(folder: Folder) {
+    this.log.msg("1","Moving folder...","feature-item-list", folder);
     this._sharedActions.moveFolder(folder);
   }
 
   // Moves the selected feature
   SAmoveFeature(feature: Feature) {
+    this.log.msg("1","Moving feature...","feature-item-list", feature);
     this._sharedActions.moveFeature(feature);
   }
 }
