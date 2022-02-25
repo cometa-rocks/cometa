@@ -11,7 +11,8 @@
 # #########################################
 # Variable to help track what is needed
 # #########################################
-
+CODEDIR="$(dirname ${0})"
+echo ${CODEDIR}
 
 # #########################################
 # Functions to do things depending on what
@@ -26,7 +27,7 @@
 function install_essentials(){
 	echo -e "\e[37mStartup cleanup...\e[0m"
 	echo "" > output.log 2>&1
-	rm -rf /code/node_modules/ >> output.log 2>&1
+	rm -rf ${CODEDIR}/node_modules/ >> output.log 2>&1
 	echo -e "\e[32mDone\e[0m"
 	echo -e "\e[37mUpdating packages...\e[0m"
 	apt-get update >> output.log 2>&1
@@ -51,7 +52,7 @@ function install_angular(){
 	# echo -e "\e[32mOK\e[0m"
 	echo -e "\e[37mInstalling npm packages...\e[0m"
 	npm ci >> output.log 2>&1
-	# sed -i "s/CanvasPathMethods/CanvasPath/g" /code/node_modules/\@types/d3-shape/index.d.ts
+	# sed -i "s/CanvasPathMethods/CanvasPath/g" ${CODEDIR}/node_modules/\@types/d3-shape/index.d.ts
 	echo -e "\e[32mOK\e[0m"
 }
 
@@ -114,7 +115,7 @@ function check_ssl_certificate() {
 # #########
 function build_project(){
 	# get uid and gid of user that owns content outside
-	UIDGID=$(stat -c "%u:%g" /code)
+	UIDGID=$(stat -c "%u:%g" ${CODEDIR})
 	echo -e "\e[37mCompiling...\e[0m"
 	npx ng build -c production >> output.log 2>&1
 	# If building the App went wrong throw error on purpose
@@ -126,11 +127,11 @@ function build_project(){
 	cat output.log
 
 	echo -e "\e[37mCopying files to public folder...\e[0m"
-	cp -a /code/dist/. /usr/local/apache2/htdocs/ >> output.log 2>&1
+	cp -a ${CODEDIR}/dist/. /usr/local/apache2/htdocs/ >> output.log 2>&1
 
 	# FIX me does not work in localhost
 	echo "Fixing user permissions, setting uid and gid to: ${UIDGID}"
-	chown -R ${UIDGID} /code
+	chown -R ${UIDGID} ${CODEDIR}
 }
 
 # #########

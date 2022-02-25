@@ -23,7 +23,26 @@ variables:
 # set deploy order in which jobs
 # will be executed
 stages:
-  - deploy
+  - build
+#  - deploy
+
+# build cometa from using docker
+build_script:
+  stage: build
+  before_script:
+    # Replace Stripe client keys
+    - sed -i 's/@@COMETA_STRIPE_PUBLIC_LIVE_KEY@@/'$COMETA_STRIPE_PUBLIC_LIVE_KEY/'g' front/src/app/deploy-tokens.ts
+    - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
+    # Replace co.meta favicon depending on the branch
+    - for FILE in ${COMETA_REPLACE_FAVICON_IN}; do sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
+  script:
+    - $(pwd)/start.sh basic angular compile
+  artifacts:
+    paths:
+      - dist/*
+    expire_in: 1 week
+  tags:
+    - http-docker
 
 # main script anchor to avoid code
 # redundancy.
@@ -42,13 +61,7 @@ stages:
     - sed -i 's/@@COMETA_GOOGLE_SECRETKEY@@/'$COMETA_GOOGLE_SECRETKEY'/g' front/apache-conf/metadata/accounts.google.com.client
     # Replace git client secret for access to git.amvara.de
     - sed -i 's/@@GITCLIENTID@@/'$GITCLIENTID'/g' front/apache-conf/metadata/git.amvara.de.client
-    - sed -i 's/@@GITCLIENTSECRET@@/'$GITCLIENTSECRET'/g' front/apache-conf/metadata/git.amvara.de.client
-    # Replace Stripe client keys
-    - sed -i 's/@@COMETA_STRIPE_PUBLIC_LIVE_KEY@@/'$COMETA_STRIPE_PUBLIC_LIVE_KEY/'g' front/src/app/deploy-tokens.ts
-    - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
-    # Replace co.meta favicon depending on the branch
-    - for FILE in ${COMETA_REPLACE_FAVICON_IN}; do sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
-   
+    - sed -i 's/@@GITCLIENTSECRET@@/'$GITCLIENTSECRET'/g' front/apache-conf/metadata/git.amvara.de.client   
 
     #########################################################
     # COPY CODE TO DEPLOY_BACKEND_FOLDER
