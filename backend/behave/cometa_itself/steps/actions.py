@@ -1,13 +1,13 @@
 # -*- coding: UTF-8 -*-
 # -------------------------------------------------------
-#
-# AMVARA CONSULTING 12.11.2017
-# Ralf Roeber
+# This archive contains all the steps available in Cometa Front for execution.
+# Steps not included are Enterprise Licenced Steps
 #
 # Changelog
-# 01.02.2022 RRO Cleaning up :-)
-# 21.11.2017 Compare.sh fuer besseren  Vergleich von Images angelegt
-# 12.11.2017 PoC Arbeiten abgeschlossen
+# 2022-03-01 RRO added step to hit ok on alert, confirm or prompt window
+# 2022-02-01 RRO Cleaning up :-)
+# 2017-11-21 Compare.sh fuer besseren  Vergleich von Images angelegt
+# 2017-11-12 PoC Arbeiten abgeschlossen
 #
 # -------------------------------------------------------
 from behave import *
@@ -770,6 +770,21 @@ def step_imp(context):
 @done(u'I can test current IBM Cognos folder')
 def step_impl(context):
     test_folder(context)
+
+# Allows to click on the OK button of an alert, confirm or prompt message
+@step(u'I can click OK on alert, confirm or prompt message')
+@done(u'I can click OK on alert, confirm or prompt message')
+def step_impl(context):
+    try:
+        # try switching to the alert windows
+        context.browser.switch_to_alert()
+        # then hit the enter key
+        context.browser.send_keys(ENTER)
+        # switch back to default content
+        context.browser.switch_to_default_content()
+    except NoAlertPresentException:
+        logger.debug("Could not find the alert, confirm or prompt window")
+        raise CustomError('There was no alert, confirm or prompt window present.')
 
 #
 # FIXME documentation
