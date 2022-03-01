@@ -53,4 +53,23 @@ export class PaginatedListsState {
         }
     }
 
+
+    @Selector()
+    static GetFeatureResults(lists: IPaginatedList) {
+        return (listId: string) => {
+            let feature_results = [];
+
+            for(const item in lists[listId]) {
+                let feature_runs = lists[listId][item];
+                if(!feature_runs) return []
+
+                feature_runs.forEach(feature_run => {
+                    feature_run.feature_results?.forEach(feature_result => {
+                        feature_results.push(feature_result);
+                    });
+                }); 
+            }
+            return feature_results;
+        }
+    }
 }

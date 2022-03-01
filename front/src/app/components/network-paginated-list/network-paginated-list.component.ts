@@ -1,8 +1,12 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, TemplateRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, OnInit, SimpleChanges, TemplateRef } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { Store } from '@ngxs/store';
+import { SharedActionsService } from '@services/shared-actions.service';
+import { VideoComponent } from '@dialogs/video/video.component';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '@services/api.service';
 import { PaginatedList } from '@store/actions/paginated-list.actions';
 import { PaginatedListsState } from '@store/paginated-list.state';
@@ -20,7 +24,7 @@ import { map, switchMap, tap } from 'rxjs/operators';
   styleUrls: ['./network-paginated-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class NetworkPaginatedListComponent implements OnChanges {
+export class NetworkPaginatedListComponent implements OnChanges, OnInit {
 
   /**
    * ListId name to use when saving the downloaded page items into the state
@@ -58,7 +62,7 @@ export class NetworkPaginatedListComponent implements OnChanges {
    *  </network-paginated-list>
    * ```
    */
-  @Input() headerTemplate: TemplateRef<any>;
+  // @Input() headerTemplate: TemplateRef<any>; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< previous
 
   /**
    * Template for the No Items Found footer
@@ -93,16 +97,16 @@ export class NetworkPaginatedListComponent implements OnChanges {
   @Input() injectIndex: boolean = false;
 
   /** Whether or not to use skeletons when loading */
-  @Input() useSkeletons: boolean = false;
+  // @Input() useSkeletons: boolean = false; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< previous
 
   /** Skeletons height size */
-  @Input() skeletonsHeight: string = '25px';
+  // @Input() skeletonsHeight: string = '25px'; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< previous
 
   /** Skeletons width size */
-  @Input() skeletonsWidth: string = '100%';
+  // @Input() skeletonsWidth: string = '100%'; <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< previous
 
   /** Whether or not to show the header when no results were found */
-  @Input() showHeaderOnNoResults: boolean = false
+  // @Input() showHeaderOnNoResults: boolean = false <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< previous
 
   /** Key for item tracking */
   @Input() trackByKey: string;
@@ -111,32 +115,59 @@ export class NetworkPaginatedListComponent implements OnChanges {
   public pagedItems$: Observable<any> = of({});
 
   /** Exposes an observable with all items in all pages, in one array */
-  public allItems$: Observable<any[]> = of([]);
+  // public allItems$: Observable<any[]> = of([]); <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< previous
 
-  skeletonItems$: Observable<number[]>;
+  // skeletonItems$: Observable<number[]>;  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< previous
+
+  feature_results$: Observable<any[]> = of([]);
+
+  columns = [
+    {header: 'STATUS', field: 'status', sortable: true},
+    {header: 'RESULT DATE', field: 'result_date', sortable: true},
+    {header: 'TOTAL', field: 'total', sortable: true},
+    {header: 'OK', field: 'ok', sortable: true},
+    {header: 'NOK', field: 'fails', sortable: true},
+    {header: 'SKIPPED', field: 'skipped', sortable: true},
+    {header: 'TIME', field: 'execution_time', sortable: true},
+    {header: 'BROWSER', field: 'browsers', sortable: true},
+    {header: 'PIXEL DIFFERENCE', field: 'pixel_diff', sortable: true},
+    {header: '', field: 'video_url', sortable: true},
+  ];
 
   constructor(
     private _acRouted: ActivatedRoute,
     private _http: HttpClient,
     private _router: Router,
     private _store: Store,
-    private _api: ApiService
+    private _api: ApiService,
+    private _sharedActions: SharedActionsService,
+    private _dialog: MatDialog,
+    private _snack: MatSnackBar,
   ) {}
 
+
+  ngOnInit(): void {
+    this.feature_results$ = this._store.select(PaginatedListsState.GetFeatureResults).pipe(map(fn => fn(this.listId)))
+  }
+
   ngOnChanges(changes: SimpleChanges) {
-    this.skeletonItems$ = this._acRouted.queryParamMap.pipe(
-      map(queryParams => this.getPageSize(queryParams, changes)),
-      map(size => Array(size).fill(0))
-    )
+    // this.skeletonItems$ = this._acRouted.queryParamMap.pipe( <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< previous
+    //   map(queryParams => this.getPageSize(queryParams, changes)),
+    //   map(size => Array(size).fill(0)) 
+    // ) 
     if (this.listId) {
       // Assign pagedItems observable
       this.pagedItems$ = this._store.select(PaginatedListsState.GetPagedItems).pipe(
         map(fn => fn(this.listId))
       )
       // Assign allItems observable
-      this.allItems$ = this._store.select(PaginatedListsState.GetItems).pipe(
-        map(fn => fn(this.listId))
-      )
+      // this.allItems$ = this._store.select(PaginatedListsState.GetItems).pipe( <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< previous
+      //   map(fn => fn(this.listId))
+      // )
+    
+      
+
+
       // Get parameter values
       const endpointUrl = (changes.endpointUrl && changes.endpointUrl.currentValue) || this.endpointUrl;
       // Get pageSize in localStorage with fallback value
@@ -155,6 +186,29 @@ export class NetworkPaginatedListComponent implements OnChanges {
     } else {
       console.error('[NetworkPaginatedList]', 'No listId parameter provided or empty, please specify some name ID.');
     }
+  }
+
+  getRowData(rowData) {
+    this._router.navigate(['result', rowData.feature_result_id], { relativeTo: this._acRouted }).then(() => window.scrollTo(0, 0));
+  }
+
+  openVideo(test: FeatureResult) {
+    this._sharedActions.loadingObservable(
+      this._sharedActions.checkVideo(test.video_url),
+      'Loading video'
+    ).subscribe(_ => {
+      this._dialog.open(VideoComponent, {
+        backdropClass: 'video-player-backdrop',
+        panelClass: 'video-player-panel',
+        data: test
+      })
+    }, err => this._snack.open('An error ocurred', 'OK'))
+  }
+
+  reloadPageAfterAction<T = any>(observable: Observable<T>) {
+    observable.pipe(
+      switchMap(_ => this.reloadCurrentPage())
+    ).subscribe();
   }
 
   // Retrieves the page size based on multiple places to get it
@@ -239,15 +293,16 @@ export class NetworkPaginatedListComponent implements OnChanges {
       // No other parameter is left behind
       queryParamsHandling: 'merge'
     })
+    // console.log(this.features_results);
   }
 
   /** Controls the HTML for showing the loading spinner */
   loading$ = new BehaviorSubject<boolean>(true);
-
   /** Globally used in component HTML to handle pagination state */
   pagination$ = new BehaviorSubject<PaginationWithPage<any>>(null);
-
 }
+
+
 
 /** Extended Pagination with Page and Size */
 interface PaginationWithPage<T> extends PaginatedResponse<T> {

@@ -95,7 +95,8 @@ import { MoveFolderItemComponent } from '@dialogs/move-feature/move-folder-item/
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MaterialExtensionsModule } from '@ng-matero/extensions';
-import { FeatureRunningPipe } from '../pipes/feature-running.pipe';
+import { FeatureRunningPipe } from '@pipes/feature-running.pipe';
+import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
 
 
 const components = [
@@ -181,7 +182,8 @@ const pipes = [
   AlreadyTakenFilterPipe,
   FilterTextPipe,
   DepartmentNamePipe,
-  FeatureRunningPipe
+  FeatureRunningPipe,
+  PixelDifferencePipe
 ];
 
 const dialogs = [

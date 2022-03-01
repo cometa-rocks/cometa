@@ -80,7 +80,8 @@ export class FeatureRunComponent {
   }
 
   stepView(run_id: number, test: FeatureResult) {
-    this._router.navigate(['run', run_id, 'step', test.feature_result_id], { relativeTo: this._ac }).then(() => window.scrollTo(0, 0));
+    console.log(this.run);
+    this._router.navigate(['result', test.feature_result_id], { relativeTo: this._ac }).then(() => window.scrollTo(0, 0));
   }
 
   /**

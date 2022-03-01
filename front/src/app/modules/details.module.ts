@@ -9,7 +9,6 @@ import { FeatureTitlesComponent } from '@components/feature-titles/feature-title
 import { FeatureActionsComponent } from '@components/feature-actions/feature-actions.component';
 import { HighchartsChartModule } from 'highcharts-angular';
 import { NumeralPipe } from '@pipes/numeral.pipe';
-import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
 import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
 import { RoundProgressModule } from 'angular-svg-round-progressbar';
 import { EditSchedule } from '@dialogs/edit-schedule/edit-schedule.component';
@@ -38,7 +37,7 @@ const routes: Routes = [
         component: MainViewComponent
     },
     {
-        path: 'run/:run/step/:feature_result_id',
+        path: 'result/:feature_result_id',
         children: [
             {
                 path: '',
@@ -67,7 +66,6 @@ const routes: Routes = [
         /* Pipes */
         NumeralPipe,
         ArchivedRunsPipe,
-        PixelDifferencePipe,
         FirstLetterUppercasePipe,
         PdfLinkPipe,
         SumByPropertyPipe,

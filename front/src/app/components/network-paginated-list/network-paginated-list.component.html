@@ -1,24 +1,20 @@
 <!-- Header section-->
-<div class="header">
+<!-- <div class="header">
     <ng-container *ngTemplateOutlet="headerTemplate"></ng-container>
-</div>
-<ng-container *ngIf="pagination$ | async as pagination; else loadingPagination">
+</div> -->
+<ng-container *ngIf="pagination$ | async as pagination">
     <ng-container *ngIf="pagination.results.length > 0; else noItemsFound">
         <!-- Rows section -->
-        <div class="paginated-rows">
-            <ng-container *ngFor="let item of pagination.results; let $last = last; trackBy: trackFn.bind(this, trackByKey)">
-                <!-- Iterate over each item and pass item as context to itemTemplate -->
+        <!-- <div class="paginated-rows">
+            <ng-container *ngFor="let item of pagination.results; let last$ = last; trackBy: trackFn.bind(this, trackByKey)">
                 <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: item }"></ng-container>
             </ng-container>
         </div>
         <div class="pagination">
-            <!-- Loader section-->
             <ng-container *ngIf="loading$ | async as loading; else pageButtons">
                 <mat-spinner class="loading-page" color="primary" diameter="22"></mat-spinner>
             </ng-container>
-            <!-- Pagination buttons section-->
             <ng-template #pageButtons>
-                <!-- Only show pagination controls if the list total count is greater than the minimum page size -->
                 <ng-container *ngIf="pagination.count > 10">
                     <mat-paginator [length]="pagination.count"
                         [pageIndex]="pagination.page - 1"
@@ -29,8 +25,99 @@
                     </mat-paginator>
                 </ng-container>
             </ng-template>
-        </div>
+        </div> -->
+
+
+
+            <ng-container *ngLet="feature_results$ | async as data"> 
+                <div class="table_container">
+                    <mtx-grid [data]="data"
+                        [columns]="columns"
+                        [showToolbar]="true"
+                        [sortOnFront]="true"
+                        [sortDisableClear]="true"
+                        [sortDisabled]="false"
+                        [rowSelectable]="true"
+                        [pageSize]="pagination.size"
+                        [hideRowSelectionCheckbox]="true"
+                        [columnMenuHeaderText]="'Columns Settings'"
+                        (page)="pageChange($event)"
+                        (rowClick)="getRowData($event.rowData)"
+                        sortStart="asc"
+                        [cellTemplate]="{
+                                        status: statusTpl,
+                                        browsers: browsersTpl,
+                                        result_date: result_dateTpl,
+                                        execution_time: execution_timeTpl,
+                                        pixel_diff: pixel_diffTpl,
+                                        skipped: skippedTpl,
+                                        fails: failsTpl,
+                                        video_url: video_urlTpl
+                                    }"
+                        [pageSizeOptions]="[10, 25, 50, 100, 200]">
+                    </mtx-grid>
+
+                    <!---------------------------- Status column template ------------------------------->
+                    <ng-template #statusTpl let-row let-index="index" let-col="colDef">
+                        <div class="status" [class.success]="row.status == 'Success'">{{row.status}}</div>
+                    </ng-template>
+                    <!------------------------------------------------------------------------------------>
+
+                    <!---------------------------- Browser column template ------------------------------->
+                    <ng-template #browsersTpl let-row let-index="index" let-col="colDef">
+                        <div class="browsers"> <i class="my-icons" [style.backgroundImage]="row.browser | browserIcon"></i> </div>
+                    </ng-template>
+                    <!------------------------------------------------------------------------------------>
+
+                    <!-------------------------- result date column template ----------------------------->
+                    <ng-template #result_dateTpl let-row let-index="index" let-col="colDef">
+                        <div class="result_date"> {{row.result_date | amParse | amDateFormat:'MMMM d yyyy, HH:mm a'}} </div>
+                    </ng-template>
+                    <!------------------------------------------------------------------------------------>
+
+                    <!------------------------- execution time column template --------------------------->
+                    <ng-template #execution_timeTpl let-row let-index="index" let-col="colDef">
+                        <div class="execution_time"> {{ row.execution_time | secondsToHumanReadable }} </div>
+                    </ng-template>
+                    <!------------------------------------------------------------------------------------>
+
+                    <!------------------------ pixel difference column template -------------------------->
+                    <ng-template #pixel_diffTpl let-row let-index="index" let-col="colDef">
+                        <div class="pixel_diff"> {{ row.pixel_diff | pixelDifference }} </div>
+                    </ng-template>
+                    <!------------------------------------------------------------------------------------>
+
+                    <!-------------------------- failed steps column template ---------------------------->
+                    <ng-template #failsTpl let-row let-index="index" let-col="colDef">
+                        <div *ngIf="row.fails > 0; else score" class="okTpl"> {{ row.fails }} </div>
+                    </ng-template>
+                    <!------------------------------------------------------------------------------------>
+
+                    <!-------------------------- skipped steps column template ---------------------------->
+                    <ng-template #skippedTpl let-row let-index="index" let-col="colDef">
+                        <div *ngIf="row.skipped > 0; else score" class="skipped_steps"> {{ row.skipped }} </div>
+                    </ng-template>
+                    <!------------------------------------------------------------------------------------>
+
+                    <!------------------------------ video and menu column ------------------------------->
+                    <ng-template #video_urlTpl let-row let-index="index" let-col="colDef" style="display:flex">
+                        <div *ngIf="row.video_url" class="video" matTooltip="View recording" matTooltipPosition="above" stopPropagation (click)="openVideo(row)">
+                            <mat-icon>videocam</mat-icon>
+                        </div>
+                    </ng-template>
+                    <!------------------------------------------------------------------------------------>
+
+                    <ng-template #score> <div>-</div> </ng-template>
+                </div>
+
+
+              </ng-container>
+
+
+
     </ng-container>
+
+
     <ng-template #noItemsFound>
         <!-- Not Found footer template -->
         <div class="no-items" *ngIf="noItemsTemplate">
