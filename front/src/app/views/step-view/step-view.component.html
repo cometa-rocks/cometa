@@ -42,7 +42,66 @@
             </div>
         </div>
     </div>
-    <div class="data">
+    
+    <div class="table_container" *ngLet="featureResultSteps$ | async as data">
+        <div *ngIf="data?.results">
+            <mtx-grid [data]="data?.results"
+                [columns]="columns"
+                [showToolbar]="true"
+                [sortOnFront]="true"
+                [sortDisableClear]="true"
+                [sortDisabled]="false"
+                [rowSelectable]="true"
+                [hideRowSelectionCheckbox]="true"
+                [columnMenuHeaderText]="'Columns Settings'"
+                (rowClick)="goToDetail($event.rowData.step_result_id)"
+                sortStart="asc"
+                [cellTemplate]="{index: indexTpl, step_name: step_nameTpl, status: statusTpl, execution_time: execution_timeTpl, pixel_diff: pixel_diffTpl}"
+                [pageSizeOptions]="[10, 25, 50, 100, 200]">
+            </mtx-grid>
+
+            <!---------------------------- Index column template ------------------------------->
+            <ng-template #indexTpl let-row let-index="index" let-col="colDef">
+                <div class="index">{{index}}</div>
+            </ng-template>
+            <!------------------------------------------------------------------------------------>
+
+            <!---------------------------- Step column template ------------------------------->
+            <ng-template #step_nameTpl let-row let-index="index" let-col="colDef">
+                <div  class="step">
+                    <!-- If Feature_result contains a step that runs another feature, above step's name will appear an informative label -->
+                    <!-- like From feature: feature_name -->
+                    <div class="step_belongs_to" *ngIf="test.feature_id != row.belongs_to.feature_id"
+                    [matTooltip]="'tooltips.edit_feature' | translate" matTooltipPosition="after" >
+                        From feature: {{row.belongs_to.feature_name}}
+                    </div>
+                    <!----------------------------------------------------------------------------------->
+
+                    <div class="step_name">{{row.step_name}}</div>
+                </div>
+            </ng-template>
+            <!------------------------------------------------------------------------------------>
+
+            <!---------------------------- Status column template ------------------------------->
+            <ng-template #statusTpl let-row let-index="index" let-col="colDef">
+                <div class="status" [class.success]="row.status == 'Success'">{{row.status}}</div>
+            </ng-template>
+            <!------------------------------------------------------------------------------------>
+
+            <!------------------------- execution time column template --------------------------->
+            <ng-template #execution_timeTpl let-row let-index="index" let-col="colDef">
+                <div class="execution_time"> {{ row.execution_time | secondsToHumanReadable }} </div>
+            </ng-template>
+            <!------------------------------------------------------------------------------------>
+
+            <!------------------------ pixel difference column template -------------------------->
+            <ng-template #pixel_diffTpl let-row let-index="index" let-col="colDef">
+                <div class="pixel_diff"> {{ row.pixel_diff | pixelDifference }} </div>
+            </ng-template>
+            <!------------------------------------------------------------------------------------>
+        </div>
+    </div>
+    <!-- <div class="data">
         <network-paginated-list
           listId="steps"
           [endpointUrl]="stepResultsUrl$ | async"
@@ -69,13 +128,11 @@
                             </div>
                         </div>
                         <div class="status">
-                            <!-- Status Box -->
                             <div
                                 stopPropagation
                                 [matMenuTriggerFor]="resultStatus"
                                 class="status-box"
                                 [ngClass]="passed ? 'passed' : 'failed'">{{ passed ? 'Passed' : 'Failed' }}</div>
-                            <!-- Override result status -->
                             <mat-menu #resultStatus="matMenu">
                                 <div class="menu-header">Override step status:</div>
                                 <button (click)="setStepStatus(item, 'Success')" mat-menu-item>
@@ -92,26 +149,20 @@
                         </div>
                         <div class="time">{{ item?.execution_time | secondsToHumanReadable }}</div>
                         <div class="difference">{{ item?.pixel_diff | pixelDifference }}</div>
-                        <!-- Icon options for each step result -->
                         <div class="item-options">
-                            <!-- View HTML Difference -->
                             <div class="option view-html-diff" *ngIf="item?.diff">
                                 <button (click)="_sharedActions.openHTMLDiff(item.step_result_id)" matTooltip="View HTML difference" matTooltipPosition="before" stopPropagation mat-icon-button>
                                     <mat-icon>code</mat-icon>
                                 </button>
                             </div>
-                            <!-- Download attached files to Step Result -->
                             <div class="option download-file" *ngIf="item?.files?.length > 0">
-                                <!-- Check if there are files -->
                                 <ng-container>
                                     <ng-container *ngIf="item.files.length === 1; else multipleFiles">
-                                        <!-- Link for unique file download -->
                                         <a [matTooltip]="item.files[0] | downloadName" matTooltipPosition="before" stopPropagation [href]="item.files[0] | downloadLink" mat-icon-button>
                                             <mat-icon>insert_drive_file</mat-icon>
                                         </a>
                                     </ng-container>
                                     <ng-template #multipleFiles>
-                                        <!-- Menu for multiple files download-->
                                         <button stopPropagation [matMenuTriggerFor]="fileSelector" mat-icon-button>
                                             <mat-icon>insert_drive_file</mat-icon>
                                         </button>
@@ -133,7 +184,7 @@
                 <div class="difference-desktop">PIXEL DIFFERENCE</div>
             </ng-template>
         </network-paginated-list>
-    </div>
+    </div> -->
 </ng-container>
 <ng-template #loader>
     <mat-spinner class="loading" diameter="35" color="primary"></mat-spinner>

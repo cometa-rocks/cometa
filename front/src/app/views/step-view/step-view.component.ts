@@ -10,6 +10,7 @@ import { ApiService } from '@services/api.service';
 import { NetworkPaginatedListComponent } from '@components/network-paginated-list/network-paginated-list.component';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { Dispatch } from '@ngxs-labs/dispatch-decorator';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'step-view',
@@ -81,42 +82,36 @@ import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 })
 export class StepViewComponent implements OnInit {
 
+  featureId$: Observable<number>;
+  featureResultId$: Observable<number>;
   test$: Observable<FeatureResult>;
-
   stepResultsUrl$: Observable<string>;
+  featureResultSteps$: Observable<any>;
+
+  columns = [
+    {header: '', field: 'index'},
+    {header: 'STEP', field: 'step_name'},
+    {header: 'RESULT', field: 'status'},
+    {header: 'TIME', field: 'execution_time'},
+    {header: 'PIXEL DIFFERENCE', field: 'pixel_diff'}
+  ];
+
 
   constructor(
     private _router: Router,
     private _acRouted: ActivatedRoute,
     private _store: Store,
     private _api: ApiService,
-    public _sharedActions: SharedActionsService
+    public _sharedActions: SharedActionsService,
+    private _http: HttpClient
   ) { }
 
-  featureId$: Observable<number>;
-  featureResultId$: Observable<number>;
-
   ngOnInit() {
-    this.featureId$ = this._acRouted.paramMap.pipe(
-      map(params => +params.get('feature')),
-      distinctUntilChanged(),
-      shareReplay({ bufferSize: 1, refCount: true }) // Share resulting value among subscribers
-    )
-    this.featureResultId$ = this._acRouted.paramMap.pipe(
-      map(params => +params.get('feature_result_id')),
-      distinctUntilChanged(),
-      shareReplay({ bufferSize: 1, refCount: true }) // Share resulting value among subscribers
-    )
-    this.test$ = this.featureResultId$.pipe(
-      tap(resultId => this.getFeatureResult(resultId)),
-      switchMap(resultId => this._store.select(CustomSelectors.GetFeatureResultById(resultId))),
-    )
-    this.stepResultsUrl$ = combineLatest([
-      this.featureId$,
-      this.featureResultId$
-    ]).pipe(
-      map(([featureId, resultId]) => `feature_results/${featureId}/step_results/${resultId}/`)
-    )
+    this.featureId$ = this.getFeatureId();
+    this.featureResultId$ = this.getFeatureResultId();
+    this.test$ = this.getTest();
+    this.stepResultsUrl$ = this.getStepResultsUrl();
+    this.featureResultSteps$ = this.getFeatureResultSteps();
   }
 
   @Dispatch() getFeatureResult = resultId => new FeatureResults.GetFeatureResult(resultId, true);
@@ -129,35 +124,79 @@ export class StepViewComponent implements OnInit {
     ]);
   }
 
+
+  getFeatureId() {
+    return this._acRouted.paramMap.pipe(
+      map(params => +params.get('feature')),
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true }) // Share resulting value among subscribers
+    );
+  }
+
+  getFeatureResultId() {
+    return this._acRouted.paramMap.pipe(
+      map(params => +params.get('feature_result_id')),
+      distinctUntilChanged(),
+      shareReplay({ bufferSize: 1, refCount: true }) // Share resulting value among subscribers
+    );
+  }
+
+  getTest() {
+    return this.featureResultId$.pipe(
+      tap(resultId => this.getFeatureResult(resultId)),
+      switchMap(resultId => this._store.select(CustomSelectors.GetFeatureResultById(resultId))),
+    );
+  }
+
+  getStepResultsUrl() {
+    return combineLatest([
+      this.featureId$,
+      this.featureResultId$
+    ]).pipe(
+      map(([featureId, resultId]) => `feature_results/${featureId}/step_results/${resultId}/`)
+    );
+  }
+
+  getFeatureResultSteps() {
+    let endpointUrl;
+
+    // gets the string value of the endpoint part of url, that has to be called in order to recieve steps of currently selected feature_result
+    this.stepResultsUrl$.subscribe(url => endpointUrl = url);
+
+    // perform http call and get the list of steps of feature_result
+    return this._http.get<PaginatedResponse<any>>(`${this._api.api}${endpointUrl}`);
+  }
+
+
   goToDetail(step_id: number) {
     // Save FeatureResult steps for later user in DetailView of clicked step
     this._router.navigate(['detail', step_id], { relativeTo: this._acRouted }).then(() => window.scrollTo(0, 0));
   }
 
-  @ViewChild(NetworkPaginatedListComponent) paginatedList: NetworkPaginatedListComponent;
+  // @ViewChild(NetworkPaginatedListComponent) paginatedList: NetworkPaginatedListComponent;
 
-  /**
-   * Performs the overriding action through the Store
-   */
-  setStepStatus(item: StepResult, status: string) {
-    // If Default, compute original value
-    if (status === 'Default') {
-      status = '';
-    }
-    if (this.paginatedList) {
-      // Launch Store action to process it
-      this._api.patchStepResult(item.step_result_id, { status }).subscribe(res => {
-        if (res.success) {
-          // Get current steps in view
-          const currentSteps = this.paginatedList.pagination$.getValue();
-          // Get modifying step index
-          const stepIndex = currentSteps.results.findIndex(step => step.step_result_id === item.step_result_id);
-          // Update status value
-          currentSteps.results[stepIndex].status = status;
-          // Update view
-          this.paginatedList.pagination$.next(currentSteps);
-        }
-      })
-    }
-  }
+  // /**
+  //  * Performs the overriding action through the Store
+  //  */
+  // setStepStatus(item: StepResult, status: string) {
+  //   // If Default, compute original value
+  //   if (status === 'Default') {
+  //     status = '';
+  //   }
+  //   if (this.paginatedList) {
+  //     // Launch Store action to process it
+  //     this._api.patchStepResult(item.step_result_id, { status }).subscribe(res => {
+  //       if (res.success) {
+  //         // Get current steps in view
+  //         const currentSteps = this.paginatedList.pagination$.getValue();
+  //         // Get modifying step index
+  //         const stepIndex = currentSteps.results.findIndex(step => step.step_result_id === item.step_result_id);
+  //         // Update status value
+  //         currentSteps.results[stepIndex].status = status;
+  //         // Update view
+  //         this.paginatedList.pagination$.next(currentSteps);
+  //       }
+  //     })
+  //   }
+  // }
 }
