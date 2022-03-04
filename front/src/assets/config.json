@@ -190,7 +190,7 @@
 	],
 	"changelog": [
 		{
-			"version": "2.8.271",
+			"version": "2.8.272",
 			"date": "2021-03-04",
 			"bugfixes": [
 				"#xxxx - New step 'Search for \"{something}\" in IBM Cognos and click on first result'"
