@@ -24,6 +24,7 @@ import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Configuration } from '@store/actions/config.actions';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'cometa-l1-feature-list',
@@ -39,6 +40,7 @@ export class L1FeatureListComponent implements OnInit{
     private _dialog: MatDialog,
     private _api: ApiService,
     private _snackBar: MatSnackBar,
+    private log: LogService
   ) { }
 
   @Input() data$: any; // Contains the new structure of the features / folders
@@ -103,7 +105,11 @@ export class L1FeatureListComponent implements OnInit{
 
   // NgOnInit
   ngOnInit() {
+    this.log.msg("1","Inicializing component...","feature-list");
+
+
     // Initialize the co_features_pagination variable in the local storage
+    this.log.msg("1","Loading feature pagination...","feature-list");
     this.featuresPagination$.subscribe(value => localStorage.setItem('co_features_pagination', value));
 
     // load column settings
@@ -121,10 +127,11 @@ export class L1FeatureListComponent implements OnInit{
    * @date 15-10-21
    * @lastModification 15-10-21
    */
-   @Dispatch()
-   storePagination(event) {
-   return new Configuration.SetProperty('co_features_pagination', event.pageSize, true);
-   }
+  @Dispatch()
+  storePagination(event) {
+    this.log.msg("1","Storing feature pagination in localstorage...","feature-list", event.pageSize);
+    return new Configuration.SetProperty('co_features_pagination', event.pageSize, true);
+  }
 
   /**
    * Saves current sort settings to localstorage
@@ -134,6 +141,7 @@ export class L1FeatureListComponent implements OnInit{
    */
    saveSort(event) {
      // save to localstorage
+     this.log.msg("1","Saving chosen sort in localstorage...","feature-list", event);
      localStorage.setItem("co_feature_table_sort_v2", JSON.stringify(event));
    }
 
@@ -163,6 +171,8 @@ export class L1FeatureListComponent implements OnInit{
    * @param event Looks something like this: [{label: "Type / Run", field: "orderType", show: false, header: "Type / Run", hide: true}, ...]
    */
   saveColumnSettings(event){
+    this.log.msg("1","Saving column settings...","feature-list", event);
+
     // add missing keys for next reload
     event.forEach(column => {
       // get default properties for current column
@@ -184,6 +194,8 @@ export class L1FeatureListComponent implements OnInit{
    * @date 2021-12-28
    */
   getSavedColumnSettings() {
+    this.log.msg("1","Getting saved column settings...","feature-list");
+
     // check if co_feature_table_columns_v2 exists in localstorage if so import it into columns else use default
     this.columns = JSON.parse( localStorage.getItem('co_feature_table_columns_v2') ) // get value from localstorage
     || 
@@ -194,6 +206,7 @@ export class L1FeatureListComponent implements OnInit{
   openContent(row:any) {
     switch(row.type) {
       case 'feature':
+        this.log.msg("1","opening feature with id...","feature-list", row.id);
         this._sharedActions.goToFeature(row.id);
         break;
       case 'folder':
@@ -226,17 +239,20 @@ export class L1FeatureListComponent implements OnInit{
 
   // Go to the clicked route
   setFolder(route: Folder[]) {
+    this.log.msg("1","Redirecting to route...","feature-list", route);
     this._store.dispatch(new Features.SetFolderRoute(route));
   }
 
   // Go to the clicked folder
   @Dispatch()
   goFolder(folder: Folder) {
+    this.log.msg("1","Opening folder...","feature-list", folder);
     return new Features.NewAddFolderRoute(folder);
   }
 
   // Modify the clicked folder
   modify(folder: Folder) {
+    this.log.msg("1","Modifying folder...","feature-list", folder);
     this._dialog.open(AddFolderComponent, {
       autoFocus: true,
       data: {
@@ -249,6 +265,7 @@ export class L1FeatureListComponent implements OnInit{
   // Delete the clicked folder
   @Subscribe()
   delete(folder: Folder) {
+    this.log.msg("1","Deleting folder...","feature-list", folder);
     return this._api.removeFolder(folder.folder_id).pipe(
       switchMap(_ => this._store.dispatch( new Features.GetFolders )),
       tap(_ => this._snackBar.open(`Folder ${folder.name} removed`, 'OK'))
@@ -261,40 +278,48 @@ export class L1FeatureListComponent implements OnInit{
 
   // Opens a menu to create a new feature
   SAopenCreateFeature() {
+    this.log.msg("1","Opening create feature menu...","feature-list");
     this._sharedActions.openEditFeature();
   }
 
   // Runs the clicked feature
   SArunFeature(id: number) {
+    this.log.msg("1","Running feature with id...","feature-list", id);
     this._sharedActions.run(id);
   }
 
   // Edits the schedule of the clicked feature
   SAeditSchedule(id: number) {
+    this.log.msg("1","Editing shedule of feature with id...","feature-list", id);
     this._sharedActions.editSchedule(id);
   }
 
   // Opens the menu to edit the clicked feature
   SAopenEditFeature(id: number, mode) {
+    this.log.msg("1","Editing feature with id...","feature-list", id);
     this._sharedActions.openEditFeature(id, mode);
   }
 
   // Moves the selected feature
   SAmoveFeature(feature: Feature) {
+    this.log.msg("1","Moving feature...","feature-list", feature);
     this._sharedActions.moveFeature(feature);
   }
 
   // Handles the settings of the clicked feature
   SAhandleSetting(id: number, mode, event) {
+    this.log.msg("1","Handling setting of feature width id...","feature-list", id);
     this._sharedActions.handleSetting(id, mode, event);
   }
 
   SAdeleteFeature(id: number) {
+    this.log.msg("1","Deleting feature width id...","feature-list", id);
     this._sharedActions.deleteFeature(id);
   }
 
   // Moves the selected folder
   SAmoveFolder(folder: Folder) {
+    this.log.msg("1","Moving folder...","feature-recent-list", folder);
     this._sharedActions.moveFolder(folder);
   }
 }

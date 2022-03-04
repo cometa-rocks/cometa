@@ -28,6 +28,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
 import { Configuration } from '@store/actions/config.actions';
+import { LogService } from '@services/log.service';
 
 @Component({
 selector: 'cometa-l1-feature-recent-list',
@@ -43,6 +44,7 @@ export class L1FeatureRecentListComponent{
      private _dialog: MatDialog,
      private _api: ApiService,
      private _snackBar: MatSnackBar,
+     private log: LogService
    ) { }
 
   // Contains the new structure of the features / folders
@@ -107,9 +109,11 @@ export class L1FeatureRecentListComponent{
   openContent(row:any) {
     switch(row.type) {
       case 'feature':
+        this.log.msg("1","opening feature with id...","feature-recent-list", row.id);
         this._sharedActions.goToFeature(row.id);
         break;
       case 'folder':
+        this.log.msg("1","opening folder with route...","feature-recent-list", row.route);
         this.setFolder(row.route);
         break;
       default:
@@ -128,17 +132,20 @@ export class L1FeatureRecentListComponent{
 
   // Go to the clicked route
   setFolder(route: Folder[]) {
+    this.log.msg("1","Setting folder route...","feature-recent-list", route);
     this._store.dispatch(new Features.SetFolderRoute(route));
   }
 
   // Go to the clicked folder
   @Dispatch()
   goFolder(folder: Folder) {
+    this.log.msg("1","redirecting to folder...","feature-recent-list", folder);
     return new Features.NewAddFolderRoute(folder);
   }
 
   // Modify the clicked folder
   modify(folder: Folder) {
+    this.log.msg("1","Editing folder...","feature-recent-list", folder);
     this._dialog.open(AddFolderComponent, {
       autoFocus: true,
       data: {
@@ -151,6 +158,7 @@ export class L1FeatureRecentListComponent{
   // Delete the clicked folder
   @Subscribe()
   delete(folder: Folder) {
+    this.log.msg("1","Deleting folder...","feature-recent-list", folder);
     return this._api.removeFolder(folder.folder_id).pipe(
       switchMap(_ => this._store.dispatch( new Features.GetFolders )),
       tap(_ => this._snackBar.open(`Folder ${folder.name} removed`, 'OK'))
@@ -165,6 +173,7 @@ export class L1FeatureRecentListComponent{
    * @return sets the current status of the sidenav on mobile
    */
   @Dispatch() toggleSidenav() {
+    this.log.msg("1","Toggling sidenav...","feature-recent-list");
     const opened = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
     return new Configuration.SetProperty('openedSidenav', !opened);
   }
@@ -175,40 +184,48 @@ export class L1FeatureRecentListComponent{
 
   // Opens a menu to create a new feature
   SAopenCreateFeature() {
+    this.log.msg("1","Opening create feature menu...","feature-recent-list");
     this._sharedActions.openEditFeature();
   }
 
   // Runs the clicked feature
   SArunFeature(id: number) {
+    this.log.msg("1","Running feature with id...","feature-recent-list", id);
     this._sharedActions.run(id);
   }
 
   // Edits the schedule of the clicked feature
   SAeditSchedule(id: number) {
+    this.log.msg("1","Editing shedule of feature with id...","feature-recent-list", id);
     this._sharedActions.editSchedule(id);
   }
 
   // Opens the menu to edit the clicked feature
   SAopenEditFeature(id: number, mode) {
+    this.log.msg("1","Editing feature with id...","feature-recent-list", id);
     this._sharedActions.openEditFeature(id, mode);
   }
 
   // Moves the selected feature
   SAmoveFeature(feature: Feature, previousFolder?: number) {
+    this.log.msg("1","Moving feature...","feature-recent-list", feature);
     this._sharedActions.moveFeature(feature);
   }
 
   // Handles the settings of the clicked feature
   SAhandleSetting(id: number, mode, event) {
+    this.log.msg("1","Handling setting of feature width id...","feature-recent-list", id);
     this._sharedActions.handleSetting(id, mode, event);
   }
 
   SAdeleteFeature(id: number) {
+    this.log.msg("1","Deleting feature width id...","feature-recent-list", id);
     this._sharedActions.deleteFeature(id);
   }
 
   // Moves the selected folder
   SAmoveFolder(folder: Folder) {
+    this.log.msg("1","Moving folder...","feature-recent-list", folder);
     this._sharedActions.moveFolder(folder);
   }
 }
