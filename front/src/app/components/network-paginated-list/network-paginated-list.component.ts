@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, Input, OnChanges, OnInit, SimpleCha
 import { PageEvent } from '@angular/material/paginator';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { Store } from '@ngxs/store';
+import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { VideoComponent } from '@dialogs/video/video.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -13,6 +14,8 @@ import { PaginatedListsState } from '@store/paginated-list.state';
 import { SafeGetStorage, StorageType } from 'ngx-amvara-toolbox';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
+import { MatCheckboxChange } from '@angular/material/checkbox';
+import { Configuration } from '@store/actions/config.actions';
 
 /**
  * This component is used to display an array of items in a paginated fashion using network.
@@ -189,6 +192,7 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
   }
 
   getRowData(rowData) {
+    console.log(rowData);
     this._router.navigate(['result', rowData.feature_result_id], { relativeTo: this._acRouted }).then(() => window.scrollTo(0, 0));
   }
 
@@ -205,11 +209,23 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
     }, err => this._snack.open('An error ocurred', 'OK'))
   }
 
+  deleteFeatureResult(test: FeatureResult) {
+    this.reloadPageAfterAction( this._sharedActions.deleteFeatureResult(test) );
+  }
+
+  archive(run: FeatureRun | FeatureResult) {
+    console.log(run);
+    this.reloadPageAfterAction( this._sharedActions.archive(run) );
+  }
+
   reloadPageAfterAction<T = any>(observable: Observable<T>) {
     observable.pipe(
       switchMap(_ => this.reloadCurrentPage())
     ).subscribe();
   }
+
+  @Dispatch()
+  handleArchived = (change: MatCheckboxChange) => new Configuration.SetProperty('internal.showArchived', change.checked);  
 
   // Retrieves the page size based on multiple places to get it
   getPageSize(params: ParamMap, changes: SimpleChanges): number {

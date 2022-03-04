@@ -65,7 +65,9 @@ export class PaginatedListsState {
 
                 feature_runs.forEach(feature_run => {
                     feature_run.feature_results?.forEach(feature_result => {
-                        feature_results.push(feature_result);
+                        if(!feature_result.archived) {
+                            feature_results.push(feature_result);
+                        }
                     });
                 }); 
             }

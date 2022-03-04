@@ -31,6 +31,7 @@
 
             <ng-container *ngLet="feature_results$ | async as data"> 
                 <div class="table_container">
+                    
                     <mtx-grid [data]="data"
                         [columns]="columns"
                         [showToolbar]="true"
@@ -54,8 +55,17 @@
                                         fails: failsTpl,
                                         video_url: video_urlTpl
                                     }"
+                        [toolbarTemplate]="toolbarTpl"
                         [pageSizeOptions]="[10, 25, 50, 100, 200]">
                     </mtx-grid>
+
+                    <!----------------------------- Additional toolbar template ------------------------>
+                    <ng-template #toolbarTpl> 
+                        <button stopPropagation [matMenuTriggerFor]="tools" mat-icon-button>
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                    </ng-template>
+                    <!------------------------------------------------------------------------------------>
 
                     <!---------------------------- Status column template ------------------------------->
                     <ng-template #statusTpl let-row let-index="index" let-col="colDef">
@@ -104,10 +114,62 @@
                         <div *ngIf="row.video_url" class="video" matTooltip="View recording" matTooltipPosition="above" stopPropagation (click)="openVideo(row)">
                             <mat-icon>videocam</mat-icon>
                         </div>
+                        <div class="options">
+                            <button stopPropagation [matMenuTriggerFor]="featureResultMenu" mat-icon-button>
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                        </div>
+
+                        <mat-menu #featureResultMenu="matMenu">
+                            <!-- Archive / Unarchive button -->
+                            <button (click)="archive(row)" mat-menu-item>
+                                <ng-container *ngIf="row.archived; else archivedResult">
+                                    <span [matTooltip]="'unsave' | translate" matTooltipPosition="before">
+                                        <mat-icon>unarchive</mat-icon>Unsave result
+                                    </span>
+                                </ng-container>
+                                <ng-template #archivedResult>
+                                    <span [matTooltip]="'save' | translate" matTooltipPosition="before">
+                                        <mat-icon>archive</mat-icon>Save result
+                                    </span>
+                                </ng-template>
+                            </button>
+                            <button *ngIf="!row.archived" (click)="deleteFeatureResult(row)" mat-menu-item>
+                                <span>
+                                    <mat-icon>delete</mat-icon>Delete
+                                </span>
+                            </button>
+                        </mat-menu>
                     </ng-template>
                     <!------------------------------------------------------------------------------------>
 
+                    <mat-menu #tools>
+                        <div stopPropagation class="mat-menu-panel-category">Clear results</div>
+                        <!-- All 4 options to delete runs -->
+                        <button mat-menu-item (click)="clearRuns('all')">Clear all</button>
+                        <button mat-menu-item (click)="clearRuns('all_failed')">Clear all failed</button>
+                        <button mat-menu-item (click)="clearRuns('all_except_last')">Clear all except last run</button>
+                        <mat-divider></mat-divider>
+                        <div stopPropagation class="mat-menu-panel-category">Options</div>
+                        <!-- Handle checkbox, if the user also wants to delete the associated template images -->
+                        <button stopPropagation mat-menu-item>
+                            <mat-checkbox
+                                [matTooltip]="'tooltips.delete_templates_with_features' | translate"
+                                matTooltipPosition="below"
+                                [checked]="deleteTemplateWithResults$ | async"
+                                (change)="handleDeleteTemplateWithResults($event)"
+                                color="primary">
+                                Also delete templates
+                            </mat-checkbox>
+                        </button>
+                        <button stopPropagation mat-menu-item>
+                            <mat-checkbox color="primary" [checked]="archived$ | async" (change)="handleArchived($event)">Show saved items</mat-checkbox>
+                        </button>
+                    </mat-menu>
+
                     <ng-template #score> <div>-</div> </ng-template>
+
+                    
                 </div>
 
 

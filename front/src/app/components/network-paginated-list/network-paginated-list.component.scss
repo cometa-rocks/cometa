@@ -50,12 +50,25 @@
     }
 }
 
+:host ::ng-deep .mtx-grid-toolbar {
+    justify-content: flex-end !important;
+    
+
+    mat-icon:hover {
+        transition: .2s;
+        transform: scale(1.5);
+    }
+}
+
 :host ::ng-deep .mtx-grid table {
     overflow-x: scroll;
     border-radius: 5px;
     background-color: $table-background-opaque;
     border-spacing: 0;
     box-shadow: 0 3px 1px -2px $table-low-shadow, 0 2px 2px 0 $table-medium-shadow, 0 1px 5px 0 $table-high-shadow;
+
+
+    
     thead tr {
         height: 55px;
         z-index: 10;
