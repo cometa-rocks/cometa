@@ -14,6 +14,7 @@ import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
 import { Router } from '@angular/router';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'cometa-folder-tree',
@@ -23,7 +24,7 @@ import { Router } from '@angular/router';
 })
 export class FolderTreeComponent implements OnInit {
 
-  constructor(private _store: Store, private _router: Router) { }
+  constructor(private _store: Store, private _router: Router, private log: LogService) { }
 
   @Select(CustomSelectors.GetConfigProperty('co_active_list')) activeList$: Observable<string>; // Checks if the recent list is active
   @Select(FeaturesState.GetCurrentRouteNew) route$: Observable<ReturnType<typeof FeaturesState.GetCurrentRouteNew>>; // Get the current route
@@ -32,6 +33,8 @@ export class FolderTreeComponent implements OnInit {
   folders$: Observable<Folder[]>;
 
   ngOnInit() {
+    this.log.msg("1","Inicializing component...","folder-tree");
+
     this.folders$ = this._store.select<Folder[]>(CustomSelectors.GetDepartmentFolders()); // Get the list of departments available to the user
     this.activeList$.subscribe(value => localStorage.setItem('co_active_list', value)); // Initialize the recentList_active variable in the local storage
 
@@ -39,9 +42,11 @@ export class FolderTreeComponent implements OnInit {
     // the last selected folder route is saved in localstorage from store/actions/features.state.ts in a function called setFolderRoute
     // it is actualized ever time any folder is clicked
     const last_selected_folder = JSON.parse(localStorage.getItem('co_last_selected_folder_route'));
+    this.log.msg("1","Getting last selected folder route...","folder-tree", last_selected_folder);
 
     // dispach recieved route to features state manager to adapt the path of the currently selected folder accordingly
     // this will load the same folder path that user was working on, before reloading browser window
+    this.log.msg("1","Dispatching last selected folder route to store...","folder-tree", last_selected_folder);
     this._store.dispatch(new Features.SetFolderRoute(last_selected_folder));
   }
 
@@ -50,7 +55,10 @@ export class FolderTreeComponent implements OnInit {
    */
 
   // Hides the sidenav
-  @Dispatch() hideSidenav = () => new Configuration.SetProperty('openedSidenav', false);
+  @Dispatch() hideSidenav() {
+    this.log.msg("1","Hiding sidenav...","folder-tree");
+    return new Configuration.SetProperty('openedSidenav', false);
+  }
 
   /**
    * Toggle the recent list variable in the store
@@ -61,7 +69,9 @@ export class FolderTreeComponent implements OnInit {
    */
   @Dispatch()
   toggleListType(listType: string) {
+    this.log.msg("1","Navigating to root(home)...","folder-tree");
     this._router.navigate(['/']);
+    
     return new Configuration.SetProperty('co_active_list', listType, true);
   }
 

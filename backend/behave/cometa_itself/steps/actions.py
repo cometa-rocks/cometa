@@ -1,13 +1,14 @@
 # -*- coding: UTF-8 -*-
 # -------------------------------------------------------
-#
-# AMVARA CONSULTING 12.11.2017
-# Ralf Roeber
+# This archive contains all the steps available in Cometa Front for execution.
+# Steps not included are Enterprise Licenced Steps
 #
 # Changelog
-# 01.02.2022 RRO Cleaning up :-)
-# 21.11.2017 Compare.sh fuer besseren  Vergleich von Images angelegt
-# 12.11.2017 PoC Arbeiten abgeschlossen
+# 2022-03-04 RRO added new step "Search for "{something}" in IBM Cognos and click on first result"
+# 2022-03-01 RRO added step to hit ok on alert, confirm or prompt window
+# 2022-02-01 RRO Cleaning up :-)
+# 2017-11-21 Compare.sh fuer besseren  Vergleich von Images angelegt
+# 2017-11-12 PoC Arbeiten abgeschlossen
 #
 # -------------------------------------------------------
 from behave import *
@@ -658,33 +659,54 @@ def step_impl(context,env):
         if (item[0] == env):
             context.active_environment = item[1]
 
-# # Test if can set an environment
-# .... not used ... was only for POC
-# @step(u'I enter environment "{env}"')
-# @done(u'I enter environment "{env}"')
-# def step_impl(context,env):
-#     print("Loop over read items:",len(context.environments))
-#     for item in context.environments:
-#         print("i:",item)
-#         if (item[0] == env):
-#             print("FOUND:",env)
-#             print("Name:",item[1][0])
-#             print("UserID:",item[1][1])
-#             print("URI:",item[1][4])
-#             # get uri and login
-#             context.browser.get(item[1][4])
-#             MyLogin(context,item[1][1],item[1][2],item[1][3])
-#             # transfer active environment to context
-#             context.active_environment = item[1]
-#             return True
-#         else:
-#             print("Nothing found in:",item)
-#     if ( "IBM Cognos content" in context.browser.page_source ):
-#         print("Found IBM Cognos Homepage")
-#         elem = waitSelector(context, "css", 'td.welcomeToolHeadingContainer')
-#         elem[0].click()
-#     else:
-#         raise CustomError("We are on Cognos Portal page?")
+# Search for something in IBM Cognos and click on the first result. Tested & Works with CA 11.1 & 11.2
+@step(u'Search for "{something}" in IBM Cognos and click on first result')
+@done(u'Search for "{something}" in IBM Cognos and click on first result')
+def step_impl(context, something):
+    logger.debug("Searching for %s in IBM Cognos" % something )
+    send_step_details(context, 'Searching for %s in IBM Cognos' % something )
+
+    # Execute the search by clicking, sending search-text and hitting enter 
+    # ... search is different on CA11.1 and CA11.2
+
+    # first try to find a CA11.1 or CA11.2 searchbox
+    try:
+        # CA11.1 search box
+        logger.debug("Trying to search on CA11.1")
+        elm = context.browser.find_element_by_xpath("//*[@id='com.ibm.bi.search.search']")
+        logger.debug("elm returned")
+        logger.debug("Got elm %s " % elm )
+        logger.debug("elm ")
+        elm.returnedclick()
+        # select the opening slide input search element
+        elm = waitSelector(context, "//input[@type='search']")[0]
+        elm.click()
+    except:
+        try:
+            # CA11.2 search box
+            logger.debug("Trying to search on CA11.2")
+            elm = context.browser.find_element_by_xpath("//input[@role='searchbox']")
+            elm.click()
+        except:
+            logger.debug("Could not find a CA11.1 or CA11.2 compatible searchbox")
+            raise CustomError("Could not find a CA11.1 or CA11.2 compatible searchbox")
+
+    # sleep 10ms for cognos to react on the last click
+    time.sleep(0.01)
+
+    # send the search text
+    elm.send_keys(something)
+    elm.send_keys(Keys.ENTER)
+
+    # wait half a second for results to appear
+    time.sleep(0.5)
+
+    # get the first result and click on it
+    logger.debug("Clicking on first result")
+    waitSelector(context, "xpath", "//td//div[contains(.,'%s')]" % something)[0].click()
+
+    # wait 250ms a second for results to appear
+    time.sleep(0.25)
 
 # Allows to navigate to a folder in an IBM Cognos installation
 @step(u'I can go to IBM Cognos folder "{folder_name}"')
@@ -770,6 +792,21 @@ def step_imp(context):
 @done(u'I can test current IBM Cognos folder')
 def step_impl(context):
     test_folder(context)
+
+# Allows to click on the OK button of an alert, confirm or prompt message
+@step(u'I can click OK on alert, confirm or prompt message')
+@done(u'I can click OK on alert, confirm or prompt message')
+def step_impl(context):
+    try:
+        # try switching to the alert windows
+        context.browser.switch_to_alert()
+        # then hit the enter key
+        context.browser.send_keys(ENTER)
+        # switch back to default content
+        context.browser.switch_to_default_content()
+    except NoAlertPresentException:
+        logger.debug("Could not find the alert, confirm or prompt window")
+        raise CustomError('There was no alert, confirm or prompt window present.')
 
 #
 # FIXME documentation
