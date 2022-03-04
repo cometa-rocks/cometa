@@ -120,6 +120,7 @@ Author: dph000
     <!-- Cometa welcome page-->
     <!-- home -->
     <ng-container *ngIf="(aciveList$ | async) == 'home'">
+      <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
       <cometa-welcome> </cometa-welcome>
     </ng-container>
 
