@@ -1,13 +1,14 @@
 # -*- coding: UTF-8 -*-
 # -------------------------------------------------------
-#
-# AMVARA CONSULTING 12.11.2017
-# Ralf Roeber
+# This archive contains all the steps available in Cometa Front for execution.
+# Steps not included are Enterprise Licenced Steps
 #
 # Changelog
-# 01.02.2022 RRO Cleaning up :-)
-# 21.11.2017 Compare.sh fuer besseren  Vergleich von Images angelegt
-# 12.11.2017 PoC Arbeiten abgeschlossen
+# 2022-03-04 RRO added new step "Search for "{something}" in IBM Cognos and click on first result"
+# 2022-03-01 RRO added step to hit ok on alert, confirm or prompt window
+# 2022-02-01 RRO Cleaning up :-)
+# 2017-11-21 Compare.sh fuer besseren  Vergleich von Images angelegt
+# 2017-11-12 PoC Arbeiten abgeschlossen
 #
 # -------------------------------------------------------
 from behave import *
@@ -658,33 +659,54 @@ def step_impl(context,env):
         if (item[0] == env):
             context.active_environment = item[1]
 
-# # Test if can set an environment
-# .... not used ... was only for POC
-# @step(u'I enter environment "{env}"')
-# @done(u'I enter environment "{env}"')
-# def step_impl(context,env):
-#     print("Loop over read items:",len(context.environments))
-#     for item in context.environments:
-#         print("i:",item)
-#         if (item[0] == env):
-#             print("FOUND:",env)
-#             print("Name:",item[1][0])
-#             print("UserID:",item[1][1])
-#             print("URI:",item[1][4])
-#             # get uri and login
-#             context.browser.get(item[1][4])
-#             MyLogin(context,item[1][1],item[1][2],item[1][3])
-#             # transfer active environment to context
-#             context.active_environment = item[1]
-#             return True
-#         else:
-#             print("Nothing found in:",item)
-#     if ( "IBM Cognos content" in context.browser.page_source ):
-#         print("Found IBM Cognos Homepage")
-#         elem = waitSelector(context, "css", 'td.welcomeToolHeadingContainer')
-#         elem[0].click()
-#     else:
-#         raise CustomError("We are on Cognos Portal page?")
+# Search for something in IBM Cognos and click on the first result. Tested & Works with CA 11.1 & 11.2
+@step(u'Search for "{something}" in IBM Cognos and click on first result')
+@done(u'Search for "{something}" in IBM Cognos and click on first result')
+def step_impl(context, something):
+    logger.debug("Searching for %s in IBM Cognos" % something )
+    send_step_details(context, 'Searching for %s in IBM Cognos' % something )
+
+    # Execute the search by clicking, sending search-text and hitting enter 
+    # ... search is different on CA11.1 and CA11.2
+
+    # first try to find a CA11.1 or CA11.2 searchbox
+    try:
+        # CA11.1 search box
+        logger.debug("Trying to search on CA11.1")
+        elm = context.browser.find_element_by_xpath("//*[@id='com.ibm.bi.search.search']")
+        logger.debug("elm returned")
+        logger.debug("Got elm %s " % elm )
+        logger.debug("elm ")
+        elm.returnedclick()
+        # select the opening slide input search element
+        elm = waitSelector(context, "//input[@type='search']")[0]
+        elm.click()
+    except:
+        try:
+            # CA11.2 search box
+            logger.debug("Trying to search on CA11.2")
+            elm = context.browser.find_element_by_xpath("//input[@role='searchbox']")
+            elm.click()
+        except:
+            logger.debug("Could not find a CA11.1 or CA11.2 compatible searchbox")
+            raise CustomError("Could not find a CA11.1 or CA11.2 compatible searchbox")
+
+    # sleep 10ms for cognos to react on the last click
+    time.sleep(0.01)
+
+    # send the search text
+    elm.send_keys(something)
+    elm.send_keys(Keys.ENTER)
+
+    # wait half a second for results to appear
+    time.sleep(0.5)
+
+    # get the first result and click on it
+    logger.debug("Clicking on first result")
+    waitSelector(context, "xpath", "//td//div[contains(.,'%s')]" % something)[0].click()
+
+    # wait 250ms a second for results to appear
+    time.sleep(0.25)
 
 # Allows to navigate to a folder in an IBM Cognos installation
 @step(u'I can go to IBM Cognos folder "{folder_name}"')
@@ -769,7 +791,22 @@ def step_imp(context):
 @step(u'I can test current IBM Cognos folder')
 @done(u'I can test current IBM Cognos folder')
 def step_impl(context):
-    test_folder(context)
+    test_folder_aso(context)
+
+# Allows to click on the OK button of an alert, confirm or prompt message
+@step(u'I can click OK on alert, confirm or prompt message')
+@done(u'I can click OK on alert, confirm or prompt message')
+def step_impl(context):
+    try:
+        # try switching to the alert windows
+        context.browser.switch_to_alert()
+        # then hit the enter key
+        context.browser.send_keys(ENTER)
+        # switch back to default content
+        context.browser.switch_to_default_content()
+    except NoAlertPresentException:
+        logger.debug("Could not find the alert, confirm or prompt window")
+        raise CustomError('There was no alert, confirm or prompt window present.')
 
 #
 # FIXME documentation
@@ -893,6 +930,149 @@ def test_folder(context, parameters = {}):
         logger.debug("Overall results failed - some reprots have errors.")
         raise CustomError('Execution of reports in folder finish with some errors')
 
+#
+# FIXME documentation
+#
+def test_folder_aso(context, parameters = {}):
+
+    # Make sure Team Folder is opened
+    open_team_folder(context)
+    send_step_details(context, 'Opening team folder')
+
+    # Make sure all folder items are in the list
+    send_step_details(context, 'Listing all folder items')
+    cognos_scroll_folder_till_bottom(context, True)
+
+    # Get all reports in current folder
+    elements = waitSelector(context, "xpath", '//div[@id="teamFoldersSlideoutContent"]/descendant::div[@title and @class="nameColumnDiv contentListFocusable clickable active"]')
+
+    # Get only 5 first elements for testing
+    # elements = elements[:5]
+    total = len(elements)
+    if len(elements) == 0:
+        raise CustomError('Empty folder')
+
+    # Test every report by clicking on it, run it, check content, and finally close
+    logger.debug("Looping over folder content with %d elements" % len(elements))
+
+    # Set the over_results_ok_variable to true
+    # ... if one report fails, then this will change to false
+    over_all_results_ok=True
+
+    # Loop over elements in folder
+    for index, el in enumerate(elements):
+        fail=False # if we want to fail faster
+        print(' ==> Testing report #%s' % str(index))
+        logger.debug(' ==================')
+        logger.debug(' ==> Testing report #%s of %s' % (str(int(index)+1),str(total)))
+        logger.debug(' ==================')
+        report_start_time=time.time()
+        # Make sure Team Folder is opened
+        logger.debug("makeing sure team folder is opened")
+        open_team_folder(context)
+        # Make sure all folder items are in the list
+        logger.debug("Scrolling folder to bottom")
+        cognos_scroll_folder_till_bottom(context, True)
+        # Retrieve element again as DOM can later be changed
+        logger.debug("Getting DOM element %d in folder" % (int(index)+1))
+        element = context.browser.find_element_by_xpath('//div[@id="teamFoldersSlideoutContent"]/descendant::div[@title and @class="nameColumnDiv contentListFocusable clickable active"][position()=%s]' % str(int(index)+1))
+        # save reportname for later usage
+        report_name=str(element.get_attribute('innerText'))
+        logger.debug(" ==> Executing report [%s] " % report_name)
+        # output something in the preview on cometa front
+        send_step_details(context, '%d/%d - Testing report %s' % (int(index+1), total, str(element.get_attribute('innerText'))))
+        # Open report
+        logger.debug("Clicking on report")
+        context.browser.execute_script("arguments[0].click();", element)
+
+        # get the element that contains the storeId
+        storeIDElement = waitSelector(context, "xpath", "//div[contains(@id, 'i') and @class='pageView']")[0]
+        storeID = storeIDElement.get_attribute("id")
+        logger.info("Found storeID for the report: %s" % storeID)
+
+        # wait for report iframe element using the storeID as a name attribute
+        logger.debug("Waiting for IBM Cognos iFrame to appear")
+        # Try to switch to new iframe if exists (only reports with prompts have iframe)
+        had_iframe = False
+        try:
+            iframe = waitSelector(context, "xpath", ("//iframe[@name='%s']" % storeID))
+        except:
+            iframe = []
+        if len(iframe) > 0:
+            logger.debug('Switched to iframe')
+            context.browser.switch_to_frame( iframe[0] )
+            had_iframe = True
+        else:
+            # check if there is a loader displayed
+            loaderElements = context.browser.find_elements_by_css_selector("table.rsBlockerDlg")
+            logger.debug(loaderElements)
+            if len(loaderElements) > 0 and loaderElements[0].is_displayed():
+                logger.debug("%s with storeID %s took longer than timeout to load." % (report_name, storeID))
+                fail = True
+            else:
+                logger.debug("No iFrame found and no loader found, maybe report already failed or report is fully displayed...")
+
+        # wait for viewer
+        time.sleep(5)
+        # Automatically fill all necessary prompts
+        logger.debug("Check for filling prompt with magic")
+        if not fail and auto_select_cognos_prompts_aso(context, parameters=parameters):
+            # promptPage was filled with success
+            logger.debug("Prompt Magic return true - which somehow means success")
+        else:
+            if not fail:
+                # promptPage failed somehow
+                logger.debug("Prompt Magic returned false - which means, we should fail this report [%s]." % report_name)
+                logger.info("You might want to look at the screenshot or video and adjust timeouts or fix a broken report.")
+                logger.debug("Saveing report timing as step result to database.")
+            over_all_results_ok=False
+
+            # save to database
+            save_message="I can test current IBM Cognos folder > Report: %s failed" % report_name
+            saveToDatabase(save_message, (time.time() - report_start_time) * 1000, 0, False, context )
+
+            # switch content
+            logger.debug("Try switching to default content")
+            context.browser.switch_to_default_content()
+
+            # try closing the report view
+            logger.debug("Trying to close report view")
+            close_ibm_cognos_view(context, parameters)
+
+            # finally continue
+            logger.debug("Continue to next report as further testing on this report is not very useful.")
+            logger.debug(" <== Report [%s] DONE " % report_name)
+            continue
+
+        # time.sleep(3)
+        # Check if inner text has something
+        if had_iframe:
+            logger.debug("Waiting for iFrame to render IBM Cognos content")
+            wait_for_element_text(context, 'body.viewer table, .clsViewerPage')
+            logger.debug("Try switching to default content")
+            context.browser.switch_to_default_content()
+        # else:
+            # logger.debug("Waiting for IBM Cognos pageViewContent")
+            # wait_for_element_text(context, '.pageViewContent')
+        #
+        # Save this report test to database, so the user can see in testresults the execution, screenshot and timings
+        #
+        logger.debug("Saveing report timing as step result to database")
+        save_message="I can test current IBM Cognos folder > Report: %s tested" % report_name
+        saveToDatabase(save_message, (time.time() - report_start_time) * 1000, 0, True, context )
+
+        # close the ibm cognos view
+        close_ibm_cognos_view(context, parameters)
+        logger.debug(" <== Report [%s] DONE " % report_name)
+
+    # Finally, check if over_all_results_ok is false
+    # .... this means, we had some problems inside the report execution loop
+    # .... so we fail the overall test
+    if over_all_results_ok:
+        logger.debug("Overall results ok - all reports finished well.")
+    else:
+        logger.debug("Overall results failed - some reprots have errors.")
+        raise CustomError('Execution of reports in folder finish with some errors')
 
 # Closes the first IBM Cognos View in the drop down selector.
 @step(u'I can close the current IBM Cognos report view "{parameters}"')
@@ -901,17 +1081,17 @@ def step_impl(context, parameters = {}):
     close_ibm_cognos_view(context, parameters)
 
 def close_ibm_cognos_view(context, parameters = {}):
-        # Close current report view
-        logger.debug("Closing current report content")
-        elements = waitSelector(context, 'css', '.appview:not(.hidden) [id="com.ibm.bi.glass.common.viewSwitcher"]')
+    # Close current report view
+    logger.debug("Closing current report content")
+    elements = waitSelector(context, 'css', '[id="com\.ibm\.bi\.glass\.common\.viewSwitcher"]')
+    context.browser.execute_script("arguments[0].click();", elements[0])
+    elements = waitSelector(context, 'css', '.popover.switcher ul li:last-child .removeItemIcon')
+    elements[0].click()
+    time.sleep(1)
+    elements = context.browser.find_elements_by_css_selector('.button.dialogButton[id=ok]')
+    if len(elements) > 0:
         elements[0].click()
-        elements = waitSelector(context, 'css', '.popover.switcher ul li:last-child .removeItemIcon')
-        elements[0].click()
-        time.sleep(1)
-        elements = context.browser.find_elements_by_css_selector('.button.dialogButton[id=ok]')
-        if len(elements) > 0:
-            elements[0].click()
-        time.sleep(0.5)
+    time.sleep(0.5)
 
 
 # Allows to test all reports inside a folder of a Cognos installation with {key:value} parameters to autfill promptPages. Example: "PE|PeriodID:1269;CO:01"
@@ -920,7 +1100,7 @@ def close_ibm_cognos_view(context, parameters = {}):
 def step_impl(context, parameters):
     # Load parameters
     parameters = load_parameters(parameters)
-    test_folder(context, parameters)
+    test_folder_aso(context, parameters)
 
 # FIX ME .... make this MIF unspecific
 # Test if can access to a folder relative to the root directory of the URL specified

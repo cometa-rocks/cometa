@@ -64,6 +64,18 @@ ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
 
 logger = getLogger()
 
+def timediff(method):
+    def wrapper(*args, **kwargs):
+        method_name = method.__qualname__ or method.__name__
+        logger.debug("Mesuring time differance for " + method_name + "...")
+        start = time.time()
+        result = method(*args, **kwargs)
+        end = time.time()
+        logger.debug(method_name + " took: " + str(end-start) + " seconds")
+        return result
+    return wrapper
+
+
 def bytesToMegaBytes(bytes):
     kilobytes = bytes/1024
     megabytes = kilobytes/1024
@@ -1175,6 +1187,7 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
             return JsonResponse({'success': True}, status=202)
         return JsonResponse({'success': False, "error": 'No feature_result_id specified'}, status=406)
 
+    @timediff
     def list(self, request, *args, **kwargs):
 
         data = {}
@@ -1196,7 +1209,7 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
             # get all the feature runs for specific run
             feature_runs = Feature_Runs.available_objects.filter(feature=feature_id, archived=archived).order_by('-date_time', '-run_id')
             # get the amount of data per page using the queryset
-            page = self.paginate_queryset(FeatureRunsSerializer.fast_loader(feature_runs))
+            page = self.paginate_queryset(FeatureRunsSerializer.setup_eager_loading(feature_runs))
             # serialize the data
             serialized_data = FeatureRunsSerializer(page, many=True).data
             # return the data with count, next and previous pages.

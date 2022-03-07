@@ -179,15 +179,42 @@ class RegularFeatureResultInfoSerializer(serializers.Serializer):
 ##################################
 # Feature Runs model serializers #
 ##################################
-class FeatureRunsSerializer(serializers.ModelSerializer, FeatureRunsMixin):
+class FeatureRunsSerializer(serializers.ModelSerializer):
 
-    feature_results = serializers.SerializerMethodField()
-    date_time = serializers.DateTimeField(format=datetimeTZFormat)
+    # feature_results = serializers.SerializerMethodField()
+    feature_results = FeatureResultSerializer(many=True, read_only=True)
+    run_id = serializers.IntegerField(read_only=True)
+    is_removed = serializers.BooleanField(read_only=True)
+    archived = serializers.BooleanField(read_only=True)
+    status = serializers.CharField(read_only=True)
+    total = serializers.IntegerField(read_only=True)
+    fails = serializers.IntegerField(read_only=True)
+    ok = serializers.IntegerField(read_only=True)
+    skipped = serializers.IntegerField(read_only=True)
+    execution_time = serializers.IntegerField(read_only=True)
+    pixel_diff = serializers.IntegerField(read_only=True)
+    feature = serializers.CharField(source='feature.feature_id', read_only=True)
+    date_time = serializers.DateTimeField(format=datetimeTZFormat, read_only=True)
 
     class Meta:
         model = Feature_Runs
-        fields = '__all__'
-        extra_fields = ['feature_results']
+        fields = (
+            "run_id",
+            "is_removed",
+            "archived",
+            "status",
+            "total",
+            "fails",
+            "ok",
+            "skipped",
+            "execution_time",
+            "pixel_diff",
+            "feature",
+            "date_time",
+            "feature_results"
+        )
+        # extra_fields = ['feature_results']
+        # exclude = ["feature_results"]
     def create(self, validated_data):
         # create feature run object
         fr = Feature_Runs.objects.create(**validated_data)
@@ -202,10 +229,16 @@ class FeatureRunsSerializer(serializers.ModelSerializer, FeatureRunsMixin):
         feature.save(dontSaveSteps=True)
         # return feature run that was created at the start
         return fr
+    
+    @staticmethod
+    def setup_eager_loading(queryset):
+        #select_related for 'to-one' relationships
+        queryset = queryset.select_related('feature')
 
-    def get_feature_results(self, instance):
-        ret = FeatureResultSerializer(instance.feature_results, many=True).data
-        return ret
+        #prefetch_related for 'to-many' relationships
+        queryset = queryset.prefetch_related('feature_results')
+
+        return queryset
 
 def sumField(querySet, field_name):
     return functools.reduce(lambda total, fr: total + getattr(fr, field_name), querySet, 0)
