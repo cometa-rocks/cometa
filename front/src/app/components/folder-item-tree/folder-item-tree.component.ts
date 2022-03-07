@@ -14,6 +14,7 @@ import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'cometa-folder-item-tree',
@@ -26,13 +27,15 @@ export class FolderItemTreeComponent implements OnInit {
   // stores state for each folder in hierarchy
   folderState = {};
 
-  constructor(private _store: Store, public _sharedActions: SharedActionsService) {
+  constructor(private _store: Store, public _sharedActions: SharedActionsService, private log: LogService) {
     // get folder hierarchy state from localstorage, in case it is users first time entering, default department´s state will be set to false(closed)
     // if localstorage is empty, then set default values
     this.folderState =
       JSON.parse(localStorage.getItem('co_folderState'))
       ||
       { Default: { open: false }, comment: "This object stores the state of whole folder hierarchy in localstorage" };
+
+      this.log.msg("1","Getting folder tree state...","folder-item-tree", this.folderState);
   }
 
   @Input() folder: Folder;
@@ -65,7 +68,11 @@ export class FolderItemTreeComponent implements OnInit {
    */
 
   // Hides the sidenav
-  @Dispatch() hideSidenav = () => new Configuration.SetProperty('openedSidenav', false);
+  @Dispatch()
+  hideSidenav() {
+    this.log.msg("1","Expanding/Closing folder...","folder-item-tree");
+    return new Configuration.SetProperty('openedSidenav', false);
+  }
 
   // Hides / shows the sidenav
   @Dispatch() toggleSidenav() {
@@ -81,6 +88,7 @@ export class FolderItemTreeComponent implements OnInit {
    * @lastModification 06-10-21
    */
   @Dispatch() toggleSearch() {
+    this.log.msg("1","Toggling folder state...","folder-item-tree");
     return new Configuration.SetProperty('openedSearch', false);
   }
 
@@ -117,10 +125,12 @@ export class FolderItemTreeComponent implements OnInit {
 
     // #3414 -------------------------------------------------start
     // change browser url, add folder ids as params
+    this.log.msg("1","Setting folder id as url param...","folder-item-tree");
     this._sharedActions.set_url_folder_params(this.parent);
     // #3414 ---------------------------------------------------end
 
     // refresh localstorage, so the next time this component view is rendered, it behaves correctly
+    this.log.msg("1","Saving folder tree state to localstorage...","folder-item-tree", this.folderState);
     localStorage.setItem('co_folderState', JSON.stringify(this.folderState));
 
     // toggle folder (open/close)

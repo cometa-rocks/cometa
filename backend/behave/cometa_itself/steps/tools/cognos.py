@@ -4,7 +4,7 @@ from src.backend.utility.functions import *
 import os
 import time
 import logging
-from selenium.common.exceptions import StaleElementReferenceException 
+from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
 from src.backend.common import *
 
 # setup logging
@@ -138,7 +138,7 @@ def auto_select_cognos_prompts(context, **kwargs):
         # ... There might by error pages in between ... with css:INPUT#cmdOK - they will fail the whole test
         logger.debug('Waiting for prompts or content to load')
         try:
-            waitSelector(context, 'css', 'table[lid=defaultPromptPage], .clsPromptComponent, .pageViewContent, body.viewer table, .clsViewerPage')
+            waitSelector(context, 'css', 'table[lid*=defaultPromptPage], .clsPromptComponent, .pageViewContent, body.viewer table, .clsViewerPage')
         except:
             logger.debug("No interesting content found ... this is most probly due to an error in the report. Will return false from prompt magic")
             return False
@@ -151,6 +151,7 @@ def auto_select_cognos_prompts(context, **kwargs):
             if not inputs[0].is_displayed():
                 inputs = []
         prompts = clsPromptComponents + inputs
+        logger.debug(prompts)
         isPrompt = len(prompts) > 0
         if not isPrompt:
             logger.debug("This is not a promptpage ... so we might be done?")
@@ -172,25 +173,25 @@ def auto_select_cognos_prompts(context, **kwargs):
                 logger.debug('Please provide a value for the prompt "%s"' % str(id))
                 raise CustomError('Please provide a value for the prompt "%s"' % str(id))
 
-        # Click on OK
-        # Does not work reliable because of language .... context.browser.find_element_by_xpath("//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[.=\"Finish\"]").click()
-        # Try clicking ok ... 
-        # ... autogenerate prompts have "OK" Button
-        # ... promptPages have a promptButton with type finsh in a generate attribute
-        logger.debug("Trying to click ok on promptpage")
-        # FIXME ... needs fallbacks for autosubmit, second promptpage with next .... 
-        elem = context.browser.find_element_by_xpath("//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[@*=\"finish\" and not(@disabled)]|//button[@*=\"oCV_NS_.promptAction('finish')\" and not(@disabled)]")
-
-        # if found click on submit
         try:
+            # Click on OK
+            # Does not work reliable because of language .... context.browser.find_element_by_xpath("//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[.=\"Finish\"]").click()
+            # Try clicking ok ... 
+            # ... autogenerate prompts have "OK" Button
+            # ... promptPages have a promptButton with type finsh in a generate attribute
+            logger.debug("Trying to click ok on promptpage")
+            # FIXME ... needs fallbacks for autosubmit, second promptpage with next .... 
+            elem = context.browser.find_element_by_xpath("//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[@*=\"finish\" and not(@disabled)]|//button[@*=\"oCV_NS_.promptAction('finish')\" and not(@disabled)]")
+
+            # if found click on submit
             elem.click()
             logger.debug("Clicked OK button")
+        except NoSuchElementException:
+            logger.info("NoSuchElementException  - so there might be no OK button or something else happened. You might want to have a look at this")
+            return True
         except StaleElementReferenceException:
             # for some reason exception jumps after click this can be ignored.
             logger.debug("[NOK] For some reason exception jumps ... might look into this deeper at some time")
-        except NoSuchElementException as exc:
-            logger.info("NoSuchElementException  - so there might be no OK button or something else happened. You might want to have a look at this")
-            logger.debug(exc)
             return False
         except:
             logger.debug("Exception ... other element would receive the click or element not clickable")
@@ -201,6 +202,100 @@ def auto_select_cognos_prompts(context, **kwargs):
                 logger.debug("Clicked OK button")
             except:
                 logger.debug("[NOK] Still haveing exception ... will pass")
+                return False
+
+        # Giving IBM Cognos page some time to react on click
+        logger.debug("Sleeping 0.5s to give IBM Cognos page some time to react on the click")
+        time.sleep(0.5)
+        logger.debug("Waiting for IBM Cognos progress spinner to disappear")
+        wait_until_selector_fails(context, '[src*="progress.gif"]')
+        logger.debug(" ==> DONE with filling this prompt magic, there might be more ")
+
+        return True
+
+def auto_select_cognos_prompts_aso(context, **kwargs):
+    """
+    Automatically fills the prompt controls within a report prompt page
+
+    @param parameters: Key value dict of parameters (optional)
+    """
+
+    # Load kwargs
+    parameters = kwargs.get('parameters', {})
+    iteration = 0
+    while iteration<20:
+        iteration += 1
+        logger.debug('Prompt #%d' % iteration)
+
+        # Wait for either the value prompts or the report content
+        # ... There might by error pages in between ... with css:INPUT#cmdOK - they will fail the whole test
+        logger.debug('Waiting for prompts or content to load')
+        try:
+            waitSelector(context, 'css', '.clsPromptComponent')
+        except:
+            logger.debug("It looks like there are no prompts to fill ... maybe there is an error or report really has no prompts and is correct.")
+            logger.debug("Will return True anyways.")
+            return True
+
+        # Check if current view is a prompt page
+        # If it's not, it means the report has successfully loaded without any prompt
+        clsPromptComponents = context.browser.find_elements_by_css_selector('.clsPromptComponent:not([pt])')
+        # inputs = context.browser.find_elements_by_xpath('//table[@lid="defaultPromptPage"]//input/parent::td/parent::tr/parent::tbody/parent::table/parent::div')
+        # if len(inputs) > 0:
+        #    if not inputs[0].is_displayed():
+        #        inputs = []
+        prompts = clsPromptComponents # + inputs
+        logger.debug(prompts)
+        isPrompt = len(prompts) > 0
+        if not isPrompt:
+            logger.debug("This is not a promptpage ... so we might be done?")
+            break
+        print('Iteration %d: Found %d prompts in Cognos report.' % (iteration, len(prompts)))
+        logger.debug('Iteration %d: Found %d prompts in Cognos report.' % (iteration, len(prompts)))
+        for index, val in enumerate(prompts):
+            # Auto select prompt value
+            try:
+                logger.debug("Prompt #%d --> Will call select prompt magic now" % (index+1) )
+                selectCognosPrompt_rro(context, controlIndex=index, parameters=parameters, prompts=prompts)
+            except PromptReferenceNotFound:
+                logger.debug('Unable to get prompt reference input at iteration %d of input index %d' % (iteration, index))
+                raise CustomError('Unable to get prompt reference input at iteration %d of input index %d' % (iteration, index))
+            except PromptReferenceNameNotFound:
+                logger.debug('Unable to get prompt reference name ID at iteration %d of input index %d' % (iteration, index))
+                raise CustomError('Unable to get prompt reference name ID at iteration %d of input index %d' % (iteration, index))
+            except PromptValueEmpty as id:
+                logger.debug('Please provide a value for the prompt "%s"' % str(id))
+                raise CustomError('Please provide a value for the prompt "%s"' % str(id))
+
+        try:
+            # Click on OK
+            # Does not work reliable because of language .... context.browser.find_element_by_xpath("//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[.=\"Finish\"]").click()
+            # Try clicking ok ... 
+            # ... autogenerate prompts have "OK" Button
+            # ... promptPages have a promptButton with type finsh in a generate attribute
+            logger.debug("Trying to click ok on promptpage")
+            # FIXME ... needs fallbacks for autosubmit, second promptpage with next .... 
+            elem = context.browser.find_element_by_xpath("//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[@*=\"finish\" and not(@disabled)]|//button[@*=\"oCV_NS_.promptAction('finish')\" and not(@disabled)]")
+
+            # if found click on submit
+            elem.click()
+            logger.debug("Clicked OK button")
+        except StaleElementReferenceException:
+            # for some reason exception jumps after click this can be ignored.
+            logger.debug("[NOK] For some reason exception jumps ... might look into this deeper at some time")
+            return False
+        except NoSuchElementException as exc:
+            logger.info("NoSuchElementException  - so there might be no OK button or something else happened. You might want to have a look at this")
+        except:
+            logger.debug("Exception ... other element would receive the click or element not clickable")
+            # sleep some time and click again
+            time.sleep(0.5)
+            try:
+                elem.click()
+                logger.debug("Clicked OK button")
+            except:
+                logger.debug("[NOK] Still haveing exception ... will pass")
+                return False
 
         # Giving IBM Cognos page some time to react on click
         logger.debug("Sleeping 0.5s to give IBM Cognos page some time to react on the click")
@@ -367,7 +462,7 @@ def selectCognosPrompt_rro(context, **kwargs):
         # If we have a value ... try to find it in selector
         if value:
             logger.debug("Value is set to %s - trying to find it in selector" % value)
-            elm=selector.find_elements_by_xpath('.//option[@value="%s"]' % value)
+            elm=selector.find_elements_by_xpath('.//option[@value="%s"] | .//option[text()="%s"] | .//option[@dv="%s"]' % (value, value, value))
             if len(elm) > 0:
                 logger.debug("Found option for the value")
                 try:
