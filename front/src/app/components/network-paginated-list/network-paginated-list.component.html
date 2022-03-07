@@ -143,6 +143,7 @@
                     </ng-template>
                     <!------------------------------------------------------------------------------------>
 
+                    <!---------------------------------------toolbar menu--------------------------------->
                     <mat-menu #tools>
                         <div stopPropagation class="mat-menu-panel-category">Clear results</div>
                         <!-- All 4 options to delete runs -->
@@ -163,20 +164,14 @@
                             </mat-checkbox>
                         </button>
                         <button stopPropagation mat-menu-item>
-                            <mat-checkbox color="primary" [checked]="archived$ | async" (change)="handleArchived($event)">Show saved items</mat-checkbox>
+                            <mat-checkbox color="primary" [(ngModel)]="archived" [checked]="archived" (change)="handleArchived()">Show saved items</mat-checkbox>
                         </button>
                     </mat-menu>
+                    <!------------------------------------------------------------------------------------>
 
                     <ng-template #score> <div>-</div> </ng-template>
-
-                    
                 </div>
-
-
-              </ng-container>
-
-
-
+            </ng-container>
     </ng-container>
 
 

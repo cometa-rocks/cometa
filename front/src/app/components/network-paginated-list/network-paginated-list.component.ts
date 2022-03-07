@@ -2,8 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, Input, OnChanges, OnInit, SimpleChanges, TemplateRef } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
-import { Store } from '@ngxs/store';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
+import { Select, Store } from '@ngxs/store';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { VideoComponent } from '@dialogs/video/video.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -14,8 +13,11 @@ import { PaginatedListsState } from '@store/paginated-list.state';
 import { SafeGetStorage, StorageType } from 'ngx-amvara-toolbox';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
-import { MatCheckboxChange } from '@angular/material/checkbox';
+import { CustomSelectors } from '@others/custom-selectors';
+import { LoadingSnack } from '@components/snacks/loading/loading.snack';
+import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Configuration } from '@store/actions/config.actions';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 
 /**
  * This component is used to display an array of items in a paginated fashion using network.
@@ -123,6 +125,10 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
   // skeletonItems$: Observable<number[]>;  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< previous
 
   feature_results$: Observable<any[]> = of([]);
+  archived: boolean = false;
+
+
+  @Select(CustomSelectors.GetConfigProperty('deleteTemplateWithResults')) deleteTemplateWithResults$: Observable<boolean>;
 
   columns = [
     {header: 'STATUS', field: 'status', sortable: true},
@@ -145,12 +151,16 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
     private _api: ApiService,
     private _sharedActions: SharedActionsService,
     private _dialog: MatDialog,
-    private _snack: MatSnackBar,
+    private _snack: MatSnackBar
   ) {}
 
 
   ngOnInit(): void {
-    this.feature_results$ = this._store.select(PaginatedListsState.GetFeatureResults).pipe(map(fn => fn(this.listId)))
+    // get all the feature_results for clicked feature
+    this.feature_results$ = this._store.select(PaginatedListsState.GetFeatureResults).pipe(
+      map(fn => fn(this.listId)
+      // filter recieved data to render not archived feature results by default
+      .filter(feature_results => feature_results.archived == this.archived)));
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -168,9 +178,6 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
       //   map(fn => fn(this.listId))
       // )
     
-      
-
-
       // Get parameter values
       const endpointUrl = (changes.endpointUrl && changes.endpointUrl.currentValue) || this.endpointUrl;
       // Get pageSize in localStorage with fallback value
@@ -191,11 +198,14 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
     }
   }
 
+  // gets the feature_result object from clicked row and navigated to see its steps
   getRowData(rowData) {
-    console.log(rowData);
     this._router.navigate(['result', rowData.feature_result_id], { relativeTo: this._acRouted }).then(() => window.scrollTo(0, 0));
   }
+  //-------------------------------------------------------------------------------
 
+
+  // start a video reproduction of already performed feature_result
   openVideo(test: FeatureResult) {
     this._sharedActions.loadingObservable(
       this._sharedActions.checkVideo(test.video_url),
@@ -208,15 +218,24 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
       })
     }, err => this._snack.open('An error ocurred', 'OK'))
   }
+  //-------------------------------------------------------------------------------
 
+
+  // deletes the feature_result object of clicked row
   deleteFeatureResult(test: FeatureResult) {
     this.reloadPageAfterAction( this._sharedActions.deleteFeatureResult(test) );
   }
+  //-------------------------------------------------------------------------------
 
+
+  // archives the selected feature_result object
+  // this action prevents user from deleting the feature itself
+  // shows a popup to inform user that feature has an archived result and it has to be unarchived before deleting feature
   archive(run: FeatureRun | FeatureResult) {
-    console.log(run);
     this.reloadPageAfterAction( this._sharedActions.archive(run) );
   }
+  //-------------------------------------------------------------------------------
+
 
   reloadPageAfterAction<T = any>(observable: Observable<T>) {
     observable.pipe(
@@ -224,8 +243,19 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
     ).subscribe();
   }
 
+
+  // triggered when user marks or unmarks  checkbox >> show saved items 
+  handleArchived() {
+    // filters data according to check box's current value
+    this.feature_results$ = this._store.select(PaginatedListsState.GetFeatureResults).pipe(map(fn => fn(this.listId).filter(data => data.archived == this.archived)));
+  }
+  //-------------------------------------------------------------------------------
+
   @Dispatch()
-  handleArchived = (change: MatCheckboxChange) => new Configuration.SetProperty('internal.showArchived', change.checked);  
+  handleDeleteTemplateWithResults({ checked }: MatCheckboxChange) {
+    return new Configuration.SetProperty('deleteTemplateWithResults', checked);
+  }
+
 
   // Retrieves the page size based on multiple places to get it
   getPageSize(params: ParamMap, changes: SimpleChanges): number {
@@ -236,6 +266,8 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
     // Get page size from localStorage with fallback to 10
     return SafeGetStorage(`pagination.${this.listId}`, StorageType.Int, this.pageSize)
   }
+  //-------------------------------------------------------------------------------
+
 
   // Used to track every item in list, so Angular knows when an item has been updated
   trackFn(trackKey, index, item) {
@@ -245,6 +277,8 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
       return item;
     }
   }
+  //-------------------------------------------------------------------------------
+
 
   // Observable to retrieve items within XHR and process pagination
   public reloadCurrentPage() {
@@ -253,6 +287,8 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
       switchMap(response => this.processPagination(response))
     )
   }
+  //-------------------------------------------------------------------------------
+
 
   // XHR: Loads the list
   loadPage(page: number, size: number) {
@@ -268,6 +304,33 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
       map(response => ({ ...response, page: page, size: size }))
     )
   }
+  //-------------------------------------------------------------------------------
+
+
+
+  clearRuns(clearing: ClearRunsType) {
+    // get feature id
+    let feature_id = Number(this.listId.substring("runs_".length));
+
+    // Open Loading Snack
+    const loadingRef = this._snack.openFromComponent(LoadingSnack, {
+      data: 'Clearing history...',
+      duration: 60000
+    });
+
+    const deleteTemplateWithResults = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('deleteTemplateWithResults'));
+    this._api.removeMultipleFeatureRuns(feature_id, clearing, deleteTemplateWithResults)
+     .subscribe(_ => {
+      // Close loading snack
+      loadingRef.dismiss();
+      // Show completed snack
+      this._snack.open('History cleared', 'OK', {
+        duration: 5000
+      });
+    })
+  }
+
+
 
   // Process the received XHR data for pagination and saves it to NGXS
   processPagination(response: PaginationWithPage<any>) {
