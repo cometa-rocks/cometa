@@ -77,7 +77,6 @@
           "options": {
             "host": "0.0.0.0",
             "disableHostCheck": true,
-            "proxyConfig": "/code/proxy-config.json",
             "browserTarget": "cometa:build"
           },
           "configurations": {
