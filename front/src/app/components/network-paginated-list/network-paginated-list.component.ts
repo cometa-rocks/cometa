@@ -199,7 +199,7 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
   }
 
   // gets the feature_result object from clicked row and navigated to see its steps
-  getRowData(rowData) {
+  inspectFeatureResultSteps(rowData) {
     this._router.navigate(['result', rowData.feature_result_id], { relativeTo: this._acRouted }).then(() => window.scrollTo(0, 0));
   }
   //-------------------------------------------------------------------------------
@@ -237,11 +237,22 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
   //-------------------------------------------------------------------------------
 
 
-  reloadPageAfterAction<T = any>(observable: Observable<T>) {
+  //------------------------ actualizes grid table content ------------------------
+  reloadPageAfterAction<T = any>(observable: Observable<T>, loadingRef?: any) {
     observable.pipe(
       switchMap(_ => this.reloadCurrentPage())
-    ).subscribe();
+    ).subscribe(_ => {
+      if(loadingRef) {
+        // Close loading snack
+        loadingRef.dismiss();
+        // Show completed snack
+        this._snack.open('History cleared', 'OK', {
+          duration: 5000
+        });
+      }
+    });
   }
+  //-------------------------------------------------------------------------------
 
 
   // triggered when user marks or unmarks  checkbox >> show saved items 
@@ -308,7 +319,7 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
 
 
 
-  clearRuns(clearing: ClearRunsType) {
+  clearResults(clearing: ClearRunsType) {
     // get feature id
     let feature_id = Number(this.listId.substring("runs_".length));
 
@@ -319,15 +330,7 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
     });
 
     const deleteTemplateWithResults = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('deleteTemplateWithResults'));
-    this._api.removeMultipleFeatureRuns(feature_id, clearing, deleteTemplateWithResults)
-     .subscribe(_ => {
-      // Close loading snack
-      loadingRef.dismiss();
-      // Show completed snack
-      this._snack.open('History cleared', 'OK', {
-        duration: 5000
-      });
-    })
+    this.reloadPageAfterAction(this._api.removeMultipleFeatureRuns(feature_id, clearing, deleteTemplateWithResults), loadingRef);
   }
 
 
@@ -349,6 +352,7 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
     });
     this.loading$.next(false);
     // Save items into NGXS State with provided ListID
+
     return this._store.dispatch( new PaginatedList.SetList(this.listId, response.page, response.results) );
   }
 
@@ -372,7 +376,6 @@ export class NetworkPaginatedListComponent implements OnChanges, OnInit {
       // No other parameter is left behind
       queryParamsHandling: 'merge'
     })
-    // console.log(this.features_results);
   }
 
   /** Controls the HTML for showing the loading spinner */

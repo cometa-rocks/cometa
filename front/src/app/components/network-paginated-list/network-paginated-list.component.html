@@ -43,7 +43,7 @@
                         [hideRowSelectionCheckbox]="true"
                         [columnMenuHeaderText]="'Columns Settings'"
                         (page)="pageChange($event)"
-                        (rowClick)="getRowData($event.rowData)"
+                        (rowClick)="inspectFeatureResultSteps($event.rowData)"
                         sortStart="asc"
                         [cellTemplate]="{
                                         status: statusTpl,
@@ -147,9 +147,9 @@
                     <mat-menu #tools>
                         <div stopPropagation class="mat-menu-panel-category">Clear results</div>
                         <!-- All 4 options to delete runs -->
-                        <button mat-menu-item (click)="clearRuns('all')">Clear all</button>
-                        <button mat-menu-item (click)="clearRuns('all_failed')">Clear all failed</button>
-                        <button mat-menu-item (click)="clearRuns('all_except_last')">Clear all except last run</button>
+                        <button mat-menu-item (click)="clearResults('all')">Clear all</button>
+                        <button mat-menu-item (click)="clearResults('all_failed')">Clear all failed</button>
+                        <button mat-menu-item (click)="clearResults('all_except_last')">Clear all except last run</button>
                         <mat-divider></mat-divider>
                         <div stopPropagation class="mat-menu-panel-category">Options</div>
                         <!-- Handle checkbox, if the user also wants to delete the associated template images -->
