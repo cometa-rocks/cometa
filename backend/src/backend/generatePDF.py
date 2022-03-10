@@ -14,14 +14,14 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from rest_framework.response import Response
 from django.conf import settings
-import base64
+import base64, os
 from django.http import HttpResponse
 from backend.views import render_to_pdf, bytesToMegaBytes
 from backend.common import *
 from django.forms.models import model_to_dict
 # just to import secrets
 import sys
-from os.path import isfile
+from os.path import isfile, exists
 sys.path.append("/code")
 import secret_variables
 
@@ -69,6 +69,9 @@ class GeneratePDF(View):
 
         #  logger assignment
         self.my_logger = logger
+
+        # save the pdf content to a variable for easy access later on
+        self.PDFContent = ""
         
         # Get the feature result id via get. We do it in here plain
         self.feature_result_id = self.request.GET.get('feature_result_id', None)
@@ -78,6 +81,19 @@ class GeneratePDF(View):
             raise ValueError("Invalid FeatureResultID passed")
         # Filter objects to get that result id
         self.feature = self.GetFeature()
+
+        # save the pdf download path
+        self.downloadPath = "/code/behave/pdf"
+        self.downloadFullPath = "%s/%s-%s.pdf" % (self.downloadPath, str(self.feature.feature_name), str(self.feature_result_id))
+
+        # check if download path exists
+        if not exists(self.downloadPath):
+            self.my_logger.debug("Download path does not exists .... creating one...")
+            os.makedirs(self.downloadPath)
+
+        # check if lock file exists if so that mean the pdf file is being generate
+        if exists(self.downloadFullPath + ".lock"):
+            return HttpResponse("PDF File for Feature: %s and Feature Result ID: %s is still being generated, please try again later." % (str(self.feature.feature_name), str(self.feature_result_id)))
 
         # generate pdf url
         self.pdfURL = "https://%s/backend/pdf/?feature_result_id=%s" % (DOMAIN, self.feature_result_id)
@@ -93,48 +109,67 @@ class GeneratePDF(View):
         # If the request GET parameter "download" is present, download the PDF instead of emailing it to it's recipient
         download = self.request.GET.get('download', None)
 
+        # check if file already exists
+        if not exists(self.downloadFullPath):
+            print("Creating a lock file for %s" % self.downloadFullPath)
+            # create a lock file to check if pdf is still being generated or not
+            self.touch(self.downloadFullPath + ".lock")
+
+            # Get the steps from the executed feature.
+            steps = Step_result.objects.filter(feature_result_id=self.feature_result_id).order_by("step_result_id")
+            self.steps = steps
+
+            # Get feature result by ID
+            feature_result = Feature_result.objects.get(feature_result_id=self.feature_result_id)
+
+            # Get the feature result screenshots.
+            self.screenshots_array = self.GetStepsAndScreenshots()
+
+            # Calculate percentatge of OK steps and NOK steps
+            try:
+                self.percentok = int((self.feature.ok * 100) / self.feature.total)
+            except ZeroDivisionError:
+                self.percentok = 0
+            try:
+                self.percentnok = int(((self.feature.fails + self.feature.skipped) * 100) / self.feature.total)
+            except ZeroDivisionError:
+                self.percentnok = 0
+            self.totalnok = int(self.feature.fails) + int(self.feature.skipped)
+
+            # Build the HTML and then render it into a PDF.
+            self.pdf = self.BuildHtmlAndRenderPdf()
+
+            # save the pdf to file
+            with open(self.downloadFullPath, 'wb') as f:
+                f.write(self.pdf.content)
+            
+            # remove lock file once finished
+            if exists(self.downloadFullPath + ".lock"):
+                print("Removing lock file for %s" % self.downloadFullPath)
+                os.remove(self.downloadFullPath + ".lock")
+
         # Validate the emails. If emailsend is set to false or all emails are bad, we get out of execution.
         # We don't raise exception here to not cause issues when debugging, as having email set as false is not an error.
         # 2020-07-28 ABP Mark this "if" as an exception to download parameter, email send is not required to download directly the PDF file
         if (download != 'true' and download != 'false') and self.ValidateEmails() == False:
             return HttpResponse("400 - Invalid email address(es).")
 
-        # Get the steps from the executed feature.
-        steps = Step_result.objects.filter(feature_result_id=self.feature_result_id).order_by("step_result_id")
-        self.steps = steps
-
-        # Get feature result by ID
-        feature_result = Feature_result.objects.get(feature_result_id=self.feature_result_id)
-
-        # Get the feature result screenshots.
-        self.screenshots_array = self.GetStepsAndScreenshots()
-
-        # Calculate percentatge of OK steps and NOK steps
-        try:
-            self.percentok = int((self.feature.ok * 100) / self.feature.total)
-        except ZeroDivisionError:
-            self.percentok = 0
-        try:
-            self.percentnok = int(((self.feature.fails + self.feature.skipped) * 100) / self.feature.total)
-        except ZeroDivisionError:
-            self.percentnok = 0
-        self.totalnok = int(self.feature.fails) + int(self.feature.skipped)
-
-        # Build the HTML and then render it into a PDF.
-        self.pdf = self.BuildHtmlAndRenderPdf()
+        # read file content and save it to PDFContent
+        with open(self.downloadFullPath, 'rb') as f:
+            PDFContent = f.read()
 
         # download param should contain something, otherwise it is considered Falsy, ex: ?download=true
         if download == 'true':
             # Download the PDF
-            response = HttpResponse(self.pdf.content, content_type='application/pdf')
+            response = HttpResponse(PDFContent, content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="%s-%s.pdf"' % (str(self.feature.feature_name), str(self.feature.result_date))
-            response['Content-Length'] = len(self.pdf.content)
+            response['Content-Length'] = len(PDFContent)
             return response
         elif download == 'false':
             # Send response with PDF preview
-            response = HttpResponse(self.pdf.content, content_type='application/pdf')
+            response = HttpResponse(PDFContent, content_type='application/pdf')
             response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % (str(self.feature.feature_name), str(self.feature.result_date))
-            response['Content-Length'] = len(self.pdf.content)
+            response['Content-Length'] = len(PDFContent)
             return response
         else:
             # Build the subject and the emailbody.
@@ -159,6 +194,15 @@ class GeneratePDF(View):
         my_logger.setLevel(logging.DEBUG)
 
         return my_logger
+
+    """
+        Small function for touch functionality
+    """
+    def touch(self, fname):
+        try:
+            os.utime(fname, None)
+        except OSError:
+            open(fname, 'a').close()
 
     """
         Get the current feature result and check that it actually exists.
