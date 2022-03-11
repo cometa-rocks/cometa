@@ -32,8 +32,7 @@ import urllib.parse
 
 # import PIL
 from subprocess import call, run
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import NoSuchElementException, WebDriverException, UnexpectedAlertPresentException, NoAlertPresentException
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -144,7 +143,7 @@ def done( *_args, **_kwargs ):
         @wraps(func)
         def execute(*args, **kwargs):
 
-            # arg[0] = context
+            # args[0] = context
 
             # get EnvironmentVariables
             env_variables = json.loads(args[0].VARIABLES)
@@ -421,9 +420,17 @@ def takeScreenshot(context, step_id):
     final_screenshot_file = context.SCREENSHOTS_STEP_PATH + context.SCREENSHOT_FILE
     logger.debug("Final screenshot filename and path: %s" % final_screenshot_file)
 
-    # create the screenshot
-    logger.debug("Saving screenshot to file")
-    context.browser.save_screenshot(final_screenshot_file)
+    # check if an alert box exists
+    try:
+        context.browser.switch_to_alert()
+        logger.debug("Alert found ... if we take a screenshot now the alert box will be ignored...")
+    except Exception as err:
+        # create the screenshot
+        logger.debug("Saving screenshot to file")
+        try:
+            context.browser.save_screenshot(final_screenshot_file)
+        except Exception as err:
+            logger.error("Unable to take screenshot ...")
 
     # transfer saved image name to context.COMPARE_IMAGE
     context.COMPARE_IMAGE = final_screenshot_file
@@ -799,11 +806,9 @@ def step_impl(context):
 def step_impl(context):
     try:
         # try switching to the alert windows
-        context.browser.switch_to_alert()
+        alert = context.browser.switch_to.alert
         # then hit the enter key
-        context.browser.send_keys(ENTER)
-        # switch back to default content
-        context.browser.switch_to_default_content()
+        alert.accept()
     except NoAlertPresentException:
         logger.debug("Could not find the alert, confirm or prompt window")
         raise CustomError('There was no alert, confirm or prompt window present.')
