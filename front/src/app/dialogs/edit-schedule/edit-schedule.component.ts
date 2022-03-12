@@ -22,6 +22,13 @@ export class EditSchedule {
 
   schedule: FormGroup;
 
+  // formLayout is a variable to steer the layout of the schedule edit form
+  // ... value: "1" ... means the first layout
+  // ... value: "2" ... second layout proposed from Cosimo
+  formLayout : Number
+  formLayoutText = ['switch to horizontal layout','switch to vertical layout']
+  formLayoutTextSelected : String
+
   feature: Feature;
 
   fields = ['minute', 'hour', 'day', 'month', 'dayWeek']
@@ -35,6 +42,13 @@ export class EditSchedule {
     private _store: Store,
     private _fb: FormBuilder
   ) {
+
+    // set the default layout of the form for editing schedule
+    // "1" is the crontab like layout
+    // "2" is the vertical form layout 
+    this.formLayout = 2
+    this.formLayoutTextSelected = "horizontal"
+
     // Create empty form
     this.schedule = this._fb.group({});
     // Iterate each cron field and add control in form
@@ -55,9 +69,9 @@ export class EditSchedule {
     } else {
       // Initialize form with default values
       this.schedule.setValue({
-        minute: '0',
-        hour: '0',
-        day: '1',
+        minute: '0,15,30,45',
+        hour: '*/2',
+        day: '1-31',
         month: '*',
         dayWeek: '*'
       });
@@ -76,6 +90,13 @@ export class EditSchedule {
 
   getHelp() {
     this._dialog.open(ScheduleHelp, { panelClass: 'help-schedule-panel' });
+  }
+
+  // triggers the toggle of the layout
+  switchFormLayout() {
+    // toggle the layout between layout 1 and layout 2
+    this.formLayout = (this.formLayout == 1) ? 2 : 1;
+    this.formLayoutTextSelected = (this.formLayout == 1) ? 'vertical' : 'horizontal'
   }
 
   updateSchedule() {
