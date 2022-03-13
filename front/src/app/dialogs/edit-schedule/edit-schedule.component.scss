@@ -7,6 +7,21 @@
     margin-bottom: 10px;
 }
 
+.grid-schedule-layout-2 {
+    margin-bottom: 10px;
+    .inputcontainer {
+        margin-bottom: 25px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.helpContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+
 :host::ng-deep .grid-schedule .mat-form-field-label-wrapper {
     text-align: center
 }

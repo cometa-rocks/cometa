@@ -99,25 +99,25 @@
     <br />
     <mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.continue_on_failure" (change)="handleAccountSetting($event, 'continue_on_failure')">Continue on failure</mat-slide-toggle>
     <br /><br />
-    <mat-slide-toggle color="primary" [checked]="config.disableAnimations" (change)="handleDisableAnimations($event)">Disable Animations</mat-slide-toggle>
+    <mat-slide-toggle color="primary" [checked]="account.settings?.disableAnimations" (change)="handleDisableAnimations($event)">Disable Animations</mat-slide-toggle>
     <br /><br />
-    <mat-slide-toggle color="primary" [checked]="config.percentMode" (change)="handlePercentMode()">Show percent values in details</mat-slide-toggle>
+    <mat-slide-toggle color="primary" [checked]="account.settings?.percentMode" (change)="handlePercentMode($event)">Show percent values in details</mat-slide-toggle>
     <br /><br />
     <mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.useNewDashboard" (change)="toggleNewDashboard($event)">Use new dashboard by default</mat-slide-toggle>
     <br /><br />
     <!-- Toggle for people who can help on features -->
     <mat-slide-toggle *ngIf="!(isDefaultDepartment$ | async)" color="primary" matTooltipPosition="after" [matTooltip]="'need_help.can_help' | translate" [checked]="account.settings?.can_help" (change)="handleAccountSetting($event, 'can_help')">I can help</mat-slide-toggle>
     <br /><br />
-    <mat-slide-toggle color="primary" labelPosition="after" [checked]="config$.logWebsockets" (change)="toggleLogWebsockets($event)">Log WebSockets into Console</mat-slide-toggle>
+    <mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.logWebsockets" (change)="toggleLogWebsockets($event)">Log WebSockets into Console</mat-slide-toggle>
     <br /><br />
     <div class="edit-feature-toggles">
       Select which sections of Add/Edit feature are closed by default.
       <ul>
-        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="config.toggles.hideInformation" (change)="handleToggle($event, 'hideInformation')">Information</mat-slide-toggle></li>
-        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="config.toggles.hideSendMail" (change)="handleToggle($event, 'hideSendMail')">Email</mat-slide-toggle></li>
-        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="config.toggles.hideBrowsers" (change)="handleToggle($event, 'hideBrowsers')">Browser selection</mat-slide-toggle></li>
-        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="config.toggles.hideSteps" (change)="handleToggle($event, 'hideSteps')">Steps definition</mat-slide-toggle></li>
-        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="config.toggles.hideSchedule" (change)="handleToggle($event, 'hideSchedule')">Schedule</mat-slide-toggle></li>
+        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hideInformation" (change)="handleToggle($event, 'hideInformation')">Information</mat-slide-toggle></li>
+        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hideSendMail" (change)="handleToggle($event, 'hideSendMail')">Email</mat-slide-toggle></li>
+        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hideBrowsers" (change)="handleToggle($event, 'hideBrowsers')">Browser selection</mat-slide-toggle></li>
+        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hideSteps" (change)="handleToggle($event, 'hideSteps')">Steps definition</mat-slide-toggle></li>
+        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hideSchedule" (change)="handleToggle($event, 'hideSchedule')">Schedule</mat-slide-toggle></li>
       </ul>
     </div>
     <ng-container *ngLet="tours$ | async as tours">
