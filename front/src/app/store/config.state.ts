@@ -47,7 +47,7 @@ export class ConfigState {
     configFile.toggles.hideSchedule = localStorage.getItem('hideSchedule') === 'true' || configFile.toggles.hideSchedule;
     configFile.toggles.hideSendMail = localStorage.getItem('hideSendMail') === 'true' || configFile.toggles.hideSendMail;
     // decide to useNewDashboard either from localStorage or from global configFile
-    configFile.useNewDashboard = localStorage.getItem('co_use_newdashboard') === 'true' || configFile.useNewDashboard;
+    configFile.useNewDashboard = localStorage.getItem('useNewDashboard') === 'true' || configFile.useNewDashboard;
     configFile.sorting = localStorage.getItem('search_sorting') || configFile.sorting;
     configFile.reverse = localStorage.getItem('search_sorting_reverse') === 'true' || configFile.reverse;
     let routerConfig = this._router.config;

@@ -306,6 +306,16 @@ def get_video_url(context):
 
 @error_handling()
 def after_all(context):
+    # check if any alertboxes are open before quiting the browser
+    try:
+        while(context.browser.switch_to.alert):
+            logger.debug("Found an open alert before shutting down the browser...")
+            alert = context.browser.switch_to.alert
+            alert.dismiss()
+    except:
+        logger.debug("No alerts found ... before shutting down the browser...")
+        pass
+    
     try:
         # for some reasons this throws error when running on browserstack with safari
         if context.cloud == "local":
