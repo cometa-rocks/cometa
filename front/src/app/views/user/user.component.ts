@@ -121,7 +121,11 @@ export class UserComponent implements OnInit {
 
   @Dispatch()
   toggleLogWebsockets(event: MatCheckboxChange) {
-    return new Configuration.SetProperty('logWebsockets', event.checked, true);
+    // save log websockets value in user setting and send it to backend to make it persistent
+    return [
+      new User.SetSetting({ logWebsockets: event.checked }),
+      new Configuration.SetProperty('logWebsockets', event.checked, true)
+    ];
   }
 
   inviteUser() {
@@ -133,19 +137,36 @@ export class UserComponent implements OnInit {
   }
 
   @Dispatch()
-  handleDisableAnimations(e: MatCheckboxChange) {
-    localStorage.setItem('da', e.checked ? 'yes' : 'no');
-    return new Configuration.SetProperty('disableAnimations', e.checked);
+  handleDisableAnimations(event: MatCheckboxChange) {
+    localStorage.setItem('da', event.checked ? 'yes' : 'no');
+
+    // save disable animation value in user setting and send it to backend to make it persistent
+    return [
+      new User.SetSetting({ disableAnimations: event.checked }),
+      new Configuration.SetProperty('disableAnimations', event.checked)
+    ];
   }
 
   @Dispatch()
-  handlePercentMode() {
-    return new Configuration.ChangePercentMode();
+  handlePercentMode(event: MatCheckboxChange) {
+    // save percent mode in user setting and send it to backend to make it persistent
+    return [
+      new User.SetSetting({ percentMode: event.checked }),
+      new Configuration.ChangePercentMode()
+    ];
   }
 
   @Dispatch()
-  handleToggle(ev: MatCheckboxChange, prop) {
-    return new Configuration.ToggleCollapsible(prop, ev.checked);
+  handleToggle(event: MatCheckboxChange, prop) {
+    // creates js object in format ex: {hidesteps: true} {hidesteps: false}
+    let toggleSetting = {};
+    toggleSetting[prop] = event.checked;
+
+    // save toggle settings in user settings and send it to backend to make it persistent
+    return [
+      new User.SetSetting(toggleSetting),
+      new Configuration.ToggleCollapsible(prop, event.checked)
+    ];
   }
 
   // Sets the new landing as default dashboard
@@ -156,11 +177,8 @@ export class UserComponent implements OnInit {
     routerConfig[0].redirectTo = event.checked ? 'new' : 'search';
 
     return [
-      // save modified account settings ---------------
-      // add new property called useNewDashboard with a boolean value to user account settings, and save it to backend
-      // event.checked returns true if newDashboard is selected as default
+      // save useNewDashboard value in user setting and send it to backend to make it persistent
       new User.SetSetting({ useNewDashboard: event.checked }),
-
       new Configuration.SetProperty('useNewDashboard', event.checked, true)
     ]
   }
