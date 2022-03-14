@@ -29,7 +29,6 @@ export const routerModuleForChild: ModuleWithProviders<JoyrideModule> = RouterMo
         JoyrideButtonComponent,
         JoyrideCloseButtonComponent
     ],
-    entryComponents: [JoyrideStepComponent],
     exports: [
         JoyrideDirective
     ]
