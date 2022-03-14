@@ -78,7 +78,7 @@ RequestHeader set X-Server "Local"
 # LEAVE IT COMMENTED IF NOT USING
 # ###
 
-ProxyPassMatch "^/debug/(.*)" "http://localhost:4200/debug/$1"
-ProxyPassReverse "^/debug/(.*)" "http://localhost:4200/debug/$1"
-ProxyPassMatch "^/sockjs-node/(.*)" "http://localhost:4200/sockjs-node/$1"
-ProxyPassReverse "^/sockjs-node/(.*)" "http://localhost:4200/sockjs-node/$1"
+ProxyPassMatch "^/debug/(.*)" "http://localhost:4200/$1"
+ProxyPassReverse "^/debug/(.*)" "http://localhost:4200/$1"
+ProxyPassMatch "^/ws" "ws://localhost:4200"
+ProxyPassReverse "^/ws" "ws://localhost:4200"

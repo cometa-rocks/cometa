@@ -75,10 +75,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "baseHref": "/debug/",
             "host": "0.0.0.0",
             "disableHostCheck": true,
-            "proxyConfig": "/code/proxy-config.json",
             "browserTarget": "cometa:build"
           },
           "configurations": {
@@ -114,18 +112,6 @@
               "src/manifest.json"
             ]
           }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "src/tsconfig.app.json",
-              "src/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
         }
       }
     },
@@ -139,17 +125,6 @@
           "options": {
             "protractorConfig": "./protractor.conf.js",
             "devServerTarget": "cometa:serve"
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "e2e/tsconfig.e2e.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
           }
         }
       }
