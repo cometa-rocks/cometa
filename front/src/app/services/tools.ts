@@ -82,7 +82,7 @@ export function getBrowserKey(browser: BrowserstackBrowser) {
 }
 
 export function ownFeature(feature: Feature, user: UserInfo, departments: Department[]) {
-  return feature.created_by === user.user_id || departments.map(d => d.department_name).includes(feature.department_name);
+  return feature?.created_by === user.user_id || departments.map(d => d?.department_name).includes(feature?.department_name);
 }
 
 export function getDescendantProp(obj, desc) {
