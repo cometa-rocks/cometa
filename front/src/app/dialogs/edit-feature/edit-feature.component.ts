@@ -29,6 +29,7 @@ import { finalize, switchMap } from 'rxjs/operators';
 import { EmailTemplateHelp } from './email-template-help/email-template-help.component';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { Configuration } from '@store/actions/config.actions';
+import { parseExpression } from 'cron-parser';
 
 @Component({
   selector: 'edit-feature',
@@ -58,6 +59,15 @@ export class EditFeature implements OnInit, OnDestroy {
 
   steps$: Observable<FeatureStep[]>;
 
+  // next runs an array of next executions
+  nextRuns = [];
+  // parse error
+  parseError = {
+	  "error": false,
+	  "msg": ""
+  }
+  // get user timezone
+  timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   browserstackBrowsers = new BehaviorSubject<BrowserstackBrowser[]>([]);
 
@@ -120,12 +130,38 @@ export class EditFeature implements OnInit, OnDestroy {
     this.selected_department = route.length > 0 ? route[0].name : this.departments$[0].department_name;
     this.selected_application = this.applications$[0].app_name;
     this.selected_environment = this.environments$[0].environment_name;
+
+	this.featureForm.valueChanges.subscribe(values => {
+		const { minute, hour, day_month, month, day_week } = values;
+		this.parseSchedule({ minute, hour, day_month, month, day_week });
+	})
   }
 
   @Dispatch()
   ngOnDestroy() {
     // When Edit Feature Dialog is closed, clear temporal steps
     return new StepDefinitions.ClearNewFeature();
+  }
+
+  parseSchedule(expression) {
+	// ignore if schedule is disabled
+	if (!this.featureForm.value.run_now) return;
+
+	try {
+		// parse cron expression
+		let parser = parseExpression(Object.values(expression).join(" "), {utc: true});
+		// reset errors
+		this.parseError.error = false;
+		// reset nextRuns arrays
+		this.nextRuns = [];
+		for(let i = 0; i<5; i++) { this.nextRuns.push(parser.next().toDate().toLocaleString()); }
+	} catch (error) {
+		this.nextRuns = [];
+		this.parseError = {
+			"error": true,
+			"msg": error.message
+		}
+	}
   }
 
   changeSchedule({ checked }: MatCheckboxChange) {
