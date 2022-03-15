@@ -420,6 +420,10 @@ class Permissions(models.Model):
     view_features_panel = models.BooleanField(default=False)
     view_accounts_panel = models.BooleanField(default=False)
 
+    # FrontEnd department admin panel related
+    show_all_departments = models.BooleanField(default=False)
+    show_department_users = models.BooleanField(default=False)
+
     # Folder related
     create_folder = models.BooleanField(default=False)
     delete_folder = models.BooleanField(default=False)
@@ -568,7 +572,7 @@ class Feature(models.Model):
     environment_id = models.IntegerField()
     environment_name = models.CharField(max_length=255)
     steps = models.IntegerField()
-    schedule = models.CharField(max_length=255)
+    schedule = models.CharField(max_length=255, blank=True, null=True)
     department_id = models.IntegerField()
     department_name = models.CharField(max_length=255)
     screenshot = models.TextField(null=False)
