@@ -1,0 +1,19 @@
+
+@import 'color';
+
+h2 {
+  margin: 10px 0;
+  font-size: 13pt;
+  text-transform: uppercase;
+}
+account:nth-child(2n + 2) {
+  background-color: rgba(0,0,0,.05);
+  border-radius: 5px;
+}
+mat-dialog-content {
+  width: 100%;
+}
+hr {
+  margin: 15px 0px 10px 0;
+  border-color: rgba(0,0,0,.05);
+}

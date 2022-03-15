@@ -10,7 +10,7 @@
     <input spellcheck="false" disableAutocomplete disabled [(value)]="account.permission_name">
   </div>
   <div *ngIf="canEditAccount$ | async" matTooltip="Edit user" matTooltipPosition="above" class="modify" (click)="edit()"></div>
-  <div *ngIf="canDeleteAccount$ | async" matTooltip="Delete user" matTooltipPosition="above" (click)="removeIt()" class="remove"></div>
+  <div *ngIf="(canDeleteAccount$ | async) && origin != 'accounts-dialog'" matTooltip="Delete user" matTooltipPosition="above" (click)="removeIt()" class="remove"></div>
 </div>
 <div class="extra-info">
   <span class="date">
