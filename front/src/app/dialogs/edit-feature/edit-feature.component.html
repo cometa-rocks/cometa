@@ -196,6 +196,16 @@
               </td>
             </tr>
           </table>
+		  <div class="next_run" *ngIf="featureForm.value.run_now">
+			<ng-container *ngIf="!parseError.error">
+				<p><strong>Note:</strong> Your feature will be schedule in <strong>UTC</strong> timezone.</p>
+				<p>Here are some executions (in <strong>"{{timezone}}"</strong> timezone) based on the crontab expression:</p>
+				<li *ngFor="let nextRun of nextRuns"><strong>Next Run:</strong> {{nextRun}}</li>
+			</ng-container>
+			<ng-container *ngIf="parseError.error">
+				<p><strong>Error:</strong> Found error while parsing crontab expression, please check.</p>
+			</ng-container>
+		  </div>
         </ng-template>
       </mat-expansion-panel>
     </mat-accordion>
