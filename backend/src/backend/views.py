@@ -1480,8 +1480,30 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer, )
 
     def list(self, request, *args, **kwargs):
+        # set default value for qs
+        qs = Department.objects.none()
+        # check if user is superuser
+        superuser = request.session['user']['user_permissions']['permission_name'] == "SUPERUSER"
+        # get show_all_departments permission
+        show_all_departments = request.session['user']['user_permissions']['show_all_departments']
+        # if superuser or has show_all_departments permission show all departments
+        if superuser or show_all_departments:
+            qs = Department.objects.all()
+        else:
+            # get logged in user departments
+            user_departments = [x['department_id'] for x in request.session['user']['departments']]
+            qs = Department.objects.filter(department_id__in=user_departments)
+
+        # get show_department_users permission
+        show_department_users = request.session['user']['user_permissions']['show_department_users']
+        # if user has show_department_users permission the show users aswell
+        if show_department_users:
+            results = DepartmentWithUsersSerializer(qs, many=True).data
+        else:
+            results = DepartmentSerializer(qs, many=True).data
+        # return results
         return Response({
-            'results': DepartmentSerializer(Department.objects.all(), many=True).data
+            'results': results
         })
 
     @require_permissions("create_department")

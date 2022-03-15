@@ -414,6 +414,21 @@ class DepartmentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         return Department.objects.create(**validated_data)
 
+################################
+# Department model serializers #
+################################
+class DepartmentWithUsersSerializer(serializers.ModelSerializer):
+    users = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Department
+        fields = '__all__'
+        extra_fields = ['users']
+
+    def get_users(self, instance):
+        accounts = OIDCAccount.objects.filter(user_id__in=instance.account_role_set.all().values_list('user', flat=True))
+        return OIDCAccountSerializer(accounts, many=True).data
+
 ############################
 # Action model serializers #
 ############################
