@@ -1,0 +1,17 @@
+<h2>Accounts inside {{data.department_name}}</h2>
+<hr>
+<mat-dialog-content>
+    <account *ngFor="let user of data.users" [account]="user" [origin]="'accounts-dialog'"></account>
+</mat-dialog-content>
+
+<!--
+
+WITH Pagination missing some styles and page numbers.
+
+<mat-dialog-content>
+    <account *ngFor="let user of data.users | slice:start:amount" [account]="user"></account>
+    <button (click)="previousPage()" [disabled]="page <= 0">Previous Page</button>
+    <button (click)="nextPage()" [disabled]="page >= maxPage">Next Page</button>
+</mat-dialog-content>
+    
+-->
