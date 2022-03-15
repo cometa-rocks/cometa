@@ -10,6 +10,7 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { Features } from '@store/actions/features.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { parseExpression } from 'cron-parser';
 
 @UntilDestroy()
 @Component({
@@ -28,6 +29,16 @@ export class EditSchedule {
   formLayout : Number
   formLayoutText = ['switch to horizontal layout','switch to vertical layout']
   formLayoutTextSelected : String
+
+  // next runs an array of next executions
+  nextRuns = [];
+  // parse error
+  parseError = {
+	  "error": false,
+	  "msg": ""
+  }
+  // get user timezone
+  timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   feature: Feature;
 
@@ -81,15 +92,41 @@ export class EditSchedule {
     ).subscribe(enable => {
       if (enable) {
         this.schedule.enable();
+		this.parseSchedule(this.schedule.getRawValue());
       } else {
         this.schedule.disable();
       }
       this.schedule.updateValueAndValidity();
     });
+
+	this.schedule.valueChanges.subscribe((expression) => {
+		this.parseSchedule(expression);
+	});
   }
 
   getHelp() {
     this._dialog.open(ScheduleHelp, { panelClass: 'help-schedule-panel' });
+  }
+
+  parseSchedule(expression) {
+	// ignore if schedule is disabled
+	if (!this.schedule.enable) return;
+
+	try {
+		// parse cron expression
+		let parser = parseExpression(Object.values(expression).join(" "), {utc: true});
+		// reset errors
+		this.parseError.error = false;
+		// reset nextRuns arrays
+		this.nextRuns = [];
+		for(let i = 0; i<5; i++) { this.nextRuns.push(parser.next().toDate().toLocaleString()); }
+	} catch (error) {
+		this.nextRuns = [];
+		this.parseError = {
+			"error": true,
+			"msg": error.message
+		}
+	}
   }
 
   // triggers the toggle of the layout

@@ -47,3 +47,10 @@ input {
         text-decoration: underline;
     }
 }
+.next_run {
+	line-height: 1.2rem;
+	li {
+		margin-left: 10px;
+		list-style: "\2192  ";
+	}
+}
