@@ -851,7 +851,7 @@ class Action(models.Model):
 class Folder(models.Model):
     folder_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, default="New Folder")
-    owner = models.ForeignKey(OIDCAccount, on_delete=models.CASCADE) # will be removed once new settings has been settled. 
+    owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True) # will be removed once new settings has been settled. 
     department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True)
     parent_id = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name='child')
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
@@ -882,12 +882,89 @@ class Folder(models.Model):
             print("hierarchy = %d" % hierarchy)
             return hierarchy < MAX_FOLDER_HIERARCHY
 
+    def getAllSubFeatures(self):
+        query = """
+        WITH RECURSIVE recursive_folders AS (
+            SELECT bf.*
+            FROM backend_folder bf
+            WHERE bf.folder_id = %s
+
+            UNION
+
+            SELECT bf.*
+            FROM backend_folder bf JOIN recursive_folders rf ON bf.parent_id_id = rf.folder_id
+        )
+        SELECT DISTINCT 1 as folder_id, bf.feature_id
+        FROM (recursive_folders rf
+            LEFT JOIN backend_folder_feature bff
+                ON rf.folder_id = bff.folder_id)
+            LEFT JOIN backend_feature bf
+                ON bf.feature_id = bff.feature_id
+        ORDER BY bf.feature_id;
+        """
+        # save results
+        features = []
+        # run the query
+        feature_ids = Folder.objects.raw(query, [self.folder_id])
+        # check if folder has any features or subfeatures inside
+        if len(feature_ids) > 0:
+            for feature_id in feature_ids:
+                if feature_id.feature_id is not None:
+                    features.append(feature_id.feature_id)
+        return features
+    
+    def getAllSubFolders(self):
+        query = """
+        WITH RECURSIVE recursive_folders AS (
+            SELECT bf.*
+            FROM backend_folder bf
+            WHERE bf.folder_id = %s
+
+            UNION
+
+            SELECT bf.*
+            FROM backend_folder bf JOIN recursive_folders rf ON bf.parent_id_id = rf.folder_id
+        )
+        SELECT folder_id
+        FROM recursive_folders rf
+        WHERE folder_id != %s
+        ORDER BY folder_id;
+        """
+        # save results
+        folders = []
+        # run the query
+        folder_ids = Folder.objects.raw(query, [self.folder_id, self.folder_id])
+        # check if folder has any subfolders inside
+        if len(folder_ids) > 0:
+            for folder_id in folder_ids:
+                if folder_id.folder_id is not None:
+                    folders.append(folder_id.folder_id)
+        return folders
+
     def save(self, *args, **kwargs):
-        print(self.parent_id_id)
+        # get old values
+        old_instance = None
+        try:
+            old_instance = Folder.objects.get(folder_id=self.folder_id)
+        except:
+            pass
+
         # get parent
         if not self.checkFoldersHierarchy(self.parent_id_id):
             raise Exception("This folder creation surpases MAX_FOLDER_HIERARCHY (%d) set by admin." % MAX_FOLDER_HIERARCHY)
         
+        # check if parent department and self department are different
+        if self.parent_id is not None and ( self.department != self.parent_id.department ):
+            # set self department to parent department
+            self.department = self.parent_id.department
+        
+        if old_instance is not None and (old_instance.department != self.department):
+            # change all sub folders and features department to self department
+            updated_features = Feature.objects.filter(feature_id__in=self.getAllSubFeatures()).update(department_id=self.department.department_id, department_name=self.department.department_name)
+            print("Updated Features: %d" % updated_features)
+            updated_folders = Folder.objects.filter(folder_id__in=self.getAllSubFolders()).update(department=self.department)
+            print("Updated SubFolders: %d" % updated_folders)
+
         super(Folder, self).save(*args)
 
 class Folder_Feature(models.Model):
