@@ -29,8 +29,23 @@ export class UserState {
   getUser({ patchState, dispatch }: StateContext<UserInfo>) {
     return this._api.doOIDCLogin().pipe(
       tap(account => {
-        // check if user selected dashboard v2 as default dashboard and save it in localstorage
-        localStorage.setItem('co_use_newdashboard', account.settings?.useNewDashboard);
+
+        // set up localstorage instance for each existing property in account settings object
+        // does the same as below commented >>>> localstorage.setItem
+        Object.keys(account.settings).forEach(key => {
+          localStorage.setItem(key, account.settings[key]);
+        });
+
+
+        // localStorage.setItem('useNewDashboard', account.settings?.useNewDashboard);
+        // localStorage.setItem('logWebsockets', account.settings?.logWebsockets);
+        // localStorage.setItem('percentMode', account.settings?.percentMode);
+        // localStorage.setItem('da', account.settings?.disableAnimations);
+        // localStorage.setItem('hideInformation', account.settings?.hideInformation);
+        // localStorage.setItem('hideSendMail', account.settings?.hideSendMail);
+        // localStorage.setItem('hideBrowsers', account.settings?.hideBrowsers);
+        // localStorage.setItem('hideSteps', account.settings?.hideSteps);
+        // localStorage.setItem('hideSchedule', account.settings?.hideSchedule);
 
         if (typeof account.favourite_browsers === 'object') account.favourite_browsers = JSON.stringify(account.favourite_browsers);
         // Cross-join available clouds with subscriptions
@@ -67,7 +82,10 @@ export class UserState {
   userLogout() {
     // Do nothing with the state, just redirect to logout.html
     localStorage.removeItem('@@STATE');
-    window.location.href = '/callback?logout=/logout.html';
+    // generate logout URL
+    const logoutURL = `/callback?logout=${location.protocol}//${location.hostname}/logout.html`;
+    console.log({logoutURL});
+    window.location.href = logoutURL;
   }
 
   @Action(User.SetBrowserFavourites)

@@ -27,6 +27,7 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { Observable } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { LogService } from '@services/log.service';
+import { User } from '@store/actions/user.actions';
 
 
 @UntilDestroy()
@@ -135,7 +136,12 @@ export class L1LandingComponent implements OnInit {
   setView(type: string, view: FeatureViewTypes) {
     this.log.msg("1","Changing feature list view type to...","landing", view);
     this.openedAdd = false;
-    return new Configuration.SetProperty(`featuresView.${type}`, view, true);
+
+
+    return [
+      new User.SetSetting({ 'featuresView.with': view }),
+      new Configuration.SetProperty(`featuresView.${type}`, view, true)
+    ];
   }
 
   // Hides the sidenav

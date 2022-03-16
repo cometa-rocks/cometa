@@ -174,9 +174,14 @@ class AdminPermissions(admin.ModelAdmin):
                 ('remove_feature_runs'),
                 )
         }),
-        ('FrontEnd', {
+        ('FrontEnd Admin', {
             'fields': (
                 ('view_admin_panel', 'view_departments_panel', 'view_applications_panel', 'view_browsers_panel', 'view_environments_panel', 'view_features_panel', 'view_accounts_panel'),
+                )
+        }),
+        ('FrontEnd Department Admin Panel Options', {
+            'fields': (
+                ('show_all_departments', 'show_department_users'),
                 )
         }),
         ('Environment Variables', {
