@@ -97,10 +97,14 @@ export class MoveItemDialog {
         req = this._api.patchFeatureV2(newFeature.feature_id, newFeature, this.previousFolderId, folderData.id || 0, newFeature.department_id);
         break;
       case 'folder':
-        req = this._api.modifyFolder({
+        // save payload to an object
+        let payload = {
           folder_id: this.data.folder.folder_id,
           parent_id: folderData.id || null
-        })
+        } as any;
+        // check if folderData is of type department if so send department value as well
+        if (folderData.type == 'department') payload.department = folderData.department;
+        req = this._api.modifyFolder(payload)
         break;
       default:
         req = NEVER;
