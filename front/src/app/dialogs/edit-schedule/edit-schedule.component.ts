@@ -10,6 +10,7 @@ import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { Features } from '@store/actions/features.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { parseExpression } from 'cron-parser';
 
 @UntilDestroy()
 @Component({
@@ -21,6 +22,23 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 export class EditSchedule {
 
   schedule: FormGroup;
+
+  // formLayout is a variable to steer the layout of the schedule edit form
+  // ... value: "1" ... means the first layout
+  // ... value: "2" ... second layout proposed from Cosimo
+  formLayout : Number
+  formLayoutText = ['switch to horizontal layout','switch to vertical layout']
+  formLayoutTextSelected : String
+
+  // next runs an array of next executions
+  nextRuns = [];
+  // parse error
+  parseError = {
+	  "error": false,
+	  "msg": ""
+  }
+  // get user timezone
+  timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   feature: Feature;
 
@@ -35,6 +53,13 @@ export class EditSchedule {
     private _store: Store,
     private _fb: FormBuilder
   ) {
+
+    // set the default layout of the form for editing schedule
+    // "1" is the crontab like layout
+    // "2" is the vertical form layout 
+    this.formLayout = 2
+    this.formLayoutTextSelected = "horizontal"
+
     // Create empty form
     this.schedule = this._fb.group({});
     // Iterate each cron field and add control in form
@@ -55,9 +80,9 @@ export class EditSchedule {
     } else {
       // Initialize form with default values
       this.schedule.setValue({
-        minute: '0',
-        hour: '0',
-        day: '1',
+        minute: '0,15,30,45',
+        hour: '*/2',
+        day: '1-31',
         month: '*',
         dayWeek: '*'
       });
@@ -67,15 +92,48 @@ export class EditSchedule {
     ).subscribe(enable => {
       if (enable) {
         this.schedule.enable();
+		this.parseSchedule(this.schedule.getRawValue());
       } else {
         this.schedule.disable();
       }
       this.schedule.updateValueAndValidity();
     });
+
+	this.schedule.valueChanges.subscribe((expression) => {
+		this.parseSchedule(expression);
+	});
   }
 
   getHelp() {
     this._dialog.open(ScheduleHelp, { panelClass: 'help-schedule-panel' });
+  }
+
+  parseSchedule(expression) {
+	// ignore if schedule is disabled
+	if (!this.schedule.enable) return;
+
+	try {
+		// parse cron expression
+		let parser = parseExpression(Object.values(expression).join(" "), {utc: true});
+		// reset errors
+		this.parseError.error = false;
+		// reset nextRuns arrays
+		this.nextRuns = [];
+		for(let i = 0; i<5; i++) { this.nextRuns.push(parser.next().toDate().toLocaleString()); }
+	} catch (error) {
+		this.nextRuns = [];
+		this.parseError = {
+			"error": true,
+			"msg": error.message
+		}
+	}
+  }
+
+  // triggers the toggle of the layout
+  switchFormLayout() {
+    // toggle the layout between layout 1 and layout 2
+    this.formLayout = (this.formLayout == 1) ? 2 : 1;
+    this.formLayoutTextSelected = (this.formLayout == 1) ? 'vertical' : 'horizontal'
   }
 
   updateSchedule() {

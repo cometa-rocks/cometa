@@ -234,6 +234,9 @@ export class L1FilterComponent implements OnInit {
       this.toggleListType('list');
       this.addFilterOK('test', this.searchInput);
       this.searchInput = "";
+
+      // close search bar after click on search icon ---- #3461
+      this.close_search();
     }
   }
 
@@ -282,19 +285,23 @@ export class L1FilterComponent implements OnInit {
    * HotKey event listeners
    */
 
-   // #3420 ------------------------------------------------ start
+  // #3420 ------------------------------------------------ start
   // Hotkey Shift-Alt-f ... opens the finder
   @HostListener('document:keydown.Shift.Alt.f', ['$event'])
   hotkey_shift_alt_f(event: KeyboardEvent) {
 
+    // rewrite browser shortcut
     event.preventDefault();
+
+    // set searchterm to empty ---- #3461
+    if(this.searchInput) this.searchInput = "";
 
     // remove filter term if exists
     if (this.filters$.length > 0) {
       this.removeSearchFilter();
     }
 
-    // open searchbar
+    // toggle searchbar
     this.open_search();
   }
   // #3420 -------------------------------------------------- end

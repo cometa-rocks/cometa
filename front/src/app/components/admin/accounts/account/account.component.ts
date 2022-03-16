@@ -31,6 +31,7 @@ export class AccountComponent {
   ) { }
 
   @Input() account: IAccount;
+  @Input() origin: string;
 
   changePassword() {
     this._dialog.open(ModifyPasswordComponent, {
