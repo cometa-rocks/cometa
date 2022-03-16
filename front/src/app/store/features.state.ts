@@ -711,7 +711,7 @@ export class FeaturesState {
       let feature = state.details[id]; // Variable with the feature data
 
       //return if there are no features
-      if (!feature) return;
+      if (!feature) continue;
 
       // Gets the needed variables and inserts them into the columns variable
       columns.type = "feature"; // Type of data row
