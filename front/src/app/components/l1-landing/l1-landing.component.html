@@ -14,7 +14,8 @@ Author: dph000
   This forms part of new landing together with the components "new-folder" + "folder-tree"
 
   -->
-  <div class="searcher" [class.opened]="showFolders$ | async" [class.closed]="(showFolders$ | async) == false">
+  <!-- <div class="searcher" [class.opened]="showFolders$ | async" [class.closed]="(showFolders$ | async) == false">  previous -->
+  <div class="searcher" [class.closed]="showFolders$ | async">
     <!-- Buttons to either create a feature or a folder -->
     <div class="add-from-sidenav" #addFromSidenav>
       <!-- Div used to hide the buttons when clicked elsewhere but them (only mobile) -->
