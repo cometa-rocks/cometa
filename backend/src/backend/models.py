@@ -540,7 +540,7 @@ class Department(models.Model):
         super(Department, self).save(*args, **kwargs)
 
     def __str__( self ):
-        return u"Department_name = %s" % self.department_name
+        return u"%s" % self.department_name
     class Meta:
         ordering = ['department_name']
         verbose_name_plural = "Departments"
