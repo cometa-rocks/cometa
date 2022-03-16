@@ -19,6 +19,7 @@ backups/
 migrations/
 downloads/
 videos/
+pdf/
 
 crontab
 

@@ -113,6 +113,8 @@ function check_ssl_certificate() {
 # @params:
 # #########
 function build_project(){
+	# replace baseHref inside index.html before serving
+	sed -i 's#<base href="/debug/">#<base href="/">#' /code/src/index.html
 	# get uid and gid of user that owns content outside
 	UIDGID=$(stat -c "%u:%g" /code)
 	echo -e "\e[37mCompiling...\e[0m"
@@ -139,7 +141,10 @@ function build_project(){
 # if the configuration in apache is activated.
 # @params:
 # #########
-function serve_project(){
+function serve_project() {
+	# replace baseHref inside index.html before serving
+	sed -i 's#<base href="/">#<base href="/debug/">#' /code/src/index.html
+	# serve the project
 	npx ng serve
 }
 

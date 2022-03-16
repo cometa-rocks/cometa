@@ -113,3 +113,33 @@
         background-repeat: no-repeat;
     }
 }
+
+.users {
+    position: relative;
+    flex: 0 0 40px;   
+    padding: 0 10px;
+    box-sizing: border-box;
+    position: relative;
+    cursor: pointer;
+    height: 15px;
+    width: 15px;
+    opacity: .6;
+    margin-top: 5px;
+    transition: all .2s ease-in-out;
+    &:not(.disabled):hover {
+        margin-top: 3px;
+        transform: scale(1.2);
+    }
+    .amount {
+        position: absolute;
+        bottom: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 11px;
+        color: #000;
+    }
+    &.disabled {
+        cursor: default;
+        opacity: 0.2;
+    }
+}
