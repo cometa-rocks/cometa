@@ -136,10 +136,9 @@ export class L1FilterComponent implements OnInit {
    */
   @Dispatch() toggleSidenav() {
     // get current state of side navbar after clicking toggle arrow icon
-    const opened = this.getSidebarState();
+    let newSidebarState = this.getSidebarState() ? false : true;
     this.log.msg("1","Toggling sidenav...","filter");
-
-    return new Configuration.SetProperty('openedSidenav', !opened);
+    return new Configuration.SetProperty('openedSidenav', newSidebarState);
   }
 
   /**

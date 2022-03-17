@@ -147,8 +147,10 @@ export class L1LandingComponent implements OnInit {
   // Hides the sidenav
   @Dispatch()
   hideSidenav() {
+    let currentSidebarState = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
+    let newSidebarState = currentSidebarState ? false : true;
     this.log.msg("1","Hiding sidenav...","landing");
-    return new Configuration.SetProperty('openedSidenav', false);
+    return new Configuration.SetProperty('openedSidenav', newSidebarState);
   } 
 
   /**
