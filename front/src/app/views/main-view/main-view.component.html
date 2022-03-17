@@ -2,43 +2,47 @@
   <cometa-feature-titles></cometa-feature-titles>
   <cometa-feature-actions></cometa-feature-actions>
 </div>
-<ng-container *ngLet="paginatedList?.pagination$ | async as pagination">
-  <!--charts will be displayed when test has been performed more than 10 times-->
-  <div *ngIf="isloaded && pagination?.results?.length >= 10" class="charts">
-    <div class="behave-charts">
-      <!-- Highchart -->
-      <behave-chart-desktop-steps *ngIf="pagination?.results as results" [data]="results"></behave-chart-desktop-steps>
+
+<div class="chart-section" *ngLet="paginatedList?.pagination$ | async as pagination" [ngClass]="{'noChart': pagination?.results?.length < 10}">
+  <ng-container>
+    <!--charts will be displayed when test has been performed more than 10 times-->
+    <div *ngIf="isloaded && pagination?.results?.length >= 10" class="charts">
+      <div class="behave-charts">
+        <!-- Highchart -->
+        <behave-chart-desktop-steps *ngIf="pagination?.results as results" [data]="results"></behave-chart-desktop-steps>
+      </div>
     </div>
-  </div>
-  <!-- will be shown if the test has not been performed 10 times-->
-  <div *ngIf="isloaded && pagination?.results?.length < 10" class="no-chart">
-    <img src="assets/img/poster_2.svg" alt="shown when there is no charts">
-    <p>This screen shows the results of your testruns. <br><br> Once you have more then 10 results, co.meta will show you a beautiful linechart with execution times and more.</p>
-  </div>
-  <!-- Mobile Header -->
-  <div class="mobile-info header">
-    <div class="steps">Steps #</div>
-    <div class="browser">Browsers</div>
-    <div class="last_test">Last test</div>
-  </div>
-  <!-- Mobile Stats -->
-  <div class="mobile-info" *ngIf="pagination?.results[0] as lastRun">
-    <div class="steps">{{ lastRun.feature_results | sumByProperty:'total' }}</div>
-    <div class="steps">{{ lastRun.feature_results.length }}</div>
-    <div class="steps last-result-status" *ngLet="lastRun | featureRunPassed as passed" [ngClass]="passed ? 'success' : 'failed'">{{ passed ? 'OK' : 'NOK' }}</div>
-  </div>
-</ng-container>
-<network-paginated-list *ngLet="featureId$ | async as featureId"
-  [listId]="'runs_' + featureId"
-  [endpointUrl]="featureRunsUrl$ | async"
-  [headerTemplate]="headTemplate"
-  [noItemsTemplate]="noItemsFound"
-  [injectIndex]="false"
-  [useSkeletons]="true"
-  skeletonsHeight="50px"
-  [showHeaderOnNoResults]="true"
-  trackByKey="run_id"
-  [itemTemplate]="listItem">
+    <!-- will be shown if the test has not been performed 10 times-->
+    <div *ngIf="isloaded && pagination?.results?.length < 10" class="no-chart">
+      <img src="assets/img/poster_2.svg" alt="shown when there is no charts">
+      <p>This screen shows the results of your testruns. <br><br> Once you have more then 10 results, co.meta will show you a beautiful linechart with execution times and more.</p>
+    </div>
+    <!-- Mobile Header -->
+    <div class="mobile-info header">
+      <div class="steps">Steps #</div>
+      <div class="browser">Browsers</div>
+      <div class="last_test">Last test</div>
+    </div>
+    <!-- Mobile Stats -->
+    <div class="mobile-info" *ngIf="pagination?.results[0] as lastRun">
+      <div class="steps">{{ lastRun.feature_results | sumByProperty:'total' }}</div>
+      <div class="steps">{{ lastRun.feature_results.length }}</div>
+      <div class="steps last-result-status" *ngLet="lastRun | featureRunPassed as passed" [ngClass]="passed ? 'success' : 'failed'">{{ passed ? 'OK' : 'NOK' }}</div>
+    </div>
+  </ng-container>
+</div>
+
+  <network-paginated-list  *ngLet="featureId$ | async as featureId"
+    [listId]="'runs_' + featureId"
+    [endpointUrl]="featureRunsUrl$ | async"
+    [headerTemplate]="headTemplate"
+    [noItemsTemplate]="noItemsFound"
+    [injectIndex]="false"
+    [useSkeletons]="true"
+    skeletonsHeight="50px"
+    [showHeaderOnNoResults]="true"
+    trackByKey="run_id"
+    [itemTemplate]="listItem">
     <ng-template #listItem let-item>
       <cometa-feature-run [run]="item"></cometa-feature-run>
     </ng-template>
@@ -54,7 +58,8 @@
         <p class="greyed">These results are reloaded automatically.</p>
       </div>
     </ng-template>
-</network-paginated-list>
+  </network-paginated-list>
+
 <!-- <div *ngLet="featureId$ | async as featureId">
   <mtx-grid [data]="item"
             [columns]="columns"
