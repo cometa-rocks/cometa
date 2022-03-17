@@ -46,6 +46,19 @@
     }
 }
 
+.chart-section {
+    height: 350px;
+    transition: .5s;
+
+    @include maxWidth(750px) {
+        height: 420px;
+
+        &.noChart {
+            height: 250px;
+        }
+    }
+}
+
 :host::ng-deep .cell.show {
     display: initial;
 }
