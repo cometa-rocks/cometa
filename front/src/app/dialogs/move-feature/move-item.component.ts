@@ -88,13 +88,14 @@ export class MoveItemDialog {
           newFeature.department_id = folderData.department;
           newFeature.department_name = folderData.name;
         }
+
         // Removes useless variables in the patch
         delete newFeature.created_by;
         delete newFeature.last_edited;
         delete newFeature.info;
         delete newFeature.steps;
         // Patch and move the testcase
-        req = this._api.patchFeatureV2(newFeature.feature_id, newFeature, this.previousFolderId, folderData.id || 0, newFeature.department_id);
+        req = this._api.patchFeatureV2(newFeature.feature_id, newFeature, this.previousFolderId, folderData.id || 0, folderData.department);
         break;
       case 'folder':
         // save payload to an object
