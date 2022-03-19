@@ -7,4 +7,4 @@
 # ---
 # Execute housekeeping videos and feature results, every day at 1:00 am
 # ---
-1 0 * * * /usr/local/bin/python /opt/code/manage.py cleanup_videos; /usr/local/bin/python /opt/code/manage.py cleanup_results --all-departments;
+0 0 * * * /usr/local/bin/python /opt/code/manage.py cleanup_videos; /usr/local/bin/python /opt/code/manage.py cleanup_results --all-departments --days 90;

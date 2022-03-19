@@ -124,7 +124,10 @@ class AdminFolder(admin.ModelAdmin):
 
 class AdminFolder_Feature(admin.ModelAdmin):
     model = Folder_Feature
-    search_fields = ['folder__name', 'feature__name']
+    search_fields = ['folder__name', 'feature__feature_name']
+    list_filter = (
+        ('folder__department', admin.RelatedOnlyFieldListFilter),
+    )
     list_display = ('folder', 'feature')
 
 class AdminPermissions(admin.ModelAdmin):
