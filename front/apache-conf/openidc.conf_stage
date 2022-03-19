@@ -56,3 +56,6 @@ CoreDumpDirectory /tmp
 
 # cache in file
 OIDCCacheType file
+
+# PROXY TIMEOUT SETTINGS
+ProxyTimeout 300
