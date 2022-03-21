@@ -27,6 +27,7 @@ import { from, Observable, of, BehaviorSubject } from 'rxjs';
 import { concatMap, delay, finalize, switchMap, toArray, timeout, map, filter, tap } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { SocketService } from './socket.service';
+import { Configuration } from '@store/actions/config.actions';
 
 /**
  * This service is used to execute function which should be accessible from application and Tour definitions
@@ -51,9 +52,17 @@ export class SharedActionsService {
 
   // #3414 -----------------------------------start
   // adds the ids of folders to browser url each time folders in foldertree or breadcrum are clicked
-  set_url_folder_params (currentRoute: any) {
+  set_url_folder_params (currentRoute: any = "") {
+
     // folder url base
     let folderUrl = "/new/";
+
+    // go to newLanding if there are no folder id params in currentRoute
+    if (!currentRoute) {
+      let folderUrl = "/new/";
+      this._location.go(folderUrl);
+      return;
+    }
 
     // concat folder ids to create path to clicked folder
     currentRoute.forEach(folder => {
