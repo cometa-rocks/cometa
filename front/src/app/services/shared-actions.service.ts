@@ -27,7 +27,6 @@ import { from, Observable, of, BehaviorSubject } from 'rxjs';
 import { concatMap, delay, finalize, switchMap, toArray, timeout, map, filter, tap } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { SocketService } from './socket.service';
-import { Configuration } from '@store/actions/config.actions';
 
 /**
  * This service is used to execute function which should be accessible from application and Tour definitions
