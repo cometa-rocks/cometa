@@ -58,7 +58,6 @@ export class SharedActionsService {
 
     // go to newLanding if there are no folder id params in currentRoute
     if (!currentRoute) {
-      let folderUrl = "/new/";
       this._location.go(folderUrl);
       return;
     }
