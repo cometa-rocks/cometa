@@ -190,10 +190,20 @@
 	],
 	"changelog": [
 		{
+			"version": "2.8.279",
+			"date": "2022-03-22",
+			"features": [
+				{
+					"title": "Sidebar",
+					"description": "New Animation for MAIN V.2 landing sidebar navigation"
+				}
+			]
+		},
+		{
 			"version": "2.8.278",
 			"date": "2022-03-21",
 			"bugfixes": [
-				"#3449 - Fixed chart diagram is displayed from the starting from first feature result, now it will be displayed when there are at least 10"
+				"#3426 - Fixed chart diagram is displayed from the starting from first feature result, now it will be displayed when there are at least 10"
 			]
 		},
 		{
