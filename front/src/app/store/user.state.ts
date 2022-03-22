@@ -82,7 +82,10 @@ export class UserState {
   userLogout() {
     // Do nothing with the state, just redirect to logout.html
     localStorage.removeItem('@@STATE');
-    window.location.href = '/callback?logout=/logout.html';
+    // generate logout URL
+    const logoutURL = `/callback?logout=${location.protocol}//${location.hostname}/logout.html`;
+    console.log({logoutURL});
+    window.location.href = logoutURL;
   }
 
   @Action(User.SetBrowserFavourites)

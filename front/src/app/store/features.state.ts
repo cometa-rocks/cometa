@@ -702,9 +702,17 @@ export class FeaturesState {
    * @author dph000
    */
   static transformCurrentDirectoryData(result, state: IFeaturesState, folders: FoldersResponse) {
+    // return if there are no folders
+    if (!folders) return;
+
+
     for (const id of folders.features) {
       let columns: any = {}; // Variable to store the feature values
       let feature = state.details[id]; // Variable with the feature data
+
+      //return if there are no features
+      if (!feature) continue;
+
       // Gets the needed variables and inserts them into the columns variable
       columns.type = "feature"; // Type of data row
       columns.orderType = feature.depends_on_others ? '3' : '2'; // set order type, makes it easy to sort groups.
@@ -788,14 +796,17 @@ export class FeaturesState {
    * @lastModification 01-10-21
    */
   static getRecursiveData(state: IFeaturesState, results, folder: Folder, filter_name: string, route: Folder[]) {
+
     // Recursivity that goes over all the folders
     folder.folders.forEach(currentFolder => {
       let currentRoute: Folder[] = [...route, currentFolder]; // Add the current route to the parent route (if exists)
       results = this.getRecursiveData(state, results, currentFolder, filter_name, currentRoute);
     });
+
+
     // Get the features data as an []
     folder.features.forEach(val => {
-      if (state.details[val].feature_name.toLowerCase().includes(filter_name) || state.details[val].feature_id.toString().includes(filter_name)) {
+      if (state.details[val]?.feature_name.toLowerCase().includes(filter_name) || state.details[val]?.feature_id.toString().includes(filter_name)) {
         results.features.push(val);
       }
     });

@@ -20,6 +20,7 @@ import { ModifyPasswordComponent } from '@dialogs/modify-password/modify-passwor
 import { PermissionGuard } from '@guards/permission.guard';
 import { ModifyDepartmentComponent } from '@dialogs/modify-department/modify-department.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { AccountsDialog } from '@dialogs/accounts-dialog/accounts-dialog.component';
 
 const routes: Routes = [
     {
@@ -111,7 +112,8 @@ const routes: Routes = [
     EnvironmentsComponent,
     BrowsersComponent,
     FeaturesComponent,
-    AccountsComponent
+    AccountsComponent,
+    AccountsDialog
   ]
 })
 export class AdminModule { }

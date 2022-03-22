@@ -1480,8 +1480,30 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer, )
 
     def list(self, request, *args, **kwargs):
+        # set default value for qs
+        qs = Department.objects.none()
+        # check if user is superuser
+        superuser = request.session['user']['user_permissions']['permission_name'] == "SUPERUSER"
+        # get show_all_departments permission
+        show_all_departments = request.session['user']['user_permissions']['show_all_departments']
+        # if superuser or has show_all_departments permission show all departments
+        if superuser or show_all_departments:
+            qs = Department.objects.all()
+        else:
+            # get logged in user departments
+            user_departments = [x['department_id'] for x in request.session['user']['departments']]
+            qs = Department.objects.filter(department_id__in=user_departments)
+
+        # get show_department_users permission
+        show_department_users = request.session['user']['user_permissions']['show_department_users']
+        # if user has show_department_users permission the show users aswell
+        if show_department_users:
+            results = DepartmentWithUsersSerializer(qs, many=True).data
+        else:
+            results = DepartmentSerializer(qs, many=True).data
+        # return results
         return Response({
-            'results': DepartmentSerializer(Department.objects.all(), many=True).data
+            'results': results
         })
 
     @require_permissions("create_department")
@@ -2115,54 +2137,20 @@ class FolderFeatureViewset(viewsets.ModelViewSet):
                 'feature': FeatureSerializer(feat, many=False).data,
                 'exclude': [request.session['user']['user_id']]
             })
-            if new_folder == old_folder:
-                # Send folder websockets
-                requests.post('http://cometa_socket:3001/updatedObjects/folders')
-                return JsonResponse({"success": True}, status=200)
-
-        if old_folder == new_folder:
-            error = "You can't move the feature to the same folder..."
-            return JsonResponse({"success": False , "error": error}, status=400)
-
-        # if old_folder is None that means the instance does not exist
         # if new_folder is None that means we need to delete instance
 
         if new_folder is not None:
             newFolder = Folder.objects.filter(folder_id=new_folder) if str(new_folder).isnumeric() else Folder.objects.filter(name=new_folder)
-            if not newFolder.exists() and newFolder.department.department_id != new_folder:
+            if not newFolder.exists():
                 error = "No folder found with id or name %s...." % str(new_folder)
                 return JsonResponse({"success": False , "error": error}, status=400)
             newFolder = newFolder[0]
-            # As the user now can move testcases between departments, there is no need to check if the destination folder pertains to the same department as the origin
-            # check if newFolder belongs to in the feature department
-            # if newFolder.department.department_id != feat.department_id:
-            #     error = "Requested feature can not be moved to a folder that does not belong to the feature department."
-            #     return JsonResponse({"success": False , "error": error}, status=200)
 
+        Folder_Feature.objects.filter(feature=feat).delete()
 
-        if old_folder is not None:
-            oldFolder = Folder.objects.filter(folder_id=old_folder) if str(old_folder).isnumeric() else Folder.objects.filter(name=old_folder)
-            if not oldFolder.exists():
-                error = "No folder found with id or name %s...." % str(old_folder)
-                return JsonResponse({"success": False , "error": error}, status=400)
-            oldFolder = oldFolder[0]
-
-        # do some stuff
-        if old_folder is not None and new_folder is not None:
-            obj = Folder_Feature.objects.filter(folder=oldFolder, feature=feature)
-            if not obj.exists():
-                error = "No instance found with folder_id %d and feature_id %d combination..." % (old_folder, feature)
-                return JsonResponse({"success": False , "error": error}, status=400)
-            obj.update(folder=new_folder)
-        elif new_folder is None:
-            obj = Folder_Feature.objects.filter(folder=oldFolder, feature=feature)
-            if not obj.exists():
-                error = "No instance found with folder_id %d and feature_id %d combination..." % (old_folder, feature)
-                return JsonResponse({"success": False , "error": error}, status=400)
-            obj.delete()
-        elif old_folder is None:
+        if new_folder is not None:
             obj = Folder_Feature(folder=newFolder, feature=feat)
-            obj.save();
+            obj.save()
 
         # update websockets
         requests.post('http://cometa_socket:3001/updatedObjects/folders')

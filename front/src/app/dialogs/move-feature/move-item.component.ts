@@ -88,19 +88,24 @@ export class MoveItemDialog {
           newFeature.department_id = folderData.department;
           newFeature.department_name = folderData.name;
         }
+
         // Removes useless variables in the patch
         delete newFeature.created_by;
         delete newFeature.last_edited;
         delete newFeature.info;
         delete newFeature.steps;
         // Patch and move the testcase
-        req = this._api.patchFeatureV2(newFeature.feature_id, newFeature, this.previousFolderId, folderData.id || 0, newFeature.department_id);
+        req = this._api.patchFeatureV2(newFeature.feature_id, newFeature, this.previousFolderId, folderData.id || 0, folderData.department);
         break;
       case 'folder':
-        req = this._api.modifyFolder({
+        // save payload to an object
+        let payload = {
           folder_id: this.data.folder.folder_id,
           parent_id: folderData.id || null
-        })
+        } as any;
+        // check if folderData is of type department if so send department value as well
+        if (folderData.type == 'department') payload.department = folderData.department;
+        req = this._api.modifyFolder(payload)
         break;
       default:
         req = NEVER;

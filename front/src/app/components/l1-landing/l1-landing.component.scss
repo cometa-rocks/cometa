@@ -40,52 +40,69 @@
     width: 100%;
     height: 100%;
     background: $high-black;
-    z-index: 5;
+    // z-index: 5;
     opacity: 0;
-    pointer-events: none;
+    // pointer-events: none;
     @include for-phone-only{
+        z-index: 1;
+
         &.opened {
             pointer-events: unset;
-            opacity: 1;
+            opacity: 0;
+            z-index: -1;
         }
     }
-    transition: opacity .15s ease-in-out;
+    transition: opacity .5s ease-in-out;
 }
 
 
 .searcher {
     display: block;
-    flex: 0 var(--sidenav-width);
     width: var(--sidenav-width); // fixed width of 300 px for sidenav by default
-    border-right: 1px solid $border-color;
-    min-height: 45px;
     height: 100%;
-    background: $body-bg-color;
+    min-height: 45px;
     max-height: calc(100vh - var(--header-height));
-    transition: all .15s ease-in-out;
+    background: $body-bg-color;
+    border-right: 1px solid $border-color;
     box-sizing: border-box;
-    transform: translateX(-100vw);
-    position: absolute;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: width 1s;
+    &.closed { width: 0%; }
+
+    // width: 15vw;
+    // flex: 0 var(--sidenav-width);
+    // transition: transform 2.5s;
+    // transition-timing-function: cubic-bezier(0.1, 0.5, 1.0, 0.1);
+    // transform: translateX(-100vw);
+    // position: absolute;
 
     @include for-phone-only {
-        width: 55vw; // sidenav will take approximately 50% of current screen size, only when app is reproduced in small device
-        transform: translateX(-100vw);
+        position: absolute;
+        width: 55vw;
         z-index: 10;
-        margin-left: unset;
-        &.opened {
-            transform: translateX(0);
-            margin-left: unset;
-        }
+        // flex: 0 var(--sidenav-width);
+        // transform: translateX(-100vw);
+        // margin-left: unset;
+        // width: 55vw; // sidenav will take approximately 50% of current screen size, only when app is reproduced in small device
+        // transform: translateX(-100vw);
+        // &.opened {
+            // transform: translateX(0);
+            // margin-left: unset;
+        // }
+        // &.closed {
+            // transform: translateX(0);
+        // }
     }
-    &.closed {
-        position: relative;
-        transform: translateX(0);
-        margin-left: unset;
-        @include for-phone-only {
-            position: absolute;
-            transform: translateX(-100vw);
-        }
-    }
+    // &.closed {
+        // position: relative;
+        // transform: translateX(0);
+        // margin-left: unset;
+        // @include for-phone-only {
+            // position: absolute;
+            // transform: translateX(-100vw);
+        // }
+    // }
 
     // hide sidebar leaves icons visible
     /*@include for-phone-only {
@@ -119,13 +136,14 @@
     }*/
 
     .add-from-sidenav {
-        display: flex;
-        flex-wrap: wrap;
-        width: 70%;
-        align-items: center;
-        justify-content: flex-start;
+        display: inline-block;
         padding: 15px 15px;
-        box-sizing: border-box;
+        // display: flex;
+        // flex-wrap: wrap;
+        // width: 70%;
+        // align-items: center;
+        // justify-content: flex-start;
+        // box-sizing: border-box;
         .addIcon, .addFeatureIcon, .addFolderIcon {
             width: auto;
             height: 40px;
@@ -205,6 +223,7 @@
 }
 
 .viewer {
+    width: 100%;
     display: flex;
     flex-direction: column;
     flex: 1 100%;
