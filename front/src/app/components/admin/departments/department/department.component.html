@@ -2,5 +2,9 @@
 <div class="name">
   <input spellcheck="false" disableAutocomplete [disabled]="!(modify | async)" [value]="department.department_name">
 </div>
+<div class="users" [ngClass]="{'disabled' : department.users.length < 1}" *ngIf="(canSeeUsers$ | async)" (click)="showUsers()">
+  <mat-icon>people</mat-icon>
+  <span class="amount">{{department.users.length}}</span>
+</div>
 <div *ngIf="canEditDepartment$ | async" class="modify" [ngClass]="{'validate': (modify | async) }" (click)="saveOrEdit()"></div>
 <div *ngIf="canDeleteDepartment$ | async" (click)="removeIt()" class="remove"></div>

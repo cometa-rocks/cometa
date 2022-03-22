@@ -211,7 +211,7 @@
         </div>
         <br>
         <div class="subtitle2">
-          Have a comment? Send it to <a href="" style="color: rgba(223, 223, 223, .7)">cometa@cometa.rocks</a>. We would ♥ to hear from you.
+          Have a comment? Send it to <a href="" style="color: rgba(223, 223, 223, .7)">@@MAIL_PLACEHOLDER@@</a>. We would ♥ to hear from you.
         </div>
         <div class="poweroff">
           <div class="loginpage" onclick="goLogin()">
@@ -241,10 +241,11 @@
       // Load feedback mail from LS
       var mail = localStorage.getItem('feedback_mail');
       if (mail) {
-        document.querySelector('.substitle2 a').setAttribute('href', 'mailto:' + mail);
+        document.querySelector('.subtitle2 a').setAttribute('href', 'mailto:' + mail);
+        document.querySelector('.subtitle2 a').innerText = mail;
       } else {
         // Else doesn't make sense to show feedback sentence
-        document.querySelector('.substitle2').style.display = 'none';
+        document.querySelector('.subtitle2').style.display = 'none';
       }
     </script>
   <noscript>Please enable JavaScript to continue using this application.</noscript>

@@ -19,6 +19,10 @@ const routes: Routes = [
     {
         path: '',
         component: L1LandingComponent
+    },
+    {
+        path: ':breadcrumb',
+        component: L1LandingComponent
     }
 ];
 

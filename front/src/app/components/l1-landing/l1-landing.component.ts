@@ -27,6 +27,7 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { Observable } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { LogService } from '@services/log.service';
+import { User } from '@store/actions/user.actions';
 
 
 @UntilDestroy()
@@ -75,6 +76,12 @@ export class L1LandingComponent implements OnInit {
         const parsedFilters = JSON.parse(filtersStorage);
         this._store.dispatch(new Features.SetFilters(parsedFilters));
       } catch (err) { }
+    }
+
+    // if user clicks on browser bookmark that saves location to certain folder or feature, it will not be loaded if active_list is not set to 'list', as 'list' renders the table
+    // that's why we check if there are params in url and if so, set active_list to 'list'. So user can directly navigate to saved bookmark location
+    if (this.url_has_params())  {
+      this._store.dispatch(new Configuration.SetProperty('co_active_list', 'list', true));
     }
 
     // forces the components content to reload when url parameters are changed manually
@@ -135,14 +142,21 @@ export class L1LandingComponent implements OnInit {
   setView(type: string, view: FeatureViewTypes) {
     this.log.msg("1","Changing feature list view type to...","landing", view);
     this.openedAdd = false;
-    return new Configuration.SetProperty(`featuresView.${type}`, view, true);
+
+
+    return [
+      new User.SetSetting({ 'featuresView.with': view }),
+      new Configuration.SetProperty(`featuresView.${type}`, view, true)
+    ];
   }
 
   // Hides the sidenav
   @Dispatch()
   hideSidenav() {
+    let currentSidebarState = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
+    let newSidebarState = currentSidebarState ? false : true;
     this.log.msg("1","Hiding sidenav...","landing");
-    return new Configuration.SetProperty('openedSidenav', false);
+    return new Configuration.SetProperty('openedSidenav', newSidebarState);
   } 
 
   /**
@@ -181,6 +195,13 @@ export class L1LandingComponent implements OnInit {
   SAopenCreateFeature() {
     this.log.msg("1","Opening create feature dialog...","landing");
     this._sharedActions.openEditFeature();
+  }
+
+
+  // checks if current url contains params and returns corresponding boolean
+  url_has_params() {
+    let folderIdRoute = this.activatedRoute.snapshot.paramMap.get('breadcrumb');
+    return folderIdRoute ? true : false;
   }
 
 
