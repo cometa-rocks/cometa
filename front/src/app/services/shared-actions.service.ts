@@ -51,9 +51,16 @@ export class SharedActionsService {
 
   // #3414 -----------------------------------start
   // adds the ids of folders to browser url each time folders in foldertree or breadcrum are clicked
-  set_url_folder_params (currentRoute: any) {
+  set_url_folder_params (currentRoute: any = "") {
+
     // folder url base
     let folderUrl = "/new/";
+
+    // go to newLanding if there are no folder id params in currentRoute
+    if (!currentRoute) {
+      this._location.go(folderUrl);
+      return;
+    }
 
     // concat folder ids to create path to clicked folder
     currentRoute.forEach(folder => {
