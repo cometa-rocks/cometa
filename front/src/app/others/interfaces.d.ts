@@ -259,6 +259,7 @@ interface Department {
     department_name: string;
     slug?: string;
     settings?: any;
+    users?: IAccount[];
 }
 
 // Steps
