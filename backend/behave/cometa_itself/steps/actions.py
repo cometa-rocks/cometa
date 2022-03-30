@@ -29,6 +29,7 @@ import signal
 import logging
 import traceback
 import urllib.parse
+import random
 
 # import PIL
 from subprocess import call, run
@@ -657,6 +658,33 @@ def step_impl(context,css_selector):
     elem = waitSelector(context, "css", css_selector)
     send_step_details(context, 'Clicking')
     ActionChains(context.browser).move_to_element(elem[0]).perform()
+
+# Moves the mouse to random element in selector and click
+@step(u'I can move mouse and click randomly "{x}" times on elements in "{selector}"')
+@done(u'I can move mouse and click randomly "{x}" times on elements in "{selector}"')
+def step_impl(context, x, selector):
+    send_step_details(context, 'Looking for selector')
+    elements = waitSelector(context, "css", selector)
+
+    for i in range(int(x)):
+        # get a random number between 0 and elements
+        index = random.randint(0, (len(elements) - 1))
+        # get element
+        element = elements[index]
+        send_step_details(context, 'Randomly clicking on element at index %d' % index)
+        try:
+            # center element to the screen
+            # context.browser.execute_script("arguments[0].scrollIntoView(true);", element)
+            ActionChains(context.browser).move_to_element(element).click().perform()
+        except Exception as err:
+            if isCommandNotSupported(err):
+                # I move mouse is not supported in the current device, falling back to "click element with css"
+                send_step_details(context, 'Incompatible step, falling back to "I click on css selector"')
+                click_element(context, element)
+            else:
+                raise err
+        # let the page breathe a bit 
+        time.sleep(0.5)
 
 # Set Environment ID
 @step('Environment "{env}"')
