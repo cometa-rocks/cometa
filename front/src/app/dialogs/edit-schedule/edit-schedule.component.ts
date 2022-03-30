@@ -11,6 +11,7 @@ import { BehaviorSubject } from 'rxjs';
 import { Features } from '@store/actions/features.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { parseExpression } from 'cron-parser';
+import { LogService } from '@services/log.service';
 
 @UntilDestroy()
 @Component({
@@ -27,8 +28,10 @@ export class EditSchedule {
   // ... value: "1" ... means the first layout
   // ... value: "2" ... second layout proposed from Cosimo
   formLayout : Number
-  formLayoutText = ['switch to horizontal layout','switch to vertical layout']
+  // The text shown in the link to toggle the layout
   formLayoutTextSelected : String
+  // The Icon shown in front of the link etxt
+  formLayoutIcon = "rotate_right"
 
   // next runs an array of next executions
   nextRuns = [];
@@ -51,8 +54,11 @@ export class EditSchedule {
     private snackBar: MatSnackBar,
     private _dialog: MatDialog,
     private _store: Store,
-    private _fb: FormBuilder
+    private _fb: FormBuilder,
+    private log: LogService
   ) {
+
+    this.log.msg("1","Edit Schedule Constuctor","edit-schedule")
 
     // set the default layout of the form for editing schedule
     // "1" is the crontab like layout
@@ -91,9 +97,11 @@ export class EditSchedule {
       untilDestroyed(this)
     ).subscribe(enable => {
       if (enable) {
+        this.log.msg("1","Enable Schedule","edit-schedule")
         this.schedule.enable();
 		this.parseSchedule(this.schedule.getRawValue());
       } else {
+        this.log.msg("1","Disable Schedule","edit-schedule")
         this.schedule.disable();
       }
       this.schedule.updateValueAndValidity();
@@ -133,7 +141,11 @@ export class EditSchedule {
   switchFormLayout() {
     // toggle the layout between layout 1 and layout 2
     this.formLayout = (this.formLayout == 1) ? 2 : 1;
+    // Toggle the string to click on
     this.formLayoutTextSelected = (this.formLayout == 1) ? 'vertical' : 'horizontal'
+    // Toggle the Icon
+    this.formLayoutIcon = (this.formLayout == 1) ? 'rotate_right' : 'rotate_left'
+
   }
 
   updateSchedule() {

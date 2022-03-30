@@ -78,6 +78,12 @@ export class L1LandingComponent implements OnInit {
       } catch (err) { }
     }
 
+    // if user clicks on browser bookmark that saves location to certain folder or feature, it will not be loaded if active_list is not set to 'list', as 'list' renders the table
+    // that's why we check if there are params in url and if so, set active_list to 'list'. So user can directly navigate to saved bookmark location
+    if (this.url_has_params())  {
+      this._store.dispatch(new Configuration.SetProperty('co_active_list', 'list', true));
+    }
+
     // forces the components content to reload when url parameters are changed manually
     this._router.routeReuseStrategy.shouldReuseRoute = () => false;
     
@@ -189,6 +195,13 @@ export class L1LandingComponent implements OnInit {
   SAopenCreateFeature() {
     this.log.msg("1","Opening create feature dialog...","landing");
     this._sharedActions.openEditFeature();
+  }
+
+
+  // checks if current url contains params and returns corresponding boolean
+  url_has_params() {
+    let folderIdRoute = this.activatedRoute.snapshot.paramMap.get('breadcrumb');
+    return folderIdRoute ? true : false;
   }
 
 
