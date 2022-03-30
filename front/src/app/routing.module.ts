@@ -39,10 +39,6 @@ const routes: Routes = [
     {
       path: 'new',
       loadChildren: () => import('@modules/newlanding.module').then(m => m.NewlandingModule)
-    },
-    {
-      path: 'new/:breadcrumb',
-      loadChildren: () => import('@modules/newlanding.module').then(m => m.NewlandingModule)
     }
 ];
 
