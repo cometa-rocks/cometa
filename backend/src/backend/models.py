@@ -152,6 +152,26 @@ def recursiveSubSteps(steps, feature_trace):
         index += updateIndex
     return updatedSteps
 
+# adds step to the featureFile
+def add_step_to_feature_file(step, featureFile, insideLoop):
+    startingIndent = "\n\t\t"
+    if insideLoop and not re.search(r'^.*Loop "(.*)" times starting at "(.*)" and do', step['step_content']):
+        startingIndent = "\n\t\t\t"
+
+    if not insideLoop and re.search(r'^.*End Loop', step['step_content']):
+        featureFile.write('\n\t\t\t"""')
+
+    # before saving to the file check if step is javascript function if so save the content as step description
+    if "Javascript" in step['step_content']:
+        write_multiline_javascript_step(featureFile, step)
+    elif "Send keys" in step['step_content']:
+        write_multiline_send_keys_step(featureFile, step)
+    else:
+        featureFile.write('%s%s %s' % (startingIndent, step['step_keyword'], step['step_content'].replace('\\xa0', ' ')))
+    
+    if insideLoop and re.search(r'^.*Loop "(.*)" times starting at "(.*)" and do', step['step_content']):
+        featureFile.write('\n\t\t\t"""')
+
 
 # create_feature_file
 # Creates the .feature file
@@ -164,6 +184,9 @@ def create_feature_file(feature, steps, featureFileName):
 
     # save the steps to save to database before removing old steps
     stepsToAdd = []
+
+    # check if we are inside a loop
+    insideLoop = False
 
     featureFile.write('\tScenario: First')
     for step in steps:
@@ -180,6 +203,20 @@ def create_feature_file(feature, steps, featureFileName):
             step.pop('belongs_to', None)
             # check if current feature is a sub feature execution
             subFeature = re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content'])
+            # check if step is a loop if so set loop value to true
+            loop = re.search(r'^.*Loop "(.*)" times starting at "(.*)" and do', step['step_content'])
+            if loop and insideLoop:
+                # close the file handle
+                featureFile.close()
+                raise CustomError("There cannot be loops inside loops atleast for now.")
+            if insideLoop:
+                step['step_type'] = "loop"
+            if loop:
+                insideLoop = True
+            # check if step is end loop
+            endLoop = re.search(r'^.*End Loop', step['step_content'])
+            if endLoop:
+                insideLoop = False
             if subFeature:
                 try:
                     # get recursive steps from the sub feature
@@ -194,22 +231,10 @@ def create_feature_file(feature, steps, featureFileName):
                         # add the substep found in substep
                         stepsToAdd.append(subStep)
                         # save to the file
-                        # before saving to the file check if step is javascript function if so save the content as step description
-                        if "Javascript" in subStep['step_content']:
-                            write_multiline_javascript_step(featureFile, subStep)
-                        elif "Send keys" in subStep['step_content']:
-                            write_multiline_send_keys_step(featureFile, subStep)
-                        else:
-                            featureFile.write('\n\t\t%s %s' % (subStep['step_keyword'], subStep['step_content'].replace('\\xa0', ' ')))
+                        add_step_to_feature_file(subStep, featureFile, insideLoop)
             else:
                 # if enabled and not a sub feature execution add to the file
-                # before saving to the file check if step is javascript function if so save the content as step description
-                if "Javascript" in step['step_content']:
-                    write_multiline_javascript_step(featureFile, step)
-                elif "Send keys" in step['step_content']:
-                    write_multiline_send_keys_step(featureFile, step)
-                else: 
-                    featureFile.write('\n\t\t%s %s' % (step['step_keyword'], step['step_content'].replace('\\xa0', ' ')))
+                add_step_to_feature_file(step, featureFile, insideLoop)
     featureFile.write('\n')
     # close the file handle
     featureFile.close()

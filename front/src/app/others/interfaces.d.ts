@@ -343,7 +343,7 @@ interface FeatureStep {
     timeout?: number;
 }
 
-declare type StepType = 'normal' | 'subfeature' | 'substep';
+declare type StepType = 'normal' | 'subfeature' | 'substep' | 'loop';
 
 interface GroupContentObject {
     screenshot?: boolean;

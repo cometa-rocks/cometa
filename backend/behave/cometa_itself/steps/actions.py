@@ -2704,6 +2704,29 @@ Option|%s
     else:
         raise CustomError("Lists do not match, please check the attachment.")
 
+@step(u'Loop "{x}" times starting at "{index}" and do')
+@done(u'Loop "{x}" times starting at "{index}" and do')
+def step_loop(context, x, index):
+    # get all the sub steps from text
+    steps = context.text.split("\n")
+    # set context.insideLoop to true
+    context.insideLoop = True 
+    for i in range(int(index), int(x) + int(index)):
+        # add a index variable to context.JOB_PARAMETERS
+        params = json.loads(context.PARAMETERS)
+        params['index'] = i
+        context.PARAMETERS = json.dumps(params)
+        for step in steps:
+            logger.debug("Executing step '%s' inside loop." % step)
+            send_step_details(context, "Executing step '%s' inside loop." % step)
+            context.execute_steps(step)
+
+@step(u'End Loop')
+@done(u'End Loop')
+def step_endLoop(context):
+    # set context.insideLoop to false
+    context.insideLoop = False
+
 @step(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
 @done(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
 def step(context, css_selector, variable_names, prefix, suffix):
