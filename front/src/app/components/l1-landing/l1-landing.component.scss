@@ -136,13 +136,14 @@
     }*/
 
     .add-from-sidenav {
-        display: flex;
-        flex-wrap: wrap;
-        width: 70%;
-        align-items: center;
-        justify-content: flex-start;
+        display: inline-block;
         padding: 15px 15px;
-        box-sizing: border-box;
+        // display: flex;
+        // flex-wrap: wrap;
+        // width: 70%;
+        // align-items: center;
+        // justify-content: flex-start;
+        // box-sizing: border-box;
         .addIcon, .addFeatureIcon, .addFolderIcon {
             width: auto;
             height: 40px;
