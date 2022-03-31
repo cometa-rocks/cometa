@@ -136,7 +136,8 @@ export class CustomSelectors {
       }
       // Filter accordingly too where steps are required
       const typeToFilter = showOnlyOriginal ? 'subfeature' : 'substep';
-      return steps.filter(step => step.step_type === 'normal' || step.step_type === typeToFilter || !step.hasOwnProperty('step_type'));
+      const addLoops = typeToFilter === 'subfeature';
+      return steps.filter(step => step.step_type === 'normal' || step.step_type === typeToFilter || !step.hasOwnProperty('step_type') || (addLoops && step.step_type === 'loop'));
     })
   }
 
