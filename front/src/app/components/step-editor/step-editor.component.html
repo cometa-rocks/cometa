@@ -53,7 +53,7 @@
 <div class="DragDropContainer" cdkDropList (cdkDropListDropped)="drop($event)">
   <ng-container *ngFor="let step of stepsForm.controls; index as i; trackBy: trackStep">
     <ng-container [formGroup]="step">
-      <div class="step-row" [class.invalid-step]="step.get('step_content').errors?.invalidStep" [class.disabled]="!step.enabled" cdkDrag cdkDragLockAxis="y" [contextMenu]="basicMenu" [contextMenuSubject]="i" [ngClass]="'step-id-' +i" >
+      <div class="step-row" [class.invalid-step]="step.get('step_content').errors?.invalidStep" [class.disabled]="!step.controls.enabled.value" cdkDrag cdkDragLockAxis="y" [contextMenu]="basicMenu" [contextMenuSubject]="i" [ngClass]="'step-id-' +i" >
         <div class="step-extras">
           <div class="move-row" cdkDragHandle></div>
           <div class="index">{{ i+1 }}</div>

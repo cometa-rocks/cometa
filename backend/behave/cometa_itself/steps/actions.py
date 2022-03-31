@@ -2710,6 +2710,8 @@ Option|%s
 @step(u'Loop "{x}" times starting at "{index}" and do')
 @done(u'Loop "{x}" times starting at "{index}" and do')
 def step_loop(context, x, index):
+    # check if there was an error during loop
+    err = False
     # save current step index before continuing
     currentStepIndex = context.counters['index']
     # save substep index
@@ -2718,34 +2720,46 @@ def step_loop(context, x, index):
     steps = context.text
     # set context.insideLoop to true
     context.insideLoop = True
-    # set loopRepeate value
-    context.loopRepeate = int(x)
+    # set executedStepsInLoop value
+    context.executedStepsInLoop = 0
     # match regexp to find steps and step descriptions
     steps = list(filter(None, re.findall(r".*\n?(?:\t'''(?:.|\n)+?'''\n?)?", steps)))
-    for i in range(int(index), int(x) + int(index)):
-        # update subStepIndex to currentStepIndex
-        subStepIndex = currentStepIndex
-        # add a index variable to context.JOB_PARAMETERS
-        params = json.loads(context.PARAMETERS)
-        params['index'] = i
-        context.PARAMETERS = json.dumps(params)
-        logger.debug("Steps: {}".format(steps))
-        for step in steps:
-            # update subStepIndex with +1 on each step
-            subStepIndex = subStepIndex + 1
-            # update stepIndex with subStepIndex
-            context.counters['index'] = subStepIndex
-            # replace ''' to """
-            step = step.replace("'''", "\"\"\"")
-            # print some information
-            logger.debug("Executing step '%s' inside loop." % step)
-            send_step_details(context, "Executing step '%s' inside loop." % step.split('\n')[0])
-            # execute the step
-            context.execute_steps(step)
+    try:
+        for i in range(int(index), int(x) + int(index)):
+            # update subStepIndex to currentStepIndex
+            subStepIndex = currentStepIndex
+            # add a index variable to context.JOB_PARAMETERS
+            params = json.loads(context.PARAMETERS)
+            params['index'] = i
+            context.PARAMETERS = json.dumps(params)
+            logger.debug("Steps: {}".format(steps))
+            for step in steps:
+                # update steps executed
+                context.executedStepsInLoop += 1
+                # update subStepIndex with +1 on each step
+                subStepIndex = subStepIndex + 1
+                # update stepIndex with subStepIndex
+                context.counters['index'] = subStepIndex
+                # replace ''' to """
+                step = step.replace("'''", "\"\"\"")
+                # print some information
+                logger.debug("Executing step '%s' inside loop." % step)
+                send_step_details(context, "Executing step '%s' inside loop." % step.split('\n')[0])
+                # execute the step
+                context.execute_steps(step)
+    except Exception as error:
+        err = True
+        err_msg = error
+
     # update current step index to Loop again
     context.counters['index'] = currentStepIndex
     # set jumpLoop value to steps count
     context.jumpLoopIndex = len(steps)
+    # remove 1 execution from executedStepsInLoop
+    context.executedStepsInLoop -= context.jumpLoopIndex
+
+    if err:
+        raise CustomError(err_msg)
 
 @step(u'End Loop')
 @done(u'End Loop')
@@ -2758,8 +2772,8 @@ def step_endLoop(context):
     context.insideLoop = False
     # reset jumpLoopIndex
     context.jumpLoopIndex = 0
-    # reset loopRepeate
-    context.loopRepeate = 0
+    # reset executedStepsInLoop
+    context.executedStepsInLoop = 0
 
 @step(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
 @done(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')

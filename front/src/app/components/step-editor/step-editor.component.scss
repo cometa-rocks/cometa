@@ -62,9 +62,13 @@
     flex-direction: column;
     background-color: white;
     backface-visibility: hidden;
+	transition: opacity .3s ease-in-out;
     @include for-tablet-portrait-up {
         flex-direction: row;
     }
+	&.disabled {
+		opacity: 0.5;
+	}
     .step-extras {
         display: flex;
         @include for-tablet-portrait-up {

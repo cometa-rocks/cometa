@@ -103,7 +103,7 @@ def before_all(context):
     # set loop settings
     context.insideLoop = False # meaning we are inside a loop
     context.jumpLoopIndex = 0 # meaning how many indexes we need to jump after loop is finished
-    context.loopRepeate = 0 # how many time it will loop
+    context.executedStepsInLoop = 0 # how many steps have been executed inside a loop
 
     # Get MD5 from browser information - we preserve this piece of code to be able to migrate style images of previous version
     browser_code = '%s-%s' % (context.browser_info['browser'], context.browser_info['browser_version'])
@@ -540,7 +540,7 @@ def after_step(context, step):
     else:
         context.counters['index'] += context.jumpLoopIndex + 1
         # update total value
-        context.counters['total'] += (context.loopRepeate - 1) * context.jumpLoopIndex
+        context.counters['total'] += context.executedStepsInLoop
     # if step was executed successfully update the OK counter
     if json.loads(step_result)['success']:
         context.counters['ok'] += 1
