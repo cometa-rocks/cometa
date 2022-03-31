@@ -100,8 +100,10 @@ def before_all(context):
     context.PARAMETERS = os.environ['PARAMETERS']
     # context.browser_info contains '{"os": "Windows", "device": null, "browser": "edge", "os_version": "10", "real_mobile": false, "browser_version": "84.0.522.49"}'
     context.browser_info = json.loads(os.environ['BROWSER_INFO'])
-    # set that we are not in loop
-    context.insideLoop = False
+    # set loop settings
+    context.insideLoop = False # meaning we are inside a loop
+    context.jumpLoopIndex = 0 # meaning how many indexes we need to jump after loop is finished
+    context.loopRepeate = 0 # how many time it will loop
 
     # Get MD5 from browser information - we preserve this piece of code to be able to migrate style images of previous version
     browser_code = '%s-%s' % (context.browser_info['browser'], context.browser_info['browser_version'])
@@ -463,95 +465,98 @@ def after_all(context):
 
 @error_handling()
 def before_step(context, step):
-    if not context.insideLoop:
-        # complete step name to let front know about the step that will be executed next
-        step_name = "%s %s" % (step.keyword, step.name)
-        # step index
-        index = context.counters['index']
-        # pass all the data about the step to the step_data in context, step_data has name, screenshot, compare, enabled and type
-        context.step_data = json.loads(os.environ['STEPS'])[index]
+    # complete step name to let front know about the step that will be executed next
+    step_name = "%s %s" % (step.keyword, step.name)
+    # step index
+    index = context.counters['index']
+    # pass all the data about the step to the step_data in context, step_data has name, screenshot, compare, enabled and type
+    context.step_data = json.loads(os.environ['STEPS'])[index]
 
-        # in video show as a message which step is being executed
-        # only works in local video and not in browserstack
+    # in video show as a message which step is being executed
+    # only works in local video and not in browserstack
 
-        # Throws exception on Daimler testcase to add filter in QS page
-        # https://cometa.destr.corpintra.net/#/Cognos%2011.1%20R5/Testing/177
-        # FIXME or DELETE ME
-        # if context.cloud == "local":
-        #     try:
-        #         context.browser.add_cookie({
-        #             'name': 'zaleniumMessage',
-        #             'value': step_name
-        #         })
-        #     except:
-        #         pass # just incase if no url has been searched at the time
+    # Throws exception on Daimler testcase to add filter in QS page
+    # https://cometa.destr.corpintra.net/#/Cognos%2011.1%20R5/Testing/177
+    # FIXME or DELETE ME
+    # if context.cloud == "local":
+    #     try:
+    #         context.browser.add_cookie({
+    #             'name': 'zaleniumMessage',
+    #             'value': step_name
+    #         })
+    #     except:
+    #         pass # just incase if no url has been searched at the time
 
-        # send websocket to front to let front know about the step
-        requests.post('http://cometa_socket:3001/feature/%s/stepBegin' % context.feature_id, data={
-            "user_id": context.PROXY_USER['user_id'],
-            'feature_result_id': os.environ['feature_result_id'],
-            'browser_info': json.dumps(context.browser_info),
-            "run_id": os.environ['feature_run'],
-            'step_name': step_name,
-            'step_index': index,
-            'datetime': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-            'belongs_to': context.step_data['belongs_to']
-        })
+    # send websocket to front to let front know about the step
+    requests.post('http://cometa_socket:3001/feature/%s/stepBegin' % context.feature_id, data={
+        "user_id": context.PROXY_USER['user_id'],
+        'feature_result_id': os.environ['feature_result_id'],
+        'browser_info': json.dumps(context.browser_info),
+        "run_id": os.environ['feature_run'],
+        'step_name': step_name,
+        'step_index': index,
+        'datetime': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'belongs_to': context.step_data['belongs_to']
+    })
 
 @error_handling()
 def after_step(context, step):
-    if not context.insideLoop:
-        # complete step name to let front know about the step that has been executed
-        step_name = "%s %s" % (step.keyword, step.name)
-        # step index
-        index = context.counters['index']
-        # step result this contains the execution time, success and name
-        step_result = context.step_result if hasattr(context, 'step_result') else None
-        # create screenshots dictionary to dinamically assign available images
-        screenshots = {}
-        # check current image of running browser
-        if hasattr(context, 'DB_CURRENT_SCREENSHOT'):
-            screenshots['current'] = context.DB_CURRENT_SCREENSHOT
-        # check if template file is assigned
-        if hasattr(context, 'DB_STYLE_SCREENSHOT'):
-            screenshots['template'] = context.DB_STYLE_SCREENSHOT
-        # check if difference file is assigned
-        if hasattr(context, 'DB_DIFFERENCE_SCREENSHOT'):
-            screenshots['difference'] = context.DB_DIFFERENCE_SCREENSHOT
-        # send websocket to front to let front know about the step
-        requests.post('http://cometa_socket:3001/feature/%s/stepFinished' % context.feature_id, json={
-            "user_id": context.PROXY_USER['user_id'],
-            'feature_result_id': os.environ['feature_result_id'],
-            'browser_info': json.dumps(context.browser_info),
-            "run_id": os.environ['feature_run'],
-            'step_name': step_name,
-            'step_index': index,
-            'datetime': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-            'step_result_info': step_result,
-            'step_time': step.duration,
-            'error': context.step_error if hasattr(context, 'step_error') else None,
-            'belongs_to': context.step_data['belongs_to'],
-            'screenshots': json.dumps(screenshots) # load screenshots object
-        })
+    # complete step name to let front know about the step that has been executed
+    step_name = "%s %s" % (step.keyword, step.name)
+    # step index
+    index = context.counters['index']
+    # step result this contains the execution time, success and name
+    step_result = context.step_result if hasattr(context, 'step_result') else None
+    # create screenshots dictionary to dinamically assign available images
+    screenshots = {}
+    # check current image of running browser
+    if hasattr(context, 'DB_CURRENT_SCREENSHOT'):
+        screenshots['current'] = context.DB_CURRENT_SCREENSHOT
+    # check if template file is assigned
+    if hasattr(context, 'DB_STYLE_SCREENSHOT'):
+        screenshots['template'] = context.DB_STYLE_SCREENSHOT
+    # check if difference file is assigned
+    if hasattr(context, 'DB_DIFFERENCE_SCREENSHOT'):
+        screenshots['difference'] = context.DB_DIFFERENCE_SCREENSHOT
+    # send websocket to front to let front know about the step
+    requests.post('http://cometa_socket:3001/feature/%s/stepFinished' % context.feature_id, json={
+        "user_id": context.PROXY_USER['user_id'],
+        'feature_result_id': os.environ['feature_result_id'],
+        'browser_info': json.dumps(context.browser_info),
+        "run_id": os.environ['feature_run'],
+        'step_name': step_name,
+        'step_index': index,
+        'datetime': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'step_result_info': step_result,
+        'step_time': step.duration,
+        'error': context.step_error if hasattr(context, 'step_error') else None,
+        'belongs_to': context.step_data['belongs_to'],
+        'screenshots': json.dumps(screenshots) # load screenshots object
+    })
 
-        # update countes
+    # update countes
+    if context.jumpLoopIndex == 0:
         context.counters['index'] += 1
-        # if step was executed successfully update the OK counter
-        if json.loads(step_result)['success']:
-            context.counters['ok'] += 1
-        else:
-            context.counters['nok'] += 1
-        
-        # Cleanup variables
-        keys = [
-            'DB_CURRENT_SCREENSHOT',
-            'DB_STYLE_SCREENSHOT',
-            'DB_DIFFERENCE_SCREENSHOT',
-            'COMPARE_IMAGE',
-            'STYLE_IMAGE_COPY_TO_SHOW',
-            'DIFF_IMAGE',
-            'STYLE_IMAGE'
-        ]
-        for key in keys:
-            if hasattr(context, key):
-                delattr(context, key)
+    else:
+        context.counters['index'] += context.jumpLoopIndex + 1
+        # update total value
+        context.counters['total'] += (context.loopRepeate - 1) * context.jumpLoopIndex
+    # if step was executed successfully update the OK counter
+    if json.loads(step_result)['success']:
+        context.counters['ok'] += 1
+    else:
+        context.counters['nok'] += 1
+    
+    # Cleanup variables
+    keys = [
+        'DB_CURRENT_SCREENSHOT',
+        'DB_STYLE_SCREENSHOT',
+        'DB_DIFFERENCE_SCREENSHOT',
+        'COMPARE_IMAGE',
+        'STYLE_IMAGE_COPY_TO_SHOW',
+        'DIFF_IMAGE',
+        'STYLE_IMAGE'
+    ]
+    for key in keys:
+        if hasattr(context, key):
+            delattr(context, key)
