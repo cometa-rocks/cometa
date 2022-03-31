@@ -187,6 +187,8 @@ def done( *_args, **_kwargs ):
                             kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
                     # replace job parameters
                     for parameter_key in job_parameters.keys():
+                        if args[0].text:
+                            args[0].text = re.sub(r'%%%s\b' % parameter_key, returnDecrypted(str(job_parameters[parameter_key])), args[0].text)
                         if re.search(r'%%%s\b' % parameter_key, kwargs[parameter]):
                             kwargs[parameter] = kwargs[parameter].replace(("%%%s" % parameter_key), str(job_parameters[parameter_key]))
                     # decrypt the value incase it was not a varaible
@@ -213,6 +215,7 @@ def done( *_args, **_kwargs ):
                         finalDate = dateObject.strftime(dateFormat)
                         # replace the parameter
                         kwargs[parameter] = re.sub(pattern, finalDate, kwargs[parameter])
+                
                 # start the timeout
                 signal.signal(signal.SIGALRM, timeoutError)
                 signal.alarm(STEP_TIMEOUT)
@@ -2703,6 +2706,74 @@ Option|%s
         return True
     else:
         raise CustomError("Lists do not match, please check the attachment.")
+
+@step(u'Loop "{x}" times starting at "{index}" and do')
+@done(u'Loop "{x}" times starting at "{index}" and do')
+def step_loop(context, x, index):
+    # check if there was an error during loop
+    err = False
+    # save current step index before continuing
+    currentStepIndex = context.counters['index']
+    # save substep index
+    subStepIndex = 0
+    # get all the sub steps from text
+    steps = context.text
+    # set context.insideLoop to true
+    context.insideLoop = True
+    # set executedStepsInLoop value
+    context.executedStepsInLoop = 0
+    # match regexp to find steps and step descriptions
+    steps = list(filter(None, re.findall(r".*\n?(?:\t'''(?:.|\n)+?'''\n?)?", steps)))
+    try:
+        for i in range(int(index), int(x) + int(index)):
+            # update subStepIndex to currentStepIndex
+            subStepIndex = currentStepIndex
+            # add a index variable to context.JOB_PARAMETERS
+            params = json.loads(context.PARAMETERS)
+            params['index'] = i
+            context.PARAMETERS = json.dumps(params)
+            logger.debug("Steps: {}".format(steps))
+            for step in steps:
+                # update steps executed
+                context.executedStepsInLoop += 1
+                # update subStepIndex with +1 on each step
+                subStepIndex = subStepIndex + 1
+                # update stepIndex with subStepIndex
+                context.counters['index'] = subStepIndex
+                # replace ''' to """
+                step = step.replace("'''", "\"\"\"")
+                # print some information
+                logger.debug("Executing step '%s' inside loop." % step)
+                send_step_details(context, "Executing step '%s' inside loop." % step.split('\n')[0])
+                # execute the step
+                context.execute_steps(step)
+    except Exception as error:
+        err = True
+        err_msg = error
+
+    # update current step index to Loop again
+    context.counters['index'] = currentStepIndex
+    # set jumpLoop value to steps count
+    context.jumpLoopIndex = len(steps)
+    # remove 1 execution from executedStepsInLoop
+    context.executedStepsInLoop -= context.jumpLoopIndex
+
+    if err:
+        raise CustomError(err_msg)
+
+@step(u'End Loop')
+@done(u'End Loop')
+def step_endLoop(context):
+    # remove index variable from context.JOB_PARAMETERS
+    params = json.loads(context.PARAMETERS)
+    del params['index']
+    context.PARAMETERS = json.dumps(params)
+    # set context.insideLoop to false
+    context.insideLoop = False
+    # reset jumpLoopIndex
+    context.jumpLoopIndex = 0
+    # reset executedStepsInLoop
+    context.executedStepsInLoop = 0
 
 @step(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
 @done(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
