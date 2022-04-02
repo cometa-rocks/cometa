@@ -175,3 +175,7 @@ def click_element_by_css(context, selector):
         if el.is_displayed():
             el.click()
             break
+
+def click_element(context, element):
+    if element.is_displayed():
+        element.click()
