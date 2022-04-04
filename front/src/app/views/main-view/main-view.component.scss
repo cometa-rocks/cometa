@@ -17,6 +17,7 @@
     align-items: center;
     img {
         width: 30%;
+        max-width: 500px;
         height: auto;
     }
 
@@ -25,6 +26,9 @@
         padding: 0 5%;
         @include for-tablet-portrait-up {
             font-size: 2vw;
+        }
+        @include for-super-large-desktop {
+            font-size: 1.5vw;
         }
     }
 }
