@@ -57,11 +57,9 @@ stages:
     # make sure the deployment folder exists
     - mkdir -p $DEPLOY_BACKEND_FOLDER
     # copy all the data from current directory to the deployment directory
-    - cp -rp . $DEPLOY_BACKEND_FOLDER/.
-    # chacnge directory to deployment folder
+    - rsync -av --exclude={".git/","*.so"} ./ $DEPLOY_BACKEND_FOLDER/.
+    # change directory to deployment folder
     - cd $DEPLOY_BACKEND_FOLDER
-    # remove .git folder
-    - rm -r .git
 
     #########################################################
     # BACKEND
