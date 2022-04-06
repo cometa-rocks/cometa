@@ -97,7 +97,7 @@ def backup_feature_info(feature):
     else:
         print('backup_feature_info: Feature file %s not found.' % orig_file)
 
-def recursiveSubSteps(steps, feature_trace):
+def recursiveSubSteps(steps, feature_trace, parent_department_id=None):
     updatedSteps = steps.copy()
     index = 0
     for step in steps:
@@ -106,7 +106,7 @@ def recursiveSubSteps(steps, feature_trace):
         if subFeatureExecution:
             featureNameOrId = subFeatureExecution.group(1)
             # get subfeature
-            subFeature = Feature.objects.filter(feature_id=featureNameOrId) if featureNameOrId.isnumeric() else Feature.objects.filter(feature_name=featureNameOrId)
+            subFeature = Feature.objects.filter(feature_id=featureNameOrId, department_id=parent_department_id) if featureNameOrId.isnumeric() else Feature.objects.filter(feature_name=featureNameOrId, department_id=parent_department_id)
             if subFeature.exists():
                 subFeature = subFeature[0]
                 # check if we would get caught in infinite loop
@@ -127,7 +127,7 @@ def recursiveSubSteps(steps, feature_trace):
                         for idx, val in enumerate(subFeatureSteps):
                             subFeatureSteps[idx]['continue_on_failure'] = True
                     # check if substeps contain other subfeatures
-                    subSteps = recursiveSubSteps(subFeatureSteps, feature_trace)
+                    subSteps = recursiveSubSteps(subFeatureSteps, feature_trace, subFeature.department_id)
                     # check if subSteps returned False
                     if isinstance(subSteps, bool) and not subSteps:
                         return False
@@ -219,7 +219,7 @@ def create_feature_file(feature, steps, featureFileName):
             if subFeature:
                 try:
                     # get recursive steps from the sub feature
-                    subSteps = recursiveSubSteps([step], [feature.feature_id])
+                    subSteps = recursiveSubSteps([step], [feature.feature_id], feature.department_id)
                 except Exception as error:
                     return {"success": False, "error": str(error)}
                 # otherwise loop over substeps
