@@ -36,3 +36,6 @@ accounts.google.com.client
 .vars.sh
 secret_variables.py
 .initiated
+
+# browsers.json from selenoid
+browsers.json

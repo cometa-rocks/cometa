@@ -40,7 +40,8 @@ install_cron
 # get processor cores
 CPUCORES=`getconf _NPROCESSORS_ONLN`
 # calculate workers
-GUNI_WORKERS=$((($CPUCORES*2+1)))
+# GUNI_WORKERS=$((($CPUCORES*2+1)))
+GUNI_WORKERS=$((($CPUCORES+1)))
 
 # spin up gunicorn
 gunicorn behave_django.wsgi:application --workers=${WORKERS:-$GUNI_WORKERS} --threads=${THREADS:-2} --worker-class=gthread --bind 0.0.0.0:8001
