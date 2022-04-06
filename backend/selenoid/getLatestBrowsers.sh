@@ -13,6 +13,7 @@
 # ################################################################
 
 # CHANGELOG	VERSION	BY			COMMENT
+# 22-04-06	0.3		ASOHAIL		Fixed jq issues with jq version 1.5
 # 22-04-05	0.2		ASOHAIL		Added change log and added output to stdout.
 # 22-04-04	0.1		ASOHAIL		Created this script.
 
@@ -157,7 +158,7 @@ function main() {
             VERSIONS_JSON=`echo ${VERSIONS_JSON} | jq --argjson version "$(echo ${VERSION_JSON} | jq .)" '.[].versions |= . + $version'`
         done
         # append browser content to browsers
-        BROWSERS_CONTENT=`echo ${BROWSERS_CONTENT} | jq --argjson browser "$(echo ${VERSIONS_JSON} | jq)" '. |= . + $browser'`
+        BROWSERS_CONTENT=`echo ${BROWSERS_CONTENT} | jq --argjson browser "$(echo ${VERSIONS_JSON} | jq .)" '. |= . + $browser'`
         # get image that we want to remove since they won't be used anymore
         IMAGES_TO_REMOVE+=`docker image ls | grep ${BROWSER} | grep -Ev "${LATEST_VERSIONS// /\|}" | sed "s/ \{1,\}/ /g" | cut -d' ' -f3; echo -ne " "`
     done
@@ -170,12 +171,12 @@ function main() {
     if [[ "${DRYRUN:-FALSE}" == "TRUE" ]]
     then
         echo "browsers.json:"
-        echo ${BROWSERS_CONTENT} | jq
+        echo ${BROWSERS_CONTENT} | jq .
         echo "pull images: ${IMAGES_TO_PULL:-No new images to pull.}"
         echo "remove images: ${IMAGES_TO_REMOVE:-No images to remove.}"
     else
         # set the browser.json content to BROWSERS_CONTENT
-        echo ${BROWSERS_CONTENT} | jq > `dirname "$0"`/browsers.json
+        echo ${BROWSERS_CONTENT} | jq . > `dirname "$0"`/browsers.json
 
         if [[ "${IMAGES_TO_PULL}" ]]
         then
