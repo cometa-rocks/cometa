@@ -12,10 +12,10 @@
 #
 # #######
 
-# set default to prod ... can be overwritten here or with commandline setting
+# set default to prod ... can be overwritten here or with commandline setting or environment variable ENVIRONMENT
 # prod executes gunicorn
 # dev executes ptyhon manage.py runserver
-ENVIRONMENT="prod"
+ENVIRONMENT=${ENVIRONMENT:-prod}
 
 while [[ $# -gt 0 ]]
 do
@@ -126,6 +126,7 @@ fi
 #
 # in DEVMODE Start Django server
 #
+echo "ENVIRONMENT: $ENVIRONMENT"
 if [ "$ENVIRONMENT" = "dev" ]; then
     echo "###################################################"
     echo "# Running in DEV mode                             #"
@@ -141,7 +142,8 @@ if [ "$ENVIRONMENT" != "dev" ]; then
     # get processor cores
     CPUCORES=`getconf _NPROCESSORS_ONLN`
     # calculate workers
-    GUNI_WORKERS=$((($CPUCORES*2+1)))
+    # GUNI_WORKERS=$((($CPUCORES*2+1)))
+    GUNI_WORKERS=$((($CPUCORES+1)))
 
     # spin up gunicorn
     echo "########################################################"
