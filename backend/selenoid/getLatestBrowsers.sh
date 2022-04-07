@@ -33,6 +33,7 @@
 
 # Initialize variables with default values
 SCRIPT_LOCATION=`realpath $0` # Current script full path
+HELPERS="`dirname ${SCRIPT_LOCATION}`/../../helpers"
 TOTAL_BROWSER_VERSIONS=${COMETA_TOTAL_BROWSER_VERSION:-3} # Total amount of version per browser that will be pulled.
 BROWSERS_CONTENT="{}" # Save the final output that will be saved in browsers.json.
 IMAGES_TO_REMOVE=() # List of docker images that needs to be deleted at the end.
@@ -75,6 +76,9 @@ BASE_OPTIONS=`cat<<-EOF
 }
 EOF
 `
+
+# SOURCE LOGGER FUNCTIONS
+source ${HELPERS}/logger.sh
 
 # ################################################################
 # FUNCTIONS                                                      #
@@ -133,6 +137,7 @@ function main() {
     # loop over browser
     for BROWSER in ${BROWSERS}
     do
+        log_wfr "Working on ${BROWSER}"
         # get browser key
         BROWSER_KEY=`echo ${BROWSERS_INFORMATION} | jq -r .[\"${BROWSER}\"].browser_key`
         # make a request to docker's api and get latest TOTAL_BROWSER_VERSIONS browser versions
@@ -161,6 +166,7 @@ function main() {
         BROWSERS_CONTENT=`echo ${BROWSERS_CONTENT} | jq --argjson browser "$(echo ${VERSIONS_JSON} | jq .)" '. |= . + $browser'`
         # get image that we want to remove since they won't be used anymore
         IMAGES_TO_REMOVE+=`docker image ls | grep ${BROWSER} | grep -Ev "${LATEST_VERSIONS// /\|}" | sed "s/ \{1,\}/ /g" | cut -d' ' -f3; echo -ne " "`
+        log_res "[done]"
     done
 
     # add any other dangling browser image to images to remove
@@ -170,28 +176,27 @@ function main() {
 
     if [[ "${DRYRUN:-FALSE}" == "TRUE" ]]
     then
-        echo "browsers.json:"
+        info "browsers.json:"
         echo ${BROWSERS_CONTENT} | jq .
-        echo "pull images: ${IMAGES_TO_PULL:-No new images to pull.}"
-        echo "remove images: ${IMAGES_TO_REMOVE:-No images to remove.}"
+        info "pull images: ${IMAGES_TO_PULL:-No new images to pull.}"
+        info "remove images: ${IMAGES_TO_REMOVE:-No images to remove.}"
     else
         # set the browser.json content to BROWSERS_CONTENT
         echo ${BROWSERS_CONTENT} | jq . > `dirname "$0"`/browsers.json
 
         if [[ "${IMAGES_TO_PULL}" ]]
         then
-            echo "Pulling images:"
             for IMAGE in ${IMAGES_TO_PULL}
             do
-                echo "Pulling ${IMAGE}"
-                docker pull ${IMAGE}
+                log_wfr "pulling: ${IMAGE}"
+                docker pull ${IMAGE} &> /dev/null && log_res "[done]" || log_res "[failed]"
             done
         fi
 
         if [[ "${IMAGES_TO_REMOVE}" ]]
         then
-            echo "Removing unused images:"
-            docker image rm ${IMAGES_TO_REMOVE}
+            log_wfr "removing unused images: ${IMAGES_TO_REMOVE}"
+            docker image rm ${IMAGES_TO_REMOVE} &> /dev/null && log_res "[done]" || log_res "[failed]"
         fi
     fi
 }
@@ -204,14 +209,14 @@ while [[ $# -gt 0 ]]; do
 	case ${ARGUMENT} in 
 	-n)
         # set TOTAL_BROWSER_VERSION variable
-        echo "Number of browser versions change to ${2}"
+        info "Number of browser versions change to ${2}"
 		TOTAL_BROWSER_VERSIONS="${2}"
         shift
         shift
 		;;
 	--dry-run)
         # set DRYRUN variable to true
-        echo "Dry run set to True."
+        info "Dry run set to True."
 		DRYRUN="TRUE"
         shift
 		;;
