@@ -19,6 +19,7 @@ variables:
 #  GIT_STRATEGY: clone
   COMETA_EMAIL_ENABLED: 'True'
   COMETA_REPLACE_FAVICON_IN: "front/src/index.html front/src/manifest.json front/src/welcome.html"
+  COMETA_TOTAL_BROWSER_VERSION: 10 # number of latest browser version that will be pulled.
 
 # set deploy order in which jobs
 # will be executed
@@ -56,11 +57,9 @@ stages:
     # make sure the deployment folder exists
     - mkdir -p $DEPLOY_BACKEND_FOLDER
     # copy all the data from current directory to the deployment directory
-    - cp -rp . $DEPLOY_BACKEND_FOLDER/.
-    # chacnge directory to deployment folder
+    - rsync -av --exclude={".git/","*.so"} ./ $DEPLOY_BACKEND_FOLDER/.
+    # change directory to deployment folder
     - cd $DEPLOY_BACKEND_FOLDER
-    # remove .git folder
-    - rm -r .git
 
     #########################################################
     # BACKEND
