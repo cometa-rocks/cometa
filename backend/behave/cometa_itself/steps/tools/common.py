@@ -111,7 +111,7 @@ def waitSelector(context, selector_type, selector):
             except CustomError as err:
                 logger.debug(err)
                 # Max retries exceeded, raise error
-                raise CustomError("Waited for %ds but unable to find %s for type %s" % (MAXRETRIES, selector, selector_type))   
+                raise
             except:
                 pass
         # give page some time to render the search
