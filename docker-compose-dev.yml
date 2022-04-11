@@ -28,6 +28,7 @@ services:
     working_dir: /opt/code
     environment:
       - PYTHONUNBUFFERED=1
+      - ENVIRONMENT=dev
     ports:
       - "8000:8000"
     depends_on:
