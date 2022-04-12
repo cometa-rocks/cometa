@@ -676,8 +676,8 @@ def step_impl(context, x, selector):
         element = elements[index]
         send_step_details(context, 'Randomly clicking on element at index %d' % index)
         try:
-            # center element to the screen
-            # context.browser.execute_script("arguments[0].scrollIntoView(true);", element)
+            # display element to the screen
+            context.browser.execute_script("arguments[0].scrollIntoView({behavior: 'auto',block: 'center',inline: 'center'});", element)
             ActionChains(context.browser).move_to_element(element).click().perform()
         except Exception as err:
             if isCommandNotSupported(err):
