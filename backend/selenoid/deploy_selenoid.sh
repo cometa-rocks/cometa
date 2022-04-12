@@ -2,8 +2,8 @@
 pushd $(dirname "$0") &> /dev/null
 
 HELPERS="../../helpers"
-# source logger function
-source ${HELPERS}/logger.sh
+# source logger function if not sourced already
+test `command -v log_wfr` || source ${HELPERS}/logger.sh
 
 info "Executing Deploy Selenoid Script"
 

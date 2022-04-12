@@ -41,7 +41,7 @@ function logger() {
     # get log lvl or default to info
     LOGLVL=${2:-20}
 
-    # use export PRINTLOGLVL=<LOGLVL> to print more or less.
+    # use `export PRINTLOGLVL=<LOGLVL>` to print more or less.
     # check if LOGLVL is in PRINTLOGLVL
     if [ "${LOGLVL}" -ge "${PRINTLOGLVL:-20}" ]; then
         # get log lvl string
