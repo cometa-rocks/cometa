@@ -501,7 +501,7 @@ export class FeaturesState {
   @ImmutableSelector()
   static GetSelectionFolders(state: IFeaturesState) {
     // FIXME find a better way to do this
-    return location.hash != '#/new' ? state.currentRoute : state.currentRouteNew;
+    return ! location.hash.includes('#/new') ? state.currentRoute : state.currentRouteNew;
   }
 
   /**
