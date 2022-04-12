@@ -704,18 +704,18 @@ def step_impl(context, something):
     logger.debug("Searching for %s in IBM Cognos" % something )
     send_step_details(context, 'Searching for %s in IBM Cognos' % something )
 
-    # Execute the search by clicking, sending search-text and hitting enter 
-    # ... search is different on CA11.1 and CA11.2
+    # first try to find and click a CA11.1 or CA11.2 searchbox
+    # ... then select everything with CTRL+A and send the new searchstring 
+    # ... Hit Enter and click on the first item in the search result
 
-    # first try to find a CA11.1 or CA11.2 searchbox
+    # Looking for the searchbox
     try:
         # CA11.1 search box
         logger.debug("Trying to search on CA11.1")
         elm = context.browser.find_element_by_xpath("//*[@id='com.ibm.bi.search.search']")
         logger.debug("elm returned")
         logger.debug("Got elm %s " % elm )
-        logger.debug("elm ")
-        elm.returnedclick()
+        elm.click()
         # select the opening slide input search element
         elm = waitSelector(context, "//input[@type='search']")[0]
         elm.click()
@@ -723,15 +723,36 @@ def step_impl(context, something):
         try:
             # CA11.2 search box
             logger.debug("Trying to search on CA11.2")
-            elm = context.browser.find_element_by_xpath("//input[@role='searchbox']")
-            elm.click()
+
+            # Click on search icon - just in case browser is set to small to click on the input
+            try:
+                context.browser.find_element_by_xpath("//div[@role='search']").click()
+                logger.debug("Clicked search Icon ... searchbox should now be visible.")
+            except:
+                logger.debug("Tried to click search icon ... but failed. This happens, when browser is maximize and searchbox is visible.")
+
+            # wait for animation to stop
+            time.sleep(0.01)
+
+            # now click in input
+            elms = context.browser.find_elements_by_xpath("//input[@role='searchbox']")
+            logger.debug("Found %s Searchboxes" % len(elms))
+            # we might need to loop here as Cognos produces various searchboxes the HTML 
+            for elm in elms:
+                try:
+                    elm.click()
+                    logger.debug("==> Clicked on Element %s %s " % ( elm, elm.get_attribute("outerHTML") ) )
+                except:
+                    logger.debug("==> Element %s %s not clickable" % ( elm, elm.get_attribute("outerHTML") ) )
         except:
-            logger.debug("Could not find a CA11.1 or CA11.2 compatible searchbox")
-            raise CustomError("Could not find a CA11.1 or CA11.2 compatible searchbox")
+            logger.debug("Could not find a CA11.1 or CA11.2 compatible searchbox.")
+            raise CustomError("Could not find a CA11.1 or CA11.2 compatible searchbox. Please have a look at the logfiles.")
 
     # sleep 10ms for cognos to react on the last click
     time.sleep(0.01)
 
+    # Press Control+A to mark whatever is in the searchbox
+    elm.send_keys(Keys.CONTROL, "a")
     # send the search text
     elm.send_keys(something)
     elm.send_keys(Keys.ENTER)
@@ -740,8 +761,12 @@ def step_impl(context, something):
     time.sleep(0.5)
 
     # get the first result and click on it
-    logger.debug("Clicking on first result")
-    waitSelector(context, "xpath", "//td//div[contains(.,'%s')]" % something)[0].click()
+    logger.debug("Trying to clicking on first result")
+    try:
+        waitSelector(context, "xpath", "//td//div[contains(.,'%s')]" % something)[0].click()
+    except:
+        logger.debug("Could not click on search result - maybe there was nothing found?")
+        raise CustomError("Could not click on search result - maybe there was nothing found? Please check the video or screenshots.")
 
     # wait 250ms a second for results to appear
     time.sleep(0.25)
