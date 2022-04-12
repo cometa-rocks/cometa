@@ -8,11 +8,32 @@
 DATE=$(date '+%Y%m%d%H%M%S')
 TIMESTAMP=$(date '+%s')
 DIFFERENCE=2628000 # 1 month in seconds
+BACKUPDIR=/backups
 
 # move to the Cometa/database folder
-cd /backups
-# cometa backend folder
+mkdir -p $BACKUPDIR && echo Created $BACKUPDIR Directory || echo $BACKUPDIR dir is there already ... good
+cd $BACKUPDIR
+# cometa backend folder depending on hostname
+HOSTNAME=$(hostname)
 BACKEND=/var/www/cometa/backend
+NO_OF_FILES_TO_KEEP_IN_BACKUP=30
+case $HOSTNAME in
+        amvara3)
+                BACKEND=/home/amvara/projects/cometa/backend
+                NO_OF_FILES_TO_KEEP_IN_BACKUP=60
+                ;;
+        amvara2)
+                BACKEND=/home/amvara/projects/cometa/cometa/backend
+                NO_OF_FILES_TO_KEEP_IN_BACKUP=60
+                ;;
+        sgdem0005126)
+                BACKEND=/var/www/cometa/backend
+                ;;
+        sgdem0005125)
+                BACKEND=/var/www/cometa/backend
+                ;;
+esac
+echo Backend lives here: $BACKEND
 
 # make sure that the db_data folder has correct permissions
 echo -ne "Making sure that the db_data folder has correct permissions... "
@@ -27,13 +48,13 @@ COMMAND="pg_dump postgres -U postgres | gzip > /code/${FILENAME}"
 # check if postgres container is running and create the backup
 echo -ne "Creating the zip file... "
 # create the zip file named cometa_backup_ and the date for easy knowing of the recent file as well as timestamp in case we need to do some cleaning.
-docker ps --format "{{.Names}}" | grep -q ${CONTAINERNAME} && ( docker exec ${CONTAINERNAME} bash -c "${COMMAND}" && mv ${BACKEND}/${FILENAME} /backups ) || { echo -ne "failed\n${CONTAINERNAME} is not running maybe... unable to find it using docker ps\n" && exit 2; }
+docker ps --format "{{.Names}}" | grep -q ${CONTAINERNAME} && ( docker exec ${CONTAINERNAME} bash -c "${COMMAND}" && mv ${BACKEND}/${FILENAME} $BACKUPDIR ) || { echo -ne "failed\n${CONTAINERNAME} is not running maybe... unable to find it using docker ps\n" && exit 2; }
 echo "done"
 
 # for more information checkout https://www.postgresql.org/docs/9.1/backup-dump.html on how to create a backup and how to restore.
 
 function cleanup {
-        for backup in $(ls /backups); do # loop over files in /Cometa/database
+        for backup in $(ls $BACKUPDIR); do # loop over files in /Cometa/database
                 BACKUPTIMESTAMP=${backup//.zip/} # remove .zip from the filename
                 BACKUPTIMESTAMP=(${BACKUPTIMESTAMP//_/ }) # create a array spliting the filename from _
                 BACKUPTIMESTAMP=${BACKUPTIMESTAMP[2]} # get the timestamp variable from the filename
@@ -48,3 +69,5 @@ function cleanup {
 
 # Worked with older timestamps need fixing with new ones.
 # cleanup
+/usr/bin/find $BACKUPDIR/ -type f -mtime +$NO_OF_FILES_TO_KEEP_IN_BACKUP -name "*.gz" -print -delete
+#/usr/bin/find $BACKUPDIR/ -type f -mtime +$NO_OF_FILES_TO_KEEP_IN_BACKUP -name "*.gz" -print
