@@ -78,7 +78,7 @@ EOF
 `
 
 # SOURCE LOGGER FUNCTIONS
-source ${HELPERS}/logger.sh
+test `command -v log_wfr` || source ${HELPERS}/logger.sh
 
 # ################################################################
 # FUNCTIONS                                                      #
