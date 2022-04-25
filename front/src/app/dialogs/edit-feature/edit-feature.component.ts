@@ -616,7 +616,7 @@ export class EditFeature implements OnInit, OnDestroy {
    */
   moveFeatureToCurrentFolder(featureId: number): Observable<any> {
     // Get current folder route
-    const currentRoute = this._store.selectSnapshot(FeaturesState.GetSelectionFolders);
+    const currentRoute = this._store.selectSnapshot(FeaturesState.GetSelectionFolders).filter(route => route.type != 'department');
     // Check if changing folder of created feature is necessary
     if (currentRoute.length > 0) {
       // Get current folder id
