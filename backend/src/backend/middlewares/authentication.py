@@ -106,6 +106,7 @@ class AuthenticationMiddleware:
             HTTP_COMETA_ORIGIN = request.META.get("HTTP_COMETA_ORIGIN", '')
             HTTP_COMETA_USER = request.META.get("HTTP_COMETA_USER", None) # Used to know which user scheduled a feature
             SERVER_PORT = request.META.get('SERVER_PORT', '443')
+            HTTP_X_FORWARDED_PROTO = request.META.get('HTTP_X_FORWARDED_PROTO', 'http')
 
             # get the superuser permissions
             superuser = Permissions.objects.filter(permission_name="SUPERUSER")[0]
@@ -131,12 +132,22 @@ class AuthenticationMiddleware:
                     return True
 
             # don't save the user in case accessing from port 8000
-            if HTTP_HOST == "cometa.local" or SERVER_PORT == '8000':
+            if HTTP_HOST == "cometa.local" or (HTTP_X_FORWARDED_PROTO == "http" and SERVER_PORT == '8000'):
                 # create a dummy user with admin rights
                 user = OIDCAccount(name=HTTP_HOST, email=REMOTE_ADDR, user_permissions=superuser)
                 # set the session user to dummy serialized user
                 request.session['user'] = OIDCAccountLoginSerializer(user, many=False).data
                 return True
+            
+            return JsonResponse({
+                "success": False, 
+                "error": """
+                Unable to determin user information.
+                This could mean that oAuth provider did not return user information.
+                
+                Try again later or please contact us @ %s
+                """ % secret_variables.COMETA_FEEDBACK_MAIL
+            }, status=200)
 
         # get the user from the OIDCAccounts model
         users = OIDCAccount.objects.filter(email=REMOTE_USER)
