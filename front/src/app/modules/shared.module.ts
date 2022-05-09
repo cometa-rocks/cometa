@@ -72,7 +72,6 @@ import { LoadingSnack } from '@components/snacks/loading/loading.snack';
 import { EmailTemplateHelp } from '@dialogs/edit-feature/email-template-help/email-template-help.component';
 import { HtmlDiffDialog } from '@dialogs/html-diff/html-diff.component';
 import { AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
-import { AccountsDialog } from '@dialogs/accounts-dialog/accounts-dialog.component';
 import { EditIntegrationDialog } from '@dialogs/edit-integration/edit-integration.component';
 import { SendOnPipe } from '../pipes/send-on.pipe';
 import { TestDurationPipe } from '../pipes/test-duration.pipe';

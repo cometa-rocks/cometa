@@ -118,23 +118,23 @@ export class FolderItemTreeComponent implements OnInit {
 
   // Changes the current folder and closes every active expandable
   toggleExpand() {
+    // #3525 --------------------------------------------------------------------------------------------- start
+    // toggle folder (open/close)
+    this.toggleRow();
+
     // modify existing folder state, or add new instance of folder with its state
     this.folderState[this.folder.name] = {
       open: this.expanded$.getValue()
     };
 
-    // #3414 -------------------------------------------------start
     // change browser url, add folder ids as params
     this.log.msg("1","Setting folder id as url param...","folder-item-tree");
     this._sharedActions.set_url_folder_params(this.parent);
-    // #3414 ---------------------------------------------------end
 
     // refresh localstorage, so the next time this component view is rendered, it behaves correctly
     this.log.msg("1","Saving folder tree state to localstorage...","folder-item-tree", this.folderState);
     localStorage.setItem('co_folderState', JSON.stringify(this.folderState));
-
-    // toggle folder (open/close)
-    this.toggleRow();
+    // #3525 ----------------------------------------------------------------------------------------------- end
 
     if (this.folder.folder_id == 0) {
       this._store.dispatch(new Features.ReturnToFolderRoute(0));
