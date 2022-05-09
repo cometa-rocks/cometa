@@ -2789,10 +2789,15 @@ def step_loop(context, x, index):
 @step(u'End Loop')
 @done(u'End Loop')
 def step_endLoop(context):
-    # remove index variable from context.JOB_PARAMETERS
-    params = json.loads(context.PARAMETERS)
-    del params['index']
-    context.PARAMETERS = json.dumps(params)
+    try:
+        # remove index variable from context.JOB_PARAMETERS
+        params = json.loads(context.PARAMETERS)
+        del params['index']
+        context.PARAMETERS = json.dumps(params)
+    except Exception as error:
+        logger.error("Some error occured while trying to remove 'index' parameter from parameters. Maybe the loop had 0 iterations.")
+        logger.debug("Here is the list of all parameters:")
+        logger.debug(context.PARAMETERS)
     # set context.insideLoop to false
     context.insideLoop = False
     # reset jumpLoopIndex
