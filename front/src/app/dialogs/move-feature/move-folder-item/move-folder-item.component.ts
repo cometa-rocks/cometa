@@ -9,7 +9,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfigService } from '@services/config.service';
 import { Features } from '@store/actions/features.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
-import { AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 
 @Component({
   selector: 'cometa-move-folder-item',
