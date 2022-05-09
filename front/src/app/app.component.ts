@@ -12,8 +12,6 @@ import { CookiesExpiredDialog } from '@dialogs/cookies-expired/cookies-expired.c
 import { SelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { TourService } from '@services/tour.service';
 import { WhatsNewService } from '@services/whats-new.service';
-import { CustomSelectors } from '@others/custom-selectors';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'cometa',
@@ -33,6 +31,7 @@ export class CometaComponent implements OnInit {
 
   heartbeat: Subscription;
 
+
   // Initialize translator service
   constructor(
     private translate: TranslateService,
@@ -43,7 +42,6 @@ export class CometaComponent implements OnInit {
     private _dialog: MatDialog,
     private _tourService: TourService,
     private _whatsNew: WhatsNewService,
-    private _router: Router
   ) {
     this._socket.Init();
     this.translate.setDefaultLang('en');
