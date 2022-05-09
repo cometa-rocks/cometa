@@ -1,4 +1,4 @@
-import { Directive, forwardRef, HostListener, Inject } from '@angular/core';
+import { Directive, forwardRef, HostListener } from '@angular/core';
 import { NG_ASYNC_VALIDATORS, AbstractControl, Validator } from '@angular/forms';
 
 import { CaptchaService } from './captcha.service';

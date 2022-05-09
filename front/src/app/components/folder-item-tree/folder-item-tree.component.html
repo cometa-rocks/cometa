@@ -7,7 +7,7 @@ Author: dph000
 -->
 <ng-container *ngLet="expanded$ | async as expanded">
     <!--folderState[this.folder.name]?.open will check if folder state is set to open: true, and adapt arrow icon's direction depending on value-->
-    <div (click)="toggleExpand()" [class.opened]="folderState[this.folder.name]?.open"
+    <div (click)="toggleExpand()" [class.opened]="folderState[folder.name]?.open"
         [style.paddingLeft.px]="level * 25" matRipple class="row" *ngLet="lastFolder$ | async as lastFolder"
         [class.selected]="lastFolder === folder.folder_id">
         <!-- Arrow to show / hide the folder -->
@@ -24,7 +24,7 @@ Author: dph000
         </div>
     </div>
     <!--folderState[this.folder.name]?.open will check if folder state is set to open: true, and expand folder or not depending on the value-->
-    <div *ngIf="folderState[this.folder.name]?.open" class="container">
+    <div *ngIf="folderState[folder.name]?.open" class="container">
         <!-- Recursion of directories -->
         <!-- The department boolean is used to know wheter the sent object is a department or not -->
         <cometa-folder-item-tree [department]="false" [parent]="parent.concat(folder)" [level]="level + 1"
