@@ -1,17 +1,10 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfigState } from '@store/config.state';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
-import { MatCheckboxChange } from '@angular/material/checkbox';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
-import { Configuration } from '@actions/config.actions';
 import { SocketService } from '@services/socket.service';
 import { Select } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Observable } from 'rxjs';
-import { Router } from '@angular/router';
-import { Features } from '@store/actions/features.actions';
 
 @Component({
   selector: 'cometa-about',
@@ -25,9 +18,7 @@ export class AboutComponent {
   @ViewSelectSnapshot(ConfigState) config$ !: Config;
 
   constructor(
-    private _snack: MatSnackBar,
     public _socketService: SocketService,
-    private _router: Router
   ) { }
 
   licenses = [
