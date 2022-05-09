@@ -14,6 +14,11 @@ from backend.utility.functions import getBrowserKey, getStepResultScreenshotsPat
 import shutil
 from backend.common import *
 
+# GLOBAL VARIABLES
+
+# check if we are inside a loop
+insideLoop = False
+
 # Step Keywords
 step_keywords = (
     ('Given', 'Given',),
@@ -153,7 +158,9 @@ def recursiveSubSteps(steps, feature_trace, parent_department_id=None):
     return updatedSteps
 
 # adds step to the featureFile
-def add_step_to_feature_file(step, featureFile, insideLoop):
+def add_step_to_feature_file(step, featureFile):
+    global insideLoop
+    
     startingIndent = "\n\t\t"
     if insideLoop and not re.search(r'^.*Loop "(.*)" times starting at "(.*)" and do', step['step_content']):
         startingIndent = "\n\t\t\t"
@@ -163,14 +170,31 @@ def add_step_to_feature_file(step, featureFile, insideLoop):
 
     # before saving to the file check if step is javascript function if so save the content as step description
     if "Javascript" in step['step_content']:
-        write_multiline_javascript_step(featureFile, step, insideLoop)
+        write_multiline_javascript_step(featureFile, step)
     elif "Send keys" in step['step_content']:
-        write_multiline_send_keys_step(featureFile, step, insideLoop)
+        write_multiline_send_keys_step(featureFile, step)
     else:
         featureFile.write('%s%s %s' % (startingIndent, step['step_keyword'], step['step_content'].replace('\\xa0', ' ')))
     
     if insideLoop and re.search(r'^.*Loop "(.*)" times starting at "(.*)" and do', step['step_content']):
         featureFile.write('\n\t\t\t"""')
+
+def checkLoop(step):
+    global insideLoop
+
+    # check if step is a loop if so set loop value to true
+    loop = re.search(r'^.*Loop "(.*)" times starting at "(.*)" and do', step['step_content'])
+    if loop and insideLoop:
+        # throw error
+        return {"success": False, "error": "Multi level loop are not allowed."}
+    if loop:
+        insideLoop = True
+    # check if step is end loop
+    endLoop = re.search(r'^.*End Loop', step['step_content'])
+    if endLoop:
+        insideLoop = False
+
+    return {"success": True, "insideLoop": insideLoop}
 
 
 # create_feature_file
@@ -184,9 +208,6 @@ def create_feature_file(feature, steps, featureFileName):
 
     # save the steps to save to database before removing old steps
     stepsToAdd = []
-
-    # check if we are inside a loop
-    insideLoop = False
 
     featureFile.write('\tScenario: First')
     for step in steps:
@@ -203,37 +224,38 @@ def create_feature_file(feature, steps, featureFileName):
             step.pop('belongs_to', None)
             # check if current feature is a sub feature execution
             subFeature = re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content'])
-            # check if step is a loop if so set loop value to true
-            loop = re.search(r'^.*Loop "(.*)" times starting at "(.*)" and do', step['step_content'])
-            if loop and insideLoop:
+            # check if its a loop related step
+            result = checkLoop(step)
+            if not result['success']:
                 # close the file handle
                 featureFile.close()
-                # throw error
-                return {"success": False, "error": "Multi level loop are not allowed."}
-            if loop:
-                insideLoop = True
-            # check if step is end loop
-            endLoop = re.search(r'^.*End Loop', step['step_content'])
-            if endLoop:
-                insideLoop = False
+                return result
             if subFeature:
                 try:
                     # get recursive steps from the sub feature
                     subSteps = recursiveSubSteps([step], [feature.feature_id], feature.department_id)
                 except Exception as error:
+                    # close the file handle
+                    featureFile.close()
                     return {"success": False, "error": str(error)}
                 # otherwise loop over substeps
                 for subStep in subSteps:
                     # check if substep is enabled
                     if subStep['enabled']:
+                        # check if its a loop related step
+                        subResult = checkLoop(subStep)
+                        if not subResult['success']:
+                            # close the file handle
+                            featureFile.close()
+                            return subResult
                         subStep['step_type'] = "substep"
                         # add the substep found in substep
                         stepsToAdd.append(subStep)
                         # save to the file
-                        add_step_to_feature_file(subStep, featureFile, insideLoop)
+                        add_step_to_feature_file(subStep, featureFile)
             else:
                 # if enabled and not a sub feature execution add to the file
-                add_step_to_feature_file(step, featureFile, insideLoop)
+                add_step_to_feature_file(step, featureFile)
     featureFile.write('\n')
     # close the file handle
     featureFile.close()
@@ -260,7 +282,9 @@ def create_feature_file(feature, steps, featureFileName):
     # return success true
     return {"success": True}
 
-def write_multiline_javascript_step(featureFile, step, insideLoop=False):
+def write_multiline_javascript_step(featureFile, step):
+    global insideLoop
+
     startingIndent = "\t\t"
     quotes = '"""'
     if insideLoop:
@@ -273,7 +297,9 @@ def write_multiline_javascript_step(featureFile, step, insideLoop=False):
     featureFile.write('\n%s%s %s\n' % (startingIndent, step['step_keyword'], u'Run Javascript function "// function is set in step description!!"'.replace('\\xa0', ' ')))
     featureFile.write('%s\t%s\n%s\t%s\n%s\t%s' % (startingIndent, quotes, startingIndent, js_function.replace("\n", "\n\t\t\t"), startingIndent, quotes))
 
-def write_multiline_send_keys_step(featureFile, step, insideLoop=False):
+def write_multiline_send_keys_step(featureFile, step):
+    global insideLoop
+
     startingIndent = "\t\t"
     quotes = '"""'
     if insideLoop:
@@ -646,7 +672,6 @@ class Feature(models.Model):
         if not kwargs.get('dontSaveSteps', False):
             # get featureFileName
             featureFileName = get_feature_path(self)['fullPath']
-
             # Create / Update .feature and jsons whenever feature info is updated / created
             steps = kwargs.get('steps', list(Step.objects.filter(feature_id=self.feature_id).order_by('id').values()))
             print("Saving steps received from Front:", steps)
