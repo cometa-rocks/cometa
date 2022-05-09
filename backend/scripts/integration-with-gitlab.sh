@@ -33,7 +33,7 @@ OPTIONS:
 
 EXAMPLES:
   ${0} -f 272
-  ${0} --feture 272
+  ${0} --feature 272
   ${0} -f 272,273,274
 "
     exit 1;
