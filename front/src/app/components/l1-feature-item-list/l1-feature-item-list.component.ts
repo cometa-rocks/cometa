@@ -14,7 +14,6 @@ import { observableLast, Subscribe } from 'ngx-amvara-toolbox';
 import { NavigationService } from '@services/navigation.service';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Features } from '@store/actions/features.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
 import { ApiService } from '@services/api.service';
