@@ -109,10 +109,9 @@ export class FolderItemTreeComponent implements OnInit {
     this.expanded$.next(status);
   }
 
-
-  // Changes the current folder and closes every active expandable
+  // toggles clicked department/folder
   toggleExpand() {
-    // update state incase it has bein changed.
+    // update state incase it has been changed.
     this.getOrSetDefaultFolderState();
 
     // toggle folder (open/close)
