@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # CHANGELOG
+# 2022-05-09 - RRO - adding get ./getLatestBrowsers.sh to automatically update 
 # 2022-04-12 - RRO - Copied create_backup.sh to cometa repo, so it's not flying around.
 # 2021.03.23 - ASO - Added /Cometa mountpoint to /etc/fstab so script does not have to.
 
@@ -73,4 +74,13 @@ echo "Cleaning Backup directory"
 CMD="/usr/bin/find $BACKUPDIR/ -type f -mtime +$NO_OF_FILES_TO_KEEP_IN_BACKUP -name '*.gz' -print -delete"
 echo $CMD
 $($CMD) && echo done || echo failed
+
 #/usr/bin/find $BACKUPDIR/ -type f -mtime +$NO_OF_FILES_TO_KEEP_IN_BACKUP -name "*.gz" -print
+
+#
+# get latests browsers
+#
+echo "Checking latest browser information"
+CMD="cd ${BACKEND}/selenoid; ./getLatestBrowsers.sh"
+echo ${CMD}
+echo "-- done --"
