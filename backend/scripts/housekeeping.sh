@@ -81,6 +81,6 @@ $($CMD) && echo done || echo failed
 # get latests browsers
 #
 echo "Checking latest browser information"
-CMD="cd ${BACKEND}/selenoid; ./getLatestBrowsers.sh"
+CMD="cd ${BACKEND}/selenoid; ./getLatestBrowsers.sh -n 10"
 echo ${CMD}
 echo "-- done --"
