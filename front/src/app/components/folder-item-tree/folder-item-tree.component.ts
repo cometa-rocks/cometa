@@ -144,8 +144,8 @@ export class FolderItemTreeComponent implements OnInit {
   }
 
   getOrSetDefaultFolderState(): void {
-    // get folder hierarchy state from localstorage, in case it is users first time entering, default department´s state will be set to false(closed)
-    // if localstorage is empty, then set default values
+    // get folder hierarchy state from localstorage
+    // if localstorage is empty, then just set the comment
     this.folderState =
       JSON.parse(localStorage.getItem('co_folderState')) || { comment: "This object stores the state of whole folder hierarchy in localstorage" };
   }
