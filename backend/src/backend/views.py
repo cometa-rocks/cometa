@@ -1520,7 +1520,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         # send a websocket to front about the creation
         response = requests.post('http://cometa_socket:3001/sendAction', json={
             'type': '[Departments] Add Admin Department',
-            'department': IDepartment(department, many=False).data
+            'department': DepartmentWithUsersSerializer(department, many=False).data
         })
 
         # update the user who has been added to the created department
