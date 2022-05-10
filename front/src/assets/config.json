@@ -190,6 +190,16 @@
 	],
 	"changelog": [
 		{
+			"version": "2.8.281",
+			"date": "2022-05-10",
+			"features": [
+				{
+					"title": "Multimple http request",
+					"description": "Fixed step edit component realizing multiple http requests when it has another feature dependency step"
+				}
+			]
+		},
+		{
 			"version": "2.8.280",
 			"date": "2022-05-09",
 			"features": [

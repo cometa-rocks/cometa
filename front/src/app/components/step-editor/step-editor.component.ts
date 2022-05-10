@@ -8,7 +8,7 @@ import { ActionsState } from '@store/actions.state';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ClipboardService } from 'ngx-clipboard';
 import { ImportJSONComponent } from '@dialogs/import-json/import-json.component';
-import { BehaviorSubject, forkJoin } from 'rxjs';
+import { BehaviorSubject, debounceTime, distinctUntilChanged, forkJoin, from, of } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { FormArray, FormBuilder, Validators } from '@angular/forms';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
@@ -83,7 +83,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     const featureId = this.mode === 'clone' ? 0 : this.feature.feature_id;
     this.subs.sink = this._store.select(CustomSelectors.GetFeatureSteps(featureId)).subscribe(steps => this.setSteps(steps));
     // When steps$ is changed do the rollup of duplicated steps
-    this.subs.sink = this.stepsForm.valueChanges.subscribe(stepsArray => this.rollupDuplicateSteps(stepsArray))
+    this.subs.sink = this.stepsForm.valueChanges
+                                   .pipe(debounceTime(500),distinctUntilChanged())
+                                   .subscribe(stepsArray => this.rollupDuplicateSteps(stepsArray));
   }
 
   /**
@@ -146,18 +148,28 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   trackStep = index => index;
 
+  realizedRequests = [];
   async rollupDuplicateSteps(stepsArray: FeatureStep[]) {
     // #2430 - Marks steps as disabled if step is found inside an import
     // First get all import IDs
     const importIds: number[] = stepsArray.reduce((r, step) => {
-      const matches = step.step_content.match(/Run feature with id "(\d+)"/);
-      if (!!matches) r.push(+matches[1]);
-      return r;
+        const matches = step.step_content.match(/Run feature with id "(\d+)"/);
+        if (!!matches) r.push(+matches[1]);
+        return r;
     }, []);
     if (importIds.length > 0) {
       // Check if we already have the imports info in our cache
       const needsRequest = importIds
-        .map(id => this._api.getFeatureSteps(id) );
+      // #3526 ------------------------------------- start
+        .map(id => {
+          if(!this.realizedRequests.includes(id)) {
+            this.realizedRequests.push(id);
+            return this._api.getFeatureSteps(id)
+          } else {
+            return of([])
+          }
+          // #3526 ------------------------------------- end
+        });
       // Request those we don't have in our cache
       if (needsRequest.length > 0) {
         const featureSteps = await forkJoin([...needsRequest]).toPromise();
