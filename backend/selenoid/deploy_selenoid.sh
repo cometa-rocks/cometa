@@ -33,7 +33,7 @@ else
   install_jq
 fi
 # run getLatestBrowser.sh script to update browsers file
-./getLatestBrowsers.sh
+./getLatestBrowsers.sh $@
 # pull selenoid/video-recorder if not already pulled
 docker image ls | grep selenoid/video-recorder | grep -q "latest-release" && info "selenoid/video-recorder: already pulled." || { info "pulling selenoid/video-recorder"; docker pull selenoid/video-recorder:latest-release; }
 
