@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # CHANGELOG
+# 2022-05-11 - ASO - changed echo to eval and getLatestBrowsers to deploy_selenoid otherwise json would throw error.
 # 2022-05-09 - RRO - adding get ./getLatestBrowsers.sh to automatically update 
 # 2022-04-12 - RRO - Copied create_backup.sh to cometa repo, so it's not flying around.
 # 2021.03.23 - ASO - Added /Cometa mountpoint to /etc/fstab so script does not have to.
@@ -81,6 +82,6 @@ $($CMD) && echo done || echo failed
 # get latests browsers
 #
 echo "Checking latest browser information"
-CMD="cd ${BACKEND}/selenoid; ./getLatestBrowsers.sh -n 10"
+CMD="cd ${BACKEND}/selenoid; ./deploy_selenoid.sh -n 10"
 echo ${CMD}
-echo "-- done --"
+eval ${CMD} && echo "-- done --" || echo "-- failed --"
