@@ -238,6 +238,10 @@ def done( *_args, **_kwargs ):
                 except:
                     pass
 
+                # check if feature was aborted
+                aborted = str(err) == "'aborted'"
+                logger.debug("Checking if feature was aborted: " + str(aborted))
+                
                 # check the continue on failure hierarchy
                 continue_on_failure = False # default value
                 continue_on_failure = (
@@ -248,7 +252,7 @@ def done( *_args, **_kwargs ):
                 )
 
                 # check if continue on failure is set
-                if continue_on_failure:
+                if continue_on_failure and not aborted:
                     logger.debug("Not failing on %s because continue on failure is checked." % args[0].step_data['step_content'])
                     logger.error("Error: %s" % str(err))
                 else:
