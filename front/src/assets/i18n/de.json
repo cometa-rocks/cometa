@@ -92,7 +92,9 @@
         "budget_exceeded_title": "Budget überschritten",
         "budget_exceeded_desc": "Die Funktion, die Sie ausführen wollen, wird Ihr konfiguriertes Budget überschreiten. Möchten Sie fortfahren?",
         "budget_ahead_title": "Niedriges Budget",
-        "budget_ahead_desc": "Die Funktion, die Sie ausführen wollen, wird wahrscheinlich Ihr konfiguriertes Budget überschreiten. Möchten Sie fortfahren?"
+        "budget_ahead_desc": "Die Funktion, die Sie ausführen wollen, wird wahrscheinlich Ihr konfiguriertes Budget überschreiten. Möchten Sie fortfahren?",
+        "move_feature_title": "Umzug Funktion",
+        "move_feature": "Sie versuchen, eine Funktion in eine andere Abteilung zu verschieben. Umgebungsvariablen, die die betreffende Funktion derzeit verwendet, sind nicht mehr verwendbar. Möchtest du fortfahren?"
     },
     "integrations": {
         "add": "Integration hinzufügen",
