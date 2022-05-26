@@ -111,7 +111,7 @@
         "budget_ahead_title": "Bajo presupuesto",
         "budget_ahead_desc": "Es probable que el feature que va a ejecutar supere el presupuesto configurado. ¿Deseas continuar?",
         "move_feature_title": "Mover Feature",
-        "move_feature": "Estas intentando mover feature a diferente departamento, feature dejara de tener acceso al contenido de variables nativos del departamento actual. ¿Deseas continuar?"
+        "move_feature": "Mover feature a diferente departamento provocara que feature deje de tener acceso al contenido de variables nativos del departamento actual. ¿Deseas continuar?"
     },
     "integrations": {
         "add": "Añadir integración",
