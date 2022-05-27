@@ -61,7 +61,7 @@ export class MainViewComponent implements OnInit, AfterViewInit {
       this.showArchived$
     ]).pipe(
       // Return endpointUrl for paginated list
-      map(([featureId, archived]) => `feature_results/?feature_id=${featureId}&archived=${archived}`)
+      map(([featureId, archived]) => `feature_results_by_featureid/?feature_id=${featureId}&archived=${archived}`)
     )
     // Reload current page of runs whenever a feature run completes
     this._actions.pipe(

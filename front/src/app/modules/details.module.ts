@@ -38,7 +38,7 @@ const routes: Routes = [
         component: MainViewComponent
     },
     {
-        path: 'run/:run/step/:feature_result_id',
+        path: 'step/:feature_result_id',
         children: [
             {
                 path: '',

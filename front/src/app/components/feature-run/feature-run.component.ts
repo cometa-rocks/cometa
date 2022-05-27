@@ -21,7 +21,7 @@ export class FeatureRunComponent {
 
   @Select(CustomSelectors.GetConfigProperty('percentMode')) percentMode$: Observable<boolean>;
 
-  @Input() run: FeatureRun;
+  @Input() run: FeatureResult;
 
   show$ = new BehaviorSubject<boolean>(false);
 
@@ -34,24 +34,24 @@ export class FeatureRunComponent {
     @Optional() @Host() private _paginatedList: NetworkPaginatedListComponent
   ) { }
 
-  get browsers() {
-    if (this.run?.feature_results.length > 0) {
-      // Get unique browser icons
-      const browsers = [];
-      for (let i = 0; i < this.run.feature_results.length; i++) {
-        if (this.run.feature_results[i].browser) {
-          const browser = this.run.feature_results[i].browser.browser;
-          // Make sure of it's uniqueness
-          if (browser && !browsers.map(b => b.browser).includes(browser)) {
-            browsers.push(browser);
-          }
-        }
-      }
-      return browsers;
-    } else {
-      return [];
-    }
-  }
+  // get browsers() {
+  //   if (this.run?.feature_results.length > 0) {
+  //     // Get unique browser icons
+  //     const browsers = [];
+  //     for (let i = 0; i < this.run.feature_results.length; i++) {
+  //       if (this.run.feature_results[i].browser) {
+  //         const browser = this.run.feature_results[i].browser.browser;
+  //         // Make sure of it's uniqueness
+  //         if (browser && !browsers.map(b => b.browser).includes(browser)) {
+  //           browsers.push(browser);
+  //         }
+  //       }
+  //     }
+  //     return browsers;
+  //   } else {
+  //     return [];
+  //   }
+  // }
 
   openVideo(test: FeatureResult) {
     this._sharedActions.loadingObservable(
@@ -67,20 +67,22 @@ export class FeatureRunComponent {
   }
 
   changeShow() {
-    // Go to Step View if we only have 1 result
-    if (this.run.feature_results.length === 1) {
-      this.stepView(this.run.run_id, this.run.feature_results[0])
-    } else {
-      this.show$.next(!this.show$.getValue());
-    }
+  //   // Go to Step View if we only have 1 result
+  //   // if (this.run.feature_results.length === 1) {
+      // this.stepView(this.run.run_id, this.run.feature_results[0])
+      this.stepView(this.run)
+  //   // } else {
+  //   //   this.show$.next(!this.show$.getValue());
+  //   // }
   }
 
   trackByFn(index, item: string) {
     return item;
   }
 
-  stepView(run_id: number, test: FeatureResult) {
-    this._router.navigate(['run', run_id, 'step', test.feature_result_id], { relativeTo: this._ac }).then(() => window.scrollTo(0, 0));
+  // stepView(run_id: number, test: FeatureResult) {
+  stepView(test: FeatureResult) {
+    this._router.navigate(['step', test.feature_result_id], { relativeTo: this._ac }).then(() => window.scrollTo(0, 0));
   }
 
   /**
@@ -102,12 +104,13 @@ export class FeatureRunComponent {
    * @param run FeatureRun
    */
   archive(run: FeatureRun | FeatureResult) {
-    this.reloadPageAfterAction( this._sharedActions.archive(run) );
+    console.log(typeof run);
+    this.reloadPageAfterAction( this._sharedActions.archive(run as FeatureResult) );
   }
 
-  deleteFeatureRun(run: FeatureRun) {
-    this.reloadPageAfterAction( this._sharedActions.deleteFeatureRun(run) );
-  }
+  // deleteFeatureRun(run: FeatureRun) {
+  //   this.reloadPageAfterAction( this._sharedActions.deleteFeatureRun(run) );
+  // }
 
   deleteFeatureResult(test: FeatureResult) {
     this.reloadPageAfterAction( this._sharedActions.deleteFeatureResult(test) );
