@@ -1159,7 +1159,7 @@ class FeatureResultByFeatureIdViewSet(viewsets.ModelViewSet):
         archived = request.GET.get('archived', False) == 'true'
         if feature_id and feature_id.isnumeric():
             # get all the feature runs for specific run
-            feature_result = self.queryset.filter(feature_id=feature_id).order_by('-result_date', '-feature_result_id')
+            feature_result = self.queryset.filter(feature_id=feature_id, archived=archived).order_by('-result_date', '-feature_result_id')
             # get the amount of data per page using the queryset
             page = self.paginate_queryset(FeatureResultSerializer(feature_result,many=True).data)
             # serialize the data
