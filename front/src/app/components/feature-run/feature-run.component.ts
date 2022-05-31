@@ -21,7 +21,7 @@ export class FeatureRunComponent {
 
   @Select(CustomSelectors.GetConfigProperty('percentMode')) percentMode$: Observable<boolean>;
 
-  @Input() run: FeatureResult;
+  @Input() test: FeatureResult;
 
   show$ = new BehaviorSubject<boolean>(false);
 
@@ -70,7 +70,7 @@ export class FeatureRunComponent {
   //   // Go to Step View if we only have 1 result
   //   // if (this.run.feature_results.length === 1) {
       // this.stepView(this.run.run_id, this.run.feature_results[0])
-      this.stepView(this.run)
+      this.stepView(this.test)
   //   // } else {
   //   //   this.show$.next(!this.show$.getValue());
   //   // }
@@ -88,25 +88,32 @@ export class FeatureRunComponent {
   /**
    * Performs the overriding action through the Store
    */
-  setResultStatus(result: FeatureResult, status: 'Success' | 'Failed' | '') {
-    this.reloadPageAfterAction( this._sharedActions.setResultStatus(result, status) );
+  setResultStatus(test: FeatureResult, status: 'Success' | 'Failed' | '') {
+    this.reloadPageAfterAction( this._sharedActions.setResultStatus(test, status) );
   }
 
-  /**
-   * Performs the overriding action through the Store
-   */
-  setRunStatus(run: FeatureRun, status: 'Success' | 'Failed' | '') {
-    this.reloadPageAfterAction( this._sharedActions.setRunStatus(run, status) );
-  }
+  // /**
+  //  * Performs the overriding action through the Store
+  //  */
+  // setRunStatus(run: FeatureRun, status: 'Success' | 'Failed' | '') {
+  //   this.reloadPageAfterAction( this._sharedActions.setRunStatus(run, status) );
+  // }
 
   /**
    * Archives or unarchives a feature run or a feature result
    * @param run FeatureRun
    */
-  archive(run: FeatureRun | FeatureResult) {
-    console.log(typeof run);
-    this.reloadPageAfterAction( this._sharedActions.archive(run as FeatureResult) );
+   archive(test: FeatureResult) {
+    this.reloadPageAfterAction( this._sharedActions.archive(test) );
   }
+
+  // /**
+  //  * Archives or unarchives a feature run or a feature result
+  //  * @param run FeatureRun
+  //  */
+  // archive(test: FeatureRun | FeatureResult) {
+  //   this.reloadPageAfterAction( this._sharedActions.archive(test) );
+  // }
 
   // deleteFeatureRun(run: FeatureRun) {
   //   this.reloadPageAfterAction( this._sharedActions.deleteFeatureRun(run) );
