@@ -25,7 +25,6 @@ export class BehaveChartTestComponent implements OnChanges, OnInit, AfterViewIni
   updateFlag = false;
 
   ngAfterViewInit() {
-    console.log(this.data);
     this.afterViewInitFired$.next(true);
   }
 
