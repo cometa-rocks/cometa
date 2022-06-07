@@ -43,8 +43,12 @@
     [showHeaderOnNoResults]="true"
     trackByKey="feature_result_id"
     [itemTemplate]="listItem">
-    <ng-template #listItem let-item>
-      <cometa-feature-run [test]="item"></cometa-feature-run>
+    <ng-template #listItem let-item let-index="index">
+      <div style="width: 100%" *ngIf="index == 0">
+        <cometa-feature-run></cometa-feature-run>
+      </div>
+      <!-- <ng-template *ngIf="index == '1'"> -->
+      <!-- </ng-template> -->
     </ng-template>
     <ng-template #headTemplate>
         <cometa-main-view-header></cometa-main-view-header>

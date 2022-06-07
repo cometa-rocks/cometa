@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy, Optional, Host } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Optional, Host } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { VideoComponent } from '@dialogs/video/video.component';
@@ -17,11 +17,11 @@ import { CustomSelectors } from '@others/custom-selectors';
   styleUrls: ['./feature-run.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FeatureRunComponent {
+export class FeatureRunComponent{
 
   @Select(CustomSelectors.GetConfigProperty('percentMode')) percentMode$: Observable<boolean>;
 
-  @Input() test: FeatureResult;
+  // @Input() test: FeatureResult;
 
   show$ = new BehaviorSubject<boolean>(false);
 
@@ -31,8 +31,9 @@ export class FeatureRunComponent {
     private _dialog: MatDialog,
     private _snack: MatSnackBar,
     public _sharedActions: SharedActionsService,
-    @Optional() @Host() private _paginatedList: NetworkPaginatedListComponent
+    @Optional() @Host() public _paginatedList: NetworkPaginatedListComponent
   ) { }
+
 
   // get browsers() {
   //   if (this.run?.feature_results.length > 0) {
@@ -66,11 +67,11 @@ export class FeatureRunComponent {
     }, err => this._snack.open('An error ocurred', 'OK'))
   }
 
-  changeShow() {
+  changeShow(test: FeatureResult) {
   //   // Go to Step View if we only have 1 result
   //   // if (this.run.feature_results.length === 1) {
       // this.stepView(this.run.run_id, this.run.feature_results[0])
-      this.stepView(this.test)
+      this.stepView(test)
   //   // } else {
   //   //   this.show$.next(!this.show$.getValue());
   //   // }
