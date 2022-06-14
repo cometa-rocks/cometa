@@ -104,12 +104,14 @@
         "quit_desc": "Tienes cambios sin guardar.",
         "decrypt_title": "¿Estás seguro de que quieres desencriptar esta variable?",
         "decrypt_desc": "Al descifrar una variable se restablece el valor de la variable de entorno.",
-        "remove_all_title": "Remove everything",
-        "remove_all": "Are you sure you want to remove all the steps?",
+        "remove_all_title": "Eliminar todo",
+        "remove_all": "¿Estas seguro que quieres eliminar todos los pasos?",
         "budget_exceeded_title": "Presupuesto superado",
         "budget_exceeded_desc": "El feature que va a ejecutar superará el presupuesto configurado. ¿Deseas continuar?",
         "budget_ahead_title": "Bajo presupuesto",
-        "budget_ahead_desc": "Es probable que el feature que va a ejecutar supere el presupuesto configurado. ¿Deseas continuar?"
+        "budget_ahead_desc": "Es probable que el feature que va a ejecutar supere el presupuesto configurado. ¿Deseas continuar?",
+        "move_feature_title": "Mover Feature",
+        "move_feature": "Mover feature a diferente departamento provocara que feature deje de tener acceso al contenido de variables nativos del departamento actual. ¿Deseas continuar?"
     },
     "integrations": {
         "add": "Añadir integración",

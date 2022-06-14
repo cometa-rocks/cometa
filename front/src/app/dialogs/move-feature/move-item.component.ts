@@ -1,11 +1,17 @@
+// # ######################################## #
+// # Changelog:
+// # 2022-05-26 TONY ADDED - move feature dialog. Local reference: 1.1  ticket: #3460
+// # ######################################## #
+
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Store } from '@ngxs/store';
 import { FeaturesState } from '@store/features.state';
 import { ApiService } from '@services/api.service';
 import { Observable, NEVER } from 'rxjs';
 import { ConfigService } from '@services/config.service';
 import { CustomSelectors } from '@others/custom-selectors';
+import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 
 @Component({
   selector: 'cometa-move-item',
@@ -26,7 +32,8 @@ export class MoveItemDialog {
     @Inject(MAT_DIALOG_DATA) public data: IMoveData,
     public _config: ConfigService,
     private _store: Store,
-    private _api: ApiService
+    private _api: ApiService,
+    private dialog: MatDialog
   ) {
     // If statement that decides which data to send to the backend (see backend's views.py:1883 for more info about old_folder and new_folder)
     // Move a feature
@@ -94,9 +101,43 @@ export class MoveItemDialog {
         delete newFeature.last_edited;
         delete newFeature.info;
         delete newFeature.steps;
-        // Patch and move the testcase
-        req = this._api.patchFeatureV2(newFeature.feature_id, newFeature, this.previousFolderId, folderData.id || 0, folderData.department);
+
+        // changelog reference: 1.1, ticket #3460 -------------------------------------------------------------------- start
+        // reason of implementation: unaccessible environment variables
+        // testcase: If user moves a feature that uses environment variables from deparment 'X' to department 'Y'
+        // the feature in question will no longer have access to the content of department 'X's environment variables
+        // causing the test to fail, unless department 'Y' also has environment variables that the feature uses
+        // for this reason we implement are you sure dialog, to advert user about possible consequences of this action
+
+        // if destination's department is not the same as origin's department
+        if(folderData.department !== this.originFolder.department) {
+          // open dialog
+          this.dialog.open(AreYouSureDialog, {
+            data: {
+              title: 'translate:you_sure.move_feature_title',
+              description: 'translate:you_sure.move_feature'
+            } as AreYouSureData
+          }).afterClosed().subscribe(move => {
+            if(move) {
+              // if user clicks on 'yes' in dialog, move will be set to true
+              // Patch and move the testcase
+              req = this._api.patchFeatureV2(newFeature.feature_id, newFeature, this.previousFolderId, folderData.id || 0, folderData.department);
+
+              // close folder picker dialog
+              this.closedialogRef(req);
+            }
+          });
+        } else {
+          // if user attempts to move feature in the same department, then just move it without 'are you sure' dialog
+          // Patch and move the testcase
+          req = this._api.patchFeatureV2(newFeature.feature_id, newFeature, this.previousFolderId, folderData.id || 0, folderData.department);
+
+          // close folder picker dialog
+          this.closedialogRef(req);
+        }
+        // changelog reference: 1.1, ticket #3460 -------------------------------------------------------------------- end
         break;
+
       case 'folder':
         // save payload to an object
         let payload = {
@@ -106,15 +147,19 @@ export class MoveItemDialog {
         // check if folderData is of type department if so send department value as well
         if (folderData.type == 'department') payload.department = folderData.department;
         req = this._api.modifyFolder(payload)
+        this.closedialogRef(req);
         break;
       default:
         req = NEVER;
+        this.closedialogRef(req);
     }
+  }
+
+  closedialogRef(req: Observable<any>) {
     req.subscribe(_ => {
       // Commented as it forces two requests to folders api
       // this._store.dispatch( new Features.GetFolders );
       this.dialogRef.close();
     });
   }
-
 }
