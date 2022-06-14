@@ -144,7 +144,7 @@ That's all, easy peasy.
 ## Reading changed actions.py
 
 On first start you have to manually parse the actions.py file. This enables cometa to use any steps defined in  the UI. The user can then choose from the steps in the UI.
-`https://localhost/backend/api/parseActions` ... as a result cometa will show all actions that have been parsed and are now available for selection in cometa-front.
+`https://localhost/backend/parseActions/` ... as a result cometa will show all actions that have been parsed and are now available for selection in cometa-front.
 ## Directory Layout
 
 * `./behave` Behave related files
