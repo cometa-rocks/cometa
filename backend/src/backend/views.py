@@ -1063,6 +1063,60 @@ class ActionViewSet(viewsets.ModelViewSet):
             'results': ActionSerializer(queryset, many=True).data
         })
 
+# # FeatureResultByFeatureIdViewSet
+# # ... takes parameter FeatureId and returns all results for that ID from featureResults
+# # ... this enables showing all results without grouping them by featureRun
+# class FeatureResultByFeatureIdViewSet(viewsets.ModelViewSet):
+#     """
+#     API endpoint that allow returns featureResults for a featureID.
+#     """
+#     queryset = Feature_result.available_objects.all()
+#     serializer_class = FeatureResultSerializer
+#     renderer_classes = (JSONRenderer, )
+#     filter_backends = (filters.OrderingFilter,)
+#     ordering_fields = ('result_date',)
+
+#     def list(self, request, *args, **kwargs):
+
+#         data = {}
+
+#         #
+#         # If featureId in request, then return the featureResults for that ID
+#         # ... this does not take into account the "archived/saved" feature-runs
+#         # ... TODO/FIXME/XXX ... retrieve also the archived flag from featureRuns
+#         # ... or set the archived Flag on FeatureResult _and_ featureRun 
+#         #
+#         if "feature_id" in kwargs:
+#             # query feature_results for the id and order by date and result_id
+#             feature_result = self.queryset.filter(feature_id=kwargs['feature_id']).order_by('-result_date', '-feature_result_id')
+            
+#             # Check on number of results and return data with success=false or results
+#             if len(feature_result) > 0:
+#                 logger.debug("Found "+str(len(feature_result))+" results")
+#                 data["result"] = FeatureResultSerializer(feature_result,many=True).data
+#             else:
+#                 data['success'] = False
+#                 data['error'] = "No feature_result found with id " + kwargs['feature_id']
+#             return Response(data)
+
+#         # check if feature_id in GET parameters
+#         feature_id = request.GET.get('feature_id', False)
+#         # get if user want only archived runs
+#         archived = request.GET.get('archived', False) == 'true'
+#         if feature_id and feature_id.isnumeric():
+#             # get all the feature runs for specific run
+#             feature_runs = Feature_Runs.available_objects.filter(feature=feature_id, archived=archived).order_by('-date_time', '-run_id')
+#             # get the amount of data per page using the queryset
+#             page = self.paginate_queryset(FeatureRunsSerializer.fast_loader(feature_runs))
+#             # serialize the data
+#             serialized_data = FeatureRunsSerializer(page, many=True).data
+#             # return the data with count, next and previous pages.
+#             return self.get_paginated_response(serialized_data)
+
+#         return JsonResponse({'success': False, 'error': 'No feature_result_id nor feature_id specified...'}, status=400)
+
+
+
 # FeatureResultByFeatureIdViewSet
 # ... takes parameter FeatureId and returns all results for that ID from featureResults
 # ... this enables showing all results without grouping them by featureRun
@@ -1077,43 +1131,25 @@ class FeatureResultByFeatureIdViewSet(viewsets.ModelViewSet):
     ordering_fields = ('result_date',)
 
     def list(self, request, *args, **kwargs):
-
-        data = {}
-
-        #
-        # If featureId in request, then return the featureResults for that ID
-        # ... this does not take into account the "archived/saved" feature-runs
-        # ... TODO/FIXME/XXX ... retrieve also the archived flag from featureRuns
-        # ... or set the archived Flag on FeatureResult _and_ featureRun 
-        #
-        if "feature_id" in kwargs:
-            # query feature_results for the id and order by date and result_id
-            feature_result = self.queryset.filter(feature_id=kwargs['feature_id']).order_by('-result_date', '-feature_result_id')
-            
-            # Check on number of results and return data with success=false or results
-            if len(feature_result) > 0:
-                logger.debug("Found "+str(len(feature_result))+" results")
-                data["result"] = FeatureResultSerializer(feature_result,many=True).data
-            else:
-                data['success'] = False
-                data['error'] = "No feature_result found with id " + kwargs['feature_id']
-            return Response(data)
-
         # check if feature_id in GET parameters
         feature_id = request.GET.get('feature_id', False)
         # get if user want only archived runs
         archived = request.GET.get('archived', False) == 'true'
         if feature_id and feature_id.isnumeric():
+
             # get all the feature runs for specific run
-            feature_runs = Feature_Runs.available_objects.filter(feature=feature_id, archived=archived).order_by('-date_time', '-run_id')
+            feature_result = self.queryset.filter(feature_id=feature_id, archived=archived).order_by('-result_date', '-feature_result_id')
+
             # get the amount of data per page using the queryset
-            page = self.paginate_queryset(FeatureRunsSerializer.fast_loader(feature_runs))
-            # serialize the data
-            serialized_data = FeatureRunsSerializer(page, many=True).data
+            page = self.paginate_queryset(FeatureResultSerializer(feature_result,many=True).data)
+
             # return the data with count, next and previous pages.
-            return self.get_paginated_response(serialized_data)
+            return self.get_paginated_response(page)
 
         return JsonResponse({'success': False, 'error': 'No feature_result_id nor feature_id specified...'}, status=400)
+
+
+
 
 class FeatureResultViewSet(viewsets.ModelViewSet):
     """
