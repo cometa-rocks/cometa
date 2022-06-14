@@ -114,8 +114,11 @@
         "budget_exceeded_title": "Budget exceed",
         "budget_exceeded_desc": "The feature you are about to run will exceed your configured budget. Do you want to continue?",
         "budget_ahead_title": "Low budget",
-        "budget_ahead_desc": "The feature you are about to run will likely exceed your configured budget. Do you want to continue?"
+        "budget_ahead_desc": "The feature you are about to run will likely exceed your configured budget. Do you want to continue?",
+        "move_feature_title": "Move feature",
+        "move_feature": "You are attempting to move feature to different department, environment variables that the feature in question is currently using, will no longer be usable. Do you want to continue?"
     },
+
     "integrations": {
         "add": "Add integration",
         "send_on": "Send on",

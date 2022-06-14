@@ -25,9 +25,9 @@
     </div>
     <!-- Mobile Stats -->
     <div class="mobile-info" *ngIf="pagination?.results[0] as lastRun">
-      <div class="steps">{{ lastRun.feature_results | sumByProperty:'total' }}</div>
-      <div class="steps">{{ lastRun.feature_results.length }}</div>
-      <div class="steps last-result-status" *ngLet="lastRun | featureRunPassed as passed" [ngClass]="passed ? 'success' : 'failed'">{{ passed ? 'OK' : 'NOK' }}</div>
+      <div class="steps">{{ lastRun.total}}</div>
+      <div class="steps">{{ 1 }}</div>
+      <div class="steps last-result-status" *ngLet="lastRun.success as passed" [ngClass]="passed ? 'success' : 'failed'">{{ passed ? 'OK' : 'NOK' }}</div>
     </div>
   </ng-container>
 </div>
@@ -41,10 +41,10 @@
     [useSkeletons]="true"
     skeletonsHeight="50px"
     [showHeaderOnNoResults]="true"
-    trackByKey="run_id"
+    trackByKey="feature_result_id"
     [itemTemplate]="listItem">
     <ng-template #listItem let-item>
-      <cometa-feature-run [run]="item"></cometa-feature-run>
+      <cometa-feature-run [test]="item"></cometa-feature-run>
     </ng-template>
     <ng-template #headTemplate>
         <cometa-main-view-header></cometa-main-view-header>
