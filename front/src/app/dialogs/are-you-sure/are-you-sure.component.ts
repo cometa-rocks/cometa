@@ -23,7 +23,6 @@ export class AreYouSureDialog {
       }
     }
   }
-
 }
 
 export interface AreYouSureData {

@@ -19,7 +19,7 @@ export class BehaveChartTestComponent implements OnChanges, OnInit, AfterViewIni
 
   Highcharts: typeof Highcharts = Highcharts;
 
-  @Input() data: FeatureRun[] = [];
+  @Input() data: FeatureResult[] = [];
 
   chart$: Observable<Highcharts.Options>;
   updateFlag = false;
@@ -73,9 +73,9 @@ export class BehaveChartTestComponent implements OnChanges, OnInit, AfterViewIni
     this.data$.next((changes?.data.currentValue || []));
   }
 
-  getSeriesData(data: FeatureRun[]) {
+  getSeriesData(data: FeatureResult[]) {
     // Sort data by date time
-    data = [...data].sort((a, b) => this._amParse.transform(a.date_time).getTime() - this._amParse.transform(b.date_time).getTime());
+    data = [...data].sort((a, b) => this._amParse.transform(a.result_date).getTime() - this._amParse.transform(b.result_date).getTime());
     // Initialize array values of series
     const pixelArray = [];
     const timeArray = [];
@@ -84,19 +84,19 @@ export class BehaveChartTestComponent implements OnChanges, OnInit, AfterViewIni
     // Iterate each run and push corresponding fields to each array
     for (const run of data) {
       pixelArray.push([
-        this._amParse.transform(run.date_time).getTime(),
+        this._amParse.transform(run.result_date).getTime(),
         run.pixel_diff
       ]);
       timeArray.push([
-        this._amParse.transform(run.date_time).getTime(),
-        run.execution_time / 1000
+        this._amParse.transform(run.result_date).getTime(),
+        Number(run.execution_time) / 1000
       ]);
       okArray.push([
-        this._amParse.transform(run.date_time).getTime(),
+        this._amParse.transform(run.result_date).getTime(),
         run.ok
       ]);
       nokArray.push([
-        this._amParse.transform(run.date_time).getTime(),
+        this._amParse.transform(run.result_date).getTime(),
         run.fails
       ]);
     };
