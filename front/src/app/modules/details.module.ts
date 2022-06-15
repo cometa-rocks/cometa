@@ -49,6 +49,10 @@ const routes: Routes = [
                 component: DetailViewComponent
             }
         ]
+    },
+    {
+        path: 'run/:run/step/:feature_result_id',
+        redirectTo: 'step/:feature_result_id' 
     }
 ];
 
