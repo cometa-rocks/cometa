@@ -6,6 +6,33 @@
   <base href="/">
   <link rel="icon" href="assets/favicons/@@BRANCH@@/favicon.ico?v=2">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+
+    /**
+     * Run URL checks before loading anything. 
+     */
+
+    // check if query parameters contain target_link_uri if not redirect to /
+    if(!window.location.search.includes("target_link_uri") && window.location.host !== 'localhost') {
+      console.log("You came directly to the welcome page. You should have been redirected to it. No worries we'll redirect you to it.");
+      window.location.href = "/";
+    }
+
+    // check if there is a target_link_uri and check if there is hash fragment
+    if (window.location.search.includes("target_link_uri") && window.location.hash) {
+      console.log("Found a target_link_uri and a hash fragment. Combining them together.")
+      // encode hash fragment of the uri
+      const hash = encodeURIComponent(window.location.hash);
+      // get the target_link_uri
+      const targetLinkURI = window.location.search.substr(1).split("&").find(x => x.includes("target_link_uri"))
+      // create a new target_link_uri
+      const newTargetLinkURI = targetLinkURI + hash;
+      // replace the target_link_uri
+      const newSearchParameters = window.location.search.replace(targetLinkURI, newTargetLinkURI);
+      // redirect user to new location
+      window.location.href = "/welcome.html" + newSearchParameters
+    }
+  </script>
   <style>
     @font-face {
       font-family: CorpoS;
@@ -154,11 +181,6 @@
     function focusInput() {
       // Focus captcha input
       document.querySelector('#userCaptchaInput').focus();
-    }
-    // check if query parameters contain target_link_uri if not redirect to /
-    if(!window.location.search.includes("target_link_uri") && window.location.host !== 'localhost') {
-      console.log("You came directly to the welcome page. You should have been redirected to it. No worries we'll redirect you to it.");
-      window.location.href = "/";
     }
     // fetch all providers 
     fetch("/backend/api/authproviders/")
