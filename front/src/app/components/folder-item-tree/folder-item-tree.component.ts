@@ -28,14 +28,8 @@ export class FolderItemTreeComponent implements OnInit {
   folderState = {};
 
   constructor(private _store: Store, public _sharedActions: SharedActionsService, private log: LogService) {
-    // get folder hierarchy state from localstorage, in case it is users first time entering, default department´s state will be set to false(closed)
-    // if localstorage is empty, then set default values
-    this.folderState =
-      JSON.parse(localStorage.getItem('co_folderState'))
-      ||
-      { Default: { open: false }, comment: "This object stores the state of whole folder hierarchy in localstorage" };
-
-      this.log.msg("1","Getting folder tree state...","folder-item-tree", this.folderState);
+    this.getOrSetDefaultFolderState();
+    this.log.msg("1","Getting folder tree state...","folder-item-tree", this.folderState);
   }
 
   @Input() folder: Folder;
@@ -115,9 +109,14 @@ export class FolderItemTreeComponent implements OnInit {
     this.expanded$.next(status);
   }
 
-
-  // Changes the current folder and closes every active expandable
+  // toggles clicked department/folder
   toggleExpand() {
+    // update state incase it has been changed.
+    this.getOrSetDefaultFolderState();
+
+    // toggle folder (open/close)
+    this.toggleRow();
+
     // modify existing folder state, or add new instance of folder with its state
     this.folderState[this.folder.name] = {
       open: this.expanded$.getValue()
@@ -133,8 +132,6 @@ export class FolderItemTreeComponent implements OnInit {
     this.log.msg("1","Saving folder tree state to localstorage...","folder-item-tree", this.folderState);
     localStorage.setItem('co_folderState', JSON.stringify(this.folderState));
 
-    // toggle folder (open/close)
-    this.toggleRow();
 
     if (this.folder.folder_id == 0) {
       this._store.dispatch(new Features.ReturnToFolderRoute(0));
@@ -144,6 +141,13 @@ export class FolderItemTreeComponent implements OnInit {
       this._store.dispatch(new Features.SetFolderRoute(this.parent));
     }
     this.toggleSearch();
+  }
+
+  getOrSetDefaultFolderState(): void {
+    // get folder hierarchy state from localstorage
+    // if localstorage is empty, then just set the comment
+    this.folderState =
+      JSON.parse(localStorage.getItem('co_folderState')) || { comment: "This object stores the state of whole folder hierarchy in localstorage" };
   }
 
 }
