@@ -72,7 +72,6 @@ import { LoadingSnack } from '@components/snacks/loading/loading.snack';
 import { EmailTemplateHelp } from '@dialogs/edit-feature/email-template-help/email-template-help.component';
 import { HtmlDiffDialog } from '@dialogs/html-diff/html-diff.component';
 import { AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
-import { AccountsDialog } from '@dialogs/accounts-dialog/accounts-dialog.component';
 import { EditIntegrationDialog } from '@dialogs/edit-integration/edit-integration.component';
 import { SendOnPipe } from '../pipes/send-on.pipe';
 import { TestDurationPipe } from '../pipes/test-duration.pipe';
@@ -96,6 +95,10 @@ import { MoveFolderItemComponent } from '@dialogs/move-feature/move-folder-item/
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MaterialExtensionsModule } from '@ng-matero/extensions';
+
+// virtual scrolling module for extended lists of feature results
+import {ScrollingModule} from '@angular/cdk/scrolling';
+
 import { FeatureRunningPipe } from '../pipes/feature-running.pipe';
 
 
@@ -139,7 +142,8 @@ const materialModules = [
   MatDividerModule,
   MatTableModule,
   MatSortModule,
-  MaterialExtensionsModule
+  MaterialExtensionsModule,
+  ScrollingModule
 ];
 
 const snacks = [
