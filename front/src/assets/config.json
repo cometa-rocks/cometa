@@ -190,11 +190,21 @@
 	],
 	"changelog": [
 		{
+			"version": "2.8.282",
+			"date": "2022-05-10",
+			"features": [
+				{
+					"title": "New steps: Download a file + Upload a File",
+					"description": "Added exiting new steps to upload and download files. Please read the documentation for more details."
+				}
+			]
+		},
+		{
 			"version": "2.8.281",
 			"date": "2022-05-10",
 			"features": [
 				{
-					"title": "Multimple http request",
+					"title": "Multiple http request",
 					"description": "Fixed step edit component realizing multiple http requests when it has another feature dependency step"
 				}
 			]
