@@ -21,7 +21,7 @@ install_jq() {
   fi
 }
 
-info "*********************** AMVARA ***********************"
+info "*********************** COMETA ***********************"
 info "This script automatically retrieves the latest browsers"
 info "for Selenoid and recreates/updates the docker."
 info "******************************************************"
