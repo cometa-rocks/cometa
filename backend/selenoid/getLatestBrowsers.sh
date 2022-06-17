@@ -13,6 +13,7 @@
 # ################################################################
 
 # CHANGELOG	VERSION	BY			COMMENT
+# 22-06-17  0.4     RROEBER     Adding Volume with for Upload Dummy Files
 # 22-04-06	0.3		ASOHAIL		Fixed jq issues with jq version 1.5
 # 22-04-05	0.2		ASOHAIL		Added change log and added output to stdout.
 # 22-04-04	0.1		ASOHAIL		Created this script.
@@ -66,12 +67,15 @@ EOF
 `
 BROWSERS=`echo ${BROWSERS_INFORMATION} | jq -r 'keys[]'` # Get all the browser keys.
 # Basic options needed for each browser version inside browser.json file
+# Variables in bgPath and downloadsPath are replace with deploy_selenoid.sh
 BASE_OPTIONS=`cat<<-EOF
 {
     "image": "<replaced_later_on>",
     "port": "4444",
     "volumes": [
-        "<bgPath>:/usr/share/images/fluxbox/aerokube.png"
+        "<bgPath>:/usr/share/images/fluxbox/aerokube.png",
+        "<downloadsPath>:/home/selenium/Downloads",
+        "<downloadsPath>/../uploads:/home/selenium/uploads"
     ]
 }
 EOF
