@@ -11,13 +11,11 @@
  */
 
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Select } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { TourService } from '@services/tour.service';
 import { Tour, TourExtended, Tours } from '@services/tours';
-import { Configuration } from '@store/actions/config.actions';
 import { UserState } from '@store/user.state';
 import { map, Observable } from 'rxjs';
 

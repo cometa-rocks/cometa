@@ -2,8 +2,8 @@
 pushd $(dirname "$0") &> /dev/null
 
 HELPERS="../../helpers"
-# source logger function
-source ${HELPERS}/logger.sh
+# source logger function if not sourced already
+test `command -v log_wfr` || source ${HELPERS}/logger.sh
 
 info "Executing Deploy Selenoid Script"
 
@@ -21,7 +21,7 @@ install_jq() {
   fi
 }
 
-info "*********************** AMVARA ***********************"
+info "*********************** COMETA ***********************"
 info "This script automatically retrieves the latest browsers"
 info "for Selenoid and recreates/updates the docker."
 info "******************************************************"
@@ -33,7 +33,7 @@ else
   install_jq
 fi
 # run getLatestBrowser.sh script to update browsers file
-./getLatestBrowsers.sh
+./getLatestBrowsers.sh $@
 # pull selenoid/video-recorder if not already pulled
 docker image ls | grep selenoid/video-recorder | grep -q "latest-release" && info "selenoid/video-recorder: already pulled." || { info "pulling selenoid/video-recorder"; docker pull selenoid/video-recorder:latest-release; }
 
