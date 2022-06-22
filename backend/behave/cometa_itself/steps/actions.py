@@ -2455,6 +2455,40 @@ def step_imp(context):
         if response.status_code != 200:
             raise CustomError("No jobId found. That's on us though.")
 
+# edit excel file and 
+@step(u'Edit "{excelfile}" and set "{value}" to "{cell}"')
+@done(u'Edit "{excelfile}" and set "{value}" to "{cell}"')
+def editFile(context, excelfile, value, cell):
+    # import openpyxl for excel modifications
+    from openpyxl import load_workbook
+
+    # generate path
+    if 'Downloads' in excelfile:
+        path = context.downloadDirectoryOutsideSelenium
+    elif 'uploads' in excelfile:
+        path = '/code/behave/uploads'
+    else:
+        path = ''
+    
+    excelfile = "/".join(excelfile.split("/")[1:])
+
+    excelFilePath = "%s/%s" % (path, excelfile)
+    savePath = "/code/behave/uploads/%s" % excelfile
+
+    # load excel file
+    wb = load_workbook(filename=excelFilePath)
+
+    # get active sheet
+    sheet = wb.active
+
+    # modify the cell with value
+    sheet[cell] = value
+
+    # save excel file back
+    wb.save(filename=savePath)
+
+
+
 # saves css_selectors innertext into a list variable. use "unique:<variable>" to make values distinct/unique. Using the variable in other steps means, that it includes "unique:", e.g. use "unique:colors" in other steps.
 @step(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
 @done(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')

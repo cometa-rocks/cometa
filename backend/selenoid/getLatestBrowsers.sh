@@ -74,7 +74,6 @@ BASE_OPTIONS=`cat<<-EOF
     "port": "4444",
     "volumes": [
         "<bgPath>:/usr/share/images/fluxbox/aerokube.png",
-        "<downloadsPath>:/home/selenium/Downloads",
         "<downloadsPath>/../uploads:/home/selenium/uploads"
     ]
 }

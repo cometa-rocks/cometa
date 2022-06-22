@@ -1,0 +1,2 @@
+This is a dummy file which can be used for testing uploads with cometa.
+

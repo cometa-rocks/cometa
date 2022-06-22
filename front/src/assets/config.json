@@ -1,5 +1,5 @@
 {
-	"version": "2.8.273",
+	"version": "2.8.283",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -189,6 +189,16 @@
 		"Dream it. Believe it. Build it."
 	],
 	"changelog": [
+		{
+			"version": "2.8.283",
+			"date": "2022-06-22",
+			"features": [
+				{
+					"title": "New steps: Edit Excel Files",
+					"description": "Added new step to updated an excel file. Please read the documentation for more details."
+				}
+			]
+		},
 		{
 			"version": "2.8.282",
 			"date": "2022-05-10",
