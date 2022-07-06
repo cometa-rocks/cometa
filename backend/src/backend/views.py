@@ -2002,6 +2002,9 @@ class FolderViewset(viewsets.ModelViewSet):
 
         # get the departments from the session user
         departments = tuple([x['department_id'] for x in request.session['user']['departments']])
+        logger.debug("Departments for FolderViewset %s", departments )
+        logger.debug("User object %s", request.session['user'])
+        logger.debug("UserID: %s", request.session['user']['user_id'])
 
         # return empty array if user does not belong to any department
         if len(departments) == 0:
@@ -2010,32 +2013,80 @@ class FolderViewset(viewsets.ModelViewSet):
                 "features": []
             })
 
+        # this query does not take into account that user has selected departments in account_role table
+        # query = '''
+        # WITH RECURSIVE recursive_folders AS (
+        #     SELECT bf.*, 1 AS LVL
+        #     FROM backend_folder bf
+        #     WHERE bf.parent_id_id is null
+
+        #     UNION
+
+        #     SELECT bf.*, rf.LVL + 1
+        #     FROM backend_folder bf JOIN recursive_folders rf ON bf.parent_id_id = rf.folder_id and rf.LVL < %s
+        # )
+        # SELECT rf.*, bf.feature_id
+        # FROM (recursive_folders rf
+        #     LEFT JOIN backend_folder_feature bff
+        #         ON rf.folder_id = bff.folder_id)
+        #     FULL OUTER JOIN backend_feature bf
+        #         ON bf.feature_id = bff.feature_id
+        # WHERE
+        #     rf.department_id IN %s
+        # OR
+        #     bf.department_id IN %s
+        # ORDER BY rf.folder_id;
+        # '''
+
+
+        #
+        # give me all folders and features inside recursively in a flat table from my selected departments,
+        # so folder department must match and feature deparment must match
+        # folder_id |       name       | owner_id | parent_id_id | department_id |          created_on           | lvl | feature_id | userid
+        # ----------+------------------+----------+--------------+---------------+-------------------------------+-----+------------+--------
+        #        83 | MIX              |        2 |              |             2 | 2021-09-09 22:28:01.274756+00 |   1 |         38 |    320
+        #        83 | MIX              |        2 |              |             2 | 2021-09-09 22:28:01.274756+00 |   1 |         31 |    320
+
+        # Testcases:
+        # I have access to department number 2.
+        # 1. There is a folder with department number 2 and inside are two features belonging to department number 2 and 3. I will see the folder and one feature.
+        # 2. There is a folder with department number 3 and inside are two features belonging to department number 2 and 3. I will not see the folder. I will not see the features.
+        # 3. Moving a new feature only gives me access to department 2
+
+        # I change my access to department number 2 + 3
+        # in case 1: I can see both features.
+        # in case 2: I can see the folder and both features.
+        # in case 3: I can move features between departments.
+
         query = '''
-        WITH RECURSIVE recursive_folders AS (
-            SELECT bf.*, 1 AS LVL
-            FROM backend_folder bf
-            WHERE bf.parent_id_id is null
+            WITH RECURSIVE recursive_folders AS (
+                        SELECT bf.*, 1 AS LVL
+                        FROM backend_folder bf
+                        WHERE bf.parent_id_id is null
 
-            UNION
+                        UNION
 
-            SELECT bf.*, rf.LVL + 1
-            FROM backend_folder bf JOIN recursive_folders rf ON bf.parent_id_id = rf.folder_id and rf.LVL < %s
-        )
-        SELECT rf.*, bf.feature_id
-        FROM (recursive_folders rf
-            LEFT JOIN backend_folder_feature bff
-                ON rf.folder_id = bff.folder_id)
-            FULL OUTER JOIN backend_feature bf
-                ON bf.feature_id = bff.feature_id
-        WHERE
-            rf.department_id IN %s
-        OR
-            bf.department_id IN %s
-        ORDER BY rf.folder_id;
+                        SELECT bf.*, rf.LVL + 1
+                        FROM backend_folder bf
+
+                            JOIN recursive_folders rf ON bf.parent_id_id = rf.folder_id and rf.LVL < %s
+                    )
+                    SELECT rf.*, bf.feature_id
+                    FROM (recursive_folders rf
+                        LEFT JOIN backend_folder_feature bff
+                            ON rf.folder_id = bff.folder_id)
+                        FULL OUTER JOIN backend_feature bf
+                            ON bf.feature_id = bff.feature_id
+                    WHERE
+                            ( rf.department_id IN %s and bf.department_id IN %s )
+                        or
+                            ( rf.department_id is null and bf.department_id IN %s )
+                    ORDER BY rf.folder_id
         '''
 
+
         # make a raw query to folders table
-        results = Folder.objects.raw(query, [MAX_FOLDER_HIERARCHY, departments, departments])
+        results = Folder.objects.raw(query, [MAX_FOLDER_HIERARCHY, departments, departments, departments])
         # serialize raw data to JSON
         folders = self.serializeResultsFromRawQuery(results)
 
