@@ -2473,7 +2473,9 @@ def editFile(context, excelfile, value, cell):
     excelfile = "/".join(excelfile.split("/")[1:])
 
     excelFilePath = "%s/%s" % (path, excelfile)
+    logger.debug("Excel file opening: %s", excelFilePath)
     savePath = "/code/behave/uploads/%s" % excelfile
+    logger.debug("Excel file saveing: %s", savePath)
 
     # load excel file
     wb = load_workbook(filename=excelFilePath)
@@ -2483,12 +2485,19 @@ def editFile(context, excelfile, value, cell):
 
     # modify the cell with value
     sheet[cell] = value
+<<<<<<< Updated upstream
+=======
+    assert(sheet[cell] <= value)
+>>>>>>> Stashed changes
 
     # save excel file back
     wb.save(filename=savePath)
 
+<<<<<<< Updated upstream
 
 
+=======
+>>>>>>> Stashed changes
 # saves css_selectors innertext into a list variable. use "unique:<variable>" to make values distinct/unique. Using the variable in other steps means, that it includes "unique:", e.g. use "unique:colors" in other steps.
 @step(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
 @done(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
