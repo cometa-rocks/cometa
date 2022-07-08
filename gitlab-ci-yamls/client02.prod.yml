@@ -1,0 +1,39 @@
+# create a basic configuration script for
+# selected server change extension name to
+# match filename
+.client02.prod:
+  # set main variable for selected server
+  variables:
+    #########################################################
+    # BACKEND
+    #########################################################
+    DEPLOY_BACKEND_FOLDER: "/var/www/cometa"
+    COMETA_DOMAIN: "$COMETA_CLIENT02_DOMAIN_PROD"
+    COMETA_DEBUG: "False"
+    COMETA_EMAIL_HOST: '$COMETA_CLIENT02_EMAIL_HOST'
+    COMETA_EMAIL_USER: '$COMETA_CLIENT01_EMAIL_USER'
+    COMETA_PROXY_ENABLED: 'True'
+    COMETA_PROXY: '$COMETA_CLIENT02_PROXY_PROD'
+    COMETA_TOTAL_BROWSER_VERSION: 4 # lowered the number to 4 from 10 since the server is running low on disk space :)!
+    #########################################################
+    # FRONTEND
+    #########################################################
+    DOCKER_HTTP_PORT: 80
+    DOCKER_OPENIDC_CONFIG_EXT: "client01_int"
+  before_script:    
+    #########################################################
+    # FRONTEND
+    #########################################################
+    # Replace oAuth information in openidc
+    - sed -i 's|@@COMETA_CLIENT01_INT_CLIENTID@@|'$COMETA_CLIENT01_INT_CLIENTID'|g' front/apache-conf/metadata/client001.client
+    - sed -i 's|@@COMETA_CLIENT01_INT_SECRETKEY@@|'$COMETA_CLIENT01_INT_SECRETKEY'|g' front/apache-conf/metadata/client001.client
+    - sed -i 's|@@COMETA_CLIENT01_OIDCHOST@@|'$COMETA_CLIENT01_OIDCHOST'|g' front/apache-conf/metadata/client001.provider
+    # move the file to the correct filename needed by mod_oAuth as seen in https://github.com/zmartzone/mod_auth_openidc/wiki/Multiple-Providers
+    - mv front/apache-conf/metadata/client001.client front/apache-conf/metadata/$COMETA_CLIENT01_OIDCHOST.client
+    - mv front/apache-conf/metadata/client001.conf front/apache-conf/metadata/$COMETA_CLIENT01_OIDCHOST.conf
+    - mv front/apache-conf/metadata/client001.provider front/apache-conf/metadata/$COMETA_CLIENT01_OIDCHOST.provider
+  tags: # on what runners we'd like to run this job
+    - cometa-destr
+  only: # on what branch we'd like to run this job
+    refs:
+      - master
