@@ -4,6 +4,7 @@
 # Steps not included are Enterprise Licenced Steps
 #
 # Changelog
+# 2022-07-08 RRO added last_downloaded_file.suffix to handle generated generic filenames where the suffix is maintained
 # 2022-03-04 RRO added new step "Search for "{something}" in IBM Cognos and click on first result"
 # 2022-03-01 RRO added step to hit ok on alert, confirm or prompt window
 # 2022-02-01 RRO Cleaning up :-)
@@ -2309,6 +2310,12 @@ def downloadFileFromURL(url, dest_folder, filename):
                     f.write(chunk)
                     f.flush()
                     os.fsync(f.fileno())
+
+        # we copy the very same file also to a generic filename "last_downloaded_file" maintaining suffix for convinience reasons in the same folder
+        file_path2 = os.path.join(dest_folder, "last_downloaded_file"+Path(file_path).suffix)
+        logger.debug("Copying file also to last_downloaded_file for convinience %s", file_path2)
+        shutil.copy(file_path,file_path2)
+
     else:  # HTTP status code 4XX/5XX
         logger.error("Download failed: status code {}\n{}".format(r.status_code, r.text))
 
@@ -2319,7 +2326,7 @@ def step_imp(context, selector, filename):
     elements = waitSelector(context, "css", selector)
     elements[0].send_keys("/home/selenium/"+filename)
 
-# download a file and watch which file is downloaded and assign them to feature_result and step_result, linktext can be a text, css_selector or even xpath
+# download a file and watch which file is downloaded and assign them to feature_result and step_result, linktext can be a text, css_selector or even xpath. The downloaded file name is as seen in the application. Cometa copies the archive to last_downloaded_file.suffix - where suffix is the same suffix as the original filename.
 @step(u'Download a file by clicking on "{linktext}"')
 @done(u'Download a file by clicking on "{linktext}"')
 def step_imp(context, linktext):
@@ -2332,7 +2339,8 @@ def step_imp(context, linktext):
     session_id = str(context.browser.session_id)
     # selenoid download URL 
     downloadURL = "http://cometa_selenoid:4444/download/%s/" % session_id
-    logger.debug(downloadURL)
+    logger.debug("DownloadURL: %s" % downloadURL)
+    logger.debug("Selenoid preference download directory: %s" % context.downloadDirectoryOutsideSelenium)
     
     # find and click on the element
     send_step_details(context, 'Looking for download link element')
@@ -2355,8 +2363,11 @@ def step_imp(context, linktext):
     while counter < maxTimer:
         # get all the files downloaded from selenoid
         request = requests.get(downloadURL)
+        logger.debug("Download URL: %s" % downloadURL)
+        logger.debug("Request content: %s" % request.content)
         # get all links from download URL
         links = re.findall(br'href="([^\"]+)', request.content)
+        logger.debug("Links to be downloaded: %s" % links)
 
         # check if need to continue because files are still being downloaded
         CONTINUE=False
@@ -2364,14 +2375,16 @@ def step_imp(context, linktext):
         # check if files are still being downloaded
         for link in links:
             link = link.decode('utf-8')
+            logger.debug("Checking on download link: %s" % link)
             if re.match(r'.*\..*download\b', link):
                 # there are files still being downloaded
-                logger.debug('%s file is still being downloaded' % link)
+                logger.debug('==> %s file is still being downloaded' % link)
                 CONTINUE=True
                 break
 
         # check if atleast one file has been downloaded
         if len(links) > 0 and not CONTINUE:
+            logger.debug("There was no file to be downloaded at the link location")
             break
         
         # if break does not get triggered then sum the counter and sleep for 1s
@@ -2389,6 +2402,8 @@ def step_imp(context, linktext):
         fileURL = "%s%s" % (downloadURL, link)
         # generate filename 
         filename = urllib.parse.unquote(fileURL.split('/')[-1]).replace(" ", "_")  # be careful with file names
+        # check if filename is empty ... then name the file cometa_download
+        logger.debug("calling function for saveing the file %s " % filename)
         downloadFileFromURL(fileURL, context.downloadDirectoryOutsideSelenium, filename)
         #add link to downloaded files
         [downloadedFiles.append("%s/%s" % (os.environ['feature_result_id'], x.split(os.sep)[-1])) for x in glob.glob(context.downloadDirectoryOutsideSelenium + "/*") if filename in x]
@@ -2455,7 +2470,7 @@ def step_imp(context):
         if response.status_code != 200:
             raise CustomError("No jobId found. That's on us though.")
 
-# edit excel file and 
+# edit excel file and set a value to a given cell. The file is saved on the same path, as well as on uploads/<same filename> for later uploading.
 @step(u'Edit "{excelfile}" and set "{value}" to "{cell}"')
 @done(u'Edit "{excelfile}" and set "{value}" to "{cell}"')
 def editFile(context, excelfile, value, cell):
@@ -2485,19 +2500,75 @@ def editFile(context, excelfile, value, cell):
 
     # modify the cell with value
     sheet[cell] = value
-<<<<<<< Updated upstream
-=======
-    assert(sheet[cell] <= value)
->>>>>>> Stashed changes
 
     # save excel file back
+    wb.save(filename=excelFilePath)
     wb.save(filename=savePath)
 
-<<<<<<< Updated upstream
+# Opens excel file and tests that value is found in a given cell.
+@step(u'Open "{excelfile}" and assert "{value}" is in cell "{cell}"')
+@done(u'Open "{excelfile}" and assert "{value}" is in cell "{cell}"')
+def editFile(context, excelfile, value, cell):
+    # import openpyxl for excel modifications
+    from openpyxl import load_workbook
+
+    # generate path
+    if 'Downloads' in excelfile:
+        path = context.downloadDirectoryOutsideSelenium
+    elif 'uploads' in excelfile:
+        path = '/code/behave/uploads'
+    else:
+        path = ''
+    
+    excelfile = "/".join(excelfile.split("/")[1:])
+
+    excelFilePath = "%s/%s" % (path, excelfile)
+    logger.debug("Excel file opening: %s", excelFilePath)
+
+    # load excel file
+    wb = load_workbook(filename=excelFilePath)
+
+    # get active sheet
+    sheet = wb.active
+
+    # assert the cell with value
+    logger.debug("Cell value: %s" % sheet[cell].value)
+    logger.debug("Value to compare: %s" % value)
+    assert sheet[cell].value == value
+
+ # Opens excel file adds a variable to environment and sets the value as seen in Excel cell.
+@step(u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"')
+@done(u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"')
+def editFile(context, excelfile, variable_name, cell):
+    # import openpyxl for excel modifications
+    from openpyxl import load_workbook
+
+    # generate path
+    if 'Downloads' in excelfile:
+        path = context.downloadDirectoryOutsideSelenium
+    elif 'uploads' in excelfile:
+        path = '/code/behave/uploads'
+    else:
+        path = ''
+    
+    excelfile = "/".join(excelfile.split("/")[1:])
+
+    excelFilePath = "%s/%s" % (path, excelfile)
+    logger.debug("Excel file opening: %s", excelFilePath)
+
+    # load excel file
+    wb = load_workbook(filename=excelFilePath)
+
+    # get active sheet
+    sheet = wb.active
+
+    # assert the cell with value
+    logger.debug("Setting value value: %s to variable %s " % (sheet[cell].value, variable_name) )
+    
+    # add variable
+    addVariable(context, variable_name, sheet[cell].value)
 
 
-=======
->>>>>>> Stashed changes
 # saves css_selectors innertext into a list variable. use "unique:<variable>" to make values distinct/unique. Using the variable in other steps means, that it includes "unique:", e.g. use "unique:colors" in other steps.
 @step(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
 @done(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
