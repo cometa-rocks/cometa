@@ -2319,12 +2319,22 @@ def downloadFileFromURL(url, dest_folder, filename):
     else:  # HTTP status code 4XX/5XX
         logger.error("Download failed: status code {}\n{}".format(r.status_code, r.text))
 
-# upload a file by selecting the upload item and sending the keys with the folder/filename. Cometa offers folder Downloads and uploads with files inside the headless browser.
+# Upload a file by selecting the upload input field and sending the keys with the folder/filename. Cometa offers folder uploads with files inside the headless browser in Downloads/ and uploads/ folder. Separate multiple files by semicolon.
 @step(u'Upload a file by clicking on "{selector}" using file "{filename}"')
 @done(u'Upload a file by clicking on "{selector}" using file "{filename}"')
 def step_imp(context, selector, filename):
+    # select the upload element to send the filenames to
     elements = waitSelector(context, "css", selector)
-    elements[0].send_keys("/home/selenium/"+filename)
+    # replace "uploads" with "/home/selenium/uploads/"
+    logger.debug("Before replacing filename: %s" % filename)
+    filename=re.sub("(uploads\/)+","/home/selenium/uploads/",filename)
+    # replace ";" with a carriage return
+    filename=re.sub("(;)+","\n",filename)
+    # do some logging
+    logger.debug("After replacing filename: %s" % filename)
+    logger.debug("Sending filename to input field")
+    # send the filename string to the input field
+    elements[0].send_keys(filename)
 
 # download a file and watch which file is downloaded and assign them to feature_result and step_result, linktext can be a text, css_selector or even xpath. The downloaded file name is as seen in the application. Cometa copies the archive to last_downloaded_file.suffix - where suffix is the same suffix as the original filename.
 @step(u'Download a file by clicking on "{linktext}"')
