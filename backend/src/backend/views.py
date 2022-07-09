@@ -2078,7 +2078,7 @@ class FolderViewset(viewsets.ModelViewSet):
                         FULL OUTER JOIN backend_feature bf
                             ON bf.feature_id = bff.feature_id
                     WHERE
-                            ( rf.department_id IN %s and bf.department_id IN %s )
+                            ( rf.department_id IN %s and ( bf.department_id IN %s or bf.department_id is null) )
                         or
                             ( rf.department_id is null and bf.department_id IN %s )
                     ORDER BY rf.folder_id
@@ -2087,8 +2087,10 @@ class FolderViewset(viewsets.ModelViewSet):
 
         # make a raw query to folders table
         results = Folder.objects.raw(query, [MAX_FOLDER_HIERARCHY, departments, departments, departments])
+        logger.debug("Query: %s" % results)
         # serialize raw data to JSON
         folders = self.serializeResultsFromRawQuery(results)
+        logger.debug("Folders: %s" % folders)
 
         # add features with parent none to final_dict.features
         if None in folders:
