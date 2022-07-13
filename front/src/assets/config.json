@@ -1,5 +1,5 @@
 {
-	"version": "2.8.283",
+	"version": "2.8.286",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -189,6 +189,33 @@
 		"Dream it. Believe it. Build it."
 	],
 	"changelog": [
+		{
+			"version": "2.8.286",
+			"date": "2022-07-12",
+			"features": [
+				{
+					"title": "New step: Attach {filename} from Downloads folder to current execution results",
+					"description": "Added a new step to attach files to the execution results fo later investigation. Please read the documentation for more details. https://github.com/cometa-rocks/cometa_documentation/blob/main/cometa_actions.md"
+				}
+			]
+		},
+		{
+			"version": "2.8.285",
+			"date": "2022-07-09",
+			"bugfixes": [
+				"Fixed upload of multiple files by separating files with semicolon."
+			]
+		},
+		{
+			"version": "2.8.284",
+			"date": "2022-07-08",
+			"features": [
+				{
+					"title": "New steps: Open Excel and assert, Open Excel and set environment variable to value from cell",
+					"description": "Added new step to updated an excel file. Please read the documentation for more details. https://github.com/cometa-rocks/cometa_documentation/blob/main/cometa_actions.md"
+				}
+			]
+		},
 		{
 			"version": "2.8.283",
 			"date": "2022-06-22",
