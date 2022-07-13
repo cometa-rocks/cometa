@@ -4,6 +4,7 @@
 # Steps not included are Enterprise Licenced Steps
 #
 # Changelog
+# 2022-07-11 RRO Added some sleeps of 100ms to copy and saving of downloaded and edited excel files, as received IO timeouts on DAI-prod
 # 2022-07-08 RRO added last_downloaded_file.suffix to handle generated generic filenames where the suffix is maintained
 # 2022-03-04 RRO added new step "Search for "{something}" in IBM Cognos and click on first result"
 # 2022-03-01 RRO added step to hit ok on alert, confirm or prompt window
@@ -2316,6 +2317,9 @@ def downloadFileFromURL(url, dest_folder, filename):
         logger.debug("Copying file also to last_downloaded_file for convinience %s", file_path2)
         shutil.copy(file_path,file_path2)
 
+        # sleep some time to gives discs time to sync
+        time.sleep(0.25)
+
     else:  # HTTP status code 4XX/5XX
         logger.error("Download failed: status code {}\n{}".format(r.status_code, r.text))
 
@@ -2327,7 +2331,10 @@ def step_imp(context, selector, filename):
     elements = waitSelector(context, "css", selector)
     # replace "uploads" with "/home/selenium/uploads/"
     logger.debug("Before replacing filename: %s" % filename)
+    # replace upload directory and add /home/selenium to it
     filename=re.sub("(uploads\/)+","/home/selenium/uploads/",filename)
+    # replace Downloads directory and add /home/selenium to it
+    filename=re.sub("(Downloads\/)+","/home/selenium/Downloads/",filename)
     # replace ";" with a carriage return
     filename=re.sub("(;)+","\n",filename)
     # do some logging
@@ -2336,7 +2343,21 @@ def step_imp(context, selector, filename):
     # send the filename string to the input field
     elements[0].send_keys(filename)
 
-# download a file and watch which file is downloaded and assign them to feature_result and step_result, linktext can be a text, css_selector or even xpath. The downloaded file name is as seen in the application. Cometa copies the archive to last_downloaded_file.suffix - where suffix is the same suffix as the original filename.
+# Attach a file from Downloads folder to the current feature-result. This is usefull for evaluating the file contents later on. The filename has to be the filename in the Downloads folders and will automatically link to the actual execution of the feature. Just write the filename - without mentioning the "Downloads/" folder
+@step(u'Attach the "{filename}" from Downloads folder to the current execution results')
+@done(u'Attach the "{filename}" from Downloads folder to the current execution results')
+def step_imp(context, filename):
+    logger.debug("Attaching to current execution filename: %s" % filename)
+    # feature resultId
+    logger.debug("Feature ResultID: %s " % os.environ['feature_result_id'])
+    final_filename = [os.environ['feature_result_id']+'/'+filename]
+    # attaching the file to the steps
+    logger.debug("Step to attach the file to: %s " % context.counters['index'])
+    context.downloadedFiles[context.counters['index']] = final_filename
+    logger.debug("Attached: %s" % final_filename)
+    send_step_details(context, 'Attached file to to feature result')
+
+# Download a file and watch which file is downloaded and assign them to feature_result and step_result, linktext can be a text, css_selector or even xpath. The downloaded file name is as seen in the application. Cometa copies the archive to last_downloaded_file.suffix - where suffix is the same suffix as the original filename.
 @step(u'Download a file by clicking on "{linktext}"')
 @done(u'Download a file by clicking on "{linktext}"')
 def step_imp(context, linktext):
@@ -2419,6 +2440,7 @@ def step_imp(context, linktext):
         [downloadedFiles.append("%s/%s" % (os.environ['feature_result_id'], x.split(os.sep)[-1])) for x in glob.glob(context.downloadDirectoryOutsideSelenium + "/*") if filename in x]
 
     # updated downloadedFiles in context
+    logger.debug("Attaching downloaded files to feature run: %s " % downloadedFiles)
     context.downloadedFiles[context.counters['index']] = downloadedFiles
 
 # schedule a job that runs a feature with specific key:value parameters separated by semi-colon (;) and crontab patterned schedules like "* * * * *" schedule can use <today> and <tomorrow> which are replaced dynamically.
@@ -2513,7 +2535,15 @@ def editFile(context, excelfile, value, cell):
 
     # save excel file back
     wb.save(filename=excelFilePath)
-    wb.save(filename=savePath)
+    
+    # give some time for syncing filesystem
+    time.sleep(0.1)
+    
+    # Copy that file to uploads
+    shutil.copy(excelFilePath,savePath)
+
+    # give some time for syncing filesystem
+    time.sleep(0.1)
 
 # Opens excel file and tests that value is found in a given cell.
 @step(u'Open "{excelfile}" and assert "{value}" is in cell "{cell}"')
