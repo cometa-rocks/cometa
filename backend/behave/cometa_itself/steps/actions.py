@@ -2502,27 +2502,23 @@ def step_imp(context):
         if response.status_code != 200:
             raise CustomError("No jobId found. That's on us though.")
 
-# edit excel file and set a value to a given cell. The file is saved on the same path, as well as on uploads/<same filename> for later uploading.
-@step(u'Edit "{excelfile}" and set "{value}" to "{cell}"')
-@done(u'Edit "{excelfile}" and set "{value}" to "{cell}"')
-def editFile(context, excelfile, value, cell):
+# from https://stackoverflow.com/a/60049042/18232031
+def index_transform(excel_index):
+    match = re.match(r"^([a-z]+)(\d+)$", excel_index.lower())
+    if not match:
+        raise CustomError("Invalid index")
+
+    x_cell = -1
+    for idx, char in enumerate(match.group(1)[::-1]):
+        x_cell += (26 ** idx) * (ord(char) - 96)  # ord('a') == 97
+
+    y_cell = int(match.group(2)) - 1
+
+    return y_cell, x_cell
+
+def updateExcel(excelFilePath, cell, value, savePath):
     # import openpyxl for excel modifications
     from openpyxl import load_workbook
-
-    # generate path
-    if 'Downloads' in excelfile:
-        path = context.downloadDirectoryOutsideSelenium
-    elif 'uploads' in excelfile:
-        path = '/code/behave/uploads'
-    else:
-        path = ''
-    
-    excelfile = "/".join(excelfile.split("/")[1:])
-
-    excelFilePath = "%s/%s" % (path, excelfile)
-    logger.debug("Excel file opening: %s", excelFilePath)
-    savePath = "/code/behave/uploads/%s" % excelfile
-    logger.debug("Excel file saveing: %s", savePath)
 
     # load excel file
     wb = load_workbook(filename=excelFilePath)
@@ -2541,6 +2537,52 @@ def editFile(context, excelfile, value, cell):
     
     # Copy that file to uploads
     shutil.copy(excelFilePath,savePath)
+
+def updateCsv(excelFilePath, cell, value, savePath):
+    # importing the pandas library
+    import pandas as pd
+    
+    # reading the csv file
+    df = pd.read_csv(excelFilePath)
+    
+    # get excel equivalent to CSV index
+    indexes = index_transform(cell)
+
+    # updating the column value/data
+    df.iloc[indexes[0], indexes[1]] = value
+    
+    # writing into the file
+    df.to_csv(savePath, index=False)
+
+# edit excel or csv file and set a value to a given cell. The file is saved on the same path, as well as on uploads/<same filename> for later uploading.
+@step(u'Edit "{file}" and set "{value}" to "{cell}"')
+@done(u'Edit "{file}" and set "{value}" to "{cell}"')
+def editFile(context, file, value, cell):
+    # generate path
+    if 'Downloads' in file:
+        path = context.downloadDirectoryOutsideSelenium
+    elif 'uploads' in file:
+        path = '/code/behave/uploads'
+    else:
+        path = ''
+    
+    file = "/".join(file.split("/")[1:])
+
+    filePath = "%s/%s" % (path, file)
+    logger.debug("File opening: %s", filePath)
+    savePath = "/code/behave/uploads/%s" % file
+    logger.debug("File saveing: %s", savePath)
+
+    # check if file exists
+    if not os.path.exists(filePath):
+        raise CustomError("Unable to find file: %s, please make sure the directory is correct." % file)    
+    
+    if filePath.endswith(".xlsx") or filePath.endswith(".xls"):
+        updateExcel(filePath, cell, value, savePath)
+    elif filePath.endswith(".csv"):
+        updateCsv(filePath, cell, value, savePath)
+    else:
+        raise CustomError("Unknown file format found. Please use a file with one of these extensions: csv, xlsx, xls.")
 
     # give some time for syncing filesystem
     time.sleep(0.1)
