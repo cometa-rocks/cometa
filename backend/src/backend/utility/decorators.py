@@ -75,7 +75,7 @@ def require_permissions(permission, *_args, **_kwargs):
             elif usersOwn(user, **require_permissions_kwargs): # user owns the object
                 kwargs['usersOwn'] = True
                 return fn(*args, **kwargs)
-            return JsonResponse({"success": False, "error": "permission_denied"}, status=200)
+            return JsonResponse({"success": False, "error": "Missing permission '%s'." % permission}, status=200)
         return decorated
     return decorator
 
