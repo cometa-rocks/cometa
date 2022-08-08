@@ -64,7 +64,7 @@ export class AddFolderComponent{
 
   submit(values) {
     if (this.data.mode === 'new') {
-      this._api.createFolder(values.name, values.department, this.data.folder.folder_id).pipe(
+      this._api.createFolder(values.name, values.department, this.data.folder.type == 'folder' ? this.data.folder.folder_id : undefined).pipe(
         switchMap(res => this._store.dispatch( new Features.GetFolders ).pipe(
           map(() => res)
         )),
