@@ -1,5 +1,5 @@
 {
-	"version": "2.8.286",
+	"version": "2.8.287",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -189,6 +189,16 @@
 		"Dream it. Believe it. Build it."
 	],
 	"changelog": [
+		{
+			"version": "2.8.287",
+			"date": "2022-07-25",
+			"features": [
+				{
+					"title": "Updated step: Edit {file} and set {value} to {cell}",
+					"description": "Updated edit excel step to now edit csv files as well. Supported extensions are: XLSX, XLS & CSV. CSV only supports UTF-8."
+				}
+			]
+		},
 		{
 			"version": "2.8.286",
 			"date": "2022-07-12",
