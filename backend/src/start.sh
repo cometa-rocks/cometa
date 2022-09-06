@@ -101,11 +101,9 @@ install_cron
 # check and create secret_variables.py
 create_secret_variables
 # Install poetry package manager
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+curl -sSL https://install.python-poetry.org | python3 -
 # Create symbolic link to Poetry so it's available as command everywhere
-if [ ! -L "/usr/local/bin/poetry" ]; then
-    ln -s /root/.poetry/bin/poetry /usr/local/bin/poetry
-fi
+ln -s /root/.local/bin/poetry /usr/local/bin/poetry
 # Disable creation of virtual env
 poetry config virtualenvs.create false
 # Install project dependencies
