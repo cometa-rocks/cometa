@@ -207,6 +207,11 @@ def before_all(context):
     options = None
     if context.browser_info['browser'] == "chrome":
         options = webdriver.ChromeOptions()
+        # disable shm since newer chrome version will run out of memory
+        # https://github.com/stephen-fox/chrome-docker/issues/8
+        # read more about chrome options:
+        # https://peter.sh/experiments/chromium-command-line-switches/
+        options.add_argument("--disable-dev-shm-usage")
         # Handle local emulated mobile devices
         if context.browser_info.get('mobile_emulation', False):
             mobile_emulation = {
