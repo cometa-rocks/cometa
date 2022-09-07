@@ -4,7 +4,7 @@
 <p  align="center">
 <h1  align="center">Cometa</h1>
 <p  align="center">
-COMETA is a 100% open source software suite for visual and functional regression testing, to help QA Managers, DevOps and Business Owners get rid of repeating manual tests. <a  href="https://cometa.rocks/"><strong>Learn more</strong></a>
+COMETA is a 100% open source software suite for visual and functional regression testing, to help QA Managers, DevOps and Business Owners to manage test automation. <a  href="https://cometa.rocks/"><strong>Learn more</strong></a>
 <br>
 <br>
 Support: <a  href="https://t.me/joinchat/bFquCBGPBCAwYWZk">Telegram</a>
@@ -52,39 +52,22 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 	* Create an OAuth application
 	* Add your domain to the allowed hosts
 	* Retrieve the `client_id` and `secret_id` and paste them in `./front/apache-conf/metadata/accounts.google.com.client`
-	* Set `redirect_uri` to `https://<domain>/callback`
-   
-3. Create a crontab file, so docker does not create a directory for the volume
-   ```sh
-   touch backend/behave/schedules/crontab
-   ```
 
-4. Update some properties inside the `docker-compose.yml` file (or use `docker-compose-dev.yml` if running test environment):
-   * Change the `<outside_port>` port to `80` or any other port you'd like. Keep in mind that this port should match with what is configured inside the `openidc.conf`
-   * Change the `<server>` to `local` or your custom configuration file in `front/apache-conf/openidc.conf_<custom_name>`
 
-5. Get all Docker containers up:
+3. Get all Docker containers up:
 	```sh
 	docker-compose up -d
-	# or
-	docker-compose -f docker-compose-dev.yml up -d
 	```
 
 	Cometa starts on port 443. If that port is used on your machine, change it `docker-compose.yml` to e.g. "8443:443"
 	Cometa also starts on port 80. If that is not available you could change that to 8081 ind `docker-compose.yml`
 
-	In case you want to view some logs `docker-compose logs -f --tail=10`
+	To view some logs `docker-compose logs -f --tail=10` of the installation process.
 
-6. Wait for all the containers to start up, it may take about 5 minutes depending on the machine. You can check the logs using `docker-compose logs -f`
+	Give cometa some minutes to install python, setup django, download npm and docker files, compile the front end.
+	Depending on your computer this can take a couple of minutes.
 
-7. **(optional)** Load required database objects
-	```bash
-	docker exec -it cometa_django bash
-	python manage.py loaddata defaults/*.json
-	```
-	This command is executed by default on a new installation, run it only when you know the installation is not new and does not have any data. If you are unsure do not execute.
-
-8. **(optional)** Create superuser for the Backend Admin
+4. (optional) Create superuser for the Backend Admin
 
 	Default superuser is created on runtime as `admin:admin`.
 
@@ -94,31 +77,36 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 	root@cometa_django:/opt/code# python manage.py createsuperuser
 	``` 
 
-9. Run the selenoid setup
+5. (Optional) Run the selenoid setup
 
-	`./backend/selenoid/deploy_selenoid.sh`.
+	`./backend/selenoid/deploy_selenoid.sh -n 3`.
 
-	This will configure and pull the Docker images for Selenoid.
+	This will configure and pull the three newest Docker images with virtual browsers for Selenoid.
 
 	Selenoid image are the browser that you will be able use and select in cometa. 
 
-	Of course there are options to include browserstack, headspin or sourcelabs browsers. But that is a bit something you would not want to configure on your first setup.
+	Of course there are options to include browserstack, headspin or sourcelabs browsers. But that is a bit you would not want to configure on your first setup.
 
 	This step will take some time as all the default browser images are being pulled.
 
-	By default this script will download 3 latest versions for each browser (Edge, Chrome, Firefox, Opera), this behaviour can be changed by specifying `-n <amount_of_version>`.
+	Once cometa is up and running, you can parse the new browser images avaible into Cometa by calling `https://localhost/admin/parseBrowsers/`
 
-10. See cometa rocks in your browser
+6. See cometa rocks in your browser
 
 	Test server access `curl -k  https://<yourdomain>:<specified port - default 443>/`
 
-	Example `curl -k  https://localhost:8443/`
+	Example `curl -k  https://localhost:443/`
 
 	You should see something like this:
 	<p>The document has moved <i>here</i>.</p>
 
+7. Import the over 70 pre-defined actions
 
-11. Run your first test
+On first start you have to manually parse the actions.py file. This enables cometa to use any steps defined in the UI. The user can then choose from the steps in the UI.
+`https://localhost/backend/parseActions/` ... as a result cometa will show all actions that have been parsed and are now available for selection in cometa-front.
+
+
+8. Run your first test
 
 	Click on the "+" on the very top. Select Department, Environment and Feature Name
 
@@ -157,10 +145,6 @@ That's all, easy peasy.
 * Selenoid Dashboard: http://localhost:4444/dashboard/
 * Django: http://localhost:8000/admin
 
-## Reading changed actions.py
-
-On first start you have to manually parse the actions.py file. This enables cometa to use any steps defined in  the UI. The user can then choose from the steps in the UI.
-`https://localhost/backend/parseActions/` ... as a result cometa will show all actions that have been parsed and are now available for selection in cometa-front.
 ## Directory Layout
 
 * `./behave` Behave related files
