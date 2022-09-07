@@ -52,11 +52,22 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 	* Create an OAuth application
 	* Add your domain to the allowed hosts
 	* Retrieve the `client_id` and `secret_id` and paste them in `./front/apache-conf/metadata/accounts.google.com.client`
+	* Set `redirect_uri` to `https://<domain>/callback`
+   
+3. Create a crontab file, so docker does not create a directory for the volume
+   ```sh
+   touch backend/behave/schedules/crontab
+   ```
 
+4. Update some properties inside the `docker-compose.yml` file (or use `docker-compose-dev.yml` if running test environment):
+   * Change the `<outside_port>` port to `80` or any other port you'd like. Keep in mind that this port should match with what is configured inside the `openidc.conf`
+   * Change the `<server>` to `local` or your custom configuration file in `front/apache-conf/openidc.conf_<custom_name>`
 
-3. Get all Docker containers up:
+5. Get all Docker containers up:
 	```sh
 	docker-compose up -d
+	# or
+	docker-compose -f docker-compose-dev.yml up -d
 	```
 
 	Cometa starts on port 443. If that port is used on your machine, change it `docker-compose.yml` to e.g. "8443:443"
@@ -64,13 +75,16 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 
 	In case you want to view some logs `docker-compose logs -f --tail=10`
 
-4. Load required database objects
+6. Wait for all the containers to start up, it may take about 5 minutes depending on the machine. You can check the logs using `docker-compose logs -f`
+
+7. **(optional)** Load required database objects
 	```bash
 	docker exec -it cometa_django bash
 	python manage.py loaddata defaults/*.json
 	```
+	This command is executed by default on a new installation, run it only when you know the installation is not new and does not have any data. If you are unsure do not execute.
 
-5. (optional) Create superuser for the Backend Admin
+8. **(optional)** Create superuser for the Backend Admin
 
 	Default superuser is created on runtime as `admin:admin`.
 
@@ -80,7 +94,7 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 	root@cometa_django:/opt/code# python manage.py createsuperuser
 	``` 
 
-6. Run the selenoid setup
+9. Run the selenoid setup
 
 	`./backend/selenoid/deploy_selenoid.sh`.
 
@@ -92,7 +106,9 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 
 	This step will take some time as all the default browser images are being pulled.
 
-7. See cometa rocks in your browser
+	By default this script will download 3 latest versions for each browser (Edge, Chrome, Firefox, Opera), this behaviour can be changed by specifying `-n <amount_of_version>`.
+
+10. See cometa rocks in your browser
 
 	Test server access `curl -k  https://<yourdomain>:<specified port - default 443>/`
 
@@ -102,7 +118,7 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 	<p>The document has moved <i>here</i>.</p>
 
 
-8. Run your first test
+11. Run your first test
 
 	Click on the "+" on the very top. Select Department, Environment and Feature Name
 
