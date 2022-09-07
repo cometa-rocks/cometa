@@ -32,7 +32,14 @@ import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-cr
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { ClipboardModule } from 'ngx-clipboard';
-import { ContextMenuModule } from 'ngx-contextmenu';
+
+/*
+ * import { ContextMenuModule } from 'ngx-contextmenu'; is deprecated in angular 13
+ * replaced with
+ * import { ContextMenuModule } from '@perfectmemory/ngx-contextmenu';
+ * see the github issue at https://github.com/isaacplmann/ngx-contextmenu/issues/242
+ */
+import { ContextMenuModule } from '@perfectmemory/ngx-contextmenu';
 import { NgxsModule } from '@ngxs/store';
 import { NgxsDispatchPluginModule } from '@ngxs-labs/dispatch-decorator';
 import { NgxsSelectSnapshotModule } from '@ngxs-labs/select-snapshot';
