@@ -22,6 +22,7 @@ Support: <a  href="https://t.me/joinchat/bFquCBGPBCAwYWZk">Telegram</a>
 - [Django](https://www.djangoproject.com/)
 - [Behave](https://behave.readthedocs.io/en/stable/)
 - [Selenoid](https://aerokube.com/selenoid/)
+- [PostgreSQL](https://www.postgresql.org/)
 
 ## Requirements
 
@@ -37,7 +38,7 @@ Here is what you need to be able to run Cometa.
 - Docker
 - Docker Compose
 
-In any case that you are stuck for more than 5 minutes - please us know. And please give us the oportunity to help you. We want to learn how you are using cometa and what problems you encounter. Contact us via Telegram or WhatsApp as seen on https://cometa.rocks/ .
+In any case that you are stuck for more than 5 minutes - please us know. And please give us the oportunity to help you. We want to learn how you are using cometa and what problems you encounter. Contact us via <a  href="https://t.me/joinchat/bFquCBGPBCAwYWZk">Telegram</a> or WhatsApp as seen on https://cometa.rocks/ .
 
 #### Manual
 
@@ -53,21 +54,46 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 	* Add your domain to the allowed hosts
 	* Retrieve the `client_id` and `secret_id` and paste them in `./front/apache-conf/metadata/accounts.google.com.client`
 
+	* Set `redirect_uri` to `https://<domain>/callback`
 
-3. Get all Docker containers up:
+
+Very nice: Instead of following the manual setup instructions below, you may execute `./cometa.sh` to bring up a localhost version on your machine.
+
+
+3. Create a crontab file for scheduling your automated tests
+
+   ```sh
+   mkdir -p backend/behave/schedules && touch backend/behave/schedules/crontab
+   ```
+
+4. Get all Docker containers up:
+
+	In `docker-compose.yml` change <server> to 'local' and <server-outside-port> to '80' or according to your needs.
+
+	* Change the `<outside_port>` port to `80` or any other port you'd like. Keep in mind that this port should match with what is configured inside the `openidc.conf`
+	* Change the `<server>` to `local` or your custom configuration file in `front/apache-conf/openidc.conf_<custom_name>`
+
+
+
 	```sh
-	docker-compose up -d
+	docker-compose up -d && docker-compose logs -f --tail=10
 	```
 
 	Cometa starts on port 443. If that port is used on your machine, change it `docker-compose.yml` to e.g. "8443:443"
 	Cometa also starts on port 80. If that is not available you could change that to 8081 ind `docker-compose.yml`
 
-	To view some logs `docker-compose logs -f --tail=10` of the installation process.
+	View some logs `docker-compose logs -f --tail=10` of the installation process, to get a understanding, when cometa is ready.
 
 	Give cometa some minutes to install python, setup django, download npm and docker files, compile the front end.
 	Depending on your computer this can take a couple of minutes.
 
-4. (optional) Create superuser for the Backend Admin
+	You want a development server?
+
+	```sh
+	docker-compose -f docker-compose-dev.yml up -d
+	```
+
+5. **(Optional)** Create superuser for the Backend Admin
 
 	Default superuser is created on runtime as `admin:admin`.
 
@@ -77,7 +103,7 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 	root@cometa_django:/opt/code# python manage.py createsuperuser
 	``` 
 
-5. (Optional) Run the selenoid setup
+6. **(Optional)** Install latest browser versions
 
 	`./backend/selenoid/deploy_selenoid.sh -n 3`.
 
@@ -89,9 +115,9 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 
 	This step will take some time as all the default browser images are being pulled.
 
-	Once cometa is up and running, you can parse the new browser images avaible into Cometa by calling `https://localhost/admin/parseBrowsers/`
+	Once cometa is up and running, you can parse the new browser images avaible into Cometa by calling `https://localhost/backend/parseBrowsers/`
 
-6. See cometa rocks in your browser
+7. See cometa rocks in your browser
 
 	Test server access `curl -k  https://<yourdomain>:<specified port - default 443>/`
 
@@ -100,10 +126,10 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 	You should see something like this:
 	<p>The document has moved <i>here</i>.</p>
 
-7. Import the over 70 pre-defined actions
+8. Import the over 70 pre-defined actions
 
-On first start you have to manually parse the actions.py file. This enables cometa to use any steps defined in the UI. The user can then choose from the steps in the UI.
-`https://localhost/backend/parseActions/` ... as a result cometa will show all actions that have been parsed and are now available for selection in cometa-front.
+	On first start you have to manually parse the actions.py file. This enables cometa to use any steps defined in the UI. The user can then choose from the steps in the UI.
+	`https://localhost/backend/parseActions/` ... as a result cometa will show all actions that have been parsed and are now available for selection in cometa-front.
 
 
 8. Run your first test
