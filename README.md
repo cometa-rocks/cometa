@@ -55,13 +55,16 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 	* Retrieve the `client_id` and `secret_id` and paste them in `./front/apache-conf/metadata/accounts.google.com.client`
 
 	* Set `redirect_uri` to `https://<domain>/callback`
-   
+
+
+Very nice: Instead of following the manual setup instructions below, you may execute `./cometa.sh` to bring up a localhost version on your machine.
+
+
 3. Create a crontab file for scheduling your automated tests
 
    ```sh
-   touch backend/behave/schedules/crontab
+   mkdir -p backend/behave/schedules && touch backend/behave/schedules/crontab
    ```
-
 
 4. Get all Docker containers up:
 
@@ -73,7 +76,7 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 
 
 	```sh
-	docker-compose up -d
+	docker-compose up -d && docker-compose logs -f --tail=10
 	```
 
 	Cometa starts on port 443. If that port is used on your machine, change it `docker-compose.yml` to e.g. "8443:443"
