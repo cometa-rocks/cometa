@@ -17,7 +17,7 @@ HELPERS="helpers"
 # source logger function if not sourced already
 test `command -v log_wfr` || source "${HELPERS}/logger.sh" || exit
 
-info "This is $0 version ${VERSION} running for your convenience"
+info "This is $0 version ${VERSION} running for your convinience"
 
 ########################################
 #
@@ -85,11 +85,11 @@ sed -i "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <outside_por
 #
 # Check client id has been replaced
 #
-if grep -Rq "COMETA" "../cometa_gitlab/cometa/front/apache-conf/metadata/accounts.google.com.client"  ; then 
-	info "The default string in accounts.google.com.client was replaced with something else - hopefully your google oAuth client credentials";
-else 
+if grep -Rq "COMETA" "front/apache-conf/metadata/accounts.google.com.client"  ; then 
 	warning "Found default string in accounts.google.com.client file - you must replace this before going forward";
 	exit	
+else 
+	info "The default string in accounts.google.com.client was replaced with something else - hopefully your google oAuth client credentials";
 fi
 
 #
@@ -107,8 +107,8 @@ docker-compose up -d && info "Started docker ... now waiting for container to co
 # Check selenoid browsers
 #
 if [ ! -f backend/selenoid/browsers.json ]; then
-	info "Downloading latest browser versions"
-	./backend/selenoid/deploy_selenoid.sh -n 3 && info "Installation of browser images [done]" || warning "Something went wrong getting the latests browsers for the system"
+	log_wfr "Downloading latest browser versions"
+	./backend/selenoid/deploy_selenoid.sh -n 3 && log_res "[done]" || warning "Something went wrong getting the latests browsers for the system"
 fi
 
 #
@@ -136,8 +136,6 @@ retry "curl --fail --insecure https://localhost/ -o /dev/null  -s -L" && log_res
 
 get_cometa_up_and_running
 
-info "---------------------------------------------------------------------"
 info "The test automation platform is ready to rumble at https://localhost/"
 info "Thank you for using the easy peasy setup script."
-info "-----------------------------------------------------------------o_o-"
 
