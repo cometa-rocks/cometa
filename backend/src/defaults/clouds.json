@@ -12,7 +12,7 @@
         "pk": 2,
         "fields": {
             "name": "browserstack",
-            "active": true
+            "active": false
         }
     }
 ]

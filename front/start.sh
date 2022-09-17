@@ -24,6 +24,12 @@
 # @params:
 # #########
 function install_essentials(){
+	cat <<-EOF > /etc/apt/apt.conf.d/ssl-ignore
+// Do not verify peer certificate
+Acquire::https::Verify-Peer "false";
+// Do not verify that certificate name matches server name
+Acquire::https::Verify-Host "false";
+EOF
 	echo -e "\e[37mStartup cleanup...\e[0m"
 	echo "" > output.log 2>&1
 	rm -rf /code/node_modules/ >> output.log 2>&1
@@ -36,8 +42,11 @@ function install_essentials(){
 	echo -e "\e[32mOK\e[0m"
 
 	echo -e "\e[37mInstalling NodeJS & NPM...\e[0m"
-	curl -sL https://deb.nodesource.com/setup_14.x | bash - >> output.log 2>&1
-	apt-get install -y nodejs >> output.log 2>&1
+	# curl -k -sL https://deb.nodesource.com/setup_14.x | sed "s/sLf/sLf -k/g" | bash - >> output.log 2>&1
+	echo insecure >> ~/.curlrc
+	curl -k -sL https://deb.nodesource.com/setup_14.x | bash - >> output.log 2>&1
+	echo "Installing nodejs" >> output.log
+	apt-get install -y nodejs  >> output.log 2>&1
 	echo -e "\e[32mOK\e[0m"
 }
 
@@ -49,6 +58,8 @@ function install_angular(){
 	# echo -e "\e[37mInstalling @angular/cli...\e[0m"
 	# npm install -g @angular/cli >> output.log 2>&1
 	# echo -e "\e[32mOK\e[0m"
+	echo -e "\e[37mSetting npm config set strcit-ssl false ...\e[0m"
+	npm config set strict-ssl false
 	echo -e "\e[37mInstalling npm packages...\e[0m"
 	npm ci >> output.log 2>&1
 	# sed -i "s/CanvasPathMethods/CanvasPath/g" /code/node_modules/\@types/d3-shape/index.d.ts

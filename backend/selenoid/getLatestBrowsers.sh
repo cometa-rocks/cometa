@@ -145,7 +145,7 @@ function main() {
         BROWSER_KEY=`echo ${BROWSERS_INFORMATION} | jq -r .[\"${BROWSER}\"].browser_key`
         # make a request to docker's api and get latest TOTAL_BROWSER_VERSIONS browser versions
         REQUEST_URL="https://hub.docker.com/v2/repositories/${BROWSER}/tags?name=.0&ordering=last_updated&page_size=${TOTAL_BROWSER_VERSIONS}"
-        RESPONSE=`curl --silent ${REQUEST_URL}`
+        RESPONSE=`curl -k --silent ${REQUEST_URL}`
         # get versions in array
         LATEST_VERSIONS=`echo ${RESPONSE} | jq -r '.results|.[]|.name'`
         # get default version which will always be the first one

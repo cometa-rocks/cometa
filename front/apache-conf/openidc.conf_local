@@ -82,3 +82,6 @@ ProxyPassMatch "^/debug/(.*)" "http://localhost:4200/$1"
 ProxyPassReverse "^/debug/(.*)" "http://localhost:4200/$1"
 ProxyPassMatch "^/ws" "ws://localhost:4200"
 ProxyPassReverse "^/ws" "ws://localhost:4200"
+
+# added 2022-09-17 rro
+OIDCSSLValidateServer Off

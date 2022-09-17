@@ -16,7 +16,7 @@
     "nodemon": "^2.0.8"
   },
   "scripts": {
-    "start": "npm install && npm install -g nodemon && nodemon app/index.js"
+    "start": "npm config set strict-ssl false && npm install && npm install -g nodemon && nodemon app/index.js"
   },
   "author": "",
   "license": "ISC"

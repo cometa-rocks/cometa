@@ -17,7 +17,7 @@ apt-get purge -y exim*
 # Upgrade PIP
 python -m pip install -U pip
 # Install poetry package manager
-curl -sSL https://install.python-poetry.org | python3 -
+curl -k -sSL https://install.python-poetry.org | python3 -
 # Create symbolic link to Poetry so it's available as command everywhere
 ln -s /root/.local/bin/poetry /usr/local/bin/poetry
 # Disable creation of virtual env
