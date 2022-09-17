@@ -85,11 +85,11 @@ sed -i "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <outside_por
 #
 # Check client id has been replaced
 #
-if grep -Rq "COMETA" "../cometa_gitlab/cometa/front/apache-conf/metadata/accounts.google.com.client"  ; then 
-	info "The default string in accounts.google.com.client was replaced with something else - hopefully your google oAuth client credentials";
-else 
+if grep -Rq "COMETA" "front/apache-conf/metadata/accounts.google.com.client"  ; then 
 	warning "Found default string in accounts.google.com.client file - you must replace this before going forward";
 	exit	
+else 
+	info "The default string in accounts.google.com.client was replaced with something else - hopefully your google oAuth client credentials";
 fi
 
 #
