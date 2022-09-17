@@ -108,7 +108,7 @@ docker-compose up -d && info "Started docker ... now waiting for container to co
 #
 if [ ! -f backend/selenoid/browsers.json ]; then
 	log_wfr "Downloading latest browser versions"
-	./backend/selenoid/deploy_selenoid.sh -n 3 && log_res "[done]" || warning "Something went wrong getting the latests browsers for the system"
+	./backend/selenoid/deploy_selenoid.sh -n 1 && log_res "[done]" || warning "Something went wrong getting the latests browsers for the system"
 fi
 
 #
