@@ -5,6 +5,7 @@
 # ##################################################
 #
 # Changelog:
+# 2022-10-03 ASO changing data mount point based on the parameter.
 # 2022-09-08 RRO first version
 #
 VERSION="2022-09-08"
@@ -47,8 +48,26 @@ function retry() {
     return $exitCode
 }
 
+#
+# Switches /data to ./data depending on the parameters
+#
+function switchDataMountPoint() {
+    # check if first parameter contains root
+    if [[ "$1" == "root" ]]; then
+        # change ./data => /data
+        sed -i "s#- \./data#- /data#g" docker-compose.yml
+    else
+        # change /data => ./data
+        sed -i "s#- /data#- \./data#g" docker-compose.yml
+    fi
+}
 
 function get_cometa_up_and_running() {
+
+#
+# Switch mount point based on MOUNTPOINT
+#
+switchDataMountPoint "${MOUNTPOINT:-local}"
 
 #
 # Create directory schedules
@@ -70,6 +89,14 @@ fi
 #
 if [ ! -f backend/behave/schedules/crontab ]; then
 	touch backend/behave/schedules/crontab && info "Created crontab file"
+fi
+
+#
+# Touch browsers.json
+#
+if [ ! -f backend/selenoid/browsers.json ] || [ $(cat backend/selenoid/browsers.json | grep . | wc -l) -eq 0 ]; then
+    RUNSELENOIDSCRIPT=true
+	echo "{}" > backend/selenoid/browsers.json && info "Created browsers.json file"
 fi
 
 #
@@ -106,9 +133,9 @@ docker-compose up -d && info "Started docker ... now waiting for container to co
 #
 # Check selenoid browsers
 #
-if [ ! -f backend/selenoid/browsers.json ]; then
-	log_wfr "Downloading latest browser versions"
-	./backend/selenoid/deploy_selenoid.sh -n 3 && log_res "[done]" || warning "Something went wrong getting the latests browsers for the system"
+if [ "${RUNSELENOIDSCRIPT:-false}" = "true" ]; then
+	info "Downloading latest browser versions"
+	./backend/selenoid/deploy_selenoid.sh -n 3 || warning "Something went wrong getting the latests browsers for the system"
 fi
 
 #
@@ -134,8 +161,17 @@ retry "curl --fail --insecure https://localhost/ -o /dev/null  -s -L" && log_res
 
 } # end of function get_cometA_up_and_running
 
+while [[ $# -gt 0 ]]
+do
+    case "$1" in
+        --root-mount-point)
+            MOUNTPOINT="root"
+            shift
+            ;;
+    esac
+done
+
 get_cometa_up_and_running
 
 info "The test automation platform is ready to rumble at https://localhost/"
 info "Thank you for using the easy peasy setup script."
-
