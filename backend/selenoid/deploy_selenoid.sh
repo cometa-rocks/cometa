@@ -50,7 +50,7 @@ debug "Using ${bgImage} as background for Selenium containers"
 
 info "Replacing background image volume in Selenoid images ..."
 # Replace bgPath with used image
-sed -i "s|<bgPath>|$bgImage|g" browsers.json
+sed -i_template "s|<bgPath>|$bgImage|g" browsers.json
 
 # make sure downloads folder exists
 mkdir -p ../behave/downloads
@@ -59,7 +59,7 @@ info "Replacing downloads folder in Selenoid Chrome Image ..."
 pushd ../behave/downloads &> /dev/null
 downloadsPath=`pwd`
 popd &> /dev/null
-sed -i "s|<downloadsPath>|$downloadsPath|g" browsers.json
+sed -i_template "s|<downloadsPath>|$downloadsPath|g" browsers.json
 
 # Run or update selenoid hub
 if [ "$(docker ps -q -f name=cometa_selenoid)" ]; then
