@@ -33,8 +33,8 @@
 # ################################################################
 
 # Initialize variables with default values
-SCRIPT_LOCATION=`realpath $0` # Current script full path
-HELPERS="`dirname ${SCRIPT_LOCATION}`/../../helpers"
+SCRIPT_LOCATION=$(cd "$(dirname "$0")" ; pwd -P) # Current script full path
+HELPERS="${SCRIPT_LOCATION}/../../helpers"
 TOTAL_BROWSER_VERSIONS=${COMETA_TOTAL_BROWSER_VERSION:-3} # Total amount of version per browser that will be pulled.
 BROWSERS_CONTENT="{}" # Save the final output that will be saved in browsers.json.
 IMAGES_TO_REMOVE=() # List of docker images that needs to be deleted at the end.
