@@ -1,2 +1,5 @@
 # ignore data directory incase cometa was created using cometa.sh script
 data/
+
+# ignore _template files
+*_template
