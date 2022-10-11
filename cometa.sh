@@ -5,10 +5,11 @@
 # ##################################################
 #
 # Changelog:
+# 2022-10-04 ASO changed sed logic and checking if docker is installed and running.
+# 2022-10-03 ASO changing data mount point based on the parameter.
 # 2022-09-08 RRO first version
 #
 VERSION="2022-09-08"
-
 
 #
 # source our nice logger
@@ -47,8 +48,44 @@ function retry() {
     return $exitCode
 }
 
+#
+# Check if docker is working
+#
+function checkDocker() {
+    # check if docker is installed
+    if [[ ! $(command -v docker) ]]; then
+        error "Docker not installed, please install Docker."
+        exit 5;
+    fi
+
+    # check if docker is running.
+    if [[ ! $(docker ps -a) ]]; then
+        error "Either docker daemon is not running or user <${USER}> does not have permissions to use docker."
+        info "Please start the docker service or ask your server administrator to add user <${USER}> to 'docker' group."
+        exit 5;
+    fi
+}
+
+#
+# Switches /data to ./data depending on the parameters
+#
+function switchDataMountPoint() {
+    # check if first parameter contains root
+    if [[ "$1" == "root" ]]; then
+        # change ./data => /data
+        sed -i_template "s#- \./data#- /data#g" docker-compose.yml
+    else
+        # change /data => ./data
+        sed -i_template "s#- /data#- \./data#g" docker-compose.yml
+    fi
+}
 
 function get_cometa_up_and_running() {
+
+#
+# Switch mount point based on MOUNTPOINT
+#
+switchDataMountPoint "${MOUNTPOINT:-local}"
 
 #
 # Create directory schedules
@@ -73,14 +110,22 @@ if [ ! -f backend/behave/schedules/crontab ]; then
 fi
 
 #
+# Touch browsers.json
+#
+if [ ! -f backend/selenoid/browsers.json ] || [ $(cat backend/selenoid/browsers.json | grep . | wc -l) -eq 0 ]; then
+    RUNSELENOIDSCRIPT=true
+	echo "{}" > backend/selenoid/browsers.json && info "Created browsers.json file"
+fi
+
+#
 # Replace <server> in docker-compose.yml with "local"
 #
-sed -i "s|<server>|local|g" docker-compose.yml && info "Replaced <server> in docker-compose.yml with local"
+sed -i_template "s|<server>|local|g" docker-compose.yml && info "Replaced <server> in docker-compose.yml with local"
 
 #
 # Replace <outside_port> in docker-compose.yml with "80"
 #
-sed -i "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <outside_port> in docker-compose.yml with 80"
+sed -i_template "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <outside_port> in docker-compose.yml with 80"
 
 #
 # Check client id has been replaced
@@ -106,9 +151,9 @@ docker-compose up -d && info "Started docker ... now waiting for container to co
 #
 # Check selenoid browsers
 #
-if [ ! -f backend/selenoid/browsers.json ]; then
-	log_wfr "Downloading latest browser versions"
-	./backend/selenoid/deploy_selenoid.sh -n 3 && log_res "[done]" || warning "Something went wrong getting the latests browsers for the system"
+if [ "${RUNSELENOIDSCRIPT:-false}" = "true" ]; then
+	info "Downloading latest browser versions"
+	./backend/selenoid/deploy_selenoid.sh -n 3 || warning "Something went wrong getting the latests browsers for the system"
 fi
 
 #
@@ -134,8 +179,18 @@ retry "curl --fail --insecure https://localhost/ -o /dev/null  -s -L" && log_res
 
 } # end of function get_cometA_up_and_running
 
+while [[ $# -gt 0 ]]
+do
+    case "$1" in
+        --root-mount-point)
+            MOUNTPOINT="root"
+            shift
+            ;;
+    esac
+done
+
+checkDocker
 get_cometa_up_and_running
 
 info "The test automation platform is ready to rumble at https://localhost/"
 info "Thank you for using the easy peasy setup script."
-
