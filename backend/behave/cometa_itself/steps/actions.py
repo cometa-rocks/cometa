@@ -45,6 +45,7 @@ from selenium.webdriver.common.keys import Keys
 from functools import wraps
 from selenium.webdriver import ActionChains
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.remote.file_detector import LocalFileDetector
 # just to import secrets
 sys.path.append("/code")
 import secret_variables
@@ -63,6 +64,7 @@ from threading import Thread
 from Crypto import Random
 from Crypto.Cipher import AES
 import base64
+base64.encodestring = base64.encodebytes
 from hashlib import md5
 from pathlib import Path
 
@@ -2327,14 +2329,18 @@ def downloadFileFromURL(url, dest_folder, filename):
 @step(u'Upload a file by clicking on "{selector}" using file "{filename}"')
 @done(u'Upload a file by clicking on "{selector}" using file "{filename}"')
 def step_imp(context, selector, filename):
+    # save the old file detector
+    old_file_detector = context.browser.file_detector
+    # set the new file detector to LocalFileDetector
+    context.browser.file_detector = LocalFileDetector()
     # select the upload element to send the filenames to
     elements = waitSelector(context, "css", selector)
     # replace "uploads" with "/home/selenium/uploads/"
     logger.debug("Before replacing filename: %s" % filename)
     # replace upload directory and add /home/selenium to it
-    filename=re.sub("(uploads\/)+","/home/selenium/uploads/",filename)
+    filename=re.sub("(uploads\/)+", "/code/behave/uploads/", filename)
     # replace Downloads directory and add /home/selenium to it
-    filename=re.sub("(Downloads\/)+","/home/selenium/Downloads/",filename)
+    filename=re.sub("(Downloads\/)+", context.downloadDirectoryOutsideSelenium + "/", filename)
     # replace ";" with a carriage return
     filename=re.sub("(;)+","\n",filename)
     # do some logging
@@ -2342,6 +2348,8 @@ def step_imp(context, selector, filename):
     logger.debug("Sending filename to input field")
     # send the filename string to the input field
     elements[0].send_keys(filename)
+    # reset the file detector
+    context.browser.file_detector = old_file_detector
 
 # Attach a file from Downloads folder to the current feature-result. This is usefull for evaluating the file contents later on. The filename has to be the filename in the Downloads folders and will automatically link to the actual execution of the feature. Just write the filename - without mentioning the "Downloads/" folder
 @step(u'Attach the "{filename}" from Downloads folder to the current execution results')
