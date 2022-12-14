@@ -2784,8 +2784,12 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
     if all_or_partial != 'all' and all_or_partial != 'partial':
         raise CustomError("all_or_partial value must be all or parcial")
 
-    # get all the values from css_selector
-    elements = waitSelector(context, "css", css_selector)
+    # try getting the elements else set empty array
+    try:
+        # get all the values from css_selector
+        elements = waitSelector(context, "css", css_selector)
+    except CustomError as customError:
+        elements = []
     # get elements values
     element_values = [element.get_attribute("innerText") or element.get_attribute("value") for element in elements]
 
@@ -2911,10 +2915,10 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
                 result = "Yes"
                 atLeastOneValueInElements = True
             # print result to the file
-            fileContent += """%s|%s\n""" % (
+            fileContent.append([
                 value, # Variable List value,
                 result # result of comparison
-            )
+            ])
         status = atLeastOneValueInElements
 
 
