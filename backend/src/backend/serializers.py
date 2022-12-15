@@ -76,8 +76,8 @@ class OIDCAccountLoginSerializer(serializers.ModelSerializer):
     def get_integration_apps(self, instance):
         return [x[1] for x in IntegrationApplications]
 
-    def get_permissions(self, instance):
-        results = Permissions.objects.all()
+    def get_permissions(self, instance: OIDCAccount):
+        results = Permissions.objects.filter(permission_power__lte=instance.user_permissions.permission_power)
         return [x[0] for x in results.values_list("permission_name")]
 
     def get_clouds(self, instance):

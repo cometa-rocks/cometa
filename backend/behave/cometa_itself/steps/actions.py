@@ -24,8 +24,7 @@ import shlex
 import requests
 import json
 import re
-import pickle
-import uuid
+import csv
 import datetime
 import signal
 import logging
@@ -45,6 +44,7 @@ from selenium.webdriver.common.keys import Keys
 from functools import wraps
 from selenium.webdriver import ActionChains
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.remote.file_detector import LocalFileDetector
 # just to import secrets
 sys.path.append("/code")
 import secret_variables
@@ -63,6 +63,7 @@ from threading import Thread
 from Crypto import Random
 from Crypto.Cipher import AES
 import base64
+base64.encodestring = base64.encodebytes
 from hashlib import md5
 from pathlib import Path
 
@@ -2299,6 +2300,24 @@ def step_impl(context, css_selector, variable_name):
     # add variable
     addVariable(context, variable_name, result)
 
+# add a timestamp after the prefix to make it unique
+@step(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
+@done(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
+def step_impl(context, prefix, variable_name):
+    # create the unique text
+    text = "%s-%.0f" % (prefix, time.time())
+    addVariable(context, variable_name, text)
+
+@step(u'Create a string of random "{x}" numbers and save to "{variable_name}"')
+@done(u'Create a string of random "{x}" numbers and save to "{variable_name}"')
+def step_imp(context, x, variable_name):
+    import random
+    text = ""
+    for i in range(0, int(x)):
+        text += str(random.randint(0,9))
+
+    addVariable(context, variable_name, text)
+
 def downloadFileFromURL(url, dest_folder, filename):
     file_path = os.path.join(dest_folder, filename)
 
@@ -2327,14 +2346,18 @@ def downloadFileFromURL(url, dest_folder, filename):
 @step(u'Upload a file by clicking on "{selector}" using file "{filename}"')
 @done(u'Upload a file by clicking on "{selector}" using file "{filename}"')
 def step_imp(context, selector, filename):
+    # save the old file detector
+    old_file_detector = context.browser.file_detector
+    # set the new file detector to LocalFileDetector
+    context.browser.file_detector = LocalFileDetector()
     # select the upload element to send the filenames to
     elements = waitSelector(context, "css", selector)
     # replace "uploads" with "/home/selenium/uploads/"
     logger.debug("Before replacing filename: %s" % filename)
     # replace upload directory and add /home/selenium to it
-    filename=re.sub("(uploads\/)+","/home/selenium/uploads/",filename)
+    filename=re.sub("(uploads\/)+", "/code/behave/uploads/", filename)
     # replace Downloads directory and add /home/selenium to it
-    filename=re.sub("(Downloads\/)+","/home/selenium/Downloads/",filename)
+    filename=re.sub("(Downloads\/)+", context.downloadDirectoryOutsideSelenium + "/", filename)
     # replace ";" with a carriage return
     filename=re.sub("(;)+","\n",filename)
     # do some logging
@@ -2342,6 +2365,8 @@ def step_imp(context, selector, filename):
     logger.debug("Sending filename to input field")
     # send the filename string to the input field
     elements[0].send_keys(filename)
+    # reset the file detector
+    context.browser.file_detector = old_file_detector
 
 # Attach a file from Downloads folder to the current feature-result. This is usefull for evaluating the file contents later on. The filename has to be the filename in the Downloads folders and will automatically link to the actual execution of the feature. Just write the filename - without mentioning the "Downloads/" folder
 @step(u'Attach the "{filename}" from Downloads folder to the current execution results')
@@ -2777,8 +2802,12 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
     if all_or_partial != 'all' and all_or_partial != 'partial':
         raise CustomError("all_or_partial value must be all or parcial")
 
-    # get all the values from css_selector
-    elements = waitSelector(context, "css", css_selector)
+    # try getting the elements else set empty array
+    try:
+        # get all the values from css_selector
+        elements = waitSelector(context, "css", css_selector)
+    except CustomError as customError:
+        elements = []
     # get elements values
     element_values = [element.get_attribute("innerText") or element.get_attribute("value") for element in elements]
 
@@ -2822,11 +2851,13 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
     filePath = "%s/%s" % (context.downloadDirectoryOutsideSelenium, fileName)
 
     status = False
-    fileContent = ""
+    fileContent = []
 
     if all_or_partial == 'all':
 
-        fileContent += """Comparison Details Unsorted:Element List|Variable List|Status\n"""
+        fileContent.append([""])
+        fileContent.append(["Comparison Details Unsorted:"])
+        fileContent.append(["Element List", "Variable List", "Status"])
 
         # print element list and variable list
         for i in range(0, len(values) if len(values) >= len(element_values) else len(element_values)):
@@ -2849,14 +2880,16 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
             if val == '' or element_val == '':
                 result = "Ignored"
 
-            fileContent += """%s|%s|%s\n""" % (
+            fileContent.append([
                 element_val, # Element List value
                 val, # Variable List value,
                 result # result of comparison
-            )
+            ])
 
         # add additional text to fileContent
-        fileContent += """\nComparison Details Sorted:\nSorted Element List|Sorted Variable List|Status\n"""
+        fileContent.append([""])
+        fileContent.append(["Comparison Details Sorted:"])
+        fileContent.append(["Sorted Element List", "Sorted Variable List", "Status"])
 
         # print sorted element list and sorted variable list
         for i in range(0, len(values_sorted) if len(values_sorted) >= len(element_values_sorted) else len(element_values_sorted)):
@@ -2879,16 +2912,18 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
             if val == '' or element_val == '':
                 result = "Ignored"
 
-            fileContent += """%s|%s|%s\n""" % (
+            fileContent.append([
                 element_val, # Element List value
                 val, # Variable List value,
                 result # result of comparison
-            )
+            ])
         
         status = (values_eq == element_values_eq) or (values_sorted_eq == element_sorted_values_eq)
     else:
         # add additional text to fileContent
-        fileContent += """\nChecking if variable list values are in elements list:\nVariable List|In Elements List\n"""
+        fileContent.append([""])
+        fileContent.append(["Checking if variable list values are in elements list:"])
+        fileContent.append(["Variable List", "In Elements List"])
 
         # print variable list and if they are in element list with yes/no
         atLeastOneValueInElements = False
@@ -2898,38 +2933,25 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
                 result = "Yes"
                 atLeastOneValueInElements = True
             # print result to the file
-            fileContent += """%s|%s\n""" % (
+            fileContent.append([
                 value, # Variable List value,
                 result # result of comparison
-            )
+            ])
         status = atLeastOneValueInElements
 
 
-
-    fileContentStart = """sep=|
-Feature ID|%d
-Feature Result ID|%d
-Step number (starts from 1)|%d
-Selector|%s
-Date & Time|%s
-Overall Status|%s
-Option|%s
-
-""" % (
-        int(context.feature_id), # Feature ID
-        int(os.environ['feature_result_id']), # Feature Result ID
-        context.counters['index'] + 1, # Step number
-        css_selector, # Selector
-        dateTime.strftime("%Y-%m-%d %H:%M:%S"), # Date & Time
-        "Passed" if status else 'Failed', # Status (Global)
-        all_or_partial # option value
-    )
-
-    fileContent = fileContentStart + fileContent
+    fileContent.insert(0, ["Feature ID", int(context.feature_id)])
+    fileContent.insert(1, ["Feature Result ID", int(os.environ['feature_result_id'])])
+    fileContent.insert(2, ["Step number (starts from 1)", context.counters['index'] + 1])
+    fileContent.insert(3, ["Selector", css_selector])
+    fileContent.insert(4, ["Date & Time", dateTime.strftime("%Y-%m-%d %H:%M:%S")])
+    fileContent.insert(5, ["Overall Status", "Passed" if status else 'Failed'])
+    fileContent.insert(6, ["Option", all_or_partial])
 
     # open file and write to it
-    with open(filePath, 'w+') as fileHandle:
-        fileHandle.write(fileContent)
+    with open(filePath, 'w+', encoding="utf_8_sig") as fileHandle:
+        writer = csv.writer(fileHandle, dialect="excel", delimiter=",", lineterminator='\n')
+        writer.writerows(fileContent)
 
     # updated downloadedFiles in context
     context.downloadedFiles[context.counters['index']] = ["%s/%s" % (os.environ['feature_result_id'], fileName)]
@@ -3059,25 +3081,18 @@ def step(context, css_selector, variable_names, prefix, suffix):
     fileName = "list_comparison_%s.csv" % dateTime.strftime("%Y%m%d%H%M%S")
     filePath = "%s/%s" % (context.downloadDirectoryOutsideSelenium, fileName)
 
-    fileContent = """sep=|
-Feature ID|%d
-Feature Result ID|%d
-Step number (starts from 1)|%d
-Selector|%s
-Date & Time|%s
-Overall Status|%s
-Option|%s
-
-Comparison Details Unsorted:
-Element List|Variable List|Status\n""" % (
-        int(context.feature_id), # Feature ID
-        int(os.environ['feature_result_id']), # Feature Result ID
-        context.counters['index'] + 1, # Step number
-        css_selector, # Selector
-        dateTime.strftime("%Y-%m-%d %H:%M:%S"), # Date & Time
-        "Passed" if (values_eq == element_values_eq) or (values_sorted_eq == element_sorted_values_eq) else 'Failed', # Status (Global)
-        "All/Partial (Not changeable for now)" # option value
-    )
+    fileContent = [
+        ["Feature ID", int(context.feature_id)],
+        ["Feature Result ID", int(os.environ['feature_result_id'])],
+        ["Step number (starts from 1)", context.counters['index'] + 1],
+        ["Selector", css_selector],
+        ["Date & Time", dateTime.strftime("%Y-%m-%d %H:%M:%S")],
+        ["Overall Status", "Passed" if (values_eq == element_values_eq) or (values_sorted_eq == element_sorted_values_eq) else 'Failed'],
+        ["Option", "All/Partial (Not changeable for now)"],
+        [""],
+        ["Comparison Details Unsorted:"],
+        ["Element List", "Variable List", "Status"]
+    ]
 
     # print element list and variable list
     for i in range(0, len(values) if len(values) >= len(element_values) else len(element_values)):
@@ -3100,14 +3115,16 @@ Element List|Variable List|Status\n""" % (
         if val == '' or element_val == '':
             result = "Ignored"
 
-        fileContent += """%s|%s|%s\n""" % (
+        fileContent.append([
             element_val, # Element List value
             val, # Variable List value,
             result # result of comparison
-        )
+        ])
 
     # add additional text to fileContent
-    fileContent += """\nComparison Details Sorted:\nSorted Element List|Sorted Variable List|Status\n"""
+    fileContent.append([""])
+    fileContent.append(["Comparison Details Sorted:"])
+    fileContent.append(["Sorted Element List", "Sorted Variable List", "Status"])
 
     # print sorted element list and sorted variable list
     for i in range(0, len(values_sorted) if len(values_sorted) >= len(element_values_sorted) else len(element_values_sorted)):
@@ -3130,15 +3147,16 @@ Element List|Variable List|Status\n""" % (
         if val == '' or element_val == '':
             result = "Ignored"
 
-        fileContent += """%s|%s|%s\n""" % (
+        fileContent.append([
             element_val, # Element List value
             val, # Variable List value,
             result # result of comparison
-        )
+        ])
 
     # open file and write to it
-    with open(filePath, 'w+') as fileHandle:
-        fileHandle.write(fileContent)
+    with open(filePath, 'w+', encoding="utf_8_sig") as fileHandle:
+        writer = csv.writer(fileHandle, dialect="excel", delimiter=",", lineterminator='\n')
+        writer.writerows(fileContent)
 
     # updated downloadedFiles in context
     context.downloadedFiles[context.counters['index']] = ["%s/%s" % (os.environ['feature_result_id'], fileName)]
