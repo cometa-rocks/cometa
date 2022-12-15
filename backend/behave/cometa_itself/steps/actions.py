@@ -2300,6 +2300,24 @@ def step_impl(context, css_selector, variable_name):
     # add variable
     addVariable(context, variable_name, result)
 
+# add a timestamp after the prefix to make it unique
+@step(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
+@done(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
+def step_impl(context, prefix, variable_name):
+    # create the unique text
+    text = "%s-%.0f" % (prefix, time.time())
+    addVariable(context, variable_name, text)
+
+@step(u'Create a string of random "{x}" numbers and save to "{variable_name}"')
+@done(u'Create a string of random "{x}" numbers and save to "{variable_name}"')
+def step_imp(context, x, variable_name):
+    import random
+    text = ""
+    for i in range(0, int(x)):
+        text += str(random.randint(0,9))
+
+    addVariable(context, variable_name, text)
+
 def downloadFileFromURL(url, dest_folder, filename):
     file_path = os.path.join(dest_folder, filename)
 
