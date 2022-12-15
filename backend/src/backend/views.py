@@ -995,24 +995,28 @@ class AccountViewset(viewsets.ModelViewSet):
                 name = data['name'],
                 email = data['email']
             )
+            user = OIDCAccount.objects.filter(user_id=user_id)
             if 'favourite_browsers' in data:
-                OIDCAccount.objects.filter(user_id=user_id).update( favourite_browsers = json.loads(data['favourite_browsers']) )
+                user.update( favourite_browsers = json.loads(data['favourite_browsers']) )
             if 'settings' in data:
-                OIDCAccount.objects.filter(user_id=user_id).update( settings = data['settings'] )
+                user.update( settings = data['settings'] )
+            if 'permission_name' in data:
+                user_permission = Permissions.objects.filter(permission_name=data['permission_name'])
+                if user_permission.exists() and user[0].user_permissions.permission_power >= user_permission[0].permission_power:
+                    user.update(
+                        user_permissions = user_permission[0]
+                    )
+                else:
+                    return JsonResponse({ 'success': False, 'error': 'You do not have permissions to set higher role than your current role.'}, status=403)
             if 'departments' in data and not kwargs['usersOwn']:
                 Account_role.objects.filter(user=user_id).delete()
-                user = OIDCAccount.objects.filter(user_id=user_id)
                 for department in data['departments']:
                     department = Department.objects.filter(department_id = department)[0]
                     Account_role.objects.create(
                         user = user[0],
                         department = department
                     )
-                user_permission = Permissions.objects.filter(permission_name=data['permission_name'])
-                if user_permission.exists():
-                    user.update(
-                        user_permissions = user_permission[0]
-                    )
+                
             # get user thats been updated
             user = OIDCAccount.objects.filter(user_id=user_id)[0]
             # send a websocket to front about the creation
