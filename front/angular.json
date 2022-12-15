@@ -24,7 +24,6 @@
               "src/steps_testing.html"
             ],
             "styles": [
-              "node_modules/c3/c3.min.css",
               "src/styles.scss"
             ],
             "stylePreprocessorOptions": {
@@ -104,7 +103,6 @@
             "tsConfig": "src/tsconfig.spec.json",
             "scripts": [],
             "styles": [
-              "node_modules/c3/c3.min.css",
               "src/styles.scss"
             ],
             "assets": [

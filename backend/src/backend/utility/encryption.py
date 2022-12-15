@@ -1,10 +1,17 @@
 # pycrypto imports
+import sys
 from Crypto import Random
 from Crypto.Cipher import AES
-import base64
+import base64, sys
 from hashlib import md5
 
-passphrase = "4c9ac091fd7aff4eb727a64d4f523e3b76af91eef0dd1f3b94f44502016fd9e3".encode()
+# just to import secrets
+sys.path.append("/code")
+import secret_variables
+
+# encrypt and decrypt password encrypted in Angular using Crypto-JS
+ENCRYPTION_PASSPHRASE = getattr(secret_variables, 'COMETA_ENCRYPTION_PASSPHRASE', '').encode()
+ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
 BLOCK_SIZE = 16
 
 def pad(data):
@@ -27,7 +34,7 @@ def bytes_to_key(data, salt, output=48):
 
 def encrypt(message):
     salt = Random.new().read(8)
-    key_iv = bytes_to_key(passphrase, salt, 32+16)
+    key_iv = bytes_to_key(ENCRYPTION_PASSPHRASE, salt, 32+16)
     key = key_iv[:32]
     iv = key_iv[32:]
     aes = AES.new(key, AES.MODE_CBC, iv)
@@ -37,7 +44,7 @@ def decrypt(encrypted):
     encrypted = base64.b64decode(encrypted)
     assert encrypted[0:8] == b"Salted__"
     salt = encrypted[8:16]
-    key_iv = bytes_to_key(passphrase, salt, 32+16)
+    key_iv = bytes_to_key(ENCRYPTION_PASSPHRASE, salt, 32+16)
     key = key_iv[:32]
     iv = key_iv[32:]
     aes = AES.new(key, AES.MODE_CBC, iv)

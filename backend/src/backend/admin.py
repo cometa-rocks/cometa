@@ -134,7 +134,7 @@ class AdminPermissions(admin.ModelAdmin):
     readonly_fields=('view_admin_panel',)
     fieldsets = (
         ('Basic', {
-            'fields': ('permission_name',),
+            'fields': ('permission_name', 'permission_power'),
             'description': 'If any of the permissions are set to False, the user will be able to modfiy, delete, etc their objects like features, etc.'
         }),
         ('OIDC Accounts', {
