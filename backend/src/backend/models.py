@@ -426,6 +426,7 @@ class SoftDeletableModel(models.Model):
 class Permissions(models.Model):
     permission_id = models.AutoField(primary_key=True)
     permission_name = models.CharField(max_length=255, blank=False, null=False, unique=True)
+    permission_power = models.IntegerField(default=0, help_text="Allows to specify the power level for the permission.")
     
     # OIDCAccount related
     create_account = models.BooleanField(default=False)
@@ -497,10 +498,12 @@ class Permissions(models.Model):
         return u"%s" % self.permission_name
     def __unicode__(self):
         return u'%s' % self.permission_name
+    
     @classmethod
     def get_default_permission(cls):
         permission, created = cls.objects.get_or_create(
             permission_name='ANONYMOUS',
+            permission_power=10,
             create_feature=True,
             edit_feature=True,
             run_feature=True,
