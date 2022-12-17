@@ -14,6 +14,7 @@
     }
     overflow-x: hidden;
     max-height: calc(100vh - var(--header-height));
+    height: calc(100vh - var(--header-height));
 }
 
 :host::ng-deep .mat-tab-link {

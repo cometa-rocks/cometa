@@ -1,5 +1,5 @@
 {
-	"version": "2.8.287",
+	"version": "2.8.288",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -190,6 +190,25 @@
 	],
 	"changelog": [
 		{
+			"version": "2.8.288",
+			"date": "2022-12-17",
+			"features": [
+				{
+					"title": "Added step: Add a timestamp to the {prefix} and save it to {variable_name}",
+					"description": "Adds timestamp to the prefix specified so the string becomes unique."
+				},
+				{
+					"title": "Added step: Create a string of random {x} numbers and save to {variable_name}",
+					"description": "Create a string of x random numbers."
+				}
+			],
+      "bugfixes": [
+				"#3828 - Fixed height issues when showing paginated rows.",
+				"#3828 - Fixed 'View Logs' button not working.",
+        "#3826 - Test list step now generated a CSV file even thought selector was empty or not found.",
+        "#3826 - Fixed Test list step to show correctly the values when using partial as option."
+			]
+		},{
 			"version": "2.8.287",
 			"date": "2022-07-25",
 			"features": [
