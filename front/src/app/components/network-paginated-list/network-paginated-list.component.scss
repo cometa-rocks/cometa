@@ -2,7 +2,9 @@
 
 .paginated-rows {
     display: flex;
-    flex-wrap: wrap;
+    flex-flow: column;
+    height: calc(100% - (86px + 50px)); // substract header height and pagination menu height
+    overflow-y: auto;
 }
 
 .pagination {
@@ -29,6 +31,10 @@
     .after {
         margin-left: 10px;
     }
+}
+
+:host{
+    display: contents;
 }
 
 :host::ng-deep .loading-pagination {

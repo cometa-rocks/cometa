@@ -3,10 +3,12 @@
 @import "breakpoints";
 
 :host {
-    display: block;
+    display: flex;
+    flex-flow: column;
     width: 100%;
-    overflow-x: hidden;
+    overflow: hidden;
     max-height: calc(100vh - var(--header-height));
+    height: calc(100vh - var(--header-height));
 }
 
 .no-chart {
@@ -273,4 +275,9 @@
         background-color: #f2f2f2;
         border-bottom: 2px solid rgba(black, .1);
     }
+}
+
+.table_rows {
+  height: 100%;
+  overflow: hidden;
 }
