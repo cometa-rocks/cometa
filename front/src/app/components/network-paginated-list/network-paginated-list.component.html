@@ -6,11 +6,9 @@
     <ng-container *ngIf="pagination.results.length > 0; else noItemsFound">
         <!-- Rows section -->
         <div class="paginated-rows">
-            <cdk-virtual-scroll-viewport appendOnly itemSize="50" class="viewport">
-                <ng-container *cdkVirtualFor="let item of pagination.results; let $last = last; trackBy: trackFn.bind(this, trackByKey)" class="item">
-                    <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: item }"></ng-container>
-                </ng-container>
-            </cdk-virtual-scroll-viewport>
+            <ng-container *ngFor="let item of pagination.results; let $last = last; trackBy: trackFn.bind(this, trackByKey)" class="item">
+                <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: item }"></ng-container>
+            </ng-container>
         </div>
         <div class="pagination">
             <!-- Loader section-->

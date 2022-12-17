@@ -131,8 +131,8 @@ export class FeatureActionsComponent implements OnInit {
     let featureResultId = +this._ac.snapshot.paramMap.get('feature_result_id');
     if (!featureResultId) {
       // Or get id from last run object
-      const runs = this._store.selectSnapshot(PaginatedListsState.GetItems)('runs_' + this.getFeatureId());
-      featureResultId = runs[0].feature_results[0].feature_result_id;
+      const feature_results = this._store.selectSnapshot(PaginatedListsState.GetItems)('runs_' + this.getFeatureId());
+      featureResultId = feature_results[0].feature_result_id;
     }
     // Open Log Dialog
     this._dialog.open(LogOutputComponent, {

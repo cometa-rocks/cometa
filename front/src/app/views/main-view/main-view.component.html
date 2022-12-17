@@ -32,6 +32,7 @@
   </ng-container>
 </div>
 
+<div class="table_rows">
   <network-paginated-list  *ngLet="featureId$ | async as featureId"
     [listId]="'runs_' + featureId"
     [endpointUrl]="featureRunsUrl$ | async"
@@ -59,7 +60,7 @@
       </div>
     </ng-template>
   </network-paginated-list>
-
+</div>
 <!-- <div *ngLet="featureId$ | async as featureId">
   <mtx-grid [data]="item"
             [columns]="columns"
