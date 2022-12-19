@@ -55,6 +55,7 @@ from concurrent.futures import ThreadPoolExecutor
 # import humanize for time conversion
 from backend.templatetags.humanize import *
 from sentry_sdk import capture_exception
+# from silk.profiling.profiler import silk_profile
 
 SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = getattr(secret_variables, 'COMETA_BROWSERSTACK_USERNAME', '')
@@ -1134,6 +1135,7 @@ class FeatureResultByFeatureIdViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ('result_date',)
 
+    # @silk_profile(name="FeatureResultByFeatureId")
     def list(self, request, *args, **kwargs):
         # check if feature_id in GET parameters
         feature_id = request.GET.get('feature_id', False)
@@ -1145,10 +1147,10 @@ class FeatureResultByFeatureIdViewSet(viewsets.ModelViewSet):
             feature_result = self.queryset.filter(feature_id=feature_id, archived=archived).order_by('-result_date', '-feature_result_id')
 
             # get the amount of data per page using the queryset
-            page = self.paginate_queryset(FeatureResultSerializer(feature_result,many=True).data)
-
+            page = self.paginate_queryset(feature_result)
+            serializer = self.get_serializer(page, many=True)
             # return the data with count, next and previous pages.
-            return self.get_paginated_response(page)
+            return self.get_paginated_response(serializer.data)
 
         return JsonResponse({'success': False, 'error': 'No feature_result_id nor feature_id specified...'}, status=400)
 
