@@ -9,6 +9,9 @@
     overflow: hidden;
     max-height: calc(100vh - var(--header-height));
     height: calc(100vh - var(--header-height));
+    @include maxWidth(750px) {
+      overflow-y: auto;
+    }
 }
 
 .no-chart {
@@ -278,6 +281,8 @@
 }
 
 .table_rows {
-  height: 100%;
-  overflow: hidden;
+  @include minWidth(750px) {
+    height: 100%;
+    overflow: hidden;
+  }
 }
