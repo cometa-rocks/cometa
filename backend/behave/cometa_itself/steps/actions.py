@@ -2734,9 +2734,6 @@ def step_imp(context, value_one, value_two, variance):
     if int(diff) > int(number_variance):
         raise CustomError("Difference (%s) is greater than variance (%s) specified." % (str(diff), str(number_variance)))
 
-
-
-
 # compares a report cube's content to a list saved in variable
 @step(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
 @done(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
@@ -2748,6 +2745,15 @@ def imp(context, variable_name, prefix, suffix):
 
     if len(index) == 0:
         raise CustomError("No variable found with name: %s" % variable_name)
+
+    # hold csv data that will later on be writen to a file
+    fileContent = []
+    fileContent.append([""])
+    fileContent.append(["Checking IBM Cognos Cube Dimention:"])
+    fileContent.append(["Variable List", "Status"])
+
+    # save date and time an later format it
+    dateTime = datetime.datetime.now()
 
     # get variable value from the variables
     variable_value = env_variables[index[0]]['variable_value']
@@ -2780,13 +2786,34 @@ def imp(context, variable_name, prefix, suffix):
             # look for the search value in the search tree
             waitSelector(context, "xpath", '//*[contains(@id, "Tree_Search")]//*[text()="%s"]' % search)
             logger.debug("Found %s in the report cube..." % search)
+            fileContent.append([search, "Found"])
         except Exception as e:
             logger.error(str(e))
             # append the value in not founds
             values_not_found.append("%s (%s)" % (value, search))
+            fileContent.append([search, "Not Found"])
         # go back and search for next value
         element = waitSelector(context, "css", "#idSourcesPane_btnClearSearch")
         element[0].click()
+
+    fileContent.insert(0, ["Feature ID", int(context.feature_id)])
+    fileContent.insert(1, ["Feature Result ID", int(os.environ['feature_result_id'])])
+    fileContent.insert(2, ["Step number (starts from 1)", context.counters['index'] + 1])
+    fileContent.insert(3, ["Variable", variable_name])
+    fileContent.insert(4, ["Date & Time", dateTime.strftime("%Y-%m-%d %H:%M:%S")])
+    fileContent.insert(5, ["Overall Status", "Failed" if len(values_not_found) > 0 else 'Passed'])
+
+    # save lists to file and link it to the step
+    fileName = "IBM_cube_test_%s.csv" % dateTime.strftime("%Y%m%d%H%M%S")
+    filePath = "%s/%s" % (context.downloadDirectoryOutsideSelenium, fileName)
+
+    # open file and write to it
+    with open(filePath, 'w+', encoding="utf_8_sig") as fileHandle:
+        writer = csv.writer(fileHandle, dialect="excel", delimiter=",", lineterminator='\n')
+        writer.writerows(fileContent)
+
+    # updated downloadedFiles in context
+    context.downloadedFiles[context.counters['index']] = ["%s/%s" % (os.environ['feature_result_id'], fileName)]
 
     # finally check if values_not_found has something if so fail step and let user know about the missing values
     if len(values_not_found) > 0:
@@ -2978,7 +3005,9 @@ def step_loop(context, x, index):
     context.executedStepsInLoop = 0
     # match regexp to find steps and step descriptions
     steps = list(filter(None, re.findall(r".*\n?(?:\t'''(?:.|\n)+?'''\n?)?", steps)))
+    
     try:
+        logger.debug("Steps: {}".format(steps))
         for i in range(int(index), int(x) + int(index)):
             # update subStepIndex to currentStepIndex
             subStepIndex = currentStepIndex
@@ -2986,8 +3015,8 @@ def step_loop(context, x, index):
             params = json.loads(context.PARAMETERS)
             params['index'] = i
             context.PARAMETERS = json.dumps(params)
-            logger.debug("Steps: {}".format(steps))
             for step in steps:
+                logger.debug("Executing step: {}".format(step))
                 # update steps executed
                 context.executedStepsInLoop += 1
                 # update subStepIndex with +1 on each step
@@ -2995,9 +3024,8 @@ def step_loop(context, x, index):
                 # update stepIndex with subStepIndex
                 context.counters['index'] = subStepIndex
                 # replace ''' to """
-                step = step.replace("'''", "\"\"\"")
+                step = step.replace("'''", "\"\"\"").replace("\n", "")
                 # print some information
-                logger.debug("Executing step '%s' inside loop." % step)
                 send_step_details(context, "Executing step '%s' inside loop." % step.split('\n')[0])
                 # execute the step
                 context.execute_steps(step)
