@@ -2804,7 +2804,7 @@ def imp(context, variable_name, prefix, suffix):
     fileContent.insert(5, ["Overall Status", "Failed" if len(values_not_found) > 0 else 'Passed'])
 
     # save lists to file and link it to the step
-    fileName = "IBM_cube_test_%s.csv" % dateTime.strftime("%Y%m%d%H%M%S")
+    fileName = "IBM_cube_test_%s.csv" % dateTime.strftime("%Y%m%d%H%M%S%f")
     filePath = "%s/%s" % (context.downloadDirectoryOutsideSelenium, fileName)
 
     # open file and write to it
@@ -2874,7 +2874,7 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
     dateTime = datetime.datetime.now()
 
     # save lists to file and link it to the step
-    fileName = "list_comparison_%s.csv" % dateTime.strftime("%Y%m%d%H%M%S")
+    fileName = "list_comparison_%s.csv" % dateTime.strftime("%Y%m%d%H%M%S%f")
     filePath = "%s/%s" % (context.downloadDirectoryOutsideSelenium, fileName)
 
     status = False
@@ -3106,7 +3106,7 @@ def step(context, css_selector, variable_names, prefix, suffix):
     dateTime = datetime.datetime.now()
 
     # save lists to file and link it to the step
-    fileName = "list_comparison_%s.csv" % dateTime.strftime("%Y%m%d%H%M%S")
+    fileName = "list_comparison_%s.csv" % dateTime.strftime("%Y%m%d%H%M%S%f")
     filePath = "%s/%s" % (context.downloadDirectoryOutsideSelenium, fileName)
 
     fileContent = [
