@@ -165,13 +165,6 @@ def done( *_args, **_kwargs ):
                 if hasattr(args[0], 'step_error'):
                     del args[0].step_error
 
-                # dates
-                dates = {
-                    "today": "datetime.datetime.today()",
-#                    "yesterday": "datetime.datetime.today() - datetime.timedelta(days=1)",
-#                    "last_month": "datetime.datetime.today().replace(day=1) - datetime.timedelta(days=1)"
-                }
-
                 # replace variables in kwargs
                 for parameter in kwargs:
                     # replace variables
@@ -198,24 +191,27 @@ def done( *_args, **_kwargs ):
                     kwargs[parameter] = returnDecrypted(kwargs[parameter])
 
                     # date pattern to look for
-                    pattern = r'#(today);?([^;\n]+)?;?(-|\+|\*)?([0-9]+)?' # looks for ;format & ;daysDelta whichare optional
+                    pattern = r'#today;?(?P<format>[^;\n]+)?;?(?P<expression>(?:days|weeks|hours|minutes|seconds)=)?(?P<operation>-|\+)?(?P<amount>[0-9]+)?\b' # looks for ;format & ;daysDelta which are optional
                     # match pattern to the paramerters value
                     match = re.search(pattern, kwargs[parameter])
                     # if match was found
                     if match:
-                        groups = match.groups()
-                        # get the date from dates based on the match
-                        dateObject = eval(dates[groups[0]]) # groups[0] can be today, yesterday or last_month and is required
-                        # get daysDelta to add or substract from the dateObject
-                        daysDelta = groups[3] if groups[3] is not None else 0 # groups[3] is the daysDelta value the last value in our match
-                        # get the arithmetic operations like + (default in case not specified) or -
-                        operation = groups[2] if groups[2] is not None else '+' # groups[2] is the operation used to add or substract from the date
+                        # get all the matches
+                        groups = match.groupdict()
+                        # will always be today
+                        dateObject = datetime.datetime.today()
+                        # set daysDelta to add or substract from the dateObject to default value if none is provided
+                        groups['amount'] = 0 if groups['amount'] is None else groups['amount']
+                        # set the arithmetic operations like + (default in case not specified) or -
+                        groups['operation'] = "+" if groups['operation'] is None else groups['operation']
+                        # set default expression to days= if none is provided
+                        groups['expression'] = "days=" if groups['expression'] is None else groups['expression']
                         # evaluate final date
-                        dateObject = eval("dateObject %s datetime.timedelta(days=%s)" % (operation, str(daysDelta)))
+                        dateObject = eval("dateObject %s datetime.timedelta(%s%s)" % (groups['operation'], groups['expression'], str(groups['amount'])))
                         # get the format from the match
-                        dateFormat = groups[1] if groups[1] is not None else '%Y-%m-%d'
+                        groups['format'] = '%Y-%m-%d' if groups['format'] is None else groups['format']
                         # finally format the object if format is not set, use "%Y-%m-%d" as default
-                        finalDate = dateObject.strftime(dateFormat)
+                        finalDate = dateObject.strftime(groups['format'])
                         # replace the parameter
                         kwargs[parameter] = re.sub(pattern, finalDate, kwargs[parameter])
                 
