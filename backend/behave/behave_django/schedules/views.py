@@ -201,11 +201,22 @@ def run_test(request):
             environment_variables['RUN_HASH'] = run_hash
             # Add the current browser to the thread pool
             try:
-                executor.submit(runBrowser, json_path, environment_variables)
+                future = executor.submit(runBrowser, json_path, environment_variables)
+                result = future.result()
             except RuntimeError as err:
                 # Handle error: Cannot schedule new futures after interpreter shutdown
                 # Details: https://sentry.amvara.de/sentry/cometa-behave/issues/5068/activity/
                 logger.error(str(err))
+            except Exception as e:
+                # Show error in Live Steps Viewer
+                requests.post('http://cometa_socket:3001/feature/%s/error' % feature_id, data={
+                    "browser_info": browser,
+                    "feature_result_id": feature_result_id,
+                    "run_id": feature_run,
+                    "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+                    "error": str(e),
+                    "user_id": user_data['user_id']
+                })
     logger.debug('All browsers of current run completed!')
     # Send completed websocket to Front
     requests.post('http://cometa_socket:3001/feature/%d/runCompleted' % int(feature_id), json={
@@ -267,7 +278,9 @@ def runBrowser(json_path, env):
     os.environ['RUN_HASH'] = run_hash
     """
     # Start running feature with current browser
-    subprocess.call(["bash", settings.RUNTEST_COMMAND_PATH, json_path], env=env)
+    exit_code = subprocess.call(["bash", settings.RUNTEST_COMMAND_PATH, json_path], env=env)
+    if exit_code != 0:
+        raise Exception("Failed to execute the feature, maybe there are typos in the steps?")
     
 @require_http_methods(["GET"])
 @csrf_exempt
