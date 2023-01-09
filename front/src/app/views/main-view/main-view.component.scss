@@ -9,7 +9,7 @@
     overflow: hidden;
     max-height: calc(100vh - var(--header-height));
     height: calc(100vh - var(--header-height));
-    @include maxWidth(750px) {
+    @include maxHeight(850px) {
       overflow-y: auto;
     }
 }
@@ -281,7 +281,7 @@
 }
 
 .table_rows {
-  @include minWidth(750px) {
+  @include minHeight(850px) {
     height: 100%;
     overflow: hidden;
   }

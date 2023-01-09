@@ -31,6 +31,18 @@
   }
 }
 
+@mixin maxHeight($point) {
+    @media (max-height: $point) {
+        @content;
+    }
+}
+
+@mixin minHeight($point) {
+  @media (min-height: $point) {
+      @content;
+  }
+}
+
 @mixin pagination-mobile {
   @media (max-width: 440px) { @content; }
 }
