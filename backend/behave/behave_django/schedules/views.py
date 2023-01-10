@@ -278,8 +278,11 @@ def runBrowser(json_path, env):
     os.environ['RUN_HASH'] = run_hash
     """
     # Start running feature with current browser
-    exit_code = subprocess.call(["bash", settings.RUNTEST_COMMAND_PATH, json_path], env=env)
-    if exit_code != 0:
+    result = subprocess.run(["bash", settings.RUNTEST_COMMAND_PATH, json_path], env=env, stdout=subprocess.PIPE)
+    output = result.stdout.decode("utf-8")
+    logger.debug("Feature Execution output: \n" + output)
+    # general error handling, only cover errors occured before steps execution.
+    if 'ParserError:' in output:
         raise Exception("Failed to execute the feature, maybe there are typos in the steps?")
     
 @require_http_methods(["GET"])
