@@ -128,6 +128,33 @@ def returnDecrypted(value):
 
     return value
 
+def dynamicDateGenerator(content: str):
+    # date pattern to look for
+    pattern = r'#today;?(?P<format>[^;\n]+)?;?(?P<expression>(?:days|weeks|hours|minutes|seconds)=)?(?P<operation>-|\+)?(?P<amount>[0-9]+)?\b' # looks for ;format & ;daysDelta which are optional
+    # match pattern to the paramerters value
+    match = re.search(pattern, str(content))
+    # if match was found
+    if match:
+        # get all the matches
+        groups = match.groupdict()
+        # will always be today
+        dateObject = datetime.datetime.today()
+        # set daysDelta to add or substract from the dateObject to default value if none is provided
+        groups['amount'] = 0 if groups['amount'] is None else groups['amount']
+        # set the arithmetic operations like + (default in case not specified) or -
+        groups['operation'] = "+" if groups['operation'] is None else groups['operation']
+        # set default expression to days= if none is provided
+        groups['expression'] = "days=" if groups['expression'] is None else groups['expression']
+        # evaluate final date
+        dateObject = eval("dateObject %s datetime.timedelta(%s%s)" % (groups['operation'], groups['expression'], str(groups['amount'])))
+        # get the format from the match
+        groups['format'] = '%Y-%m-%d' if groups['format'] is None else groups['format']
+        # finally format the object if format is not set, use "%Y-%m-%d" as default
+        finalDate = dateObject.strftime(groups['format'])
+        # replace the parameter
+        content = re.sub(pattern, finalDate, content)
+    return content
+
 # ########################################################################## #
 # decorator to ease up making of steps ##################################### #
 # this decorator will reduce the code ###################################### #
@@ -190,31 +217,12 @@ def done( *_args, **_kwargs ):
                     # decrypt the value incase it was not a varaible
                     kwargs[parameter] = returnDecrypted(kwargs[parameter])
 
-                    # date pattern to look for
-                    pattern = r'#today;?(?P<format>[^;\n]+)?;?(?P<expression>(?:days|weeks|hours|minutes|seconds)=)?(?P<operation>-|\+)?(?P<amount>[0-9]+)?\b' # looks for ;format & ;daysDelta which are optional
-                    # match pattern to the paramerters value
-                    match = re.search(pattern, kwargs[parameter])
-                    # if match was found
-                    if match:
-                        # get all the matches
-                        groups = match.groupdict()
-                        # will always be today
-                        dateObject = datetime.datetime.today()
-                        # set daysDelta to add or substract from the dateObject to default value if none is provided
-                        groups['amount'] = 0 if groups['amount'] is None else groups['amount']
-                        # set the arithmetic operations like + (default in case not specified) or -
-                        groups['operation'] = "+" if groups['operation'] is None else groups['operation']
-                        # set default expression to days= if none is provided
-                        groups['expression'] = "days=" if groups['expression'] is None else groups['expression']
-                        # evaluate final date
-                        dateObject = eval("dateObject %s datetime.timedelta(%s%s)" % (groups['operation'], groups['expression'], str(groups['amount'])))
-                        # get the format from the match
-                        groups['format'] = '%Y-%m-%d' if groups['format'] is None else groups['format']
-                        # finally format the object if format is not set, use "%Y-%m-%d" as default
-                        finalDate = dateObject.strftime(groups['format'])
-                        # replace the parameter
-                        kwargs[parameter] = re.sub(pattern, finalDate, kwargs[parameter])
+                    # update using dynamic date
+                    kwargs[parameter] = dynamicDateGenerator(kwargs[parameter])
                 
+                # update dates inside the text
+                args[0].text = dynamicDateGenerator(args[0].text)
+
                 # start the timeout
                 signal.signal(signal.SIGALRM, timeoutError)
                 signal.alarm(STEP_TIMEOUT)
