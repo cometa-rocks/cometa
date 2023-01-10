@@ -1003,7 +1003,7 @@ class AccountViewset(viewsets.ModelViewSet):
                 user.update( settings = data['settings'] )
             if 'permission_name' in data:
                 user_permission = Permissions.objects.filter(permission_name=data['permission_name'])
-                if user_permission.exists() and user[0].user_permissions.permission_power >= user_permission[0].permission_power:
+                if user_permission.exists() and request.session['user']['user_permissions']['permission_power'] >= user_permission[0].permission_power:
                     user.update(
                         user_permissions = user_permission[0]
                     )
