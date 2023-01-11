@@ -34,7 +34,7 @@ import random
 
 # import PIL
 from subprocess import call, run
-from selenium.common.exceptions import NoSuchElementException, WebDriverException, UnexpectedAlertPresentException, NoAlertPresentException
+from selenium.common.exceptions import WebDriverException, NoAlertPresentException, ElementNotInteractableException, TimeoutException
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -69,6 +69,7 @@ from pathlib import Path
 
 from pprint import pprint
 from django.conf import settings
+from tools import expected_conditions as CEC
 
 SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
 ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
@@ -1290,8 +1291,22 @@ def step_iml(context, amount, selector):
 def step_iml(context, text, selector):
     send_step_details(context, 'Looking for selector')
     element = waitSelector(context, "css", selector)
-    send_step_details(context, 'Setting value')
-    context.browser.execute_script('arguments[0].value = "%s";' % text, element[0])
+    for i in range(0, 10):
+        try:
+            elementInteractable = WebDriverWait(context.browser, 10).until(CEC.element_to_be_interactable(element[0]))
+            if elementInteractable:
+                send_step_details(context, 'Setting value')
+                element[0].send_keys(text)
+                send_step_details(context, 'Checking if the value is set')
+                valueSet = WebDriverWait(context.browser, 10).until(CEC.text_to_be_present_in_element_value(element[0], text))
+                if valueSet:
+                    return True
+        except ElementNotInteractableException as err:
+            logger.error("Element is not interactable yet will wait.")
+            time.sleep(1)
+        except TimeoutException as err:
+            logger.error("Element was not clickable or value was unable to set, will try again.")
+    raise CustomError("Unable to set set the value, maybe there is another element in front?")
 
 # Send any keys, this simulates the keys pressed by the keyboard
 @step(u'Send keys "{keys}"')
