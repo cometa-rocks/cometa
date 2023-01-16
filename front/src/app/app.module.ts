@@ -91,6 +91,7 @@ import { environment } from '@environments/environment';
 
 import { i18nMatPaginatorIntl } from '@services/paginator-intl';
 import { MatPaginatorIntl } from '@angular/material/paginator';
+import { MatTooltipDefaultOptions, MAT_TOOLTIP_DEFAULT_OPTIONS } from '@angular/material/tooltip';
 
 /* Translate Loader */
 export function createTranslateLoader(http: HttpClient) {
@@ -171,6 +172,13 @@ export function getWebpSupport() {
   }
 }
 
+export const customTooltipDefaults: MatTooltipDefaultOptions = {
+  showDelay: 0,
+  hideDelay: 0,
+  touchendHideDelay: 1500,
+  disableTooltipInteractivity: true
+};
+
 export function getStripeApiKey() {
   const testDomains = [
     /cometa-stage\.amvara\./,
@@ -179,6 +187,7 @@ export function getStripeApiKey() {
     /co\.meta\.de/,
     /cometa-dev\.ddns\./
   ];
+
   let STRIPE_TEST_KEY = STRIPE_PUBLIC_TEST_KEY;
   // Try to get also key from localStorage, useful for local testing purposes
   const STRIPE_PUBLIC_TEST_KEY_STORAGE = localStorage?.getItem('STRIPE_PUBLIC_TEST_KEY');
@@ -326,6 +335,13 @@ export function getStripeApiKey() {
     {
       provide: MatPaginatorIntl,
       useClass: i18nMatPaginatorIntl
+    },
+
+    // provides default options for mat-tooltip, this will force tooltip to dissapear as soon as mouse pointer leaves hover zone
+    // careful, this can not be used with tooltips that are supposted to be copied, as user will not be able to copy it
+    {
+      provide: MAT_TOOLTIP_DEFAULT_OPTIONS,
+      useValue: customTooltipDefaults
     }
   ],
   bootstrap: [CometaComponent]
