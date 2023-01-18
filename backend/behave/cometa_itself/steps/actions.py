@@ -2694,6 +2694,125 @@ def editFile(context, excelfile, variable_name, cell):
     # add variable
     addVariable(context, variable_name, sheet[cell].value)
 
+# get total cells from the cell ranges and 
+def getTotalCells(sheet, cells):
+    # split cells using semicolon (;)
+    cells = cells.split(";")
+    # save total cells to an array
+    totalCells = []
+    # loop over all the cells and check their values agaist the values index
+    for cell_range in cells:
+        cell = sheet[cell_range]
+        if type(cell) == tuple:
+            for x in cell:
+                for y in x:
+                    totalCells.append(y)
+        else:
+            totalCells.append(cell)
+    return totalCells
+
+# Assert values inside the excel file, generates a CSV file with the result.
+@step(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
+@done(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
+def excel_step_implementation(context, file, excel_range, values, match_type):
+    
+    # match options
+    match_options = ['match exact', 'match any', 'match X number of times', 'match partial']
+    # check if match type is one of next options
+    if match_type not in match_options:
+        raise CustomError("Unknown match_type, match type can be one of these options: %s." % ", ".join(match_options))
+
+    # import openpyxl for excel modifications
+    from openpyxl import load_workbook
+
+    # generate path
+    if 'Downloads' in file:
+        path = context.downloadDirectoryOutsideSelenium
+    elif 'uploads' in file:
+        path = '/code/behave/uploads'
+    else:
+        path = ''
+    
+    file = "/".join(file.split("/")[1:])
+
+    excelFilePath = "%s/%s" % (path, file)
+    logger.debug("Excel file opening: %s", excelFilePath)
+
+    # load excel file
+    wb = load_workbook(filename=excelFilePath)
+
+    # get active sheet
+    sheet = wb.active
+
+    # separate cells using semicolon
+    cells = getTotalCells(sheet, excel_range)
+
+    # make sure that the cells and values contain the same number of object
+    values = values.split(";")
+    if len(cells) != len(values):
+        raise CustomError("Cells and values should contain the same number of properties semicolon (;) separated. Total cells found %d and total values found: %d." % (len(cells), len(values)))
+
+    # save the result in a dict to later convert it to CSV
+    result = []
+
+    # compare cell value with values provided
+    for i in range(0, len(cells)):
+        result.append({
+            "cell": cells[i].coordinate,
+            "cell_value": cells[i].value,
+            "expected_value": values[i],
+            "status": cells[i].value == values[i]
+        })
+
+    # logic based on match type
+    allStatus = [row['status'] for row in result]
+    overAllStatus = False
+    if match_type == 'match exact':
+        overAllStatus = not (False in allStatus)
+    elif match_type == 'match partial':
+        overAllStatus = True in allStatus
+    else:
+        raise CustomError("match_type: %s is not implemented yet." % match_type)
+    
+    # save date and time an later format it
+    dateTime = datetime.datetime.now()
+
+    # generate a csv file
+    fileContent = [
+        ["Feature ID", int(context.feature_id)],
+        ["Feature Result ID", int(os.environ['feature_result_id'])],
+        ["Step number (starts from 1)", context.counters['index'] + 1],
+        ["Date & Time", dateTime.strftime("%Y-%m-%d %H:%M:%S")],
+        ["Overall Status", "Passed" if overAllStatus else 'Failed'],
+        ["Option", match_type],
+        [""],
+        ["Comparison Details:"],
+        ["Cell", "Cell Value", "Expected Value", "Status"]
+    ]
+
+    # print all the rows
+    for row in result:
+        fileContent.append([
+            row["cell"],
+            row["cell_value"],
+            row["expected_value"],
+            row["status"]
+        ])
+    
+    # save lists to file and link it to the step
+    fileName = "Excel_Assert_Values_%s.csv" % dateTime.strftime("%Y%m%d%H%M%S%f")
+    filePath = "%s/%s" % (context.downloadDirectoryOutsideSelenium, fileName)
+
+    # open file and write to it
+    with open(filePath, 'w+', encoding="utf_8_sig") as fileHandle:
+        writer = csv.writer(fileHandle, dialect="excel", delimiter=",", lineterminator='\n')
+        writer.writerows(fileContent)
+
+    # updated downloadedFiles in context
+    context.downloadedFiles[context.counters['index']] = ["%s/%s" % (os.environ['feature_result_id'], fileName)]
+
+    if not overAllStatus:
+        raise CustomError("Excel assert values failed, please view the attachment for more details.")
 
 # saves css_selectors innertext into a list variable. use "unique:<variable>" to make values distinct/unique. Using the variable in other steps means, that it includes "unique:", e.g. use "unique:colors" in other steps.
 @step(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
