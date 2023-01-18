@@ -2695,13 +2695,26 @@ def editFile(context, excelfile, variable_name, cell):
     addVariable(context, variable_name, sheet[cell].value)
 
 # get total cells from the cell ranges and 
-def getTotalCells(sheet, cells):
+def getTotalCells(sheet, cells, values=[]):
     # split cells using semicolon (;)
     cells = cells.split(";")
     # save total cells to an array
     totalCells = []
     # loop over all the cells and check their values agaist the values index
     for cell_range in cells:
+        # check if cell range contains a letter only
+        # date pattern to look for
+        pattern = r'^(?P<column>[A-Z]+)(?P<row>[0-9]+):(?P<column_two>[A-Z]+)$'
+        # match pattern to the paramerters value
+        match = re.search(pattern, str(cell_range))
+        # if match was found
+        if match:
+            # get all the matches
+            groups = match.groupdict()
+            # update the cell range
+            cell_range = "%s%s" % (cell_range, str(int(groups['row']) + len(values) - 1))
+            logger.debug("New range: %s" % cell_range)
+        
         cell = sheet[cell_range]
         if type(cell) == tuple:
             for x in cell:
@@ -2744,11 +2757,13 @@ def excel_step_implementation(context, file, excel_range, values, match_type):
     # get active sheet
     sheet = wb.active
 
-    # separate cells using semicolon
-    cells = getTotalCells(sheet, excel_range)
-
     # make sure that the cells and values contain the same number of object
     values = values.split(";")
+
+    # separate cells using semicolon
+    cells = getTotalCells(sheet, excel_range, values)
+    
+
     if len(cells) != len(values):
         raise CustomError("Cells and values should contain the same number of properties semicolon (;) separated. Total cells found %d and total values found: %d." % (len(cells), len(values)))
 
