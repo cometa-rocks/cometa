@@ -2710,7 +2710,7 @@ def getTotalCells(sheet, cells, values=[]):
     for cell_range in cells:
         # check if cell range contains a letter only
         # date pattern to look for
-        pattern = r'^(?P<column>[A-Z]+)(?P<row>[0-9]+):(?P<column_two>[A-Z]+)$'
+        pattern = r'^(?P<column>[A-Z]+)(?P<row>[0-9]+):\1$'
         # match pattern to the paramerters value
         match = re.search(pattern, str(cell_range))
         # if match was found
