@@ -2408,6 +2408,9 @@ def step_imp(context, linktext):
     if context.cloud != "local":
         raise CustomError("This step does not work in browserstack, please choose local browser and try again.")
 
+    # get already downloaded files
+    downloadedFiles = sum(list(context.downloadedFiles.values()), [])
+    logger.debug("Downloaded files during this feature: %s" % downloadedFiles)
 
     send_step_details(context, 'Preparing download')
     # get session id from browser
@@ -2447,9 +2450,13 @@ def step_imp(context, linktext):
         # check if need to continue because files are still being downloaded
         CONTINUE=False
 
+        # remove already downloaded files from the links
+        links = [link.decode('utf-8') for link in links if "%s/%s" % (os.environ['feature_result_id'], link.decode('utf-8')) not in downloadedFiles]
+
+        logger.debug("Final links after processing: %s" % links)
+
         # check if files are still being downloaded
         for link in links:
-            link = link.decode('utf-8')
             logger.debug("Checking on download link: %s" % link)
             if re.match(r'.*\..*download\b', link):
                 # there are files still being downloaded
@@ -2471,7 +2478,6 @@ def step_imp(context, linktext):
 
     # loop over all links and download them to local folders
     for link in links:
-        link = link.decode('utf-8')
         logger.debug("Downloading %s..." % link)
         # generate link with download path and download file
         fileURL = "%s%s" % (downloadURL, link)
@@ -2750,6 +2756,21 @@ def excel_step_implementation(context, file, excel_range, values, match_type):
 
     excelFilePath = "%s/%s" % (path, file)
     logger.debug("Excel file opening: %s", excelFilePath)
+
+    # check if file exists
+    if not os.path.exists(excelFilePath):
+        raise CustomError("Unable to find the specified file: %s" % file)
+    
+    # check if file is a CSV file if so convert it to excel
+    # TODO: Improve the logic to check if file is really a CSV
+    OLDPATH=excelFilePath
+    if excelFilePath.endswith(".csv"):
+        import pandas as pd
+        df = pd.read_csv(excelFilePath) # or other encodings
+        df.to_excel("%s.xlsx" % excelFilePath, index=None)
+
+        # update some variables to identify later on that csv was converted to excel file
+        excelFilePath = "%s.xlsx" % excelFilePath
 
     # load excel file
     wb = load_workbook(filename=excelFilePath)
