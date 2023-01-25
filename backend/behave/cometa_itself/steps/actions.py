@@ -2628,9 +2628,9 @@ def editFile(context, file, value, cell):
         raise CustomError("Unable to find file: %s, please make sure the directory is correct." % file)    
     
     if filePath.endswith(".xlsx") or filePath.endswith(".xls"):
-        updateExcel(filePath, cell, value, savePath)
+        updateExcel(filePath, cell, value, filePath)
     elif filePath.endswith(".csv"):
-        updateCsv(filePath, cell, value, savePath)
+        updateCsv(filePath, cell, value, filePath)
     else:
         raise CustomError("Unknown file format found. Please use a file with one of these extensions: csv, xlsx, xls.")
 
@@ -2786,7 +2786,7 @@ def excel_step_implementation(context, file, excel_range, values, match_type):
     
 
     if len(cells) != len(values):
-        raise CustomError("Cells and values should contain the same number of properties semicolon (;) separated. Total cells found %d and total values found: %d." % (len(cells), len(values)))
+        raise CustomError("Cells and values should contain the same number of properties separated by semicolon (;). Total cells found %d and total values found: %d." % (len(cells), len(values)))
 
     # save the result in a dict to later convert it to CSV
     result = []
