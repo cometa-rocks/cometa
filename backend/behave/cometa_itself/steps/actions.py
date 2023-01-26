@@ -167,13 +167,13 @@ def dynamicDateGenerator(content: str):
 # the step implementation ################################################## #
 # ########################################################################## #
 # Simple explanation about the function #################################### #
-# *_args & **_kwargs are the values passed in @done(...) ################### #
+# *_args & **_kwargs are the values passed in @metadata(...) ################ #
 # the decorator method holds the function that will be executed ############ #
 # @wraps(func) helps us to execute the function we want in case ############ #
 # there are more than one decorator applied to the function ################ #
 # and *args & **kwargs are the arguments passed in the step_imp(...) method! #
 # ########################################################################## #
-def done( *_args, **_kwargs ):
+def metadata( *_args, **_kwargs ):
     def decorator(func):
         @wraps(func)
         def execute(*args, **kwargs):
@@ -618,21 +618,58 @@ def getVariableType(variable):
 
 # Browse to an URL
 @step(u'StartBrowser and call URL "{url}"')
-@done(u'StartBrowser and call URL "{url}"')
+@metadata(
+    u'StartBrowser and call URL "{url}"',
+    application="common",
+    comment="""
+    Browser to a URL.
+
+    :url: Specify the URL of the website to browse.
+    """,
+    deprecated=True,
+    fields={
+        "url": {
+            "required": True,
+            "type": "regexp",
+            "regexp": "https?:\/\/(?:www\.|(?!www))[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)",
+            "error": "{url} field should contain a valid URL and should start with http:// or https://."
+        }
+    }
+)
 def step_impl(context,url):
     send_step_details(context, 'Loading page')
     context.browser.get(url)
 
 # Browse to an URL
 @step(u'Goto URL "{url}"')
-@done(u'Goto URL "{url}"')
-def step_impl(context,url):
+@metadata(
+    u'Goto URL "{url}"',
+    application="common",
+    comment="""
+    Browser to a URL.
+
+    :url: Specify the URL of the website to browse.
+    """,
+    fields={
+        "url": {
+            "required": True,
+            "type": "regexp",
+            "regexp": "https?:\/\/(?:www\.|(?!www))[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)",
+            "error": "{url} field should contain a valid URL and should start with http:// or https://."
+        }
+    }
+)
+def step_impl(context, url):
     send_step_details(context, 'Loading page')
     context.browser.get(url)
 
 # Sets a comma separated list of environments
 @step(u'a set of environments')
-@done(u'a set of environments')
+@metadata(
+    u'a set of environments',
+    application="common",
+    comment="Sets a comma separated list of environments"
+)
 def step_impl(context):
     context.environments = []
     for row in context.table:
@@ -644,7 +681,13 @@ def step_impl(context):
         raise CustomError("No environments found.")
 
 @step(u'Delete all cookies')
-@done(u'Delete all cookies')
+@metadata(
+    u'Delete all cookies',
+    comment="""
+    Deletes all the cookies from the browsers.
+    Only works in <strong>Chromium</strong> based browsers.
+    """
+)
 def step_impl(context):
     print("Delete all cookies")
     send_command = ('POST', '/session/$sessionId/chromium/send_command')
@@ -653,7 +696,20 @@ def step_impl(context):
 
 # Moves the mouse to the css selector and clicks
 @step(u'I move mouse to "{css_selector}" and click')
-@done(u'I move mouse to "{css_selector}" and click')
+@metadata(
+    u'I move mouse to "{css_selector}" and click',
+    comment="""
+    Moves the mouse to the element with specified selector and clicks on it.
+
+    :css_selector: Selector that identifies the element, can be XPATH, CSS selector.
+    """,
+    fields={
+        "css_selector": {
+            "required": True,
+            "type": "string"
+        }
+    }
+)
 def step_impl(context,css_selector):
     send_step_details(context, 'Looking for selector')
     elem = waitSelector(context, "css", css_selector)
@@ -670,7 +726,20 @@ def step_impl(context,css_selector):
 
 # Moves the mouse to the center of css selector
 @step(u'I move mouse over "{css_selector}"')
-@done(u'I move mouse over "{css_selector}"')
+@metadata(
+    u'I move mouse over "{css_selector}"',
+    comment="""
+    Moves the mouse over the element with specified selector to produce the hover effect.
+
+    :css_selector: Selector that identifies the element, can be XPATH, CSS selector.
+    """,
+    fields={
+        "css_selector": {
+            "required": True,
+            "type": "string"
+        }
+    }
+)
 def step_impl(context,css_selector):
     send_step_details(context, 'Looking for selector')
     elem = waitSelector(context, "css", css_selector)
@@ -679,7 +748,25 @@ def step_impl(context,css_selector):
 
 # Moves the mouse to random element in selector and click
 @step(u'I can move mouse and click randomly "{x}" times on elements in "{selector}"')
-@done(u'I can move mouse and click randomly "{x}" times on elements in "{selector}"')
+@metadata(
+    u'I can move mouse and click randomly "{x}" times on elements in "{selector}"',
+    comment="""
+    Randomly click on elements in a list of elements provided by the :selector:, :x: times.
+
+    :x: Amount of times a random element will be selected and clicked on.
+    :selector: Selector that identifies the element, can be XPATH, CSS selector.
+    """,
+    fields={
+        "x": {
+            "required": True,
+            "type": "int"
+        },
+        "selector": {
+            "required": True,
+            "type": "string"
+        }
+    }
+)
 def step_impl(context, x, selector):
     send_step_details(context, 'Looking for selector')
     elements = waitSelector(context, "css", selector)
@@ -706,7 +793,16 @@ def step_impl(context, x, selector):
 
 # Set Environment ID
 @step('Environment "{env}"')
-@done('Environment "{env}"')
+@metadata(
+    u'Environment "{env}"',
+    comment="Set Environment ID",
+    fields={
+        "env": {
+            "required": True,
+            "type": "string"
+        }
+    }
+)
 def step_impl(context,env):
     for item in context.environments:
         if (item[0] == env):
@@ -714,7 +810,10 @@ def step_impl(context,env):
 
 # Search for something in IBM Cognos and click on the first result. Tested & Works with CA 11.1 & 11.2
 @step(u'Search for "{something}" in IBM Cognos and click on first result')
-@done(u'Search for "{something}" in IBM Cognos and click on first result')
+@metadata(
+    u'Search for "{something}" in IBM Cognos and click on first result',
+    comment="Search for something in IBM Cognos and click on the first result. Tested & Works with CA 11.1 & 11.2"
+)
 def step_impl(context, something):
     logger.debug("Searching for %s in IBM Cognos" % something )
     send_step_details(context, 'Searching for %s in IBM Cognos' % something )
@@ -788,7 +887,10 @@ def step_impl(context, something):
 
 # Allows to navigate to a folder in an IBM Cognos installation
 @step(u'I can go to IBM Cognos folder "{folder_name}"')
-@done(u'I can go to IBM Cognos folder "{folder_name}"')
+@metadata(
+    u'I can go to IBM Cognos folder "{folder_name}"',
+    comment="Allows to navigate to a folder in an IBM Cognos installation"
+)
 def step_impl(context, folder_name):
     logger.debug("Splitting folders by ';' -  %s " % folder_name)
     # split folder_name by ";" to see if user wants to go into sub-folders
@@ -859,7 +961,10 @@ def loopSubFolders(context):
 
 # Testing with folder structure
 @step(u'How many reports are in current IBM Cognos Folder')
-@done(u'How many reports are in current IBM Cognos Folder')
+@metadata(
+    u'How many reports are in current IBM Cognos Folder',
+    comment="Testing with folder structure"
+)
 def step_imp(context):
     open_team_folder(context)
     cognos_scroll_folder_till_bottom(context, True)
@@ -867,13 +972,19 @@ def step_imp(context):
 
 # Allows to test all reports inside a folder of a Cognos installation. Total feature execution is limited to 2h.
 @step(u'I can test current IBM Cognos folder')
-@done(u'I can test current IBM Cognos folder')
+@metadata(
+    u'I can test current IBM Cognos folder',
+    comment="Allows to test all reports inside a folder of a Cognos installation. Total feature execution is limited to 2h."
+)
 def step_impl(context):
     test_folder_aso(context)
 
 # Allows to click on the OK button of an alert, confirm or prompt message
 @step(u'I can click OK on alert, confirm or prompt message')
-@done(u'I can click OK on alert, confirm or prompt message')
+@metadata(
+    u'I can click OK on alert, confirm or prompt message',
+    comment="Allows to click on the OK button of an alert, confirm or prompt message."
+)
 def step_impl(context):
     try:
         # try switching to the alert windows
@@ -1152,7 +1263,10 @@ def test_folder_aso(context, parameters = {}):
 
 # Closes the first IBM Cognos View in the drop down selector.
 @step(u'I can close the current IBM Cognos report view "{parameters}"')
-@done(u'I can close the current IBM Cognos report view "{parameters}"')
+@metadata(
+    u'I can close the current IBM Cognos report view "{parameters}"',
+    comment="Closes the first IBM Cognos View in the drop down selector."
+)
 def step_impl(context, parameters = {}):
     close_ibm_cognos_view(context, parameters)
 
@@ -1172,7 +1286,12 @@ def close_ibm_cognos_view(context, parameters = {}):
 
 # Allows to test all reports inside a folder of a Cognos installation with {key:value} parameters to autfill promptPages. Example: "PE|PeriodID:1269;CO:01"
 @step(u'I can test current IBM Cognos folder using parameters "{parameters}"')
-@done(u'I can test current IBM Cognos folder using parameters "{parameters}"')
+@metadata(
+    u'I can test current IBM Cognos folder using parameters "{parameters}"',
+    comment="""
+    Allows to test all reports inside a folder of a Cognos installation with {key:value} parameters to autfill promptPages. Example: "PE|PeriodID:1269;CO:01"
+    """
+)
 def step_impl(context, parameters):
     # Load parameters
     parameters = load_parameters(parameters)
@@ -1181,7 +1300,10 @@ def step_impl(context, parameters):
 # FIX ME .... make this MIF unspecific
 # Test if can access to a folder relative to the root directory of the URL specified
 @step(u'I can test the folder "{foldername}"')
-@done(u'I can test the folder "{foldername}"')
+@metadata(
+    u'I can test the folder "{foldername}"',
+    comment="Test if can access to a folder relative to the root directory of the URL specified."
+)
 def step_impl(context, foldername):
     els = waitSelector(context, "css", '.cctable a[href*="3_5f8"]')
     logger.debug("Total number of folder elements to test: ", len(els) )
@@ -1247,7 +1369,7 @@ def step_impl(context, foldername):
 
 # Change Language depending on the version of Cognos
 # @step(u'Change Cognos Language in versión "{cognosVersion}"')
-# @done(u'Change Cognos Language in versión "{cognosVersion}"')
+# @metadata(u'Change Cognos Language in versión "{cognosVersion}"')
 # def step_impl(context,browserTitle):
     # Detect Environment
 
@@ -1256,7 +1378,10 @@ def step_impl(context, foldername):
 
 # Checks if the current Tab Title is/contains some sentence
 @step(u'BrowserTitle is "{browserTitle}"')
-@done(u'BrowserTitle is "{browserTitle}"')
+@metadata(
+    u'BrowserTitle is "{browserTitle}"',
+    comment="Checks if the current Tab Title is/contains some sentence."
+)
 def step_impl(context,browserTitle):
     logger.debug("Checking browser.title for [%s]" % browserTitle)
     logger.debug("Browser title is: [%s]" % context.browser.title.strip())
@@ -1265,32 +1390,47 @@ def step_impl(context,browserTitle):
 
 # Closes the browser and reverts to latest opened tab/window if available
 @step(u'Close the browser')
-@done(u'Close the browser')
+@metadata(
+    u'Close the browser',
+    comment="Closes the browser and reverts to latest opened tab/window if available."
+)
 def step_impl(context):
     context.browser.quit()
 
 # Reloads the current page
 @step(u'Reload page')
-@done(u'Reload page')
+@metadata(
+    u'Reload page',
+    comment="Reloads the current page"
+)
 def step_impl(context):
     context.browser.refresh()
 
 # Scrolls the page to a given amount of pixels in the Y axis
 @step(u'Scroll to "{amount}"px')
-@done(u'Scroll to "{amount}"px')
+@metadata(
+    u'Scroll to "{amount}"px',
+    comment="Scrolls the page to a given amount of pixels in the Y axis"
+)
 def step_iml(context, amount):
 	context.browser.execute_script("window.scrollTo(0,"+str(amount)+")")
 
 # Scrolls to a given amount of pixels in the Y axis inside a specific element using a CSS selector
 @step(u'Scroll to "{amount}"px on element "{selector}"')
-@done(u'Scroll to "{amount}"px on element "{selector}"')
+@metadata(
+    u'Scroll to "{amount}"px on element "{selector}"',
+    comment="Scrolls to a given amount of pixels in the Y axis inside a specific element using a CSS selector"
+)
 def step_iml(context, amount, selector):
     elements = waitSelector(context, "css", selector)
     context.browser.execute_script("arguments[0].scrollTo(0,%s)" % amount, elements[0])
 
 # Set a value on an element, normally used for inputs
 @step(u'Set value "{text}" on "{selector}"')
-@done(u'Set value "{text}" on "{selector}"')
+@metadata(
+    u'Set value "{text}" on "{selector}"',
+    comment="Set a value on an element, normally used for inputs"
+)
 def step_iml(context, text, selector):
     send_step_details(context, 'Looking for selector')
     element = waitSelector(context, "css", selector)
@@ -1313,7 +1453,10 @@ def step_iml(context, text, selector):
 
 # Send any keys, this simulates the keys pressed by the keyboard
 @step(u'Send keys "{keys}"')
-@done(u'Send keys "{keys}"')
+@metadata(
+    u'Send keys "{keys}"',
+    comment="Send any keys, this simulates the keys pressed by the keyboard."
+)
 def step_iml(context, keys):
     elem=context.browser.switch_to.active_element
     description = context.text
@@ -1328,7 +1471,10 @@ def step_iml(context, keys):
 
 # Focus on element using a CSS selector
 @step(u'Focus on element with "{css_selector}"')
-@done(u'Focus on element with "{css_selector}"')
+@metadata(
+    u'Focus on element with "{css_selector}"',
+    comment="Focus on element using a CSS selector."
+)
 def step_iml(context, css_selector):
     send_step_details(context, 'Looking for selector')
     waitSelector(context, "css", css_selector)
@@ -1337,14 +1483,20 @@ def step_iml(context, css_selector):
 
 # Press Enter key
 @step(u'Press Enter')
-@done(u'Press Enter')
+@metadata(
+    u'Press Enter',
+    comment="Press Enter key."
+)
 def step_iml(context):
     elem=context.browser.switch_to.active_element
     elem.send_keys(Keys.RETURN)
 
-# Press Enter key
+# Press TAB key
 @step(u'Press TAB')
-@done(u'Press TAB')
+@metadata(
+    u'Press TAB',
+    comment="Press TAB key"
+)
 def step_iml(context):
     elem=context.browser.switch_to.active_element
     elem.send_keys(Keys.TAB)
@@ -1353,7 +1505,14 @@ def step_iml(context):
 # separated by ';', start pressing the keys once the previous set is released
 # If the key combination modifies the browser state (create new tab, close browser...), the key combination won't work
 @step(u'Press the following set of keys "{keySet}"')
-@done(u'Press the following set of keys "{keySet}"')
+@metadata(
+    u'Press the following set of keys "{keySet}"',
+    comment="""
+    Presses a set of keys sent by the user as a parameter. If the keys are separated by '+', press them simultaneosly.
+    If they are separated by ';', start pressing the keys once the previous set is released.
+    If the key combination modifies the browser state (create new tab, close browser...), the key combination won't work
+    """
+)
 def step_impl(context, keySet):
     logger.debug('Executing action of pressing a set of keys sent by the user')
     # Removes all the spaces from the string and splits it into independent press key sets
@@ -1383,7 +1542,10 @@ def step_impl(context, keySet):
 
 # Checks if the current source code contains something, is case sensitive!
 @step(u'I can see "{something}" on page')
-@done(u'I can see "{something}" on page')
+@metadata(
+    u'I can see "{something}" on page',
+    comment="Checks if the current source code contains something, is case sensitive!"
+)
 def step_impl(context,something):
     if not waitFor(context, something):
         raise CustomError("Unable to find %s on page." % something)
@@ -1391,26 +1553,38 @@ def step_impl(context,something):
 
 # Checks if the current source code contains a link with the desired text, is case sensitive!
 @step(u'I can see a link with "{linktext}"')
-@done(u'I can see a link with "{linktext}"')
+@metadata(
+    u'I can see a link with "{linktext}"',
+    comment="Checks if the current source code contains a link with the desired text, is case sensitive!"
+)
 def step_impl(context,linktext):
     if not waitSelector(context, "link_text", linktext):
         raise CustomError("Unable to find link with %s." % linktext)
 
 # Switches to another existing (or just created) Window/Tab
 @step(u'I can switch to new Window')
-@done(u'I can switch to new Window')
+@metadata(
+    u'I can switch to new Window',
+    comment="Switches to another existing (or just created) Window/Tab"
+)
 def step_impl(context):
     context.browser.switch_to_window(context.browser.window_handles[-1])
 
 # Switches to the main Window/Tab
 @step(u'I can switch to main Window')
-@done(u'I can switch to main Window')
+@metadata(
+    u'I can switch to main Window',
+    comment="Switches to the main Window/Tab"
+)
 def step_impl(context):
     context.browser.switch_to_window(context.browser.window_handles[0])
 
 # Switches to a iframe tag inside the document within the specified ID
 @step(u'I can switch to iFrame with id "{iframe_id}"')
-@done(u'I can switch to iFrame with id "{iframe_id}"')
+@metadata(
+    u'I can switch to iFrame with id "{iframe_id}"',
+    comment="Switches to a iframe tag inside the document within the specified ID"
+)
 @timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
 def step_impl(context,iframe_id):
     while True:
@@ -1434,7 +1608,10 @@ def step_impl(context,iframe_id):
 
 # Switches to an iframe tag inside the document within the specified ID
 @step(u'I can switch to iFrame with name "{iframe_name}"')
-@done(u'I can switch to iFrame with name "{iframe_name}"')
+@metadata(
+    u'I can switch to iFrame with name "{iframe_name}"',
+    comment="Switches to an iframe tag inside the document within the specified ID"
+)
 def step_impl(context,iframe_name):
     send_step_details(context, 'Looking for selector')
     iframe = waitSelector(context, "name", iframe_name )
@@ -1444,13 +1621,21 @@ def step_impl(context,iframe_name):
 
 # Changes the testing context to the main document in the current Tab/Window, similar to using window.top
 @step(u'I switch to defaultContent')
-@done(u'I switch to defaultContent')
+@metadata(
+    u'I switch to defaultContent',
+    comment="Changes the testing context to the main document in the current Tab/Window, similar to using window.top"
+)
 def step_impl(context):
     context.browser.switch_to_default_content()
 
 # Checks if can click on a button with the specified text or attribute text, e.g. //button[.="'+button_name+'"] | //button[@*="'+button_name+'"]
 @step(u'I can click on button "{button_name}"')
-@done(u'I can click on button "{button_name}"')
+@metadata(
+    u'I can click on button "{button_name}"',
+    comment="""
+    Checks if can click on a button with the specified text or attribute text, e.g. //button[.="'+button_name+'"] | //button[@*="'+button_name+'"]
+    """
+)
 def step_impl(context, button_name):
     send_step_details(context, 'Looking for button')
     elem = waitSelector(context, "xpath", '//button[.="'+button_name+'"] | //button[@*="'+button_name+'"]')
@@ -1458,7 +1643,10 @@ def step_impl(context, button_name):
 
 # Checks if can click in a button with the specified title attribute text
 @step(u'I can click on button with title "{button_title}"')
-@done(u'I can click on button with title "{button_title}"')
+@metadata(
+    u'I can click on button with title "{button_title}"',
+    comment="Checks if can click in a button with the specified title attribute text"
+)
 def step_impl(context, button_title):
     send_step_details(context, 'Looking for button')
     elem = waitSelector(context, "css", 'button[title^="'+button_title+'"]')
@@ -1466,21 +1654,24 @@ def step_impl(context, button_title):
 
 # Checks if it can click on an element using a CSS Selector
 @step(u'I can click on element with css selector "{css_selector}"')
-@done(u'I can click on element with css selector "{css_selector}"')
+@metadata(
+    u'I can click on element with css selector "{css_selector}"',
+    comment="Checks if it can click on an element using a CSS Selector"
+)
 def step_impl(context, css_selector):
     send_step_details(context, 'Looking for selector')
     click_element_by_css(context, css_selector)
 
 # Checks if it can see an element using a CSS Selector
 @step(u'I can see element with css selector "{css_selector}"')
-@done(u'I can see element with css selector "{css_selector}"')
+@metadata(u'I can see element with css selector "{css_selector}"')
 def step_impl(context, css_selector):
     send_step_details(context, 'Looking for selector')
     waitSelector(context, "css", css_selector)
 
 # Check if the source code in the previously selected iframe contains a link with text something
 @step(u'I can see a link with "{linktext}" in iframe')
-@done(u'I can see a link with "{linktext}" in iframe')
+@metadata(u'I can see a link with "{linktext}" in iframe')
 @timeout("Unable to find specified linktext inside the iFrames")
 def step_impl(context,linktext):
     while True:
@@ -1495,13 +1686,13 @@ def step_impl(context,linktext):
 
 # Selects an option defined with index from selector index defined with number. Index and number start from 0 for first element.
 @step(u'I use selector "{number}" and select option "{index}" for Cognos promptpage')
-@done(u'I use selector "{number}" and select option "{index}" for Cognos promptpage')
+@metadata(u'I use selector "{number}" and select option "{index}" for Cognos promptpage')
 def step_impl(context, index, number):
     selectCognosPrompt(context, controlIndex=number, optionIndex=index)
 
 # Selects an option value in a select input
 @step(u'I select option "{option_value}"')
-@done(u'I select option "{option_value}"')
+@metadata(u'I select option "{option_value}"')
 def step_impl(context, option_value):
     send_step_details(context, 'Looking for option')
     elem = waitSelector(context, "css", 'option[value="'+option_value+'"]')
@@ -1512,7 +1703,7 @@ def step_impl(context, option_value):
 
 # Selects an option value or index for a given select element using a CSS Selector or an index. <br>{css_selector} variable allows for the following prefixes: index:|value: (index starts from 1)<br>{value} variable allows for the following prefixes: index:|value:|contains: (index starts from 1)<br>Example: I use selector "index:2" and select option "contains:Financial"
 @step(u'I use selector "{css_selector}" and select option "{value}"')
-@done(u'I use selector "{css_selector}" and select option "{value}"')
+@metadata(u'I use selector "{css_selector}" and select option "{value}"')
 def step_impl(context, css_selector, value):
     # Preformat css_selector and value variables
     css_selector = getVariableType(css_selector)
@@ -1567,7 +1758,7 @@ def step_impl(context, css_selector, value):
 
 # Selects an option value in a select input using a CSS Selector
 @step(u'I can select option "{option_value}" for "{css_selector}"')
-@done(u'I can select option "{option_value}" for "{css_selector}"')
+@metadata(u'I can select option "{option_value}" for "{css_selector}"')
 def step_impl(context, option_value, css_selector):
     send_step_details(context, 'Looking for selector')
     try:
@@ -1578,7 +1769,7 @@ def step_impl(context, option_value, css_selector):
 
 # Checks if the source code contains some text, is case sensitive!
 @step(u'I can see "{something}"')
-@done(u'I can see "{something}"')
+@metadata(u'I can see "{something}"')
 def step_impl(context,something):
     try:
         waitFor(context, something)
@@ -1587,7 +1778,7 @@ def step_impl(context,something):
 
 # Do a login using Basic Auth credentials, please use variables to mask sensitive values like passwords
 @step(u'I can do a basic auth with username "{username}" and "{password}"')
-@done(u'I can do a basic auth with username & password')
+@metadata(u'I can do a basic auth with username & password')
 def step_impl(context, username, password):
     context.browser.send_keys(username)
     context.browser.send_keys(Keys.TAB)
@@ -1596,13 +1787,13 @@ def step_impl(context, username, password):
 
 # Sleeps for X seconds
 @step(u'I sleep "{sleeptime}" seconds')
-@done(u'I sleep "{sleeptime}" seconds')
+@metadata(u'I sleep "{sleeptime}" seconds')
 def step_impl(context, sleeptime):
     cometa_sleep(sleeptime)
 
 # Sleeps for X seconds
 @step(u'I can sleep "{sleeptime}" seconds')
-@done(u'I can sleep "{sleeptime}" seconds')
+@metadata(u'I can sleep "{sleeptime}" seconds')
 def step_impl(context,sleeptime):
     cometa_sleep(sleeptime)
 
@@ -1635,7 +1826,7 @@ def resize_browser_to(context,x,y):
 
 # Resizes the browser window to X and Y. <br>Please select a mobile browser in feature for mobile resolutions
 @step(u'I resize the browser to "{x}" x "{y}"')
-@done(u'I resize the browser to "{x}" x "{y}"')
+@metadata(u'I resize the browser to "{x}" x "{y}"')
 def step_impl(context, x, y):
     try:
         resize_browser_to(context,x,y)
@@ -1645,7 +1836,7 @@ def step_impl(context, x, y):
 
 # Resizes the browser window to X and Y, also checks the window size.
 @step(u'I can resize the browser to "{x}" x "{y}"')
-@done(u'I can resize the browser to "{x}" x "{y}"')
+@metadata(u'I can resize the browser to "{x}" x "{y}"')
 def step_impl(context, x, y):
     try:
         # Resize the window
@@ -1664,7 +1855,7 @@ def step_impl(context, x, y):
 
 # Maximizes the browser window
 @step(u'Maximize the browser')
-@done(u'Maximize the browser')
+@metadata(u'Maximize the browser')
 def step_impl(context):
     try:
         context.browser.maximize_window()
@@ -1674,7 +1865,7 @@ def step_impl(context):
 
 # Tries to click on an element with the specified class
 @step(u'I click on element with classname "{classname}"')
-@done(u'I click on element with classname "{classname}"')
+@metadata(u'I click on element with classname "{classname}"')
 def step_impl(context, classname):
     send_step_details(context, 'Looking for classname')
     elem = waitSelector(context, "class", classname)
@@ -1747,7 +1938,7 @@ def find_element(context, linktext):
 
 # Tries to make a click on link, it can be a css selector, a text link, inside a td, or a link id
 @step(u'I click on "{linktext}"')
-@done(u'I click on "{linktext}"')
+@metadata(u'I click on "{linktext}"')
 def step_impl(context, linktext):
     send_step_details(context, 'Looking for text link')
     find_element(context, linktext)
@@ -1770,21 +1961,21 @@ def cognos_scroll_folder_till_bottom(context, resetTop = False):
 
 # Scroll the opened folder to the bottom
 @step(u'Scroll the opened folder to the bottom')
-@done(u'Scroll the opened folder to the bottom')
+@metadata(u'Scroll the opened folder to the bottom')
 def step_impl(context):
     elem = waitSelector(context, "css", ".dataTables_scrollBody")
     context.browser.execute_script('document.querySelector(".dataTables_scrollBody").scrollTop = document.querySelector(".dataTables_scrollBody").scrollHeight')
 
 # Wait until I can see something on the page, useful when sleep or loading times are unknown
 @step(u'wait until I can see "{something}" on page')
-@done(u'wait until I can see "{something}" on page')
+@metadata(u'wait until I can see "{something}" on page')
 def step_impl(context, something):
     if not waitFor(context, something):
         raise CustomError("Waited for %ds but unable to find \"%s\", be aware that search is case sensitive!" % (MAXRETRIES, something))
 
 # Do a login using OIDC Authentication, please use variables to mask sensitive values like passwords
 @step(u'I can do a OIDC auth with username "{username}" and "{password}"')
-@done(u'I can do a OIDC auth with username and password')
+@metadata(u'I can do a OIDC auth with username and password')
 def step_impl(context, username, password):
     send_step_details(context, 'Looking for user field')
     userid = waitSelector(context, "id", 'userid')
@@ -1798,7 +1989,7 @@ def step_impl(context, username, password):
 
 # Checks if an element contains a given text inside a css-property like backgroundColor, fontSize, etc.
 @step(u'Check if "{css_selector}" contains "{value}" in "{css_property}"')
-@done(u'Check if "{css_selector}" contains "{value}" in "{css_property}"')
+@metadata(u'Check if "{css_selector}" contains "{value}" in "{css_property}"')
 def step_impl(context, css_selector, value, css_property):
     send_step_details(context, 'Looking for selector')
     waitSelector(context, "css", css_selector)
@@ -1809,13 +2000,13 @@ def step_impl(context, css_selector, value, css_property):
 
 # Go to previous page
 @step(u'Return to the previous page')
-@done(u'Return to the previous page')
+@metadata(u'Return to the previous page')
 def imp(context):
     context.browser.back()
 
 # Checks if an element contains a given text inside a js-property like innerText, innerHTML, value, etc. Use the prefix "caseInsensitve:" in the value for non-exact matching
 @step(u'Check if "{css_selector}" contains "{value}" in JS property "{js_property}"')
-@done(u'Check if "{css_selector}" contains "{value}" in JS property "{js_property}"')
+@metadata(u'Check if "{css_selector}" contains "{value}" in JS property "{js_property}"')
 def imp(context, css_selector, value, js_property):
     send_step_details(context, 'Looking for selector')
     element = waitSelector(context, "css", css_selector)
@@ -1836,13 +2027,13 @@ def imp(context, css_selector, value, js_property):
 
 # Runs another feature using it's ID in the same context, useful to import common steps in multiple features
 @step(u'Run feature with id "{feature_id}" before continuing')
-@done(u'Run feature with id "{feature_id}" before continuing')
+@metadata(u'Run feature with id "{feature_id}" before continuing')
 def step_impl(context, feature_id):
     pass
 
 # Runs another feature using it's name in the same context, useful to import common steps in multiple features
 @step(u'Run feature with name "{feature_name}" before continuing')
-@done(u'Run feature with name "{feature_name}" before continuing')
+@metadata(u'Run feature with name "{feature_name}" before continuing')
 def step_impl(context, feature_name):
     pass
 
@@ -1854,7 +2045,7 @@ def addParameter(context, key, value):
 
 # Run a JavaScript function in the current browser context
 @step(u'Run Javascript function "{function}"')
-@done(u'Run Javascript function')
+@metadata(u'Run Javascript function')
 def step_impl(context, function):
     js_function = context.text
     # FIXME ... needs to set the script timeout accordingly to what was selected in cometa - see https://www.selenium.dev/selenium/docs/api/py/webdriver_remote/selenium.webdriver.remote.webdriver.html#selenium.webdriver.remote.webdriver.WebDriver.set_script_timeout
@@ -1871,7 +2062,7 @@ def step_impl(context, function):
 
 # Click on element using an XPath Selector
 @step(u'click on element with xpath "{xpath}"')
-@done(u'click on element with xpath "{xpath}"')
+@metadata(u'click on element with xpath "{xpath}"')
 def step_impl(context, xpath):
     send_step_details(context, 'Looking for xpath element')
     elem = waitSelector(context, "xpath", xpath)
@@ -1880,7 +2071,7 @@ def step_impl(context, xpath):
 
 # Scroll to an element using a CSS Selector
 @step(u'Scroll to element with css selector "{selector}"')
-@done(u'Scroll to element with css selector "{selector}"')
+@metadata(u'Scroll to element with css selector "{selector}"')
 def step_impl(context, selector):
     send_step_details(context, 'Looking for selector')
     element = waitSelector(context, "css", selector)
@@ -1888,7 +2079,7 @@ def step_impl(context, selector):
 
 # Closes the current window
 @step(u'I can close the window')
-@done(u'I can close the window')
+@metadata(u'I can close the window')
 def step_impl(context):
     logger.debug("closing window")
     time.sleep(1.5)
@@ -1899,13 +2090,13 @@ def step_impl(context):
 
 # Throws an error with a custom message and stops feature execution
 @step(u'Throw an error with "{message}" and leave')
-@done(u'Throw an error with "{message}" and leave')
+@metadata(u'Throw an error with "{message}" and leave')
 def step_impl(context, message):
     raise CustomError(message)
 
 # Checks if an element doesn't exist using a CSS Selector
 @step(u'There is no coincidence with css selector "{selector}"')
-@done(u'There is no coincidence with css selector "{selector}"')
+@metadata(u'There is no coincidence with css selector "{selector}"')
 def step_impl(context, selector):
     found = False
     try:
@@ -1952,7 +2143,7 @@ def sort_column(context, column_name, reverse=False):
 
 # Sort a QueryStudio table by a given column name
 @step(u'I can sort QueryStudio table column with "{column_name}"')
-@done(u'I can sort QueryStudio table column with "{column_name}"')
+@metadata(u'I can sort QueryStudio table column with "{column_name}"')
 def step_impl(context, column_name):
     links=column_name.split(";")
     context.browser.switch_to_window(context.browser.window_handles[-1])
@@ -1966,7 +2157,7 @@ def step_impl(context, column_name):
 
 # Add a column name in a QueryStudio table
 @step(u'I can add an column with "{column_name}" to QueryStudio table')
-@done(u'I can add an column with "{column_name}" to QueryStudio table')
+@metadata(u'I can add an column with "{column_name}" to QueryStudio table')
 def step_impl(context, column_name):
     # now we can split
     links=column_name.split(";")
@@ -2042,7 +2233,7 @@ def step_impl(context, column_name):
 
 # Add a filter name to a QueryStudio table
 @step(u'I can add an filter with "{filter_name}" to QueryStudio table')
-@done(u'I can add an filter with "{filter_name}" to QueryStudio table')
+@metadata(u'I can add an filter with "{filter_name}" to QueryStudio table')
 def step_impl(context, filter_name):
     context.browser.switch_to_window(context.browser.window_handles[-1])
     elem = waitSelector(context, "link_text", filter_name)
@@ -2058,7 +2249,7 @@ def step_impl(context, filter_name):
 
 # Add a filter name with a value to a QueryStudio table
 @step(u'I can add an filter to column "{column_name}" with "{filter_value}" to QueryStudio table')
-@done(u'I can add an filter to column "{column_name}" with "{filter_value}" to QueryStudio table')
+@metadata(u'I can add an filter to column "{column_name}" with "{filter_value}" to QueryStudio table')
 def step_impl(context, column_name, filter_value):
     notActivated=False
     missingFilter=False
@@ -2152,7 +2343,7 @@ def step_impl(context, column_name, filter_value):
 
 # Negate a filter name
 @step(u'I can set not to the filter "{filter_text}"')
-@done(u'I can set not to the filter "{filter_text}"')
+@metadata(u'I can set not to the filter "{filter_text}"')
 def step_impl(context, filter_text):
     context.browser.switch_to_window(context.browser.window_handles[-1])
     iframe = waitSelector(context, "name", "reportIFrame" )
@@ -2171,7 +2362,7 @@ def step_impl(context, filter_text):
 
 # Remove a filter name from a QueryStudio table
 @step(u'I can remove the filter "{filter_text}"')
-@done(u'I can remove the filter "{filter_text}"')
+@metadata(u'I can remove the filter "{filter_text}"')
 def step_impl(context, filter_text):
     context.browser.switch_to_window(context.browser.window_handles[-1])
     iframe = waitSelector(context, "name", "reportIFrame" )
@@ -2186,7 +2377,7 @@ def step_impl(context, filter_text):
 
 # Remove a column name from a QueryStudio table. It is recommended to reduce the step timeout to 5s, as a Cognos dialogiFrame waiting takes 60s per default
 @step(u'I can delete QueryStudio table column with "{column_name}"')
-@done(u'I can delete QueryStudio table column with "{column_name}"')
+@metadata(u'I can delete QueryStudio table column with "{column_name}"')
 def step_impl(context, column_name):
     links=column_name.split(";")
     context.browser.switch_to_window(context.browser.window_handles[-1])
@@ -2223,7 +2414,7 @@ def step_impl(context, column_name):
 
 # Moves a column name before another column name
 @step(u'I can cut QueryStudio table column with "{column_name}" and paste it before column with "{column_name_2}"')
-@done(u'I can cut QueryStudio table column with "{column_name}" and paste it before column with "{column_name_2}"')
+@metadata(u'I can cut QueryStudio table column with "{column_name}" and paste it before column with "{column_name_2}"')
 def step_impl(context, column_name, column_name_2):
     context.browser.switch_to_window(context.browser.window_handles[-1])
     iframe = waitSelector(context, "name", "reportIFrame" )
@@ -2244,7 +2435,7 @@ def step_impl(context, column_name, column_name_2):
 
 # Do a Ctrl + Click using a CSS Selector
 @step(u'I can Control Click at "{element}"')
-@done(u'I can Control Click at "{element}"')
+@metadata(u'I can Control Click at "{element}"')
 def step_impl(context, element):
     query="""
     let ev=new MouseEvent('click', {ctrlKey: true});
@@ -2256,14 +2447,14 @@ def step_impl(context, element):
 
 # Insert custom comments in testplans
 @step(u'################ {comment} ################')
-@done(u'################ {comment} ################')
+@metadata(u'################ {comment} ################')
 def step_impl(context,comment):
     logger.debug("Read a comment from testplan. Will do nothing.")
     logger.info("Comment: %s" % comment)
 
 # Insert custom comments in testplans
 @step(u'#{comment}')
-@done(u'#{comment}')
+@metadata(u'#{comment}')
 def step_impl(context,comment):
     logger.debug("Read a comment from testplan. Will do nothing.")
     logger.info("Comment: %s" % comment)
@@ -2320,7 +2511,7 @@ def addVariable(context, variable_name, result):
 
 # save css-selector's property value if available else gets selector's innerText and saves it as an environment variable, environment variable value has a maximum value of 255 characters.
 @step(u'Save selector "{css_selector}" value to environment variable "{variable_name}"')
-@done(u'Save selector "{css_selector}" value to environment variable "{variable_name}"')
+@metadata(u'Save selector "{css_selector}" value to environment variable "{variable_name}"')
 def step_impl(context, css_selector, variable_name):
     # get the value from the property
     send_step_details(context, 'Looking for selector')
@@ -2337,14 +2528,14 @@ def step_impl(context, css_selector, variable_name):
 
 # add a timestamp after the prefix to make it unique
 @step(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
-@done(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
+@metadata(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
 def step_impl(context, prefix, variable_name):
     # create the unique text
     text = "%s-%.0f" % (prefix, time.time())
     addVariable(context, variable_name, text)
 
 @step(u'Create a string of random "{x}" numbers and save to "{variable_name}"')
-@done(u'Create a string of random "{x}" numbers and save to "{variable_name}"')
+@metadata(u'Create a string of random "{x}" numbers and save to "{variable_name}"')
 def step_imp(context, x, variable_name):
     import random
     text = ""
@@ -2378,9 +2569,15 @@ def downloadFileFromURL(url, dest_folder, filename):
         logger.error("Download failed: status code {}\n{}".format(r.status_code, r.text))
 
 # Upload a file by selecting the upload input field and sending the keys with the folder/filename. Cometa offers folder uploads with files inside the headless browser in Downloads/ and uploads/ folder. Separate multiple files by semicolon.
+<<<<<<< HEAD
 @step(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
 @done(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
 def step_imp(context, file_input_selector, filename):
+=======
+@step(u'Upload a file by clicking on "{selector}" using file "{filename}"')
+@metadata(u'Upload a file by clicking on "{selector}" using file "{filename}"')
+def step_imp(context, selector, filename):
+>>>>>>> 5570a38 (#2896 - implemented with optimized logic then the last implementation)
     # save the old file detector
     old_file_detector = context.browser.file_detector
     # set the new file detector to LocalFileDetector
@@ -2404,7 +2601,7 @@ def step_imp(context, file_input_selector, filename):
 
 # Attach a file from Downloads folder to the current feature-result. This is usefull for evaluating the file contents later on. The filename has to be the filename in the Downloads folders and will automatically link to the actual execution of the feature. Just write the filename - without mentioning the "Downloads/" folder
 @step(u'Attach the "{filename}" from Downloads folder to the current execution results')
-@done(u'Attach the "{filename}" from Downloads folder to the current execution results')
+@metadata(u'Attach the "{filename}" from Downloads folder to the current execution results')
 def step_imp(context, filename):
     logger.debug("Attaching to current execution filename: %s" % filename)
     # feature resultId
@@ -2418,7 +2615,7 @@ def step_imp(context, filename):
 
 # Download a file and watch which file is downloaded and assign them to feature_result and step_result, linktext can be a text, css_selector or even xpath. The downloaded file name is as seen in the application. Cometa copies the archive to last_downloaded_file.suffix - where suffix is the same suffix as the original filename.
 @step(u'Download a file by clicking on "{linktext}"')
-@done(u'Download a file by clicking on "{linktext}"')
+@metadata(u'Download a file by clicking on "{linktext}"')
 def step_imp(context, linktext):
     if context.cloud != "local":
         raise CustomError("This step does not work in browserstack, please choose local browser and try again.")
@@ -2510,7 +2707,7 @@ def step_imp(context, linktext):
 
 # schedule a job that runs a feature with specific key:value parameters separated by semi-colon (;) and crontab patterned schedules like "* * * * *" schedule can use <today> and <tomorrow> which are replaced dynamically.
 @step(u'Schedule Job "{feature_name}" using parameters "{parameters}" and crontab pattern "{schedule}"')
-@done(u'Schedule Job "{feature_name}" using parameters "{parameters}" and crontab pattern "{schedule}"')
+@metadata(u'Schedule Job "{feature_name}" using parameters "{parameters}" and crontab pattern "{schedule}"')
 def step_imp(context, feature_name, parameters, schedule):
 
     # convers parameters to a dict
@@ -2546,7 +2743,7 @@ def step_imp(context, feature_name, parameters, schedule):
 
 # removes the schedule that executed this feature y executed manually the step is ignored.
 @step(u'Delete schedule that executed this feature')
-@done(u'Delete schedule that executed this feature')
+@metadata(u'Delete schedule that executed this feature')
 def step_imp(context):
     # get the parameters
     parameters = json.loads(context.PARAMETERS)
@@ -2618,7 +2815,7 @@ def updateCsv(excelFilePath, cell, value, savePath):
 
 # edit excel or csv file and set a value to a given cell. The file is saved on the same path.
 @step(u'Edit "{file}" and set "{value}" to "{cell}"')
-@done(u'Edit "{file}" and set "{value}" to "{cell}"')
+@metadata(u'Edit "{file}" and set "{value}" to "{cell}"')
 def editFile(context, file, value, cell):
     # get file path
     filePath = uploadFileTarget(context, file)
@@ -2640,7 +2837,7 @@ def editFile(context, file, value, cell):
 
 # Opens excel file and tests that value is found in a given cell.
 @step(u'Open "{excelfile}" and assert "{value}" is in cell "{cell}"')
-@done(u'Open "{excelfile}" and assert "{value}" is in cell "{cell}"')
+@metadata(u'Open "{excelfile}" and assert "{value}" is in cell "{cell}"')
 def editFile(context, excelfile, value, cell):
     # import openpyxl for excel modifications
     from openpyxl import load_workbook
@@ -2668,7 +2865,7 @@ def editFile(context, excelfile, value, cell):
 
  # Opens excel file adds a variable to environment and sets the value as seen in Excel cell.
 @step(u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"')
-@done(u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"')
+@metadata(u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"')
 def editFile(context, excelfile, variable_name, cell):
     # import openpyxl for excel modifications
     from openpyxl import load_workbook
@@ -2745,7 +2942,7 @@ def ExcelToCSV(context, filePath, newPath):
 
 # Assert values inside the excel file, generates a CSV file with the result.
 @step(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
-@done(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
+@metadata(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
 def excel_step_implementation(context, file, excel_range, values, match_type):
     
     # match options
@@ -2893,7 +3090,7 @@ def assert_row_count(context, excelfile, column, starting_row, total_rows, optio
 
 # saves css_selectors innertext into a list variable. use "unique:<variable>" to make values distinct/unique. Using the variable in other steps means, that it includes "unique:", e.g. use "unique:colors" in other steps.
 @step(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
-@done(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
+@metadata(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
 def imp(context, css_selector, variable_name):
     # get all the values from css_selector
     send_step_details(context, 'Looking for selector')
@@ -2921,7 +3118,7 @@ def imp(context, css_selector, variable_name):
 
 # make a request to Open Weather Map and get Weather information about specific City, using units specified at https://openweathermap.org/current and your API Key.
 @step(u'Get weather temperature from Open Weather Map for "{city}" with "{units}" using "{apikey}" and save to variable "{variable_name}"')
-@done(u'Get weather temperature from Open Weather Map for "{city}" with "{units}" using "{apikey}" and save to variable "{variable_name}"')
+@metadata(u'Get weather temperature from Open Weather Map for "{city}" with "{units}" using "{apikey}" and save to variable "{variable_name}"')
 def step_imp(context, city, units, apikey, variable_name):
     # make a request to openweathermap
     req = requests.get("https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=%s" % (str(city), str(apikey), (str(units) or "Standard")))
@@ -2934,7 +3131,7 @@ def step_imp(context, city, units, apikey, variable_name):
 
 # compare two numbers with a variance, e.g.: value_one = 32, value_two = 28, variance = 5, result = Step OK
 @step(u'Compare "{value_one}" and "{value_two}" with a "{variance}"')
-@done(u'Compare "{value_one}" and "{value_two}" with a "{variance}"')
+@metadata(u'Compare "{value_one}" and "{value_two}" with a "{variance}"')
 def step_imp(context, value_one, value_two, variance):
     # get number/float inside value_one
     number_one = re.findall("\d*\.?\d*?", value_one)[0]
@@ -2951,7 +3148,7 @@ def step_imp(context, value_one, value_two, variance):
 
 # compares a report cube's content to a list saved in variable
 @step(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
-@done(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
+@metadata(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
 def imp(context, variable_name, prefix, suffix):
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
@@ -3036,7 +3233,7 @@ def imp(context, variable_name, prefix, suffix):
         raise CustomError("Here are the missing values in Report Cube: %s" % missin_values)
 
 @step(u'Test list of "{css_selector}" elements to contain "{all_or_partial}" values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
-@done(u'Test list of "{css_selector}" elements to contain "{all_or_partial}" values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
+@metadata(u'Test list of "{css_selector}" elements to contain "{all_or_partial}" values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
 def step_test(context, css_selector, all_or_partial, variable_names, prefix, suffix):
 
     # check if all_or_partial contains one or the other value if anything
@@ -3218,7 +3415,7 @@ def assert_imp(context, value_one, value_two):
     assert value_two in value_one, assert_failed_error
 
 @step(u'Loop "{x}" times starting at "{index}" and do')
-@done(u'Loop "{x}" times starting at "{index}" and do')
+@metadata(u'Loop "{x}" times starting at "{index}" and do')
 def step_loop(context, x, index):
     # check if there was an error during loop
     err = False
@@ -3273,7 +3470,7 @@ def step_loop(context, x, index):
         raise CustomError(err_msg)
 
 @step(u'End Loop')
-@done(u'End Loop')
+@metadata(u'End Loop')
 def step_endLoop(context):
     try:
         # remove index variable from context.JOB_PARAMETERS
@@ -3292,7 +3489,7 @@ def step_endLoop(context):
     context.executedStepsInLoop = 0
 
 @step(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
-@done(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
+@metadata(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
 def step(context, css_selector, variable_names, prefix, suffix):
     # get all the values from css_selector
     elements = waitSelector(context, "css", css_selector)

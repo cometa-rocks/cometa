@@ -66,6 +66,12 @@ ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
 
 logger = getLogger()
 
+def metadata(step_content, **kwargs):
+    return {
+        "step_content": step_content,
+        **kwargs
+    }
+
 def timediff(method):
     def wrapper(*args, **kwargs):
         method_name = method.__qualname__ or method.__name__
@@ -869,30 +875,29 @@ def parseBrowsers(request):
 def parseActions(request):
     actions_file = '/code/behave/cometa_itself/steps/actions.py'
     with open(actions_file) as file:
-        actions = file.readlines()
+        actions = file.read()
     actionsParsed = []
     Action.objects.all().delete()
-    previousAction = ''
-    for action in actions:
-        if action.startswith("@step"):
-            regex = r"\@(.*)\((u|)'(.*)'\)"
-            matches = re.findall(regex,action)
-            actionsParsed.append(matches[0][2])
-            actionObject = Action(
-                action_name = matches[0][2],
-                department = 'DIF',
-                application = 'amvara',
-                values = matches[0][2].count("{"),
-                description = previousAction[2:]
-            )
-            actionObject.save()
-        previousAction = action
+    metadataPattern = r'^@(metadata\((?:.|\n)*?\))\n(?:^def |^@)'
+    steps = re.findall(metadataPattern, actions, re.M)
 
+    for step in steps:
+        parsedStep = eval(step)
+        step_content = parsedStep.pop('step_content')
+        actionsParsed.append(step_content)
+        actionObject = Action(
+            action_name = step_content,
+            department = 'DIF',
+            application = parsedStep.pop('application', 'common'),
+            values = step_content.count("{"),
+            description = parsedStep.pop('comment', 'N/A').strip().replace("\n", "<br />"),
+            options = parsedStep
+        )
+        actionObject.save()
     # send a request to websockets about the actions update
     requests.post('http://cometa_socket:3001/sendAction', json={
         'type': '[Actions] Get All'
     })
-
     return JsonResponse({ 'success': True, 'actions': actionsParsed })
 
 @csrf_exempt
@@ -1202,8 +1207,8 @@ class ActionViewSet(viewsets.ModelViewSet):
         application = query.get('app', None)
         if department is not None:
             queryset = queryset.filter(department=department)
-        if application is not None:
-            queryset = queryset.filter(application=application)
+        # if application is not None:
+        #     queryset = queryset.filter(application=application)
         return Response({
             'results': ActionSerializer(queryset, many=True).data
         })
