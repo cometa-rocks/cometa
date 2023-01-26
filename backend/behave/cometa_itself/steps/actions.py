@@ -2942,7 +2942,51 @@ def ExcelToCSV(context, filePath, newPath):
 
 # Assert values inside the excel file, generates a CSV file with the result.
 @step(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
-@metadata(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
+@metadata(
+    u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"',
+    comment="""
+    Opens Excel or CSV file and asserts the values in the cell range specified.
+
+    Cell range can be any number of range as long as it cell lenght is not grater than the values lenght. 
+    If we don't know how many items there are in the values we can use a range like A12:A this will take A12 as a starting cell and calculate the rows based on the items in values. 
+    This only works vertically (rows) so range like A12:C won't work. 
+    Other possible ranges can be: A12:500 or even A12:C13, this last one will assert the value in the following order: A12 => B12 => C12 => A13 => B13 => C13.
+
+    Values are content that will be asserted and should be separated by semicolons (;).
+
+    Match type can be one of the followings:
+    ➤ match exact: Will fail the step if any of the assertions are failed. For e.g.: A12 should contain "Hi!" but contains "Hello!".
+    ➤ match partial: Will pass the step if any of the assertions are passed. For e.g.: A12 should contain "Hi!", contains "Hello!" but A13 should contain "Bye" and matches to cell value "Bye". Overall step passes.
+    ➤ match any: WIP
+    ➤ match x number of times: WIP
+
+    Generates an CSV file containing all the details about the assertions and why if might have failed.
+
+    :file: Execl or CSV file on which the assertion will be performed, use <code>Downloads/last_downloaded_file.&lt;file_ext&gt;</code> if you'd like to open the file you downloaded recently.
+    :excel_range: String that will contain the excel range format.
+    :values: Semicolon (;) separated values to assert.
+    :match_type: How you'd like to compare these values.
+    """,
+    fields={
+        "file": {
+            "required": True,
+            "type": "string",
+        },
+        "excel_range": {
+            "required": True,
+            "type": "string"
+        },
+        "values": {
+            "required": True,
+            "type": "string"
+        },
+        "match_type": {
+            "required": True,
+            "type": "options",
+            "options": ['match exact', 'match any', 'match X number of times', 'match partial']
+        }
+    }
+)
 def excel_step_implementation(context, file, excel_range, values, match_type):
     
     # match options
