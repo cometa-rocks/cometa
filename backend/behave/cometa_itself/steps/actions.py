@@ -2408,6 +2408,9 @@ def step_imp(context, linktext):
     if context.cloud != "local":
         raise CustomError("This step does not work in browserstack, please choose local browser and try again.")
 
+    # get already downloaded files
+    downloadedFiles = sum(list(context.downloadedFiles.values()), [])
+    logger.debug("Downloaded files during this feature: %s" % downloadedFiles)
 
     send_step_details(context, 'Preparing download')
     # get session id from browser
@@ -2447,9 +2450,13 @@ def step_imp(context, linktext):
         # check if need to continue because files are still being downloaded
         CONTINUE=False
 
+        # remove already downloaded files from the links
+        links = [link.decode('utf-8') for link in links if "%s/%s" % (os.environ['feature_result_id'], link.decode('utf-8')) not in downloadedFiles]
+
+        logger.debug("Final links after processing: %s" % links)
+
         # check if files are still being downloaded
         for link in links:
-            link = link.decode('utf-8')
             logger.debug("Checking on download link: %s" % link)
             if re.match(r'.*\..*download\b', link):
                 # there are files still being downloaded
@@ -2471,7 +2478,6 @@ def step_imp(context, linktext):
 
     # loop over all links and download them to local folders
     for link in links:
-        link = link.decode('utf-8')
         logger.debug("Downloading %s..." % link)
         # generate link with download path and download file
         fileURL = "%s%s" % (downloadURL, link)
@@ -2622,9 +2628,9 @@ def editFile(context, file, value, cell):
         raise CustomError("Unable to find file: %s, please make sure the directory is correct." % file)    
     
     if filePath.endswith(".xlsx") or filePath.endswith(".xls"):
-        updateExcel(filePath, cell, value, savePath)
+        updateExcel(filePath, cell, value, filePath)
     elif filePath.endswith(".csv"):
-        updateCsv(filePath, cell, value, savePath)
+        updateCsv(filePath, cell, value, filePath)
     else:
         raise CustomError("Unknown file format found. Please use a file with one of these extensions: csv, xlsx, xls.")
 
@@ -2694,6 +2700,155 @@ def editFile(context, excelfile, variable_name, cell):
     # add variable
     addVariable(context, variable_name, sheet[cell].value)
 
+# get total cells from the cell ranges and 
+def getTotalCells(sheet, cells, values=[]):
+    # split cells using semicolon (;)
+    cells = cells.split(";")
+    # save total cells to an array
+    totalCells = []
+    # loop over all the cells and check their values agaist the values index
+    for cell_range in cells:
+        # check if cell range contains a letter only
+        # date pattern to look for
+        pattern = r'^(?P<column>[A-Z]+)(?P<row>[0-9]+):\1$'
+        # match pattern to the paramerters value
+        match = re.search(pattern, str(cell_range))
+        # if match was found
+        if match:
+            # get all the matches
+            groups = match.groupdict()
+            # update the cell range
+            cell_range = "%s%s" % (cell_range, str(int(groups['row']) + len(values) - 1))
+            logger.debug("New range: %s" % cell_range)
+        
+        cell = sheet[cell_range]
+        if type(cell) == tuple:
+            for x in cell:
+                for y in x:
+                    totalCells.append(y)
+        else:
+            totalCells.append(cell)
+    return totalCells
+
+# Assert values inside the excel file, generates a CSV file with the result.
+@step(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
+@done(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
+def excel_step_implementation(context, file, excel_range, values, match_type):
+    
+    # match options
+    match_options = ['match exact', 'match any', 'match X number of times', 'match partial']
+    # check if match type is one of next options
+    if match_type not in match_options:
+        raise CustomError("Unknown match_type, match type can be one of these options: %s." % ", ".join(match_options))
+
+    # import openpyxl for excel modifications
+    from openpyxl import load_workbook
+
+    # generate path
+    if 'Downloads' in file:
+        path = context.downloadDirectoryOutsideSelenium
+    elif 'uploads' in file:
+        path = '/code/behave/uploads'
+    else:
+        path = ''
+    
+    file = "/".join(file.split("/")[1:])
+
+    excelFilePath = "%s/%s" % (path, file)
+    logger.debug("Excel file opening: %s", excelFilePath)
+
+    # check if file exists
+    if not os.path.exists(excelFilePath):
+        raise CustomError("Unable to find the specified file: %s" % file)
+    
+    # check if file is a CSV file if so convert it to excel
+    # TODO: Improve the logic to check if file is really a CSV
+    OLDPATH=excelFilePath
+    if excelFilePath.endswith(".csv"):
+        import pandas as pd
+        df = pd.read_csv(excelFilePath) # or other encodings
+        df.to_excel("%s.xlsx" % excelFilePath, index=None)
+
+        # update some variables to identify later on that csv was converted to excel file
+        excelFilePath = "%s.xlsx" % excelFilePath
+
+    # load excel file
+    wb = load_workbook(filename=excelFilePath)
+
+    # get active sheet
+    sheet = wb.active
+
+    # make sure that the cells and values contain the same number of object
+    values = values.split(";")
+
+    # separate cells using semicolon
+    cells = getTotalCells(sheet, excel_range, values)
+    
+
+    if len(cells) != len(values):
+        raise CustomError("Cells and values should contain the same number of properties separated by semicolon (;). Total cells found %d and total values found: %d." % (len(cells), len(values)))
+
+    # save the result in a dict to later convert it to CSV
+    result = []
+
+    # compare cell value with values provided
+    for i in range(0, len(cells)):
+        result.append({
+            "cell": cells[i].coordinate,
+            "cell_value": cells[i].value,
+            "expected_value": values[i],
+            "status": cells[i].value == values[i]
+        })
+
+    # logic based on match type
+    allStatus = [row['status'] for row in result]
+    overAllStatus = False
+    if match_type == 'match exact':
+        overAllStatus = not (False in allStatus)
+    elif match_type == 'match partial':
+        overAllStatus = True in allStatus
+    else:
+        raise CustomError("match_type: %s is not implemented yet." % match_type)
+    
+    # save date and time an later format it
+    dateTime = datetime.datetime.now()
+
+    # generate a csv file
+    fileContent = [
+        ["Feature ID", int(context.feature_id)],
+        ["Feature Result ID", int(os.environ['feature_result_id'])],
+        ["Step number (starts from 1)", context.counters['index'] + 1],
+        ["Date & Time", dateTime.strftime("%Y-%m-%d %H:%M:%S")],
+        ["Overall Status", "Passed" if overAllStatus else 'Failed'],
+        ["Option", match_type],
+        [""],
+        ["Comparison Details:"],
+        ["Cell", "Cell Value", "Expected Value", "Status"]
+    ]
+
+    # print all the rows
+    for row in result:
+        fileContent.append([
+            row["cell"],
+            row["cell_value"],
+            row["expected_value"],
+            row["status"]
+        ])
+    
+    # save lists to file and link it to the step
+    fileName = "Excel_Assert_Values_%s.csv" % dateTime.strftime("%Y%m%d%H%M%S%f")
+    filePath = "%s/%s" % (context.downloadDirectoryOutsideSelenium, fileName)
+
+    # open file and write to it
+    with open(filePath, 'w+', encoding="utf_8_sig") as fileHandle:
+        writer = csv.writer(fileHandle, dialect="excel", delimiter=",", lineterminator='\n')
+        writer.writerows(fileContent)
+
+    # updated downloadedFiles in context
+    context.downloadedFiles[context.counters['index']] = ["%s/%s" % (os.environ['feature_result_id'], fileName)]
+
+    if not overAllStatus:
+        raise CustomError("Excel assert values failed, please view the attachment for more details.")
 
 # saves css_selectors innertext into a list variable. use "unique:<variable>" to make values distinct/unique. Using the variable in other steps means, that it includes "unique:", e.g. use "unique:colors" in other steps.
 @step(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
