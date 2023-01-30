@@ -21,4 +21,4 @@ ${SCRIPTDIR}/create_backup.sh
 # get latests browsers
 #
 info "Checking latest browser information"
-cd ${BACKEND}/selenoid; ./deploy_selenoid.sh -n 1
+cd ${BACKEND}/selenoid; ./deploy_selenoid.sh -n 10
