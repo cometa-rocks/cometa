@@ -79,29 +79,29 @@ debug "TIMESTAMP                     => ${TIMESTAMP}"
 
 # create the backup file not already exists
 log_wfr "Making sure ${BACKUPDIR} exists "
-mkdir -p $BACKUPDIR 2>&1 >${TMPFILE} && log_res "[done]" || failed 5
+mkdir -p $BACKUPDIR &>${TMPFILE} && log_res "[done]" || failed 5
 
 # make sure that the db_data folder has correct permissions
 log_wfr "Making sure that the db_data folder has correct permissions "
-chown -R 999:root ${BACKEND}/db_data 2>&1 >${TMPFILE} && log_res "[done]" || failed 10
+chown -R 999:root ${BACKEND}/db_data &>${TMPFILE} && log_res "[done]" || failed 10
 
 # clear django sessions table
 log_wfr "Clearing Django Sessions "
-docker exec -it cometa_django bash -c "python manage.py clearsessions" 2>&1 >${TMPFILE} && log_res "[done]" || failed 15
+docker exec -it cometa_django bash -c "python manage.py clearsessions" &>${TMPFILE} && log_res "[done]" || failed 15
 
 # Vacuum the database ... carefull this creates tables locks
 log_wfr "Recovering space after clearing django sessions "
-docker exec -it cometa_postgres bash -c "psql -U postgres postgres --command \"vacuum full\"" 2>&1 >${TMPFILE} && log_res "[done]" || failed 20
+docker exec -it cometa_postgres bash -c "psql -U postgres postgres --command \"vacuum full\"" &>${TMPFILE} && log_res "[done]" || failed 20
 
 # check if postgres container is running and create the backup
 log_wfr "Creating the backup file "
 # create the zip file named cometa_backup_ and the date for easy knowing of the recent file as well as timestamp in case we need to do some cleaning.
-docker exec ${CONTAINERNAME} bash -c "${COMMAND}" 2>&1 >${TMPFILE} && log_res "[done]" || failed 25
+docker exec ${CONTAINERNAME} bash -c "${COMMAND}" &>${TMPFILE} && log_res "[done]" || failed 25
 log_wfr "Move the backup file to the backups dir "
-mv ${BACKEND}/${BKPFILENAME} $BACKUPDIR 2>&1 >${TMPFILE} && log_res "[done]" || failed 30
+mv ${BACKEND}/${BKPFILENAME} $BACKUPDIR &>${TMPFILE} && log_res "[done]" || failed 30
 
 # for more information checkout https://www.postgresql.org/docs/9.1/backup-dump.html on how to create a backup and how to restore.
 
 # remove older backups
 log_wfr "Cleaning up old backups "
-/usr/bin/find $BACKUPDIR/ -type f -mtime +$NO_OF_FILES_TO_KEEP_IN_BACKUP -name '*.gz' -print -delete 2>&1 >${TMPFILE} && log_res "[done]" || failed 35
+/usr/bin/find $BACKUPDIR/ -type f -mtime +$NO_OF_FILES_TO_KEEP_IN_BACKUP -name '*.gz' -print -delete &>${TMPFILE} && log_res "[done]" || failed 35
