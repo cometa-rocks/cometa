@@ -4,6 +4,7 @@
         "pk": 1,
         "fields": {
             "permission_name": "SUPERUSER",
+            "permission_power": 100,
             "create_account": true,
             "edit_account": true,
             "delete_account": true,
@@ -46,6 +47,7 @@
         "pk": 2,
         "fields": {
             "permission_name": "DEVOPS",
+            "permission_power": 20,
             "create_feature": true,
             "edit_feature": true,
             "run_feature": true,
@@ -60,6 +62,7 @@
         "pk": 3,
         "fields": {
             "permission_name": "ANALYSIS",
+            "permission_power": 0,
             "create_feature": true,
             "run_feature": true,
             "view_feature": true,
@@ -71,6 +74,7 @@
         "pk": 4,
         "fields": {
             "permission_name": "ANONYMOUS",
+            "permission_power": 10,
             "create_feature": true,
             "edit_feature": true,
             "run_feature": true,
