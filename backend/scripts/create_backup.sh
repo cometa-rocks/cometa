@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # CHANGELOG
+# 2023-01-30 - RRO - adding vacuum full before backup to reclaim tablespace
 # 2022-04-12 - RRO - Copied create_backup.sh to cometa repo, so it's not flying around.
 # 2021.03.23 - ASO - Added /Cometa mountpoint to /etc/fstab so script does not have to.
 
@@ -38,6 +39,12 @@ echo Backend lives here: $BACKEND
 # make sure that the db_data folder has correct permissions
 echo -ne "Making sure that the db_data folder has correct permissions... "
 chown -R 999:root ${BACKEND}/db_data && echo "done" || echo "failed"
+
+# clear django sessions table
+docker exec -it cometa_behave bash -c "python manage.py clearsessions"
+
+# Vacuum the database ... carefull this creates tables locks
+docker exec -it cometa_postgres bash -c "psql -U postgres postgres --command \"vacuum full\""
 
 # final file name
 FILENAME=cometa_backup_${DATE}_${TIMESTAMP}.gz
