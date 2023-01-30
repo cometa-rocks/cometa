@@ -3198,7 +3198,7 @@ def step_loop(context, x, index):
                 # update stepIndex with subStepIndex
                 context.counters['index'] = subStepIndex
                 # replace ''' to """
-                step = step.replace("'''", "\"\"\"").replace("\n", "")
+                step = step.replace("'''", "\"\"\"")
                 # print some information
                 send_step_details(context, "Executing step '%s' inside loop." % step.split('\n')[0])
                 # execute the step
