@@ -8,12 +8,15 @@
 # Save date and time
 DATE=$(date '+%Y%m%d%H%M%S')
 TIMESTAMP=$(date '+%s')
-DIFFERENCE=2628000 # 1 month in seconds
 BACKUPDIR=/backups
+TMPFILE=$(mktemp)
+# final file name
+BKPFILENAME=cometa_backup_${DATE}_${TIMESTAMP}.gz
+# database container name
+CONTAINERNAME=cometa_postgres
+# command to execute on the container
+COMMAND="pg_dump postgres -U postgres | gzip > /code/${BKPFILENAME}"
 
-# move to the Cometa/database folder
-mkdir -p $BACKUPDIR && echo Created $BACKUPDIR Directory || echo $BACKUPDIR dir is there already ... good
-cd $BACKUPDIR
 # cometa backend folder depending on hostname
 HOSTNAME=$(hostname)
 BACKEND=/var/www/cometa/backend
@@ -21,10 +24,12 @@ NO_OF_FILES_TO_KEEP_IN_BACKUP=30
 case $HOSTNAME in
         amvara3)
                 BACKEND=/home/amvara/projects/cometa/backend
+                BACKUPDIR=/data/backups
                 NO_OF_FILES_TO_KEEP_IN_BACKUP=60
                 ;;
         amvara2)
                 BACKEND=/home/amvara/projects/cometa/cometa/backend
+                BACKUPDIR=/data/backups
                 NO_OF_FILES_TO_KEEP_IN_BACKUP=60
                 ;;
         sgdem0005126)
@@ -33,48 +38,70 @@ case $HOSTNAME in
         sgdem0005125)
                 BACKEND=/var/www/cometa/backend
                 ;;
+        development)
+                BACKEND=/home/amvara/projects/public/cometa/backend
+                BACKUPDIR=/home/amvara/projects/public/cometa_bkps
+                ;;
 esac
-echo Backend lives here: $BACKEND
+
+# automate a bit failed behaviour
+function failed() {
+        log_res "[failed]"
+        error "More details about the error:"
+        cat ${TMPFILE}
+        exit ${1:-255}
+}
+
+# do some cleanup like remove the tmp file
+function cleanup() {
+        log_wfr "Removing tmp file "
+        rm ${TMPFILE} && log_res "[done]" || log_res "[failed]"
+}
+
+# create a trap to execute cleanup whenever script exists.
+trap cleanup EXIT
+
+# import logger
+test `command -v log_wfr` || source ${BACKEND}/../helpers/logger.sh
+
+# print some valuable information
+debug "Here are the variables used:"
+debug "BACKEND                       => ${BACKEND}"
+debug "BACKUPDIR                     => ${BACKUPDIR}"
+debug "BKPFILENAME                   => ${BKPFILENAME}"
+debug "COMMAND                       => ${COMMAND}"
+debug "CONTAINERNAME                 => ${CONTAINERNAME}"
+debug "DATE                          => ${DATE}"
+debug "HOSTNAME                      => ${HOSTNAME}"
+debug "NO OF FILES TO KEEP IN BACKUP => ${NO_OF_FILES_TO_KEEP_IN_BACKUP}"
+debug "TMPFILE                       => ${TMPFILE}"
+debug "TIMESTAMP                     => ${TIMESTAMP}"
+
+# create the backup file not already exists
+log_wfr "Making sure ${BACKUPDIR} exists "
+mkdir -p $BACKUPDIR 2>&1 >${TMPFILE} && log_res "[done]" || failed 5
 
 # make sure that the db_data folder has correct permissions
-echo -ne "Making sure that the db_data folder has correct permissions... "
-chown -R 999:root ${BACKEND}/db_data && echo "done" || echo "failed"
+log_wfr "Making sure that the db_data folder has correct permissions "
+chown -R 999:root ${BACKEND}/db_data 2>&1 >${TMPFILE} && log_res "[done]" || failed 10
 
 # clear django sessions table
-docker exec -it cometa_behave bash -c "python manage.py clearsessions"
+log_wfr "Clearing Django Sessions "
+docker exec -it cometa_django bash -c "python manage.py clearsessions" 2>&1 >${TMPFILE} && log_res "[done]" || failed 15
 
 # Vacuum the database ... carefull this creates tables locks
-docker exec -it cometa_postgres bash -c "psql -U postgres postgres --command \"vacuum full\""
+log_wfr "Recovering space after clearing django sessions "
+docker exec -it cometa_postgres bash -c "psql -U postgres postgres --command \"vacuum full\"" 2>&1 >${TMPFILE} && log_res "[done]" || failed 20
 
-# final file name
-FILENAME=cometa_backup_${DATE}_${TIMESTAMP}.gz
-# database container name
-CONTAINERNAME=cometa_postgres
-# command to execute on the container
-COMMAND="pg_dump postgres -U postgres | gzip > /code/${FILENAME}"
 # check if postgres container is running and create the backup
-echo -ne "Creating the zip file... "
+log_wfr "Creating the backup file "
 # create the zip file named cometa_backup_ and the date for easy knowing of the recent file as well as timestamp in case we need to do some cleaning.
-docker ps --format "{{.Names}}" | grep -q ${CONTAINERNAME} && ( docker exec ${CONTAINERNAME} bash -c "${COMMAND}" && mv ${BACKEND}/${FILENAME} $BACKUPDIR ) || { echo -ne "failed\n${CONTAINERNAME} is not running maybe... unable to find it using docker ps\n" && exit 2; }
-echo "done"
+docker exec ${CONTAINERNAME} bash -c "${COMMAND}" 2>&1 >${TMPFILE} && log_res "[done]" || failed 25
+log_wfr "Move the backup file to the backups dir "
+mv ${BACKEND}/${BKPFILENAME} $BACKUPDIR 2>&1 >${TMPFILE} && log_res "[done]" || failed 30
 
 # for more information checkout https://www.postgresql.org/docs/9.1/backup-dump.html on how to create a backup and how to restore.
 
-function cleanup {
-        for backup in $(ls $BACKUPDIR); do # loop over files in /Cometa/database
-                BACKUPTIMESTAMP=${backup//.zip/} # remove .zip from the filename
-                BACKUPTIMESTAMP=(${BACKUPTIMESTAMP//_/ }) # create a array spliting the filename from _
-                BACKUPTIMESTAMP=${BACKUPTIMESTAMP[2]} # get the timestamp variable from the filename
-                DIFF=$(($TIMESTAMP-$BACKUPTIMESTAMP)) # get the difference between the file backup timestamp and current timestamp
-                if [[ "$DIFF" -gt "$DIFFERENCE"  ]]; # if its greater than the DIFFERENCE variable do
-                then
-                        echo "Removing $backup backup file since it's more than $DIFFERENCE seconds old..."
-                        rm $backup # remove backup file
-                fi
-        done
-}
-
-# Worked with older timestamps need fixing with new ones.
-# cleanup
-/usr/bin/find $BACKUPDIR/ -type f -mtime +$NO_OF_FILES_TO_KEEP_IN_BACKUP -name "*.gz" -print -delete
-#/usr/bin/find $BACKUPDIR/ -type f -mtime +$NO_OF_FILES_TO_KEEP_IN_BACKUP -name "*.gz" -print
+# remove older backups
+log_wfr "Cleaning up old backups "
+/usr/bin/find $BACKUPDIR/ -type f -mtime +$NO_OF_FILES_TO_KEEP_IN_BACKUP -name '*.gz' -print -delete 2>&1 >${TMPFILE} && log_res "[done]" || failed 35
