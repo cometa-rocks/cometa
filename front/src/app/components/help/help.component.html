@@ -43,8 +43,27 @@
   <!-- Actions explanation -->
   <div class="help-title">Actions</div>
   <p>These are the actions available for use in any testplan:</p>
-  <div class="action" *ngFor="let action of actions$ | async | sortBy:'action_name'">
-    <h4 class="action-title">{{ action.action_name }}</h4>
-    <div class="action-description" [innerHTML]="action.description"></div>
+  <div class="actions">
+    <div class="action" *ngFor="let action of actions$ | async | sortBy:'action_name'; let i = index">
+      <mat-expansion-panel hideToggle>
+        <mat-expansion-panel-header>
+            <mat-panel-title>{{ action.action_name }}</mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="step_data">
+            <div class="description" [innerHTML]="action.description | safeHtml"></div>
+            <div class="fields" *ngIf="action.options.fields as fields">
+                <h3>Fields</h3>
+                <div class="field" *ngFor="let field of fields | keyvalue | sortBy:'key'">
+                    <span class="name" [class.required]="field.value.required">{{ field.key }}</span>
+                    <p class="value" [innerHTML]="field.value.description"></p>
+                    <ul class="fieldOptions">
+                        <li><strong>Required</strong>: {{field.value.required}}</li>
+                        <li><strong>Type</strong>: {{field.value.type}}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+      </mat-expansion-panel>
+    </div>
   </div>
 </div>

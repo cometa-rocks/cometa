@@ -890,7 +890,7 @@ def parseActions(request):
             department = 'DIF',
             application = parsedStep.pop('application', 'common'),
             values = step_content.count("{"),
-            description = parsedStep.pop('comment', 'N/A').strip().replace("\n", "<br />"),
+            description = parsedStep.pop('description', 'N/A').strip().replace("\n", "<br />"),
             options = parsedStep
         )
         actionObject.save()

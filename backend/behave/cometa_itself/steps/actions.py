@@ -621,18 +621,18 @@ def getVariableType(variable):
 @metadata(
     u'StartBrowser and call URL "{url}"',
     application="common",
-    comment="""
+    description="""
     Browser to a URL.
-
-    :url: Specify the URL of the website to browse.
+    Does same as the <step>Goto URL "{url}"</step> step.
     """,
     deprecated=True,
     fields={
         "url": {
             "required": True,
-            "type": "regexp",
+            "type": "string",
             "regexp": "https?:\/\/(?:www\.|(?!www))[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)",
-            "error": "{url} field should contain a valid URL and should start with http:// or https://."
+            "error": "{url} field should contain a valid URL and should start with http:// or https://.",
+            "description": "Specify the URL of the website to browse."
         }
     }
 )
@@ -645,17 +645,16 @@ def step_impl(context,url):
 @metadata(
     u'Goto URL "{url}"',
     application="common",
-    comment="""
+    description="""
     Browser to a URL.
-
-    :url: Specify the URL of the website to browse.
     """,
     fields={
         "url": {
             "required": True,
-            "type": "regexp",
+            "type": "string",
             "regexp": "https?:\/\/(?:www\.|(?!www))[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)",
-            "error": "{url} field should contain a valid URL and should start with http:// or https://."
+            "error": "{url} field should contain a valid URL and should start with http:// or https://.",
+            "description": "Specify the URL of the website to browse."
         }
     }
 )
@@ -668,7 +667,7 @@ def step_impl(context, url):
 @metadata(
     u'a set of environments',
     application="common",
-    comment="Sets a comma separated list of environments"
+    description="Sets a comma separated list of environments"
 )
 def step_impl(context):
     context.environments = []
@@ -683,7 +682,7 @@ def step_impl(context):
 @step(u'Delete all cookies')
 @metadata(
     u'Delete all cookies',
-    comment="""
+    description="""
     Deletes all the cookies from the browsers.
     Only works in <strong>Chromium</strong> based browsers.
     """
@@ -698,15 +697,14 @@ def step_impl(context):
 @step(u'I move mouse to "{css_selector}" and click')
 @metadata(
     u'I move mouse to "{css_selector}" and click',
-    comment="""
+    description="""
     Moves the mouse to the element with specified selector and clicks on it.
-
-    :css_selector: Selector that identifies the element, can be XPATH, CSS selector.
     """,
     fields={
         "css_selector": {
             "required": True,
-            "type": "string"
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
         }
     }
 )
@@ -728,15 +726,14 @@ def step_impl(context,css_selector):
 @step(u'I move mouse over "{css_selector}"')
 @metadata(
     u'I move mouse over "{css_selector}"',
-    comment="""
+    description="""
     Moves the mouse over the element with specified selector to produce the hover effect.
-
-    :css_selector: Selector that identifies the element, can be XPATH, CSS selector.
     """,
     fields={
         "css_selector": {
             "required": True,
-            "type": "string"
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
         }
     }
 )
@@ -750,20 +747,19 @@ def step_impl(context,css_selector):
 @step(u'I can move mouse and click randomly "{x}" times on elements in "{selector}"')
 @metadata(
     u'I can move mouse and click randomly "{x}" times on elements in "{selector}"',
-    comment="""
-    Randomly click on elements in a list of elements provided by the :selector:, :x: times.
-
-    :x: Amount of times a random element will be selected and clicked on.
-    :selector: Selector that identifies the element, can be XPATH, CSS selector.
+    description="""
+    Randomly click on elements in a list of elements provided by the {selector}, {x} times.
     """,
     fields={
         "x": {
             "required": True,
-            "type": "int"
+            "type": "int",
+            "description": "Amount of times a random element will be selected and clicked on."
         },
         "selector": {
             "required": True,
-            "type": "string"
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
         }
     }
 )
@@ -795,11 +791,12 @@ def step_impl(context, x, selector):
 @step('Environment "{env}"')
 @metadata(
     u'Environment "{env}"',
-    comment="Set Environment ID",
+    description="Set Environment ID",
     fields={
         "env": {
             "required": True,
-            "type": "string"
+            "type": "string",
+            "description": "Environment id that will be set."
         }
     }
 )
@@ -812,7 +809,17 @@ def step_impl(context,env):
 @step(u'Search for "{something}" in IBM Cognos and click on first result')
 @metadata(
     u'Search for "{something}" in IBM Cognos and click on first result',
-    comment="Search for something in IBM Cognos and click on the first result. Tested & Works with CA 11.1 & 11.2"
+    description="""
+    Search for {something} in IBM Cognos seach bar and click on the first result.
+    Tested with Cognos Analytics 11.1 & 11.2.
+    """,
+    fields={
+        "something": {
+            "required": True,
+            "type": "string",
+            "description": "Text to look for in the Cognos search bar."
+        }
+    }
 )
 def step_impl(context, something):
     logger.debug("Searching for %s in IBM Cognos" % something )
@@ -889,7 +896,19 @@ def step_impl(context, something):
 @step(u'I can go to IBM Cognos folder "{folder_name}"')
 @metadata(
     u'I can go to IBM Cognos folder "{folder_name}"',
-    comment="Allows to navigate to a folder in an IBM Cognos installation"
+    description="""
+    Allows to navigate to a folder in an IBM Cognos installation.
+    """,
+    fields={
+        "folder_name": {
+            "required": True,
+            "type": "string",
+            "description": """
+            Folder name of the folder you'd like to open.
+            {folder_name} can contain multiple folder names separated by semi-colon (;) to navigate through sub-folders.
+            """
+        }
+    }
 )
 def step_impl(context, folder_name):
     logger.debug("Splitting folders by ';' -  %s " % folder_name)
@@ -963,18 +982,22 @@ def loopSubFolders(context):
 @step(u'How many reports are in current IBM Cognos Folder')
 @metadata(
     u'How many reports are in current IBM Cognos Folder',
-    comment="Testing with folder structure"
+    description="Logs out how many reports are in currently open Cognos folder."
 )
 def step_imp(context):
     open_team_folder(context)
     cognos_scroll_folder_till_bottom(context, True)
-    loopSubFolders(context)
+    totalReports = loopSubFolders(context)
+    logger.info("Total Reports Found: %d" % totalReports)
 
 # Allows to test all reports inside a folder of a Cognos installation. Total feature execution is limited to 2h.
 @step(u'I can test current IBM Cognos folder')
 @metadata(
     u'I can test current IBM Cognos folder',
-    comment="Allows to test all reports inside a folder of a Cognos installation. Total feature execution is limited to 2h."
+    description="""
+    Allows to test all reports inside a folder of a Cognos installation.
+    Total feature execution is limited to <strong>2h</strong>.
+    """
 )
 def step_impl(context):
     test_folder_aso(context)
@@ -983,7 +1006,7 @@ def step_impl(context):
 @step(u'I can click OK on alert, confirm or prompt message')
 @metadata(
     u'I can click OK on alert, confirm or prompt message',
-    comment="Allows to click on the OK button of an alert, confirm or prompt message."
+    description="Allows to click on the OK button of an alert, confirm or prompt message."
 )
 def step_impl(context):
     try:
@@ -1265,7 +1288,14 @@ def test_folder_aso(context, parameters = {}):
 @step(u'I can close the current IBM Cognos report view "{parameters}"')
 @metadata(
     u'I can close the current IBM Cognos report view "{parameters}"',
-    comment="Closes the first IBM Cognos View in the drop down selector."
+    description="Closes the first IBM Cognos View in the drop down selector.",
+    fields={
+        "parameters": {
+            "required": False,
+            "type": "string",
+            "description": "There aren't any parameters for now."
+        }
+    }
 )
 def step_impl(context, parameters = {}):
     close_ibm_cognos_view(context, parameters)
@@ -1288,9 +1318,20 @@ def close_ibm_cognos_view(context, parameters = {}):
 @step(u'I can test current IBM Cognos folder using parameters "{parameters}"')
 @metadata(
     u'I can test current IBM Cognos folder using parameters "{parameters}"',
-    comment="""
-    Allows to test all reports inside a folder of a Cognos installation with {key:value} parameters to autfill promptPages. Example: "PE|PeriodID:1269;CO:01"
-    """
+    description="""
+    Allows to test all reports inside a folder of a Cognos installation with {key:value} parameters to autfill promptPages.
+
+    Parameters are semi-colon (;) separated and each paramters key and it's value is separated by colon (:), prompt key can contain more than one possible name which can be separated by pipe (|).
+
+    Example: "PE|PeriodID:1269;CO:01"
+    """,
+    fields={
+        "parameters": {
+            "required": False,
+            "type": "string",
+            "description": "All the possible prompts values. View the example above to understand how the parameters are parsed."
+        }
+    }
 )
 def step_impl(context, parameters):
     # Load parameters
@@ -1302,7 +1343,7 @@ def step_impl(context, parameters):
 @step(u'I can test the folder "{foldername}"')
 @metadata(
     u'I can test the folder "{foldername}"',
-    comment="Test if can access to a folder relative to the root directory of the URL specified."
+    description="Test if can access to a folder relative to the root directory of the URL specified."
 )
 def step_impl(context, foldername):
     els = waitSelector(context, "css", '.cctable a[href*="3_5f8"]')
@@ -1380,7 +1421,14 @@ def step_impl(context, foldername):
 @step(u'BrowserTitle is "{browserTitle}"')
 @metadata(
     u'BrowserTitle is "{browserTitle}"',
-    comment="Checks if the current Tab Title is/contains some sentence."
+    description="Asserts the current window or tab has the expected title.",
+    fields={
+        "browserTitle": {
+            "required": True,
+            "type": "string",
+            "description": "Expected title for current webpage."
+        }
+    }
 )
 def step_impl(context,browserTitle):
     logger.debug("Checking browser.title for [%s]" % browserTitle)
@@ -1392,7 +1440,12 @@ def step_impl(context,browserTitle):
 @step(u'Close the browser')
 @metadata(
     u'Close the browser',
-    comment="Closes the browser and reverts to latest opened tab/window if available."
+    description="""
+    Closes the browser.
+    Any step executed afterwards that tries to modify the state of the browser will fail.
+
+    Browser is closed automatically once the testplan is fully executed.
+    """
 )
 def step_impl(context):
     context.browser.quit()
@@ -1401,7 +1454,7 @@ def step_impl(context):
 @step(u'Reload page')
 @metadata(
     u'Reload page',
-    comment="Reloads the current page"
+    description="Reloads the current page"
 )
 def step_impl(context):
     context.browser.refresh()
@@ -1410,7 +1463,7 @@ def step_impl(context):
 @step(u'Scroll to "{amount}"px')
 @metadata(
     u'Scroll to "{amount}"px',
-    comment="Scrolls the page to a given amount of pixels in the Y axis"
+    description="Scrolls the page to a given amount of pixels in the Y axis"
 )
 def step_iml(context, amount):
 	context.browser.execute_script("window.scrollTo(0,"+str(amount)+")")
@@ -1419,7 +1472,7 @@ def step_iml(context, amount):
 @step(u'Scroll to "{amount}"px on element "{selector}"')
 @metadata(
     u'Scroll to "{amount}"px on element "{selector}"',
-    comment="Scrolls to a given amount of pixels in the Y axis inside a specific element using a CSS selector"
+    description="Scrolls to a given amount of pixels in the Y axis inside a specific element using a CSS selector"
 )
 def step_iml(context, amount, selector):
     elements = waitSelector(context, "css", selector)
@@ -1429,7 +1482,7 @@ def step_iml(context, amount, selector):
 @step(u'Set value "{text}" on "{selector}"')
 @metadata(
     u'Set value "{text}" on "{selector}"',
-    comment="Set a value on an element, normally used for inputs"
+    description="Set a value on an element, normally used for inputs"
 )
 def step_iml(context, text, selector):
     send_step_details(context, 'Looking for selector')
@@ -1455,7 +1508,7 @@ def step_iml(context, text, selector):
 @step(u'Send keys "{keys}"')
 @metadata(
     u'Send keys "{keys}"',
-    comment="Send any keys, this simulates the keys pressed by the keyboard."
+    description="Send any keys, this simulates the keys pressed by the keyboard."
 )
 def step_iml(context, keys):
     elem=context.browser.switch_to.active_element
@@ -1473,7 +1526,7 @@ def step_iml(context, keys):
 @step(u'Focus on element with "{css_selector}"')
 @metadata(
     u'Focus on element with "{css_selector}"',
-    comment="Focus on element using a CSS selector."
+    description="Focus on element using a CSS selector."
 )
 def step_iml(context, css_selector):
     send_step_details(context, 'Looking for selector')
@@ -1485,7 +1538,7 @@ def step_iml(context, css_selector):
 @step(u'Press Enter')
 @metadata(
     u'Press Enter',
-    comment="Press Enter key."
+    description="Press Enter key."
 )
 def step_iml(context):
     elem=context.browser.switch_to.active_element
@@ -1495,7 +1548,7 @@ def step_iml(context):
 @step(u'Press TAB')
 @metadata(
     u'Press TAB',
-    comment="Press TAB key"
+    description="Press TAB key"
 )
 def step_iml(context):
     elem=context.browser.switch_to.active_element
@@ -1507,7 +1560,7 @@ def step_iml(context):
 @step(u'Press the following set of keys "{keySet}"')
 @metadata(
     u'Press the following set of keys "{keySet}"',
-    comment="""
+    description="""
     Presses a set of keys sent by the user as a parameter. If the keys are separated by '+', press them simultaneosly.
     If they are separated by ';', start pressing the keys once the previous set is released.
     If the key combination modifies the browser state (create new tab, close browser...), the key combination won't work
@@ -1544,7 +1597,7 @@ def step_impl(context, keySet):
 @step(u'I can see "{something}" on page')
 @metadata(
     u'I can see "{something}" on page',
-    comment="Checks if the current source code contains something, is case sensitive!"
+    description="Checks if the current source code contains something, is case sensitive!"
 )
 def step_impl(context,something):
     if not waitFor(context, something):
@@ -1555,7 +1608,7 @@ def step_impl(context,something):
 @step(u'I can see a link with "{linktext}"')
 @metadata(
     u'I can see a link with "{linktext}"',
-    comment="Checks if the current source code contains a link with the desired text, is case sensitive!"
+    description="Checks if the current source code contains a link with the desired text, is case sensitive!"
 )
 def step_impl(context,linktext):
     if not waitSelector(context, "link_text", linktext):
@@ -1565,7 +1618,7 @@ def step_impl(context,linktext):
 @step(u'I can switch to new Window')
 @metadata(
     u'I can switch to new Window',
-    comment="Switches to another existing (or just created) Window/Tab"
+    description="Switches to another existing (or just created) Window/Tab"
 )
 def step_impl(context):
     context.browser.switch_to_window(context.browser.window_handles[-1])
@@ -1574,7 +1627,7 @@ def step_impl(context):
 @step(u'I can switch to main Window')
 @metadata(
     u'I can switch to main Window',
-    comment="Switches to the main Window/Tab"
+    description="Switches to the main Window/Tab"
 )
 def step_impl(context):
     context.browser.switch_to_window(context.browser.window_handles[0])
@@ -1583,7 +1636,7 @@ def step_impl(context):
 @step(u'I can switch to iFrame with id "{iframe_id}"')
 @metadata(
     u'I can switch to iFrame with id "{iframe_id}"',
-    comment="Switches to a iframe tag inside the document within the specified ID"
+    description="Switches to a iframe tag inside the document within the specified ID"
 )
 @timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
 def step_impl(context,iframe_id):
@@ -1610,7 +1663,7 @@ def step_impl(context,iframe_id):
 @step(u'I can switch to iFrame with name "{iframe_name}"')
 @metadata(
     u'I can switch to iFrame with name "{iframe_name}"',
-    comment="Switches to an iframe tag inside the document within the specified ID"
+    description="Switches to an iframe tag inside the document within the specified ID"
 )
 def step_impl(context,iframe_name):
     send_step_details(context, 'Looking for selector')
@@ -1623,7 +1676,7 @@ def step_impl(context,iframe_name):
 @step(u'I switch to defaultContent')
 @metadata(
     u'I switch to defaultContent',
-    comment="Changes the testing context to the main document in the current Tab/Window, similar to using window.top"
+    description="Changes the testing context to the main document in the current Tab/Window, similar to using window.top"
 )
 def step_impl(context):
     context.browser.switch_to_default_content()
@@ -1632,7 +1685,7 @@ def step_impl(context):
 @step(u'I can click on button "{button_name}"')
 @metadata(
     u'I can click on button "{button_name}"',
-    comment="""
+    description="""
     Checks if can click on a button with the specified text or attribute text, e.g. //button[.="'+button_name+'"] | //button[@*="'+button_name+'"]
     """
 )
@@ -1645,7 +1698,7 @@ def step_impl(context, button_name):
 @step(u'I can click on button with title "{button_title}"')
 @metadata(
     u'I can click on button with title "{button_title}"',
-    comment="Checks if can click in a button with the specified title attribute text"
+    description="Checks if can click in a button with the specified title attribute text"
 )
 def step_impl(context, button_title):
     send_step_details(context, 'Looking for button')
@@ -1656,7 +1709,7 @@ def step_impl(context, button_title):
 @step(u'I can click on element with css selector "{css_selector}"')
 @metadata(
     u'I can click on element with css selector "{css_selector}"',
-    comment="Checks if it can click on an element using a CSS Selector"
+    description="Checks if it can click on an element using a CSS Selector"
 )
 def step_impl(context, css_selector):
     send_step_details(context, 'Looking for selector')
@@ -2045,7 +2098,7 @@ def addParameter(context, key, value):
 
 # Run a JavaScript function in the current browser context
 @step(u'Run Javascript function "{function}"')
-@metadata(u'Run Javascript function')
+@metadata(u'Run Javascript function "{function}"')
 def step_impl(context, function):
     js_function = context.text
     # FIXME ... needs to set the script timeout accordingly to what was selected in cometa - see https://www.selenium.dev/selenium/docs/api/py/webdriver_remote/selenium.webdriver.remote.webdriver.html#selenium.webdriver.remote.webdriver.WebDriver.set_script_timeout
@@ -2447,14 +2500,37 @@ def step_impl(context, element):
 
 # Insert custom comments in testplans
 @step(u'################ {comment} ################')
-@metadata(u'################ {comment} ################')
+@metadata(
+    u'################ {comment} ################',
+    description="""
+    Insert custom comments in testplans
+    Does the same as the #{comment} step.
+    """,
+    fields={
+        "comment": {
+            "required": True,
+            "type": "string",
+            "description": "String that will be printed to the log output when executing the testplan."
+        }
+    }
+)
 def step_impl(context,comment):
     logger.debug("Read a comment from testplan. Will do nothing.")
     logger.info("Comment: %s" % comment)
 
 # Insert custom comments in testplans
 @step(u'#{comment}')
-@metadata(u'#{comment}')
+@metadata(
+    u'#{comment}',
+    description="Insert custom comments in testplans",
+    fields={
+        "comment": {
+            "required": True,
+            "type": "string",
+            "description": "String that will be printed to the log output when executing the testplan."
+        }
+    }
+)
 def step_impl(context,comment):
     logger.debug("Read a comment from testplan. Will do nothing.")
     logger.info("Comment: %s" % comment)
@@ -2944,7 +3020,7 @@ def ExcelToCSV(context, filePath, newPath):
 @step(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
 @metadata(
     u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"',
-    comment="""
+    description="""
     Opens Excel or CSV file and asserts the values in the cell range specified.
 
     Cell range can be any number of range as long as it cell lenght is not grater than the values lenght. 
@@ -2962,9 +3038,9 @@ def ExcelToCSV(context, filePath, newPath):
 
     Generates an CSV file containing all the details about the assertions and why if might have failed.
 
-    :file: Execl or CSV file on which the assertion will be performed, use <code>Downloads/last_downloaded_file.&lt;file_ext&gt;</code> if you'd like to open the file you downloaded recently.
+    {file} Execl or CSV file on which the assertion will be performed, use <code style="background-color: #fff;">Downloads/last_downloaded_file.&lt;file_ext&gt;</code> if you'd like to open the file you downloaded recently.
     :excel_range: String that will contain the excel range format.
-    :values: Semicolon (;) separated values to assert.
+    {values} Semicolon (;) separated values to assert.
     :match_type: How you'd like to compare these values.
     """,
     fields={
@@ -3459,8 +3535,28 @@ def assert_imp(context, value_one, value_two):
     assert value_two in value_one, assert_failed_error
 
 @step(u'Loop "{x}" times starting at "{index}" and do')
-@metadata(u'Loop "{x}" times starting at "{index}" and do')
-def step_loop(context, x, index):
+@metadata(
+    u'Loop "{x}" times starting at "{index}" and do',
+    description="""
+    Loops {x} times over all the steps found below this step until step named <step>End Loop</step>.
+    This step also adds a new parameter named <strong>index</strong> to the context while inside the loop which can be accessed using <strong>%index</strong>.
+
+    <strong>Nested loops are not supported.</strong> 
+    """,
+    fields={
+        "x": {
+            "required": True,
+            "type": "int",
+            "description": "How many times the steps in the loop will be repeated."
+        },
+        "index": {
+            "required": False,
+            "type": "int",
+            "description": "Specifies the starting point for the index. Defaults to 0."
+        }
+    }
+)
+def step_loop(context, x, index=0):
     # check if there was an error during loop
     err = False
     # save current step index before continuing
@@ -3514,7 +3610,10 @@ def step_loop(context, x, index):
         raise CustomError(err_msg)
 
 @step(u'End Loop')
-@metadata(u'End Loop')
+@metadata(
+    u'End Loop',
+    description="Ends loops started before. All the steps afterwards will be executed only once."
+)
 def step_endLoop(context):
     try:
         # remove index variable from context.JOB_PARAMETERS
