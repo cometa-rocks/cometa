@@ -39,8 +39,8 @@ case $HOSTNAME in
                 BACKEND=/var/www/cometa/backend
                 ;;
         development)
-                BACKEND=/home/amvara/projects/public/cometa/backend
-                BACKUPDIR=/home/amvara/projects/public/cometa_bkps
+                BACKEND=/home/arslansb/projects/cometa/backend
+                BACKUPDIR=/home/arslansb/projects/cometa_bkps
                 ;;
 esac
 
@@ -87,11 +87,11 @@ chown -R 999:root ${BACKEND}/db_data &>${TMPFILE} && log_res "[done]" || failed 
 
 # clear django sessions table
 log_wfr "Clearing Django Sessions "
-docker exec -it cometa_django bash -c "python manage.py clearsessions" &>${TMPFILE} && log_res "[done]" || failed 15
+docker exec cometa_django bash -c "python manage.py clearsessions" &>${TMPFILE} && log_res "[done]" || failed 15
 
 # Vacuum the database ... carefull this creates tables locks
 log_wfr "Recovering space after clearing django sessions "
-docker exec -it cometa_postgres bash -c "psql -U postgres postgres --command \"vacuum full\"" &>${TMPFILE} && log_res "[done]" || failed 20
+docker exec cometa_postgres bash -c "psql -U postgres postgres --command \"vacuum full\"" &>${TMPFILE} && log_res "[done]" || failed 20
 
 # check if postgres container is running and create the backup
 log_wfr "Creating the backup file "
