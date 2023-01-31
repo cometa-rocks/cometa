@@ -292,6 +292,25 @@ interface Action {
     compare?: boolean;
     text?: string;
     interpreted?: string;
+    options?: ActionOptions;
+}
+
+// Action Options object
+interface ActionOptions {
+    fields?: ActionOptionField;
+    deprecated?: boolean;
+}
+
+// Action Option Field object
+interface ActionOptionField {
+    [key: string]: ActionOptionFieldOptions;
+}
+
+// Action Option Field Options object
+interface ActionOptionFieldOptions {
+    required: boolean;
+    type: string;
+    description: string;
 }
 
 // Send Feature Information

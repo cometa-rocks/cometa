@@ -17,6 +17,7 @@
     max-width: 1000px;
     padding: 45px 30px 100px;
     line-height: 25px;
+    margin-bottom: 20px;
 }
 
 .contact-info {
@@ -141,6 +142,14 @@ br {
     }
 }
 
+.actions {
+    padding-bottom: 30px;
+}
+
+::ng-deep .mat-expansion-panel-body {
+    padding: 10px 24px 0 !important;
+}
+
 .action {
     margin: 15px 0;
     .action-title {
@@ -149,6 +158,51 @@ br {
     .action-description {
         font-weight: bold;
         color: rgba(black, .5);
+    }
+
+    mat-expansion-panel {
+        background-color: transparent;
+        box-shadow: none;
+
+        mat-expansion-panel-header {
+            font-weight: 600;
+            font-size: 16px;
+            height: auto;
+            mat-panel-title {
+                color: $blue;
+            }
+        }
+
+        .description {
+            font-size: 16px;
+            color: rgba(black, .5);
+        }
+
+        .fields {
+            color: rgba(black, .5);
+            margin-top: 10px;
+            h3 {
+                color: rgba(black, .6);
+                font-weight: bold;
+            }
+
+            .field {
+                margin: 0 0 5px 20px;
+                font-size: 15px;
+                .name {
+                    font-weight: bold;
+                    &:before {
+                        content: "{";
+                    }
+                    &:after {
+                        content: "}";
+                    }
+                }
+                .fieldOptions {
+                    margin-left: 20px;
+                }
+            }
+        }
     }
 }
 
