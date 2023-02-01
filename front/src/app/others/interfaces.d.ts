@@ -299,6 +299,7 @@ interface Action {
 interface ActionOptions {
     fields?: ActionOptionField;
     deprecated?: boolean;
+    created_on?: number;
 }
 
 // Action Option Field object

@@ -170,6 +170,30 @@ br {
             height: auto;
             mat-panel-title {
                 color: $blue;
+                flex-grow: 0;
+            }
+
+            .step-tag {
+                margin-right: 5px;
+                &:after {
+                    padding: 5px 10px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    border-radius: 20px;
+                    color: $white-text;
+                }
+            }
+            .deprecated-step {
+                &:after {
+                    content: "DEPRECATED";
+                    background-color: $remove;
+                }
+            }
+            .new-step {
+                &:after {
+                    content: "NEW";
+                    background-color: $orange;
+                }
             }
         }
 

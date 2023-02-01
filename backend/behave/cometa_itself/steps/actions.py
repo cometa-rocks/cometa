@@ -186,7 +186,11 @@ def metadata( *_args, **_kwargs ):
             job_parameters = json.loads(args[0].PARAMETERS)
 
             # message that will be saved in database once the code has been executed!
-            save_message = _args[0].format(**kwargs)
+            if "saveToDatabaseAs" in _kwargs:
+                save_message = _kwargs["saveToDatabaseAs"]
+            else:
+                save_message = _args[0]
+            save_message = save_message.format(**kwargs)
             # start timer to get how log it takes to run the step
             start_time = time.time()
 
@@ -1463,7 +1467,14 @@ def step_impl(context):
 @step(u'Scroll to "{amount}"px')
 @metadata(
     u'Scroll to "{amount}"px',
-    description="Scrolls the page to a given amount of pixels in the Y axis"
+    description="Scrolls the page to a given amount of pixels in the Y axis",
+    fields={
+        "amount": {
+            "required": True,
+            "type": "int",
+            "description": "How many pixel the page will be scrolled."
+        }
+    }
 )
 def step_iml(context, amount):
 	context.browser.execute_script("window.scrollTo(0,"+str(amount)+")")
@@ -1472,7 +1483,19 @@ def step_iml(context, amount):
 @step(u'Scroll to "{amount}"px on element "{selector}"')
 @metadata(
     u'Scroll to "{amount}"px on element "{selector}"',
-    description="Scrolls to a given amount of pixels in the Y axis inside a specific element using a CSS selector"
+    description="Scrolls to a given amount of pixels in the Y axis inside a specific element using a selector",
+    fields={
+        "amount": {
+            "required": True,
+            "type": "int",
+            "description": "How many pixel the page will be scrolled."
+        },
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        }
+    }
 )
 def step_iml(context, amount, selector):
     elements = waitSelector(context, "css", selector)
@@ -1482,7 +1505,19 @@ def step_iml(context, amount, selector):
 @step(u'Set value "{text}" on "{selector}"')
 @metadata(
     u'Set value "{text}" on "{selector}"',
-    description="Set a value on an element, normally used for inputs"
+    description="Set a value on an element, normally used for inputs",
+    fields={
+        "text": {
+            "required": True,
+            "type": "int",
+            "description": "Text that will be written to the input."
+        },
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        }
+    }
 )
 def step_iml(context, text, selector):
     send_step_details(context, 'Looking for selector')
@@ -1508,7 +1543,14 @@ def step_iml(context, text, selector):
 @step(u'Send keys "{keys}"')
 @metadata(
     u'Send keys "{keys}"',
-    description="Send any keys, this simulates the keys pressed by the keyboard."
+    description="Send any keys, this simulates the keys pressed by the keyboard.",
+    fields={
+        "keys": {
+            "required": True,
+            "type": "string",
+            "description": "Text that will the typed."
+        }
+    }
 )
 def step_iml(context, keys):
     elem=context.browser.switch_to.active_element
@@ -1525,8 +1567,15 @@ def step_iml(context, keys):
 # Focus on element using a CSS selector
 @step(u'Focus on element with "{css_selector}"')
 @metadata(
-    u'Focus on element with "{css_selector}"',
-    description="Focus on element using a CSS selector."
+    u'Focus on element with "{selector}"',
+    description="Focus on element using a {selector}.",
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        }
+    }
 )
 def step_iml(context, css_selector):
     send_step_details(context, 'Looking for selector')
@@ -1564,7 +1613,14 @@ def step_iml(context):
     Presses a set of keys sent by the user as a parameter. If the keys are separated by '+', press them simultaneosly.
     If they are separated by ';', start pressing the keys once the previous set is released.
     If the key combination modifies the browser state (create new tab, close browser...), the key combination won't work
-    """
+    """,
+    fields={
+        "keySet": {
+            "required": True,
+            "type": "string",
+            "description": "Key set combination that will be pressed on the virtual environment."
+        }
+    }
 )
 def step_impl(context, keySet):
     logger.debug('Executing action of pressing a set of keys sent by the user')
@@ -1597,7 +1653,14 @@ def step_impl(context, keySet):
 @step(u'I can see "{something}" on page')
 @metadata(
     u'I can see "{something}" on page',
-    description="Checks if the current source code contains something, is case sensitive!"
+    description="Checks if the current source code contains something, is case sensitive!",
+    fields = {
+        "something": {
+            "required": "True",
+            "type": "string",
+            "description": "Text to look for in page content."
+        }
+    }
 )
 def step_impl(context,something):
     if not waitFor(context, something):
@@ -1608,7 +1671,14 @@ def step_impl(context,something):
 @step(u'I can see a link with "{linktext}"')
 @metadata(
     u'I can see a link with "{linktext}"',
-    description="Checks if the current source code contains a link with the desired text, is case sensitive!"
+    description="Checks if the current source code contains a link with the desired text, is case sensitive!",
+    fields = {
+        "linktext": {
+            "required": True,
+            "type": "string",
+            "description": "Link text to wait for."
+        }
+    }
 )
 def step_impl(context,linktext):
     if not waitSelector(context, "link_text", linktext):
@@ -1636,7 +1706,14 @@ def step_impl(context):
 @step(u'I can switch to iFrame with id "{iframe_id}"')
 @metadata(
     u'I can switch to iFrame with id "{iframe_id}"',
-    description="Switches to a iframe tag inside the document within the specified ID"
+    description="Switches to a iframe tag inside the document within the specified ID",
+    fields = {
+        "iframe_id": {
+            "required": True,
+            "type": "string",
+            "description": "Id or name attribute of the Iframe to switch to."
+        }
+    }
 )
 @timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
 def step_impl(context,iframe_id):
@@ -1663,7 +1740,14 @@ def step_impl(context,iframe_id):
 @step(u'I can switch to iFrame with name "{iframe_name}"')
 @metadata(
     u'I can switch to iFrame with name "{iframe_name}"',
-    description="Switches to an iframe tag inside the document within the specified ID"
+    description="Switches to an iframe tag inside the document within the specified name attribute.",
+    fields = {
+        "iframe_name": {
+            "required": True,
+            "type": "string",
+            "description": "Name attribute of the Iframe to switch to."
+        }
+    }
 )
 def step_impl(context,iframe_name):
     send_step_details(context, 'Looking for selector')
@@ -1686,8 +1770,18 @@ def step_impl(context):
 @metadata(
     u'I can click on button "{button_name}"',
     description="""
-    Checks if can click on a button with the specified text or attribute text, e.g. //button[.="'+button_name+'"] | //button[@*="'+button_name+'"]
-    """
+    Checks if can click on a button with the specified text or attribute text.
+    
+    Examples:
+    //button[.="'+button_name+'"] | //button[@*="'+button_name+'"]
+    """,
+    fields = {
+        "button_name": {
+            "required": True,
+            "type": "string",
+            "description": "Button name to look for and click."
+        }
+    }
 )
 def step_impl(context, button_name):
     send_step_details(context, 'Looking for button')
@@ -1698,7 +1792,14 @@ def step_impl(context, button_name):
 @step(u'I can click on button with title "{button_title}"')
 @metadata(
     u'I can click on button with title "{button_title}"',
-    description="Checks if can click in a button with the specified title attribute text"
+    description="Checks if can click in a button with the specified title attribute text",
+    fields = {
+        "button_title": {
+            "required": True,
+            "type": "string",
+            "description": "Button title to look for and click on."
+        }
+    }
 )
 def step_impl(context, button_title):
     send_step_details(context, 'Looking for button')
@@ -1708,8 +1809,15 @@ def step_impl(context, button_title):
 # Checks if it can click on an element using a CSS Selector
 @step(u'I can click on element with css selector "{css_selector}"')
 @metadata(
-    u'I can click on element with css selector "{css_selector}"',
-    description="Checks if it can click on an element using a CSS Selector"
+    u'I can click on element with css selector "{selector}"',
+    description="Checks if it can click on an element using a selector",
+    fields = {
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        }
+    }
 )
 def step_impl(context, css_selector):
     send_step_details(context, 'Looking for selector')
@@ -1717,14 +1825,38 @@ def step_impl(context, css_selector):
 
 # Checks if it can see an element using a CSS Selector
 @step(u'I can see element with css selector "{css_selector}"')
-@metadata(u'I can see element with css selector "{css_selector}"')
+@metadata(
+    u'I can see element with css selector "{selector}"',
+    description="""
+    Checks if it can see an element using a selector.
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        }
+    }
+)
 def step_impl(context, css_selector):
     send_step_details(context, 'Looking for selector')
     waitSelector(context, "css", css_selector)
 
 # Check if the source code in the previously selected iframe contains a link with text something
 @step(u'I can see a link with "{linktext}" in iframe')
-@metadata(u'I can see a link with "{linktext}" in iframe')
+@metadata(
+    u'I can see a link with "{linktext}" in iframe',
+    description="""
+    Checks if {linktext} exists in and iframe on the current web page.
+    """,
+    fields = {
+        "linktext": {
+            "required": True,
+            "type": "string",
+            "description": "Link text to look for in the iframes."
+        }
+    }
+)
 @timeout("Unable to find specified linktext inside the iFrames")
 def step_impl(context,linktext):
     while True:
@@ -1739,13 +1871,43 @@ def step_impl(context,linktext):
 
 # Selects an option defined with index from selector index defined with number. Index and number start from 0 for first element.
 @step(u'I use selector "{number}" and select option "{index}" for Cognos promptpage')
-@metadata(u'I use selector "{number}" and select option "{index}" for Cognos promptpage')
+@metadata(
+    u'I use selector "{number}" and select option "{index}" for Cognos promptpage',
+    description="""
+    Selects an option defined with index from selector index defined with number.
+    Index and number start from 0 for first element.
+    """,
+    fields = {
+        "number": {
+            "required": True,
+            "type": "int",
+            "description": "nth selector to select from the prompt."
+        },
+        "index": {
+            "required": True,
+            "type": "int",
+            "description": "nth option to select from the prompt selector."
+        }
+    }
+)
 def step_impl(context, index, number):
     selectCognosPrompt(context, controlIndex=number, optionIndex=index)
 
 # Selects an option value in a select input
 @step(u'I select option "{option_value}"')
-@metadata(u'I select option "{option_value}"')
+@metadata(
+    u'I select option "{option_value}"',
+    description="""
+    Finds {option_value} in all the selectors and selects it.
+    """,
+    fields = {
+        "option_value": {
+            "required": True,
+            "type": "string",
+            "description": "Option value select in the entire web page."
+        }
+    }
+)
 def step_impl(context, option_value):
     send_step_details(context, 'Looking for option')
     elem = waitSelector(context, "css", 'option[value="'+option_value+'"]')
@@ -1756,7 +1918,28 @@ def step_impl(context, option_value):
 
 # Selects an option value or index for a given select element using a CSS Selector or an index. <br>{css_selector} variable allows for the following prefixes: index:|value: (index starts from 1)<br>{value} variable allows for the following prefixes: index:|value:|contains: (index starts from 1)<br>Example: I use selector "index:2" and select option "contains:Financial"
 @step(u'I use selector "{css_selector}" and select option "{value}"')
-@metadata(u'I use selector "{css_selector}" and select option "{value}"')
+@metadata(
+    u'I use selector "{selector}" and select option "{value}"',
+    description="""
+    Selects an option value or index for a given select element using a {selector} or an index.
+    {css_selector} variable allows for the following prefixes: index:|value: (index starts from 1)
+    {value} variable allows for the following prefixes: index:|value:|contains: (index starts from 1)
+    
+    Example: I use selector "index:2" and select option "contains:Financial"
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        },
+        "value": {
+            "required": True,
+            "type": "string",
+            "description": "Option value to select."
+        }
+    }
+)
 def step_impl(context, css_selector, value):
     # Preformat css_selector and value variables
     css_selector = getVariableType(css_selector)
@@ -1811,7 +1994,24 @@ def step_impl(context, css_selector, value):
 
 # Selects an option value in a select input using a CSS Selector
 @step(u'I can select option "{option_value}" for "{css_selector}"')
-@metadata(u'I can select option "{option_value}" for "{css_selector}"')
+@metadata(
+    u'I can select option "{option_value}" for "{selector}"',
+    description="""
+    Selects an option value in a select input using a selector
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        },
+        "option_value": {
+            "required": True,
+            "type": "string",
+            "description": "Option value to select."
+        }
+    }
+)
 def step_impl(context, option_value, css_selector):
     send_step_details(context, 'Looking for selector')
     try:
@@ -1822,7 +2022,17 @@ def step_impl(context, option_value, css_selector):
 
 # Checks if the source code contains some text, is case sensitive!
 @step(u'I can see "{something}"')
-@metadata(u'I can see "{something}"')
+@metadata(
+    u'I can see "{something}"',
+    description="Checks if the source code contains some text, is case sensitive!",
+    fields={
+        "something": {
+            "required": True,
+            "type": "string",
+            "description": "Text to look for in the page content."
+        }
+    }
+)
 def step_impl(context,something):
     try:
         waitFor(context, something)
@@ -1831,7 +2041,23 @@ def step_impl(context,something):
 
 # Do a login using Basic Auth credentials, please use variables to mask sensitive values like passwords
 @step(u'I can do a basic auth with username "{username}" and "{password}"')
-@metadata(u'I can do a basic auth with username & password')
+@metadata(
+    u'I can do a basic auth with "{username}" and "{password}"',
+    saveToDatabaseAs=u'I can do a basic auth with username & password}',
+    description="Do a login using Basic Auth credentials, please use variables to mask sensitive values like passwords.",
+    fields={
+        "username": {
+            "required": True,
+            "type": "string",
+            "description": "Username used to login to the basic auth."
+        },
+        "password": {
+            "required": True,
+            "type": "string",
+            "description": "Password used to login to the basic auth."
+        }
+    }
+)
 def step_impl(context, username, password):
     context.browser.send_keys(username)
     context.browser.send_keys(Keys.TAB)
@@ -1840,13 +2066,33 @@ def step_impl(context, username, password):
 
 # Sleeps for X seconds
 @step(u'I sleep "{sleeptime}" seconds')
-@metadata(u'I sleep "{sleeptime}" seconds')
+@metadata(
+    u'I sleep "{sleeptime}" seconds',
+    description="Sleeps for a specific amount of seconds.",
+    fields={
+        "sleeptime": {
+            "required": True,
+            "type": "int",
+            "description": "Amount to seconds to sleep."
+        }
+    }
+)
 def step_impl(context, sleeptime):
     cometa_sleep(sleeptime)
 
 # Sleeps for X seconds
 @step(u'I can sleep "{sleeptime}" seconds')
-@metadata(u'I can sleep "{sleeptime}" seconds')
+@metadata(
+    u'I can sleep "{sleeptime}" seconds',
+    description="Sleeps for a specific amount of seconds.",
+    fields={
+        "sleeptime": {
+            "required": True,
+            "type": "int",
+            "description": "Amount to seconds to sleep."
+        }
+    }
+)
 def step_impl(context,sleeptime):
     cometa_sleep(sleeptime)
 
@@ -1879,7 +2125,25 @@ def resize_browser_to(context,x,y):
 
 # Resizes the browser window to X and Y. <br>Please select a mobile browser in feature for mobile resolutions
 @step(u'I resize the browser to "{x}" x "{y}"')
-@metadata(u'I resize the browser to "{x}" x "{y}"')
+@metadata(
+    u'I resize the browser to "{x}" x "{y}"',
+    description="""
+    Resizes the browser window to X and Y.
+    Please select a mobile browser in feature for mobile resolutions
+    """,
+    fields={
+        "x": {
+            "required": True,
+            "type": "int",
+            "description": "How wide should the browser window be."
+        },
+        "y": {
+            "required": True,
+            "type": "int",
+            "description": "How long should the browser window be."
+        }
+    }
+)
 def step_impl(context, x, y):
     try:
         resize_browser_to(context,x,y)
@@ -1889,7 +2153,25 @@ def step_impl(context, x, y):
 
 # Resizes the browser window to X and Y, also checks the window size.
 @step(u'I can resize the browser to "{x}" x "{y}"')
-@metadata(u'I can resize the browser to "{x}" x "{y}"')
+@metadata(
+    u'I can resize the browser to "{x}" x "{y}"',
+    description="""
+    Resizes the browser window to X and Y.
+    Please select a mobile browser in feature for mobile resolutions
+    """,
+    fields={
+        "x": {
+            "required": True,
+            "type": "int",
+            "description": "How wide should the browser window be."
+        },
+        "y": {
+            "required": True,
+            "type": "int",
+            "description": "How long should the browser window be."
+        }
+    }
+)
 def step_impl(context, x, y):
     try:
         # Resize the window
@@ -1908,7 +2190,10 @@ def step_impl(context, x, y):
 
 # Maximizes the browser window
 @step(u'Maximize the browser')
-@metadata(u'Maximize the browser')
+@metadata(
+    u'Maximize the browser',
+    description="Maximizes the browser window."
+)
 def step_impl(context):
     try:
         context.browser.maximize_window()
@@ -2098,7 +2383,10 @@ def addParameter(context, key, value):
 
 # Run a JavaScript function in the current browser context
 @step(u'Run Javascript function "{function}"')
-@metadata(u'Run Javascript function "{function}"')
+@metadata(
+    u'Run Javascript function "{function}"',
+    saveToDatabaseAs=u'Run Javascript function'
+)
 def step_impl(context, function):
     js_function = context.text
     # FIXME ... needs to set the script timeout accordingly to what was selected in cometa - see https://www.selenium.dev/selenium/docs/api/py/webdriver_remote/selenium.webdriver.remote.webdriver.html#selenium.webdriver.remote.webdriver.WebDriver.set_script_timeout
@@ -2941,7 +3229,34 @@ def editFile(context, excelfile, value, cell):
 
  # Opens excel file adds a variable to environment and sets the value as seen in Excel cell.
 @step(u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"')
-@metadata(u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"')
+@metadata(
+    u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"',
+    description="""
+    Opens {excelfile} and save the {cell} value to {variable_name}.    
+    <strong>Does not work with CSV files.</strong>
+    """,
+    fields={
+        "excelfile": {
+            "required": True,
+            "type": "string",
+            "description": """
+            File that will be opened for processing.
+            Use <code>Downloads/&lt;file_name&gt;</code> to get file from the recently downloaded files in current testplan.
+            Use <code>uploads/&lt;file_name&gt;</code> to get file from the uploads folder. 
+            """
+        },
+        "cell": {
+            "required": True,
+            "type": "string",
+            "description": "Excel based single cell, like A1 or C315."
+        },
+        "variable_name": {
+            "requried": True,
+            "type": "string",
+            "description": "Variable name where the result will be saved."
+        }
+    }
+)
 def editFile(context, excelfile, variable_name, cell):
     # import openpyxl for excel modifications
     from openpyxl import load_workbook
@@ -3061,7 +3376,8 @@ def ExcelToCSV(context, filePath, newPath):
             "type": "options",
             "options": ['match exact', 'match any', 'match X number of times', 'match partial']
         }
-    }
+    },
+    created_on=1674057600000
 )
 def excel_step_implementation(context, file, excel_range, values, match_type):
     
@@ -3210,7 +3526,25 @@ def assert_row_count(context, excelfile, column, starting_row, total_rows, optio
 
 # saves css_selectors innertext into a list variable. use "unique:<variable>" to make values distinct/unique. Using the variable in other steps means, that it includes "unique:", e.g. use "unique:colors" in other steps.
 @step(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
-@metadata(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
+@metadata(
+    u'Save list values in selector "{selector}" and save them to variable "{variable_name}"',
+    description="""
+    Saves all elements values that are represented with {selector} as a string separated by semi-colon (;) and saves it's value to {variable_name}.
+    If {variable_name} starts with <code>unique:</code> only the distinct values will be saved to the {variable_name}.
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        },
+        "variable_name": {
+            "required": True,
+            "type": "string",
+            "description": "Variable name where the result will be saved."
+        }
+    }
+)
 def imp(context, css_selector, variable_name):
     # get all the values from css_selector
     send_step_details(context, 'Looking for selector')
@@ -3238,7 +3572,35 @@ def imp(context, css_selector, variable_name):
 
 # make a request to Open Weather Map and get Weather information about specific City, using units specified at https://openweathermap.org/current and your API Key.
 @step(u'Get weather temperature from Open Weather Map for "{city}" with "{units}" using "{apikey}" and save to variable "{variable_name}"')
-@metadata(u'Get weather temperature from Open Weather Map for "{city}" with "{units}" using "{apikey}" and save to variable "{variable_name}"')
+@metadata(
+    u'Get weather temperature from Open Weather Map for "{city}" with "{units}" using "{apikey}" and save to variable "{variable_name}"',
+    description="""
+    Makes a request to Open Weather Map and gets Weather information about specified {city}, using {units} specified at https://openweathermap.org/current and your {apikey}.
+    Saves the resulting value to {variables_name} which can be used later on.
+    """,
+    fields={
+        "city": {
+            "required": True,
+            "type": "string",
+            "description": "City whoms weather will be consulted."
+        },
+        "units": {
+            "required": False,
+            "type": "string",
+            "description": "Weather output result metric. Defaults to 'standard'"
+        },
+        "apikey": {
+            "required": True,
+            "type": "string",
+            "description": "Your API Key from Open Weather Map to fetch the data."
+        },
+        "variable_name": {
+            "required": True,
+            "type": "string",
+            "description": "Variable name where the result will be saved."
+        }
+    }
+)
 def step_imp(context, city, units, apikey, variable_name):
     # make a request to openweathermap
     req = requests.get("https://api.openweathermap.org/data/2.5/weather?q=%s&appid=%s&units=%s" % (str(city), str(apikey), (str(units) or "Standard")))
@@ -3251,7 +3613,35 @@ def step_imp(context, city, units, apikey, variable_name):
 
 # compare two numbers with a variance, e.g.: value_one = 32, value_two = 28, variance = 5, result = Step OK
 @step(u'Compare "{value_one}" and "{value_two}" with a "{variance}"')
-@metadata(u'Compare "{value_one}" and "{value_two}" with a "{variance}"')
+@metadata(
+    u'Compare "{value_one}" and "{value_two}" with a "{variance}"',
+    description="""
+    Compare two number with a variance.
+
+    Example:
+    {value_one} = 32
+    {value_two} = 28
+    {variance} = 5
+    step_result = Step OK
+    """,
+    fields={
+        "value_one": {
+            "required": True,
+            "type": "int",
+            "description": "Number to compare with {value_two}."
+        },
+        "value_two": {
+            "required": True,
+            "type": "int",
+            "description": "Number to compare with {value_one}."
+        },
+        "variance": {
+            "required": True,
+            "type": "int",
+            "description": "Allowed difference between {value_one} & {value_two}."
+        }
+    }
+)
 def step_imp(context, value_one, value_two, variance):
     # get number/float inside value_one
     number_one = re.findall("\d*\.?\d*?", value_one)[0]
