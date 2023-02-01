@@ -61,6 +61,7 @@ import { SafeHtmlPipe } from '../pipes/safe-html.pipe';
 import { AddLatestPipe } from '../pipes/add-latest.pipe';
 import { SafeUrlPipe } from '@pipes/safe-url.pipe';
 import { HumanizeBytesPipe } from '@pipes/humanize-bytes.pipe';
+import { StepNewPipe } from '@pipes/step-new.pipe';
 
 /* Directives */
 import { StopPropagationDirective } from '@directives/stop-propagation.directive';
@@ -191,7 +192,8 @@ const pipes = [
   FilterTextPipe,
   DepartmentNamePipe,
   FeatureRunningPipe,
-  HumanizeBytesPipe
+  HumanizeBytesPipe,
+  StepNewPipe
 ];
 
 const dialogs = [

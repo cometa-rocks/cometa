@@ -48,6 +48,20 @@
       <mat-expansion-panel hideToggle>
         <mat-expansion-panel-header>
             <mat-panel-title>{{ action.action_name }}</mat-panel-title>
+            <div 
+                class="deprecated-step step-tag"
+                *ngIf="action.options.deprecated"
+                matTooltip="This step is deprecated and will be removed in the future releases."
+                matTooltipPosition="above"
+                (click)="$event.stopPropagation();"
+            ></div>
+            <div
+                class="new-step step-tag"
+                *ngIf="action.options.created_on | stepNew"
+                matTooltip="This step is new and it might contain some bugs."
+                matTooltipPosition="above"
+                (click)="$event.stopPropagation();"
+            ></div>
         </mat-expansion-panel-header>
         <div class="step_data">
             <div class="description" [innerHTML]="action.description | safeHtml"></div>
