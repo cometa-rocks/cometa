@@ -700,12 +700,12 @@ def step_impl(context):
 # Moves the mouse to the css selector and clicks
 @step(u'I move mouse to "{css_selector}" and click')
 @metadata(
-    u'I move mouse to "{css_selector}" and click',
+    u'I move mouse to "{selector}" and click',
     description="""
     Moves the mouse to the element with specified selector and clicks on it.
     """,
     fields={
-        "css_selector": {
+        "selector": {
             "required": True,
             "type": "string",
             "description": "Selector that identifies the element, can be XPATH, CSS selector."
@@ -729,12 +729,12 @@ def step_impl(context,css_selector):
 # Moves the mouse to the center of css selector
 @step(u'I move mouse over "{css_selector}"')
 @metadata(
-    u'I move mouse over "{css_selector}"',
+    u'I move mouse over "{selector}"',
     description="""
     Moves the mouse over the element with specified selector to produce the hover effect.
     """,
     fields={
-        "css_selector": {
+        "selector": {
             "required": True,
             "type": "string",
             "description": "Selector that identifies the element, can be XPATH, CSS selector."
@@ -2203,7 +2203,19 @@ def step_impl(context):
 
 # Tries to click on an element with the specified class
 @step(u'I click on element with classname "{classname}"')
-@metadata(u'I click on element with classname "{classname}"')
+@metadata(
+    u'I click on element with classname "{classname}"',
+    description="""
+    Tries to click on an element with the specified class, without a starting dot (.).
+    """,
+    fields={
+        "classname": {
+            "required": True,
+            "type": "string",
+            "description": "Class name of the element that will be clicked."
+        }
+    }
+)
 def step_impl(context, classname):
     send_step_details(context, 'Looking for classname')
     elem = waitSelector(context, "class", classname)
@@ -2276,7 +2288,17 @@ def find_element(context, linktext):
 
 # Tries to make a click on link, it can be a css selector, a text link, inside a td, or a link id
 @step(u'I click on "{linktext}"')
-@metadata(u'I click on "{linktext}"')
+@metadata(
+    u'I click on "{linktext}"',
+    description="Tries to make a click on link, it can be a css selector, a text link, inside a td, or a link id.",
+    fields={
+        "linktext": {
+            "required": True,
+            "type": "string",
+            "description": "Link text, css selector or id of the element to click."
+        }
+    }
+)
 def step_impl(context, linktext):
     send_step_details(context, 'Looking for text link')
     find_element(context, linktext)
@@ -2299,21 +2321,56 @@ def cognos_scroll_folder_till_bottom(context, resetTop = False):
 
 # Scroll the opened folder to the bottom
 @step(u'Scroll the opened folder to the bottom')
-@metadata(u'Scroll the opened folder to the bottom')
+@metadata(
+    u'Scroll the opened folder to the bottom',
+    description="Scroll the opened Cognos folder to the bottom."
+)
 def step_impl(context):
     elem = waitSelector(context, "css", ".dataTables_scrollBody")
     context.browser.execute_script('document.querySelector(".dataTables_scrollBody").scrollTop = document.querySelector(".dataTables_scrollBody").scrollHeight')
 
 # Wait until I can see something on the page, useful when sleep or loading times are unknown
 @step(u'wait until I can see "{something}" on page')
-@metadata(u'wait until I can see "{something}" on page')
+@metadata(
+    u'wait until I can see "{something}" on page',
+    description="""
+    Wait to some text to aprear on the page content, text can be hidden on the page.
+    Useful when sleep or loading times are unknown.
+    """,
+    fields={
+        "something": {
+            "required": True,
+            "type": "string",
+            "description": "Text to wait for in the page content."
+        }
+    }
+)
 def step_impl(context, something):
     if not waitFor(context, something):
         raise CustomError("Waited for %ds but unable to find \"%s\", be aware that search is case sensitive!" % (MAXRETRIES, something))
 
 # Do a login using OIDC Authentication, please use variables to mask sensitive values like passwords
 @step(u'I can do a OIDC auth with username "{username}" and "{password}"')
-@metadata(u'I can do a OIDC auth with username and password')
+@metadata(
+    u'I can do a OIDC auth with username "{username}" and "{password}"',
+    saveToDatabaseAs=u'I can do a OIDC auth with username and password',
+    description="""
+    Do a login using OIDC Authentication, please use variables to mask sensitive values like passwords.
+    May not work for all types of login forms.
+    """,
+    fields={
+        "username": {
+            "required": True,
+            "type": "string",
+            "description": "Username used to login to the basic auth."
+        },
+        "password": {
+            "required": True,
+            "type": "string",
+            "description": "Password used to login to the basic auth."
+        }
+    }
+)
 def step_impl(context, username, password):
     send_step_details(context, 'Looking for user field')
     userid = waitSelector(context, "id", 'userid')
@@ -2327,7 +2384,32 @@ def step_impl(context, username, password):
 
 # Checks if an element contains a given text inside a css-property like backgroundColor, fontSize, etc.
 @step(u'Check if "{css_selector}" contains "{value}" in "{css_property}"')
-@metadata(u'Check if "{css_selector}" contains "{value}" in "{css_property}"')
+@metadata(
+    u'Check if "{selector}" contains "{value}" in "{css_property}"',
+    description="""
+    Checks if an element contains a given text in a css-property like backgroundColor, fontSize, etc.
+
+    Example:
+    Check if ".white-text" contains "#fff" in "color"
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        },
+        "value": {
+            "required": True,
+            "type": "string",
+            "description": "Value expected in CSS property."
+        },
+        "css_property": {
+            "required": True,
+            "type": "string",
+            "description": "Any CSS property, like backgroundColor, color, fontSize, etc."
+        }
+    }
+)
 def step_impl(context, css_selector, value, css_property):
     send_step_details(context, 'Looking for selector')
     waitSelector(context, "css", css_selector)
@@ -2338,13 +2420,43 @@ def step_impl(context, css_selector, value, css_property):
 
 # Go to previous page
 @step(u'Return to the previous page')
-@metadata(u'Return to the previous page')
+@metadata(
+    u'Return to the previous page',
+    description="Go to previous page."
+)
 def imp(context):
     context.browser.back()
 
 # Checks if an element contains a given text inside a js-property like innerText, innerHTML, value, etc. Use the prefix "caseInsensitve:" in the value for non-exact matching
 @step(u'Check if "{css_selector}" contains "{value}" in JS property "{js_property}"')
-@metadata(u'Check if "{css_selector}" contains "{value}" in JS property "{js_property}"')
+@metadata(
+    u'Check if "{selector}" contains "{value}" in JS property "{js_property}"',
+    description="""
+    Checks if an element contains a given text inside a js-property like innerText, innerHTML, value, etc.
+    Use the prefix "caseInsensitve:" in the value for case insensitive matching.
+
+    Example:
+    Check if ".name" contains "co.meta" in "innerText"
+    Check if ".name" contains "caseInsensitve:co.meta" in "innerText"
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        },
+        "value": {
+            "required": True,
+            "type": "string",
+            "description": "Value expected in JS property."
+        },
+        "js_property": {
+            "required": True,
+            "type": "string",
+            "description": "Any JS property, like innerText, innerHTML, value, etc."
+        }
+    }
+)
 def imp(context, css_selector, value, js_property):
     send_step_details(context, 'Looking for selector')
     element = waitSelector(context, "css", css_selector)
@@ -2365,13 +2477,39 @@ def imp(context, css_selector, value, js_property):
 
 # Runs another feature using it's ID in the same context, useful to import common steps in multiple features
 @step(u'Run feature with id "{feature_id}" before continuing')
-@metadata(u'Run feature with id "{feature_id}" before continuing')
+@metadata(
+    u'Run feature with id "{feature_id}" before continuing',
+    description="""
+    Imports steps from another feature and executes them when running the testplan.
+    Only feature within same department can be imported.
+    """,
+    fields={
+        "feature_id": {
+            "required": True,
+            "type": "int",
+            "description": "Id of the feature that will be imported."
+        }
+    }
+)
 def step_impl(context, feature_id):
     pass
 
 # Runs another feature using it's name in the same context, useful to import common steps in multiple features
 @step(u'Run feature with name "{feature_name}" before continuing')
-@metadata(u'Run feature with name "{feature_name}" before continuing')
+@metadata(
+    u'Run feature with name "{feature_name}" before continuing',
+    description="""
+    Imports steps from another feature and executes them when running the testplan.
+    Only feature within same department can be imported.
+    """,
+    fields={
+        "feature_name": {
+            "required": True,
+            "type": "string",
+            "description": "Exact name of the feature that will be imported."
+        }
+    }
+)
 def step_impl(context, feature_name):
     pass
 
@@ -2385,7 +2523,18 @@ def addParameter(context, key, value):
 @step(u'Run Javascript function "{function}"')
 @metadata(
     u'Run Javascript function "{function}"',
-    saveToDatabaseAs=u'Run Javascript function'
+    saveToDatabaseAs=u'Run Javascript function',
+    description="""
+    Run Javascript code in the browser.
+    Can be multiline code.
+    """,
+    fields={
+        "function": {
+            "required": True,
+            "type": "string",
+            "description": "Javascript code."
+        }
+    }
 )
 def step_impl(context, function):
     js_function = context.text
@@ -2401,9 +2550,22 @@ def step_impl(context, function):
         addParameter(context, "js_return", "")
         raise CustomError(err)
 
+
 # Click on element using an XPath Selector
 @step(u'click on element with xpath "{xpath}"')
-@metadata(u'click on element with xpath "{xpath}"')
+@metadata(
+    u'click on element with xpath "{xpath}"',
+    description="""
+    Click on element using an XPath Selector.
+    """,
+    fields={
+        "xpath": {
+            "required": True,
+            "type": "string",
+            "description": "XPath selector to identify the element."
+        }
+    }
+)
 def step_impl(context, xpath):
     send_step_details(context, 'Looking for xpath element')
     elem = waitSelector(context, "xpath", xpath)
@@ -2412,7 +2574,19 @@ def step_impl(context, xpath):
 
 # Scroll to an element using a CSS Selector
 @step(u'Scroll to element with css selector "{selector}"')
-@metadata(u'Scroll to element with css selector "{selector}"')
+@metadata(
+    u'Scroll to element with css selector "{selector}"',
+    description="""
+    Scrolls to the element and tries to center the element.
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        }
+    }
+)
 def step_impl(context, selector):
     send_step_details(context, 'Looking for selector')
     element = waitSelector(context, "css", selector)
@@ -2420,7 +2594,10 @@ def step_impl(context, selector):
 
 # Closes the current window
 @step(u'I can close the window')
-@metadata(u'I can close the window')
+@metadata(
+    u'I can close the window',
+    description="Closes the current window."
+)
 def step_impl(context):
     logger.debug("closing window")
     time.sleep(1.5)
@@ -2431,13 +2608,39 @@ def step_impl(context):
 
 # Throws an error with a custom message and stops feature execution
 @step(u'Throw an error with "{message}" and leave')
-@metadata(u'Throw an error with "{message}" and leave')
+@metadata(
+    u'Throw an error with "{message}" and leave',
+    description="""
+    Throws an error with a custom message and stops feature execution.
+    Useful when testing a feature and need to stop the execution after some steps.
+    """,
+    fields={
+        "message": {
+            "required": True,
+            "type": "string",
+            "description": "Custom message that will show on the live preview and feature logs."
+        }
+    }
+)
 def step_impl(context, message):
     raise CustomError(message)
 
 # Checks if an element doesn't exist using a CSS Selector
 @step(u'There is no coincidence with css selector "{selector}"')
-@metadata(u'There is no coincidence with css selector "{selector}"')
+@metadata(
+    u'There is no coincidence with css selector "{selector}"',
+    description="""
+    Checks if an element doesn't exist using a selector. 
+    This is an immediate check meaning that it won't wait for the element to disappear.
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        }
+    }
+)
 def step_impl(context, selector):
     found = False
     try:
@@ -2484,7 +2687,19 @@ def sort_column(context, column_name, reverse=False):
 
 # Sort a QueryStudio table by a given column name
 @step(u'I can sort QueryStudio table column with "{column_name}"')
-@metadata(u'I can sort QueryStudio table column with "{column_name}"')
+@metadata(
+    u'I can sort QueryStudio table column with "{column_name}"',
+    description="""
+    Sort a QueryStudio table by a given column name.
+    """,
+    fields={
+        "column_name": {
+            "required": True,
+            "type": "string",
+            "description": "Column to sort in QueryStudio. More than one column name can be provided using semi-colon (;) to sort multiple columns."
+        }
+    }
+)
 def step_impl(context, column_name):
     links=column_name.split(";")
     context.browser.switch_to_window(context.browser.window_handles[-1])
@@ -2498,7 +2713,24 @@ def step_impl(context, column_name):
 
 # Add a column name in a QueryStudio table
 @step(u'I can add an column with "{column_name}" to QueryStudio table')
-@metadata(u'I can add an column with "{column_name}" to QueryStudio table')
+@metadata(
+    u'I can add an column with "{column_name}" to QueryStudio table',
+    description="""
+    Add column to QueryStudio table.
+    Add multiple columns to QueryStudio by separating them with semi-colon (;).
+    Column format:
+    &lt;column_name&gt;:sort      - will add the column to the table and sort it.
+    &lt;column_name&gt;:-sort     - will add the column to the table and sort it in reverse order.
+    &lt;column_name&gt;:sort:keep - will add the column to the table and sort it and keep the column selection active so the next column is added before this one.
+    """,
+    fields={
+        "column_name": {
+            "required": True,
+            "type": "string",
+            "description": "Column to add to the QueryStudio table. View examples above to better understand the format."
+        }
+    }
+)
 def step_impl(context, column_name):
     # now we can split
     links=column_name.split(";")
@@ -2574,7 +2806,17 @@ def step_impl(context, column_name):
 
 # Add a filter name to a QueryStudio table
 @step(u'I can add an filter with "{filter_name}" to QueryStudio table')
-@metadata(u'I can add an filter with "{filter_name}" to QueryStudio table')
+@metadata(
+    u'I can add an filter with "{filter_name}" to QueryStudio table',
+    description="Add a filter to a QueryStudio table.",
+    fields={
+        "filter_name": {
+            "required": True,
+            "type": "string",
+            "description": "Filter to add to the QueryStudio table."
+        }
+    }
+)
 def step_impl(context, filter_name):
     context.browser.switch_to_window(context.browser.window_handles[-1])
     elem = waitSelector(context, "link_text", filter_name)
@@ -2590,7 +2832,24 @@ def step_impl(context, filter_name):
 
 # Add a filter name with a value to a QueryStudio table
 @step(u'I can add an filter to column "{column_name}" with "{filter_value}" to QueryStudio table')
-@metadata(u'I can add an filter to column "{column_name}" with "{filter_value}" to QueryStudio table')
+@metadata(
+    u'I can add an filter to column "{column_name}" with "{filter_value}" to QueryStudio table',
+    description="""
+    Add a filter name with a value to a QueryStudio table.
+    """,
+    fields={
+        "column_name": {
+            "required": True,
+            "type": "string",
+            "description": "Column on which to apply the filter."
+        },
+        "filter_value": {
+            "required": True,
+            "type": "string",
+            "description": "Value to filter in selected column."
+        }
+    }
+)
 def step_impl(context, column_name, filter_value):
     notActivated=False
     missingFilter=False
@@ -2684,7 +2943,19 @@ def step_impl(context, column_name, filter_value):
 
 # Negate a filter name
 @step(u'I can set not to the filter "{filter_text}"')
-@metadata(u'I can set not to the filter "{filter_text}"')
+@metadata(
+    u'I can set not to the filter "{filter_text}"',
+    description="""
+    Negate already applied filter.
+    """,
+    fields={
+        "filter_name": {
+            "required": True,
+            "type": "string",
+            "description": "Filter name to negate in QueryStudio table."
+        }
+    }
+)
 def step_impl(context, filter_text):
     context.browser.switch_to_window(context.browser.window_handles[-1])
     iframe = waitSelector(context, "name", "reportIFrame" )
@@ -2703,7 +2974,19 @@ def step_impl(context, filter_text):
 
 # Remove a filter name from a QueryStudio table
 @step(u'I can remove the filter "{filter_text}"')
-@metadata(u'I can remove the filter "{filter_text}"')
+@metadata(
+    u'I can remove the filter "{filter_name}"',
+    description="""
+    Remove existing filter from the QueryStudio table.
+    """,
+    fields={
+        "filter_name": {
+            "required": True,
+            "type": "string",
+            "description": "Filter to remove from QueryStudio table."
+        }
+    }
+)
 def step_impl(context, filter_text):
     context.browser.switch_to_window(context.browser.window_handles[-1])
     iframe = waitSelector(context, "name", "reportIFrame" )
@@ -2718,7 +3001,20 @@ def step_impl(context, filter_text):
 
 # Remove a column name from a QueryStudio table. It is recommended to reduce the step timeout to 5s, as a Cognos dialogiFrame waiting takes 60s per default
 @step(u'I can delete QueryStudio table column with "{column_name}"')
-@metadata(u'I can delete QueryStudio table column with "{column_name}"')
+@metadata(
+    u'I can delete QueryStudio table column with "{column_name}"',
+    description="""
+    Remove existing column from the QueryStudio table.
+    Multiple column names can be provided separated by semi-colon (;) to remove multiple columns.
+    """,
+    fields={
+        "column_name": {
+            "required": True,
+            "type": "string",
+            "description": "Column to remove from QueryStudio table."
+        }
+    }
+)
 def step_impl(context, column_name):
     links=column_name.split(";")
     context.browser.switch_to_window(context.browser.window_handles[-1])
@@ -2755,7 +3051,24 @@ def step_impl(context, column_name):
 
 # Moves a column name before another column name
 @step(u'I can cut QueryStudio table column with "{column_name}" and paste it before column with "{column_name_2}"')
-@metadata(u'I can cut QueryStudio table column with "{column_name}" and paste it before column with "{column_name_2}"')
+@metadata(
+    u'I can cut QueryStudio table column with "{column_name}" and paste it before column with "{column_name_2}"',
+    description="""
+    Moves a column name before another column.
+    """,
+    fields={
+        "column_name": {
+            "required": True,
+            "type": "string",
+            "description": "Colum that will be moved before another column."
+        },
+        "column_name_2": {
+            "required": True,
+            "type": "string",
+            "description": "Column before which the last column will be moved."
+        }
+    }
+)
 def step_impl(context, column_name, column_name_2):
     context.browser.switch_to_window(context.browser.window_handles[-1])
     iframe = waitSelector(context, "name", "reportIFrame" )
@@ -2776,7 +3089,19 @@ def step_impl(context, column_name, column_name_2):
 
 # Do a Ctrl + Click using a CSS Selector
 @step(u'I can Control Click at "{element}"')
-@metadata(u'I can Control Click at "{element}"')
+@metadata(
+    u'I can Control Click at "{selector}"',
+    description="""
+    Do a Ctrl + Click using a selector
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        }
+    }
+)
 def step_impl(context, element):
     query="""
     let ev=new MouseEvent('click', {ctrlKey: true});
@@ -2875,7 +3200,25 @@ def addVariable(context, variable_name, result):
 
 # save css-selector's property value if available else gets selector's innerText and saves it as an environment variable, environment variable value has a maximum value of 255 characters.
 @step(u'Save selector "{css_selector}" value to environment variable "{variable_name}"')
-@metadata(u'Save selector "{css_selector}" value to environment variable "{variable_name}"')
+@metadata(
+    u'Save selector "{selector}" value to environment variable "{variable_name}"',
+    description="""
+    Save elements's property value if available else gets selector's innerText and saves it as an environment variable.
+    Environment variable value has a maximum value of 255 characters.
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        },
+        "variable_name": {
+            "required": True,
+            "type": "string",
+            "description": "Variable where the output of the element will be saved to."
+        }
+    }
+)
 def step_impl(context, css_selector, variable_name):
     # get the value from the property
     send_step_details(context, 'Looking for selector')
@@ -2892,14 +3235,48 @@ def step_impl(context, css_selector, variable_name):
 
 # add a timestamp after the prefix to make it unique
 @step(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
-@metadata(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
+@metadata(
+    u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"',
+    description="""
+    Add a timestamp after the prefix to make it unique.
+    """,
+    fields={
+        "prefix": {
+            "required": True,
+            "type": "string",
+            "description": "Timestamp will be appended to this text value."
+        },
+        "variable_name": {
+            "required": True,
+            "type": "string",
+            "description": "Variable where the output of the element will be saved to."
+        }
+    }
+)
 def step_impl(context, prefix, variable_name):
     # create the unique text
     text = "%s-%.0f" % (prefix, time.time())
     addVariable(context, variable_name, text)
 
 @step(u'Create a string of random "{x}" numbers and save to "{variable_name}"')
-@metadata(u'Create a string of random "{x}" numbers and save to "{variable_name}"')
+@metadata(
+    u'Create a string of random "{x}" numbers and save to "{variable_name}"',
+    description="""
+    Generates a string of random numbers.
+    """,
+    fields={
+        "x": {
+            "required": True,
+            "type": "int",
+            "description": "Amount of random number that will be generated."
+        },
+        "variable_name": {
+            "required": True,
+            "type": "string",
+            "description": "Variable where the output of the element will be saved to."
+        }
+    }
+)
 def step_imp(context, x, variable_name):
     import random
     text = ""
@@ -2939,7 +3316,29 @@ def downloadFileFromURL(url, dest_folder, filename):
 def step_imp(context, file_input_selector, filename):
 =======
 @step(u'Upload a file by clicking on "{selector}" using file "{filename}"')
-@metadata(u'Upload a file by clicking on "{selector}" using file "{filename}"')
+@metadata(
+    u'Upload a file by clicking on "{selector}" using file "{filename}"',
+    description="""
+    Upload a file by selecting the upload input field and sending the keys with the folder/filename.
+    Cometa offers folder uploads with files inside the headless browser in Downloads/ and uploads/ folder. Separate multiple files by semicolon (;).
+    """,
+    fields = {
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        },
+        "filename": {
+            "required": True,
+            "type": "string",
+            "description": """
+            File that will be uploaded.
+            Use <code>Downloads/&lt;file_name&gt;</code> to get file from the recently downloaded files in current testplan.
+            Use <code>uploads/&lt;file_name&gt;</code> to get file from the uploads folder. 
+            """
+        }
+    }
+)
 def step_imp(context, selector, filename):
 >>>>>>> 5570a38 (#2896 - implemented with optimized logic then the last implementation)
     # save the old file detector
@@ -2965,7 +3364,22 @@ def step_imp(context, selector, filename):
 
 # Attach a file from Downloads folder to the current feature-result. This is usefull for evaluating the file contents later on. The filename has to be the filename in the Downloads folders and will automatically link to the actual execution of the feature. Just write the filename - without mentioning the "Downloads/" folder
 @step(u'Attach the "{filename}" from Downloads folder to the current execution results')
-@metadata(u'Attach the "{filename}" from Downloads folder to the current execution results')
+@metadata(
+    u'Attach the "{filename}" from Downloads folder to the current execution results',
+    description="""
+    Attach a file from Downloads folder to the current feature-result.
+    This is usefull for evaluating the file contents later on.
+    The filename has to be the filename in the Downloads folders and will automatically link to the actual execution of the feature.
+    Just write the filename - without mentioning the "Downloads/" folder
+    """,
+    fields={
+        "filename": {
+            "required": True,
+            "type": "string",
+            "description": "Filename to attach to the step."
+        }
+    }
+)
 def step_imp(context, filename):
     logger.debug("Attaching to current execution filename: %s" % filename)
     # feature resultId
@@ -2979,7 +3393,21 @@ def step_imp(context, filename):
 
 # Download a file and watch which file is downloaded and assign them to feature_result and step_result, linktext can be a text, css_selector or even xpath. The downloaded file name is as seen in the application. Cometa copies the archive to last_downloaded_file.suffix - where suffix is the same suffix as the original filename.
 @step(u'Download a file by clicking on "{linktext}"')
-@metadata(u'Download a file by clicking on "{linktext}"')
+@metadata(
+    u'Download a file by clicking on "{selector}"',
+    description="""
+    Download a file and watch which file is downloaded and assign them to feature_result and step_result, linktext can be a text, css_selector or even xpath. 
+    The downloaded file name is as seen in the application. 
+    Cometa copies the archive to last_downloaded_file.suffix - where suffix is the same suffix as the original filename.
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        }
+    }
+)
 def step_imp(context, linktext):
     if context.cloud != "local":
         raise CustomError("This step does not work in browserstack, please choose local browser and try again.")
@@ -3071,7 +3499,30 @@ def step_imp(context, linktext):
 
 # schedule a job that runs a feature with specific key:value parameters separated by semi-colon (;) and crontab patterned schedules like "* * * * *" schedule can use <today> and <tomorrow> which are replaced dynamically.
 @step(u'Schedule Job "{feature_name}" using parameters "{parameters}" and crontab pattern "{schedule}"')
-@metadata(u'Schedule Job "{feature_name}" using parameters "{parameters}" and crontab pattern "{schedule}"')
+@metadata(
+    u'Schedule Job "{feature_name}" using parameters "{parameters}" and crontab pattern "{schedule}"',
+    description="""
+    Schedule a job that runs a feature with specific key:value parameters separated by semi-colon (;)
+    Crontab patterned schedules like "* * * * *" schedule can use <today> and <tomorrow> which are replaced dynamically.
+    """,
+    fields={
+        "feature_name": {
+            "required": True,
+            "type": "string",
+            "description": "Exact name of the feature that will be executed."
+        },
+        "parameters": {
+            "required": True,
+            "type": "string",
+            "description": "Key value pair which can be used lated on in the feature using % prefix."
+        },
+        "schedule": {
+            "required": True,
+            "type": "string",
+            "description": "Crontab based schedule format."
+        }
+    }
+)
 def step_imp(context, feature_name, parameters, schedule):
 
     # convers parameters to a dict
@@ -3107,7 +3558,13 @@ def step_imp(context, feature_name, parameters, schedule):
 
 # removes the schedule that executed this feature y executed manually the step is ignored.
 @step(u'Delete schedule that executed this feature')
-@metadata(u'Delete schedule that executed this feature')
+@metadata(
+    u'Delete schedule that executed this feature',
+    description="""
+    Removes the schedule that was executed using <step>Schedule Job "{feature_name}" using parameters "{parameters}" and crontab pattern "{schedule}"</step>.
+    If executed manually the step is ignored.
+    """
+)
 def step_imp(context):
     # get the parameters
     parameters = json.loads(context.PARAMETERS)
@@ -3175,11 +3632,44 @@ def updateCsv(excelFilePath, cell, value, savePath):
     df.iloc[indexes[0], indexes[1]] = value
     
     # writing into the file
-    df.to_csv(savePath, index=False)
+    df.to_csv(excelFilePath, index=False)
+
+    # give some time for syncing filesystem
+    time.sleep(0.1)
+    
+    # Copy that file to uploads
+    shutil.copy(excelFilePath,savePath)
 
 # edit excel or csv file and set a value to a given cell. The file is saved on the same path.
 @step(u'Edit "{file}" and set "{value}" to "{cell}"')
-@metadata(u'Edit "{file}" and set "{value}" to "{cell}"')
+@metadata(
+    u'Edit "{file}" and set "{value}" to "{cell}"',
+    description="""
+    Edit Excel or CSV file and set a value to a given cell. 
+    The file is saved on the same path, as well as on uploads/&lt;same_filename&gt; for later uploading.
+    """,
+    fields={
+        "file": {
+            "required": True,
+            "type": "string",
+            "description": """
+            File that will be opened for processing.
+            Use <code>Downloads/&lt;file_name&gt;</code> to get file from the recently downloaded files in current testplan.
+            Use <code>uploads/&lt;file_name&gt;</code> to get file from the uploads folder. 
+            """
+        },
+        "value": {
+            "required": True,
+            "type": "string",
+            "description": "Value that will be set to the cell specified."
+        },
+        "cell": {
+            "required": True,
+            "type": "string",
+            "description": "Excel based single cell, like A1 or C315."
+        }
+    }
+)
 def editFile(context, file, value, cell):
     # get file path
     filePath = uploadFileTarget(context, file)
@@ -3201,7 +3691,37 @@ def editFile(context, file, value, cell):
 
 # Opens excel file and tests that value is found in a given cell.
 @step(u'Open "{excelfile}" and assert "{value}" is in cell "{cell}"')
-@metadata(u'Open "{excelfile}" and assert "{value}" is in cell "{cell}"')
+@metadata(
+    u'Open "{file}" and assert "{value}" is in cell "{cell}"',
+    description="""
+    Opens Excel file and tests that value is found in a given cell.
+    <strong>Does not work with CSV files.</strong>
+    """,
+    todo={
+        "CSV Support": "Allow to assert CSV files as well. Convert CSV to excel, assert and return a CSV file."
+    },
+    fields={
+        "file": {
+            "required": True,
+            "type": "string",
+            "description": """
+            File that will be opened for processing.
+            Use <code>Downloads/&lt;file_name&gt;</code> to get file from the recently downloaded files in current testplan.
+            Use <code>uploads/&lt;file_name&gt;</code> to get file from the uploads folder. 
+            """
+        },
+        "value": {
+            "required": True,
+            "type": "string",
+            "description": "Value that will be asserted in the cell specified."
+        },
+        "cell": {
+            "required": True,
+            "type": "string",
+            "description": "Excel based single cell, like A1 or C315."
+        }
+    }
+)
 def editFile(context, excelfile, value, cell):
     # import openpyxl for excel modifications
     from openpyxl import load_workbook
@@ -3230,13 +3750,13 @@ def editFile(context, excelfile, value, cell):
  # Opens excel file adds a variable to environment and sets the value as seen in Excel cell.
 @step(u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"')
 @metadata(
-    u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"',
+    u'Open "{file}" and set environment variable "{variable_name}" with value from cell "{cell}"',
     description="""
-    Opens {excelfile} and save the {cell} value to {variable_name}.    
+    Opens {file} and save the {cell} value to {variable_name}.    
     <strong>Does not work with CSV files.</strong>
     """,
     fields={
-        "excelfile": {
+        "file": {
             "required": True,
             "type": "string",
             "description": """
@@ -3255,6 +3775,9 @@ def editFile(context, excelfile, value, cell):
             "type": "string",
             "description": "Variable name where the result will be saved."
         }
+    },
+    todo={
+        "CSV Support": "Allow to assert CSV files as well. Convert CSV to excel, assert and return a CSV file."
     }
 )
 def editFile(context, excelfile, variable_name, cell):
@@ -3352,32 +3875,39 @@ def ExcelToCSV(context, filePath, newPath):
     ➤ match x number of times: WIP
 
     Generates an CSV file containing all the details about the assertions and why if might have failed.
-
-    {file} Execl or CSV file on which the assertion will be performed, use <code style="background-color: #fff;">Downloads/last_downloaded_file.&lt;file_ext&gt;</code> if you'd like to open the file you downloaded recently.
-    :excel_range: String that will contain the excel range format.
-    {values} Semicolon (;) separated values to assert.
-    :match_type: How you'd like to compare these values.
     """,
     fields={
         "file": {
             "required": True,
             "type": "string",
+            "description": """
+            File that will be opened for processing.
+            Use <code>Downloads/&lt;file_name&gt;</code> to get file from the recently downloaded files in current testplan.
+            Use <code>uploads/&lt;file_name&gt;</code> to get file from the uploads folder. 
+            """
         },
         "excel_range": {
             "required": True,
-            "type": "string"
+            "type": "string",
+            "description": "Excel based cell range format, like A1, A1:A15, B2:D2 or A1:A (Auto calculate rows based on the lenght of values)."
         },
         "values": {
             "required": True,
-            "type": "string"
+            "type": "string",
+            "description": "Semi-colon (;) separated values to assert."
         },
         "match_type": {
             "required": True,
             "type": "options",
-            "options": ['match exact', 'match any', 'match X number of times', 'match partial']
+            "options": ['match exact', 'match any', 'match X number of times', 'match partial'],
+            "description": "Possible way to compare these values."
         }
     },
-    created_on=1674057600000
+    created_on=1674057600000,
+    todo={
+        "match any": "missing implementation",
+        "match X number of times": "missing implementation"
+    }
 )
 def excel_step_implementation(context, file, excel_range, values, match_type):
     
