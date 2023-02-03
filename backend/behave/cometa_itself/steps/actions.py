@@ -2662,8 +2662,8 @@ def editFile(context, excelfile, value, cell):
     logger.debug("Excel file opening: %s", excelFilePath)
 
     # convert csv file to execl before continuing
-    oldPath = filePath
-    filePath, isCSV = CSVtoExcel(context, filePath) 
+    oldPath = excelFilePath
+    excelFilePath, isCSV = CSVtoExcel(context, excelFilePath) 
 
     # load excel file
     wb = load_workbook(filename=excelFilePath)
@@ -2697,8 +2697,8 @@ def editFile(context, excelfile, variable_name, cell):
     logger.debug("Excel file opening: %s", excelFilePath)
 
     # convert csv file to execl before continuing
-    oldPath = filePath
-    filePath, isCSV = CSVtoExcel(context, filePath) 
+    oldPath = excelFilePath
+    excelFilePath, isCSV = CSVtoExcel(context, excelFilePath) 
 
     # load excel file
     wb = load_workbook(filename=excelFilePath)
