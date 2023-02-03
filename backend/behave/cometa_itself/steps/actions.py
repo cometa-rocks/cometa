@@ -2458,7 +2458,7 @@ def step_imp(context, linktext):
         # check if files are still being downloaded
         for link in links:
             logger.debug("Checking on download link: %s" % link)
-            if re.match(r'.*\..*download\b', link):
+            if re.match(r'(?:.*?\..*?download\b|^\.com\..*)', link):
                 # there are files still being downloaded
                 logger.debug('==> %s file is still being downloaded' % link)
                 CONTINUE=True
@@ -2584,9 +2584,6 @@ def updateExcel(excelFilePath, cell, value, savePath):
     
     # give some time for syncing filesystem
     time.sleep(0.1)
-    
-    # Copy that file to uploads
-    shutil.copy(excelFilePath,savePath)
 
 def updateCsv(excelFilePath, cell, value, savePath):
     # importing the pandas library
@@ -2625,7 +2622,11 @@ def editFile(context, file, value, cell):
 
     # check if file exists
     if not os.path.exists(filePath):
-        raise CustomError("Unable to find file: %s, please make sure the directory is correct." % file)    
+        raise CustomError("Unable to find file: %s, please make sure the directory is correct." % file)
+
+    # convert csv file to execl before continuing
+    oldPath = filePath
+    filePath, isCSV = CSVtoExcel(context, filePath) 
     
     if filePath.endswith(".xlsx") or filePath.endswith(".xls"):
         updateExcel(filePath, cell, value, filePath)
@@ -2633,6 +2634,9 @@ def editFile(context, file, value, cell):
         updateCsv(filePath, cell, value, filePath)
     else:
         raise CustomError("Unknown file format found. Please use a file with one of these extensions: csv, xlsx, xls.")
+
+    if isCSV:
+        ExcelToCSV(context, filePath, oldPath)
 
     # give some time for syncing filesystem
     time.sleep(0.1)
@@ -2656,6 +2660,10 @@ def editFile(context, excelfile, value, cell):
 
     excelFilePath = "%s/%s" % (path, excelfile)
     logger.debug("Excel file opening: %s", excelFilePath)
+
+    # convert csv file to execl before continuing
+    oldPath = filePath
+    filePath, isCSV = CSVtoExcel(context, filePath) 
 
     # load excel file
     wb = load_workbook(filename=excelFilePath)
@@ -2687,6 +2695,10 @@ def editFile(context, excelfile, variable_name, cell):
 
     excelFilePath = "%s/%s" % (path, excelfile)
     logger.debug("Excel file opening: %s", excelFilePath)
+
+    # convert csv file to execl before continuing
+    oldPath = filePath
+    filePath, isCSV = CSVtoExcel(context, filePath) 
 
     # load excel file
     wb = load_workbook(filename=excelFilePath)
@@ -2730,6 +2742,27 @@ def getTotalCells(sheet, cells, values=[]):
             totalCells.append(cell)
     return totalCells
 
+def CSVtoExcel(context, filePath):
+    NEWFILE=filePath
+    ISCSV=False
+    if filePath.endswith(".csv"):
+        NEWFILE="%s.xlsx" % filePath
+        send_step_details(context, 'Converting CSV file to Excel file.')
+        import pandas as pd
+        df = pd.read_csv(filePath) # or other encodings
+        df.to_excel(NEWFILE, index=None)
+        ISCSV=True
+    send_step_details(context, '')
+    return (NEWFILE, ISCSV)
+
+def ExcelToCSV(context, filePath, newPath):
+    if filePath.endswith(".xls") or filePath.endswith(".xlsx"):
+        send_step_details(context, 'Converting Excel file to CSV file.')
+        import pandas as pd
+        df = pd.read_excel(filePath) # or other encodings
+        df.to_csv(newPath, index=None)
+    return newPath
+
 # Assert values inside the excel file, generates a CSV file with the result.
 @step(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
 @done(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
@@ -2762,15 +2795,9 @@ def excel_step_implementation(context, file, excel_range, values, match_type):
         raise CustomError("Unable to find the specified file: %s" % file)
     
     # check if file is a CSV file if so convert it to excel
-    # TODO: Improve the logic to check if file is really a CSV
     OLDPATH=excelFilePath
-    if excelFilePath.endswith(".csv"):
-        import pandas as pd
-        df = pd.read_csv(excelFilePath) # or other encodings
-        df.to_excel("%s.xlsx" % excelFilePath, index=None)
-
-        # update some variables to identify later on that csv was converted to excel file
-        excelFilePath = "%s.xlsx" % excelFilePath
+    excelFilePath, ISCSV = CSVtoExcel(context, excelFilePath)
+    logger.debug(f"After CSV convert: {excelFilePath} & {ISCSV}")
 
     # load excel file
     wb = load_workbook(filename=excelFilePath)
