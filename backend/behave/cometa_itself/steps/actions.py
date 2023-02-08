@@ -4188,7 +4188,31 @@ def step_imp(context, value_one, value_two, variance):
 
 # compares a report cube's content to a list saved in variable
 @step(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
-@metadata(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
+@metadata(
+    u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"',
+    description="""
+    Compare a list of IBM Cognos Cube Dimension values to list of string stored in variables separated by semi-colon (;).
+    Generates a CSV file which will be attached to this step in the details view.
+    CSV file will contain all the data that was compared and which values where matched.
+    """,
+    fields={
+        "variable_name": {
+            "required": True,
+            "type": "string",
+            "description": "Variable name that contains the list that will be compared."
+        },
+        "prefix": {
+            "required": False,
+            "type": "string",
+            "description": "Text that will be prepended to each value in the variable list."
+        },
+        "suffix": {
+            "required": False,
+            "type": "string",
+            "description": "Text that will be appended to each value in the variable list."
+        }
+    }
+)
 def imp(context, variable_name, prefix, suffix):
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
@@ -4273,7 +4297,43 @@ def imp(context, variable_name, prefix, suffix):
         raise CustomError("Here are the missing values in Report Cube: %s" % missin_values)
 
 @step(u'Test list of "{css_selector}" elements to contain "{all_or_partial}" values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
-@metadata(u'Test list of "{css_selector}" elements to contain "{all_or_partial}" values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
+@metadata(
+    u'Test list of "{selector}" elements to contain "{all_or_partial}" values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"',
+    description="""
+    Compare a list of elements values to list of string stored in variables separated by semi-colon (;).
+    Depending on the {all_or_partial} value the step will pass if all values match or some values match.
+    Generates a CSV file which will be attached to this step in the details view.
+    CSV file will contain all the data that was compared and which values where matched.
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        },
+        "all_or_partial": {
+            "required": True,
+            "type": "options",
+            "options": ['all', 'partial'],
+            "description": "How the values will be compared, all means that all the values should match and partial means as long as some values match step should pass."
+        },
+        "variable_names": {
+            "required": True,
+            "type": "string",
+            "description": "Variable name that contains the list that will be compared. More than one variable name can be specified using the pipe separator (|)."
+        },
+        "prefix": {
+            "required": False,
+            "type": "string",
+            "description": "Text that will be prepended to each value in the variable list."
+        },
+        "suffix": {
+            "required": False,
+            "type": "string",
+            "description": "Text that will be appended to each value in the variable list."
+        }
+    }
+)
 def step_test(context, css_selector, all_or_partial, variable_names, prefix, suffix):
 
     # check if all_or_partial contains one or the other value if anything
@@ -4552,7 +4612,39 @@ def step_endLoop(context):
     context.executedStepsInLoop = 0
 
 @step(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
-@metadata(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
+@metadata(
+    u'Test list of "{selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"',
+    description="""
+    Compare a list of elements values to list of string stored in variables separated by semi-colon (;).
+    Tries to comapre all the values but if one value if matched or is same the entire step will be passed, to control this behaviour use:
+    <step>Test list of "{selector}" elements to contain "{all_or_partial}" values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"</step>
+    Generates a CSV file which will be attached to this step in the details view.
+    CSV file will contain all the data that was compared and which values where matched.
+    """,
+    deprecated=True,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        },
+        "variable_names": {
+            "required": True,
+            "type": "string",
+            "description": "Variable name that contains the list that will be compared. More than one variable name can be specified using the pipe separator (|)."
+        },
+        "prefix": {
+            "required": False,
+            "type": "string",
+            "description": "Text that will be prepended to each value in the variable list."
+        },
+        "suffix": {
+            "required": False,
+            "type": "string",
+            "description": "Text that will be appended to each value in the variable list."
+        }
+    }
+)
 def step(context, css_selector, variable_names, prefix, suffix):
     # get all the values from css_selector
     elements = waitSelector(context, "css", css_selector)
