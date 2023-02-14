@@ -10,7 +10,7 @@ import { ClipboardService } from 'ngx-clipboard';
 import { ImportJSONComponent } from '@dialogs/import-json/import-json.component';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, forkJoin, from, of } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
-import { FormArray, FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, Validators } from '@angular/forms';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
 import { CustomValidators } from '@others/custom-validators';
@@ -28,7 +28,7 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 })
 export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
-  stepsForm: FormArray;
+  stepsForm: UntypedFormArray;
 
   @ViewSelectSnapshot(ActionsState) actions: Action[];
   @ViewSelectSnapshot(UserState) user !: UserInfo;
@@ -43,7 +43,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     private _snackBar: MatSnackBar,
     private _store: Store,
     private _clipboard: ClipboardService,
-    private _fb: FormBuilder,
+    private _fb: UntypedFormBuilder,
     private _cdr: ChangeDetectorRef,
     private _elementRef: ElementRef<HTMLElement>,
     private _ngZone: NgZone,
