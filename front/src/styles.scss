@@ -1,5 +1,5 @@
 /* You can add global styles to this file, and also import other style files */
-
+@import './node_modules/@perfectmemory/ngx-contextmenu/src/assets/stylesheets/base.scss';
 @import "material-theme";
 @import 'color';
 @import 'breakpoints';
@@ -448,6 +448,40 @@ mat-option {
     }
 }
 
+
+.step-contect-menu {
+    --ngx-contextmenu-font-size: 16px;
+    --ngx-contextmenu-outline: 1px solid #70757e;
+    --ngx-contextmenu-padding: 5px 0;
+    --ngx-contextmenu-text-color: #000;
+    --ngx-contextmenu-text-disabled-color: #8a909a;
+    --ngx-contextmenu-max-height: 100vh;
+    --ngx-contextmenu-item-background-hover-color: ##0000000d;
+
+    li button {
+        text-decoration: none;
+        height: 40px;
+        color: black;
+        display: block;
+        padding: 0 15px;
+        cursor: pointer;
+        box-sizing: border-box;
+
+        div {
+            mat-icon {
+                color: $blue;
+                &.delete { color: $remove; }
+            }
+            span {
+                  display: inline-block;
+                  vertical-align: super;
+                  margin-left: 10px;
+            }
+        }
+    }
+}
+
+
 .ngx-contextmenu .dropdown-menu {
     box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
     border-radius: 3px;
@@ -461,28 +495,6 @@ mat-option {
     &:hover {
         background-color: rgba(0,0,0,.05);
     }
-  }
-
-  .ngx-contextmenu li a {
-      text-decoration: none;
-      height: 40px;
-      line-height: 40px;
-      color: black;
-      display: block;
-      padding: 0 15px;
-      cursor: pointer;
-      box-sizing: border-box;
-      mat-icon {
-        color: $blue;
-        &.delete {
-            color: $remove;
-        }
-      }
-      span {
-          display: inline-block;
-          vertical-align: super;
-          margin-left: 10px;
-      }
   }
 
 .edit-feature-panel .mat-dialog-container,

@@ -11,7 +11,7 @@ import { deepClone } from 'ngx-amvara-toolbox';
 import { Variables } from '@store/actions/variables.actions';
 import { SelectSnapshot, ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { MatCheckboxChange } from '@angular/material/checkbox';
-import { FormArray, FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, Validators } from '@angular/forms';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 
 interface PassedData {
@@ -33,7 +33,7 @@ export class EditVariablesComponent {
 
   @SelectSnapshot(UserState.RetrieveEncryptionPrefix) encryptionPrefix: string;
 
-  variablesForm: FormArray = this._fb.array([]);
+  variablesForm: UntypedFormArray = this._fb.array([]);
 
   constructor(
     private dialogRef: MatDialogRef<EditVariablesComponent>,
@@ -41,7 +41,7 @@ export class EditVariablesComponent {
     private _store: Store,
     private _snack: MatSnackBar,
     private _api: ApiService,
-    private _fb: FormBuilder,
+    private _fb: UntypedFormBuilder,
     private _cdr: ChangeDetectorRef,
     private _dialog: MatDialog
   ) {

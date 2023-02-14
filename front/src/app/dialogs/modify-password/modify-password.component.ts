@@ -1,5 +1,5 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { ApiService } from '@services/api.service';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -12,13 +12,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class ModifyPasswordComponent {
 
-  rForm: FormGroup;
+  rForm: UntypedFormGroup;
 
   constructor(
     private dialogRef: MatDialogRef<ModifyPasswordComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { account: IAccount },
     private _api: ApiService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private snack: MatSnackBar
   ) {
     this.rForm = this.fb.group({

@@ -1,5 +1,5 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ApiService } from '@services/api.service';
 
@@ -14,7 +14,7 @@ export class EnterValueComponent {
   constructor(
     private dialogRef: MatDialogRef<EnterValueComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private _api: ApiService
   ) {
     this.rForm = this.fb.group({
@@ -22,7 +22,7 @@ export class EnterValueComponent {
     });
   }
 
-  rForm: FormGroup;
+  rForm: UntypedFormGroup;
 
   getReturn() {
     return {

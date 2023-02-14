@@ -6,7 +6,7 @@ import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { Store } from '@ngxs/store';
 import { FeaturesState } from '@store/features.state';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { Features } from '@store/actions/features.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -22,7 +22,7 @@ import { LogService } from '@services/log.service';
 })
 export class EditSchedule {
 
-  schedule: FormGroup;
+  schedule: UntypedFormGroup;
 
   // formLayout is a variable to steer the layout of the schedule edit form
   // ... value: "1" ... means the first layout
@@ -54,7 +54,7 @@ export class EditSchedule {
     private snackBar: MatSnackBar,
     private _dialog: MatDialog,
     private _store: Store,
-    private _fb: FormBuilder,
+    private _fb: UntypedFormBuilder,
     private log: LogService
   ) {
 

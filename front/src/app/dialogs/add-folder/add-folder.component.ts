@@ -1,5 +1,5 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Store } from '@ngxs/store';
@@ -33,7 +33,7 @@ export class AddFolderComponent{
   constructor(
     private dialogRef: MatDialogRef<AddFolderComponent>,
     @Inject(MAT_DIALOG_DATA) public data: IEditFolder,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private _api: ApiService,
     private _snackBar: MatSnackBar,
     private _store: Store
@@ -60,7 +60,7 @@ export class AddFolderComponent{
       this.selected_department = route.length > 0 ? route[0].department : this.availableDepartments[0].department_id;
   }
 
-  rForm: FormGroup;
+  rForm: UntypedFormGroup;
 
   submit(values) {
     if (this.data.mode === 'new') {

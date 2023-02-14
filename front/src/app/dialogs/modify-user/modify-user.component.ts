@@ -1,6 +1,6 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { ApiService } from '@services/api.service';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Select } from '@ngxs/store';
@@ -19,13 +19,13 @@ export class ModifyUserComponent {
   @Select(DepartmentsState) departments$: Observable<Department[]>;
   @Select(UserState.GetPermissionTypes) permissions$: Observable<string[]>;
 
-  rForm: FormGroup;
+  rForm: UntypedFormGroup;
 
   constructor(
     private dialogRef: MatDialogRef<ModifyUserComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { account: IAccount },
     private _api: ApiService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private snack: MatSnackBar
   ) {
     this.rForm = this.fb.group({

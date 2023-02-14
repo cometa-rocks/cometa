@@ -43,6 +43,7 @@ export class ConfigState {
     configFile.percentMode = localStorage.getItem('percentMode') === 'true' || false;
     configFile.toggles.hideInformation = localStorage.getItem('hideInformation') === 'true' || configFile.toggles.hideInformation;
     configFile.toggles.hideBrowsers = localStorage.getItem('hideBrowsers') === 'true' || configFile.toggles.hideBrowsers;
+    configFile.toggles.hideUploadedFiles = localStorage.getItem('hideUploadedFiles') === 'true' || configFile.toggles.hideUploadedFiles;
     configFile.toggles.hideSteps = localStorage.getItem('hideSteps') === 'true' || configFile.toggles.hideSteps;
     configFile.toggles.hideSchedule = localStorage.getItem('hideSchedule') === 'true' || configFile.toggles.hideSchedule;
     configFile.toggles.hideSendMail = localStorage.getItem('hideSendMail') === 'true' || configFile.toggles.hideSendMail;
