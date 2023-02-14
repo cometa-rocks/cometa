@@ -54,5 +54,4 @@ export class BrowsersState {
     static getBrowserJsons(state: BrowserResultObject[]) {
         return state.map(browser => browser.browser_json);
     }
-
 }

@@ -3,7 +3,7 @@ import { ApiService } from '@services/api.service';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { FormControl, FormGroup, Validators, FormBuilder } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators, UntypedFormBuilder } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { StepEditorComponent } from '@components/step-editor/step-editor.component';
 import { BrowserSelectionComponent } from '@components/browser-selection/browser-selection.component';
@@ -18,7 +18,6 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
 import { KEY_CODES } from '@others/enums';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { CustomSelectors } from '@others/custom-selectors';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { noWhitespaceValidator, deepClone } from 'ngx-amvara-toolbox';
@@ -38,6 +37,7 @@ import { parseExpression } from 'cron-parser';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EditFeature implements OnInit, OnDestroy {
+  displayedColumns: string[] = ['name','type', 'size','user','date', 'actions'];
 
   @ViewSelectSnapshot(ConfigState) config$ !: Config;
   /**
@@ -83,7 +83,7 @@ export class EditFeature implements OnInit, OnDestroy {
   // COTEMP -- Used to check the state data status
   @Select(FeaturesState.GetStateDAta) state$: Observable<ReturnType<typeof FeaturesState.GetStateDAta>>;
 
-  featureForm: FormGroup;
+  featureForm: UntypedFormGroup;
 
   constructor(
     public dialogRef: MatDialogRef<EditFeature>,
@@ -92,7 +92,7 @@ export class EditFeature implements OnInit, OnDestroy {
     private _snackBar: MatSnackBar,
     private _store: Store,
     private _dialog: MatDialog,
-    private _fb: FormBuilder
+    private _fb: UntypedFormBuilder
   ) {
     // Create the fields within FeatureForm
     this.featureForm = this._fb.group({
@@ -112,6 +112,7 @@ export class EditFeature implements OnInit, OnDestroy {
       'need_help': [false],
       'send_mail_on_error': [false],
       'continue_on_failure': [false],
+      'uploaded_files': [[]],
       'video': [true],
       'minute': ['0', Validators.compose([Validators.required, Validators.pattern('^[0-9,-/*]+$')])],
       'hour': ['0', Validators.compose([Validators.required, Validators.pattern('^[0-9,-/*]+$')])],
@@ -137,10 +138,9 @@ export class EditFeature implements OnInit, OnDestroy {
 	})
   }
 
-  @Dispatch()
   ngOnDestroy() {
     // When Edit Feature Dialog is closed, clear temporal steps
-    return new StepDefinitions.ClearNewFeature();
+    return this._store.dispatch(new StepDefinitions.ClearNewFeature());
   }
 
   parseSchedule(expression) {
@@ -367,7 +367,7 @@ export class EditFeature implements OnInit, OnDestroy {
       }
       // Try to save all possible feature properties in the form using the same property names
       for (const key in featureInfo) {
-        if (this.featureForm.get(key) instanceof FormControl) {
+        if (this.featureForm.get(key) instanceof UntypedFormControl) {
           this.featureForm.get(key).setValue(featureInfo[key]);
         }
       }
@@ -652,8 +652,36 @@ export class EditFeature implements OnInit, OnDestroy {
    * @date 21/11/02
    * @lastModification 21/11/02
    */
-   @Dispatch()
    toggleWelcome(){
-     return new Configuration.SetProperty('co_first_time_cometa', 'false', true);
+     return this._store.dispatch(new Configuration.SetProperty('co_first_time_cometa', 'false', true));
    }
+
+  // adds each selected file into formControl array
+  onUploadFile(ev) {
+    let files = Array.from(ev.target.files);
+    let control = this.featureForm.controls["uploaded_files"]
+
+    files.forEach((file: File) => {
+      let fileInfo = this.getFileInfo(file)
+      control.setValue([...control.value, fileInfo]);
+    })
+  }
+
+  // sets up required infromation for each file to be sent to backend
+  getFileInfo(file: File) {
+    let uploadedFile = <UploadedFile>{};
+
+    uploadedFile.name = file.name;
+    uploadedFile.type = file.type;
+    uploadedFile.size = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+    uploadedFile.user = this.user.name;
+    uploadedFile.date = new Date().toLocaleString('en-GB');
+    uploadedFile.actions = [
+      { icon: "delete", tooltip: "Delete File" },
+      { icon: "cloud_download", tooltip: "Download File"}
+    ];
+    console.log(this.featureForm.value)
+    return uploadedFile;
+  }
+
 }

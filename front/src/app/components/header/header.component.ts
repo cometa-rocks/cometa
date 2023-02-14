@@ -1,12 +1,12 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { UserState } from '@store/user.state';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Configuration } from '@store/actions/config.actions';
 import { User } from '@store/actions/user.actions';
+import { Store } from '@ngxs/store';
 
 @Component({
   selector: 'header',
@@ -36,12 +36,13 @@ export class HeaderComponent {
   @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('internal.openedMenu')) openedMenu: boolean;
 
   constructor(
-    public _sharedActions: SharedActionsService
+    public _sharedActions: SharedActionsService,
+    private _store: Store
   ) { }
 
-  @Dispatch() closeMenu = () => new Configuration.SetProperty('internal.openedMenu', false);
+  closeMenu = () => this._store.dispatch(new Configuration.SetProperty('internal.openedMenu', false));
 
-  @Dispatch() openMenu = () => new Configuration.SetProperty('internal.openedMenu', true);
+  openMenu = () => this._store.dispatch(new Configuration.SetProperty('internal.openedMenu', true));
 
-  @Dispatch() logout = () => new User.Logout();
+  logout = () => this._store.dispatch(new User.Logout());
 }

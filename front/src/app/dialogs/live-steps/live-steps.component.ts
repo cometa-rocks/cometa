@@ -11,7 +11,6 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { WebSockets } from '@store/actions/results.actions';
 import { StepDefinitions } from '@store/actions/step_definitions.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { getBrowserKey } from '@services/tools';
 
 @UntilDestroy()
@@ -47,7 +46,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   }
 
   // Cleanup old or unused runs info on close
-  @Dispatch() ngOnDestroy = () => new WebSockets.CleanupFeatureResults(this.feature_id);
+  ngOnDestroy = () => this._store.dispatch(new WebSockets.CleanupFeatureResults(this.feature_id));
 
   trackBrowserFn(index, item) {
     return item.key;

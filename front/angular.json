@@ -35,7 +35,12 @@
             "allowedCommonJsDependencies": [
               "socket.io-client",
               "highcharts",
-              "compare-versions"
+              "compare-versions",
+              "photoviewer",
+              "lodash.keyby",
+              "nested-property",
+              "cron-parser",
+              "memo-decorator"
             ]
           },
           "configurations": {
@@ -128,7 +133,6 @@
       }
     }
   },
-  "defaultProject": "cometa",
   "schematics": {
     "@schematics/angular:component": {
       "prefix": "cometa",

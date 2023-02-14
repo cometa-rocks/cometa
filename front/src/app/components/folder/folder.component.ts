@@ -5,7 +5,6 @@ import { ApiService } from '@services/api.service';
 import { switchMap, tap } from 'rxjs/operators';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subscribe } from 'app/custom-decorators';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Features } from '@store/actions/features.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
 import { SharedActionsService } from '@services/shared-actions.service';
@@ -28,7 +27,7 @@ export class FolderComponent {
 
   @Input() folder: Folder;
 
-  @Dispatch() open = () => new Features.AddFolderRoute(this.folder)
+  open = () => this._store.dispatch(new Features.AddFolderRoute(this.folder))
 
   modify() {
     this._dialog.open(AddFolderComponent, {

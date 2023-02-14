@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, timer } from 'rxjs';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { debounce, map, startWith } from 'rxjs/operators';
 
 @Component({
@@ -13,7 +13,7 @@ export class AccountsComponent implements OnInit {
 
   accountsUrl$: Observable<string>;
 
-  search = new FormControl('');
+  search = new UntypedFormControl('');
 
   ngOnInit() {
     this.accountsUrl$ = this.search.valueChanges.pipe(

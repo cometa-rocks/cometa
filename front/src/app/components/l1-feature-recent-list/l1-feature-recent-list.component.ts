@@ -18,7 +18,6 @@ import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Features } from '@store/actions/features.actions';
 import { Subscribe } from 'ngx-amvara-toolbox';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
@@ -137,10 +136,9 @@ export class L1FeatureRecentListComponent{
   }
 
   // Go to the clicked folder
-  @Dispatch()
   goFolder(folder: Folder) {
     this.log.msg("1","redirecting to folder...","feature-recent-list", folder);
-    return new Features.NewAddFolderRoute(folder);
+    return this._store.dispatch(new Features.NewAddFolderRoute(folder));
   }
 
   // Modify the clicked folder
@@ -172,10 +170,10 @@ export class L1FeatureRecentListComponent{
    *
    * @return sets the current status of the sidenav on mobile
    */
-  @Dispatch() toggleSidenav() {
+  toggleSidenav() {
     this.log.msg("1","Toggling sidenav...","feature-recent-list");
     const opened = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
-    return new Configuration.SetProperty('openedSidenav', !opened);
+    return this._store.dispatch(new Configuration.SetProperty('openedSidenav', !opened));
   }
 
   /**

@@ -94,7 +94,8 @@ import { NewFolderComponent } from '@components/new-folder/new-folder.component'
 import { MoveFolderItemComponent } from '@dialogs/move-feature/move-folder-item/move-folder-item.component';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
-import { MaterialExtensionsModule } from '@ng-matero/extensions';
+// import { MaterialExtensionsModule } from '@ng-matero/extensions';
+import { MtxGridModule } from '@ng-matero/extensions/grid';
 
 // virtual scrolling module for extended lists of feature results
 import {ScrollingModule} from '@angular/cdk/scrolling';
@@ -142,7 +143,7 @@ const materialModules = [
   MatDividerModule,
   MatTableModule,
   MatSortModule,
-  MaterialExtensionsModule,
+  MtxGridModule,
   ScrollingModule
 ];
 

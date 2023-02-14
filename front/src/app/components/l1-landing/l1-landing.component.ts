@@ -10,12 +10,11 @@
 
 import { animate, query, stagger, state, style, transition, trigger } from '@angular/animations';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators } from '@angular/forms';
 import { Store, Select } from '@ngxs/store';
 import { Router } from '@angular/router';
 import { FeaturesState } from '@store/features.state';
 import { MatDialog } from '@angular/material/dialog';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { UserState } from '@store/user.state';
 import { Features } from '@store/actions/features.actions';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -108,9 +107,9 @@ export class L1LandingComponent implements OnInit {
 
 
   // Global variables
-  minADate = new FormControl('', Validators.required);
-  maxADate = new FormControl('', Validators.required);
-  moreOrLessSteps = new FormControl('is');
+  minADate = new UntypedFormControl('', Validators.required);
+  maxADate = new UntypedFormControl('', Validators.required);
+  moreOrLessSteps = new UntypedFormControl('is');
   openedAdd: boolean = false; // Checks if the add buttons are opened
   search: string;
   sidenavClosed = false;
@@ -138,25 +137,23 @@ export class L1LandingComponent implements OnInit {
    */
 
   // Changes the type of view of the feature list (list / item)
-  @Dispatch()
   setView(type: string, view: FeatureViewTypes) {
     this.log.msg("1","Changing feature list view type to...","landing", view);
     this.openedAdd = false;
 
 
-    return [
+    return this._store.dispatch([
       new User.SetSetting({ 'featuresView.with': view }),
       new Configuration.SetProperty(`featuresView.${type}`, view, true)
-    ];
+    ]);
   }
 
   // Hides the sidenav
-  @Dispatch()
   hideSidenav() {
     let currentSidebarState = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
     let newSidebarState = currentSidebarState ? false : true;
     this.log.msg("1","Hiding sidenav...","landing");
-    return new Configuration.SetProperty('openedSidenav', newSidebarState);
+    return this._store.dispatch(new Configuration.SetProperty('openedSidenav', newSidebarState));
   } 
 
   /**
