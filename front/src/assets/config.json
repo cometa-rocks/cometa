@@ -63,7 +63,8 @@
 		"hideBrowsers": false,
 		"hideSteps": false,
 		"hideSchedule": false,
-		"hideSendMail": false
+		"hideSendMail": false,
+		"hideUploadedFiles": false
 	},
 	"websocketsTimeout": 30000,
 	"flaticon": [

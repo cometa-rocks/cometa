@@ -8,7 +8,6 @@ import { UserState } from '@store/user.state';
 import { Subscribe } from 'app/custom-decorators';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Applications } from '@store/actions/applications.actions';
 
 @Component({
@@ -29,9 +28,8 @@ export class ApplicationsComponent implements OnInit {
 
   @Select(ApplicationsState) applications$: Observable<Application[]>;
 
-  @Dispatch()
   ngOnInit() {
-    return new Applications.GetApplications();
+    return this._store.dispatch(new Applications.GetApplications());
   }
 
   trackByFn(index, app: Application) {

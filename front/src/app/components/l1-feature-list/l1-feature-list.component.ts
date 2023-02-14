@@ -13,7 +13,6 @@ import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Features } from '@store/actions/features.actions';
 import { Subscribe } from 'ngx-amvara-toolbox';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
@@ -103,10 +102,8 @@ export class L1FeatureListComponent implements OnInit{
   // Creates a source for the data
   tableValues = new BehaviorSubject<MatTableDataSource<any>>(new MatTableDataSource<any>([]));
 
-  // NgOnInit
   ngOnInit() {
     this.log.msg("1","Inicializing component...","feature-list");
-
 
     // Initialize the co_features_pagination variable in the local storage
     this.log.msg("1","Loading feature pagination...","feature-list");
@@ -127,10 +124,9 @@ export class L1FeatureListComponent implements OnInit{
    * @date 15-10-21
    * @lastModification 15-10-21
    */
-  @Dispatch()
   storePagination(event) {
     this.log.msg("1","Storing feature pagination in localstorage...","feature-list", event.pageSize);
-    return new Configuration.SetProperty('co_features_pagination', event.pageSize, true);
+    return this._store.dispatch(new Configuration.SetProperty('co_features_pagination', event.pageSize, true));
   }
 
   /**
@@ -244,10 +240,9 @@ export class L1FeatureListComponent implements OnInit{
   }
 
   // Go to the clicked folder
-  @Dispatch()
   goFolder(folder: Folder) {
     this.log.msg("1","Opening folder...","feature-list", folder);
-    return new Features.NewAddFolderRoute(folder);
+    return this._store.dispatch(new Features.NewAddFolderRoute(folder));
   }
 
   // Modify the clicked folder

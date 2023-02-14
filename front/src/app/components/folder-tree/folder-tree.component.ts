@@ -9,7 +9,6 @@ import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { Observable } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
@@ -55,9 +54,9 @@ export class FolderTreeComponent implements OnInit {
    */
 
   // Hides the sidenav
-  @Dispatch() hideSidenav() {
+  hideSidenav() {
     this.log.msg("1","Hiding sidenav...","folder-tree");
-    return new Configuration.SetProperty('openedSidenav', false);
+    return this._store.dispatch(new Configuration.SetProperty('openedSidenav', false));
   }
 
   /**
@@ -67,13 +66,12 @@ export class FolderTreeComponent implements OnInit {
    * @date 08-10-21
    * @lastModification 08-10-21
    */
-  @Dispatch()
   toggleListType(listType: string) {
     this.log.msg("1","Navigating to root(home)...","folder-tree");
     this._sharedActions.set_url_folder_params("");
     
     this._router.navigate(['/new']);
-    return new Configuration.SetProperty('co_active_list', listType, true);
+    return this._store.dispatch(new Configuration.SetProperty('co_active_list', listType, true));
   }
 
 

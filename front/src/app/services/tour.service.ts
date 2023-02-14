@@ -3,7 +3,6 @@ import { JoyrideService } from '@plugins/ngx-joyride/services/joyride.service';
 import { Tour, TourDefinition, Tours } from '@services/tours';
 import { DOCUMENT } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { SelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
 import { MatDialog } from '@angular/material/dialog';
@@ -29,9 +28,8 @@ export class TourService {
 
   @SelectSnapshot(UserState) user: UserInfo;
 
-  @Dispatch()
   private sidebarOpen(open: boolean) {
-    return new Configuration.SetProperty('openedMenu', open);
+    return this._store.dispatch(new Configuration.SetProperty('openedMenu', open));
   }
 
   private setTourMode(tourMode: boolean) {

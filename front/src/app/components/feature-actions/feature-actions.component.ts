@@ -13,7 +13,6 @@ import { SafeUrl, DomSanitizer } from '@angular/platform-browser';
 import { API_BASE } from 'app/tokens';
 import { Observable, fromEvent } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { KEY_CODES } from '@others/enums';
 import { WebSockets } from '@store/actions/results.actions';
 import { SharedActionsService } from '@services/shared-actions.service';
@@ -181,15 +180,13 @@ export class FeatureActionsComponent implements OnInit {
     });
   }
 
-  @Dispatch()
   toggleNotification() {
     const featureStore = this._store.selectSnapshot(FeaturesState.GetFeatureInfo)(this.getFeatureId());
     const notifications = this._store.selectSnapshot(ResultsState.GetNotifications);
-    if (notifications.includes(featureStore.feature_id)) {
-      return new WebSockets.RemoveNotificationID(featureStore.feature_id);
-    } else {
-      return new WebSockets.AddNotificationID(featureStore.feature_id);
-    }
+
+  return notifications.includes(featureStore.feature_id) ?
+          this._store.dispatch(new WebSockets.RemoveNotificationID(featureStore.feature_id)) :
+          this._store.dispatch( new WebSockets.AddNotificationID(featureStore.feature_id))
   }
 
 }

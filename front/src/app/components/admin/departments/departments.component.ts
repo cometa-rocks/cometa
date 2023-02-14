@@ -8,7 +8,6 @@ import { UserState } from '@store/user.state';
 import { Subscribe } from 'app/custom-decorators';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Departments } from '@store/actions/departments.actions';
 
 @Component({
@@ -28,9 +27,8 @@ export class DepartmentsComponent implements OnInit {
   @Select(UserState.GetPermission('create_department')) canCreateDepartment$: Observable<boolean>;
   @Select(DepartmentsState) departments$: Observable<Department[]>;
 
-  @Dispatch()
   ngOnInit() {
-    return new Departments.GetAdminDepartments();
+    return this._store.dispatch(new Departments.GetAdminDepartments());
   }
 
   trackByFn(index, item: Department) {

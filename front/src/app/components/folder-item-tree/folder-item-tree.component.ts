@@ -6,7 +6,6 @@
  * @author: dph000
  */
 import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Select, Store } from '@ngxs/store';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -62,16 +61,15 @@ export class FolderItemTreeComponent implements OnInit {
    */
 
   // Hides the sidenav
-  @Dispatch()
   hideSidenav() {
     this.log.msg("1","Expanding/Closing folder...","folder-item-tree");
-    return new Configuration.SetProperty('openedSidenav', false);
+    return this._store.dispatch(new Configuration.SetProperty('openedSidenav', false));
   }
 
   // Hides / shows the sidenav
-  @Dispatch() toggleSidenav() {
+  toggleSidenav() {
     const opened = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
-    return new Configuration.SetProperty('openedSidenav', !opened);
+    return this._store.dispatch(new Configuration.SetProperty('openedSidenav', !opened));
   }
 
   /**
@@ -81,9 +79,9 @@ export class FolderItemTreeComponent implements OnInit {
    * @date 06-10-21
    * @lastModification 06-10-21
    */
-  @Dispatch() toggleSearch() {
+  toggleSearch() {
     this.log.msg("1","Toggling folder state...","folder-item-tree");
-    return new Configuration.SetProperty('openedSearch', false);
+    return this._store.dispatch(new Configuration.SetProperty('openedSearch', false));
   }
 
   /**
@@ -93,10 +91,9 @@ export class FolderItemTreeComponent implements OnInit {
    * @date 04-10-21
    * @lastModification 05-10-21
    */
-  @Dispatch()
   toggleList() {
     this.toggleSidenav();
-    return new Configuration.SetProperty('co_active_list', 'list', true);
+    return this._store.dispatch(new Configuration.SetProperty('co_active_list', 'list', true));
   }
 
   /**

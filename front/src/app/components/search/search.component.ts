@@ -1,13 +1,12 @@
 import { animate, query, stagger, state, style, transition, trigger } from '@angular/animations';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators } from '@angular/forms';
 import { Store, Select } from '@ngxs/store';
 import { FeaturesState } from '@store/features.state';
 import { ApplicationsState } from '@store/applications.state';
 import { EnvironmentsState } from '@store/environments.state';
 import { MatDialog } from '@angular/material/dialog';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { UserState } from '@store/user.state';
 import { Features } from '@store/actions/features.actions';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -71,7 +70,7 @@ export class SearchComponent implements OnInit {
   @ViewSelectSnapshot(UserState.GetPermission('create_feature')) canCreateFeature: boolean;
   @ViewSelectSnapshot(UserState.HasOneActiveSubscription) hasSubscription: boolean;
 
-  moreOrLessSteps = new FormControl('is');
+  moreOrLessSteps = new UntypedFormControl('is');
 
   constructor(
     private _dialog: MatDialog,
@@ -87,19 +86,17 @@ export class SearchComponent implements OnInit {
     }
   }
 
-  @Dispatch()
   setView(type: string, view: FeatureViewTypes) {
-    return new Configuration.SetProperty(`featuresView.${type}`, view, true);
+    return this._store.dispatch(new Configuration.SetProperty(`featuresView.${type}`, view, true));
   }
 
-  @Dispatch()
   handlePageChange(paginationId: string, { pageIndex, pageSize }: PageEvent) {
-    return new Paginations.SetPagination(paginationId, { pageIndex, pageSize })
+    return this._store.dispatch(new Paginations.SetPagination(paginationId, { pageIndex, pageSize }));
   }
 
-  sorting = new FormControl(localStorage.getItem('search_sorting') || 'execution');
-  minADate = new FormControl('', Validators.required);
-  maxADate = new FormControl('', Validators.required);
+  sorting = new UntypedFormControl(localStorage.getItem('search_sorting') || 'execution');
+  minADate = new UntypedFormControl('', Validators.required);
+  maxADate = new UntypedFormControl('', Validators.required);
 
   search: string;
 
@@ -117,19 +114,16 @@ export class SearchComponent implements OnInit {
     ).subscribe(value => localStorage.setItem('search_sorting', value))
   }
 
-  @Dispatch()
   goFolder(folder: Folder) {
-    return new Features.AddFolderRoute(folder);
+    return this._store.dispatch(new Features.AddFolderRoute(folder));
   }
 
-  @Dispatch()
   returnToRoot() {
-    return new Features.ReturnToFolderRoute(0);
+    return this._store.dispatch(new Features.ReturnToFolderRoute(0));
   }
 
-  @Dispatch()
   returnFolder(folder: Partial<Folder>) {
-    return new Features.ReturnToFolderRoute(folder.folder_id);
+    return this._store.dispatch(new Features.ReturnToFolderRoute(folder.folder_id));
   }
 
   getId(item: Feature) {
@@ -159,7 +153,6 @@ export class SearchComponent implements OnInit {
     })
   }
 
-  @Dispatch()
   addFilterOK(id: string, value?: any, value2?: any) {
     const filters = this._store.selectSnapshot(CustomSelectors.GetConfigProperty('filters'));
     let customFilter = { ...filters.find(filter => filter.id === id) };
@@ -182,12 +175,11 @@ export class SearchComponent implements OnInit {
     if (customFilter.hasOwnProperty('value')) {
       this.dialogs[id].next(false);
     }
-    return new Features.AddFilter(customFilter);
+    return this._store.dispatch(new Features.AddFilter(customFilter));
   }
 
-  @Dispatch()
   removeFilter(filter: Filter) {
-    return new Features.RemoveFilter(filter);
+    return this._store.dispatch(new Features.RemoveFilter(filter));
   }
 
   addFilter(filter: Filter) {

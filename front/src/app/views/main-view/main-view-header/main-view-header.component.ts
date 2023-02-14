@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component, Host, OnInit, Optional } from '@ang
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute } from '@angular/router';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Select, Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Configuration } from '@store/actions/config.actions';
@@ -81,9 +80,8 @@ export class MainViewHeaderComponent implements OnInit {
     return `${item.id}_${index}`;
   }
 
-  @Dispatch()
   handleDeleteTemplateWithResults({ checked }: MatCheckboxChange) {
-    return new Configuration.SetProperty('deleteTemplateWithResults', checked);
+    return this._store.dispatch(new Configuration.SetProperty('deleteTemplateWithResults', checked));
   }
 
   changeSort(prop: string) {
@@ -140,7 +138,6 @@ export class MainViewHeaderComponent implements OnInit {
    * Enables or disables archived runs from checkbox
    * @param change MatCheckboxChange
    */
-  @Dispatch()
-  handleArchived = (change: MatCheckboxChange) => new Configuration.SetProperty('internal.showArchived', change.checked);
+  handleArchived = (change: MatCheckboxChange) => this._store.dispatch(new Configuration.SetProperty('internal.showArchived', change.checked));
 
 }

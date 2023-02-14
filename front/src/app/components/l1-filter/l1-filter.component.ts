@@ -10,10 +10,9 @@
  */
 
 import { ChangeDetectionStrategy, Component, HostListener, Input, OnInit } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Select, Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { LogService } from '@services/log.service';
@@ -49,7 +48,7 @@ export class L1FilterComponent implements OnInit {
   /**
    * Global variables
    */
-  moreOrLessSteps = new FormControl('is');
+  moreOrLessSteps = new UntypedFormControl('is');
   finder = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSearch'));
   searchInput: string;
   dialogs = {
@@ -86,11 +85,9 @@ export class L1FilterComponent implements OnInit {
    *
    * @returns parent_id of the current folder
    */
-
-  @Dispatch()
   returnParent() {
     this.log.msg("1","Returning to parent folder...","filter");
-    return new Features.ReturnToParentRoute();
+    return this._store.dispatch(new Features.ReturnToParentRoute());
   }
 
   /**
@@ -98,12 +95,11 @@ export class L1FilterComponent implements OnInit {
    *
    * @returns root folder
    */
-  @Dispatch()
   returnToRoot() {
     this.log.msg("1","Returning to root directory...","filter");
     this._router.navigate(['/']);
     this.toggleListType('list');
-    return new Features.ReturnToFolderRoute(0);
+    return this._store.dispatch(new Features.ReturnToFolderRoute(0));
   }
 
   /**
@@ -134,11 +130,11 @@ export class L1FilterComponent implements OnInit {
    *
    * @return sets the current status of the sidenav on mobile
    */
-  @Dispatch() toggleSidenav() {
+  toggleSidenav() {
     // get current state of side navbar after clicking toggle arrow icon
     let newSidebarState = this.getSidebarState() ? false : true;
     this.log.msg("1","Toggling sidenav...","filter");
-    return new Configuration.SetProperty('openedSidenav', newSidebarState);
+    return this._store.dispatch(new Configuration.SetProperty('openedSidenav', newSidebarState));
   }
 
   /**
@@ -146,10 +142,10 @@ export class L1FilterComponent implements OnInit {
    *
    * @return sets the current status of the search bar
    */
-  @Dispatch() toggleSearch() {
+  toggleSearch() {
     this.log.msg("1","Toggling searchbar...","filter");
     this.finder = !this.finder;
-    return new Configuration.SetProperty('openedSearch', this.finder);
+    return this._store.dispatch(new Configuration.SetProperty('openedSearch', this.finder));
   }
 
   /**
@@ -158,10 +154,9 @@ export class L1FilterComponent implements OnInit {
    * @param filter
    * @return removes a filter
    */
-  @Dispatch()
   removeFilter(filter: Filter) {
     this.log.msg("1","Removing searchbar filter term...","filter");
-    return new Features.RemoveFilter(filter);
+    return this._store.dispatch(new Features.RemoveFilter(filter));
   }
 
   /**
@@ -170,14 +165,12 @@ export class L1FilterComponent implements OnInit {
    * @param filter
    * @return removes a filter
    */
-  @Dispatch()
   removeSearchFilter() {
     this.log.msg("1","Clearing searchbar filter terms...","filter");
-    return new Features.RemoveSearchFilter();
+    return this._store.dispatch(new Features.RemoveSearchFilter());
   }
 
   // Checks which filter to add and if it's ok then add it
-  @Dispatch()
   addFilterOK(id: string, value?: any, value2?: any) {
     const filters = this._store.selectSnapshot(CustomSelectors.GetConfigProperty('filters'));
     let customFilter = { ...filters.find(filter => filter.id === id) };
@@ -201,7 +194,7 @@ export class L1FilterComponent implements OnInit {
       this.dialogs[id].next(false);
     }
     this.toggleSearch();
-    return new Features.AddFilter(customFilter);
+    return this._store.dispatch(new Features.AddFilter(customFilter));
   }
 
   // Adds a filter
@@ -275,9 +268,8 @@ export class L1FilterComponent implements OnInit {
    * @date 11-10-21
    * @lastModification 11-10-21
    */
-  @Dispatch()
   toggleListType(listType: string) {
-    return new Configuration.SetProperty('co_active_list', listType, true);
+    return this._store.dispatch(new Configuration.SetProperty('co_active_list', listType, true));
   }
 
   /**

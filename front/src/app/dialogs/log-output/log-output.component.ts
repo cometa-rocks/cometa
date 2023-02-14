@@ -1,6 +1,5 @@
 import { Component, Inject, ChangeDetectionStrategy, HostListener, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Logs } from '@store/actions/logs.actions';
@@ -29,9 +28,8 @@ export class LogOutputComponent implements OnInit {
 
   log$: Observable<string>;
 
-  @Dispatch()
   ngOnInit() {
-    return new Logs.GetLogs(this.id);
+    return this._store.dispatch(new Logs.GetLogs(this.id));
   }
 
 }

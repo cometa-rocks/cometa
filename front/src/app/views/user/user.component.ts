@@ -15,7 +15,6 @@ import { IntegrationsState } from '@store/integrations.state';
 import { ApiService } from '@services/api.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Integrations } from '@store/actions/integrations.actions';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Configuration } from '@store/actions/config.actions';
 import { User } from '@store/actions/user.actions';
 import { Router } from '@angular/router';
@@ -106,12 +105,11 @@ export class UserComponent implements OnInit {
     })
   }
 
-  @Dispatch()
   setLang(code: string) {
     localStorage.setItem('lang', code);
     this._translate.use(code);
     this._snack.open('Language changed successfully!', 'OK');
-    return new Configuration.SetProperty('language', code);
+    return this._store.dispatch(new Configuration.SetProperty('language', code));
   }
 
   reloadLang() {
@@ -119,13 +117,12 @@ export class UserComponent implements OnInit {
     this._snack.open('Language reloaded successfully!', 'OK');
   }
 
-  @Dispatch()
   toggleLogWebsockets(event: MatCheckboxChange) {
     // save log websockets value in user setting and send it to backend to make it persistent
-    return [
+    return this._store.dispatch([
       new User.SetSetting({ logWebsockets: event.checked }),
       new Configuration.SetProperty('logWebsockets', event.checked, true)
-    ];
+    ]);
   }
 
   inviteUser() {
@@ -136,75 +133,70 @@ export class UserComponent implements OnInit {
     this._tourService.startTourById(tour.id, true)
   }
 
-  @Dispatch()
   handleDisableAnimations(event: MatCheckboxChange) {
     localStorage.setItem('da', event.checked ? 'yes' : 'no');
 
     // save disable animation value in user setting and send it to backend to make it persistent
-    return [
+    return this._store.dispatch([
       new User.SetSetting({ disableAnimations: event.checked }),
       new Configuration.SetProperty('disableAnimations', event.checked)
-    ];
+    ]);
   }
 
-  @Dispatch()
   handlePercentMode(event: MatCheckboxChange) {
     // save percent mode in user setting and send it to backend to make it persistent
-    return [
+    return this._store.dispatch([
       new User.SetSetting({ percentMode: event.checked }),
       new Configuration.ChangePercentMode()
-    ];
+    ]);
   }
 
-  @Dispatch()
   handleToggle(event: MatCheckboxChange, prop) {
     // creates js object in format ex: {hidesteps: true} {hidesteps: false}
     let toggleSetting = {};
     toggleSetting[prop] = event.checked;
 
     // save toggle settings in user settings and send it to backend to make it persistent
-    return [
+    return this._store.dispatch([
       new User.SetSetting(toggleSetting),
       new Configuration.ToggleCollapsible(prop, event.checked)
-    ];
+    ]);
   }
 
   // Sets the new landing as default dashboard
-  @Dispatch()
   toggleNewDashboard(event: MatCheckboxChange) {
     let routerConfig = this._router.config;
     // Toggles all the home redirects to /new or /search
     routerConfig[0].redirectTo = event.checked ? 'new' : 'search';
 
-    return [
-      // save useNewDashboard value in user setting and send it to backend to make it persistent
+    // save useNewDashboard value in user setting and send it to backend to make it persistent
+    return this._store.dispatch([
       new User.SetSetting({ useNewDashboard: event.checked }),
       new Configuration.SetProperty('useNewDashboard', event.checked, true)
-    ]
+    ])
   }
 
-  @Dispatch()
   handleAccountSetting(ev: any, prop) {
     // Handle any change in any option
     if (ev.hasOwnProperty('checked')) {
       // Add exception if for Budgets
       if (prop === 'enable_budget' && ev.checked) {
-        return new User.SetSetting({
+        return this._store.dispatch(new User.SetSetting({
           budget: this._store.selectSnapshot(UserState.RetrieveSettings).budget || 0,
           enable_budget: ev.checked,
           budget_schedule_behavior: this._store.selectSnapshot(UserState.RetrieveSettings).budget_schedule_behavior || 'prevent'
-        })
+        }))
       }
       // Handle as checkbox
-      return new User.SetSetting({ [prop]: ev.checked });
+      return this._store.dispatch(new User.SetSetting({ [prop]: ev.checked }));
     } else if (ev.hasOwnProperty('value')) {
       // Handle as radio
-      return new User.SetSetting({ [prop]: ev.value });
+      return this._store.dispatch(new User.SetSetting({ [prop]: ev.value }));
     } else {
       // Handle as input
       let value: any = ev.target.value;
       value = isNaN(value) ? value : parseFloat(value);
-      return new User.SetSetting({ [prop]: value });
+      return this._store.dispatch(new User.SetSetting({ [prop]: value }));
     }
   }
 }
