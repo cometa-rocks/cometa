@@ -558,9 +558,24 @@ interface ServerInfo {
 interface Toggles {
     hideInformation: boolean;
     hideBrowsers: boolean;
+    hideUploadedFiles: boolean;
     hideSteps: boolean;
     hideSchedule: boolean;
     hideSendMail: boolean;
+}
+
+interface UploadedFile {
+    name: string;
+    type: string;
+    size: string;
+    user: string;
+    date: string;
+    actions: FileAction[];
+}
+
+interface FileAction {
+    icon: string;
+    tooltip: string;
 }
 
 interface LiveStep {

@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, Output, EventEmitter, OnInit, Input } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { BrowserFavouritedPipe } from '@pipes/browser-favourited.pipe';
 import { BrowserstackState } from '@store/browserstack.state';
 import { UserState } from '@store/user.state';
@@ -7,11 +7,11 @@ import { PlatformSortPipe } from '@pipes/platform-sort.pipe';
 import { map } from 'rxjs/operators';
 import { BrowsersState } from '@store/browsers.state';
 import { BehaviorSubject } from 'rxjs';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { classifyByProperty } from 'ngx-amvara-toolbox';
 import { User } from '@store/actions/user.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { Store } from '@ngxs/store';
 
 /**
  * BrowserSelectionComponent
@@ -48,11 +48,12 @@ export class BrowserSelectionComponent implements OnInit {
 
   constructor(
     private _favouritePipe: BrowserFavouritedPipe,
-    private _platformSort: PlatformSortPipe
+    private _platformSort: PlatformSortPipe,
+    private _store: Store
   ) { }
 
-  testing_cloud = new FormControl('browserstack');
-  browser = new FormControl();
+  testing_cloud = new UntypedFormControl('browserstack');
+  browser = new UntypedFormControl();
 
   // Used for the loading screen
   loaded = new BehaviorSubject<boolean>(false);
@@ -124,21 +125,15 @@ export class BrowserSelectionComponent implements OnInit {
     document.querySelector(`.versions.${browserKey}`).classList.toggle('show_all');
   }
   
-  @Dispatch()
   toggleFavourite(browser: BrowserstackBrowser) {
-    if (this._favouritePipe.transform(browser, this.favourites$)) {
-      // Remove favourite
-      return new User.RemoveBrowserFavourite(browser);
-    } else {
-      // Add favourite
-      return new User.AddBrowserFavourite(browser);
-    }
+    return this._favouritePipe.transform(browser, this.favourites$) ?
+           this._store.dispatch(new User.RemoveBrowserFavourite(browser)) :
+           this._store.dispatch(new User.AddBrowserFavourite(browser));
   }
 
-  @Dispatch()
   deleteFavourite(fav: BrowserstackBrowser) {
     // Remove favourite
-    return new User.RemoveBrowserFavourite(fav);
+    return this._store.dispatch(new User.RemoveBrowserFavourite(fav));
   }
 
   clickOnCategory(key, ev: MouseEvent) {

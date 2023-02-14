@@ -9,7 +9,6 @@ import { distinctUntilChanged, map, shareReplay, switchMap, tap } from 'rxjs/ope
 import { ApiService } from '@services/api.service';
 import { NetworkPaginatedListComponent } from '@components/network-paginated-list/network-paginated-list.component';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 
 @Component({
   selector: 'step-view',
@@ -119,7 +118,7 @@ export class StepViewComponent implements OnInit {
     )
   }
 
-  @Dispatch() getFeatureResult = resultId => new FeatureResults.GetFeatureResult(resultId, true);
+  getFeatureResult = resultId => this._store.dispatch(new FeatureResults.GetFeatureResult(resultId, true));
 
   returnToMain() {
     this._router.navigate([

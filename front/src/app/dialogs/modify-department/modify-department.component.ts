@@ -1,5 +1,5 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { ApiService } from '@services/api.service';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -19,7 +19,7 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 })
 export class ModifyDepartmentComponent {
 
-  rForm: FormGroup;
+  rForm: UntypedFormGroup;
 
   expireDaysChecked$ = new BehaviorSubject<boolean>(false);
 
@@ -33,7 +33,7 @@ export class ModifyDepartmentComponent {
     private dialogRef: MatDialogRef<ModifyDepartmentComponent>,
     @Inject(MAT_DIALOG_DATA) private department_id: number,
     private _api: ApiService,
-    private fb: FormBuilder,
+    private fb: UntypedFormBuilder,
     private snack: MatSnackBar,
     private _store: Store
   ) {

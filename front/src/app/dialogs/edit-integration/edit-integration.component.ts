@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { Store } from '@ngxs/store';
@@ -20,12 +20,12 @@ export class EditIntegrationDialog implements OnInit {
   @ViewSelectSnapshot(UserState.RetrieveUserDepartments) departments: Department[];
   @ViewSelectSnapshot(UserState.RetrieveIntegrationApps) integrations: string[];
 
-  intForm: FormGroup;
+  intForm: UntypedFormGroup;
 
   constructor(
     private dialogRef: MatDialogRef<EditIntegrationDialog>,
     @Inject(MAT_DIALOG_DATA) public data: IntegrationDialogData,
-    private _fb: FormBuilder,
+    private _fb: UntypedFormBuilder,
     private _api: ApiService,
     private _sharedActions: SharedActionsService,
     private _store: Store
