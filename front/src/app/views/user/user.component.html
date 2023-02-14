@@ -116,6 +116,7 @@
         <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hideInformation" (change)="handleToggle($event, 'hideInformation')">Information</mat-slide-toggle></li>
         <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hideSendMail" (change)="handleToggle($event, 'hideSendMail')">Email</mat-slide-toggle></li>
         <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hideBrowsers" (change)="handleToggle($event, 'hideBrowsers')">Browser selection</mat-slide-toggle></li>
+        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hideUploadedFiles" (change)="handleToggle($event, 'hideUploadedFiles')">Uploaded files</mat-slide-toggle></li>
         <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hideSteps" (change)="handleToggle($event, 'hideSteps')">Steps definition</mat-slide-toggle></li>
         <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hideSchedule" (change)="handleToggle($event, 'hideSchedule')">Schedule</mat-slide-toggle></li>
       </ul>

@@ -36,8 +36,6 @@ export class WhatsNewDialog {
   }
 
   poster: SafeUrl;
-
-
 }
 
 interface DialogChanges {

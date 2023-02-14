@@ -1,6 +1,6 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatChipListChange } from '@angular/material/chips';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -19,11 +19,11 @@ export class InviteUserDialog implements OnInit {
 
   @ViewSelectSnapshot(UserState.RetrieveUserDepartments) departments: Department[];
 
-  inviteForm: FormGroup;
+  inviteForm: UntypedFormGroup;
 
   constructor(
     private dialogRef: MatDialogRef<InviteUserDialog>,
-    private _fb: FormBuilder,
+    private _fb: UntypedFormBuilder,
     private _api: ApiService,
     private _snackBar: MatSnackBar
   ) {

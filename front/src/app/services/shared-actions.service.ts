@@ -14,7 +14,6 @@ import { HtmlDiffDialog } from '@dialogs/html-diff/html-diff.component';
 import { LiveStepsComponent } from '@dialogs/live-steps/live-steps.component';
 import { MoveItemDialog } from '@dialogs/move-feature/move-item.component';
 import { SureRemoveFeatureComponent } from '@dialogs/sure-remove-feature/sure-remove-feature.component';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Features } from '@store/actions/features.actions';
@@ -76,9 +75,8 @@ export class SharedActionsService {
 
   // #3397 -----------------------------------start
   // clears localstorage corresponding to searchFilters(see it at ctrl + f11/features/filters)
-  @Dispatch()
   removeSearchFilter() {
-    return new Features.RemoveSearchFilter();
+    return this._store.dispatch(new Features.RemoveSearchFilter());
   }
   // #3397 ------------------------------------end
 
@@ -106,11 +104,10 @@ export class SharedActionsService {
     }).afterClosed().subscribe(_ => this.dialogActive = false);
   }
 
-  @Dispatch()
   handleSetting(featureId: number, type: string, event: MatCheckboxChange) {
     switch (type) {
       case 'need_help':
-        return new Features.PatchFeature(featureId, { need_help: event.checked });
+        return this._store.dispatch(new Features.PatchFeature(featureId, { need_help: event.checked }));
       default:
         return null;
     }

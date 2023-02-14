@@ -8,7 +8,6 @@ import { UserState } from '@store/user.state';
 import { Subscribe } from 'app/custom-decorators';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
-import { Dispatch } from '@ngxs-labs/dispatch-decorator';
 import { Environments } from '@store/actions/environments.actions';
 
 @Component({
@@ -32,9 +31,8 @@ export class EnvironmentsComponent implements OnInit {
   @Select(UserState.GetPermission('create_environment')) canCreateEnvironment$: Observable<boolean>;
   @Select(EnvironmentsState) environments$: Observable<Environment[]>;
 
-  @Dispatch()
   ngOnInit() {
-    return new Environments.GetEnvironments();
+    return this._store.dispatch(new Environments.GetEnvironments());
   }
 
   @Subscribe()
