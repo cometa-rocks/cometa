@@ -362,6 +362,7 @@ interface FeatureStep {
     step_type?: StepType;
     continue_on_failure?: boolean;
     timeout?: number;
+    action_options?: Action;
 }
 
 declare type StepType = 'normal' | 'subfeature' | 'substep' | 'loop';
