@@ -93,7 +93,10 @@
           </button>
         </mat-menu>
         <mat-autocomplete class="edit-feature-step-suggestions" #stepHelp="matAutocomplete" (optionSelected)="selectFirstVariable($event, i)">
-          <mat-option *ngFor="let action of actions | filterStep:step.value.step_content:false" [value]="action.action_name">{{ action.action_name}}</mat-option>
+          <mat-option *ngFor="let action of actions | filterStep:step.value.step_content:false" [value]="action.action_name">
+            <span>{{ action.action_name}}</span>
+            <mat-icon matTooltip="HI">info</mat-icon>
+          </mat-option>
         </mat-autocomplete>
       </div>
     </ng-container>

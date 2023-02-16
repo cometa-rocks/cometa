@@ -150,6 +150,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   realizedRequests = [];
   async rollupDuplicateSteps(stepsArray: FeatureStep[]) {
+    console.time("rollupDuplicates");
+    console.time("stepParse");
+    stepsArray.map((step, index) => {
+      const action = this.actions.find(action => step.step_content.match(action.action_name.replace(/\"\{.*?\}\"/, "\".*\"")));
+      if (action) {
+        step.action_options = action;
+      }
+    });
+    console.log(stepsArray)
+    console.timeEnd("stepParse");
+
     // #2430 - Marks steps as disabled if step is found inside an import
     // First get all import IDs
     const importIds: number[] = stepsArray.reduce((r, step) => {
@@ -185,6 +196,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         this.importsSteps$.next(importsSteps);
       }
     }
+    console.timeEnd("rollupDuplicates");
   }
 
   importsSteps$ = new BehaviorSubject<string[]>([]);
@@ -386,6 +398,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (!event.checked) {
       this.stepsForm.at(i).get('compare').setValue(false);
     }
+  }
+
+  stepUpdated(event:any) {
+    console.log(event.target.value);
   }
 
 }
