@@ -24,6 +24,7 @@ import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { ClipboardModule } from '@angular/cdk/clipboard'
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { PlatformSortPipe } from '@pipes/platform-sort.pipe';
@@ -59,6 +60,7 @@ import { HasPermissionPipe } from '../pipes/has-permission.pipe';
 import { SafeHtmlPipe } from '../pipes/safe-html.pipe';
 import { AddLatestPipe } from '../pipes/add-latest.pipe';
 import { SafeUrlPipe } from '@pipes/safe-url.pipe';
+import { HumanizeBytesPipe } from '@pipes/humanize-bytes.pipe';
 
 /* Directives */
 import { StopPropagationDirective } from '@directives/stop-propagation.directive';
@@ -120,6 +122,7 @@ const components = [
 ];
 
 const materialModules = [
+  ClipboardModule,
   MatTabsModule,
   MatIconModule,
   MatDialogModule,
@@ -187,7 +190,8 @@ const pipes = [
   AlreadyTakenFilterPipe,
   FilterTextPipe,
   DepartmentNamePipe,
-  FeatureRunningPipe
+  FeatureRunningPipe,
+  HumanizeBytesPipe
 ];
 
 const dialogs = [

@@ -55,6 +55,7 @@ from concurrent.futures import ThreadPoolExecutor
 # import humanize for time conversion
 from backend.templatetags.humanize import *
 from sentry_sdk import capture_exception
+from backend.utility.uploadFile import UploadFile
 # from silk.profiling.profiler import silk_profile
 
 SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
@@ -172,6 +173,13 @@ def DepartmentsRelatedToAccountView(request):
         "previous": None,
         "results": json.loads(d)
     })
+
+def departmentExists(department_id) -> int:
+    try:
+        department = Department.objects.get(department_id=department_id)
+        return department.department_id
+    except Exception as err:
+        return -1
 
 @csrf_exempt
 def CreateOIDCAccount(request):
@@ -961,6 +969,138 @@ def UpdateSchedule(request, feature_id, *args, **kwargs):
     features.update(schedule = schedule)
     return JsonResponse({ 'success': True })
 
+def uploadFilesThread(files, department_id, uploaded_by):
+    for file in files:
+        uploadFile = UploadFile(file, department_id, uploaded_by)
+        print(uploadFile.proccessUploadFile())
+
+class UploadViewSet(viewsets.ModelViewSet):
+    queryset = File.objects.none()
+    serializer_class = FileSerializer
+    renderer_classes = (JSONRenderer, )
+
+    def decryptFile(self, source):
+        import tempfile
+        target = "/tmp/%s" % next(tempfile._get_candidate_names())
+
+        logger.debug(f"Decrypting source {source}")
+
+        try:
+            result = subprocess.run(["bash", "-c", f"gpg --output {target} --batch --passphrase {secret_variables.COMETA_UPLOAD_ENCRYPTION_PASSPHRASE} -d {source}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if result.returncode > 0:
+                # get the error
+                errOutput = result.stderr.decode('utf-8')
+                logger.error(errOutput)
+                raise Exception('Failed to decrypt the file, please contact an administrator.')
+            return target
+        except Exception as err:
+            raise Exception(str(err))
+
+    def list(self, request, *args, **kwargs):
+        file_id = kwargs.get('file_id', None)
+        XHR = request.headers.get('X-Requested-With', None)
+        
+        # check if file id was passed.
+        if file_id is None:
+            return JsonResponse({ 'success': False, 'error': 'Missing file id.' })
+        
+        try:
+            # get the file from file id
+            file = File.objects.get(id=file_id)
+
+            # check if user has access to the file
+            self.userHasAccess(request, file)
+
+            # decrypt file
+            targetPath = self.decryptFile(file.path)
+            # check if fullpath exists
+            if os.path.exists(targetPath):
+                # open the file
+                with open(targetPath, 'rb') as fh:
+                    data = fh.read()
+                    # check if request was made using XHR
+                    if XHR is not None and XHR == 'XMLHttpRequest':
+                        data = base64.b64encode(data)
+                    response = HttpResponse(data, content_type=file.mime)
+                    response['Content-Disposition'] = 'attachment; filename="%s"' % file.name
+                os.remove(targetPath)
+                return response
+            return JsonResponse({ 'success': True })
+        except Exception as err:
+            logger.error(f"Error occured while trying to download the file: {file_id}.")
+            logger.exception(err)
+            return JsonResponse({ 'success': False, 'error': 'File does not exists.' }, status=404)
+
+    def put(self, request, *args, **kwargs):
+        file_id = kwargs.get('file_id', None)
+        restore = request.POST.get('restore', False)
+        
+        # check if file id was passed.
+        if file_id is None:
+            return JsonResponse({ 'success': False, 'error': 'Missing file id.' })
+        
+        try:
+            # get the file from file id
+            file = File.all_objects.get(id=file_id)
+
+            # check if user has access to the file
+            self.userHasAccess(request, file)
+
+            if restore == "true":
+                file.restore()
+            return JsonResponse({ 'success': True })
+        except Exception as err:
+            logger.error(f"Error occured while trying to update the file: {file_id}.")
+            logger.exception(err)
+            return JsonResponse({ 'success': False, 'error': 'File does not exists.' })
+
+    def create(self, request):
+        # get the department_id from the request
+        department_id = request.POST.get('department_id', -1)
+        if department_id == -1 or departmentExists(department_id) == -1:
+            return JsonResponse({ 'success': False, 'error': "Department does not exist." })
+
+        try:
+            # Spawn thread to upload files in background
+            t = Thread(target=uploadFilesThread, args=(request.FILES.getlist('files'), department_id, request.session['user']['user_id']))
+            t.start()
+            return JsonResponse({ 'success': True })
+        except Exception as e:
+            return JsonResponse({ 'success': False, 'error': str(e) })
+    
+    def delete(self, request, *args, **kwargs):
+        file_id = kwargs.get('file_id', None)
+        
+        # check if file id was passed.
+        if file_id is None:
+            return JsonResponse({ 'success': False, 'error': 'Missing file id.' })
+        
+        try:
+            # get the file from file id
+            file = File.objects.get(id=file_id)
+
+            # check if user has access to the file
+            self.userHasAccess(request, file)
+
+            file.delete()
+            return JsonResponse({ 'success': True })
+        except Exception as err:
+            logger.error(f"Error occured while trying to delete the file: {file_id}.")
+            logger.exception(err)
+            return JsonResponse({ 'success': False, 'error': 'File does not exists.' })
+    
+    def userHasAccess(self, request, file):
+        # get department id from the userb
+        department_id = file.department_id
+        # get user departments
+        user_departments = GetUserDepartments(request)
+
+        if department_id not in user_departments:
+            raise Exception('User trying to access file with no access to the department.')
+        
+        return True
+        
+
 class AccountViewset(viewsets.ModelViewSet):
     """
     API endpoint to view or edit accounts
@@ -1517,7 +1657,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    queryset = Department.objects.all()
+    queryset = Department.objects.prefetch_related('files').all()
     serializer_class = DepartmentSerializer
     renderer_classes = (JSONRenderer, )
 
@@ -1530,12 +1670,16 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         show_all_departments = request.session['user']['user_permissions']['show_all_departments']
         # if superuser or has show_all_departments permission show all departments
         if superuser or show_all_departments:
-            qs = Department.objects.all()
+            qs = Department.objects.prefetch_related(
+                Prefetch('files', queryset=File.all_objects.all())
+            ).all()
         else:
             # get logged in user departments
             user_departments = [x['department_id'] for x in request.session['user']['departments']]
-            qs = Department.objects.filter(department_id__in=user_departments)
-
+            qs = Department.objects.prefetch_related(
+                Prefetch('files', queryset=File.all_objects.all())
+            ).filter(department_id__in=user_departments)
+            
         # get show_department_users permission
         show_department_users = request.session['user']['user_permissions']['show_department_users']
         # if user has show_department_users permission the show users aswell
