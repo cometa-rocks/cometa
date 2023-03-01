@@ -72,9 +72,6 @@ services:
       - ./backend/ws-server:/home/node/app:rw
     ports:
       - "3001:3001"
-    links:
-      - behave
-      - django
     command: "npm run-script start"
     networks:
      - testing
