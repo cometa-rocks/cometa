@@ -98,15 +98,11 @@ export class EditFeature implements OnInit, OnDestroy {
     private _snackBar: MatSnackBar,
     private _store: Store,
     private _dialog: MatDialog,
-<<<<<<< HEAD
-    private _fb: UntypedFormBuilder
-=======
-    private _fb: FormBuilder,
+    private _fb: UntypedFormBuilder,
     private cdr: ChangeDetectorRef,
     private fileUpload: FileUploadService,
     private clipboard: Clipboard,
     @Inject(API_URL) public api_url: string,
->>>>>>> 040c562be3ea6780e5d6e350664b002e00a4fce9
   ) {
     // Create the fields within FeatureForm
     this.featureForm = this._fb.group({
