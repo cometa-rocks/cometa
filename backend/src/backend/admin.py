@@ -255,6 +255,22 @@ class AdminUsageInvoice(admin.ModelAdmin):
     list_display = ('user', 'stripe_invoice_id', 'period_start', 'period_end', 'hours', 'cloud', 'status', 'modified_on', )
     list_filter = ('user', 'cloud', 'status')
 
+class AdminFile(admin.ModelAdmin):
+    model = File
+    search_fields = ['id', 'name', 'path', 'mime', 'department__department_name', 'uploaded_by__name']
+    list_display = ('id', 'name', 'path', 'mime', 'uploaded_by', 'department', 'is_removed', 'fileExistsOnFS')
+    list_filter = ('department', 'created_on', 'is_removed')
+
+    def get_queryset(self, request):
+        return self.model.all_objects.get_queryset()
+
+    @admin.display(boolean=True)
+    def fileExistsOnFS(self, obj):
+        return os.path.exists(obj.path)
+    
+    fileExistsOnFS.short_description = "Does file exist on FS?"
+
+
 admin.site.register(OIDCAccount, AdminOIDCAccount)
 admin.site.register(Account_role, AdminAccount_role)
 admin.site.register(Step, AdminStep)
@@ -269,6 +285,7 @@ admin.site.register(Application)
 admin.site.register(Environment)
 admin.site.register(Department)
 admin.site.register(Browser)
+admin.site.register(File, AdminFile)
 admin.site.register(Action)
 admin.site.register(Permissions, AdminPermissions)
 admin.site.register(EnvironmentVariables, AdminEnvironmentVariables)
@@ -282,6 +299,6 @@ admin.site.register(Subscription, AdminSubscription)
 admin.site.register(PaymentRequest, AdminPaymentRequest)
 admin.site.register(StripeWebhook, AdminStripeWebhooks)
 admin.site.register(UserSubscription, AdminUserSubscription)
-admin.site.register(UsageInvoice, AdminUsageInvoice)
+admin.site.register(UsageInvoice, AdminUsageInvoice),
 
 # Register your models here.
