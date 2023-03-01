@@ -404,26 +404,38 @@ class ApplicationSerializer(serializers.ModelSerializer):
         return new_app
 
 ################################
+# File model serializers #
+################################
+class FileSerializer(serializers.ModelSerializer):
+    uploaded_by = BasicOIDCAccountSerializer(many=False)
+    class Meta:
+        model = File
+        exclude = ('path',)
+
+    def create(self, validated_data):
+        return File.objects.create(**validated_data)
+
+################################
 # Department model serializers #
 ################################
 class DepartmentSerializer(serializers.ModelSerializer):
+    files = FileSerializer(many=True)
+
     class Meta:
         model = Department
         fields = '__all__'
 
     def create(self, validated_data):
         return Department.objects.create(**validated_data)
-
-################################
-# Department model serializers #
-################################
+    
 class DepartmentWithUsersSerializer(serializers.ModelSerializer):
     users = serializers.SerializerMethodField()
+    files = FileSerializer(many=True)
 
     class Meta:
         model = Department
         fields = '__all__'
-        extra_fields = ['users']
+        extra_fields = ['users', 'files']
 
     def get_users(self, instance):
         accounts = OIDCAccount.objects.filter(user_id__in=instance.account_role_set.all().values_list('user', flat=True))

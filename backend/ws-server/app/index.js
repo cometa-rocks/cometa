@@ -441,6 +441,18 @@ app.post('/sendAction', (req, res) => {
         totalSended++;
       });
       break;
+    case '[Files] Processing started':
+    case '[Files] Virus scan started':
+      // filter all clients which are in updated/removed department or have "view_departments_panel" permission
+      clients_with_in_the_department = Object.keys(clients).filter(client => {
+        return clients[client].departments.some(dept => dept.department_id == req.body.department_id) || clients[client].user_permissions.view_departments_panel == true;
+      });
+      // send data to only users with in the department
+      clients_with_in_the_department.forEach(client => {
+        io.to(client).emit('message', req.body);
+        totalSended++;
+      });
+      break;
     case '[Variables] Get All':
       // filter all clients which are in the same department
       clients_with_in_the_department = Object.keys(clients).filter(client => {
@@ -535,10 +547,20 @@ app.post('/sendActionExample', (req, res) => {
 })
 
 io.on('connection', function(socket){
-  console.log('A client has connected')
   try {
-    clients[socket.id] = JSON.parse(socket.handshake.query.user)
+    const user = socket.handshake.auth.user;
+    if (user.user_id != undefined && user.email != undefined) {
+      clients[socket.id] = user
+      console.log(`[${user.email} (${user.user_id})] has connected successfully.`)
+    } else {
+      throw Error("Missing user data. Connection failed.")
+    }
   } catch (err) {
+    socket.emit("error", {
+      "success": false,
+      "message": err.message
+    })
+    socket.disconnect(true)
     console.log('Connection', 'Couldn\'t parse user info.');
   }
   // For testing purposes
