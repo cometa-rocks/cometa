@@ -570,4 +570,25 @@ export class ApiService {
     })
   }
 
+  uploadFiles(formData: FormData) {
+    return this._http.post<any>(`${this.api}uploads/`, formData);
+  }
+
+  updateFile(file_id: number, formdata: FormData) {
+    return this._http.put<any>(`${this.api}uploads/${file_id}/`, formdata);
+  }
+
+  deleteFile(file_id: number) {
+    return this._http.delete<any>(`${this.api}uploads/${file_id}/`);
+  }
+
+  downloadFile(file_id: number) {
+    return this._http.get(`${this.api}uploads/${file_id}/`, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      }),
+      responseType: 'text',
+      observe: 'response'
+    });
+  }
 }

@@ -24,12 +24,33 @@
     overflow: auto;
     tr.mat-header-row {
         position: sticky;
+        z-index: 1;
         top: 0;
     }
     table.mat-table { width: 100%; }
-    .mat-column-name { height: 50px; }
-    mat-icon {
-        cursor: pointer;
+
+    td.mat-cell,
+    th.mat-header-cell {
+        padding: 0;
+    }
+
+    .removed {
+        td:not(:last-child) {
+            opacity: 0.6;
+        }
+    }
+
+    .mat-column-name {
+        height: 50px;
+        div.name-wrapper {
+            display:flex;
+            align-items: center;
+            color: $blue;
+            font-weight: bold;
+            mat-spinner {
+                margin-right: 5px;
+            }
+        }
     }
 }
 

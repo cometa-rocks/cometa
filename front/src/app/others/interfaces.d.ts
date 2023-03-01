@@ -257,6 +257,7 @@ interface BrowserResult {
 interface Department {
     department_id: number;
     department_name: string;
+    files?: [],
     slug?: string;
     settings?: any;
     users?: IAccount[];
@@ -565,14 +566,31 @@ interface Toggles {
 }
 
 interface UploadedFile {
-    name: string;
-    type: string;
-    size: string;
-    user: string;
-    date: string;
-    actions: FileAction[];
+    created_on?: string,
+    id?: number,
+    md5sum?: string,
+    mime?: string,
+    name?: string,
+    department?: string,
+    size?: number,
+    type?: string,
+    is_removed?: boolean;
+    uploadPath?: string,
+    uploaded_by?: Uploader,
+    error?: FileUploadError,
+    status?: 'Unknown' | 'Processing' | 'Scanning' | 'Encrypting' | 'Done' | 'Error'
 }
 
+interface Uploader {
+    email?: string,
+    name?: string,
+    user_id?: number
+}
+
+interface FileUploadError {
+    description?: string,
+    status?: string;
+}
 interface FileAction {
     icon: string;
     tooltip: string;

@@ -8,15 +8,15 @@
     "crypto": "^1.0.1",
     "express": "^4.17.1",
     "morgan": "^1.10.0",
-    "nodemon": "^2.0.8",
+    "pm2": "^5.2.2",
     "socket.io": "^4.1.2"
   },
   "devDependencies": {
-    "socket.io": "^4.1.2",
-    "nodemon": "^2.0.8"
+    "socket.io": "^4.1.2"
   },
   "scripts": {
-    "start": "npm install && npm install -g nodemon && nodemon app/index.js"
+    "start": "npm install && pm2 start --no-daemon app/index.js",
+    "test": "npm install && pm2 start --no-daemon app/index.js --watch --ignore-watch=\"node_modules\""
   },
   "author": "",
   "license": "ISC"

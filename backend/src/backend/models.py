@@ -10,14 +10,18 @@ import glob
 from django.conf import settings
 from django.db.models.query import ModelIterable, QuerySet
 import warnings
-from backend.utility.functions import getBrowserKey, getStepResultScreenshotsPath, get_model
+from backend.utility.functions import getBrowserKey, getStepResultScreenshotsPath, get_model, getLogger
 import shutil
 from backend.common import *
+from django.db.models.signals import post_delete, pre_delete
+from django.dispatch import receiver
 
 # GLOBAL VARIABLES
 
 # check if we are inside a loop
 insideLoop = False
+# get logger
+logger = getLogger()
 
 # Step Keywords
 step_keywords = (
@@ -25,6 +29,16 @@ step_keywords = (
     ('When', 'When',),
     ('Then', 'Then',),
     ('and', 'and',),
+)
+
+# Step Keywords
+file_status = (
+    ('Unknown', 'Unknown',),
+    ('Processing', 'Processing',),
+    ('Scanning', 'Scanning',),
+    ('Encrypting', 'Encrypting',),
+    ('Done', 'Done',),
+    ('Error', 'Error',),
 )
 
 # utility functions
@@ -402,6 +416,10 @@ class SoftDeletableModel(models.Model):
     objects = SoftDeletableManager(_emit_deprecation_warnings=True)
     available_objects = SoftDeletableManager()
     all_objects = models.Manager()
+
+    def restore(self, using=None):
+        self.is_removed = False
+        self.save(using=using)
 
     def delete(self, using=None, soft=True, *args, **kwargs):
         """
@@ -1328,3 +1346,50 @@ class UsageInvoice(models.Model):
     created_on = models.DateTimeField(auto_now_add=True, editable=True, null=False, blank=False, help_text='When was created')
     modified_on = models.DateTimeField(auto_now=True, editable=True, null=False, blank=False, help_text='When was the latest modification')
     error = models.TextField(help_text='If there was an error during payment, it will appear here')
+
+# stores uploaded files data
+class File(SoftDeletableModel):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    path = models.CharField(max_length=255)
+    uploadPath = models.CharField(max_length=255)
+    size = models.IntegerField()
+    type = models.CharField(max_length=100)
+    mime = models.CharField(max_length=100)
+    md5sum = models.CharField(max_length=100)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="files")
+    status = models.CharField(max_length=10, choices=file_status, default="Unknown")
+    uploaded_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True)
+    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
+
+    def restore(self, using=None):
+        # restore the file back to original state if exists
+        if os.path.exists(self.path) and '__deleted' in self.path:
+            newPath = self.path.replace("__deleted", "")
+            logger.debug(f"Restoring {self.path} to {newPath}.")
+            shutil.move(self.path, newPath)
+            self.path = newPath
+
+        return super().restore(using)
+
+    def delete(self, using=None, soft=True, *args, **kwargs):
+        # if soft is set to True add __deleted to the filename
+        if soft:
+            logger.debug(f"Soft delete: Moving {self.path} to {self.path}__deleted")
+            shutil.move(self.path, f"{self.path}__deleted")
+            self.path = self.path + "__deleted"
+
+        return super().delete(using=using, soft=soft, *args, **kwargs)
+
+
+"""
+Make sure to delete the files on the fs when ever deleting the record.
+Also works when removing department.
+"""
+@receiver(post_delete, sender=File)
+def post_file_delete(instance, sender, using, **kwargs):
+    logger.debug(f"Deleting file {instance.path} from the file system.")
+    # check if file exists on the fs
+    if os.path.exists(instance.path):
+        os.unlink(instance.path)
+
