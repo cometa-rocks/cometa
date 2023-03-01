@@ -126,6 +126,8 @@ def returnDecrypted(value):
 
     if value.startswith(ENCRYPTION_START):
         value = decrypt(value)
+        # append value to be masked in logger
+        logger.updateMaskWords(value)
 
     return value
 
@@ -1363,6 +1365,7 @@ def step_impl(context, keySet):
         keysUp = ''
         # Capitalizes and splits each index into simultaneous press key sets
         for key in i.split('+'):
+            key = key.strip()
             if key.upper() in dir(Keys):
                 # Code transformation for special characters
                 keys = keys + '.key_down(Keys.%s)' % key.upper()
@@ -1372,7 +1375,7 @@ def step_impl(context, keySet):
                 keys = keys + ".send_keys('%s')" % key.replace('\'', '\\\'')
         # Concats the key down and key up action
         keys = keys + keysUp
-        logger.debug('Sending the following keys' + keys)
+        logger.debug('Sending the following keys ' + keys)
         actions = ActionChains(context.browser)
         # Sends the trigger to press the keys
         eval(keys).perform()
@@ -2371,19 +2374,15 @@ def step_imp(context, selector, filename):
     context.browser.file_detector = LocalFileDetector()
     # select the upload element to send the filenames to
     elements = waitSelector(context, "css", selector)
-    # replace "uploads" with "/home/selenium/uploads/"
     logger.debug("Before replacing filename: %s" % filename)
-    # replace upload directory and add /home/selenium to it
-    filename=re.sub("(uploads\/)+", "/code/behave/uploads/", filename)
-    # replace Downloads directory and add /home/selenium to it
-    filename=re.sub("(Downloads\/)+", context.downloadDirectoryOutsideSelenium + "/", filename)
-    # replace ";" with a carriage return
-    filename=re.sub("(;)+","\n",filename)
+    # get the target file or files
+    filename = uploadFileTarget(context, filename)
     # do some logging
     logger.debug("After replacing filename: %s" % filename)
     logger.debug("Sending filename to input field")
     # send the filename string to the input field
-    elements[0].send_keys(filename)
+    for file in filename:
+        elements[0].send_keys(file)
     # reset the file detector
     context.browser.file_detector = old_file_detector
 
@@ -3188,6 +3187,13 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
         return True
     else:
         raise CustomError("Lists do not match, please check the attachment.")
+
+@step(u'Assert "{value_one}" to be same as "{value_two}"')
+@done(u'Assert "{value_one}" to be same as "{value_two}"')
+def assert_imp(context, value_one, value_two):
+    assert_failed_error = f"{value_one} does not match {value_two}"
+    assert_failed_error = logger.mask_values(assert_failed_error)
+    assert value_one == value_two, assert_failed_error
 
 @step(u'Loop "{x}" times starting at "{index}" and do')
 @done(u'Loop "{x}" times starting at "{index}" and do')

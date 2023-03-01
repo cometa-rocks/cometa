@@ -1,6 +1,8 @@
-import { Component, OnInit, Inject, ViewChild, ChangeDetectionStrategy, HostListener, OnDestroy } from '@angular/core';
+import { Component, OnInit, Inject, ViewChild, ChangeDetectionStrategy, HostListener, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ApiService } from '@services/api.service';
+import { FileUploadService } from '@services/file-upload.service'
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { API_URL } from 'app/tokens';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UntypedFormControl, UntypedFormGroup, Validators, UntypedFormBuilder } from '@angular/forms';
@@ -29,6 +31,8 @@ import { EmailTemplateHelp } from './email-template-help/email-template-help.com
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { Configuration } from '@store/actions/config.actions';
 import { parseExpression } from 'cron-parser';
+import { DepartmentsState } from '@store/departments.state';
+import { Clipboard } from "@angular/cdk/clipboard"
 
 @Component({
   selector: 'edit-feature',
@@ -37,7 +41,7 @@ import { parseExpression } from 'cron-parser';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EditFeature implements OnInit, OnDestroy {
-  displayedColumns: string[] = ['name','type', 'size','user','date', 'actions'];
+  displayedColumns: string[] = ['name','mime','size','uploaded_by.name','created_on', 'actions'];
 
   @ViewSelectSnapshot(ConfigState) config$ !: Config;
   /**
@@ -51,6 +55,7 @@ export class EditFeature implements OnInit, OnDestroy {
   departments$ !: Department[];
   @ViewSelectSnapshot(UserState) user !: UserInfo;
   @ViewSelectSnapshot(UserState.HasOneActiveSubscription) hasSubscription: boolean;
+  @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
 
 
   saving$ = new BehaviorSubject<boolean>(false);
@@ -75,6 +80,7 @@ export class EditFeature implements OnInit, OnDestroy {
   selected_department;
   selected_application;
   selected_environment;
+  department;
 
   readonly separatorKeysCodes: number[] = [ENTER, COMMA];
 
@@ -92,7 +98,15 @@ export class EditFeature implements OnInit, OnDestroy {
     private _snackBar: MatSnackBar,
     private _store: Store,
     private _dialog: MatDialog,
+<<<<<<< HEAD
     private _fb: UntypedFormBuilder
+=======
+    private _fb: FormBuilder,
+    private cdr: ChangeDetectorRef,
+    private fileUpload: FileUploadService,
+    private clipboard: Clipboard,
+    @Inject(API_URL) public api_url: string,
+>>>>>>> 040c562be3ea6780e5d6e350664b002e00a4fce9
   ) {
     // Create the fields within FeatureForm
     this.featureForm = this._fb.group({
@@ -132,10 +146,10 @@ export class EditFeature implements OnInit, OnDestroy {
     this.selected_application = this.applications$[0].app_name;
     this.selected_environment = this.environments$[0].environment_name;
 
-	this.featureForm.valueChanges.subscribe(values => {
-		const { minute, hour, day_month, month, day_week } = values;
-		this.parseSchedule({ minute, hour, day_month, month, day_week });
-	})
+    this.featureForm.valueChanges.subscribe(values => {
+      const { minute, hour, day_month, month, day_week } = values;
+      this.parseSchedule({ minute, hour, day_month, month, day_week });
+    })
   }
 
   ngOnDestroy() {
@@ -380,6 +394,14 @@ export class EditFeature implements OnInit, OnDestroy {
     if (!this.feature) this.feature = { feature_id: 0 };
     const featureId = this.data.mode === 'clone' ? 0 : this.data.feature.feature_id;
     this.steps$ = this._store.select(CustomSelectors.GetFeatureSteps(featureId))
+
+    this.featureForm.get('department_name').valueChanges.subscribe(department_name => {
+      this.allDepartments$.subscribe(data => {
+        this.department = data.find(dep => dep.department_name === department_name);
+        this.fileUpload.validateFileUploadStatus(this.department);
+        this.cdr.detectChanges();
+      })
+    })
   }
 
   stepsOriginal: FeatureStep[] = [];
@@ -658,30 +680,63 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // adds each selected file into formControl array
   onUploadFile(ev) {
-    let files = Array.from(ev.target.files);
-    let control = this.featureForm.controls["uploaded_files"]
+    let formData: FormData = new FormData;
+    let files = ev.target.files
 
-    files.forEach((file: File) => {
-      let fileInfo = this.getFileInfo(file)
-      control.setValue([...control.value, fileInfo]);
+    for (let file of files) {
+      formData.append("files", file)
+    }
+    formData.append("department_id", this.department.department_id);
+
+    this.fileUpload.startUpload(files, formData, this.department, this.user);
+  }
+
+  onDownloadFile(file: UploadedFile) {
+    const downloading = this._snackBar.open('Generating file to download, please be patient.', 'OK', { duration: 10000 })
+
+    this.fileUpload.downloadFile(file.id).subscribe({
+      next: (res) => {
+        const blob = new Blob([this.base64ToArrayBuffer(res.body)], { type: file.mime });
+        this.fileUpload.downloadFileBlob(blob, file);
+        downloading.dismiss();
+      },
+      error: (err) => {
+        if (err.error) {
+          const errors = JSON.parse(err.error);
+          this._snackBar.open(errors.error, 'OK');
+        }
+      }
     })
   }
 
-  // sets up required infromation for each file to be sent to backend
-  getFileInfo(file: File) {
-    let uploadedFile = <UploadedFile>{};
-
-    uploadedFile.name = file.name;
-    uploadedFile.type = file.type;
-    uploadedFile.size = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-    uploadedFile.user = this.user.name;
-    uploadedFile.date = new Date().toLocaleString('en-GB');
-    uploadedFile.actions = [
-      { icon: "delete", tooltip: "Delete File" },
-      { icon: "cloud_download", tooltip: "Download File"}
-    ];
-    console.log(this.featureForm.value)
-    return uploadedFile;
+  base64ToArrayBuffer(data: string) {
+    const byteArray = atob(data);
+    const uint = new Uint8Array(byteArray.length)
+    for (let i = 0; i < byteArray.length; i++) {
+        let ascii = byteArray.charCodeAt(i);
+        uint[i] = ascii;
+    }
+    return uint;
   }
 
+  onDeleteFile(file: UploadedFile) {
+    this.fileUpload.deleteFile(file.id).subscribe(res => {
+      if (res.success) this.fileUpload.updateFileState(file, this.department);
+    });
+  }
+
+  onRestoreFile(file: UploadedFile) {
+    let formData: FormData = new FormData;
+    formData.append("restore", String(file.is_removed) );
+
+    this.fileUpload.restoreFile(file.id, formData).subscribe(res => {
+      if (res.success) this.fileUpload.updateFileState(file, this.department);
+    });
+  }
+
+  public onFilePathCopy(successful: boolean): void {
+    const duration = 2000;
+    successful ? this._snackBar.open("File upload path has been copied", "OK", { duration: duration }) :
+                 this._snackBar.open("File upload path could not be copied", "OK", { duration: duration })
+  }
 }
