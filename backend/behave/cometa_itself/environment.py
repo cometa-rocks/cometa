@@ -11,10 +11,12 @@ from selenium.common.exceptions import InvalidCookieDomainException
 # just to import secrets
 sys.path.append("/code")
 from src.backend.utility.functions import *
+from src.backend.utility.cometa_logger import CometaLogger
 import secret_variables
 from src.backend.common import *
 
 # setup logging
+logging.setLoggerClass(CometaLogger)
 logger = logging.getLogger(__name__)
 logger.setLevel(BEHAVE_DEBUG_LEVEL)
 # create a formatter for the logger
@@ -195,6 +197,7 @@ def before_all(context):
     # download preferences for chrome
     # context.downloadDirectoryInsideSelenium = r'/home/selenium/Downloads/%s' % str(os.environ['feature_result_id'])
     context.downloadDirectoryOutsideSelenium = r'/code/behave/downloads/%s' % str(os.environ['feature_result_id'])
+    context.uploadDirectoryOutsideSelenium = r'/code/behave/uploads/%s' % str(context.department['department_id'])
     # os.makedirs(context.downloadDirectoryInsideSelenium, exist_ok=True)
     os.makedirs(context.downloadDirectoryOutsideSelenium, exist_ok=True)
     # change outside directory owner
@@ -229,6 +232,8 @@ def before_all(context):
 
     # save downloadedFiles in context
     context.downloadedFiles = {}
+    # save tempfiles in context
+    context.tempfiles = []
 
     # call update task to create a task with pid.
     task = {
@@ -457,6 +462,15 @@ def after_all(context):
     if len(downloadedFiles) == 0:
         if os.path.exists(context.downloadDirectoryOutsideSelenium):
             os.rmdir(context.downloadDirectoryOutsideSelenium)
+
+    # do some cleanup and remove all the temp files generated during the feature
+    logger.debug("Cleaning temp files: {}".format(pformat(context.tempfiles)))
+    for tempfile in context.tempfiles:
+        try:
+            os.remove(tempfile)
+        except Exception as err:
+            logger.error(f"Something went wrong while trying to delete temp file: {tempfile}")
+            logger.exception(err)
 
     # call update task to delete a task with pid.
     task = {

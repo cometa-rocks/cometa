@@ -67,23 +67,20 @@ services:
     logging:
       driver: json-file
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - NPM_CONFIG_LOGLEVEL=info
     volumes:
       - ./backend/ws-server:/home/node/app:rw
     ports:
       - "3001:3001"
-    links:
-      - behave
-      - django
-    command: "npm run-script start"
+    command: "npm run-script test"
     networks:
      - testing
     restart: always
 
   selenoid:
     # Please use ./selenoid/deploy_selenoid.sh to create necessary files of Selenoid
-    image: aerokube/selenoid:1.10.4
+    image: aerokube/selenoid:1.10.10
     container_name: cometa_selenoid
     logging:
       driver: json-file
