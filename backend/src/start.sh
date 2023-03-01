@@ -51,6 +51,7 @@ create_secret_variables() {
         echo "Unable to find secret_variables.py will make one..."
         # make a random encryption passphrase
         RANDOM_ENCRYPTION_PASSPHRASE=$(openssl rand -base64 46)
+        RANDOM_UPLOAD_ENCRYPTION_PASSPHRASE=$(openssl rand -base64 46)
         # make a random secret key for django
         RANDOM_DJANGO_SECRETKEY=$(openssl rand -base64 31)
         # make a random secret key for behave
@@ -70,6 +71,7 @@ COMETA_SENTRY_DJANGO=''
 COMETA_STRIPE_LIVE_KEY=''
 COMETA_PROD_ENABLE_PAYMENT='False'
 COMETA_ENCRYPTION_PASSPHRASE='$RANDOM_ENCRYPTION_PASSPHRASE'
+COMETA_UPLOAD_ENCRYPTION_PASSPHRASE='$RANDOM_UPLOAD_ENCRYPTION_PASSPHRASE'
 COMETA_STRIPE_TEST_WEBHOOK_SECRET=''
 COMETA_STAGE_ENABLE_PAYMENT='False'
 COMETA_DJANGO_SECRETKEY='$RANDOM_DJANGO_SECRETKEY'
