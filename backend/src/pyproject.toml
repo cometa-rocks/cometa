@@ -26,6 +26,7 @@ stripe = "^2.56.0"
 Pygments = "^2.9.0"
 python-crontab = "^2.5.1"
 gunicorn = "^20.1.0"
+python-magic = "^0.4.27"
 
 [tool.poetry.dev-dependencies]
 

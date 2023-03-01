@@ -94,8 +94,10 @@ EOF
 # Make sure log folder exists
 mkdir -p /opt/code/logs || true
 # Install requirements
-apt update && apt install -y rsyslog jq nano vim
+apt update && apt install -y rsyslog jq nano vim clamav
 service rsyslog start
+# update clamav database
+freshclam
 # Install cron
 install_cron
 # check and create secret_variables.py

@@ -41,4 +41,35 @@ export namespace Departments {
       static readonly type = '[Departments] Remove Admin Department';
       constructor( public department_id: number) { }
     }
+
+    // file upload process websockets
+    export class FileUploadStatusUknown {
+      static readonly type = '[Files] Unknown';
+      constructor( public file: UploadedFile ) { }
+    }
+
+    export class FileUploadStatusProcessing {
+      static readonly type = '[Files] Processing';
+      constructor( public file: UploadedFile ) { }
+    }
+
+    export class FileUploadStatusScanning {
+      static readonly type = '[Files] Scanning';
+      constructor( public file: UploadedFile ) { }
+    }
+
+    export class FileUploadStatusEncrypting {
+      static readonly type = '[Files] Encrypting';
+      constructor( public file: UploadedFile ) { }
+    }
+
+    export class FileUploadStatusDone {
+      static readonly type = '[Files] Done';
+      constructor( public file: UploadedFile ) { }
+    }
+
+    export class FileUploadStatusError {
+      static readonly type = '[Files] Error';
+      constructor( public file: UploadedFile, public error: FileUploadError ) { }
+    }
   }

@@ -38,10 +38,10 @@ export class SocketService {
       path: '/socket.io/',
       reconnection: true,
       reconnectionAttempts: Infinity,
-      forceNew: true,
+      forceNew: false,
       transports: ['websocket'],
-      query: {
-        user: JSON.stringify(this.user)
+      auth: {
+        user: this.user
       }
     });
     // Bind listeners to socket
