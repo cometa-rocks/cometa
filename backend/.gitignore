@@ -25,6 +25,7 @@ crontab
 
 # department folders
 department_data/
+uploads/
 
 # logs
 logs/

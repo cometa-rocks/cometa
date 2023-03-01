@@ -5,10 +5,14 @@ from .exceptions import *
 from .variables import *
 from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
-import time, requests, json, os, datetime
+import time, requests, json, os, datetime, sys, subprocess, re, tempfile, shutil
 from src.backend.common import *
+from src.backend.utility.cometa_logger import CometaLogger
+sys.path.append("/code")
+from secret_variables import COMETA_UPLOAD_ENCRYPTION_PASSPHRASE
 
 # setup logging
+logging.setLoggerClass(CometaLogger)
 logger = logging.getLogger(__name__)
 logger.setLevel(BEHAVE_DEBUG_LEVEL)
 # create a formatter for the logger
@@ -179,3 +183,59 @@ def click_element_by_css(context, selector):
 def click_element(context, element):
     if element.is_displayed():
         element.click()
+
+def decryptFile(source):
+        # file ext
+        filePathPrefix, fileExtention = os.path.splitext(source)
+        target = "/tmp/%s%s" % ( next(tempfile._get_candidate_names()), fileExtention )
+
+        logger.debug(f"Decrypting source {source}")
+
+        try:
+            result = subprocess.run(["bash", "-c", f"gpg --output {target} --batch --passphrase {COMETA_UPLOAD_ENCRYPTION_PASSPHRASE} -d {source}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if result.returncode > 0:
+                # get the error
+                errOutput = result.stderr.decode('utf-8')
+                logger.error(errOutput)
+                raise Exception('Failed to decrypt the file, please contact an administrator.')
+            return target
+        except Exception as err:
+            raise Exception(str(err))
+
+def uploadFileTarget(context, source):
+    logger.debug(f"Source before processing: {source}")
+    files = source.split(";")
+    processedFiles = []
+    for file in files:
+        filePath = re.sub("(?:D|d)ownloads\/", f"{context.downloadDirectoryOutsideSelenium}/", file)
+        filePath = re.sub("(?:U|u)ploads\/", f"{context.uploadDirectoryOutsideSelenium}/", file)
+
+        if 'downloads' not in filePath and 'uploads' not in filePath:
+            raise CustomError('Unknown file path, please use uploads/ or downloads/ to define where the file is located at.')
+
+        # check if file exists
+        if not os.path.exists(filePath):
+            raise CustomError(f"{file} does not exist, if this error persists please contact an administrator.")
+
+        if 'downloads' in filePath:
+            # file ext
+            filePathPrefix, fileExtention = os.path.splitext(filePath)
+            # generate a target dummy file
+            target = "/tmp/%s%s" % ( next(tempfile._get_candidate_names()), fileExtention )
+
+            # copy the file to the target
+            shutil.copy2(filePath, target)
+        elif 'uploads' in filePath:
+            # decrypt the file and get the target
+            target = decryptFile(filePath)
+        
+        # append the target to the context for later processing and cleaning
+        context.tempfiles.append(target)
+        # append to processed files as well
+        processedFiles.append(target)
+    
+    return processedFiles
+
+            
+
+
