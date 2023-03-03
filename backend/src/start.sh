@@ -96,10 +96,8 @@ EOF
 # Make sure log folder exists
 mkdir -p /opt/code/logs || true
 # Install requirements
-apt update && apt install -y rsyslog jq nano vim clamav
+apt update && apt install -y rsyslog jq nano vim clamav-daemon
 service rsyslog start
-# update clamav database
-freshclam
 # Install cron
 install_cron
 # check and create secret_variables.py
@@ -124,6 +122,10 @@ if [ ! -f "/code/.initiated" ]; then
     find defaults -name "*.json" | sort | xargs -I{} python manage.py loaddata {}
     touch /code/.initiated
 fi
+
+
+# update clamav database and start clamav in daemon mode
+echo "0" > /tmp/clam_started && freshclam && service clamav-daemon start && echo "1" > /tmp/clam_started
 
 #
 # in DEVMODE Start Django server

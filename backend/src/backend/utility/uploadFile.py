@@ -72,7 +72,7 @@ class UploadFile():
         self.uploaded_by: int = uploaded_by
         self.filename = self.sanitize(self.tempFile.name) 
         self.finalPath = self.generateFinalPath()
-        self.uploadPath = f"uploads/{file.name}"
+        self.uploadPath = f"uploads/{self.filename}"
         logger.debug(f"Final path for the file generated: {self.finalPath}")
         self.file: File = self.generateTempObject(*self.getFileProperties())
 
@@ -88,7 +88,7 @@ class UploadFile():
         # check if file already exists
         if os.path.exists(self.finalPath):
             logger.error("File already exists ... will not save.")
-            self.deleteTemp()
+            self.deleteFile(self.tempFile.temporary_file_path())
             # send a websocket about the processing being done.
             self.file.status = "Error"
             self.sendWebsocket({
@@ -110,17 +110,34 @@ class UploadFile():
         
         # finally save the object if everything went well
         self.file.status = "Done"
-        self.file.save()
+        try:
+            self.file.save()
+        except Exception as err:
+            logger.error("Exception occured while trying to save file to database.")
+            logger.exception(err)
+            # send a websocket about the processing being done.
+            self.file.status = "Error"
+            self.sendWebsocket({
+                "type": "[Files] Error",
+                "file": FileSerializer(self.file, many=False).data,
+                "error": {
+                    "status": f"UNABLE_TO_SAVE_FILE",
+                    "description": f"Error occurred when trying to save the file to database, please try again later or contact an administrator."
+                }
+            })
+            self.deleteFile(self.finalPath)
+            return None
         # send a websocket about the processing being done.
         self.sendWebsocket({
             "type": "[Files] Done",
             "file": FileSerializer(self.file, many=False).data
         })
         # delete the temporary file that was generated
-        self.deleteTemp()
+        self.deleteFile(self.tempFile.temporary_file_path())
 
     def virusScan(self):
         self.file.status = "Scanning"
+        logger.debug(f"Scanning for virus {self.tempFile.name}...")
         # send a websocket about the processing being done.
         self.sendWebsocket({
             "type": "[Files] Scanning",
@@ -141,7 +158,7 @@ class UploadFile():
 
         if not virus.startswith("OK"):
             error = f"{self.tempFile.name} contains some sort of virus: {virus}."
-            self.deleteTemp()
+            self.deleteFile(self.tempFile.temporary_file_path())
             logger.error(error)
             # send a websocket about the processing being done.
             self.file.status = "Error"
@@ -174,6 +191,7 @@ class UploadFile():
 
     def encrypt(self):
         self.file.status = "Encrypting"
+        logger.debug(f"Encrypting {self.tempFile.name}...")
         # send a websocket about the processing being done.
         self.sendWebsocket({
             "type": "[Files] Encrypting",
@@ -193,7 +211,7 @@ class UploadFile():
                 raise Exception('Failed to encrypt the file, please contact an administrator.')
         except Exception as err:
             logger.error(f"Unable to move the file from source to target.", err)
-            self.deleteTemp()
+            self.deleteFile(self.tempFile.temporary_file_path())
             # send a websocket about the processing being done.
             self.file.status = "Error"
             self.sendWebsocket({
@@ -226,12 +244,13 @@ class UploadFile():
             file = None
         return file
 
-    def deleteTemp(self):
+    def deleteFile(self, file):
         try:
-            os.remove(self.tempFile.temporary_file_path())
+            os.remove(file)
             return True
         except Exception as err:
-            logger.error("Unable to remove temp file.", err)
+            logger.error(f"Unable to remove file ({file}).")
+            logger.exception(err)
             return False
     
     def sendWebsocket(self, payload):
