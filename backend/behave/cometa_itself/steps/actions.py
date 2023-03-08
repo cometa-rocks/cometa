@@ -2840,6 +2840,54 @@ def excel_step_implementation(context, file, excel_range, values, match_type):
     if not overAllStatus:
         raise CustomError("Excel assert values failed, please view the attachment for more details.")
 
+# possible options: do not count empty cells or include empty cells
+@step(u'Open "{excelfile}" and compare number of rows in column "{column}" starting from "{row}" to "{number_to_compare}" option "{option}"')
+@done(u'Open "{excelfile}" and compare number of rows in column "{column}" starting from "{row}" to "{number_to_compare}" option "{option}"')
+def assert_row_count(context, excelfile, column, row, number_to_compare, option):
+    # match options
+    assert_options = ['do not count empty cells', 'include empty cells']
+    # check if match type is one of next options
+    if option not in assert_options:
+        raise CustomError("Unknown option, option can be one of these options: %s." % ", ".join(assert_options))
+
+    # import openpyxl for excel modifications
+    from openpyxl import load_workbook
+
+    excelFilePath = uploadFileTarget(context, excelfile)
+    logger.debug("Excel file opening: %s", excelFilePath)
+    
+    # check if file is a CSV file if so convert it to excel
+    OLDPATH=excelFilePath
+    excelFilePath, ISCSV = CSVtoExcel(context, excelFilePath)
+    logger.debug(f"After CSV convert: {excelFilePath} & {ISCSV}")
+
+    # load excel file
+    wb = load_workbook(filename=excelFilePath)
+
+    # get active sheet
+    sheet = wb.active
+    # get max rows from the sheet with data
+    max_rows = sheet.max_row
+
+    # get all rows from start to finish
+    cells = sheet[f"{column}{row}:{column}{max_rows}"]
+    totalCells = len(cells)
+    
+    if option == "do not count empty cells":
+        totalCells = 0
+        for cell in cells:
+            try:
+                cell = cell[0]
+                if cell is not None and cell.value.strip():
+                    totalCells += 1
+            except Exception as err:
+                logger.error("Error occurred while trying to access cell value.")
+                logger.exception(err)
+
+    logger.debug(f"Total cells found {totalCells} using option {option}.")
+
+    assert totalCells == int(number_to_compare), f"Expected number of rows ({number_to_compare}) does not match to rows found ({totalCells}) using the option {option}."
+
 # saves css_selectors innertext into a list variable. use "unique:<variable>" to make values distinct/unique. Using the variable in other steps means, that it includes "unique:", e.g. use "unique:colors" in other steps.
 @step(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
 @done(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
