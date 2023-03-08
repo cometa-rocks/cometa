@@ -202,16 +202,33 @@ def decryptFile(source):
         except Exception as err:
             raise Exception(str(err))
 
+def encryptFile(source, target):
+        logger.debug(f"Encrypting source {source} to {target}")
+
+        try:
+            result = subprocess.run(["bash", "-c", f"gpg --output {target} --batch --yes --passphrase {COMETA_UPLOAD_ENCRYPTION_PASSPHRASE} --symmetric --cipher-algo AES256 {source}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if result.returncode > 0:
+                # get the error
+                errOutput = result.stderr.decode('utf-8')
+                logger.error(errOutput)
+                raise Exception('Failed to encypt the file, please contact an administrator.')
+            return target
+        except Exception as err:
+            raise Exception(str(err))
+
 def uploadFileTarget(context, source):
     logger.debug(f"Source before processing: {source}")
     files = source.split(";")
     processedFiles = []
     for file in files:
-        filePath = re.sub("(?:D|d)ownloads\/", f"{context.downloadDirectoryOutsideSelenium}/", file)
-        filePath = re.sub("(?:U|u)ploads\/", f"{context.uploadDirectoryOutsideSelenium}/", file)
-
-        if 'downloads' not in filePath and 'uploads' not in filePath:
+        # throw error in case no downloads is found
+        if 'downloads' not in file.lower() and 'uploads' not in file.lower():
             raise CustomError('Unknown file path, please use uploads/ or downloads/ to define where the file is located at.')
+        
+        logger.debug(f"Getting complete path for {file}")
+        filePath = re.sub("(?:D|d)ownloads\/", f"{context.downloadDirectoryOutsideSelenium}/", file)
+        filePath = re.sub("(?:U|u)ploads\/", f"{context.uploadDirectoryOutsideSelenium}/", filePath)
+        logger.debug(f"Final path for {file}: {filePath}")
 
         # check if file exists
         if not os.path.exists(filePath):
@@ -234,8 +251,16 @@ def uploadFileTarget(context, source):
         # append to processed files as well
         processedFiles.append(target)
     
-    return processedFiles
+    return processedFiles if len(processedFiles) > 1 else processedFiles.pop()
 
-            
+def updateSourceFile(context, source, target):
+    logger.debug(f"Source before processing: {source}")
+    target = re.sub("(?:D|d)ownloads\/", f"{context.downloadDirectoryOutsideSelenium}/", target)
+    target = re.sub("(?:U|u)ploads\/", f"{context.uploadDirectoryOutsideSelenium}/", target)
 
-
+    if 'downloads' in target:
+        # copy the file to the target
+        shutil.copy2(source, target)
+    elif 'uploads' in target:
+        # decrypt the file and get the target
+        target = encryptFile(source, target)

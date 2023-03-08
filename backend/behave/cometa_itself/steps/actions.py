@@ -127,7 +127,8 @@ def returnDecrypted(value):
     if value.startswith(ENCRYPTION_START):
         value = decrypt(value)
         # append value to be masked in logger
-        logger.updateMaskWords(value)
+        if value.strip():
+            logger.updateMaskWords(value)
 
     return value
 
@@ -1845,6 +1846,12 @@ def step_impl(context, feature_id):
 def step_impl(context, feature_name):
     pass
 
+# add parameter to job parameters
+def addParameter(context, key, value):
+    job_params = json.loads(context.PARAMETERS)
+    job_params[key] = value
+    context.PARAMETERS = json.dumps(job_params)
+
 # Run a JavaScript function in the current browser context
 @step(u'Run Javascript function "{function}"')
 @done(u'Run Javascript function')
@@ -1852,9 +1859,15 @@ def step_impl(context, function):
     js_function = context.text
     # FIXME ... needs to set the script timeout accordingly to what was selected in cometa - see https://www.selenium.dev/selenium/docs/api/py/webdriver_remote/selenium.webdriver.remote.webdriver.html#selenium.webdriver.remote.webdriver.WebDriver.set_script_timeout
     # driver.set_script_timeout(30)
-    context.browser.execute_script("""
+    try:
+        result = context.browser.execute_script("""
 %s
-    """ % js_function)
+        """ % js_function)
+
+        addParameter(context, "js_return", result)
+    except Exception as err:
+        addParameter(context, "js_return", "")
+        raise CustomError(err)
 
 # Click on element using an XPath Selector
 @step(u'click on element with xpath "{xpath}"')
@@ -2600,42 +2613,24 @@ def updateCsv(excelFilePath, cell, value, savePath):
     # writing into the file
     df.to_csv(savePath, index=False)
 
-# edit excel or csv file and set a value to a given cell. The file is saved on the same path, as well as on uploads/<same filename> for later uploading.
+# edit excel or csv file and set a value to a given cell. The file is saved on the same path.
 @step(u'Edit "{file}" and set "{value}" to "{cell}"')
 @done(u'Edit "{file}" and set "{value}" to "{cell}"')
 def editFile(context, file, value, cell):
-    # generate path
-    if 'Downloads' in file:
-        path = context.downloadDirectoryOutsideSelenium
-    elif 'uploads' in file:
-        path = '/code/behave/uploads'
-    else:
-        path = ''
-    
-    file = "/".join(file.split("/")[1:])
-
-    filePath = "%s/%s" % (path, file)
+    # get file path
+    filePath = uploadFileTarget(context, file)
     logger.debug("File opening: %s", filePath)
-    savePath = "/code/behave/uploads/%s" % file
-    logger.debug("File saveing: %s", savePath)
-
-    # check if file exists
-    if not os.path.exists(filePath):
-        raise CustomError("Unable to find file: %s, please make sure the directory is correct." % file)
 
     # convert csv file to execl before continuing
     oldPath = filePath
     filePath, isCSV = CSVtoExcel(context, filePath) 
     
-    if filePath.endswith(".xlsx") or filePath.endswith(".xls"):
-        updateExcel(filePath, cell, value, filePath)
-    elif filePath.endswith(".csv"):
-        updateCsv(filePath, cell, value, filePath)
-    else:
-        raise CustomError("Unknown file format found. Please use a file with one of these extensions: csv, xlsx, xls.")
+    updateExcel(filePath, cell, value, filePath)
 
     if isCSV:
         ExcelToCSV(context, filePath, oldPath)
+    
+    updateSourceFile(context, oldPath, file)
 
     # give some time for syncing filesystem
     time.sleep(0.1)
@@ -2647,17 +2642,7 @@ def editFile(context, excelfile, value, cell):
     # import openpyxl for excel modifications
     from openpyxl import load_workbook
 
-    # generate path
-    if 'Downloads' in excelfile:
-        path = context.downloadDirectoryOutsideSelenium
-    elif 'uploads' in excelfile:
-        path = '/code/behave/uploads'
-    else:
-        path = ''
-    
-    excelfile = "/".join(excelfile.split("/")[1:])
-
-    excelFilePath = "%s/%s" % (path, excelfile)
+    excelFilePath = uploadFileTarget(context, excelfile)
     logger.debug("Excel file opening: %s", excelFilePath)
 
     # convert csv file to execl before continuing
@@ -2671,9 +2656,12 @@ def editFile(context, excelfile, value, cell):
     sheet = wb.active
 
     # assert the cell with value
-    logger.debug("Cell value: %s" % sheet[cell].value)
+    cell_value = str(sheet[cell].value).strip()
+    value = str(value).strip()
+    logger.debug("Cell value: %s" % cell_value)
     logger.debug("Value to compare: %s" % value)
-    assert sheet[cell].value == value
+
+    assert cell_value == value, f"Cell value ({cell_value}) does not match expected value ({value})."
 
  # Opens excel file adds a variable to environment and sets the value as seen in Excel cell.
 @step(u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"')
@@ -2682,17 +2670,7 @@ def editFile(context, excelfile, variable_name, cell):
     # import openpyxl for excel modifications
     from openpyxl import load_workbook
 
-    # generate path
-    if 'Downloads' in excelfile:
-        path = context.downloadDirectoryOutsideSelenium
-    elif 'uploads' in excelfile:
-        path = '/code/behave/uploads'
-    else:
-        path = ''
-    
-    excelfile = "/".join(excelfile.split("/")[1:])
-
-    excelFilePath = "%s/%s" % (path, excelfile)
+    excelFilePath = uploadFileTarget(context, excelfile)
     logger.debug("Excel file opening: %s", excelFilePath)
 
     # convert csv file to execl before continuing
@@ -2776,22 +2754,8 @@ def excel_step_implementation(context, file, excel_range, values, match_type):
     # import openpyxl for excel modifications
     from openpyxl import load_workbook
 
-    # generate path
-    if 'Downloads' in file:
-        path = context.downloadDirectoryOutsideSelenium
-    elif 'uploads' in file:
-        path = '/code/behave/uploads'
-    else:
-        path = ''
-    
-    file = "/".join(file.split("/")[1:])
-
-    excelFilePath = "%s/%s" % (path, file)
+    excelFilePath = uploadFileTarget(context, file)
     logger.debug("Excel file opening: %s", excelFilePath)
-
-    # check if file exists
-    if not os.path.exists(excelFilePath):
-        raise CustomError("Unable to find the specified file: %s" % file)
     
     # check if file is a CSV file if so convert it to excel
     OLDPATH=excelFilePath
