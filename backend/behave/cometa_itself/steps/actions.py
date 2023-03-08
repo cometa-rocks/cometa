@@ -2394,8 +2394,11 @@ def step_imp(context, selector, filename):
     logger.debug("After replacing filename: %s" % filename)
     logger.debug("Sending filename to input field")
     # send the filename string to the input field
-    for file in filename:
-        elements[0].send_keys(file)
+    if type(filename) == list:
+        for file in filename:
+            elements[0].send_keys(file)
+    else:
+        elements[0].send_keys(filename)
     # reset the file detector
     context.browser.file_detector = old_file_detector
 
