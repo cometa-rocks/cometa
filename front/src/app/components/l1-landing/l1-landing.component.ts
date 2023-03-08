@@ -173,13 +173,13 @@ export class L1LandingComponent implements OnInit {
     if (currentFolder.length === 0) {
       folder_id = 0;
     } else {
-      folder_id = currentFolder[currentFolder.length - 1].folder_id
+      folder_id = currentFolder[currentFolder.length - 1]
     }
     this._dialog.open(AddFolderComponent, {
       autoFocus: true,
       data: {
         mode : 'new',
-        folder: { folder_id }
+        folder: folder_id
       } as IEditFolder
     })
   }
