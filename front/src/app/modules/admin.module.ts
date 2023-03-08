@@ -30,6 +30,7 @@ const routes: Routes = [
             {
                 path: '',
                 pathMatch: 'full',
+                component: AdminWrapperComponent,
                 canActivate: [PermissionGuard],
                 data: {
                     require_permission: 'view_admin_panel'
