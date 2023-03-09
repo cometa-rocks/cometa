@@ -58,6 +58,7 @@ from sentry_sdk import capture_exception
 from backend.utility.uploadFile import UploadFile
 # from silk.profiling.profiler import silk_profile
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from backend.metrics import *
 
 SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = getattr(secret_variables, 'COMETA_BROWSERSTACK_USERNAME', '')
@@ -871,6 +872,7 @@ def parseBrowsers(request):
     return JsonResponse({ 'success': True })
 
 @csrf_exempt
+@REQUEST_TIME.time()
 def parseActions(request):
     actions_file = '/code/behave/cometa_itself/steps/actions.py'
     with open(actions_file) as file:
