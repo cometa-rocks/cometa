@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os, sys
+from prometheus_client import Info
 # just to import secrets
 sys.path.append("/code")
 import secret_variables
@@ -238,3 +239,10 @@ LOGGING = {
         }
     }
 }
+
+
+# create version information
+cometa_backend_version = Info('cometa_backend_version', 'Version information related to backend.')
+cometa_backend_version.info({
+    'version': version
+})
