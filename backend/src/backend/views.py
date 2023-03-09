@@ -57,6 +57,7 @@ from backend.templatetags.humanize import *
 from sentry_sdk import capture_exception
 from backend.utility.uploadFile import UploadFile
 # from silk.profiling.profiler import silk_profile
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = getattr(secret_variables, 'COMETA_BROWSERSTACK_USERNAME', '')
@@ -271,6 +272,10 @@ def noVNCProxy(request, feature_result_id, *args, **kwargs):
             raise Exception("You don't have permissions to view this live session.")
     except Exception as error:
         return JsonResponse({'success': False, 'error': str(error)})
+
+@csrf_exempt
+def metrics(request):
+    return HttpResponse(generate_latest(), content_type=CONTENT_TYPE_LATEST)
 
 @csrf_exempt
 def userDetails(request, *args, **kwargs):
