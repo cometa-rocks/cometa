@@ -117,4 +117,5 @@ urlpatterns = [
     url(r'^createDonation/', payments.createDonation),
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
+    url(r'metrics/', views.metrics)
 ] + static('/static/', document_root=STATIC_ADMIN_FILES)
