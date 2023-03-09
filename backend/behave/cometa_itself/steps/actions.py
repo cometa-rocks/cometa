@@ -2844,9 +2844,9 @@ def excel_step_implementation(context, file, excel_range, values, match_type):
         raise CustomError("Excel assert values failed, please view the attachment for more details.")
 
 # possible options: do not count empty cells or include empty cells
-@step(u'Open "{excelfile}" and compare number of rows in column "{column}" starting from "{row}" to "{number_to_compare}" option "{option}"')
-@done(u'Open "{excelfile}" and compare number of rows in column "{column}" starting from "{row}" to "{number_to_compare}" option "{option}"')
-def assert_row_count(context, excelfile, column, row, number_to_compare, option):
+@step(u'Open "{excelfile}" and compare the number of rows in the "{column}" column, starting from row "{starting_row}", to ensure that there are "{total_rows}" rows with option "{option}"')
+@done(u'Open "{excelfile}" and compare the number of rows in the "{column}" column, starting from row "{starting_row}", to ensure that there are "{total_rows}" rows with option "{option}"')
+def assert_row_count(context, excelfile, column, starting_row, total_rows, option):
     # match options
     assert_options = ['do not count empty cells', 'include empty cells']
     # check if match type is one of next options
@@ -2873,7 +2873,7 @@ def assert_row_count(context, excelfile, column, row, number_to_compare, option)
     max_rows = sheet.max_row
 
     # get all rows from start to finish
-    cells = sheet[f"{column}{row}:{column}{max_rows}"]
+    cells = sheet[f"{column}{starting_row}:{column}{max_rows}"]
     totalCells = len(cells)
     
     if option == "do not count empty cells":
@@ -2881,7 +2881,7 @@ def assert_row_count(context, excelfile, column, row, number_to_compare, option)
         for cell in cells:
             try:
                 cell = cell[0]
-                if cell is not None and cell.value.strip():
+                if cell is not None and str(cell.value).strip():
                     totalCells += 1
             except Exception as err:
                 logger.error("Error occurred while trying to access cell value.")
@@ -2889,7 +2889,7 @@ def assert_row_count(context, excelfile, column, row, number_to_compare, option)
 
     logger.debug(f"Total cells found {totalCells} using option {option}.")
 
-    assert totalCells == int(number_to_compare), f"Expected number of rows ({number_to_compare}) does not match to rows found ({totalCells}) using the option {option}."
+    assert totalCells == int(total_rows), f"The expected number of rows was {total_rows}, but the actual number of rows found using the '{option}' option was {totalCells}."
 
 # saves css_selectors innertext into a list variable. use "unique:<variable>" to make values distinct/unique. Using the variable in other steps means, that it includes "unique:", e.g. use "unique:colors" in other steps.
 @step(u'Save list values in selector "{css_selector}" and save them to variable "{variable_name}"')
