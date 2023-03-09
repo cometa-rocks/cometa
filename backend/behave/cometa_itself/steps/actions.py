@@ -3210,6 +3210,13 @@ def assert_imp(context, value_one, value_two):
     assert_failed_error = logger.mask_values(assert_failed_error)
     assert value_one == value_two, assert_failed_error
 
+@step(u'Assert "{value_one}" to contain "{value_two}"')
+@done(u'Assert "{value_one}" to contain "{value_two}"')
+def assert_imp(context, value_one, value_two):
+    assert_failed_error = f"{value_one} does not contain {value_two}"
+    assert_failed_error = logger.mask_values(assert_failed_error)
+    assert value_two in value_one, assert_failed_error
+
 @step(u'Loop "{x}" times starting at "{index}" and do')
 @done(u'Loop "{x}" times starting at "{index}" and do')
 def step_loop(context, x, index):
