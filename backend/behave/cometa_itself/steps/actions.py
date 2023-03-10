@@ -2378,15 +2378,15 @@ def downloadFileFromURL(url, dest_folder, filename):
         logger.error("Download failed: status code {}\n{}".format(r.status_code, r.text))
 
 # Upload a file by selecting the upload input field and sending the keys with the folder/filename. Cometa offers folder uploads with files inside the headless browser in Downloads/ and uploads/ folder. Separate multiple files by semicolon.
-@step(u'Upload a file by clicking on "{selector}" using file "{filename}"')
-@done(u'Upload a file by clicking on "{selector}" using file "{filename}"')
-def step_imp(context, selector, filename):
+@step(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
+@done(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
+def step_imp(context, file_input_selector, filename):
     # save the old file detector
     old_file_detector = context.browser.file_detector
     # set the new file detector to LocalFileDetector
     context.browser.file_detector = LocalFileDetector()
     # select the upload element to send the filenames to
-    elements = waitSelector(context, "css", selector)
+    elements = waitSelector(context, "css", file_input_selector)
     logger.debug("Before replacing filename: %s" % filename)
     # get the target file or files
     filename = uploadFileTarget(context, filename)
