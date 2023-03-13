@@ -19,6 +19,8 @@ import { Configuration } from '@store/actions/config.actions';
 import { User } from '@store/actions/user.actions';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { ApplicationsState } from '@store/applications.state';
+import { EnvironmentsState } from '@store/environments.state';
 
 @Component({
   selector: 'account-settings',
@@ -29,6 +31,8 @@ import { TranslateService } from '@ngx-translate/core';
 export class UserComponent implements OnInit {
 
   @Select(UserState) account$: Observable<UserInfo>;
+  @Select(ApplicationsState) applications$: Observable<Application>
+  @Select(EnvironmentsState) environments$: Observable<Environment>
   @ViewSelectSnapshot(ConfigState) config: Config;
   @Select(UserState.RetrieveSettings) settings$: Observable<UserInfo['settings']>;
   @Select(UserState.IsDefaultDepartment) isDefaultDepartment$: Observable<boolean>;
@@ -161,6 +165,13 @@ export class UserComponent implements OnInit {
       new User.SetSetting(toggleSetting),
       new Configuration.ToggleCollapsible(prop, event.checked)
     ]);
+  }
+
+  preselectSave(prop: string, value: string) {
+    let preselectSettings = {}
+    preselectSettings[prop] = value;
+
+    return this._store.dispatch(new User.SetSetting(preselectSettings));
   }
 
   // Sets the new landing as default dashboard
