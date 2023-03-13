@@ -3310,11 +3310,6 @@ def downloadFileFromURL(url, dest_folder, filename):
         logger.error("Download failed: status code {}\n{}".format(r.status_code, r.text))
 
 # Upload a file by selecting the upload input field and sending the keys with the folder/filename. Cometa offers folder uploads with files inside the headless browser in Downloads/ and uploads/ folder. Separate multiple files by semicolon.
-<<<<<<< HEAD
-@step(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
-@done(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
-def step_imp(context, file_input_selector, filename):
-=======
 @step(u'Upload a file by clicking on "{selector}" using file "{filename}"')
 @metadata(
     u'Upload a file by clicking on "{selector}" using file "{filename}"',
@@ -3326,21 +3321,20 @@ def step_imp(context, file_input_selector, filename):
         "selector": {
             "required": True,
             "type": "string",
-            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+            "description": "Selector that identifies the element, can be XPATH, CSS selector. In this case it should return input element of file type."
         },
         "filename": {
             "required": True,
             "type": "string",
             "description": """
             File that will be uploaded.
-            Use <code>Downloads/&lt;file_name&gt;</code> to get file from the recently downloaded files in current testplan.
+            Use <code>downloads/&lt;file_name&gt;</code> to get file from the recently downloaded files in current testplan.
             Use <code>uploads/&lt;file_name&gt;</code> to get file from the uploads folder. 
             """
         }
     }
 )
 def step_imp(context, selector, filename):
->>>>>>> 5570a38 (#2896 - implemented with optimized logic then the last implementation)
     # save the old file detector
     old_file_detector = context.browser.file_detector
     # set the new file detector to LocalFileDetector
