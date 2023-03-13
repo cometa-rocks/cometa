@@ -1564,12 +1564,12 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
         environment_id = self.kwargs['environment_id']
         environments = Environment.objects.filter(environment_id=environment_id)
         if not environments.exists():
-            return JsonResponse({"success": False , "error": "Browser_id invalid or doesn't exist."}, status=400)
+            return JsonResponse({"success": False , "error": "Environment id invalid or doesn't exist."}, status=400)
         environments.delete()
         # send a websocket to front about the creation
         response = requests.post('http://cometa_socket:3001/sendAction', json={
             'type': '[Environments] Remove Environment',
-            'environment': IEnvironment(environments[0], many=False).data
+            'environment_id': environment_id
         })
         return JsonResponse({"success": True }, status=200)
 
