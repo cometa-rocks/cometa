@@ -384,7 +384,9 @@ export class EditFeature implements OnInit, OnDestroy {
       this.stepsOriginal = this.data.steps;
     } else {
       // Code for creating a feature
+      // set user preselect options
       this.feature.next(this.data.feature);
+      this.preSelectedOptions()
     }
     // @ts-ignore
     if (!this.feature) this.feature = { feature_id: 0 };
@@ -397,6 +399,31 @@ export class EditFeature implements OnInit, OnDestroy {
         this.fileUpload.validateFileUploadStatus(this.department);
         this.cdr.detectChanges();
       })
+    })
+  }
+
+  /**
+   * Select user specified selections if any.
+   */
+  preSelectedOptions() {
+    const { 
+      preselectDepartment,
+      preselectApplication,
+      preselectEnvironment,
+      recordVideo } = this.user.settings;
+    
+    this.departments$.find(d => {
+      if (d.department_id == preselectDepartment) this.selected_department = d.department_name;
+    })
+    this.applications$.find(a => { 
+      if (a.app_id == preselectApplication) this.selected_application = a.app_name;
+    })
+    this.environments$.find(e => { 
+      if (e.environment_id == preselectEnvironment) this.selected_environment = e.environment_name
+    })
+    this.featureForm.patchValue({
+      video: recordVideo != undefined ? recordVideo : true
+      // ... add addition properties here.
     })
   }
 
