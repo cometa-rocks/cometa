@@ -111,6 +111,40 @@
     <mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.logWebsockets" (change)="toggleLogWebsockets($event)">Log WebSockets into Console</mat-slide-toggle>
     <br /><br />
     <div class="edit-feature-toggles">
+      Pre-select default options for department, application, environment and record video when creating a new feature.
+      <ul>
+        <li>
+          <!-- Department pre-selection options -->
+          <mat-form-field>
+            <mat-label>Preselect Department</mat-label>
+            <mat-select [value]="account.settings?.preselectDepartment">
+              <mat-option (click)="preselectSave('preselectDepartment', department.department_id)" *ngFor="let department of (account$ | async).departments" [value]="department.department_id">{{ department.department_name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </li>
+        <li>
+          <!-- Application pre-selection options -->
+          <mat-form-field>
+            <mat-label>Preselect Application</mat-label>
+            <mat-select [value]="account.settings?.preselectApplication">
+              <mat-option (click)="preselectSave('preselectApplication', application.app_id)" *ngFor="let application of (applications$ | async)" [value]="application.app_id">{{ application.app_name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </li>
+        <li>
+          <!-- Environment pre-selection options -->
+          <mat-form-field>
+            <mat-label>Preselect Environment</mat-label>
+            <mat-select [value]="account.settings?.preselectEnvironment">
+              <mat-option (click)="preselectSave('preselectEnvironment', environment.environment_id)" *ngFor="let environment of (environments$ | async)" [value]="environment.environment_id">{{ environment.environment_name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </li>
+        <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hasOwnProperty('recordVideos') ? account.settings?.recordVideo : true" (change)="handleToggle($event, 'recordVideo')">Record Video</mat-slide-toggle></li>
+      </ul>
+    </div>
+    <br /><br />
+    <div class="edit-feature-toggles">
       Select which sections of Add/Edit feature are closed by default.
       <ul>
         <li><mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.hideInformation" (change)="handleToggle($event, 'hideInformation')">Information</mat-slide-toggle></li>

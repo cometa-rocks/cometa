@@ -1,5 +1,5 @@
 {
-	"version": "2.8.288",
+	"version": "2.8.290",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -191,6 +191,40 @@
 	],
 	"changelog": [
 		{
+			"version": "2.8.290",
+			"date": "2023-03-12",
+			"features": [
+				{
+					"title": "Preselect Feature Options",
+					"description": "You can preselect feature options such as department, application, environment and record video when ever creating new features. These options can be changed in User settings."
+				}
+			],
+			"bugfixes": [
+				"Typo fix from the step context menu."
+			]
+		},
+		{
+			"version": "2.8.289",
+			"date": "2023-03-10",
+			"features": [
+				{
+					"title": "Upload Files",
+					"description": "You can now upload files to co.meta and use these files in upload file steps."
+				},
+				{
+					"title": "Added step: Open {excelfile and compare the number of rows in the {column} column, starting from row {starting_row}, to ensure that there are {total_rows} rows with option {option}",
+					"description": "Assert the number of rows to match the number of rows specified, possible options are: do not count empty cells or include empty cells."
+				},
+				{
+					"title": "Javascript function return variable",
+					"description": "If the Javascript function step has a return value, this value can now be used in co.meta using '%js_return' parameter."
+				}
+			],
+			"bugfixes": [
+				"#3931 - Fixed sub-folders were not being created inside the selected folder."
+			]
+		},
+		{
 			"version": "2.8.288",
 			"date": "2022-12-17",
 			"features": [
@@ -203,11 +237,11 @@
 					"description": "Create a string of x random numbers."
 				}
 			],
-      "bugfixes": [
+			"bugfixes": [
 				"#3828 - Fixed height issues when showing paginated rows.",
 				"#3828 - Fixed 'View Logs' button not working.",
-        "#3826 - Test list step now generated a CSV file even thought selector was empty or not found.",
-        "#3826 - Fixed Test list step to show correctly the values when using partial as option."
+				"#3826 - Test list step now generated a CSV file even thought selector was empty or not found.",
+				"#3826 - Fixed Test list step to show correctly the values when using partial as option."
 			]
 		},{
 			"version": "2.8.287",
