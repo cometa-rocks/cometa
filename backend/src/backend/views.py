@@ -520,6 +520,7 @@ def startFeatureRun(data):
     requests.post('http://behave:8001/run_test/', data=data)
 
 @csrf_exempt
+@prometheus_request_monitoring
 @require_subscription()
 @require_permissions("run_feature")
 def runTest(request, *args, **kwargs):
@@ -872,7 +873,7 @@ def parseBrowsers(request):
     return JsonResponse({ 'success': True })
 
 @csrf_exempt
-@REQUEST_TIME.time()
+@prometheus_request_monitoring
 def parseActions(request):
     actions_file = '/code/behave/cometa_itself/steps/actions.py'
     with open(actions_file) as file:
