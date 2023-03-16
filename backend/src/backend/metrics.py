@@ -21,7 +21,7 @@ def prometheus_request_monitoring(obj):
         request = getRequest(*args)
         method = request.method
         endpoint = request.path
-        user = request.session.get('user', {}).get('user_id', None)
+        user = request.session.get('user', {}).get('email', None)
         start_time = time.time()
         result = obj(*args, **kwargs)
         REQUEST_TIME.labels(method, endpoint).observe((time.time() - start_time))
