@@ -39,7 +39,7 @@ export class SocketService {
       reconnection: true,
       reconnectionAttempts: Infinity,
       forceNew: false,
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       auth: {
         user: this.user
       }
