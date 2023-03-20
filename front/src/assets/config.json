@@ -212,7 +212,7 @@
 					"description": "You can now upload files to co.meta and use these files in upload file steps."
 				},
 				{
-					"title": "Added step: Open {excelfile and compare the number of rows in the {column} column, starting from row {starting_row}, to ensure that there are {total_rows} rows with option {option}",
+					"title": "Added step: Open {excelfile} and compare the number of rows in the {column} column, starting from row {starting_row}, to ensure that there are {total_rows} rows with option {option}",
 					"description": "Assert the number of rows to match the number of rows specified, possible options are: do not count empty cells or include empty cells."
 				},
 				{
