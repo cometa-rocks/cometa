@@ -2335,6 +2335,14 @@ def step_impl(context, css_selector, variable_name):
     # add variable
     addVariable(context, variable_name, result)
 
+# save string value to environment variable, environment variable value has a maximum value of 255 characters.
+@step(u'Save "{value}" to environment variable "{variable_name}"')
+@done(u'Save "{value}" to environment variable "{variable_name}"')
+def step_impl(context, value, variable_name):
+    send_step_details(context, 'Saving value to environment variable')
+    # add variable
+    addVariable(context, variable_name, value)
+
 # add a timestamp after the prefix to make it unique
 @step(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
 @done(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
