@@ -577,7 +577,8 @@ class Application(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(self.app_name)
         super(Application, self).save(*args, **kwargs)
-
+    def __str__( self ):
+        return f"{self.app_name} ({self.app_id})"
     class Meta:
         ordering = ['app_name']
         verbose_name_plural = "Applications"
@@ -587,7 +588,7 @@ class Environment(models.Model):
     environment_name = models.CharField(max_length=100)
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     def __str__( self ):
-        return u"Environment_name = %s" % self.environment_name
+        return f"{self.environment_name} ({self.environment_id})"
     class Meta:
         ordering = ['environment_name']
         verbose_name_plural = "Environments"
@@ -621,7 +622,7 @@ class Department(models.Model):
         super(Department, self).save(*args, **kwargs)
 
     def __str__( self ):
-        return u"%s" % self.department_name
+        return f"{self.department_name} ({self.department_id})"
     class Meta:
         ordering = ['department_name']
         verbose_name_plural = "Departments"
@@ -677,7 +678,7 @@ class Feature(models.Model):
     info = models.ForeignKey('Feature_Runs', on_delete=models.SET_NULL, null=True, default=None, related_name='info')
     readonly_fields=('feature_id',)
     def __str__( self ):
-        return u"Feature_name "+str(self.feature_id)+" = %s" % self.feature_name
+        return f"{self.feature_name} ({self.feature_id})"
     def save(self, *args, **kwargs):
         self.slug = slugify(self.feature_name)
         
@@ -1108,6 +1109,32 @@ class EnvironmentVariables(models.Model):
     class Meta:
         ordering = ['variable_name']
         verbose_name_plural = "Environment Variables"
+
+class Variable(models.Model):
+    id = models.AutoField(primary_key=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="department_variable")
+    environment = models.ForeignKey(Environment, on_delete=models.SET_NULL, related_name="environment_variable", null=True)
+    feature = models.ForeignKey(Feature, on_delete=models.CASCADE, related_name="feature_variable", null=True)
+    variable_name = models.CharField(max_length=100, default=None, blank=False, null=False)
+    variable_value = models.TextField()
+    encrypted = models.BooleanField(default=False)
+    department_based = models.BooleanField(default=False, help_text="Means that this variable can be used anywhere in the department.")
+    environment_based = models.BooleanField(default=False, help_text="Means that this variable can only be used in current department and environment.")
+    feature_based = models.BooleanField(default=True, help_text="Means that this variable will only be used in current feature.")
+    created_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, related_name="variable_owner", null=True)
+    updated_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, related_name="variable_modifier", null=True)
+    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=False, null=False, blank=False)
+    updated_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=False, null=False, blank=False)
+    
+    def save(self, *args, **kwargs):
+        self.updated_on = datetime.datetime.utcnow()
+        if self.environment_based or self.department_based:
+            self.feature_based = False
+        return super(Variable, self).save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['variable_name']
+        verbose_name_plural = "Variables"
 
 class Cloud(models.Model):
     id = models.AutoField(primary_key=True)
