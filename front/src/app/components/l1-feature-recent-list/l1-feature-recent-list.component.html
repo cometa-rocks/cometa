@@ -77,7 +77,7 @@ Author: dph000
 <ng-template #statusTpl let-row let-index="index" let-col="colDef">
   <div *ngLet="row.id | featureRunning | async as running">
     <ng-container *ngIf="running; else showState">
-      <div [matTooltip]="row.status | async" class="state running">
+      <div [matTooltip]="row.status" class="state running">
         <mat-spinner class="item-loader" diameter="20"></mat-spinner>
         <span>Running</span>
       </div>
