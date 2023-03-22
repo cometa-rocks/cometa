@@ -594,7 +594,7 @@ def runTest(request, *args, **kwargs):
     env = Environment.objects.filter(environment_name=feature.environment_name)[0]
     dep = Department.objects.filter(department_name=feature.department_name)[0]
     env_variabels = EnvironmentVariables.objects.filter(environment=env, department=dep)
-    seri = EnvironmentVariablesSerializer(env_variabels, many=True).data
+    seri = VariablesSerializer(env_variabels, many=True).data
 
     # user data
     user = request.session['user']
@@ -2481,77 +2481,125 @@ def Encrypt(request):
         result = decrypt(text)
     return JsonResponse({ 'result': result }, status=200)
 
-class EnvironmentVariablesViewSet(viewsets.ModelViewSet):
+class VariablesViewSet(viewsets.ModelViewSet):
 
-    queryset = EnvironmentVariables.objects.all()
-    serializer_class = EnvironmentVariablesSerializer
+    queryset = Variable.objects.all()
+    serializer_class = VariablesSerializer
     renderer_classes = (JSONRenderer, )
 
     def list(self, request, *args, **kwargs):
-        result = EnvironmentVariables.objects.all()
-        data = EnvironmentVariablesSerializer(EnvironmentVariablesSerializer.fast_loader(result), many=True).data
+        result = Variable.objects.all()
+        data = VariablesSerializer(VariablesSerializer.fast_loader(result), many=True).data
         return JsonResponse(data, safe=False)
+
+    def validator(self, data, key, obj=None):
+        if key not in data:
+            raise Exception(f"{key} is required.")
+
+        if obj is not None:
+            try:
+                return obj.objects.get(pk=data[key])
+            except:
+                raise Exception(f"{key} does not exists.")
+        return data[key]
+
+    def optionalValidator(self, data, key, default):
+        return data.get(key, default)
+    
+    def optionalValidatorWithObject(self, data, key, default, obj=None):
+        value = data.get(key, default)
+        if obj is not None and isinstance(value, int):
+            try:
+                return obj.objects.get(pk=value)
+            except:
+                raise Exception(f"{key} does not exists.")
+        return value
+        
 
     @require_permissions("create_variable")
     def create(self, request, *args, **kwargs):
-        # Get parameters from request body
-        data=json.loads(request.body)
-        department_id = data['department_id']
-        environment_id = data['environment_id']
-        env_variables = data['variables']
-
-        # Get deparment of current variables
-        department =  Department.objects.filter(department_id=department_id)
-        if not department.exists():
-            return JsonResponse({"success": False, "error": "The department you are looking for does not exist." }, status=200)
-
-        # Get environment of current variables
-        environment =  Environment.objects.filter(environment_id=environment_id)
-        if not environment.exists():
-            return JsonResponse({"success": False, "error": "The environment you are looking for does not exist." }, status=200)
-
-        # Delete previous variables for current department and environment
-        EnvironmentVariables.objects.filter(environment=environment[0], department=department[0]).delete()
-
-        # Recreate variables
-        for var in env_variables:
-            variable_name = var['variable_name']
-            variable_value = var['variable_value']
-            encrypted = var.get('encrypted', False)
-            # Only encrypt value if user checked the encrypt checkbox and it isn't already encrypted
-            if encrypted and not variable_value.startswith(ENCRYPTION_START):
-                variable_value = encrypt(variable_value)
-            # Create variable pair
-            environment_variable = EnvironmentVariables(
-                department=department[0],
-                environment=environment[0],
-                variable_name=variable_name,
-                variable_value=variable_value,
-                encrypted=encrypted
-            )
-            # Save variable
-            environment_variable.save()
-
-        return JsonResponse({"success": True }, status=200)
-
-    @require_permissions("edit_variable")
-    def patch(self, request, *args, **kwargs):
-
         data = json.loads(request.body)
-
-        if 'variable_id' in kwargs:
-            env_var = EnvironmentVariables.objects.filter(id=kwargs['variable_id'])
-        else:
-            return JsonResponse({"success": False, "error": "No variable id found in request." }, status=405)
-
-        if not env_var.exists():
-            return JsonResponse({"success": False, "error": "The variable you are looking for does not exist." }, status=404)
-
-        env_var.update(variable_name=data['variable_name'], variable_value=data['variable_value'])
-
+        try:
+            valid_data = {
+                "department": self.validator(data, 'department', Department),
+                "environment": self.validator(data, 'environment', Environment),
+                "feature": self.validator(data, 'feature', Feature),
+                "variable_name": self.validator(data, 'variable_name'),
+                "variable_value": self.validator(data, 'variable_value'),
+                "encrypted": self.optionalValidator(data, 'encrypted', False),
+                "department_based": self.optionalValidator(data, 'department_based', False),
+                "environment_based": self.optionalValidator(data, 'environment_based', False),
+                "feature_based": self.optionalValidator(data, 'feature_based', True),
+                "created_by": self.optionalValidator(data, 'created_by', request.session['user']['user_id']),
+                "updated_by": self.optionalValidator(data, 'updated_by', request.session['user']['user_id'])
+            }
+            # encrypt the value if needed
+            if valid_data['encrypted'] and not valid_data['variable_value'].startswith(ENCRYPTION_START):
+                valid_data['variable_value'] = encrypt(valid_data['variable_value'])
+            # check if feature belongs to the department
+            if valid_data['feature'].department_id != valid_data['department'].department_id:
+                raise Exception(f"Feature does not belong the same department id, please check.")
+        except Exception as err:
+            return JsonResponse({
+                'success': False,
+                'error': str(err)
+            }, status=400)
+        # create the new variable
+        variable = Variable.objects.create(**valid_data)
         return JsonResponse({
             "success": True,
+            "data": VariablesSerializer(variable, many=False).data
+        }, status=201)
+    
+    @require_permissions("edit_variable")
+    def patch(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+        try:
+            # get the variable
+            variable = self.validator(kwargs, 'id', Variable)
+            variable.department = self.optionalValidatorWithObject(data, 'department', variable.department, Department)
+            variable.environment = self.optionalValidatorWithObject(data, 'environment', variable.environment, Environment)
+            variable.feature =  self.optionalValidatorWithObject(data, 'feature', variable.feature, Feature)
+            variable.variable_name = self.optionalValidator(data, 'variable_name', variable.variable_name)
+            variable.variable_value = self.optionalValidator(data, 'variable_value', variable.variable_value)
+            variable.encrypted = self.optionalValidator(data, 'encrypted', variable.encrypted)
+            variable.department_based = self.optionalValidator(data, 'department_based', variable.department_based)
+            variable.environment_based = self.optionalValidator(data, 'environment_based', variable.environment_based)
+            variable.feature_based = self.optionalValidator(data, 'feature_based', variable.feature_based)
+            variable.updated_by = self.optionalValidatorWithObject(data, 'updated_by', request.session['user']['user_id'], OIDCAccount)
+            # encrypt the value if needed
+            if variable.encrypted and not variable.variable_value.startswith(ENCRYPTION_START):
+                variable.variable_value = encrypt(variable.variable_value)
+
+            # check if feature belongs to the department
+            if variable.feature.department_id != variable.department.department_id:
+                raise Exception(f"Feature does not belong the same department id, please check.")
+            variable.save()
+        except Exception as err:
+            return JsonResponse({
+                'success': False,
+                'error': str(err)
+            }, status=400)
+        return JsonResponse({
+            "success": True,
+            "data": VariablesSerializer(variable, many=False).data
         }, status=200)
+
+    @require_permissions("delete_variable")
+    def delete(self, request, *args, **kwargs):
+        try:
+            # get the variable
+            variable = self.validator(kwargs, 'id', Variable)
+            variable.delete()
+        except Exception as err:
+            return JsonResponse({
+                'success': False,
+                'error': str(err)
+            }, status=400)
+        return JsonResponse({
+            "success": True
+        }, status=200)
+    """
 
     @require_permissions("delete_variable")
     def delete(self, request, *args, **kwargs):
@@ -2569,6 +2617,7 @@ class EnvironmentVariablesViewSet(viewsets.ModelViewSet):
         return JsonResponse({
             "success": True,
         }, status=200);
+    """
 
 class FeatureRunViewSet(viewsets.ModelViewSet):
 
