@@ -2488,7 +2488,8 @@ class VariablesViewSet(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer, )
 
     def list(self, request, *args, **kwargs):
-        result = Variable.objects.all()
+        user_departments = GetUserDepartments(request)
+        result = Variable.objects.all() # .filter(department__department_id__in=user_departments)
         data = VariablesSerializer(VariablesSerializer.fast_loader(result), many=True).data
         return JsonResponse(data, safe=False)
 
@@ -2527,9 +2528,7 @@ class VariablesViewSet(viewsets.ModelViewSet):
                 "variable_name": self.validator(data, 'variable_name'),
                 "variable_value": self.validator(data, 'variable_value'),
                 "encrypted": self.optionalValidator(data, 'encrypted', False),
-                "department_based": self.optionalValidator(data, 'department_based', False),
-                "environment_based": self.optionalValidator(data, 'environment_based', False),
-                "feature_based": self.optionalValidator(data, 'feature_based', True),
+                "based": self.optionalValidator(data, 'based', 'feature'),
                 "created_by": self.optionalValidator(data, 'created_by', request.session['user']['user_id']),
                 "updated_by": self.optionalValidator(data, 'updated_by', request.session['user']['user_id'])
             }
@@ -2563,9 +2562,7 @@ class VariablesViewSet(viewsets.ModelViewSet):
             variable.variable_name = self.optionalValidator(data, 'variable_name', variable.variable_name)
             variable.variable_value = self.optionalValidator(data, 'variable_value', variable.variable_value)
             variable.encrypted = self.optionalValidator(data, 'encrypted', variable.encrypted)
-            variable.department_based = self.optionalValidator(data, 'department_based', variable.department_based)
-            variable.environment_based = self.optionalValidator(data, 'environment_based', variable.environment_based)
-            variable.feature_based = self.optionalValidator(data, 'feature_based', variable.feature_based)
+            variable.based = self.optionalValidator(data, 'based', variable.based)
             variable.updated_by = self.optionalValidatorWithObject(data, 'updated_by', request.session['user']['user_id'], OIDCAccount)
             # encrypt the value if needed
             if variable.encrypted and not variable.variable_value.startswith(ENCRYPTION_START):
@@ -2599,25 +2596,6 @@ class VariablesViewSet(viewsets.ModelViewSet):
         return JsonResponse({
             "success": True
         }, status=200)
-    """
-
-    @require_permissions("delete_variable")
-    def delete(self, request, *args, **kwargs):
-
-        if 'variable_id' in kwargs:
-            env_var = EnvironmentVariables.objects.filter(id=kwargs['variable_id'])
-        else:
-            return JsonResponse({"success": False, "error": "No variable id found in request." }, status=404)
-
-        if not env_var.exists():
-            return JsonResponse({"success": False, "error": "The variable you are looking for does not exist." }, status=404)
-
-        env_var.delete()
-
-        return JsonResponse({
-            "success": True,
-        }, status=200);
-    """
 
 class FeatureRunViewSet(viewsets.ModelViewSet):
 
