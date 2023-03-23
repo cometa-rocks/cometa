@@ -198,9 +198,9 @@ class AdminPermissions(admin.ModelAdmin):
 class AdminVariables(admin.ModelAdmin):
     search_fields = ['variable_name', 'variable_value']
     list_display = ('variable_name', 'get_truncated_variable_value', 'department', 'environment', 'feature', 'created_by', 'updated_by')
-    list_filter = ('department_based', 'environment_based', 'feature_based', 'department', 'environment', 'created_on', 'updated_on')
+    list_filter = ('based', 'department', 'environment', 'created_on', 'updated_on')
     list_display_links = ('variable_name',)
-    readonly_fields = ('created_on', 'updated_on')
+    readonly_fields = ('in_use', 'created_on', 'updated_on')
 
     def get_truncated_variable_value(self, obj):
         if len(obj.variable_value) > 50:

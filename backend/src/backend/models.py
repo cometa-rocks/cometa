@@ -31,7 +31,7 @@ step_keywords = (
     ('and', 'and',),
 )
 
-# Step Keywords
+# File Status
 file_status = (
     ('Unknown', 'Unknown',),
     ('Processing', 'Processing',),
@@ -39,6 +39,13 @@ file_status = (
     ('Encrypting', 'Encrypting',),
     ('Done', 'Done',),
     ('Error', 'Error',),
+)
+
+# Variable Base
+variable_base = (
+    ('department', 'Department',),
+    ('environment', 'Environment',),
+    ('feature', 'Feature',),
 )
 
 # utility functions
@@ -276,11 +283,23 @@ def create_feature_file(feature, steps, featureFileName):
 
     # delete all the steps from the database 
     Step.objects.filter(feature_id=feature.feature_id).delete()
+    # gather all the variables found during the save steps
+    variables_used = []
 
     # save all the steps found in stepsToAdd to the database
     for step in stepsToAdd:
         if step.get("step_type", None) == None:
             step['step_type'] = "subfeature" if re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content']) else "normal"
+            # check if step contains a variable
+            regexPattern = r'\$(?P<var_name_one>.+?\b)|variable "(?P<var_name_two>.+?\b)|save .+?to "(?P<var_name_three>.+?\b)'
+            matches = re.findall(regexPattern, step['step_content'].replace('\\xa0', ' '))
+            if matches: 
+                for match in matches:
+                    # get the variable var_name
+                    variable_name = match[0] or match[1] or match[2]
+                    if variable_name:
+                        variables_used.append(variable_name)
+
         Step.objects.create(
             feature_id = feature.feature_id,
             step_keyword = step['step_keyword'],
@@ -293,6 +312,12 @@ def create_feature_file(feature, steps, featureFileName):
             belongs_to = step.get('belongs_to', feature.feature_id),
             timeout = step.get('timeout', 60)
         )
+
+    # update all the variables
+    # get all the variable with this name and from same department as the current feature
+    vars = Variable.objects.filter(department_id=feature.department_id, variable_name__in=variables_used)
+    # reset variables used in the feature
+    feature.variable_in_use.set(vars)
     # return success true
     return {"success": True}
 
@@ -1118,9 +1143,8 @@ class Variable(models.Model):
     variable_name = models.CharField(max_length=100, default=None, blank=False, null=False)
     variable_value = models.TextField()
     encrypted = models.BooleanField(default=False)
-    department_based = models.BooleanField(default=False, help_text="Means that this variable can be used anywhere in the department.")
-    environment_based = models.BooleanField(default=False, help_text="Means that this variable can only be used in current department and environment.")
-    feature_based = models.BooleanField(default=True, help_text="Means that this variable will only be used in current feature.")
+    based = models.CharField(max_length=100, choices=variable_base, default='feature')
+    in_use = models.ManyToManyField(Feature, editable=False, related_name="variable_in_use")
     created_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, related_name="variable_owner", null=True)
     updated_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, related_name="variable_modifier", null=True)
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=False, null=False, blank=False)
@@ -1128,8 +1152,6 @@ class Variable(models.Model):
     
     def save(self, *args, **kwargs):
         self.updated_on = datetime.datetime.utcnow()
-        if self.environment_based or self.department_based:
-            self.feature_based = False
         return super(Variable, self).save(*args, **kwargs)
 
     class Meta:
