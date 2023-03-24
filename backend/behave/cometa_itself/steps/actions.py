@@ -405,7 +405,18 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         }
         logger.debug("Writing data %s to database" % json.dumps(data))
         requests.post('http://cometa_django:8000/setScreenshots/%s/' % str(step_id), json=data, headers={"Host": "cometa.local"})
+        # add timestamps to the current image
+        if context.DB_CURRENT_SCREENSHOT:
+            addTimestampToImage(context.DB_CURRENT_SCREENSHOT, path=context.SCREENSHOTS_ROOT)
     return step_id
+
+# add timestamp to the image using the imagemagic cli
+def addTimestampToImage(image, path=None):
+    logger.debug(f"Adding timestamp to: {path}/{image}")
+    cmd=f"convert {path}/{image} -pointsize 20 -font DejaVu-Sans-Mono -fill 'RGBA(255,255,255,1.0)' -gravity SouthEast -annotate +20+20 \"$(date)\" {path}/{image}"
+    status = subprocess.call(cmd, shell=True, env={})
+    if status != 0:
+        logger.error("Something happend during the timestamp watermark.")
 
 # Automatically checks if there's still old styles and moves them to current path
 # Due to change in new images structure we have to check if the old style image is still there,
