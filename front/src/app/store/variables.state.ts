@@ -27,27 +27,27 @@ export class VariablesState {
     );
     }
 
-  @Action(Variables.SetVariables)
-  setVariables({ setState, getState }: StateContext<VariablePair[]>, { environment_name, department_name, variables }: Variables.SetVariables) {
-    const vars = getState().filter(v => !(v.environment.environment_name === environment_name && v.department.department_name === department_name));
-    setState([ ...vars, ...variables ])
-  }
+  // @Action(Variables.SetVariables)
+  // setVariables({ setState, getState }: StateContext<VariablePair[]>, { environment_name, department_name, variables }: Variables.SetVariables) {
+  //   const vars = getState().filter(v => !(v.environment.environment_name === environment_name && v.department.department_name === department_name));
+  //   setState([ ...vars, ...variables ])
+  // }
 
-  @Action(Variables.UpdateVariable)
-  updateVariable({ setState, getState }: StateContext<VariablePair[]>, { variable }: Variables.UpdateVariable) {
-    setState(
-      produce(getState(), (ctx: VariablePair[]) => {
-        const index = ctx.findIndex(v => v.id === variable.id);
-        ctx[index] = variable;
-      })
-    )
-  }
+  // @Action(Variables.UpdateVariable)
+  // updateVariable({ setState, getState }: StateContext<VariablePair[]>, { variable }: Variables.UpdateVariable) {
+  //   setState(
+  //     produce(getState(), (ctx: VariablePair[]) => {
+  //       const index = ctx.findIndex(v => v.id === variable.id);
+  //       ctx[index] = variable;
+  //     })
+  //   )
+  // }
 
   @Selector()
   @ImmutableSelector()
   static GetVariables(state: VariablePair[]) {
     return (environment_id: number, department_id: number) => {
-      return sortBy(state.filter(v => v.environment.environment_id === environment_id && v.department.department_id === department_id), 'variable_name');
+      return sortBy(state.filter(v => v.environment === environment_id && v.department === department_id), 'variable_name');
     };
   }
 
