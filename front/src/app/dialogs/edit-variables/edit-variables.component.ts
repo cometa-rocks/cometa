@@ -26,6 +26,8 @@ interface PassedData {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EditVariablesComponent {
+  displayedColumns: string[] = ['variable_name','variable_value','encrypted','based', 'actions'];
+  bases: string[] = ['feature','department','environment'];
 
   @ViewSelectSnapshot(UserState.GetPermission('create_variable')) canCreate: boolean;
   @ViewSelectSnapshot(UserState.GetPermission('edit_variable')) canEdit: boolean;
@@ -34,6 +36,7 @@ export class EditVariablesComponent {
   @SelectSnapshot(UserState.RetrieveEncryptionPrefix) encryptionPrefix: string;
 
   variablesForm: UntypedFormArray = this._fb.array([]);
+  variables: VariablePair[];
 
   constructor(
     private dialogRef: MatDialogRef<EditVariablesComponent>,
@@ -45,19 +48,7 @@ export class EditVariablesComponent {
     private _cdr: ChangeDetectorRef,
     private _dialog: MatDialog
   ) {
-    const variables = deepClone(this._store.selectSnapshot(VariablesState.GetVariables)(this.data.environment_id, this.data.department_id)) as VariablePair[];
-    variables.forEach(variable => {
-      this.variablesForm.push(
-        this._fb.group({
-          variable_name: [variable.variable_name, this.nameValidator],
-          variable_value: variable.variable_value,
-          encrypted: variable.encrypted || false,
-          department: variable.department,
-          environment: variable.environment,
-          loading: false
-        })
-      )
-    })
+    this.variables = deepClone(this._store.selectSnapshot(VariablesState.GetVariables)(this.data.environment_id, this.data.department_id)) as VariablePair[];
   }
 
   nameValidator = Validators.pattern(/^[^\n ]*$/)
@@ -78,6 +69,7 @@ export class EditVariablesComponent {
     )
     this.updateFormView();
   }
+
 
   handleSecretChange(index: number, { checked }: MatCheckboxChange) {
     // Grab variable value
