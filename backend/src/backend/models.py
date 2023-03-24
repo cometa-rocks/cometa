@@ -1157,6 +1157,7 @@ class Variable(models.Model):
     class Meta:
         ordering = ['variable_name']
         verbose_name_plural = "Variables"
+        unique_together = ('department', 'environment', 'feature', 'variable_name', 'based')
 
 class Cloud(models.Model):
     id = models.AutoField(primary_key=True)

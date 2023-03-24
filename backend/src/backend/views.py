@@ -13,6 +13,7 @@ from rest_framework import viewsets, filters, generics, status
 # Django Imports
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
 from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
 from django.core.validators import validate_email
 from django.core import serializers
@@ -2543,8 +2544,16 @@ class VariablesViewSet(viewsets.ModelViewSet):
                 'success': False,
                 'error': str(err)
             }, status=400)
-        # create the new variable
-        variable = Variable.objects.create(**valid_data)
+        try:
+            # create the new variable
+            variable = Variable.objects.create(**valid_data)
+        except IntegrityError as err:
+            logger.error("IntegrityError occured ... unique variable already exists.")
+            logger.exception(err)
+            return JsonResponse({
+                'success': False,
+                'error': 'Variable already exists with specified requirements, please update the variable.'
+            }, status=400)
         return JsonResponse({
             "success": True,
             "data": VariablesSerializer(variable, many=False).data
