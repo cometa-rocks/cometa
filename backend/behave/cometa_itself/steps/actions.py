@@ -2304,22 +2304,27 @@ def addVariable(context, variable_name, result):
         index = index[0]
         logger.debug("Patching existing variable")
         env_variables[index]['variable_value'] = result
+        env_variables[index]['updated_by'] = context.PROXY_USER['user_id']
         # make the request to cometa_django and add the environment variable
         response = requests.patch('http://cometa_django:8000/api/variables/' + str(env_variables[index]['id']) + '/', headers={"Host": "cometa.local"}, json=env_variables[index])
     else: # create new variable
         logger.debug("Creating variable")
         # create data to send to django
-        env_variables.append({
-            "variable_name": variable_name,
-            "variable_value": result
-        })
         update_data = {
-            "environment_id": int(context.feature_info['environment_id']),
-            "department_id": int(context.feature_info['department_id']),
-            "variables": env_variables
+            "environment": int(context.feature_info['environment_id']),
+            "department": int(context.feature_info['department_id']),
+            "feature": int(context.feature_id),
+            "variable_name": variable_name,
+            "variable_value": result,
+            "based": "environment",
+            "created_by": context.PROXY_USER['user_id'],
+            "updated_by": context.PROXY_USER['user_id']
         }
         # make the request to cometa_django and add the environment variable
         response = requests.post('http://cometa_django:8000/api/variables/', headers={"Host": "cometa.local"}, json=update_data)
+
+        if response.status_code == 201:
+            env_variables.append(response.json()['data'])
 
     # send a request to websockets about the environment variables update
     requests.post('http://cometa_socket:3001/sendAction', json={
