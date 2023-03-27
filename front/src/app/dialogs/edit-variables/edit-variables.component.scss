@@ -1,10 +1,19 @@
-
 @import 'color';
 
 /****************
 ****************/
+
+.mat-dialog-content {
+    display: unset;
+}
+
 table {
   width: 100%;
+
+  td.mat-cell,
+  th.mat-header-cell {
+    padding-right: 20px;
+  }
 
     tr.mat-header-row {
         position: sticky;
@@ -14,15 +23,16 @@ table {
 
     input {
         background-color: transparent;
-        border: 1px solid rgba(black, .1);
-        border-radius: 3px;
-        padding: 10px;
+        border: 0;
         box-sizing: border-box;
         width: 100%;
         outline: 0;
     }
-}
 
+    .validation-error {
+        color: $bad;
+    }
+}
 
 /****************
 ****************/
