@@ -698,6 +698,7 @@ interface VariablePair {
     updated_by: number;
     created_on: Date;
     updated_on: Date;
+    disabled?: boolean;
 }
 
 interface Cloud {

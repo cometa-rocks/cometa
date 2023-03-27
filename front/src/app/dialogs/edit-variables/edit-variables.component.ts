@@ -28,6 +28,10 @@ interface PassedData {
 export class EditVariablesComponent {
   displayedColumns: string[] = ['variable_name','variable_value','encrypted','based', 'actions'];
   bases: string[] = ['feature','department','environment'];
+  isEditing: boolean = false;
+  canSave: boolean = true;
+
+
 
   @ViewSelectSnapshot(UserState.GetPermission('create_variable')) canCreate: boolean;
   @ViewSelectSnapshot(UserState.GetPermission('edit_variable')) canEdit: boolean;
@@ -49,7 +53,26 @@ export class EditVariablesComponent {
     private _dialog: MatDialog
   ) {
     this.variables = deepClone(this._store.selectSnapshot(VariablesState.GetVariables)(this.data.environment_id, this.data.department_id)) as VariablePair[];
+    this.variables.map(item => item['disabled'] = true);
   }
+
+
+  onEditVar(variable: VariablePair) {
+    this.isEditing = true;
+    variable.disabled = false;
+  }
+
+  onSaveVar(variable: VariablePair) {
+    variable.disabled = true;
+    this.isEditing = false;
+  }
+
+  setInputStatus(errors) {
+    this.canSave = errors ? false : true;
+  }
+
+
+
 
   nameValidator = Validators.pattern(/^[^\n ]*$/)
 
@@ -144,5 +167,4 @@ export class EditVariablesComponent {
     this.variablesForm.removeAt(index);
     this.updateFormView();
   }
-
 }
