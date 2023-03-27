@@ -1,4 +1,4 @@
 {
-    "client_id" : "66852833229-1o9sbjo4dprbrrjlr7ulh692ak7cfstm.apps.googleusercontent.com",
-    "client_secret" : "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"
+    "client_id" : "@@COMETA_GOOGLE_CLIENTID@@",
+    "client_secret" : "@@COMETA_GOOGLE_SECRETKEY@@"
 }
