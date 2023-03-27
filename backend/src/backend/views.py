@@ -594,8 +594,12 @@ def runTest(request, *args, **kwargs):
     # get environment variables
     env = Environment.objects.filter(environment_name=feature.environment_name)[0]
     dep = Department.objects.filter(department_name=feature.department_name)[0]
-    env_variabels = EnvironmentVariables.objects.filter(environment=env, department=dep)
-    seri = VariablesSerializer(env_variabels, many=True).data
+    env_variables = Variable.objects.filter(
+        Q(department=dep) |
+        Q(environment=env) |
+        Q(feature=feature)
+    ).order_by('variable_name', '-based').distinct('variable_name')
+    seri = VariablesSerializer(env_variables, many=True).data
 
     # user data
     user = request.session['user']
@@ -2530,8 +2534,8 @@ class VariablesViewSet(viewsets.ModelViewSet):
                 "variable_value": self.validator(data, 'variable_value'),
                 "encrypted": self.optionalValidator(data, 'encrypted', False),
                 "based": self.optionalValidator(data, 'based', 'feature'),
-                "created_by": self.optionalValidator(data, 'created_by', request.session['user']['user_id']),
-                "updated_by": self.optionalValidator(data, 'updated_by', request.session['user']['user_id'])
+                "created_by": self.optionalValidatorWithObject(data, 'created_by', request.session['user']['user_id'], OIDCAccount),
+                "updated_by": self.optionalValidatorWithObject(data, 'updated_by', request.session['user']['user_id'], OIDCAccount)
             }
             # encrypt the value if needed
             if valid_data['encrypted'] and not valid_data['variable_value'].startswith(ENCRYPTION_START):
