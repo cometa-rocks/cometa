@@ -51,7 +51,7 @@ export class EditVariablesComponent implements OnInit{
 
   ngOnInit(): void {
     this.variableState$.subscribe(data => {
-     this.variables = data;
+     this.variables = data.filter(v => v.environment == this.data.environment_id && v.department == this.data.department_id);
      this.variables.map(item => item['disabled'] = true);
     })
   }
