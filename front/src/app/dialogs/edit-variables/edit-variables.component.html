@@ -1,46 +1,84 @@
 <h2 mat-dialog-title>Edit environment variables</h2>
 <mat-dialog-content>
-  <ng-container *ngIf="variablesForm.controls.length > 0; else text">
-    <!-- Variables header -->
-    <div class="variable-header">
-      <div class="key">Key</div>
-      <div class="value">Value</div>
-      <div class="secret">Encrypt</div>
-      <div class="remove" *ngIf="canDelete"></div>
-    </div>
-    <!-- Variables list -->
-    <ng-container *ngFor="let variable of variablesForm.controls; index as i; trackBy: trackIndex">
-      <div class="variable-row" [formGroup]="variable">
-        <!-- Variable name -->
-        <div class="key">
-          <input [disabled]="!canEdit" placeholder="Key" disableAutocomplete formControlName="variable_name">
-        </div>
-        <!-- Variable value -->
-        <div class="value">
-          <input [disabled]="!canEdit" [type]="variable.value.encrypted ? 'password' : 'text'" disableAutocomplete placeholder="Value" formControlName="variable_value">
-        </div>
-        <!-- Variable encrypted? -->
-        <div class="secret">
-          <mat-spinner class="align-center" *ngIf="variable.value.loading; else checkbox" diameter="20" color="primary"></mat-spinner>
-          <ng-template #checkbox>
-            <mat-checkbox (change)="handleSecretChange(i, $event)" [checked]="variable.value.encrypted" color="primary"></mat-checkbox>
-          </ng-template>
-        </div>
-        <!-- Delete variable -->
-        <div *ngIf="canDelete" class="remove">
-          <button (click)="deleteVar(i)" mat-icon-button>
-            <mat-icon>delete</mat-icon>
+  <ng-container *ngIf="variables.length > 0; else text">
+    <table mat-table [dataSource]="variables" class="mat-elevation-z8">
+      <ng-container matColumnDef="variable_name">
+        <th mat-header-cell *matHeaderCellDef> Name </th>
+        <td mat-cell *matCellDef="let element" >
+          <input [disabled]="element.disabled" [type]="text" value="{{element.variable_name}}" [(ngModel)]="element.variable_name" #variable_name="ngModel" (input)="setInputStatus(variable_name?.errors, 'name')" pattern="^[\w.-]+$" required>
+            <small class="validation-error" *ngIf="variable_name.errors?.['required']">Variable name is required.</small>
+            <small class="validation-error" *ngIf="variable_name.errors?.['pattern']">Special characters and space are not allowed.</small>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="variable_value">
+        <th mat-header-cell *matHeaderCellDef> Value </th>
+        <td mat-cell *matCellDef="let element">
+          <input [disabled]="element.disabled" [type]="element.encrypted ? 'password' : 'text'" value="{{element.variable_value}}" [(ngModel)]="element.variable_value" #variable_value="ngModel" (input)="setInputStatus(variable_value?.errors, 'value')" required>
+          <small class="validation-error" *ngIf="variable_value.errors?.['required']">Variable name is required.</small>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="encrypted">
+        <th mat-header-cell *matHeaderCellDef> Encrypted </th>
+        <td mat-cell *matCellDef="let element">
+          <mat-checkbox [disabled]="element.disabled" [(ngModel)]="element.encrypted" [checked]="element.encrypted" color="primary"></mat-checkbox>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="based">
+        <th mat-header-cell *matHeaderCellDef> Based </th>
+        <td mat-cell *matCellDef="let element">
+          <mat-select [(value)]="element.based" [disabled]="element.disabled">
+            <mat-option *ngFor="let base of bases" [value]="base">
+              {{base}}
+            </mat-option>
+          </mat-select>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef> Actions </th>
+        <td mat-cell *matCellDef="let element">
+          <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="variables">
+            <mat-icon>more_vert</mat-icon>
           </button>
-        </div>
-      </div>
-    </ng-container>
+          <mat-menu #menu="matMenu">
+            <div [matTooltip]="element.disabled && isEditing ? 'Please save changes before editing this field!' : ''" matTooltipPosition="above">
+              <button mat-menu-item  *ngIf="element.disabled; else checkIcon"  [disabled]="isEditing" (click)="onEditVar(element)">
+                <mat-icon>edit</mat-icon>
+                <span>Edit</span>
+              </button>
+            </div>
+            <div [matTooltip]="element.in_use.length > 0 ? 'Warning! This variable is being used' : 'Delete variable'" matTooltipPosition="above">
+              <button mat-menu-item (click)="onDeleteVar(element)" [disabled]="element.id == 0">
+                <p *ngIf="element.in_use.length > 0" class="inuse">!</p>
+                <mat-icon>delete</mat-icon>
+                <span>Delete</span>
+              </button>
+            </div>
+            <ng-template #checkIcon>
+              <div [matTooltip]="(errors.name || errors.value) && element.id === 0 ? 'Please introduce correct data' : 'Save variable'" matTooltipPosition="above">
+                <button mat-menu-item [disabled]="errors.name || errors.value" (click)="onSaveVar(element)">
+                  <mat-icon>check</mat-icon>
+                  <span>Save</span>
+                </button>
+              </div>
+            </ng-template>
+          </mat-menu>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+   </table>
   </ng-container>
+
   <ng-template #text>
     <div>This environment has no variables yet.</div>
   </ng-template>
-  <button color="primary" *ngIf="canCreate" (click)="add()" class="add" mat-stroked-button>Add variable</button>
+  <button color="primary" *ngIf="canCreate" (click)="onAddVar()" class="add" mat-stroked-button>Add variable</button>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
-  <button mat-stroked-button [disabled]="variablesForm.invalid" (click)="save()" color="primary">Save</button>
+  <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
 </mat-dialog-actions>
