@@ -73,7 +73,11 @@ export class EditVariablesComponent implements OnInit{
   }
 
   onDeleteVar(variable: VariablePair) {
-    //todo http request to del var
+    let action = this.deleteVariable(variable.id);
+    action.pipe(switchMap(res =>
+        this._store.dispatch(new Variables.GetVariables()).pipe(map(_ => res)))).subscribe(res => {
+            this._cdr.detectChanges();
+    });
   }
 
   onAddVar() {
@@ -92,6 +96,10 @@ export class EditVariablesComponent implements OnInit{
 
   patchVariable(variable: VariablePair) {
     return this._api.patchVariable(variable)
+  }
+
+  deleteVariable(id: number) {
+    return this._api.deleteVariable(id)
   }
 
   createNewVarInstance() {

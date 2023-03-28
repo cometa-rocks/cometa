@@ -51,7 +51,7 @@
               </button>
             </div>
             <div [matTooltip]="element.in_use.length > 0 ? 'Warning! This variable is being used' : 'Delete variable'" matTooltipPosition="above">
-              <button mat-menu-item (click)="onDeleteVar(element)">
+              <button mat-menu-item (click)="onDeleteVar(element)" [disabled]="element.id == 0">
                 <p *ngIf="element.in_use.length > 0" class="inuse">!</p>
                 <mat-icon>delete</mat-icon>
                 <span>Delete</span>

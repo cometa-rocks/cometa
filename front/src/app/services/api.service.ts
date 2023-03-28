@@ -473,6 +473,9 @@ export class ApiService {
     return this._http.patch<Success>(`${this.api}variables/${variable.id}/`, variable);
   }
 
+  deleteVariable(id: number) {
+    return this._http.delete<Success>(`${this.api}variables/${id}`);
+  }
 
   sendInvite(emails: string[], departmentIds: number, customText: string) {
     return this._http.post<Success>(`${this.api}invite/`, {
