@@ -194,10 +194,18 @@ class AdminPermissions(admin.ModelAdmin):
         })
     )
 
-class AdminEnvironmentVariables(admin.ModelAdmin):
-    model = EnvironmentVariables
+@admin.register(Variable)
+class AdminVariables(admin.ModelAdmin):
     search_fields = ['variable_name', 'variable_value']
-    list_display = ('department', 'environment', 'variable_name', 'variable_value')
+    list_display = ('variable_name', 'get_truncated_variable_value', 'department', 'environment', 'feature', 'created_by', 'updated_by')
+    list_filter = ('based', 'department', 'environment', 'created_on', 'updated_on')
+    list_display_links = ('variable_name',)
+    readonly_fields = ('in_use', 'created_on', 'updated_on')
+
+    def get_truncated_variable_value(self, obj):
+        if len(obj.variable_value) > 50:
+            return f"{obj.variable_value[:50]} ..."
+        return obj.variable_value
 
 class AdminCloud(admin.ModelAdmin):
     model = Cloud
@@ -288,7 +296,6 @@ admin.site.register(Browser)
 admin.site.register(File, AdminFile)
 admin.site.register(Action)
 admin.site.register(Permissions, AdminPermissions)
-admin.site.register(EnvironmentVariables, AdminEnvironmentVariables)
 admin.site.register(Cloud, AdminCloud)
 admin.site.register(AuthenticationProvider)
 admin.site.register(Schedule)
