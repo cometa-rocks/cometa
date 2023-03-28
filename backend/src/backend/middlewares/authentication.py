@@ -199,9 +199,19 @@ class AuthenticationMiddleware:
         # check if fullName or email are missing in the request
         if fullName == None or email == None or fullName == "(null)" or email == "(null)":
             return False
-        
+
         # create the account
         user = OIDCAccount(name=fullName, email=email)
+        # is this first ever user
+        first_user = OIDCAccount.objects.all().count() == 0
+        if first_user:
+            try:
+                # find the superuser role and assign it to the first ever user.
+                superuser = Permissions.objects.get(permission_name="SUPERUSER")
+                user.user_permissions = superuser
+            except Exception as err:
+                logger.error("Seems like SUPERUSER role isn't created yet....")
+                logger.exception(err)
         user.save()
 
         # if no invite code was set then add user to default department

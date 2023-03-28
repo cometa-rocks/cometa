@@ -405,7 +405,18 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         }
         logger.debug("Writing data %s to database" % json.dumps(data))
         requests.post('http://cometa_django:8000/setScreenshots/%s/' % str(step_id), json=data, headers={"Host": "cometa.local"})
+        # add timestamps to the current image
+        if context.DB_CURRENT_SCREENSHOT:
+            addTimestampToImage(context.DB_CURRENT_SCREENSHOT, path=context.SCREENSHOTS_ROOT)
     return step_id
+
+# add timestamp to the image using the imagemagic cli
+def addTimestampToImage(image, path=None):
+    logger.debug(f"Adding timestamp to: {path}/{image}")
+    cmd=f"convert {path}/{image} -pointsize 20 -font DejaVu-Sans-Mono -fill 'RGBA(255,255,255,1.0)' -gravity SouthEast -annotate +20+20 \"$(date)\" {path}/{image}"
+    status = subprocess.call(cmd, shell=True, env={})
+    if status != 0:
+        logger.error("Something happend during the timestamp watermark.")
 
 # Automatically checks if there's still old styles and moves them to current path
 # Due to change in new images structure we have to check if the old style image is still there,
@@ -2293,22 +2304,27 @@ def addVariable(context, variable_name, result):
         index = index[0]
         logger.debug("Patching existing variable")
         env_variables[index]['variable_value'] = result
+        env_variables[index]['updated_by'] = context.PROXY_USER['user_id']
         # make the request to cometa_django and add the environment variable
         response = requests.patch('http://cometa_django:8000/api/variables/' + str(env_variables[index]['id']) + '/', headers={"Host": "cometa.local"}, json=env_variables[index])
     else: # create new variable
         logger.debug("Creating variable")
         # create data to send to django
-        env_variables.append({
-            "variable_name": variable_name,
-            "variable_value": result
-        })
         update_data = {
-            "environment_id": int(context.feature_info['environment_id']),
-            "department_id": int(context.feature_info['department_id']),
-            "variables": env_variables
+            "environment": int(context.feature_info['environment_id']),
+            "department": int(context.feature_info['department_id']),
+            "feature": int(context.feature_id),
+            "variable_name": variable_name,
+            "variable_value": result,
+            "based": "environment",
+            "created_by": context.PROXY_USER['user_id'],
+            "updated_by": context.PROXY_USER['user_id']
         }
         # make the request to cometa_django and add the environment variable
         response = requests.post('http://cometa_django:8000/api/variables/', headers={"Host": "cometa.local"}, json=update_data)
+
+        if response.status_code == 201:
+            env_variables.append(response.json()['data'])
 
     # send a request to websockets about the environment variables update
     requests.post('http://cometa_socket:3001/sendAction', json={
