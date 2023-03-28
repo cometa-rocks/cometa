@@ -492,15 +492,11 @@ class Folder_FeatureSerializer(serializers.ModelSerializer, FolderFeatureMixin):
 ###########################################
 # Environment Variables model serializers #
 ###########################################
-class EnvironmentVariablesSerializer(serializers.ModelSerializer, EnvironmentVariablesMixin):
-
+class VariablesSerializer(serializers.ModelSerializer, VariablesMixin):
     class Meta:
-        model = EnvironmentVariables
-        depth = 2
+        model = Variable
         fields = '__all__'
-
-    def create(self, validated_data):
-        return EnvironmentVariables.objects.create(**validated_data)
+        
 
 ###########################################
 # Invites model serializers #

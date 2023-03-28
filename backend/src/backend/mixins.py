@@ -35,12 +35,15 @@ class FeatureRunsMixin():
         )
         return queryset
 
-class EnvironmentVariablesMixin():
+class VariablesMixin():
     @classmethod
     def fast_loader(cls, queryset:QuerySet):
         queryset = queryset.select_related(
             'department',
-            'environment'
+            'environment',
+            'feature',
+            'updated_by',
+            'created_by'
         )
         return queryset
 
