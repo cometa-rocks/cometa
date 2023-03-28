@@ -209,8 +209,11 @@ export class EditFeature implements OnInit, OnDestroy {
   editVariables() {
     const environmentId = this.environments$.find(env => env.environment_name === this.featureForm.get('environment_name').value).environment_id;
     const departmentId = this.departments$.find(dep => dep.department_name === this.featureForm.get('department_name').value).department_id;
+    const feature = this.feature.getValue();
+
     this._dialog.open(EditVariablesComponent, {
       data: {
+        feature_id: feature.feature_id,
         environment_id: environmentId,
         department_id: departmentId
       }
