@@ -685,12 +685,20 @@ interface AccountRole {
 }
 
 interface VariablePair {
+    id: number;
+    department: number;
+    environment: number;
+    feature: number;
     variable_name: string;
     variable_value: string;
     encrypted: boolean;
-    id?: number;
-    department: Department;
-    environment: Environment;
+    based: string;
+    in_use: number[];
+    created_by: number;
+    updated_by: number;
+    created_on: Date;
+    updated_on: Date;
+    disabled?: boolean;
 }
 
 interface Cloud {
