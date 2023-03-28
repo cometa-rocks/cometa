@@ -465,12 +465,16 @@ export class ApiService {
    * @param department ID of existing department
    * @param values Variables
    */
-  setEnvironmentVariables(environment: number, department: number, values: VariablePair[]) {
-    return this._http.post<Success>(`${this.api}variables/`, {
-      environment_id: environment,
-      department_id: department,
-      variables: values
-    });
+  setVariable(variable: VariablePair) {
+    return this._http.post<Success>(`${this.api}variables/`, variable);
+  }
+
+  patchVariable(variable: VariablePair) {
+    return this._http.patch<Success>(`${this.api}variables/${variable.id}/`, variable);
+  }
+
+  deleteVariable(id: number) {
+    return this._http.delete<Success>(`${this.api}variables/${id}`);
   }
 
   sendInvite(emails: string[], departmentIds: number, customText: string) {
