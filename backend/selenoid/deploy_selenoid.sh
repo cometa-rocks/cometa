@@ -46,11 +46,14 @@ else
     pwd=`pwd`
     bgImage="${pwd}/amvara.png"
 fi
+fluxboxPath=${pwd}/.fluxbox
+
 debug "Using ${bgImage} as background for Selenium containers"
+debug "Using ${fluxboxPath}"
 
 info "Replacing background image volume in Selenoid images ..."
 # Replace bgPath with used image
-sed -i_template "s|<bgPath>|$bgImage|g" browsers.json
+sed -i_template "s|<bgPath>|$bgImage|g;s|<fluxboxPath>|$fluxboxPath|g" browsers.json
 
 # make sure downloads folder exists
 mkdir -p ../behave/downloads
