@@ -4,12 +4,10 @@ import { Select, Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UserState } from '@store/user.state';
-import { switchMap, map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { VariablesState } from '@store/variables.state';
 import { Variables } from '@store/actions/variables.actions';
 import { SelectSnapshot, ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
-import { UntypedFormBuilder } from '@angular/forms';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 
 interface PassedData {
@@ -25,11 +23,12 @@ interface PassedData {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EditVariablesComponent implements OnInit{
-  displayedColumns: string[] = ['variable_name','variable_value','encrypted','based', 'actions'];
+  displayedColumns: string[] = ['variable_name','variable_value','encrypted','based', 'created_by', 'actions'];
   bases: string[] = ['feature','department','environment'];
   isEditing: boolean = false;
   errors = { name: null, value: null };
   variables: VariablePair[];
+  variable_backup: VariablePair;
 
 
   @Select(VariablesState) variableState$: Observable<VariablePair[]>;
@@ -51,38 +50,50 @@ export class EditVariablesComponent implements OnInit{
 
   ngOnInit(): void {
     this.variableState$.subscribe(data => {
-     this.variables = data.filter(v => v.environment == this.data.environment_id && v.department == this.data.department_id);
-     this.variables.map(item => item['disabled'] = true);
+      const clone = this.getVariableStateClone(data);
+      this.variables = clone.filter(v => v.environment == this.data.environment_id && v.department == this.data.department_id);
     })
   }
 
   onEditVar(variable: VariablePair) {
+    this.variable_backup = {...variable}
+
     this.isEditing = true;
     variable.disabled = false;
   }
 
   onSaveVar(variable: VariablePair) {
     let action = variable.id === 0 ? this.createVariable(variable) : this.patchVariable(variable);
-
-    action.pipe(switchMap(res =>
-      this._store.dispatch(new Variables.GetVariables()).pipe(map(_ => res)))).subscribe(res => {
-        this.isEditing = false;
-        variable.disabled = true;
-        this._cdr.detectChanges();
-      });
+    action.subscribe(this.safeSubscriber('save'))
+    this._cdr.detectChanges();
   }
 
   onDeleteVar(variable: VariablePair) {
     let action = this.deleteVariable(variable.id);
-    action.pipe(switchMap(res =>
-        this._store.dispatch(new Variables.GetVariables()).pipe(map(_ => res)))).subscribe(res => {
-            this._cdr.detectChanges();
+
+    const confirmDialog = this._dialog.open(AreYouSureDialog, {
+      data: {
+        title: 'translate:you_sure.delete_item_title',
+        description: 'translate:you_sure.delete_item_desc'
+      } as AreYouSureData
     });
+
+    confirmDialog.afterClosed().subscribe(res => {
+      if (res) {
+        action.subscribe(this.safeSubscriber('delete', variable));
+      }
+    })
+  }
+
+  onCancelVar(variable: VariablePair) {
+    variable.id === 0 ? this.removeNewVarInstance() : this._store.dispatch(new Variables.UpdateOrCreateVariable(this.variable_backup));
+    this.nullifyValidators();
+    this.isEditing = false;
   }
 
   onAddVar() {
     this.createNewVarInstance();
-    this.errors = { name: {required : true}, value: {required: true} };
+    this.applyValidators();
     this.isEditing = true;
   }
 
@@ -95,17 +106,31 @@ export class EditVariablesComponent implements OnInit{
   }
 
   patchVariable(variable: VariablePair) {
-    return this._api.patchVariable(variable)
+    return this._api.patchVariable(variable);
   }
 
   deleteVariable(id: number) {
-    return this._api.deleteVariable(id)
+    return this._api.deleteVariable(id);
+  }
+
+  applyValidators() {
+    this.errors = { name: {required : true}, value: {required: true} };
+  }
+
+  nullifyValidators() {
+    this.errors = { name: null, value: null };
+  }
+
+  getVariableStateClone(variables: VariablePair[]) {
+    const clone = variables.map((item: VariablePair) => {
+      return {...item, disabled: true}
+    })
+
+    return clone;
   }
 
   createNewVarInstance() {
-    const user_id = this._store.selectSnapshot(UserState.GetUserId);
     const new_var = <VariablePair>{};
-    const date = new Date();
 
     new_var.id = 0;
     new_var.department = this.data.department_id
@@ -116,107 +141,32 @@ export class EditVariablesComponent implements OnInit{
     new_var.encrypted = false;
     new_var.based = 'feature';
     new_var.in_use = [];
-    new_var.created_by = user_id;
-    new_var.updated_by = user_id;
-    new_var.created_on = date;
-    new_var.updated_on = date;
     new_var.disabled = false;
 
-    this.variables = [...this.variables, new_var]
+    this.variables = [new_var, ...this.variables]
   }
 
+  removeNewVarInstance() {
+    const [, ...rest] = this.variables;
+    this.variables = rest;
+  }
 
-  // nameValidator = Validators.pattern(/^[^\n ]*$/)
-
-  // trackIndex = index => index;
-
-  // add() {
-  //   // Add new variable row
-  //   this.variablesForm.push(
-  //     this._fb.group({
-  //       variable_name: ['', this.nameValidator],
-  //       variable_value: '',
-  //       encrypted: false,
-  //       department_id: this.data.department_id,
-  //       environment_id: this.data.environment_id,
-  //       loading: false
-  //     })
-  //   )
-  //   this.updateFormView();
-  // }
-
-
-  // handleSecretChange(variable: VariablePair, { checked }: MatCheckboxChange) {
-  //   // Grab variable value
-  //   const value = variable.variable_value
-  //   let request: Observable<string> = of(value);
-  //   // Check if current value needs decryption
-  //   if (value.startsWith(this.encryptionPrefix) && !checked) {
-  //     // Show loading on encryption checkbox
-  //     this.variablesForm.at(index).patchValue({ loading: true })
-  //     this.updateFormView();
-  //     request = this._dialog.open(AreYouSureDialog, {
-  //       data: {
-  //         title: 'translate:you_sure.decrypt_title',
-  //         description: 'translate:you_sure.decrypt_desc'
-  //       } as AreYouSureData
-  //     }).afterClosed().pipe(
-  //       finalize(() => {
-  //         // Hide loading on encryption checkbox
-  //         this.variablesForm.at(index).patchValue({ loading: false })
-  //         this.updateFormView();
-  //       }),
-  //       filter(res => !!res),
-  //       map(_ => '')
-  //     )
-  //   }
-  //   // Retrieve encrypted/decrypted value
-  //   request.subscribe(decrypted => {
-  //     // Update value field
-  //     this.variablesForm.at(index).patchValue({ variable_value: decrypted, encrypted: checked })
-  //     this.updateFormView();
-  //   })
-  // }
-
-  // updateFormView() {
-  //   // Update view
-  //   this.variablesForm.updateValueAndValidity();
-  //   this._cdr.detectChanges();
-  // }
-
-  // save() {
-  //   // Remove empty variable pairs
-  //   let variables = this.variablesForm.value as VariablePair[];
-  //   variables = variables.filter((variable, i) => {
-  //     const remove = !variable.variable_name.length || !variable.variable_value.length
-  //     // Also remove them from the FormArray
-  //     if (remove) this.variablesForm.removeAt(i);
-  //     return !remove;
-  //   })
-  //   this.updateFormView();
-  //   // Save on backend
-  //   this._api.setEnvironmentVariables(this.data.environment_id, this.data.department_id, variables)
-  //   .pipe(
-  //     // Save on store state
-  //     switchMap(res => this._store.dispatch( new Variables.GetVariables() ).pipe(
-  //       map(_ => res)
-  //     ))
-  //   )
-  //   .subscribe(res => {
-  //     if (res.success) {
-  //       this._snack.open('Variables saved!', 'OK');
-  //       this.dialogRef.close();
-  //     } else if (res.handled) {
-  //       this.dialogRef.close();
-  //     } else {
-  //       this._snack.open('Oops, something went wrong.', 'OK');
-  //     }
-  //   });
-  // }
-
-  // deleteVar(index: number) {
-  //   // Delete variable row
-  //   this.variablesForm.removeAt(index);
-  //   this.updateFormView();
-  // }
+  safeSubscriber(action: string, variable?: VariablePair) {
+    return {
+      next: (response) => {
+        let res = JSON.parse(response);
+        if (res.success) {
+          action === 'save' ? this._store.dispatch(new Variables.UpdateOrCreateVariable(res['data'] as VariablePair)) : this._store.dispatch(new Variables.DeleteVariable(variable))
+          this._snack.open('Action has been completed successfully!', 'OK');
+        }
+      },
+      error: (err) => {
+        this._snack.open(JSON.parse(err.error).error, 'NOK');
+      },
+      complete: () => {
+        this.isEditing = false;
+        this._cdr.detectChanges();
+      }
+    }
+  }
 }
