@@ -23,7 +23,7 @@ export class VariablesState {
   @Action(Variables.GetVariables)
   getAll({ setState }: StateContext<VariablePair[]>) {
     return this._api.getVariables().pipe(
-        tap(vars => setState(vars))
+      tap(vars => setState(vars))
     );
   }
 
