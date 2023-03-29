@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, Input, ChangeDetectorRef, Host, ElementRef, NgZone } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, Input, ChangeDetectorRef, Host, ElementRef, NgZone, ViewChild } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { AddStepComponent } from '@dialogs/add-step/add-step.component';
 import { MatDialog , MatDialogRef } from '@angular/material/dialog';
@@ -16,9 +16,10 @@ import { UserState } from '@store/user.state';
 import { CustomValidators } from '@others/custom-validators';
 import { exportToJSONFile, SubSinkAdapter } from 'ngx-amvara-toolbox';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { MatCheckboxChange } from '@angular/material/checkbox';
+import { VariablesState } from '@store/variables.state';
 
 @Component({
   selector: 'cometa-step-editor',
@@ -30,7 +31,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   stepsForm: UntypedFormArray;
 
+  // autocompletes
+  @ViewChild('stepHelp', { read: MatAutocompleteTrigger }) stepHelp: MatAutocompleteTrigger;
+  @ViewChild('variableHelp', { read: MatAutocompleteTrigger }) variableHelp: MatAutocompleteTrigger;
+
   @ViewSelectSnapshot(ActionsState) actions: Action[];
+  @ViewSelectSnapshot(VariablesState) variables: VariablePair[];
   @ViewSelectSnapshot(UserState) user !: UserInfo;
 
   @Input() feature: Feature;
@@ -386,6 +392,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (!event.checked) {
       this.stepsForm.at(i).get('compare').setValue(false);
     }
+  }
+
+  stepContentChanged(event: any) {
+    console.log(this.variableHelp)
   }
 
 }
