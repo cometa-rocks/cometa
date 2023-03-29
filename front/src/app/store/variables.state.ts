@@ -1,6 +1,6 @@
 import { State, Action, StateContext, Selector } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
-import { tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { ImmutableSelector } from '@ngxs-labs/immer-adapter';
 import produce from 'immer';
@@ -23,25 +23,31 @@ export class VariablesState {
   @Action(Variables.GetVariables)
   getAll({ setState }: StateContext<VariablePair[]>) {
     return this._api.getVariables().pipe(
-      tap(vars => setState(vars))
+        tap(vars => setState(vars))
     );
-    }
+  }
 
-  // @Action(Variables.SetVariables)
-  // setVariables({ setState, getState }: StateContext<VariablePair[]>, { environment_name, department_name, variables }: Variables.SetVariables) {
-  //   const vars = getState().filter(v => !(v.environment.environment_name === environment_name && v.department.department_name === department_name));
-  //   setState([ ...vars, ...variables ])
-  // }
+  @Action(Variables.DeleteVariable)
+  deleteVariable({ setState, getState }: StateContext<VariablePair[]>, { variable }: Variables.DeleteVariable) {
+    setState(
+      produce(getState(), (ctx: VariablePair[]) => {
+        const index = ctx.findIndex(v => v.id === variable.id);
+        ctx.splice(index, 1);
+      })
+    )
+  }
 
-  // @Action(Variables.UpdateVariable)
-  // updateVariable({ setState, getState }: StateContext<VariablePair[]>, { variable }: Variables.UpdateVariable) {
-  //   setState(
-  //     produce(getState(), (ctx: VariablePair[]) => {
-  //       const index = ctx.findIndex(v => v.id === variable.id);
-  //       ctx[index] = variable;
-  //     })
-  //   )
-  // }
+  @Action(Variables.UpdateOrCreateVariable)
+  UpdateOrCreateVariable({ setState, getState }: StateContext<VariablePair[]>, { variable }: Variables.UpdateOrCreateVariable) {
+    setState(
+      produce(getState(), (ctx: VariablePair[]) => {
+        const index = ctx.findIndex(v => v.id === variable.id);
+
+        // if index is -1, means that variable still does not exist in state, so it needs to be pushed in context array, otherwise just update variable
+        index == -1 ? ctx.push(variable) : ctx[index] = variable;
+      })
+    )
+  }
 
   @Selector()
   @ImmutableSelector()
@@ -50,5 +56,4 @@ export class VariablesState {
       return sortBy(state.filter(v => v.environment === environment_id && v.department === department_id), 'variable_name');
     };
   }
-
 }
