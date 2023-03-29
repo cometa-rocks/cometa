@@ -68,7 +68,7 @@
             <mat-checkbox formControlName="need_help" color="primary" [matTooltip]="'need_help.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
             <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
               <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
-                <button color="primary" [disabled]="disableVariables" (click)="editVariables()" mat-stroked-button>Edit environment variables</button>
+                <button color="primary" [disabled]="disableVariables || data.feature.feature_id === 0" (click)="editVariables()" mat-stroked-button>Edit environment variables</button>
               </span>
             </ng-container>
           </div>
