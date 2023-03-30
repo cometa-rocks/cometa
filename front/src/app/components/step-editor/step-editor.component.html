@@ -67,7 +67,7 @@
           </div>
         </div>
         <div class="step_content">
-          <textarea (blur)="fixStep($event, i)" class="code" spellcheck="false" (input)="stepContentChanged($event)" cdkTextareaAutosize autocomplete="off" formControlName="step_content" placeholder="Step Code"></textarea>
+          <textarea (blur)="fixStep($event, i)" class="code" spellcheck="false" cdkTextareaAutosize autocomplete="off" formControlName="step_content" [matAutocomplete]="stepHelp" placeholder="Step Code"></textarea>
         </div>
         <i *ngIf="step.get('step_content').errors?.invalidStep" class="invalid-sign" matTooltip="Invalid step definition" matTooltipPosition="above"></i>
         <ng-container *ngIf="importsSteps$ | async as importedSteps">
@@ -94,9 +94,6 @@
         </mat-menu>
         <mat-autocomplete class="edit-feature-step-suggestions" #stepHelp="matAutocomplete" (optionSelected)="selectFirstVariable($event, i)">
           <mat-option *ngFor="let action of actions | filterStep:step.value.step_content:false" [value]="action.action_name">{{ action.action_name}}</mat-option>
-        </mat-autocomplete>
-        <mat-autocomplete class="edit-feature-variable-suggestions" #variableHelp="matAutocomplete">
-          <mat-option *ngFor="let variable of variables" [value]="variable.variable_name">${{ variable.variable_name }}</mat-option>
         </mat-autocomplete>
       </div>
     </ng-container>
