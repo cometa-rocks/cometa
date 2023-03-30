@@ -28,10 +28,10 @@ export class VariablesState {
   }
 
   @Action(Variables.DeleteVariable)
-  deleteVariable({ setState, getState }: StateContext<VariablePair[]>, { variable }: Variables.DeleteVariable) {
+  deleteVariable({ setState, getState }: StateContext<VariablePair[]>, { id }: Variables.DeleteVariable) {
     setState(
       produce(getState(), (ctx: VariablePair[]) => {
-        const index = ctx.findIndex(v => v.id === variable.id);
+        const index = ctx.findIndex(v => v.id === id);
         ctx.splice(index, 1);
       })
     )
@@ -44,7 +44,11 @@ export class VariablesState {
         const index = ctx.findIndex(v => v.id === variable.id);
 
         // if index is -1, means that variable still does not exist in state, so it needs to be pushed in context array, otherwise just update variable
-        index == -1 ? ctx.push(variable) : ctx[index] = variable;
+        if(index == -1) {
+          ctx.unshift(variable)
+        } else {
+          variable.id === 0 ? new Variables.DeleteVariable(variable.id) : ctx[index] = variable;
+        }
       })
     )
   }

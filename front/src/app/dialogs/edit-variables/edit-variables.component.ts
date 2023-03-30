@@ -1,5 +1,5 @@
-import { Component, Inject, ChangeDetectionStrategy, ChangeDetectorRef, OnInit } from '@angular/core';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Component, Inject, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Select, Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -9,6 +9,8 @@ import { VariablesState } from '@store/variables.state';
 import { Variables } from '@store/actions/variables.actions';
 import { SelectSnapshot, ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
+import { MatSort, Sort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
 
 interface PassedData {
   environment_id: number;
@@ -22,15 +24,16 @@ interface PassedData {
   styleUrls: ['./edit-variables.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EditVariablesComponent implements OnInit{
+export class EditVariablesComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['variable_name','variable_value','encrypted','based', 'created_by', 'actions'];
   bases: string[] = ['feature','department','environment'];
   isEditing: boolean = false;
   errors = { name: null, value: null };
   variables: VariablePair[];
   variable_backup: VariablePair;
+  dataSource;
 
-
+  @ViewChild(MatSort) sort: MatSort;
   @Select(VariablesState) variableState$: Observable<VariablePair[]>;
   @ViewSelectSnapshot(UserState.GetPermission('create_variable')) canCreate: boolean;
   @ViewSelectSnapshot(UserState.GetPermission('edit_variable')) canEdit: boolean;
@@ -39,19 +42,31 @@ export class EditVariablesComponent implements OnInit{
 
 
   constructor(
-    private dialogRef: MatDialogRef<EditVariablesComponent>,
     @Inject(MAT_DIALOG_DATA) public data: PassedData,
     private _store: Store,
     private _snack: MatSnackBar,
     private _api: ApiService,
     private _cdr: ChangeDetectorRef,
-    private _dialog: MatDialog
+    private _dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
     this.variableState$.subscribe(data => {
       const clone = this.getVariableStateClone(data);
       this.variables = clone.filter(v => v.environment == this.data.environment_id && v.department == this.data.department_id);
+      this.dataSource = new MatTableDataSource(this.variables);
+
+      this.dataSource.filterPredicate = (row: VariablePair, filter: string) => {
+        return row.variable_name.includes(filter) || row.based.includes(filter);
+      };
+    })
+  }
+
+  ngOnDestroy(): void {
+    this.variables.forEach(variable => {
+      if (variable.id === 0) {
+        this._store.dispatch(new Variables.DeleteVariable(variable.id))
+      }
     })
   }
 
@@ -65,7 +80,6 @@ export class EditVariablesComponent implements OnInit{
   onSaveVar(variable: VariablePair) {
     let action = variable.id === 0 ? this.createVariable(variable) : this.patchVariable(variable);
     action.subscribe(this.safeSubscriber('save'))
-    this._cdr.detectChanges();
   }
 
   onDeleteVar(variable: VariablePair) {
@@ -86,7 +100,7 @@ export class EditVariablesComponent implements OnInit{
   }
 
   onCancelVar(variable: VariablePair) {
-    variable.id === 0 ? this.removeNewVarInstance() : this._store.dispatch(new Variables.UpdateOrCreateVariable(this.variable_backup));
+    variable.id === 0 ? this._store.dispatch(new Variables.DeleteVariable(variable.id)) : this._store.dispatch(new Variables.UpdateOrCreateVariable(this.variable_backup));
     this.nullifyValidators();
     this.isEditing = false;
   }
@@ -95,6 +109,15 @@ export class EditVariablesComponent implements OnInit{
     this.createNewVarInstance();
     this.applyValidators();
     this.isEditing = true;
+  }
+
+  announceSortChange(sortState: Sort) {
+    this.dataSource.sort = this.sort;
+  }
+
+  applyFilter(event: Event) {
+    const filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = filterValue.trim().toLowerCase();
   }
 
   setInputStatus(errors: any, control: string) {
@@ -123,7 +146,7 @@ export class EditVariablesComponent implements OnInit{
 
   getVariableStateClone(variables: VariablePair[]) {
     const clone = variables.map((item: VariablePair) => {
-      return {...item, disabled: true}
+      return {...item, disabled: item.id === 0 ? false : true}
     })
 
     return clone;
@@ -143,12 +166,7 @@ export class EditVariablesComponent implements OnInit{
     new_var.in_use = [];
     new_var.disabled = false;
 
-    this.variables = [new_var, ...this.variables]
-  }
-
-  removeNewVarInstance() {
-    const [, ...rest] = this.variables;
-    this.variables = rest;
+    this._store.dispatch(new Variables.UpdateOrCreateVariable(new_var))
   }
 
   safeSubscriber(action: string, variable?: VariablePair) {
@@ -156,7 +174,7 @@ export class EditVariablesComponent implements OnInit{
       next: (response) => {
         let res = JSON.parse(response);
         if (res.success) {
-          action === 'save' ? this._store.dispatch(new Variables.UpdateOrCreateVariable(res['data'] as VariablePair)) : this._store.dispatch(new Variables.DeleteVariable(variable))
+          action === 'save' ? this._store.dispatch(new Variables.UpdateOrCreateVariable(res['data'] as VariablePair)) : this._store.dispatch(new Variables.DeleteVariable(variable.id))
           this._snack.open('Action has been completed successfully!', 'OK');
         }
       },
