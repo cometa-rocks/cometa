@@ -1,5 +1,10 @@
-import { Component, ChangeDetectionStrategy, Input, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, Input, OnInit, KeyValueDiffers } from '@angular/core';
+import { Select, Store } from '@ngxs/store';
+import { CustomSelectors } from '@others/custom-selectors';
+import { ApiService } from '@services/api.service';
+import { FeaturesState } from '@store/features.state';
 import * as d3 from 'd3';
+import { debounceTime, find, Observable } from 'rxjs';
 
 @Component({
   selector: 'cometa-l1-tree-view',
@@ -9,63 +14,55 @@ import * as d3 from 'd3';
 })
 export class L1TreeViewComponent implements OnInit{
 
-  @Input() data$: any
-  data = {
-    "name": "Default",
-    "type": "department",
-    "children": [
-        { "name": "SupperLongFolderName", "type": "folder", "children": [
-            { "name": "SupperLongFolderNameTimesTwo", "type": "feature" },
-            { "name": "SupperLongFolderNameTimesTwoSupperLongFolderNameTimesTwo", "type": "feature" },
-            { "name": "MyTests8", "type": "feature" }, 
-            { "name": "MyTests1", "type": "folder", "children": [
-                { "name": "MyTests6", "type": "feature" },
-                { "name": "MyTests7", "type": "feature" },
-                { "name": "MyTests8", "type": "feature" }
-            ]},
-            { "name": "MyTests1", "type": "folder", "children": [
-                { "name": "MyTests6", "type": "feature" },
-                { "name": "MyTests7", "type": "feature" },
-                { "name": "MyTests8", "type": "feature" }
-            ]}  
-        ]},
-        { "name": "MyTests2", "type": "folder" },
-        { "name": "MyTests3", "type": "folder" },
-        { "name": "MyTests4", "type": "folder" },
-        { "name": "MyTests5", "type": "folder", "children": [
-            { "name": "MyTests6", "type": "feature" },
-            { "name": "MyTests7", "type": "feature" },
-            { "name": "MyTests8", "type": "feature" }
-        ]},
-        { "name": "MyTests1", "type": "folder", "children": [
-            { "name": "MyTests6", "type": "feature" },
-            { "name": "MyTests7", "type": "feature" },
-            { "name": "MyTests8", "type": "feature" }
-        ]},
-        { "name": "MyTests6", "type": "folder" },
-        { "name": "MyTests7", "type": "folder" },
-        { "name": "MyTests8", "type": "folder" },
-        { "name": "MyTests6", "type": "feature" },
-        { "name": "MyTests7", "type": "feature" },
-        { "name": "MyTests8", "type": "feature" }
-    ]
-  }
+  data = {}
+  viewingData = {}
+  @Select(FeaturesState.GetNewSelectionFolders) currentRoute$: Observable<ReturnType<typeof FeaturesState.GetNewSelectionFolders>>;
+
 
   widthChecker(text) {
     const p = document.createElement("p");
-    p.style.fontSize = "16px";
+    p.style.fontSize = "12px";
     p.style.position = "absolute";
     p.style.opacity = "0";
     p.innerHTML = text;
     document.body.append(p);
     const textWidth = p.clientWidth;
     document.body.removeChild(p);
-    return textWidth * 0.65;
+    return textWidth;
 }
 
-  constructor( ) {}
+  constructor( private _store: Store, private _api: ApiService ) {}
 
-  ngOnInit() {
+  findEmbededObject(data: any, obj: any) {
+    let found = null;
+    if ( data.id == obj.id && data.name == obj.name && data.type == obj.type ) {
+      found = data;
+    }
+    if (data.children) {
+      data.children.forEach(child => {
+        const value = this.findEmbededObject(child, obj)
+        if (value) found = value;
+      });
+    }
+    return found;
+  }
+
+  dataFromCurrentRoute(currentRouteArray) {
+    // get the last object from the route
+    const elem: Folder = currentRouteArray.slice(-1).pop()
+    if (!elem) {
+      return this.data;
+    }
+    const object = {
+      id: elem.folder_id,
+      name: elem.name,
+      type: elem.type == undefined ? 'folder' : elem.type
+    }
+    return this.findEmbededObject(this.data, object);
+  }
+
+  draw() {
+
     const boundries = d3.select("#tree-view").node().getBoundingClientRect();
     // viewer width and height
     const width = boundries.width;
@@ -74,7 +71,7 @@ export class L1TreeViewComponent implements OnInit{
     const imageSize = 20;
     const textSpace = 15;
 
-    const margins = {top: 10, right: 120, bottom: 10, left: 30};
+    const margins = {top: 0, right: 120, bottom: 0, left: 30};
     const dx = 30; // line height
     const dy = width / 4;
 
@@ -85,13 +82,11 @@ export class L1TreeViewComponent implements OnInit{
         return d.y + appendText
     }).y(d => d.x + 1);
 
-    const root = d3.hierarchy(this.data);
+    let root = d3.hierarchy(this.viewingData);
     root.x0 = dy / 2;
     root.y0 = 0;
     root.descendants().forEach((d, i) => {
-        d.id = i;
-        d._children = d.children;
-        if ( d.depth && d.data.name.length !== 7 ) d.children == null;
+      d.id = i;
     })
 
     const zoom = d3.zoom().scaleExtent([-5, 5])
@@ -100,8 +95,8 @@ export class L1TreeViewComponent implements OnInit{
                           })
 
     const parent = d3.select("#tree-view").append("svg")
-                                  .attr("width", width)
-                                  .attr("height", height)
+                                  .attr("width", "100%")
+                                  .attr("height", "99%")
                                   .style("font", "10px sans-serif")
                                   .style("user-select", "none")
                                   .call(zoom);
@@ -116,6 +111,32 @@ export class L1TreeViewComponent implements OnInit{
                     .attr("cursor", "pointer")
                     .attr("pointer-events", "all");
     
+    const collapse = (d) => {
+      if (d.children) {
+        d._children = d.children;
+        d._children.forEach(collapse);
+        d.children = null;
+      }
+    }
+
+    const expand = (d) => {
+      if (d._children) {
+        d.children = d._children;
+        d.children.forEach(expand);
+        d._children = null;
+      }
+    }
+
+    const toggle = (d) => {
+      if (d._children) {
+        d.children = d._children;
+        d._children = null;
+      } else if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      }
+    }
+
     const update = source => {
       const duration = 250;
       const nodes = root.descendants().reverse();
@@ -147,8 +168,8 @@ export class L1TreeViewComponent implements OnInit{
                                     .attr("fill-opacity", 0)
                                     .attr("stroke-opacity", 0)
                                     .on("click", (event, d) => {
-                                      if (d.data.type != "feature") {
-                                          d.children = d.children ? null : d._children;
+                                      if (d.data.type != "feature" && d.depth != 0) {
+                                          toggle(d);
                                           update(d);
                                       }
                                     })
@@ -158,12 +179,28 @@ export class L1TreeViewComponent implements OnInit{
                                       }
                                     })
   
-      nodeEnter.append("image")
-                .attr("xlink:href", d => `/assets/icons/${d.data.type}.svg`)
+      nodeEnter.append("text")
                 .attr("width", imageSize)
                 .attr("height", imageSize)
-                .style("transform", `translate(${-imageSize/2}px, ${-imageSize/2}px)`)
+                .style("font-family", 'Material Icons')
+                .style("transform", `translate(-${imageSize/2}px, ${imageSize/2}px)`)
+                .attr('font-size', "20px")
                 .attr("class", d => d.data.type != "feature" && !d.children && !d._children ? 'disabled' : '')
+                .text(d => {
+                  switch (d.data.type) {
+                    case "department":
+                      return "domain";
+                    case "folder":
+                      return "folder icon";
+                    case "home":
+                      return "home";
+                    case "feature":
+                      return "description icon";
+                    case "variables":
+                    case "variable":
+                      return "settings_ethernet";
+                  }
+                })
       
       nodeEnter.append("text")
                 .attr("dy", "0.40em")
@@ -172,10 +209,6 @@ export class L1TreeViewComponent implements OnInit{
                 .attr("class", d => `node-text node-text-${d.data.type}`)
                 .text(d => d.data.name)
   
-      nodeEnter.append("circle")
-                .attr("r", d => d.children ? 5 : 0)
-                .attr("fill", "gray")
-                .attr("transform", d => `translate(${this.widthChecker(d.data.name) + textSpace + 8}, 1)`)
       nodeEnter.append("circle")
                 .attr("r", d => d.parent ? 5 : 0)
                 .attr("fill", "gray")
@@ -214,8 +247,8 @@ export class L1TreeViewComponent implements OnInit{
       // Transition exiting nodes to the parent's new position.
       link.exit().transition(transition).remove()
           .attr("d", d => {
-              const o = {x: source.x, y: source.y};
-              return diagonal({source: o, target: o});
+            const o = {x: source.x, y: source.y};
+            return diagonal({source: o, target: o});
           });
       
       // Stash the old positions for transition.
@@ -225,7 +258,21 @@ export class L1TreeViewComponent implements OnInit{
       });
       
     }
-  
+    root.children.forEach(collapse);
     update(root);
+  }
+
+  async ngOnInit() {
+
+    this.data = await this._api.getTreeView().toPromise()
+
+    this.currentRoute$.pipe(debounceTime(100)).subscribe(d => {
+      const data = this.dataFromCurrentRoute(d);
+      if (data) {
+        this.viewingData = data;
+        d3.select("svg").remove();
+        this.draw();
+      }
+    })
   }
 }
