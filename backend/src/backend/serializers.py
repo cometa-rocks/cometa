@@ -292,6 +292,19 @@ class BasicFeatureInfoSerializer(serializers.ModelSerializer, FeatureMixin):
         model = Feature
         fields = ('feature_id', 'feature_name',)
 
+class FeatureTreeSerializer(serializers.ModelSerializer, FeatureMixin):
+    class Meta:
+        model = Feature
+        fields = ('feature_id', 'feature_name',)
+    
+    def to_representation(self, feature):
+        treeRep = {
+            "type": "feature",
+            "name": feature.feature_name,
+            "id": feature.feature_id
+        }
+        return treeRep
+
 ##########################
 # Step model serializers #
 ##########################
@@ -496,6 +509,20 @@ class VariablesSerializer(serializers.ModelSerializer, VariablesMixin):
     class Meta:
         model = Variable
         fields = '__all__'
+
+class VariablesTreeSerializer(serializers.ModelSerializer, VariablesMixin):
+    class Meta:
+        model = Variable
+        fields = ['variable_name', 'variable_value']
+
+    def to_representation(self, value):
+        treeRep = {
+            "type": "variable",
+            "name": value.variable_name,
+            "value": value.variable_value,
+            "children": FeatureTreeSerializer(value.in_use, many=True).data
+        }
+        return treeRep
         
 
 ###########################################
