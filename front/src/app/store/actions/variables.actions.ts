@@ -44,7 +44,7 @@ export namespace Variables {
     export class DeleteVariable {
       static readonly type = '[Variables] Delete Variable';
       constructor(
-        public variable: VariablePair
+        public id: number
       ) { }
     }
   

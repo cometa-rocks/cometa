@@ -1,10 +1,13 @@
 <h2 mat-dialog-title>Edit environment variables</h2>
 <mat-dialog-content>
   <ng-container *ngIf="variables.length > 0; else text">
+    <mat-form-field class="search-wrapper">
+      <input matInput (keyup)="applyFilter($event)" placeholder="Inclusive search"/>
+    </mat-form-field>
     <div class="table-wrapper">
-      <table mat-table [dataSource]="variables" class="mat-elevation-z8">
+      <table mat-table matSort [dataSource]="dataSource" (matSortChange)="announceSortChange($event)"  class="mat-elevation-z8">
         <ng-container matColumnDef="variable_name">
-          <th mat-header-cell *matHeaderCellDef> Name </th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
           <td mat-cell *matCellDef="let element" >
             <input [disabled]="element.disabled" [type]="text" value="{{element.variable_name}}" [(ngModel)]="element.variable_name" #variable_name="ngModel" (input)="setInputStatus(variable_name?.errors, 'name')" pattern="^[\w.-]+$" required>
               <small class="validation-error" *ngIf="variable_name.errors?.['required']">Variable name is required.</small>
@@ -12,20 +15,20 @@
           </td>
         </ng-container>
         <ng-container matColumnDef="variable_value">
-          <th mat-header-cell *matHeaderCellDef> Value </th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Value </th>
           <td mat-cell *matCellDef="let element">
             <input [disabled]="element.disabled" [type]="element.encrypted ? 'password' : 'text'" value="{{element.variable_value}}" [(ngModel)]="element.variable_value" #variable_value="ngModel" (input)="setInputStatus(variable_value?.errors, 'value')" required>
             <small class="validation-error" *ngIf="variable_value.errors?.['required']">Variable value is required.</small>
           </td>
         </ng-container>
         <ng-container matColumnDef="encrypted">
-          <th mat-header-cell *matHeaderCellDef> Encrypted </th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Encrypted </th>
           <td mat-cell *matCellDef="let element">
-            <mat-checkbox [disabled]="element.disabled" [(ngModel)]="element.encrypted" [checked]="element.encrypted" color="primary"></mat-checkbox>
+            <mat-checkbox [disabled]="(element.id != 0 && element.encrypted) || element.disabled" [(ngModel)]="element.encrypted" [checked]="element.encrypted" color="primary"></mat-checkbox>
           </td>
         </ng-container>
         <ng-container matColumnDef="based">
-          <th mat-header-cell *matHeaderCellDef> Based </th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Based on</th>
           <td mat-cell *matCellDef="let element">
             <mat-select [(value)]="element.based" [disabled]="element.disabled">
               <mat-option *ngFor="let base of bases" [value]="base">
@@ -35,7 +38,7 @@
           </td>
         </ng-container>
         <ng-container matColumnDef="created_by">
-          <th mat-header-cell *matHeaderCellDef> Created by </th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Created by </th>
           <td mat-cell *matCellDef="let element">
             <p disabled>{{element.created_by}}</p>
           </td>
