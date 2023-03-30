@@ -12,10 +12,10 @@
     height: 100%;
 }
 
-.node-text {
-    font-size: 16px;
+::ng-deep .node-text {
+    font-size: 12px;
 }
 
-.disabled {
+::ng-deep .disabled {
     filter: grayscale(1);
 }

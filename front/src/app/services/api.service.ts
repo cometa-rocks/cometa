@@ -50,6 +50,7 @@ export class ApiService {
 
   // Get Folders of features
   getFolders = () => this._http.get<FoldersResponse>(`${this.api}folders/`);
+  getTreeView = () => this._http.get<FoldersResponse>(`${this.api}folders/?tree`);
 
   // Create Folder on the backend for the current logged user and inside another folder
   createFolder(name: string, department_id: number, parent_id: number = 0) {
