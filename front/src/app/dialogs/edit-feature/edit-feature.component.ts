@@ -215,8 +215,9 @@ export class EditFeature implements OnInit, OnDestroy {
       data: {
         feature_id: feature.feature_id,
         environment_id: environmentId,
-        department_id: departmentId
-      }
+        department_id: departmentId,
+      },
+      panelClass: 'edit-variable-panel'
     });
   }
 
