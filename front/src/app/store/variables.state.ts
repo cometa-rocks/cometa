@@ -41,14 +41,8 @@ export class VariablesState {
   UpdateOrCreateVariable({ setState, getState }: StateContext<VariablePair[]>, { variable }: Variables.UpdateOrCreateVariable) {
     setState(
       produce(getState(), (ctx: VariablePair[]) => {
-        const index = ctx.findIndex(v => v.id === variable.id);
-
-        // if index is -1, means that variable still does not exist in state, so it needs to be pushed in context array, otherwise just update variable
-        if(index == -1) {
-          ctx.unshift(variable)
-        } else {
-          variable.id === 0 ? new Variables.DeleteVariable(variable.id) : ctx[index] = variable;
-        }
+        let index = ctx.findIndex(v => v.id === variable.id);
+        index == -1 ? ctx.unshift(variable) : ctx[index] = variable;
       })
     )
   }
