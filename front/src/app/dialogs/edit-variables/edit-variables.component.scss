@@ -6,13 +6,25 @@
 
 .search-wrapper {
     display: block;
+
+    mat-icon {
+        margin-right: 15px;
+    }
 }
 
 .table-wrapper {
-    max-height: 300px;
+    height: 40vh;
     overflow-y: scroll;
+    scroll-behavior: smooth;
     table {
         width: 100%;
+
+        td.mat-cell {
+            small {
+                display: block;
+                font-size: 10px;
+            }
+        }
 
         td.mat-cell,
         th.mat-header-cell {
@@ -63,9 +75,8 @@ p.inuse {
 
 .mat-mdc-radio-button ~ .mat-mdc-radio-button {
     margin-left: 16px;
-  }
+}
 
-.add {
-    margin-top: 20px;
-    font-weight: bold;
+mat-dialog-actions {
+    gap: 8px;
 }

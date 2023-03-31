@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ViewChild, OnDestroy, ElementRef } from '@angular/core';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Select, Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
@@ -26,13 +26,16 @@ interface PassedData {
 })
 export class EditVariablesComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['variable_name','variable_value','encrypted','based', 'created_by', 'actions'];
-  bases: string[] = ['feature','department','environment'];
+  bases: string[] = ['feature','environment','department'];
   isEditing: boolean = false;
   errors = { name: null, value: null };
   variables: VariablePair[];
   variable_backup: VariablePair;
   dataSource;
 
+
+
+  @ViewChild('tableWrapper') tableWrapper: ElementRef;
   @ViewChild(MatSort) sort: MatSort;
   @Select(VariablesState) variableState$: Observable<VariablePair[]>;
   @ViewSelectSnapshot(UserState.GetPermission('create_variable')) canCreate: boolean;
@@ -78,6 +81,8 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   }
 
   onSaveVar(variable: VariablePair) {
+    this._store.dispatch(new Variables.DeleteVariable(0))
+
     let action = variable.id === 0 ? this.createVariable(variable) : this.patchVariable(variable);
     action.subscribe(this.safeSubscriber('save'))
   }
@@ -107,8 +112,14 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
 
   onAddVar() {
     this.createNewVarInstance();
+    this.tableWrapper.nativeElement.scrollTo(0,0);
+
     this.applyValidators();
     this.isEditing = true;
+
+    setTimeout(() => {
+      document.getElementById("0").focus();
+    },0);
   }
 
   announceSortChange(sortState: Sort) {

@@ -536,6 +536,16 @@ mat-option {
     }
 }
 
+.edit-variable-panel {
+    min-width: 80%;
+    min-height: 60%;
+    .mat-dialog-container {
+        resize: both;
+        overflow: auto;
+    }
+}
+
+
 .mat-menu-item {
     span {
         font-weight: bold;
