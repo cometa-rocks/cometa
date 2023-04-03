@@ -118,6 +118,12 @@ class OIDCAccountJsonSerializer(serializers.ModelSerializer):
         model = OIDCAccount
         fields = '__all__'
 
+class BasicOIDCAccountSerializer_WithoutUserID(serializers.ModelSerializer):
+    class Meta:
+        model = OIDCAccount
+        fields = ['name', 'email']
+
+
 ################################
 # Permissions model serializer #
 ################################
@@ -493,6 +499,11 @@ class Folder_FeatureSerializer(serializers.ModelSerializer, FolderFeatureMixin):
 # Environment Variables model serializers #
 ###########################################
 class VariablesSerializer(serializers.ModelSerializer, VariablesMixin):
+
+    # retrieve OIDC account data without UserID
+    created_by = BasicOIDCAccountSerializer_WithoutUserID(many=False)
+    updated_by = BasicOIDCAccountSerializer_WithoutUserID(many=False)
+
     class Meta:
         model = Variable
         fields = '__all__'
