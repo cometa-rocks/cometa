@@ -19,11 +19,26 @@
     table {
         width: 100%;
 
+        .var-row.edit {
+            td.mat-cell {
+                border-bottom: 1px solid $blue;
+            }
+        }
+
         td.mat-cell {
+            &:nth-child(3) {
+                text-align: center;
+            }
             small {
                 display: block;
                 font-size: 10px;
             }
+        }
+
+        th.mat-header-cell {
+            font-size: 13px;
+            font-weight: bold;
+            color: $blue;
         }
 
         td.mat-cell,
