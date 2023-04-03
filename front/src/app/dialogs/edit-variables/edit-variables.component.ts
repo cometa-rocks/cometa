@@ -1,5 +1,5 @@
 import { Component, Inject, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ViewChild, OnDestroy, ElementRef } from '@angular/core';
-import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Select, Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -7,7 +7,7 @@ import { UserState } from '@store/user.state';
 import { Observable } from 'rxjs';
 import { VariablesState } from '@store/variables.state';
 import { Variables } from '@store/actions/variables.actions';
-import { SelectSnapshot, ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
+import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
@@ -41,10 +41,10 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   @ViewSelectSnapshot(UserState.GetPermission('create_variable')) canCreate: boolean;
   @ViewSelectSnapshot(UserState.GetPermission('edit_variable')) canEdit: boolean;
   @ViewSelectSnapshot(UserState.GetPermission('delete_variable')) canDelete: boolean;
-  @SelectSnapshot(UserState.RetrieveEncryptionPrefix) encryptionPrefix: string;
 
 
   constructor(
+    private dialogRef: MatDialogRef<EditVariablesComponent>,
     @Inject(MAT_DIALOG_DATA) public data: PassedData,
     private _store: Store,
     private _snack: MatSnackBar,
@@ -74,10 +74,15 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   }
 
   onEditVar(variable: VariablePair) {
-    this.variable_backup = {...variable}
+    if(this.isEditing) return;
 
+    this.variable_backup = {...variable}
     this.isEditing = true;
     variable.disabled = false;
+
+    setTimeout(() => {
+      document.getElementById(`${variable.id}`).focus();
+    },0);
   }
 
   onSaveVar(variable: VariablePair) {
@@ -104,7 +109,10 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     })
   }
 
-  onCancelVar(variable: VariablePair) {
+  onCancelVar(variable: VariablePair, event: Event) {
+    // stop propagation if user cancels modification by clicking ESC key, this will prevent whole popup from closing
+    if(event) event.stopImmediatePropagation();
+
     variable.id === 0 ? this._store.dispatch(new Variables.DeleteVariable(variable.id)) : this._store.dispatch(new Variables.UpdateOrCreateVariable(this.variable_backup));
     this.nullifyValidators();
     this.isEditing = false;
@@ -112,12 +120,11 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
 
   onAddVar() {
     this.createNewVarInstance();
-    this.tableWrapper.nativeElement.scrollTo(0,0);
-
-    this.applyValidators();
-    this.isEditing = true;
 
     setTimeout(() => {
+      this.applyValidators();
+      this.isEditing = true;
+      this.tableWrapper.nativeElement.scrollTo(0,0);
       document.getElementById("0").focus();
     },0);
   }
