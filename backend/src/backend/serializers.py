@@ -500,9 +500,9 @@ class Folder_FeatureSerializer(serializers.ModelSerializer, FolderFeatureMixin):
 ###########################################
 class VariablesSerializer(serializers.ModelSerializer, VariablesMixin):
 
-    # retrieve OIDC account data without UserID
-    created_by = BasicOIDCAccountSerializer_WithoutUserID(many=False)
-    updated_by = BasicOIDCAccountSerializer_WithoutUserID(many=False)
+    # retrieve OIDC account data as read_only
+    created_by_name = serializers.CharField( source='created_by.name', read_only=True)
+    updated_by_name = serializers.CharField( source='updated_by.name', read_only=True)
 
     class Meta:
         model = Variable
