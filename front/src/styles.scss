@@ -543,8 +543,13 @@ mat-option {
         resize: both;
         overflow: auto;
     }
+    th.mat-header-cell:nth-child(3) {
+        .mat-sort-header-container {
+            justify-content: center;
+            margin-left: 18px;
+        }
+    }
 }
-
 
 .mat-menu-item {
     span {
