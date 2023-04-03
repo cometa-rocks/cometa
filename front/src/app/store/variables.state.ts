@@ -32,7 +32,7 @@ export class VariablesState {
     setState(
       produce(getState(), (ctx: VariablePair[]) => {
         const index = ctx.findIndex(v => v.id === id);
-        ctx.splice(index, 1);
+        if(index != -1) ctx.splice(index, 1);
       })
     )
   }
