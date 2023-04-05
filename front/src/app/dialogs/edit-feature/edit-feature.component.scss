@@ -59,6 +59,9 @@
             mat-spinner {
                 margin-right: 5px;
             }
+            span.canDownload {
+                cursor: pointer;
+            }
         }
     }
 }

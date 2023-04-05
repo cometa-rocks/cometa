@@ -726,6 +726,11 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   onDownloadFile(file: UploadedFile) {
+    // return if file is still uploading
+    if(file.status.toLocaleLowerCase() != 'done') {
+      return;
+    }
+
     const downloading = this._snackBar.open('Generating file to download, please be patient.', 'OK', { duration: 10000 })
 
     this.fileUpload.downloadFile(file.id).subscribe({
