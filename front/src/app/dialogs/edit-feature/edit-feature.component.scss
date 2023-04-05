@@ -11,6 +11,12 @@
         flex-wrap: wrap;
     }
     .mat-form-field {
+        @-moz-document url-prefix() {
+            textarea {
+              height: 15px;
+            }
+        }
+
         @media (max-width: 600px) {
             flex: 1 100% !important;
         }
