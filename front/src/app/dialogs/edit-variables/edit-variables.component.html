@@ -1,4 +1,4 @@
-  <h2 mat-dialog-title>Edit environment variables</h2>
+  <h2 mat-dialog-title cdkDrag cdkDragRootElement=".cdk-overlay-pane" cdkDragHandle>Edit environment variables</h2>
   <mat-dialog-content>
     <ng-container *ngIf="variables.length > 0; else text">
       <mat-form-field appearance="fill" class="search-wrapper">
