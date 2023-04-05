@@ -11,6 +11,7 @@ import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 
 interface PassedData {
   environment_id: number;
@@ -25,13 +26,14 @@ interface PassedData {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EditVariablesComponent implements OnInit, OnDestroy {
-  displayedColumns: string[] = ['variable_name','variable_value','encrypted','based', 'created_by_name', 'actions'];
+  displayedColumns: string[] = ['variable_name','variable_value','encrypted','based', 'created_by_name', 'updated_by_name', 'created_on', 'updated_on', 'actions'];
   bases: string[] = ['feature','environment','department'];
   isEditing: boolean = false;
   errors = { name: null, value: null };
   variables: VariablePair[];
   variable_backup: VariablePair;
   destroy$ = new Subject<void>();
+  searchTerm: string = "";
   dataSource;
 
 
@@ -54,17 +56,16 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.variableState$.pipe(
-      takeUntil(this.destroy$),
-      map(variables => variables.filter(v => v.environment == this.data.environment_id && v.department == this.data.department_id)))
+    this.variableState$.pipe(takeUntil(this.destroy$))
       .subscribe(data => {
-        this.variables = this.getVariableStateClone(data);
+        this.variables = this.getFilteredVariables(data);
         this.dataSource = new MatTableDataSource(this.variables);
 
         // Inbuilt MatTableDataSource.filterPredicate determines which columns filter term must be applied to
-        this.dataSource.filterPredicate = (row: VariablePair, filter: string) => {
-          return row.variable_name.toLocaleLowerCase().includes(filter) || row.based.toLocaleLowerCase().includes(filter);
-        };
+        this.applyFilterPredicate();
+
+        // apply current searchTerm
+        this.applyFilter();
       })
   }
 
@@ -89,6 +90,10 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // return if user double clicks on a row that she/he is already editing
+    if (this.isEditing && !variable.disabled) {
+      return;
+    }
 
     // save backup of current state of variable in case user wants to cancel changes
     this.variable_backup = {...variable}
@@ -98,9 +103,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     variable.disabled = false;
 
     // focus enabled row
-    setTimeout(() => {
-      document.getElementById(`${variable.id}`).focus();
-    },0);
+    this.focusElement(`name-${variable.id}`)
   }
 
   onSaveVar(variable: VariablePair) {
@@ -139,6 +142,30 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     })
   }
 
+  onEncryptCheckboxChange(event: MatCheckboxChange, variable: VariablePair) {
+    if (!event.checked && variable.variable_value.startsWith("U2FsdGVkX1")) {
+      // opens confirmation dialog, to prevent accidental elimination of encrypted variable value
+      const confirmDialog = this._dialog.open(AreYouSureDialog, {
+        data: {
+          title: 'translate:you_sure.decrypt_title',
+          description: 'translate:you_sure.decrypt_desc'
+        } as AreYouSureData
+      });
+
+      // if dialogs result is 'yes/true', resets the value of variable. But it is still not saved, user can revert it by hitting ESC key or Cancel button
+      confirmDialog.afterClosed().subscribe(res => {
+        if (res) {
+          variable.variable_value = "";
+          this.setInputStatus({required: true}, 'value');
+          this._cdr.markForCheck();
+
+          // focus enabled row
+          this.focusElement(`value-${variable.id}`)
+        }
+      })
+    }
+  }
+
   onCancelVar(variable: VariablePair, event: Event) {
     // stop propagation if user cancels modification by clicking ESC key, this will prevent whole popup from closing
     if(event) event.stopImmediatePropagation();
@@ -159,25 +186,31 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   onAddVar() {
     // creates and dispatches new temporary variable object to state, so it gets rendered in view
     this.createNewVarInstance();
+    this.applyValidators();
+    this.isEditing = true;
 
-    // scrolls up to top and focuses newly created variable
+    // scrolls up to top and focus new variable row
     setTimeout(() => {
-      this.applyValidators();
-      this.isEditing = true;
       this.tableWrapper.nativeElement.scrollTo(0,0);
-      document.getElementById("0").focus();
+      document.getElementById("name-0").focus();
     },0);
   }
 
-  // is fired when, sorting of any column is change on table
+  // is fired when, sorting of any column on table is changed
   announceSortChange(sortState: Sort) {
     this.dataSource.sort = this.sort;
   }
 
   // Receives string from search input and adds it to dataSource as filterTerm.
-  applyFilter(event: Event) {
-    const filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = filterValue.trim().toLowerCase();
+  applyFilter() {
+    this.dataSource.filter = this.searchTerm.trim().toLowerCase();
+  }
+
+  // determines which columns filter must be applied to
+  applyFilterPredicate() {
+    this.dataSource.filterPredicate = (row: VariablePair, filter: string) => {
+      return row.variable_name.toLocaleLowerCase().includes(filter) || row.based.toLocaleLowerCase().includes(filter);
+    };
   }
 
   // binded to (input) event. Actualizes input's validator status every time user focuses out of input
@@ -210,11 +243,35 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     this.errors = { name: null, value: null };
   }
 
+  // provides filter mechanism for variables requested in #3985
+  getFilteredVariables(variables: VariablePair[]) {
+    let reduced = variables.reduce((filtered_variables: VariablePair[], current:VariablePair) => {
+      // stores variables, if it's id coincides with received department id and it is based on department
+      const byDeptOnly = current.department === this.data.department_id && current.based == 'department' ? current : null;
 
-  // set every variable in array to disabled state, except newly created one (the one with id 0)
-  getVariableStateClone(variables: VariablePair[]) {
-    const clone = variables.map((item: VariablePair) => {   return {...item, disabled: item.id === 0 ? false : true}   })
+      // stores variable if department id coincides with received department id and
+      // environment or feature ids coincide with received ones, additionally if feature id coincides variable must be based on feature. If environment id coincides, variables must be based on environment.
+      const byEnv = current.department === this.data.department_id && ((current.environment === this.data.environment_id && current.based == 'environment') ||
+                                                                     (current.feature === this.data.feature_id && current.based == 'feature')) ? current : null;
+
+      // pushes stored variables into array if they have value
+      byDeptOnly ? filtered_variables.push(byDeptOnly) : null;
+      byEnv ? filtered_variables.push(byEnv) : null;
+      
+      // removes duplicated variables and returs set like array
+      return filtered_variables.filter((value, index, self) => index === self.findIndex((v) => (v.id === value.id)))
+    }, [])
+
+    // disables every table row, except the one that is newly created in is still not saved in db
+    const clone = reduced.map((item: VariablePair) => {   return {...item, disabled: item.id === 0 ? false : true}   })
     return clone;
+  }
+
+  // focuses dom element that carries id attribute equal received id
+  focusElement(id: string) {
+    setTimeout(() => {
+      document.getElementById(id).focus();
+    },0);
   }
 
   // creates temporary variable object and dispatches it to state, so it is displayed in view and user can fill input fields
