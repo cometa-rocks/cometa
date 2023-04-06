@@ -17,11 +17,14 @@
         margin-right: 15px;
     }
 }
-
+.table-wrapper.component {
+    height: calc(100% - 240px);
+}
 .table-wrapper {
     height: 40vh;
-    overflow-y: scroll;
+    overflow-y: auto;
     scroll-behavior: smooth;
+
     table {
         width: 100%;
 

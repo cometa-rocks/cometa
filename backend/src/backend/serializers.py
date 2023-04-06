@@ -503,6 +503,8 @@ class VariablesSerializer(serializers.ModelSerializer, VariablesMixin):
     # retrieve OIDC account data as read_only
     created_by_name = serializers.CharField( source='created_by.name', read_only=True)
     updated_by_name = serializers.CharField( source='updated_by.name', read_only=True)
+    # department name
+    department_name = serializers.CharField( source='department.department_name', read_only=True)
 
     class Meta:
         model = Variable
