@@ -4,7 +4,7 @@ import { Select, Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { UserState } from '@store/user.state';
-import { map, Observable, Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { VariablesState } from '@store/variables.state';
 import { Variables } from '@store/actions/variables.actions';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
@@ -34,8 +34,8 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   variable_backup: VariablePair;
   destroy$ = new Subject<void>();
   searchTerm: string = "";
+  isDialog: boolean = false;
   dataSource;
-
 
 
   @ViewChild('tableWrapper') tableWrapper: ElementRef;
@@ -56,9 +56,15 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // department_id is received only when component is opened as dialog
+    this.isDialog = this.data?.department_id ? true : false;
+
+    // add department column if component is not opened as dialog
+    if(!this.isDialog) this.displayedColumns.splice(2, 0, 'department_name')
+
     this.variableState$.pipe(takeUntil(this.destroy$))
       .subscribe(data => {
-        this.variables = this.getFilteredVariables(data);
+        this.variables = this.isDialog ? this.getFilteredVariables(data) : this.getAllVariables(data);
         this.dataSource = new MatTableDataSource(this.variables);
 
         // Inbuilt MatTableDataSource.filterPredicate determines which columns filter term must be applied to
@@ -265,6 +271,11 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     // disables every table row, except the one that is newly created in is still not saved in db
     const clone = reduced.map((item: VariablePair) => {   return {...item, disabled: item.id === 0 ? false : true}   })
     return clone;
+  }
+
+  // just disables table rows, filters are not applied. This only happens when template is displayed as child component instead of dialog
+  getAllVariables(variables: VariablePair[]) {
+    return variables.map((item: VariablePair) => { return {...item, disabled: true} })
   }
 
   // focuses dom element that carries id attribute equal received id
