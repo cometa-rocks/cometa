@@ -687,6 +687,7 @@ interface AccountRole {
 interface VariablePair {
     id: number;
     department: number;
+    department_name: string;
     environment: number;
     feature: number;
     variable_name: string;
