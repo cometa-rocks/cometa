@@ -536,6 +536,21 @@ mat-option {
     }
 }
 
+.edit-variable-panel {
+    min-width: 100%;
+    min-height: 60%;
+    .mat-dialog-container {
+        resize: both;
+        overflow: auto;
+    }
+    th.mat-header-cell:nth-child(3) {
+        .mat-sort-header-container {
+            justify-content: center;
+            margin-left: 18px;
+        }
+    }
+}
+
 .mat-menu-item {
     span {
         font-weight: bold;
