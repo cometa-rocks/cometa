@@ -18,6 +18,16 @@
     height: 100%;
 }
 
+edit-variables {
+    padding: 20px 0 0 10px;
+    height: 90%;
+    overflow: auto;
+
+    ::ng-deep button {
+        border: 0;
+    }
+}
+
 // Add-feature icon on mobile. The size of 21 pixels is due to the lack of padding on the icon
 .icon {
     cursor: pointer;

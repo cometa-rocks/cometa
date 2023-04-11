@@ -466,15 +466,27 @@ export class ApiService {
    * @param values Variables
    */
   setVariable(variable: VariablePair) {
-    return this._http.post<Success>(`${this.api}variables/`, variable);
+    return this._http.post<Success>(`${this.api}variables/`, variable, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
+    });
   }
 
   patchVariable(variable: VariablePair) {
-    return this._http.patch<Success>(`${this.api}variables/${variable.id}/`, variable);
+    return this._http.patch<Success>(`${this.api}variables/${variable.id}/`, variable, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
+    });
   }
 
   deleteVariable(id: number) {
-    return this._http.delete<Success>(`${this.api}variables/${id}`);
+    return this._http.delete<Success>(`${this.api}variables/${id}`, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
+    });
   }
 
   sendInvite(emails: string[], departmentIds: number, customText: string) {
