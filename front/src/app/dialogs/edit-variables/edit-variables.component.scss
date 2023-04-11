@@ -35,9 +35,6 @@
         }
 
         td.mat-cell {
-            &:nth-child(3) {
-                text-align: center;
-            }
             small {
                 display: block;
                 font-size: 10px;
@@ -67,6 +64,10 @@
             box-sizing: border-box;
             width: 100%;
             outline: 0;
+            pointer-events: none;
+            &.edit {
+                pointer-events: all;
+            }
         }
 
         .validation-error {
@@ -75,8 +76,16 @@
 
         .actions-wrapper {
             display: flex;
-            button {
-                padding: 0;
+
+            .action-wrapper {
+                height: 22px;
+                line-height: 22px;
+                button {
+                    padding: 0;
+                    height: 22px !important;
+                    line-height: 22px !important;
+                    cursor: pointer;
+                }
             }
         }
     }
