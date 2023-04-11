@@ -27,6 +27,7 @@
                   value="{{element.variable_name}}"
                   pattern="^[\w.-]+$"
                   aria-label="var_name"
+                  [class.edit]="!element.disabled"
                   required>
               <small class="validation-error" *ngIf="variable_name.errors?.['required']">Variable name is required.</small>
               <small class="validation-error" *ngIf="variable_name.errors?.['pattern']">Special characters and space are not allowed.</small>
@@ -43,6 +44,7 @@
                   value="{{element.variable_value}}"
                   (input)="setInputStatus(variable_value?.errors, 'value')"
                   aria-label="var_value"
+                  [class.edit]="!element.disabled"
                   required>
             <small class="validation-error" *ngIf="variable_value.errors?.['required']">Variable value is required.</small>
           </td>
@@ -102,25 +104,25 @@
           <th mat-header-cell *matHeaderCellDef> </th>
           <td mat-cell *matCellDef="let element">
             <div class="actions-wrapper">
-              <div *ngIf="canEdit" [matTooltip]="element.disabled && isEditing ? 'Please save changes!' : 'Edit variable'" matTooltipPosition="above">
+              <div class="action-wrapper" *ngIf="canEdit" [matTooltip]="element.disabled && isEditing ? 'Please save changes!' : 'Edit variable'" matTooltipPosition="above">
                 <button mat-menu-item  *ngIf="element.disabled; else save"  [disabled]="isEditing" (click)="onEditVar(element)" aria-label="action_edit_var">
                   <mat-icon>edit</mat-icon>
                 </button>
               </div>
-              <div *ngIf="canDelete" [matTooltip]="element.in_use.length > 0 ? 'Warning! This variable is being used' : 'Delete variable'" matTooltipPosition="above">
+              <div class="action-wrapper" *ngIf="canDelete" [matTooltip]="element.in_use.length > 0 ? 'Warning! This variable is being used' : 'Delete variable'" matTooltipPosition="above">
                 <button mat-menu-item (click)="onDeleteVar(element)" [disabled]="element.id == 0 || (isEditing && element.disabled)" aria-label="action_delete_var">
                   <p *ngIf="element.in_use.length > 0" class="inuse">!</p>
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>
               <ng-template #save>
-                <div [matTooltip]="(errors.name || errors.value) && element.id === 0 ? 'Please introduce correct data' : 'Save variable'" matTooltipPosition="above">
+                <div class="action-wrapper" [matTooltip]="(errors.name || errors.value) && element.id === 0 ? 'Please introduce correct data' : 'Save variable'" matTooltipPosition="above">
                   <button mat-menu-item [disabled]="errors.name || errors.value" (click)="onSaveVar(element)" aria-label="action_save_var">
                     <mat-icon>save</mat-icon>
                   </button>
                 </div>
               </ng-template>
-              <div [matTooltip]="!element.disabled ? 'Cancel changes' : ''" matTooltipPosition="above">
+              <div class="action-wrapper" [matTooltip]="!element.disabled ? 'Cancel changes' : ''" matTooltipPosition="above">
                 <button mat-menu-item [disabled]="element.disabled" (click)="onCancelVar(element)" aria-label="action_cancel_var">
                   <mat-icon>cancel</mat-icon>
                 </button>
