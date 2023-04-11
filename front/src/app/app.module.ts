@@ -84,6 +84,7 @@ import { environment } from '@environments/environment';
 import { i18nMatPaginatorIntl } from '@services/paginator-intl';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { MatTooltipDefaultOptions, MAT_TOOLTIP_DEFAULT_OPTIONS } from '@angular/material/tooltip';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 /* Translate Loader */
 export function createTranslateLoader(http: HttpClient) {
@@ -333,7 +334,9 @@ export function getStripeApiKey() {
     {
       provide: MAT_TOOLTIP_DEFAULT_OPTIONS,
       useValue: customTooltipDefaults
-    }
+    },
+    { provide: MAT_DIALOG_DATA, useValue: {} },
+    { provide: MatDialogRef, useValue: {} }
   ],
   bootstrap: [CometaComponent]
 })
