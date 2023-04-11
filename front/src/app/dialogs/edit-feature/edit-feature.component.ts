@@ -61,6 +61,7 @@ export class EditFeature implements OnInit, OnDestroy {
   saving$ = new BehaviorSubject<boolean>(false);
 
   departmentSettings$: Observable<Department['settings']>
+  variable_dialog_isActive: boolean = false;
 
   steps$: Observable<FeatureStep[]>;
 
@@ -211,12 +212,16 @@ export class EditFeature implements OnInit, OnDestroy {
     const departmentId = this.departments$.find(dep => dep.department_name === this.featureForm.get('department_name').value).department_id;
     const feature = this.feature.getValue();
 
+    this.variable_dialog_isActive = true;
     this._dialog.open(EditVariablesComponent, {
       data: {
         feature_id: feature.feature_id,
         environment_id: environmentId,
-        department_id: departmentId
-      }
+        department_id: departmentId,
+      },
+      panelClass: 'edit-variable-panel'
+    }).afterClosed().subscribe(res => {
+      this.variable_dialog_isActive = false;
     });
   }
 
@@ -236,6 +241,9 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // Handle keyboard keys
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(event: KeyboardEvent) {
+    // only execute switch case if child dialog is closed
+    if (this.variable_dialog_isActive) return
+
     switch (event.keyCode) {
       case KEY_CODES.ESCAPE:
         // Check if form has been modified before closing
@@ -718,6 +726,11 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   onDownloadFile(file: UploadedFile) {
+    // return if file is still uploading
+    if(file.status.toLocaleLowerCase() != 'done') {
+      return;
+    }
+
     const downloading = this._snackBar.open('Generating file to download, please be patient.', 'OK', { duration: 10000 })
 
     this.fileUpload.downloadFile(file.id).subscribe({
