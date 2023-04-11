@@ -129,7 +129,7 @@ Author: dph000
     <!-- DEPARTMENT VARIABLES -->
     <ng-container *ngIf="(aciveList$ | async) == 'variables'">
       <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
-      <edit-variables [isDialog]="false"></edit-variables>
+      <edit-variables></edit-variables>
     </ng-container>
 
     <!-- List of the features within team drives -->
