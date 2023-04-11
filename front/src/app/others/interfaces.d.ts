@@ -687,6 +687,7 @@ interface AccountRole {
 interface VariablePair {
     id: number;
     department: number;
+    department_name: string;
     environment: number;
     feature: number;
     variable_name: string;
@@ -694,8 +695,8 @@ interface VariablePair {
     encrypted: boolean;
     based: string;
     in_use: number[];
-    created_by: number;
-    updated_by: number;
+    created_by_name: string;
+    updated_by_name: string;
     created_on: Date;
     updated_on: Date;
     disabled?: boolean;
