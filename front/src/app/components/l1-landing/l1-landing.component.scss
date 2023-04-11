@@ -18,6 +18,24 @@
     height: 100%;
 }
 
+edit-variables {
+    padding: 20px 0 0 10px;
+    height: 90%;
+    overflow: auto;
+
+    ::ng-deep mat-icon {
+        cursor: pointer;
+    }
+    ::ng-deep button {
+        border: 0;
+    }
+    ::ng-deep td.mat-cell {
+        &:nth-child(3) {
+            text-align: center;
+        }
+    }
+}
+
 // Add-feature icon on mobile. The size of 21 pixels is due to the lack of padding on the icon
 .icon {
     cursor: pointer;
