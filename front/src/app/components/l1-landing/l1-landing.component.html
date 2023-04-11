@@ -125,6 +125,13 @@ Author: dph000
       <cometa-welcome> </cometa-welcome>
     </ng-container>
 
+    <!-- List of the Department variables -->
+    <!-- DEPARTMENT VARIABLES -->
+    <ng-container *ngIf="(aciveList$ | async) == 'variables'">
+      <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
+      <edit-variables></edit-variables>
+    </ng-container>
+
     <!-- List of the features within team drives -->
     <!-- TEAM DRIVE -->
     <ng-container *ngIf="(aciveList$ | async) == 'team'">

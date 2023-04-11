@@ -14,6 +14,10 @@ Author: dph000
 <!-- The department boolean is used to know wheter the sent object is a department or not -->
 <cometa-folder-item-tree [department]="true" [folder]="folder" [parent]="[folder]" [level]="0" *ngFor="let folder of folders$ | async"></cometa-folder-item-tree>
 <!-- Team shared features and foldes list button -->
+<div (click)="toggleList('variables')" [class.selected]="(activeList$ | async) === 'variables'">
+  <mat-icon>settings_input_component</mat-icon>
+  Variables
+</div>
 <div (click)="toggleList('team')" [class.selected]="(activeList$ | async) === 'team'">
   <mat-icon>people</mat-icon>
   Team drives
