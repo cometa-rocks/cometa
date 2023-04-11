@@ -8,7 +8,6 @@ import { UserState } from '@store/user.state';
 import { MatDialog } from '@angular/material/dialog';
 import { OfferTourComponent } from '@dialogs/offer-tour/offer-tour.component';
 import { filter, tap } from 'rxjs/operators';
-import { ApiService } from './api.service';
 import { Configuration } from '@store/actions/config.actions';
 import { Store } from '@ngxs/store';
 import { User } from '@store/actions/user.actions';
@@ -21,7 +20,6 @@ export class TourService {
     private readonly _joyrideService: JoyrideService,
     private _dialog: MatDialog,
     private _tours: Tours,
-    private _api: ApiService,
     private _store: Store,
     @Inject(DOCUMENT) private readonly document: Document
   ) { }
