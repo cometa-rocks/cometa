@@ -1492,7 +1492,6 @@ def step_impl(context, css_selector):
 # Checks if it cannot see an element using a CSS Selector until timeout
 @step(u'I cannot see element with selector "{selector}"')
 @done(u'I cannot see element with css selector "{selector}"')
-@timeout("Unable to find specified element in <seconds> seconds.")
 def cannot_see_selector(context, selector):
     # log general information about this step
     logger.debug("Running in Feature: %s " % context.feature_id )
@@ -1500,8 +1499,7 @@ def cannot_see_selector(context, selector):
     timeout = context.step_data['timeout']
     logger.debug("Timeout is %s " % timeout)
 
-    # send feedback to user via WS
-    send_step_details(context, 'Looking for selector')
+    send_step_details(context, 'Looking for selector') # send feedback to user via WS
 
     # type of selectors to be searched
     types = {
@@ -1509,14 +1507,15 @@ def cannot_see_selector(context, selector):
         "xpath": "context.browser.find_elements_by_xpath(selector)",
     }
 
-    # loop until timeout is reached
-    start_time = time.time()
+    start_time = time.time() # loop until timeout is reached
+    found_element= False # flag to signal element was found
 
+    # Loop until timeout reached or element found
     while True:
         elapsed_time = time.time() - start_time
         logger.debug("looping while true and not reaching timeout %s - elepased time %s " % (timeout, elapsed_time))
-        # check timeout
-        if elapsed_time >= timeout:
+        
+        if elapsed_time >= timeout: # check timeout
             logger.debug("Timeout reached")
             send_step_details(context, 'Looking for selector - timeout reached ... it was not found, which is good')
             break
@@ -1526,29 +1525,34 @@ def cannot_see_selector(context, selector):
             logger.debug("Trying to find element %s with %s " % (selector, selec_type))
             try:
                 elements = eval(types.get(selec_type, "css"))
-                # Check if it returned at least 1 element
+                # Check if it returned at least 1 element ... which means, we found something
                 if isinstance(elements, WebElement) or len(elements) > 0:
-                    # if there is something, then fail the step
-                    logger.debug("Found element ... which is bad")
-                    send_step_details(context, 'Looking for selector - it was found, which is bad')
-                    raise CustomError("Found selector using %s. Which is bad." % css_selector)
-                    return False
+                    logger.debug("Found element ... which is bad. Setting found_element to True and breaking the loop.")
+                    found_element=True
+                    break
                 else:
                     logger.debug("Could not find %s " % selector)
             except CustomError as err:
                 logger.debug(err)
-                # Max retries exceeded, raise error
                 raise
             except:
                 pass
-            # give page some time to render the search
-            time.sleep(1)
+
+            time.sleep(1) # give page some time to render the search
+
+        # check if element was found
+        if found_element:
+            send_step_details(context, 'Looking for selector - it was found, which is bad')
+            raise CustomError("Found selector using %s. Which is bad." % selector)
+            break
 
     # finally check, if we reached the timeout
-    if elapsed_time >= timeout:
-        logger.debug("Timeout reached")
-        send_step_details(context, 'Looking for selector - timeout reached ... it was not found, which is good')
-        return True
+    if elapsed_time >= timeout and found_element == False:
+        logger.debug("Element was not found.")
+        send_step_details(context, 'Looking for selector - timeout reached. Selector %s was not found, which is good' % selector)
+    else:
+        logger.debug("Timeout was not reached and Element was found")
+        raise CustomError("Found selector %s. Which is bad." % selector)
 
 # Check if the source code in the previously selected iframe contains a link with text something
 @step(u'I can see a link with "{linktext}" in iframe')
