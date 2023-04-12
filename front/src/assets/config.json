@@ -191,12 +191,26 @@
 	],
 	"changelog": [
 		{
+			"version": "2.8.291",
+			"date": "2023-04-12",
+			"features": [
+				{
+					"title": "New step: I cannot see",
+					"description": "With this new step we can easily assert negative assumptions. So, not seeing a given selector is positiv. For exmaple, use this for testing the absense of elements when checking on access-rights."
+				}
+			]
+		},
+		{
 			"version": "2.8.290",
 			"date": "2023-03-12",
 			"features": [
 				{
 					"title": "Preselect Feature Options",
 					"description": "You can preselect feature options such as department, application, environment and record video when ever creating new features. These options can be changed in User settings."
+				},
+				{
+					"title": "New step: I cannot see",
+					"description": "With this new step we can easily assert negative assumptions. So, not seeing a given selector is positiv. For exmaple, use this for testing the absense of elements when checking on access-rights."
 				}
 			],
 			"bugfixes": [
