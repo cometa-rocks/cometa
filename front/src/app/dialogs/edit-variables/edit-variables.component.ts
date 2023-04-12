@@ -144,6 +144,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     confirmDialog.afterClosed().subscribe(res => {
       if (res) {
         action.subscribe(this.safeSubscriber('delete', variable));
+        return;
       }
     })
   }
@@ -165,9 +166,15 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
           this.setInputStatus({required: true}, 'value');
           this._cdr.markForCheck();
 
-          // focus enabled row
+          // focus enabled row's variable-value input
           this.focusElement(`value-${variable.id}`)
+          return;
         }
+
+        // if dialog result is no/false. go back to previous state of value encryption and focus variable-name input
+        variable.encrypted = true;
+        this.focusElement(`name-${variable.id}`)
+        this._cdr.markForCheck();
       })
     }
   }
