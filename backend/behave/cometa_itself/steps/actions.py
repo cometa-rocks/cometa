@@ -1752,9 +1752,16 @@ def step_impl(context):
 @step(u'I click on element with classname "{classname}"')
 @done(u'I click on element with classname "{classname}"')
 def step_impl(context, classname):
-    send_step_details(context, 'Looking for classname')
-    elem = waitSelector(context, "class", classname)
-    elem[0].click()
+    start_time = time.time()
+    try:
+        send_step_details(context, 'Looking for classname')
+        elem = waitSelector(context, "class", classname)
+        elem[0].click()
+        return True
+    except Exception as e:
+        raise CustomError("Could not interact with element having classname %s ." % classname)
+        logger.error(str(e))
+        return False
 
 def click_on_element(elem):
     start_time = time.time()
