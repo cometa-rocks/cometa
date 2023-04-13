@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, ViewChild, ChangeDetectionStrategy, HostListener, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Inject, ViewChild, ChangeDetectionStrategy, HostListener, OnDestroy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service'
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
@@ -32,7 +32,7 @@ import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-
 import { Configuration } from '@store/actions/config.actions';
 import { parseExpression } from 'cron-parser';
 import { DepartmentsState } from '@store/departments.state';
-import { Clipboard } from "@angular/cdk/clipboard"
+import { VariablesState } from '@store/variables.state';
 
 @Component({
   selector: 'edit-feature',
@@ -40,7 +40,7 @@ import { Clipboard } from "@angular/cdk/clipboard"
   styleUrls: ['./edit-feature.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EditFeature implements OnInit, OnDestroy {
+export class EditFeature implements OnInit, OnDestroy, AfterViewInit {
   displayedColumns: string[] = ['name','mime','size','uploaded_by.name','created_on', 'actions'];
 
   @ViewSelectSnapshot(ConfigState) config$ !: Config;
@@ -56,6 +56,7 @@ export class EditFeature implements OnInit, OnDestroy {
   @ViewSelectSnapshot(UserState) user !: UserInfo;
   @ViewSelectSnapshot(UserState.HasOneActiveSubscription) hasSubscription: boolean;
   @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
+  @Select(VariablesState) variableState$: Observable<VariablePair[]>;
 
 
   saving$ = new BehaviorSubject<boolean>(false);
@@ -82,6 +83,7 @@ export class EditFeature implements OnInit, OnDestroy {
   selected_application;
   selected_environment;
   department;
+  variables !: VariablePair[];
 
   readonly separatorKeysCodes: number[] = [ENTER, COMMA];
 
@@ -102,7 +104,6 @@ export class EditFeature implements OnInit, OnDestroy {
     private _fb: UntypedFormBuilder,
     private cdr: ChangeDetectorRef,
     private fileUpload: FileUploadService,
-    private clipboard: Clipboard,
     @Inject(API_URL) public api_url: string,
   ) {
     // Create the fields within FeatureForm
@@ -147,6 +148,10 @@ export class EditFeature implements OnInit, OnDestroy {
       const { minute, hour, day_month, month, day_week } = values;
       this.parseSchedule({ minute, hour, day_month, month, day_week });
     })
+  }
+  ngAfterViewInit(): void {
+    this.variableState$
+    .subscribe(data => { this.variables =  this.getFilteredVariables(data) })
   }
 
   ngOnDestroy() {
@@ -777,5 +782,28 @@ export class EditFeature implements OnInit, OnDestroy {
     const duration = 2000;
     successful ? this._snackBar.open("File upload path has been copied", "OK", { duration: duration }) :
                  this._snackBar.open("File upload path could not be copied", "OK", { duration: duration })
+  }
+
+
+  getFilteredVariables(variables: VariablePair[]) {
+    let feature = this.feature.getValue();
+    let reduced = variables.reduce((filtered_variables: VariablePair[], current:VariablePair) => {
+      // stores variables, if it's id coincides with received department id and it is based on department
+      const byDeptOnly = current.department === this.feature.getValue().department_id && current.based == 'department' ? current : null;
+
+      // stores variable if department id coincides with received department id and
+      // environment or feature ids coincide with received ones, additionally if feature id coincides variable must be based on feature. If environment id coincides, variables must be based on environment.
+      const byEnv = current.department === feature.department_id && ((current.environment === feature.environment_id && current.based == 'environment') ||
+                                                                      (current.feature === feature.feature_id && current.based == 'feature')) ? current : null;
+
+      // pushes stored variables into array if they have value
+      byDeptOnly ? filtered_variables.push(byDeptOnly) : null;
+      byEnv ? filtered_variables.push(byEnv) : null;
+
+      // removes duplicated variables and returs set like array
+      return filtered_variables.filter((value, index, self) => index === self.findIndex((v) => (v.id === value.id)))
+    }, [])
+
+    return reduced;
   }
 }
