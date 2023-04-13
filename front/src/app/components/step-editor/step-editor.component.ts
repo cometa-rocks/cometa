@@ -36,6 +36,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   @Input() feature: Feature;
   @Input() name: string;
   @Input() mode: 'new' | 'edit' | 'clone';
+  @Input() variables: VariablePair[];
+
+  displayedVariables: VariablePair[] = [];
+  currentStepIndex: number = null;
 
   constructor(
     private _dialog: MatDialog,
@@ -95,6 +99,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
    * @param {number} index Index of step
    */
   fixStep(event: any, index: number) {
+    this.currentStepIndex = null;
     const actionsToValidate = ['StartBrowser and call URL', 'Goto URL'];
     // Get value from textarea input
     let stepValue: string = event.target.value;
@@ -118,6 +123,59 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         }
       }
     }
+  }
+
+  onStepChange(event, index: number) {
+    this.displayedVariables = [];
+
+    // sets the index of currently being edited step row
+    this.currentStepIndex = index;
+
+    // gets cursor position on text area
+    const selectionIndex = event.target.selectionStart;
+
+    // gets whole textarea value
+    const stepValue = event.target.value as string;
+
+    // gets the position of nearest left and right quotes taking current cursor position as startpoint index
+    const quoteIndexes = this.getQuoteIndexes(stepValue, selectionIndex);
+
+    // return if left quote or right quote index is undefined
+    if(!quoteIndexes.next || !quoteIndexes.prev) return;
+
+    // gets the string between quotes(including quotes)
+    const strToReplaced = stepValue.substring(quoteIndexes.prev, quoteIndexes.next);
+
+    // removes quotes
+    const strWithoutQuotes = strToReplaced.replace(/"/g, '').trim();
+
+    // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
+    if (strWithoutQuotes.includes('$')) {
+      const strWithoutDollar = strWithoutQuotes.replace('$','')
+      this.displayedVariables = this.variables.filter(item => item.variable_name.includes(strWithoutDollar));
+    }
+  }
+
+  // returns the index of nearest left and right " char in string, taking received startIndex as startpoint reference
+  getQuoteIndexes(str, startIndex) {
+    let prevQuoteIndex = getPrev();
+    let nextQuoteIndex = getNext();
+
+    // returns the index of the nearest " after received index
+    function getNext() {
+      for(let i = startIndex; i<str.length; i++) {
+        if (str[i] === '"')  return i + 1;
+      }
+    }
+
+    // returns the index of the nearest " before received index
+    function getPrev() {
+      for(let i = startIndex-1; i >=0; i--) {
+        if (str[i] === '"') return i;
+      }
+    }
+
+    return { prev: prevQuoteIndex, next: nextQuoteIndex };
   }
 
   /**

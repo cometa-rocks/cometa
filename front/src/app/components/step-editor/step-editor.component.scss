@@ -136,6 +136,28 @@
         padding: 12px 10px;
         flex: 1;
         display: flex;
+        flex-direction: column;
+        position: relative;
+
+        .var_name_autoComplete {
+            position: absolute;
+            background-color: #F3F7FC;
+            max-height: 100px;
+            width: 300px;
+            overflow: auto;
+            border: 1px solid $border-color;
+            border-radius: 5px;
+            z-index: 1;
+            padding-top: 0;
+
+            .mat-list-item {
+                height: 30px;
+                &:hover {
+                    background-color: $blue;
+                }
+            }
+        }
+
         .code {
             $lineHeight: 25px;
             flex: 1;
