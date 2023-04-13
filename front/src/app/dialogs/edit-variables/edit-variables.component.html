@@ -140,8 +140,8 @@
   </ng-template>
 </mat-dialog-content>
 <mat-dialog-actions *ngIf="data?.department_id">
-  <div class="add-variable" *ngIf="canCreate" [matTooltip]="isEditing ? 'Please save changes before creating new variable' : 'Create new variable'" matTooltipPosition="above">
-    <button color="primary" (click)="onAddVar()" class="add" [disabled]="isEditing" mat-stroked-button>Add variable</button>
+  <div class="add-variable" *ngIf="canCreate" [matTooltip]="data?.feature_id === 0 ? 'Please finish creating feature in order to add new variable' : isEditing ? 'Please save changes before creating new variable' : 'Create new variable'" matTooltipPosition="above">
+    <button color="primary" (click)="onAddVar()" class="add" [disabled]="isEditing || data?.feature_id === 0" mat-stroked-button>Add variable</button>
   </div>
   <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
 </mat-dialog-actions>
