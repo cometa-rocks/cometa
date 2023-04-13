@@ -66,7 +66,7 @@
             </mat-select>
           </div>
         </div>
-        <div class="step_content">
+        <div class="step_content" tabindex="0" (keydown.esc)="onStepEscape($event)">
           <textarea (input)="onStepChange($event, i)" (blur)="fixStep($event, i)" class="code" spellcheck="false" cdkTextareaAutosize autocomplete="off" formControlName="step_content" [matAutocomplete]="stepHelp" placeholder="Step Code"></textarea>
           <mat-list class="var_name_autoComplete" [ngStyle]="{'bottom.px': displayedVariables.length > 4 ? -100 : (-displayedVariables.length * 30)}" *ngIf="currentStepIndex == i && displayedVariables.length > 0" role="list">
             <mat-list-item *ngFor="let variable of displayedVariables"> {{variable.variable_name}}</mat-list-item>

@@ -82,6 +82,10 @@ a {
     margin: 0 10px;
 }
 
+.mat-expansion-panel {
+    overflow: unset;
+}
+
 :host::ng-deep .mat-dialog-content {
     padding: 0 10px 5px;
     @include for-tablet-portrait-up {
