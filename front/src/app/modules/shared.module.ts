@@ -96,6 +96,7 @@ import { NewFolderComponent } from '@components/new-folder/new-folder.component'
 import { MoveFolderItemComponent } from '@dialogs/move-feature/move-folder-item/move-folder-item.component';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
+import { MatListModule } from '@angular/material/list';
 // import { MaterialExtensionsModule } from '@ng-matero/extensions';
 import { MtxGridModule } from '@ng-matero/extensions/grid';
 
@@ -128,6 +129,7 @@ const materialModules = [
   MatDialogModule,
   MatSnackBarModule,
   MatProgressSpinnerModule,
+  MatListModule,
   MatNativeDateModule,
   MatRadioModule,
   MatFormFieldModule,
