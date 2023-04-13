@@ -99,7 +99,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
    * @param {number} index Index of step
    */
   fixStep(event: any, index: number) {
-    this.currentStepIndex = null;
     const actionsToValidate = ['StartBrowser and call URL', 'Goto URL'];
     // Get value from textarea input
     let stepValue: string = event.target.value;
@@ -123,6 +122,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         }
       }
     }
+  }
+
+  onStepEscape(event: Event) {
+    event.stopImmediatePropagation();
+    this.currentStepIndex = null;
   }
 
   onStepChange(event, index: number) {
