@@ -191,6 +191,16 @@
 	],
 	"changelog": [
 		{
+			"version": "2.8.292",
+			"date": "2023-04-13",
+			"features": [
+				{
+					"title": "Variable filter popup",
+					"description": "User can now make use of live variable filter popup to accurately insert variable names in steps. Popup will appear once user replaces '{anything}' with '$'"
+				}
+			]
+		},
+		{
 			"version": "2.8.291",
 			"date": "2023-04-12",
 			"features": [
