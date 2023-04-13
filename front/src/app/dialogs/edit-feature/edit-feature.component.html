@@ -68,7 +68,7 @@
             <mat-checkbox formControlName="need_help" color="primary" [matTooltip]="'need_help.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
             <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
               <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
-                <button color="primary" [disabled]="disableVariables || data.feature.feature_id === 0" (click)="editVariables()" mat-stroked-button>Edit environment variables</button>
+                <button color="primary" [disabled]="disableVariables" (click)="editVariables()" mat-stroked-button>environment variables</button>
               </span>
             </ng-container>
           </div>
@@ -229,7 +229,7 @@
           <mat-panel-description>Edit the steps for the current feature (applies to all selected browsers)</mat-panel-description>
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
-          <cometa-step-editor *ngIf="feature | async as feat" [mode]="data.mode" [feature]="feat" [name]="featureForm.get('feature_name').value"></cometa-step-editor>
+          <cometa-step-editor *ngIf="feature | async as feat" [mode]="data.mode" [feature]="feat" [variables]="variables" [name]="featureForm.get('feature_name').value"></cometa-step-editor>
         </ng-template>
       </mat-expansion-panel>
       <mat-expansion-panel [expanded]="!config$.toggles.hideSchedule">
