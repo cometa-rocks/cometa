@@ -67,7 +67,10 @@
           </div>
         </div>
         <div class="step_content">
-          <textarea (blur)="fixStep($event, i)" class="code" spellcheck="false" cdkTextareaAutosize autocomplete="off" formControlName="step_content" [matAutocomplete]="stepHelp" placeholder="Step Code"></textarea>
+          <textarea (input)="onStepChange($event, i)" (blur)="fixStep($event, i)" class="code" spellcheck="false" cdkTextareaAutosize autocomplete="off" formControlName="step_content" [matAutocomplete]="stepHelp" placeholder="Step Code"></textarea>
+          <mat-list class="var_name_autoComplete" [ngStyle]="{'bottom.px': displayedVariables.length > 4 ? -100 : (-displayedVariables.length * 30)}" *ngIf="currentStepIndex == i && displayedVariables.length > 0" role="list">
+            <mat-list-item *ngFor="let variable of displayedVariables"> {{variable.variable_name}}</mat-list-item>
+          </mat-list>
         </div>
         <i *ngIf="step.get('step_content').errors?.invalidStep" class="invalid-sign" matTooltip="Invalid step definition" matTooltipPosition="above"></i>
         <ng-container *ngIf="importsSteps$ | async as importedSteps">
