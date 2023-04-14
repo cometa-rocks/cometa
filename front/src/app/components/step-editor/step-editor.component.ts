@@ -124,9 +124,27 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
   }
 
+  aaa(event: Event, direction: string) {
+    event.preventDefault();
+    const ev = event as any;
+    direction === 'down' ?
+                  ev.target.nextElementSibling ?
+                  ev.target.nextElementSibling.focus() : null
+                  :
+                  ev.target.previousElementSibling ?
+                  ev.target.previousElementSibling.focus() : null
+  }
+
   onStepEscape(event: Event) {
     event.stopImmediatePropagation();
     this.currentStepIndex = null;
+  }
+
+  onStepFocusOut(event: FocusEvent) {
+    event.preventDefault();
+
+    const ev = event as any;
+    if (!ev.relatedTarget?.attributes.id) this.currentStepIndex = null;
   }
 
   onStepChange(event, index: number) {
