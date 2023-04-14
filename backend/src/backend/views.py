@@ -2582,8 +2582,10 @@ class VariablesViewSet(viewsets.ModelViewSet):
                 variable.variable_value = encrypt(variable.variable_value)
 
             # check if feature belongs to the department
-            if variable.feature.department_id != variable.department.department_id:
-                raise Exception(f"Feature does not belong the same department id, please check.")
+            # commented for now
+            # this condition raises exception if variable.feature coming from front is null, which prevents user from patching old variables
+            # if variable.feature.department_id != variable.department.department_id:
+            #    raise Exception(f"Feature does not belong the same department id, please check.")
             variable.save()
         except Exception as err:
             return JsonResponse({
