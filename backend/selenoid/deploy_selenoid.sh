@@ -39,11 +39,11 @@ docker image ls | grep selenoid/video-recorder | grep -q "latest-release" && inf
 
 # Replacing Selenoid browser containers background with custom
 customBg=/data/cometa/config/custom-desktop.png
+pwd=`pwd`
 # Check if custom image has been provided in /data/cometa/config/
 if [ -f "$customBg" ]; then
     bgImage=$customBg
 else
-    pwd=`pwd`
     bgImage="${pwd}/amvara.png"
 fi
 fluxboxPath=${pwd}/.fluxbox
