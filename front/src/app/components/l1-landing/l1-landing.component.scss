@@ -280,7 +280,7 @@ p {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        flex: 0 80px;
+        flex: 0 120px;
         height: 100%;
         border-radius: 5px;
         overflow: hidden;
@@ -316,6 +316,10 @@ p {
             }
             &.list:after {
                 background-image: url(^assets/icons/list-view.svg);
+                background-size: 20px;
+            }
+            &.tree:after {
+                background-image: url(^assets/icons/tree-view.svg);
                 background-size: 20px;
             }
         }
