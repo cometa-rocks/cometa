@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, Input, OnInit, KeyValueDiffers } from '@angular/core';
+import { Router } from '@angular/router';
 import { Select, Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { ApiService } from '@services/api.service';
@@ -21,7 +22,7 @@ export class L1TreeViewComponent implements OnInit{
 
   widthChecker(text) {
     const p = document.createElement("p");
-    p.style.fontSize = "12px";
+    p.style.fontSize = "16px";
     p.style.position = "absolute";
     p.style.opacity = "0";
     p.innerHTML = text;
@@ -31,7 +32,7 @@ export class L1TreeViewComponent implements OnInit{
     return textWidth;
 }
 
-  constructor( private _store: Store, private _api: ApiService ) {}
+  constructor( private _store: Store, private _api: ApiService, private _router: Router ) {}
 
   findEmbededObject(data: any, obj: any) {
     let found = null;
@@ -73,7 +74,7 @@ export class L1TreeViewComponent implements OnInit{
 
     const margins = {top: 0, right: 120, bottom: 0, left: 30};
     const dx = 30; // line height
-    const dy = width / 4;
+    const dy = width / 5;
 
     const tree = d3.tree().nodeSize([dx, dy]);
     const diagonal = d3.linkHorizontal().x(d => {
@@ -89,7 +90,7 @@ export class L1TreeViewComponent implements OnInit{
       d.id = i;
     })
 
-    const zoom = d3.zoom().scaleExtent([-5, 5])
+    const zoom = d3.zoom().scaleExtent([1, 10])
                           .on('zoom', (event) => {
                             svg.attr("transform", event.transform)
                           })
@@ -99,7 +100,8 @@ export class L1TreeViewComponent implements OnInit{
                                   .attr("height", "99%")
                                   .style("font", "10px sans-serif")
                                   .style("user-select", "none")
-                                  .call(zoom);
+                                  .call(zoom)
+                                  .on("dblclick.zoom", null);
     const svg = parent.append("g");
 
     const gLink = svg.append("g")
@@ -137,6 +139,19 @@ export class L1TreeViewComponent implements OnInit{
       }
     }
 
+    function centerNode(source) {
+      const t = d3.zoomTransform(parent.node());
+      const boundries = d3.selectAll('g').filter(d => d ? d.id == source.id : false).node().getBBox();
+      let x = -source.y0;
+      let y = -source.x0;
+      x = x * t.k + (width / 2) - margins.left - (boundries.width / 2);
+      if (source.children) {
+        x = x - (dy / 2);
+      }
+      y = y * t.k - (dx * 2); // move upwards a little bit....
+      d3.select('svg').transition().duration(250).call( zoom.transform, d3.zoomIdentity.translate(x,y).scale(t.k) );
+    }
+
     const update = source => {
       const duration = 250;
       const nodes = root.descendants().reverse();
@@ -168,14 +183,14 @@ export class L1TreeViewComponent implements OnInit{
                                     .attr("fill-opacity", 0)
                                     .attr("stroke-opacity", 0)
                                     .on("click", (event, d) => {
-                                      if (d.data.type != "feature" && d.depth != 0) {
-                                          toggle(d);
-                                          update(d);
-                                      }
+                                      toggle(d);
+                                      update(d);
+                                      centerNode(d)
                                     })
                                     .on("dblclick", (event, d) => {
+
                                       if (d.data.type == "feature") {
-                                          console.log("https://myco.meta.link.com/#/app/env/" + d.data.name)
+                                        this._router.navigate(['/from/tree-view/', d.data.id])
                                       }
                                     })
   
@@ -260,6 +275,7 @@ export class L1TreeViewComponent implements OnInit{
     }
     root.children.forEach(collapse);
     update(root);
+    centerNode(root);
   }
 
   async ngOnInit() {
