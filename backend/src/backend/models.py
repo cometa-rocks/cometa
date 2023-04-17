@@ -334,7 +334,7 @@ def write_multiline_javascript_step(featureFile, step):
     # get the code from the pattern
     js_function = js_function_pattern.group(1)
     featureFile.write('\n%s%s %s\n' % (startingIndent, step['step_keyword'], u'Run Javascript function "// function is set in step description!!"'.replace('\\xa0', ' ')))
-    featureFile.write('%s\t%s\n%s\t%s\n%s\t%s' % (startingIndent, quotes, startingIndent, js_function.replace("\n", "\n\t\t\t"), startingIndent, quotes))
+    featureFile.write('%s\t%s\n%s\t%s\n%s\t%s' % (startingIndent, quotes, startingIndent, js_function.replace("\n", f"\n{startingIndent}\t"), startingIndent, quotes))
 
 def write_multiline_send_keys_step(featureFile, step):
     global insideLoop

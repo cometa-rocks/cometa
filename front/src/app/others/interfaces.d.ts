@@ -525,7 +525,7 @@ interface FeatureViewItems {
     [view: string]: FeatureViewTypes;
 }
 
-type FeatureViewTypes = 'tiles' | 'list';
+type FeatureViewTypes = 'tiles' | 'list' | 'tree';
 
 interface ResultHeader {
     enable: boolean;
