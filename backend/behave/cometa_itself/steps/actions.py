@@ -242,7 +242,7 @@ def done( *_args, **_kwargs ):
                 # print stack trace
                 traceback.print_exc()
                 # set the error message to the step_error inside context so we can pass it through websockets!
-                args[0].step_error = str(err)
+                args[0].step_error = logger.mask_values(str(err))
                 try:
                     # save the result to databse as False since the step failed
                     saveToDatabase(save_message, (time.time() - start_time) * 1000, 0, False, args[0])
