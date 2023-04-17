@@ -684,6 +684,21 @@ interface AccountRole {
     department: number;
 }
 
+
+interface VariableInsertionData {
+    currentStepIndex?: number | null;
+    selectionIndex?: number;
+    stepValue?: string;
+    quoteIndexes?: QuoteIndexes;
+    strToReplace?: string;
+    strWithoutQuotes?: string;
+}
+
+interface QuoteIndexes {
+    next?: number;
+    prev?: number;
+}
+
 interface VariablePair {
     id: number;
     department: number;
