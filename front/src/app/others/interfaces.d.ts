@@ -525,7 +525,7 @@ interface FeatureViewItems {
     [view: string]: FeatureViewTypes;
 }
 
-type FeatureViewTypes = 'tiles' | 'list';
+type FeatureViewTypes = 'tiles' | 'list' | 'tree';
 
 interface ResultHeader {
     enable: boolean;
@@ -682,6 +682,21 @@ interface AccountRole {
     account_role_id: number;
     user: number;
     department: number;
+}
+
+
+interface VariableInsertionData {
+    currentStepIndex?: number | null;
+    selectionIndex?: number;
+    stepValue?: string;
+    quoteIndexes?: QuoteIndexes;
+    strToReplace?: string;
+    strWithoutQuotes?: string;
+}
+
+interface QuoteIndexes {
+    next?: number;
+    prev?: number;
 }
 
 interface VariablePair {
