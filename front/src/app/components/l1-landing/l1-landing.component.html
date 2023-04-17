@@ -52,7 +52,7 @@ Author: dph000
       <!-- Feature list options and the list itself -->
       <div class="feature-list" [class.hide-features]="openedSearch$ | async">
         <ng-container>
-          <div>
+          <div style="height: calc(100% - 50px)">
             <div class="features-header">
               <!-- How many features and folders were found -->
               <div *ngIf="table?.rows?.length > 0" class="features_folders_count">
@@ -60,6 +60,7 @@ Author: dph000
               </div>
               <!-- Feature list view selector -->
               <div class="view-selector">
+                <div matRipple (click)="setView('with', 'tree')" matTooltip="Tree view" [class.selected]="itemsViewWith === 'tree'" class="tree view"></div>
                 <div matRipple (click)="setView('with', 'tiles')" matTooltip="Tiles view" [class.selected]="itemsViewWith === 'tiles'" class="tiles view"></div>
                 <div matRipple (click)="setView('with', 'list')" matTooltip="List view" [class.selected]="itemsViewWith === 'list'" class="list view"></div>
               </div>
@@ -71,7 +72,13 @@ Author: dph000
               </ng-container>
               <!-- Feature list with list view -->
               <ng-template #listView>
-                <cometa-l1-feature-list (closeAdd)="closeAdd()" [data$]='table'></cometa-l1-feature-list>
+                <ng-container *ngIf="itemsViewWith === 'list'; else treeView">
+                  <cometa-l1-feature-list (closeAdd)="closeAdd()" [data$]='table'></cometa-l1-feature-list>
+                </ng-container>
+              </ng-template>
+              <!-- Feature list with tree view -->
+              <ng-template #treeView>
+                <cometa-l1-tree-view></cometa-l1-tree-view>
               </ng-template>
               <!-- Section ending -->
               <div style="clear: both"></div>
