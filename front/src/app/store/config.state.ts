@@ -57,7 +57,7 @@ export class ConfigState {
     // Configuration to change the features view
     const featuresViewWith = localStorage.getItem('featuresView.with');
     if (featuresViewWith !== null) {
-      if (['tiles','list'].includes(featuresViewWith)) {
+      if (['tiles','list', 'tree'].includes(featuresViewWith)) {
         configFile.featuresView.with = featuresViewWith;
       } else {
         localStorage.removeItem('featuresView.with');
@@ -66,7 +66,7 @@ export class ConfigState {
     // Configuration to change the related features view
     const featuresViewWithout = localStorage.getItem('featuresView.without');
     if (featuresViewWithout !== null) {
-      if (['tiles','list'].includes(featuresViewWithout)) {
+      if (['tiles','list', 'tree'].includes(featuresViewWithout)) {
         configFile.featuresView.without = featuresViewWithout;
       } else {
         localStorage.removeItem('featuresView.without');
