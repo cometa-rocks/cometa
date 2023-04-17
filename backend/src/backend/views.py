@@ -2146,11 +2146,7 @@ class FolderViewset(viewsets.ModelViewSet):
                 }
             # if feature_id exists that means feature belongs to folder_id
             if result.feature_id is not None:
-                feature_object = {
-                    'id': result.feature_id,
-                    'name': result.feature_name,
-                    'type': 'feature'
-                }
+                feature_object = FeatureHasSubFeatureSerializer(Feature.objects.get(feature_id=result.feature_id), many=False).data
                 if result.folder_id is not None:
                     objectsCreated["folders"][result.folder_id]['children'].append(feature_object)
                 else:

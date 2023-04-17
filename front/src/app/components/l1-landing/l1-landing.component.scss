@@ -308,6 +308,10 @@ p {
                 background-image: url(^assets/icons/list-view.svg);
                 background-size: 20px;
             }
+            &.tree:after {
+                background-image: url(^assets/icons/tree-view.svg);
+                background-size: 20px;
+            }
         }
     }
 }

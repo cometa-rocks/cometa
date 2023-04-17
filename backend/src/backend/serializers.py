@@ -305,6 +305,36 @@ class FeatureTreeSerializer(serializers.ModelSerializer, FeatureMixin):
         }
         return treeRep
 
+class FeatureHasSubFeatureSerializer(serializers.ModelSerializer, FeatureMixin):
+    class Meta:
+        model = Feature
+        fields = ('feature_id', 'feature_name',)
+    
+    def to_representation(self, feature):
+        get_steps = Step.objects.filter(feature_id=feature.feature_id).exclude(belongs_to=feature.feature_id).order_by('belongs_to').distinct('belongs_to')
+
+        # get all childs
+        childrens = [
+            # "steps": ....
+        ]
+        for step in get_steps:
+            stepFeature = step.belongs_to
+            try:
+                childrens.append(FeatureHasSubFeatureSerializer(Feature.objects.get(feature_id=stepFeature), many=False).data)
+            except:
+                pass
+
+        treeRep = {
+            "type": "feature",
+            "name": feature.feature_name,
+            "id": feature.feature_id,
+            "children": childrens
+        }
+
+        return treeRep
+
+
+
 ##########################
 # Step model serializers #
 ##########################
