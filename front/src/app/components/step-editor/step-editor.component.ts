@@ -31,12 +31,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   stepsForm: UntypedFormArray;
 
-  // autocompletes
-  @ViewChild('stepHelp', { read: MatAutocompleteTrigger }) stepHelp: MatAutocompleteTrigger;
-  @ViewChild('variableHelp', { read: MatAutocompleteTrigger }) variableHelp: MatAutocompleteTrigger;
-
   @ViewSelectSnapshot(ActionsState) actions: Action[];
-  @ViewSelectSnapshot(VariablesState) variables: VariablePair[];
   @ViewSelectSnapshot(UserState) user !: UserInfo;
 
   @Input() feature: Feature;
@@ -481,10 +476,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (!event.checked) {
       this.stepsForm.at(i).get('compare').setValue(false);
     }
-  }
-
-  stepContentChanged(event: any) {
-    console.log(this.variableHelp)
   }
 
 }
