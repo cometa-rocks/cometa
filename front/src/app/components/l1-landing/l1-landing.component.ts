@@ -141,7 +141,6 @@ export class L1LandingComponent implements OnInit {
     this.log.msg("1","Changing feature list view type to...","landing", view);
     this.openedAdd = false;
 
-
     return this._store.dispatch([
       new User.SetSetting({ 'featuresView.with': view }),
       new Configuration.SetProperty(`featuresView.${type}`, view, true)

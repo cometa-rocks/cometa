@@ -2064,6 +2064,115 @@ class FolderViewset(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer, )
 
     '''
+    Function find_in_dict
+        Finds key with specified value inside dictionaries
+
+    Parameters:
+        @objects    Dictionaries on which @key, @value pair are searched
+        @key        Key name that will be searched in @objects
+        @value      If @key name is found then match the value.
+
+    Return:
+        @result     Dict that contains the @key, @value pair.
+    '''
+    def find_in_dict(self, objects, key, value):
+        for obj in objects.values() if isinstance(objects, dict) else objects:
+            if obj[key] == value: return obj
+            result = self.find_in_dict(obj['folders'], key, value)
+            if result is not None:
+                return result
+
+    def serializeResultsFromRawQueryForTree(self, departments, max_lvl):
+        query = """
+            WITH RECURSIVE recursive_folders AS (
+                SELECT bf.*, 1 AS LVL
+                FROM backend_folder bf
+                WHERE bf.parent_id_id is null
+
+                UNION
+
+                SELECT bf.*, rf.LVL + 1
+                FROM backend_folder bf
+
+                    JOIN recursive_folders rf ON bf.parent_id_id = rf.folder_id and rf.LVL < %s
+            )
+            SELECT rf.*, bf.feature_id, bf.feature_name, bd.department_id as d_id, bd.department_name
+            FROM (recursive_folders rf
+                LEFT JOIN backend_folder_feature bff
+                    ON rf.folder_id = bff.folder_id)
+                FULL OUTER JOIN backend_feature bf
+                    ON bf.feature_id = bff.feature_id
+                JOIN backend_department bd
+                    ON bf.department_id = bd.department_id or rf.department_id = bd.department_id
+            WHERE
+                    ( rf.department_id IN %s and ( bf.department_id IN %s or bf.department_id is null) )
+                or
+                    ( rf.department_id is null and bf.department_id IN %s )
+            ORDER BY rf.folder_id
+        """
+
+        # make a raw query to folders table
+        results = Folder.objects.raw(query, [max_lvl, departments, departments, departments])
+
+        objectsCreated = {
+            "departments": {},
+            "folders": {}
+        }
+
+        # loop over table formatted data
+        for result in results:
+            # if folder does not already exist in folders variable add a new folder
+            if result.d_id not in objectsCreated["departments"]:
+                objectsCreated["departments"][result.d_id] = {
+                    'id': result.d_id,
+                    'name': result.department_name,
+                    'type': 'department',
+                    'children': [
+                        {
+                            "name": "Variables",
+                            "type": "variables",
+                            "children": VariablesTreeSerializer(Variable.objects.filter(department_id=result.d_id), many=True).data
+                        }
+                    ]
+                }
+            if result.folder_id is not None and result.folder_id not in objectsCreated["folders"]:
+                objectsCreated["folders"][result.folder_id] = {
+                    'id': result.folder_id,
+                    'parent_id': result.parent_id_id,
+                    'department': result.d_id,
+                    'name': result.name,
+                    'type': 'folder',
+                    'children': []
+                }
+            # if feature_id exists that means feature belongs to folder_id
+            if result.feature_id is not None:
+                feature_object = FeatureHasSubFeatureSerializer(Feature.objects.get(feature_id=result.feature_id), many=False).data
+                if result.folder_id is not None:
+                    objectsCreated["folders"][result.folder_id]['children'].append(feature_object)
+                else:
+                    objectsCreated['departments'][result.d_id]['children'].append(feature_object)
+        
+        # loop over all the folders with parent_id not None
+        not_none_folders = [v for k, v in objectsCreated["folders"].items() if v['parent_id'] is not None]
+        for folder in not_none_folders:
+            obj = self.find_in_dict(objectsCreated["folders"], 'id', folder['parent_id'])
+            if obj is not None:
+                obj['children'].append(folder)
+                del objectsCreated["folders"][folder['id']]
+
+        # add all top level folders to the department childrens
+        folders = [v for k, v in objectsCreated["folders"].items() if v['parent_id'] is None]
+        for folder in folders:
+            objectsCreated['departments'][folder['department']]['children'].append(folder)
+            del objectsCreated["folders"][folder['id']]
+        
+        return {
+            "name": "Home",
+            "type": "home",
+            "children": objectsCreated['departments'].values()
+        }
+
+    '''
     Function serializeResultsFromRawQuery
         Turns results in table form to JSON form.
 
@@ -2074,25 +2183,6 @@ class FolderViewset(viewsets.ModelViewSet):
         @folders    JSON formatted data
     '''
     def serializeResultsFromRawQuery(self, results):
-        '''
-        Function find_in_dict
-            Finds key with specified value inside dictionaries
-
-        Parameters:
-            @objects    Dictionaries on which @key, @value pair are searched
-            @key        Key name that will be searched in @objects
-            @value      If @key name is found then match the value.
-
-        Return:
-            @result     Dict that contains the @key, @value pair.
-        '''
-        def find_in_dict(objects, key, value):
-            for obj in objects.values() if isinstance(objects, dict) else objects:
-                if obj[key] == value: return obj
-                result = find_in_dict(obj['folders'], key, value)
-                if result is not None:
-                    return result
-
         # save all the folders in this variable
         folders = {}
         # loop over table formatted data
@@ -2115,7 +2205,7 @@ class FolderViewset(viewsets.ModelViewSet):
         # loop over all the folders with parent_id not None
         not_none_folders = [v for k, v in folders.items() if v['parent_id'] is not None]
         for folder in not_none_folders:
-            obj = find_in_dict(folders, 'folder_id', folder['parent_id'])
+            obj = self.find_in_dict(folders, 'folder_id', folder['parent_id'])
             if obj is not None:
                 obj['folders'].append(folder)
                 del folders[folder['folder_id']]
@@ -2167,6 +2257,9 @@ class FolderViewset(viewsets.ModelViewSet):
                 "folders": [],
                 "features": []
             })
+        
+        if request.query_params.get('tree') is not None:
+            return Response(self.serializeResultsFromRawQueryForTree(departments, MAX_FOLDER_HIERARCHY))
 
         # this query does not take into account that user has selected departments in account_role table
         # query = '''
