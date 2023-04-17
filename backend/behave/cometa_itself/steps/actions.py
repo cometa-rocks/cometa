@@ -242,7 +242,7 @@ def done( *_args, **_kwargs ):
                 # print stack trace
                 traceback.print_exc()
                 # set the error message to the step_error inside context so we can pass it through websockets!
-                args[0].step_error = str(err)
+                args[0].step_error = logger.mask_values(str(err))
                 try:
                     # save the result to databse as False since the step failed
                     saveToDatabase(save_message, (time.time() - start_time) * 1000, 0, False, args[0])
@@ -2366,7 +2366,7 @@ def getVariable(context, variable_name):
     return variable_value
 
 
-def addVariable(context, variable_name, result):
+def addVariable(context, variable_name, result, encrypted=False):
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
     # check if variable_name is in the env_variables
@@ -2376,9 +2376,12 @@ def addVariable(context, variable_name, result):
         index = index[0]
         logger.debug("Patching existing variable")
         env_variables[index]['variable_value'] = result
+        env_variables[index]['encrypted'] = encrypted
         env_variables[index]['updated_by'] = context.PROXY_USER['user_id']
         # make the request to cometa_django and add the environment variable
         response = requests.patch('http://cometa_django:8000/api/variables/' + str(env_variables[index]['id']) + '/', headers={"Host": "cometa.local"}, json=env_variables[index])
+        if response.status_code == 200:
+            env_variables[index] = response.json()['data']
     else: # create new variable
         logger.debug("Creating variable")
         # create data to send to django
@@ -2389,6 +2392,7 @@ def addVariable(context, variable_name, result):
             "variable_name": variable_name,
             "variable_value": result,
             "based": "environment",
+            "encrypted": encrypted,
             "created_by": context.PROXY_USER['user_id'],
             "updated_by": context.PROXY_USER['user_id']
         }
@@ -3044,6 +3048,31 @@ def step_imp(context, value_one, value_two, variance):
 
     if int(diff) > int(number_variance):
         raise CustomError("Difference (%s) is greater than variance (%s) specified." % (str(diff), str(number_variance)))
+
+# generate One-Time Password (OTP) using a pairing-key
+@step(u'Create one-time password of "{x}" digits using pairing-key "{value}" and save it to crypted variable "{variable_name}"')
+@done(u'Create one-time password of "{x}" digits using pairing-key "{value}" and save it to crypted variable "{variable_name}"')
+def step_imp(context, x, value, variable_name):
+    x = x.strip()
+    try:
+        x = int(x)
+    except:
+        x = 6
+        send_step_details(context, 'x should be one of these numbers: 6, 7, 8. Defaulting to 6.')
+        logger.error("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
+
+    if x not in (6, 7, 8):
+        x = 6
+        send_step_details(context, 'x should be one of these numbers: 6, 7, 8. Defaulting to 6.')
+        logger.error("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
+
+    import pyotp
+    totp = pyotp.TOTP(value, digits=x)
+    oneTimePassword = totp.now()
+    addVariable(context, variable_name, oneTimePassword, encrypted=True)
+
+
+    
 
 # compares a report cube's content to a list saved in variable
 @step(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
