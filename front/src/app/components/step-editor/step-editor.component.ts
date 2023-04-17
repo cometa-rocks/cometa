@@ -39,8 +39,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   @Input() mode: 'new' | 'edit' | 'clone';
   @Input() variables: VariablePair[];
 
-  displayedVariables: VariablePair[] = [];
-  currentStepIndex: number = null;
+  displayedVariables: (VariablePair | string)[] = [];
+  stepVariableData = <VariableInsertionData>{};
 
   constructor(
     private _dialog: MatDialog,
@@ -139,7 +139,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   // when escape is clicked, prevent parent dialog from closing and removes variable flyout
   onStepEscape(event: Event) {
     event.stopImmediatePropagation();
-    this.currentStepIndex = null;
+    this.stepVariableData.currentStepIndex = null;
   }
 
   // removes variable flyout if clicked target on focusout event is not one of the variables
@@ -147,45 +147,55 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     event.preventDefault();
 
     const ev = event as any;
-    if (!ev.relatedTarget?.attributes.id) this.currentStepIndex = null;
+    if (!ev.relatedTarget?.attributes.id)  this.stepVariableData.currentStepIndex = null;
   }
 
   // removes variable flyout on current step row, when keydown TAB event is fired
   onTab(i: number) {
-    if (this.currentStepIndex === i) {
-      this.currentStepIndex = null;
+    if ( this.stepVariableData.currentStepIndex === i) {
+      this.stepVariableData.currentStepIndex = null;
     }
   }
 
   onStepChange(event, index: number) {
     this.displayedVariables = [];
+    this.stepVariableData = {};
 
     // sets the index of currently being edited step row
-    this.currentStepIndex = index;
+    this.stepVariableData.currentStepIndex = index;
 
     // gets cursor position on text area
-    const selectionIndex = event.target.selectionStart;
+    this.stepVariableData.selectionIndex = event.target.selectionStart;
 
     // gets whole textarea value
-    const stepValue = event.target.value as string;
+    this.stepVariableData.stepValue = event.target.value as string;
 
     // gets the position of nearest left and right quotes taking current cursor position as startpoint index
-    const quoteIndexes = this.getQuoteIndexes(stepValue, selectionIndex);
+    this.stepVariableData.quoteIndexes = this.getQuoteIndexes(this.stepVariableData.stepValue, this.stepVariableData.selectionIndex);
 
     // return if left quote or right quote index is undefined
-    if(!quoteIndexes.next || !quoteIndexes.prev) return;
+    if(!this.stepVariableData.quoteIndexes.next || !this.stepVariableData.quoteIndexes.prev) return;
 
     // gets the string between quotes(including quotes)
-    const strToReplaced = stepValue.substring(quoteIndexes.prev, quoteIndexes.next);
+    this.stepVariableData.strToReplace = this.stepVariableData.stepValue.substring(this.stepVariableData.quoteIndexes.prev, this.stepVariableData.quoteIndexes.next);
 
     // removes quotes
-    const strWithoutQuotes = strToReplaced.replace(/"/g, '').trim();
+    this.stepVariableData.strWithoutQuotes = this.stepVariableData.strToReplace.replace(/"/g, '').trim();
 
     // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
-    if (strWithoutQuotes.includes('$')) {
-      const strWithoutDollar = strWithoutQuotes.replace('$','')
-      this.displayedVariables = this.variables.filter(item => item.variable_name.includes(strWithoutDollar));
+    if (this.stepVariableData.strWithoutQuotes.includes('$')) {
+      const strWithoutDollar = this.stepVariableData.strWithoutQuotes.replace('$','')
+
+      const filteredVariables = this.variables.filter(item => item.variable_name.includes(strWithoutDollar));
+      this.displayedVariables = filteredVariables.length > 0 ? filteredVariables : ["No variable with this name"];
     }
+  }
+
+  onClickVariable(variable_name: string, index: number) {
+    let step = this.stepsForm.at(index).get('step_content');
+    step.setValue(step.value.replace(this.stepVariableData.strWithoutQuotes, `$${variable_name}`))
+
+    this.stepVariableData.currentStepIndex = null;
   }
 
   // returns the index of nearest left and right " char in string, taking received startIndex as startpoint reference
