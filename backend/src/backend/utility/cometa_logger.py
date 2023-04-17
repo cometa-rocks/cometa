@@ -16,8 +16,10 @@ class CometaLogger(logging.Logger):
         return self._mask_words
     
     def mask_values(self, msg):
-        words_to_mask = '|'.join(self._mask_words)
+        words_to_mask = re.escape('@@'.join(self._mask_words))
         if words_to_mask:
+            words_to_mask = words_to_mask.replace('@@', '|')
+            print(words_to_mask)
             msg = re.sub(rf"(?:{words_to_mask})\b", '[MASKED]', msg)
         return msg
 
