@@ -124,7 +124,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
   }
 
-  aaa(event: Event, direction: string) {
+  onArrowKey(event: Event, direction: string) {
     event.preventDefault();
     const ev = event as any;
     direction === 'down' ?
@@ -135,16 +135,25 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
                   ev.target.previousElementSibling.focus() : null
   }
 
+  // when escape is clicked, prevent parent dialog from closing and removes variable flyout
   onStepEscape(event: Event) {
     event.stopImmediatePropagation();
     this.currentStepIndex = null;
   }
 
+  // removes variable flyout if clicked target on focusout event is not one of the variables
   onStepFocusOut(event: FocusEvent) {
     event.preventDefault();
 
     const ev = event as any;
     if (!ev.relatedTarget?.attributes.id) this.currentStepIndex = null;
+  }
+
+  // removes variable flyout on current step row, when keydown TAB event is fired
+  onTab(i: number) {
+    if (this.currentStepIndex === i) {
+      this.currentStepIndex = null;
+    }
   }
 
   onStepChange(event, index: number) {

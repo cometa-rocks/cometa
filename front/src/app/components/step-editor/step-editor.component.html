@@ -66,7 +66,7 @@
             </mat-select>
           </div>
         </div>
-        <div class="step_content" tabindex="0" (focusout)="onStepFocusOut($event)" (keydown.esc)="onStepEscape($event)">
+        <div class="step_content" tabindex="0" (focusout)="onStepFocusOut($event)" (keydown.esc)="onStepEscape($event)" (keydown.Tab)="onTab(i)">
           <textarea (input)="onStepChange($event, i)"
                     (blur)="fixStep($event, i)"
                     (click)="currentStepIndex === i ? currentStepIndex = i : currentStepIndex = null"
@@ -78,7 +78,7 @@
                     [matAutocomplete]="stepHelp"
                     placeholder="Step Code"></textarea>
           <mat-list class="var_name_autoComplete" [ngStyle]="{'bottom.px': displayedVariables.length > 4 ? -120 : (-displayedVariables.length * 30)}" *ngIf="currentStepIndex == i && displayedVariables.length > 1" role="list">
-            <mat-list-item id="{{variable.id}}" tabindex="0" *ngFor="let variable of displayedVariables" (keydown.arrowdown)="aaa($event, 'down')" (keydown.arrowup)="aaa($event, 'up')">
+            <mat-list-item id="{{variable.id}}" tabindex="0" *ngFor="let variable of displayedVariables" (keydown.arrowdown)="onArrowKey($event, 'down')" (keydown.arrowup)="onArrowKey($event, 'up')">
               <span>${{variable.variable_name}}</span>
               =<span class="var_value">{{variable.variable_value}}</span>
             </mat-list-item>
