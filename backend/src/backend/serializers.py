@@ -317,18 +317,28 @@ class FeatureHasSubFeatureSerializer(serializers.ModelSerializer, FeatureMixin):
         fields = ('feature_id', 'feature_name',)
     
     def to_representation(self, feature):
-        get_steps = Step.objects.filter(feature_id=feature.feature_id).exclude(belongs_to=feature.feature_id).order_by('belongs_to').distinct('belongs_to')
-
+        uses_steps = Step.objects.filter(feature_id=feature.feature_id).exclude(belongs_to=feature.feature_id).order_by('belongs_to').distinct('belongs_to').values_list('belongs_to', flat=True)
+        used_in_steps = Step.objects.filter(belongs_to=feature.feature_id).exclude(feature_id=feature.feature_id).order_by('belongs_to').distinct('belongs_to').values_list('feature_id', flat=True)
+        print(used_in_steps)
         # get all childs
         childrens = [
-            # "steps": ....
+            {
+                "name": "Uses",
+                "type": "folder",
+                "children": FeatureTreeSerializer(Feature.objects.filter(feature_id__in=uses_steps), many=True).data
+            },
+            {
+                "name": "Used By",
+                "type": "folder",
+                "children": FeatureTreeSerializer(Feature.objects.filter(feature_id__in=used_in_steps), many=True).data
+            },
+            {
+                "name": "Variables",
+                "type": "variable",
+                "children": VariablesTreeNoFeatureSerializer(Variable.objects.filter(in_use=feature.feature_id), many=True).data
+            }
         ]
-        for step in get_steps:
-            stepFeature = step.belongs_to
-            try:
-                childrens.append(FeatureHasSubFeatureSerializer(Feature.objects.get(feature_id=stepFeature), many=False).data)
-            except:
-                pass
+        
 
         treeRep = {
             "type": "feature",
@@ -567,7 +577,18 @@ class VariablesTreeSerializer(serializers.ModelSerializer, VariablesMixin):
         }
         return treeRep
         
+class VariablesTreeNoFeatureSerializer(serializers.ModelSerializer, VariablesMixin):
+    class Meta:
+        model = Variable
+        fields = ['variable_name', 'variable_value']
 
+    def to_representation(self, value):
+        treeRep = {
+            "type": "variable",
+            "name": value.variable_name,
+            "value": value.variable_value,
+        }
+        return treeRep
 ###########################################
 # Invites model serializers #
 ###########################################
