@@ -152,17 +152,24 @@
 
             .mat-list-item {
                 height: 30px;
+
+                &.selected {
+                    background: rgba(0, 0, 0, 0.04);
+                }
+                &:focus {
+                    outline: none;
+                    background: rgba(0, 0, 0, 0.04);
+                }
+
                 .variable-wrapper {
                     height: 100%;
                     text-overflow: ellipsis;
                     white-space: nowrap;
                     overflow: hidden;
 
-                    span {
-                        user-select: all;
-                        &.no-variable {
+                    span.no-variable {
+                            user-select: none;
                             color: $bad;
-                        }
                     }
                 }
 

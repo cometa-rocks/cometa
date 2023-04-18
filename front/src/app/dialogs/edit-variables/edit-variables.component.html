@@ -70,16 +70,28 @@
             </mat-select>
           </td>
         </ng-container>
+        <ng-container matColumnDef="environment_name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Environment </th>
+          <td mat-cell *matCellDef="let element">
+            <p disabled>{{element?.environment_name}}</p>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="feature_name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> feature </th>
+          <td mat-cell *matCellDef="let element">
+            <p disabled>{{element?.feature_name}}</p>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="department_name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Department </th>
+          <td mat-cell *matCellDef="let element">
+            <p disabled>{{element.department_name}}</p>
+          </td>
+        </ng-container>
         <ng-container matColumnDef="created_by_name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Created by </th>
           <td mat-cell *matCellDef="let element">
             <p disabled>{{element?.created_by_name}}</p>
-          </td>
-        </ng-container>
-        <ng-container *ngIf="!isDialog" matColumnDef="department_name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Department </th>
-          <td mat-cell *matCellDef="let element">
-            <p disabled>{{element.department_name}}</p>
           </td>
         </ng-container>
         <ng-container matColumnDef="created_on">
