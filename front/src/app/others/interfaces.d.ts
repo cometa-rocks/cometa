@@ -708,6 +708,8 @@ interface VariablePair {
     variable_name: string;
     variable_value: string;
     encrypted: boolean;
+    environment_name: string;
+    feature_name?: string;
     based: string;
     in_use: number[];
     created_by_name: string;
