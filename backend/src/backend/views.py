@@ -2081,6 +2081,14 @@ class FolderViewset(viewsets.ModelViewSet):
             result = self.find_in_dict(obj['folders'], key, value)
             if result is not None:
                 return result
+    
+    def find_in_dict_for_tree(self, objects, key, value):
+        for obj in objects.values() if isinstance(objects, dict) else objects:
+            if obj['type'] != 'folder': continue
+            if obj[key] == value: return obj
+            result = self.find_in_dict_for_tree(obj['children'], key, value)
+            if result is not None:
+                return result
 
     def serializeResultsFromRawQueryForTree(self, departments, max_lvl):
         query = """
@@ -2155,7 +2163,7 @@ class FolderViewset(viewsets.ModelViewSet):
         # loop over all the folders with parent_id not None
         not_none_folders = [v for k, v in objectsCreated["folders"].items() if v['parent_id'] is not None]
         for folder in not_none_folders:
-            obj = self.find_in_dict(objectsCreated["folders"], 'id', folder['parent_id'])
+            obj = self.find_in_dict_for_tree(objectsCreated["folders"], 'id', folder['parent_id'])
             if obj is not None:
                 obj['children'].append(folder)
                 del objectsCreated["folders"][folder['id']]
