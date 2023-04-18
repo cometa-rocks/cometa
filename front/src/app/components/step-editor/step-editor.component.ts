@@ -207,19 +207,26 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
 
   onTextareaEnter(event: any, index: number) {
-    event.preventDefault();
+    if(this.displayedVariables.length > 0) {
+      event.preventDefault();
+    }
 
     const varlistItems = this.varlistItems.toArray();
 
     for(let i = 0; i < varlistItems.length; i++) {
 
-      if(varlistItems[i].nativeElement.classList.contains("selected")) {
-        const var_name = varlistItems[i].nativeElement.querySelector(".variable-wrapper .var_name").innerText;
+      if (varlistItems[i].nativeElement.classList.contains("selected")) {
+        const var_name = varlistItems[i].nativeElement.querySelector(".variable-wrapper .var_name");
 
-        this.onClickVariable(var_name.replace('$', ''), index);
+        if (var_name) {
+          this.onClickVariable(var_name.innerText.replace('$', ''), index);
+          this.displayedVariables = [];
+        }
         return;
       }
     }
+
+    this.displayedVariables = [];
   }
 
   onStepChange(event, index: number) {
