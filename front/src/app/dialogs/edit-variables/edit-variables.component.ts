@@ -26,7 +26,7 @@ interface PassedData {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EditVariablesComponent implements OnInit, OnDestroy {
-  displayedColumns: string[] = ['variable_name','variable_value','encrypted','based', 'created_by_name', 'updated_by_name', 'created_on', 'updated_on', 'actions'];
+  displayedColumns: string[] = ['variable_name','variable_value','encrypted','based', 'department_name', 'environment_name', 'feature_name', 'created_by_name', 'updated_by_name', 'created_on', 'updated_on', 'actions'];
   bases: string[] = ['feature','environment','department'];
   isEditing: boolean = false;
   errors = { name: null, value: null };
@@ -58,9 +58,6 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // department_id is received only when component is opened as dialog
     this.isDialog = this.data?.department_id ? true : false;
-
-    // add department column if component is not opened as dialog
-    if(!this.isDialog) this.displayedColumns.splice(2, 0, 'department_name')
 
     this.variableState$.pipe(takeUntil(this.destroy$))
       .subscribe(data => {
