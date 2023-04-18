@@ -74,7 +74,7 @@ export class L1TreeViewComponent implements OnInit{
 
     const margins = {top: 0, right: 120, bottom: 0, left: 30};
     const dx = 30; // line height
-    const dy = width / 5;
+    const dy = width / 4;
 
     const tree = d3.tree().nodeSize([dx, dy]);
     const diagonal = d3.linkHorizontal().x(d => {
@@ -280,7 +280,7 @@ export class L1TreeViewComponent implements OnInit{
 
   async ngOnInit() {
 
-    this.data = await this._api.getTreeView().toPromise()
+    this.data = await this._api.getTreeView().toPromise();
 
     this.currentRoute$.pipe(debounceTime(100)).subscribe(d => {
       const data = this.dataFromCurrentRoute(d);
