@@ -611,6 +611,8 @@ class Application(models.Model):
 class Environment(models.Model):
     environment_id = models.AutoField(primary_key=True)
     environment_name = models.CharField(max_length=100)
+    department = models.ForeignKey("Department", on_delete=models.SET_DEFAULT, default=None, null=True)
+    application = models.ForeignKey("Application", on_delete=models.SET_DEFAULT, default=None, null=True)
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     def __str__( self ):
         return f"{self.environment_name} ({self.environment_id})"
