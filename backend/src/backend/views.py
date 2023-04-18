@@ -1546,7 +1546,7 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         return Response({
-            'results': EnvironmentSerializer(Environment.objects.all(), many=True).data
+            'results': EnvironmentSerializer(Environment.objects.filter(Q(department__in=GetUserDepartments(request)) | Q(department=None)), many=True).data
         })
 
     @require_permissions("edit_environment")
@@ -1563,6 +1563,26 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
             'environment': IEnvironment(environments[0], many=False).data
         })
         return JsonResponse({"success": True }, status=200)
+
+    @require_permissions("create_environment")
+    def create(self, request, *args, **kwargs):
+        # load data
+        data = json.loads(request.body)
+
+        # create env
+        environment = Environment()
+
+        # get envrionment required data
+        name = data.get('environment_name', None)
+        if name is None:
+            return JsonResponse({"success": False, "error": "environment_name is required." }, status=400)
+        
+        department = data.get('department', None)
+        try:
+            if department:
+                department = Department.objects.get(department_id=department)
+        except:
+            department = None
 
     @require_permissions("delete_environment")
     def delete(self, request, *args, **kwargs):
