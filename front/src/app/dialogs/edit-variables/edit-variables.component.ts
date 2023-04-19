@@ -26,7 +26,22 @@ interface PassedData {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EditVariablesComponent implements OnInit, OnDestroy {
-  displayedColumns: string[] = ['variable_name','variable_value','encrypted','based', 'created_by_name', 'updated_by_name', 'created_on', 'updated_on', 'actions'];
+  allColumns: VariableColumns[] = [
+    { name: 'Name', activated: true, value: 'variable_name' },
+    { name: 'Value', activated: true, value: 'variable_value' },
+    { name: 'Encrypted', activated: true, value: 'encrypted' },
+    { name: 'Based on', activated: true, value: 'based' },
+    { name: 'Department', activated: true, value: 'department_name' },
+    { name: 'Environment', activated: true, value: 'environment_name' },
+    { name: 'Feature', activated: true, value: 'feature_name' },
+    { name: 'Created by', activated: false, value: 'created_by_name' },
+    { name: 'Last updated by', activated: false, value: 'updated_by_name' },
+    { name: 'Created on', activated: false, value: 'created_on' },
+    { name: 'Last updated on', activated: false, value: 'updated_on' },
+    { name: 'Actions', activated: true, value: 'actions' }
+  ];
+
+  displayedColumns: string[] = [];
   bases: string[] = ['feature','environment','department'];
   isEditing: boolean = false;
   errors = { name: null, value: null };
@@ -56,11 +71,14 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // get displayed columns from localstorage
+    const storedColumns = JSON.parse(localStorage.getItem('co_edit_variable_displayed_columns'));
+
+    // if result is not null, load columns from localstorage, else load default columns
+    storedColumns != null ? this.loadStoredColumns(storedColumns) : this.onColumnDisplayChange();
+
     // department_id is received only when component is opened as dialog
     this.isDialog = this.data?.department_id ? true : false;
-
-    // add department column if component is not opened as dialog
-    if(!this.isDialog) this.displayedColumns.splice(2, 0, 'department_name')
 
     this.variableState$.pipe(takeUntil(this.destroy$))
       .subscribe(data => {
@@ -86,6 +104,25 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
         this._store.dispatch(new Variables.DeleteVariable(variable.id))
       }
     })
+  }
+
+  // loads colums received from localstorage if length of the array has items. If array is loads default columns
+  loadStoredColumns(storedColumns: string[]) {
+    if(storedColumns.length > 0) {
+      this.allColumns.map(item => item.activated = storedColumns.includes(item.value))
+      this.onColumnDisplayChange();
+      return
+    }
+
+    this.onColumnDisplayChange();
+  }
+
+  // removes or adds clicked column from displayed columns
+  onColumnDisplayChange() {
+    this.displayedColumns = this.allColumns.filter(item => item.activated)
+                                           .map(item => item.value);
+
+    localStorage.setItem('co_edit_variable_displayed_columns', JSON.stringify(this.displayedColumns));
   }
 
   onEditVar(variable: VariablePair) {
@@ -222,7 +259,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   // determines which columns filter must be applied to
   applyFilterPredicate() {
     this.dataSource.filterPredicate = (row: VariablePair, filter: string) => {
-      return row.variable_name.toLocaleLowerCase().includes(filter) || row.based.toLocaleLowerCase().includes(filter);
+      return row.variable_name.toLocaleLowerCase().includes(filter) || row.based.toLocaleLowerCase().includes(filter) || row.department_name.toLocaleLowerCase().includes(filter);
     };
   }
 

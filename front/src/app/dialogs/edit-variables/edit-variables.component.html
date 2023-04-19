@@ -12,7 +12,16 @@
       <mat-icon matPrefix>search</mat-icon>
       <input  matInput (keyup)="applyFilter()" [(ngModel)]="searchTerm" placeholder="Type a search term">
     </mat-form-field>
-
+    <div class="columns-button-wrapper">
+      <button mat-stroked-button [matMenuTriggerFor]="selectedColumns">Columns Shown</button>
+      <mat-menu #selectedColumns="matMenu" class="variable-columns-menu">
+        <div class="column-checkbox-wrapper" (click)="$event.stopPropagation();" *ngFor="let c of allColumns">
+          <mat-checkbox  [(ngModel)]="c.activated"  (change)="onColumnDisplayChange()" color="primary">
+            {{c.name}}
+          </mat-checkbox>
+        </div>
+      </mat-menu>
+    </div>
     <div class="table-wrapper" [class.component]="!isDialog" #tableWrapper>
       <table mat-table matSort [dataSource]="dataSource" (matSortChange)="announceSortChange($event)"  class="mat-elevation-z8">
         <ng-container matColumnDef="variable_name">
@@ -70,16 +79,28 @@
             </mat-select>
           </td>
         </ng-container>
+        <ng-container matColumnDef="environment_name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Environment </th>
+          <td mat-cell *matCellDef="let element">
+            <p disabled>{{element?.environment_name}}</p>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="feature_name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Feature </th>
+          <td mat-cell *matCellDef="let element">
+            <p disabled>{{element?.feature_name}}</p>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="department_name">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header> Department </th>
+          <td mat-cell *matCellDef="let element">
+            <p disabled>{{element.department_name}}</p>
+          </td>
+        </ng-container>
         <ng-container matColumnDef="created_by_name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Created by </th>
           <td mat-cell *matCellDef="let element">
             <p disabled>{{element?.created_by_name}}</p>
-          </td>
-        </ng-container>
-        <ng-container *ngIf="!isDialog" matColumnDef="department_name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header> Department </th>
-          <td mat-cell *matCellDef="let element">
-            <p disabled>{{element.department_name}}</p>
           </td>
         </ng-container>
         <ng-container matColumnDef="created_on">
