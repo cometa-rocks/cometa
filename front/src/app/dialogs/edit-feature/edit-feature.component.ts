@@ -227,6 +227,9 @@ export class EditFeature implements OnInit, OnDestroy, AfterViewInit {
         feature_id: feature.feature_id,
         environment_id: environmentId,
         department_id: departmentId,
+        department_name: this.featureForm.get('department_name').value,
+        environment_name: this.featureForm.get('environment_name').value,
+        feature_name: this.featureForm.get('feature_name').value
       },
       panelClass: 'edit-variable-panel'
     }).afterClosed().subscribe(res => {
