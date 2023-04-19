@@ -1,9 +1,8 @@
 @import 'color';
 
-
 .mat-dialog-title {
     margin: 0;
-    height: 70px;
+    height: 40px;
 }
 
 .mat-dialog-content {
@@ -20,6 +19,12 @@
 .table-wrapper.component {
     height: calc(100% - 240px);
 }
+
+.columns-button-wrapper {
+    text-align: end;
+    padding-bottom: 20px;
+}
+
 .table-wrapper {
     height: 40vh;
     overflow-y: auto;
