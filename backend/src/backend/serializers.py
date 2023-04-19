@@ -558,7 +558,10 @@ class VariablesSerializer(serializers.ModelSerializer, VariablesMixin):
     updated_by_name = serializers.CharField( source='updated_by.name', read_only=True)
     # department name
     department_name = serializers.CharField( source='department.department_name', read_only=True)
-
+    # environemnt_name
+    environment_name = serializers.CharField( source='environment.environment_name', read_only=True)
+    # feature_name
+    feature_name = serializers.CharField( source='feature.feature_name', read_only=True)
     class Meta:
         model = Variable
         fields = '__all__'
