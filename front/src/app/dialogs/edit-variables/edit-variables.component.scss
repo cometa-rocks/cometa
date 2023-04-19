@@ -33,7 +33,12 @@
     table {
         width: 100%;
 
+        .var-row:hover {
+            background-color: rgb(242, 242, 242);
+        }
+
         .var-row.edit {
+            cursor: pointer;
             td.mat-cell {
                 border-bottom: 1px solid $blue;
             }
