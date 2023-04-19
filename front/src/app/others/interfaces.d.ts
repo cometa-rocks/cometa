@@ -699,6 +699,12 @@ interface QuoteIndexes {
     prev?: number;
 }
 
+interface VariableColumns {
+    name: string;
+    activated: boolean;
+    value: string;
+}
+
 interface VariablePair {
     id: number;
     department: number;
