@@ -25,6 +25,16 @@
     padding-bottom: 20px;
 }
 
+.env-info {
+    display: flex;
+
+    .env-item {
+        margin-right: 20px;
+        .env-title { margin-right: 3px; }
+        .env-value { color: $blue; }
+    }
+}
+
 .table-wrapper {
     height: 40vh;
     overflow-y: auto;
