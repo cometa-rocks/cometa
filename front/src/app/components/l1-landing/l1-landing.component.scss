@@ -25,6 +25,9 @@ edit-variables {
 
     ::ng-deep button {
         border: 0;
+        &.mat-stroked-button {
+            border: 1px solid rgba(0, 0, 0, 0.12);
+        }
     }
 }
 
