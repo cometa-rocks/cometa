@@ -149,9 +149,13 @@ export class EditFeature implements OnInit, OnDestroy, AfterViewInit {
       this.parseSchedule({ minute, hour, day_month, month, day_week });
     })
   }
+
   ngAfterViewInit(): void {
-    this.variableState$
-    .subscribe(data => { this.variables =  this.getFilteredVariables(data) })
+    this.featureForm.get('department_name').valueChanges.subscribe(() => {
+      this.variableState$.subscribe(data =>  {
+        this.variables =  this.getFilteredVariables(data)
+      })
+    })
   }
 
   ngOnDestroy() {
