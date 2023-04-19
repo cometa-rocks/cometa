@@ -786,15 +786,18 @@ export class EditFeature implements OnInit, OnDestroy, AfterViewInit {
 
 
   getFilteredVariables(variables: VariablePair[]) {
+    const environmentId = this.environments$.find(env => env.environment_name === this.featureForm.get('environment_name').value).environment_id;
+    const departmentId = this.departments$.find(dep => dep.department_name === this.featureForm.get('department_name').value).department_id;
+
     let feature = this.feature.getValue();
     let reduced = variables.reduce((filtered_variables: VariablePair[], current:VariablePair) => {
       // stores variables, if it's id coincides with received department id and it is based on department
-      const byDeptOnly = current.department === this.feature.getValue().department_id && current.based == 'department' ? current : null;
+      const byDeptOnly = current.department === departmentId && current.based == 'department' ? current : null;
 
       // stores variable if department id coincides with received department id and
       // environment or feature ids coincide with received ones, additionally if feature id coincides variable must be based on feature. If environment id coincides, variables must be based on environment.
-      const byEnv = current.department === feature.department_id && ((current.environment === feature.environment_id && current.based == 'environment') ||
-                                                                      (current.feature === feature.feature_id && current.based == 'feature')) ? current : null;
+      const byEnv = current.department === departmentId && ((current.environment === environmentId && current.based == 'environment') ||
+                                                            (current.feature === feature.feature_id && current.based == 'feature')) ? current : null;
 
       // pushes stored variables into array if they have value
       byDeptOnly ? filtered_variables.push(byDeptOnly) : null;
@@ -803,7 +806,6 @@ export class EditFeature implements OnInit, OnDestroy, AfterViewInit {
       // removes duplicated variables and returs set like array
       return filtered_variables.filter((value, index, self) => index === self.findIndex((v) => (v.id === value.id)))
     }, [])
-
     return reduced;
   }
 }

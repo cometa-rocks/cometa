@@ -536,18 +536,26 @@ mat-option {
     }
 }
 
+.variable-columns-menu {
+    .mat-menu-content {
+      display: flex;
+      flex-direction: column;
+      padding: 8px 16px !important;
+
+      .column-checkbox-wrapper {
+        height: 32px;
+        display: flex;
+        align-items: center;
+      }
+    }
+}
+
 .edit-variable-panel {
     min-width: 100%;
     min-height: 60%;
     .mat-dialog-container {
         resize: both;
         overflow: auto;
-    }
-    th.mat-header-cell:nth-child(3) {
-        .mat-sort-header-container {
-            justify-content: center;
-            margin-left: 18px;
-        }
     }
 }
 
