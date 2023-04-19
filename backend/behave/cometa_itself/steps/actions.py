@@ -3084,7 +3084,10 @@ def imp(context, variable_name, prefix, suffix):
     index = [i for i,_ in enumerate(env_variables) if _['variable_name'] == variable_name]
 
     if len(index) == 0:
-        raise CustomError("No variable found with name: %s" % variable_name)
+        # if the length is 0 then the variable was not found
+        # so we can try using the value in the variable as if it is a list of values - see issue #3881
+        logger.debug("Feature: %s - Will use variable as valuelist %s " % context.feature_id, variable_name)
+        send_step_details(context, 'Variable does not exist, will use the variable name as value seperate by semicolon.')
 
     # hold csv data that will later on be writen to a file
     fileContent = []
