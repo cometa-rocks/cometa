@@ -191,6 +191,36 @@
 	],
 	"changelog": [
 		{
+			"version": "2.8.295",
+			"date": "2023-04-19",
+			"features": [
+				{
+					"title": "Variable table column selection",
+					"description": "Users can now choose which columns must be displayed in variables table"
+				}
+			]
+		},
+		{
+			"version": "2.8.294",
+			"date": "2023-04-19",
+			"features": [
+				{
+					"title": "Variable insertion into new feature",
+					"description": "User can no make use of variable insertion even when currently edit feature is still not created"
+				}
+			]
+		},
+		{
+			"version": "2.8.293",
+			"date": "2023-04-19",
+			"features": [
+				{
+					"title": "Variable replacement",
+					"description": "User can now insert variable into step by clicking on desired variable in flyout, or alternatively by pressing enter on selected variable"
+				}
+			]
+		},
+		{
 			"version": "2.8.292",
 			"date": "2023-04-13",
 			"features": [

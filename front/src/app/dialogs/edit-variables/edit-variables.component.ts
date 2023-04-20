@@ -17,6 +17,9 @@ interface PassedData {
   environment_id: number;
   department_id: number;
   feature_id: number;
+  department_name: string;
+  environment_name: string;
+  feature_name: string;
 }
 
 @Component({
@@ -336,6 +339,9 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     new_var.id = 0;
     new_var.department = this.data.department_id
     new_var.environment = this.data.environment_id;
+    new_var.department_name = this.data.department_name
+    new_var.environment_name = this.data.environment_name;
+    new_var.feature_name = this.data.feature_name;
     new_var.feature = this.data.feature_id;
     new_var.variable_name = "";
     new_var.variable_value = "";
