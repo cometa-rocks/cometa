@@ -45,12 +45,14 @@
     line-height: 38px !important;
     font-weight: bold !important;
     color: rgba(0, 0, 0, 0.6) !important;
+    /*
     .mat-icon {
         margin-right: 10px !important;
     }
     .mat-checkbox-inner-container {
         margin-right: 16px !important;
     }
+    */
 }
 
 .step-row {
@@ -59,7 +61,8 @@
     // align-items: center;
     position: relative;
     min-height: 45px;
-    flex-direction: column;
+    // height: 50px; /* setting height to have correct size in FF browser - RRO  */
+    // flex-direction: column; //  Removed RRO because multi-line 
     background-color: white;
     backface-visibility: hidden;
 	transition: opacity .3s ease-in-out;
@@ -80,7 +83,7 @@
         text-align: center;
         padding: 0 15px;
         position: relative;
-        padding-top: 12px;
+        padding-top: 10px;
         &.enable {
             flex: 0 0 30px;
         }
