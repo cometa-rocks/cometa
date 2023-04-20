@@ -17,12 +17,22 @@
     }
 }
 .table-wrapper.component {
-    height: calc(100% - 240px);
+    height: calc(100% - 275px);
 }
 
 .columns-button-wrapper {
     text-align: end;
     padding-bottom: 20px;
+}
+
+.env-info {
+    display: flex;
+
+    .env-item {
+        margin-right: 20px;
+        .env-title { margin-right: 3px; }
+        .env-value { color: $blue; }
+    }
 }
 
 .table-wrapper {
@@ -33,7 +43,12 @@
     table {
         width: 100%;
 
+        .var-row:hover {
+            background-color: rgb(242, 242, 242);
+        }
+
         .var-row.edit {
+            cursor: pointer;
             td.mat-cell {
                 border-bottom: 1px solid $blue;
             }
@@ -90,6 +105,10 @@
                     height: 22px !important;
                     line-height: 22px !important;
                     cursor: pointer;
+
+                    mat-icon {
+                        margin-right: 0 !important;
+                    }
                 }
             }
         }
@@ -100,7 +119,6 @@
     display: inline-block;
 }
 
-
 .mat-elevation-z8 {
     box-shadow: none;
 }
@@ -109,10 +127,6 @@ p.inuse {
     display: inline;
     color: $bad;
     font-weight: bold;
-}
-
-.mat-mdc-radio-button ~ .mat-mdc-radio-button {
-    margin-left: 16px;
 }
 
 mat-dialog-actions {
