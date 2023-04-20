@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, ViewChild, ChangeDetectionStrategy, HostListener, OnDestroy, ChangeDetectorRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, Inject, ViewChild, ChangeDetectionStrategy, HostListener, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service'
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
@@ -40,7 +40,7 @@ import { VariablesState } from '@store/variables.state';
   styleUrls: ['./edit-feature.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EditFeature implements OnInit, OnDestroy, AfterViewInit {
+export class EditFeature implements OnInit, OnDestroy {
   displayedColumns: string[] = ['name','mime','size','uploaded_by.name','created_on', 'actions'];
 
   @ViewSelectSnapshot(ConfigState) config$ !: Config;
@@ -149,10 +149,6 @@ export class EditFeature implements OnInit, OnDestroy, AfterViewInit {
       this.parseSchedule({ minute, hour, day_month, month, day_week });
     })
   }
-  ngAfterViewInit(): void {
-    this.variableState$
-    .subscribe(data => { this.variables =  this.getFilteredVariables(data) })
-  }
 
   ngOnDestroy() {
     // When Edit Feature Dialog is closed, clear temporal steps
@@ -223,6 +219,9 @@ export class EditFeature implements OnInit, OnDestroy, AfterViewInit {
         feature_id: feature.feature_id,
         environment_id: environmentId,
         department_id: departmentId,
+        department_name: this.featureForm.get('department_name').value,
+        environment_name: this.featureForm.get('environment_name').value,
+        feature_name: this.featureForm.get('feature_name').value
       },
       panelClass: 'edit-variable-panel'
     }).afterClosed().subscribe(res => {
@@ -371,6 +370,12 @@ export class EditFeature implements OnInit, OnDestroy, AfterViewInit {
   @ViewChild(BrowserSelectionComponent, { static: false }) _browserSelection: BrowserSelectionComponent;
 
   ngOnInit() {
+    this.featureForm.valueChanges.subscribe(() => {
+      this.variableState$.subscribe(data =>  {
+        this.variables =  this.getFilteredVariables(data)
+      })
+    })
+
     if (this.data.mode === 'edit' || this.data.mode === 'clone') {
       // Code for editing feautre
       const featureInfo = this.data.info;
@@ -786,8 +791,8 @@ export class EditFeature implements OnInit, OnDestroy, AfterViewInit {
 
 
   getFilteredVariables(variables: VariablePair[]) {
-    const environmentId = this.environments$.find(env => env.environment_name === this.featureForm.get('environment_name').value).environment_id;
-    const departmentId = this.departments$.find(dep => dep.department_name === this.featureForm.get('department_name').value).department_id;
+    const environmentId = this.environments$.find(env => env.environment_name === this.featureForm.get('environment_name').value)?.environment_id;
+    const departmentId = this.departments$.find(dep => dep.department_name === this.featureForm.get('department_name').value)?.department_id;
 
     let feature = this.feature.getValue();
     let reduced = variables.reduce((filtered_variables: VariablePair[], current:VariablePair) => {
