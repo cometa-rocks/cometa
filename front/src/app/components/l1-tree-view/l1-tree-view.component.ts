@@ -1,11 +1,10 @@
-import { Component, ChangeDetectionStrategy, Input, OnInit, KeyValueDiffers } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Select, Store } from '@ngxs/store';
-import { CustomSelectors } from '@others/custom-selectors';
 import { ApiService } from '@services/api.service';
 import { FeaturesState } from '@store/features.state';
 import * as d3 from 'd3';
-import { debounceTime, find, Observable } from 'rxjs';
+import { debounceTime, Observable } from 'rxjs';
 
 @Component({
   selector: 'cometa-l1-tree-view',
@@ -35,6 +34,14 @@ export class L1TreeViewComponent implements OnInit{
   constructor( private _store: Store, private _api: ApiService, private _router: Router ) {}
 
   findEmbededObject(data: any, obj: any) {
+    // if data type is feature, add feature id as prefix in name
+    // if data type is not feature, just truncate name
+    if (data.type === 'feature' && !data.name.includes(data.id + " - ")) {
+      data.name = `${data.id} - ` + this.truncateString(data.name, 25);
+    } else {
+      data.name = this.truncateString(data.name, 25);
+    }
+
     let found = null;
     if ( data.id == obj.id && data.name == obj.name && data.type == obj.type ) {
       found = data;
@@ -48,12 +55,29 @@ export class L1TreeViewComponent implements OnInit{
     return found;
   }
 
+  truncateString(input: string, maxLength: number): string {
+    const ellipsis = '...';
+
+    if (input.length <= maxLength) {
+      return input;
+    }
+
+    const prefixLength = Math.floor((maxLength - ellipsis.length) / 2);
+    const suffixLength = Math.ceil((maxLength - ellipsis.length) / 2);
+
+    const prefix = input.slice(0, prefixLength);
+    const suffix = input.slice(-suffixLength);
+
+    return prefix + ellipsis + suffix;
+  }
+
   dataFromCurrentRoute(currentRouteArray) {
     // get the last object from the route
     const elem: Folder = currentRouteArray.slice(-1).pop()
     if (!elem) {
       return this.data;
     }
+
     const object = {
       id: elem.folder_id,
       name: elem.name,
