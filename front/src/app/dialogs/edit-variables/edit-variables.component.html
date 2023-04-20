@@ -32,7 +32,7 @@
         </div>
       </mat-menu>
     </div>
-    <div class="table-wrapper" [class.component]="!isDialog" #tableWrapper>
+    <div class="table-wrapper" style="margin-bottom:15px !important" [class.component]="!isDialog" #tableWrapper>
       <table mat-table matSort [dataSource]="dataSource" (matSortChange)="announceSortChange($event)"  class="mat-elevation-z8">
         <ng-container matColumnDef="variable_name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
