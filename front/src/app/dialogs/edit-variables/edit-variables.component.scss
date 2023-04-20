@@ -105,6 +105,10 @@
                     height: 22px !important;
                     line-height: 22px !important;
                     cursor: pointer;
+
+                    mat-icon {
+                        margin-right: 0 !important;
+                    }
                 }
             }
         }
@@ -115,7 +119,6 @@
     display: inline-block;
 }
 
-
 .mat-elevation-z8 {
     box-shadow: none;
 }
@@ -124,10 +127,6 @@ p.inuse {
     display: inline;
     color: $bad;
     font-weight: bold;
-}
-
-.mat-mdc-radio-button ~ .mat-mdc-radio-button {
-    margin-left: 16px;
 }
 
 mat-dialog-actions {
