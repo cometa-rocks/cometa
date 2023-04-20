@@ -1,9 +1,19 @@
 <div *ngIf="isDialog; else notDialog">
-  <h2 mat-dialog-title cdkDrag cdkDragRootElement=".cdk-overlay-pane" cdkDragHandle>Edit environment variables</h2>
+  <h2 mat-dialog-title cdkDrag cdkDragRootElement=".cdk-overlay-pane" cdkDragHandle>Edit variables</h2>
 </div>
 <ng-template #notDialog>
-  <h2 mat-dialog-title>Edit environment variables</h2>
+  <h2 mat-dialog-title>Edit variables</h2>
 </ng-template>
+<div *ngIf="isDialog" class="env-info">
+  <div class="env-item">
+    <span class="env-title">Environment:</span>
+    <span class="env-value">{{data.environment_name}}</span>
+  </div>
+  <div class="env-item">
+    <span class="env-title">Department:</span>
+    <span class="env-value">{{data.department_name}}</span>
+  </div>
+</div>
 
 <mat-dialog-content>
   <ng-container *ngIf="variables.length > 0; else text">
@@ -22,7 +32,7 @@
         </div>
       </mat-menu>
     </div>
-    <div class="table-wrapper" [class.component]="!isDialog" #tableWrapper>
+    <div class="table-wrapper" style="margin-bottom:15px !important" [class.component]="!isDialog" #tableWrapper>
       <table mat-table matSort [dataSource]="dataSource" (matSortChange)="announceSortChange($event)"  class="mat-elevation-z8">
         <ng-container matColumnDef="variable_name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
