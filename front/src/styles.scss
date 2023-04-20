@@ -237,7 +237,6 @@ body::-webkit-scrollbar-corner {
     background: darken(white, .5) !important;
     .mat-icon {
       font-size: 21px !important;
-      margin-right: 10px !important;
     }
     .run-feature * {
       color: $blue !important;
@@ -551,7 +550,7 @@ mat-option {
 }
 
 .edit-variable-panel {
-    min-width: 100%;
+    min-width: 95%;
     min-height: 60%;
     .mat-dialog-container {
         resize: both;
@@ -567,7 +566,7 @@ mat-option {
         vertical-align: middle;
     }
     .mat-icon {
-        margin-right: 10px !important;
+        /* margin-right: 10px !important; */
         font-size: 21px;
     }
 }
@@ -693,6 +692,9 @@ mat-option {
 }
 
 .mat-menu-item-submenu-trigger::after {
+    /*
+    removed RRO 20.04.2023
+
     border: 0 !important;
     content: "keyboard_arrow_right" !important;
     font-family: 'Material Icons';
@@ -707,6 +709,7 @@ mat-option {
     right: 18px !important;
     color: rgba(black, .4) !important;
     transform: none !important;
+    */
 }
 
 .paginator-center .mat-paginator-container {
@@ -790,7 +793,8 @@ video-player .header {
 }
 
 [mat-menu-item] .mat-checkbox .mat-checkbox-inner-container {
-    margin-right: 17px;
+    /* margin: 0,15,0,15; */
+    /* margin-right:17px; */
 }
 
 .description-option {
