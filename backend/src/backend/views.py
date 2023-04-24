@@ -2091,6 +2091,7 @@ class FolderViewset(viewsets.ModelViewSet):
                 return result
 
     def serializeResultsFromRawQueryForTree(self, departments, max_lvl):
+        logger.debug("Preparing query for recursive folder, feature lookup for tree visualisation.")
         query = """
             WITH RECURSIVE recursive_folders AS (
                 SELECT bf.*, 1 AS LVL
@@ -2113,14 +2114,18 @@ class FolderViewset(viewsets.ModelViewSet):
                 JOIN backend_department bd
                     ON bf.department_id = bd.department_id or rf.department_id = bd.department_id
             WHERE
-                    ( rf.department_id IN %s and ( bf.department_id IN %s or bf.department_id is null) )
+                (
+                        ( rf.department_id IN %s and ( bf.department_id IN %s or bf.department_id is null) )
                 or
                     ( rf.department_id is null and bf.department_id IN %s )
-            ORDER BY rf.folder_id
+                ) 
+            ORDER BY bd.department_name, bf.depends_on_others, bf.feature_name
         """
 
         # make a raw query to folders table
         results = Folder.objects.raw(query, [max_lvl, departments, departments, departments])
+        logger.debug("Results:")
+        logger.debug(results)
 
         objectsCreated = {
             "departments": {},
@@ -2129,6 +2134,7 @@ class FolderViewset(viewsets.ModelViewSet):
 
         # loop over table formatted data
         for result in results:
+            logger.debug("Result: %s" % result.d_id)
             # if folder does not already exist in folders variable add a new folder
             if result.d_id not in objectsCreated["departments"]:
                 objectsCreated["departments"][result.d_id] = {
@@ -2174,6 +2180,8 @@ class FolderViewset(viewsets.ModelViewSet):
             objectsCreated['departments'][folder['department']]['children'].append(folder)
             del objectsCreated["folders"][folder['id']]
         
+        logger.debug("Finished recursive lookup")
+
         return {
             "name": "Home",
             "type": "home",
