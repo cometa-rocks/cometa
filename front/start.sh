@@ -39,6 +39,24 @@ function install_essentials(){
 	curl -sL https://deb.nodesource.com/setup_14.x | bash - >> output.log 2>&1
 	apt-get install -y nodejs >> output.log 2>&1
 	echo -e "\e[32mOK\e[0m"
+
+	# create lbtest1.html just in case we are running behind a LB
+	# This is normally done with the gitlab.yml file. In case recreateing the container we
+	# would need this file to be created here
+	mkdir -p /usr/local/apache2/htdocs/infra/
+	cat <<EOF > /usr/local/apache2/htdocs/infra/lbtest1.html
+<html>
+<head>
+  <title>LB Test #1</title>
+
+</head>
+<body>
+ <p>Status: OK</p>
+</body>
+</html>
+EOF
+
+
 }
 
 # #########

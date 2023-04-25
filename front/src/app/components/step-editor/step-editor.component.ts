@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, Input, ChangeDetectorRef, Host, ElementRef, NgZone } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, Input, ChangeDetectorRef, Host, ElementRef, NgZone, ViewChild, ViewChildren, QueryList, Renderer2 } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { AddStepComponent } from '@dialogs/add-step/add-step.component';
 import { MatDialog , MatDialogRef } from '@angular/material/dialog';
@@ -16,9 +16,11 @@ import { UserState } from '@store/user.state';
 import { CustomValidators } from '@others/custom-validators';
 import { exportToJSONFile, SubSinkAdapter } from 'ngx-amvara-toolbox';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { MatCheckboxChange } from '@angular/material/checkbox';
+import { VariablesState } from '@store/variables.state';
+import { MatList, MatListItem } from '@angular/material/list';
 
 @Component({
   selector: 'cometa-step-editor',
@@ -36,6 +38,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   @Input() feature: Feature;
   @Input() name: string;
   @Input() mode: 'new' | 'edit' | 'clone';
+  @Input() variables: VariablePair[];
+  @ViewChildren(MatListItem, {read: ElementRef}) varlistItems: QueryList<ElementRef>;
+  @ViewChild(MatList, {read: ElementRef}) varlist: ElementRef;
+  @ViewChild('variable_name', {read: ElementRef, static: false}) varname: ElementRef;
+
+  displayedVariables: (VariablePair | string)[] = [];
+  stepVariableData = <VariableInsertionData>{};
 
   constructor(
     private _dialog: MatDialog,
@@ -48,7 +57,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     private _elementRef: ElementRef<HTMLElement>,
     private _ngZone: NgZone,
     public dialogRef: MatDialogRef<EditFeature>,
-    @Host() public readonly _editFeature: EditFeature
+    @Host() public readonly _editFeature: EditFeature,
+    private renderer: Renderer2
   ) {
     super();
     this.stepsForm = this._fb.array([]);
@@ -118,6 +128,166 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         }
       }
     }
+  }
+
+  onTextareaArrowKey(event: Event, direction: string) {
+    event.preventDefault();
+
+    setTimeout(() => {
+
+      const varlistItems = this.varlistItems.toArray();
+
+      for(let i = 0; i < varlistItems.length; i++) {
+
+        if(varlistItems[i].nativeElement.classList.contains("selected")) {
+          this.renderer.removeClass(varlistItems[i].nativeElement, "selected");
+          direction === 'down' ? this.selectnext(varlistItems, i) : this.selectPrevious(varlistItems, i)
+          return;
+        }
+
+      }
+
+    }, 0)
+  }
+
+  selectPrevious(varlistItems: ElementRef[], i: number) {
+    if(varlistItems[i-1]) {
+      this.renderer.addClass(varlistItems[i-1].nativeElement, "selected")
+      this.varlist.nativeElement.scrollTop = (i-1) * 30;
+    }
+    else {
+      this.renderer.addClass(varlistItems[varlistItems.length-1].nativeElement, "selected")
+      this.varlist.nativeElement.scrollTop = (varlistItems.length-1) * 30;
+    }
+  }
+
+  selectnext(varlistItems: ElementRef[], i: number) {
+    if(varlistItems[i+1]) {
+      this.renderer.addClass(varlistItems[i+1].nativeElement, "selected")
+      this.varlist.nativeElement.scrollTop = (i+1) * 30;
+    }
+    else {
+      this.renderer.addClass(varlistItems[0].nativeElement, "selected")
+      this.varlist.nativeElement.scrollTop = 0;
+    }
+  }
+
+
+  // when escape is clicked, prevent parent dialog from closing and removes variable flyout
+  onStepEscape(event: Event) {
+    event.stopImmediatePropagation();
+    this.stepVariableData.currentStepIndex = null;
+  }
+
+  // removes variable flyout if clicked target on focusout event is not one of the variables
+  onStepFocusOut(event: FocusEvent) {
+    event.preventDefault();
+
+    const ev = event as any;
+    if (!ev.relatedTarget?.attributes.id)  this.stepVariableData.currentStepIndex = null;
+  }
+
+  // removes variable flyout on current step row, when keydown TAB event is fired
+  onTextareaTab(i: number) {
+    if ( this.stepVariableData.currentStepIndex === i) {
+      this.stepVariableData.currentStepIndex = null;
+    }
+  }
+
+  onClickVariable(variable_name: string, index: number) {
+    if (!variable_name) return;
+
+    let step = this.stepsForm.at(index).get('step_content');
+    step.setValue(
+      step.value.substr(0, this.stepVariableData.quoteIndexes.prev + 1) + `$${variable_name}` + step.value.substr(this.stepVariableData.quoteIndexes.next - 1)
+      )
+
+    this.stepVariableData.currentStepIndex = null;
+  }
+
+
+  onTextareaEnter(event: any, index: number) {
+    if(this.displayedVariables.length > 0) {
+      event.preventDefault();
+    }
+
+    const varlistItems = this.varlistItems.toArray();
+
+    for(let i = 0; i < varlistItems.length; i++) {
+
+      if (varlistItems[i].nativeElement.classList.contains("selected")) {
+        const var_name = varlistItems[i].nativeElement.querySelector(".variable-wrapper .var_name");
+
+        if (var_name) {
+          this.onClickVariable(var_name.innerText.replace('$', ''), index);
+          this.displayedVariables = [];
+        }
+        return;
+      }
+    }
+
+    this.displayedVariables = [];
+  }
+
+  onStepChange(event, index: number) {
+    this.displayedVariables = [];
+    this.stepVariableData = {};
+
+    // sets the index of currently being edited step row
+    this.stepVariableData.currentStepIndex = index;
+
+    // gets cursor position on text area
+    this.stepVariableData.selectionIndex = event.target.selectionStart;
+
+    // gets whole textarea value
+    this.stepVariableData.stepValue = event.target.value as string;
+
+    // gets the position of nearest left and right quotes taking current cursor position as startpoint index
+    this.stepVariableData.quoteIndexes = this.getQuoteIndexes(this.stepVariableData.stepValue, this.stepVariableData.selectionIndex);
+
+    // return if left quote or right quote index is undefined
+    if(!this.stepVariableData.quoteIndexes.next || !this.stepVariableData.quoteIndexes.prev) return;
+
+    // gets the string between quotes(including quotes)
+    this.stepVariableData.strToReplace = this.stepVariableData.stepValue.substring(this.stepVariableData.quoteIndexes.prev, this.stepVariableData.quoteIndexes.next);
+
+    // removes quotes
+    this.stepVariableData.strWithoutQuotes = this.stepVariableData.strToReplace.replace(/"/g, '').trim();
+
+    // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
+    if (this.stepVariableData.strWithoutQuotes.includes('$')) {
+      // const strWithoutDollar = this.stepVariableData.strWithoutQuotes.replace('$','')
+
+      const filteredVariables = this.variables.filter(item => item.variable_name.includes(this.stepVariableData.strWithoutQuotes.replace('$','')));
+      this.displayedVariables = filteredVariables.length > 0 ? filteredVariables : ["No variable with this name"];
+
+      setTimeout(() => {
+        const varlistElementRefthis = this.varlistItems.toArray()[0].nativeElement;
+        this.renderer.addClass(varlistElementRefthis, "selected")
+      }, 0)
+    }
+  }
+
+  // returns the index of nearest left and right " char in string, taking received startIndex as startpoint reference
+  getQuoteIndexes(str, startIndex) {
+    let prevQuoteIndex = getPrev();
+    let nextQuoteIndex = getNext();
+
+    // returns the index of the nearest " after received index
+    function getNext() {
+      for(let i = startIndex; i<str.length; i++) {
+        if (str[i] === '"')  return i + 1;
+      }
+    }
+
+    // returns the index of the nearest " before received index
+    function getPrev() {
+      for(let i = startIndex-1; i >=0; i--) {
+        if (str[i] === '"') return i;
+      }
+    }
+
+    return { prev: prevQuoteIndex, next: nextQuoteIndex };
   }
 
   /**

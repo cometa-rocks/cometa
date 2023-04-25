@@ -28,7 +28,6 @@
     <div (click)="addEmpty(item+1)">
       <mat-icon>archive</mat-icon>
       <span>Insert new step below</span>
-      a
     </div>
   </ng-template>
   <ng-template contextMenuItem let-item>
@@ -67,8 +66,33 @@
             </mat-select>
           </div>
         </div>
-        <div class="step_content">
-          <textarea (blur)="fixStep($event, i)" class="code" spellcheck="false" cdkTextareaAutosize autocomplete="off" formControlName="step_content" [matAutocomplete]="stepHelp" placeholder="Step Code"></textarea>
+        <div class="step_content" tabindex="0" (focusout)="onStepFocusOut($event)" (keydown.esc)="onStepEscape($event)" (keydown.Tab)="onTextareaTab(i)">
+          <textarea (input)="onStepChange($event, i)"
+                    (blur)="fixStep($event, i)"
+                    (click)="stepVariableData['currentStepIndex'] === i ? stepVariableData.currentStepIndex = i : stepVariableData.currentStepIndex = null"
+                    (keydown.arrowdown)="onTextareaArrowKey($event, 'down')"
+                    (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
+                    (keydown.enter)="onTextareaEnter($event, i)"
+                    class="code"
+                    spellcheck="false"
+                    cdkTextareaAutosize
+                    autocomplete="off"
+                    formControlName="step_content"
+                    [matAutocomplete]="stepHelp"
+                    placeholder="Step Code"></textarea>
+          <mat-list class="var_name_autoComplete" [ngStyle]="{'bottom.px': displayedVariables.length > 4 ? -118 : (-displayedVariables.length * 30) + 2 }" *ngIf="stepVariableData.currentStepIndex == i && displayedVariables.length > 0" role="list">
+            <mat-list-item id="{{variable.id}}" tabindex="0" *ngFor="let variable of displayedVariables" (click)="onClickVariable(variable.variable_name, i)">
+              <div class="variable-wrapper" *ngIf="variable.variable_name; else noVariable">
+                <span class="var_name">${{variable.variable_name}}</span>
+                <span class="var_value">={{variable.variable_value}}</span>
+              </div>
+              <ng-template #noVariable>
+                <div class="variable-wrapper">
+                  <span class="no-variable">No variable with this name</span>
+                </div>
+              </ng-template>
+            </mat-list-item>
+          </mat-list>
         </div>
         <i *ngIf="step.get('step_content').errors?.invalidStep" class="invalid-sign" matTooltip="Invalid step definition" matTooltipPosition="above"></i>
         <ng-container *ngIf="importsSteps$ | async as importedSteps">

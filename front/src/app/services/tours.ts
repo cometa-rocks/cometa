@@ -68,6 +68,7 @@ export class Tours {
                 position: 'bottom',
                 attachTo: '.edit-feature-panel .mat-expansion-panel:first-child'
             },
+            // Explain to check continue on failure
             {
                 name: 'feature_continue',
                 title: 'Continue on failure',
@@ -77,6 +78,16 @@ export class Tours {
                 position: 'bottom',
                 attachTo: '.edit-feature-panel [formcontrolname="continue_on_failure"]'
             },
+            // Explain where to upload files
+            {
+                name: 'file_upload',
+                title: 'Upload Files',
+                description: 'Here you can upload files of your desire.',
+                nextFn: emptyFn,
+                previousFn: emptyFn,
+                position: 'bottom',
+                attachTo: '.edit-feature-panel .upload-file'
+            },
             // Explain to select which browsers to run the feature with
             {
                 name: 'feature_browsers',
@@ -85,7 +96,7 @@ export class Tours {
                 nextFn: emptyFn,
                 previousFn: emptyFn,
                 position: 'top',
-                attachTo: '.edit-feature-panel .mat-expansion-panel:nth-child(2)'
+                attachTo: '.edit-feature-panel .mat-expansion-panel:nth-child(3)'
             },
             // Explain to fill the steps
             {
@@ -95,7 +106,7 @@ export class Tours {
                 nextFn: emptyFn,
                 previousFn: emptyFn,
                 position: 'top',
-                attachTo: '.edit-feature-panel .mat-expansion-panel:nth-child(3)'
+                attachTo: '.edit-feature-panel .mat-expansion-panel:nth-child(4)'
             },
             // Explain to set the schedule
             {
@@ -105,7 +116,7 @@ export class Tours {
                 nextFn: emptyFn,
                 previousFn: emptyFn,
                 position: 'top',
-                attachTo: '.edit-feature-panel .mat-expansion-panel:nth-child(4)'
+                attachTo: '.edit-feature-panel .mat-expansion-panel:nth-child(5)'
             },
             // Explain how to finally create the feature
             {

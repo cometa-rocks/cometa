@@ -50,6 +50,7 @@ export class ApiService {
 
   // Get Folders of features
   getFolders = () => this._http.get<FoldersResponse>(`${this.api}folders/`);
+  getTreeView = () => this._http.get<FoldersResponse>(`${this.api}folders/?tree`);
 
   // Create Folder on the backend for the current logged user and inside another folder
   createFolder(name: string, department_id: number, parent_id: number = 0) {
@@ -465,11 +466,27 @@ export class ApiService {
    * @param department ID of existing department
    * @param values Variables
    */
-  setEnvironmentVariables(environment: number, department: number, values: VariablePair[]) {
-    return this._http.post<Success>(`${this.api}variables/`, {
-      environment_id: environment,
-      department_id: department,
-      variables: values
+  setVariable(variable: VariablePair) {
+    return this._http.post<Success>(`${this.api}variables/`, variable, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
+    });
+  }
+
+  patchVariable(variable: VariablePair) {
+    return this._http.patch<Success>(`${this.api}variables/${variable.id}/`, variable, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
+    });
+  }
+
+  deleteVariable(id: number) {
+    return this._http.delete<Success>(`${this.api}variables/${id}`, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
     });
   }
 
