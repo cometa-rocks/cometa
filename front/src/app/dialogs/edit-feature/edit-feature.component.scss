@@ -11,6 +11,12 @@
         flex-wrap: wrap;
     }
     .mat-form-field {
+        @-moz-document url-prefix() {
+            textarea {
+              height: 15px;
+            }
+        }
+
         @media (max-width: 600px) {
             flex: 1 100% !important;
         }
@@ -27,7 +33,10 @@
         z-index: 1;
         top: 0;
     }
-    table.mat-table { width: 100%; }
+    table.mat-table {
+        width: 100%;
+        min-width: 700px;
+    }
 
     td.mat-cell,
     th.mat-header-cell {
@@ -50,6 +59,9 @@
             mat-spinner {
                 margin-right: 5px;
             }
+            span.canDownload {
+                cursor: pointer;
+            }
         }
     }
 }
@@ -68,6 +80,10 @@ a {
 
 .mat-radio-button {
     margin: 0 10px;
+}
+
+.mat-expansion-panel {
+    // overflow: unset;
 }
 
 :host::ng-deep .mat-dialog-content {

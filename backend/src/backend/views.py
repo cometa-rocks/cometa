@@ -13,6 +13,7 @@ from rest_framework import viewsets, filters, generics, status
 # Django Imports
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
 from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
 from django.core.validators import validate_email
 from django.core import serializers
@@ -593,8 +594,12 @@ def runTest(request, *args, **kwargs):
     # get environment variables
     env = Environment.objects.filter(environment_name=feature.environment_name)[0]
     dep = Department.objects.filter(department_name=feature.department_name)[0]
-    env_variabels = EnvironmentVariables.objects.filter(environment=env, department=dep)
-    seri = EnvironmentVariablesSerializer(env_variabels, many=True).data
+    env_variables = Variable.objects.filter(
+        Q(department=dep) |
+        Q(environment=env) |
+        Q(feature=feature)
+    ).order_by('variable_name', '-based').distinct('variable_name')
+    seri = VariablesSerializer(env_variables, many=True).data
 
     # user data
     user = request.session['user']
@@ -1564,12 +1569,12 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
         environment_id = self.kwargs['environment_id']
         environments = Environment.objects.filter(environment_id=environment_id)
         if not environments.exists():
-            return JsonResponse({"success": False , "error": "Browser_id invalid or doesn't exist."}, status=400)
+            return JsonResponse({"success": False , "error": "Environment id invalid or doesn't exist."}, status=400)
         environments.delete()
         # send a websocket to front about the creation
         response = requests.post('http://cometa_socket:3001/sendAction', json={
             'type': '[Environments] Remove Environment',
-            'environment': IEnvironment(environments[0], many=False).data
+            'environment_id': environment_id
         })
         return JsonResponse({"success": True }, status=200)
 
@@ -2059,6 +2064,123 @@ class FolderViewset(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer, )
 
     '''
+    Function find_in_dict
+        Finds key with specified value inside dictionaries
+
+    Parameters:
+        @objects    Dictionaries on which @key, @value pair are searched
+        @key        Key name that will be searched in @objects
+        @value      If @key name is found then match the value.
+
+    Return:
+        @result     Dict that contains the @key, @value pair.
+    '''
+    def find_in_dict(self, objects, key, value):
+        for obj in objects.values() if isinstance(objects, dict) else objects:
+            if obj[key] == value: return obj
+            result = self.find_in_dict(obj['folders'], key, value)
+            if result is not None:
+                return result
+    
+    def find_in_dict_for_tree(self, objects, key, value):
+        for obj in objects.values() if isinstance(objects, dict) else objects:
+            if obj['type'] != 'folder': continue
+            if obj[key] == value: return obj
+            result = self.find_in_dict_for_tree(obj['children'], key, value)
+            if result is not None:
+                return result
+
+    def serializeResultsFromRawQueryForTree(self, departments, max_lvl):
+        query = """
+            WITH RECURSIVE recursive_folders AS (
+                SELECT bf.*, 1 AS LVL
+                FROM backend_folder bf
+                WHERE bf.parent_id_id is null
+
+                UNION
+
+                SELECT bf.*, rf.LVL + 1
+                FROM backend_folder bf
+
+                    JOIN recursive_folders rf ON bf.parent_id_id = rf.folder_id and rf.LVL < %s
+            )
+            SELECT rf.*, bf.feature_id, bf.feature_name, bd.department_id as d_id, bd.department_name
+            FROM (recursive_folders rf
+                LEFT JOIN backend_folder_feature bff
+                    ON rf.folder_id = bff.folder_id)
+                FULL OUTER JOIN backend_feature bf
+                    ON bf.feature_id = bff.feature_id
+                JOIN backend_department bd
+                    ON bf.department_id = bd.department_id or rf.department_id = bd.department_id
+            WHERE
+                    ( rf.department_id IN %s and ( bf.department_id IN %s or bf.department_id is null) )
+                or
+                    ( rf.department_id is null and bf.department_id IN %s )
+            ORDER BY rf.folder_id
+        """
+
+        # make a raw query to folders table
+        results = Folder.objects.raw(query, [max_lvl, departments, departments, departments])
+
+        objectsCreated = {
+            "departments": {},
+            "folders": {}
+        }
+
+        # loop over table formatted data
+        for result in results:
+            # if folder does not already exist in folders variable add a new folder
+            if result.d_id not in objectsCreated["departments"]:
+                objectsCreated["departments"][result.d_id] = {
+                    'id': result.d_id,
+                    'name': result.department_name,
+                    'type': 'department',
+                    'children': [
+                        {
+                            "name": "Variables",
+                            "type": "variables",
+                            "children": VariablesTreeSerializer(Variable.objects.filter(department_id=result.d_id), many=True).data
+                        }
+                    ]
+                }
+            if result.folder_id is not None and result.folder_id not in objectsCreated["folders"]:
+                objectsCreated["folders"][result.folder_id] = {
+                    'id': result.folder_id,
+                    'parent_id': result.parent_id_id,
+                    'department': result.d_id,
+                    'name': result.name,
+                    'type': 'folder',
+                    'children': []
+                }
+            # if feature_id exists that means feature belongs to folder_id
+            if result.feature_id is not None:
+                feature_object = FeatureHasSubFeatureSerializer(Feature.objects.get(feature_id=result.feature_id), many=False).data
+                if result.folder_id is not None:
+                    objectsCreated["folders"][result.folder_id]['children'].append(feature_object)
+                else:
+                    objectsCreated['departments'][result.d_id]['children'].append(feature_object)
+        
+        # loop over all the folders with parent_id not None
+        not_none_folders = [v for k, v in objectsCreated["folders"].items() if v['parent_id'] is not None]
+        for folder in not_none_folders:
+            obj = self.find_in_dict_for_tree(objectsCreated["folders"], 'id', folder['parent_id'])
+            if obj is not None:
+                obj['children'].append(folder)
+                del objectsCreated["folders"][folder['id']]
+
+        # add all top level folders to the department childrens
+        folders = [v for k, v in objectsCreated["folders"].items() if v['parent_id'] is None]
+        for folder in folders:
+            objectsCreated['departments'][folder['department']]['children'].append(folder)
+            del objectsCreated["folders"][folder['id']]
+        
+        return {
+            "name": "Home",
+            "type": "home",
+            "children": objectsCreated['departments'].values()
+        }
+
+    '''
     Function serializeResultsFromRawQuery
         Turns results in table form to JSON form.
 
@@ -2069,25 +2191,6 @@ class FolderViewset(viewsets.ModelViewSet):
         @folders    JSON formatted data
     '''
     def serializeResultsFromRawQuery(self, results):
-        '''
-        Function find_in_dict
-            Finds key with specified value inside dictionaries
-
-        Parameters:
-            @objects    Dictionaries on which @key, @value pair are searched
-            @key        Key name that will be searched in @objects
-            @value      If @key name is found then match the value.
-
-        Return:
-            @result     Dict that contains the @key, @value pair.
-        '''
-        def find_in_dict(objects, key, value):
-            for obj in objects.values() if isinstance(objects, dict) else objects:
-                if obj[key] == value: return obj
-                result = find_in_dict(obj['folders'], key, value)
-                if result is not None:
-                    return result
-
         # save all the folders in this variable
         folders = {}
         # loop over table formatted data
@@ -2110,7 +2213,7 @@ class FolderViewset(viewsets.ModelViewSet):
         # loop over all the folders with parent_id not None
         not_none_folders = [v for k, v in folders.items() if v['parent_id'] is not None]
         for folder in not_none_folders:
-            obj = find_in_dict(folders, 'folder_id', folder['parent_id'])
+            obj = self.find_in_dict(folders, 'folder_id', folder['parent_id'])
             if obj is not None:
                 obj['folders'].append(folder)
                 del folders[folder['folder_id']]
@@ -2162,6 +2265,9 @@ class FolderViewset(viewsets.ModelViewSet):
                 "folders": [],
                 "features": []
             })
+        
+        if request.query_params.get('tree') is not None:
+            return Response(self.serializeResultsFromRawQueryForTree(departments, MAX_FOLDER_HIERARCHY))
 
         # this query does not take into account that user has selected departments in account_role table
         # query = '''
@@ -2481,94 +2587,131 @@ def Encrypt(request):
         result = decrypt(text)
     return JsonResponse({ 'result': result }, status=200)
 
-class EnvironmentVariablesViewSet(viewsets.ModelViewSet):
+class VariablesViewSet(viewsets.ModelViewSet):
 
-    queryset = EnvironmentVariables.objects.all()
-    serializer_class = EnvironmentVariablesSerializer
+    queryset = Variable.objects.all()
+    serializer_class = VariablesSerializer
     renderer_classes = (JSONRenderer, )
 
     def list(self, request, *args, **kwargs):
-        result = EnvironmentVariables.objects.all()
-        data = EnvironmentVariablesSerializer(EnvironmentVariablesSerializer.fast_loader(result), many=True).data
+        user_departments = GetUserDepartments(request)
+        result = Variable.objects.all() # .filter(department__department_id__in=user_departments)
+        data = VariablesSerializer(VariablesSerializer.fast_loader(result), many=True).data
         return JsonResponse(data, safe=False)
+
+    def validator(self, data, key, obj=None):
+        if key not in data:
+            raise Exception(f"{key} is required.")
+
+        if obj is not None:
+            try:
+                return obj.objects.get(pk=data[key])
+            except:
+                raise Exception(f"{key} does not exists.")
+        return data[key]
+
+    def optionalValidator(self, data, key, default):
+        return data.get(key, default)
+    
+    def optionalValidatorWithObject(self, data, key, default, obj=None):
+        value = data.get(key, default)
+        if obj is not None and isinstance(value, int):
+            try:
+                return obj.objects.get(pk=value)
+            except:
+                raise Exception(f"{key} does not exists.")
+        return value
+        
 
     @require_permissions("create_variable")
     def create(self, request, *args, **kwargs):
-        # Get parameters from request body
-        data=json.loads(request.body)
-        department_id = data['department_id']
-        environment_id = data['environment_id']
-        env_variables = data['variables']
-
-        # Get deparment of current variables
-        department =  Department.objects.filter(department_id=department_id)
-        if not department.exists():
-            return JsonResponse({"success": False, "error": "The department you are looking for does not exist." }, status=200)
-
-        # Get environment of current variables
-        environment =  Environment.objects.filter(environment_id=environment_id)
-        if not environment.exists():
-            return JsonResponse({"success": False, "error": "The environment you are looking for does not exist." }, status=200)
-
-        # Delete previous variables for current department and environment
-        EnvironmentVariables.objects.filter(environment=environment[0], department=department[0]).delete()
-
-        # Recreate variables
-        for var in env_variables:
-            variable_name = var['variable_name']
-            variable_value = var['variable_value']
-            encrypted = var.get('encrypted', False)
-            # Only encrypt value if user checked the encrypt checkbox and it isn't already encrypted
-            if encrypted and not variable_value.startswith(ENCRYPTION_START):
-                variable_value = encrypt(variable_value)
-            # Create variable pair
-            environment_variable = EnvironmentVariables(
-                department=department[0],
-                environment=environment[0],
-                variable_name=variable_name,
-                variable_value=variable_value,
-                encrypted=encrypted
-            )
-            # Save variable
-            environment_variable.save()
-
-        return JsonResponse({"success": True }, status=200)
-
-    @require_permissions("edit_variable")
-    def patch(self, request, *args, **kwargs):
-
         data = json.loads(request.body)
-
-        if 'variable_id' in kwargs:
-            env_var = EnvironmentVariables.objects.filter(id=kwargs['variable_id'])
-        else:
-            return JsonResponse({"success": False, "error": "No variable id found in request." }, status=405)
-
-        if not env_var.exists():
-            return JsonResponse({"success": False, "error": "The variable you are looking for does not exist." }, status=404)
-
-        env_var.update(variable_name=data['variable_name'], variable_value=data['variable_value'])
-
+        try:
+            valid_data = {
+                "department": self.validator(data, 'department', Department),
+                "environment": self.validator(data, 'environment', Environment),
+                "feature": self.validator(data, 'feature', Feature),
+                "variable_name": self.validator(data, 'variable_name'),
+                "variable_value": self.validator(data, 'variable_value'),
+                "encrypted": self.optionalValidator(data, 'encrypted', False),
+                "based": self.optionalValidator(data, 'based', 'feature'),
+                "created_by": self.optionalValidatorWithObject(data, 'created_by', request.session['user']['user_id'], OIDCAccount),
+                "updated_by": self.optionalValidatorWithObject(data, 'updated_by', request.session['user']['user_id'], OIDCAccount)
+            }
+            # encrypt the value if needed
+            if valid_data['encrypted'] and not valid_data['variable_value'].startswith(ENCRYPTION_START):
+                valid_data['variable_value'] = encrypt(valid_data['variable_value'])
+            # check if feature belongs to the department
+            if valid_data['feature'].department_id != valid_data['department'].department_id:
+                raise Exception(f"Feature does not belong the same department id, please check.")
+        except Exception as err:
+            return JsonResponse({
+                'success': False,
+                'error': str(err)
+            }, status=400)
+        try:
+            # create the new variable
+            variable = Variable.objects.create(**valid_data)
+        except IntegrityError as err:
+            logger.error("IntegrityError occured ... unique variable already exists.")
+            logger.exception(err)
+            return JsonResponse({
+                'success': False,
+                'error': 'Variable already exists with specified requirements, please update the variable.'
+            }, status=400)
         return JsonResponse({
             "success": True,
+            "data": VariablesSerializer(variable, many=False).data
+        }, status=201)
+    
+    @require_permissions("edit_variable")
+    def patch(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+        try:
+            # get the variable
+            variable = self.validator(kwargs, 'id', Variable)
+            variable.department = self.optionalValidatorWithObject(data, 'department', variable.department, Department)
+            variable.environment = self.optionalValidatorWithObject(data, 'environment', variable.environment, Environment)
+            variable.feature =  self.optionalValidatorWithObject(data, 'feature', variable.feature, Feature)
+            variable.variable_name = self.optionalValidator(data, 'variable_name', variable.variable_name)
+            variable.variable_value = self.optionalValidator(data, 'variable_value', variable.variable_value)
+            variable.encrypted = self.optionalValidator(data, 'encrypted', variable.encrypted)
+            variable.based = self.optionalValidator(data, 'based', variable.based)
+            variable.updated_by = self.optionalValidatorWithObject(data, 'updated_by', request.session['user']['user_id'], OIDCAccount)
+            # encrypt the value if needed
+            if variable.encrypted and not variable.variable_value.startswith(ENCRYPTION_START):
+                variable.variable_value = encrypt(variable.variable_value)
+
+            # check if feature belongs to the department
+            # commented for now
+            # this condition raises exception if variable.feature coming from front is null, which prevents user from patching old variables
+            # if variable.feature.department_id != variable.department.department_id:
+            #    raise Exception(f"Feature does not belong the same department id, please check.")
+            variable.save()
+        except Exception as err:
+            return JsonResponse({
+                'success': False,
+                'error': str(err)
+            }, status=400)
+        return JsonResponse({
+            "success": True,
+            "data": VariablesSerializer(variable, many=False).data
         }, status=200)
 
     @require_permissions("delete_variable")
     def delete(self, request, *args, **kwargs):
-
-        if 'variable_id' in kwargs:
-            env_var = EnvironmentVariables.objects.filter(id=kwargs['variable_id'])
-        else:
-            return JsonResponse({"success": False, "error": "No variable id found in request." }, status=404)
-
-        if not env_var.exists():
-            return JsonResponse({"success": False, "error": "The variable you are looking for does not exist." }, status=404)
-
-        env_var.delete()
-
+        try:
+            # get the variable
+            variable = self.validator(kwargs, 'id', Variable)
+            variable.delete()
+        except Exception as err:
+            return JsonResponse({
+                'success': False,
+                'error': str(err)
+            }, status=400)
         return JsonResponse({
-            "success": True,
-        }, status=200);
+            "success": True
+        }, status=200)
 
 class FeatureRunViewSet(viewsets.ModelViewSet):
 
