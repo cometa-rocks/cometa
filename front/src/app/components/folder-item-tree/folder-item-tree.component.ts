@@ -43,7 +43,6 @@ export class FolderItemTreeComponent implements OnInit {
    */
   expanded$: BehaviorSubject<boolean>;
 
-  // NgOnInit
   ngOnInit() {
     if (this.folder.folder_id === 0) {
       this.expanded$ = new BehaviorSubject<boolean>(true);

@@ -32,7 +32,7 @@ import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-
 import { Configuration } from '@store/actions/config.actions';
 import { parseExpression } from 'cron-parser';
 import { DepartmentsState } from '@store/departments.state';
-import { Clipboard } from "@angular/cdk/clipboard"
+import { VariablesState } from '@store/variables.state';
 
 @Component({
   selector: 'edit-feature',
@@ -56,11 +56,13 @@ export class EditFeature implements OnInit, OnDestroy {
   @ViewSelectSnapshot(UserState) user !: UserInfo;
   @ViewSelectSnapshot(UserState.HasOneActiveSubscription) hasSubscription: boolean;
   @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
+  @Select(VariablesState) variableState$: Observable<VariablePair[]>;
 
 
   saving$ = new BehaviorSubject<boolean>(false);
 
   departmentSettings$: Observable<Department['settings']>
+  variable_dialog_isActive: boolean = false;
 
   steps$: Observable<FeatureStep[]>;
 
@@ -81,6 +83,7 @@ export class EditFeature implements OnInit, OnDestroy {
   selected_application;
   selected_environment;
   department;
+  variables !: VariablePair[];
 
   readonly separatorKeysCodes: number[] = [ENTER, COMMA];
 
@@ -101,7 +104,6 @@ export class EditFeature implements OnInit, OnDestroy {
     private _fb: UntypedFormBuilder,
     private cdr: ChangeDetectorRef,
     private fileUpload: FileUploadService,
-    private clipboard: Clipboard,
     @Inject(API_URL) public api_url: string,
   ) {
     // Create the fields within FeatureForm
@@ -209,11 +211,21 @@ export class EditFeature implements OnInit, OnDestroy {
   editVariables() {
     const environmentId = this.environments$.find(env => env.environment_name === this.featureForm.get('environment_name').value).environment_id;
     const departmentId = this.departments$.find(dep => dep.department_name === this.featureForm.get('department_name').value).department_id;
+    const feature = this.feature.getValue();
+
+    this.variable_dialog_isActive = true;
     this._dialog.open(EditVariablesComponent, {
       data: {
+        feature_id: feature.feature_id,
         environment_id: environmentId,
-        department_id: departmentId
-      }
+        department_id: departmentId,
+        department_name: this.featureForm.get('department_name').value,
+        environment_name: this.featureForm.get('environment_name').value,
+        feature_name: this.featureForm.get('feature_name').value
+      },
+      panelClass: 'edit-variable-panel'
+    }).afterClosed().subscribe(res => {
+      this.variable_dialog_isActive = false;
     });
   }
 
@@ -233,6 +245,9 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // Handle keyboard keys
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(event: KeyboardEvent) {
+    // only execute switch case if child dialog is closed
+    if (this.variable_dialog_isActive) return
+
     switch (event.keyCode) {
       case KEY_CODES.ESCAPE:
         // Check if form has been modified before closing
@@ -355,6 +370,12 @@ export class EditFeature implements OnInit, OnDestroy {
   @ViewChild(BrowserSelectionComponent, { static: false }) _browserSelection: BrowserSelectionComponent;
 
   ngOnInit() {
+    this.featureForm.valueChanges.subscribe(() => {
+      this.variableState$.subscribe(data =>  {
+        this.variables =  this.getFilteredVariables(data)
+      })
+    })
+
     if (this.data.mode === 'edit' || this.data.mode === 'clone') {
       // Code for editing feautre
       const featureInfo = this.data.info;
@@ -384,7 +405,9 @@ export class EditFeature implements OnInit, OnDestroy {
       this.stepsOriginal = this.data.steps;
     } else {
       // Code for creating a feature
+      // set user preselect options
       this.feature.next(this.data.feature);
+      this.preSelectedOptions()
     }
     // @ts-ignore
     if (!this.feature) this.feature = { feature_id: 0 };
@@ -397,6 +420,31 @@ export class EditFeature implements OnInit, OnDestroy {
         this.fileUpload.validateFileUploadStatus(this.department);
         this.cdr.detectChanges();
       })
+    })
+  }
+
+  /**
+   * Select user specified selections if any.
+   */
+  preSelectedOptions() {
+    const { 
+      preselectDepartment,
+      preselectApplication,
+      preselectEnvironment,
+      recordVideo } = this.user.settings;
+    
+    this.departments$.find(d => {
+      if (d.department_id == preselectDepartment) this.selected_department = d.department_name;
+    })
+    this.applications$.find(a => { 
+      if (a.app_id == preselectApplication) this.selected_application = a.app_name;
+    })
+    this.environments$.find(e => { 
+      if (e.environment_id == preselectEnvironment) this.selected_environment = e.environment_name
+    })
+    this.featureForm.patchValue({
+      video: recordVideo != undefined ? recordVideo : true
+      // ... add addition properties here.
     })
   }
 
@@ -688,6 +736,11 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   onDownloadFile(file: UploadedFile) {
+    // return if file is still uploading
+    if(file.status.toLocaleLowerCase() != 'done') {
+      return;
+    }
+
     const downloading = this._snackBar.open('Generating file to download, please be patient.', 'OK', { duration: 10000 })
 
     this.fileUpload.downloadFile(file.id).subscribe({
@@ -734,5 +787,30 @@ export class EditFeature implements OnInit, OnDestroy {
     const duration = 2000;
     successful ? this._snackBar.open("File upload path has been copied", "OK", { duration: duration }) :
                  this._snackBar.open("File upload path could not be copied", "OK", { duration: duration })
+  }
+
+
+  getFilteredVariables(variables: VariablePair[]) {
+    const environmentId = this.environments$.find(env => env.environment_name === this.featureForm.get('environment_name').value)?.environment_id;
+    const departmentId = this.departments$.find(dep => dep.department_name === this.featureForm.get('department_name').value)?.department_id;
+
+    let feature = this.feature.getValue();
+    let reduced = variables.reduce((filtered_variables: VariablePair[], current:VariablePair) => {
+      // stores variables, if it's id coincides with received department id and it is based on department
+      const byDeptOnly = current.department === departmentId && current.based == 'department' ? current : null;
+
+      // stores variable if department id coincides with received department id and
+      // environment or feature ids coincide with received ones, additionally if feature id coincides variable must be based on feature. If environment id coincides, variables must be based on environment.
+      const byEnv = current.department === departmentId && ((current.environment === environmentId && current.based == 'environment') ||
+                                                            (current.feature === feature.feature_id && current.based == 'feature')) ? current : null;
+
+      // pushes stored variables into array if they have value
+      byDeptOnly ? filtered_variables.push(byDeptOnly) : null;
+      byEnv ? filtered_variables.push(byEnv) : null;
+
+      // removes duplicated variables and returs set like array
+      return filtered_variables.filter((value, index, self) => index === self.findIndex((v) => (v.id === value.id)))
+    }, [])
+    return reduced;
   }
 }
