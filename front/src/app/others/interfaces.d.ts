@@ -525,7 +525,7 @@ interface FeatureViewItems {
     [view: string]: FeatureViewTypes;
 }
 
-type FeatureViewTypes = 'tiles' | 'list';
+type FeatureViewTypes = 'tiles' | 'list' | 'tree';
 
 interface ResultHeader {
     enable: boolean;
@@ -684,13 +684,45 @@ interface AccountRole {
     department: number;
 }
 
+
+interface VariableInsertionData {
+    currentStepIndex?: number | null;
+    selectionIndex?: number;
+    stepValue?: string;
+    quoteIndexes?: QuoteIndexes;
+    strToReplace?: string;
+    strWithoutQuotes?: string;
+}
+
+interface QuoteIndexes {
+    next?: number;
+    prev?: number;
+}
+
+interface VariableColumns {
+    name: string;
+    activated: boolean;
+    value: string;
+}
+
 interface VariablePair {
+    id: number;
+    department: number;
+    department_name: string;
+    environment: number;
+    feature: number;
     variable_name: string;
     variable_value: string;
     encrypted: boolean;
-    id?: number;
-    department: Department;
-    environment: Environment;
+    environment_name: string;
+    feature_name?: string;
+    based: string;
+    in_use: number[];
+    created_by_name: string;
+    updated_by_name: string;
+    created_on: Date;
+    updated_on: Date;
+    disabled?: boolean;
 }
 
 interface Cloud {

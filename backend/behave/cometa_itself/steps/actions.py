@@ -242,7 +242,7 @@ def done( *_args, **_kwargs ):
                 # print stack trace
                 traceback.print_exc()
                 # set the error message to the step_error inside context so we can pass it through websockets!
-                args[0].step_error = str(err)
+                args[0].step_error = logger.mask_values(str(err))
                 try:
                     # save the result to databse as False since the step failed
                     saveToDatabase(save_message, (time.time() - start_time) * 1000, 0, False, args[0])
@@ -405,7 +405,18 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         }
         logger.debug("Writing data %s to database" % json.dumps(data))
         requests.post('http://cometa_django:8000/setScreenshots/%s/' % str(step_id), json=data, headers={"Host": "cometa.local"})
+        # add timestamps to the current image
+        if context.DB_CURRENT_SCREENSHOT:
+            addTimestampToImage(context.DB_CURRENT_SCREENSHOT, path=context.SCREENSHOTS_ROOT)
     return step_id
+
+# add timestamp to the image using the imagemagic cli
+def addTimestampToImage(image, path=None):
+    logger.debug(f"Adding timestamp to: {path}/{image}")
+    cmd=f"convert {path}/{image} -pointsize 20 -font DejaVu-Sans-Mono -fill 'RGBA(255,255,255,1.0)' -gravity SouthEast -annotate +20+20 \"$(date)\" {path}/{image}"
+    status = subprocess.call(cmd, shell=True, env={})
+    if status != 0:
+        logger.error("Something happend during the timestamp watermark.")
 
 # Automatically checks if there's still old styles and moves them to current path
 # Due to change in new images structure we have to check if the old style image is still there,
@@ -1741,9 +1752,16 @@ def step_impl(context):
 @step(u'I click on element with classname "{classname}"')
 @done(u'I click on element with classname "{classname}"')
 def step_impl(context, classname):
-    send_step_details(context, 'Looking for classname')
-    elem = waitSelector(context, "class", classname)
-    elem[0].click()
+    start_time = time.time()
+    try:
+        send_step_details(context, 'Looking for classname')
+        elem = waitSelector(context, "class", classname)
+        elem[0].click()
+        return True
+    except Exception as e:
+        raise CustomError("Could not interact with element having classname %s ." % classname)
+        logger.error(str(e))
+        return False
 
 def click_on_element(elem):
     start_time = time.time()
@@ -2348,7 +2366,7 @@ def getVariable(context, variable_name):
     return variable_value
 
 
-def addVariable(context, variable_name, result):
+def addVariable(context, variable_name, result, encrypted=False):
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
     # check if variable_name is in the env_variables
@@ -2358,22 +2376,31 @@ def addVariable(context, variable_name, result):
         index = index[0]
         logger.debug("Patching existing variable")
         env_variables[index]['variable_value'] = result
+        env_variables[index]['encrypted'] = encrypted
+        env_variables[index]['updated_by'] = context.PROXY_USER['user_id']
         # make the request to cometa_django and add the environment variable
         response = requests.patch('http://cometa_django:8000/api/variables/' + str(env_variables[index]['id']) + '/', headers={"Host": "cometa.local"}, json=env_variables[index])
+        if response.status_code == 200:
+            env_variables[index] = response.json()['data']
     else: # create new variable
         logger.debug("Creating variable")
         # create data to send to django
-        env_variables.append({
-            "variable_name": variable_name,
-            "variable_value": result
-        })
         update_data = {
-            "environment_id": int(context.feature_info['environment_id']),
-            "department_id": int(context.feature_info['department_id']),
-            "variables": env_variables
+            "environment": int(context.feature_info['environment_id']),
+            "department": int(context.feature_info['department_id']),
+            "feature": int(context.feature_id),
+            "variable_name": variable_name,
+            "variable_value": result,
+            "based": "environment",
+            "encrypted": encrypted,
+            "created_by": context.PROXY_USER['user_id'],
+            "updated_by": context.PROXY_USER['user_id']
         }
         # make the request to cometa_django and add the environment variable
         response = requests.post('http://cometa_django:8000/api/variables/', headers={"Host": "cometa.local"}, json=update_data)
+
+        if response.status_code == 201:
+            env_variables.append(response.json()['data'])
 
     # send a request to websockets about the environment variables update
     requests.post('http://cometa_socket:3001/sendAction', json={
@@ -2451,15 +2478,15 @@ def downloadFileFromURL(url, dest_folder, filename):
         logger.error("Download failed: status code {}\n{}".format(r.status_code, r.text))
 
 # Upload a file by selecting the upload input field and sending the keys with the folder/filename. Cometa offers folder uploads with files inside the headless browser in Downloads/ and uploads/ folder. Separate multiple files by semicolon.
-@step(u'Upload a file by clicking on "{selector}" using file "{filename}"')
-@done(u'Upload a file by clicking on "{selector}" using file "{filename}"')
-def step_imp(context, selector, filename):
+@step(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
+@done(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
+def step_imp(context, file_input_selector, filename):
     # save the old file detector
     old_file_detector = context.browser.file_detector
     # set the new file detector to LocalFileDetector
     context.browser.file_detector = LocalFileDetector()
     # select the upload element to send the filenames to
-    elements = waitSelector(context, "css", selector)
+    elements = waitSelector(context, "css", file_input_selector)
     logger.debug("Before replacing filename: %s" % filename)
     # get the target file or files
     filename = uploadFileTarget(context, filename)
@@ -3022,6 +3049,31 @@ def step_imp(context, value_one, value_two, variance):
     if int(diff) > int(number_variance):
         raise CustomError("Difference (%s) is greater than variance (%s) specified." % (str(diff), str(number_variance)))
 
+# generate One-Time Password (OTP) using a pairing-key
+@step(u'Create one-time password of "{x}" digits using pairing-key "{value}" and save it to crypted variable "{variable_name}"')
+@done(u'Create one-time password of "{x}" digits using pairing-key "{value}" and save it to crypted variable "{variable_name}"')
+def step_imp(context, x, value, variable_name):
+    x = x.strip()
+    try:
+        x = int(x)
+    except:
+        x = 6
+        send_step_details(context, 'x should be one of these numbers: 6, 7, 8. Defaulting to 6.')
+        logger.error("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
+
+    if x not in (6, 7, 8):
+        x = 6
+        send_step_details(context, 'x should be one of these numbers: 6, 7, 8. Defaulting to 6.')
+        logger.error("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
+
+    import pyotp
+    totp = pyotp.TOTP(value, digits=x)
+    oneTimePassword = totp.now()
+    addVariable(context, variable_name, oneTimePassword, encrypted=True)
+
+
+    
+
 # compares a report cube's content to a list saved in variable
 @step(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
 @done(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
@@ -3032,7 +3084,10 @@ def imp(context, variable_name, prefix, suffix):
     index = [i for i,_ in enumerate(env_variables) if _['variable_name'] == variable_name]
 
     if len(index) == 0:
-        raise CustomError("No variable found with name: %s" % variable_name)
+        # if the length is 0 then the variable was not found
+        # so we can try using the value in the variable as if it is a list of values - see issue #3881
+        logger.debug("Feature: %s - Will use variable as valuelist %s " % context.feature_id, variable_name)
+        send_step_details(context, 'Variable does not exist, will use the variable name as value seperate by semicolon.')
 
     # hold csv data that will later on be writen to a file
     fileContent = []
