@@ -195,7 +195,7 @@ export class DetailViewComponent implements OnInit {
   }
 
   returnToMain() {
-    this._router.navigate(['../../../../../../'], { relativeTo: this._acRouted });
+    this._router.navigate(['../../../../'], { relativeTo: this._acRouted });
   }
 
 }
