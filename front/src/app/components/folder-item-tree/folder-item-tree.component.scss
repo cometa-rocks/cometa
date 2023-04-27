@@ -17,10 +17,19 @@
     box-sizing: border-box;
     cursor: pointer;
     .item {
-        
-        display: flex;
-        align-items: center;
-        flex: 1;
+        width: 100%;
+        display: grid;
+        place-items: center start;
+        grid-template-columns: 30px calc(100% - var(--itemMinWidth));
+        overflow: hidden;
+
+        .folderName {
+            display: block;
+            max-width: calc(100% + var(--folderNameWidth));
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         mat-icon {
             flex: 0 24px;
             margin-right: 8px;
