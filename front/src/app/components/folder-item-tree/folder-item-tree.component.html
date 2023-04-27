@@ -14,7 +14,7 @@ Author: dph000
         <mat-icon class="arrow" [class.hidden]="folder.folders.length === 0">
             keyboard_arrow_right</mat-icon>
         <!-- Folder icon and name -->
-        <div class="item">
+        <div class="item" [style.--itemMinWidth]="level * 25 + 'px'" [style.--folderNameWidth]="level === 1 ? '0px': (level-1) * 25 + 'px'">
             <!-- Show different depending if the item is a folder or department -->
             <mat-icon *ngIf="department === true; else folderIcon">domain</mat-icon>
             <ng-template #folderIcon>
