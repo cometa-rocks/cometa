@@ -83,7 +83,7 @@
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Based on</th>
           <td mat-cell *matCellDef="let element">
             <mat-select [(value)]="element.based" [disabled]="element.disabled" aria-label="var_basedOn">
-              <mat-option *ngFor="let base of bases" [value]="base">
+              <mat-option *ngFor="let base of bases" [value]="base" [disabled]="data?.feature_id === 0 && base === 'feature'">
                 {{base}}
               </mat-option>
             </mat-select>
@@ -171,8 +171,8 @@
   </ng-template>
 </mat-dialog-content>
 <mat-dialog-actions *ngIf="data?.department_id">
-  <div class="add-variable" *ngIf="canCreate" [matTooltip]="data?.feature_id === 0 ? 'Please finish creating feature in order to add new variable' : isEditing ? 'Please save changes before creating new variable' : 'Create new variable'" matTooltipPosition="above">
-    <button color="primary" (click)="onAddVar()" class="add" [disabled]="isEditing || data?.feature_id === 0" mat-stroked-button>Add variable</button>
+  <div class="add-variable" *ngIf="canCreate" [matTooltip]="isEditing ? 'Please save changes before creating new variable' : 'Create new variable'" matTooltipPosition="above">
+    <button color="primary" (click)="onAddVar()" class="add" [disabled]="isEditing" mat-stroked-button>Add variable</button>
   </div>
   <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
 </mat-dialog-actions>
