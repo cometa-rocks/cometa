@@ -342,11 +342,11 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     new_var.department_name = this.data.department_name
     new_var.environment_name = this.data.environment_name;
     new_var.feature_name = this.data.feature_name;
-    new_var.feature = this.data.feature_id;
+    new_var.feature = this.data.feature_id === 0 ? null : this.data.feature_id;
     new_var.variable_name = "";
     new_var.variable_value = "";
     new_var.encrypted = false;
-    new_var.based = 'feature';
+    new_var.based = this.data.feature_id === 0 ? 'department' : 'feature';
     new_var.in_use = [];
     new_var.disabled = false;
 
