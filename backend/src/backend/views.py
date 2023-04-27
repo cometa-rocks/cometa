@@ -2091,6 +2091,7 @@ class FolderViewset(viewsets.ModelViewSet):
                 return result
 
     def serializeResultsFromRawQueryForTree(self, departments, max_lvl):
+        logger.debug("Preparing query for recursive folder, feature lookup for tree visualisation.")
         query = """
             WITH RECURSIVE recursive_folders AS (
                 SELECT bf.*, 1 AS LVL
@@ -2113,14 +2114,18 @@ class FolderViewset(viewsets.ModelViewSet):
                 JOIN backend_department bd
                     ON bf.department_id = bd.department_id or rf.department_id = bd.department_id
             WHERE
-                    ( rf.department_id IN %s and ( bf.department_id IN %s or bf.department_id is null) )
+                (
+                        ( rf.department_id IN %s and ( bf.department_id IN %s or bf.department_id is null) )
                 or
                     ( rf.department_id is null and bf.department_id IN %s )
-            ORDER BY rf.folder_id
+                ) 
+            ORDER BY bd.department_name, bf.depends_on_others, bf.feature_name
         """
 
         # make a raw query to folders table
         results = Folder.objects.raw(query, [max_lvl, departments, departments, departments])
+        logger.debug("Results:")
+        logger.debug(results)
 
         objectsCreated = {
             "departments": {},
@@ -2129,6 +2134,7 @@ class FolderViewset(viewsets.ModelViewSet):
 
         # loop over table formatted data
         for result in results:
+            logger.debug("Result: %s" % result.d_id)
             # if folder does not already exist in folders variable add a new folder
             if result.d_id not in objectsCreated["departments"]:
                 objectsCreated["departments"][result.d_id] = {
@@ -2174,6 +2180,8 @@ class FolderViewset(viewsets.ModelViewSet):
             objectsCreated['departments'][folder['department']]['children'].append(folder)
             del objectsCreated["folders"][folder['id']]
         
+        logger.debug("Finished recursive lookup")
+
         return {
             "name": "Home",
             "type": "home",
@@ -2600,15 +2608,25 @@ class VariablesViewSet(viewsets.ModelViewSet):
         return JsonResponse(data, safe=False)
 
     def validator(self, data, key, obj=None):
+        logger.debug("-------------------------------------------------")
+        logger.debug("Checking key: %s " % key)
         if key not in data:
             raise Exception(f"{key} is required.")
 
+        value = data[key]
         if obj is not None:
+            # try to validate for the rest
             try:
-                return obj.objects.get(pk=data[key])
+                # on feature we except null values
+                if key == 'feature' and value is None:
+                    logger.debug("Found value=null for FeatureID, which is ok for new variables.")
+                else:
+                    value = obj.objects.get(pk=data[key])
+                    logger.debug("Found value: %s " % value)
             except:
                 raise Exception(f"{key} does not exists.")
-        return data[key]
+        logger.debug("Using value: %s " % value)
+        return value
 
     def optionalValidator(self, data, key, default):
         return data.get(key, default)
@@ -2626,6 +2644,10 @@ class VariablesViewSet(viewsets.ModelViewSet):
     @require_permissions("create_variable")
     def create(self, request, *args, **kwargs):
         data = json.loads(request.body)
+        logger.debug("=================================================")
+        logger.debug("Received request to save variables.")
+        logger.debug("=================================================")
+        logger.debug("Will try validating the data: %s" % data)
         try:
             valid_data = {
                 "department": self.validator(data, 'department', Department),
@@ -2641,17 +2663,23 @@ class VariablesViewSet(viewsets.ModelViewSet):
             # encrypt the value if needed
             if valid_data['encrypted'] and not valid_data['variable_value'].startswith(ENCRYPTION_START):
                 valid_data['variable_value'] = encrypt(valid_data['variable_value'])
-            # check if feature belongs to the department
-            if valid_data['feature'].department_id != valid_data['department'].department_id:
+            # check if feature belongs to the department, only if feature is not null 
+            if valid_data['feature'] is not None and valid_data['feature'].department_id != None and valid_data['feature'].department_id != valid_data['department'].department_id:
                 raise Exception(f"Feature does not belong the same department id, please check.")
+            logger.debug("Validation done. I think, we should validate that variable name is unique in relation to department or environment or feature ... FIXME??")
         except Exception as err:
+            logger.debug("Exception while creating variable: %s" % err)
             return JsonResponse({
                 'success': False,
                 'error': str(err)
             }, status=400)
+
+        logger.debug("Will try creating the variable with data: %s" % valid_data)
         try:
             # create the new variable
             variable = Variable.objects.create(**valid_data)
+            logger.debug("Data has been saved to database.")
+            logger.debug("=================================================")
         except IntegrityError as err:
             logger.error("IntegrityError occured ... unique variable already exists.")
             logger.exception(err)
