@@ -2603,7 +2603,7 @@ class VariablesViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         user_departments = GetUserDepartments(request)
-        result = Variable.objects.all() # .filter(department__department_id__in=user_departments)
+        result = Variable.objects.filter(department__department_id__in=user_departments)
         data = VariablesSerializer(VariablesSerializer.fast_loader(result), many=True).data
         return JsonResponse(data, safe=False)
 
