@@ -2130,7 +2130,7 @@ class FolderViewset(viewsets.ModelViewSet):
         }
 
         # loop over table formatted data
-        for resultw in results:
+        for result in results:
             # if folder does not already exist in folders variable add a new folder
             if result.d_id not in objectsCreated["departments"]:
                 objectsCreated["departments"][result.d_id] = {
