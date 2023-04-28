@@ -2124,9 +2124,6 @@ class FolderViewset(viewsets.ModelViewSet):
 
         # make a raw query to folders table
         results = Folder.objects.raw(query, [max_lvl, departments, departments, departments])
-        logger.debug("Results:")
-        logger.debug(results)
-
         objectsCreated = {
             "departments": {},
             "folders": {}
@@ -2134,7 +2131,6 @@ class FolderViewset(viewsets.ModelViewSet):
 
         # loop over table formatted data
         for result in results:
-            logger.debug("Result: %s" % result.d_id)
             # if folder does not already exist in folders variable add a new folder
             if result.d_id not in objectsCreated["departments"]:
                 objectsCreated["departments"][result.d_id] = {
@@ -2603,7 +2599,7 @@ class VariablesViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         user_departments = GetUserDepartments(request)
-        result = Variable.objects.all() # .filter(department__department_id__in=user_departments)
+        result = Variable.objects.filter(department__department_id__in=user_departments)
         data = VariablesSerializer(VariablesSerializer.fast_loader(result), many=True).data
         return JsonResponse(data, safe=False)
 
