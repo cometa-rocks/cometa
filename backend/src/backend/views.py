@@ -2124,17 +2124,13 @@ class FolderViewset(viewsets.ModelViewSet):
 
         # make a raw query to folders table
         results = Folder.objects.raw(query, [max_lvl, departments, departments, departments])
-        logger.debug("Results:")
-        logger.debug(results)
-
         objectsCreated = {
             "departments": {},
             "folders": {}
         }
 
         # loop over table formatted data
-        for result in results:
-            logger.debug("Result: %s" % result.d_id)
+        for resultw in results:
             # if folder does not already exist in folders variable add a new folder
             if result.d_id not in objectsCreated["departments"]:
                 objectsCreated["departments"][result.d_id] = {
