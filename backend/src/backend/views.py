@@ -595,7 +595,7 @@ def runTest(request, *args, **kwargs):
     env = Environment.objects.filter(environment_name=feature.environment_name)[0]
     dep = Department.objects.filter(department_name=feature.department_name)[0]
     env_variables = Variable.objects.filter(
-        Q(department=dep) |
+        Q(department=dep),
         Q(environment=env) |
         Q(feature=feature)
     ).order_by('variable_name', '-based').distinct('variable_name')
