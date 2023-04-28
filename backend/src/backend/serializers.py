@@ -319,7 +319,6 @@ class FeatureHasSubFeatureSerializer(serializers.ModelSerializer, FeatureMixin):
     def to_representation(self, feature):
         uses_steps = Step.objects.filter(feature_id=feature.feature_id).exclude(belongs_to=feature.feature_id).order_by('belongs_to').distinct('belongs_to').values_list('belongs_to', flat=True)
         used_in_steps = Step.objects.filter(belongs_to=feature.feature_id).exclude(feature_id=feature.feature_id).order_by('belongs_to').distinct('belongs_to').values_list('feature_id', flat=True)
-        print(used_in_steps)
         # get all childs
         childrens = [
             {
