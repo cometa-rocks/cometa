@@ -191,6 +191,26 @@
 	],
 	"changelog": [
 		{
+			"version": "2.8.297",
+			"date": "2023-04-28",
+			"features": [
+				{
+					"title": "Variable creation",
+					"description": "Users can now create variable even if feature creation is not finished, but in this case variable can only be based on department or environment."
+				}
+			]
+		},
+		{
+			"version": "2.8.296",
+			"date": "2023-04-28",
+			"features": [
+				{
+					"title": "Folder tree",
+					"description": "Fixed - Folder tree hierarchy layout is broken if name is too long."
+				}
+			]
+		},
+		{
 			"version": "2.8.295",
 			"date": "2023-04-19",
 			"features": [
