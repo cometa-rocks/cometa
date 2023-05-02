@@ -710,7 +710,7 @@ interface VariablePair {
     department: number;
     department_name: string;
     environment: number;
-    feature: number;
+    feature: number | null;
     variable_name: string;
     variable_value: string;
     encrypted: boolean;
