@@ -191,6 +191,16 @@
 	],
 	"changelog": [
 		{
+			"version": "2.8.299",
+			"date": "2023-05-02",
+			"features": [
+				{
+					"title": "Welcome tour",
+					"description": "Fixed - welcome tour presentation didn't stop on ESC key press"
+				}
+			]
+		},
+		{
 			"version": "2.8.298",
 			"date": "2023-05-02",
 			"features": [

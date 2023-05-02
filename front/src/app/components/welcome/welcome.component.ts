@@ -10,9 +10,10 @@
  * @author: dph000
  */
 
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { Select } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
+import { JoyrideService } from '@plugins/ngx-joyride/services/joyride.service';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { TourService } from '@services/tour.service';
 import { Tour, TourExtended, Tours } from '@services/tours';
@@ -29,7 +30,8 @@ export class WelcomeComponent{
   constructor(
     private _tours: Tours,
     public _sharedActions: SharedActionsService,
-    private _tourService: TourService
+    private _tourService: TourService,
+    private _joyRide: JoyrideService
   ) {
     // Get the tours data from the current user
     this.tours$ = this.settings$.pipe(
@@ -74,5 +76,19 @@ export class WelcomeComponent{
    */
   startTour(tour: Tour) {
     this._tourService.startTourById(tour.id, true)
+  }
+
+  // Hotkey Escape ... closes tour if there is one in progress
+  @HostListener('document:keydown.Escape', ['$event'])
+  hotkey_escape(event: KeyboardEvent) {
+    // close joyride tour if it currently in progress
+    if (this._joyRide.isTourInProgress()) {
+      // if current tour is feature creation and user clicks on esc key, feature will fire event and dialog will pop up informing user that there are unsaved changes in feature
+      // to prevent this behaviour we stop immediate propagation
+      event.stopImmediatePropagation();
+
+      // close tour presentation
+      this._joyRide.closeTour();
+    }
   }
 }
