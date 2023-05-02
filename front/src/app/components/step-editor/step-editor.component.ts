@@ -16,10 +16,9 @@ import { UserState } from '@store/user.state';
 import { CustomValidators } from '@others/custom-validators';
 import { exportToJSONFile, SubSinkAdapter } from 'ngx-amvara-toolbox';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
-import { MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { MatCheckboxChange } from '@angular/material/checkbox';
-import { VariablesState } from '@store/variables.state';
 import { MatList, MatListItem } from '@angular/material/list';
 
 @Component({
@@ -96,6 +95,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.subs.sink = this.stepsForm.valueChanges
                                    .pipe(debounceTime(500),distinctUntilChanged())
                                    .subscribe(stepsArray => this.rollupDuplicateSteps(stepsArray));
+
+    // insert default step if currently viewed feature, is new and still not created
+    if(this.feature.feature_id === 0) {
+      this.insertDefaultStep();
+    }
   }
 
   /**
@@ -130,6 +134,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
   }
 
+  // maintains focus on text area while firing events on arrow keys to select variables
   onTextareaArrowKey(event: Event, direction: string) {
     event.preventDefault();
 
@@ -150,6 +155,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }, 0)
   }
 
+  // based on currently selected item in flyout, when arrowkey up is pressed, selects previous element if it exists
+  // if previous element does not exists, in other words the currently selected item is the first one, then arrow key up will scroll down to last element and select it
   selectPrevious(varlistItems: ElementRef[], i: number) {
     if(varlistItems[i-1]) {
       this.renderer.addClass(varlistItems[i-1].nativeElement, "selected")
@@ -161,6 +168,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
   }
 
+  // based on currently selected item in flyout, when arrowkey down is pressed, selects next element if it exists
+  // if previous element does not exists, in other words the currently selected item is the last one, then arrow key down will scroll up to first element and select it
   selectnext(varlistItems: ElementRef[], i: number) {
     if(varlistItems[i+1]) {
       this.renderer.addClass(varlistItems[i+1].nativeElement, "selected")
@@ -194,6 +203,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
   }
 
+  // inserts variable into step when clicked
   onClickVariable(variable_name: string, index: number) {
     if (!variable_name) return;
 
@@ -205,14 +215,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepVariableData.currentStepIndex = null;
   }
 
-
+  // defines logic to be executed when user presses enter key
   onTextareaEnter(event: any, index: number) {
+    // if user is currently viewing variables in flyout, disable default behavior of textarea to expand height on enter
     if(this.displayedVariables.length > 0) {
       event.preventDefault();
     }
 
+    // get currently displayed variable list
     const varlistItems = this.varlistItems.toArray();
 
+    // gets the dom element of variable that currently contains class selected, and inserts its value into step
     for(let i = 0; i < varlistItems.length; i++) {
 
       if (varlistItems[i].nativeElement.classList.contains("selected")) {
@@ -261,27 +274,28 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       const filteredVariables = this.variables.filter(item => item.variable_name.includes(this.stepVariableData.strWithoutQuotes.replace('$','')));
       this.displayedVariables = filteredVariables.length > 0 ? filteredVariables : ["No variable with this name"];
 
+      // when flyout of variables opens up, by default the selected element will be the first one
       setTimeout(() => {
-        const varlistElementRefthis = this.varlistItems.toArray()[0].nativeElement;
-        this.renderer.addClass(varlistElementRefthis, "selected")
+        const firstVariableRef = this.varlistItems.toArray()[0].nativeElement;
+        this.renderer.addClass(firstVariableRef, "selected")
       }, 0)
     }
   }
 
   // returns the index of nearest left and right " char in string, taking received startIndex as startpoint reference
-  getQuoteIndexes(str, startIndex) {
+  getQuoteIndexes(str, startIndex): QuoteIndexes {
     let prevQuoteIndex = getPrev();
     let nextQuoteIndex = getNext();
 
-    // returns the index of the nearest " after received index
-    function getNext() {
+    // returns the index of the nearest " that is positioned after received index
+    function getNext(): number {
       for(let i = startIndex; i<str.length; i++) {
         if (str[i] === '"')  return i + 1;
       }
     }
 
-    // returns the index of the nearest " before received index
-    function getPrev() {
+    // returns the index of the nearest " that is positioned before received index
+    function getPrev(): number {
       for(let i = startIndex-1; i >=0; i--) {
         if (str[i] === '"') return i;
       }
@@ -556,6 +570,20 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (!event.checked) {
       this.stepsForm.at(i).get('compare').setValue(false);
     }
+  }
+
+  insertDefaultStep() {
+    this.stepsForm.push(
+      this._fb.group({
+        enabled: true,
+        screenshot: false,
+        step_keyword: 'Given',
+        compare: false,
+        step_content: ['StartBrowser and call URL "{url}"', CustomValidators.StepAction.bind(this)],
+        continue_on_failure: false,
+        timeout: this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)]))
+      })
+    );
   }
 
 }

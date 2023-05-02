@@ -169,9 +169,15 @@
                     white-space: nowrap;
                     overflow: hidden;
 
+                    // hover on variable name or value in flyout will show pointer cursor
+                    span.var_name,
+                    span.var_value {
+                        cursor: pointer;
+                    }
+
                     span.no-variable {
-                            user-select: none;
-                            color: $bad;
+                        user-select: none;
+                        color: $bad;
                     }
                 }
 
