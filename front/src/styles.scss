@@ -846,6 +846,10 @@ video-player .header {
 }
 
 .description-option {
+    .mat-form-field.step_timeout {
+        margin: 0;
+        width: 250px;
+    }
     .mat-form-field {
         margin-left: 20px;
     }

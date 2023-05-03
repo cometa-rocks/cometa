@@ -6,9 +6,9 @@
       <input matInput placeholder="Department name" disableAutocomplete formControlName="department_name">
     </mat-form-field>
     <br>
-    <ng-container *ngLet="account.settings?.continue_on_failure as disabled">
+    <ng-container>
       <div class="description-option">
-        <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">Continue on failure</mat-checkbox>
+        <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!account.settings?.continue_on_failure" color="primary" formControlName="continue_on_failure">Continue on failure</mat-checkbox>
         <div class="description">By activating this option all features within the department won't stop when a step fails.</div>
       </div>
     </ng-container>
@@ -23,6 +23,14 @@
       <div class="description">Set the amount of days after which the results will be automatically deleted. An email will be sent 10 days before deletion.<br>
         Please use the Archive option to avoid deletion.
       </div>
+    </div>
+    <br>
+    <div class="description-option">
+      <mat-form-field appearance="outline" class="step_timeout">
+        <mat-label>Step Timeout</mat-label>
+        <input matInput placeholder="Default step timeout" formControlName="step_timeout" type="number">
+        <span matSuffix>seconds</span>
+      </mat-form-field>
     </div>
     <br>
   </mat-dialog-content>
