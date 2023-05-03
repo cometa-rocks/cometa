@@ -42,7 +42,7 @@ export class ModifyDepartmentComponent {
     this.rForm = this.fb.group({
       'department_name': [this.department.department_name, Validators.required],
       'continue_on_failure': [{value: this.department.settings.continue_on_failure, disabled: this.account?.settings?.continue_on_failure}],
-      'step_timeout': [this.department.settings?.step_timeout, [Validators.required, Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])]],
+      'step_timeout': [this.department.settings?.step_timeout || 60, [Validators.required, Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])]],
       'result_expire_days': [expireDays]
     });
     this.expireDaysChecked$.next(!!this.department.settings.result_expire_days)
@@ -64,6 +64,7 @@ export class ModifyDepartmentComponent {
       settings: {
         ...this.department.settings,
         continue_on_failure: values.continue_on_failure,
+        step_timeout: values.step_timeout,
         result_expire_days: this.expireDaysChecked$.getValue() ? values.result_expire_days : null
       }
     }
