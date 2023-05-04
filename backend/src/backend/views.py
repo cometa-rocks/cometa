@@ -882,6 +882,8 @@ def parseActions(request):
         if action.startswith("@step"):
             regex = r"\@(.*)\((u|)'(.*)'\)"
             matches = re.findall(regex,action)
+            if matches[0][2] == "{step}":
+                continue
             actionsParsed.append(matches[0][2])
             actionObject = Action(
                 action_name = matches[0][2],
