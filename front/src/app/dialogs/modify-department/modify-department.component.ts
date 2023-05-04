@@ -20,6 +20,7 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 export class ModifyDepartmentComponent {
 
   rForm: UntypedFormGroup;
+  loading: boolean = false;
 
   expireDaysChecked$ = new BehaviorSubject<boolean>(false);
 
@@ -43,6 +44,8 @@ export class ModifyDepartmentComponent {
       'department_name': [this.department.department_name, Validators.required],
       'continue_on_failure': [{value: this.department.settings.continue_on_failure, disabled: this.account?.settings?.continue_on_failure}],
       'step_timeout': [this.department.settings?.step_timeout || 60, [Validators.required, Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])]],
+      'step_timeout_from': ['', Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])],
+      'step_timeout_to': ['', Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])],
       'result_expire_days': [expireDays]
     });
     this.expireDaysChecked$.next(!!this.department.settings.result_expire_days)
@@ -56,6 +59,22 @@ export class ModifyDepartmentComponent {
       this.rForm.get('result_expire_days').clearValidators();
     }
     this.rForm.get('result_expire_days').updateValueAndValidity();
+  }
+
+  applyGlobalTimeout(ev: Event) {
+    // prevents whole popup from closing
+    ev.preventDefault();
+
+    // disable button while http post is processed
+    this.loading = true;
+
+    // todo:
+      // make post request to backend
+      // inform user with snackbar about the result
+      // enable button again
+
+    // reset input global timeout input values
+    this.resetGlobalTimeoutInputs();
   }
 
   modifyDepartment(values) {
@@ -79,4 +98,9 @@ export class ModifyDepartmentComponent {
     }, () => this.snack.open('An error ocurred', 'OK'));
   }
 
+  // resets the input value for global timeout modifiers
+  resetGlobalTimeoutInputs() {
+    this.rForm.get('step_timeout_from').setValue('');
+    this.rForm.get('step_timeout_to').setValue('');
+  }
 }
