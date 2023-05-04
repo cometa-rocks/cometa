@@ -27,12 +27,31 @@
     <br>
     <div class="description-option">
       <mat-form-field appearance="outline" class="step_timeout">
-        <mat-label>Step Timeout</mat-label>
+        <mat-label>Timeout</mat-label>
         <input matInput placeholder="Default step timeout" formControlName="step_timeout" type="number">
         <span matSuffix>seconds</span>
       </mat-form-field>
     </div>
-    <br>
+    <br><br>
+    <h2 mat-dialog-title>Modify all timeouts of department</h2>
+    <div class="global-timeout-modifier">
+      <div class="description-option">
+        <mat-form-field appearance="outline" class="step_timeout_from">
+          <mat-label>Timeout</mat-label>
+          <input matInput placeholder="From" formControlName="step_timeout_from" type="number">
+          <span matSuffix>seconds</span>
+        </mat-form-field>
+      </div>
+      <div class="description-option">
+        <mat-form-field appearance="outline" class="step_timeout_to">
+          <mat-label>Timeout</mat-label>
+          <input matInput placeholder="To" formControlName="step_timeout_to" type="number">
+          <span matSuffix>seconds</span>
+        </mat-form-field>
+      </div>
+      <button [disabled]="((rForm.get('step_timeout_from').invalid || rForm.get('step_timeout_from').value == '') || (rForm.get('step_timeout_to').invalid || rForm.get('step_timeout_to').value == '')) || loading" mat-stroked-button color="primary" (click)="applyGlobalTimeout($event)">Apply</button>
+    </div>
+    <br><br>
   </mat-dialog-content>
   <mat-dialog-actions>
     <button mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
