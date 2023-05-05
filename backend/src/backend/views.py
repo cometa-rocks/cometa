@@ -1661,7 +1661,8 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         return JsonResponse({"success": True }, status=200)
 
 @csrf_exempt
-def UpdateStepTimeout(request, department_id):
+@require_permissions("edit_department")
+def UpdateStepTimeout(request, department_id, *args, **kwargs):
 
     def checkParameter(object, property, valueType):
         if property not in object:
