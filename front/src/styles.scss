@@ -845,6 +845,16 @@ video-player .header {
     --options-order: 11;
 }
 
+// modifies styles of root and first child containers of modify department dialog
+.modify-department-panel {
+    display: inline;
+    max-width: 70%;
+    .mat-dialog-content {
+        width: 100%;
+    }
+}
+
+
 .description-option {
     .mat-form-field.step_timeout_from,
     .mat-form-field.step_timeout_to {

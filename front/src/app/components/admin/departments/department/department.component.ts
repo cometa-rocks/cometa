@@ -35,7 +35,8 @@ export class DepartmentComponent {
 
   saveOrEdit() {
     this._dialog.open(ModifyDepartmentComponent, {
-      data: this.department.department_id
+      data: this.department.department_id,
+      panelClass: 'modify-department-panel'
     });
   }
 

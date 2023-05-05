@@ -2,6 +2,15 @@
 @import 'color';
 @import 'breakpoints';
 
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+    @include for-desktop-up {
+        flex-direction: row;
+    }
+}
+
 h2 {
     color: $blue;
 }
@@ -23,15 +32,16 @@ button.submit {
 
 .global-timeout-modifier {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 150px 150px;
     place-items: center start;
+    gap: 5px;
 
     button {
         height: 40px;
         display: inline-block;
     }
 
-    @include pagination-mobile {
-        grid-template-columns: 160px 160px;
+    @include for-tablet-landscape-only {
+        grid-template-columns: 150px 150px 50px;
     }
 }

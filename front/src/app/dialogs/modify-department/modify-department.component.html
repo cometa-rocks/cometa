@@ -1,60 +1,69 @@
-<h2 mat-dialog-title>Modify department</h2>
-<form [formGroup]="rForm" (ngSubmit)="modifyDepartment(rForm.value)">
+
   <mat-dialog-content>
-    <mat-form-field appearance="outline">
-      <mat-label>Name</mat-label>
-      <input matInput placeholder="Department name" disableAutocomplete formControlName="department_name">
-    </mat-form-field>
-    <br>
-    <ng-container>
-      <div class="description-option">
-        <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!account.settings?.continue_on_failure" color="primary" formControlName="continue_on_failure">Continue on failure</mat-checkbox>
-        <div class="description">By activating this option all features within the department won't stop when a step fails.</div>
-      </div>
-    </ng-container>
-    <br>
-    <div class="description-option" *ngLet="expireDaysChecked$ | async as expiresChecked">
-      <mat-checkbox color="primary" [checked]="expiresChecked" (change)="handleExpires($event)">Results housekeeping</mat-checkbox>
-      <mat-form-field style="width: 150px" class="expand-on-show" [class.show]="expiresChecked" appearance="outline">
-        <mat-label>Delete after</mat-label>
-        <input min="0" matInput placeholder="# days" type="number" disableAutocomplete formControlName="result_expire_days">
-        <span matSuffix>days</span>
-      </mat-form-field>
-      <div class="description">Set the amount of days after which the results will be automatically deleted. An email will be sent 10 days before deletion.<br>
-        Please use the Archive option to avoid deletion.
-      </div>
-    </div>
-    <br>
-    <div class="description-option">
-      <mat-form-field appearance="outline" class="step_timeout">
-        <mat-label>Timeout</mat-label>
-        <input matInput placeholder="Default step timeout" formControlName="step_timeout" type="number">
-        <span matSuffix>seconds</span>
-      </mat-form-field>
-    </div>
-    <br><br>
-    <h2 mat-dialog-title>Modify all timeouts of department</h2>
-    <div class="global-timeout-modifier">
-      <div class="description-option">
-        <mat-form-field appearance="outline" class="step_timeout_from">
-          <mat-label>Timeout</mat-label>
-          <input matInput placeholder="From" formControlName="step_timeout_from" type="number">
-          <span matSuffix>seconds</span>
+    <div class="wrapper">
+      <form [formGroup]="rForm" (ngSubmit)="modifyDepartment(rForm.value)">
+        <h2 mat-dialog-title>Modify department</h2>
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput placeholder="Department name" disableAutocomplete formControlName="department_name">
         </mat-form-field>
-      </div>
-      <div class="description-option">
-        <mat-form-field appearance="outline" class="step_timeout_to">
-          <mat-label>Timeout</mat-label>
-          <input matInput placeholder="To" formControlName="step_timeout_to" type="number">
-          <span matSuffix>seconds</span>
-        </mat-form-field>
-      </div>
-      <button [disabled]="((rForm.get('step_timeout_from').invalid || rForm.get('step_timeout_from').value == '') || (rForm.get('step_timeout_to').invalid || rForm.get('step_timeout_to').value == '')) || loading" mat-stroked-button color="primary" (click)="applyGlobalTimeout($event)">Apply</button>
+        <br>
+        <ng-container>
+          <div class="description-option">
+            <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!account.settings?.continue_on_failure" color="primary" formControlName="continue_on_failure">Continue on failure</mat-checkbox>
+            <div class="description">By activating this option all features within the department won't stop when a step fails.</div>
+          </div>
+        </ng-container>
+        <br>
+        <div class="description-option" *ngLet="expireDaysChecked$ | async as expiresChecked">
+          <mat-checkbox color="primary" [checked]="expiresChecked" (change)="handleExpires($event)">Results housekeeping</mat-checkbox>
+          <mat-form-field style="width: 150px" class="expand-on-show" [class.show]="expiresChecked" appearance="outline">
+            <mat-label>Delete after</mat-label>
+            <input min="0" matInput placeholder="# days" type="number" disableAutocomplete formControlName="result_expire_days">
+            <span matSuffix>days</span>
+          </mat-form-field>
+          <div class="description">Set the amount of days after which the results will be automatically deleted. An email will be sent 10 days before deletion.<br>
+            Please use the Archive option to avoid deletion.
+          </div>
+        </div>
+        <br>
+        <div class="description-option">
+          <mat-form-field appearance="outline" class="step_timeout">
+            <mat-label>Timeout</mat-label>
+            <input matInput placeholder="Default step timeout" formControlName="step_timeout" type="number">
+            <span matSuffix>seconds</span>
+          </mat-form-field>
+        </div>
+        <br>
+        <button mat-stroked-button color="primary" [disabled]="!rForm.valid" class="submit">Apply</button>
+        <br>
+      </form>
+      <br>
+
+      <form [formGroup]="timeoutForm" (ngSubmit)="applyGlobalTimeout($event)">
+        <h2 mat-dialog-title>Modify all timeouts of department</h2>
+        <div class="global-timeout-modifier">
+          <div class="description-option">
+            <mat-form-field appearance="outline" class="step_timeout_from">
+              <mat-label>From</mat-label>
+              <input #fromTimeout matInput placeholder="From" formControlName="step_timeout_from" type="number">
+              <span matSuffix>seconds</span>
+            </mat-form-field>
+          </div>
+          <div class="description-option">
+            <mat-form-field appearance="outline" class="step_timeout_to">
+              <mat-label>To</mat-label>
+              <input #toTimeout matInput placeholder="To" formControlName="step_timeout_to" type="number">
+              <span matSuffix>seconds</span>
+            </mat-form-field>
+          </div>
+          <button mat-stroked-button color="primary" [disabled]="!timeoutForm.valid || (!toTimeout.value || !fromTimeout.value) || loading" class="submit">Apply</button>
+        </div>
+        <br><br>
+      </form>
     </div>
-    <br><br>
   </mat-dialog-content>
   <mat-dialog-actions>
     <button mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
-    <button mat-stroked-button color="primary" [disabled]="!rForm.valid" class="submit">Modify department</button>
+    <!-- <button mat-stroked-button color="primary" [disabled]="!rForm.valid" (click)="modifyDepartment(rForm.value)" class="submit">Modify department</button> -->
   </mat-dialog-actions>
-</form>
