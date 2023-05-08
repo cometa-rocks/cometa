@@ -202,7 +202,7 @@ def done( *_args, **_kwargs ):
                     for key in env_variables:
                         variable_name = key['variable_name']
                         variable_value = str(key['variable_value'])
-                        if args[0].text:
+                        if args[0].text and 'Loop' not in save_message: # we do not want to replace all the variables inside the loop sub-steps
                             # Replace in step description for multiline step values
                             args[0].text = re.sub(r'\$%s\b' % variable_name, returnDecrypted(variable_value), args[0].text)
                             # ###
@@ -213,8 +213,8 @@ def done( *_args, **_kwargs ):
                             # Replace in step content
                             kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
                     # replace job parameters
-                    for parameter_key in job_parameters.keys():
-                        if args[0].text:
+                    for parameter_key in job_parameters.keys(): # we do not want to replace all the parameters inside the loop sub-steps
+                        if args[0].text and 'Loop' not in save_message:
                             args[0].text = re.sub(r'%%%s\b' % parameter_key, returnDecrypted(str(job_parameters[parameter_key])), args[0].text)
                         if re.search(r'%%%s\b' % parameter_key, kwargs[parameter]):
                             kwargs[parameter] = kwargs[parameter].replace(("%%%s" % parameter_key), str(job_parameters[parameter_key]))
@@ -227,9 +227,15 @@ def done( *_args, **_kwargs ):
                 # update dates inside the text
                 args[0].text = dynamicDateGenerator(args[0].text)
 
+                # set a step timeout
+                step_timeout = args[0].step_data['timeout']
+                if step_timeout > MAX_STEP_TIMEOUT:
+                    logger.warn("Configured step timeout is higher than the max timeout value, will cap the value to: %d" % MAX_STEP_TIMEOUT)
+                    step_timeout = MAX_STEP_TIMEOUT
+
                 # start the timeout
-                signal.signal(signal.SIGALRM, timeoutError)
-                signal.alarm(STEP_TIMEOUT)
+                signal.signal(signal.SIGALRM, lambda signum, frame, timeout=step_timeout: timeoutError(signum, frame, timeout))
+                signal.alarm(step_timeout)
                 # run the requested function
                 result = func(*args, **kwargs)
                 # if step executed without running into timeout cancel the timeout
@@ -568,7 +574,7 @@ def compareImage(context):
     except Exception as e:
         logger.error(str(e))
 
-@timeout("Unable to retrieve compare metric content in <seconds> seconds.")
+# @timeout("Unable to retrieve compare metric content in <seconds> seconds.")
 def waitMetric(metricFile):
     """
     Waits for the given metric file to contain some content and returns the lines array
@@ -588,7 +594,7 @@ def mySafeToFile(filename, myString):
 
 # waitFor(something,pageContext) .... waits until seeing or maxtries; returns true if found
 # ... FIXME ... also look in iFrames
-@timeout("Unable to find specified text in <seconds> seconds.")
+# @timeout("Unable to find specified text in <seconds> seconds.")
 def waitFor(context, something):
     while True:
         if something in context.browser.page_source:
@@ -826,7 +832,7 @@ def step_impl(context, folder_name):
         time.sleep(0.5)
 
 # waitFor(element) .... waits until innerText attribute of element contains something
-@timeout("Couldn't find any text inside report for <seconds> seconds.")
+# @timeout("Couldn't find any text inside report for <seconds> seconds.")
 def wait_for_element_text(context, css_selector):
     while True:
         elements = context.browser.find_elements_by_css_selector(css_selector)
@@ -1422,7 +1428,7 @@ def step_impl(context):
 # Switches to a iframe tag inside the document within the specified ID
 @step(u'I can switch to iFrame with id "{iframe_id}"')
 @done(u'I can switch to iFrame with id "{iframe_id}"')
-@timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
+# @timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
 def step_impl(context,iframe_id):
     while True:
         try:
@@ -1557,7 +1563,7 @@ def cannot_see_selector(context, selector):
 # Check if the source code in the previously selected iframe contains a link with text something
 @step(u'I can see a link with "{linktext}" in iframe')
 @done(u'I can see a link with "{linktext}" in iframe')
-@timeout("Unable to find specified linktext inside the iFrames")
+# @timeout("Unable to find specified linktext inside the iFrames")
 def step_impl(context,linktext):
     while True:
         for child_frame in context.browser.find_elements_by_tag_name('iframe'):
@@ -1820,7 +1826,7 @@ def find_and_click_link_id(context,linktext):
         return False
 
 # try find the element in css_selector, xpath or as a link_text
-@timeout("Unable to find specified element in <seconds> seconds.")
+# @timeout("Unable to find specified element in <seconds> seconds.")
 def find_element(context, linktext):
     counter = 0
     while True:
@@ -3059,20 +3065,17 @@ def step_imp(context, x, value, variable_name):
     except:
         x = 6
         send_step_details(context, 'x should be one of these numbers: 6, 7, 8. Defaulting to 6.')
-        logger.error("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
+        logger.warn("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
 
     if x not in (6, 7, 8):
         x = 6
         send_step_details(context, 'x should be one of these numbers: 6, 7, 8. Defaulting to 6.')
-        logger.error("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
+        logger.warn("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
 
     import pyotp
     totp = pyotp.TOTP(value, digits=x)
     oneTimePassword = totp.now()
     addVariable(context, variable_name, oneTimePassword, encrypted=True)
-
-
-    
 
 # compares a report cube's content to a list saved in variable
 @step(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
@@ -3421,7 +3424,7 @@ def step_endLoop(context):
 
 @step(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
 @done(u'Test list of "{css_selector}" elements to contain all or partial values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
-def step(context, css_selector, variable_names, prefix, suffix):
+def step_imp(context, css_selector, variable_names, prefix, suffix):
     # get all the values from css_selector
     elements = waitSelector(context, "css", css_selector)
     # get elements values
@@ -3550,3 +3553,8 @@ def step(context, css_selector, variable_names, prefix, suffix):
         return True
     else:
         raise CustomError("Lists do not match, please check the attachment.")
+
+@step(u'{step}')
+@done(u'{step}')
+def step_imp(context, step):
+    raise NotImplementedError(f"Unknown step found: '{step}'")
