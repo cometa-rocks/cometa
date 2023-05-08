@@ -26,20 +26,6 @@ export class MainViewComponent implements OnInit, AfterViewInit {
 
   @Select(CustomSelectors.GetConfigProperty('internal.showArchived')) showArchived$: Observable<boolean>;
 
-
-  // columns = [
-  //   {header: 'Status', field: 'status', sortable: true},
-  //   {header: 'Last run', field: 'date', sortable: true},
-  //   {header: 'Last duration', field: 'time', sortable: true},
-  //   {header: 'Last steps', field: 'total', sortable: true},
-  //   {header: 'OK', field: 'ok', sortable: true},
-  //   {header: 'NOK', field: 'fails', sortable: true},
-  //   {header: 'Browsers', field: 'browsers', sortable: true},
-  //   {header: 'Options', field: 'reference'}
-  // ];
-
-
-
   constructor(
     private _route: ActivatedRoute,
     private _actions: Actions,

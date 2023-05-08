@@ -1,5 +1,5 @@
 {
-	"version": "2.8.290",
+	"version": "2.8.300",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -190,6 +190,60 @@
 		"Dream it. Believe it. Build it."
 	],
 	"changelog": [
+		{
+			"version": "2.8.300",
+			"date": "2023-05-04",
+			"features": [
+				{
+					"title": "Undefined Steps",
+					"description": "Undefined steps now throw an error in Live Preview."
+				},
+                {
+                    "title": "Step Timeouts",
+                    "description": "Test Managers now can update step timeouts of a department in batch."
+                }
+			]
+		},
+        {
+			"version": "2.8.299",
+			"date": "2023-05-02",
+			"features": [
+				{
+					"title": "Welcome tour",
+					"description": "Fixed - welcome tour presentation didn't stop on ESC key press"
+				}
+			]
+		},
+		{
+			"version": "2.8.298",
+			"date": "2023-05-02",
+			"features": [
+				{
+					"title": "Default feature step",
+					"description": "From now on, whenever user creates new feature, default step - 'StartBrowser and call URL {url}' will be automatically inserted into it's steps."
+				}
+			]
+		},
+		{
+			"version": "2.8.297",
+			"date": "2023-04-28",
+			"features": [
+				{
+					"title": "Variable creation",
+					"description": "Users can now create variable even if feature creation is not finished, but in this case variable can only be based on department or environment."
+				}
+			]
+		},
+		{
+			"version": "2.8.296",
+			"date": "2023-04-28",
+			"features": [
+				{
+					"title": "Folder tree",
+					"description": "Fixed - Folder tree hierarchy layout is broken if name is too long."
+				}
+			]
+		},
 		{
 			"version": "2.8.295",
 			"date": "2023-04-19",
