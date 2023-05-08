@@ -33,11 +33,12 @@ class TimeoutException(Exception):
 
 # timeout error
 # throws an CustomError exception letting user know about the issue
-def timeoutError(signum, frame, timeout=STEP_TIMEOUT, error=None):
+def timeoutError(signum, frame, timeout=MAX_STEP_TIMEOUT, error=None):
     if error is None:
         error = f"Step took more than configured time: {timeout}s."
     raise TimeoutException(error)
 
+# DEPRECATED:
 def timeout( *_args, **_kwargs ):
     def decorator(func):
         @wraps(func)

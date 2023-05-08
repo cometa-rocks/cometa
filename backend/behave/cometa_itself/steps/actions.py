@@ -229,7 +229,9 @@ def done( *_args, **_kwargs ):
 
                 # set a step timeout
                 step_timeout = args[0].step_data['timeout']
-                print("Step timeout: %d" % step_timeout)
+                if step_timeout > MAX_STEP_TIMEOUT:
+                    logger.warn("Configured step timeout is higher than the max timeout value, will cap the value to: %d" % MAX_STEP_TIMEOUT)
+                    step_timeout = MAX_STEP_TIMEOUT
 
                 # start the timeout
                 signal.signal(signal.SIGALRM, lambda signum, frame, timeout=step_timeout: timeoutError(signum, frame, timeout))
@@ -3063,20 +3065,17 @@ def step_imp(context, x, value, variable_name):
     except:
         x = 6
         send_step_details(context, 'x should be one of these numbers: 6, 7, 8. Defaulting to 6.')
-        logger.error("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
+        logger.warn("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
 
     if x not in (6, 7, 8):
         x = 6
         send_step_details(context, 'x should be one of these numbers: 6, 7, 8. Defaulting to 6.')
-        logger.error("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
+        logger.warn("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
 
     import pyotp
     totp = pyotp.TOTP(value, digits=x)
     oneTimePassword = totp.now()
     addVariable(context, variable_name, oneTimePassword, encrypted=True)
-
-
-    
 
 # compares a report cube's content to a list saved in variable
 @step(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
