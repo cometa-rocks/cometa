@@ -300,6 +300,14 @@ def create_feature_file(feature, steps, featureFileName):
                     if variable_name:
                         variables_used.append(variable_name)
 
+        # change sleep step timeout
+        sleep_match = re.findall(r'I (?:can )?sleep "(.*?)".*', step['step_content'].replace('\\xa0', ' '))
+        if sleep_match:
+            try:
+                step['timeout'] = int(sleep_match[0]) + 5
+            except ValueError:
+                # default timeout will be set later on
+                pass
         Step.objects.create(
             feature_id = feature.feature_id,
             step_keyword = step['step_keyword'],

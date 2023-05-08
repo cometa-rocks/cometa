@@ -28,12 +28,17 @@ logger.addHandler(streamLogger)
 Python library with common utility functions
 """
 
+class TimeoutException(Exception):
+    pass
+
 # timeout error
 # throws an CustomError exception letting user know about the issue
-def timeoutError(signum, frame, waitedFor=STEP_TIMEOUT, error="Step took more than %ds. Please try different configuration for the step or contact a system administrator to help you with the issue." % STEP_TIMEOUT):
-    print("Step took more than %ds" % waitedFor)
-    raise CustomError(error)
+def timeoutError(signum, frame, timeout=MAX_STEP_TIMEOUT, error=None):
+    if error is None:
+        error = f"Step took more than configured time: {timeout}s."
+    raise TimeoutException(error)
 
+# DEPRECATED:
 def timeout( *_args, **_kwargs ):
     def decorator(func):
         @wraps(func)
@@ -69,7 +74,7 @@ def timeout( *_args, **_kwargs ):
 # @param context - Object containing the webdriver context
 # @param selector_type: string - Type of selector to use, see below code for possible types
 # @param selector: string - Selector to use
-@timeout("Waited for <seconds> seconds but unable to find specified element.")
+# @timeout("Waited for <seconds> seconds but unable to find specified element.")
 def waitSelector(context, selector_type, selector):
     #2288 - Split : id values into a valid css selector
     # example: "#hello:world" --> [id*=hello][id*=world]
@@ -113,10 +118,17 @@ def waitSelector(context, selector_type, selector):
                 if isinstance(elements, WebElement) or len(elements) > 0:
                     return elements
             except CustomError as err:
-                logger.debug(err)
+                logger.error("Custom Error Exception occured during the selector find, will exit the search.")
+                logger.exception(err)
+                raise
+            except TimeoutException as err:
+                logger.error("Timeout Exception occured during the selector find, will exit the search.")
+                logger.exception(err)
                 # Max retries exceeded, raise error
                 raise
-            except:
+            except Exception as err:
+                # logger.error("Exception occured during the selector find, will continue looking for the element.")
+                # logger.exception(err)
                 pass
         # give page some time to render the search
         time.sleep(1)
