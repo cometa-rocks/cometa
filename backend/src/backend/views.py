@@ -882,6 +882,8 @@ def parseActions(request):
         if action.startswith("@step"):
             regex = r"\@(.*)\((u|)'(.*)'\)"
             matches = re.findall(regex,action)
+            if matches[0][2] == "{step}":
+                continue
             actionsParsed.append(matches[0][2])
             actionObject = Action(
                 action_name = matches[0][2],
@@ -1657,6 +1659,52 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         })
 
         return JsonResponse({"success": True }, status=200)
+
+@csrf_exempt
+@require_permissions("edit_department")
+def UpdateStepTimeout(request, department_id, *args, **kwargs):
+
+    def checkParameter(object, property, valueType):
+        if property not in object:
+            raise ValueError(f"Missing mandatory parameter '{property}' from the request body.")
+        elif not isinstance(object[property], valueType):
+            raise ValueError(f"'{property}' should be of type '{valueType.__name__}'.")
+
+        return object[property]
+
+    # get body from request
+    body = json.loads(request.body)
+    try:
+        # check if there are required parameters
+        step_timeout_from = checkParameter(body, 'step_timeout_from', int)
+        step_timeout_to = checkParameter(body, 'step_timeout_to', int)
+    except ValueError as err:
+        return JsonResponse({
+            'success': False,
+            'error': str(err)
+        }, status=400)
+    
+    try:
+        # get department from the db
+        department = Department.objects.get(pk=department_id)
+        # get all the features related to the department
+        features = Feature.objects.filter(department_id=department_id).values_list('feature_id', flat=True)
+        # get all the steps in these features
+        steps = Step.objects.filter(feature_id__in=features, timeout=step_timeout_from)
+        # get total features that will be updated
+        total_features_updated = len(steps.order_by('feature_id').distinct('feature_id').values_list('feature_id', flat=True))
+        # update steps to their new timeout
+        steps_updated = steps.update(timeout=step_timeout_to)
+        return JsonResponse({
+            "success": True,
+            "total_features_updated": total_features_updated,
+            "total_steps_updated": steps_updated
+        })
+    except Department.DoesNotExist:
+        return JsonResponse({
+            "success": False,
+            "error": "Department does not exists."
+        }, status=404)
 
 class DepartmentViewSet(viewsets.ModelViewSet):
     """
