@@ -18,6 +18,7 @@ import base64, os
 from django.http import HttpResponse
 from backend.views import render_to_pdf, bytesToMegaBytes
 from backend.common import *
+from backend.utility.functions import getLogger
 from django.forms.models import model_to_dict
 # just to import secrets
 import sys
@@ -26,16 +27,12 @@ sys.path.append("/code")
 import secret_variables
 
 # Python basics
-import socket
 import logging
 import logging.handlers
 import datetime
-import smtplib
-import re
 
 # logger information
-logger = logging.getLogger(__name__)
-logger.setLevel(BEHAVE_DEBUG_LEVEL)
+logger = getLogger()
 
 DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
 SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
@@ -98,29 +95,22 @@ class GeneratePDF(View):
         # generate pdf url
         self.pdfURL = "https://%s/backend/pdf/?feature_result_id=%s" % (DOMAIN, self.feature_result_id)
 
-        # Get the feature id on feature_id, because it comes like this: <Feature_name 3 = xxxx> &  Filter to get the email settings of the feature
-        feature_id = re.search(r'\d+', str(self.feature.feature_id)).group()
-        feature_template = Feature.objects.filter(feature_id=feature_id)[0]
-
         # Assigning class variables to use in all the functions.
-        self.feature_template = feature_template
-        self.feature_id = feature_id
+        self.feature_template = self.feature.feature_id
+        self.feature_id = self.feature.feature_id_id
 
         # If the request GET parameter "download" is present, download the PDF instead of emailing it to it's recipient
         download = self.request.GET.get('download', None)
 
         # check if file already exists
         if not exists(self.downloadFullPath):
-            print("Creating a lock file for %s" % self.downloadFullPath)
+            self.my_logger.debug("Creating a lock file for %s" % self.downloadFullPath)
             # create a lock file to check if pdf is still being generated or not
             self.touch(self.downloadFullPath + ".lock")
 
             # Get the steps from the executed feature.
             steps = Step_result.objects.filter(feature_result_id=self.feature_result_id).order_by("step_result_id")
             self.steps = steps
-
-            # Get feature result by ID
-            feature_result = Feature_result.objects.get(feature_result_id=self.feature_result_id)
 
             # Get the feature result screenshots.
             self.screenshots_array = self.GetStepsAndScreenshots()
@@ -145,7 +135,7 @@ class GeneratePDF(View):
             
             # remove lock file once finished
             if exists(self.downloadFullPath + ".lock"):
-                print("Removing lock file for %s" % self.downloadFullPath)
+                self.my_logger.debug("Removing lock file for %s" % self.downloadFullPath)
                 os.remove(self.downloadFullPath + ".lock")
 
         # Validate the emails. If emailsend is set to false or all emails are bad, we get out of execution.
@@ -208,11 +198,10 @@ class GeneratePDF(View):
         Get the current feature result and check that it actually exists.
     """
     def GetFeature(self):
-        feature = Feature_result.objects.filter(feature_result_id=self.feature_result_id)
-        # If the feature is not found then we return error, if not get item
-        if(len(feature) > 0):
-            feature = feature[0]
-        else:
+        try:
+            feature = Feature_result.objects.get(feature_result_id=self.feature_result_id)
+        except Feature_result.DoesNotExist:
+            # If the feature is not found then we return error, if not get item
             self.my_logger.critical('[GeneratePDF] Error while retrieving feature info: Feature not found.')
             raise ValueError("503 Feature not found")
         
