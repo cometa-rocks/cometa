@@ -1,7 +1,6 @@
 
   <mat-dialog-content>
-    <div class="wrapper">
-      <form [formGroup]="rForm" (ngSubmit)="modifyDepartment(rForm.value)">
+      <form [formGroup]="rForm">
         <h2 mat-dialog-title>Modify department</h2>
         <mat-form-field appearance="outline">
           <mat-label>Name</mat-label>
@@ -27,43 +26,24 @@
           </div>
         </div>
         <br>
+        <br>
         <div class="description-option">
+          <div>Default step timeout</div>
+          <br>
           <mat-form-field appearance="outline" class="step_timeout">
             <mat-label>Timeout</mat-label>
             <input matInput placeholder="Default step timeout" formControlName="step_timeout" type="number">
             <span matSuffix>seconds</span>
           </mat-form-field>
+          <div class="description">
+            Set the default step timeout which will be applied to all the features that belongs to this department.
+            Have in mind that Modifying default timeout, will not update steps that have been created before timeout modification.
+          </div>
         </div>
-        <br>
-        <button mat-stroked-button color="primary" [disabled]="!rForm.valid" class="submit">Apply</button>
-        <br>
       </form>
       <br>
-
-      <form [formGroup]="timeoutForm" (ngSubmit)="applyGlobalTimeout($event)">
-        <h2 mat-dialog-title>Modify all timeouts of department</h2>
-        <div class="global-timeout-modifier">
-          <div class="description-option">
-            <mat-form-field appearance="outline" class="step_timeout_from">
-              <mat-label>From</mat-label>
-              <input #fromTimeout matInput placeholder="From" formControlName="step_timeout_from" type="number">
-              <span matSuffix>seconds</span>
-            </mat-form-field>
-          </div>
-          <div class="description-option">
-            <mat-form-field appearance="outline" class="step_timeout_to">
-              <mat-label>To</mat-label>
-              <input #toTimeout matInput placeholder="To" formControlName="step_timeout_to" type="number">
-              <span matSuffix>seconds</span>
-            </mat-form-field>
-          </div>
-          <button mat-stroked-button color="primary" [disabled]="!timeoutForm.valid || (!toTimeout.value || !fromTimeout.value) || loading" class="submit">Apply</button>
-        </div>
-        <br><br>
-      </form>
-    </div>
   </mat-dialog-content>
   <mat-dialog-actions>
     <button mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
-    <!-- <button mat-stroked-button color="primary" [disabled]="!rForm.valid" (click)="modifyDepartment(rForm.value)" class="submit">Modify department</button> -->
+    <button mat-stroked-button color="primary" [disabled]="!rForm.valid" (click)="modifyDepartment(rForm.value)" class="submit">Modify department</button>
   </mat-dialog-actions>

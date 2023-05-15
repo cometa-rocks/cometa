@@ -2,15 +2,6 @@
 @import 'color';
 @import 'breakpoints';
 
-.wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 2em;
-    @include for-desktop-up {
-        flex-direction: row;
-    }
-}
-
 h2 {
     color: $blue;
 }
@@ -28,20 +19,4 @@ button.submit {
     color: $blue;
     margin-left: 15px;
     margin-top: 10px;
-}
-
-.global-timeout-modifier {
-    display: grid;
-    grid-template-columns: 150px 150px;
-    place-items: center start;
-    gap: 5px;
-
-    button {
-        height: 40px;
-        display: inline-block;
-    }
-
-    @include for-tablet-landscape-only {
-        grid-template-columns: 150px 150px 50px;
-    }
 }
