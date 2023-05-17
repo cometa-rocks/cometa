@@ -20,6 +20,8 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 export class ModifyDepartmentComponent {
 
   rForm: UntypedFormGroup;
+  timeoutForm: UntypedFormGroup;
+  loading: boolean = false;
 
   expireDaysChecked$ = new BehaviorSubject<boolean>(false);
 
@@ -41,8 +43,13 @@ export class ModifyDepartmentComponent {
     const expireDays = this.department.settings?.result_expire_days ? parseInt(this.department.settings.result_expire_days, 10) : 90;
     this.rForm = this.fb.group({
       'department_name': [this.department.department_name, Validators.required],
-      'continue_on_failure': [this.department.settings.continue_on_failure],
+      'continue_on_failure': [{value: this.department.settings.continue_on_failure, disabled: this.account?.settings?.continue_on_failure}],
+      'step_timeout': [this.department.settings?.step_timeout || 60, [Validators.required, Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])]],
       'result_expire_days': [expireDays]
+    });
+    this.timeoutForm = this.fb.group({
+      'step_timeout_from': ['', Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])],
+      'step_timeout_to': ['', Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])],
     });
     this.expireDaysChecked$.next(!!this.department.settings.result_expire_days)
   }
@@ -63,18 +70,18 @@ export class ModifyDepartmentComponent {
       settings: {
         ...this.department.settings,
         continue_on_failure: values.continue_on_failure,
+        step_timeout: values.step_timeout,
         result_expire_days: this.expireDaysChecked$.getValue() ? values.result_expire_days : null
       }
     }
     this._api.modifyDepartment(this.department_id, payload).subscribe(res => {
       if (res.success) {
         this._store.dispatch( new Departments.UpdateDepartment(this.department_id, payload) );
-        this.dialogRef.close();
+        // this.dialogRef.close();
         this.snack.open('Department modified successfully!', 'OK');
       } else {
         this.snack.open('An error ocurred', 'OK');
       }
     }, () => this.snack.open('An error ocurred', 'OK'));
   }
-
 }
