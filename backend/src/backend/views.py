@@ -595,7 +595,7 @@ def runTest(request, *args, **kwargs):
     env = Environment.objects.filter(environment_name=feature.environment_name)[0]
     dep = Department.objects.filter(department_name=feature.department_name)[0]
     env_variables = Variable.objects.filter(
-        Q(department=dep) |
+        Q(department=dep),
         Q(environment=env) |
         Q(feature=feature)
     ).order_by('variable_name', '-based').distinct('variable_name')
@@ -2139,6 +2139,7 @@ class FolderViewset(viewsets.ModelViewSet):
                 return result
 
     def serializeResultsFromRawQueryForTree(self, departments, max_lvl):
+        logger.debug("Preparing query for recursive folder, feature lookup for tree visualisation.")
         query = """
             WITH RECURSIVE recursive_folders AS (
                 SELECT bf.*, 1 AS LVL
@@ -2161,15 +2162,16 @@ class FolderViewset(viewsets.ModelViewSet):
                 JOIN backend_department bd
                     ON bf.department_id = bd.department_id or rf.department_id = bd.department_id
             WHERE
-                    ( rf.department_id IN %s and ( bf.department_id IN %s or bf.department_id is null) )
+                (
+                        ( rf.department_id IN %s and ( bf.department_id IN %s or bf.department_id is null) )
                 or
                     ( rf.department_id is null and bf.department_id IN %s )
-            ORDER BY rf.folder_id
+                ) 
+            ORDER BY bd.department_name, bf.depends_on_others, bf.feature_name
         """
 
         # make a raw query to folders table
         results = Folder.objects.raw(query, [max_lvl, departments, departments, departments])
-
         objectsCreated = {
             "departments": {},
             "folders": {}
@@ -2222,6 +2224,8 @@ class FolderViewset(viewsets.ModelViewSet):
             objectsCreated['departments'][folder['department']]['children'].append(folder)
             del objectsCreated["folders"][folder['id']]
         
+        logger.debug("Finished recursive lookup")
+
         return {
             "name": "Home",
             "type": "home",
@@ -2643,7 +2647,7 @@ class VariablesViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         user_departments = GetUserDepartments(request)
-        result = Variable.objects.all() # .filter(department__department_id__in=user_departments)
+        result = Variable.objects.filter(department__department_id__in=user_departments)
         data = VariablesSerializer(VariablesSerializer.fast_loader(result), many=True).data
         return JsonResponse(data, safe=False)
 

@@ -47,6 +47,10 @@ export class ModifyDepartmentComponent {
       'step_timeout': [this.department.settings?.step_timeout || 60, [Validators.required, Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])]],
       'result_expire_days': [expireDays]
     });
+    this.timeoutForm = this.fb.group({
+      'step_timeout_from': ['', Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])],
+      'step_timeout_to': ['', Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])],
+    });
     this.expireDaysChecked$.next(!!this.department.settings.result_expire_days)
   }
 
@@ -58,6 +62,37 @@ export class ModifyDepartmentComponent {
       this.rForm.get('result_expire_days').clearValidators();
     }
     this.rForm.get('result_expire_days').updateValueAndValidity();
+  }
+
+  applyGlobalTimeout(ev: Event) {
+    const options = this.timeoutForm.value;
+    // prevents whole popup from closing
+    ev.preventDefault();
+
+    // disable button while http post is processed
+    this.loading = true;
+    this._api.applyDepartmentStepsTimeout(this.department_id, options).subscribe({
+      next: (res) => {
+        let result = JSON.parse(res);
+
+        // if timeout modification XHR was successfull, show user how many steps and features were modified
+        if (result.success) {
+          result.total_steps_updated === 0 ?  this.snack.open("No steps with specified timeout", 'OK') :
+                                              this.snack.open(`features updated:${result.total_features_updated}, steps updated:${result.total_steps_updated}`, 'OK');
+        }
+        // enable button again
+        this.loading = false;
+        // reset input values
+        this.resetGlobalTimeoutInputs();
+      },
+      error: (err) => {
+        let error = JSON.parse(err.error);
+
+        // show user the cause of error
+        this.snack.open(error.error, 'OK')
+        this.loading = false;
+      }
+    })
   }
 
   modifyDepartment(values) {
@@ -74,7 +109,7 @@ export class ModifyDepartmentComponent {
     this._api.modifyDepartment(this.department_id, payload).subscribe(res => {
       if (res.success) {
         this._store.dispatch( new Departments.UpdateDepartment(this.department_id, payload) );
-        this.dialogRef.close();
+        // this.dialogRef.close();
         this.snack.open('Department modified successfully!', 'OK');
       } else {
         this.snack.open('An error ocurred', 'OK');

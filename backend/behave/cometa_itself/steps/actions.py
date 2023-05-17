@@ -202,7 +202,7 @@ def done( *_args, **_kwargs ):
                     for key in env_variables:
                         variable_name = key['variable_name']
                         variable_value = str(key['variable_value'])
-                        if args[0].text:
+                        if args[0].text and 'Loop' not in save_message: # we do not want to replace all the variables inside the loop sub-steps
                             # Replace in step description for multiline step values
                             args[0].text = re.sub(r'\$%s\b' % variable_name, returnDecrypted(variable_value), args[0].text)
                             # ###
@@ -213,8 +213,8 @@ def done( *_args, **_kwargs ):
                             # Replace in step content
                             kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
                     # replace job parameters
-                    for parameter_key in job_parameters.keys():
-                        if args[0].text:
+                    for parameter_key in job_parameters.keys(): # we do not want to replace all the parameters inside the loop sub-steps
+                        if args[0].text and 'Loop' not in save_message:
                             args[0].text = re.sub(r'%%%s\b' % parameter_key, returnDecrypted(str(job_parameters[parameter_key])), args[0].text)
                         if re.search(r'%%%s\b' % parameter_key, kwargs[parameter]):
                             kwargs[parameter] = kwargs[parameter].replace(("%%%s" % parameter_key), str(job_parameters[parameter_key]))
@@ -3087,7 +3087,10 @@ def imp(context, variable_name, prefix, suffix):
     index = [i for i,_ in enumerate(env_variables) if _['variable_name'] == variable_name]
 
     if len(index) == 0:
-        raise CustomError("No variable found with name: %s" % variable_name)
+        # if the length is 0 then the variable was not found
+        # so we can try using the value in the variable as if it is a list of values - see issue #3881
+        logger.debug("Feature: %s - Will use variable as valuelist %s " % context.feature_id, variable_name)
+        send_step_details(context, 'Variable does not exist, will use the variable name as value seperate by semicolon.')
 
     # hold csv data that will later on be writen to a file
     fileContent = []
