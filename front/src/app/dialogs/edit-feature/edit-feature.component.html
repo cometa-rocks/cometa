@@ -229,7 +229,7 @@
           <mat-panel-description>Edit the steps for the current feature (applies to all selected browsers)</mat-panel-description>
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
-          <cometa-step-editor *ngIf="feature | async as feat" [mode]="data.mode" [feature]="feat" [variables]="variables" [name]="featureForm.get('feature_name').value"></cometa-step-editor>
+          <cometa-step-editor *ngIf="feature | async as feat" [mode]="data.mode" [department]="department" [feature]="feat" [variables]="variables" [name]="featureForm.get('feature_name').value"></cometa-step-editor>
         </ng-template>
       </mat-expansion-panel>
       <mat-expansion-panel [expanded]="!config$.toggles.hideSchedule">
