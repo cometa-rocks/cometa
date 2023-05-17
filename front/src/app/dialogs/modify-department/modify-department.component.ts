@@ -96,6 +96,7 @@ export class ModifyDepartmentComponent {
   }
 
   modifyDepartment(values) {
+    console.log("aa")
     const payload = {
       department_name: values.department_name,
       settings: {
@@ -114,11 +115,5 @@ export class ModifyDepartmentComponent {
         this.snack.open('An error ocurred', 'OK');
       }
     }, () => this.snack.open('An error ocurred', 'OK'));
-  }
-
-  // resets the input value for global timeout modifiers
-  resetGlobalTimeoutInputs() {
-    this.timeoutForm.get('step_timeout_from').setValue('');
-    this.timeoutForm.get('step_timeout_to').setValue('');
   }
 }
