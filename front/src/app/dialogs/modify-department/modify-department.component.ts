@@ -64,39 +64,7 @@ export class ModifyDepartmentComponent {
     this.rForm.get('result_expire_days').updateValueAndValidity();
   }
 
-  applyGlobalTimeout(ev: Event) {
-    const options = this.timeoutForm.value;
-    // prevents whole popup from closing
-    ev.preventDefault();
-
-    // disable button while http post is processed
-    this.loading = true;
-    this._api.applyDepartmentStepsTimeout(this.department_id, options).subscribe({
-      next: (res) => {
-        let result = JSON.parse(res);
-
-        // if timeout modification XHR was successfull, show user how many steps and features were modified
-        if (result.success) {
-          result.total_steps_updated === 0 ?  this.snack.open("No steps with specified timeout", 'OK') :
-                                              this.snack.open(`features updated:${result.total_features_updated}, steps updated:${result.total_steps_updated}`, 'OK');
-        }
-        // enable button again
-        this.loading = false;
-        // reset input values
-        this.resetGlobalTimeoutInputs();
-      },
-      error: (err) => {
-        let error = JSON.parse(err.error);
-
-        // show user the cause of error
-        this.snack.open(error.error, 'OK')
-        this.loading = false;
-      }
-    })
-  }
-
   modifyDepartment(values) {
-    console.log("aa")
     const payload = {
       department_name: values.department_name,
       settings: {
