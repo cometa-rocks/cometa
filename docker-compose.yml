@@ -23,6 +23,7 @@ services:
       - /data/cometa/screenshots:/code/behave/screenshots
       - /data/cometa/videos:/code/behave/videos
       - /data/cometa/pdf:/code/behave/pdf
+      - /data/cometa/downloads:/code/behave/downloads
       - ./backend:/code
       - ./backend/src:/opt/code:rw
       - "./backend/crontabs/cometa_django_crontab:/etc/cron.d/crontab"
@@ -50,6 +51,7 @@ services:
       - /data/cometa/screenshots:/opt/code/screenshots
       - /data/cometa/videos:/opt/code/videos
       - /data/cometa/pdf:/code/behave/pdf
+      - /data/cometa/downloads:/code/behave/downloads
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
       - "./backend/behave/schedules/crontab:/etc/cron.d/crontab"
