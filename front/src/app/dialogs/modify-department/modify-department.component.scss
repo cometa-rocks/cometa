@@ -2,15 +2,6 @@
 @import 'color';
 @import 'breakpoints';
 
-.wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 2em;
-    @include for-desktop-up {
-        flex-direction: row;
-    }
-}
-
 h2 {
     color: $blue;
 }
