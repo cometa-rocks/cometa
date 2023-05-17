@@ -1,0 +1,12 @@
+@import 'color';
+
+.global-timeout-modifier {
+    display: grid;
+    grid-template-columns: 150px 150px;
+    place-items: center start;
+    gap: 5px;
+}
+
+h2 {
+    color: $blue;
+}
