@@ -1,5 +1,5 @@
 {
-	"version": "2.8.290",
+	"version": "2.8.300",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -191,6 +191,20 @@
 	],
 	"changelog": [
 		{
+			"version": "2.8.300",
+			"date": "2023-05-04",
+			"features": [
+				{
+					"title": "Undefined Steps",
+					"description": "Undefined steps now throw an error in Live Preview."
+				},
+                {
+                    "title": "Step Timeouts",
+                    "description": "Test Managers now can update step timeouts of a department in batch."
+                }
+			]
+		},
+        {
 			"version": "2.8.299",
 			"date": "2023-05-02",
 			"features": [

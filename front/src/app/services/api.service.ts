@@ -339,6 +339,14 @@ export class ApiService {
     });
   }
 
+  applyDepartmentStepsTimeout(department_id: number, options: {step_timeout_from: number, step_timeout_to: number}) {
+    return this._http.post<any>(`${this.base}departments/${department_id}/updateStepTimeout/`, options, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
+    });
+  }
+
   modifyDepartment(department_id: number, newOptions: Partial<Department>) {
     return this._http.patch<Success>(`${this.api}departments/${department_id}/`, newOptions);
   }

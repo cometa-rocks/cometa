@@ -115,6 +115,8 @@ urlpatterns = [
     url(r'^updatePayment/', payments.updatePayment),
     url(r'^customerPortal', payments.getCustomerPortal),
     url(r'^createDonation/', payments.createDonation),
+    # Additional department updates
+    url(r'^departments/(?P<department_id>[0-9]+)/updateStepTimeout/', views.UpdateStepTimeout),
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
 ] + static('/static/', document_root=STATIC_ADMIN_FILES)
