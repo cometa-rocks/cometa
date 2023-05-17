@@ -845,7 +845,23 @@ video-player .header {
     --options-order: 11;
 }
 
+// modifies styles of root and first child containers of modify department dialog
+.modify-department-panel {
+    display: inline;
+    max-width: 70%;
+    .mat-dialog-content {
+        width: 100%;
+    }
+}
+
+
 .description-option {
+    .mat-form-field.step_timeout_from,
+    .mat-form-field.step_timeout_to,
+    .mat-form-field.step_timeout {
+        width: 150px;
+        margin: 0;
+    }
     .mat-form-field {
         margin-left: 20px;
     }
@@ -872,6 +888,7 @@ video-player .header {
 
 .expand-on-show {
     visibility: hidden;
+    width: 150px;
     opacity: 0;
     transform: translateX(-20px);
     transition: transform .15s ease-in-out, opacity .15s ease-in-out;
@@ -899,3 +916,17 @@ span.code {
     font-size: .85rem;
     font-family: Consolas,"Liberation Mono",Menlo,"Courier New",Courier,monospace;
 }
+
+
+/* removes increase/decrease arrows from number type mat input */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+/***************************************************************/
