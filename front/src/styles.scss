@@ -919,3 +919,17 @@ span.code {
     font-size: .85rem;
     font-family: Consolas,"Liberation Mono",Menlo,"Courier New",Courier,monospace;
 }
+
+
+/* removes increase/decrease arrows from number type mat input */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+/***************************************************************/
