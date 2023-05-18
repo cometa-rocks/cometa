@@ -236,6 +236,8 @@ def done( *_args, **_kwargs ):
                 # start the timeout
                 signal.signal(signal.SIGALRM, lambda signum, frame, timeout=step_timeout: timeoutError(signum, frame, timeout))
                 signal.alarm(step_timeout)
+                # set page load timeout
+                args[0].browser.set_page_load_timeout(step_timeout)
                 # run the requested function
                 result = func(*args, **kwargs)
                 # if step executed without running into timeout cancel the timeout
