@@ -21,8 +21,8 @@ export class ModifyDepartmentTimeoutComponent {
                private fb: UntypedFormBuilder) {
                 
     this.timeoutForm = this.fb.group({
-      'step_timeout_from': ['', Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])],
-      'step_timeout_to': ['', Validators.compose([Validators.min(1), Validators.max(1000), Validators.maxLength(4)])],
+      'step_timeout_from': ['', Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)])],
+      'step_timeout_to': ['', Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)])],
     });
   }
 
