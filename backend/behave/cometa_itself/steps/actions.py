@@ -322,7 +322,7 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         # Create current step result folder
         Path(context.SCREENSHOTS_STEP_PATH).mkdir(parents=True, exist_ok=True)
         # Check if feature needs screenshot - see #3014 for change to webp format
-        if context.step_data['screenshot']:
+        if context.step_data['screenshot'] or not success:
             # Take actual screenshot
             takeScreenshot(context, step_id)
             # Take actual HTML
@@ -467,6 +467,7 @@ def takeScreenshot(context, step_id):
             context.browser.save_screenshot(final_screenshot_file)
         except Exception as err:
             logger.error("Unable to take screenshot ...")
+            logger.exception(err)
 
     # transfer saved image name to context.COMPARE_IMAGE
     context.COMPARE_IMAGE = final_screenshot_file
