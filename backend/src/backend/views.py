@@ -123,7 +123,8 @@ def GetBrowserStackBrowsers(request):
             logger.error(browsers.text)
             return JsonResponse({
                 "success": False,
-                "msg": "Failed to make request to Browserstack, maybe provided credentials are incorrect?"
+                "msg": "Failed to make request to Browserstack, maybe provided credentials are incorrect?",
+                "results": []
             })
     # send a response back
     return JsonResponse({
