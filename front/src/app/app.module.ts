@@ -25,6 +25,7 @@ import { BrowserSelectionComponent } from '@components/browser-selection/browser
 import { StepEditorComponent } from '@components/step-editor/step-editor.component';
 import { LiveStepComponent } from '@dialogs/live-steps/live-step/live-step.component';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
+import { AllScreenshotComponent } from '@dialogs/all-schreenshots/all-schreenshots.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
 
@@ -213,6 +214,7 @@ export function getStripeApiKey() {
     StepEditorComponent,
     LiveStepComponent,
     ScreenshotComponent,
+    AllScreenshotComponent,
     CookiesExpiredDialog,
     WhatsNewDialog
   ],

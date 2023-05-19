@@ -9,6 +9,8 @@ import { distinctUntilChanged, map, shareReplay, switchMap, tap } from 'rxjs/ope
 import { ApiService } from '@services/api.service';
 import { NetworkPaginatedListComponent } from '@components/network-paginated-list/network-paginated-list.component';
 import { SharedActionsService } from '@services/shared-actions.service';
+import { MatDialog } from '@angular/material/dialog';
+import { AllScreenshotComponent } from '@dialogs/all-schreenshots/all-schreenshots.component';
 
 @Component({
   selector: 'step-view',
@@ -80,6 +82,7 @@ import { SharedActionsService } from '@services/shared-actions.service';
 })
 export class StepViewComponent implements OnInit {
 
+  clickStepResult: number = null;
   test$: Observable<FeatureResult>;
 
   stepResultsUrl$: Observable<string>;
@@ -89,7 +92,8 @@ export class StepViewComponent implements OnInit {
     private _acRouted: ActivatedRoute,
     private _store: Store,
     private _api: ApiService,
-    public _sharedActions: SharedActionsService
+    public _sharedActions: SharedActionsService,
+    private _dialog: MatDialog,
   ) { }
 
   featureId$: Observable<number>;
@@ -158,5 +162,12 @@ export class StepViewComponent implements OnInit {
         }
       })
     }
+  }
+
+  loadImages (item) {
+    this._dialog.open(AllScreenshotComponent, {
+      data: [item.screenshot_current, item.screenshot_style, item.screenshot_difference],
+      panelClass: 'all-screenshot-panel'
+    });
   }
 }
