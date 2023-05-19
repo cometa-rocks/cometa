@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Select, Store } from '@ngxs/store';
+import { CustomSelectors } from '@others/custom-selectors';
 import { ApiService } from '@services/api.service';
 import { FeaturesState } from '@store/features.state';
 import * as d3 from 'd3';
@@ -34,8 +35,7 @@ export class L1TreeViewComponent implements OnInit{
   constructor( private _store: Store, private _api: ApiService, private _router: Router ) {}
 
   findEmbededObject(data: any, obj: any) {
-    console.log(data);
-    // if data type is feature, add feature id as prefix in name
+    // if data type is feature, add feature id as suffix in name
     // if data type is not feature, just truncate name
     if (data.type === 'feature' && !data.name.includes(data.id + " - ")) {
       data.name = this.truncateString(data.name, 25) + ` - ${data.id}`;
@@ -201,6 +201,7 @@ export class L1TreeViewComponent implements OnInit{
       // Update the nodes…
       const node = gNode.selectAll("g")
                         .data(nodes, d => d.id);
+      let feature: Feature
 
       // Enter any new nodes at the parent's previous position.
       const nodeEnter = node.enter().append("g")
@@ -218,13 +219,14 @@ export class L1TreeViewComponent implements OnInit{
                                         this._router.navigate(['/from/tree-view/', d.data.id])
                                       }
                                     })
-  
+
       nodeEnter.append("text")
                 .attr("width", imageSize)
                 .attr("height", imageSize)
                 .style("font-family", 'Material Icons')
                 .style("transform", `translate(-${imageSize/2}px, ${imageSize/2}px)`)
                 .attr('font-size', "20px")
+                .attr('fill', d =>  d.data.type === "feature" && d.data.depends_on_others ? 'gray' : 'black')
                 .attr("class", d => d.data.type != "feature" && !d.children && !d._children ? 'disabled' : '')
                 .text(d => {
                   switch (d.data.type) {
