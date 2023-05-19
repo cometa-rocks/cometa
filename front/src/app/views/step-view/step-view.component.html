@@ -92,6 +92,9 @@
                         </div>
                         <div class="time">{{ item?.execution_time | secondsToHumanReadable }}</div>
                         <div class="difference">{{ item?.pixel_diff | pixelDifference }}</div>
+                        <div class="screenshot" *ngIf="item.screenshot_current" (click)="loadImages(item)" stopPropagation>
+                            <mat-icon>insert_photo</mat-icon>
+                        </div>
                         <!-- Icon options for each step result -->
                         <div class="item-options">
                             <!-- View HTML Difference -->
