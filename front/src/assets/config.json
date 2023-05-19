@@ -290,7 +290,7 @@
 			"features": [
 				{
 					"title": "New step: I cannot see",
-					"description": "With this new step we can easily assert negative assumptions. So, not seeing a given selector is positiv. For exmaple, use this for testing the absense of elements when checking on access-rights."
+					"description": "With this new step we can easily assert negative assumptions. So, not seeing a given selector is positive. For examaple, use this for testing the absence of elements when checking on access-rights."
 				}
 			]
 		},
