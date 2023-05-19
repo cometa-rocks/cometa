@@ -236,6 +236,8 @@ def done( *_args, **_kwargs ):
                 # start the timeout
                 signal.signal(signal.SIGALRM, lambda signum, frame, timeout=step_timeout: timeoutError(signum, frame, timeout))
                 signal.alarm(step_timeout)
+                # set page load timeout
+                args[0].browser.set_page_load_timeout(step_timeout)
                 # run the requested function
                 result = func(*args, **kwargs)
                 # if step executed without running into timeout cancel the timeout
@@ -322,7 +324,7 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         # Create current step result folder
         Path(context.SCREENSHOTS_STEP_PATH).mkdir(parents=True, exist_ok=True)
         # Check if feature needs screenshot - see #3014 for change to webp format
-        if context.step_data['screenshot']:
+        if context.step_data['screenshot'] or not success:
             # Take actual screenshot
             takeScreenshot(context, step_id)
             # Take actual HTML
@@ -467,6 +469,7 @@ def takeScreenshot(context, step_id):
             context.browser.save_screenshot(final_screenshot_file)
         except Exception as err:
             logger.error("Unable to take screenshot ...")
+            logger.exception(err)
 
     # transfer saved image name to context.COMPARE_IMAGE
     context.COMPARE_IMAGE = final_screenshot_file
