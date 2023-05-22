@@ -92,8 +92,10 @@
                         </div>
                         <div class="time">{{ item?.execution_time | secondsToHumanReadable }}</div>
                         <div class="difference">{{ item?.pixel_diff | pixelDifference }}</div>
-                        <div class="screenshot" *ngIf="item.screenshot_current" (click)="loadImages(item)" stopPropagation>
-                            <mat-icon>insert_photo</mat-icon>
+                        <div class="screenshots-wrapper">
+                            <div class="screenshot" *ngIf="item.screenshot_current" (click)="loadImages(item)" stopPropagation>
+                                <mat-icon>insert_photo</mat-icon>
+                            </div>
                         </div>
                         <!-- Icon options for each step result -->
                         <div class="item-options">
@@ -134,6 +136,7 @@
                 <div class="time">TIME</div>
                 <div class="difference-mobile">PIXEL DIFF</div>
                 <div class="difference-desktop">PIXEL DIFFERENCE</div>
+                <div class="Screenshots">SCREENSHOTS</div>
             </ng-template>
         </network-paginated-list>
     </div>
