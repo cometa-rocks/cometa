@@ -42,7 +42,7 @@
     },
     "user": {
         "tour_description": "In co.meta you can learn about features interactive using the virtual tour guide. The virtual tour guide will show you around and explain step by step the how's and where's. Move your mouse over the tour buttons to see a short description.",
-        "webhooks_desc": "Integre co.meta con algunas de sus herramientas favoritas para construir más rápido, probar continuamente y comunicar la calidad con todo el departamento."
+        "webhooks_desc": "Integrar co.meta con tus herramientas favoritas te permite optimizar tu proceso de desarrollo. Al conectar Co.Meta de manera fluida, puedes acelerar la finalización de proyectos, implementar prácticas de pruebas continuas y compartir actualizaciones de calidad de manera efectiva con todo tu departamento."
     },
     "connected": "Connected",
     "not_connected": "Not connected",
