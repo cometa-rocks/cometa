@@ -5,6 +5,10 @@ export const MAIN_VIEW_CHART_SCHEMA: Options = {
     xAxis: {}
   },
   rangeSelector: {
+    floating: false,
+    y: 0,
+    x: document.body.offsetWidth - 280,
+
     selected: 5,
     inputEnabled: false,
     buttons: [{
