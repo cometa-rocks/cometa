@@ -91,9 +91,14 @@
                             </mat-menu>
                         </div>
                         <div class="time">{{ item?.execution_time | secondsToHumanReadable }}</div>
-                        <div class="difference">{{ item?.pixel_diff | pixelDifference }}</div>
+                        <div class="difference"
+                             [matTooltip]="!item.screenshot_difference ? '' : 'Click to see Image comparison details'"
+                             matTooltipPosition="above"
+                             (click)="loadImages(item.screenshot_difference)"
+                             stopPropagation>{{ item?.pixel_diff | pixelDifference }}
+                        </div>
                         <div class="screenshots-wrapper">
-                            <div class="screenshot" *ngIf="item.screenshot_current" (click)="loadImages(item)" stopPropagation>
+                            <div class="screenshot" *ngIf="item.screenshot_current" (click)="loadImages(item.screenshot_current)" stopPropagation>
                                 <mat-icon>insert_photo</mat-icon>
                             </div>
                         </div>

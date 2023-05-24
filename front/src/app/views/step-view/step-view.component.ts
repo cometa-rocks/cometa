@@ -10,7 +10,7 @@ import { ApiService } from '@services/api.service';
 import { NetworkPaginatedListComponent } from '@components/network-paginated-list/network-paginated-list.component';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { MatDialog } from '@angular/material/dialog';
-import { AllScreenshotComponent } from '@dialogs/all-schreenshots/all-schreenshots.component';
+import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
 
 @Component({
   selector: 'step-view',
@@ -165,9 +165,11 @@ export class StepViewComponent implements OnInit {
   }
 
   loadImages (item) {
-    this._dialog.open(AllScreenshotComponent, {
-      data: [item.screenshot_current, item.screenshot_style, item.screenshot_difference],
-      panelClass: 'all-screenshot-panel'
-    });
+    if(item) {
+      this._dialog.open(ScreenshotComponent, {
+        data: item,
+        panelClass: 'screenshot-panel'
+      });
+    }
   }
 }
