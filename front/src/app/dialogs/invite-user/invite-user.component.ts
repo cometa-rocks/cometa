@@ -1,9 +1,9 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { MatChipListChange } from '@angular/material/chips';
-import { MatDialogRef } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacyChipListChange as MatChipListChange } from '@angular/material/legacy-chips';
+import { MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { ApiService } from '@services/api.service';
 import { UserState } from '@store/user.state';

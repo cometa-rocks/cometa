@@ -9,7 +9,7 @@ import { distinctUntilChanged, map, shareReplay, switchMap, tap } from 'rxjs/ope
 import { ApiService } from '@services/api.service';
 import { NetworkPaginatedListComponent } from '@components/network-paginated-list/network-paginated-list.component';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
 
 @Component({
