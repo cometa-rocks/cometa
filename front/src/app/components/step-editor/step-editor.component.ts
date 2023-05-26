@@ -1,11 +1,11 @@
 import { Component, OnInit, ChangeDetectionStrategy, Input, ChangeDetectorRef, Host, ElementRef, NgZone, ViewChild, ViewChildren, QueryList, Renderer2 } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { AddStepComponent } from '@dialogs/add-step/add-step.component';
-import { MatDialog , MatDialogRef } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog , MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
 import { Store } from '@ngxs/store';
 import { ActionsState } from '@store/actions.state';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { ClipboardService } from 'ngx-clipboard';
 import { ImportJSONComponent } from '@dialogs/import-json/import-json.component';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, forkJoin, of } from 'rxjs';
@@ -16,10 +16,10 @@ import { UserState } from '@store/user.state';
 import { CustomValidators } from '@others/custom-validators';
 import { exportToJSONFile, SubSinkAdapter } from 'ngx-amvara-toolbox';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent } from '@angular/material/legacy-autocomplete';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
-import { MatCheckboxChange } from '@angular/material/checkbox';
-import { MatList, MatListItem } from '@angular/material/list';
+import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
+import { MatLegacyList as MatList, MatLegacyListItem as MatListItem } from '@angular/material/legacy-list';
 
 @Component({
   selector: 'cometa-step-editor',
