@@ -3,7 +3,7 @@ import { Store } from '@ngxs/store';
 import { tap } from 'rxjs/operators';
 import { LiveStepsComponent } from '../live-steps.component';
 import { DomSanitizer } from '@angular/platform-browser';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
