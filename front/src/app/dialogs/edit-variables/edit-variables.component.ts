@@ -1,8 +1,8 @@
 import { Component, Inject, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ViewChild, OnDestroy, ElementRef } from '@angular/core';
-import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
 import { Select, Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { UserState } from '@store/user.state';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { VariablesState } from '@store/variables.state';
@@ -10,8 +10,8 @@ import { Variables } from '@store/actions/variables.actions';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { MatSort, Sort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatCheckboxChange } from '@angular/material/checkbox';
+import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
+import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
 
 interface PassedData {
   environment_id: number;

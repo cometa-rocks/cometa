@@ -5,7 +5,7 @@ import { Observable, of } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { encodeURLParams } from 'ngx-amvara-toolbox';
 import { InterceptorParams } from 'ngx-network-error';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 
 @Injectable()

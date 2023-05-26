@@ -1,15 +1,15 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
 import { ApiService } from '@services/api.service';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { SelectSnapshot, ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { DepartmentsState } from '@store/departments.state';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { Departments } from '@store/actions/departments.actions';
 import { BehaviorSubject } from 'rxjs';
-import { MatCheckboxChange } from '@angular/material/checkbox';
+import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
 
 @Component({
   selector: 'modify-department',
