@@ -1,7 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy, OnInit, Output, EventEmitter, Host } from '@angular/core';
 import { ApiService } from '@services/api.service';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { Store } from '@ngxs/store';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
 import { map } from 'rxjs/operators';
