@@ -95,7 +95,8 @@
             .files-step {
                 margin-left: 20px;
             }
-            .files {
+            .files,
+            .customErrorMessage {
                 padding-left: 20px;
                 font-size: 13px;
             }
@@ -141,6 +142,11 @@
                 <tr>
                     <td width="55%" class="firsttd">
                         {{forloop.counter}}. {{ step.step_name }}
+                        {% if step.success == False and step.custom_error is not None %}
+                            <div class="align-left customErrorMessage">
+                                <span>&rightarrow;</span> &nbsp; </span><span style="color: #d4145a">Custom Error: {{ step.custom_error }}</span>
+                            </div>
+                        {% endif %}
                         
                         <div class="align-left files">
                             {% for file in step.files %}
