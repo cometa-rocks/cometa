@@ -306,6 +306,7 @@ class GeneratePDF(View):
             screenshots_array[step.step_result_id].append({'photo2': None})
             screenshots_array[step.step_result_id].append({'photo3': None})
             screenshots_array[step.step_result_id].append({'count' : step.count})
+            screenshots_array[step.step_result_id].append({'custom_error': step.custom_error})
             # Change the images from None to the base64 string, only if the image exists. We use i+4 because screenshots are located in indexs 4 5 and 6
             for i in range(0, len(listphotos)):
                 index = i+4
