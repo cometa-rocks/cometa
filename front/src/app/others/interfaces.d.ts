@@ -149,7 +149,7 @@ interface StepResult {
     screenshot_style: string;
     screenshot_difference: string;
     screenshot_template: string;
-    custom_error: null | string;
+    error: null | string;
 }
 
 interface BelongsTo {
