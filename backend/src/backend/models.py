@@ -878,6 +878,7 @@ class Step_result(models.Model):
     screenshot_difference = models.CharField(max_length=255, default='', null=True, blank=True)
     screenshot_template = models.CharField(max_length=255, default='', null=True, blank=True)
     belongs_to = models.IntegerField(null=True) # feature that step belongs to
+    custom_error = models.TextField(null=True, blank=True)
 
     class Meta:
         ordering = ['step_result_id']
