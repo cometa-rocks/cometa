@@ -66,7 +66,7 @@
                                         class="feature-reference">From feature: {{ item.belongs_to.feature_name }}</div>
                                 </ng-container>
                                 <div class="step-name">{{ item?.step_name }}</div>
-                                <small *ngIf="item?.custom_error" class="step-error"> {{item?.custom_error}} </small>
+                                <small *ngIf="item?.error" class="step-error"> Custom error: {{item?.error}} </small>
                             </div>
                         </div>
                         <div class="status">
