@@ -42,7 +42,7 @@
   </div>
   <!-- Actions explanation -->
   <div class="help-title">Actions</div>
-  <p>These are the actions available for use in any testplan:</p>
+  <p>These are short descriptions of the actions available for use in any testplan. A detailed documentation can be found in the <a href='https://github.com/cometa-rocks/cometa_documentation/blob/main/cometa_actions.md'>GitHub Cometa-Rocks</a>.</p>
   <div class="action" *ngFor="let action of actions$ | async | sortBy:'action_name'">
     <h4 class="action-title">{{ action.action_name }}</h4>
     <div class="action-description" [innerHTML]="action.description"></div>
