@@ -596,9 +596,9 @@ def runTest(request, *args, **kwargs):
     env = Environment.objects.filter(environment_name=feature.environment_name)[0]
     dep = Department.objects.filter(department_name=feature.department_name)[0]
     env_variables = Variable.objects.filter(
-        Q(department=dep),
-        Q(environment=env) |
-        Q(feature=feature)
+        Q(department=dep, based='department') |
+        Q(department=dep, environment=env, based='environment') |
+        Q(feature=feature, based='feature')
     ).order_by('variable_name', '-based').distinct('variable_name')
     seri = VariablesSerializer(env_variables, many=True).data
 
