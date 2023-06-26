@@ -296,6 +296,12 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         'status': "Success" if success else "Failed",
         'belongs_to': context.step_data['belongs_to']
     }
+    # add custom error if exists
+    if 'custom_error' in context.step_data:
+        data['error'] = context.step_data['custom_error']
+    elif hasattr(context, 'step_error'):
+        data['error'] = context.step_error
+    # add files
     try:
         data['files'] = json.dumps(context.downloadedFiles[context.counters['index']])
     except:
@@ -3557,6 +3563,27 @@ def step_imp(context, css_selector, variable_names, prefix, suffix):
     else:
         raise CustomError("Lists do not match, please check the attachment.")
 
+
+@step(u'Define Custom Error Message for next step: "{error_message}"')
+@done(u'Define Custom Error Message for next step: "{error_message}"')
+def step_imp(context, error_message):
+    # get next step index
+    next_step = context.counters['index'] + 1
+    # get all the steps from the environment
+    steps = json.loads(os.environ['STEPS'])
+    # check that there is another step after the current step
+    if len(steps) > next_step:
+        # update the step definition
+        steps[next_step].update({
+            "custom_error": logger.mask_values(error_message)
+        })
+        os.environ['STEPS'] = json.dumps(steps)
+        logger.info(f"Custom error message set for step: {steps[next_step]['step_content']}")
+    else:
+        logger.warn(f"This is the last step, cannot assign custom error message to next step.")
+    
+
+# Ignores undefined steps
 @step(u'{step}')
 @done(u'{step}')
 def step_imp(context, step):

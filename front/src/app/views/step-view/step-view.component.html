@@ -66,15 +66,14 @@
                                         class="feature-reference">From feature: {{ item.belongs_to.feature_name }}</div>
                                 </ng-container>
                                 <div class="step-name">{{ item?.step_name }}</div>
+                                <small *ngIf="item?.error" class="step-error"> Custom error: {{item?.error}} </small>
                             </div>
                         </div>
                         <div class="status">
                             <!-- Status Box -->
-                            <div
-                                stopPropagation
-                                [matMenuTriggerFor]="resultStatus"
-                                class="status-box"
-                                [ngClass]="passed ? 'passed' : 'failed'">{{ passed ? 'Passed' : 'Failed' }}</div>
+                            <div  class="status-box" stopPropagation [matMenuTriggerFor]="resultStatus" [ngClass]="passed ? 'passed' : 'failed'">
+                                {{ passed ? 'Passed' : 'Failed' }}
+                            </div>
                             <!-- Override result status -->
                             <mat-menu #resultStatus="matMenu">
                                 <div class="menu-header">Override step status:</div>

@@ -6,8 +6,11 @@ export const MAIN_VIEW_CHART_SCHEMA: Options = {
   },
   rangeSelector: {
     floating: false,
-    y: 0,
-    x: document.body.offsetWidth - 280,
+    buttonPosition: {
+        align: 'right',
+        y: 0,
+        x: 0
+    },
 
     selected: 5,
     inputEnabled: false,
