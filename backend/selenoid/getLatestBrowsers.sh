@@ -186,23 +186,34 @@ function main() {
         info "pull images: ${IMAGES_TO_PULL:-No new images to pull.}"
         info "remove images: ${IMAGES_TO_REMOVE:-No images to remove.}"
     else
-        # set the browser.json content to BROWSERS_CONTENT
-        echo ${BROWSERS_CONTENT} | jq . > `dirname "$0"`/browsers.json
-
+        # pull all the missing images.
         if [[ "${IMAGES_TO_PULL}" ]]
         then
             for IMAGE in ${IMAGES_TO_PULL}
             do
                 log_wfr "pulling: ${IMAGE}"
-                docker pull ${IMAGE} &> /dev/null && log_res "[done]" || log_res "[failed]"
+                docker pull ${IMAGE} &> /dev/null
+                exit_code=$?
+                if [[ ${exit_code} == 0 ]]
+                then
+                    log_res "[done]"
+                else
+                    log_res "[failed]"
+                    info "Failed to get browser image from Docker Registry, will not continue... please check"
+                    exit 5
+                fi
             done
         fi
 
+        # remove any old images.
         if [[ "${IMAGES_TO_REMOVE}" ]]
         then
             log_wfr "removing unused images: ${IMAGES_TO_REMOVE}"
             docker image rm ${IMAGES_TO_REMOVE} &> /dev/null && log_res "[done]" || log_res "[failed]"
         fi
+
+        # set the browser.json content to BROWSERS_CONTENT
+        echo ${BROWSERS_CONTENT} | jq . > `dirname "$0"`/browsers.json
     fi
 }
 
