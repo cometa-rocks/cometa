@@ -95,7 +95,8 @@
             .files-step {
                 margin-left: 20px;
             }
-            .files {
+            .files,
+            .customErrorMessage {
                 padding-left: 20px;
                 font-size: 13px;
             }
@@ -141,6 +142,11 @@
                 <tr>
                     <td width="55%" class="firsttd">
                         {{forloop.counter}}. {{ step.step_name }}
+                        {% if step.success == False and step.error is not None %}
+                            <div class="align-left customErrorMessage">
+                                <span>&rightarrow;</span> &nbsp; </span><span style="color: #d4145a">{{ step.error }}</span>
+                            </div>
+                        {% endif %}
                         
                         <div class="align-left files">
                             {% for file in step.files %}
@@ -162,7 +168,7 @@
                     {% if step.pixel_diff == 0 %}
                         <td> - </td>
                     {% else %}
-                        <td> {{ step.pixel_diff }}</td>
+                        <td> {{ step.pixel_diff | FormatNumber }}</td>
                     {% endif %}
                 </tr>
 
@@ -175,18 +181,22 @@
             <div id="footer_content">
                 <span style="color: #e5b355; font-weight: bold;">CO.</span>META - page <pdf:pagenumber> of <pdf:pagecount>
             </div>
-            <div>
-                <pdf:nextpage />
-            </div>
 
             {% for key, values in screenshots_array.items %}
                 {% if values.4.photo1 is not None %}
+                <div>
+                    <pdf:nextpage />
+                </div>
                 <div class="collectionOfScreenshots">
                     <p style="color: rgba(0,0,0,.6); text-align: left; font-size: 16px;"> &nbsp; &nbsp; <b>{{values.7.count}} - Step Name: </b> {{ values.0.step_name }}</p>
                     {% if values.4.photo1 is not None and values.5.photo2 is None and values.6.photo3 is None %}
                     <p style="text-align: left">Actual Screenshot<br />
                         <img src="data:image/png;base64,{{values.4.photo1}}" style="width: 510pt; ">
                     </p>
+                    {% if values.8.error is not None %}
+                        <span>Error found during the step execution:</span>
+                        <span style="color: #d4145a">{{ values.8.error }}</span>
+                    {% endif %}
                     {% endif %}
 
                     {% if values.4.photo1 is not None and values.5.photo2 is not None or values.6.photo3 is not None %}
