@@ -120,7 +120,11 @@
         <mat-autocomplete class="edit-feature-step-suggestions" #stepHelp="matAutocomplete" (optionSelected)="selectFirstVariable($event, i)">
           <mat-option *ngFor="let action of actions | filterStep:step.value.step_content:false" [value]="action.action_name">
             <span>{{ action.action_name}}</span>
-            <mat-icon matTooltip="HI">info</mat-icon>
+            <div class="metadata">
+              <!-- <mat-icon class="description" [matTooltip]="action.description.replace('<br />', '\n')">info</mat-icon> -->
+              <mat-icon class="new" matTooltip="This step is marked as new which could result in some buggy functionality." *ngIf="action.options.created_on | stepNew">fiber_new</mat-icon>
+              <mat-icon class="warning" matTooltip="This step is marked as deprecated and will be removed in the future releases." *ngIf="action.options.deprecated">warning</mat-icon>
+            </div>
           </mat-option>
         </mat-autocomplete>
       </div>
