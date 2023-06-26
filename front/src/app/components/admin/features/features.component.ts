@@ -3,7 +3,7 @@ import { FeaturesState } from '@store/features.state';
 import { UserState } from '@store/user.state';
 import { ApiService } from '@services/api.service';
 import { map, concatMap, finalize } from 'rxjs/operators';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { BehaviorSubject, from } from 'rxjs';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { exportToJSONFile } from 'ngx-amvara-toolbox';
