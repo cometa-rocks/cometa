@@ -1870,7 +1870,19 @@ def step_impl(context, css_selector):
 
 # Checks if it cannot see an element using a CSS Selector until timeout
 @step(u'I cannot see element with selector "{selector}"')
-@done(u'I cannot see element with css selector "{selector}"')
+@metadata(
+    u'I cannot see element with css selector "{selector}"',
+    description="""
+    Checks if it cannot see an element using a CSS Selector until timeout.
+    """,
+    fields={
+        "selector": {
+            "required": True,
+            "type": "string",
+            "description": "Selector that identifies the element, can be XPATH, CSS selector."
+        }
+    }
+)
 def cannot_see_selector(context, selector):
     # log general information about this step
     logger.debug("Running in Feature: %s " % context.feature_id )
@@ -3342,7 +3354,27 @@ def step_impl(context, css_selector, variable_name):
 
 # save string value to environment variable, environment variable value has a maximum value of 255 characters.
 @step(u'Save "{value}" to environment variable "{variable_name}"')
-@done(u'Save "{value}" to environment variable "{variable_name}"')
+@metadata(
+    u'Save "{value}" to environment variable "{variable_name}"',
+    description="""
+    Save {value} to {variable}, useful when reseting the variable value.
+
+    Variable value can contain maximum of 255 characters.
+    """,
+    fields={
+        "value": {
+            "required": True,
+            "type": "string",
+            "description": "Text that will be set as variables value."
+        },
+        "variable_name": {
+            "required": True,
+            "type": "string",
+            "description": "Variable where the text will be saved to."
+        }
+    },
+    created_on=1687792524120
+)
 def step_impl(context, value, variable_name):
     send_step_details(context, 'Saving value to environment variable')
     # add variable
@@ -4931,6 +4963,5 @@ def step_imp(context, error_message):
 
 # Ignores undefined steps
 @step(u'{step}')
-@done(u'{step}')
 def step_imp(context, step):
     raise NotImplementedError(f"Unknown step found: '{step}'")

@@ -14,6 +14,21 @@
     opacity: .3;
 }
 
+.metadata {
+    float: right;
+    
+    .mat-icon {
+        font-size: 20px;
+        margin: 0;
+        vertical-align: text-top;
+    }
+
+    .warning {
+        color: #E5B355;
+    }
+
+}
+
 .duplicate-step-sign,
 .invalid-sign {
     display: inline-block;
