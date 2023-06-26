@@ -1,19 +1,25 @@
 @import 'color';
 
 .paginated-rows {
-    display: flex;
-    flex-flow: column;
-    height: calc(100% - (86px + 50px)); // substract header height and pagination menu height
+    // flexbox layout is not necessary
+    // display: flex;
+    // flex-flow: column;
+    height: calc(100% - 100px);
     overflow-y: auto;
+}
+
+.header {
+    height: 50px;
 }
 
 .pagination {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 56px;
-    margin-top: 10px;
-    margin-bottom: 20px;
+    // creates unnecessary white space below and above paginator, thus reducing the size of data table significantly
+    // height: 56px;
+    // margin-top: 10px;
+    // margin-bottom: 20px;
     font-size: 1.4rem;
     line-height: 40px;
     font-weight: bold;

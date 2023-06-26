@@ -18,6 +18,19 @@
     height: 100%;
 }
 
+edit-variables {
+    padding: 20px 0 0 10px;
+    height: 85%;
+    overflow: auto;
+
+    ::ng-deep button {
+        border: 0;
+        &.mat-stroked-button {
+            border: 1px solid rgba(0, 0, 0, 0.12);
+        }
+    }
+}
+
 // Add-feature icon on mobile. The size of 21 pixels is due to the lack of padding on the icon
 .icon {
     cursor: pointer;
@@ -270,7 +283,7 @@ p {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        flex: 0 80px;
+        flex: 0 120px;
         height: 100%;
         border-radius: 5px;
         overflow: hidden;
@@ -306,6 +319,10 @@ p {
             }
             &.list:after {
                 background-image: url(^assets/icons/list-view.svg);
+                background-size: 20px;
+            }
+            &.tree:after {
+                background-image: url(^assets/icons/tree-view.svg);
                 background-size: 20px;
             }
         }

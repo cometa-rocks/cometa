@@ -1,7 +1,7 @@
 import { Component, Inject, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { EnterValueComponent } from '@dialogs/enter-value/enter-value.component';
-import { MatDialogRef, MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatLegacyDialogRef as MatDialogRef, MatLegacyDialog as MatDialog, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
 import { Select } from '@ngxs/store';
 import { ActionsState } from '@store/actions.state';
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';

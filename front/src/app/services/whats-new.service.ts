@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { WhatsNewDialog } from '@dialogs/whats-new/whats-new.component';
 import { SelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { CustomSelectors } from '@others/custom-selectors';

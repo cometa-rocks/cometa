@@ -41,7 +41,7 @@
 .charts {
     display: block;
     width: 100%;
-    height: 350px;
+    height: 340px;
     .behave-charts {
         height: 100%;
         padding: 50px 0 0;
@@ -49,18 +49,19 @@
         display: flex;
         box-sizing: border-box;
         text-align: center;
-        @include maxWidth(700px) {
-            padding: 40px 0 0;
-        }
+        // @include maxWidth(700px) {
+        //     padding: 40px 0 0;
+        // }
     }
 }
 
 .chart-section {
-    height: 350px;
+    position: relative;
+    height: 330px;
     transition: .5s;
 
     @include maxWidth(750px) {
-        height: 420px;
+        height: 430px;
 
         &.noChart {
             height: 250px;
@@ -157,14 +158,13 @@
 }
 
 .current_filters {
-    margin: 15px 20px 0;
-    @include for-tablet-portrait-up {
-        margin: 20px 30px 0;
-    }
     display: flex;
-    flex-wrap: wrap;
-    br {
-        line-height: 25px;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 85px;
+    margin: 15px 20px 0;
+    @include for-tablet-portrait-up-plus30 {
+        flex-direction: row;
     }
 }
 
@@ -183,7 +183,7 @@
     &:not(.header) {
         font-size: 18px;
         color: rgba(0,0,0,.5);
-        margin-bottom: 20px;
+        margin-bottom: 5px;
         font-style: italic;
         font-weight: bold;
     }
@@ -196,7 +196,7 @@
     .steps, .browser, .last_test {
         flex: 1 50%;
         text-align: center;
-        padding: 0 0 10px 0;
+        // padding: 0 0 10px 0;
     }
     .last-result-status {
         &.success {
@@ -285,4 +285,48 @@
     height: 100%;
     overflow: hidden;
   }
+}
+
+.return {
+    position: absolute;
+    padding: 45px 0 0 20px;
+    box-sizing: border-box;
+    z-index: 2;
+    @include for-tablet-portrait-up {
+        flex-wrap: nowrap;
+    }
+    .return-item {
+        display: block;
+        align-items: center;
+        opacity: .6;
+        cursor: pointer;
+        // height: 50px;
+        // line-height: 50px;
+        white-space: nowrap;
+        @include for-tablet-portrait-up {
+            display: inline-block;
+            & + .return-item {
+                margin-left: 10px;
+            }
+        }
+        .return-text {
+            font-size: 14pt;
+            font-weight: bold;
+            color: rgba(0,0,0,0.6);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        i {
+            height: 15px;
+            width: 15px;
+            display: inline-block;
+            margin-right: 10px;
+            background: url(^assets/left-arrow.svg) no-repeat;
+            background-size: contain;
+            vertical-align: middle;
+        }
+    }
 }

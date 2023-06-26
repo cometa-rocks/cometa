@@ -5,7 +5,7 @@ import { Observable, of } from 'rxjs';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { encodeURLParams } from 'ngx-amvara-toolbox';
 import { InterceptorParams } from 'ngx-network-error';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 
 @Injectable()
@@ -50,6 +50,7 @@ export class ApiService {
 
   // Get Folders of features
   getFolders = () => this._http.get<FoldersResponse>(`${this.api}folders/`);
+  getTreeView = () => this._http.get<FoldersResponse>(`${this.api}folders/?tree`);
 
   // Create Folder on the backend for the current logged user and inside another folder
   createFolder(name: string, department_id: number, parent_id: number = 0) {
@@ -338,6 +339,14 @@ export class ApiService {
     });
   }
 
+  applyDepartmentStepsTimeout(department_id: number, options: {step_timeout_from: number, step_timeout_to: number}) {
+    return this._http.post<any>(`${this.base}departments/${department_id}/updateStepTimeout/`, options, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
+    });
+  }
+
   modifyDepartment(department_id: number, newOptions: Partial<Department>) {
     return this._http.patch<Success>(`${this.api}departments/${department_id}/`, newOptions);
   }
@@ -465,11 +474,27 @@ export class ApiService {
    * @param department ID of existing department
    * @param values Variables
    */
-  setEnvironmentVariables(environment: number, department: number, values: VariablePair[]) {
-    return this._http.post<Success>(`${this.api}variables/`, {
-      environment_id: environment,
-      department_id: department,
-      variables: values
+  setVariable(variable: VariablePair) {
+    return this._http.post<Success>(`${this.api}variables/`, variable, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
+    });
+  }
+
+  patchVariable(variable: VariablePair) {
+    return this._http.patch<Success>(`${this.api}variables/${variable.id}/`, variable, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
+    });
+  }
+
+  deleteVariable(id: number) {
+    return this._http.delete<Success>(`${this.api}variables/${id}`, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
     });
   }
 

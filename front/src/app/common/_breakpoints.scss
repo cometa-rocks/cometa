@@ -64,6 +64,10 @@
     @media (min-width: 600px) { @content; }
   }
 
+  @mixin for-tablet-portrait-up-plus30 {
+    @media (min-width: 630px) { @content; }
+  }
+
   @mixin for-super-large-desktop {
     @media (min-width: 3300px) { @content; }
   }

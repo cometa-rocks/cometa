@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy, ViewChild, AfterViewInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Actions, ofActionDispatched, Select } from '@ngxs/store';
 import { combineLatest, Observable, fromEvent } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -26,24 +26,11 @@ export class MainViewComponent implements OnInit, AfterViewInit {
 
   @Select(CustomSelectors.GetConfigProperty('internal.showArchived')) showArchived$: Observable<boolean>;
 
-
-  // columns = [
-  //   {header: 'Status', field: 'status', sortable: true},
-  //   {header: 'Last run', field: 'date', sortable: true},
-  //   {header: 'Last duration', field: 'time', sortable: true},
-  //   {header: 'Last steps', field: 'total', sortable: true},
-  //   {header: 'OK', field: 'ok', sortable: true},
-  //   {header: 'NOK', field: 'fails', sortable: true},
-  //   {header: 'Browsers', field: 'browsers', sortable: true},
-  //   {header: 'Options', field: 'reference'}
-  // ];
-
-
-
   constructor(
     private _route: ActivatedRoute,
     private _actions: Actions,
-    private _store: Store
+    private _store: Store,
+    private _router: Router
   ) { }
 
   featureRunsUrl$: Observable<string>;
@@ -119,5 +106,10 @@ export class MainViewComponent implements OnInit, AfterViewInit {
     })
 
     this.isloaded = true;
+  }
+
+  // return to v2 dashboard
+  returnToMain() {
+    this._router.navigate(['/']);
   }
 }

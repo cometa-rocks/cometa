@@ -1,9 +1,9 @@
 import { State, Action, StateContext, Selector, Store } from '@ngxs/store';
 import { Injectable, NgZone } from '@angular/core';
 import { getBrowserComboText, getBrowserKey } from '@services/tools';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { Router } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { produce } from 'immer';
 import { ImmutableSelector } from '@ngxs-labs/immer-adapter';
 import { WebSockets } from './actions/results.actions';

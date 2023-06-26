@@ -33,6 +33,7 @@ coreapi = "^2.3.3"
 gunicorn = "^20.1.0"
 openpyxl = "^3.0.10"
 pandas = "^1.4.3"
+pyotp = "^2.8.0"
 
 [tool.poetry.dev-dependencies]
 

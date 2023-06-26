@@ -66,15 +66,14 @@
                                         class="feature-reference">From feature: {{ item.belongs_to.feature_name }}</div>
                                 </ng-container>
                                 <div class="step-name">{{ item?.step_name }}</div>
+                                <small *ngIf="item?.error" class="step-error"> Custom error: {{item?.error}} </small>
                             </div>
                         </div>
                         <div class="status">
                             <!-- Status Box -->
-                            <div
-                                stopPropagation
-                                [matMenuTriggerFor]="resultStatus"
-                                class="status-box"
-                                [ngClass]="passed ? 'passed' : 'failed'">{{ passed ? 'Passed' : 'Failed' }}</div>
+                            <div  class="status-box" stopPropagation [matMenuTriggerFor]="resultStatus" [ngClass]="passed ? 'passed' : 'failed'">
+                                {{ passed ? 'Passed' : 'Failed' }}
+                            </div>
                             <!-- Override result status -->
                             <mat-menu #resultStatus="matMenu">
                                 <div class="menu-header">Override step status:</div>
@@ -91,7 +90,17 @@
                             </mat-menu>
                         </div>
                         <div class="time">{{ item?.execution_time | secondsToHumanReadable }}</div>
-                        <div class="difference">{{ item?.pixel_diff | pixelDifference }}</div>
+                        <div class="difference"
+                             [matTooltip]="!item.screenshot_difference ? '' : 'Click to see Image comparison details'"
+                             matTooltipPosition="above"
+                             (click)="loadImages(item.screenshot_difference)"
+                             stopPropagation>{{ item?.pixel_diff | pixelDifference }}
+                        </div>
+                        <div class="screenshots-wrapper">
+                            <div class="screenshot" *ngIf="item.screenshot_current" (click)="loadImages(item.screenshot_current)" stopPropagation>
+                                <mat-icon>insert_photo</mat-icon>
+                            </div>
+                        </div>
                         <!-- Icon options for each step result -->
                         <div class="item-options">
                             <!-- View HTML Difference -->
@@ -130,7 +139,8 @@
                 <div class="status">RESULT</div>
                 <div class="time">TIME</div>
                 <div class="difference-mobile">PIXEL DIFF</div>
-                <div class="difference-desktop">PIXEL DIFFERENCE</div>
+                <!-- <div class="difference-desktop">PIXEL DIFFERENCE</div> -->
+                <div class="Screenshots">SCREENSHOTS</div>
             </ng-template>
         </network-paginated-list>
     </div>

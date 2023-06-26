@@ -6,7 +6,8 @@
     flex: 1;
     line-height: 30px;
     margin-bottom: 20px;
-    @include for-tablet-portrait-up {
+    // will remove margin screen width is 630 or more
+    @include for-tablet-portrait-up-plus30 {
         margin-bottom: 0;
     }
 }

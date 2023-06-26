@@ -30,10 +30,21 @@ export namespace Variables {
      * @description Update one environment variable
      * @param {VariablePair} variable Variable object to update
      */
-    export class UpdateVariable {
+    export class UpdateOrCreateVariable {
       static readonly type = '[Variables] Update Variable';
       constructor(
         public variable: VariablePair
+      ) { }
+    }
+
+    /**
+     * @description Update one environment variable
+     * @param {VariablePair} variable Variable object to update
+     */
+    export class DeleteVariable {
+      static readonly type = '[Variables] Delete Variable';
+      constructor(
+        public id: number
       ) { }
     }
   

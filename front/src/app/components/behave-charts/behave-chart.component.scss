@@ -9,6 +9,8 @@
   padding: 0 10px;
 }
 
-:host::ng-deep .highcharts-range-selector-buttons {
-  transform: translate(20px, 0);
-}
+// overwrites highchart selection buttons vertical align, prevent it to be aligned at the right side
+// we need to position on the right side, because by default it is positioned on the left, thus overlapping nav back to main button
+// :host::ng-deep .highcharts-range-selector-buttons {
+//   transform: translate(20px, 0);
+// }

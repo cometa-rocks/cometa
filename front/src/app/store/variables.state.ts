@@ -1,6 +1,6 @@
 import { State, Action, StateContext, Selector } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
-import { tap } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
 import { ImmutableSelector } from '@ngxs-labs/immer-adapter';
 import produce from 'immer';
@@ -25,20 +25,24 @@ export class VariablesState {
     return this._api.getVariables().pipe(
       tap(vars => setState(vars))
     );
-    }
-
-  @Action(Variables.SetVariables)
-  setVariables({ setState, getState }: StateContext<VariablePair[]>, { environment_name, department_name, variables }: Variables.SetVariables) {
-    const vars = getState().filter(v => !(v.environment.environment_name === environment_name && v.department.department_name === department_name));
-    setState([ ...vars, ...variables ])
   }
 
-  @Action(Variables.UpdateVariable)
-  updateVariable({ setState, getState }: StateContext<VariablePair[]>, { variable }: Variables.UpdateVariable) {
+  @Action(Variables.DeleteVariable)
+  deleteVariable({ setState, getState }: StateContext<VariablePair[]>, { id }: Variables.DeleteVariable) {
     setState(
       produce(getState(), (ctx: VariablePair[]) => {
-        const index = ctx.findIndex(v => v.id === variable.id);
-        ctx[index] = variable;
+        const index = ctx.findIndex(v => v.id === id);
+        if(index != -1) ctx.splice(index, 1);
+      })
+    )
+  }
+
+  @Action(Variables.UpdateOrCreateVariable)
+  UpdateOrCreateVariable({ setState, getState }: StateContext<VariablePair[]>, { variable }: Variables.UpdateOrCreateVariable) {
+    setState(
+      produce(getState(), (ctx: VariablePair[]) => {
+        let index = ctx.findIndex(v => v.id === variable.id);
+        index == -1 ? ctx.unshift(variable) : ctx[index] = variable;
       })
     )
   }
@@ -47,8 +51,7 @@ export class VariablesState {
   @ImmutableSelector()
   static GetVariables(state: VariablePair[]) {
     return (environment_id: number, department_id: number) => {
-      return sortBy(state.filter(v => v.environment.environment_id === environment_id && v.department.department_id === department_id), 'variable_name');
+      return sortBy(state.filter(v => v.environment === environment_id && v.department === department_id), 'variable_name');
     };
   }
-
 }

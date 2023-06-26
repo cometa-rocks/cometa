@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { EnterValueComponent } from '@dialogs/enter-value/enter-value.component';
 import { ApiService } from '@services/api.service';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { Select, Store } from '@ngxs/store';
 import { ApplicationsState } from '@store/applications.state';
 import { UserState } from '@store/user.state';

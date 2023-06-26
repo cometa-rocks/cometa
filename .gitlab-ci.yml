@@ -129,8 +129,8 @@ deploy:client01.prod:
   extends: .client01.prod
 
 # create a deploy job for client02 for branch prod
-deploy:client02.prod:
-  <<: *deployment_script
-  extends: .client02.prod
+# deploy:client02.prod:
+#   <<: *deployment_script
+#   extends: .client02.prod
 
 # DONE

@@ -51,8 +51,8 @@ router.register(r'features/(?P<feature_id>[0-9]+)/(?P<feature_name>.+)', views.F
 router.register(r'features/(?P<feature_id>[0-9]+)', views.FeatureViewSet)
 router.register(r'features', views.FeatureViewSet)
 router.register(r'actions', views.ActionViewSet)
-router.register(r'variables/(?P<variable_id>[0-9]+)', views.EnvironmentVariablesViewSet)
-router.register(r'variables', views.EnvironmentVariablesViewSet)
+router.register(r'variables/(?P<id>[0-9]+)', views.VariablesViewSet)
+router.register(r'variables', views.VariablesViewSet)
 router.register(r'invite', views.InviteViewSet)
 router.register(r'feature_run/(?P<run_id>[0-9]+)', views.FeatureRunViewSet)
 router.register(r'feature_run', views.FeatureRunViewSet)
@@ -115,6 +115,8 @@ urlpatterns = [
     url(r'^updatePayment/', payments.updatePayment),
     url(r'^customerPortal', payments.getCustomerPortal),
     url(r'^createDonation/', payments.createDonation),
+    # Additional department updates
+    url(r'^departments/(?P<department_id>[0-9]+)/updateStepTimeout/', views.UpdateStepTimeout),
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
 ] + static('/static/', document_root=STATIC_ADMIN_FILES)

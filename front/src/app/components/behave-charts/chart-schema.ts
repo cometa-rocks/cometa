@@ -5,6 +5,13 @@ export const MAIN_VIEW_CHART_SCHEMA: Options = {
     xAxis: {}
   },
   rangeSelector: {
+    floating: false,
+    buttonPosition: {
+        align: 'right',
+        y: 0,
+        x: 0
+    },
+
     selected: 5,
     inputEnabled: false,
     buttons: [{

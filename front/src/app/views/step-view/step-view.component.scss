@@ -55,11 +55,18 @@
     width: 100%;
     position: relative;
     text-align: center;
-    padding: 30px 30px 50px;
+    padding: 30px 30px 60px; // table header will be in the same position in feature result component and step view component
     box-sizing: border-box;
-    @include maxWidth(700px) {
-        padding: 15px;
+
+    @include for-tablet-portrait-up-plus30 {
+        padding: 30px 30px 83px;
     }
+
+    // comented because when screen is resized makes table header change position on y axis without any reason
+    // @include maxWidth(700px) {
+    //     padding: 15px;
+    // }
+
     .return {
         opacity: .6;
         display: flex;
@@ -88,15 +95,14 @@
 }
 
 .current_filters {
-    margin: 15px 20px 0;
-    @include for-tablet-portrait-up {
-        margin: 20px 30px 0;
-        flex-wrap: nowrap;
-    }
+    // previous flex box rules made filter action icons have too much space between them
     display: flex;
-    flex-wrap: wrap;
-    br {
-        line-height: 25px;
+    flex-direction: column;
+    justify-content: flex-start;
+    margin: 15px 20px 0;
+    height: 85px;
+    @include for-tablet-portrait-up-plus30 {
+        flex-direction: row;
     }
 }
 
@@ -195,9 +201,12 @@
     width: 130px;
     height: 60px;
     margin: 0 auto;
-    margin-top: 20px;
+    margin-top: 0px;
     background: url(^assets/pixels_grafic.svg) no-repeat;
     background-size: contain;
+    @include for-tablet-portrait-up {
+        margin-top: 20px;
+    }
 }
 
 .run {
@@ -242,17 +251,20 @@
         padding: 12px 0;
         box-sizing: border-box;
         padding-right: 10px;
-        @include for-tablet-portrait-up {
-            padding-right: 85px;
-        }
+
+        // commented because breaks syncronization between table header and table rows, column names do not coincide with their corresponding values
+        // @include for-tablet-portrait-up {
+        //     padding-right: 85px;
+        // }
     }
     .name {
-        flex: 0 60%;
-        max-width: 60%;
-        @include for-tablet-portrait-up {
+        // commented because breaks syncronization between table header and table rows, column names do not coincide with their corresponding values
+        // flex: 0 60%;
+        // max-width: 60%;
+        // @include for-tablet-portrait-up {
             flex: 0 40%;
             max-width: 40%;
-        }
+        // }
     }
     .status,
     .time,
@@ -273,9 +285,9 @@
     .difference-mobile {
         flex: 0 20%;
         max-width: 20%;
-        @include for-tablet-portrait-up {
-            display: none;
-        }
+        // @include for-tablet-portrait-up-plus30 {
+        //     display: none;
+        // }
     }
     .step-row {
         display: flex;
@@ -335,21 +347,30 @@
                 }
             }
             .step-content {
-                padding: 10px 0;
-                .feature-reference {
-                    color: rgba(black, .55);
+                max-width: 100%;
+                // padding: 10px 0; prevents step row from increasing its height when custom error message has to be displayed, thus causing content overflow
+                .feature-reference, .step-error {
                     font-size: .8rem;
                     margin-bottom: 3px;
                     display: inline-flex;
                     position: relative;
                     transform: translate3d(0, 0, 0);
                     transition: transform .15s ease-in-out;
+
+                }
+
+                .feature-reference {
+                    color: rgba(black, .55);
                     &:hover {
                         transform: translate3d(10px, 0, 0);
                     }
                 }
-                .step-name {
-                    word-break: break-all;
+
+                .step-name, .step-error { word-break: break-all; }
+
+                .step-error {
+                    max-width: 100%;
+                    color: $bad;
                 }
             }
         }
@@ -383,6 +404,13 @@
                 display: flex;
             }
         }
+
+
+        .screenshots-wrapper {
+            width: 24px;
+            height: 24px;
+            transform: translateX(150%);
+        }
     }
     .header {
         .status {
@@ -393,8 +421,8 @@
         }
     }
     .pagination {
-        @include pagination-mobile {
-            margin-top: 37px;
-        }
+        // @include pagination-mobile {
+        //     margin-top: 37px;
+        // }
     }
 }
