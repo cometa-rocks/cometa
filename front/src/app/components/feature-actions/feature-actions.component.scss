@@ -7,11 +7,12 @@
     z-index: 98;
     flex: 0 80%;
     height: 32px;
-    margin: 0 auto;
-    justify-content: space-between;
-    @include for-tablet-portrait-up {
+    // creates too much space between action icons
+    // margin: 0 auto;
+    // justify-content: space-between;
+    // @include for-tablet-portrait-up {
         flex: initial;
-    }
+    // }
     & > div:not(:last-child) {
         margin-right: 30px;
     }

@@ -23,3 +23,7 @@ def NormalizeDownloadName(path):
     if len(filename) > pdfDownloadNameLimit:
         filename = filename[:pdfDownloadNameLimit] + '(...)'
     return filename + extension
+
+@register.filter
+def FormatNumber(number):
+    return '{:,}'.format(number)

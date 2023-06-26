@@ -1,16 +1,21 @@
-@import '@angular/material/theming';
-@include mat-core();
+@use '@angular/material' as mat;
 
-$candy-app-primary: mat-palette($mat-blue, 800);
-$candy-app-accent:  mat-palette($mat-deep-purple, 900);
+@include mat.core();
+@include mat.legacy-core();
 
-// The warn palette is optional (defaults to red).
-$candy-app-warn:    mat-palette($mat-red, 400);
+$cometa-primary: mat.define-palette(mat.$blue-palette, 800);
+$cometa-accent: mat.define-palette(mat.$purple-palette, 900);
+$cometa-warn: mat.define-palette(mat.$red-palette, 400);
 
-// Create the theme object (a Sass map containing all of the palettes).
-$candy-app-theme: mat-light-theme($candy-app-primary, $candy-app-accent, $candy-app-warn);
+$cometa-theme: mat.define-light-theme((
+ color: (
+   primary: $cometa-primary,
+   accent: $cometa-accent,
+   warn: $cometa-warn,
+ ),
+ typography: mat.define-typography-config(),
+ density: 0,
+));
 
-// Include theme styles for core and each component used in your app.
-// Alternatively, you can import and @include the theme mixins for each component
-// that you are using.
-@include angular-material-theme($candy-app-theme);
+@include mat.all-component-themes($cometa-theme);
+@include mat.all-legacy-component-themes($cometa-theme);
