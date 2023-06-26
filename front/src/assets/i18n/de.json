@@ -29,7 +29,7 @@
     },
     "user": {
         "tour_description": "Co.meta hat eine ReiseleiterIn - sie zeigt Dir neue Funktionen. So kannst Du  Schritt für Schritt den Umgang mit co.meta erlernen. Bewege den Mauszeiger über den Tour-Knopf um eine kurze Beschreibung zu erhalten.",
-        "webhooks_desc": "Integrieren Sie co.meta mit einigen Ihrer bevorzugten Tools, um schneller zu bauen, kontinuierlich zu testen und die Qualität mit der gesamten Abteilung zu kommunizieren."
+        "webhooks_desc": "Durch die Integration von co.meta mit deinen bevorzugten Tools kannst du deinen Entwicklungsprozess optimieren. Durch die nahtlose Verbindung mit Co.Meta kannst du die Fertigstellung von Projekten beschleunigen, kontinuierliche Testpraktiken implementieren und Qualitätsupdates effektiv mit deinem gesamten Team teilen."
     },
     "websockets": {
         "Initializing": "Initializing feature",

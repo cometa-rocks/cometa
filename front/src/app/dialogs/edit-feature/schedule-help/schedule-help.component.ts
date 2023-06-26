@@ -1,5 +1,5 @@
 import { Component, HostListener } from "@angular/core";
-import { MatDialogRef } from "@angular/material/dialog";
+import { MatLegacyDialogRef as MatDialogRef } from "@angular/material/legacy-dialog";
 
 @Component({
     selector: 'schedule-help',

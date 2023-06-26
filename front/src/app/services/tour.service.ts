@@ -5,7 +5,7 @@ import { DOCUMENT } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
 import { SelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { OfferTourComponent } from '@dialogs/offer-tour/offer-tour.component';
 import { filter, tap } from 'rxjs/operators';
 import { Configuration } from '@store/actions/config.actions';

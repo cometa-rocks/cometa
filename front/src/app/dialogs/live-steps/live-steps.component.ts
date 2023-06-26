@@ -1,11 +1,11 @@
 import { Component, Inject, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
 import { Store, Actions, ofActionCompleted } from '@ngxs/store';
 import { Subscribe } from 'app/custom-decorators';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { distinctUntilKeyChanged, filter, map, shareReplay, tap } from 'rxjs/operators';
-import { MatCheckboxChange } from '@angular/material/checkbox';
+import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
 import { Observable } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { WebSockets } from '@store/actions/results.actions';
