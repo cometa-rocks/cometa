@@ -1,0 +1,21 @@
+
+@import 'color';
+@import 'breakpoints';
+
+:host {
+    width: 100%;
+    height: 100%;
+}
+
+#tree-view {
+    width: 100%;
+    height: 100%;
+}
+
+::ng-deep .node-text {
+    font-size: 16px;
+}
+
+::ng-deep .disabled {
+    filter: grayscale(1);
+}

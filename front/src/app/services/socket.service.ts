@@ -38,8 +38,6 @@ export class SocketService {
       path: '/socket.io/',
       reconnection: true,
       reconnectionAttempts: Infinity,
-      forceNew: false,
-      transports: ['websocket'],
       auth: {
         user: this.user
       }

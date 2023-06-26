@@ -11,7 +11,7 @@
 
 
 import { Injectable } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { Store } from '@ngxs/store';
 import { Departments } from '@store/actions/departments.actions';
 import { ApiService } from './api.service';
@@ -82,7 +82,7 @@ export class FileUploadService {
     });
   }
 
-  // Opens informative snackbar when file user intends to upload could be uploaded because of duplication or potential virus
+  // Opens informative snackbar when file user intends to upload but file can't be uploaded because of duplication or potential virus
   private informAndRemoveFile(file: UploadedFile, department: Department) {
     let snack = this._snack.open(file.error.description, 'OK', { duration: 10000 });
 
@@ -99,8 +99,7 @@ export class FileUploadService {
 
   // removes recieved file from recieved department's files array and actualises the department state
   removeFile(file: UploadedFile, department: Department) {
-    const files = department.files.filter((f: UploadedFile) => f.name != file.name)
-
+    const files = department.files.filter((f: UploadedFile) => f.id != null)
     const payload = {
       files: [
         ...files

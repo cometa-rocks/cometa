@@ -206,7 +206,7 @@ def metadata( *_args, **_kwargs ):
                     for key in env_variables:
                         variable_name = key['variable_name']
                         variable_value = str(key['variable_value'])
-                        if args[0].text:
+                        if args[0].text and 'Loop' not in save_message: # we do not want to replace all the variables inside the loop sub-steps
                             # Replace in step description for multiline step values
                             args[0].text = re.sub(r'\$%s\b' % variable_name, returnDecrypted(variable_value), args[0].text)
                             # ###
@@ -217,8 +217,8 @@ def metadata( *_args, **_kwargs ):
                             # Replace in step content
                             kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
                     # replace job parameters
-                    for parameter_key in job_parameters.keys():
-                        if args[0].text:
+                    for parameter_key in job_parameters.keys(): # we do not want to replace all the parameters inside the loop sub-steps
+                        if args[0].text and 'Loop' not in save_message:
                             args[0].text = re.sub(r'%%%s\b' % parameter_key, returnDecrypted(str(job_parameters[parameter_key])), args[0].text)
                         if re.search(r'%%%s\b' % parameter_key, kwargs[parameter]):
                             kwargs[parameter] = kwargs[parameter].replace(("%%%s" % parameter_key), str(job_parameters[parameter_key]))
@@ -231,9 +231,17 @@ def metadata( *_args, **_kwargs ):
                 # update dates inside the text
                 args[0].text = dynamicDateGenerator(args[0].text)
 
+                # set a step timeout
+                step_timeout = args[0].step_data['timeout']
+                if step_timeout > MAX_STEP_TIMEOUT:
+                    logger.warn("Configured step timeout is higher than the max timeout value, will cap the value to: %d" % MAX_STEP_TIMEOUT)
+                    step_timeout = MAX_STEP_TIMEOUT
+
                 # start the timeout
-                signal.signal(signal.SIGALRM, timeoutError)
-                signal.alarm(STEP_TIMEOUT)
+                signal.signal(signal.SIGALRM, lambda signum, frame, timeout=step_timeout: timeoutError(signum, frame, timeout))
+                signal.alarm(step_timeout)
+                # set page load timeout
+                args[0].browser.set_page_load_timeout(step_timeout)
                 # run the requested function
                 result = func(*args, **kwargs)
                 # if step executed without running into timeout cancel the timeout
@@ -246,7 +254,7 @@ def metadata( *_args, **_kwargs ):
                 # print stack trace
                 traceback.print_exc()
                 # set the error message to the step_error inside context so we can pass it through websockets!
-                args[0].step_error = str(err)
+                args[0].step_error = logger.mask_values(str(err))
                 try:
                     # save the result to databse as False since the step failed
                     saveToDatabase(save_message, (time.time() - start_time) * 1000, 0, False, args[0])
@@ -292,6 +300,12 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         'status': "Success" if success else "Failed",
         'belongs_to': context.step_data['belongs_to']
     }
+    # add custom error if exists
+    if 'custom_error' in context.step_data:
+        data['error'] = context.step_data['custom_error']
+    elif hasattr(context, 'step_error'):
+        data['error'] = context.step_error
+    # add files
     try:
         data['files'] = json.dumps(context.downloadedFiles[context.counters['index']])
     except:
@@ -320,7 +334,7 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         # Create current step result folder
         Path(context.SCREENSHOTS_STEP_PATH).mkdir(parents=True, exist_ok=True)
         # Check if feature needs screenshot - see #3014 for change to webp format
-        if context.step_data['screenshot']:
+        if context.step_data['screenshot'] or not success:
             # Take actual screenshot
             takeScreenshot(context, step_id)
             # Take actual HTML
@@ -409,7 +423,18 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         }
         logger.debug("Writing data %s to database" % json.dumps(data))
         requests.post('http://cometa_django:8000/setScreenshots/%s/' % str(step_id), json=data, headers={"Host": "cometa.local"})
+        # add timestamps to the current image
+        if context.DB_CURRENT_SCREENSHOT:
+            addTimestampToImage(context.DB_CURRENT_SCREENSHOT, path=context.SCREENSHOTS_ROOT)
     return step_id
+
+# add timestamp to the image using the imagemagic cli
+def addTimestampToImage(image, path=None):
+    logger.debug(f"Adding timestamp to: {path}/{image}")
+    cmd=f"convert {path}/{image} -pointsize 20 -font DejaVu-Sans-Mono -fill 'RGBA(255,255,255,1.0)' -gravity SouthEast -annotate +20+20 \"$(date)\" {path}/{image}"
+    status = subprocess.call(cmd, shell=True, env={})
+    if status != 0:
+        logger.error("Something happend during the timestamp watermark.")
 
 # Automatically checks if there's still old styles and moves them to current path
 # Due to change in new images structure we have to check if the old style image is still there,
@@ -454,6 +479,7 @@ def takeScreenshot(context, step_id):
             context.browser.save_screenshot(final_screenshot_file)
         except Exception as err:
             logger.error("Unable to take screenshot ...")
+            logger.exception(err)
 
     # transfer saved image name to context.COMPARE_IMAGE
     context.COMPARE_IMAGE = final_screenshot_file
@@ -561,7 +587,7 @@ def compareImage(context):
     except Exception as e:
         logger.error(str(e))
 
-@timeout("Unable to retrieve compare metric content in <seconds> seconds.")
+# @timeout("Unable to retrieve compare metric content in <seconds> seconds.")
 def waitMetric(metricFile):
     """
     Waits for the given metric file to contain some content and returns the lines array
@@ -581,7 +607,7 @@ def mySafeToFile(filename, myString):
 
 # waitFor(something,pageContext) .... waits until seeing or maxtries; returns true if found
 # ... FIXME ... also look in iFrames
-@timeout("Unable to find specified text in <seconds> seconds.")
+# @timeout("Unable to find specified text in <seconds> seconds.")
 def waitFor(context, something):
     while True:
         if something in context.browser.page_source:
@@ -940,7 +966,7 @@ def step_impl(context, folder_name):
         time.sleep(0.5)
 
 # waitFor(element) .... waits until innerText attribute of element contains something
-@timeout("Couldn't find any text inside report for <seconds> seconds.")
+# @timeout("Couldn't find any text inside report for <seconds> seconds.")
 def wait_for_element_text(context, css_selector):
     while True:
         elements = context.browser.find_elements_by_css_selector(css_selector)
@@ -1715,7 +1741,7 @@ def step_impl(context):
         }
     }
 )
-@timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
+# @timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
 def step_impl(context,iframe_id):
     while True:
         try:
@@ -1842,6 +1868,71 @@ def step_impl(context, css_selector):
     send_step_details(context, 'Looking for selector')
     waitSelector(context, "css", css_selector)
 
+# Checks if it cannot see an element using a CSS Selector until timeout
+@step(u'I cannot see element with selector "{selector}"')
+@done(u'I cannot see element with css selector "{selector}"')
+def cannot_see_selector(context, selector):
+    # log general information about this step
+    logger.debug("Running in Feature: %s " % context.feature_id )
+    logger.debug("Step data: %s " % str(context.step_data) )
+    timeout = context.step_data['timeout']
+    logger.debug("Timeout is %s " % timeout)
+
+    send_step_details(context, 'Looking for selector') # send feedback to user via WS
+
+    # type of selectors to be searched
+    types = {
+        "css": "context.browser.find_elements_by_css_selector(selector)",
+        "xpath": "context.browser.find_elements_by_xpath(selector)",
+    }
+
+    start_time = time.time() # loop until timeout is reached
+    found_element= False # flag to signal element was found
+
+    # Loop until timeout reached or element found
+    while True:
+        elapsed_time = time.time() - start_time
+        logger.debug("looping while true and not reaching timeout %s - elepased time %s " % (timeout, elapsed_time))
+        
+        if elapsed_time >= timeout: # check timeout
+            logger.debug("Timeout reached")
+            send_step_details(context, 'Looking for selector - timeout reached ... it was not found, which is good')
+            break
+
+        # loop over selectors to search for
+        for selec_type in list(types.keys()):
+            logger.debug("Trying to find element %s with %s " % (selector, selec_type))
+            try:
+                elements = eval(types.get(selec_type, "css"))
+                # Check if it returned at least 1 element ... which means, we found something
+                if isinstance(elements, WebElement) or len(elements) > 0:
+                    logger.debug("Found element ... which is bad. Setting found_element to True and breaking the loop.")
+                    found_element=True
+                    break
+                else:
+                    logger.debug("Could not find %s " % selector)
+            except CustomError as err:
+                logger.debug(err)
+                raise
+            except:
+                pass
+
+            time.sleep(1) # give page some time to render the search
+
+        # check if element was found
+        if found_element:
+            send_step_details(context, 'Looking for selector - it was found, which is bad')
+            raise CustomError("Found selector using %s. Which is bad." % selector)
+            break
+
+    # finally check, if we reached the timeout
+    if elapsed_time >= timeout and found_element == False:
+        logger.debug("Element was not found.")
+        send_step_details(context, 'Looking for selector - timeout reached. Selector %s was not found, which is good' % selector)
+    else:
+        logger.debug("Timeout was not reached and Element was found")
+        raise CustomError("Found selector %s. Which is bad." % selector)
+
 # Check if the source code in the previously selected iframe contains a link with text something
 @step(u'I can see a link with "{linktext}" in iframe')
 @metadata(
@@ -1857,7 +1948,7 @@ def step_impl(context, css_selector):
         }
     }
 )
-@timeout("Unable to find specified linktext inside the iFrames")
+# @timeout("Unable to find specified linktext inside the iFrames")
 def step_impl(context,linktext):
     while True:
         for child_frame in context.browser.find_elements_by_tag_name('iframe'):
@@ -2217,9 +2308,16 @@ def step_impl(context):
     }
 )
 def step_impl(context, classname):
-    send_step_details(context, 'Looking for classname')
-    elem = waitSelector(context, "class", classname)
-    elem[0].click()
+    start_time = time.time()
+    try:
+        send_step_details(context, 'Looking for classname')
+        elem = waitSelector(context, "class", classname)
+        elem[0].click()
+        return True
+    except Exception as e:
+        raise CustomError("Could not interact with element having classname %s ." % classname)
+        logger.error(str(e))
+        return False
 
 def click_on_element(elem):
     start_time = time.time()
@@ -2278,7 +2376,7 @@ def find_and_click_link_id(context,linktext):
         return False
 
 # try find the element in css_selector, xpath or as a link_text
-@timeout("Unable to find specified element in <seconds> seconds.")
+# @timeout("Unable to find specified element in <seconds> seconds.")
 def find_element(context, linktext):
     counter = 0
     while True:
@@ -3163,7 +3261,7 @@ def getVariable(context, variable_name):
     return variable_value
 
 
-def addVariable(context, variable_name, result):
+def addVariable(context, variable_name, result, encrypted=False):
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
     # check if variable_name is in the env_variables
@@ -3173,22 +3271,31 @@ def addVariable(context, variable_name, result):
         index = index[0]
         logger.debug("Patching existing variable")
         env_variables[index]['variable_value'] = result
+        env_variables[index]['encrypted'] = encrypted
+        env_variables[index]['updated_by'] = context.PROXY_USER['user_id']
         # make the request to cometa_django and add the environment variable
         response = requests.patch('http://cometa_django:8000/api/variables/' + str(env_variables[index]['id']) + '/', headers={"Host": "cometa.local"}, json=env_variables[index])
+        if response.status_code == 200:
+            env_variables[index] = response.json()['data']
     else: # create new variable
         logger.debug("Creating variable")
         # create data to send to django
-        env_variables.append({
-            "variable_name": variable_name,
-            "variable_value": result
-        })
         update_data = {
-            "environment_id": int(context.feature_info['environment_id']),
-            "department_id": int(context.feature_info['department_id']),
-            "variables": env_variables
+            "environment": int(context.feature_info['environment_id']),
+            "department": int(context.feature_info['department_id']),
+            "feature": int(context.feature_id),
+            "variable_name": variable_name,
+            "variable_value": result,
+            "based": "environment",
+            "encrypted": encrypted,
+            "created_by": context.PROXY_USER['user_id'],
+            "updated_by": context.PROXY_USER['user_id']
         }
         # make the request to cometa_django and add the environment variable
         response = requests.post('http://cometa_django:8000/api/variables/', headers={"Host": "cometa.local"}, json=update_data)
+
+        if response.status_code == 201:
+            env_variables.append(response.json()['data'])
 
     # send a request to websockets about the environment variables update
     requests.post('http://cometa_socket:3001/sendAction', json={
@@ -3232,6 +3339,14 @@ def step_impl(context, css_selector, variable_name):
 
     # add variable
     addVariable(context, variable_name, result)
+
+# save string value to environment variable, environment variable value has a maximum value of 255 characters.
+@step(u'Save "{value}" to environment variable "{variable_name}"')
+@done(u'Save "{value}" to environment variable "{variable_name}"')
+def step_impl(context, value, variable_name):
+    send_step_details(context, 'Saving value to environment variable')
+    # add variable
+    addVariable(context, variable_name, value)
 
 # add a timestamp after the prefix to make it unique
 @step(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
@@ -4180,6 +4295,28 @@ def step_imp(context, value_one, value_two, variance):
     if int(diff) > int(number_variance):
         raise CustomError("Difference (%s) is greater than variance (%s) specified." % (str(diff), str(number_variance)))
 
+# generate One-Time Password (OTP) using a pairing-key
+@step(u'Create one-time password of "{x}" digits using pairing-key "{value}" and save it to crypted variable "{variable_name}"')
+@done(u'Create one-time password of "{x}" digits using pairing-key "{value}" and save it to crypted variable "{variable_name}"')
+def step_imp(context, x, value, variable_name):
+    x = x.strip()
+    try:
+        x = int(x)
+    except:
+        x = 6
+        send_step_details(context, 'x should be one of these numbers: 6, 7, 8. Defaulting to 6.')
+        logger.warn("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
+
+    if x not in (6, 7, 8):
+        x = 6
+        send_step_details(context, 'x should be one of these numbers: 6, 7, 8. Defaulting to 6.')
+        logger.warn("x should be one of these numbers: 6, 7, 8. Defaulting to 6.")
+
+    import pyotp
+    totp = pyotp.TOTP(value, digits=x)
+    oneTimePassword = totp.now()
+    addVariable(context, variable_name, oneTimePassword, encrypted=True)
+
 # compares a report cube's content to a list saved in variable
 @step(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
 @metadata(
@@ -4214,7 +4351,10 @@ def imp(context, variable_name, prefix, suffix):
     index = [i for i,_ in enumerate(env_variables) if _['variable_name'] == variable_name]
 
     if len(index) == 0:
-        raise CustomError("No variable found with name: %s" % variable_name)
+        # if the length is 0 then the variable was not found
+        # so we can try using the value in the variable as if it is a list of values - see issue #3881
+        logger.debug("Feature: %s - Will use variable as valuelist %s " % context.feature_id, variable_name)
+        send_step_details(context, 'Variable does not exist, will use the variable name as value seperate by semicolon.')
 
     # hold csv data that will later on be writen to a file
     fileContent = []
@@ -4639,7 +4779,7 @@ def step_endLoop(context):
         }
     }
 )
-def step(context, css_selector, variable_names, prefix, suffix):
+def step_imp(context, css_selector, variable_names, prefix, suffix):
     # get all the values from css_selector
     elements = waitSelector(context, "css", css_selector)
     # get elements values
@@ -4768,3 +4908,29 @@ def step(context, css_selector, variable_names, prefix, suffix):
         return True
     else:
         raise CustomError("Lists do not match, please check the attachment.")
+
+
+@step(u'Define Custom Error Message for next step: "{error_message}"')
+@done(u'Define Custom Error Message for next step: "{error_message}"')
+def step_imp(context, error_message):
+    # get next step index
+    next_step = context.counters['index'] + 1
+    # get all the steps from the environment
+    steps = json.loads(os.environ['STEPS'])
+    # check that there is another step after the current step
+    if len(steps) > next_step:
+        # update the step definition
+        steps[next_step].update({
+            "custom_error": logger.mask_values(error_message)
+        })
+        os.environ['STEPS'] = json.dumps(steps)
+        logger.info(f"Custom error message set for step: {steps[next_step]['step_content']}")
+    else:
+        logger.warn(f"This is the last step, cannot assign custom error message to next step.")
+    
+
+# Ignores undefined steps
+@step(u'{step}')
+@done(u'{step}')
+def step_imp(context, step):
+    raise NotImplementedError(f"Unknown step found: '{step}'")

@@ -1,11 +1,12 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { ApiService } from '@services/api.service';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { Store, Select } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { ModifyDepartmentComponent } from '@dialogs/modify-department/modify-department.component';
+import { ModifyDepartmentTimeoutComponent } from '@dialogs/modify-department-timeout/modify-department-timeout.component';
 import { Departments } from '@store/actions/departments.actions';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { AccountsDialog, AccountsDialogData } from '@dialogs/accounts-dialog/accounts-dialog.component';
@@ -35,7 +36,8 @@ export class DepartmentComponent {
 
   saveOrEdit() {
     this._dialog.open(ModifyDepartmentComponent, {
-      data: this.department.department_id
+      data: this.department.department_id,
+      panelClass: 'modify-department-panel'
     });
   }
 
@@ -66,4 +68,11 @@ export class DepartmentComponent {
     });
   }
 
+  // open modify department timeout dialog
+  onModifyTimeoutClick() {
+    this._dialog.open(ModifyDepartmentTimeoutComponent, {
+      data: this.department.department_id,
+      panelClass: 'modify-department-timeout-panel'
+    });
+  }
 }

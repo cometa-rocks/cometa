@@ -114,6 +114,26 @@
     }
 }
 
+.timeout {
+    opacity: .6;
+    display: flex;
+    width: 40px;
+    align-items: center;
+    justify-content: center;
+    transition: transform .2s ease-in-out;
+
+    // clock icon
+    mat-icon {
+        padding: 0 10px;
+        height: 20px;
+        cursor: pointer;
+    }
+
+    &:not(.disabled):hover {
+        transform: scale(1.2);
+    }
+}
+
 .users {
     position: relative;
     flex: 0 0 40px;   

@@ -537,6 +537,13 @@ def after_step(context, step):
     # check if difference file is assigned
     if hasattr(context, 'DB_DIFFERENCE_SCREENSHOT'):
         screenshots['difference'] = context.DB_DIFFERENCE_SCREENSHOT
+
+    # get step error
+    step_error = None
+    if 'custom_error' in context.step_data and context.step_data['custom_error'] is not None:
+        step_error = context.step_data['custom_error']
+    elif hasattr(context, 'step_error'):
+        step_error = context.step_error
     # send websocket to front to let front know about the step
     requests.post('http://cometa_socket:3001/feature/%s/stepFinished' % context.feature_id, json={
         "user_id": context.PROXY_USER['user_id'],
@@ -548,7 +555,7 @@ def after_step(context, step):
         'datetime': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
         'step_result_info': step_result,
         'step_time': step.duration,
-        'error': context.step_error if hasattr(context, 'step_error') else None,
+        'error': step_error,
         'belongs_to': context.step_data['belongs_to'],
         'screenshots': json.dumps(screenshots) # load screenshots object
     })

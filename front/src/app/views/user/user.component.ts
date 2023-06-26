@@ -1,24 +1,26 @@
 import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
 import { UserState } from '@store/user.state';
 import { ConfigState } from '@store/config.state';
-import { MatCheckboxChange } from '@angular/material/checkbox';
+import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
 import { Tour, TourExtended, Tours } from '@services/tours';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { Observable } from 'rxjs';
 import { Select, Store } from '@ngxs/store';
 import { map } from 'rxjs/operators';
 import { TourService } from '@services/tour.service';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { InviteUserDialog } from '@dialogs/invite-user/invite-user.component';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { IntegrationsState } from '@store/integrations.state';
 import { ApiService } from '@services/api.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { Integrations } from '@store/actions/integrations.actions';
 import { Configuration } from '@store/actions/config.actions';
 import { User } from '@store/actions/user.actions';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { ApplicationsState } from '@store/applications.state';
+import { EnvironmentsState } from '@store/environments.state';
 
 @Component({
   selector: 'account-settings',
@@ -29,6 +31,8 @@ import { TranslateService } from '@ngx-translate/core';
 export class UserComponent implements OnInit {
 
   @Select(UserState) account$: Observable<UserInfo>;
+  @Select(ApplicationsState) applications$: Observable<Application>
+  @Select(EnvironmentsState) environments$: Observable<Environment>
   @ViewSelectSnapshot(ConfigState) config: Config;
   @Select(UserState.RetrieveSettings) settings$: Observable<UserInfo['settings']>;
   @Select(UserState.IsDefaultDepartment) isDefaultDepartment$: Observable<boolean>;
@@ -161,6 +165,13 @@ export class UserComponent implements OnInit {
       new User.SetSetting(toggleSetting),
       new Configuration.ToggleCollapsible(prop, event.checked)
     ]);
+  }
+
+  preselectSave(prop: string, value: string) {
+    let preselectSettings = {}
+    preselectSettings[prop] = value;
+
+    return this._store.dispatch(new User.SetSetting(preselectSettings));
   }
 
   // Sets the new landing as default dashboard
