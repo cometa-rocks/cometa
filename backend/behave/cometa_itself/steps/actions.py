@@ -694,6 +694,20 @@ def step_impl(context,css_selector):
         else:
             raise err
 
+# Moves the mouse to the css selector and double clicks
+@step(u'I move mouse to "{selector}" and double click')
+@done(u'I move mouse to "{selector}" and double click')
+def step_impl(context,selector):
+    send_step_details(context, 'Looking for selector')
+    elem = waitSelector(context, "css", selector)
+    send_step_details(context, 'Double Clicking')
+    try:
+        ActionChains(context.browser).move_to_element(elem[0]).double_click().perform()
+    except Exception as err:
+        logger.error("Unable to double click on the element.")
+        logger.exception(err)
+        raise err
+
 # Moves the mouse to the center of css selector
 @step(u'I move mouse over "{css_selector}"')
 @done(u'I move mouse over "{css_selector}"')
