@@ -236,6 +236,8 @@ def done( *_args, **_kwargs ):
                 # start the timeout
                 signal.signal(signal.SIGALRM, lambda signum, frame, timeout=step_timeout: timeoutError(signum, frame, timeout))
                 signal.alarm(step_timeout)
+                # set page load timeout
+                args[0].browser.set_page_load_timeout(step_timeout)
                 # run the requested function
                 result = func(*args, **kwargs)
                 # if step executed without running into timeout cancel the timeout
@@ -294,6 +296,12 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         'status': "Success" if success else "Failed",
         'belongs_to': context.step_data['belongs_to']
     }
+    # add custom error if exists
+    if 'custom_error' in context.step_data:
+        data['error'] = context.step_data['custom_error']
+    elif hasattr(context, 'step_error'):
+        data['error'] = context.step_error
+    # add files
     try:
         data['files'] = json.dumps(context.downloadedFiles[context.counters['index']])
     except:
@@ -322,7 +330,7 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         # Create current step result folder
         Path(context.SCREENSHOTS_STEP_PATH).mkdir(parents=True, exist_ok=True)
         # Check if feature needs screenshot - see #3014 for change to webp format
-        if context.step_data['screenshot']:
+        if context.step_data['screenshot'] or not success:
             # Take actual screenshot
             takeScreenshot(context, step_id)
             # Take actual HTML
@@ -467,6 +475,7 @@ def takeScreenshot(context, step_id):
             context.browser.save_screenshot(final_screenshot_file)
         except Exception as err:
             logger.error("Unable to take screenshot ...")
+            logger.exception(err)
 
     # transfer saved image name to context.COMPARE_IMAGE
     context.COMPARE_IMAGE = final_screenshot_file
@@ -684,6 +693,20 @@ def step_impl(context,css_selector):
             click_element_by_css(context, css_selector)
         else:
             raise err
+
+# Moves the mouse to the css selector and double clicks
+@step(u'I move mouse to "{selector}" and double click')
+@done(u'I move mouse to "{selector}" and double click')
+def step_impl(context,selector):
+    send_step_details(context, 'Looking for selector')
+    elem = waitSelector(context, "css", selector)
+    send_step_details(context, 'Double Clicking')
+    try:
+        ActionChains(context.browser).move_to_element(elem[0]).double_click().perform()
+    except Exception as err:
+        logger.error("Unable to double click on the element.")
+        logger.exception(err)
+        raise err
 
 # Moves the mouse to the center of css selector
 @step(u'I move mouse over "{css_selector}"')
@@ -1505,60 +1528,12 @@ def cannot_see_selector(context, selector):
     timeout = context.step_data['timeout']
     logger.debug("Timeout is %s " % timeout)
 
-    send_step_details(context, 'Looking for selector') # send feedback to user via WS
-
-    # type of selectors to be searched
-    types = {
-        "css": "context.browser.find_elements_by_css_selector(selector)",
-        "xpath": "context.browser.find_elements_by_xpath(selector)",
-    }
-
-    start_time = time.time() # loop until timeout is reached
-    found_element= False # flag to signal element was found
-
-    # Loop until timeout reached or element found
-    while True:
-        elapsed_time = time.time() - start_time
-        logger.debug("looping while true and not reaching timeout %s - elepased time %s " % (timeout, elapsed_time))
-        
-        if elapsed_time >= timeout: # check timeout
-            logger.debug("Timeout reached")
-            send_step_details(context, 'Looking for selector - timeout reached ... it was not found, which is good')
-            break
-
-        # loop over selectors to search for
-        for selec_type in list(types.keys()):
-            logger.debug("Trying to find element %s with %s " % (selector, selec_type))
-            try:
-                elements = eval(types.get(selec_type, "css"))
-                # Check if it returned at least 1 element ... which means, we found something
-                if isinstance(elements, WebElement) or len(elements) > 0:
-                    logger.debug("Found element ... which is bad. Setting found_element to True and breaking the loop.")
-                    found_element=True
-                    break
-                else:
-                    logger.debug("Could not find %s " % selector)
-            except CustomError as err:
-                logger.debug(err)
-                raise
-            except:
-                pass
-
-            time.sleep(1) # give page some time to render the search
-
-        # check if element was found
-        if found_element:
-            send_step_details(context, 'Looking for selector - it was found, which is bad')
-            raise CustomError("Found selector using %s. Which is bad." % selector)
-            break
-
-    # finally check, if we reached the timeout
-    if elapsed_time >= timeout and found_element == False:
-        logger.debug("Element was not found.")
-        send_step_details(context, 'Looking for selector - timeout reached. Selector %s was not found, which is good' % selector)
-    else:
-        logger.debug("Timeout was not reached and Element was found")
-        raise CustomError("Found selector %s. Which is bad." % selector)
+    try:
+        waitSelector(context, "css", selector)
+        send_step_details(context, 'Looking for selector - it was found, which is bad')
+        raise CustomError("Found selector using %s. Which is bad." % selector)
+    except CometaTimeoutException as err:
+        logger.info("Element not found which in case is good!")
 
 # Check if the source code in the previously selected iframe contains a link with text something
 @step(u'I can see a link with "{linktext}" in iframe')
@@ -3554,6 +3529,27 @@ def step_imp(context, css_selector, variable_names, prefix, suffix):
     else:
         raise CustomError("Lists do not match, please check the attachment.")
 
+
+@step(u'Define Custom Error Message for next step: "{error_message}"')
+@done(u'Define Custom Error Message for next step: "{error_message}"')
+def step_imp(context, error_message):
+    # get next step index
+    next_step = context.counters['index'] + 1
+    # get all the steps from the environment
+    steps = json.loads(os.environ['STEPS'])
+    # check that there is another step after the current step
+    if len(steps) > next_step:
+        # update the step definition
+        steps[next_step].update({
+            "custom_error": logger.mask_values(error_message)
+        })
+        os.environ['STEPS'] = json.dumps(steps)
+        logger.info(f"Custom error message set for step: {steps[next_step]['step_content']}")
+    else:
+        logger.warn(f"This is the last step, cannot assign custom error message to next step.")
+    
+
+# Ignores undefined steps
 @step(u'{step}')
 @done(u'{step}')
 def step_imp(context, step):
