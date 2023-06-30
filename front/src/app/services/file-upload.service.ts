@@ -11,7 +11,7 @@
 
 
 import { Injectable } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { Store } from '@ngxs/store';
 import { Departments } from '@store/actions/departments.actions';
 import { ApiService } from './api.service';

@@ -4,7 +4,7 @@
 // # ######################################## #
 
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog, MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
 import { Store } from '@ngxs/store';
 import { FeaturesState } from '@store/features.state';
 import { ApiService } from '@services/api.service';
