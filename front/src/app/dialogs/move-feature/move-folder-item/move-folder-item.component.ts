@@ -1,11 +1,11 @@
 import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { Store } from '@ngxs/store';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { EnterValueComponent } from '@dialogs/enter-value/enter-value.component';
 import { filter, map, switchMap, tap } from 'rxjs/operators';
 import { Subscribe } from 'app/custom-decorators';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { ConfigService } from '@services/config.service';
 import { Features } from '@store/actions/features.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
