@@ -3,13 +3,13 @@ import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service'
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { API_URL } from 'app/tokens';
-import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { UntypedFormControl, UntypedFormGroup, Validators, UntypedFormBuilder } from '@angular/forms';
-import { MatCheckboxChange } from '@angular/material/checkbox';
+import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
 import { StepEditorComponent } from '@components/step-editor/step-editor.component';
 import { BrowserSelectionComponent } from '@components/browser-selection/browser-selection.component';
-import { MatChipListChange } from '@angular/material/chips';
+import { MatLegacyChipListChange as MatChipListChange } from '@angular/material/legacy-chips';
 import { ApplicationsState } from '@store/applications.state';
 import { Select, Store } from '@ngxs/store';
 import { EnvironmentsState } from '@store/environments.state';
