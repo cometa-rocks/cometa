@@ -694,6 +694,20 @@ def step_impl(context,css_selector):
         else:
             raise err
 
+# Moves the mouse to the css selector and double clicks
+@step(u'I move mouse to "{selector}" and double click')
+@done(u'I move mouse to "{selector}" and double click')
+def step_impl(context,selector):
+    send_step_details(context, 'Looking for selector')
+    elem = waitSelector(context, "css", selector)
+    send_step_details(context, 'Double Clicking')
+    try:
+        ActionChains(context.browser).move_to_element(elem[0]).double_click().perform()
+    except Exception as err:
+        logger.error("Unable to double click on the element.")
+        logger.exception(err)
+        raise err
+
 # Moves the mouse to the center of css selector
 @step(u'I move mouse over "{css_selector}"')
 @done(u'I move mouse over "{css_selector}"')
@@ -1514,60 +1528,12 @@ def cannot_see_selector(context, selector):
     timeout = context.step_data['timeout']
     logger.debug("Timeout is %s " % timeout)
 
-    send_step_details(context, 'Looking for selector') # send feedback to user via WS
-
-    # type of selectors to be searched
-    types = {
-        "css": "context.browser.find_elements_by_css_selector(selector)",
-        "xpath": "context.browser.find_elements_by_xpath(selector)",
-    }
-
-    start_time = time.time() # loop until timeout is reached
-    found_element= False # flag to signal element was found
-
-    # Loop until timeout reached or element found
-    while True:
-        elapsed_time = time.time() - start_time
-        logger.debug("looping while true and not reaching timeout %s - elepased time %s " % (timeout, elapsed_time))
-        
-        if elapsed_time >= timeout: # check timeout
-            logger.debug("Timeout reached")
-            send_step_details(context, 'Looking for selector - timeout reached ... it was not found, which is good')
-            break
-
-        # loop over selectors to search for
-        for selec_type in list(types.keys()):
-            logger.debug("Trying to find element %s with %s " % (selector, selec_type))
-            try:
-                elements = eval(types.get(selec_type, "css"))
-                # Check if it returned at least 1 element ... which means, we found something
-                if isinstance(elements, WebElement) or len(elements) > 0:
-                    logger.debug("Found element ... which is bad. Setting found_element to True and breaking the loop.")
-                    found_element=True
-                    break
-                else:
-                    logger.debug("Could not find %s " % selector)
-            except CustomError as err:
-                logger.debug(err)
-                raise
-            except:
-                pass
-
-            time.sleep(1) # give page some time to render the search
-
-        # check if element was found
-        if found_element:
-            send_step_details(context, 'Looking for selector - it was found, which is bad')
-            raise CustomError("Found selector using %s. Which is bad." % selector)
-            break
-
-    # finally check, if we reached the timeout
-    if elapsed_time >= timeout and found_element == False:
-        logger.debug("Element was not found.")
-        send_step_details(context, 'Looking for selector - timeout reached. Selector %s was not found, which is good' % selector)
-    else:
-        logger.debug("Timeout was not reached and Element was found")
-        raise CustomError("Found selector %s. Which is bad." % selector)
+    try:
+        waitSelector(context, "css", selector)
+        send_step_details(context, 'Looking for selector - it was found, which is bad')
+        raise CustomError("Found selector using %s. Which is bad." % selector)
+    except CometaTimeoutException as err:
+        logger.info("Element not found which in case is good!")
 
 # Check if the source code in the previously selected iframe contains a link with text something
 @step(u'I can see a link with "{linktext}" in iframe')
