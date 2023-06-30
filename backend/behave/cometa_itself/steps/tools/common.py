@@ -28,7 +28,7 @@ logger.addHandler(streamLogger)
 Python library with common utility functions
 """
 
-class TimeoutException(Exception):
+class CometaTimeoutException(Exception):
     pass
 
 # timeout error
@@ -36,7 +36,7 @@ class TimeoutException(Exception):
 def timeoutError(signum, frame, timeout=MAX_STEP_TIMEOUT, error=None):
     if error is None:
         error = f"Step took more than configured time: {timeout}s."
-    raise TimeoutException(error)
+    raise CometaTimeoutException(error)
 
 # DEPRECATED:
 def timeout( *_args, **_kwargs ):
@@ -121,7 +121,7 @@ def waitSelector(context, selector_type, selector):
                 logger.error("Custom Error Exception occured during the selector find, will exit the search.")
                 logger.exception(err)
                 raise
-            except TimeoutException as err:
+            except CometaTimeoutException as err:
                 logger.error("Timeout Exception occured during the selector find, will exit the search.")
                 logger.exception(err)
                 # Max retries exceeded, raise error
