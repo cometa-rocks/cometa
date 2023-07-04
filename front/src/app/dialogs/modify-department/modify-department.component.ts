@@ -44,12 +44,12 @@ export class ModifyDepartmentComponent {
     this.rForm = this.fb.group({
       'department_name': [this.department.department_name, Validators.required],
       'continue_on_failure': [{value: this.department.settings.continue_on_failure, disabled: this.account?.settings?.continue_on_failure}],
-      'step_timeout': [this.department.settings?.step_timeout || 60, [Validators.required, Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)])]],
+      'step_timeout': [this.department.settings?.step_timeout || 60, [Validators.required, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)])]],
       'result_expire_days': [expireDays]
     });
     this.timeoutForm = this.fb.group({
-      'step_timeout_from': ['', Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)])],
-      'step_timeout_to': ['', Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)])],
+      'step_timeout_from': ['', Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)])],
+      'step_timeout_to': ['', Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)])],
     });
     this.expireDaysChecked$.next(!!this.department.settings.result_expire_days)
   }
