@@ -77,7 +77,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           step_content: [step.step_content, CustomValidators.StepAction.bind(this)],
           step_type: step.step_type,
           continue_on_failure: step.continue_on_failure,
-          timeout: step.timeout || this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)]))
+          timeout: step.timeout || this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)]))
         })
       )
     })
@@ -407,7 +407,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
             compare: res.compare,
             step_content: [res.interpreted, CustomValidators.StepAction.bind(this)],
             continue_on_failure: false,
-            timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)]))
+            timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)]))
           })
         )
         this._cdr.detectChanges();
@@ -424,7 +424,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       step_content: ['', CustomValidators.StepAction.bind(this)],
       enabled: true,
       continue_on_failure: false,
-      timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)]))
+      timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)]))
     });
     if (index !== null) {
       this.stepsForm.insert(index, template);
@@ -582,7 +582,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         compare: false,
         step_content: ['StartBrowser and call URL "{url}"', CustomValidators.StepAction.bind(this)],
         continue_on_failure: false,
-        timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)]))
+        timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)]))
       })
     );
   }
