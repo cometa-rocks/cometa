@@ -201,6 +201,21 @@ def tempFile(source):
     filename = os.path.basename(source).split('/')[-1]
     target = "/tmp/%s" % filename
 
+    # check if file exists
+    if os.path.exists(target):
+        # try removing the file
+        logger.debug(f"{target} file exists, trying to remove it.")
+        try:
+            os.remove(target)
+        except Exception as err:
+            logger.error("Unable to remove the file.")
+            logger.exception(err)
+
+            # get the timestamp
+            ts = time.time()
+            logger.debug(f"Setting a different filename: /tmp/{ts}-{filename}")
+            target = f"/tmp/{ts}-{filename}"
+
     logger.info(f"TMP file will be created at {target} for {source}.")
 
     return target
