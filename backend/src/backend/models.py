@@ -1435,7 +1435,10 @@ class File(SoftDeletableModel):
         # if soft is set to True add __deleted to the filename
         if soft:
             logger.debug(f"Soft delete: Moving {self.path} to {self.path}__deleted")
-            shutil.move(self.path, f"{self.path}__deleted")
+            try:
+                shutil.move(self.path, f"{self.path}__deleted")
+            except FileNotFoundError:
+                logger.info("File not found, doing some cleanup.")
             self.path = self.path + "__deleted"
 
         return super().delete(using=using, soft=soft, *args, **kwargs)
