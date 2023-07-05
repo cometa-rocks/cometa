@@ -194,7 +194,9 @@
 			"version": "2.8.313",
 			"date": "2023-07-05",
 			"bugfixes": [
-				"Fixed if uploaded file after decryption was not removed it threw an error on the next executions."
+				"Fixed if uploaded file after decryption was not removed it threw an error on the next executions.",
+                "Feature results are not removed if feature run is removed, feature runs are no longer in use.",
+                "Added logging to gunicorn process."
 			]
 		},
 		{
