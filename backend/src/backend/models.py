@@ -1113,8 +1113,9 @@ class Feature_Runs(SoftDeletableModel):
         deleteTemplate = kwargs.get('deleteTemplate', False)
 
         # delete all feature_results and pass in deleteTemplate
-        for fr in self.feature_results.filter(archived=False):
-            fr.delete(deleteTemplate=deleteTemplate)
+        # 2023-07-05 - ASOHAIL - Since Feature Runs are no longer in use do not delete Feature Results on it's delete.
+        # for fr in self.feature_results.filter(archived=False):
+            # fr.delete(deleteTemplate=deleteTemplate)
 
         # if everything is ok delete the object and return true
         # super(Feature_Runs, self).delete()
