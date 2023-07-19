@@ -1,5 +1,5 @@
 {
-	"version": "2.8.312",
+	"version": "2.8.314",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -191,13 +191,30 @@
 	],
 	"changelog": [
 		{
-			"version": "2.8.32",
+			"version": "2.8.314",
 			"date": "2023-07-19",
 			"bugfixes": [
 				"Feature results are deleted after feature execution has been fixed."
 			]
 		},
+        {
+			"version": "2.8.313",
+			"date": "2023-07-05",
+			"bugfixes": [
+				"Fixed if uploaded file after decryption was not removed it threw an error on the next executions.",
+                "Feature results are not removed if feature run is removed, feature runs are no longer in use.",
+                "Added logging to gunicorn process."
+			]
+		},
 		{
+			"version": "2.8.312",
+			"date": "2023-07-04",
+			"bugfixes": [
+				"Fixed max step timeout value from 1000s to 7200s.",
+                "Now showing warning when step timeout is invalid."
+			]
+		},
+        {
 			"version": "2.8.311",
 			"date": "2023-06-30",
 			"bugfixes": [
