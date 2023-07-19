@@ -1113,8 +1113,9 @@ class Feature_Runs(SoftDeletableModel):
         deleteTemplate = kwargs.get('deleteTemplate', False)
 
         # delete all feature_results and pass in deleteTemplate
-        for fr in self.feature_results.filter(archived=False):
-            fr.delete(deleteTemplate=deleteTemplate)
+        # 2023-07-05 - ASOHAIL - Since Feature Runs are no longer in use do not delete Feature Results on it's delete.
+        # for fr in self.feature_results.filter(archived=False):
+            # fr.delete(deleteTemplate=deleteTemplate)
 
         # if everything is ok delete the object and return true
         # super(Feature_Runs, self).delete()
@@ -1435,7 +1436,10 @@ class File(SoftDeletableModel):
         # if soft is set to True add __deleted to the filename
         if soft:
             logger.debug(f"Soft delete: Moving {self.path} to {self.path}__deleted")
-            shutil.move(self.path, f"{self.path}__deleted")
+            try:
+                shutil.move(self.path, f"{self.path}__deleted")
+            except FileNotFoundError:
+                logger.info("File not found, doing some cleanup.")
             self.path = self.path + "__deleted"
 
         return super().delete(using=using, soft=soft, *args, **kwargs)
