@@ -6,6 +6,7 @@ from backend.serializers import *
 from django.core.exceptions import *
 # Import permissions related methods
 from backend.utility.decorators import require_permissions, hasPermission, require_subscription
+from backend.templatetags.humanize import _humanize
 # Needed rest_framework import
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -136,15 +137,16 @@ def GetBrowserStackBrowsers(request):
 def GetUserDepartments(request):
     user = request.session['user']
     # Get an array of the departments ids owned by the current logged user
-    try:
-        departmentsOwning = Department.objects.filter(owners__user_id=request.session['user']['user_id']).values_list('department_id', flat=True)
-    except FieldError:
-        print('DepartmentOwners not implemented yet')
-        departmentsOwning = []
+    # try:
+    #     departmentsOwning = Department.objects.filter(owners__user_id=request.session['user']['user_id']).values_list('department_id', flat=True)
+    # except FieldError:
+    #     print('DepartmentOwners not implemented yet')
+    #     departmentsOwning = []
     # Get an array of department ids which the user has access to from the OIDCAccount info
     userDepartments = [x['department_id'] for x in request.session['user']['departments']]
     # Merge arrays of departments and owning, and return
-    return userDepartments + list(set(departmentsOwning) - set(userDepartments))
+    # return userDepartments + list(set(departmentsOwning) - set(userDepartments))
+    return userDepartments + list(set(userDepartments))
 
 # function that recieves feature_run are removes all feature_results not
 # marked as archived.
@@ -513,7 +515,70 @@ def downloadFeatureFiles(request, filepath, *args, **kwargs):
 
 # Sends the request to behave without waiting
 def startFeatureRun(data):
-    requests.post('http://behave:8001/run_test/', data=data)
+    result = requests.post('http://behave:8001/run_test/', data=data)
+
+@csrf_exempt
+def viewRunStatus(request, feature_id):
+    # Verify feature id exists
+    try:
+        feature = Feature.objects.get(feature_id=feature_id)
+    except Feature.DoesNotExist:
+        return JsonResponse({ 'success': False, 'error': 'Provided Feature ID does not exist.' }, status=404)
+
+    # check if user belong to the department
+    userDepartments = GetUserDepartments(request)
+    if feature.department_id not in userDepartments:
+        return JsonResponse({ 'success': False, 'error': 'Provided Feature ID does not exist.' })
+    
+    # check if it feature is currently running
+    request_response = requests.get(f'http://cometa_socket:3001/featureStatus/{feature_id}')
+
+    # result that will be returned
+    result = ""
+
+    try:
+        data = request_response.json()
+        # get the last result from the feature
+        try:
+            last_feature_result = Feature_result.objects.filter(feature_id=feature_id).order_by('-result_date')[0]
+            result += f"""Feature: {feature.feature_name} ({feature.feature_id})
+Feature Result ID: {last_feature_result.feature_result_id}
+
+"""
+        except:
+            return JsonResponse({
+                'success': False,
+                'error': 'Unable to retrieve the last feature result.'
+            }, status=503)
+        # get all the steps related to the last result
+        try:
+            row = ["N", "Step Name", "Execution Time", "Success"]
+            result += "{:>4}º {:<100} | {:^14} | {:^7} \n".format(*row)
+            step_results = Step_result.objects.filter(feature_result_id=last_feature_result.feature_result_id)
+            if len(step_results) == 0:
+                result += "No Step Results Yet.\n"
+            else:
+                i = 1
+                for step_result in step_results:
+                    row = [i, step_result.step_name, _humanize(step_result.execution_time), '🗸' if step_result.success else '✖']
+                    result += "{:>4}) {:<100} | {:^14} | {:^7} \n".format(*row)
+                    i += 1
+            if not data.get('running', False):
+                result += f"""
+Overall Status: {last_feature_result.status}
+Total Execution Time: {_humanize(last_feature_result.execution_time)}
+"""
+            return HttpResponse(result, status=(206 if data.get('running', False) else 200))
+        except:
+            return JsonResponse({
+                'success': False,
+                'error': 'Unable to retrieve the steps from the last feature result.'
+            }, status=503)
+    except Exception as err:
+        return JsonResponse({
+            'success': False,
+            'error': 'Feature is not running.'
+        }, status=404)
 
 @csrf_exempt
 @require_subscription()
@@ -529,6 +594,11 @@ def runTest(request, *args, **kwargs):
     try:
         feature = Feature.objects.get(feature_id=data['feature_id'])
     except Feature.DoesNotExist:
+        return JsonResponse({ 'success': False, 'error': 'Provided Feature ID does not exist.' })
+    
+    # check if user belong to the department
+    userDepartments = GetUserDepartments(request)
+    if feature.department_id not in userDepartments:
         return JsonResponse({ 'success': False, 'error': 'Provided Feature ID does not exist.' })
 
     # Verify access to submitted browsers
@@ -621,6 +691,7 @@ def runTest(request, *args, **kwargs):
         # Spawn thread to launch feature run
         t = Thread(target=startFeatureRun, args=(datum, ))
         t.start()
+
         return JsonResponse({ 'success': True })
     except Exception as e:
         return JsonResponse({ 'success': False, 'error': str(e) })

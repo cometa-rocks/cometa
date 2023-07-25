@@ -14,6 +14,10 @@
 #
 # ###########################################################################
 
+# source logger
+source <(curl -o - --silent https://raw.githubusercontent.com/cometa-rocks/cometa/master/helpers/logger.sh)
+TMPFILE=$(mktemp)
+
 # MAIN VARIABLES
 GITLAB_HOST="https://git.amvara.de"
 GITLAB_USER="<username>"
@@ -43,13 +47,13 @@ function checkIfNumber() {
     # number regexp to check input variable
     number_REGEXP='^[0-9]+$'
     if ! [[ $1 =~ $number_REGEXP ]]; then
-        echo "error: Specified non integer value for -f|--feature"
+        critical "error: Specified non integer value for -f|--feature"
         exit 2;
     fi
 }
 
 if [[ $# -lt 4 ]]; then
-    echo "No options or not all required options specified..."
+    info "No options or not all required options specified..."
     help
 fi
 
@@ -63,25 +67,29 @@ do
                         shift
                         ;;
                 -e|--environment)
-                        COMETA_LOGIN_URL="https://$2/callback?iss=https%3A%2F%2Fgit.amvara.de&target_link_uri=https%3A%2F%2F$2%2F&method=get&oidc_callback=https%3A%2F%2F$2%2Fcallback"
-                        echo "COMETA LOGIN URL: ${COMETA_LOGIN_URL}"
-                        CURL_URL="https://$2/backend/exectest/"
-                        echo "CURL URL: ${CURL_URL}"
+                        ENVIRONMENT=$2
+                        COMETA_LOGIN_URL="https://${ENVIRONMENT}/callback?iss=https%3A%2F%2Fgit.amvara.de&target_link_uri=https%3A%2F%2F${ENVIRONMENT}%2F&method=get&oidc_callback=https%3A%2F%2F${ENVIRONMENT}%2Fcallback"
+                        debug "COMETA LOGIN URL: ${COMETA_LOGIN_URL}"
+                        CURL_URL="https://${ENVIRONMENT}/backend/exectest/"
+                        debug "CURL URL: ${CURL_URL}"
                         shift
                         shift
                         ;;
                 -d|--debug)
                         set -x
                         DEBUG=TRUE
+                        PRINTLOGLVL=10
                         shift
                         ;;
                 *)
-                        echo "Unknown option $key ... please check the options below..."
+                        info "Unknown option $key ... please check the options below..."
                         help
                         shift
                         ;;
         esac
 done
+
+log_wfr "Logging in to co.meta environment"
 
 # add -vvv if debug flag is set
 test ${DEBUG:-FALSE} == TRUE && CURL_OPTIONS="$CURL_OPTIONS -vvv "
@@ -91,24 +99,42 @@ curl ${CURL_OPTIONS} -b cookies.txt -c cookies.txt -i "${GITLAB_HOST}/users/sign
     --data "user[login]=${GITLAB_USER}&user[password]=${GITLAB_PASSWORD}" \
     --data-urlencode "authenticity_token=${CSRF_TOKEN}" -s -o /dev/null
 # LOGIN to CO.META
-echo "------------COMETA LOGIN URL: ${COMETA_LOGIN_URL}"
+debug "------------COMETA LOGIN URL: ${COMETA_LOGIN_URL}"
 LOGIN_TO_COMETA=$(curl ${CURL_OPTIONS} -b cookies.txt -c cookies.txt -Li "${COMETA_LOGIN_URL}" -s)
 
-FIND_REDIRECT_URL=$(echo $LOGIN_TO_COMETA | grep -o 'window.location=.*"' | sed "s/window.location=[^\"]*//g;s/\"//g;s/;//g")
+FIND_REDIRECT_URL=$(echo $LOGIN_TO_COMETA | grep -Eo 'redirectUri.?=.?".*?"' | grep -o "\".*\"" | xargs)
 
 # Check if the find_redirect_url is empty, if it is empty, exit the script
-if [[ -z ${FIND_REDIRECT_URL} ]]; then 
-    echo "Redirect URL is empty, continuing the test makes no sense"
+if [[ -z ${FIND_REDIRECT_URL} ]]; then
+    log_res "failed"
+    error "Redirect URL is empty, continuing the test makes no sense"
     exit 3
 fi
 
 curl -b cookies.txt -c cookies.txt -Li ${CURL_OPTIONS} "$FIND_REDIRECT_URL" -s -o /dev/null
  
-echo "Login to co.meta => done."
+log_res "done"
 
 for FEATURE in ${FEATURES[@]}; do
     checkIfNumber $FEATURE
-    echo -n "Running Feature: $FEATURE => "
+    log_wfr "Running Feature: $FEATURE"
     # execute test
-    curl -b cookies.txt ${CURL_OPTIONS} -c cookies.txt -L -X POST -d '{"feature_id": '${FEATURE}'}' $CURL_URL -s
+    curl -b cookies.txt ${CURL_OPTIONS} \
+        -c cookies.txt -L -X POST \
+        -d '{"feature_id": '${FEATURE}', "wait": true}' \
+        $CURL_URL -s -o ${TMPFILE} && \
+        log_res "done" || log_res "failed"
+
+    sleep 2
+    echo "https://${ENVIRONMENT}/backend/featureStatus/${FEATURE}/"
+    printf "\033[s"
+    while [ $(curl -b cookies.txt ${CURL_OPTIONS} https://${ENVIRONMENT}/backend/featureStatus/${FEATURE}/ \
+        -c cookies.txt -L -s -o ${TMPFILE} -w "%{http_code}") == "206" ]; do
+        printf "\033[u"
+        cat ${TMPFILE}
+        sleep 1
+    done
+    # print the end file
+    printf "\033[u"
+    cat ${TMPFILE}
 done
