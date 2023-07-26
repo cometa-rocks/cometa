@@ -19,13 +19,13 @@ source <(curl -o - --silent https://raw.githubusercontent.com/cometa-rocks/comet
 TMPFILE=$(mktemp)
 
 # MAIN VARIABLES
+# Add --insecure if executing in localhost
+CURL_OPTIONS=" --insecure "
 GITLAB_HOST="https://git.amvara.de"
 GITLAB_USER="<username>"
 GITLAB_PASSWORD="<password>"
 GITLAB_LOGIN_BODY=$(curl -c cookies.txt ${CURL_OPTIONS} -i "${GITLAB_HOST}/users/sign_in" -s)
 CSRF_TOKEN=$(echo $GITLAB_LOGIN_BODY | grep -oE 'name="authenticity_token" value="([^"]*)"' | cut -d' ' -f2 | sed "s/value=//g;s/\"//g")
-# Add --insecure if executing in localhost
-CURL_OPTIONS="  "
 
 function help() {
     echo -ne "${0} [OPTIONS]
@@ -124,17 +124,4 @@ for FEATURE in ${FEATURES[@]}; do
         -d '{"feature_id": '${FEATURE}', "wait": true}' \
         $CURL_URL -s -o ${TMPFILE} && \
         log_res "done" || log_res "failed"
-
-    sleep 2
-    echo "https://${ENVIRONMENT}/backend/featureStatus/${FEATURE}/"
-    printf "\033[s"
-    while [ $(curl -b cookies.txt ${CURL_OPTIONS} https://${ENVIRONMENT}/backend/featureStatus/${FEATURE}/ \
-        -c cookies.txt -L -s -o ${TMPFILE} -w "%{http_code}") == "206" ]; do
-        printf "\033[u"
-        cat ${TMPFILE}
-        sleep 1
-    done
-    # print the end file
-    printf "\033[u"
-    cat ${TMPFILE}
 done
