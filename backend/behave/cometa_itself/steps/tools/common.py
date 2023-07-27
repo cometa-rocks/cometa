@@ -31,6 +31,9 @@ Python library with common utility functions
 class CometaTimeoutException(Exception):
     pass
 
+class CometaMaxTimeoutReachedException(Exception):
+    pass
+
 # timeout error
 # throws an CustomError exception letting user know about the issue
 def timeoutError(signum, frame, timeout=MAX_STEP_TIMEOUT, error=None):
@@ -75,7 +78,9 @@ def timeout( *_args, **_kwargs ):
 # @param selector_type: string - Type of selector to use, see below code for possible types
 # @param selector: string - Selector to use
 # @timeout("Waited for <seconds> seconds but unable to find specified element.")
-def waitSelector(context, selector_type, selector):
+def waitSelector(context, selector_type, selector, max_timeout=None):
+    # set the start time for the step
+    start_time = time.time()
     #2288 - Split : id values into a valid css selector
     # example: "#hello:world" --> [id*=hello][id*=world]
     selectorWords = selector.split(' ')
@@ -110,7 +115,7 @@ def waitSelector(context, selector_type, selector):
     types_new[selector_type] = selector_type_value
     types_new.update(types)
     # Loop until maxtries is reached and then exit with exception
-    while True:
+    while (time.time() - start_time < max_timeout if max_timeout is not None else True):
         for selec_type in list(types_new.keys()):
             try:
                 elements = eval(types_new.get(selec_type, "css"))
@@ -132,6 +137,8 @@ def waitSelector(context, selector_type, selector):
                 pass
         # give page some time to render the search
         time.sleep(1)
+    raise CometaMaxTimeoutReachedException(f"Programmed to find the element in {max_timeout} seconds, max timeout reached.")
+
 
 def element_has_class(element, classname):
     """
