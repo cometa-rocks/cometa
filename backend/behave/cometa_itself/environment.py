@@ -315,7 +315,7 @@ def before_all(context):
 # Get video url with context of browser
 def get_video_url(context):
     # get the video url from browserstack backend
-    bsSessionRequest = requests.get("https://api.browserstack.com/automate/sessions/" + str(context.browser.session_id) + ".json", auth=requests.auth.HTTPBasicAuth("ralf.roeber@amvara.de", "zcGjRZCsJqP4egM1bZTo"))
+    bsSessionRequest = requests.get("https://api.browserstack.com/automate/sessions/" + str(context.browser.session_id) + ".json", auth=requests.auth.HTTPBasicAuth(BROWSERSTACK_USERNAME, BROWSERSTACK_PASSWORD))
     return bsSessionRequest.json()['automation_session'].get('video_url', None)
 
 @error_handling()
