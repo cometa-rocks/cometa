@@ -108,6 +108,7 @@ urlpatterns = [
     url(r'^userDetails/', views.userDetails),
     url(r'^isFeatureRunning/(?P<feature_id>[0-9]+)/', views.featureRunning),
     url(r'^noVNC/(?P<feature_result_id>[0-9]+)/', views.noVNCProxy),
+    url(r'featureStatus/(?P<feature_id>[0-9]+)/', views.viewRunStatus),
     # Payments API
     url(r'^invoices/(?P<invoice_id>[0-9]+)/', payments.getInvoices),
     url(r'^invoices/', payments.getInvoices),

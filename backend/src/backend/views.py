@@ -525,6 +525,9 @@ def viewRunStatus(request, feature_id):
     except Feature.DoesNotExist:
         return JsonResponse({ 'success': False, 'error': 'Provided Feature ID does not exist.' }, status=404)
 
+    onlyProgress = request.GET.get('onlyProgress', False)
+    logger.debug(f"OnlyProgress? - {onlyProgress}")
+
     # check if user belong to the department
     userDepartments = GetUserDepartments(request)
     if feature.department_id not in userDepartments:
@@ -538,6 +541,11 @@ def viewRunStatus(request, feature_id):
 
     try:
         data = request_response.json()
+
+        # if only progress is set 
+        if onlyProgress and data.get('running', False):
+            return HttpResponse("waiting....\n", status=206)
+
         # get the last result from the feature
         try:
             last_feature_result = Feature_result.objects.filter(feature_id=feature_id).order_by('-result_date')[0]
@@ -560,11 +568,12 @@ Feature Result ID: {last_feature_result.feature_result_id}
             else:
                 i = 1
                 for step_result in step_results:
-                    row = [i, step_result.step_name, _humanize(step_result.execution_time), '🗸' if step_result.success else '✖']
+                    sn = step_result.step_name if len(step_result.step_name) < 97 else step_result.step_name[:97] + '...'
+                    row = [i, sn, _humanize(step_result.execution_time), '🗸' if step_result.success else '✖']
                     result += "{:>4}) {:<100} | {:^14} | {:^7} \n".format(*row)
                     i += 1
             if not data.get('running', False):
-                result += f"""
+                result += f""" 
 Overall Status: {last_feature_result.status}
 Total Execution Time: {_humanize(last_feature_result.execution_time)}
 """
