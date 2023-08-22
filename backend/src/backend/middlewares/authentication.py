@@ -48,7 +48,7 @@ class AuthenticationMiddleware:
                 self.user_info = response.json().get('userinfo', {})
             except Exception as error: # if executed from crontab
                 self.user_info = {}
-            
+
             # create a session variable
             request.session['user_info'] = self.user_info
         else:
@@ -57,7 +57,7 @@ class AuthenticationMiddleware:
 
         # cookies to backup before executing any request
         cookiesToBackup = ['_auth_user_id', '_auth_user_backend', '_auth_user_hash']
-        
+
         if not re.search(r'^/admin/', request.get_full_path()):
             # delete admin cookies from session
             [self.createSessionCookieBackup(request, x) for x in cookiesToBackup]
@@ -75,14 +75,14 @@ class AuthenticationMiddleware:
                 return result
         # pass the request to next middleware
         return self.get_response(request)
-    
+
     def checkSessionUser(self, request): # check if user in HTTP_PROXY_USER and session.user are the same
         REMOTE_USER = self.user_info.get('email', None)
         user = request.session.get('user', None)
         HTTP_HOST = request.META.get('HTTP_HOST', '')
         sessionid = request.session.get('session', None)
         mod_auth_openidc_session = request.COOKIES.get('mod_auth_openidc_session', 'sessionid')
-            
+
         if user == None or sessionid != mod_auth_openidc_session:
             return False # need login
 
@@ -138,13 +138,13 @@ class AuthenticationMiddleware:
                 # set the session user to dummy serialized user
                 request.session['user'] = OIDCAccountLoginSerializer(user, many=False).data
                 return True
-            
+
             return JsonResponse({
-                "success": False, 
+                "success": False,
                 "error": """
                 Unable to determin user information.
                 This could mean that oAuth provider did not return user information.
-                
+
                 Try again later or please contact us @ %s
                 """ % secret_variables.COMETA_FEEDBACK_MAIL
             }, status=200)
@@ -180,6 +180,11 @@ class AuthenticationMiddleware:
         user.last_login = datetime.datetime.utcnow()
         user.login_counter = user.login_counter + 1
         user.save()
+        # add user to invited departments
+        try:
+            self.invitation_departments(request, user)
+        except Exception as err:
+            print(str(err))
         # get the mod_auth_sessionid and save it as user.sessionid
         mod_auth_openidc_session = request.COOKIES.get('mod_auth_openidc_session', 'sessionid')
         request.session['session'] = mod_auth_openidc_session
@@ -187,14 +192,25 @@ class AuthenticationMiddleware:
         request.session['user'] = OIDCAccountLoginSerializer(user, many=False).data
         return True
 
+    def invitation_departments(self, request, user):
+        # get the invite code if set
+        inviteCode = request.GET.get('invite', None)
+        if inviteCode:
+            try:
+                inviteObject = Invite.objects.get(code=inviteCode)
+                for department in inviteObject.departments.all():
+                    # add user to invited department
+                    user_department = Account_role(user=user, department=department)
+                    #save the user_department object
+                    user_department.save()
+            except Exception as err:
+                raise Exception("No invites found with code: %s" % inviteCode)
 
     def register(self, request): # create account if missing
         # get the Full name from the request
         fullName = self.user_info.get('name', None)
         # get the email from the request
         email = self.user_info.get('email', None)
-        # get the invite code if set
-        inviteCode = request.GET.get('invite', None)
 
         # check if fullName or email are missing in the request
         if fullName == None or email == None or fullName == "(null)" or email == "(null)":
@@ -214,30 +230,18 @@ class AuthenticationMiddleware:
                 logger.exception(err)
         user.save()
 
-        # if no invite code was set then add user to default department
-        if inviteCode == None:
-            # add user to the default department
-            defaultDepartment = Department.objects.filter(department_name="Default")[0]
-            user_department = Account_role(user=user, department=defaultDepartment)
-            user_department.save()
-        else:
-            try:
-                inviteObject = Invite.objects.get(code=inviteCode)
-                for department in inviteObject.departments.all():
-                    # add user to invited department
-                    user_department = Account_role(user=user, department=department)
-                    #save the user_department object
-                    user_department.save()
-            except Exception as err:
-                print("No invites found with code: %s" % inviteCode)
-                print("Adding user to default department.")
-                # add user to the default department
-                defaultDepartment = Department.objects.filter(department_name="Default")[0]
-                user_department = Account_role(user=user, department=defaultDepartment)
-                user_department.save()
+        # add user to the default department
+        defaultDepartment = Department.objects.filter(department_name="Default")[0]
+        user_department = Account_role(user=user, department=defaultDepartment)
+        user_department.save()
+
+        try:
+            self.invitation_departments(request, user)
+        except Exception as err:
+            print(str(err))
 
         return True
-    
+
     def logout(self, request):
         # delete the user from the session
         del request.session['user']
@@ -252,7 +256,7 @@ class AuthenticationMiddleware:
             del request.session[cookieName]
         except:
             pass
-    
+
     # restore backup for admin cookies and remove backup from session
     def restoreSessionCookie(self, request, cookieName):
         try:
