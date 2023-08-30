@@ -85,7 +85,7 @@
             align-items: center;
             justify-content: space-between;
             @include for-tablet-portrait-up {
-                flex: 0 250px;
+                flex: 0 200px;
             }
             i {
                 height: 50px;
@@ -101,7 +101,7 @@
             flex: 1 35px;
             text-align: center;
             @include for-tablet-portrait-up {
-                flex: 0 100px;
+                flex: 0 90px;
             }
         }
         &.execution_time {
