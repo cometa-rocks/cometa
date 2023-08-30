@@ -1,9 +1,11 @@
-<div class="row run" *ngLet="test | featureResultPassed as passed" (click)="changeShow()" [class.showed]="show$ | async">
+<div class="row run" *ngLet="test | featureResultPassed as passed" (click)="changeShow()"
+    [class.showed]="show$ | async">
     <div class="status-bar" [ngClass]="passed ? 'success' : 'failed'"></div>
     <!-- Iterate over each enabled header -->
     <div class="cell status">
         <!-- Status box -->
-        <div class="status-box passed" stopPropagation [matMenuTriggerFor]="runStatus" *ngIf="passed; else failed">Passed</div>
+        <div class="status-box passed" stopPropagation [matMenuTriggerFor]="runStatus" *ngIf="passed; else failed">
+            Passed</div>
         <ng-template #failed>
             <div class="status-box failed" stopPropagation [matMenuTriggerFor]="runStatus">Failed</div>
         </ng-template>
@@ -24,7 +26,7 @@
     </div>
     <div class="cell run date_time">
         <i></i>
-        {{ test.result_date | amParse | amDateFormat:'MMMM d yyyy, HH:mm a' }}
+        {{ test.result_date | amParse | amDateFormat:'MMMM d yyyy, HH:mm' }}
     </div>
     <div class="cell total run number">
         {{ test.total }}
@@ -32,15 +34,18 @@
     <ng-container *ngLet="percentMode$ | async as percent">
         <!-- OK field -->
         <div class="cell ok run number">
-            <ng-container *ngTemplateOutlet="percent ? percentNumber : simpleNumber; context: { $implicit: test.ok }"></ng-container>
+            <ng-container
+                *ngTemplateOutlet="percent ? percentNumber : simpleNumber; context: { $implicit: test.ok }"></ng-container>
         </div>
         <!-- NOK field -->
         <div class="cell nok run number">
-            <ng-container *ngTemplateOutlet="percent ? percentNumber : simpleNumber; context: { $implicit: test.fails }"></ng-container>
+            <ng-container
+                *ngTemplateOutlet="percent ? percentNumber : simpleNumber; context: { $implicit: test.fails }"></ng-container>
         </div>
         <!-- Skipped field -->
         <div class="cell skipped run number">
-            <ng-container *ngTemplateOutlet="percent ? percentNumber : simpleNumber; context: { $implicit: test.skipped }"></ng-container>
+            <ng-container
+                *ngTemplateOutlet="percent ? percentNumber : simpleNumber; context: { $implicit: test.skipped }"></ng-container>
         </div>
         <!-- Template for percents -->
         <ng-template #percentNumber let-number>
@@ -55,17 +60,12 @@
         {{ test.execution_time | secondsToHumanReadable }}
     </div>
     <div class="cell run browser">
-        <i class="browser-icon" matTooltipPosition="above" [matTooltip]="test.browser.browser | titlecase" [style.backgroundImage]="test.browser.browser | browserIcon"></i>
+        <i class="browser-icon" matTooltipPosition="above" [matTooltip]="test.browser.browser | titlecase"
+            [style.backgroundImage]="test.browser.browser | browserIcon"></i>
     </div>
     <div class="cell run pixel">
         {{ test.pixel_diff | pixelDifference }}
     </div>
-    <!-- Video icon button -->
-    <ng-container *ngIf="test?.video_url; else noVideo">
-        <div class="video" matTooltip="View recording" matTooltipPosition="above" stopPropagation (click)="openVideo(test)">
-            <mat-icon>videocam</mat-icon>
-        </div>
-    </ng-container>
     <ng-template #noVideo>
         <div class="video"></div>
     </ng-template>
@@ -80,12 +80,18 @@
                 <mat-icon>videocam</mat-icon>View video
             </span>
         </button>
+<a mat-menu-item target="_blank" [href]="test.feature_result_id | pdfLink" stopPropagation
+    matTooltip="Download complete Feature Report as PDF">
+    <span><mat-icon>picture_as_pdf</mat-icon>Report</span>
+    </a>
         <button (click)="archive(test)" mat-menu-item>
-            <ng-container *ngIf="test.archived; else archivedRun">
-                <span [matTooltip]="'unsave' | translate" matTooltipPosition="before"><mat-icon>unarchive</mat-icon>Unsave run</span>
+            <ng-container *ngIf="test.archived; else archivedRun">               
+                <span [matTooltip]="'unsave' | translate"
+                    matTooltipPosition="before"><mat-icon>unarchive</mat-icon>Unsave run</span>
             </ng-container>
             <ng-template #archivedRun>
-                <span [matTooltip]="'save' | translate" matTooltipPosition="before"><mat-icon>archive</mat-icon>Save run</span>
+                <span [matTooltip]="'save' | translate" matTooltipPosition="before"><mat-icon>archive</mat-icon>Save
+                    run</span>
             </ng-template>
         </button>
         <button *ngIf="!test.archived" (click)="deleteFeatureResult(test)" mat-menu-item>
