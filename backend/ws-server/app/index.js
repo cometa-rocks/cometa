@@ -60,6 +60,36 @@ function retrieveMessages(featureId) {
 /* Setup Logger */
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
 
+/* WS Endpoint: Feature has been queued (environment, browserstack, etc) */
+app.get('/feature/:feature_id/queued', (req, res) => {
+  /**
+   * Required GET params:
+   *  - feature_id: ID of the Feature
+   * Required POST params:
+   *  - browser_info: BrowserstackBrowser --> Browser object containing browser_name, browser_version, os, etc
+   *  - feature_result_id: number --> Feature Result ID of the running test
+   *  - feature_info: Feature --> Feature object with info of the running feature
+   *  - run_id: number --> ID of run containing all browser results
+   *  - datetime: string --> Time in which the step started, format: DD-MM-YYYY HH:mm:ss
+   */
+  setRunningStatus(+req.params.feature_id, true);
+  const payload = {
+    type: '[WebSockets] Feature Queued',
+    feature_id: +req.params.feature_id,
+    run_id: +req.body.run_id,
+    feature_result_id: +req.body.feature_result_id,
+    browser_info: JSON.parse(req.body.browser_info),
+    datetime: req.body.datetime,
+    pid: parseInt(req.body.pid),
+    user_id: +req.body.user_id
+  }
+  io.emit('message', payload)
+  // Add message to history
+  const messages = constructRun(+req.params.feature_id, +req.body.run_id)
+  messages.push(payload);
+  res.status(200).json({ success: true })
+})
+
 /* WS Endpoint: Feature has been begin initializing (environment, browserstack, etc) */
 app.get('/feature/:feature_id/initializing', (req, res) => {
   /**

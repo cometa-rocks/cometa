@@ -6,6 +6,26 @@
 export namespace WebSockets {
 
     /**
+     * @description A feature has been queued
+     * @param {number} feature_id Feature ID
+     * @param {number} run_id Run ID
+     * @param {number} feature_result_id Feature Result ID
+     * @param {BrowserstackBrowser} browser_info Browser object
+     * @param {string} datetime Current datetime
+     */
+    export class FeatureQueued {
+        static readonly type = '[WebSockets] Feature Queued';
+        constructor(
+            public feature_id: number,
+            public run_id: number,
+            public feature_result_id: number,
+            public browser_info: BrowserstackBrowser,
+            public datetime: string
+        ) { }
+    }
+       
+
+    /**
      * @description A feature has just started initializing
      * @param {number} feature_id Feature ID
      * @param {number} run_id Run ID

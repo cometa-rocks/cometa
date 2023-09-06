@@ -254,8 +254,9 @@ def done( *_args, **_kwargs ):
                 try:
                     # save the result to databse as False since the step failed
                     saveToDatabase(save_message, (time.time() - start_time) * 1000, 0, False, args[0])
-                except:
-                    pass
+                except Exception as err:
+                    logger.error("Exception raised while trying to save step data to database.")
+                    logger.exception(err)
 
                 # check if feature was aborted
                 aborted = str(err) == "'aborted'"
