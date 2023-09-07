@@ -2,8 +2,8 @@ version: '3'
 
 x-browser-limit: &browser-limit
   # get browser limit from environment variables
-  # if not specified default to 7
-  # Idealy ( <number of cpus> - 1 )
+  # if not specified default to 6
+  # Idealy ( <number of cpus> - 2 )
   BROWSER_LIMIT: ${BROWSER_LIMIT:-6}
 
 services:
@@ -149,6 +149,7 @@ services:
       - testing
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+    restart: always
 
 networks:
   testing:

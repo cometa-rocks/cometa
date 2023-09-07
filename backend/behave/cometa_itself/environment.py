@@ -154,7 +154,6 @@ def before_all(context):
         "run_id": os.environ['feature_run'],
         "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     }
-    logger.debug(json.dumps(payload, indent=2))
     request = requests.get('http://cometa_socket:3001/feature/%s/initializing' % str(context.feature_id), data=payload)
 
     # browser data

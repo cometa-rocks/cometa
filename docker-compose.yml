@@ -1,5 +1,11 @@
 version: '3'
 
+x-browser-limit: &browser-limit
+  # get browser limit from environment variables
+  # if not specified default to 6
+  # Idealy ( <number of cpus> - 2 )
+  BROWSER_LIMIT: ${BROWSER_LIMIT:-6}
+
 services:
   db:
     container_name: cometa_postgres
@@ -47,6 +53,9 @@ services:
       driver: json-file
     expose:
       - "8001"
+    depends_on:
+      redis:
+        condition: service_healthy
     volumes:
       - /data/cometa/screenshots:/opt/code/screenshots
       - /data/cometa/videos:/opt/code/videos
@@ -58,7 +67,8 @@ services:
     command: "/code/docker/build/behave/entry.sh"
     working_dir: /opt/code/behave_django
     environment:
-      - PYTHONUNBUFFERED=1
+      PYTHONUNBUFFERED: 1
+      <<: *browser-limit
     networks:
      - testing
     restart: always
@@ -83,7 +93,7 @@ services:
 
   selenoid:
     # Please use ./selenoid/deploy_selenoid.sh to create necessary files of Selenoid
-    image: aerokube/selenoid:1.10.4
+    image: aerokube/selenoid:1.10.12
     container_name: cometa_selenoid
     logging:
       driver: json-file
@@ -94,12 +104,19 @@ services:
       - ./backend/selenoid/:/etc/selenoid/:ro
       - /data/cometa/videos:/opt/selenoid/video
     environment:
-      - TZ=Europe/Berlin
-      - OVERRIDE_VIDEO_OUTPUT_DIR=/data/cometa/videos
+      TZ: Europe/Berlin
+      OVERRIDE_VIDEO_OUTPUT_DIR: /data/cometa/videos
+      <<: *browser-limit
     networks:
       - testing
     restart: always
-    command: ["-conf", "/etc/selenoid/browsers.json", "-video-output-dir", "/opt/selenoid/video", "-log-output-dir", "/opt/selenoid/logs", "-container-network", "cometa_testing"]
+    entrypoint: sh -c "/usr/bin/selenoid \
+      -listen :4444 \
+      -conf /etc/selenoid/browsers.json \
+      -video-output-dir /opt/selenoid/video \
+      -log-output-dir /opt/selenoid/logs \
+      -container-network cometa_testing \
+      -limit $${BROWSER_LIMIT}"
 
   novnc:
     image: cometa/novnc:1.0
@@ -129,6 +146,20 @@ services:
       - testing
     restart: always
 
+  redis:
+    image: redis:7.2.0-alpine
+    container_name: cometa_redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - testing
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+    restart: always
+
 networks:
   testing:
     driver: "bridge"
+
+volumes:
+  redis_data:
