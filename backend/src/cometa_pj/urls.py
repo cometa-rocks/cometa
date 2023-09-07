@@ -92,6 +92,7 @@ urlpatterns = [
     url(r'^stepsByName/', views.GetStepsByName),
     url(r'^schedule/(?P<feature_id>.+)/', views.UpdateSchedule),
     url(r'^exectest/', views.runTest),
+    url(r'^exec_batch/', views.runBatch),
     url(r'^info/', views.GetInfo),
     url(r'^migrateScreenshots', views.MigrateScreenshots),
     url(r'^checkBrowserstackVideo', views.CheckBrowserstackVideo),

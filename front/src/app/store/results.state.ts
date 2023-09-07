@@ -197,7 +197,7 @@ export class ResultsState {
             produce((ctx: IResults) => {
                 this.verifyAndFixMainKeys(ctx, feature_id, run_id, browser_info, 'Queued', feature_result_id);
                 ctx[feature_id].status = 'Feature Queued';
-                ctx[feature_id].running = false;
+                ctx[feature_id].running = true;
             })
         );
     }
