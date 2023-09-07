@@ -3,31 +3,39 @@
     <div class="cell status">
         <span>STATUS</span>
     </div>
-    <div class="cell date" (click)="changeSort('result_date')" [ngClass]="{ 'active': sortBy == 'result_date', 'reverse': reverse }">
+    <div class="cell date" (click)="changeSort('result_date')"
+        [ngClass]="{ 'active': sortBy == 'result_date', 'reverse': reverse }">
         <span>{{ 'MAIN_VIEW.DATE' | translate }}</span>
     </div>
-    <div class="hide-mobile cell total" (click)="changeSort('total')" [ngClass]="{ 'active': sortBy == 'total', 'reverse': reverse }">
+    <div class="hide-mobile cell total" (click)="changeSort('total')"
+        [ngClass]="{ 'active': sortBy == 'total', 'reverse': reverse }">
         <span>steps #</span>
     </div>
-    <div class="hide-mobile cell ok" (click)="changeSort('ok')" [ngClass]="{ 'active': sortBy == 'ok', 'reverse': reverse }">
+    <div class="hide-mobile cell ok" (click)="changeSort('ok')"
+        [ngClass]="{ 'active': sortBy == 'ok', 'reverse': reverse }">
         <span>ok {{ percentMode ? '%' : '#' }}</span>
     </div>
-    <div class="hide-mobile cell nok" (click)="changeSort('fails')" [ngClass]="{ 'active': sortBy == 'fails', 'reverse': reverse }">
+    <div class="hide-mobile cell nok" (click)="changeSort('fails')"
+        [ngClass]="{ 'active': sortBy == 'fails', 'reverse': reverse }">
         <span>nok {{ percentMode ? '%' : '#' }}</span>
     </div>
-    <div class="hide-mobile cell skipped" (click)="changeSort('skipped')" [ngClass]="{ 'active': sortBy == 'skipped', 'reverse': reverse }">
+    <div class="hide-mobile cell skipped" (click)="changeSort('skipped')"
+        [ngClass]="{ 'active': sortBy == 'skipped', 'reverse': reverse }">
         <span>skipped {{ percentMode ? '%' : '#' }}</span>
     </div>
     <div class="show-mobile cell ok">
         <span>ok / nok / skip. {{ percentMode ? '%' : '#' }}</span>
     </div>
-    <div class="execution_time cell" (click)="changeSort('execution_time')" [ngClass]="{ 'active': sortBy == 'execution_time', 'reverse': reverse }">
+    <div class="execution_time cell" (click)="changeSort('execution_time')"
+        [ngClass]="{ 'active': sortBy == 'execution_time', 'reverse': reverse }">
         <span>time</span>
     </div>
-    <div class="hide-mobile cell browser" (click)="changeSort('browser_name')" [ngClass]="{ 'active': sortBy == 'browser_name', 'reverse': reverse }">
+    <div class="hide-mobile cell browser" (click)="changeSort('browser_name')"
+        [ngClass]="{ 'active': sortBy == 'browser_name', 'reverse': reverse }">
         <span>browser</span>
     </div>
-    <div class="cell pixel" (click)="changeSort('pixel_diff')" [ngClass]="{ 'active': sortBy == 'pixel_diff', 'reverse': reverse }">
+    <div class="cell pixel" (click)="changeSort('pixel_diff')"
+        [ngClass]="{ 'active': sortBy == 'pixel_diff', 'reverse': reverse }">
         <span>pixel difference</span>
     </div>
     <div class="all-options">
@@ -37,15 +45,21 @@
             <button mat-menu-item [matMenuTriggerFor]="tableHeaders">Table customization</button>
             <button mat-menu-item [matMenuTriggerFor]="clearRunsTemplate">Clear feature results</button>
             <button stopPropagation mat-menu-item>
-                <mat-checkbox color="primary" [checked]="archived$ | async" (change)="handleArchived($event)">Show saved items</mat-checkbox>
+                <mat-checkbox color="primary" [checked]="archived$ | async" (change)="handleArchived($event)">Show saved
+                    items</mat-checkbox>
             </button>
         </mat-menu>
         <!-- Table customization -->
         <mat-menu class="organize-headers" #tableHeaders>
             <div class="header-list" cdkDropList (cdkDropListDropped)="headerChanged($event)">
-                <button class="cdk-header-item" *ngFor="let header of allHeaders | async; let i = index; trackBy: getUniqueHeader" cdkDrag cdkDragLockAxis="y" cdkDragBoundary=".header-list" stopPropagation mat-menu-item>
+                <button class="cdk-header-item"
+                    *ngFor="let header of allHeaders | async; let i = index; trackBy: getUniqueHeader" cdkDrag
+                    cdkDragLockAxis="y" cdkDragBoundary=".header-list" stopPropagation mat-menu-item>
                     <div cdkDragHandle class="move-vertical"></div>
-                    <mat-checkbox [checked]="header.enable" [disabled]="header.disabled" [matTooltip]="'Option disabled due to screen size'" [matTooltipDisabled]="!header.disabled" (change)="handleHeaderChange($event, i)" color="primary">{{ 'headers.' + header.id | translate }}</mat-checkbox>
+                    <mat-checkbox [checked]="header.enable" [disabled]="header.disabled"
+                        [matTooltip]="'Option disabled due to screen size'" [matTooltipDisabled]="!header.disabled"
+                        (change)="handleHeaderChange($event, i)" color="primary">{{ 'headers.' + header.id | translate
+                        }}</mat-checkbox>
                 </button>
             </div>
         </mat-menu>
@@ -60,12 +74,9 @@
             <div stopPropagation class="mat-menu-panel-category">Options</div>
             <!-- Handle checkbox, if the user also wants to delete the associated template images -->
             <button stopPropagation mat-menu-item>
-                <mat-checkbox
-                    [matTooltip]="'tooltips.delete_templates_with_features' | translate"
-                    matTooltipPosition="below"
-                    [checked]="deleteTemplateWithResults$ | async"
-                    (change)="handleDeleteTemplateWithResults($event)"
-                    color="primary">
+                <mat-checkbox [matTooltip]="'tooltips.delete_templates_with_features' | translate"
+                    matTooltipPosition="below" [checked]="deleteTemplateWithResults$ | async"
+                    (change)="handleDeleteTemplateWithResults($event)" color="primary">
                     Also delete templates
                 </mat-checkbox>
             </button>

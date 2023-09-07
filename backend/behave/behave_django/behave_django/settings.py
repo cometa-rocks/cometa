@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_rq'
 ]
 
 MIDDLEWARE = [
@@ -137,3 +138,13 @@ USE_TZ = False
 STATIC_URL = '/static/'
 
 RUNTEST_COMMAND_PATH = '/opt/code/run_remote_from_django.sh'
+
+# Django RQ Configuration
+RQ_QUEUES = {
+    "default": {
+        "HOST": "redis",
+        "PORT": 6379,
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 7500
+    }
+}
