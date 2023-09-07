@@ -147,6 +147,15 @@ def before_all(context):
     # save the continue on failure for feature to the context
     context.feature_continue_on_failure = data.get('continue_on_failure', False)
 
+    payload={
+        "user_id": context.PROXY_USER['user_id'],
+        "browser_info": os.environ['BROWSER_INFO'],
+        "feature_result_id": os.environ['feature_result_id'],
+        "run_id": os.environ['feature_run'],
+        "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    }
+    request = requests.get('http://cometa_socket:3001/feature/%s/initializing' % str(context.feature_id), data=payload)
+
     # browser data
     context.cloud = context.browser_info.get("cloud", "browserstack") # default it back to browserstack incase it is not set.
     
@@ -328,7 +337,6 @@ def after_all(context):
             alert.dismiss()
     except:
         logger.debug("No alerts found ... before shutting down the browser...")
-        pass
     
     try:
         # for some reasons this throws error when running on browserstack with safari
