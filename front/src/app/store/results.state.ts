@@ -187,6 +187,21 @@ export class ResultsState {
         );
     }
 
+    @Action(WebSockets.FeatureQueued)
+    setFeatureQueued(
+        { setState }: StateContext<IResults>,
+        { feature_id, run_id, browser_info, feature_result_id}: WebSockets.FeatureQueued
+    ) {
+        this.resetTimeout(feature_id, run_id, browser_info);
+        setState(
+            produce((ctx: IResults) => {
+                this.verifyAndFixMainKeys(ctx, feature_id, run_id, browser_info, 'Queued', feature_result_id);
+                ctx[feature_id].status = 'Feature Queued';
+                ctx[feature_id].running = true;
+            })
+        );
+    }
+
     @Action(WebSockets.FeatureInitializing)
     setFeatureInitializing(
         { setState }: StateContext<IResults>,
