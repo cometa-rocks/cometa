@@ -11,6 +11,7 @@ import { EasterEggComponent } from '../components/easter-egg/easter-egg.componen
 const routes: Routes = [
     {
         path: '',
+        title: 'Home',
         component: SearchComponent
     }
 ];
