@@ -1,6 +1,6 @@
-import { NgModule } from '@angular/core';
+import { NgModule, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Routes, RouterModule } from '@angular/router';
+import { Routes, RouterModule, ResolveFn, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { SharedModule } from './shared.module';
 import { MainViewComponent } from '../views/main-view/main-view.component';
 import { StepViewComponent } from '../views/step-view/step-view.component';
@@ -31,10 +31,19 @@ import { DownloadNamePipe } from '@pipes/download-name.pipe';
 import { MainViewHeaderComponent } from '../views/main-view/main-view-header/main-view-header.component';
 import { ScreenshotBgPipe } from '../pipes/screenshot-bg.pipe';
 import { RunColumnDirective } from '../directives/run-column.directive';
+import { Store } from '@ngxs/store';
+import { CustomSelectors } from '@others/custom-selectors';
+
+const resolveFeatureTitle: ResolveFn<string> = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
+    const featureId = route.paramMap.get('feature');
+    const feature = inject(Store).selectSnapshot(CustomSelectors.GetFeatureInfo(parseInt(featureId)))
+    return `${feature.feature_name} (${feature.feature_id})`
+}
 
 const routes: Routes = [
     {
         path: '',
+        title: resolveFeatureTitle,
         component: MainViewComponent
     },
     {
@@ -42,10 +51,12 @@ const routes: Routes = [
         children: [
             {
                 path: '',
+                title: resolveFeatureTitle,
                 component: StepViewComponent
             },
             {
                 path: 'detail/:step_result_id',
+                title: 'Step Details',
                 component: DetailViewComponent
             }
         ]
