@@ -39,6 +39,10 @@ const routes: Routes = [
     {
       path: 'new',
       loadChildren: () => import('@modules/newlanding.module').then(m => m.NewlandingModule)
+    },
+    {
+      path: 'data-driven',
+      loadComponent: () => import('@components/data-driven/data-driven.component').then(m => m.DataDrivenComponent),
     }
 ];
 
