@@ -10,6 +10,7 @@ import { createTranslateLoader } from 'app/app.module';
 const routes: Routes = [
   {
     path: '',
+    title: 'About',
     component: AboutComponent
   }
 ];
