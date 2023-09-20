@@ -6,12 +6,9 @@
     display: flex;
     flex-flow: column;
     width: 100%;
-    overflow: hidden;
+    overflow-y: auto;
     max-height: calc(100vh - var(--header-height));
     height: calc(100vh - var(--header-height));
-    @include maxHeight(850px) {
-      overflow-y: auto;
-    }
 }
 
 .no-chart {
@@ -21,7 +18,7 @@
     justify-content: center;
     align-items: center;
     img {
-        width: 30%;
+        width: 400px;
         max-width: 500px;
         height: auto;
     }
@@ -44,7 +41,7 @@
     height: 340px;
     .behave-charts {
         height: 100%;
-        padding: 50px 0 0;
+        padding: 15px 0 0;
         margin: 0 auto;
         display: flex;
         box-sizing: border-box;
@@ -57,7 +54,7 @@
 
 .chart-section {
     position: relative;
-    height: 330px;
+    // height: 330px;
     transition: .5s;
 
     @include maxWidth(750px) {
@@ -161,7 +158,7 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    height: 85px;
+    // height: 85px; // Taking too much space when screen has 125%+ screen resolution.
     margin: 15px 20px 0;
     @include for-tablet-portrait-up-plus30 {
         flex-direction: row;
@@ -281,15 +278,12 @@
 }
 
 .table_rows {
-  @include minHeight(850px) {
     height: 100%;
-    overflow: hidden;
-  }
 }
 
 .return {
     position: absolute;
-    padding: 45px 0 0 20px;
+    padding: 25px 0 0 20px;
     box-sizing: border-box;
     z-index: 2;
     @include for-tablet-portrait-up {

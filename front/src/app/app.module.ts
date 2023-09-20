@@ -47,6 +47,7 @@ import { TourService } from '@services/tour.service';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { WhatsNewService } from '@services/whats-new.service';
 import { Tours } from '@services/tours';
+import { CometaTitleStrategyService } from '@services/titles/cometa-title.service'
 
 /* Module */
 import { SharedModule } from '@modules/shared.module';
@@ -85,6 +86,7 @@ import { i18nMatPaginatorIntl } from '@services/paginator-intl';
 import { MatLegacyPaginatorIntl as MatPaginatorIntl } from '@angular/material/legacy-paginator';
 import { MatLegacyTooltipDefaultOptions as MatTooltipDefaultOptions, MAT_LEGACY_TOOLTIP_DEFAULT_OPTIONS as MAT_TOOLTIP_DEFAULT_OPTIONS } from '@angular/material/legacy-tooltip';
 import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { TitleStrategy } from '@angular/router';
 
 /* Translate Loader */
 export function createTranslateLoader(http: HttpClient) {
@@ -336,7 +338,8 @@ export function getStripeApiKey() {
       useValue: customTooltipDefaults
     },
     { provide: MAT_DIALOG_DATA, useValue: {} },
-    { provide: MatDialogRef, useValue: {} }
+    { provide: MatDialogRef, useValue: {} },
+    { provide: TitleStrategy, useClass:CometaTitleStrategyService }
   ],
   bootstrap: [CometaComponent]
 })
