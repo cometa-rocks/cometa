@@ -7,19 +7,9 @@
     flex-flow: column;
     width: 100%;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow-y: auto;
     max-height: calc(100vh - var(--header-height));
     height: calc(100vh - var(--header-height));
-    @include maxHeight(850px) {
-      overflow-y: auto;
-    }
-}
-
-.data {
-  @include minHeight(850px) {
-    height: 100%;
-    overflow: hidden;
-  }
 }
 
 .edit, .log {
@@ -140,11 +130,18 @@
         position: absolute;
         height: 25px;
         width: 100%;
-        top: 40px;
+        top: 35px;
         font-size: 20pt;
         font-weight: 500;
         margin: auto;
         text-align: center;
+
+        &::after {
+            content: attr(data-value);
+            display: block;
+            font-size: 12pt;
+            font-weight: 100;
+        }
     }
     .title {
         margin-top: 20px;
