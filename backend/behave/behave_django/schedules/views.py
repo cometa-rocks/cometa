@@ -204,25 +204,16 @@ def run_test(request):
         environment_variables['feature_result_id'] = feature_result_id
         environment_variables['RUN_HASH'] = run_hash
         # Add the current browser to the thread pool
-        try:
-            job = django_rq.enqueue(run_browser, json_path, environment_variables)
-            jobs.append(job)
-        except RuntimeError as err:
-            # Handle error: Cannot schedule new futures after interpreter shutdown
-            # Details: https://sentry.amvara.de/sentry/cometa-behave/issues/5068/activity/
-            logger.error(str(err))
-        except Exception as e:
-            # Show error in Live Steps Viewer
-            requests.post('http://cometa_socket:3001/feature/%s/error' % feature_id, data={
-                "browser_info": browser,
-                "feature_result_id": feature_result_id,
-                "run_id": feature_run,
-                "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-                "error": str(e),
-                "user_id": user_data['user_id']
-            })
-            logger.error("run_browser threw an exception:")
-            logger.exception(e)
+        job = django_rq.enqueue(
+            run_browser, 
+            json_path, 
+            environment_variables, 
+            browser=browser, 
+            feature_id=feature_id, 
+            feature_result_id=feature_result_id, 
+            user_data=user_data,
+            feature_run=feature_run)
+        jobs.append(job)
     
     notify = run_finished.delay(feature_run, feature_id, user_data, depends_on=jobs)
 
