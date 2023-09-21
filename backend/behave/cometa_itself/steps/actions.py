@@ -202,16 +202,18 @@ def done( *_args, **_kwargs ):
                     for key in env_variables:
                         variable_name = key['variable_name']
                         variable_value = str(key['variable_value'])
+                        pattern = r'\${?%s(?:}|\b)' % variable_name
                         if args[0].text and 'Loop' not in save_message: # we do not want to replace all the variables inside the loop sub-steps
                             # Replace in step description for multiline step values
-                            args[0].text = re.sub(r'\$%s\b' % variable_name, returnDecrypted(variable_value), args[0].text)
+                            args[0].text = re.sub(pattern, returnDecrypted(variable_value), args[0].text)
                             # ###
                             # variable was not being replaced correctly if variable contained another variable name in itself.
                             # ###
                             # args[0].text = args[0].text.replace(("$%s" % variable_name), returnDecrypted(variable_value))
-                        if re.search(r'\$%s\b' % variable_name, kwargs[parameter]):
+                        if re.search(pattern, kwargs[parameter]):
                             # Replace in step content
-                            kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
+                            kwargs[parameter]= re.sub(pattern, returnDecrypted(variable_value), kwargs[parameter])
+                            # kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
                     # replace job parameters
                     for parameter_key in job_parameters.keys(): # we do not want to replace all the parameters inside the loop sub-steps
                         if args[0].text and 'Loop' not in save_message:
@@ -223,7 +225,7 @@ def done( *_args, **_kwargs ):
 
                     # update using dynamic date
                     kwargs[parameter] = dynamicDateGenerator(kwargs[parameter])
-                
+
                 # update dates inside the text
                 args[0].text = dynamicDateGenerator(args[0].text)
 
@@ -261,7 +263,7 @@ def done( *_args, **_kwargs ):
                 # check if feature was aborted
                 aborted = str(err) == "'aborted'"
                 logger.debug("Checking if feature was aborted: " + str(aborted))
-                
+
                 # check the continue on failure hierarchy
                 continue_on_failure = False # default value
                 continue_on_failure = (
@@ -3106,21 +3108,21 @@ def test_ibm_cognos_cube(context, all_or_partial, variable_name, prefix, suffix)
         # trim the value to be searched
         search = search.strip()
         # click on search button
-        element = waitSelector(context, "xpath", '//span[text()="Search..."]', 10)
+        element = waitSelector(context, "xpath", '//span[text()="Search..."]', 5)
         element[0].click()
         # wait for the popup window
-        waitSelector(context, "xpath", '//*[text()="Keywords:"]', 10)
+        waitSelector(context, "xpath", '//*[text()="Keywords:"]', 5)
         # send keys once the popup window is open
         context.browser.switch_to.active_element.send_keys(search)
         # click on search
-        element = waitSelector(context, "xpath", '//button//span[text()="Search"]', 10)
+        element = waitSelector(context, "xpath", '//button//span[text()="Search"]', 5)
         element[0].click()
         # sleep 500ms for search result to appear
         time.sleep(0.5)
         # don't throw an error if not found at the end fail the step and let user know about missing values
         try:
             # look for the search value in the search tree
-            waitSelector(context, "xpath", '//*[contains(@id, "Tree_Search")]//*[text()="%s"]' % search, 10)
+            waitSelector(context, "xpath", '//*[contains(@id, "Tree_Search")]//*[text()="%s"]' % search, 5)
             logger.debug("Found %s in the report cube..." % search)
             fileContent.append([search, "Found"])
             values_found.append("%s (%s)" % (value, search))
@@ -3130,7 +3132,7 @@ def test_ibm_cognos_cube(context, all_or_partial, variable_name, prefix, suffix)
             values_not_found.append("%s (%s)" % (value, search))
             fileContent.append([search, "Not Found"])
         # go back and search for next value
-        element = waitSelector(context, "css", "#idSourcesPane_btnClearSearch", 10)
+        element = waitSelector(context, "css", "#idSourcesPane_btnClearSearch", 5)
         element[0].click()
 
     fileContent.insert(0, ["Feature ID", int(context.feature_id)])
@@ -3156,7 +3158,6 @@ def test_ibm_cognos_cube(context, all_or_partial, variable_name, prefix, suffix)
     if (len(values_not_found) > 0 and all_or_partial == 'all') or (len(values_found) == 0):
         missin_values = "; ".join(values_not_found)
         raise CustomError("Here are the missing values in Report Cube: %s" % missin_values)
-
 # compares a report cube's content to a list saved in variable
 @step(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
 @done(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
@@ -3190,7 +3191,7 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
     except CustomError as customError:
         elements = []
     # get elements values
-    element_values = [element.get_attribute("innerText") or element.get_attribute("value") for element in elements]
+    element_values = [(element.get_attribute("innerText") or element.get_attribute("value")).strip() for element in elements]
 
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
@@ -3210,7 +3211,7 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
         values.extend(variable_value.split(";"))
 
     # add prefix and suffix to the values
-    values = [("%s%s%s" % (prefix, value, suffix)).strip() for value in values]
+    values = [("%s%s%s" % (prefix, value.strip(), suffix)).strip() for value in values]
 
     # equalize the lenght of both lists
     values_eq = values[:len(element_values)] if len(values) > len(element_values) else values
@@ -3436,7 +3437,7 @@ def step_imp(context, css_selector, variable_names, prefix, suffix):
     # get all the values from css_selector
     elements = waitSelector(context, "css", css_selector)
     # get elements values
-    element_values = [element.get_attribute("innerText") or element.get_attribute("value") for element in elements]
+    element_values = [(element.get_attribute("innerText") or element.get_attribute("value")).strip() for element in elements]
 
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
@@ -3456,7 +3457,7 @@ def step_imp(context, css_selector, variable_names, prefix, suffix):
         values.extend(variable_value.split(";"))
 
     # add prefix and suffix to the values
-    values = [("%s%s%s" % (prefix, value, suffix)).strip() for value in values]
+    values = [("%s%s%s" % (prefix, value.strip(), suffix)).strip() for value in values]
 
     # equalize the lenght of both lists
     values_eq = values[:len(element_values)] if len(values) > len(element_values) else values
