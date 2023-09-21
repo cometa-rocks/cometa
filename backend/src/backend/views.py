@@ -2145,19 +2145,6 @@ class FeatureViewSet(viewsets.ModelViewSet):
         feature.last_edited_date = datetime.datetime.utcnow()
 
         """
-        Save submitted feature steps
-        """
-        # Save feature into database
-        if 'steps' in data and 'steps_content' in data.get('steps', {}):
-            # Save with steps
-            steps = data['steps']['steps_content'] or []
-            feature.steps = len([x for x in steps if x['enabled'] == True])
-            result = feature.save(steps=steps)
-        else:
-            # Save without steps
-            result = feature.save()
-
-        """
         Process schedule if requested
         """
         # Set schedule of feature if provided in data, if schedule is empty will be removed
@@ -2178,7 +2165,19 @@ class FeatureViewSet(viewsets.ModelViewSet):
                     return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule. Check crontab directory of docker.') }, status=200)
             # Save schedule, at this point is 100% valid and saved
             feature.schedule = schedule
-            feature.save()
+
+        """
+        Save submitted feature steps
+        """
+        # Save feature into database
+        if 'steps' in data and 'steps_content' in data.get('steps', {}):
+            # Save with steps
+            steps = data['steps']['steps_content'] or []
+            feature.steps = len([x for x in steps if x['enabled'] == True])
+            result = feature.save(steps=steps)
+        else:
+            # Save without steps
+            result = feature.save()
 
         """
         Send WebSockets
