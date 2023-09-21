@@ -134,7 +134,10 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
             except Exception as err:
                 # logger.error("Exception occured during the selector find, will continue looking for the element.")
                 # logger.exception(err)
-                pass
+                logger.error("Exception raised during the element search. No need to panic, will look with other type of selectors. More details in debug mode.")
+                logger.debug(f"Selector: {selector}")
+                logger.debug(f"Selector Type: {selec_type}")
+                logger.exception(err)
         # give page some time to render the search
         time.sleep(1)
     raise CometaMaxTimeoutReachedException(f"Programmed to find the element in {max_timeout} seconds, max timeout reached.")
