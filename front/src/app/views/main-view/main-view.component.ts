@@ -10,6 +10,9 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { startWith } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { MainViewFieldsDesktop, MainViewFieldsMobile, MainViewFieldsTabletLandscape, MainViewFieldsTabletPortrait } from '@others/variables';
+import { MtxGridColumn } from '@ng-matero/extensions/grid';
+import { HttpClient } from '@angular/common/http';
+import { PageEvent } from '@angular/material/paginator';
 
 @UntilDestroy()
 @Component({
@@ -26,20 +29,126 @@ export class MainViewComponent implements OnInit, AfterViewInit {
 
   @Select(CustomSelectors.GetConfigProperty('internal.showArchived')) showArchived$: Observable<boolean>;
 
+  columns: MtxGridColumn[] = [
+    {header: 'Status', field: 'status', sortable: true},
+    {header: 'Execution Date', field: 'result_date', sortable: true},
+    {header: 'Steps Total', field: 'total', sortable: true},
+    {header: 'Steps OK', field: 'ok', sortable: true},
+    {header: 'Steps NOK', field: 'fails', sortable: true},
+    {header: 'Steps Skipped', field: 'skipped', sortable: true},
+    {header: 'Duration', field: 'execution_time', sortable: true},
+    {header: 'Pixel Difference', field: 'pixel_diff', sortable: true},
+    {
+      header: 'Operation',
+      field: 'operation',
+      width: '230px',
+      pinned: 'right',
+      right: '0px',
+      type: 'button',
+      buttons: [
+        {
+          type: 'icon',
+          text: 'replay',
+          icon: 'videocam',
+          tooltip: 'View results replay',
+          color: 'primary',
+          click: () => alert('copy'),
+        },
+        {
+          type: 'icon',
+          text: 'pdf',
+          icon: 'picture_as_pdf',
+          tooltip: 'Download result PDF',
+          color: 'primary',
+          click: () => alert('copy'),
+        },
+        {
+          type: 'icon',
+          text: 'delete',
+          icon: 'delete',
+          tooltip: 'Delete result',
+          color: 'warn',
+          click: () => alert('copy'),
+        },
+        {
+          type: 'icon',
+          text: 'archive',
+          icon: 'archive',
+          tooltip: 'Archive result',
+          color: 'accent',
+          click: () => alert('copy'),
+        }
+      ]
+    }
+  ];
+
+  results = [];
+  total = 0;
+  isLoading = true;
+
+  query = {
+    page: 0,
+    size: 10
+  }
+  get params() {
+    const p = { ...this.query };
+    p.page += 1;
+    return p
+  }
+
   constructor(
     private _route: ActivatedRoute,
     private _actions: Actions,
     private _store: Store,
-    private _router: Router
+    private _router: Router,
+    private _http: HttpClient
   ) { }
 
   featureRunsUrl$: Observable<string>;
   featureId$: Observable<number>;
 
+  openContent(feature_result: FeatureResult) {
+    console.log(feature_result)
+  }
+
+  getResults() {
+    this.isLoading = true;
+    combineLatest([this.featureId$,this.showArchived$]).subscribe(([featureId, archived]) => {
+      this._http.get(`/backend/api/feature_results_by_featureid/`, {
+        params: {
+          feature_id: featureId,
+          archived: archived,
+          ...this.params
+        }
+      }).subscribe(
+        (res: any) => {
+          this.results = res.results
+          this.total = res.count
+          this.isLoading = false
+          console.log(this.results, this.total, this.isLoading)
+        },
+        () => {
+          this.isLoading = false
+        },
+        () => {
+          this.isLoading = false
+        }
+      )
+    })
+  }
+
+  getNextPage(e: PageEvent) {
+    this.query.page = e.pageIndex
+    this.query.size = e.pageSize
+    this.getResults()
+  }
+
   ngOnInit() {
     this.featureId$ = this._route.paramMap.pipe(
       map(params => +params.get('feature'))
     )
+    this.getResults()
+
     // Subscribe to URL params
     this.featureRunsUrl$ = combineLatest([
       // Get featureId parameter
