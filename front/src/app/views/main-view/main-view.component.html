@@ -3,7 +3,7 @@
   <cometa-feature-actions></cometa-feature-actions>
 </div>
 
-<div class="chart-section" *ngLet="paginatedList?.pagination$ | async as pagination" [ngClass]="{'noChart': pagination?.results?.length < 10}">
+<div class="chart-section" [ngClass]="{'noChart': total < 10}">
   <div class="return">
     <div (click)="returnToMain()" class="return-item">
       <i></i>
@@ -12,14 +12,14 @@
   </div>
   <ng-container>
     <!--charts will be displayed when test has been performed more than 10 times-->
-    <div *ngIf="isloaded && pagination?.results?.length >= 10" class="charts">
+    <div *ngIf="total >= 10" class="charts">
       <div class="behave-charts">
         <!-- Highchart -->
-        <behave-chart-desktop-steps *ngIf="pagination?.results as results" [data]="results"></behave-chart-desktop-steps>
+        <behave-chart-desktop-steps *ngIf="results" [data]="results"></behave-chart-desktop-steps>
       </div>
     </div>
     <!-- will be shown if the test has not been performed 10 times-->
-    <div *ngIf="isloaded && pagination?.results?.length < 10" class="no-chart">
+    <div *ngIf="total < 10" class="no-chart">
       <img src="assets/img/poster_2.svg" alt="shown when there is no charts">
       <p>This screen shows the results of your testruns. <br><br> Once you have more then 10 results, co.meta will show you a beautiful linechart with execution times and more.</p>
     </div>
@@ -30,7 +30,7 @@
       <div class="last_test">Last test</div>
     </div>
     <!-- Mobile Stats -->
-    <div class="mobile-info" *ngIf="pagination?.results[0] as lastRun">
+    <div class="mobile-info" *ngIf="results[0] as lastRun">
       <div class="steps">{{ lastRun.total}}</div>
       <div class="steps">{{ 1 }}</div>
       <div class="steps last-result-status" *ngLet="lastRun.success as passed" [ngClass]="passed ? 'success' : 'failed'">{{ passed ? 'OK' : 'NOK' }}</div>
@@ -38,6 +38,33 @@
   </ng-container>
 </div>
 
+<mtx-grid [data]="results"
+          [columns]="columns"
+          [columnResizable]="true"
+          [rowHover]="true"
+          [rowStriped]="true"
+          [rowSelectable]="true"
+          [length]="total"
+          [loading]="isLoading"
+          [pageOnFront]="false"
+          [pageIndex]="query.page"
+          [pageSize]="query.size"
+          [pageSizeOptions]="[10,50,100]"
+          (rowClick)="openContent($event.rowData)"
+          [cellTemplate]="{status: statusTpl, result_date: dateTpl}"
+          (page)="getNextPage($event)">
+</mtx-grid>
+
+<!-- ROW TEMPLATES -->
+<ng-template #statusTpl let-row let-index="index" let-col="colDef">
+  {{ row.success ? "Passed" : "Failed" }}
+</ng-template>
+
+<ng-template #dateTpl let-row let-index="index" let-col="colDef">
+  {{ row.result_date | amParse | amDateFormat:'MMMM d yyyy, HH:mm' }}
+</ng-template>
+
+<!--
 <div class="table_rows">
   <network-paginated-list  *ngLet="featureId$ | async as featureId"
     [listId]="'runs_' + featureId"
@@ -67,3 +94,4 @@
     </ng-template>
   </network-paginated-list>
 </div>
+-->
