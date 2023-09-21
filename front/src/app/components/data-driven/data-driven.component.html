@@ -1,3 +1,58 @@
+    <mat-expansion-panel [expanded]="!config$.toggles.hideInformation">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <span>Information</span>
+        </mat-panel-title>
+        <mat-panel-description>Data Driven Test Information</mat-panel-description>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <div class="edit-data-driven-test">
+          <mat-form-field appearance="fill" class="edit-dep">
+            <mat-label>Department</mat-label>
+            <mat-select [(ngModel)]="department">
+              <mat-option *ngFor="let dep of departments$ | sortBy:'department_name'" [value]="dep">
+                {{ dep.department_name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="edit-app">
+            <mat-label>Application</mat-label>
+            <mat-select [(ngModel)]="application">
+              <mat-option *ngFor="let app of applications$ | sortBy:'app_name'" [value]="app">
+                {{ app.app_name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="edit-env">
+            <mat-label>Environment</mat-label>
+            <mat-select [(ngModel)]="environment">
+              <mat-option *ngFor="let env of environments$ | sortBy:'environment_name'" [value]="env">
+                {{ env.environment_name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="edit-name">
+            <mat-label>Name</mat-label>
+            <input matInput spellcheck="false">
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="edit-description">
+            <mat-label>Description</mat-label>
+            <textarea spellcheck="false" matInput rows="1"></textarea>
+          </mat-form-field>
+        </div>
+        <div *ngIf="department.department_name === 'Default' && departments$.length > 1" class="department-warning">
+          <mat-icon>warning</mat-icon>
+          <span>Selecting <strong>Default</strong> department will make this feature visible to everyone, use it with caution!</span>
+        </div>
+        <div class="depends">
+          <ng-container *ngIf="(environment.environment_name && department.department_name)">
+            <span class="edit-variables">
+              <button color="primary" (click)="editVariables()" mat-stroked-button>Edit Variables</button>
+            </span>
+          </ng-container>
+        </div>
+      </ng-template>
+    </mat-expansion-panel>
 
     <mat-expansion-panel #uploadPanel [expanded]="!config$.toggles?.hideUploadedFiles">
         <mat-expansion-panel-header>
@@ -13,7 +68,6 @@
         <ng-container *ngIf="department?.files.length > 0; else noFiles">
             <div class="table-container">
                 <table mat-table [dataSource]="department?.files" class="mat-elevation-z8">
-        
                     <ng-container matColumnDef="name">
                         <th mat-header-cell *matHeaderCellDef> File name </th>
                         <td mat-cell *matCellDef="let element">
@@ -85,7 +139,6 @@
             </div>
         </ng-template>
     </mat-expansion-panel>
-
 <!-- <div *ngIf="(features$ | async) as features" class="feature-list">
 <cometa-feature-list [dependsOnOther]="true"
     [features]="feats | featureSort:sorting.value | async | pagination:page.pageIndex:page.pageSize"></cometa-feature-list>

@@ -9,6 +9,8 @@ import { ConfigState } from "@store/config.state";
 import { FileUploadService } from "@services/file-upload.service";
 import { UserState } from "@store/user.state";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { ApplicationsState } from "@store/applications.state";
+import { EnvironmentsState } from "@store/environments.state";
 
 @Component({
   selector: "cometa-data-driven",
@@ -26,14 +28,21 @@ export class DataDrivenComponent implements OnInit {
     "created_on",
     "actions",
   ];
-  departments$ = this._store.select(UserState.RetrieveUserDepartments);
+
+  departments$ = this._store.selectSnapshot(UserState.RetrieveUserDepartments);
+  applications$ = this._store.selectSnapshot(ApplicationsState);
+  environments$ = this._store.selectSnapshot(EnvironmentsState);
 
   @Select(FeaturesState.GetFeaturesWithinFolder) features$: Observable<
     ReturnType<typeof FeaturesState.GetFeaturesWithinFolder>
   >;
   @ViewSelectSnapshot(ConfigState) config$!: Config;
   @ViewSelectSnapshot(UserState) user!: UserInfo;
-  department;
+
+  department: Department;
+  application: Application;
+  environment: Environment;
+
   constructor(
     private fileUpload: FileUploadService,
     private _store: Store,
@@ -43,9 +52,7 @@ export class DataDrivenComponent implements OnInit {
   }
 
   ngOnInit() {
-     this.departments$.subscribe((departments) => {
-       this.department = departments[0];
-     });
+    this.fillDropdownsOnInit(); // TODO: Change mode based on the edit or new.
   }
 
   onUploadFile(ev) {
@@ -114,5 +121,34 @@ export class DataDrivenComponent implements OnInit {
       uint[i] = ascii;
     }
     return uint;
+  }
+
+  fillDropdownsOnInit(mode: string = 'new') {
+    switch(mode) {
+      case 'new':
+        this.preSelectedOrDefaultOptions();
+        break;
+      case 'edit':
+        // TODO: Get data from the data-driven object
+        break;
+      default:
+        break;
+    }
+  }
+  
+  preSelectedOrDefaultOptions() {
+    const { 
+      preselectDepartment,
+      preselectApplication,
+      preselectEnvironment
+    } = this.user.settings;
+    
+    const department: Department = this.departments$.find(d => d.department_id == preselectDepartment) || this.departments$[0];
+    const application: Application = this.applications$.find(a => a.app_id == preselectApplication) || this.applications$[0]
+    const environment: Environment = this.environments$.find(e => e.environment_id == preselectEnvironment) || this.environments$[0]
+
+    this.department = department;
+    this.application = application;
+    this.environment = environment;
   }
 }
