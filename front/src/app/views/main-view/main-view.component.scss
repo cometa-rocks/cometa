@@ -11,6 +11,104 @@
     height: calc(100vh - var(--header-height));
 }
 
+:host::ng-deep {
+    .mtx-grid{ 
+        table {
+            border-radius: 5px;
+            background-color: $table-background-opaque;
+            border-spacing: 0;
+            box-shadow: 0 3px 1px -2px $table-low-shadow, 0 2px 2px 0 $table-medium-shadow, 0 1px 5px 0 $table-high-shadow;
+            
+            thead {
+                background-color: #474747;
+                [role="columnheader"] {
+                    span {
+                        text-transform: uppercase;
+                        font-weight: 400;
+                        font-size: 16px;
+                        color: #fff;
+                    }
+
+                    svg {
+                        display: none;
+                    }
+                }
+
+                .mat-sort-header-arrow div:not(.mat-sort-header-indicator) {
+                    background-color: #fff;
+                }
+            }
+
+            tbody tr {
+                height: 45px;
+                cursor: pointer;
+                &:nth-child(odd) {
+                    background-color: $low-white;
+                }
+                &:nth-child(even) {
+                    background-color: #f2f2f2;
+                }
+                &:hover {
+                    background-color: #cecece;
+                }
+                &.selected {
+                    background-color: $selected-black-opaque;
+                    td {
+                        &.name {
+                            color: $blue;
+                        }
+                    }
+                }
+            }
+
+            td {
+                font-weight: bold;
+                color: $dark;
+                font-family: 'CorpoS, sans-serif';
+                font-size: 16px;
+            }
+
+            th .mat-header-cell-inner {
+                justify-content: center;
+            }
+
+            .aligned-center {
+                text-align: center;
+            }
+            .aligned-right {
+                text-align: right;
+            }
+
+            .mdc-icon-button {
+                color: #0000008a;
+
+                &:hover {
+                    color: var(--mdc-icon-button-icon-color, inherit);
+                }
+            }
+        }
+        thead .mat-table-sticky-right {
+            border-left-color: rgba(255,255,255,.2);
+        }
+        tbody .mat-table-sticky-right {
+            border-left-color: rgba(0,0,0,.2);
+        }
+        .mat-mdc-paginator-container {
+            background-color: $body-bg-color;
+        }
+
+        .browser-icon {
+            width: 100%;
+            height: 20px;
+            display: block;
+            background-size: 20px;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+        }
+    }
+}
+
 .no-chart {
     max-height: 400px;
     padding: 10px 5%;

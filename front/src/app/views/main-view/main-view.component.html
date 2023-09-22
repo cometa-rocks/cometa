@@ -40,10 +40,11 @@
 
 <mtx-grid [data]="results"
           [columns]="columns"
-          [columnResizable]="true"
-          [rowHover]="true"
-          [rowStriped]="true"
-          [rowSelectable]="true"
+          [sortActive]="'Execution Date'"
+          [showToolbar]="true"
+          [showColumnMenuButton]="true"
+          [columnMenuButtonType]="'stroked'"
+          [columnMenuButtonIcon]="'view_column'"
           [length]="total"
           [loading]="isLoading"
           [pageOnFront]="false"
@@ -51,47 +52,49 @@
           [pageSize]="query.size"
           [pageSizeOptions]="[10,50,100]"
           (rowClick)="openContent($event.rowData)"
-          [cellTemplate]="{status: statusTpl, result_date: dateTpl}"
-          (page)="getNextPage($event)">
+          [cellTemplate]="{status: statusTpl, result_date: dateTpl, execution_time: timeTpl, pixel_diff: pixelTpl, browser: browserTpl}"
+          (page)="updateData($event)">
 </mtx-grid>
 
 <!-- ROW TEMPLATES -->
 <ng-template #statusTpl let-row let-index="index" let-col="colDef">
-  {{ row.success ? "Passed" : "Failed" }}
+  <div class="cell status" *ngLet="row.status == 'Success' as passed">
+    <!-- Status box -->
+    <div class="status-box passed" stopPropagation [matMenuTriggerFor]="runStatus" *ngIf="passed; else failed">
+        Passed</div>
+    <ng-template #failed>
+        <div class="status-box failed" stopPropagation [matMenuTriggerFor]="runStatus">Failed</div>
+    </ng-template>
+    <!-- Override feature result status -->
+    <mat-menu #runStatus="matMenu">
+      <div class="menu-header">Override run status:</div>
+      <button (click)="setResultStatus(row, 'Success')" mat-menu-item>
+          <div class="status-option passed">Passed</div>
+      </button>
+      <button (click)="setResultStatus(row, 'Failed')" mat-menu-item>
+          <div class="status-option failed">Failed</div>
+      </button>
+      <mat-divider></mat-divider>
+      <button (click)="setResultStatus(row, '')" mat-menu-item>
+          <div class="status-option default">Default</div>
+      </button>
+    </mat-menu>
+  </div>
 </ng-template>
 
 <ng-template #dateTpl let-row let-index="index" let-col="colDef">
-  {{ row.result_date | amParse | amDateFormat:'MMMM d yyyy, HH:mm' }}
+  <span>{{ row.result_date | amParse | amDateFormat:'MMMM d yyyy, HH:mm' }}</span>
 </ng-template>
 
-<!--
-<div class="table_rows">
-  <network-paginated-list  *ngLet="featureId$ | async as featureId"
-    [listId]="'runs_' + featureId"
-    [endpointUrl]="featureRunsUrl$ | async"
-    [headerTemplate]="headTemplate"
-    [noItemsTemplate]="noItemsFound"
-    [injectIndex]="false"
-    [useSkeletons]="true"
-    skeletonsHeight="50px"
-    [showHeaderOnNoResults]="true"
-    trackByKey="feature_result_id"
-    [itemTemplate]="listItem">
-    <ng-template #listItem let-item>
-      <cometa-feature-run [test]="item"></cometa-feature-run>
-    </ng-template>
-    <ng-template #headTemplate>
-        <cometa-main-view-header></cometa-main-view-header>
-    </ng-template>
-    <ng-template #noItemsFound>
-      <div class="no-tests">
-        <p>Please execute your first feature clicking the blue run-button. </p>
-        <br />
-        <p class="greyed">If you just added a feature and it's executing now you will have to wait until it's finished.</p>
-        <br />
-        <p class="greyed">These results are reloaded automatically.</p>
-      </div>
-    </ng-template>
-  </network-paginated-list>
-</div>
--->
+<ng-template #timeTpl let-row let-index="index" let-col="colDef">
+  <span>{{ row.execution_time | secondsToHumanReadable }}</span>
+</ng-template>
+
+<ng-template #pixelTpl let-row let-index="index" let-col="colDef">
+  <span>{{ row.pixel_diff | pixelDifference }}</span>
+</ng-template>
+
+<ng-template #browserTpl let-row let-index="index" let-col="colDef">
+  <i class="browser-icon aligned-center" [attr.data-browser-version]="row.browser.browser_version" matTooltipPosition="above" [matTooltip]="row.browser.browser | titlecase"
+            [style.backgroundImage]="row.browser.browser | browserIcon"></i>
+</ng-template>
