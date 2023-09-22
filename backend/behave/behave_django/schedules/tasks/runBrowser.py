@@ -23,7 +23,7 @@ logger.addHandler(streamLogger)
 @job
 def run_browser(json_path, env, **kwargs):
     # Start running feature with current browser
-    process = subprocess.Popen(["bash", settings.RUNTEST_COMMAND_PATH, json_path], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(["bash", settings.RUNTEST_COMMAND_PATH, json_path], env=env, stdout=subprocess.PIPE)
 
     try:
         # wait for the process to finish
