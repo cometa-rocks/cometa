@@ -131,11 +131,21 @@ sed -i_template "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <ou
 # Check client id has been replaced
 #
 if grep -Rq "COMETA" "front/apache-conf/metadata/accounts.google.com.client"  ; then 
-	warning "Found default string in accounts.google.com.client file - you must replace this before going forward";
-	exit	
+	warning "Found default string in accounts.google.com.client file - you must replace this before going forward."
+    read -n 1 -s -r -p "Press any key to continue"
+    if grep -Rq "GITCLIENTID" "front/apache-conf/metadata/git.amvara.de.client"  ; then 
+        warning "Found default string in git.amvara.de.client file - you must replace this before going forward."
+        warning "If neither Google nor Gitlab is configured, you will not be able to login."
+        warning "Going forward with installation does not make sense, until SSO is configured. Exiting."
+        warning "Goto git.amvara.de, create an account. Goto Settings, Applications, add new Application and retrieve your access token."
+        exit
+    else 
+        info "The default string in git.amvara.de.client was replaced with something else - hopefully your Gitlab oAuth client credentials";
+    fi
 else 
 	info "The default string in accounts.google.com.client was replaced with something else - hopefully your google oAuth client credentials";
 fi
+
 
 #
 # Bring up the system
