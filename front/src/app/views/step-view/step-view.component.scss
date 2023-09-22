@@ -7,19 +7,9 @@
     flex-flow: column;
     width: 100%;
     box-sizing: border-box;
-    overflow: hidden;
+    overflow-y: auto;
     max-height: calc(100vh - var(--header-height));
     height: calc(100vh - var(--header-height));
-    @include maxHeight(850px) {
-      overflow-y: auto;
-    }
-}
-
-.data {
-  @include minHeight(850px) {
-    height: 100%;
-    overflow: hidden;
-  }
 }
 
 .edit, .log {
@@ -140,11 +130,18 @@
         position: absolute;
         height: 25px;
         width: 100%;
-        top: 40px;
+        top: 35px;
         font-size: 20pt;
         font-weight: 500;
         margin: auto;
         text-align: center;
+
+        &::after {
+            content: attr(data-value);
+            display: block;
+            font-size: 12pt;
+            font-weight: 100;
+        }
     }
     .title {
         margin-top: 20px;
@@ -347,21 +344,30 @@
                 }
             }
             .step-content {
-                padding: 10px 0;
-                .feature-reference {
-                    color: rgba(black, .55);
+                max-width: 100%;
+                // padding: 10px 0; prevents step row from increasing its height when custom error message has to be displayed, thus causing content overflow
+                .feature-reference, .step-error {
                     font-size: .8rem;
                     margin-bottom: 3px;
                     display: inline-flex;
                     position: relative;
                     transform: translate3d(0, 0, 0);
                     transition: transform .15s ease-in-out;
+
+                }
+
+                .feature-reference {
+                    color: rgba(black, .55);
                     &:hover {
                         transform: translate3d(10px, 0, 0);
                     }
                 }
-                .step-name {
-                    word-break: break-all;
+
+                .step-name, .step-error { word-break: break-all; }
+
+                .step-error {
+                    max-width: 100%;
+                    color: $bad;
                 }
             }
         }

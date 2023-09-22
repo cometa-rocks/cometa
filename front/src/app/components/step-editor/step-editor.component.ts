@@ -77,7 +77,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           step_content: [step.step_content, CustomValidators.StepAction.bind(this)],
           step_type: step.step_type,
           continue_on_failure: step.continue_on_failure,
-          timeout: step.timeout || this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)]))
+          timeout: step.timeout || this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)]))
         })
       )
     })
@@ -211,7 +211,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     let step = this.stepsForm.at(index).get('step_content');
     step.setValue(
-      step.value.substr(0, this.stepVariableData.quoteIndexes.prev + 1) + `$${variable_name}` + step.value.substr(this.stepVariableData.quoteIndexes.next - 1)
+      step.value.substr(0, this.stepVariableData.quoteIndexes.prev) + `$${variable_name}` + step.value.substr(this.stepVariableData.quoteIndexes.next - 1)
       )
 
     this.stepVariableData.currentStepIndex = null;
@@ -257,8 +257,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // gets whole textarea value
     this.stepVariableData.stepValue = event.target.value as string;
 
-    // gets the position of nearest left and right quotes taking current cursor position as startpoint index
-    this.stepVariableData.quoteIndexes = this.getQuoteIndexes(this.stepVariableData.stepValue, this.stepVariableData.selectionIndex);
+    // gets the position of nearest left $ and right " chars, taking current cursor position as startpoint index
+    this.stepVariableData.quoteIndexes = this.getIndexes(this.stepVariableData.stepValue, this.stepVariableData.selectionIndex);
 
     // return if left quote or right quote index is undefined
     if(!this.stepVariableData.quoteIndexes.next || !this.stepVariableData.quoteIndexes.prev) return;
@@ -272,7 +272,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
     if (this.stepVariableData.strWithoutQuotes.includes('$')) {
       // const strWithoutDollar = this.stepVariableData.strWithoutQuotes.replace('$','')
-
       const filteredVariables = this.variables.filter(item => item.variable_name.includes(this.stepVariableData.strWithoutQuotes.replace('$','')));
       this.displayedVariables = filteredVariables.length > 0 ? filteredVariables : ["No variable with this name"];
 
@@ -284,8 +283,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
   }
 
-  // returns the index of nearest left and right " char in string, taking received startIndex as startpoint reference
-  getQuoteIndexes(str, startIndex): QuoteIndexes {
+  // returns the index of nearest left $ and nearest right " char in string, taking received startIndex as startpoint reference
+  getIndexes(str, startIndex): QuoteIndexes {
     let prevQuoteIndex = getPrev();
     let nextQuoteIndex = getNext();
 
@@ -296,10 +295,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       }
     }
 
-    // returns the index of the nearest " that is positioned before received index
+    // returns the index of the nearest $ that is positioned before received index
     function getPrev(): number {
       for(let i = startIndex-1; i >=0; i--) {
-        if (str[i] === '"') return i;
+        if (str[i] === '$') return i;
       }
     }
 
@@ -408,7 +407,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
             compare: res.compare,
             step_content: [res.interpreted, CustomValidators.StepAction.bind(this)],
             continue_on_failure: false,
-            timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)]))
+            timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)]))
           })
         )
         this._cdr.detectChanges();
@@ -425,7 +424,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       step_content: ['', CustomValidators.StepAction.bind(this)],
       enabled: true,
       continue_on_failure: false,
-      timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)]))
+      timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)]))
     });
     if (index !== null) {
       this.stepsForm.insert(index, template);
@@ -583,7 +582,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         compare: false,
         step_content: ['StartBrowser and call URL "{url}"', CustomValidators.StepAction.bind(this)],
         continue_on_failure: false,
-        timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7200), Validators.maxLength(4)]))
+        timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)]))
       })
     );
   }

@@ -95,6 +95,7 @@
           </mat-list>
         </div>
         <i *ngIf="step.get('step_content').errors?.invalidStep" class="invalid-sign" matTooltip="Invalid step definition" matTooltipPosition="above"></i>
+        <i *ngIf="step.get('timeout').errors?.max" class="invalid-sign" matTooltip="Step timeout is invalid, maximum value for timeout is 7200." matTooltipPosition="above"></i>
         <ng-container *ngIf="importsSteps$ | async as importedSteps">
           <i *ngIf="importedSteps.length > 0 && step.value.step_content | checkDuplicate:importedSteps" class="duplicate-step-sign" matTooltip="This step definition has been found inside an import" matTooltipPosition="above"></i>
         </ng-container>
@@ -110,7 +111,7 @@
           </button>
           <button class="custom-timeout" mat-menu-item stopPropagation [matTooltip]="(step.get('step_content').value.match('I (can )?sleep') ? 'tooltips.step_timeout_ignored' : 'tooltips.step_timeout') | translate" matTooltipPosition="left">
             <span>Customize timeout:</span>
-            <input formControlName="timeout" min="0" max="1000" maxlength="4" type="number" [attr.disabled]="step.get('step_content').value.match('I (can )?sleep')">
+            <input formControlName="timeout" min="0" max="7205" maxlength="4" type="number" [attr.disabled]="step.get('step_content').value.match('I (can )?sleep')">
             <span>seconds</span>
           </button>
           <button mat-menu-item (click)="deleteStep(i)" [matTooltip]="'tooltips.step_delete' | translate" matTooltipPosition="left">
