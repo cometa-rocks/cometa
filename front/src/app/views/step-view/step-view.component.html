@@ -13,23 +13,23 @@
         <div class="result-stats">
             <div class="info" [@progressIn]="test">
                 <div class="circular-progress" *ngIf="test">
-                    <round-progress [current]="100" [max]="100" [color]="'#4D4D4D'" [background]="'#D3D3D3'" [responsive]="true"
+                    <round-progress [current]="test.total" [max]="test.total" [color]="'#4D4D4D'" [background]="'#D3D3D3'" [responsive]="true"
                         [stroke]="20" [duration]="800" [animation]="'easeInOutQuart'" [animationDelay]="0"></round-progress>
-                    <div class="value" [style.color]="'#4D4D4D'">{{ test.total }}</div>
+                    <div class="value" [attr.data-value]="test.total" [style.color]="'#4D4D4D'">{{ test.total | percentage:test.total }}</div>
                     <div class="title">TOTAL TEST</div>
                 </div>
                 <div class="circular-progress" *ngIf="test">
-                    <round-progress [current]="test.ok | percentage:test.total:false" [max]="100" [color]="'#00A99D'"
+                    <round-progress [current]="test.ok" [max]="test.total" [color]="'#00A99D'"
                         [background]="'#A1D4D0'" [responsive]="true" [stroke]="20" [duration]="800" [animation]="'easeInOutQuart'"
                         [animationDelay]="0"></round-progress>
-                    <div class="value" [style.color]="'#00A99D'">{{ test.ok| percentage:test.total:false }}%</div>
+                    <div class="value" [attr.data-value]="test.ok" [style.color]="'#00A99D'">{{ test.ok | percentage:test.total }}</div>
                     <div class="title">OK</div>
                 </div>
                 <div class="circular-progress" *ngIf="test">
-                    <round-progress [current]="test.fails | percentage:test.total:false" [max]="100" [color]="'#F7931E'"
+                    <round-progress [current]="test.fails" [max]="test.total" [color]="'#F7931E'"
                         [background]="'#EBCDAA'" [responsive]="true" [stroke]="20" [duration]="800" [animation]="'easeInOutQuart'"
                         [animationDelay]="0"></round-progress>
-                    <div class="value" [style.color]="'#F7931E'">{{ test.fails | percentage:test.total:false }}%</div>
+                    <div class="value" [attr.data-value]="test.fails" [style.color]="'#F7931E'">{{ test.fails | percentage:test.total }}</div>
                     <div class="title">FAIL</div>
                 </div>
             </div>
@@ -66,15 +66,14 @@
                                         class="feature-reference">From feature: {{ item.belongs_to.feature_name }}</div>
                                 </ng-container>
                                 <div class="step-name">{{ item?.step_name }}</div>
+                                <small *ngIf="item?.error" class="step-error"> Custom error: {{item?.error}} </small>
                             </div>
                         </div>
                         <div class="status">
                             <!-- Status Box -->
-                            <div
-                                stopPropagation
-                                [matMenuTriggerFor]="resultStatus"
-                                class="status-box"
-                                [ngClass]="passed ? 'passed' : 'failed'">{{ passed ? 'Passed' : 'Failed' }}</div>
+                            <div  class="status-box" stopPropagation [matMenuTriggerFor]="resultStatus" [ngClass]="passed ? 'passed' : 'failed'">
+                                {{ passed ? 'Passed' : 'Failed' }}
+                            </div>
                             <!-- Override result status -->
                             <mat-menu #resultStatus="matMenu">
                                 <div class="menu-header">Override step status:</div>

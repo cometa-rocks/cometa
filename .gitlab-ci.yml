@@ -95,7 +95,7 @@ stages:
     # start container or if already started then compile else start from zero
     - echo "Checking if cometa_front is already running else start it..."
     - echo "If there are changes to docker-compose file it will recreate the container..."
-    - docker-compose up -d apache 2>&1 | grep "up-to-date" && docker exec cometa_front bash -c "cd /code/; ./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
+    - docker-compose up -d apache 2>&1 | grep -E "up-to-date|cometa_front.*?Running" && docker exec cometa_front bash -c "cd /code/; ./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
 
     #########################################################
     # RELOAD GUNICORNS
@@ -106,6 +106,7 @@ stages:
     - docker exec cometa_django fuser -k -HUP 8000/tcp
     - echo -e "Now reloading gunicorn for behave"
     - docker exec cometa_behave fuser -k -HUP 8001/tcp
+    - docker exec cometa_behave bash -c "supervisorctl restart django-rq:"
     - echo -e "\e[0Ksection_end:`date +%s`:reloading_gunicorn\r\e[0K"
 
 # create a deploy job for amvara2 for branch stage

@@ -147,6 +147,15 @@ def before_all(context):
     # save the continue on failure for feature to the context
     context.feature_continue_on_failure = data.get('continue_on_failure', False)
 
+    payload={
+        "user_id": context.PROXY_USER['user_id'],
+        "browser_info": os.environ['BROWSER_INFO'],
+        "feature_result_id": os.environ['feature_result_id'],
+        "run_id": os.environ['feature_run'],
+        "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    }
+    request = requests.get('http://cometa_socket:3001/feature/%s/initializing' % str(context.feature_id), data=payload)
+
     # browser data
     context.cloud = context.browser_info.get("cloud", "browserstack") # default it back to browserstack incase it is not set.
     
@@ -315,7 +324,7 @@ def before_all(context):
 # Get video url with context of browser
 def get_video_url(context):
     # get the video url from browserstack backend
-    bsSessionRequest = requests.get("https://api.browserstack.com/automate/sessions/" + str(context.browser.session_id) + ".json", auth=requests.auth.HTTPBasicAuth("ralf.roeber@amvara.de", "zcGjRZCsJqP4egM1bZTo"))
+    bsSessionRequest = requests.get("https://api.browserstack.com/automate/sessions/" + str(context.browser.session_id) + ".json", auth=requests.auth.HTTPBasicAuth(BROWSERSTACK_USERNAME, BROWSERSTACK_PASSWORD))
     return bsSessionRequest.json()['automation_session'].get('video_url', None)
 
 @error_handling()
@@ -328,7 +337,6 @@ def after_all(context):
             alert.dismiss()
     except:
         logger.debug("No alerts found ... before shutting down the browser...")
-        pass
     
     try:
         # for some reasons this throws error when running on browserstack with safari
@@ -537,6 +545,13 @@ def after_step(context, step):
     # check if difference file is assigned
     if hasattr(context, 'DB_DIFFERENCE_SCREENSHOT'):
         screenshots['difference'] = context.DB_DIFFERENCE_SCREENSHOT
+
+    # get step error
+    step_error = None
+    if 'custom_error' in context.step_data and context.step_data['custom_error'] is not None:
+        step_error = context.step_data['custom_error']
+    elif hasattr(context, 'step_error'):
+        step_error = context.step_error
     # send websocket to front to let front know about the step
     requests.post('http://cometa_socket:3001/feature/%s/stepFinished' % context.feature_id, json={
         "user_id": context.PROXY_USER['user_id'],
@@ -548,7 +563,7 @@ def after_step(context, step):
         'datetime': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
         'step_result_info': step_result,
         'step_time': step.duration,
-        'error': context.step_error if hasattr(context, 'step_error') else None,
+        'error': step_error,
         'belongs_to': context.step_data['belongs_to'],
         'screenshots': json.dumps(screenshots) # load screenshots object
     })

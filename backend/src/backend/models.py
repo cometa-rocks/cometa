@@ -195,7 +195,7 @@ def add_step_to_feature_file(step, featureFile):
     elif "Send keys" in step['step_content']:
         write_multiline_send_keys_step(featureFile, step)
     else:
-        featureFile.write('%s%s %s' % (startingIndent, step['step_keyword'], step['step_content'].replace('\\xa0', ' ')))
+        featureFile.write('%s%s %s' % (startingIndent, step['step_keyword'], step['step_content'].replace('\\xa0', ' ').replace('\n', '')))
     
     if insideLoop and re.search(r'^.*Loop "(.*)" times starting at "(.*)" and do', step['step_content']):
         featureFile.write('\n\t\t\t"""')
@@ -224,62 +224,54 @@ def checkLoop(step):
 # @param steps: Array - Array of the steps definition
 # @param feature_id: Feature - Info of the feature
 def create_feature_file(feature, steps, featureFileName):
-    featureFile = open(featureFileName+'.feature', 'w+')
-    featureFile.write('Feature: '+feature.feature_name+'\n\n')
+    with open(featureFileName+'.feature', 'w+') as featureFile:
+        featureFile.write('Feature: '+feature.feature_name+'\n\n')
 
-    # save the steps to save to database before removing old steps
-    stepsToAdd = []
+        # save the steps to save to database before removing old steps
+        stepsToAdd = []
 
-    featureFile.write('\tScenario: First')
-    for step in steps:
-        # check if for some reason substeps are sent us from front and ignore them
-        if "step_type" in step and step['step_type'] == "substep":
-            continue
-        # remove the step type before adding it to the stepsToAdd to avoid old feature to show wrong steps
-        step['step_type'] = None
-        # add current step to the list to be added to the database
-        stepsToAdd.append(step)
-        # check if step is set to enabled
-        if step['enabled'] == True:
-            # remove belongs to from step
-            step.pop('belongs_to', None)
-            # check if current feature is a sub feature execution
-            subFeature = re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content'])
-            # check if its a loop related step
-            result = checkLoop(step)
-            if not result['success']:
-                # close the file handle
-                featureFile.close()
-                return result
-            if subFeature:
-                try:
-                    # get recursive steps from the sub feature
-                    subSteps = recursiveSubSteps([step], [feature.feature_id], feature.department_id)
-                except Exception as error:
-                    # close the file handle
-                    featureFile.close()
-                    return {"success": False, "error": str(error)}
-                # otherwise loop over substeps
-                for subStep in subSteps:
-                    # check if substep is enabled
-                    if subStep['enabled']:
-                        # check if its a loop related step
-                        subResult = checkLoop(subStep)
-                        if not subResult['success']:
-                            # close the file handle
-                            featureFile.close()
-                            return subResult
-                        subStep['step_type'] = "substep"
-                        # add the substep found in substep
-                        stepsToAdd.append(subStep)
-                        # save to the file
-                        add_step_to_feature_file(subStep, featureFile)
-            else:
-                # if enabled and not a sub feature execution add to the file
-                add_step_to_feature_file(step, featureFile)
-    featureFile.write('\n')
-    # close the file handle
-    featureFile.close()
+        featureFile.write('\tScenario: First')
+        for step in steps:
+            # check if for some reason substeps are sent us from front and ignore them
+            if "step_type" in step and step['step_type'] == "substep":
+                continue
+            # remove the step type before adding it to the stepsToAdd to avoid old feature to show wrong steps
+            step['step_type'] = None
+            # add current step to the list to be added to the database
+            stepsToAdd.append(step)
+            # check if step is set to enabled
+            if step['enabled'] == True:
+                # remove belongs to from step
+                step.pop('belongs_to', None)
+                # check if current feature is a sub feature execution
+                subFeature = re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content'])
+                # check if its a loop related step
+                result = checkLoop(step)
+                if not result['success']:
+                    return result
+                if subFeature:
+                    try:
+                        # get recursive steps from the sub feature
+                        subSteps = recursiveSubSteps([step], [feature.feature_id], feature.department_id)
+                    except Exception as error:
+                        return {"success": False, "error": str(error)}
+                    # otherwise loop over substeps
+                    for subStep in subSteps:
+                        # check if substep is enabled
+                        if subStep['enabled']:
+                            # check if its a loop related step
+                            subResult = checkLoop(subStep)
+                            if not subResult['success']:
+                                return subResult
+                            subStep['step_type'] = "substep"
+                            # add the substep found in substep
+                            stepsToAdd.append(subStep)
+                            # save to the file
+                            add_step_to_feature_file(subStep, featureFile)
+                else:
+                    # if enabled and not a sub feature execution add to the file
+                    add_step_to_feature_file(step, featureFile)
+        featureFile.write('\n')
 
     # delete all the steps from the database 
     Step.objects.filter(feature_id=feature.feature_id).delete()
@@ -729,7 +721,7 @@ class Feature(models.Model):
             featureFileName = get_feature_path(self)['fullPath']
             # Create / Update .feature and jsons whenever feature info is updated / created
             steps = kwargs.get('steps', list(Step.objects.filter(feature_id=self.feature_id).order_by('id').values()))
-            print("Saving steps received from Front:", steps)
+            logger.debug(f"Saving steps received from Front: {steps}")
             # Create .feature
             response = create_feature_file(self, steps, featureFileName)
             # check if infinite loop was found
@@ -878,6 +870,7 @@ class Step_result(models.Model):
     screenshot_difference = models.CharField(max_length=255, default='', null=True, blank=True)
     screenshot_template = models.CharField(max_length=255, default='', null=True, blank=True)
     belongs_to = models.IntegerField(null=True) # feature that step belongs to
+    error = models.TextField(null=True, blank=True)
 
     class Meta:
         ordering = ['step_result_id']
@@ -1112,8 +1105,9 @@ class Feature_Runs(SoftDeletableModel):
         deleteTemplate = kwargs.get('deleteTemplate', False)
 
         # delete all feature_results and pass in deleteTemplate
-        for fr in self.feature_results.filter(archived=False):
-            fr.delete(deleteTemplate=deleteTemplate)
+        # 2023-07-05 - ASOHAIL - Since Feature Runs are no longer in use do not delete Feature Results on it's delete.
+        # for fr in self.feature_results.filter(archived=False):
+            # fr.delete(deleteTemplate=deleteTemplate)
 
         # if everything is ok delete the object and return true
         # super(Feature_Runs, self).delete()
@@ -1434,7 +1428,10 @@ class File(SoftDeletableModel):
         # if soft is set to True add __deleted to the filename
         if soft:
             logger.debug(f"Soft delete: Moving {self.path} to {self.path}__deleted")
-            shutil.move(self.path, f"{self.path}__deleted")
+            try:
+                shutil.move(self.path, f"{self.path}__deleted")
+            except FileNotFoundError:
+                logger.info("File not found, doing some cleanup.")
             self.path = self.path + "__deleted"
 
         return super().delete(using=using, soft=soft, *args, **kwargs)

@@ -5,6 +5,22 @@ register = template.Library()
 
 @register.filter
 def Humanize(milliseconds):
+    return _humanize(milliseconds)
+
+@register.filter
+def NormalizeDownloadName(path):
+    filename = path.split('/')[1]
+    filename, extension = os.path.splitext(filename)
+    if len(filename) > pdfDownloadNameLimit:
+        filename = filename[:pdfDownloadNameLimit] + '(...)'
+    return filename + extension
+
+@register.filter
+def FormatNumber(number):
+    return '{:,}'.format(number)
+
+
+def _humanize(milliseconds):
     milliseconds = int(milliseconds)
     if milliseconds < 1000:
         return "%dms" % milliseconds
@@ -15,11 +31,3 @@ def Humanize(milliseconds):
     mDisplay = (str(minutes) + 'm' if minutes > 0 else '') + (':' if seconds > 0 and minutes > 0 else '')
     sDisplay = str(seconds) + 's' if seconds > 0 else ''
     return hDisplay + mDisplay + sDisplay
-
-@register.filter
-def NormalizeDownloadName(path):
-    filename = path.split('/')[1]
-    filename, extension = os.path.splitext(filename)
-    if len(filename) > pdfDownloadNameLimit:
-        filename = filename[:pdfDownloadNameLimit] + '(...)'
-    return filename + extension
