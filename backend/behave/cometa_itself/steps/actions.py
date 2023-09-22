@@ -34,7 +34,7 @@ import random
 
 # import PIL
 from subprocess import call, run
-from selenium.common.exceptions import WebDriverException, NoAlertPresentException, ElementNotInteractableException, TimeoutException
+from selenium.common.exceptions import WebDriverException, NoAlertPresentException, ElementNotInteractableException, TimeoutException, StaleElementReferenceException
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -202,16 +202,18 @@ def done( *_args, **_kwargs ):
                     for key in env_variables:
                         variable_name = key['variable_name']
                         variable_value = str(key['variable_value'])
+                        pattern = r'\${?%s(?:}|\b)' % variable_name
                         if args[0].text and 'Loop' not in save_message: # we do not want to replace all the variables inside the loop sub-steps
                             # Replace in step description for multiline step values
-                            args[0].text = re.sub(r'\$%s\b' % variable_name, returnDecrypted(variable_value), args[0].text)
+                            args[0].text = re.sub(pattern, returnDecrypted(variable_value), args[0].text)
                             # ###
                             # variable was not being replaced correctly if variable contained another variable name in itself.
                             # ###
                             # args[0].text = args[0].text.replace(("$%s" % variable_name), returnDecrypted(variable_value))
-                        if re.search(r'\$%s\b' % variable_name, kwargs[parameter]):
+                        if re.search(pattern, kwargs[parameter]):
                             # Replace in step content
-                            kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
+                            kwargs[parameter]= re.sub(pattern, returnDecrypted(variable_value), kwargs[parameter])
+                            # kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
                     # replace job parameters
                     for parameter_key in job_parameters.keys(): # we do not want to replace all the parameters inside the loop sub-steps
                         if args[0].text and 'Loop' not in save_message:
@@ -223,7 +225,7 @@ def done( *_args, **_kwargs ):
 
                     # update using dynamic date
                     kwargs[parameter] = dynamicDateGenerator(kwargs[parameter])
-                
+
                 # update dates inside the text
                 args[0].text = dynamicDateGenerator(args[0].text)
 
@@ -254,13 +256,14 @@ def done( *_args, **_kwargs ):
                 try:
                     # save the result to databse as False since the step failed
                     saveToDatabase(save_message, (time.time() - start_time) * 1000, 0, False, args[0])
-                except:
-                    pass
+                except Exception as err:
+                    logger.error("Exception raised while trying to save step data to database.")
+                    logger.exception(err)
 
                 # check if feature was aborted
                 aborted = str(err) == "'aborted'"
                 logger.debug("Checking if feature was aborted: " + str(aborted))
-                
+
                 # check the continue on failure hierarchy
                 continue_on_failure = False # default value
                 continue_on_failure = (
@@ -296,6 +299,12 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         'status': "Success" if success else "Failed",
         'belongs_to': context.step_data['belongs_to']
     }
+    # add custom error if exists
+    if 'custom_error' in context.step_data:
+        data['error'] = context.step_data['custom_error']
+    elif hasattr(context, 'step_error'):
+        data['error'] = context.step_error
+    # add files
     try:
         data['files'] = json.dumps(context.downloadedFiles[context.counters['index']])
     except:
@@ -687,6 +696,20 @@ def step_impl(context,css_selector):
             click_element_by_css(context, css_selector)
         else:
             raise err
+
+# Moves the mouse to the css selector and double clicks
+@step(u'I move mouse to "{selector}" and double click')
+@done(u'I move mouse to "{selector}" and double click')
+def step_impl(context,selector):
+    send_step_details(context, 'Looking for selector')
+    elem = waitSelector(context, "css", selector)
+    send_step_details(context, 'Double Clicking')
+    try:
+        ActionChains(context.browser).move_to_element(elem[0]).double_click().perform()
+    except Exception as err:
+        logger.error("Unable to double click on the element.")
+        logger.exception(err)
+        raise err
 
 # Moves the mouse to the center of css selector
 @step(u'I move mouse over "{css_selector}"')
@@ -1508,60 +1531,12 @@ def cannot_see_selector(context, selector):
     timeout = context.step_data['timeout']
     logger.debug("Timeout is %s " % timeout)
 
-    send_step_details(context, 'Looking for selector') # send feedback to user via WS
-
-    # type of selectors to be searched
-    types = {
-        "css": "context.browser.find_elements_by_css_selector(selector)",
-        "xpath": "context.browser.find_elements_by_xpath(selector)",
-    }
-
-    start_time = time.time() # loop until timeout is reached
-    found_element= False # flag to signal element was found
-
-    # Loop until timeout reached or element found
-    while True:
-        elapsed_time = time.time() - start_time
-        logger.debug("looping while true and not reaching timeout %s - elepased time %s " % (timeout, elapsed_time))
-        
-        if elapsed_time >= timeout: # check timeout
-            logger.debug("Timeout reached")
-            send_step_details(context, 'Looking for selector - timeout reached ... it was not found, which is good')
-            break
-
-        # loop over selectors to search for
-        for selec_type in list(types.keys()):
-            logger.debug("Trying to find element %s with %s " % (selector, selec_type))
-            try:
-                elements = eval(types.get(selec_type, "css"))
-                # Check if it returned at least 1 element ... which means, we found something
-                if isinstance(elements, WebElement) or len(elements) > 0:
-                    logger.debug("Found element ... which is bad. Setting found_element to True and breaking the loop.")
-                    found_element=True
-                    break
-                else:
-                    logger.debug("Could not find %s " % selector)
-            except CustomError as err:
-                logger.debug(err)
-                raise
-            except:
-                pass
-
-            time.sleep(1) # give page some time to render the search
-
-        # check if element was found
-        if found_element:
-            send_step_details(context, 'Looking for selector - it was found, which is bad')
-            raise CustomError("Found selector using %s. Which is bad." % selector)
-            break
-
-    # finally check, if we reached the timeout
-    if elapsed_time >= timeout and found_element == False:
-        logger.debug("Element was not found.")
-        send_step_details(context, 'Looking for selector - timeout reached. Selector %s was not found, which is good' % selector)
-    else:
-        logger.debug("Timeout was not reached and Element was found")
-        raise CustomError("Found selector %s. Which is bad." % selector)
+    try:
+        waitSelector(context, "css", selector)
+        send_step_details(context, 'Looking for selector - it was found, which is bad')
+        raise CustomError("Found selector using %s. Which is bad." % selector)
+    except CometaTimeoutException as err:
+        logger.info("Element not found which in case is good!")
 
 # Check if the source code in the previously selected iframe contains a link with text something
 @step(u'I can see a link with "{linktext}" in iframe')
@@ -1602,22 +1577,38 @@ def step_impl(context, css_selector, value):
     # Preformat css_selector and value variables
     css_selector = getVariableType(css_selector)
     value = getVariableType(value)
-    # Get selector reference in DOM
-    try:
-        if isinstance(css_selector, int):
-            # Change name for better understanding
-            index = css_selector
-            send_step_details(context, 'Looking for selector')
-            elements = waitSelector(context, "tag_name", "select")
-            # Index is a 1+ index, therefore subtract 1 and get the select element
-            index -= 1
-            selector = Select(elements[index])
-        else:
-            send_step_details(context, 'Looking for selector')
-            elements = waitSelector(context, "css", css_selector)
-            selector = Select(elements[0])
-    except:
-        raise CustomError("Unable to find selector using %s." % css_selector)
+
+    def element_selector(context, css_selector):
+        # Get selector reference in DOM
+        try:
+            if isinstance(css_selector, int):
+                # Change name for better understanding
+                index = css_selector
+                send_step_details(context, 'Looking for selector')
+                elements = waitSelector(context, "tag_name", "select")
+                # Index is a 1+ index, therefore subtract 1 and get the select element
+                index -= 1
+                element = elements[index]
+            else:
+                send_step_details(context, 'Looking for selector')
+                elements = waitSelector(context, "css", css_selector)
+                element = elements[0]
+            return element
+        except:
+            raise CustomError("Unable to find selector using %s." % css_selector)
+    
+    element = element_selector(context, css_selector)
+    send_step_details(context, 'Waiting for the element to interactable.')
+    while True:
+        try:
+            if element.is_displayed() and element.is_enabled():
+                break
+        except CometaTimeoutException as err:
+            raise CustomError("Selector never got enabled ... will not be able to select the value.")
+        except StaleElementReferenceException:
+            element = element_selector(context, css_selector)
+    
+    selector = Select(element)
     send_step_details(context, 'Selecting value/index')
     # Get value or index reference in DOM
     if isinstance(value, int):
@@ -3015,12 +3006,12 @@ def imp(context, css_selector, variable_name):
     # TODO: implement options to be used in order to not polute the variable names
     if ( variable_name.startswith("unique") ):
         new_elements = []
-        logger.debug("AMVARA: received variable starting with unique. Will order elements in list", element_values)
+        logger.debug("AMVARA: received variable starting with unique. Will order elements in list: %s." % str(element_values))
         for i in element_values:
             if i not in new_elements:
                 new_elements.append(i)
         element_values = new_elements
-        logger.debug("AMVARA: Ordered elements ", element_values)
+        logger.debug("AMVARA: Ordered elements: %s." % str(element_values))
 
     # convert to string
     elements_list = ";".join(element_values)
@@ -3080,10 +3071,7 @@ def step_imp(context, x, value, variable_name):
     oneTimePassword = totp.now()
     addVariable(context, variable_name, oneTimePassword, encrypted=True)
 
-# compares a report cube's content to a list saved in variable
-@step(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
-@done(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
-def imp(context, variable_name, prefix, suffix):
+def test_ibm_cognos_cube(context, all_or_partial, variable_name, prefix, suffix):
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
     # check if variable_name is in the env_variables
@@ -3109,7 +3097,8 @@ def imp(context, variable_name, prefix, suffix):
     # split it from semi-colon (;)
     values = variable_value.split(";")
 
-    # save all the values not found in the report cube
+    # save all the values found and not found in the report cube
+    values_found = []
     values_not_found = []
 
     # run checks for each value in list
@@ -3119,30 +3108,31 @@ def imp(context, variable_name, prefix, suffix):
         # trim the value to be searched
         search = search.strip()
         # click on search button
-        element = waitSelector(context, "xpath", '//span[text()="Search..."]')
+        element = waitSelector(context, "xpath", '//span[text()="Search..."]', 5)
         element[0].click()
         # wait for the popup window
-        waitSelector(context, "xpath", '//*[text()="Keywords:"]')
+        waitSelector(context, "xpath", '//*[text()="Keywords:"]', 5)
         # send keys once the popup window is open
         context.browser.switch_to.active_element.send_keys(search)
         # click on search
-        element = waitSelector(context, "xpath", '//button//span[text()="Search"]')
+        element = waitSelector(context, "xpath", '//button//span[text()="Search"]', 5)
         element[0].click()
         # sleep 500ms for search result to appear
         time.sleep(0.5)
         # don't throw an error if not found at the end fail the step and let user know about missing values
         try:
             # look for the search value in the search tree
-            waitSelector(context, "xpath", '//*[contains(@id, "Tree_Search")]//*[text()="%s"]' % search)
+            waitSelector(context, "xpath", '//*[contains(@id, "Tree_Search")]//*[text()="%s"]' % search, 5)
             logger.debug("Found %s in the report cube..." % search)
             fileContent.append([search, "Found"])
+            values_found.append("%s (%s)" % (value, search))
         except Exception as e:
             logger.error(str(e))
             # append the value in not founds
             values_not_found.append("%s (%s)" % (value, search))
             fileContent.append([search, "Not Found"])
         # go back and search for next value
-        element = waitSelector(context, "css", "#idSourcesPane_btnClearSearch")
+        element = waitSelector(context, "css", "#idSourcesPane_btnClearSearch", 5)
         element[0].click()
 
     fileContent.insert(0, ["Feature ID", int(context.feature_id)])
@@ -3165,9 +3155,25 @@ def imp(context, variable_name, prefix, suffix):
     context.downloadedFiles[context.counters['index']] = ["%s/%s" % (os.environ['feature_result_id'], fileName)]
 
     # finally check if values_not_found has something if so fail step and let user know about the missing values
-    if len(values_not_found) > 0:
+    if (len(values_not_found) > 0 and all_or_partial == 'all') or (len(values_found) == 0):
         missin_values = "; ".join(values_not_found)
         raise CustomError("Here are the missing values in Report Cube: %s" % missin_values)
+# compares a report cube's content to a list saved in variable
+@step(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
+@done(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
+def imp(context, variable_name, prefix, suffix):
+    test_ibm_cognos_cube(context, 'all', variable_name, prefix, suffix)
+
+# compares a report cube's content to a list saved in variable
+@step(u'Test IBM Cognos Cube Dimension to contain "{all_or_partial}" values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
+@done(u'Test IBM Cognos Cube Dimension to contain "{all_or_partial}" values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
+def imp(context, all_or_partial, variable_name, prefix, suffix):
+
+    # check the value for all_or_partial
+    if all_or_partial not in ['all', 'partial']:
+        raise CustomError("all_or_partial value should be 'all' or 'partial'.")
+    
+    test_ibm_cognos_cube(context, all_or_partial, variable_name, prefix, suffix)
 
 @step(u'Test list of "{css_selector}" elements to contain "{all_or_partial}" values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
 @done(u'Test list of "{css_selector}" elements to contain "{all_or_partial}" values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
@@ -3185,7 +3191,7 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
     except CustomError as customError:
         elements = []
     # get elements values
-    element_values = [element.get_attribute("innerText") or element.get_attribute("value") for element in elements]
+    element_values = [(element.get_attribute("innerText") or element.get_attribute("value")).strip() for element in elements]
 
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
@@ -3205,7 +3211,7 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
         values.extend(variable_value.split(";"))
 
     # add prefix and suffix to the values
-    values = [("%s%s%s" % (prefix, value, suffix)).strip() for value in values]
+    values = [("%s%s%s" % (prefix, value.strip(), suffix)).strip() for value in values]
 
     # equalize the lenght of both lists
     values_eq = values[:len(element_values)] if len(values) > len(element_values) else values
@@ -3431,7 +3437,7 @@ def step_imp(context, css_selector, variable_names, prefix, suffix):
     # get all the values from css_selector
     elements = waitSelector(context, "css", css_selector)
     # get elements values
-    element_values = [element.get_attribute("innerText") or element.get_attribute("value") for element in elements]
+    element_values = [(element.get_attribute("innerText") or element.get_attribute("value")).strip() for element in elements]
 
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
@@ -3451,7 +3457,7 @@ def step_imp(context, css_selector, variable_names, prefix, suffix):
         values.extend(variable_value.split(";"))
 
     # add prefix and suffix to the values
-    values = [("%s%s%s" % (prefix, value, suffix)).strip() for value in values]
+    values = [("%s%s%s" % (prefix, value.strip(), suffix)).strip() for value in values]
 
     # equalize the lenght of both lists
     values_eq = values[:len(element_values)] if len(values) > len(element_values) else values
@@ -3557,6 +3563,26 @@ def step_imp(context, css_selector, variable_names, prefix, suffix):
     else:
         raise CustomError("Lists do not match, please check the attachment.")
 
+
+@step(u'Define Custom Error Message for next step: "{error_message}"')
+@done(u'Define Custom Error Message for next step: "{error_message}"')
+def step_imp(context, error_message):
+    # get next step index
+    next_step = context.counters['index'] + 1
+    # get all the steps from the environment
+    steps = json.loads(os.environ['STEPS'])
+    # check that there is another step after the current step
+    if len(steps) > next_step:
+        # update the step definition
+        steps[next_step].update({
+            "custom_error": logger.mask_values(error_message)
+        })
+        os.environ['STEPS'] = json.dumps(steps)
+        logger.info(f"Custom error message set for step: {steps[next_step]['step_content']}")
+    else:
+        logger.warn(f"This is the last step, cannot assign custom error message to next step.")
+
+# Ignores undefined steps
 @step(u'{step}')
 @done(u'{step}')
 def step_imp(context, step):

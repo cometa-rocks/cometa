@@ -5,7 +5,7 @@ from .exceptions import *
 from .variables import *
 from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
-import time, requests, json, os, datetime, sys, subprocess, re, tempfile, shutil
+import time, requests, json, os, datetime, sys, subprocess, re, shutil
 from src.backend.common import *
 from src.backend.utility.cometa_logger import CometaLogger
 sys.path.append("/code")
@@ -28,7 +28,10 @@ logger.addHandler(streamLogger)
 Python library with common utility functions
 """
 
-class TimeoutException(Exception):
+class CometaTimeoutException(Exception):
+    pass
+
+class CometaMaxTimeoutReachedException(Exception):
     pass
 
 # timeout error
@@ -36,7 +39,7 @@ class TimeoutException(Exception):
 def timeoutError(signum, frame, timeout=MAX_STEP_TIMEOUT, error=None):
     if error is None:
         error = f"Step took more than configured time: {timeout}s."
-    raise TimeoutException(error)
+    raise CometaTimeoutException(error)
 
 # DEPRECATED:
 def timeout( *_args, **_kwargs ):
@@ -75,7 +78,9 @@ def timeout( *_args, **_kwargs ):
 # @param selector_type: string - Type of selector to use, see below code for possible types
 # @param selector: string - Selector to use
 # @timeout("Waited for <seconds> seconds but unable to find specified element.")
-def waitSelector(context, selector_type, selector):
+def waitSelector(context, selector_type, selector, max_timeout=None):
+    # set the start time for the step
+    start_time = time.time()
     #2288 - Split : id values into a valid css selector
     # example: "#hello:world" --> [id*=hello][id*=world]
     selectorWords = selector.split(' ')
@@ -110,7 +115,7 @@ def waitSelector(context, selector_type, selector):
     types_new[selector_type] = selector_type_value
     types_new.update(types)
     # Loop until maxtries is reached and then exit with exception
-    while True:
+    while (time.time() - start_time < max_timeout if max_timeout is not None else True):
         for selec_type in list(types_new.keys()):
             try:
                 elements = eval(types_new.get(selec_type, "css"))
@@ -121,7 +126,7 @@ def waitSelector(context, selector_type, selector):
                 logger.error("Custom Error Exception occured during the selector find, will exit the search.")
                 logger.exception(err)
                 raise
-            except TimeoutException as err:
+            except CometaTimeoutException as err:
                 logger.error("Timeout Exception occured during the selector find, will exit the search.")
                 logger.exception(err)
                 # Max retries exceeded, raise error
@@ -129,9 +134,14 @@ def waitSelector(context, selector_type, selector):
             except Exception as err:
                 # logger.error("Exception occured during the selector find, will continue looking for the element.")
                 # logger.exception(err)
-                pass
+                logger.error("Exception raised during the element search. No need to panic, will look with other type of selectors. More details in debug mode.")
+                logger.debug(f"Selector: {selector}")
+                logger.debug(f"Selector Type: {selec_type}")
+                logger.exception(err)
         # give page some time to render the search
         time.sleep(1)
+    raise CometaMaxTimeoutReachedException(f"Programmed to find the element in {max_timeout} seconds, max timeout reached.")
+
 
 def element_has_class(element, classname):
     """
@@ -196,10 +206,33 @@ def click_element(context, element):
     if element.is_displayed():
         element.click()
 
+def tempFile(source):
+    # file ext
+    filename = os.path.basename(source).split('/')[-1]
+    target = "/tmp/%s" % filename
+
+    # check if file exists
+    if os.path.exists(target):
+        # try removing the file
+        logger.debug(f"{target} file exists, trying to remove it.")
+        try:
+            os.remove(target)
+        except Exception as err:
+            logger.error("Unable to remove the file.")
+            logger.exception(err)
+
+            # get the timestamp
+            ts = time.time()
+            logger.debug(f"Setting a different filename: /tmp/{ts}-{filename}")
+            target = f"/tmp/{ts}-{filename}"
+
+    logger.info(f"TMP file will be created at {target} for {source}.")
+
+    return target
+
 def decryptFile(source):
-        # file ext
-        filePathPrefix, fileExtention = os.path.splitext(source)
-        target = "/tmp/%s%s" % ( next(tempfile._get_candidate_names()), fileExtention )
+        # get target file for the source
+        target = tempFile(source)
 
         logger.debug(f"Decrypting source {source}")
 
@@ -247,10 +280,8 @@ def uploadFileTarget(context, source):
             raise CustomError(f"{file} does not exist, if this error persists please contact an administrator.")
 
         if 'downloads' in filePath:
-            # file ext
-            filePathPrefix, fileExtention = os.path.splitext(filePath)
-            # generate a target dummy file
-            target = "/tmp/%s%s" % ( next(tempfile._get_candidate_names()), fileExtention )
+            # get temp file
+            target = tempFile(filePath)
 
             # copy the file to the target
             shutil.copy2(filePath, target)

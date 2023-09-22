@@ -130,7 +130,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     // if so we don't have access to live session
     if (data.browser_info.cloud != 'local') return false;
     // array of status on which not to show the live icon
-    const notToShowOn = ['Initializing', 'Timeout', 'Completed'];
+    const notToShowOn = ['Queued', 'Initializing', 'Timeout', 'Completed'];
     return !notToShowOn.includes(data.status);
   }
 
