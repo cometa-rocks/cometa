@@ -11,14 +11,15 @@ from schedules.forms import SetScheduleValidationForm
 from crontab import CronTab, CronSlices
 import os, logging, sys
 from django.conf import settings
-import json
+import json, time
 import secrets
 import urllib.parse
 from django.views.decorators.clickjacking import xframe_options_exempt
 import random
+import django_rq
 from pprint import pprint
-from concurrent.futures import ThreadPoolExecutor
 from sentry_sdk import capture_exception
+from schedules.tasks.runBrowser import run_browser, run_finished
 
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
@@ -143,88 +144,79 @@ def run_test(request):
             'user_id': user_data['user_id']
         })
         return JsonResponse({}, status = 200)
-    with ThreadPoolExecutor(max_workers=len(browsers)) as executor:
-        # create a thread for each browser
-        for browser in browsers:
-            logger.debug("Execution testcase in browser: {}".format(browser))
-            # Check browser for valid values and repairs outdated versions
-            try:
-                browser = checkBrowser(browser, local_browsers, cloud_browsers)
-            except Exception as err:
-                # Show error in Live Steps Viewer
-                requests.post('http://cometa_socket:3001/feature/%s/error' % feature_id, data={
-                    "browser_info": json.dumps(browser),
-                    "feature_result_id": 0,
-                    "run_id": feature_run,
-                    "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-                    "error": str(err),
-                    "user_id": user_data['user_id']
-                })
-                # Continue on next browser, skipping current browser execution
-                continue
-            # dump the json as string
-            browser = json.dumps(browser)
-            # data to create a feature_result for the current session
-            data = {
-                "feature_id": feature_id,
-                "result_date": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-                "browser": browser,
-                "feature_run": feature_run,
-                "executed_by": user_data['user_id'],
-                "running": True,
-                "run_hash": run_hash
-            }
-            # send the request with the data
-            response = requests_retry.post('http://cometa_django:8000/api/feature_results/', headers={'Host': 'cometa.local'}, data=data)
-            if response.status_code != 201:
-                # Something went wrong while creating a feature result for current browser
-                # This can be due to a Server Error
-                logger.error('Unable to retrieve feature_result_id for current browser execution.')
-                exit
-            # save the feature_result_id to the environment variable
-            try:
-                feature_result_id = str(response.json()['feature_result_id'])
-            except json.decoder.JSONDecodeError as err:
-                logger.error('Failed to parse Django response as JSON. See Sentry for details.')
-                capture_exception(err)
-            # send websocket about the feature is being initialized
-            request = requests.get('http://cometa_socket:3001/feature/%s/initializing' % feature_id, data={
-                "user_id": user_data['user_id'],
-                "browser_info": browser,
-                "feature_result_id": feature_result_id,
+    
+    # save all the jobs
+    jobs = []
+
+    # create a thread for each browser
+    for browser in browsers:
+        logger.debug("Execution testcase in browser: {}".format(browser))
+        # Check browser for valid values and repairs outdated versions
+        try:
+            browser = checkBrowser(browser, local_browsers, cloud_browsers)
+        except Exception as err:
+            # Show error in Live Steps Viewer
+            requests.post('http://cometa_socket:3001/feature/%s/error' % feature_id, data={
+                "browser_info": json.dumps(browser),
+                "feature_result_id": 0,
                 "run_id": feature_run,
-                "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+                "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+                "error": str(err),
+                "user_id": user_data['user_id']
             })
-            # add missing variables to environment_variables dict
-            environment_variables['BROWSER_INFO'] = browser
-            environment_variables['feature_result_id'] = feature_result_id
-            environment_variables['RUN_HASH'] = run_hash
-            # Add the current browser to the thread pool
-            try:
-                future = executor.submit(runBrowser, json_path, environment_variables)
-                result = future.result()
-            except RuntimeError as err:
-                # Handle error: Cannot schedule new futures after interpreter shutdown
-                # Details: https://sentry.amvara.de/sentry/cometa-behave/issues/5068/activity/
-                logger.error(str(err))
-            except Exception as e:
-                # Show error in Live Steps Viewer
-                requests.post('http://cometa_socket:3001/feature/%s/error' % feature_id, data={
-                    "browser_info": browser,
-                    "feature_result_id": feature_result_id,
-                    "run_id": feature_run,
-                    "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-                    "error": str(e),
-                    "user_id": user_data['user_id']
-                })
-    logger.debug('All browsers of current run completed!')
-    # Send completed websocket to Front
-    requests.post('http://cometa_socket:3001/feature/%d/runCompleted' % int(feature_id), json={
-        'type': '[WebSockets] Completed Feature Run',
-        'run_id': int(feature_run),
-        'datetime': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-        'user_id': user_data['user_id']
-    })
+            # Continue on next browser, skipping current browser execution
+            continue
+        # dump the json as string
+        browser = json.dumps(browser)
+        # data to create a feature_result for the current session
+        data = {
+            "feature_id": feature_id,
+            "result_date": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+            "browser": browser,
+            "feature_run": feature_run,
+            "executed_by": user_data['user_id'],
+            "running": True,
+            "run_hash": run_hash
+        }
+        # send the request with the data
+        response = requests_retry.post('http://cometa_django:8000/api/feature_results/', headers={'Host': 'cometa.local'}, data=data)
+        if response.status_code != 201:
+            # Something went wrong while creating a feature result for current browser
+            # This can be due to a Server Error
+            logger.error('Unable to retrieve feature_result_id for current browser execution.')
+            exit
+        # save the feature_result_id to the environment variable
+        try:
+            feature_result_id = str(response.json()['feature_result_id'])
+        except json.decoder.JSONDecodeError as err:
+            logger.error('Failed to parse Django response as JSON. See Sentry for details.')
+            capture_exception(err)
+        # send websocket about the feature has been queued
+        request = requests.get('http://cometa_socket:3001/feature/%s/queued' % feature_id, data={
+            "user_id": user_data['user_id'],
+            "browser_info": browser,
+            "feature_result_id": feature_result_id,
+            "run_id": feature_run,
+            "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        })
+        # add missing variables to environment_variables dict
+        environment_variables['BROWSER_INFO'] = browser
+        environment_variables['feature_result_id'] = feature_result_id
+        environment_variables['RUN_HASH'] = run_hash
+        # Add the current browser to the thread pool
+        job = django_rq.enqueue(
+            run_browser, 
+            json_path, 
+            environment_variables, 
+            browser=browser, 
+            feature_id=feature_id, 
+            feature_result_id=feature_result_id, 
+            user_data=user_data,
+            feature_run=feature_run)
+        jobs.append(job)
+    
+    notify = run_finished.delay(feature_run, feature_id, user_data, depends_on=jobs)
+
     # Wait for the thread pool to finish
     return JsonResponse({}, status = 200)
 
@@ -269,21 +261,6 @@ def checkBrowser(selected, local_browsers, cloud_browsers):
         except:
             raise Exception('Unable to find latest version for the selected browser')
     return selected
-
-def runBrowser(json_path, env):
-    # pass the browsers and feature_result_id to thread using environment variables
-    """
-    os.environ['BROWSER_INFO'] = browser
-    os.environ['feature_result_id'] = feature_result_id
-    os.environ['RUN_HASH'] = run_hash
-    """
-    # Start running feature with current browser
-    result = subprocess.run(["bash", settings.RUNTEST_COMMAND_PATH, json_path], env=env, stdout=subprocess.PIPE)
-    output = result.stdout.decode("utf-8")
-    logger.debug("Feature Execution output: \n" + output)
-    # general error handling, only cover errors occured before steps execution.
-    if 'ParserError:' in output:
-        raise Exception("Failed to execute the feature, maybe there are typos in the steps?")
     
 @require_http_methods(["GET"])
 @csrf_exempt

@@ -8,6 +8,7 @@ import { TranslateModule } from '@ngx-translate/core';
 const routes: Routes = [
   {
     path: '',
+    title: 'Profile',
     component: UserComponent
   }
 ];
