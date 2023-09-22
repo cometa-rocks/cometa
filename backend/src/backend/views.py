@@ -6,6 +6,7 @@ from backend.serializers import *
 from django.core.exceptions import *
 # Import permissions related methods
 from backend.utility.decorators import require_permissions, hasPermission, require_subscription
+from backend.templatetags.humanize import _humanize
 # Needed rest_framework import
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
@@ -134,17 +135,17 @@ def GetBrowserStackBrowsers(request):
 
 
 def GetUserDepartments(request):
-    user = request.session['user']
     # Get an array of the departments ids owned by the current logged user
-    try:
-        departmentsOwning = Department.objects.filter(owners__user_id=request.session['user']['user_id']).values_list('department_id', flat=True)
-    except FieldError:
-        print('DepartmentOwners not implemented yet')
-        departmentsOwning = []
+    # try:
+    #     departmentsOwning = Department.objects.filter(owners__user_id=request.session['user']['user_id']).values_list('department_id', flat=True)
+    # except FieldError:
+    #     print('DepartmentOwners not implemented yet')
+    #     departmentsOwning = []
     # Get an array of department ids which the user has access to from the OIDCAccount info
     userDepartments = [x['department_id'] for x in request.session['user']['departments']]
     # Merge arrays of departments and owning, and return
-    return userDepartments + list(set(departmentsOwning) - set(userDepartments))
+    # return userDepartments + list(set(departmentsOwning) - set(userDepartments))
+    return userDepartments + list(set(userDepartments))
 
 # function that recieves feature_run are removes all feature_results not
 # marked as archived.
@@ -513,30 +514,162 @@ def downloadFeatureFiles(request, filepath, *args, **kwargs):
 
 # Sends the request to behave without waiting
 def startFeatureRun(data):
-    requests.post('http://behave:8001/run_test/', data=data)
+    result = requests.post('http://behave:8001/run_test/', data=data)
 
 @csrf_exempt
-@require_subscription()
-@require_permissions("run_feature")
-def runTest(request, *args, **kwargs):
-    # Verify body can be parsed as JSON
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({ 'success': False, 'error': 'Unable to parse request body.' })
-
+def viewRunStatus(request, feature_id):
     # Verify feature id exists
     try:
-        feature = Feature.objects.get(feature_id=data['feature_id'])
+        feature = Feature.objects.get(feature_id=feature_id)
     except Feature.DoesNotExist:
+        return JsonResponse({ 'success': False, 'error': 'Provided Feature ID does not exist.' }, status=404)
+
+    onlyProgress = request.GET.get('onlyProgress', False)
+    logger.debug(f"OnlyProgress? - {onlyProgress}")
+
+    # check if user belong to the department
+    userDepartments = GetUserDepartments(request)
+    if feature.department_id not in userDepartments:
         return JsonResponse({ 'success': False, 'error': 'Provided Feature ID does not exist.' })
+    
+    # check if it feature is currently running
+    request_response = requests.get(f'http://cometa_socket:3001/featureStatus/{feature_id}')
+
+    # result that will be returned
+    result = ""
+
+    try:
+        data = request_response.json()
+
+        # if only progress is set 
+        if onlyProgress and data.get('running', False):
+            return HttpResponse("waiting....\n", status=206)
+
+        # get the last result from the feature
+        try:
+            last_feature_result = Feature_result.objects.filter(feature_id=feature_id).order_by('-result_date')[0]
+            result += f"""Feature: {feature.feature_name} ({feature.feature_id})
+Feature Result ID: {last_feature_result.feature_result_id}
+
+"""
+        except:
+            return JsonResponse({
+                'success': False,
+                'error': 'Unable to retrieve the last feature result.'
+            }, status=503)
+        # get all the steps related to the last result
+        try:
+            row = ["N", "Step Name", "Execution Time", "Success"]
+            result += "{:>4}º {:<100} | {:^14} | {:^7} \n".format(*row)
+            step_results = Step_result.objects.filter(feature_result_id=last_feature_result.feature_result_id)
+            if len(step_results) == 0:
+                result += "No Step Results Yet.\n"
+            else:
+                i = 1
+                for step_result in step_results:
+                    sn = step_result.step_name if len(step_result.step_name) < 97 else step_result.step_name[:97] + '...'
+                    row = [i, sn, _humanize(step_result.execution_time), '🗸' if step_result.success else '✖']
+                    result += "{:>4}) {:<100} | {:^14} | {:^7} \n".format(*row)
+                    i += 1
+            if not data.get('running', False):
+                result += f""" 
+Overall Status: {last_feature_result.status}
+Total Execution Time: {_humanize(last_feature_result.execution_time)}
+"""
+            return HttpResponse(result, status=(206 if data.get('running', False) else 200))
+        except:
+            return JsonResponse({
+                'success': False,
+                'error': 'Unable to retrieve the steps from the last feature result.'
+            }, status=503)
+    except Exception as err:
+        return JsonResponse({
+            'success': False,
+            'error': 'Feature is not running.'
+        }, status=404)
+
+def features_sql(department_id=None, folder_id=None, recursive=False):
+
+    if department_id is None and folder_id is None:
+        raise Exception("Either department_id or folder_id must be provided.")
+    
+    if department_id is not None and folder_id is not None:
+        raise Exception("Please provide either department_id or folder_id. Both properties are not allowed.")
+
+    query = """
+    SELECT 
+        feature.feature_id
+    FROM 
+        backend_feature feature 
+    LEFT JOIN 
+        backend_folder_feature bff
+    ON bff.feature_id = feature.feature_id 
+    LEFT JOIN backend_folder folder 
+    ON folder.folder_id = bff.folder_id 
+    WHERE
+        feature.depends_on_others IS NOT TRUE
+    AND
+    """
+
+    if department_id:
+        query += f"feature.department_id = {department_id}"
+    
+    if department_id and not recursive:
+        query += f" AND bff.folder_id is null"
+    
+    if folder_id and not recursive:
+        query += f"folder.folder_id = {folder_id}"
+    
+    if folder_id and recursive:
+        query = f"""
+        WITH RECURSIVE recursive_folders AS (
+            SELECT
+                bf.folder_id, 1 AS LVL
+            FROM
+                backend_folder bf
+            WHERE 
+                bf.parent_id_id = {folder_id} OR bf.folder_id = {folder_id}
+            UNION
+            SELECT 
+                bf.folder_id, rf.LVL + 1
+            FROM 
+                backend_folder bf
+            JOIN recursive_folders rf 
+            ON bf.parent_id_id = rf.folder_id AND rf.LVL < {MAX_FOLDER_HIERARCHY}
+        )
+        SELECT DISTINCT
+            bff.feature_id 
+        FROM 
+            backend_folder_feature bff 
+        RIGHT JOIN recursive_folders rf ON rf.folder_id = bff.folder_id
+        LEFT JOIN backend_feature feature ON bff.feature_id = feature.feature_id
+        WHERE 
+            feature.depends_on_others IS NOT TRUE
+        """
+    
+    results = Feature.objects.raw(query)
+    features = [result for result in results]
+
+    return features
+
+def runFeature(request, feature_id, data={}):
+    # Verify feature id exists
+    try:
+        feature = Feature.objects.get(pk=feature_id)
+    except Feature.DoesNotExist:
+        return { 'success': False, 'error': 'Provided Feature ID does not exist.' }
+    
+    # check if user belong to the department
+    userDepartments = GetUserDepartments(request)
+    if feature.department_id not in userDepartments:
+        return { 'success': False, 'error': 'Provided Feature ID does not exist.' }
 
     # Verify access to submitted browsers
     try:
         subscriptions = get_subscriptions_from_request(request)
         check_browser_access(feature.browsers, subscriptions)
     except Exception as err:
-        return JsonResponse({ 'success': False, 'error': str(err) })
+        return { 'success': False, 'error': str(err) }
 
     # Get user session
     user = request.session['user']
@@ -549,7 +682,7 @@ def runTest(request, *args, **kwargs):
             # Prevent continue if user will exceed quota and has marked the option to prevent schedules from running
             scheduled_behavior = user['settings'].get('budget_schedule_behavior', '')
             if check_user_will_exceed_budget(user['user_id'], feature.feature_id) and scheduled_behavior == 'prevent':
-                return JsonResponse({ 'success': False, 'error': 'Execution will exceed budget and user has `prevent` option configured.' })
+                return { 'success': False, 'error': 'Execution will exceed budget and user has `prevent` option configured.' }
         else:
             # Request coming from front user
             # Retrieve confirm parameter from body JSON
@@ -559,15 +692,15 @@ def runTest(request, *args, **kwargs):
                     budget_exceeded = check_user_will_exceed_budget(user['user_id'], feature.feature_id)
                     if budget_exceeded:
                         # Budget will or has already exceeded the budget
-                        return JsonResponse({ 'success': False, 'action': 'confirm_exceeded' })
+                        return { 'success': False, 'action': 'confirm_exceeded' }
                 except BudgetAhead as err:
                     # Budget is very close to be reached
-                    return JsonResponse({ 'success': False, 'action': 'confirm_ahead' })
+                    return { 'success': False, 'action': 'confirm_ahead' }
                 except Exception as err:
                     # An unkown error occurred
                     capture_exception(err)
                     logger.error(str(err))
-                    return JsonResponse({ 'success': False, 'error': str(err) })
+                    return { 'success': False, 'error': str(err) }
 
     # create a run id for the executed test
     date_time = datetime.datetime.utcnow()
@@ -578,7 +711,7 @@ def runTest(request, *args, **kwargs):
     feature.info = fRun
 
     # Make sure feature files exists
-    steps = Step.objects.filter(feature_id=data['feature_id']).order_by('id').values()
+    steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
     feature.save(steps=list(steps))
     json_path = get_feature_path(feature)['fullPath']+'_meta.json'
 
@@ -590,15 +723,15 @@ def runTest(request, *args, **kwargs):
             job.parameters['jobId'] = job.id
             jobParameters = job.parameters
         except Exception as err:
-            return JsonResponse({'success': False, 'error': str(err)})
+            return {'success': False, 'error': str(err)}
 
     # get environment variables
     env = Environment.objects.filter(environment_name=feature.environment_name)[0]
     dep = Department.objects.filter(department_name=feature.department_name)[0]
     env_variables = Variable.objects.filter(
-        Q(department=dep),
-        Q(environment=env) |
-        Q(feature=feature)
+        Q(department=dep, based='department') |
+        Q(department=dep, environment=env, based='environment') |
+        Q(feature=feature, based='feature')
     ).order_by('variable_name', '-based').distinct('variable_name')
     seri = VariablesSerializer(env_variables, many=True).data
 
@@ -621,9 +754,47 @@ def runTest(request, *args, **kwargs):
         # Spawn thread to launch feature run
         t = Thread(target=startFeatureRun, args=(datum, ))
         t.start()
-        return JsonResponse({ 'success': True })
+
+        return { 'success': True }
     except Exception as e:
-        return JsonResponse({ 'success': False, 'error': str(e) })
+        return { 'success': False, 'error': str(e) }
+
+@csrf_exempt
+@require_subscription()
+@require_permissions("run_feature")
+def runBatch(request, *args, **kwargs):
+    # Verify body can be parsed as JSON
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({ 'success': False, 'error': 'Unable to parse request body.' })
+
+    try:
+        features = features_sql(data.get('department_id', None), data.get('folder_id', None), data.get('recursive', False))
+        if features:
+            feature_results = {feature.pk : runFeature(request, feature.pk) for feature in features}
+            print(feature_results)
+            return JsonResponse({
+                'success': True,
+                'results': feature_results
+            })
+        else:
+            return JsonResponse({ 'success': False, 'error': 'No features found.' })
+    except Exception as err:
+        return JsonResponse({ 'success': False, 'error': str(err) })
+
+@csrf_exempt
+@require_subscription()
+@require_permissions("run_feature")
+def runTest(request, *args, **kwargs):
+    # Verify body can be parsed as JSON
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({ 'success': False, 'error': 'Unable to parse request body.' })
+
+    return JsonResponse(runFeature(request, data.get('feature_id', None), data))
+
 
 @csrf_exempt
 def GetSteps(request, feature_id):
@@ -1974,19 +2145,6 @@ class FeatureViewSet(viewsets.ModelViewSet):
         feature.last_edited_date = datetime.datetime.utcnow()
 
         """
-        Save submitted feature steps
-        """
-        # Save feature into database
-        if 'steps' in data and 'steps_content' in data.get('steps', {}):
-            # Save with steps
-            steps = data['steps']['steps_content'] or []
-            feature.steps = len([x for x in steps if x['enabled'] == True])
-            result = feature.save(steps=steps)
-        else:
-            # Save without steps
-            result = feature.save()
-
-        """
         Process schedule if requested
         """
         # Set schedule of feature if provided in data, if schedule is empty will be removed
@@ -2007,7 +2165,19 @@ class FeatureViewSet(viewsets.ModelViewSet):
                     return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule. Check crontab directory of docker.') }, status=200)
             # Save schedule, at this point is 100% valid and saved
             feature.schedule = schedule
-            feature.save()
+
+        """
+        Save submitted feature steps
+        """
+        # Save feature into database
+        if 'steps' in data and 'steps_content' in data.get('steps', {}):
+            # Save with steps
+            steps = data['steps']['steps_content'] or []
+            feature.steps = len([x for x in steps if x['enabled'] == True])
+            result = feature.save(steps=steps)
+        else:
+            # Save without steps
+            result = feature.save()
 
         """
         Send WebSockets
