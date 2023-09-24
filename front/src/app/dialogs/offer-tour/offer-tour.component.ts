@@ -6,12 +6,8 @@ import { Tour } from '@services/tours';
   selector: 'offer-tour',
   templateUrl: './offer-tour.component.html',
   styleUrls: ['./offer-tour.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OfferTourComponent {
-
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: Tour
-  ) { }
-
+  constructor(@Inject(MAT_DIALOG_DATA) public data: Tour) {}
 }

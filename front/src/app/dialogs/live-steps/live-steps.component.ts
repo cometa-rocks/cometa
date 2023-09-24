@@ -1,10 +1,25 @@
-import { Component, Inject, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
-import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import {
+  Component,
+  Inject,
+  ChangeDetectionStrategy,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
+import {
+  MatLegacyDialogRef as MatDialogRef,
+  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
+} from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
 import { Store, Actions, ofActionCompleted } from '@ngxs/store';
 import { Subscribe } from 'app/custom-decorators';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
-import { distinctUntilKeyChanged, filter, map, shareReplay, tap } from 'rxjs/operators';
+import {
+  distinctUntilKeyChanged,
+  filter,
+  map,
+  shareReplay,
+  tap,
+} from 'rxjs/operators';
 import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
 import { Observable } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -18,10 +33,9 @@ import { getBrowserKey } from '@services/tools';
   selector: 'live-steps',
   templateUrl: './live-steps.component.html',
   styleUrls: ['./live-steps.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LiveStepsComponent implements OnInit, OnDestroy {
-
   results$: Observable<IResult>;
   lastFeatureRunID: any;
   status$: Observable<string>;
@@ -39,14 +53,23 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     private _api: ApiService,
     private _snack: MatSnackBar
   ) {
-    this.status$ = this._store.select(CustomSelectors.GetFeatureStatus(this.feature_id));
-    this.feature$ = this._store.select(CustomSelectors.GetFeatureInfo(this.feature_id));
-    this.results$ = this._store.select(CustomSelectors.GetFeatureResults(this.feature_id));
-    this.lastFeatureRunID = CustomSelectors.GetLastFeatureRunID(this.feature_id);
+    this.status$ = this._store.select(
+      CustomSelectors.GetFeatureStatus(this.feature_id)
+    );
+    this.feature$ = this._store.select(
+      CustomSelectors.GetFeatureInfo(this.feature_id)
+    );
+    this.results$ = this._store.select(
+      CustomSelectors.GetFeatureResults(this.feature_id)
+    );
+    this.lastFeatureRunID = CustomSelectors.GetLastFeatureRunID(
+      this.feature_id
+    );
   }
 
   // Cleanup old or unused runs info on close
-  ngOnDestroy = () => this._store.dispatch(new WebSockets.CleanupFeatureResults(this.feature_id));
+  ngOnDestroy = () =>
+    this._store.dispatch(new WebSockets.CleanupFeatureResults(this.feature_id));
 
   trackBrowserFn(index, item) {
     return item.key;
@@ -58,45 +81,52 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     // Grab the steps of the feature
-    this.steps$ = this._store.select(CustomSelectors.GetFeatureSteps(this.feature_id, 'edit', false, true)).pipe(
-      // CustomSelectors.GetFeatureSteps is taxing
-      // Therefore we need to share the result among all subscribers
-      shareReplay({ bufferSize: 1, refCount: true })
+    this.steps$ = this._store
+      .select(
+        CustomSelectors.GetFeatureSteps(this.feature_id, 'edit', false, true)
+      )
+      .pipe(
+        // CustomSelectors.GetFeatureSteps is taxing
+        // Therefore we need to share the result among all subscribers
+        shareReplay({ bufferSize: 1, refCount: true })
+      );
+    this._store.dispatch(
+      new StepDefinitions.GetStepsForFeature(this.feature_id)
     );
-    this._store.dispatch( new StepDefinitions.GetStepsForFeature(this.feature_id) );
     // Scroll handler
-    this._actions$.pipe(
-      untilDestroyed(this), // Stop emitting events after LiveSteps is closed
-      // Filter only by NGXS actions which trigger step index changing
-      ofActionCompleted(
-        WebSockets.StepStarted,
-        WebSockets.StepFinished
-      ),
-      map(event => event.action),
-      filter(action => action.feature_id === this.feature_id),
-      distinctUntilKeyChanged('step_index'),
-      // Switch current observable to scroll option value
-      filter(_ => !!this.autoScroll)
-      // Then filter stream by truthy values
-    ).subscribe(action => {
-      const index = action.step_index;
-      const browser = getBrowserKey(action.browser_info);
-      const steps = document.querySelector(`.steps-container[browser="${browser}"]`)
-      if (steps) {
-        // Browser result of current WebSocket is visible
-        let runningElement = steps.querySelectorAll('cometa-live-step');
-        if (runningElement.length > 0) {
-          // Current view has steps visible
-          if (runningElement[index]) {
-            // Running step exists
-            runningElement[index].scrollIntoView({
-              block: 'center',
-              behavior: 'smooth'
-            });
+    this._actions$
+      .pipe(
+        untilDestroyed(this), // Stop emitting events after LiveSteps is closed
+        // Filter only by NGXS actions which trigger step index changing
+        ofActionCompleted(WebSockets.StepStarted, WebSockets.StepFinished),
+        map(event => event.action),
+        filter(action => action.feature_id === this.feature_id),
+        distinctUntilKeyChanged('step_index'),
+        // Switch current observable to scroll option value
+        filter(_ => !!this.autoScroll)
+        // Then filter stream by truthy values
+      )
+      .subscribe(action => {
+        const index = action.step_index;
+        const browser = getBrowserKey(action.browser_info);
+        const steps = document.querySelector(
+          `.steps-container[browser="${browser}"]`
+        );
+        if (steps) {
+          // Browser result of current WebSocket is visible
+          let runningElement = steps.querySelectorAll('cometa-live-step');
+          if (runningElement.length > 0) {
+            // Current view has steps visible
+            if (runningElement[index]) {
+              // Running step exists
+              runningElement[index].scrollIntoView({
+                block: 'center',
+                behavior: 'smooth',
+              });
+            }
           }
         }
-      }
-    });
+      });
   }
 
   @Subscribe()
@@ -108,9 +138,13 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
           // Let the client clearly know it's stopped
           this.dialogRef.close();
           // Get last runId
-          const runId = this._store.selectSnapshot<number>(this.lastFeatureRunID)
+          const runId = this._store.selectSnapshot<number>(
+            this.lastFeatureRunID
+          );
           // Tell the store the run has finished with stopped event
-          this._store.dispatch( new WebSockets.StoppedFeature( this.feature_id, runId ) );
+          this._store.dispatch(
+            new WebSockets.StoppedFeature(this.feature_id, runId)
+          );
         } else {
           this._snack.open('An error ocurred', 'OK');
         }
@@ -136,7 +170,6 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
 
   handleScrollChange({ checked }: MatCheckboxChange) {
     this.autoScroll = checked;
-    localStorage.setItem('live_steps_auto_scroll', checked.toString())
+    localStorage.setItem('live_steps_auto_scroll', checked.toString());
   }
-
 }

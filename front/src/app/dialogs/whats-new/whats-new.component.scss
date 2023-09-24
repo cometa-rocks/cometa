@@ -1,173 +1,172 @@
-
 @import 'color';
 @import 'breakpoints';
 
 .mat-dialog-title {
-    margin: 0;
-    padding: 12px 15px;
-    box-sizing: border-box;
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    line-height: 20px;
-    .title {
-        text-transform: uppercase;
-        color: $blue;
-        width: 100%;
-        font: inherit;
-        font-family: "CorpoS", sans-serif;
-        font-weight: bold;
-        font-size: 14pt;
-    }
-    .date {
-        width: 100%;
-        font-size: 9pt;
-        font-weight: bold;
-        color: rgba(black, .75);
-    }
-    .close {
-        display: block;
-        position: absolute;
-        height: 64px;
-        width: 64px;
-        top: 0;
-        right: 0;
-        background-image: url(^assets/icons/close-black.svg);
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: 18px;
-        opacity: .8;
-        cursor: pointer;
-    }
-    box-shadow: 0 0 5px rgba(black, .5);
+  margin: 0;
+  padding: 12px 15px;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  line-height: 20px;
+  .title {
+    text-transform: uppercase;
+    color: $blue;
+    width: 100%;
+    font: inherit;
+    font-family: 'CorpoS', sans-serif;
+    font-weight: bold;
+    font-size: 14pt;
+  }
+  .date {
+    width: 100%;
+    font-size: 9pt;
+    font-weight: bold;
+    color: rgba(black, 0.75);
+  }
+  .close {
+    display: block;
+    position: absolute;
+    height: 64px;
+    width: 64px;
+    top: 0;
+    right: 0;
+    background-image: url(^assets/icons/close-black.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 18px;
+    opacity: 0.8;
+    cursor: pointer;
+  }
+  box-shadow: 0 0 5px rgba(black, 0.5);
 }
 
 .poster {
-    width: 100%;
-    max-height: 300px;
+  width: 100%;
+  max-height: 300px;
 }
 
 :host {
-    display: block;
-    position: relative;
-    overflow: hidden;
+  display: block;
+  position: relative;
+  overflow: hidden;
 }
 
 :host::ng-deep icon {
-    background-repeat: no-repeat;
-    display: inline-block;
-    fill: currentColor;
-    height: 24px;
-    width: 24px;
-    font-family: 'Material Icons';
-    font-weight: normal;
-    font-style: normal;
-    font-size: 24px;
-    display: inline-block;
-    line-height: 10px;
-    text-transform: none;
-    letter-spacing: normal;
-    word-wrap: normal;
-    white-space: nowrap;
-    direction: ltr;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    -moz-osx-font-smoothing: grayscale;
-    font-feature-settings: 'liga';
-    position: relative;
-    top: 7px;
-    color: $blue;
+  background-repeat: no-repeat;
+  display: inline-block;
+  fill: currentColor;
+  height: 24px;
+  width: 24px;
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  display: inline-block;
+  line-height: 10px;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+  position: relative;
+  top: 7px;
+  color: $blue;
 }
 
 .body {
-    padding: 15px;
-    box-sizing: border-box;
-    .header {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 15px;
-        .title {
-            flex: initial;
-            text-transform: uppercase;
-            color: $blue;
-            font-weight: bold;
-        }
-        .bar {
-            flex: 1;
-            height: 1px;
-            margin-left: 10px;
-            background-color: rgba($blue, .75);
-        }
+  padding: 15px;
+  box-sizing: border-box;
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    .title {
+      flex: initial;
+      text-transform: uppercase;
+      color: $blue;
+      font-weight: bold;
     }
-    ul {
-        display: block;
-        padding-left: 20px;
-        li {
-            list-style-type: none;
-            margin: 10px 0;
-            line-height: 25px;
-            strong {
-                color: $blue;
-            }
-            &:before {
-                content: "• ";
-                color: $blue;
-            }
-        }
+    .bar {
+      flex: 1;
+      height: 1px;
+      margin-left: 10px;
+      background-color: rgba($blue, 0.75);
     }
+  }
+  ul {
+    display: block;
+    padding-left: 20px;
+    li {
+      list-style-type: none;
+      margin: 10px 0;
+      line-height: 25px;
+      strong {
+        color: $blue;
+      }
+      &:before {
+        content: '• ';
+        color: $blue;
+      }
+    }
+  }
 }
 
 ::ng-deep .whats-new-panel {
-    max-width: 95%;
-    @include for-tablet-portrait-up {
-        max-width: 100%;
-    }
+  max-width: 95%;
+  @include for-tablet-portrait-up {
+    max-width: 100%;
+  }
 }
 
 ::ng-deep .whats-new-panel .mat-dialog-container {
+  padding: 0;
+  border-radius: 5px;
+  .mat-dialog-content {
     padding: 0;
-    border-radius: 5px;
-    .mat-dialog-content {
-        padding: 0;
-        margin: 0;
-        overflow-x: hidden;
-        @include for-tablet-portrait-up {
-            max-height: 50vh;
-        }
-        &::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        &::-webkit-scrollbar-button {
-            width: 0px;
-            height: 0px;
-        }
-        &::-webkit-scrollbar-thumb {
-            background: $blue;
-        }
-        &::-webkit-scrollbar-thumb:hover {
-            background: darken($blue, 5);
-        }
-        &::-webkit-scrollbar-track {
-            background: rgba(black, .1);
-            border: 0px none #ffffff;
-        }
-        &::-webkit-scrollbar-track:hover {
-            background: rgba(black, .15);
-          }
-        &::-webkit-scrollbar-track:active {
-            background: rgba(black, .15);
-          }
-        &::-webkit-scrollbar-corner {
-            background: transparent;
-          }
+    margin: 0;
+    overflow-x: hidden;
+    @include for-tablet-portrait-up {
+      max-height: 50vh;
     }
-    .mat-dialog-actions {
-        margin: 0;
-        padding: 15px;
-        box-sizing: border-box;
-        box-shadow: 0 0 7px rgba(black, .15);
+    &::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
     }
+    &::-webkit-scrollbar-button {
+      width: 0px;
+      height: 0px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: $blue;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+      background: darken($blue, 5);
+    }
+    &::-webkit-scrollbar-track {
+      background: rgba(black, 0.1);
+      border: 0px none #ffffff;
+    }
+    &::-webkit-scrollbar-track:hover {
+      background: rgba(black, 0.15);
+    }
+    &::-webkit-scrollbar-track:active {
+      background: rgba(black, 0.15);
+    }
+    &::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+  }
+  .mat-dialog-actions {
+    margin: 0;
+    padding: 15px;
+    box-sizing: border-box;
+    box-shadow: 0 0 7px rgba(black, 0.15);
+  }
 }

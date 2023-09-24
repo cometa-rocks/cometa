@@ -6,20 +6,21 @@ import { CustomSelectors } from '@others/custom-selectors';
   name: 'alreadyTakenFilter',
 })
 export class AlreadyTakenFilterPipe implements PipeTransform {
-
   // Key filters allowed to add multiple instances
   allowedMultiple = ['app', 'env', 'dept', 'test'];
 
-  @SelectSnapshot(CustomSelectors.GetConfigProperty('filters')) filters: Filter[];
+  @SelectSnapshot(CustomSelectors.GetConfigProperty('filters'))
+  filters: Filter[];
 
   transform(alreadyTaken: Array<filterPossibility>): Array<filterPossibility> {
     if (!alreadyTaken) return [];
     const ids = alreadyTaken.map(item => item.id);
     return this.filters.filter(item => {
-      return ids.indexOf(item.id) === -1 || this.allowedMultiple.includes(item.id);
+      return (
+        ids.indexOf(item.id) === -1 || this.allowedMultiple.includes(item.id)
+      );
     });
   }
-
 }
 
 interface filterPossibility {

@@ -1,8 +1,22 @@
 <h2 mat-dialog-title>Remove feature {{ data?.feature_name }}</h2>
-<mat-dialog-content>Are you sure you want to delete this feature?</mat-dialog-content>
+<mat-dialog-content
+  >Are you sure you want to delete this feature?</mat-dialog-content
+>
 <mat-dialog-actions>
   <ng-container *ngLet="deleting$ | async as deleting">
-    <button mat-stroked-button [disabled]="deleting" color="primary" mat-dialog-close>No, cancel</button>
-    <button mat-stroked-button [disabled]="deleting" color="warn" (click)="delete()">Yes, delete it</button>
+    <button
+      mat-stroked-button
+      [disabled]="deleting"
+      color="primary"
+      mat-dialog-close>
+      No, cancel
+    </button>
+    <button
+      mat-stroked-button
+      [disabled]="deleting"
+      color="warn"
+      (click)="delete()">
+      Yes, delete it
+    </button>
   </ng-container>
 </mat-dialog-actions>

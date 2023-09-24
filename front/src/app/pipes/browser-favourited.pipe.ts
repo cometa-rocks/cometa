@@ -1,19 +1,22 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'browserFavourited'
+  name: 'browserFavourited',
 })
 export class BrowserFavouritedPipe implements PipeTransform {
-
-  transform(browser: BrowserstackBrowser, favourites: BrowserstackBrowser[]): boolean {
+  transform(
+    browser: BrowserstackBrowser,
+    favourites: BrowserstackBrowser[]
+  ): boolean {
     return favourites.some(fav => {
-      return fav.browser === browser.browser &&
-             fav.os === browser.os &&
-             fav.os_version === browser.os_version &&
-             fav.browser_version === browser.browser_version &&
-             fav.device === browser.device &&
-             fav.real_mobile === browser.real_mobile;
+      return (
+        fav.browser === browser.browser &&
+        fav.os === browser.os &&
+        fav.os_version === browser.os_version &&
+        fav.browser_version === browser.browser_version &&
+        fav.device === browser.device &&
+        fav.real_mobile === browser.real_mobile
+      );
     });
   }
-
 }

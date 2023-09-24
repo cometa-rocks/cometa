@@ -1,75 +1,74 @@
-
 @import 'color';
 
 :host {
-    display: block;
-    width: 100%;
-    padding: 45px 30px 60px;
-    box-sizing: border-box;
-    line-height: 25px;
-    overflow-x: hidden;
-    max-height: calc(100vh - var(--header-height));
+  display: block;
+  width: 100%;
+  padding: 45px 30px 60px;
+  box-sizing: border-box;
+  line-height: 25px;
+  overflow-x: hidden;
+  max-height: calc(100vh - var(--header-height));
 }
 
 a {
-    color: $blue;
-    text-decoration: none;
-    &:hover {
-        text-decoration: underline;
-    }
+  color: $blue;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .websocket {
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    display: inline-flex;
-    .intro {
-        margin-right: 15px;
-    }
-    &.connected .status {
-        background-color: #4caf50;
-    }
-    .status {
-        display: block;
-        height: 15px;
-        width: 15px;
-        background-color: #e53935;
-        border-radius: 50%;
-        margin-right: 10px;
-    }
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  display: inline-flex;
+  .intro {
+    margin-right: 15px;
+  }
+  &.connected .status {
+    background-color: #4caf50;
+  }
+  .status {
+    display: block;
+    height: 15px;
+    width: 15px;
+    background-color: #e53935;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
 }
 
 .title {
-    font-size: 1.2em;
-    font-weight: bold;
+  font-size: 1.2em;
+  font-weight: bold;
 }
 
 .about-header {
-    display: block;
-    width: 100%;
-    border-bottom: 2px solid $secondary-color;
-    margin: 20px 0 30px;
-    line-height: 40px;
-    font-weight: bold;
+  display: block;
+  width: 100%;
+  border-bottom: 2px solid $secondary-color;
+  margin: 20px 0 30px;
+  line-height: 40px;
+  font-weight: bold;
 }
 
 .change-title {
-    color: $blue;
-    font-weight: bold;
+  color: $blue;
+  font-weight: bold;
 }
 
 .change-title + ul > li {
-    padding-left: 30px;
+  padding-left: 30px;
 }
 
 ul li {
-    list-style-type: none;
-    line-height: 30px;
-    & > ul li {
-        &:before {
-            content: "• ";
-            color: $blue;
-        }
+  list-style-type: none;
+  line-height: 30px;
+  & > ul li {
+    &:before {
+      content: '• ';
+      color: $blue;
     }
+  }
 }

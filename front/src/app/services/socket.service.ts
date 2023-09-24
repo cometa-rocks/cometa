@@ -10,9 +10,9 @@ import { skip } from 'rxjs/operators';
 
 @Injectable()
 export class SocketService {
-
   /** Whether or not to log websockets into Console */
-  @SelectSnapshot(CustomSelectors.GetConfigProperty('logWebsockets')) logWebsockets !: boolean;
+  @SelectSnapshot(CustomSelectors.GetConfigProperty('logWebsockets'))
+  logWebsockets!: boolean;
   /** Observable User object from user.state.ts */
   @Select(UserState) user$: Observable<UserInfo>;
   /** User object from user.state.ts */
@@ -30,7 +30,7 @@ export class SocketService {
   constructor(
     @Inject(SOCKET_URL) private socketURI: string,
     private _store: Store
-  ) { }
+  ) {}
 
   Init() {
     // Create connection to WebSocket Server
@@ -39,12 +39,12 @@ export class SocketService {
       reconnection: true,
       reconnectionAttempts: Infinity,
       auth: {
-        user: this.user
-      }
+        user: this.user,
+      },
     });
     // Bind listeners to socket
-    this.socket.on('connect', this.onConnection.bind(this))
-    this.socket.on('disconnect', this.onDisconnection.bind(this))
+    this.socket.on('connect', this.onConnection.bind(this));
+    this.socket.on('disconnect', this.onDisconnection.bind(this));
     this.socket.on('message', this.onMessageReceived.bind(this));
   }
 
@@ -54,7 +54,7 @@ export class SocketService {
    */
   onMessageReceived(data: any) {
     if (this.logWebsockets) console.log(data);
-    this._store.dispatch( data )
+    this._store.dispatch(data);
   }
 
   /**
@@ -64,10 +64,12 @@ export class SocketService {
     this.connectionStatus$.next(true);
     // Clear previous subscription to user changes if found
     this.clearUserSubscription();
-    this.userSubscription = this.user$.pipe(
-      // Skip initial store value, get only changes
-      skip(1)
-    ).subscribe(user => this.updateUserSocket(user));
+    this.userSubscription = this.user$
+      .pipe(
+        // Skip initial store value, get only changes
+        skip(1)
+      )
+      .subscribe(user => this.updateUserSocket(user));
   }
 
   /**
@@ -87,12 +89,11 @@ export class SocketService {
 
   /**
    * Emits an event to the server to perform a user object update
-   * @param {UserInfo} user Information of user 
+   * @param {UserInfo} user Information of user
    */
   updateUserSocket(user: UserInfo) {
     if (user && this.socket && this.socket.connected) {
       this.socket.emit('updateUser', user);
     }
   }
-
 }

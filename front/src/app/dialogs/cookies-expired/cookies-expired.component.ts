@@ -4,11 +4,10 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
   selector: 'cookies-expired',
   templateUrl: './cookies-expired.component.html',
   styleUrls: ['./cookies-expired.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CookiesExpiredDialog {
-
   relogin(): void {
-    location.reload()
+    location.reload();
   }
 }

@@ -10,24 +10,25 @@ import { Browserstack } from './actions/browserstack.actions';
  */
 @State<BrowserstackBrowser[]>({
   name: 'browserstack_browsers',
-  defaults: []
+  defaults: [],
 })
 @Injectable()
 export class BrowserstackState {
+  constructor(private _api: ApiService) {}
 
-  constructor( private _api: ApiService ) { }
+  @Action(Browserstack.GetBrowserstack)
+  getBrowserstacks({ setState }: StateContext<BrowserstackBrowser[]>) {
+    return this._api.getBrowserstackBrowsers().pipe(
+      map(json => (json.success ? json.results : [])),
+      tap(browsers => setState(browsers))
+    );
+  }
 
-    @Action(Browserstack.GetBrowserstack)
-    getBrowserstacks({ setState }: StateContext<BrowserstackBrowser[]>) {
-        return this._api.getBrowserstackBrowsers().pipe(
-            map(json => json.success ? json.results : []),
-            tap(browsers => setState(browsers))
-        );
-    }
-
-    @Action(Browserstack.SetBrowserstacks)
-    setBrowserstacks({ setState }: StateContext<BrowserstackBrowser[]>, { browsers }: Browserstack.SetBrowserstacks) {
-        setState(browsers);
-    }
-
+  @Action(Browserstack.SetBrowserstacks)
+  setBrowserstacks(
+    { setState }: StateContext<BrowserstackBrowser[]>,
+    { browsers }: Browserstack.SetBrowserstacks
+  ) {
+    setState(browsers);
+  }
 }

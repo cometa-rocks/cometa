@@ -14,17 +14,17 @@ import { Departments } from '@store/actions/departments.actions';
   selector: 'admin-departments',
   templateUrl: './departments.component.html',
   styleUrls: ['./departments.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DepartmentsComponent implements OnInit {
-
   constructor(
     private _api: ApiService,
     private _dialog: MatDialog,
     private _store: Store
-  ) { }
+  ) {}
 
-  @Select(UserState.GetPermission('create_department')) canCreateDepartment$: Observable<boolean>;
+  @Select(UserState.GetPermission('create_department'))
+  canCreateDepartment$: Observable<boolean>;
   @Select(DepartmentsState) departments$: Observable<Department[]>;
 
   ngOnInit() {
@@ -37,18 +37,26 @@ export class DepartmentsComponent implements OnInit {
 
   @Subscribe()
   newDepartment() {
-    return this._dialog.open(EnterValueComponent, {
-      autoFocus: true,
-      data: {
-        word: 'Department'
-      }
-    }).afterClosed().pipe(
-      map(res => res.value),
-      filter(value => !!value),
-      switchMap(value => this._api.createDepartment(value)),
-      switchMap(response => this._store.dispatch( new Departments.AddAdminDepartment({ department_id: response.department_id, department_name: response.department_name }))
-      )
-    );
+    return this._dialog
+      .open(EnterValueComponent, {
+        autoFocus: true,
+        data: {
+          word: 'Department',
+        },
+      })
+      .afterClosed()
+      .pipe(
+        map(res => res.value),
+        filter(value => !!value),
+        switchMap(value => this._api.createDepartment(value)),
+        switchMap(response =>
+          this._store.dispatch(
+            new Departments.AddAdminDepartment({
+              department_id: response.department_id,
+              department_name: response.department_name,
+            })
+          )
+        )
+      );
   }
-
 }

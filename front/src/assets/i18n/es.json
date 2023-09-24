@@ -1,127 +1,127 @@
 {
-    "menu": {
-        "order_intake": "Order Intake",
-        "production_program": "Production Program",
-        "allocation": "Allocation",
-        "plant_stock": "Plant Stock",
-        "about": "About",
-        "help": "Help"
-    },
-    "headers": {
-        "status": "Estado",
-        "date": "Fecha",
-        "steps": "# Pasos",
-        "ok": "# Ok",
-        "nok": "# Fallo",
-        "skipped": "# Omitido",
-        "time": "Tiempo de ejecución",
-        "browser": "Navegador",
-        "pixel": "Diferencia en píxeles"
-    },
-    "need_help": {
-        "filter": "Solicita ayuda",
-        "poster": "Necesita ayuda",
-        "ask_for": "Solicitar ayuda",
-        "tooltip": "Este feature solicita ayuda",
-        "can_help": "Activar esta opción te permite ayudar en features marcadas con \"Solicitar ayuda\"",
-        "explanation": "Activar esta opción permite que otros usuarios te ayuden en este feature"
-    },
-    "MAIN_VIEW": {
-        "DATE": "DATE"
-    },
-    "whats_new": {
-        "title": "Novedades",
-        "new_features": "Nuevas características",
-        "bugfixes": "Parches de error",
-        "close": "CERRAR"
-    },
-    "websockets": {
-        "Initializing": "Inicializando feature",
-        "Timeout": "Se ha agotado el tiempo de búsqueda del contenedor con el contexto del navegador.",
-        "Completed": "Feature completado"
-    },
-    "user": {
-        "tour_description": "In co.meta you can learn about features interactive using the virtual tour guide. The virtual tour guide will show you around and explain step by step the how's and where's. Move your mouse over the tour buttons to see a short description.",
-        "webhooks_desc": "Integrar co.meta con tus herramientas favoritas te permite optimizar tu proceso de desarrollo. Al conectar Co.Meta de manera fluida, puedes acelerar la finalización de proyectos, implementar prácticas de pruebas continuas y compartir actualizaciones de calidad de manera efectiva con todo tu departamento."
-    },
-    "connected": "Connected",
-    "not_connected": "Not connected",
-    "plandate": "Plandate",
-    "region": "Region",
-    "product": "Product",
-    "regions": "Regions",
-    "products": "Products",
-    "continue_on_failure": {
-        "tooltip": "Este elemento está desactivado porque Continue on failure ya está habilitado en un elemento superior."
-    },
-    "save": "Marca este elemento como guardado.",
-    "unsave": "Desmarca el elemento actual como guardado.",
-    "production_program": {
-        "customer": "Customer",
-        "plan": "Plan",
-        "total": "Total",
-        "reserve": "Reserve"
-    },
-    "allocation": {
-        "program": "Program",
-        "allocation": "Allocation"
-    },
-    "about": {
-        "config": "Configuración",
-        "sponsor": "Sponsors",
-        "credits": "Créditos",
-        "thanks": "Agradecimientos",
-        "software": "Software",
-        "licenses": "Licencias",
-        "technical_information": "Información Técnica",
-        "changelog": "Histórico de cambios"
-    },
-    "tooltips": {
-        "delete_templates_with_features": "Si se activa, las imágenes de la plantilla de cada resultado también se eliminarán.",
-        "variables_requires": "Por favor seleccione un departamento y entorno para editar las variables",
-        "run_feature": "Iniciar feature",
-        "edit_schedule": "Editar programación",
-        "edit_feature": "Modificar feature",
-        "loading_feature": "Cargando feature",
-        "saving_feature": "Guardando feature",
-        "creating_feature": "Creando feature",
-        "deleting_feature": "Eliminando feature",
-        "latest_browser": "Se utilizará automáticamente la última versión estable de este navegador",
-        "invalid_edit_form": "Hemos encontrado errores en el formulario, por favor, corríjalos antes de guardar"
-    },
-    "paginator": {
-        "items": "Elementos por página",
-        "next": "Siguiente página",
-        "previous": "Anterior página",
-        "first": "Primera página",
-        "last": "Última página",
-        "range": "{{startIndex}} - {{endIndex}} de {{length}}"
-    },
-    "you_sure": {
-        "delete_item_title": "¿Está seguro de que quiere eliminar este elemento?",
-        "delete_item_desc": "Esta operación no es reversible.",
-        "quit_title": "¿Estás seguro de que quieres salir?",
-        "quit_desc": "Tienes cambios sin guardar.",
-        "decrypt_title": "¿Estás seguro de que quieres desencriptar esta variable?",
-        "decrypt_desc": "Al descifrar una variable se restablece el valor de la variable de entorno.",
-        "remove_all_title": "Eliminar todo",
-        "remove_all": "¿Estas seguro que quieres eliminar todos los pasos?",
-        "budget_exceeded_title": "Presupuesto superado",
-        "budget_exceeded_desc": "El feature que va a ejecutar superará el presupuesto configurado. ¿Deseas continuar?",
-        "budget_ahead_title": "Bajo presupuesto",
-        "budget_ahead_desc": "Es probable que el feature que va a ejecutar supere el presupuesto configurado. ¿Deseas continuar?",
-        "move_feature_title": "Mover Feature",
-        "move_feature": "Mover feature a diferente departamento provocara que feature deje de tener acceso al contenido de variables nativos del departamento actual. ¿Deseas continuar?"
-    },
-    "integrations": {
-        "add": "Añadir integración",
-        "send_on": "Enviar cuando",
-        "title": "Integraciones",
-        "edit": "Editar",
-        "delete": "Eliminar"
-    },
-    "send_on": {
-        "after_test_execution": "Siempre",
-        "after_test_execution_failed": "Fallido"
-    }
+  "menu": {
+    "order_intake": "Order Intake",
+    "production_program": "Production Program",
+    "allocation": "Allocation",
+    "plant_stock": "Plant Stock",
+    "about": "About",
+    "help": "Help"
+  },
+  "headers": {
+    "status": "Estado",
+    "date": "Fecha",
+    "steps": "# Pasos",
+    "ok": "# Ok",
+    "nok": "# Fallo",
+    "skipped": "# Omitido",
+    "time": "Tiempo de ejecución",
+    "browser": "Navegador",
+    "pixel": "Diferencia en píxeles"
+  },
+  "need_help": {
+    "filter": "Solicita ayuda",
+    "poster": "Necesita ayuda",
+    "ask_for": "Solicitar ayuda",
+    "tooltip": "Este feature solicita ayuda",
+    "can_help": "Activar esta opción te permite ayudar en features marcadas con \"Solicitar ayuda\"",
+    "explanation": "Activar esta opción permite que otros usuarios te ayuden en este feature"
+  },
+  "MAIN_VIEW": {
+    "DATE": "DATE"
+  },
+  "whats_new": {
+    "title": "Novedades",
+    "new_features": "Nuevas características",
+    "bugfixes": "Parches de error",
+    "close": "CERRAR"
+  },
+  "websockets": {
+    "Initializing": "Inicializando feature",
+    "Timeout": "Se ha agotado el tiempo de búsqueda del contenedor con el contexto del navegador.",
+    "Completed": "Feature completado"
+  },
+  "user": {
+    "tour_description": "In co.meta you can learn about features interactive using the virtual tour guide. The virtual tour guide will show you around and explain step by step the how's and where's. Move your mouse over the tour buttons to see a short description.",
+    "webhooks_desc": "Integrar co.meta con tus herramientas favoritas te permite optimizar tu proceso de desarrollo. Al conectar Co.Meta de manera fluida, puedes acelerar la finalización de proyectos, implementar prácticas de pruebas continuas y compartir actualizaciones de calidad de manera efectiva con todo tu departamento."
+  },
+  "connected": "Connected",
+  "not_connected": "Not connected",
+  "plandate": "Plandate",
+  "region": "Region",
+  "product": "Product",
+  "regions": "Regions",
+  "products": "Products",
+  "continue_on_failure": {
+    "tooltip": "Este elemento está desactivado porque Continue on failure ya está habilitado en un elemento superior."
+  },
+  "save": "Marca este elemento como guardado.",
+  "unsave": "Desmarca el elemento actual como guardado.",
+  "production_program": {
+    "customer": "Customer",
+    "plan": "Plan",
+    "total": "Total",
+    "reserve": "Reserve"
+  },
+  "allocation": {
+    "program": "Program",
+    "allocation": "Allocation"
+  },
+  "about": {
+    "config": "Configuración",
+    "sponsor": "Sponsors",
+    "credits": "Créditos",
+    "thanks": "Agradecimientos",
+    "software": "Software",
+    "licenses": "Licencias",
+    "technical_information": "Información Técnica",
+    "changelog": "Histórico de cambios"
+  },
+  "tooltips": {
+    "delete_templates_with_features": "Si se activa, las imágenes de la plantilla de cada resultado también se eliminarán.",
+    "variables_requires": "Por favor seleccione un departamento y entorno para editar las variables",
+    "run_feature": "Iniciar feature",
+    "edit_schedule": "Editar programación",
+    "edit_feature": "Modificar feature",
+    "loading_feature": "Cargando feature",
+    "saving_feature": "Guardando feature",
+    "creating_feature": "Creando feature",
+    "deleting_feature": "Eliminando feature",
+    "latest_browser": "Se utilizará automáticamente la última versión estable de este navegador",
+    "invalid_edit_form": "Hemos encontrado errores en el formulario, por favor, corríjalos antes de guardar"
+  },
+  "paginator": {
+    "items": "Elementos por página",
+    "next": "Siguiente página",
+    "previous": "Anterior página",
+    "first": "Primera página",
+    "last": "Última página",
+    "range": "{{startIndex}} - {{endIndex}} de {{length}}"
+  },
+  "you_sure": {
+    "delete_item_title": "¿Está seguro de que quiere eliminar este elemento?",
+    "delete_item_desc": "Esta operación no es reversible.",
+    "quit_title": "¿Estás seguro de que quieres salir?",
+    "quit_desc": "Tienes cambios sin guardar.",
+    "decrypt_title": "¿Estás seguro de que quieres desencriptar esta variable?",
+    "decrypt_desc": "Al descifrar una variable se restablece el valor de la variable de entorno.",
+    "remove_all_title": "Eliminar todo",
+    "remove_all": "¿Estas seguro que quieres eliminar todos los pasos?",
+    "budget_exceeded_title": "Presupuesto superado",
+    "budget_exceeded_desc": "El feature que va a ejecutar superará el presupuesto configurado. ¿Deseas continuar?",
+    "budget_ahead_title": "Bajo presupuesto",
+    "budget_ahead_desc": "Es probable que el feature que va a ejecutar supere el presupuesto configurado. ¿Deseas continuar?",
+    "move_feature_title": "Mover Feature",
+    "move_feature": "Mover feature a diferente departamento provocara que feature deje de tener acceso al contenido de variables nativos del departamento actual. ¿Deseas continuar?"
+  },
+  "integrations": {
+    "add": "Añadir integración",
+    "send_on": "Enviar cuando",
+    "title": "Integraciones",
+    "edit": "Editar",
+    "delete": "Eliminar"
+  },
+  "send_on": {
+    "after_test_execution": "Siempre",
+    "after_test_execution_failed": "Fallido"
+  }
 }

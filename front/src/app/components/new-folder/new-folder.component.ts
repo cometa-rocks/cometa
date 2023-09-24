@@ -4,6 +4,6 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
   selector: 'cometa-new-folder',
   templateUrl: './new-folder.component.html',
   styleUrls: ['./new-folder.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NewFolderComponent { }
+export class NewFolderComponent {}

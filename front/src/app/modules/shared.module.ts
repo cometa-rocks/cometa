@@ -24,7 +24,7 @@ import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
 import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
 import { MatLegacyChipsModule as MatChipsModule } from '@angular/material/legacy-chips';
 import { MatLegacyPaginatorModule as MatPaginatorModule } from '@angular/material/legacy-paginator';
-import { ClipboardModule } from '@angular/cdk/clipboard'
+import { ClipboardModule } from '@angular/cdk/clipboard';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { PlatformSortPipe } from '@pipes/platform-sort.pipe';
@@ -101,10 +101,9 @@ import { MatLegacyListModule as MatListModule } from '@angular/material/legacy-l
 import { MtxGridModule } from '@ng-matero/extensions/grid';
 
 // virtual scrolling module for extended lists of feature results
-import {ScrollingModule} from '@angular/cdk/scrolling';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 
 import { FeatureRunningPipe } from '../pipes/feature-running.pipe';
-
 
 const components = [
   EnterValueComponent,
@@ -119,7 +118,7 @@ const components = [
   L1FeatureListComponent,
   FolderComponent,
   NewFolderComponent,
-  MoveFolderItemComponent
+  MoveFolderItemComponent,
 ];
 
 const materialModules = [
@@ -149,12 +148,10 @@ const materialModules = [
   MatTableModule,
   MatSortModule,
   MtxGridModule,
-  ScrollingModule
+  ScrollingModule,
 ];
 
-const snacks = [
-  LoadingSnack
-];
+const snacks = [LoadingSnack];
 
 const pipes = [
   FilterStepPipe,
@@ -193,7 +190,7 @@ const pipes = [
   FilterTextPipe,
   DepartmentNamePipe,
   FeatureRunningPipe,
-  HumanizeBytesPipe
+  HumanizeBytesPipe,
 ];
 
 const dialogs = [
@@ -201,23 +198,13 @@ const dialogs = [
   EmailTemplateHelp,
   HtmlDiffDialog,
   AreYouSureDialog,
-  EditIntegrationDialog
+  EditIntegrationDialog,
 ];
 
-const directives = [
-  StopPropagationDirective,
-  AttachToDirective,
-  LetDirective
-];
+const directives = [StopPropagationDirective, AttachToDirective, LetDirective];
 
 @NgModule({
-  declarations: [
-    ...components,
-    ...directives,
-    ...pipes,
-    ...dialogs,
-    ...snacks
-  ],
+  declarations: [...components, ...directives, ...pipes, ...dialogs, ...snacks],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -225,27 +212,27 @@ const directives = [
     ...materialModules,
     TranslateModule.forChild({
       loader: {
-      provide: TranslateLoader,
-      useFactory: createTranslateLoader,
-      deps: [HttpClient]
-    },
-    isolate: false
-  })
+        provide: TranslateLoader,
+        useFactory: createTranslateLoader,
+        deps: [HttpClient],
+      },
+      isolate: false,
+    }),
   ],
   providers: [
     {
       provide: MAT_DIALOG_DEFAULT_OPTIONS,
       useValue: {
         hasBackdrop: true,
-        autoFocus: false
-      }
+        autoFocus: false,
+      },
     },
     {
       provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
       useValue: {
         duration: 3000,
-        horizontalPosition: 'center'
-      }
+        horizontalPosition: 'center',
+      },
     },
   ],
   exports: [
@@ -257,13 +244,13 @@ const directives = [
     ...pipes,
     ...dialogs,
     ...snacks,
-    TranslateModule
-  ]
+    TranslateModule,
+  ],
 })
 export class SharedModule {
   static forRoot(): ModuleWithProviders<SharedModule> {
     return {
-      ngModule: SharedModule
+      ngModule: SharedModule,
     };
   }
 }

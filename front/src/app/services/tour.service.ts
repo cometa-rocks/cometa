@@ -15,19 +15,20 @@ import { format, parse, isValid, isSameDay } from 'date-fns';
 
 @Injectable()
 export class TourService {
-
   constructor(
     private readonly _joyrideService: JoyrideService,
     private _dialog: MatDialog,
     private _tours: Tours,
     private _store: Store,
     @Inject(DOCUMENT) private readonly document: Document
-  ) { }
+  ) {}
 
   @SelectSnapshot(UserState) user: UserInfo;
 
   private sidebarOpen(open: boolean) {
-    return this._store.dispatch(new Configuration.SetProperty('openedMenu', open));
+    return this._store.dispatch(
+      new Configuration.SetProperty('openedMenu', open)
+    );
   }
 
   private setTourMode(tourMode: boolean) {
@@ -41,7 +42,9 @@ export class TourService {
   runningTour$ = new BehaviorSubject<TourDefinition[]>([]);
 
   startTourById(id: string, force: boolean = false) {
-    const tourName = Object.entries(this._tours).find(entry => entry[1].id === id)[0];
+    const tourName = Object.entries(this._tours).find(
+      entry => entry[1].id === id
+    )[0];
     this.startTour(tourName, force);
   }
 
@@ -56,7 +59,11 @@ export class TourService {
       return;
     }
     // Check if it's already completed
-    if (this.user.settings.tours_completed && this.user.settings.tours_completed[tour.id] && tour.version <= this.user.settings.tours_completed[tour.id]) {
+    if (
+      this.user.settings.tours_completed &&
+      this.user.settings.tours_completed[tour.id] &&
+      tour.version <= this.user.settings.tours_completed[tour.id]
+    ) {
       return;
     }
     // Check if tour is delayed
@@ -71,18 +78,22 @@ export class TourService {
       }
     }
     // Offer tour to user
-    this._dialog.open(OfferTourComponent, { data: tour }).afterClosed().pipe(
-      tap(offer => {
-        if (offer === 'later') {
-          // See later tour
-          localStorage.setItem(storageKey, format(new Date(), storageFormat));
-          return;
-        }
-        // Mark as completed in backend if user skipped the tour
-        if (!offer) this.completeTour(tour);
-      }),
-      filter(offer => offer === true)
-    ).subscribe(_ => this.initializeTour(tour))
+    this._dialog
+      .open(OfferTourComponent, { data: tour })
+      .afterClosed()
+      .pipe(
+        tap(offer => {
+          if (offer === 'later') {
+            // See later tour
+            localStorage.setItem(storageKey, format(new Date(), storageFormat));
+            return;
+          }
+          // Mark as completed in backend if user skipped the tour
+          if (!offer) this.completeTour(tour);
+        }),
+        filter(offer => offer === true)
+      )
+      .subscribe(_ => this.initializeTour(tour));
   }
 
   initializeTour(tour: Tour) {
@@ -93,25 +104,25 @@ export class TourService {
     // Hide sidebar
     this.sidebarOpen(false);
     // Initialize guided tour
-    this._joyrideService.startTour({
-      steps: tour.steps.map(x => x.name),
-      themeColor: '#1565C0',
-      waitingTime: 300
-    }).subscribe(
-      // Emitted every time a step is changed or first seen
-      step => {
-
-      },
-      // Emitted when there's an error
-      error => {
-        this.setTourMode(false);
-      },
-      // Emitted when tour is completed
-      () => {
-        this.completeTour(tour);
-        this.setTourMode(false);
-      }
-    )
+    this._joyrideService
+      .startTour({
+        steps: tour.steps.map(x => x.name),
+        themeColor: '#1565C0',
+        waitingTime: 300,
+      })
+      .subscribe(
+        // Emitted every time a step is changed or first seen
+        step => {},
+        // Emitted when there's an error
+        error => {
+          this.setTourMode(false);
+        },
+        // Emitted when tour is completed
+        () => {
+          this.completeTour(tour);
+          this.setTourMode(false);
+        }
+      );
   }
 
   /**
@@ -127,9 +138,10 @@ export class TourService {
     settings.tours_completed = settings.tours_completed || {};
     settings.tours_completed[tour.id] = tour.version;
     // Make request to backend
-    this._store.dispatch( new User.SetSetting({ tours_completed: settings.tours_completed }) );
+    this._store.dispatch(
+      new User.SetSetting({ tours_completed: settings.tours_completed })
+    );
   }
-
 
   /**
    * Created to handle the click on Next button in every tour step
@@ -139,14 +151,16 @@ export class TourService {
   handleNext(step: TourDefinition) {
     const runningTour = this.runningTour$.getValue();
     // Automatically scroll to attached element of next step if present
-    const attachTo = runningTour[runningTour.findIndex(s => s.name === step.name) + 1].attachTo;
+    const attachTo =
+      runningTour[runningTour.findIndex(s => s.name === step.name) + 1]
+        .attachTo;
     // Check if is defined
     if (attachTo) {
       // Scroll to element
       this.document.querySelector(attachTo).scrollIntoView({
         behavior: 'auto',
-        block: 'center'
-      })
+        block: 'center',
+      });
     }
     // Execute current step nextFn
     step.nextFn();
@@ -160,17 +174,18 @@ export class TourService {
   handlePrevious(step: TourDefinition) {
     const runningTour = this.runningTour$.getValue();
     // Automatically scroll to attached element of previous step if present
-    const attachTo = runningTour[runningTour.findIndex(s => s.name === step.name) - 1].attachTo;
+    const attachTo =
+      runningTour[runningTour.findIndex(s => s.name === step.name) - 1]
+        .attachTo;
     // Check if is defined
     if (attachTo) {
       // Scroll to element
       this.document.querySelector(attachTo).scrollIntoView({
         behavior: 'auto',
-        block: 'center'
-      })
+        block: 'center',
+      });
     }
     // Execute current step previousFn
     step.previousFn();
   }
-
 }

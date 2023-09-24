@@ -1,46 +1,94 @@
-<div #stepHolder class="joyride-step__holder" [id]="'joyride-step-' + step.name" [style.top.px]="topPosition" [style.left.px]="leftPosition">
-    <joyride-arrow *ngIf="showArrow" class="joyride-step__arrow" [position]="arrowPosition" [style.top.px]="arrowTopPosition"
-        [style.left.px]="arrowLeftPosition"></joyride-arrow>
-    <div #stepContainer class="joyride-step__container">
-        <joy-close-button class="joyride-step__close" (click)="close()"></joy-close-button>
-        <div class="joyride-step__header">
-            <div class="joyride-step__title" [style.color]="themeColor">{{ title | async }}</div>
-        </div>
-        <div class="joyride-step__body">
-            <ng-container *ngTemplateOutlet="customContent ? customContent : defaultContent; context: ctx"></ng-container>
-            <ng-template #defaultContent>
-                {{ text | async }}
-            </ng-template>
-        </div>
-        <div class="joyride-step__footer">
-            <div *ngIf="isCounterVisible" class="joyride-step__counter-container">
-                <ng-container *ngTemplateOutlet="customCounter ? customCounter : defaultCounter; context: counterData"></ng-container>
-                <ng-template #defaultCounter>
-                    <div class="joyride-step__counter">{{ counter }}</div>
-                </ng-template>
-            </div>
-            <div class="joyride-step__buttons-container">
-                <div class="joyride-step__prev-container joyride-step__button" *ngIf="isPrevButtonVisible && !isFirstStep()" (click)="prev()">
-                    <ng-container *ngTemplateOutlet="customPrevButton ? customPrevButton : defaultPrevButton"></ng-container>
-                    <ng-template #defaultPrevButton>
-                        <joyride-button class="joyride-step__prev-button" [color]="themeColor">{{ prevText | async }}</joyride-button>
-                    </ng-template>
-                </div>
-                <div class="joyride-step__next-container joyride-step__button" *ngIf="!isLastStep(); else doneButton" (click)="next()">
-                    <ng-container *ngTemplateOutlet="customNextButton ? customNextButton : defaulNextButton"></ng-container>
-                    <ng-template #defaulNextButton>
-                        <joyride-button [color]="themeColor">{{ nextText | async }}</joyride-button>
-                    </ng-template>
-                </div>
-                <ng-template #doneButton>
-                    <div class="joyride-step__done-container joyride-step__button" (click)="close()">
-                        <ng-container *ngTemplateOutlet="customDoneButton ? customDoneButton : defaultDoneButton"></ng-container>
-                        <ng-template #defaultDoneButton>
-                            <joyride-button class="joyride-step__done-button" [color]="themeColor">{{ doneText | async }}</joyride-button>
-                        </ng-template>
-                    </div>
-                </ng-template>
-            </div>
-        </div>
+<div
+  #stepHolder
+  class="joyride-step__holder"
+  [id]="'joyride-step-' + step.name"
+  [style.top.px]="topPosition"
+  [style.left.px]="leftPosition">
+  <joyride-arrow
+    *ngIf="showArrow"
+    class="joyride-step__arrow"
+    [position]="arrowPosition"
+    [style.top.px]="arrowTopPosition"
+    [style.left.px]="arrowLeftPosition"></joyride-arrow>
+  <div #stepContainer class="joyride-step__container">
+    <joy-close-button
+      class="joyride-step__close"
+      (click)="close()"></joy-close-button>
+    <div class="joyride-step__header">
+      <div class="joyride-step__title" [style.color]="themeColor">
+        {{ title | async }}
+      </div>
     </div>
+    <div class="joyride-step__body">
+      <ng-container
+        *ngTemplateOutlet="
+          customContent ? customContent : defaultContent;
+          context: ctx
+        "></ng-container>
+      <ng-template #defaultContent>
+        {{ text | async }}
+      </ng-template>
+    </div>
+    <div class="joyride-step__footer">
+      <div *ngIf="isCounterVisible" class="joyride-step__counter-container">
+        <ng-container
+          *ngTemplateOutlet="
+            customCounter ? customCounter : defaultCounter;
+            context: counterData
+          "></ng-container>
+        <ng-template #defaultCounter>
+          <div class="joyride-step__counter">{{ counter }}</div>
+        </ng-template>
+      </div>
+      <div class="joyride-step__buttons-container">
+        <div
+          class="joyride-step__prev-container joyride-step__button"
+          *ngIf="isPrevButtonVisible && !isFirstStep()"
+          (click)="prev()">
+          <ng-container
+            *ngTemplateOutlet="
+              customPrevButton ? customPrevButton : defaultPrevButton
+            "></ng-container>
+          <ng-template #defaultPrevButton>
+            <joyride-button
+              class="joyride-step__prev-button"
+              [color]="themeColor"
+              >{{ prevText | async }}</joyride-button
+            >
+          </ng-template>
+        </div>
+        <div
+          class="joyride-step__next-container joyride-step__button"
+          *ngIf="!isLastStep(); else doneButton"
+          (click)="next()">
+          <ng-container
+            *ngTemplateOutlet="
+              customNextButton ? customNextButton : defaulNextButton
+            "></ng-container>
+          <ng-template #defaulNextButton>
+            <joyride-button [color]="themeColor">{{
+              nextText | async
+            }}</joyride-button>
+          </ng-template>
+        </div>
+        <ng-template #doneButton>
+          <div
+            class="joyride-step__done-container joyride-step__button"
+            (click)="close()">
+            <ng-container
+              *ngTemplateOutlet="
+                customDoneButton ? customDoneButton : defaultDoneButton
+              "></ng-container>
+            <ng-template #defaultDoneButton>
+              <joyride-button
+                class="joyride-step__done-button"
+                [color]="themeColor"
+                >{{ doneText | async }}</joyride-button
+              >
+            </ng-template>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
 </div>

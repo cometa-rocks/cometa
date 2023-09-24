@@ -13,13 +13,8 @@
     "allowJs": true,
     "noImplicitAny": false,
     "target": "es2018",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
-    "lib": [
-      "es2017",
-      "dom"
-    ],
+    "typeRoots": ["node_modules/@types"],
+    "lib": ["es2017", "dom"],
     "baseUrl": "src",
     "paths": {
       "@services/*": ["app/services/*"],
@@ -36,7 +31,5 @@
       "@plugins/*": ["app/plugins/*"]
     }
   },
-  "include": [
-    "src/**/*.d.ts"
-  ]
+  "include": ["src/**/*.d.ts"]
 }

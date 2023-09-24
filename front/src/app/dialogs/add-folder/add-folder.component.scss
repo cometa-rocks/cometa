@@ -1,10 +1,9 @@
-
 @import 'color';
 
 :host::ng-deep .enter-value.mat-form-field.mat-focused .mat-form-field-ripple {
-    background-color: $blue;
+  background-color: $blue;
 }
 
 :host::ng-deep .mat-form-field {
-    width: 100%;
+  width: 100%;
 }

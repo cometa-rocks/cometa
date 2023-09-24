@@ -1,4 +1,10 @@
-import { State, Action, StateContext, Selector, createSelector } from '@ngxs/store';
+import {
+  State,
+  Action,
+  StateContext,
+  Selector,
+  createSelector,
+} from '@ngxs/store';
 import { Injectable } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { tap } from 'rxjs/operators';
@@ -15,27 +21,23 @@ import { Browsers } from './actions/browsers.actions';
 @State<UserInfo>({
   name: 'user',
   defaults: {
-    comment: 'This state handles all the user information, including settings, clouds, permissions, etc'
-  }
+    comment:
+      'This state handles all the user information, including settings, clouds, permissions, etc',
+  },
 })
 @Injectable()
 export class UserState {
-
-  constructor(
-    private _api: ApiService
-  ) { }
+  constructor(private _api: ApiService) {}
 
   @Action(User.GetUser)
   getUser({ patchState, dispatch }: StateContext<UserInfo>) {
     return this._api.doOIDCLogin().pipe(
       tap(account => {
-
         // set up localstorage instance for each existing property in account settings object
         // does the same as below commented >>>> localstorage.setItem
         Object.keys(account.settings).forEach(key => {
           localStorage.setItem(key, account.settings[key]);
         });
-
 
         // localStorage.setItem('useNewDashboard', account.settings?.useNewDashboard);
         // localStorage.setItem('logWebsockets', account.settings?.logWebsockets);
@@ -47,12 +49,17 @@ export class UserState {
         // localStorage.setItem('hideSteps', account.settings?.hideSteps);
         // localStorage.setItem('hideSchedule', account.settings?.hideSchedule);
 
-        if (typeof account.favourite_browsers === 'object') account.favourite_browsers = JSON.stringify(account.favourite_browsers);
+        if (typeof account.favourite_browsers === 'object')
+          account.favourite_browsers = JSON.stringify(
+            account.favourite_browsers
+          );
         // Cross-join available clouds with subscriptions
         if (account.requires_payment) {
           account.clouds = account.clouds.filter(cloud => {
-            return account.subscriptions.some(sub => sub.cloud.toLowerCase() === cloud.name.toLowerCase())
-          })
+            return account.subscriptions.some(
+              sub => sub.cloud.toLowerCase() === cloud.name.toLowerCase()
+            );
+          });
         }
         if (account.feedback_mail) {
           localStorage.setItem('feedback_mail', account.feedback_mail);
@@ -61,16 +68,16 @@ export class UserState {
         for (const cloud of account.clouds) {
           switch (cloud.name) {
             case 'local':
-              dispatch(new Browsers.GetBrowsers);
+              dispatch(new Browsers.GetBrowsers());
               break;
             case 'browserstack':
-              dispatch(new Browserstack.GetBrowserstack);
+              dispatch(new Browserstack.GetBrowserstack());
               break;
           }
         }
         patchState(account);
       })
-    )
+    );
   }
 
   @Action(User.SetUser)
@@ -84,63 +91,85 @@ export class UserState {
     localStorage.removeItem('@@STATE');
     // generate logout URL
     const logoutURL = `/callback?logout=${location.protocol}//${location.hostname}/logout.html`;
-    console.log({logoutURL});
+    console.log({ logoutURL });
     window.location.href = logoutURL;
   }
 
   @Action(User.SetBrowserFavourites)
-  setBrowsers({ patchState, getState }: StateContext<UserInfo>, { browsers }: User.SetBrowserFavourites) {
+  setBrowsers(
+    { patchState, getState }: StateContext<UserInfo>,
+    { browsers }: User.SetBrowserFavourites
+  ) {
     patchState({
-      favourite_browsers: JSON.stringify(browsers)
+      favourite_browsers: JSON.stringify(browsers),
     });
     return this._api.saveBrowserFavourites(getState(), browsers);
   }
 
   @Action(User.AddBrowserFavourite)
-  addBrowser({ patchState, getState }: StateContext<UserInfo>, { browser }: User.AddBrowserFavourite) {
+  addBrowser(
+    { patchState, getState }: StateContext<UserInfo>,
+    { browser }: User.AddBrowserFavourite
+  ) {
     const currentBrowsers = JSON.parse(getState().favourite_browsers);
     currentBrowsers.push(browser);
     patchState({
-      favourite_browsers: JSON.stringify(currentBrowsers)
+      favourite_browsers: JSON.stringify(currentBrowsers),
     });
     return this._api.saveBrowserFavourites(getState(), currentBrowsers);
   }
 
   @Action(User.RemoveBrowserFavourite)
-  removeBrowser({ patchState, getState }: StateContext<UserInfo>, { browser }: User.RemoveBrowserFavourite) {
-    let currentBrowsers = JSON.parse(getState().favourite_browsers) as BrowserstackBrowser[];
-    currentBrowsers = currentBrowsers.filter(brow => !(brow.browser === browser.browser &&
-      brow.os === browser.os &&
-      brow.os_version === browser.os_version &&
-      brow.browser_version === browser.browser_version &&
-      brow.device === browser.device &&
-      brow.real_mobile === browser.real_mobile));
+  removeBrowser(
+    { patchState, getState }: StateContext<UserInfo>,
+    { browser }: User.RemoveBrowserFavourite
+  ) {
+    let currentBrowsers = JSON.parse(
+      getState().favourite_browsers
+    ) as BrowserstackBrowser[];
+    currentBrowsers = currentBrowsers.filter(
+      brow =>
+        !(
+          brow.browser === browser.browser &&
+          brow.os === browser.os &&
+          brow.os_version === browser.os_version &&
+          brow.browser_version === browser.browser_version &&
+          brow.device === browser.device &&
+          brow.real_mobile === browser.real_mobile
+        )
+    );
     patchState({
-      favourite_browsers: JSON.stringify(currentBrowsers)
+      favourite_browsers: JSON.stringify(currentBrowsers),
     });
     return this._api.saveBrowserFavourites(getState(), currentBrowsers);
   }
 
   @Action(User.SetSetting)
-  setSetting({ patchState, getState }: StateContext<UserInfo>, { settings }: User.SetSetting) {
+  setSetting(
+    { patchState, getState }: StateContext<UserInfo>,
+    { settings }: User.SetSetting
+  ) {
     const user = getState();
     const new_settings = {
       ...user.settings,
-      ...settings
+      ...settings,
     };
-    return this._api.saveUserSettings(user, new_settings).pipe(
-      tap(_ => patchState({ settings: new_settings }))
-    )
+    return this._api
+      .saveUserSettings(user, new_settings)
+      .pipe(tap(_ => patchState({ settings: new_settings })));
   }
 
   @Action(User.MarkTourCompleted)
-  completedTour({ setState }: StateContext<UserInfo>, { tour }: User.MarkTourCompleted) {
+  completedTour(
+    { setState }: StateContext<UserInfo>,
+    { tour }: User.MarkTourCompleted
+  ) {
     setState(
       produce((ctx: UserInfo) => {
         ctx.settings.tours_completed = ctx.settings.tours_completed || {};
         ctx.settings.tours_completed[tour.id] = tour.version;
       })
-    )
+    );
   }
 
   @Selector()
@@ -161,7 +190,7 @@ export class UserState {
   @Selector()
   @ImmutableSelector()
   static GetAvailableClouds(state: UserInfo) {
-    return state.clouds.filter(cloud => !!cloud.active)
+    return state.clouds.filter(cloud => !!cloud.active);
   }
 
   @Selector()
@@ -172,7 +201,7 @@ export class UserState {
 
   static GetPermission(permission_name: string) {
     return createSelector([UserState], (user: UserInfo) => {
-      return user && user.user_permissions[permission_name] || false;
+      return (user && user.user_permissions[permission_name]) || false;
     });
   }
 
@@ -199,7 +228,9 @@ export class UserState {
   @ImmutableSelector()
   static GetBrowserFavourites(user: UserInfo): BrowserstackBrowser[] {
     try {
-      const browsers: BrowserstackBrowser[] = JSON.parse(user.favourite_browsers);
+      const browsers: BrowserstackBrowser[] = JSON.parse(
+        user.favourite_browsers
+      );
       browsers.forEach((browser, index) => {
         if (typeof browser !== 'object') browsers.splice(index, 1);
       });
@@ -218,7 +249,10 @@ export class UserState {
   @Selector()
   @ImmutableSelector()
   static IsDefaultDepartment(user: UserInfo): boolean {
-    return user.departments.length === 1 && user.departments[0].department_name === 'Default';
+    return (
+      user.departments.length === 1 &&
+      user.departments[0].department_name === 'Default'
+    );
   }
 
   @Selector()
@@ -238,5 +272,4 @@ export class UserState {
   static RetrieveIntegrationApps(user: UserInfo) {
     return user.integration_apps;
   }
-
 }

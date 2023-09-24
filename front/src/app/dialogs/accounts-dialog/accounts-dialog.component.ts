@@ -5,20 +5,16 @@ import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/leg
   selector: 'accounts-dialog',
   templateUrl: './accounts-dialog.component.html',
   styleUrls: ['./accounts-dialog.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-
 export class AccountsDialog {
-
-  page:number = 0;
-  start:number = 0;
+  page: number = 0;
+  start: number = 0;
   amount: number = 5;
   increment: number = 5;
   maxPage = Math.floor(this.data.users.length / this.increment);
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: AccountsDialogData
-  ) { }
+  constructor(@Inject(MAT_DIALOG_DATA) public data: AccountsDialogData) {}
 
   nextPage() {
     this.page += 1;
@@ -30,7 +26,6 @@ export class AccountsDialog {
     this.start = this.page * this.increment;
     this.amount = this.start + this.increment;
   }
-
 }
 
 export interface AccountsDialogData {

@@ -6,7 +6,7 @@
 </div>
 <!-- Content -->
 <mat-dialog-content>
-  <img class="poster" [src]="poster">
+  <img class="poster" [src]="poster" />
   <div class="body">
     <!-- New Features -->
     <ng-container *ngIf="changes.feature && changes.feature.length > 0">
@@ -37,5 +37,7 @@
 </mat-dialog-content>
 <!-- Bottom buttons -->
 <mat-dialog-actions align="end">
-  <button color="primary" [mat-dialog-close] mat-raised-button>{{ 'whats_new.close' | translate }}</button>
+  <button color="primary" [mat-dialog-close] mat-raised-button>
+    {{ 'whats_new.close' | translate }}
+  </button>
 </mat-dialog-actions>

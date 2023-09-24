@@ -11,8 +11,8 @@ const routes: Routes = [
   {
     path: '',
     title: 'About',
-    component: AboutComponent
-  }
+    component: AboutComponent,
+  },
 ];
 
 @NgModule({
@@ -20,16 +20,14 @@ const routes: Routes = [
     TranslateModule.forChild({
       loader: {
         provide: TranslateLoader,
-        useFactory: (createTranslateLoader),
-        deps: [HttpClient]
-      }
+        useFactory: createTranslateLoader,
+        deps: [HttpClient],
+      },
     }),
     RouterModule.forChild(routes),
     SharedModule,
-    CommonModule
+    CommonModule,
   ],
-  declarations: [
-    AboutComponent
-  ]
+  declarations: [AboutComponent],
 })
-export class AboutModule { }
+export class AboutModule {}

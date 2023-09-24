@@ -1,100 +1,146 @@
-
 /* Global */
-$primary-color: #1A1A1A;
-$body-bg-color: #F0F0F0;
+$primary-color: #1a1a1a;
+$body-bg-color: #f0f0f0;
 $loading-bg-color: #303030;
-$secondary-color: #E5B355; // Used as the golden color in the 'co.' of co.meta
+$secondary-color: #e5b355; // Used as the golden color in the 'co.' of co.meta
 $semi-white: rgb(223, 223, 223);
 $text-pink: #d4145a; // Used as main color of the feature's last duration
-$blue: #1565C0;
-$remove: #C62828;
-$success: #32BA7C;
-$step: #546E7A;
-$darker-step: #5F6368;
+$blue: #1565c0;
+$remove: #c62828;
+$success: #32ba7c;
+$step: #546e7a;
+$darker-step: #5f6368;
 $border-color: rgb(211, 211, 211);
-$white-text: rgba($body-bg-color, .85); // Used in the add button in the new landing
+$white-text: rgba(
+  $body-bg-color,
+  0.85
+); // Used in the add button in the new landing
 $folder: #ffe9a2; // Used as background color in folder items
 $folder-back: #ffedb4; // Used as background color in the back part of folder items
 $orange: #f57c00; // Used in canceled elements in feature list items
 // Color of the background when the user wants presses the add button on mobile
 $transparent-bg: rgba(0, 0, 0, 0.15);
 /* Header */
-$header-bg-color: #1A1A1A;
+$header-bg-color: #1a1a1a;
 $header-env-bg-color: #282828;
 
 /* Charts */
-$good: #00A99D;
-$medium: #F97412;
-$bad: #D4145A;
+$good: #00a99d;
+$medium: #f97412;
+$bad: #d4145a;
 
 /* Option Pages */
-$opt-bg-color: #E5B355;
+$opt-bg-color: #e5b355;
 
 /* Menu */
 $menu-border-bottom: rgb(48, 48, 48);
 $menu-close-hover: rgb(48, 48, 48);
 
 /* Table shadow and colors */
-$table-background: rgba(255, 255, 255, 0.7); // Used in table rows with transparent white color
-$table-background-opaque: rgba(255, 255, 255, 1); // Used in table rows with opaque white color
-$table-dark: rgba(black, .17); // Used in the feature list table borders
-$table-medium-shadow: rgba(0,0,0,.14); // Used in table box shadow
-$table-high-shadow: rgba(0,0,0,.2); // Used in table box shadow
-$table-low-shadow: rgba(0,0,0,.12); // Used in table box shadow
+$table-background: rgba(
+  255,
+  255,
+  255,
+  0.7
+); // Used in table rows with transparent white color
+$table-background-opaque: rgba(
+  255,
+  255,
+  255,
+  1
+); // Used in table rows with opaque white color
+$table-dark: rgba(black, 0.17); // Used in the feature list table borders
+$table-medium-shadow: rgba(0, 0, 0, 0.14); // Used in table box shadow
+$table-high-shadow: rgba(0, 0, 0, 0.2); // Used in table box shadow
+$table-low-shadow: rgba(0, 0, 0, 0.12); // Used in table box shadow
 /* Black shades */
-$lower-black: rgba(black, .01); // Used in the breadcrumbs border color
-$low-black: rgba(black, .02); // Used in table rows with transparent darker color
-$low-black-opaque: rgba(248, 248, 248, 1); // Used in table rows with opaque darker color
-$medium-black: rgba(black, .03); // Used in the folder tree in the new landing
-$medium-black-opaque: rgb(237,237,237); // Used in the selected rows in the new feature list
-$high-black: rgba(black, .05); // Used on hover in the table rows with transparent dark color
-$high-black-opaque: rgba(242, 242, 242, 1); // Used on hover in the table rows with opaque dark color
-$selected-black-opaque: rgba(225, 225, 225, 1); // Used during table row selection with opaque dark color
-$low-dark: rgba(black, .1);
-$high-dark: rgba(black, .5);
-$dark: rgba(black, .55);
+$lower-black: rgba(black, 0.01); // Used in the breadcrumbs border color
+$low-black: rgba(
+  black,
+  0.02
+); // Used in table rows with transparent darker color
+$low-black-opaque: rgba(
+  248,
+  248,
+  248,
+  1
+); // Used in table rows with opaque darker color
+$medium-black: rgba(black, 0.03); // Used in the folder tree in the new landing
+$medium-black-opaque: rgb(
+  237,
+  237,
+  237
+); // Used in the selected rows in the new feature list
+$high-black: rgba(
+  black,
+  0.05
+); // Used on hover in the table rows with transparent dark color
+$high-black-opaque: rgba(
+  242,
+  242,
+  242,
+  1
+); // Used on hover in the table rows with opaque dark color
+$selected-black-opaque: rgba(
+  225,
+  225,
+  225,
+  1
+); // Used during table row selection with opaque dark color
+$low-dark: rgba(black, 0.1);
+$high-dark: rgba(black, 0.5);
+$dark: rgba(black, 0.55);
 
 /* Text colors */
-$column-header-dark: rgba(black, .7);
+$column-header-dark: rgba(black, 0.7);
 
 /* White shades */
-$low-white: #E6E6E6;
-$transparent-white: rgba(white, .8);
-$low-transparent-white: rgba(white, .7); // Used in help element on feature list items
+$low-white: #e6e6e6;
+$transparent-white: rgba(white, 0.8);
+$low-transparent-white: rgba(
+  white,
+  0.7
+); // Used in help element on feature list items
 $pure-white: rgba(255, 255, 255, 1);
 
 .primary-color {
-    &.as-text {
-        color: $primary-color;
-    }
-    &.as-bg {
-        background-color: $primary-color;
-    }
+  &.as-text {
+    color: $primary-color;
+  }
+  &.as-bg {
+    background-color: $primary-color;
+  }
 }
 
 .secondary-color {
-    &.as-text {
-        color: $secondary-color;
-    }
-    &.as-bg {
-        background-color: $secondary-color;
-    }
+  &.as-text {
+    color: $secondary-color;
+  }
+  &.as-bg {
+    background-color: $secondary-color;
+  }
 }
 
 @-webkit-keyframes shimmer {
-    100% {
-        transform: translateX(100%);
-    }
+  100% {
+    transform: translateX(100%);
+  }
 }
 @keyframes shimmer {
-    100% {
-        transform: translateX(100%);
-    }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @mixin skeleton {
-    transform: translateX(-100%);
-    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0));
-    -webkit-animation: shimmer 2s infinite;
-            animation: shimmer 2s infinite;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.5) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  -webkit-animation: shimmer 2s infinite;
+  animation: shimmer 2s infinite;
 }

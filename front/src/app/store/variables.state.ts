@@ -13,45 +13,54 @@ import { sortBy } from 'ngx-amvara-toolbox';
  */
 @State<VariablePair[]>({
   name: 'variables',
-  defaults: []
+  defaults: [],
 })
 @Injectable()
 export class VariablesState {
-
-  constructor( private _api: ApiService ) { }
+  constructor(private _api: ApiService) {}
 
   @Action(Variables.GetVariables)
   getAll({ setState }: StateContext<VariablePair[]>) {
-    return this._api.getVariables().pipe(
-      tap(vars => setState(vars))
-    );
+    return this._api.getVariables().pipe(tap(vars => setState(vars)));
   }
 
   @Action(Variables.DeleteVariable)
-  deleteVariable({ setState, getState }: StateContext<VariablePair[]>, { id }: Variables.DeleteVariable) {
+  deleteVariable(
+    { setState, getState }: StateContext<VariablePair[]>,
+    { id }: Variables.DeleteVariable
+  ) {
     setState(
       produce(getState(), (ctx: VariablePair[]) => {
         const index = ctx.findIndex(v => v.id === id);
-        if(index != -1) ctx.splice(index, 1);
+        if (index != -1) ctx.splice(index, 1);
       })
-    )
+    );
   }
 
   @Action(Variables.UpdateOrCreateVariable)
-  UpdateOrCreateVariable({ setState, getState }: StateContext<VariablePair[]>, { variable }: Variables.UpdateOrCreateVariable) {
+  UpdateOrCreateVariable(
+    { setState, getState }: StateContext<VariablePair[]>,
+    { variable }: Variables.UpdateOrCreateVariable
+  ) {
     setState(
       produce(getState(), (ctx: VariablePair[]) => {
         let index = ctx.findIndex(v => v.id === variable.id);
-        index == -1 ? ctx.unshift(variable) : ctx[index] = variable;
+        index == -1 ? ctx.unshift(variable) : (ctx[index] = variable);
       })
-    )
+    );
   }
 
   @Selector()
   @ImmutableSelector()
   static GetVariables(state: VariablePair[]) {
     return (environment_id: number, department_id: number) => {
-      return sortBy(state.filter(v => v.environment === environment_id && v.department === department_id), 'variable_name');
+      return sortBy(
+        state.filter(
+          v =>
+            v.environment === environment_id && v.department === department_id
+        ),
+        'variable_name'
+      );
     };
   }
 }

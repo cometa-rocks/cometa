@@ -14,13 +14,10 @@ import { Component, OnInit } from '@angular/core';
 @Component({
   selector: 'cometa-l1-feature-team-list',
   templateUrl: './l1-feature-team-list.component.html',
-  styleUrls: ['./l1-feature-team-list.component.scss']
+  styleUrls: ['./l1-feature-team-list.component.scss'],
 })
 export class L1FeatureTeamListComponent implements OnInit {
+  constructor() {}
 
-  constructor() { }
-
-  ngOnInit(): void {
-  }
-
+  ngOnInit(): void {}
 }

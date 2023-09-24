@@ -5,7 +5,12 @@
  *
  * @author: dph000
  */
-import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  OnInit,
+} from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -19,24 +24,35 @@ import { LogService } from '@services/log.service';
   selector: 'cometa-folder-item-tree',
   templateUrl: './folder-item-tree.component.html',
   styleUrls: ['./folder-item-tree.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FolderItemTreeComponent implements OnInit {
-
   // stores state for each folder in hierarchy
   folderState = {};
 
-  constructor(private _store: Store, public _sharedActions: SharedActionsService, private log: LogService) {
+  constructor(
+    private _store: Store,
+    public _sharedActions: SharedActionsService,
+    private log: LogService
+  ) {
     this.getOrSetDefaultFolderState();
-    this.log.msg("1","Getting folder tree state...","folder-item-tree", this.folderState);
+    this.log.msg(
+      '1',
+      'Getting folder tree state...',
+      'folder-item-tree',
+      this.folderState
+    );
   }
 
   @Input() folder: Folder;
   @Input() level: number;
   @Input() parent: Folder[] = [];
   @Input() department: boolean; // The department boolean is used to know wheter the sent object is a department or not
-  @Select(FeaturesState.GetLastFolder) lastFolder$: Observable<ReturnType<typeof FeaturesState.GetLastFolder>>; // Get the last folder
-  @Select(CustomSelectors.GetConfigProperty('openedSidenav')) showFolders$: Observable<boolean>; // Checks if the sidenav is opened
+  @Select(FeaturesState.GetLastFolder) lastFolder$: Observable<
+    ReturnType<typeof FeaturesState.GetLastFolder>
+  >; // Get the last folder
+  @Select(CustomSelectors.GetConfigProperty('openedSidenav'))
+  showFolders$: Observable<boolean>; // Checks if the sidenav is opened
 
   /**
    * Global variables
@@ -49,7 +65,9 @@ export class FolderItemTreeComponent implements OnInit {
     } else {
       this.expanded$ = new BehaviorSubject<boolean>(false);
     }
-    const isFolderInRoute = this._store.selectSnapshot(CustomSelectors.IsFolderInRoute(this.folder));
+    const isFolderInRoute = this._store.selectSnapshot(
+      CustomSelectors.IsFolderInRoute(this.folder)
+    );
     if (isFolderInRoute) {
       this.expanded$.next(true);
     }
@@ -61,14 +79,20 @@ export class FolderItemTreeComponent implements OnInit {
 
   // Hides the sidenav
   hideSidenav() {
-    this.log.msg("1","Expanding/Closing folder...","folder-item-tree");
-    return this._store.dispatch(new Configuration.SetProperty('openedSidenav', false));
+    this.log.msg('1', 'Expanding/Closing folder...', 'folder-item-tree');
+    return this._store.dispatch(
+      new Configuration.SetProperty('openedSidenav', false)
+    );
   }
 
   // Hides / shows the sidenav
   toggleSidenav() {
-    const opened = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
-    return this._store.dispatch(new Configuration.SetProperty('openedSidenav', !opened));
+    const opened = this._store.selectSnapshot<boolean>(
+      CustomSelectors.GetConfigProperty('openedSidenav')
+    );
+    return this._store.dispatch(
+      new Configuration.SetProperty('openedSidenav', !opened)
+    );
   }
 
   /**
@@ -79,8 +103,10 @@ export class FolderItemTreeComponent implements OnInit {
    * @lastModification 06-10-21
    */
   toggleSearch() {
-    this.log.msg("1","Toggling folder state...","folder-item-tree");
-    return this._store.dispatch(new Configuration.SetProperty('openedSearch', false));
+    this.log.msg('1', 'Toggling folder state...', 'folder-item-tree');
+    return this._store.dispatch(
+      new Configuration.SetProperty('openedSearch', false)
+    );
   }
 
   /**
@@ -92,7 +118,9 @@ export class FolderItemTreeComponent implements OnInit {
    */
   toggleList() {
     this.toggleSidenav();
-    return this._store.dispatch(new Configuration.SetProperty('co_active_list', 'list', true));
+    return this._store.dispatch(
+      new Configuration.SetProperty('co_active_list', 'list', true)
+    );
   }
 
   /**
@@ -115,19 +143,23 @@ export class FolderItemTreeComponent implements OnInit {
 
     // modify existing folder state, or add new instance of folder with its state
     this.folderState[this.folder.name] = {
-      open: this.expanded$.getValue()
+      open: this.expanded$.getValue(),
     };
 
     // #3414 -------------------------------------------------start
     // change browser url, add folder ids as params
-    this.log.msg("1","Setting folder id as url param...","folder-item-tree");
+    this.log.msg('1', 'Setting folder id as url param...', 'folder-item-tree');
     this._sharedActions.set_url_folder_params(this.parent);
     // #3414 ---------------------------------------------------end
 
     // refresh localstorage, so the next time this component view is rendered, it behaves correctly
-    this.log.msg("1","Saving folder tree state to localstorage...","folder-item-tree", this.folderState);
+    this.log.msg(
+      '1',
+      'Saving folder tree state to localstorage...',
+      'folder-item-tree',
+      this.folderState
+    );
     localStorage.setItem('co_folderState', JSON.stringify(this.folderState));
-
 
     if (this.folder.folder_id == 0) {
       this._store.dispatch(new Features.ReturnToFolderRoute(0));
@@ -142,8 +174,9 @@ export class FolderItemTreeComponent implements OnInit {
   getOrSetDefaultFolderState(): void {
     // get folder hierarchy state from localstorage
     // if localstorage is empty, then just set the comment
-    this.folderState =
-      JSON.parse(localStorage.getItem('co_folderState')) || { comment: "This object stores the state of whole folder hierarchy in localstorage" };
+    this.folderState = JSON.parse(localStorage.getItem('co_folderState')) || {
+      comment:
+        'This object stores the state of whole folder hierarchy in localstorage',
+    };
   }
-
 }

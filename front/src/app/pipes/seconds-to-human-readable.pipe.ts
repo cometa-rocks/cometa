@@ -1,17 +1,16 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'secondsToHumanReadable'
+  name: 'secondsToHumanReadable',
 })
 export class SecondsToHumanReadablePipe implements PipeTransform {
-
   transform(value: string): string {
     if (value === null) return '';
     const val = parseInt(value, 10);
     if (val) {
       if (val < 1000) {
         // Special formatting for times smaller than 1 second
-        return `${val}ms`
+        return `${val}ms`;
       }
       const d = Number(val);
       const s = Math.floor((d / 1000) % 60);
@@ -25,5 +24,4 @@ export class SecondsToHumanReadablePipe implements PipeTransform {
       return '0ms';
     }
   }
-
 }

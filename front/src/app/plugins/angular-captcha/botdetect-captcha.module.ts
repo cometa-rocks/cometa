@@ -10,13 +10,11 @@ import { CaptchaSettings } from './captcha-settings.interface';
 import { CAPTCHA_SETTINGS } from './config';
 
 @NgModule({
-  imports: [
-    HttpClientModule
-  ],
+  imports: [HttpClientModule],
   declarations: [
     CaptchaEndpointPipe,
     CaptchaComponent,
-    CorrectCaptchaDirective
+    CorrectCaptchaDirective,
   ],
   providers: [
     CaptchaService,
@@ -24,30 +22,30 @@ import { CAPTCHA_SETTINGS } from './config';
     CaptchaEndpointPipe,
     {
       // we need this provide CAPTCHA_SETTINGS declaration
-      // since we have added support for the captchaEndpoint 
+      // since we have added support for the captchaEndpoint
       // setting in component
       provide: CAPTCHA_SETTINGS,
-      useValue: null
-    }
+      useValue: null,
+    },
   ],
-  exports: [
-    CaptchaComponent,
-    CorrectCaptchaDirective
-  ]
+  exports: [CaptchaComponent, CorrectCaptchaDirective],
 })
 export class BotDetectCaptchaModule {
-
-  static forRoot(config: CaptchaSettings): ModuleWithProviders<BotDetectCaptchaModule> {
+  static forRoot(
+    config: CaptchaSettings
+  ): ModuleWithProviders<BotDetectCaptchaModule> {
     return {
       ngModule: BotDetectCaptchaModule,
-      providers: [provideBotDetectCaptcha(config)]
+      providers: [provideBotDetectCaptcha(config)],
     };
   }
 
-  static forChild(config: CaptchaSettings): ModuleWithProviders<BotDetectCaptchaModule> {
+  static forChild(
+    config: CaptchaSettings
+  ): ModuleWithProviders<BotDetectCaptchaModule> {
     return {
       ngModule: BotDetectCaptchaModule,
-      providers: [provideBotDetectCaptcha(config)]
+      providers: [provideBotDetectCaptcha(config)],
     };
   }
 }
@@ -56,7 +54,7 @@ export function provideBotDetectCaptcha(config: CaptchaSettings): any {
   return [
     {
       provide: CAPTCHA_SETTINGS,
-      useValue: config
-    }
+      useValue: config,
+    },
   ];
 }

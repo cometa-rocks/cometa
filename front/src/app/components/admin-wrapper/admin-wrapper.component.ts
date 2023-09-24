@@ -7,16 +7,21 @@ import { Observable } from 'rxjs';
   selector: 'admin-wrapper',
   templateUrl: './admin-wrapper.component.html',
   styleUrls: ['./admin-wrapper.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AdminWrapperComponent {
-
-  @Select(UserState.GetPermission('view_accounts_panel')) canViewAccounts$: Observable<boolean>;
-  @Select(UserState.GetPermission('view_applications_panel')) canViewApplications$: Observable<boolean>;
-  @Select(UserState.GetPermission('view_browsers_panel')) canViewBrowsers$: Observable<boolean>;
-  @Select(UserState.GetPermission('view_departments_panel')) canViewDepartments$: Observable<boolean>;
-  @Select(UserState.GetPermission('view_environments_panel')) canViewEnvironments$: Observable<boolean>;
-  @Select(UserState.GetPermission('view_features_panel')) canViewFeatures$: Observable<boolean>;
+  @Select(UserState.GetPermission('view_accounts_panel'))
+  canViewAccounts$: Observable<boolean>;
+  @Select(UserState.GetPermission('view_applications_panel'))
+  canViewApplications$: Observable<boolean>;
+  @Select(UserState.GetPermission('view_browsers_panel'))
+  canViewBrowsers$: Observable<boolean>;
+  @Select(UserState.GetPermission('view_departments_panel'))
+  canViewDepartments$: Observable<boolean>;
+  @Select(UserState.GetPermission('view_environments_panel'))
+  canViewEnvironments$: Observable<boolean>;
+  @Select(UserState.GetPermission('view_features_panel'))
+  canViewFeatures$: Observable<boolean>;
 
   links: string[] = [
     'departments',
@@ -24,7 +29,6 @@ export class AdminWrapperComponent {
     'browsers',
     'environments',
     'features',
-    'accounts'
+    'accounts',
   ];
-
 }

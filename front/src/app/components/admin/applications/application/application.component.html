@@ -1,6 +1,17 @@
 <div class="icon"></div>
 <div class="name">
-  <input spellcheck="false" disableAutocomplete [disabled]="!(modify | async)" [(ngModel)]="app.app_name">
+  <input
+    spellcheck="false"
+    disableAutocomplete
+    [disabled]="!(modify | async)"
+    [(ngModel)]="app.app_name" />
 </div>
-<div *ngIf="canEditApplication$ | async" class="modify" [ngClass]="{'validate': (modify | async) }" (click)="saveOrEdit()"></div>
-<div *ngIf="canDeleteApplication$ | async" (click)="removeIt()" class="remove"></div>
+<div
+  *ngIf="canEditApplication$ | async"
+  class="modify"
+  [ngClass]="{ validate: (modify | async) }"
+  (click)="saveOrEdit()"></div>
+<div
+  *ngIf="canDeleteApplication$ | async"
+  (click)="removeIt()"
+  class="remove"></div>

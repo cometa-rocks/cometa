@@ -1,24 +1,33 @@
 <div class="container">
   <div class="help-title">General Information</div>
   <div class="contact-info">
-    <div class="category">
-      {{ (config$ | async).appTitle }} Support:
-    </div>
+    <div class="category">{{ (config$ | async).appTitle }} Support:</div>
     <div class="telephones">
-      <div class="contact" *ngFor="let contact of (config$ | async).contacts; let i = index;">
+      <div
+        class="contact"
+        *ngFor="let contact of (config$ | async).contacts; let i = index">
         <div class="name">{{ contact.name }}</div>
         <div class="description">{{ contact.description }}</div>
         <div class="telephone" *ngFor="let telephone of contact.telephone">
           <a href="tel:{{ telephone }}">{{ telephone }}</a>
         </div>
-        <div class="description"><a href="https://t.me/joinchat/bFquCBGPBCAwYWZk">Contact via Telegram</a></div>
-        <div class="description"><a href="https://chat.whatsapp.com/CLIOla00LAf4Ym2mux8TXC">Contact via WhatsApp</a></div>
+        <div class="description">
+          <a href="https://t.me/joinchat/bFquCBGPBCAwYWZk"
+            >Contact via Telegram</a
+          >
+        </div>
+        <div class="description">
+          <a href="https://chat.whatsapp.com/CLIOla00LAf4Ym2mux8TXC"
+            >Contact via WhatsApp</a
+          >
+        </div>
       </div>
     </div>
   </div>
   <div class="help-title">{{ (config$ | async).appTitle }} Functions</div>
   <p>
-    This application is adapted for any device and visualization. You can navigate through it with different options.
+    This application is adapted for any device and visualization. You can
+    navigate through it with different options.
   </p>
   <div class="helpers">
     <div class="helper hand1"></div>
@@ -35,15 +44,24 @@
   <!-- Hotkeys -->
   <div class="help-title">Hotkeys</div>
   <div class="hotkeys">
-    <div class="hotkey" *ngFor="let hotkey of hotkeys | sortBy:'text'">
+    <div class="hotkey" *ngFor="let hotkey of hotkeys | sortBy: 'text'">
       <div class="combination">{{ hotkey.hotkey }}</div>
       <div class="description">{{ hotkey.text }}</div>
     </div>
   </div>
   <!-- Actions explanation -->
   <div class="help-title">Actions</div>
-  <p>These are short descriptions of the actions available for use in any testplan. A detailed documentation can be found in the <a href='https://github.com/cometa-rocks/cometa_documentation/blob/main/cometa_actions.md'>GitHub Cometa-Rocks</a>.</p>
-  <div class="action" *ngFor="let action of actions$ | async | sortBy:'action_name'">
+  <p>
+    These are short descriptions of the actions available for use in any
+    testplan. A detailed documentation can be found in the
+    <a
+      href="https://github.com/cometa-rocks/cometa_documentation/blob/main/cometa_actions.md"
+      >GitHub Cometa-Rocks</a
+    >.
+  </p>
+  <div
+    class="action"
+    *ngFor="let action of actions$ | async | sortBy: 'action_name'">
     <h4 class="action-title">{{ action.action_name }}</h4>
     <div class="action-description" [innerHTML]="action.description"></div>
   </div>

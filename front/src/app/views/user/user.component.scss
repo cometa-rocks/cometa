@@ -1,292 +1,293 @@
-
 @import 'color';
 @import 'breakpoints';
 
 :host {
-    background-color: $secondary-color;
-    display: block;
-    padding: 15px 25px 80px;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    @include for-tablet-portrait-up {
-        padding: 45px 30px 100px;
-    }
-    min-height: calc(100vh - 60px);
-    font-weight: bold;
-    overflow-x: hidden;
-    max-height: calc(100vh - var(--header-height));
+  background-color: $secondary-color;
+  display: block;
+  padding: 15px 25px 80px;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  @include for-tablet-portrait-up {
+    padding: 45px 30px 100px;
+  }
+  min-height: calc(100vh - 60px);
+  font-weight: bold;
+  overflow-x: hidden;
+  max-height: calc(100vh - var(--header-height));
 }
 
 .stripe:hover {
-    background-color: #635BFF;
-    color: white;
-    border: 1px solid rgba(black, .5);
-    font-weight: 400;
+  background-color: #635bff;
+  color: white;
+  border: 1px solid rgba(black, 0.5);
+  font-weight: 400;
 }
 
 ::ng-deep .organize-headers {
-    .cdk-drag-placeholder {
-        opacity: 0;
-    }
+  .cdk-drag-placeholder {
+    opacity: 0;
+  }
 
-    .cdk-drag-animating {
-        transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-    }
-    .header-list.cdk-drop-list-dragging .cdk-header-item:not(.cdk-drag-placeholder) {
-        transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-    }
+  .cdk-drag-animating {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
+  .header-list.cdk-drop-list-dragging
+    .cdk-header-item:not(.cdk-drag-placeholder) {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  }
 }
 
 .badge {
-    display: flex;
-    display: inline-grid;
-    grid-template-columns: repeat(3, auto);
-    grid-column-gap: 10px;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 15px;
-    background-color: rgba(black, .1);
-    border-radius: 10px;
-    font-weight: bold;
-    margin-bottom: 20px;
-    i.icon {
-        height: 30px;
-        width: 30px;
-        background-image: url(^assets/icons/badge.svg);
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
-        opacity: .8;
-    }
+  display: flex;
+  display: inline-grid;
+  grid-template-columns: repeat(3, auto);
+  grid-column-gap: 10px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 15px;
+  background-color: rgba(black, 0.1);
+  border-radius: 10px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  i.icon {
+    height: 30px;
+    width: 30px;
+    background-image: url(^assets/icons/badge.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.8;
+  }
 }
 
 .user-options {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 .see-again {
-    border: 1px solid rgba(black, .5);
-    padding: 0 10px;
-    line-height: 30px;
-    font-weight: bold;
+  border: 1px solid rgba(black, 0.5);
+  padding: 0 10px;
+  line-height: 30px;
+  font-weight: bold;
 }
 
 .tour {
-    display: inline-block;
-    padding: 10px 15px;
-    background-color: rgba(black, .1);
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 5px;
-    margin: 0 10px 15px 0;
+  display: inline-block;
+  padding: 10px 15px;
+  background-color: rgba(black, 0.1);
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 0 10px 15px 0;
 }
 
 h3 {
-    width: 100%;
-    height: 40px;
-    color: black;
-    font-weight: bold;
-    padding-left: 10px;
-    box-sizing: border-box;
-    line-height: 40px;
-    border-bottom: 1px solid black;
-    font-size: 12pt;
-    margin: 25px 0 35px;
+  width: 100%;
+  height: 40px;
+  color: black;
+  font-weight: bold;
+  padding-left: 10px;
+  box-sizing: border-box;
+  line-height: 40px;
+  border-bottom: 1px solid black;
+  font-size: 12pt;
+  margin: 25px 0 35px;
 }
 
 h4 {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 .user-info {
-    display: block;
-    width: 100%;
-    height: 40px;
-    line-height: 40px;
-    margin: 20px auto;
-    font-size: 13pt;
-    font-weight: bold;
-    color: $primary-color;
-    .name {
-        float: left;
-        margin-left: 0;
-        @include for-tablet-portrait-up {
-            margin-left: 40px;
-        }
-        span {
-            display: none;
-            margin-left: 5px;
-            @include for-tablet-portrait-up {
-                display: inline-block;
-            }
-        }
-        &:before {
-            content: "";
-            display: block;
-            position: relative;
-            top: 10px;
-            height: 20px;
-            width: 20px;
-            opacity: .75;
-            background: url(^assets/internal/COM_User_Icon.black.svg) no-repeat;
-            background-size: contain;
-            float: left;
-            margin-right: 20px;
-        }
+  display: block;
+  width: 100%;
+  height: 40px;
+  line-height: 40px;
+  margin: 20px auto;
+  font-size: 13pt;
+  font-weight: bold;
+  color: $primary-color;
+  .name {
+    float: left;
+    margin-left: 0;
+    @include for-tablet-portrait-up {
+      margin-left: 40px;
     }
-    .type {
-        float: right;
-        margin-right: 0;
-        @include for-tablet-portrait-up {
-            margin-right: 40px;
-        }
+    span {
+      display: none;
+      margin-left: 5px;
+      @include for-tablet-portrait-up {
+        display: inline-block;
+      }
     }
+    &:before {
+      content: '';
+      display: block;
+      position: relative;
+      top: 10px;
+      height: 20px;
+      width: 20px;
+      opacity: 0.75;
+      background: url(^assets/internal/COM_User_Icon.black.svg) no-repeat;
+      background-size: contain;
+      float: left;
+      margin-right: 20px;
+    }
+  }
+  .type {
+    float: right;
+    margin-right: 0;
+    @include for-tablet-portrait-up {
+      margin-right: 40px;
+    }
+  }
 }
 
 ul {
-    margin-top: 10px;
-    li {
-        list-style-type: none;
-        line-height: 30px;
-    }
+  margin-top: 10px;
+  li {
+    list-style-type: none;
+    line-height: 30px;
+  }
 }
 
 p {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .int-dept {
-    @include for-tablet-portrait-up {
-        padding: 0 20px;
+  @include for-tablet-portrait-up {
+    padding: 0 20px;
+  }
+  .dept-name {
+    margin-bottom: 15px;
+  }
+  .integration {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 0 20px;
+    max-width: 100%;
+    .icon {
+      flex: 0 60px;
+      height: 60px;
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+      &.Discord {
+        background-image: url(^assets/icons/discord.svg);
+      }
+      &.Slack {
+        background-image: url(^assets/icons/slack.svg);
+      }
+      margin-right: 10px;
     }
-    .dept-name {
-        margin-bottom: 15px;
+    .details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      font-weight: bold;
+      padding: 5px 10px;
+      & > div {
+        line-height: 25px;
+        user-select: text;
+      }
+      .hook {
+        display: none;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        word-break: break-word;
+        @include for-tablet-portrait-up {
+          display: initial;
+          white-space: normal;
+        }
+      }
     }
-    .integration {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin-bottom: 30px;
-        padding: 0 20px;
-        max-width: 100%;
-        .icon {
-            flex: 0 60px;
-            height: 60px;
-            background-repeat: no-repeat;
-            background-size: contain;
-            background-position: center;
-            &.Discord {
-                background-image: url(^assets/icons/discord.svg);
-            }
-            &.Slack {
-                background-image: url(^assets/icons/slack.svg);
-            }
-            margin-right: 10px;
-        }
-        .details {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            font-weight: bold;
-            padding: 5px 10px;
-            & > div {
-                line-height: 25px;
-                user-select: text;
-            }
-            .hook {
-                display: none;
-                white-space: nowrap;
-                text-overflow: ellipsis;
-                overflow: hidden;
-                word-break: break-word;
-                @include for-tablet-portrait-up {
-                    display: initial;
-                    white-space: normal;
-                }
-            }
-        }
-        .edit {
-            flex: 0 0 40px;
-            padding: 0 10px;
-            box-sizing: border-box;
-            position: relative;
-            cursor: pointer;
-            &:hover:after {
-                transform: scale(1.2);
-            }
-            &:after {
-                content: "";
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                margin: auto;
-                height: 15px;
-                width: 15px;
-                opacity: .8;
-                transition: transform .2s ease-in-out;
-                transform: scale(1);
-                background-image: url(^assets/edit.svg);
-                background-size: contain;
-                background-repeat: no-repeat;
-            }
-        }
-        .delete {
-            flex: 0 0 40px;
-            padding: 0 10px;
-            box-sizing: border-box;
-            position: relative;
-            cursor: pointer;
-            &:hover:after {
-                transform: scale(1.2);
-            }
-            &:after {
-                content: "";
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                margin: auto;
-                height: 15px;
-                width: 15px;
-                opacity: .5;
-                transition: transform .2s ease-in-out;
-                transform: scale(1);
-                background-image: url(^assets/delete.svg);
-                background-size: contain;
-                background-repeat: no-repeat;
-            }
-        }
+    .edit {
+      flex: 0 0 40px;
+      padding: 0 10px;
+      box-sizing: border-box;
+      position: relative;
+      cursor: pointer;
+      &:hover:after {
+        transform: scale(1.2);
+      }
+      &:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+        height: 15px;
+        width: 15px;
+        opacity: 0.8;
+        transition: transform 0.2s ease-in-out;
+        transform: scale(1);
+        background-image: url(^assets/edit.svg);
+        background-size: contain;
+        background-repeat: no-repeat;
+      }
     }
+    .delete {
+      flex: 0 0 40px;
+      padding: 0 10px;
+      box-sizing: border-box;
+      position: relative;
+      cursor: pointer;
+      &:hover:after {
+        transform: scale(1.2);
+      }
+      &:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+        height: 15px;
+        width: 15px;
+        opacity: 0.5;
+        transition: transform 0.2s ease-in-out;
+        transform: scale(1);
+        background-image: url(^assets/delete.svg);
+        background-size: contain;
+        background-repeat: no-repeat;
+      }
+    }
+  }
 }
 
 .budget-digit {
-    margin-left: 30px;
-    width: 150px;
-    input {
-        text-align: center;
-        font-weight: bold;
-    }
+  margin-left: 30px;
+  width: 150px;
+  input {
+    text-align: center;
+    font-weight: bold;
+  }
 }
 
 .invoices {
-    width: 100%;
-    border: 0;
-    border-spacing: 0;
-    tr {
-        height: 50px;
-        line-height: 50px;
-        th {
-            font-size: 1.2rem;
-        }
+  width: 100%;
+  border: 0;
+  border-spacing: 0;
+  tr {
+    height: 50px;
+    line-height: 50px;
+    th {
+      font-size: 1.2rem;
     }
-    tbody tr:nth-child(2n + 1) {
-        background-color: rgba(black, .03);
-    }
-    td, th {
-        text-align: center;
-    }
+  }
+  tbody tr:nth-child(2n + 1) {
+    background-color: rgba(black, 0.03);
+  }
+  td,
+  th {
+    text-align: center;
+  }
 }

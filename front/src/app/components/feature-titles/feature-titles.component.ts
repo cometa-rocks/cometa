@@ -9,23 +9,23 @@ import { map, switchMap } from 'rxjs/operators';
   selector: 'cometa-feature-titles',
   templateUrl: './feature-titles.component.html',
   styleUrls: ['./feature-titles.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FeatureTitlesComponent implements OnInit {
-
   feature$: Observable<Feature>;
 
   constructor(
     private _ac: ActivatedRoute,
     private _store: Store
-  ) { }
+  ) {}
 
   ngOnInit() {
     // Get feature id from URL Params ans switch to getting feature info from State
     this.feature$ = this._ac.paramMap.pipe(
       map(params => +params.get('feature')),
-      switchMap(featureId => this._store.select(CustomSelectors.GetFeatureInfo(featureId)))
-    )
+      switchMap(featureId =>
+        this._store.select(CustomSelectors.GetFeatureInfo(featureId))
+      )
+    );
   }
-
 }

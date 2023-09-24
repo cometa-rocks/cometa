@@ -5,38 +5,38 @@
 // Author: dph000
 @import 'color';
 
-:host::ng-deep > cometa-folder-item-tree > div{
-    line-height: 40px !important;
-    padding-left: 5px !important;
-    box-sizing: border-box;
+:host::ng-deep > cometa-folder-item-tree > div {
+  line-height: 40px !important;
+  padding-left: 5px !important;
+  box-sizing: border-box;
 }
 
 div {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    line-height: 40px;
-    font-size: 15px;
-    font-weight: 600;
-    color: $darker-step;
-    padding: 0px 10px;
-    box-sizing: border-box;
-    cursor: pointer;
-    padding-left: 29px;
-    mat-icon {
-        flex: 0 24px;
-        margin-right: 8px;
-    }
-    &:hover {
-        background: $medium-black;
-    }
+  display: flex;
+  width: 100%;
+  align-items: center;
+  line-height: 40px;
+  font-size: 15px;
+  font-weight: 600;
+  color: $darker-step;
+  padding: 0px 10px;
+  box-sizing: border-box;
+  cursor: pointer;
+  padding-left: 29px;
+  mat-icon {
+    flex: 0 24px;
+    margin-right: 8px;
+  }
+  &:hover {
+    background: $medium-black;
+  }
 }
 
 .selected {
-    background-color: rgba($blue, .1) !important;
-    cursor: unset;
-    color: $blue;
-    mat-icon {
-        color: $darker-step;
-    }
+  background-color: rgba($blue, 0.1) !important;
+  cursor: unset;
+  color: $blue;
+  mat-icon {
+    color: $darker-step;
+  }
 }

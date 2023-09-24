@@ -5,13 +5,10 @@ import { MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dia
   selector: 'import-json',
   templateUrl: './import-json.component.html',
   styleUrls: ['./import-json.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ImportJSONComponent {
-
-  constructor(
-    public dialogRef: MatDialogRef<ImportJSONComponent>
-  ) { }
+  constructor(public dialogRef: MatDialogRef<ImportJSONComponent>) {}
 
   json = '';
 
@@ -23,5 +20,4 @@ export class ImportJSONComponent {
       return false;
     }
   }
-
 }

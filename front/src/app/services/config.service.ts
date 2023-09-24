@@ -15,30 +15,30 @@ import { Integrations } from '@store/actions/integrations.actions';
 
 @Injectable()
 export class ConfigService {
-
-  constructor(
-    private _store: Store
-  ) { }
+  constructor(private _store: Store) {}
 
   selectedFolderId = new BehaviorSubject<SelectedFolder>(null);
   openedFolders = new BehaviorSubject<number[]>([]);
 
   load(): Promise<any> {
-    return this._store.dispatch( new User.GetUser ).pipe(
-      switchMap(_ => {
-        return this._store.dispatch([
-          new Configuration.GetConfig,
-          new Features.GetFolders,
-          new Applications.GetApplications,
-          new Environments.GetEnvironments,
-          new Actions.GetActions,
-          new Integrations.Get,
-          new Departments.GetAdminDepartments,
-          new WebSockets.Load,
-          new Variables.GetVariables,
-          new Features.GetFeatures
-        ]);
-      })
-    ).toPromise();
+    return this._store
+      .dispatch(new User.GetUser())
+      .pipe(
+        switchMap(_ => {
+          return this._store.dispatch([
+            new Configuration.GetConfig(),
+            new Features.GetFolders(),
+            new Applications.GetApplications(),
+            new Environments.GetEnvironments(),
+            new Actions.GetActions(),
+            new Integrations.Get(),
+            new Departments.GetAdminDepartments(),
+            new WebSockets.Load(),
+            new Variables.GetVariables(),
+            new Features.GetFeatures(),
+          ]);
+        })
+      )
+      .toPromise();
   }
 }

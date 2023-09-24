@@ -1,38 +1,69 @@
-import { Component, OnInit, ChangeDetectionStrategy, Input, ChangeDetectorRef, Host, ElementRef, NgZone, ViewChild, ViewChildren, QueryList, Renderer2 } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectionStrategy,
+  Input,
+  ChangeDetectorRef,
+  Host,
+  ElementRef,
+  NgZone,
+  ViewChild,
+  ViewChildren,
+  QueryList,
+  Renderer2,
+} from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { AddStepComponent } from '@dialogs/add-step/add-step.component';
-import { MatLegacyDialog as MatDialog , MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
+import {
+  MatLegacyDialog as MatDialog,
+  MatLegacyDialogRef as MatDialogRef,
+} from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
 import { Store } from '@ngxs/store';
 import { ActionsState } from '@store/actions.state';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { ClipboardService } from 'ngx-clipboard';
 import { ImportJSONComponent } from '@dialogs/import-json/import-json.component';
-import { BehaviorSubject, debounceTime, distinctUntilChanged, forkJoin, of } from 'rxjs';
+import {
+  BehaviorSubject,
+  debounceTime,
+  distinctUntilChanged,
+  forkJoin,
+  of,
+} from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
-import { UntypedFormArray, UntypedFormBuilder, Validators } from '@angular/forms';
+import {
+  UntypedFormArray,
+  UntypedFormBuilder,
+  Validators,
+} from '@angular/forms';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
 import { CustomValidators } from '@others/custom-validators';
 import { exportToJSONFile, SubSinkAdapter } from 'ngx-amvara-toolbox';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
 import { MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent } from '@angular/material/legacy-autocomplete';
-import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
+import {
+  AreYouSureData,
+  AreYouSureDialog,
+} from '@dialogs/are-you-sure/are-you-sure.component';
 import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
-import { MatLegacyList as MatList, MatLegacyListItem as MatListItem } from '@angular/material/legacy-list';
+import {
+  MatLegacyList as MatList,
+  MatLegacyListItem as MatListItem,
+} from '@angular/material/legacy-list';
 
 @Component({
   selector: 'cometa-step-editor',
   templateUrl: './step-editor.component.html',
   styleUrls: ['./step-editor.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StepEditorComponent extends SubSinkAdapter implements OnInit {
-
   stepsForm: UntypedFormArray;
 
   @ViewSelectSnapshot(ActionsState) actions: Action[];
-  @ViewSelectSnapshot(UserState) user !: UserInfo;
+  @ViewSelectSnapshot(UserState) user!: UserInfo;
 
   @Input() feature: Feature;
   @Input() name: string;
@@ -40,9 +71,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   @Input() variables: VariablePair[];
   @Input() department: Department;
 
-  @ViewChildren(MatListItem, {read: ElementRef}) varlistItems: QueryList<ElementRef>;
-  @ViewChild(MatList, {read: ElementRef}) varlist: ElementRef;
-  @ViewChild('variable_name', {read: ElementRef, static: false}) varname: ElementRef;
+  @ViewChildren(MatListItem, { read: ElementRef })
+  varlistItems: QueryList<ElementRef>;
+  @ViewChild(MatList, { read: ElementRef }) varlist: ElementRef;
+  @ViewChild('variable_name', { read: ElementRef, static: false })
+  varname: ElementRef;
 
   displayedVariables: (VariablePair | string)[] = [];
   stepVariableData = <VariableInsertionData>{};
@@ -74,13 +107,26 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           screenshot: step.screenshot,
           step_keyword: step.step_keyword,
           compare: step.compare,
-          step_content: [step.step_content, CustomValidators.StepAction.bind(this)],
+          step_content: [
+            step.step_content,
+            CustomValidators.StepAction.bind(this),
+          ],
           step_type: step.step_type,
           continue_on_failure: step.continue_on_failure,
-          timeout: step.timeout || this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)]))
+          timeout:
+            step.timeout ||
+            this.department.settings?.step_timeout ||
+            this._fb.control(
+              60,
+              Validators.compose([
+                Validators.min(1),
+                Validators.max(7205),
+                Validators.maxLength(4),
+              ])
+            ),
         })
-      )
-    })
+      );
+    });
     this._cdr.detectChanges();
   }
 
@@ -92,14 +138,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // @ts-ignore
     if (!this.feature) this.feature = { feature_id: 0 };
     const featureId = this.mode === 'clone' ? 0 : this.feature.feature_id;
-    this.subs.sink = this._store.select(CustomSelectors.GetFeatureSteps(featureId)).subscribe(steps => this.setSteps(steps));
+    this.subs.sink = this._store
+      .select(CustomSelectors.GetFeatureSteps(featureId))
+      .subscribe(steps => this.setSteps(steps));
     // When steps$ is changed do the rollup of duplicated steps
     this.subs.sink = this.stepsForm.valueChanges
-                                   .pipe(debounceTime(500),distinctUntilChanged())
-                                   .subscribe(stepsArray => this.rollupDuplicateSteps(stepsArray));
+      .pipe(debounceTime(500), distinctUntilChanged())
+      .subscribe(stepsArray => this.rollupDuplicateSteps(stepsArray));
 
     // insert default step if currently viewed feature, is new and still not created
-    if(this.feature.feature_id === 0) {
+    if (this.feature.feature_id === 0) {
       this.insertDefaultStep();
     }
   }
@@ -121,7 +169,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         let url = stepValue.match(/\"(.+)\"/);
         // Regex testing for valid URLs
         // from https://www.regextester.com/104035
-        const urlRegex = /(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&//=]*)/;
+        const urlRegex =
+          /(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&//=]*)/;
         // Check matching URL and is valid
         if (url && url[1] && urlRegex.test(url[1])) {
           // Add http://
@@ -141,48 +190,46 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     event.preventDefault();
 
     setTimeout(() => {
-
       const varlistItems = this.varlistItems.toArray();
 
-      for(let i = 0; i < varlistItems.length; i++) {
-
-        if(varlistItems[i].nativeElement.classList.contains("selected")) {
-          this.renderer.removeClass(varlistItems[i].nativeElement, "selected");
-          direction === 'down' ? this.selectnext(varlistItems, i) : this.selectPrevious(varlistItems, i)
+      for (let i = 0; i < varlistItems.length; i++) {
+        if (varlistItems[i].nativeElement.classList.contains('selected')) {
+          this.renderer.removeClass(varlistItems[i].nativeElement, 'selected');
+          direction === 'down'
+            ? this.selectnext(varlistItems, i)
+            : this.selectPrevious(varlistItems, i);
           return;
         }
-
       }
-
-    }, 0)
+    }, 0);
   }
 
   // based on currently selected item in flyout, when arrowkey up is pressed, selects previous element if it exists
   // if previous element does not exists, in other words the currently selected item is the first one, then arrow key up will scroll down to last element and select it
   selectPrevious(varlistItems: ElementRef[], i: number) {
-    if(varlistItems[i-1]) {
-      this.renderer.addClass(varlistItems[i-1].nativeElement, "selected")
-      this.varlist.nativeElement.scrollTop = (i-1) * 30;
-    }
-    else {
-      this.renderer.addClass(varlistItems[varlistItems.length-1].nativeElement, "selected")
-      this.varlist.nativeElement.scrollTop = (varlistItems.length-1) * 30;
+    if (varlistItems[i - 1]) {
+      this.renderer.addClass(varlistItems[i - 1].nativeElement, 'selected');
+      this.varlist.nativeElement.scrollTop = (i - 1) * 30;
+    } else {
+      this.renderer.addClass(
+        varlistItems[varlistItems.length - 1].nativeElement,
+        'selected'
+      );
+      this.varlist.nativeElement.scrollTop = (varlistItems.length - 1) * 30;
     }
   }
 
   // based on currently selected item in flyout, when arrowkey down is pressed, selects next element if it exists
   // if previous element does not exists, in other words the currently selected item is the last one, then arrow key down will scroll up to first element and select it
   selectnext(varlistItems: ElementRef[], i: number) {
-    if(varlistItems[i+1]) {
-      this.renderer.addClass(varlistItems[i+1].nativeElement, "selected")
-      this.varlist.nativeElement.scrollTop = (i+1) * 30;
-    }
-    else {
-      this.renderer.addClass(varlistItems[0].nativeElement, "selected")
+    if (varlistItems[i + 1]) {
+      this.renderer.addClass(varlistItems[i + 1].nativeElement, 'selected');
+      this.varlist.nativeElement.scrollTop = (i + 1) * 30;
+    } else {
+      this.renderer.addClass(varlistItems[0].nativeElement, 'selected');
       this.varlist.nativeElement.scrollTop = 0;
     }
   }
-
 
   // when escape is clicked, prevent parent dialog from closing and removes variable flyout
   onStepEscape(event: Event) {
@@ -195,12 +242,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     event.preventDefault();
 
     const ev = event as any;
-    if (!ev.relatedTarget?.attributes.id)  this.stepVariableData.currentStepIndex = null;
+    if (!ev.relatedTarget?.attributes.id)
+      this.stepVariableData.currentStepIndex = null;
   }
 
   // removes variable flyout on current step row, when keydown TAB event is fired
   onTextareaTab(i: number) {
-    if ( this.stepVariableData.currentStepIndex === i) {
+    if (this.stepVariableData.currentStepIndex === i) {
       this.stepVariableData.currentStepIndex = null;
     }
   }
@@ -211,8 +259,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     let step = this.stepsForm.at(index).get('step_content');
     step.setValue(
-      step.value.substr(0, this.stepVariableData.quoteIndexes.prev) + `$${variable_name}` + step.value.substr(this.stepVariableData.quoteIndexes.next - 1)
-      )
+      step.value.substr(0, this.stepVariableData.quoteIndexes.prev) +
+        `$${variable_name}` +
+        step.value.substr(this.stepVariableData.quoteIndexes.next - 1)
+    );
 
     this.stepVariableData.currentStepIndex = null;
   }
@@ -220,7 +270,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   // defines logic to be executed when user presses enter key
   onTextareaEnter(event: any, index: number) {
     // if user is currently viewing variables in flyout, disable default behavior of textarea to expand height on enter
-    if(this.displayedVariables.length > 0) {
+    if (this.displayedVariables.length > 0) {
       event.preventDefault();
     }
 
@@ -228,10 +278,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     const varlistItems = this.varlistItems.toArray();
 
     // gets the dom element of variable that currently contains class selected, and inserts its value into step
-    for(let i = 0; i < varlistItems.length; i++) {
-
-      if (varlistItems[i].nativeElement.classList.contains("selected")) {
-        const var_name = varlistItems[i].nativeElement.querySelector(".variable-wrapper .var_name");
+    for (let i = 0; i < varlistItems.length; i++) {
+      if (varlistItems[i].nativeElement.classList.contains('selected')) {
+        const var_name = varlistItems[i].nativeElement.querySelector(
+          '.variable-wrapper .var_name'
+        );
 
         if (var_name) {
           this.onClickVariable(var_name.innerText.replace('$', ''), index);
@@ -258,28 +309,48 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepVariableData.stepValue = event.target.value as string;
 
     // gets the position of nearest left $ and right " chars, taking current cursor position as startpoint index
-    this.stepVariableData.quoteIndexes = this.getIndexes(this.stepVariableData.stepValue, this.stepVariableData.selectionIndex);
+    this.stepVariableData.quoteIndexes = this.getIndexes(
+      this.stepVariableData.stepValue,
+      this.stepVariableData.selectionIndex
+    );
 
     // return if left quote or right quote index is undefined
-    if(!this.stepVariableData.quoteIndexes.next || !this.stepVariableData.quoteIndexes.prev) return;
+    if (
+      !this.stepVariableData.quoteIndexes.next ||
+      !this.stepVariableData.quoteIndexes.prev
+    )
+      return;
 
     // gets the string between quotes(including quotes)
-    this.stepVariableData.strToReplace = this.stepVariableData.stepValue.substring(this.stepVariableData.quoteIndexes.prev, this.stepVariableData.quoteIndexes.next);
+    this.stepVariableData.strToReplace =
+      this.stepVariableData.stepValue.substring(
+        this.stepVariableData.quoteIndexes.prev,
+        this.stepVariableData.quoteIndexes.next
+      );
 
     // removes quotes
-    this.stepVariableData.strWithoutQuotes = this.stepVariableData.strToReplace.replace(/"/g, '').trim();
+    this.stepVariableData.strWithoutQuotes = this.stepVariableData.strToReplace
+      .replace(/"/g, '')
+      .trim();
 
     // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
     if (this.stepVariableData.strWithoutQuotes.includes('$')) {
       // const strWithoutDollar = this.stepVariableData.strWithoutQuotes.replace('$','')
-      const filteredVariables = this.variables.filter(item => item.variable_name.includes(this.stepVariableData.strWithoutQuotes.replace('$','')));
-      this.displayedVariables = filteredVariables.length > 0 ? filteredVariables : ["No variable with this name"];
+      const filteredVariables = this.variables.filter(item =>
+        item.variable_name.includes(
+          this.stepVariableData.strWithoutQuotes.replace('$', '')
+        )
+      );
+      this.displayedVariables =
+        filteredVariables.length > 0
+          ? filteredVariables
+          : ['No variable with this name'];
 
       // when flyout of variables opens up, by default the selected element will be the first one
       setTimeout(() => {
         const firstVariableRef = this.varlistItems.toArray()[0].nativeElement;
-        this.renderer.addClass(firstVariableRef, "selected")
-      }, 0)
+        this.renderer.addClass(firstVariableRef, 'selected');
+      }, 0);
     }
   }
 
@@ -290,14 +361,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     // returns the index of the nearest " that is positioned after received index
     function getNext(): number {
-      for(let i = startIndex; i<str.length; i++) {
-        if (str[i] === '"')  return i + 1;
+      for (let i = startIndex; i < str.length; i++) {
+        if (str[i] === '"') return i + 1;
       }
     }
 
     // returns the index of the nearest $ that is positioned before received index
     function getPrev(): number {
-      for(let i = startIndex-1; i >=0; i--) {
+      for (let i = startIndex - 1; i >= 0; i--) {
         if (str[i] === '$') return i;
       }
     }
@@ -313,20 +384,24 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   selectFirstVariable(event: MatAutocompleteSelectedEvent, index: number) {
     const step = event.option.value;
     // Get current step input
-    const input = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLInputElement;
+    const input = this._elementRef.nativeElement.querySelectorAll(
+      'textarea.code'
+    )[index] as HTMLInputElement;
     // Get where the first parameter starts and ends
     const parameterRegex = /\{[a-z\d\-_\s]+\}/i;
     const match = parameterRegex.exec(step);
     if (match) {
       // Select first parameter
-      this._ngZone.runOutsideAngular(() => input.setSelectionRange(match.index, match.index + match[0].length));
+      this._ngZone.runOutsideAngular(() =>
+        input.setSelectionRange(match.index, match.index + match[0].length)
+      );
     }
   }
 
   // Automatically adds http:// if URL doesn't contain it
   addhttp(url: string) {
     if (!/^(?:f|ht)tps?\:\/\//.test(url)) {
-      url = "http://" + url;
+      url = 'http://' + url;
     }
     return url;
   }
@@ -338,20 +413,20 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // #2430 - Marks steps as disabled if step is found inside an import
     // First get all import IDs
     const importIds: number[] = stepsArray.reduce((r, step) => {
-        const matches = step.step_content.match(/Run feature with id "(\d+)"/);
-        if (!!matches) r.push(+matches[1]);
-        return r;
+      const matches = step.step_content.match(/Run feature with id "(\d+)"/);
+      if (!!matches) r.push(+matches[1]);
+      return r;
     }, []);
     if (importIds.length > 0) {
       // Check if we already have the imports info in our cache
       const needsRequest = importIds
-      // #3526 ------------------------------------- start
+        // #3526 ------------------------------------- start
         .map(id => {
-          if(!this.realizedRequests.includes(id)) {
+          if (!this.realizedRequests.includes(id)) {
             this.realizedRequests.push(id);
-            return this._api.getFeatureSteps(id)
+            return this._api.getFeatureSteps(id);
           } else {
-            return of([])
+            return of([]);
           }
           // #3526 ------------------------------------- end
         });
@@ -363,7 +438,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         featureSteps.forEach(steps => {
           if (steps.length > 0) {
             steps.forEach(step => {
-              if (!importsSteps.includes(step.step_content)) importsSteps.push(step.step_content);
+              if (!importsSteps.includes(step.step_content))
+                importsSteps.push(step.step_content);
             });
           }
         });
@@ -375,45 +451,63 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   importsSteps$ = new BehaviorSubject<string[]>([]);
 
   removeAll() {
-    this._dialog.open(AreYouSureDialog, {
-      data: {
-        title: 'translate:you_sure.remove_all_title',
-        description: 'translate:you_sure.remove_all'
-      } as AreYouSureData
-    }).afterClosed().subscribe(exit => {
-      // Close edit feature popup
-      if (exit) {
-        this.stepsForm.clear();
-        this._cdr.detectChanges();
-      }
-    });
+    this._dialog
+      .open(AreYouSureDialog, {
+        data: {
+          title: 'translate:you_sure.remove_all_title',
+          description: 'translate:you_sure.remove_all',
+        } as AreYouSureData,
+      })
+      .afterClosed()
+      .subscribe(exit => {
+        // Close edit feature popup
+        if (exit) {
+          this.stepsForm.clear();
+          this._cdr.detectChanges();
+        }
+      });
   }
 
   add() {
-    this._dialog.open(AddStepComponent, {
-      panelClass: 'add-step-panel',
-      autoFocus: true,
-      disableClose: true,
-      data: {
-        templates: false
-      }
-    }).afterClosed().subscribe((res: Action) => {
-      if (res) {
-        this.stepsForm.push(
-          this._fb.group({
-            enabled: true,
-            screenshot: res.screenshot,
-            step_keyword: 'Given',
-            compare: res.compare,
-            step_content: [res.interpreted, CustomValidators.StepAction.bind(this)],
-            continue_on_failure: false,
-            timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)]))
-          })
-        )
-        this._cdr.detectChanges();
-        this.focusStep(this.stepsForm.length - 1);
-      }
-    });
+    this._dialog
+      .open(AddStepComponent, {
+        panelClass: 'add-step-panel',
+        autoFocus: true,
+        disableClose: true,
+        data: {
+          templates: false,
+        },
+      })
+      .afterClosed()
+      .subscribe((res: Action) => {
+        if (res) {
+          this.stepsForm.push(
+            this._fb.group({
+              enabled: true,
+              screenshot: res.screenshot,
+              step_keyword: 'Given',
+              compare: res.compare,
+              step_content: [
+                res.interpreted,
+                CustomValidators.StepAction.bind(this),
+              ],
+              continue_on_failure: false,
+              timeout:
+                this.department.settings?.step_timeout ||
+                this._fb.control(
+                  60,
+                  Validators.compose([
+                    Validators.min(1),
+                    Validators.max(7205),
+                    Validators.maxLength(4),
+                  ])
+                ),
+            })
+          );
+          this._cdr.detectChanges();
+          this.focusStep(this.stepsForm.length - 1);
+        }
+      });
   }
 
   addEmpty(index: number = null) {
@@ -424,12 +518,21 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       step_content: ['', CustomValidators.StepAction.bind(this)],
       enabled: true,
       continue_on_failure: false,
-      timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)]))
+      timeout:
+        this.department.settings?.step_timeout ||
+        this._fb.control(
+          60,
+          Validators.compose([
+            Validators.min(1),
+            Validators.max(7205),
+            Validators.maxLength(4),
+          ])
+        ),
     });
     if (index !== null) {
       this.stepsForm.insert(index, template);
     } else {
-      this.stepsForm.push(template)
+      this.stepsForm.push(template);
     }
     this._cdr.detectChanges();
     if (index !== null) {
@@ -440,17 +543,23 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   copyItem(index: number, position: string) {
-    const stepToCopy = position === 'up' ? this.stepsForm.controls[index] : this.stepsForm.controls[index - 1];
+    const stepToCopy =
+      position === 'up'
+        ? this.stepsForm.controls[index]
+        : this.stepsForm.controls[index - 1];
     // Recreate step, if process is not done, copied steps would be synced by reference
     const newStepToCopy = this._fb.group({
       compare: stepToCopy.value.compare,
       screenshot: stepToCopy.value.screenshot,
       step_keyword: stepToCopy.value.step_keyword,
-      step_content: [stepToCopy.value.step_content, CustomValidators.StepAction.bind(this)],
+      step_content: [
+        stepToCopy.value.step_content,
+        CustomValidators.StepAction.bind(this),
+      ],
       enabled: stepToCopy.value.enabled,
       continue_on_failure: stepToCopy.value.continue_on_failure,
-      timeout: stepToCopy.value.timeout
-    })
+      timeout: stepToCopy.value.timeout,
+    });
     this.stepsForm.insert(index, newStepToCopy);
     this._cdr.detectChanges();
   }
@@ -470,22 +579,36 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   focusStep(childIndex) {
     setTimeout(_ => {
       try {
-        document.querySelector(`.mat-dialog-content .step-row:nth-child(${childIndex + 1})`).scrollIntoView({ block: 'center', behavior: 'smooth' });
-        (document.querySelector(`.mat-dialog-content .step-row:nth-child(${childIndex + 1}) .code`) as HTMLInputElement).focus();
-      } catch (err) { }
+        document
+          .querySelector(
+            `.mat-dialog-content .step-row:nth-child(${childIndex + 1})`
+          )
+          .scrollIntoView({ block: 'center', behavior: 'smooth' });
+        (
+          document.querySelector(
+            `.mat-dialog-content .step-row:nth-child(${childIndex + 1}) .code`
+          ) as HTMLInputElement
+        ).focus();
+      } catch (err) {}
     }, 0);
   }
 
   scrollStepsToBottom(focusLastStep: boolean = false) {
     setTimeout(_ => {
       try {
-        document.querySelector(`.mat-dialog-content .step-row:last-child`).scrollIntoView({ block: 'center', behavior: 'smooth' });
+        document
+          .querySelector(`.mat-dialog-content .step-row:last-child`)
+          .scrollIntoView({ block: 'center', behavior: 'smooth' });
         setTimeout(() => {
           if (focusLastStep) {
-            (document.querySelector(`.mat-dialog-content .step-row:last-child .code`) as HTMLInputElement).focus();
+            (
+              document.querySelector(
+                `.mat-dialog-content .step-row:last-child .code`
+              ) as HTMLInputElement
+            ).focus();
           }
         }, 500);
-      } catch (err) { }
+      } catch (err) {}
     }, 0);
   }
 
@@ -500,7 +623,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   export() {
     const steps = this.getSteps();
     if (steps.length > 0) {
-      exportToJSONFile(this.feature.feature_name || this.name ||'Unnamed', this.getSteps());
+      exportToJSONFile(
+        this.feature.feature_name || this.name || 'Unnamed',
+        this.getSteps()
+      );
     } else {
       this._snackBar.open('There are no steps to export', 'OK');
     }
@@ -526,7 +652,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           }
         }
         this.setSteps(stepsA, false);
-        (document.getElementsByClassName('upload_json')[0] as HTMLInputElement).value = '';
+        (
+          document.getElementsByClassName('upload_json')[0] as HTMLInputElement
+        ).value = '';
         this._snackBar.open('Successfully imported steps!', 'OK');
       } else {
         this._snackBar.open('Invalid data', 'OK');
@@ -556,7 +684,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
             }
           }
           this.setSteps(stepsA, false);
-          (document.getElementsByClassName('upload_json')[0] as HTMLInputElement).value = '';
+          (
+            document.getElementsByClassName(
+              'upload_json'
+            )[0] as HTMLInputElement
+          ).value = '';
           this._snackBar.open('Successfully imported steps!', 'OK');
           this.scrollStepsToBottom();
         } else {
@@ -580,11 +712,22 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         screenshot: false,
         step_keyword: 'Given',
         compare: false,
-        step_content: ['StartBrowser and call URL "{url}"', CustomValidators.StepAction.bind(this)],
+        step_content: [
+          'StartBrowser and call URL "{url}"',
+          CustomValidators.StepAction.bind(this),
+        ],
         continue_on_failure: false,
-        timeout: this.department.settings?.step_timeout || this._fb.control(60, Validators.compose([Validators.min(1), Validators.max(7205), Validators.maxLength(4)]))
+        timeout:
+          this.department.settings?.step_timeout ||
+          this._fb.control(
+            60,
+            Validators.compose([
+              Validators.min(1),
+              Validators.max(7205),
+              Validators.maxLength(4),
+            ])
+          ),
       })
     );
   }
-
 }

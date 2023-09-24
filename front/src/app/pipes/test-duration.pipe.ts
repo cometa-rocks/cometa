@@ -4,10 +4,9 @@ import { map } from 'rxjs/operators';
 import { differenceInMilliseconds, isValid } from 'date-fns';
 
 @Pipe({
-  name: 'testDuration'
+  name: 'testDuration',
 })
 export class TestDurationPipe implements PipeTransform {
-
   transform(startTime: Date | null, endTime: Date | null): Observable<string> {
     if (startTime && isValid(startTime)) {
       if (endTime && isValid(endTime)) {
@@ -15,7 +14,7 @@ export class TestDurationPipe implements PipeTransform {
       } else {
         return timer(0, 1000).pipe(
           map(_ => this.getDifferenceTime(startTime, new Date()))
-        )
+        );
       }
     } else {
       return of('');
@@ -32,5 +31,4 @@ export class TestDurationPipe implements PipeTransform {
     const sDisplay = s > 9 ? s.toFixed(0) : `0${s}`;
     return hDisplay + mDisplay + ':' + sDisplay;
   }
-
 }

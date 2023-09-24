@@ -9,29 +9,29 @@ import { MatRippleModule } from '@angular/material/core';
 import { EasterEggComponent } from '../components/easter-egg/easter-egg.component';
 
 const routes: Routes = [
-    {
-        path: '',
-        title: 'Home',
-        component: SearchComponent
-    }
+  {
+    path: '',
+    title: 'Home',
+    component: SearchComponent,
+  },
 ];
 
 @NgModule({
-    imports: [
-        TranslateModule.forChild({
-            extend: true
-        }),
-        RouterModule.forChild(routes),
-        MatRippleModule,
-        SharedModule,
-        CommonModule
-    ],
-    declarations: [
-        /* Pipes */
-        /* Components */
-        MoveItemDialog,
-        SearchComponent,
-        EasterEggComponent,
-  ]
+  imports: [
+    TranslateModule.forChild({
+      extend: true,
+    }),
+    RouterModule.forChild(routes),
+    MatRippleModule,
+    SharedModule,
+    CommonModule,
+  ],
+  declarations: [
+    /* Pipes */
+    /* Components */
+    MoveItemDialog,
+    SearchComponent,
+    EasterEggComponent,
+  ],
 })
-export class SearchModule { }
+export class SearchModule {}

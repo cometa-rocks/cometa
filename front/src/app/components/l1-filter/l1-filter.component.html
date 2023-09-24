@@ -6,43 +6,76 @@ Author: dph000
 
 -->
 <div class="upper-container">
-  <div (click)="toggleSidenav()" class="showFolders" matTooltip="Show+Hide Folders" [class.toggle-search]="openedSearch$ | async">
-      <i [class.sidebar-closed]="getSidebarState()"></i>
+  <div
+    (click)="toggleSidenav()"
+    class="showFolders"
+    matTooltip="Show+Hide Folders"
+    [class.toggle-search]="openedSearch$ | async">
+    <i [class.sidebar-closed]="getSidebarState()"></i>
   </div>
-  <div class="return-search" [class.toggle-search]="!(openedSearch$ | async)" (click)="close_search()">
+  <div
+    class="return-search"
+    [class.toggle-search]="!(openedSearch$ | async)"
+    (click)="close_search()">
     <mat-icon>keyboard_backspace</mat-icon>
   </div>
   <!-- Breadcrumbs container -->
-  <div class="breadcrumb-container" [class.toggle-search]="openedSearch$ | async">
+  <div
+    class="breadcrumb-container"
+    [class.toggle-search]="openedSearch$ | async">
     <!-- Breadcrumbs home button -->
-      <div class="breadcrumb" matTooltip="Shift + Alt + H" (click)="returnToRoot()">
-          <mat-icon [class.navigable]="(currentRoute$ | async).length > 0">home</mat-icon>
-          <span>Home</span>
-      </div>
-      <!-- Breadcrumbs directory list -->
-      <div class="breadcrumb" *ngFor="let folder of currentRoute$ | async">
-        <!-- Arrow to return to parent folder / department only visible on mobile -->
-        <p (click)="returnParent()" class="return_mobile"></p>
-        <p class="return"></p>
-        <span (click)="returnFolder(folder)">{{ folder.name }}</span>
-      </div>
+    <div
+      class="breadcrumb"
+      matTooltip="Shift + Alt + H"
+      (click)="returnToRoot()">
+      <mat-icon [class.navigable]="(currentRoute$ | async).length > 0"
+        >home</mat-icon
+      >
+      <span>Home</span>
+    </div>
+    <!-- Breadcrumbs directory list -->
+    <div class="breadcrumb" *ngFor="let folder of currentRoute$ | async">
+      <!-- Arrow to return to parent folder / department only visible on mobile -->
+      <p (click)="returnParent()" class="return_mobile"></p>
+      <p class="return"></p>
+      <span (click)="returnFolder(folder)">{{ folder.name }}</span>
+    </div>
   </div>
   <!-- Search bar -->
   <div class="new-search-input" [class.search-opened]="openedSearch$ | async">
     <mat-form-field>
-      <input matInput class="search-input-box" type="text" [(ngModel)]="searchInput" (keydown.enter)="searchFeature()" disableAutocomplete placeholder="Search in co.meta" #addTest>
+      <input
+        matInput
+        class="search-input-box"
+        type="text"
+        [(ngModel)]="searchInput"
+        (keydown.enter)="searchFeature()"
+        disableAutocomplete
+        placeholder="Search in co.meta"
+        #addTest />
     </mat-form-field>
   </div>
   <!-- Filters list, if there is any active -->
   <div class="filters" *ngIf="filters$.length != 0">
     <div class="filter" *ngFor="let filter of filters$; trackBy: getId">
-      <span [innerHTML]="filter | filterText:moreOrLessSteps.value | storeSelector | async"></span>
-      <div (click)="removeFilter(filter)" class="close" matTooltip="Shift + Alt + X"></div>
+      <span
+        [innerHTML]="
+          filter | filterText: moreOrLessSteps.value | storeSelector | async
+        "></span>
+      <div
+        (click)="removeFilter(filter)"
+        class="close"
+        matTooltip="Shift + Alt + X"></div>
     </div>
-    <div style="clear: both;"></div>
+    <div style="clear: both"></div>
   </div>
   <!-- Search button -->
-  <div *ngIf="filters$.length == 0" class="search-container" (click)="open_search(); searchFeature()">
-    <mat-icon class="search-button" matTooltip="Shift + Alt + F">search</mat-icon>
+  <div
+    *ngIf="filters$.length == 0"
+    class="search-container"
+    (click)="open_search(); searchFeature()">
+    <mat-icon class="search-button" matTooltip="Shift + Alt + F"
+      >search</mat-icon
+    >
   </div>
 </div>

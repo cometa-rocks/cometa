@@ -1,33 +1,50 @@
-
 <mat-dialog-content>
-    <h2 mat-dialog-title>Modify all timeouts of department</h2>
-      <form [formGroup]="timeoutForm">
-        <div class="global-timeout-modifier">
-          <div class="description-option">
-            <mat-form-field appearance="outline" class="step_timeout_from">
-              <mat-label>From</mat-label>
-              <input #fromTimeout matInput placeholder="From" formControlName="step_timeout_from" type="number">
-              <span matSuffix>seconds</span>
-            </mat-form-field>
-          </div>
-          <div class="description-option">
-            <mat-form-field appearance="outline" class="step_timeout_to">
-              <mat-label>To</mat-label>
-              <input #toTimeout matInput placeholder="To" formControlName="step_timeout_to" type="number">
-              <span matSuffix>seconds</span>
-            </mat-form-field>
-          </div>
-        </div>
-        <div class="description-option">
-            <div class="description">
-                Globally modify timeout of steps in all the features of department.
-                Have in mind that update will only be applied to steps that currently exist and will not affect in any way steps created in future.
-            </div>
-        </div>
-      </form>
-      <br>
-  </mat-dialog-content>
-  <mat-dialog-actions>
-    <button mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
-    <button mat-stroked-button color="primary" [disabled]="!timeoutForm.valid || !fromTimeout.value || !toTimeout.value " (click)="applyGlobalTimeout($event)" class="submit">Update</button>
-  </mat-dialog-actions>
+  <h2 mat-dialog-title>Modify all timeouts of department</h2>
+  <form [formGroup]="timeoutForm">
+    <div class="global-timeout-modifier">
+      <div class="description-option">
+        <mat-form-field appearance="outline" class="step_timeout_from">
+          <mat-label>From</mat-label>
+          <input
+            #fromTimeout
+            matInput
+            placeholder="From"
+            formControlName="step_timeout_from"
+            type="number" />
+          <span matSuffix>seconds</span>
+        </mat-form-field>
+      </div>
+      <div class="description-option">
+        <mat-form-field appearance="outline" class="step_timeout_to">
+          <mat-label>To</mat-label>
+          <input
+            #toTimeout
+            matInput
+            placeholder="To"
+            formControlName="step_timeout_to"
+            type="number" />
+          <span matSuffix>seconds</span>
+        </mat-form-field>
+      </div>
+    </div>
+    <div class="description-option">
+      <div class="description">
+        Globally modify timeout of steps in all the features of department. Have
+        in mind that update will only be applied to steps that currently exist
+        and will not affect in any way steps created in future.
+      </div>
+    </div>
+  </form>
+  <br />
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
+  <button
+    mat-stroked-button
+    color="primary"
+    [disabled]="!timeoutForm.valid || !fromTimeout.value || !toTimeout.value"
+    (click)="applyGlobalTimeout($event)"
+    class="submit">
+    Update
+  </button>
+</mat-dialog-actions>

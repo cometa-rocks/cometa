@@ -1,9 +1,57 @@
 <nav mat-tab-nav-bar>
-  <a mat-tab-link *ngIf="canViewDepartments$ | async" [routerLink]="['/admin/departments']" routerLinkActive #departments="routerLinkActive" [active]="departments.isActive">Departments</a>
-  <a mat-tab-link *ngIf="canViewApplications$ | async" [routerLink]="['/admin/applications']" routerLinkActive #applications="routerLinkActive" [active]="applications.isActive">Applications</a>
-  <a mat-tab-link *ngIf="canViewBrowsers$ | async" [routerLink]="['/admin/browsers']" routerLinkActive #browsers="routerLinkActive" [active]="browsers.isActive">Browsers</a>
-  <a mat-tab-link *ngIf="canViewEnvironments$ | async" [routerLink]="['/admin/environments']" routerLinkActive #environments="routerLinkActive" [active]="environments.isActive">Environments</a>
-  <a mat-tab-link *ngIf="canViewFeatures$ | async" [routerLink]="['/admin/features']" routerLinkActive #features="routerLinkActive" [active]="features.isActive">Features</a>
-  <a mat-tab-link *ngIf="canViewAccounts$ | async" [routerLink]="['/admin/accounts']" routerLinkActive #accounts="routerLinkActive" [active]="accounts.isActive">Accounts</a>
+  <a
+    mat-tab-link
+    *ngIf="canViewDepartments$ | async"
+    [routerLink]="['/admin/departments']"
+    routerLinkActive
+    #departments="routerLinkActive"
+    [active]="departments.isActive"
+    >Departments</a
+  >
+  <a
+    mat-tab-link
+    *ngIf="canViewApplications$ | async"
+    [routerLink]="['/admin/applications']"
+    routerLinkActive
+    #applications="routerLinkActive"
+    [active]="applications.isActive"
+    >Applications</a
+  >
+  <a
+    mat-tab-link
+    *ngIf="canViewBrowsers$ | async"
+    [routerLink]="['/admin/browsers']"
+    routerLinkActive
+    #browsers="routerLinkActive"
+    [active]="browsers.isActive"
+    >Browsers</a
+  >
+  <a
+    mat-tab-link
+    *ngIf="canViewEnvironments$ | async"
+    [routerLink]="['/admin/environments']"
+    routerLinkActive
+    #environments="routerLinkActive"
+    [active]="environments.isActive"
+    >Environments</a
+  >
+  <a
+    mat-tab-link
+    *ngIf="canViewFeatures$ | async"
+    [routerLink]="['/admin/features']"
+    routerLinkActive
+    #features="routerLinkActive"
+    [active]="features.isActive"
+    >Features</a
+  >
+  <a
+    mat-tab-link
+    *ngIf="canViewAccounts$ | async"
+    [routerLink]="['/admin/accounts']"
+    routerLinkActive
+    #accounts="routerLinkActive"
+    [active]="accounts.isActive"
+    >Accounts</a
+  >
 </nav>
 <router-outlet></router-outlet>

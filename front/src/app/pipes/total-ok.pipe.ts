@@ -1,10 +1,9 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'totalOk'
+  name: 'totalOk',
 })
 export class TotalOkPipe implements PipeTransform {
-
   transform(steps: StepResult[]): number {
     const count = steps.reduce((r, step) => {
       if (step.success) r++;
@@ -12,5 +11,4 @@ export class TotalOkPipe implements PipeTransform {
     }, 0);
     return +Math.trunc((count * 100) / steps.length).toFixed(0);
   }
-
 }

@@ -1,5 +1,12 @@
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges, TemplateRef } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  TemplateRef,
+} from '@angular/core';
 import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { Store } from '@ngxs/store';
@@ -18,10 +25,9 @@ import { map, switchMap, tap } from 'rxjs/operators';
   selector: 'network-paginated-list',
   templateUrl: './network-paginated-list.component.html',
   styleUrls: ['./network-paginated-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NetworkPaginatedListComponent implements OnChanges {
-
   /**
    * ListId name to use when saving the downloaded page items into the state
    * It can be later accessed from PaginatedListState selectors
@@ -102,7 +108,7 @@ export class NetworkPaginatedListComponent implements OnChanges {
   @Input() skeletonsWidth: string = '100%';
 
   /** Whether or not to show the header when no results were found */
-  @Input() showHeaderOnNoResults: boolean = false
+  @Input() showHeaderOnNoResults: boolean = false;
 
   /** Key for item tracking */
   @Input() trackByKey: string;
@@ -127,33 +133,40 @@ export class NetworkPaginatedListComponent implements OnChanges {
     this.skeletonItems$ = this._acRouted.queryParamMap.pipe(
       map(queryParams => this.getPageSize(queryParams, changes)),
       map(size => Array(size).fill(0))
-    )
+    );
     if (this.listId) {
       // Assign pagedItems observable
-      this.pagedItems$ = this._store.select(PaginatedListsState.GetPagedItems).pipe(
-        map(fn => fn(this.listId))
-      )
+      this.pagedItems$ = this._store
+        .select(PaginatedListsState.GetPagedItems)
+        .pipe(map(fn => fn(this.listId)));
       // Assign allItems observable
-      this.allItems$ = this._store.select(PaginatedListsState.GetItems).pipe(
-        map(fn => fn(this.listId))
-      )
+      this.allItems$ = this._store
+        .select(PaginatedListsState.GetItems)
+        .pipe(map(fn => fn(this.listId)));
       // Get parameter values
-      const endpointUrl = (changes.endpointUrl && changes.endpointUrl.currentValue) || this.endpointUrl;
+      const endpointUrl =
+        (changes.endpointUrl && changes.endpointUrl.currentValue) ||
+        this.endpointUrl;
       // Get pageSize in localStorage with fallback value
       // Check if values are valid
       if (endpointUrl) {
         // Get and React to page and size parameters in URL
-        this._acRouted.queryParamMap.pipe(
-          map(queryParams => ({
-            size: this.getPageSize(queryParams, changes),
-            page: +queryParams.get('page') || 1
-          })),
-          switchMap(({ page, size }) => this.loadPage(page, size)),
-          tap(response => this.processPagination(response))
-        ).subscribe();
+        this._acRouted.queryParamMap
+          .pipe(
+            map(queryParams => ({
+              size: this.getPageSize(queryParams, changes),
+              page: +queryParams.get('page') || 1,
+            })),
+            switchMap(({ page, size }) => this.loadPage(page, size)),
+            tap(response => this.processPagination(response))
+          )
+          .subscribe();
       }
     } else {
-      console.error('[NetworkPaginatedList]', 'No listId parameter provided or empty, please specify some name ID.');
+      console.error(
+        '[NetworkPaginatedList]',
+        'No listId parameter provided or empty, please specify some name ID.'
+      );
     }
   }
 
@@ -162,9 +175,14 @@ export class NetworkPaginatedListComponent implements OnChanges {
     // Get page size from URL param
     if (params.get('size')) return +params.get('size');
     // Get page size from changes in template
-    if (changes.pageSize && changes.pageSize.currentValue) return changes.pageSize.currentValue;
+    if (changes.pageSize && changes.pageSize.currentValue)
+      return changes.pageSize.currentValue;
     // Get page size from localStorage with fallback to 10
-    return SafeGetStorage(`pagination.${this.listId}`, StorageType.Int, this.pageSize)
+    return SafeGetStorage(
+      `pagination.${this.listId}`,
+      StorageType.Int,
+      this.pageSize
+    );
   }
 
   // Used to track every item in list, so Angular knows when an item has been updated
@@ -181,7 +199,7 @@ export class NetworkPaginatedListComponent implements OnChanges {
     const { page, size } = this.pagination$.getValue();
     return this.loadPage(page, size).pipe(
       switchMap(response => this.processPagination(response))
-    )
+    );
   }
 
   // XHR: Loads the list
@@ -189,14 +207,14 @@ export class NetworkPaginatedListComponent implements OnChanges {
     // Activate loading spinner
     this.loading$.next(true);
     // Load page values from network from the given endpoint URL
-    return this._http.get<PaginatedResponse<any>>(`${this._api.api}${this.endpointUrl}`, {
-      params: {
-        page: page.toString(),
-        size: size.toString()
-      }
-    }).pipe(
-      map(response => ({ ...response, page: page, size: size }))
-    )
+    return this._http
+      .get<PaginatedResponse<any>>(`${this._api.api}${this.endpointUrl}`, {
+        params: {
+          page: page.toString(),
+          size: size.toString(),
+        },
+      })
+      .pipe(map(response => ({ ...response, page: page, size: size })));
   }
 
   // Process the received XHR data for pagination and saves it to NGXS
@@ -206,17 +224,19 @@ export class NetworkPaginatedListComponent implements OnChanges {
     if (this.injectIndex) {
       results = results.map((item, index) => ({
         ...item,
-        index: ((response.page - 1) * response.size) + (index + 1)
-      }))
+        index: (response.page - 1) * response.size + (index + 1),
+      }));
     }
     // Send to HTML
     this.pagination$.next({
       ...response,
-      results: results
+      results: results,
     });
     this.loading$.next(false);
     // Save items into NGXS State with provided ListID
-    return this._store.dispatch( new PaginatedList.SetList(this.listId, response.page, response.results) );
+    return this._store.dispatch(
+      new PaginatedList.SetList(this.listId, response.page, response.results)
+    );
   }
 
   /**
@@ -226,7 +246,10 @@ export class NetworkPaginatedListComponent implements OnChanges {
   pageChange(event: PageEvent) {
     // Save custom pageSize into storage
     if (this.pagination$.getValue().size !== event.pageSize) {
-      localStorage.setItem(`pagination.${this.listId}`, event.pageSize.toString());
+      localStorage.setItem(
+        `pagination.${this.listId}`,
+        event.pageSize.toString()
+      );
     }
     this._router.navigate([], {
       // Make navigation with no change in url tree
@@ -234,11 +257,11 @@ export class NetworkPaginatedListComponent implements OnChanges {
       // Change page url parameter
       queryParams: {
         page: event.pageIndex + 1,
-        size: event.pageSize
+        size: event.pageSize,
       },
       // No other parameter is left behind
-      queryParamsHandling: 'merge'
-    })
+      queryParamsHandling: 'merge',
+    });
   }
 
   /** Controls the HTML for showing the loading spinner */
@@ -246,7 +269,6 @@ export class NetworkPaginatedListComponent implements OnChanges {
 
   /** Globally used in component HTML to handle pagination state */
   pagination$ = new BehaviorSubject<PaginationWithPage<any>>(null);
-
 }
 
 /** Extended Pagination with Page and Size */

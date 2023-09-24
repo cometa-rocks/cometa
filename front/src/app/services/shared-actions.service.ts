@@ -6,9 +6,15 @@ import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack
 import { Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { LoadingSnack } from '@components/snacks/loading/loading.snack';
-import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
+import {
+  AreYouSureData,
+  AreYouSureDialog,
+} from '@dialogs/are-you-sure/are-you-sure.component';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
-import { EditIntegrationDialog, IntegrationDialogData } from '@dialogs/edit-integration/edit-integration.component';
+import {
+  EditIntegrationDialog,
+  IntegrationDialogData,
+} from '@dialogs/edit-integration/edit-integration.component';
 import { EditSchedule } from '@dialogs/edit-schedule/edit-schedule.component';
 import { HtmlDiffDialog } from '@dialogs/html-diff/html-diff.component';
 import { LiveStepsComponent } from '@dialogs/live-steps/live-steps.component';
@@ -23,7 +29,17 @@ import { FeaturesState } from '@store/features.state';
 import { LoadingActions } from '@store/loadings.state';
 import { deepClone } from 'ngx-amvara-toolbox';
 import { from, Observable, of, BehaviorSubject } from 'rxjs';
-import { concatMap, delay, finalize, switchMap, toArray, timeout, map, filter, tap } from 'rxjs/operators';
+import {
+  concatMap,
+  delay,
+  finalize,
+  switchMap,
+  toArray,
+  timeout,
+  map,
+  filter,
+  tap,
+} from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { SocketService } from './socket.service';
 
@@ -32,7 +48,6 @@ import { SocketService } from './socket.service';
  */
 @Injectable()
 export class SharedActionsService {
-
   headers$ = new BehaviorSubject<ResultHeader[]>([]);
 
   constructor(
@@ -45,15 +60,16 @@ export class SharedActionsService {
     private _snack: MatSnackBar,
     private _socket: SocketService
   ) {
-    this._store.select(CustomSelectors.RetrieveResultHeaders(false)).subscribe(headers => this.headers$.next(headers));
+    this._store
+      .select(CustomSelectors.RetrieveResultHeaders(false))
+      .subscribe(headers => this.headers$.next(headers));
   }
 
   // #3414 -----------------------------------start
   // adds the ids of folders to browser url each time folders in foldertree or breadcrum are clicked
-  set_url_folder_params (currentRoute: any = "") {
-
+  set_url_folder_params(currentRoute: any = '') {
     // folder url base
-    let folderUrl = "/new/";
+    let folderUrl = '/new/';
 
     // go to newLanding if there are no folder id params in currentRoute
     if (!currentRoute) {
@@ -64,14 +80,12 @@ export class SharedActionsService {
     // concat folder ids to create path to clicked folder
     currentRoute.forEach(folder => {
       folderUrl += `:${folder.folder_id}`;
-    })
+    });
 
     // change url without redirection
     this._location.go(folderUrl);
   }
   // #3414 ------------------------------------end
-
-
 
   // #3397 -----------------------------------start
   // clears localstorage corresponding to searchFilters(see it at ctrl + f11/features/filters)
@@ -80,14 +94,15 @@ export class SharedActionsService {
   }
   // #3397 ------------------------------------end
 
-
   dialogActive = false;
   goToFeature(featureId: number) {
-    const feature = this._store.selectSnapshot<Feature>(CustomSelectors.GetFeatureInfo(featureId))
+    const feature = this._store.selectSnapshot<Feature>(
+      CustomSelectors.GetFeatureInfo(featureId)
+    );
     this._router.navigate([
       '/' + feature.app_name,
       feature.environment_name,
-      feature.feature_id
+      feature.feature_id,
     ]);
 
     // #3397 -----------------------------------start
@@ -97,17 +112,24 @@ export class SharedActionsService {
   }
 
   editSchedule(featureId: number) {
-    const featureStore = this._store.selectSnapshot(FeaturesState.GetFeatureInfo)(featureId);
-    this._dialog.open(EditSchedule, {
-      panelClass: 'edit-schedule-panel',
-      data: featureStore.feature_id
-    }).afterClosed().subscribe(_ => this.dialogActive = false);
+    const featureStore = this._store.selectSnapshot(
+      FeaturesState.GetFeatureInfo
+    )(featureId);
+    this._dialog
+      .open(EditSchedule, {
+        panelClass: 'edit-schedule-panel',
+        data: featureStore.feature_id,
+      })
+      .afterClosed()
+      .subscribe(_ => (this.dialogActive = false));
   }
 
   handleSetting(featureId: number, type: string, event: MatCheckboxChange) {
     switch (type) {
       case 'need_help':
-        return this._store.dispatch(new Features.PatchFeature(featureId, { need_help: event.checked }));
+        return this._store.dispatch(
+          new Features.PatchFeature(featureId, { need_help: event.checked })
+        );
       default:
         return null;
     }
@@ -117,8 +139,8 @@ export class SharedActionsService {
     this._dialog.open(MoveItemDialog, {
       data: {
         type: 'feature',
-        feature
-      } as IMoveData
+        feature,
+      } as IMoveData,
     });
   }
 
@@ -126,15 +148,15 @@ export class SharedActionsService {
     this._dialog.open(MoveItemDialog, {
       data: {
         type: 'folder',
-        folder
-      } as IMoveData
-    })
+        folder,
+      } as IMoveData,
+    });
   }
 
   openLiveSteps(featureId: number) {
     return this._dialog.open(LiveStepsComponent, {
       data: featureId,
-      panelClass: 'live-steps-panel'
+      panelClass: 'live-steps-panel',
     });
   }
 
@@ -143,13 +165,18 @@ export class SharedActionsService {
    * @param featureId Feature ID
    */
   retrieveLastFeatureSockets(featureId: number) {
-    this._socket.socket && this._socket.socket.emit('featurePastMessages', { feature_id: featureId });
+    this._socket.socket &&
+      this._socket.socket.emit('featurePastMessages', {
+        feature_id: featureId,
+      });
   }
 
   async run(featureId: number) {
     // Request backend to know if feature is running
     const isRunning = await this._api.isFeatureRunning(featureId).toPromise();
-    const feature = this._store.selectSnapshot<Feature>(CustomSelectors.GetFeatureInfo(featureId));
+    const feature = this._store.selectSnapshot<Feature>(
+      CustomSelectors.GetFeatureInfo(featureId)
+    );
     if (isRunning) {
       // Notify WebSocket Server to send me last websockets of feature
       this.retrieveLastFeatureSockets(featureId);
@@ -157,20 +184,38 @@ export class SharedActionsService {
     } else {
       // Check if the feature has at least 1 browser selected, if not, show a warning
       if (feature.browsers.length > 0) {
-        this._store.dispatch(new LoadingActions.SetLoading(featureId, true))
-        this._api.runFeature(feature.feature_id, false).pipe(
-          filter(json => !!json.success),
-          switchMap(_ => this._store.dispatch(new WebSockets.FeatureTaskQueued(featureId))),
-          finalize(() => this._store.dispatch(new LoadingActions.SetLoading(featureId, false)))
-        ).subscribe(_ => {
-          this._snackBar.open(`Feature ${feature.feature_name} is running...`, 'OK');
-          // Make view live steps popup optional
-          // this.openLiveSteps();
-        }, err => {
-          this._snackBar.open('An error ocurred', 'OK');
-        });
+        this._store.dispatch(new LoadingActions.SetLoading(featureId, true));
+        this._api
+          .runFeature(feature.feature_id, false)
+          .pipe(
+            filter(json => !!json.success),
+            switchMap(_ =>
+              this._store.dispatch(new WebSockets.FeatureTaskQueued(featureId))
+            ),
+            finalize(() =>
+              this._store.dispatch(
+                new LoadingActions.SetLoading(featureId, false)
+              )
+            )
+          )
+          .subscribe(
+            _ => {
+              this._snackBar.open(
+                `Feature ${feature.feature_name} is running...`,
+                'OK'
+              );
+              // Make view live steps popup optional
+              // this.openLiveSteps();
+            },
+            err => {
+              this._snackBar.open('An error ocurred', 'OK');
+            }
+          );
       } else {
-        this._snackBar.open('This feature doesn\'t have browsers selected.', 'OK');
+        this._snackBar.open(
+          "This feature doesn't have browsers selected.",
+          'OK'
+        );
       }
     }
   }
@@ -180,33 +225,52 @@ export class SharedActionsService {
    * @param featureId The feature ID to edit, provide null if new
    * @param mode Defined the behavior of EditFeature
    */
-  openEditFeature(featureId: number = null, mode: 'edit' | 'clone' | 'new' = 'new') {
+  openEditFeature(
+    featureId: number = null,
+    mode: 'edit' | 'clone' | 'new' = 'new'
+  ) {
     if (mode === 'edit' || mode === 'clone') {
       // Edit / Clone mode
-      const feature = deepClone(this._store.selectSnapshot<Feature>(CustomSelectors.GetFeatureInfo(featureId))) as Feature;
+      const feature = deepClone(
+        this._store.selectSnapshot<Feature>(
+          CustomSelectors.GetFeatureInfo(featureId)
+        )
+      ) as Feature;
       // Get data of feature and steps
-      this._api.getFeatureSteps(featureId, { loading: 'translate:tooltips.loading_feature' }).subscribe(steps => {
-        // Save steps into NGXS Store
-        this._store.dispatch(new StepDefinitions.SetStepsForFeature(mode === 'clone' ? 0 : featureId, steps));
-        // Open Edit Feature
-        this._dialog.open(EditFeature, {
-          disableClose: true,
-          autoFocus: false,
-          panelClass: 'edit-feature-panel',
-          // @ts-ignore
-          data: {
-            mode: mode,
-            feature: {
-              app: feature.app_name,
-              environment: feature.environment_name,
-              feature_id: feature.feature_id,
-              description: feature.description
-            },
-            info: feature,
-            steps: deepClone(steps)
-          } as IEditFeature
-        }).afterClosed().subscribe(_ => this.dialogActive = false);
-      })
+      this._api
+        .getFeatureSteps(featureId, {
+          loading: 'translate:tooltips.loading_feature',
+        })
+        .subscribe(steps => {
+          // Save steps into NGXS Store
+          this._store.dispatch(
+            new StepDefinitions.SetStepsForFeature(
+              mode === 'clone' ? 0 : featureId,
+              steps
+            )
+          );
+          // Open Edit Feature
+          this._dialog
+            .open(EditFeature, {
+              disableClose: true,
+              autoFocus: false,
+              panelClass: 'edit-feature-panel',
+              // @ts-ignore
+              data: {
+                mode: mode,
+                feature: {
+                  app: feature.app_name,
+                  environment: feature.environment_name,
+                  feature_id: feature.feature_id,
+                  description: feature.description,
+                },
+                info: feature,
+                steps: deepClone(steps),
+              } as IEditFeature,
+            })
+            .afterClosed()
+            .subscribe(_ => (this.dialogActive = false));
+        });
     } else {
       // New mode
       this._dialog.open(EditFeature, {
@@ -217,20 +281,22 @@ export class SharedActionsService {
           mode: 'new',
           feature: {
             feature_id: 0,
-            browsers: []
-          }
-        } as IEditFeature
+            browsers: [],
+          },
+        } as IEditFeature,
       });
     }
   }
 
   deleteFeature(featureId: number) {
-    const feature = this._store.selectSnapshot<Feature>(CustomSelectors.GetFeatureInfo(featureId))
+    const feature = this._store.selectSnapshot<Feature>(
+      CustomSelectors.GetFeatureInfo(featureId)
+    );
     this._dialog.open(SureRemoveFeatureComponent, {
       data: {
         feature_name: feature.feature_name,
-        feature_id: feature.feature_id
-      }
+        feature_id: feature.feature_id,
+      },
     });
   }
 
@@ -245,7 +311,7 @@ export class SharedActionsService {
       concatMap(action => this._store.dispatch(action)),
       // Merge all actions
       toArray()
-    )
+    );
   }
 
   /**
@@ -253,7 +319,9 @@ export class SharedActionsService {
    * @param videoUrl Video URL
    */
   checkVideo(videoUrl: string): Observable<HttpResponse<any>> {
-    const request = videoUrl.includes('browserstack') ? this._api.checkBrowserstackVideo(videoUrl) : this._api.checkVideoAvailable(videoUrl);
+    const request = videoUrl.includes('browserstack')
+      ? this._api.checkBrowserstackVideo(videoUrl)
+      : this._api.checkVideoAvailable(videoUrl);
     // Recursively check
     return request.pipe(
       switchMap(res => {
@@ -265,10 +333,10 @@ export class SharedActionsService {
           return of(0).pipe(
             delay(2000),
             switchMap(_ => this.checkVideo(videoUrl))
-          )
+          );
         }
       })
-    )
+    );
   }
 
   /**
@@ -280,13 +348,17 @@ export class SharedActionsService {
     // Default timeout 1 minute
     const timeOut = 60000;
     // Open Loading snack
-    const snackRef = this._snackBar.openFromComponent(LoadingSnack, { data: loadingText, duration: timeOut, panelClass: 'loading-snack-panel' });
+    const snackRef = this._snackBar.openFromComponent(LoadingSnack, {
+      data: loadingText,
+      duration: timeOut,
+      panelClass: 'loading-snack-panel',
+    });
     return observable.pipe(
       // Close loading snack whenever the observable finishes or timeout fires
       finalize(() => snackRef.dismiss()),
       // Stop observable once timeout fires and emit error to subscriber
       timeout(timeOut)
-    )
+    );
   }
 
   /**
@@ -301,18 +373,21 @@ export class SharedActionsService {
         map(res => res.diff)
       ),
       'Loading HTML difference'
-    ).subscribe(diff => {
-      // Open Html Diff Dialog
-      this._dialog.open(HtmlDiffDialog, {
-        data: diff,
-        width: '100vw',
-        maxHeight: '80vh',
-        maxWidth: '75vw'
-      });
-    }, err => {
-      this._snack.open('An error ocurred', 'OK');
-      console.log(err);
-    });
+    ).subscribe(
+      diff => {
+        // Open Html Diff Dialog
+        this._dialog.open(HtmlDiffDialog, {
+          data: diff,
+          width: '100vw',
+          maxHeight: '80vh',
+          maxWidth: '75vw',
+        });
+      },
+      err => {
+        this._snack.open('An error ocurred', 'OK');
+        console.log(err);
+      }
+    );
   }
 
   editIntegration(params: IntegrationDialogData) {
@@ -320,31 +395,41 @@ export class SharedActionsService {
   }
 
   deleteFeatureRun(run: FeatureRun) {
-    return this._dialog.open(AreYouSureDialog, {
-      data: {
-        title: 'translate:you_sure.delete_item_title',
-        description: 'translate:you_sure.delete_item_desc'
-      } as AreYouSureData
-    }).afterClosed().pipe(
-      filter(answer => !!answer),
-      switchMap(_ => this._api.removeFeatureRun(run.run_id, true, {
-        loading: 'Deleting item'
-      }))
-    );
+    return this._dialog
+      .open(AreYouSureDialog, {
+        data: {
+          title: 'translate:you_sure.delete_item_title',
+          description: 'translate:you_sure.delete_item_desc',
+        } as AreYouSureData,
+      })
+      .afterClosed()
+      .pipe(
+        filter(answer => !!answer),
+        switchMap(_ =>
+          this._api.removeFeatureRun(run.run_id, true, {
+            loading: 'Deleting item',
+          })
+        )
+      );
   }
 
   deleteFeatureResult(test: FeatureResult) {
-    return this._dialog.open(AreYouSureDialog, {
-      data: {
-        title: 'translate:you_sure.delete_item_title',
-        description: 'translate:you_sure.delete_item_desc'
-      } as AreYouSureData
-    }).afterClosed().pipe(
-      filter(answer => !!answer),
-      switchMap(_ => this._api.removeFeatureResult(test.feature_result_id, true, {
-        loading: 'Deleting item'
-      }))
-    );
+    return this._dialog
+      .open(AreYouSureDialog, {
+        data: {
+          title: 'translate:you_sure.delete_item_title',
+          description: 'translate:you_sure.delete_item_desc',
+        } as AreYouSureData,
+      })
+      .afterClosed()
+      .pipe(
+        filter(answer => !!answer),
+        switchMap(_ =>
+          this._api.removeFeatureResult(test.feature_result_id, true, {
+            loading: 'Deleting item',
+          })
+        )
+      );
   }
 
   /**
@@ -352,9 +437,13 @@ export class SharedActionsService {
    */
   setResultStatus(result: FeatureResult, status: 'Success' | 'Failed' | '') {
     // Launch Store action to process it
-    return this._api.patchFeatureResult(result.feature_result_id, { status }, {
-      loading: 'Overriding status'
-    });
+    return this._api.patchFeatureResult(
+      result.feature_result_id,
+      { status },
+      {
+        loading: 'Overriding status',
+      }
+    );
   }
 
   /**
@@ -362,9 +451,13 @@ export class SharedActionsService {
    */
   setRunStatus(run: FeatureRun, status: 'Success' | 'Failed' | '') {
     // Launch Store action to process it
-    return this._api.patchRun(run.run_id, { status }, {
-      loading: 'Overriding status'
-    });
+    return this._api.patchRun(
+      run.run_id,
+      { status },
+      {
+        loading: 'Overriding status',
+      }
+    );
   }
 
   /**
@@ -378,14 +471,14 @@ export class SharedActionsService {
       // Is of type FeatureRun
       run = run as FeatureRun;
       request = this._api.patchRun(run.run_id, {
-        archived: !run.archived
-      })
+        archived: !run.archived,
+      });
     } else {
       // Is of type FeatureResult
       run = run as FeatureResult;
       request = this._api.patchFeatureResult(run.feature_result_id, {
-        archived: !run.archived
-      })
+        archived: !run.archived,
+      });
     }
     return request.pipe(
       tap(answer => {
@@ -397,5 +490,4 @@ export class SharedActionsService {
       })
     );
   }
-
 }

@@ -1,12 +1,22 @@
 <div class="checkbox">
-  <mat-checkbox [checked]="checked$ | async" (change)="checkboxChange.emit($event.checked)" color="primary"></mat-checkbox>
+  <mat-checkbox
+    [checked]="checked$ | async"
+    (change)="checkboxChange.emit($event.checked)"
+    color="primary"></mat-checkbox>
 </div>
 <div class="icon"></div>
 <div class="name">
-  <input spellcheck="false" disableAutocomplete disabled [value]="feature.feature_name">
+  <input
+    spellcheck="false"
+    disableAutocomplete
+    disabled
+    [value]="feature.feature_name" />
 </div>
 <div class="specs">
-  <div class="browsers" matTooltip="Quantity of browsers" matTooltipPosition="above">
+  <div
+    class="browsers"
+    matTooltip="Quantity of browsers"
+    matTooltipPosition="above">
     <i class="icon"></i>
     <span>{{ feature.browsers.length }}</span>
   </div>
@@ -23,5 +33,11 @@
     <span>{{ feature.environment_name }}</span>
   </div>
 </div>
-<div *ngIf="canEditFeature$ | async" class="modify" (click)="saveOrEdit()"></div>
-<div *ngIf="canDeleteFeature$ | async" (click)="removeIt()" class="remove"></div>
+<div
+  *ngIf="canEditFeature$ | async"
+  class="modify"
+  (click)="saveOrEdit()"></div>
+<div
+  *ngIf="canDeleteFeature$ | async"
+  (click)="removeIt()"
+  class="remove"></div>

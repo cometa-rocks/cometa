@@ -1,7 +1,22 @@
-import { Component, Inject, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
-import { trigger, state, style, transition, animate } from '@angular/animations';
+import {
+  Component,
+  Inject,
+  ViewEncapsulation,
+  ChangeDetectionStrategy,
+} from '@angular/core';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate,
+} from '@angular/animations';
 import { EnterValueComponent } from '@dialogs/enter-value/enter-value.component';
-import { MatLegacyDialogRef as MatDialogRef, MatLegacyDialog as MatDialog, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import {
+  MatLegacyDialogRef as MatDialogRef,
+  MatLegacyDialog as MatDialog,
+  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
+} from '@angular/material/legacy-dialog';
 import { Select } from '@ngxs/store';
 import { ActionsState } from '@store/actions.state';
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
@@ -16,19 +31,18 @@ import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
     trigger('fontSize', [
       state('false', style({ 'font-size': '0px' })),
       state('true', style({ 'font-size': '16px' })),
-      transition('* => *', animate(100))
-    ])
-  ]
+      transition('* => *', animate(100)),
+    ]),
+  ],
 })
 export class AddStepComponent {
-
   @Select(ActionsState) actions$: Observable<Action[]>;
 
   constructor(
     public dialogRef: MatDialogRef<AddStepComponent>,
     private dialog: MatDialog,
     @Inject(MAT_DIALOG_DATA) public data: any
-  ) { }
+  ) {}
 
   currentStep: Action = {
     action_id: 0,
@@ -38,7 +52,7 @@ export class AddStepComponent {
     date_created: '',
     department: '',
     description: '',
-    values: 0
+    values: 0,
   };
 
   getStep(action: Action) {
@@ -46,34 +60,47 @@ export class AddStepComponent {
     const subscribers: Observable<any>[] = [];
     const newReplacements = action.action_name.match(/\{.*?\}/g);
     if (!!newReplacements) {
-      newReplacements.reverse().forEach((match) => {
+      newReplacements.reverse().forEach(match => {
         const word = match.slice(1, -1);
-        subscribers.push(this.dialog.open(EnterValueComponent, {
-          backdropClass: 'transparent',
-          disableClose: true,
-          autoFocus: true,
-          panelClass: 'enter-value-panel',
-          data: {
-            word: word,
-            value: ''
-          }
-        }).afterClosed());
+        subscribers.push(
+          this.dialog
+            .open(EnterValueComponent, {
+              backdropClass: 'transparent',
+              disableClose: true,
+              autoFocus: true,
+              panelClass: 'enter-value-panel',
+              data: {
+                word: word,
+                value: '',
+              },
+            })
+            .afterClosed()
+        );
       });
       forkJoin([...subscribers]).subscribe(res => {
-        res.forEach((value) => {
+        res.forEach(value => {
           values.push({ word: value.word, value: value.value });
         });
         let newStepStatement = action.action_name;
         let newStepStatement_protected = action.action_name;
         values.forEach(value => {
-          newStepStatement = newStepStatement.replace('{' + value.word + '}', value.value);
+          newStepStatement = newStepStatement.replace(
+            '{' + value.word + '}',
+            value.value
+          );
           switch (value.word) {
             case 'password':
             case 'pin':
-              newStepStatement_protected = newStepStatement_protected.replace('{' + value.word + '}', value.value.replace(/./g, '*'));
+              newStepStatement_protected = newStepStatement_protected.replace(
+                '{' + value.word + '}',
+                value.value.replace(/./g, '*')
+              );
               break;
             default:
-              newStepStatement_protected = newStepStatement_protected.replace('{' + value.word + '}', value.value);
+              newStepStatement_protected = newStepStatement_protected.replace(
+                '{' + value.word + '}',
+                value.value
+              );
           }
         });
         this.fontSize.next(false);
@@ -125,5 +152,4 @@ export class AddStepComponent {
     this.currentStep.text = this.step;
     return { ...this.currentStep };
   }
-
 }

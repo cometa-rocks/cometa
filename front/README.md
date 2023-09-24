@@ -8,7 +8,7 @@ Run `docker-compose -f docker-compose-dev-111.yml up -d --force-recreate` to aut
 
 You might need to remove container, if installation is unclean or broken. Execute `docker-compose -f docker-compose-dev-111.yml rm  --force` to clean up the docker.
 
-Alternatively run manually `npx ng serve --host 0.0.0.0 --port 4200 --disable-host-check` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files. Going directly to server:4200 will most likely produce CORS-errors, as backend is running on another port. 
+Alternatively run manually `npx ng serve --host 0.0.0.0 --port 4200 --disable-host-check` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files. Going directly to server:4200 will most likely produce CORS-errors, as backend is running on another port.
 
 The apache `config openidc.conf_local` has mod_rewrite configured to access URL at "/debug" and reverse proxy URLs to server:4200 without problems regarding CORS-header. Use `https://localhost/debug/#/new` for running over SSL to the debug URL of `ng serve`.
 

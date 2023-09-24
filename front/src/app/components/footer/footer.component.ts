@@ -8,15 +8,13 @@ import { Observable } from 'rxjs';
   selector: 'footer',
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FooterComponent {
+  constructor(public _socketService: SocketService) {}
 
-  constructor(
-    public _socketService: SocketService
-  ) { }
-
-  @Select(CustomSelectors.GetConfigProperty('version')) version$: Observable<string>;
-  @Select(CustomSelectors.GetConfigProperty('serverInfo.version')) serverVersion$: Observable<string>;
-
+  @Select(CustomSelectors.GetConfigProperty('version'))
+  version$: Observable<string>;
+  @Select(CustomSelectors.GetConfigProperty('serverInfo.version'))
+  serverVersion$: Observable<string>;
 }

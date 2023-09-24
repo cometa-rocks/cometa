@@ -4,10 +4,8 @@ import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
   selector: 'browser',
   templateUrl: './browser.component.html',
   styleUrls: ['./browser.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BrowserComponent {
-
   @Input() browser: BrowserstackBrowser;
-
 }

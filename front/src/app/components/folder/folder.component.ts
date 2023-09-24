@@ -13,38 +13,36 @@ import { SharedActionsService } from '@services/shared-actions.service';
   selector: 'cometa-folder',
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FolderComponent {
-
   constructor(
     private _store: Store,
     private _dialog: MatDialog,
     private _api: ApiService,
     private _snackBar: MatSnackBar,
     public _sharedActions: SharedActionsService
-  ) { }
+  ) {}
 
   @Input() folder: Folder;
 
-  open = () => this._store.dispatch(new Features.AddFolderRoute(this.folder))
+  open = () => this._store.dispatch(new Features.AddFolderRoute(this.folder));
 
   modify() {
     this._dialog.open(AddFolderComponent, {
       autoFocus: true,
       data: {
         mode: 'edit',
-        folder: this.folder
-      } as IEditFolder
-    })
+        folder: this.folder,
+      } as IEditFolder,
+    });
   }
 
   @Subscribe()
   delete() {
     return this._api.removeFolder(this.folder.folder_id).pipe(
-      switchMap(_ => this._store.dispatch( new Features.GetFolders )),
+      switchMap(_ => this._store.dispatch(new Features.GetFolders())),
       tap(_ => this._snackBar.open(`Folder ${this.folder.name} removed`, 'OK'))
     );
   }
-
 }

@@ -1,4 +1,12 @@
-import { animate, query, stagger, state, style, transition, trigger } from '@angular/animations';
+import {
+  animate,
+  query,
+  stagger,
+  state,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { UntypedFormControl, Validators } from '@angular/forms';
 import { Store, Select } from '@ngxs/store';
@@ -28,47 +36,74 @@ import { SharedActionsService } from '@services/shared-actions.service';
     trigger('listAnimation', [
       transition('* => *', [
         query(':enter', style({ opacity: 0, top: '30px' }), { optional: true }),
-        query(':enter', stagger('100ms', [
-          animate('.4s ease-in-out', style({ opacity: 1, top: '0px' }))
-        ]), { optional: true })
-      ])
+        query(
+          ':enter',
+          stagger('100ms', [
+            animate('.4s ease-in-out', style({ opacity: 1, top: '0px' })),
+          ]),
+          { optional: true }
+        ),
+      ]),
     ]),
     trigger('addDialog', [
-      state('false', style({
-        visibility: 'hidden',
-        left: '-30px',
-        opacity: 0
-      })),
-      state('true', style({
-        visibility: 'visible',
-        left: '0',
-        opacity: 1
-      })),
-      transition('false <=> true', animate('150ms ease-out'))
-    ])
-  ]
+      state(
+        'false',
+        style({
+          visibility: 'hidden',
+          left: '-30px',
+          opacity: 0,
+        })
+      ),
+      state(
+        'true',
+        style({
+          visibility: 'visible',
+          left: '0',
+          opacity: 1,
+        })
+      ),
+      transition('false <=> true', animate('150ms ease-out')),
+    ]),
+  ],
 })
 export class SearchComponent implements OnInit {
-
   @Select(ApplicationsState) applications$: Observable<Application[]>;
-  @Select(UserState.RetrieveUserDepartments) departments$: Observable<ReturnType<typeof UserState.RetrieveUserDepartments>>;
-  @Select(FeaturesState.GetFeaturesWithinFolder) features$: Observable<ReturnType<typeof FeaturesState.GetFeaturesWithinFolder>>;
-  @Select(FeaturesState.GetFoldersWithinFolder) folders$: Observable<ReturnType<typeof FeaturesState.GetFoldersWithinFolder>>;
-  @Select(FeaturesState.GetSelectionFolders) currentRoute$: Observable<ReturnType<typeof FeaturesState.GetSelectionFolders>>;
-  @Select(FeaturesState.GetFilters) filters$: Observable<ReturnType<typeof FeaturesState.GetFilters>>;
+  @Select(UserState.RetrieveUserDepartments) departments$: Observable<
+    ReturnType<typeof UserState.RetrieveUserDepartments>
+  >;
+  @Select(FeaturesState.GetFeaturesWithinFolder) features$: Observable<
+    ReturnType<typeof FeaturesState.GetFeaturesWithinFolder>
+  >;
+  @Select(FeaturesState.GetFoldersWithinFolder) folders$: Observable<
+    ReturnType<typeof FeaturesState.GetFoldersWithinFolder>
+  >;
+  @Select(FeaturesState.GetSelectionFolders) currentRoute$: Observable<
+    ReturnType<typeof FeaturesState.GetSelectionFolders>
+  >;
+  @Select(FeaturesState.GetFilters) filters$: Observable<
+    ReturnType<typeof FeaturesState.GetFilters>
+  >;
   @Select(EnvironmentsState) environments$: Observable<Environment[]>;
 
-  @Select(FeaturesState.IsEasterEgg) isEasterEgg$: Observable<ReturnType<typeof FeaturesState.IsEasterEgg>>;
+  @Select(FeaturesState.IsEasterEgg) isEasterEgg$: Observable<
+    ReturnType<typeof FeaturesState.IsEasterEgg>
+  >;
 
-  @Select(CustomSelectors.RetrievePagination('search_without_depends')) paginationWithoutDepends$: Observable<IPagination>;
-  @Select(CustomSelectors.RetrievePagination('search_with_depends')) paginationWithDepends$: Observable<IPagination>;
+  @Select(CustomSelectors.RetrievePagination('search_without_depends'))
+  paginationWithoutDepends$: Observable<IPagination>;
+  @Select(CustomSelectors.RetrievePagination('search_with_depends'))
+  paginationWithDepends$: Observable<IPagination>;
 
-  @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('featuresView.with')) itemsViewWith: FeatureViewTypes;
-  @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('featuresView.without')) itemsViewWithout: FeatureViewTypes;
+  @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('featuresView.with'))
+  itemsViewWith: FeatureViewTypes;
+  @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('featuresView.without'))
+  itemsViewWithout: FeatureViewTypes;
 
   // Checks if the user can create a feature and has a subscription
-  @ViewSelectSnapshot(UserState.GetPermission('create_feature')) canCreateFeature: boolean;
-  @ViewSelectSnapshot(UserState.HasOneActiveSubscription) hasSubscription: boolean;
+  @ViewSelectSnapshot(UserState.GetPermission('create_feature'))
+  canCreateFeature: boolean;
+  @ViewSelectSnapshot(UserState.HasOneActiveSubscription)
+  hasSubscription: boolean;
 
   moreOrLessSteps = new UntypedFormControl('is');
 
@@ -82,19 +117,25 @@ export class SearchComponent implements OnInit {
       try {
         const parsedFilters = JSON.parse(filtersStorage);
         this._store.dispatch(new Features.SetFilters(parsedFilters));
-      } catch (err) { }
+      } catch (err) {}
     }
   }
 
   setView(type: string, view: FeatureViewTypes) {
-    return this._store.dispatch(new Configuration.SetProperty(`featuresView.${type}`, view, true));
+    return this._store.dispatch(
+      new Configuration.SetProperty(`featuresView.${type}`, view, true)
+    );
   }
 
   handlePageChange(paginationId: string, { pageIndex, pageSize }: PageEvent) {
-    return this._store.dispatch(new Paginations.SetPagination(paginationId, { pageIndex, pageSize }));
+    return this._store.dispatch(
+      new Paginations.SetPagination(paginationId, { pageIndex, pageSize })
+    );
   }
 
-  sorting = new UntypedFormControl(localStorage.getItem('search_sorting') || 'execution');
+  sorting = new UntypedFormControl(
+    localStorage.getItem('search_sorting') || 'execution'
+  );
   minADate = new UntypedFormControl('', Validators.required);
   maxADate = new UntypedFormControl('', Validators.required);
 
@@ -103,15 +144,15 @@ export class SearchComponent implements OnInit {
   ready = new BehaviorSubject<boolean>(false);
 
   ngOnInit() {
-    this.moreOrLessSteps.valueChanges.pipe(
-      untilDestroyed(this)
-    ).subscribe(value => {
-      this._store.dispatch( new Features.SetMoreOrLessSteps(value) );
-    });
+    this.moreOrLessSteps.valueChanges
+      .pipe(untilDestroyed(this))
+      .subscribe(value => {
+        this._store.dispatch(new Features.SetMoreOrLessSteps(value));
+      });
     // Save sorting preference in localStorage
-    this.sorting.valueChanges.pipe(
-      untilDestroyed(this)
-    ).subscribe(value => localStorage.setItem('search_sorting', value))
+    this.sorting.valueChanges
+      .pipe(untilDestroyed(this))
+      .subscribe(value => localStorage.setItem('search_sorting', value));
   }
 
   goFolder(folder: Folder) {
@@ -123,7 +164,9 @@ export class SearchComponent implements OnInit {
   }
 
   returnFolder(folder: Partial<Folder>) {
-    return this._store.dispatch(new Features.ReturnToFolderRoute(folder.folder_id));
+    return this._store.dispatch(
+      new Features.ReturnToFolderRoute(folder.folder_id)
+    );
   }
 
   getId(item: Feature) {
@@ -133,28 +176,31 @@ export class SearchComponent implements OnInit {
   listStyle = {
     opacity: 0,
     left: '52px',
-    visibility: 'hidden'
+    visibility: 'hidden',
   };
 
   createFolder() {
-    const currentFolder = this._store.selectSnapshot(FeaturesState).currentRoute as Folder[];
+    const currentFolder = this._store.selectSnapshot(FeaturesState)
+      .currentRoute as Folder[];
     let folder_id;
     if (currentFolder.length === 0) {
       folder_id = 0;
     } else {
-      folder_id = currentFolder[currentFolder.length - 1].folder_id
+      folder_id = currentFolder[currentFolder.length - 1].folder_id;
     }
     this._dialog.open(AddFolderComponent, {
       autoFocus: true,
       data: {
-        mode : 'new',
-        folder: { folder_id }
-      } as IEditFolder
-    })
+        mode: 'new',
+        folder: { folder_id },
+      } as IEditFolder,
+    });
   }
 
   addFilterOK(id: string, value?: any, value2?: any) {
-    const filters = this._store.selectSnapshot(CustomSelectors.GetConfigProperty('filters'));
+    const filters = this._store.selectSnapshot(
+      CustomSelectors.GetConfigProperty('filters')
+    );
     let customFilter = { ...filters.find(filter => filter.id === id) };
     switch (id) {
       case 'date':
@@ -189,12 +235,16 @@ export class SearchComponent implements OnInit {
       setTimeout(() => {
         if (filter.id === 'test') {
           try {
-            (document.querySelector('.dialog input[type=text]') as HTMLInputElement).focus();
-          } catch (err) { }
+            (
+              document.querySelector(
+                '.dialog input[type=text]'
+              ) as HTMLInputElement
+            ).focus();
+          } catch (err) {}
         }
-      })
+      });
     } else {
-      this.addFilterOK('help')
+      this.addFilterOK('help');
     }
   }
 
@@ -210,10 +260,10 @@ export class SearchComponent implements OnInit {
     skipped: new BehaviorSubject<boolean>(false),
     department: new BehaviorSubject<boolean>(false),
     execution_time: new BehaviorSubject<boolean>(false),
-    pixel_diff: new BehaviorSubject<boolean>(false)
+    pixel_diff: new BehaviorSubject<boolean>(false),
   };
 
-    /**
+  /**
    * Shared Actions functions
    */
 
