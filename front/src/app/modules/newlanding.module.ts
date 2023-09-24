@@ -17,28 +17,28 @@ import { L1TreeViewComponent } from '../components/l1-tree-view/l1-tree-view.com
 import { WelcomeComponent } from '@components/welcome/welcome.component';
 
 const routes: Routes = [
-    {
-        path: '',
-        title: 'Home',
-        component: L1LandingComponent
-    },
-    {
-        path: ':breadcrumb',
-        component: L1LandingComponent
-    }
+  {
+    path: '',
+    title: 'Home',
+    component: L1LandingComponent,
+  },
+  {
+    path: ':breadcrumb',
+    component: L1LandingComponent,
+  },
 ];
 
 @NgModule({
-    imports: [
-        TranslateModule.forChild({
-            extend: true
-        }),
-        RouterModule.forChild(routes),
-        MatRippleModule,
-        SharedModule,
-        CommonModule
-    ],
-    declarations: [
+  imports: [
+    TranslateModule.forChild({
+      extend: true,
+    }),
+    RouterModule.forChild(routes),
+    MatRippleModule,
+    SharedModule,
+    CommonModule,
+  ],
+  declarations: [
     L1LandingComponent,
     FolderTreeComponent,
     FolderItemTreeComponent,
@@ -49,7 +49,7 @@ const routes: Routes = [
     L1FeatureTrashbinListComponent,
     L1FeatureTeamListComponent,
     L1TreeViewComponent,
-    WelcomeComponent
-  ]
+    WelcomeComponent,
+  ],
 })
-export class NewlandingModule { }
+export class NewlandingModule {}

@@ -1,5 +1,7 @@
 <h2 mat-dialog-title>
-  <ng-container *ngIf="data.type == 'new'; else edit">Add new integration</ng-container>
+  <ng-container *ngIf="data.type == 'new'; else edit"
+    >Add new integration</ng-container
+  >
   <ng-template #edit>Edit integration</ng-template>
 </h2>
 <form [formGroup]="intForm" (ngSubmit)="createOrEdit(intForm.value)">
@@ -14,31 +16,51 @@
               {{ app }}
             </span>
           </ng-container>
-          </mat-select-trigger>
-        <mat-option [value]="int" *ngFor="let int of integrations">{{ int }}</mat-option>
+        </mat-select-trigger>
+        <mat-option [value]="int" *ngFor="let int of integrations">{{
+          int
+        }}</mat-option>
       </mat-select>
     </mat-form-field>
     <mat-form-field appearance="fill">
       <mat-label>Department</mat-label>
       <mat-select formControlName="department_id">
-        <mat-option [value]="dept.department_id" *ngFor="let dept of departments | sortBy:'department_name'">{{ dept.department_name }}</mat-option>
+        <mat-option
+          [value]="dept.department_id"
+          *ngFor="let dept of departments | sortBy: 'department_name'"
+          >{{ dept.department_name }}</mat-option
+        >
       </mat-select>
     </mat-form-field>
     <mat-form-field appearance="fill">
       <mat-label>Hook URL</mat-label>
-      <input disableAutocomplete formControlName="hook" matInput>
-      <mat-error *ngIf="intForm.get('hook').hasError('pattern')">Hook must start with http:// or https://</mat-error>
-      <mat-error *ngIf="intForm.get('hook').hasError('required')">Required field</mat-error>
+      <input disableAutocomplete formControlName="hook" matInput />
+      <mat-error *ngIf="intForm.get('hook').hasError('pattern')"
+        >Hook must start with http:// or https://</mat-error
+      >
+      <mat-error *ngIf="intForm.get('hook').hasError('required')"
+        >Required field</mat-error
+      >
     </mat-form-field>
     <mat-radio-group formControlName="send_on" aria-label="Send on">
       <mat-label>When to send webhook: </mat-label>
-      <mat-radio-button color="primary" value="after_test_execution">Always</mat-radio-button>
-      <mat-radio-button color="primary" value="after_test_execution_failed">On error</mat-radio-button>
+      <mat-radio-button color="primary" value="after_test_execution"
+        >Always</mat-radio-button
+      >
+      <mat-radio-button color="primary" value="after_test_execution_failed"
+        >On error</mat-radio-button
+      >
     </mat-radio-group>
   </mat-dialog-content>
   <mat-dialog-actions>
-    <button type="button" mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
-    <button type="submit" [disabled]="intForm.invalid" mat-stroked-button color="primary">
+    <button type="button" mat-stroked-button color="warn" mat-dialog-close>
+      Cancel
+    </button>
+    <button
+      type="submit"
+      [disabled]="intForm.invalid"
+      mat-stroked-button
+      color="primary">
       <ng-container *ngIf="data.type === 'new'; else editBtn">Add</ng-container>
       <ng-template #editBtn>Save</ng-template>
     </button>

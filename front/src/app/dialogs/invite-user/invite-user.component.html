@@ -4,29 +4,47 @@
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Email address, use tab to separate emails</mat-label>
       <mat-chip-list #chipList>
-        <mat-chip *ngFor="let addr of emails$ | async" [removable]="true" (removed)="removeAddress(addr)">{{ addr }}
+        <mat-chip
+          *ngFor="let addr of emails$ | async"
+          [removable]="true"
+          (removed)="removeAddress(addr)"
+          >{{ addr }}
           <mat-icon matChipRemove>cancel</mat-icon>
         </mat-chip>
-        <input formControlName="email_show"
-              [matChipInputFor]="chipList"
-              [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-              [matChipInputAddOnBlur]="true"
-              (matChipInputTokenEnd)="addAddress($event)">
+        <input
+          formControlName="email_show"
+          [matChipInputFor]="chipList"
+          [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+          [matChipInputAddOnBlur]="true"
+          (matChipInputTokenEnd)="addAddress($event)" />
       </mat-chip-list>
     </mat-form-field>
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Department</mat-label>
       <mat-select multiple formControlName="departments">
-        <mat-option [value]="department.department_id" *ngFor="let department of departments | sortBy:'department_name'">{{ department.department_name }}</mat-option>
+        <mat-option
+          [value]="department.department_id"
+          *ngFor="let department of departments | sortBy: 'department_name'"
+          >{{ department.department_name }}</mat-option
+        >
       </mat-select>
     </mat-form-field>
     <mat-form-field appearance="fill" class="full-width">
       <mat-label>Custom message</mat-label>
-      <textarea matInput spellcheck="false" formControlName="custom_text"></textarea>
+      <textarea
+        matInput
+        spellcheck="false"
+        formControlName="custom_text"></textarea>
     </mat-form-field>
   </mat-dialog-content>
   <mat-dialog-actions>
     <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
-    <button mat-stroked-button color="primary" type="submit" [disabled]="inviteForm.invalid || (emails$ | async).length === 0">Invite</button>
+    <button
+      mat-stroked-button
+      color="primary"
+      type="submit"
+      [disabled]="inviteForm.invalid || (emails$ | async).length === 0">
+      Invite
+    </button>
   </mat-dialog-actions>
 </form>

@@ -1,69 +1,69 @@
 @import 'color';
 
 .paginated-rows {
-    overflow-y: auto;
+  overflow-y: auto;
 }
 
 .header {
-    height: 50px;
+  height: 50px;
 }
 
 .pagination {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    // creates unnecessary white space below and above paginator, thus reducing the size of data table significantly
-    // height: 56px;
-    // margin-top: 10px;
-    // margin-bottom: 20px;
-    font-size: 1.4rem;
-    line-height: 40px;
-    font-weight: bold;
-    &::ng-deep .mat-spinner {
-        margin-top: 10px;
-    }
-    &::ng-deep .mat-icon {
-        font-size: 30px;
-        height: 30px;
-        width: 30px;
-    }
-    .before {
-        margin-right: 10px;
-    }
-    .after {
-        margin-left: 10px;
-    }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // creates unnecessary white space below and above paginator, thus reducing the size of data table significantly
+  // height: 56px;
+  // margin-top: 10px;
+  // margin-bottom: 20px;
+  font-size: 1.4rem;
+  line-height: 40px;
+  font-weight: bold;
+  &::ng-deep .mat-spinner {
+    margin-top: 10px;
+  }
+  &::ng-deep .mat-icon {
+    font-size: 30px;
+    height: 30px;
+    width: 30px;
+  }
+  .before {
+    margin-right: 10px;
+  }
+  .after {
+    margin-left: 10px;
+  }
 }
 
-:host{
-    display: contents;
+:host {
+  display: contents;
 }
 
 :host::ng-deep .loading-pagination {
-    margin: 100px auto 0;
+  margin: 100px auto 0;
 }
 
 :host::ng-deep .mat-paginator-page-size-label {
-    white-space: nowrap;
+  white-space: nowrap;
 }
 
 .skeleton-rows {
-    .skeleton-row:after {
-        content: "";
-        display: block;
-        height: 100%;
-        width: 100%;
-        @include skeleton;
-    }
+  .skeleton-row:after {
+    content: '';
+    display: block;
+    height: 100%;
+    width: 100%;
+    @include skeleton;
+  }
 }
 
 .viewport {
-    height: 315px;
-    width: 100%;
-    // width: 200px;
-    // border: 1px solid black;
-  }
+  height: 315px;
+  width: 100%;
+  // width: 200px;
+  // border: 1px solid black;
+}
 
 .item {
-    height: 50px;
+  height: 50px;
 }

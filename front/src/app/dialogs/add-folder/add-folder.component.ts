@@ -1,6 +1,13 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import {
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators,
+} from '@angular/forms';
+import {
+  MatLegacyDialogRef as MatDialogRef,
+  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
+} from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
@@ -13,10 +20,9 @@ import { map, switchMap } from 'rxjs/operators';
   selector: 'add-folder',
   templateUrl: './add-folder.component.html',
   styleUrls: ['./add-folder.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AddFolderComponent{
-
+export class AddFolderComponent {
   /**
    * These values are now filled in the constructor as they need to initialize before the view
    */
@@ -37,59 +43,86 @@ export class AddFolderComponent{
     private _api: ApiService,
     private _snackBar: MatSnackBar,
     private _store: Store
-    ) {
-      // Gets the currently active route
-      this.currentRouteNew = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
-      this.departments = this._store.selectSnapshot(UserState.RetrieveUserDepartments);
-      this.rForm = this.fb.group({
-        name: [this.data.mode === 'edit' ? this.data.folder.name : '', Validators.required]
-      });
-      // Revision for the department is only required when the user is creating a folder in root route
-      if (!this.data.folder?.parent_id) {
-        this.rForm.addControl('department', this.fb.control(this.data.mode === 'edit' ? this.data.folder.department : null, this.currentRouteNew .length <= 1 && Validators.required))
-      }
-      // If the user is currently inside of a department root folder, filter the list to only said department
-      if (this.currentRouteNew.length == 1) {
-        this.availableDepartments = this.departments.filter(val => val.department_id == this.currentRouteNew[0].department);
-      } else {
-        this.availableDepartments = this.departments;
-      }
-      // Gets the currently active route
-      let route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
-      // Automatically select the department where the user is currently in or the first available department
-      this.selected_department = route.length > 0 ? route[0].department : this.availableDepartments[0].department_id;
+  ) {
+    // Gets the currently active route
+    this.currentRouteNew = this._store.selectSnapshot(
+      FeaturesState.GetCurrentRouteNew
+    );
+    this.departments = this._store.selectSnapshot(
+      UserState.RetrieveUserDepartments
+    );
+    this.rForm = this.fb.group({
+      name: [
+        this.data.mode === 'edit' ? this.data.folder.name : '',
+        Validators.required,
+      ],
+    });
+    // Revision for the department is only required when the user is creating a folder in root route
+    if (!this.data.folder?.parent_id) {
+      this.rForm.addControl(
+        'department',
+        this.fb.control(
+          this.data.mode === 'edit' ? this.data.folder.department : null,
+          this.currentRouteNew.length <= 1 && Validators.required
+        )
+      );
+    }
+    // If the user is currently inside of a department root folder, filter the list to only said department
+    if (this.currentRouteNew.length == 1) {
+      this.availableDepartments = this.departments.filter(
+        val => val.department_id == this.currentRouteNew[0].department
+      );
+    } else {
+      this.availableDepartments = this.departments;
+    }
+    // Gets the currently active route
+    let route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
+    // Automatically select the department where the user is currently in or the first available department
+    this.selected_department =
+      route.length > 0
+        ? route[0].department
+        : this.availableDepartments[0].department_id;
   }
 
   rForm: UntypedFormGroup;
 
   submit(values) {
     if (this.data.mode === 'new') {
-      this._api.createFolder(values.name, values.department, this.data.folder.type != 'department' ? this.data.folder.folder_id : undefined).pipe(
-        switchMap(res => this._store.dispatch( new Features.GetFolders ).pipe(
-          map(() => res)
-        )),
-      ).subscribe(res => {
-        if (res.success) {
-          this._snackBar.open(`Folder ${values.name} created`, 'OK');
-          this.dialogRef.close(true);
-        } else if (res.handled) {
-          this.dialogRef.close(false);
-        } else {
-          this._snackBar.open('An error ocurred.', 'OK');
-        }
-      })
+      this._api
+        .createFolder(
+          values.name,
+          values.department,
+          this.data.folder.type != 'department'
+            ? this.data.folder.folder_id
+            : undefined
+        )
+        .pipe(
+          switchMap(res =>
+            this._store.dispatch(new Features.GetFolders()).pipe(map(() => res))
+          )
+        )
+        .subscribe(res => {
+          if (res.success) {
+            this._snackBar.open(`Folder ${values.name} created`, 'OK');
+            this.dialogRef.close(true);
+          } else if (res.handled) {
+            this.dialogRef.close(false);
+          } else {
+            this._snackBar.open('An error ocurred.', 'OK');
+          }
+        });
     } else {
-      this._api.modifyFolder({
-        folder_id: this.data.folder.folder_id,
-        name: values.name,
-        department: values.department
-      }).pipe(
-        switchMap(_ => this._store.dispatch( new Features.GetFolders ))
-      ).subscribe(_ => {
-        this._snackBar.open('Folder modified', 'OK')
-        this.dialogRef.close(true);
-      })
+      this._api
+        .modifyFolder({
+          folder_id: this.data.folder.folder_id,
+          name: values.name,
+          department: values.department,
+        })
+        .pipe(switchMap(_ => this._store.dispatch(new Features.GetFolders())))
+        .subscribe(_ => {
+          this._snackBar.open('Folder modified', 'OK');
+          this.dialogRef.close(true);
+        });
     }
   }
-
 }

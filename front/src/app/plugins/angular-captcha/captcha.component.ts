@@ -5,10 +5,9 @@ import { CaptchaHelperService } from './captcha-helper.service';
 
 @Component({
   selector: 'botdetect-captcha',
-  template: ''
+  template: '',
 })
 export class CaptchaComponent implements OnInit {
-
   @Input() styleName: string; // backward compatible
   @Input() captchaStyleName: string;
 
@@ -16,7 +15,7 @@ export class CaptchaComponent implements OnInit {
     private elementRef: ElementRef,
     private captchaService: CaptchaService,
     private captchaHelper: CaptchaHelperService
-  ) { }
+  ) {}
 
   // provide captchaEndpoint for getting captcha challenge.
   set captchaEndpoint(captchaEndpoint: string) {
@@ -64,24 +63,29 @@ export class CaptchaComponent implements OnInit {
       return styleName;
     }
 
-    throw new Error('The captchaStyleName attribute is not found or its value is not set.');
+    throw new Error(
+      'The captchaStyleName attribute is not found or its value is not set.'
+    );
   }
 
   // display captcha html markup in the <botdetect-captcha> tag.
   displayHtml(): void {
-    this.captchaService.getHtml()
-      .subscribe(
-        (captchaHtml: string) => {
-          // display captcha html markup
-          captchaHtml = this.captchaHelper.changeRelativeToAbsoluteUrls(captchaHtml, this.captchaService.captchaEndpoint);
-          this.elementRef.nativeElement.innerHTML = captchaHtml;
-          
-          // load botdetect scripts
-          this.loadScriptIncludes();
-        },
-        (error: any) => {
-          throw new Error(error);
-        });
+    this.captchaService.getHtml().subscribe(
+      (captchaHtml: string) => {
+        // display captcha html markup
+        captchaHtml = this.captchaHelper.changeRelativeToAbsoluteUrls(
+          captchaHtml,
+          this.captchaService.captchaEndpoint
+        );
+        this.elementRef.nativeElement.innerHTML = captchaHtml;
+
+        // load botdetect scripts
+        this.loadScriptIncludes();
+      },
+      (error: any) => {
+        throw new Error(error);
+      }
+    );
   }
 
   // reload a new captcha image.
@@ -94,18 +98,20 @@ export class CaptchaComponent implements OnInit {
     let userInput = this.captchaService.botdetectInstance.userInput;
     let captchaCode = userInput.value;
     if (captchaCode.length !== 0) {
-      this.captchaService.validateUnsafe(captchaCode)
-        .subscribe(
-          (isHuman: boolean) => {
-            callback(isHuman);
-            if (!this.captchaHelper.useUserInputBlurValidation(userInput) && !isHuman) {
-              this.reloadImage();
-            }
-          },
-          (error: any) => {
-            throw new Error(error);
+      this.captchaService.validateUnsafe(captchaCode).subscribe(
+        (isHuman: boolean) => {
+          callback(isHuman);
+          if (
+            !this.captchaHelper.useUserInputBlurValidation(userInput) &&
+            !isHuman
+          ) {
+            this.reloadImage();
           }
-        );
+        },
+        (error: any) => {
+          throw new Error(error);
+        }
+      );
     } else {
       const isHuman = false;
       callback(isHuman);
@@ -114,9 +120,16 @@ export class CaptchaComponent implements OnInit {
 
   // load botdetect scripts.
   loadScriptIncludes(): void {
-    let captchaId = this.elementRef.nativeElement.querySelector('#BDC_VCID_' + this.captchaStyleName).value;
-    const scriptIncludeUrl = this.captchaService.captchaEndpoint +  '?get=script-include&c=' + this.captchaStyleName + '&t=' + captchaId + '&cs=201';
+    let captchaId = this.elementRef.nativeElement.querySelector(
+      '#BDC_VCID_' + this.captchaStyleName
+    ).value;
+    const scriptIncludeUrl =
+      this.captchaService.captchaEndpoint +
+      '?get=script-include&c=' +
+      this.captchaStyleName +
+      '&t=' +
+      captchaId +
+      '&cs=201';
     this.captchaHelper.getScript(scriptIncludeUrl);
   }
-
 }
