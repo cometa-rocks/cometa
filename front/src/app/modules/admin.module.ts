@@ -40,6 +40,7 @@ const routes: Routes = [
             {
                 path: 'departments',
                 component: DepartmentsComponent,
+                title: 'Departments - Admin',
                 canActivate: [PermissionGuard],
                 data: {
                     require_permission: 'view_departments_panel'
@@ -48,6 +49,7 @@ const routes: Routes = [
             {
                 path: 'applications',
                 component: ApplicationsComponent,
+                title: 'Applications - Admin',
                 canActivate: [PermissionGuard],
                 data: {
                     require_permission: 'view_applications_panel'
@@ -56,6 +58,7 @@ const routes: Routes = [
             {
                 path: 'environments',
                 component: EnvironmentsComponent,
+                title: 'Environments - Admin',
                 canActivate: [PermissionGuard],
                 data: {
                     require_permission: 'view_environments_panel'
@@ -64,6 +67,7 @@ const routes: Routes = [
             {
                 path: 'browsers',
                 component: BrowsersComponent,
+                title: 'Browsers - Admin',
                 canActivate: [PermissionGuard],
                 data: {
                     require_permission: 'view_browsers_panel'
@@ -72,6 +76,7 @@ const routes: Routes = [
             {
                 path: 'features',
                 component: FeaturesComponent,
+                title: 'Features - Admin',
                 canActivate: [PermissionGuard],
                 data: {
                     require_permission: 'view_features_panel'
@@ -80,6 +85,7 @@ const routes: Routes = [
             {
                 path: 'accounts',
                 component: AccountsComponent,
+                title: 'Accounts - Admin',
                 canActivate: [PermissionGuard],
                 data: {
                     require_permission: 'view_accounts_panel'

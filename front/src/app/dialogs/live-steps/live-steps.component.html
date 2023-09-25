@@ -68,7 +68,7 @@
                     </div>
                   </ng-template>
                   <!-- Template for Feature Result running steps -->
-                  <ng-container *ngIf="browserStatus !== 'Initializing' && browserStatus !== 'Timeout'">
+                  <ng-container *ngIf="browserStatus !== 'Initializing' && browserStatus !== 'Timeout' && browserStatus !== 'Queued'">
                     <div class="headers">
                       <div class="index">#</div>
                       <div class="text">Step definition</div>

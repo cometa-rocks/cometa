@@ -19,6 +19,7 @@ import { WelcomeComponent } from '@components/welcome/welcome.component';
 const routes: Routes = [
     {
         path: '',
+        title: 'Home',
         component: L1LandingComponent
     },
     {
