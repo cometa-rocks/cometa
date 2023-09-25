@@ -4,10 +4,10 @@
 <p  align="center">
 <h1  align="center">Cometa</h1>
 <p  align="center">
-COMETA is a 100% open source software suite for visual and functional regression testing, to help QA Managers, DevOps and Business Owners to manage test automation. <a  href="https://cometa.rocks/"><strong>Learn more</strong></a>
+Open source is the future. Co.Meta is an advanced & evolving meta-test product that has been made with ❤️ for DevOps and QA Engineers. <a  href="https://cometa.rocks/"><strong>Learn more</strong></a>
 <br>
 <br>
-Support: <a  href="https://t.me/joinchat/bFquCBGPBCAwYWZk">Telegram</a>
+<a  href="https://cometa.rocks/support/">Support</a>
 
 </p>
 
@@ -24,11 +24,6 @@ Support: <a  href="https://t.me/joinchat/bFquCBGPBCAwYWZk">Telegram</a>
 - [Selenoid](https://aerokube.com/selenoid/)
 - [PostgreSQL](https://www.postgresql.org/)
 
-## Requirements
-
-- Docker
-- Docker Compose
-
 ## Getting started
 
 ### Prerequisites
@@ -37,8 +32,9 @@ Here is what you need to be able to run Cometa.
 
 - Docker
 - Docker Compose
+- Use Linux as operating system. Have a look at pre-build [Virtual Boxes](https://osboxes.org/)
 
-In any case that you are stuck for more than 5 minutes - please us know. And please give us the oportunity to help you. We want to learn how you are using cometa and what problems you encounter. Contact us via <a  href="https://t.me/joinchat/bFquCBGPBCAwYWZk">Telegram</a> or WhatsApp as seen on https://cometa.rocks/ .
+In any case that you are stuck for more than 5 minutes - please us know. And please give us the oportunity to help you. We want to learn how you are using cometa and what problems you encounter. <a href="https://cometa.rocks/support/">Contact us</a>. We are happy to help.
 
 #### Manual
 
@@ -48,6 +44,7 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
    ```
 
 2. Setup at least 1 authentication provider:
+
 	To setup Google:
 	* Go to [Google Developer Console](https://console.cloud.google.com/)
 	* Create an OAuth application
@@ -55,6 +52,17 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 	* Retrieve the `client_id` and `secret_id` and paste them in `./front/apache-conf/metadata/accounts.google.com.client`
 
 	* Set `redirect_uri` to `https://<domain>/callback`
+
+	To setup Gitlab:
+	* Goto [git.amvara.de](https://git.amvara.de/)
+	* Create a new account
+	* Settings > Application > Add new application
+	* Add your domain to the allowed hosts
+	* Retrieve the `client_id` and `secret_id` and paste them in `./front/apache-conf/metadata/accounts/git.amvara.de.client`
+
+	* Set `redirect_uri` to `https://<domain>/callback`
+
+	In both cases, the default URL when installing on you Desktop or Laptop, is `localhost`.
 
 
 Very nice: Instead of following the manual setup instructions below, you may execute `./cometa.sh` to bring up a localhost version on your machine.
