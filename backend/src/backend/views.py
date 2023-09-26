@@ -2152,7 +2152,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
             schedule = data['schedule']
             logger.debug("Saveing schedule: "+str(schedule) )
             # Check if schedule is not 'now'
-            if schedule != 'now':
+            if schedule != '' and schedule != 'now':
                 # Validate cron format before sending to Behave
                 if schedule != "" and not CronSlices.is_valid(schedule):
                     return JsonResponse({ 'success': False, "error": 'Schedule format is invalid.' }, status=200)
@@ -2164,6 +2164,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
                     json_data = response.json()
                     return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule. Check crontab directory of docker.') }, status=200)
             # Save schedule, at this point is 100% valid and saved
+            logger.debug("Adding schedule to database")
             feature.schedule = schedule
 
         """
