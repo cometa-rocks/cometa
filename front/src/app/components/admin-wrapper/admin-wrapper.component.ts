@@ -2,12 +2,17 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Select } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { Observable } from 'rxjs';
+import { RouterLinkActive, RouterLink, RouterOutlet } from '@angular/router';
+import { NgIf, AsyncPipe } from '@angular/common';
+import { MatLegacyTabsModule } from '@angular/material/legacy-tabs';
 
 @Component({
-  selector: 'admin-wrapper',
-  templateUrl: './admin-wrapper.component.html',
-  styleUrls: ['./admin-wrapper.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'admin-wrapper',
+    templateUrl: './admin-wrapper.component.html',
+    styleUrls: ['./admin-wrapper.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [MatLegacyTabsModule, NgIf, RouterLinkActive, RouterLink, RouterOutlet, AsyncPipe]
 })
 export class AdminWrapperComponent {
 

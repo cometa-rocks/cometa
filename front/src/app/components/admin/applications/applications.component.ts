@@ -9,12 +9,19 @@ import { Subscribe } from 'app/custom-decorators';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { Applications } from '@store/actions/applications.actions';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { ApplicationComponent } from './application/application.component';
+import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'admin-applications',
-  templateUrl: './applications.component.html',
-  styleUrls: ['./applications.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'admin-applications',
+    templateUrl: './applications.component.html',
+    styleUrls: ['./applications.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [NgFor, ApplicationComponent, NgIf, MatLegacyButtonModule, MatIconModule, SortByPipe, AsyncPipe]
 })
 export class ApplicationsComponent implements OnInit {
 

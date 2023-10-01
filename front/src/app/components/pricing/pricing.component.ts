@@ -5,12 +5,15 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { PaymentsService } from '@services/payments.service';
 import { Subscriptions } from '@store/subscriptions.state';
 import { filter, switchMap } from 'rxjs/operators';
+import { NgFor, NgIf, TitleCasePipe } from '@angular/common';
 
 @Component({
-  selector: 'cometa-pricing',
-  templateUrl: './pricing.component.html',
-  styleUrls: ['./pricing.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'cometa-pricing',
+    templateUrl: './pricing.component.html',
+    styleUrls: ['./pricing.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [NgFor, NgIf, TitleCasePipe]
 })
 export class PricingComponent implements OnInit {
 

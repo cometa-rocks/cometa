@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { CustomSelectors } from '@others/custom-selectors';
 
 @Pipe({
-  name: 'browserResultStatus'
+    name: 'browserResultStatus',
+    standalone: true
 })
 export class BrowserResultStatusPipe implements PipeTransform {
 

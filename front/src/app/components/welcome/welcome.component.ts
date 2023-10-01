@@ -19,12 +19,16 @@ import { TourService } from '@services/tour.service';
 import { Tour, TourExtended, Tours } from '@services/tours';
 import { UserState } from '@store/user.state';
 import { map, Observable } from 'rxjs';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'cometa-welcome',
-  templateUrl: './welcome.component.html',
-  styleUrls: ['./welcome.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'cometa-welcome',
+    templateUrl: './welcome.component.html',
+    styleUrls: ['./welcome.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [NgIf, LetDirective, AsyncPipe]
 })
 export class WelcomeComponent{
   constructor(

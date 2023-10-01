@@ -1,7 +1,8 @@
 import {Directive, Input, Output, EventEmitter} from '@angular/core';
 
 @Directive({
-  selector: '[ngInit]'
+    selector: '[ngInit]',
+    standalone: true
 })
 export class NgInitDirective {
 

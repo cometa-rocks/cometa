@@ -8,10 +8,11 @@ import * as d3 from 'd3';
 import { debounceTime, Observable } from 'rxjs';
 
 @Component({
-  selector: 'cometa-l1-tree-view',
-  templateUrl: './l1-tree-view.component.html',
-  styleUrls: ['./l1-tree-view.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'cometa-l1-tree-view',
+    templateUrl: './l1-tree-view.component.html',
+    styleUrls: ['./l1-tree-view.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true
 })
 export class L1TreeViewComponent implements OnInit{
 

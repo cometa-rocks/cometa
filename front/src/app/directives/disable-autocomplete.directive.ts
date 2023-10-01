@@ -1,7 +1,8 @@
 import { Directive, ElementRef, Renderer2 } from '@angular/core';
 
 @Directive({
-  selector: '[disableAutocomplete]'
+    selector: '[disableAutocomplete]',
+    standalone: true
 })
 export class DisableAutocompleteDirective {
 

@@ -5,7 +5,8 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Pipe({
-  name: 'depends'
+    name: 'depends',
+    standalone: true
 })
 export class DependsPipe implements PipeTransform {
 

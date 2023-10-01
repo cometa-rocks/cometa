@@ -9,27 +9,30 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { NgClass, NgIf, AsyncPipe, TitleCasePipe } from '@angular/common';
+import { LetDirective } from '../../../directives/ng-let.directive';
 
 @UntilDestroy()
 @Component({
-  selector: 'cometa-live-step',
-  templateUrl: './live-step.component.html',
-  styleUrls: ['./live-step.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger(
-      'detailAnimation', [
-        transition(':enter', [
-          style({transform: 'translateY(100%)', height: 0, opacity: 0}),
-          animate('250ms', style({transform: 'translateY(0)', height: '20px', opacity: 1}))
-        ]),
-        transition(':leave', [
-          style({transform: 'translateY(0)', height: '20px', opacity: 1}),
-          animate('250ms', style({transform: 'translateY(100%)', height: 0, opacity: 0}))
+    selector: 'cometa-live-step',
+    templateUrl: './live-step.component.html',
+    styleUrls: ['./live-step.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('detailAnimation', [
+            transition(':enter', [
+                style({ transform: 'translateY(100%)', height: 0, opacity: 0 }),
+                animate('250ms', style({ transform: 'translateY(0)', height: '20px', opacity: 1 }))
+            ]),
+            transition(':leave', [
+                style({ transform: 'translateY(0)', height: '20px', opacity: 1 }),
+                animate('250ms', style({ transform: 'translateY(100%)', height: 0, opacity: 0 }))
+            ])
         ])
-      ]
-    )
-  ],
+    ],
+    standalone: true,
+    imports: [LetDirective, NgClass, MatLegacyTooltipModule, NgIf, AsyncPipe, TitleCasePipe]
 })
 export class LiveStepComponent implements OnInit {
 

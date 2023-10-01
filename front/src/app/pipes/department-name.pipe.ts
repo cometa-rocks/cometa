@@ -4,7 +4,8 @@ import { UserState } from '../store/user.state';
 import memo from 'memo-decorator';
 
 @Pipe({
-  name: 'departmentName'
+    name: 'departmentName',
+    standalone: true
 })
 export class DepartmentNamePipe implements PipeTransform {
 

@@ -10,11 +10,14 @@
  * @author: dph000
  */
 import { Component, OnInit } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'cometa-l1-feature-team-list',
-  templateUrl: './l1-feature-team-list.component.html',
-  styleUrls: ['./l1-feature-team-list.component.scss']
+    selector: 'cometa-l1-feature-team-list',
+    templateUrl: './l1-feature-team-list.component.html',
+    styleUrls: ['./l1-feature-team-list.component.scss'],
+    standalone: true,
+    imports: [MatIconModule]
 })
 export class L1FeatureTeamListComponent implements OnInit {
 

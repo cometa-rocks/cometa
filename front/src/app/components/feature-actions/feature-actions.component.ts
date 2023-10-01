@@ -18,13 +18,17 @@ import { WebSockets } from '@store/actions/results.actions';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { PaginatedListsState } from '@store/paginated-list.state';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { NgIf, AsyncPipe } from '@angular/common';
 
 @UntilDestroy()
 @Component({
-  selector: 'cometa-feature-actions',
-  templateUrl: './feature-actions.component.html',
-  styleUrls: ['./feature-actions.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'cometa-feature-actions',
+    templateUrl: './feature-actions.component.html',
+    styleUrls: ['./feature-actions.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [NgIf, MatLegacyTooltipModule, AsyncPipe]
 })
 export class FeatureActionsComponent implements OnInit {
 

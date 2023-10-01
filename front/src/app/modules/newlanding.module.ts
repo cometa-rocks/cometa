@@ -36,20 +36,18 @@ const routes: Routes = [
         RouterModule.forChild(routes),
         MatRippleModule,
         SharedModule,
-        CommonModule
-    ],
-    declarations: [
-    L1LandingComponent,
-    FolderTreeComponent,
-    FolderItemTreeComponent,
-    L1FilterComponent,
-    L1FeatureItemListComponent,
-    L1FeatureRecentListComponent,
-    L1FeatureStarredListComponent,
-    L1FeatureTrashbinListComponent,
-    L1FeatureTeamListComponent,
-    L1TreeViewComponent,
-    WelcomeComponent
-  ]
+        CommonModule,
+        L1LandingComponent,
+        FolderTreeComponent,
+        FolderItemTreeComponent,
+        L1FilterComponent,
+        L1FeatureItemListComponent,
+        L1FeatureRecentListComponent,
+        L1FeatureStarredListComponent,
+        L1FeatureTrashbinListComponent,
+        L1FeatureTeamListComponent,
+        L1TreeViewComponent,
+        WelcomeComponent
+    ]
 })
 export class NewlandingModule { }

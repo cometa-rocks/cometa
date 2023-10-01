@@ -211,54 +211,52 @@ const directives = [
 ];
 
 @NgModule({
-  declarations: [
-    ...components,
-    ...directives,
-    ...pipes,
-    ...dialogs,
-    ...snacks
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
-    ...materialModules,
-    TranslateModule.forChild({
-      loader: {
-      provide: TranslateLoader,
-      useFactory: createTranslateLoader,
-      deps: [HttpClient]
-    },
-    isolate: false
-  })
-  ],
-  providers: [
-    {
-      provide: MAT_DIALOG_DEFAULT_OPTIONS,
-      useValue: {
-        hasBackdrop: true,
-        autoFocus: false
-      }
-    },
-    {
-      provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
-      useValue: {
-        duration: 3000,
-        horizontalPosition: 'center'
-      }
-    },
-  ],
-  exports: [
-    ReactiveFormsModule,
-    FormsModule,
-    ...materialModules,
-    ...components,
-    ...directives,
-    ...pipes,
-    ...dialogs,
-    ...snacks,
-    TranslateModule
-  ]
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        FormsModule,
+        ...materialModules,
+        TranslateModule.forChild({
+            loader: {
+                provide: TranslateLoader,
+                useFactory: createTranslateLoader,
+                deps: [HttpClient]
+            },
+            isolate: false
+        }),
+        ...components,
+        ...directives,
+        ...pipes,
+        ...dialogs,
+        ...snacks
+    ],
+    providers: [
+        {
+            provide: MAT_DIALOG_DEFAULT_OPTIONS,
+            useValue: {
+                hasBackdrop: true,
+                autoFocus: false
+            }
+        },
+        {
+            provide: MAT_SNACK_BAR_DEFAULT_OPTIONS,
+            useValue: {
+                duration: 3000,
+                horizontalPosition: 'center'
+            }
+        },
+    ],
+    exports: [
+        ReactiveFormsModule,
+        FormsModule,
+        ...materialModules,
+        ...components,
+        ...directives,
+        ...pipes,
+        ...dialogs,
+        ...snacks,
+        TranslateModule
+    ]
 })
 export class SharedModule {
   static forRoot(): ModuleWithProviders<SharedModule> {

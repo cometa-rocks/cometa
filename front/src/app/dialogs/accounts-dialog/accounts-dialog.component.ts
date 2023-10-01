@@ -1,11 +1,15 @@
 import { Component, ChangeDetectionStrategy, Inject } from '@angular/core';
-import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogModule } from '@angular/material/legacy-dialog';
+import { AccountComponent } from '../../components/admin/accounts/account/account.component';
+import { NgFor } from '@angular/common';
 
 @Component({
-  selector: 'accounts-dialog',
-  templateUrl: './accounts-dialog.component.html',
-  styleUrls: ['./accounts-dialog.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'accounts-dialog',
+    templateUrl: './accounts-dialog.component.html',
+    styleUrls: ['./accounts-dialog.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [MatLegacyDialogModule, NgFor, AccountComponent]
 })
 
 export class AccountsDialog {

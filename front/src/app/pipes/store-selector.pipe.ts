@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { Store } from '@ngxs/store';
 
 @Pipe({
-  name: 'storeSelector'
+    name: 'storeSelector',
+    standalone: true
 })
 export class StoreSelectorPipe implements PipeTransform {
 

@@ -14,16 +14,14 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [
-    TranslateModule.forChild({
-        extend: true
-    }),
-    RouterModule.forChild(routes),
-    SharedModule,
-    CommonModule
-  ],
-  declarations: [
-    UserComponent
-  ]
+    imports: [
+        TranslateModule.forChild({
+            extend: true
+        }),
+        RouterModule.forChild(routes),
+        SharedModule,
+        CommonModule,
+        UserComponent
+    ]
 })
 export class MyAccountModule { }

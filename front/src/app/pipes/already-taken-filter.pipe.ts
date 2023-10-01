@@ -3,7 +3,8 @@ import { SelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { CustomSelectors } from '@others/custom-selectors';
 
 @Pipe({
-  name: 'alreadyTakenFilter',
+    name: 'alreadyTakenFilter',
+    standalone: true
 })
 export class AlreadyTakenFilterPipe implements PipeTransform {
 

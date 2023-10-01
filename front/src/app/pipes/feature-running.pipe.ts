@@ -11,7 +11,8 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { Observable } from 'rxjs';
 
 @Pipe({
-  name: 'featureRunning'
+    name: 'featureRunning',
+    standalone: true
 })
 export class FeatureRunningPipe implements PipeTransform {
 

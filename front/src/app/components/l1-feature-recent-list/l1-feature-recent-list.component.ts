@@ -28,12 +28,36 @@ import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
 import { Configuration } from '@store/actions/config.actions';
 import { LogService } from '@services/log.service';
+import { FeatureRunningPipe } from '../../pipes/feature-running.pipe';
+import { DepartmentNamePipe } from '@pipes/department-name.pipe';
+import { HasPermissionPipe } from '../../pipes/has-permission.pipe';
+import { BrowserComboTextPipe } from '../../pipes/browser-combo-text.pipe';
+import { LoadingPipe } from '@pipes/loading.pipe';
+import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
+import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { WelcomeComponent } from '../welcome/welcome.component';
+import { MtxGridModule } from '@ng-matero/extensions/grid';
+import { NgIf, NgClass, NgSwitch, NgSwitchCase, NgSwitchDefault, NgFor, AsyncPipe, LowerCasePipe } from '@angular/common';
+import { LetDirective } from '../../directives/ng-let.directive';
 
 @Component({
-selector: 'cometa-l1-feature-recent-list',
-templateUrl: './l1-feature-recent-list.component.html',
-styleUrls: ['./l1-feature-recent-list.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'cometa-l1-feature-recent-list',
+    templateUrl: './l1-feature-recent-list.component.html',
+    styleUrls: ['./l1-feature-recent-list.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [LetDirective, NgIf, MtxGridModule, WelcomeComponent, MatLegacyProgressSpinnerModule, MatLegacyButtonModule, MatIconModule, MatLegacyTooltipModule, NgClass, NgSwitch, NgSwitchCase, NgSwitchDefault, NgFor, StopPropagationDirective, MatLegacyCheckboxModule, MatLegacyMenuModule, MatDividerModule, TranslateModule, AmParsePipe, AmDateFormatPipe, SecondsToHumanReadablePipe, BrowserIconPipe, LoadingPipe, BrowserComboTextPipe, HasPermissionPipe, DepartmentNamePipe, FeatureRunningPipe, AsyncPipe, LowerCasePipe]
 })
 export class L1FeatureRecentListComponent{
 

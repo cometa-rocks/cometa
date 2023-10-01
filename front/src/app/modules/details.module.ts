@@ -76,9 +76,7 @@ const routes: Routes = [
         RoundProgressModule,
         RouterModule.forChild(routes),
         SharedModule,
-        CommonModule
-    ],
-    declarations: [
+        CommonModule,
         /* Pipes */
         NumeralPipe,
         ArchivedRunsPipe,
@@ -107,6 +105,6 @@ const routes: Routes = [
         MainViewHeaderComponent,
         ScreenshotBgPipe,
         RunColumnDirective
-  ]
+    ]
 })
 export class DetailsModule { }

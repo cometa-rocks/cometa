@@ -4,7 +4,8 @@ import { parse } from 'date-fns';
 import compareVersions from 'compare-versions';
 
 @Pipe({
-  name: 'platformSort'
+    name: 'platformSort',
+    standalone: true
 })
 export class PlatformSortPipe implements PipeTransform {
 

@@ -3,7 +3,8 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ApiService } from '@services/api.service';
 
 @Pipe({
-  name: 'downloadLink'
+    name: 'downloadLink',
+    standalone: true
 })
 export class DownloadLinkPipe implements PipeTransform {
 

@@ -10,12 +10,17 @@ import { ModifyDepartmentTimeoutComponent } from '@dialogs/modify-department-tim
 import { Departments } from '@store/actions/departments.actions';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { AccountsDialog, AccountsDialogData } from '@dialogs/accounts-dialog/accounts-dialog.component';
+import { MatIconModule } from '@angular/material/icon';
+import { NgIf, NgClass, AsyncPipe } from '@angular/common';
+import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
 
 @Component({
-  selector: 'department',
-  templateUrl: './department.component.html',
-  styleUrls: ['./department.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'department',
+    templateUrl: './department.component.html',
+    styleUrls: ['./department.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [DisableAutocompleteDirective, NgIf, NgClass, MatIconModule, AsyncPipe]
 })
 export class DepartmentComponent {
 

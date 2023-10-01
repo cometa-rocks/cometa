@@ -11,11 +11,14 @@
  */
 
 import { Component, OnInit } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
-  selector: 'cometa-l1-feature-starred-list',
-  templateUrl: './l1-feature-starred-list.component.html',
-  styleUrls: ['./l1-feature-starred-list.component.scss']
+    selector: 'cometa-l1-feature-starred-list',
+    templateUrl: './l1-feature-starred-list.component.html',
+    styleUrls: ['./l1-feature-starred-list.component.scss'],
+    standalone: true,
+    imports: [MatIconModule]
 })
 export class L1FeatureStarredListComponent implements OnInit {
 

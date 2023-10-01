@@ -7,23 +7,28 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { Configuration } from '@store/actions/config.actions';
 import { User } from '@store/actions/user.actions';
 import { Store } from '@ngxs/store';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { NgIf } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
-  selector: 'header',
-  templateUrl: './header.component.html',
-  styleUrls: ['./header.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('opened', [
-      state('false', style({
-        transform: 'translateX(100vw)'
-      })),
-      state('true', style({
-        transform: 'translateX(calc(100vw - 360px))'
-      })),
-      transition('false <=> true', animate('250ms 0ms ease-in-out'))
-    ])
-  ]
+    selector: 'header',
+    templateUrl: './header.component.html',
+    styleUrls: ['./header.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('opened', [
+            state('false', style({
+                transform: 'translateX(100vw)'
+            })),
+            state('true', style({
+                transform: 'translateX(calc(100vw - 360px))'
+            })),
+            transition('false <=> true', animate('250ms 0ms ease-in-out'))
+        ])
+    ],
+    standalone: true,
+    imports: [RouterLink, NgIf, MatLegacyTooltipModule, RouterLinkActive]
 })
 export class HeaderComponent {
 

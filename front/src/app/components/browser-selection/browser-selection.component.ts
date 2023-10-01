@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, Output, EventEmitter, OnInit, Input } from '@angular/core';
-import { UntypedFormControl } from '@angular/forms';
+import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
 import { BrowserFavouritedPipe } from '@pipes/browser-favourited.pipe';
 import { BrowserstackState } from '@store/browserstack.state';
 import { UserState } from '@store/user.state';
@@ -12,6 +12,28 @@ import { classifyByProperty } from 'ngx-amvara-toolbox';
 import { User } from '@store/actions/user.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Store } from '@ngxs/store';
+import { TranslateModule } from '@ngx-translate/core';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { AddLatestPipe } from '../../pipes/add-latest.pipe';
+import { BrowserComboTextPipe } from '../../pipes/browser-combo-text.pipe';
+import { VersionSortPipe } from '@pipes/version-sort.pipe';
+import { FormatVersionPipe } from '@pipes/format-version.pipe';
+import { TranslateNamePipe } from '@pipes/translate-name.pipe';
+import { CheckBrowserExistsPipe } from '@pipes/check-browser-exists.pipe';
+import { CheckSelectedBrowserPipe } from '@pipes/check-selected-browser.pipe';
+import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { ContextMenuModule } from '@perfectmemory/ngx-contextmenu';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { NgIf, NgFor, NgClass, AsyncPipe, TitleCasePipe, KeyValuePipe } from '@angular/common';
 
 /**
  * BrowserSelectionComponent
@@ -22,14 +44,16 @@ import { Store } from '@ngxs/store';
  */
 @UntilDestroy()
 @Component({
-  selector: 'cometa-browser-selection',
-  templateUrl: './browser-selection.component.html',
-  styleUrls: ['./browser-selection.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    BrowserFavouritedPipe,
-    PlatformSortPipe
-  ]
+    selector: 'cometa-browser-selection',
+    templateUrl: './browser-selection.component.html',
+    styleUrls: ['./browser-selection.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [
+        BrowserFavouritedPipe,
+        PlatformSortPipe
+    ],
+    standalone: true,
+    imports: [NgIf, MatLegacyFormFieldModule, MatLegacySelectModule, ReactiveFormsModule, NgFor, MatLegacyOptionModule, MatLegacyInputModule, StopPropagationDirective, NgClass, MatLegacyTooltipModule, ContextMenuModule, MatLegacyCheckboxModule, MatLegacyButtonModule, MatIconModule, MatLegacyProgressSpinnerModule, AsyncPipe, TitleCasePipe, KeyValuePipe, PlatformSortPipe, BrowserIconPipe, CheckSelectedBrowserPipe, CheckBrowserExistsPipe, TranslateNamePipe, FormatVersionPipe, VersionSortPipe, BrowserFavouritedPipe, BrowserComboTextPipe, AddLatestPipe, SortByPipe, TranslateModule]
 })
 export class BrowserSelectionComponent implements OnInit {
 

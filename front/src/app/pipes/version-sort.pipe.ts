@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import compareVersions from 'compare-versions';
 
 @Pipe({
-  name: 'versionSort'
+    name: 'versionSort',
+    standalone: true
 })
 export class VersionSortPipe implements PipeTransform {
 

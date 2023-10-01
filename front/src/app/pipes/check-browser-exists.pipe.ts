@@ -4,7 +4,8 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Pipe({
-  name: 'checkBrowserExists'
+    name: 'checkBrowserExists',
+    standalone: true
 })
 export class CheckBrowserExistsPipe implements PipeTransform {
 

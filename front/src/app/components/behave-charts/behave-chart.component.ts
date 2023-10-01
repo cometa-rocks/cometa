@@ -5,15 +5,19 @@ import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import MAIN_VIEW_CHART_SCHEMA from './chart-schema';
 import { delay, filter, map, tap } from 'rxjs/operators';
 import { SeriesSplineOptions } from 'highcharts';
+import { HighchartsChartModule } from 'highcharts-angular';
+import { NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'behave-chart-desktop-steps',
-  templateUrl: './behave-chart.component.html',
-  styleUrls: ['./behave-chart.component.scss'],
-  providers: [
-    AmParsePipe
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'behave-chart-desktop-steps',
+    templateUrl: './behave-chart.component.html',
+    styleUrls: ['./behave-chart.component.scss'],
+    providers: [
+        AmParsePipe
+    ],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [NgIf, HighchartsChartModule, AsyncPipe]
 })
 export class BehaveChartTestComponent implements OnChanges, OnInit, AfterViewInit {
 

@@ -1,11 +1,14 @@
 import { Component, Inject, ChangeDetectionStrategy, HostListener } from '@angular/core';
-import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogModule } from '@angular/material/legacy-dialog';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 
 @Component({
-  selector: 'html-diff',
-  templateUrl: './html-diff.component.html',
-  styleUrls: ['./html-diff.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'html-diff',
+    templateUrl: './html-diff.component.html',
+    styleUrls: ['./html-diff.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [MatLegacyDialogModule, MatLegacyButtonModule]
 })
 export class HtmlDiffDialog {
 

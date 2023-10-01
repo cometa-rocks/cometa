@@ -1,6 +1,6 @@
 import { animate, query, stagger, state, style, transition, trigger } from '@angular/animations';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
-import { UntypedFormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Store, Select } from '@ngxs/store';
 import { FeaturesState } from '@store/features.state';
 import { ApplicationsState } from '@store/applications.state';
@@ -10,43 +10,69 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { UserState } from '@store/user.state';
 import { Features } from '@store/actions/features.actions';
 import { CustomSelectors } from '@others/custom-selectors';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import { LegacyPageEvent as PageEvent, MatLegacyPaginatorModule } from '@angular/material/legacy-paginator';
 import { Paginations } from '@store/actions/paginations.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { Configuration } from '@store/actions/config.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { SharedActionsService } from '@services/shared-actions.service';
+import { FilterTextPipe } from '@pipes/filter-text.pipe';
+import { AlreadyTakenFilterPipe } from '@pipes/already-taken-filter.pipe';
+import { FeatureSortPipe } from '@pipes/feature-sort.pipe';
+import { DependsPipe } from '@pipes/depends.pipe';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { StoreSelectorPipe } from '../../pipes/store-selector.pipe';
+import { PaginationPipe } from '@pipes/pagination.pipe';
+import { FeatureListComponent } from '../feature-list/feature-list.component';
+import { FeatureItemComponent } from './feature-item/feature-item.component';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatRippleModule } from '@angular/material/core';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { NewFolderComponent } from '../new-folder/new-folder.component';
+import { FolderComponent } from '../folder/folder.component';
+import { EasterEggComponent } from '../easter-egg/easter-egg.component';
+import { MatLegacyRadioModule } from '@angular/material/legacy-radio';
+import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { NgFor, NgIf, AsyncPipe } from '@angular/common';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
 
 @UntilDestroy()
 @Component({
-  selector: 'search',
-  templateUrl: './search.component.html',
-  styleUrls: ['./search.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('listAnimation', [
-      transition('* => *', [
-        query(':enter', style({ opacity: 0, top: '30px' }), { optional: true }),
-        query(':enter', stagger('100ms', [
-          animate('.4s ease-in-out', style({ opacity: 1, top: '0px' }))
-        ]), { optional: true })
-      ])
-    ]),
-    trigger('addDialog', [
-      state('false', style({
-        visibility: 'hidden',
-        left: '-30px',
-        opacity: 0
-      })),
-      state('true', style({
-        visibility: 'visible',
-        left: '0',
-        opacity: 1
-      })),
-      transition('false <=> true', animate('150ms ease-out'))
-    ])
-  ]
+    selector: 'search',
+    templateUrl: './search.component.html',
+    styleUrls: ['./search.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('listAnimation', [
+            transition('* => *', [
+                query(':enter', style({ opacity: 0, top: '30px' }), { optional: true }),
+                query(':enter', stagger('100ms', [
+                    animate('.4s ease-in-out', style({ opacity: 1, top: '0px' }))
+                ]), { optional: true })
+            ])
+        ]),
+        trigger('addDialog', [
+            state('false', style({
+                visibility: 'hidden',
+                left: '-30px',
+                opacity: 0
+            })),
+            state('true', style({
+                visibility: 'visible',
+                left: '0',
+                opacity: 1
+            })),
+            transition('false <=> true', animate('150ms ease-out'))
+        ])
+    ],
+    standalone: true,
+    imports: [MatLegacyMenuModule, NgFor, NgIf, MatLegacySelectModule, MatLegacyOptionModule, MatLegacyButtonModule, MatLegacyFormFieldModule, MatLegacyInputModule, DisableAutocompleteDirective, MatLegacyRadioModule, ReactiveFormsModule, EasterEggComponent, FolderComponent, NewFolderComponent, LetDirective, MatRippleModule, MatLegacyTooltipModule, FeatureItemComponent, FeatureListComponent, MatLegacyPaginatorModule, PaginationPipe, StoreSelectorPipe, SortByPipe, DependsPipe, FeatureSortPipe, AlreadyTakenFilterPipe, FilterTextPipe, AsyncPipe]
 })
 export class SearchComponent implements OnInit {
 

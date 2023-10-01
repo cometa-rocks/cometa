@@ -10,13 +10,23 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { startWith } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { MainViewFieldsDesktop, MainViewFieldsMobile, MainViewFieldsTabletLandscape, MainViewFieldsTabletPortrait } from '@others/variables';
+import { MainViewHeaderComponent } from './main-view-header/main-view-header.component';
+import { FeatureRunComponent } from '../../components/feature-run/feature-run.component';
+import { NetworkPaginatedListComponent as NetworkPaginatedListComponent_1 } from '../../components/network-paginated-list/network-paginated-list.component';
+import { BehaveChartTestComponent } from '../../components/behave-charts/behave-chart.component';
+import { NgClass, NgIf, AsyncPipe } from '@angular/common';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
+import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
 
 @UntilDestroy()
 @Component({
-  selector: 'main-view',
-  templateUrl: './main-view.component.html',
-  styleUrls: ['./main-view.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'main-view',
+    templateUrl: './main-view.component.html',
+    styleUrls: ['./main-view.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [FeatureTitlesComponent, FeatureActionsComponent, LetDirective, NgClass, NgIf, BehaveChartTestComponent, NetworkPaginatedListComponent_1, FeatureRunComponent, MainViewHeaderComponent, AsyncPipe]
 })
 export class MainViewComponent implements OnInit, AfterViewInit {
 

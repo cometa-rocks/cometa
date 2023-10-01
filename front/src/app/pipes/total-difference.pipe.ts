@@ -1,7 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'totalDifference'
+    name: 'totalDifference',
+    standalone: true
 })
 export class TotalDifferencePipe implements PipeTransform {
 

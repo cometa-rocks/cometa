@@ -5,7 +5,8 @@ import { combineLatest, isObservable, Observable } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Pipe({
-  name: 'archivedRuns'
+    name: 'archivedRuns',
+    standalone: true
 })
 export class ArchivedRunsPipe implements PipeTransform {
 

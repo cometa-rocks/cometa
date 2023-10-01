@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 
 @Pipe({
-  name: 'browserIcon'
+    name: 'browserIcon',
+    standalone: true
 })
 export class BrowserIconPipe implements PipeTransform {
 

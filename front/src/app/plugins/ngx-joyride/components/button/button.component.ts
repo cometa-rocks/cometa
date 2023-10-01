@@ -1,9 +1,12 @@
 import { Component, Input, EventEmitter, Output } from "@angular/core";
+import { NgStyle } from "@angular/common";
 
 @Component({
     selector: 'joyride-button',
     templateUrl: './button.component.html',
-    styleUrls: ['./button.component.scss']
+    styleUrls: ['./button.component.scss'],
+    standalone: true,
+    imports: [NgStyle]
 })
 export class JoyrideButtonComponent {
     hover: boolean;

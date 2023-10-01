@@ -6,7 +6,8 @@ import { map } from 'rxjs/operators';
 
 @UntilDestroy()
 @Directive({
-  selector: '[runColumn]'
+    selector: '[runColumn]',
+    standalone: true
 })
 export class RunColumnDirective implements OnChanges, OnInit {
 

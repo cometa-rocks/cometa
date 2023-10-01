@@ -21,14 +21,11 @@ import { TemplatesService } from "./services/templates.service";
 export const routerModuleForChild: ModuleWithProviders<JoyrideModule> = RouterModule.forChild([]);
 
 @NgModule({
-    imports: [CommonModule, routerModuleForChild],
-    declarations: [
-        JoyrideDirective,
+    imports: [CommonModule, routerModuleForChild, JoyrideDirective,
         JoyrideStepComponent,
         JoyrideArrowComponent,
         JoyrideButtonComponent,
-        JoyrideCloseButtonComponent
-    ],
+        JoyrideCloseButtonComponent],
     exports: [
         JoyrideDirective
     ]

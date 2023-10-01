@@ -1,7 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'totalNok'
+    name: 'totalNok',
+    standalone: true
 })
 export class TotalNokPipe implements PipeTransform {
 

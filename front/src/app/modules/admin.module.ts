@@ -96,33 +96,31 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [
-    RouterModule.forChild(routes),
-    TranslateModule.forChild({
-        extend: true
-    }),
-    SharedModule,
-    CommonModule
-  ],
-  declarations: [
-    ModifyUserComponent,
-    ModifyPasswordComponent,
-    ModifyDepartmentComponent,
-    ModifyDepartmentTimeoutComponent,
-    DepartmentComponent,
-    ApplicationComponent,
-    AccountComponent,
-    BrowserComponent,
-    EnvironmentComponent,
-    FeatureComponent,
-    AdminWrapperComponent,
-    DepartmentsComponent,
-    ApplicationsComponent,
-    EnvironmentsComponent,
-    BrowsersComponent,
-    FeaturesComponent,
-    AccountsComponent,
-    AccountsDialog
-  ]
+    imports: [
+        RouterModule.forChild(routes),
+        TranslateModule.forChild({
+            extend: true
+        }),
+        SharedModule,
+        CommonModule,
+        ModifyUserComponent,
+        ModifyPasswordComponent,
+        ModifyDepartmentComponent,
+        ModifyDepartmentTimeoutComponent,
+        DepartmentComponent,
+        ApplicationComponent,
+        AccountComponent,
+        BrowserComponent,
+        EnvironmentComponent,
+        FeatureComponent,
+        AdminWrapperComponent,
+        DepartmentsComponent,
+        ApplicationsComponent,
+        EnvironmentsComponent,
+        BrowsersComponent,
+        FeaturesComponent,
+        AccountsComponent,
+        AccountsDialog
+    ]
 })
 export class AdminModule { }

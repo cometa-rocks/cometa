@@ -4,7 +4,8 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { Observable } from 'rxjs';
 
 @Pipe({
-  name: 'fillFeatureInfo'
+    name: 'fillFeatureInfo',
+    standalone: true
 })
 export class FillFeatureInfoPipe implements PipeTransform {
 

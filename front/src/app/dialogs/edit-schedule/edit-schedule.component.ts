@@ -1,24 +1,34 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialog as MatDialog, MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
-import { MatLegacySlideToggleChange as MatSlideToggleChange } from '@angular/material/legacy-slide-toggle';
+import { MatLegacySlideToggleChange as MatSlideToggleChange, MatLegacySlideToggleModule } from '@angular/material/legacy-slide-toggle';
 import { Store } from '@ngxs/store';
 import { FeaturesState } from '@store/features.state';
-import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { Features } from '@store/actions/features.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { parseExpression } from 'cron-parser';
 import { LogService } from '@services/log.service';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatIconModule } from '@angular/material/icon';
+import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 
 @UntilDestroy()
 @Component({
-  selector: 'edit-schedule',
-  templateUrl: './edit-schedule.component.html',
-  styleUrls: ['./edit-schedule.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'edit-schedule',
+    templateUrl: './edit-schedule.component.html',
+    styleUrls: ['./edit-schedule.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [ReactiveFormsModule, MatLegacyDialogModule, NgIf, MatLegacyFormFieldModule, MatLegacyInputModule, DisableAutocompleteDirective, NgFor, MatLegacySlideToggleModule, MatIconModule, MatLegacyTooltipModule, MatLegacyButtonModule, TranslateModule, AsyncPipe]
 })
 export class EditSchedule {
 

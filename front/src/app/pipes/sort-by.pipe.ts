@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { sortBy } from 'ngx-amvara-toolbox';
 
 @Pipe({
-  name: 'sortBy'
+    name: 'sortBy',
+    standalone: true
 })
 export class SortByPipe implements PipeTransform {
 

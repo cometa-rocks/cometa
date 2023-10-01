@@ -4,7 +4,8 @@ import { map } from 'rxjs/operators';
 import { differenceInMilliseconds, isValid } from 'date-fns';
 
 @Pipe({
-  name: 'testDuration'
+    name: 'testDuration',
+    standalone: true
 })
 export class TestDurationPipe implements PipeTransform {
 

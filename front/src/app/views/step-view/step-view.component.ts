@@ -11,74 +11,99 @@ import { NetworkPaginatedListComponent } from '@components/network-paginated-lis
 import { SharedActionsService } from '@services/shared-actions.service';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
+import { DownloadNamePipe } from '@pipes/download-name.pipe';
+import { DownloadLinkPipe } from '@pipes/download-link.pipe';
+import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
+import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
+import { NumeralPipe } from '@pipes/numeral.pipe';
+import { PercentagePipe } from '@pipes/percentage.pipe';
+import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { NetworkPaginatedListComponent as NetworkPaginatedListComponent_1 } from '../../components/network-paginated-list/network-paginated-list.component';
+import { RoundProgressModule } from 'angular-svg-round-progressbar';
+import { NgIf, NgClass, NgFor, AsyncPipe } from '@angular/common';
+import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
+import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
 
 @Component({
-  selector: 'step-view',
-  templateUrl: './step-view.component.html',
-  styleUrls: ['./step-view.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('progressIn', [
-      transition('* => *', [
-        query(':enter', style({ opacity: 0, position: 'relative', left: '-50px' }), { optional: true }),
-        query(':enter', stagger('80ms', [
-          animate('.2s 0ms ease-in', style({ opacity: 1, position: 'relative', left: '0' }))
-        ]), { optional: true })
-      ])
-    ]),
-    trigger('info', [
-      state('false', style({
-        opacity: 0,
-        position: 'relative',
-        bottom: '-20px'
-      })),
-      state('true', style({
-        opacity: 1,
-        position: 'relative',
-        bottom: '0'
-      })),
-      transition('false => true', animate('200ms 300ms ease-in-out'))
-    ]),
-    trigger('chart', [
-      state('false', style({
-        opacity: 0,
-        position: 'relative',
-        top: '30px'
-      })),
-      state('true', style({
-        opacity: 1,
-        position: 'relative',
-        top: '0'
-      })),
-      transition('false => true', animate('300ms 500ms ease-in-out'))
-    ]),
-    trigger('returnArrow', [
-      state('false', style({
-        opacity: 0,
-        position: 'relative',
-        left: '-30px'
-      })),
-      state('true', style({
-        opacity: 1,
-        position: 'relative',
-        left: '0'
-      })),
-      transition('false => true', animate('200ms 0ms ease-in-out'))
-    ]),
-    trigger('returnText', [
-      state('false', style({
-        opacity: 0,
-        position: 'relative',
-        left: '-50px'
-      })),
-      state('true', style({
-        opacity: 1,
-        position: 'relative',
-        left: '0'
-      })),
-      transition('false => true', animate('200ms 100ms ease-in-out'))
-    ]),
-  ]
+    selector: 'step-view',
+    templateUrl: './step-view.component.html',
+    styleUrls: ['./step-view.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('progressIn', [
+            transition('* => *', [
+                query(':enter', style({ opacity: 0, position: 'relative', left: '-50px' }), { optional: true }),
+                query(':enter', stagger('80ms', [
+                    animate('.2s 0ms ease-in', style({ opacity: 1, position: 'relative', left: '0' }))
+                ]), { optional: true })
+            ])
+        ]),
+        trigger('info', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                bottom: '-20px'
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                bottom: '0'
+            })),
+            transition('false => true', animate('200ms 300ms ease-in-out'))
+        ]),
+        trigger('chart', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                top: '30px'
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                top: '0'
+            })),
+            transition('false => true', animate('300ms 500ms ease-in-out'))
+        ]),
+        trigger('returnArrow', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-30px'
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0'
+            })),
+            transition('false => true', animate('200ms 0ms ease-in-out'))
+        ]),
+        trigger('returnText', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-50px'
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0'
+            })),
+            transition('false => true', animate('200ms 100ms ease-in-out'))
+        ]),
+    ],
+    standalone: true,
+    imports: [FeatureTitlesComponent, FeatureActionsComponent, NgIf, RoundProgressModule, NetworkPaginatedListComponent_1, LetDirective, NgClass, StopPropagationDirective, MatLegacyTooltipModule, MatLegacyMenuModule, MatDividerModule, MatIconModule, MatLegacyButtonModule, NgFor, MatLegacyProgressSpinnerModule, TranslateModule, AmParsePipe, AmDateFormatPipe, SecondsToHumanReadablePipe, PercentagePipe, AsyncPipe, NumeralPipe, PixelDifferencePipe, FirstLetterUppercasePipe, DownloadLinkPipe, DownloadNamePipe]
 })
 export class StepViewComponent implements OnInit {
 

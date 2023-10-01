@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { CustomSelectors } from '@others/custom-selectors';
 
 @Pipe({
-  name: 'filterText'
+    name: 'filterText',
+    standalone: true
 })
 export class FilterTextPipe implements PipeTransform {
 

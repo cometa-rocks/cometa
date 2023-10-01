@@ -1,7 +1,7 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
-import { UntypedFormGroup, UntypedFormBuilder, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '@services/api.service';
-import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { SelectSnapshot, ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { DepartmentsState } from '@store/departments.state';
@@ -9,13 +9,23 @@ import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { Departments } from '@store/actions/departments.actions';
 import { BehaviorSubject } from 'rxjs';
-import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
+import { MatLegacyCheckboxChange as MatCheckboxChange, MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { AsyncPipe } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 
 @Component({
-  selector: 'modify-department',
-  templateUrl: './modify-department.component.html',
-  styleUrls: ['./modify-department.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'modify-department',
+    templateUrl: './modify-department.component.html',
+    styleUrls: ['./modify-department.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [MatLegacyDialogModule, ReactiveFormsModule, MatLegacyFormFieldModule, MatLegacyInputModule, DisableAutocompleteDirective, MatLegacyCheckboxModule, MatLegacyTooltipModule, LetDirective, MatLegacyButtonModule, TranslateModule, AsyncPipe]
 })
 export class ModifyDepartmentComponent {
 

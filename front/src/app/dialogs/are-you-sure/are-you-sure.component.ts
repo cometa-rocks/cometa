@@ -1,12 +1,15 @@
 import { Component, ChangeDetectionStrategy, Inject } from '@angular/core';
-import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 import { TranslateService } from '@ngx-translate/core';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 
 @Component({
-  selector: 'are-you-sure',
-  templateUrl: './are-you-sure.component.html',
-  styleUrls: ['./are-you-sure.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'are-you-sure',
+    templateUrl: './are-you-sure.component.html',
+    styleUrls: ['./are-you-sure.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [MatLegacyDialogModule, MatLegacyButtonModule]
 })
 export class AreYouSureDialog {
 

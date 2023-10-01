@@ -3,10 +3,11 @@ import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDia
 import { SafeStyle, DomSanitizer } from '@angular/platform-browser';
 
 @Component({
-  selector: 'cometa-screenshot',
-  templateUrl: './screenshot.component.html',
-  styleUrls: ['./screenshot.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'cometa-screenshot',
+    templateUrl: './screenshot.component.html',
+    styleUrls: ['./screenshot.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true
 })
 export class ScreenshotComponent {
 

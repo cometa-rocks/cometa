@@ -1,13 +1,21 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Observable, timer } from 'rxjs';
-import { UntypedFormControl } from '@angular/forms';
+import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounce, map, startWith } from 'rxjs/operators';
+import { AsyncPipe } from '@angular/common';
+import { AccountComponent } from './account/account.component';
+import { NetworkPaginatedListComponent } from '../../network-paginated-list/network-paginated-list.component';
+import { DisableAutocompleteDirective } from '../../../directives/disable-autocomplete.directive';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 
 @Component({
-  selector: 'admin-accounts',
-  templateUrl: './accounts.component.html',
-  styleUrls: ['./accounts.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'admin-accounts',
+    templateUrl: './accounts.component.html',
+    styleUrls: ['./accounts.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [MatLegacyFormFieldModule, MatLegacyInputModule, ReactiveFormsModule, DisableAutocompleteDirective, NetworkPaginatedListComponent, AccountComponent, AsyncPipe]
 })
 export class AccountsComponent implements OnInit {
 

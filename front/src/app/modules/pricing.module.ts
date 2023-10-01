@@ -22,24 +22,22 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [
-    TranslateModule.forChild({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: (createTranslateLoader),
-        deps: [HttpClient]
-      }
-    }),
-    NgxsModule.forFeature([
-      SubscriptionsState
-    ]),
-    RouterModule.forChild(routes),
-    SharedModule,
-    CommonModule
-  ],
-  declarations: [
-    PricingComponent,
-    PricingSuccessComponent
-  ]
+    imports: [
+        TranslateModule.forChild({
+            loader: {
+                provide: TranslateLoader,
+                useFactory: (createTranslateLoader),
+                deps: [HttpClient]
+            }
+        }),
+        NgxsModule.forFeature([
+            SubscriptionsState
+        ]),
+        RouterModule.forChild(routes),
+        SharedModule,
+        CommonModule,
+        PricingComponent,
+        PricingSuccessComponent
+    ]
 })
 export class PricingModule { }

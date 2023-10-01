@@ -15,53 +15,65 @@ import { KEY_CODES } from '@others/enums';
 import { FeatureResults } from '@store/actions/feature_results.actions';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
+import { ScreenshotBgPipe } from '../../pipes/screenshot-bg.pipe';
+import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
+import { NumeralPipe } from '@pipes/numeral.pipe';
+import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { NgIf, NgClass, AsyncPipe } from '@angular/common';
+import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
+import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
 
 @Component({
-  selector: 'detail-view',
-  templateUrl: './detail-view.component.html',
-  styleUrls: ['./detail-view.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [
-    trigger('image1', [
-      state('false', style({
-        opacity: 0,
-        position: 'relative',
-        left: '-50px'
-      })),
-      state('true', style({
-        opacity: 1,
-        position: 'relative',
-        left: '0'
-      })),
-      transition('false => true', animate('200ms 500ms ease-in-out'))
-    ]),
-    trigger('image2', [
-      state('false', style({
-        opacity: 0,
-        position: 'relative',
-        left: '-50px'
-      })),
-      state('true', style({
-        opacity: 1,
-        position: 'relative',
-        left: '0'
-      })),
-      transition('false => true', animate('200ms 600ms ease-in-out'))
-    ]),
-    trigger('image3', [
-      state('false', style({
-        opacity: 0,
-        position: 'relative',
-        left: '-50px'
-      })),
-      state('true', style({
-        opacity: 1,
-        position: 'relative',
-        left: '0'
-      })),
-      transition('false => true', animate('200ms 700ms ease-in-out'))
-    ])
-  ]
+    selector: 'detail-view',
+    templateUrl: './detail-view.component.html',
+    styleUrls: ['./detail-view.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    animations: [
+        trigger('image1', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-50px'
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0'
+            })),
+            transition('false => true', animate('200ms 500ms ease-in-out'))
+        ]),
+        trigger('image2', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-50px'
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0'
+            })),
+            transition('false => true', animate('200ms 600ms ease-in-out'))
+        ]),
+        trigger('image3', [
+            state('false', style({
+                opacity: 0,
+                position: 'relative',
+                left: '-50px'
+            })),
+            state('true', style({
+                opacity: 1,
+                position: 'relative',
+                left: '0'
+            })),
+            transition('false => true', animate('200ms 700ms ease-in-out'))
+        ])
+    ],
+    standalone: true,
+    imports: [FeatureTitlesComponent, FeatureActionsComponent, NgIf, NgClass, MatLegacyProgressSpinnerModule, AmParsePipe, AmDateFormatPipe, SecondsToHumanReadablePipe, AsyncPipe, NumeralPipe, FirstLetterUppercasePipe, ScreenshotBgPipe]
 })
 export class DetailViewComponent implements OnInit {
 

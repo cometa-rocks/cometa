@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { sumByProperty } from 'ngx-amvara-toolbox';
 
 @Pipe({
-  name: 'sumByProperty'
+    name: 'sumByProperty',
+    standalone: true
 })
 export class SumByPropertyPipe implements PipeTransform {
 

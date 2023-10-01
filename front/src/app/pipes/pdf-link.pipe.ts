@@ -2,7 +2,8 @@ import { Pipe, PipeTransform, Inject } from '@angular/core';
 import { API_BASE } from 'app/tokens';
 
 @Pipe({
-  name: 'pdfLink'
+    name: 'pdfLink',
+    standalone: true
 })
 export class PdfLinkPipe implements PipeTransform {
 

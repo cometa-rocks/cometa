@@ -3,13 +3,13 @@ import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service'
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { API_URL } from 'app/tokens';
-import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialog as MatDialog, MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
-import { UntypedFormControl, UntypedFormGroup, Validators, UntypedFormBuilder } from '@angular/forms';
-import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
+import { UntypedFormControl, UntypedFormGroup, Validators, UntypedFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { MatLegacyCheckboxChange as MatCheckboxChange, MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
 import { StepEditorComponent } from '@components/step-editor/step-editor.component';
 import { BrowserSelectionComponent } from '@components/browser-selection/browser-selection.component';
-import { MatLegacyChipListChange as MatChipListChange } from '@angular/material/legacy-chips';
+import { MatLegacyChipListChange as MatChipListChange, MatLegacyChipsModule } from '@angular/material/legacy-chips';
 import { ApplicationsState } from '@store/applications.state';
 import { Select, Store } from '@ngxs/store';
 import { EnvironmentsState } from '@store/environments.state';
@@ -33,12 +33,39 @@ import { Configuration } from '@store/actions/config.actions';
 import { parseExpression } from 'cron-parser';
 import { DepartmentsState } from '@store/departments.state';
 import { VariablesState } from '@store/variables.state';
+import { TranslateModule } from '@ngx-translate/core';
+import { HumanizeBytesPipe } from '@pipes/humanize-bytes.pipe';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
+import { StepEditorComponent as StepEditorComponent_1 } from '../../components/step-editor/step-editor.component';
+import { RouterLink } from '@angular/router';
+import { BrowserSelectionComponent as BrowserSelectionComponent_1 } from '../../components/browser-selection/browser-selection.component';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatLegacyTableModule } from '@angular/material/legacy-table';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
+import { MatLegacyRadioModule } from '@angular/material/legacy-radio';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'edit-feature',
-  templateUrl: './edit-feature.component.html',
-  styleUrls: ['./edit-feature.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'edit-feature',
+    templateUrl: './edit-feature.component.html',
+    styleUrls: ['./edit-feature.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [ReactiveFormsModule, NgIf, MatLegacyDialogModule, MatExpansionModule, MatLegacyFormFieldModule, MatLegacySelectModule, NgFor, MatLegacyOptionModule, MatLegacyInputModule, MatIconModule, MatLegacyCheckboxModule, LetDirective, MatLegacyTooltipModule, MatLegacyButtonModule, MatLegacyChipsModule, MatLegacyRadioModule, StopPropagationDirective, MatLegacyTableModule, MatLegacyProgressSpinnerModule, MatLegacyMenuModule, ClipboardModule, BrowserSelectionComponent_1, RouterLink, StepEditorComponent_1, DisableAutocompleteDirective, AsyncPipe, AmParsePipe, AmDateFormatPipe, SortByPipe, HumanizeBytesPipe, TranslateModule]
 })
 export class EditFeature implements OnInit, OnDestroy {
   displayedColumns: string[] = ['name','mime','size','uploaded_by.name','created_on', 'actions'];

@@ -1,7 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'addLatest'
+    name: 'addLatest',
+    standalone: true
 })
 export class AddLatestPipe implements PipeTransform {
 

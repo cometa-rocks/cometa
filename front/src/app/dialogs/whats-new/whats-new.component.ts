@@ -1,16 +1,22 @@
 import { Component, ChangeDetectionStrategy, Inject } from '@angular/core';
-import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { SelectSnapshot, ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { CustomSelectors } from '@others/custom-selectors';
 import { ConfigState } from '@store/config.state';
 import { classifyByProperty } from 'ngx-amvara-toolbox';
+import { TranslateModule } from '@ngx-translate/core';
+import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { NgIf, NgFor } from '@angular/common';
 
 @Component({
-  selector: 'whats-new',
-  templateUrl: './whats-new.component.html',
-  styleUrls: ['./whats-new.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'whats-new',
+    templateUrl: './whats-new.component.html',
+    styleUrls: ['./whats-new.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [MatLegacyDialogModule, NgIf, NgFor, MatLegacyButtonModule, SafeHtmlPipe, TranslateModule]
 })
 export class WhatsNewDialog {
 

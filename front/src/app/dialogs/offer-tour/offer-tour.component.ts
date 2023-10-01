@@ -1,12 +1,15 @@
 import { Component, ChangeDetectionStrategy, Inject } from '@angular/core';
-import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 import { Tour } from '@services/tours';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 
 @Component({
-  selector: 'offer-tour',
-  templateUrl: './offer-tour.component.html',
-  styleUrls: ['./offer-tour.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'offer-tour',
+    templateUrl: './offer-tour.component.html',
+    styleUrls: ['./offer-tour.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [MatLegacyDialogModule, MatLegacyButtonModule]
 })
 export class OfferTourComponent {
 

@@ -4,7 +4,8 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { Observable } from 'rxjs';
 
 @Pipe({
-  name: 'hasPermission'
+    name: 'hasPermission',
+    standalone: true
 })
 export class HasPermissionPipe implements PipeTransform {
 

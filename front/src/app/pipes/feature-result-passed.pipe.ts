@@ -1,7 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'featureResultPassed'
+    name: 'featureResultPassed',
+    standalone: true
 })
 export class FeatureResultPassedPipe implements PipeTransform {
 

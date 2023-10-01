@@ -1,5 +1,5 @@
 import { Component, Inject, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, ViewChild, OnDestroy, ElementRef } from '@angular/core';
-import { MatLegacyDialog as MatDialog, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MatLegacyDialog as MatDialog, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 import { Select, Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
@@ -9,9 +9,22 @@ import { VariablesState } from '@store/variables.state';
 import { Variables } from '@store/actions/variables.actions';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
-import { MatSort, Sort } from '@angular/material/sort';
-import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
-import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
+import { MatSort, Sort, MatSortModule } from '@angular/material/sort';
+import { MatLegacyTableDataSource as MatTableDataSource, MatLegacyTableModule } from '@angular/material/legacy-table';
+import { MatLegacyCheckboxChange as MatCheckboxChange, MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
+import { NgIf, NgFor } from '@angular/common';
 
 interface PassedData {
   environment_id: number;
@@ -23,10 +36,12 @@ interface PassedData {
 }
 
 @Component({
-  selector: 'edit-variables',
-  templateUrl: './edit-variables.component.html',
-  styleUrls: ['./edit-variables.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'edit-variables',
+    templateUrl: './edit-variables.component.html',
+    styleUrls: ['./edit-variables.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [NgIf, MatLegacyDialogModule, CdkDrag, CdkDragHandle, MatLegacyFormFieldModule, MatIconModule, MatLegacyInputModule, ReactiveFormsModule, FormsModule, MatLegacyButtonModule, MatLegacyMenuModule, NgFor, MatLegacyCheckboxModule, MatLegacyTableModule, MatSortModule, MatLegacySelectModule, MatLegacyOptionModule, MatLegacyTooltipModule, AmParsePipe, AmDateFormatPipe]
 })
 export class EditVariablesComponent implements OnInit, OnDestroy {
   allColumns: VariableColumns[] = [

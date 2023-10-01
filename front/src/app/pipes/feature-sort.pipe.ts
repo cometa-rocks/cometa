@@ -6,7 +6,8 @@ import { map } from 'rxjs/operators';
 import { AmParsePipe } from './am-parse.pipe';
 
 @Pipe({
-  name: 'featureSort'
+    name: 'featureSort',
+    standalone: true
 })
 export class FeatureSortPipe implements PipeTransform {
 

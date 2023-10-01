@@ -2,7 +2,8 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { isValid, parse, parseISO } from 'date-fns';
 
 @Pipe({
-  name: 'amParse'
+    name: 'amParse',
+    standalone: true
 })
 export class AmParsePipe implements PipeTransform {
 

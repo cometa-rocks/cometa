@@ -3,12 +3,16 @@ import { Select } from '@ngxs/store';
 import { ConfigState } from '@store/config.state';
 import { ActionsState } from '@store/actions.state';
 import { Observable } from 'rxjs';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { NgFor, AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'cometa-help',
-  templateUrl: './help.component.html',
-  styleUrls: ['./help.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'cometa-help',
+    templateUrl: './help.component.html',
+    styleUrls: ['./help.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [NgFor, SortByPipe, AsyncPipe]
 })
 export class HelpComponent {
 

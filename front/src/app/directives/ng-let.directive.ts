@@ -5,7 +5,8 @@ import { Directive, Input, TemplateRef, ViewContainerRef, EmbeddedViewRef } from
  * @url https://stackblitz.com/edit/directive-collection-with-examples?file=src%2Fapp%2Fng-let.directive.ts
  */
 @Directive({
-    selector: '[ngLet]'
+    selector: '[ngLet]',
+    standalone: true
 })
 export class LetDirective {
     _ref: EmbeddedViewRef<any>;

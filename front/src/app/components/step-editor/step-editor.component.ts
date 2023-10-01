@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy, Input, ChangeDetectorRef, Host, ElementRef, NgZone, ViewChild, ViewChildren, QueryList, Renderer2 } from '@angular/core';
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDropList, CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { AddStepComponent } from '@dialogs/add-step/add-step.component';
 import { MatLegacyDialog as MatDialog , MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
@@ -10,22 +10,38 @@ import { ClipboardService } from 'ngx-clipboard';
 import { ImportJSONComponent } from '@dialogs/import-json/import-json.component';
 import { BehaviorSubject, debounceTime, distinctUntilChanged, forkJoin, of } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
-import { UntypedFormArray, UntypedFormBuilder, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
 import { CustomValidators } from '@others/custom-validators';
 import { exportToJSONFile, SubSinkAdapter } from 'ngx-amvara-toolbox';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
-import { MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent } from '@angular/material/legacy-autocomplete';
+import { MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent, MatLegacyAutocompleteModule } from '@angular/material/legacy-autocomplete';
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
-import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
-import { MatLegacyList as MatList, MatLegacyListItem as MatListItem } from '@angular/material/legacy-list';
+import { MatLegacyCheckboxChange as MatCheckboxChange, MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { MatLegacyList as MatList, MatLegacyListItem as MatListItem, MatLegacyListModule } from '@angular/material/legacy-list';
+import { TranslateModule } from '@ngx-translate/core';
+import { CheckDuplicatePipe } from '../../pipes/check-duplicate.pipe';
+import { FilterStepPipe } from '@pipes/filter-step.pipe';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { TextFieldModule } from '@angular/cdk/text-field';
+import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { NgFor, NgClass, NgIf, NgStyle, AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { ContextMenuModule } from '@perfectmemory/ngx-contextmenu';
 
 @Component({
-  selector: 'cometa-step-editor',
-  templateUrl: './step-editor.component.html',
-  styleUrls: ['./step-editor.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'cometa-step-editor',
+    templateUrl: './step-editor.component.html',
+    styleUrls: ['./step-editor.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [ContextMenuModule, MatIconModule, CdkDropList, NgFor, ReactiveFormsModule, CdkDrag, NgClass, CdkDragHandle, MatLegacyCheckboxModule, MatLegacySelectModule, MatLegacyOptionModule, TextFieldModule, MatLegacyAutocompleteModule, NgIf, MatLegacyListModule, NgStyle, MatLegacyTooltipModule, MatLegacyButtonModule, MatLegacyMenuModule, StopPropagationDirective, LetDirective, AsyncPipe, FilterStepPipe, CheckDuplicatePipe, TranslateModule]
 })
 export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 

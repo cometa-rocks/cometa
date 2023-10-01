@@ -10,7 +10,8 @@ import { DOCUMENT } from '@angular/common';
  */
 
 @Directive({
-  selector: '[attachTo]'
+    selector: '[attachTo]',
+    standalone: true
 })
 export class AttachToDirective implements OnChanges, OnDestroy {
 

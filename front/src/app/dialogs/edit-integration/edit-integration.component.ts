@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, Inject, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
@@ -8,12 +8,24 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { Integrations } from '@store/actions/integrations.actions';
 import { UserState } from '@store/user.state';
 import { switchMap } from 'rxjs/operators';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyRadioModule } from '@angular/material/legacy-radio';
+import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { NgIf, NgClass, NgFor } from '@angular/common';
 
 @Component({
-  selector: 'edit-integration',
-  templateUrl: './edit-integration.component.html',
-  styleUrls: ['./edit-integration.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'edit-integration',
+    templateUrl: './edit-integration.component.html',
+    styleUrls: ['./edit-integration.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [MatLegacyDialogModule, NgIf, ReactiveFormsModule, MatLegacyFormFieldModule, MatLegacySelectModule, LetDirective, NgClass, NgFor, MatLegacyOptionModule, MatLegacyInputModule, DisableAutocompleteDirective, MatLegacyRadioModule, MatLegacyButtonModule, SortByPipe]
 })
 export class EditIntegrationDialog implements OnInit {
 

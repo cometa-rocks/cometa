@@ -24,14 +24,12 @@ const routes: Routes = [
         RouterModule.forChild(routes),
         MatRippleModule,
         SharedModule,
-        CommonModule
-    ],
-    declarations: [
+        CommonModule,
         /* Pipes */
         /* Components */
         MoveItemDialog,
         SearchComponent,
-        EasterEggComponent,
-  ]
+        EasterEggComponent
+    ]
 })
 export class SearchModule { }

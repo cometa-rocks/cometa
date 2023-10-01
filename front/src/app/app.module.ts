@@ -198,149 +198,145 @@ export function getStripeApiKey() {
 }
 
 @NgModule({
-  declarations: [
-    CometaComponent,
-    HeaderComponent,
-    ToursComponent,
-    FooterComponent,
-    ImportJSONComponent,
-    EditFeature,
-    ScheduleHelp,
-    FeatureCreated,
-    SureRemoveFeatureComponent,
-    AddStepComponent,
-    LiveStepsComponent,
-    InviteUserDialog,
-    BrowserSelectionComponent,
-    StepEditorComponent,
-    LiveStepComponent,
-    ScreenshotComponent,
-    CookiesExpiredDialog,
-    WhatsNewDialog
-  ],
-  imports: [
-    BrowserAnimationsModule,
-    HttpClientModule,
-    CometaRoutingModule,
-    ClipboardModule,
-    SharedModule.forRoot(),
-    NgxsFormPluginModule.forRoot(),
-    NgxsModule.forRoot([
-      FeaturesState,
-      ApplicationsState,
-      EnvironmentsState,
-      BrowserstackState,
-      ActionsState,
-      ConfigState,
-      DepartmentsState,
-      UserState,
-      ResultsState,
-      AccountsState,
-      BrowsersState,
-      VariablesState,
-      StepDefinitionsState,
-      FeatureResultsState,
-      LogsState,
-      PaginationsState,
-      PaginatedListsState,
-      LoadingsState,
-      IntegrationsState,
-      SearchState
-
-      // Deprecated States or no longer used
-      // ScreenshotsState,
-      // RunsState,
-      // CloudsState,
-      // StepResultsState,
-    ], {
-      developmentMode: false,
-      selectorOptions: {
-        suppressErrors: false
-      }
-    }),
-    NgxsSelectSnapshotModule.forRoot(),
-    ContextMenuModule,
-    TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: (createTranslateLoader),
-        deps: [HttpClient]
-      },
-      isolate : false
-    }),
-    SharedModule.forRoot(),
-    JoyrideModule.forRoot(),
-    NgxNetworkErrorModule.forRoot({
-      authType: 'openid',
-      reporting: {
-        sentryDSN: environment.sentryDSN,
-        ignoreErrors: ['ResizeObserver loop limit exceeded']
-      }
-    })
-  ],
-  schemas: [NO_ERRORS_SCHEMA],
-  providers: [
-    ConfigService,
-    ApiService,
-    PaymentsService,
-    SocketService,
-    ConfigService,
-    TourService,
-    WhatsNewService,
-    SharedActionsService,
-    Tours,
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: SuccessHandlerInterceptor,
-      multi: true
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: LoadingInterceptor,
-      multi: true
-    },
-    {
-      provide: API_URL,
-      useValue: `${getApiBase()}api/`
-    },
-    {
-      provide: API_BASE,
-      useValue: getApiBase()
-    },
-    {
-      provide: SOCKET_URL,
-      useValue: getSocketUrl()
-    },
-    {
-      provide: WEBP_SUPPORT,
-      useValue: getWebpSupport()
-    },
-    {
-      provide: STRIPE_API_KEY,
-      useValue: getStripeApiKey()
-    },
-    {
-      // This loads the config.json file before the App is initialized
-      provide: APP_INITIALIZER,
-      useFactory: configLoader,
-      deps: [ConfigService],
-      multi: true
-    },
-    {
-      provide: MatPaginatorIntl,
-      useClass: i18nMatPaginatorIntl
-    },
-
-    // provides default options for mat-tooltip, this will force tooltip to dissapear as soon as mouse pointer leaves hover zone
-    // careful, this can not be used with tooltips that are supposted to be copied, as user will not be able to copy it
-    {
-      provide: MAT_TOOLTIP_DEFAULT_OPTIONS,
-      useValue: customTooltipDefaults
-    },
-    { provide: MAT_DIALOG_DATA, useValue: {} },
-    { provide: MatDialogRef, useValue: {} },
-    { provide: TitleStrategy, useClass:CometaTitleStrategyService }
-  ],
-  bootstrap: [CometaComponent]
+    declarations: [CometaComponent],
+    imports: [
+        BrowserAnimationsModule,
+        HttpClientModule,
+        CometaRoutingModule,
+        ClipboardModule,
+        SharedModule.forRoot(),
+        NgxsFormPluginModule.forRoot(),
+        NgxsModule.forRoot([
+            FeaturesState,
+            ApplicationsState,
+            EnvironmentsState,
+            BrowserstackState,
+            ActionsState,
+            ConfigState,
+            DepartmentsState,
+            UserState,
+            ResultsState,
+            AccountsState,
+            BrowsersState,
+            VariablesState,
+            StepDefinitionsState,
+            FeatureResultsState,
+            LogsState,
+            PaginationsState,
+            PaginatedListsState,
+            LoadingsState,
+            IntegrationsState,
+            SearchState
+            // Deprecated States or no longer used
+            // ScreenshotsState,
+            // RunsState,
+            // CloudsState,
+            // StepResultsState,
+        ], {
+            developmentMode: false,
+            selectorOptions: {
+                suppressErrors: false
+            }
+        }),
+        NgxsSelectSnapshotModule.forRoot(),
+        ContextMenuModule,
+        TranslateModule.forRoot({
+            loader: {
+                provide: TranslateLoader,
+                useFactory: (createTranslateLoader),
+                deps: [HttpClient]
+            },
+            isolate: false
+        }),
+        SharedModule.forRoot(),
+        JoyrideModule.forRoot(),
+        NgxNetworkErrorModule.forRoot({
+            authType: 'openid',
+            reporting: {
+                sentryDSN: environment.sentryDSN,
+                ignoreErrors: ['ResizeObserver loop limit exceeded']
+            }
+        }),
+        HeaderComponent,
+        ToursComponent,
+        FooterComponent,
+        ImportJSONComponent,
+        EditFeature,
+        ScheduleHelp,
+        FeatureCreated,
+        SureRemoveFeatureComponent,
+        AddStepComponent,
+        LiveStepsComponent,
+        InviteUserDialog,
+        BrowserSelectionComponent,
+        StepEditorComponent,
+        LiveStepComponent,
+        ScreenshotComponent,
+        CookiesExpiredDialog,
+        WhatsNewDialog
+    ],
+    schemas: [NO_ERRORS_SCHEMA],
+    providers: [
+        ConfigService,
+        ApiService,
+        PaymentsService,
+        SocketService,
+        ConfigService,
+        TourService,
+        WhatsNewService,
+        SharedActionsService,
+        Tours,
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: SuccessHandlerInterceptor,
+            multi: true
+        },
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: LoadingInterceptor,
+            multi: true
+        },
+        {
+            provide: API_URL,
+            useValue: `${getApiBase()}api/`
+        },
+        {
+            provide: API_BASE,
+            useValue: getApiBase()
+        },
+        {
+            provide: SOCKET_URL,
+            useValue: getSocketUrl()
+        },
+        {
+            provide: WEBP_SUPPORT,
+            useValue: getWebpSupport()
+        },
+        {
+            provide: STRIPE_API_KEY,
+            useValue: getStripeApiKey()
+        },
+        {
+            // This loads the config.json file before the App is initialized
+            provide: APP_INITIALIZER,
+            useFactory: configLoader,
+            deps: [ConfigService],
+            multi: true
+        },
+        {
+            provide: MatPaginatorIntl,
+            useClass: i18nMatPaginatorIntl
+        },
+        // provides default options for mat-tooltip, this will force tooltip to dissapear as soon as mouse pointer leaves hover zone
+        // careful, this can not be used with tooltips that are supposted to be copied, as user will not be able to copy it
+        {
+            provide: MAT_TOOLTIP_DEFAULT_OPTIONS,
+            useValue: customTooltipDefaults
+        },
+        { provide: MAT_DIALOG_DATA, useValue: {} },
+        { provide: MatDialogRef, useValue: {} },
+        { provide: TitleStrategy, useClass: CometaTitleStrategyService }
+    ],
+    bootstrap: [CometaComponent]
 })
 export class AppModule { }

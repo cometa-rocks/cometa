@@ -1,17 +1,22 @@
 import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { ApiService } from '@services/api.service';
-import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { BehaviorSubject, of } from 'rxjs';
 import { finalize, map, switchMap } from 'rxjs/operators';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { Features } from '@store/actions/features.actions';
+import { AsyncPipe } from '@angular/common';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { LetDirective } from '../../directives/ng-let.directive';
 
 @Component({
-  selector: 'sure-remove-feature',
-  templateUrl: './sure-remove-feature.component.html',
-  styleUrls: ['./sure-remove-feature.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'sure-remove-feature',
+    templateUrl: './sure-remove-feature.component.html',
+    styleUrls: ['./sure-remove-feature.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone: true,
+    imports: [MatLegacyDialogModule, LetDirective, MatLegacyButtonModule, AsyncPipe]
 })
 export class SureRemoveFeatureComponent {
 
