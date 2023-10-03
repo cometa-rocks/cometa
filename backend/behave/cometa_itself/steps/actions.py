@@ -75,7 +75,7 @@ SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
 ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
 
 # setup logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('FeatureExecution')
 
 DATETIMESTRING=time.strftime("%Y%m%d-%H%M%S")
 
