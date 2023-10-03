@@ -8,17 +8,7 @@ from selenium.common.exceptions import StaleElementReferenceException, NoSuchEle
 from src.backend.common import *
 
 # setup logging
-logger = logging.getLogger(__name__)
-logger.setLevel(BEHAVE_DEBUG_LEVEL)
-# create a formatter for the logger
-formatter = logging.Formatter(LOGGER_FORMAT, LOGGER_DATE_FORMAT)
-# create a stream logger
-streamLogger = logging.StreamHandler()
-# set the format of streamLogger to formatter
-streamLogger.setFormatter(formatter)
-# add the stream handle to logger
-logger.addHandler(streamLogger)
-
+logger = logging.getLogger('FeatureExecution')
 
 """
 Python library with functions used for IBM Cognos
@@ -469,7 +459,7 @@ def selectCognosPrompt_rro(context, **kwargs):
                     elm[0].click()
                     logger.debug("Clicked on option")
                 except:
-                    elm[0].selected=true
+                    elm[0].selected=True
                     logger.debug("Setting selected to true")
         # we have no value for this selector ... fallback to choosing the one with index=optionIndex
         else:
