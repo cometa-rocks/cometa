@@ -36,6 +36,8 @@ class AuthenticationMiddleware:
             try:
                 # get the host from request
                 HTTP_HOST = request.META.get('HTTP_HOST', DOMAIN)
+                if HTTP_HOST == 'cometa.local':
+                    raise Exception("User session none existent from behave.")
                 if not re.match(r'^(cometa.*\.amvara\..*)|(.*\.cometa\.rocks)$', HTTP_HOST):
                     HTTP_HOST = 'cometa_front'
                 # make a request to cometa_front to get info about the logged in user
@@ -46,7 +48,7 @@ class AuthenticationMiddleware:
                 })
                 # save user_info to self
                 self.user_info = response.json().get('userinfo', {})
-            except Exception as error: # if executed from crontab
+            except Exception as error: # if executed from crontab or sent by behave
                 self.user_info = {}
             
             # create a session variable
