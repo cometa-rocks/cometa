@@ -1,4 +1,4 @@
-import logging, threading, re
+import logging, threading, re, os
 
 
 class CometaLogger(logging.Logger):
@@ -22,6 +22,9 @@ class CometaLogger(logging.Logger):
             msg = re.sub(rf"(?:{words_to_mask})\b", '[MASKED]', str(msg))
         return msg
 
-    def _log(self, level, msg, args, exc_info = None, extra = None, stack_info = False, stacklevel = 1):
+    def _log(self, level, msg, args, exc_info = None, extra = {}, stack_info = False, stacklevel = 1):
         msg = self.mask_values(msg)
+        extra['feature_id'] = os.environ.get('feature_id', "n/a")
+        extra['current_step'] = os.environ.get('current_step', "?")
+        extra['total_steps'] = os.environ.get('total_steps', "?")
         return super()._log(level, msg, args, exc_info, extra, stack_info, stacklevel)
