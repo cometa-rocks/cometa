@@ -196,6 +196,6 @@ Copyright 2022 COMETA ROCKS S.L.
 
 Portions of this software are licensed as follows:
 
-* All content that resides under "ee/" directory of this repository (Enterprise Edition) is licensed under the license defined in "ee/LICENSE". (Work in porgress)
+* All content that resides under "ee/" directory of this repository (Enterprise Edition) is licensed under the license defined in "ee/LICENSE". (Work in progress)
 * All third party components incorporated into the cometa.rocks Software are licensed under the original license provided by the owner of the applicable component.
 * Content outside of the above mentioned directories or restrictions above is available under the "AGPLv3" license as defined in `LICENSE` file.
