@@ -91,7 +91,8 @@ def run_test(request):
         'PROXY_USER': PROXY_USER,
         'VARIABLES': VARIABLES,
         'PARAMETERS': PARAMETERS,
-        'department': department
+        'department': department,
+        'feature_id': feature_id
     }
     """
     os.environ['feature_run'] = str(feature_run)
@@ -212,7 +213,8 @@ def run_test(request):
             feature_id=feature_id, 
             feature_result_id=feature_result_id, 
             user_data=user_data,
-            feature_run=feature_run)
+            feature_run=feature_run,
+            job_timeout=7500)
         jobs.append(job)
     
     notify = run_finished.delay(feature_run, feature_id, user_data, depends_on=jobs)
