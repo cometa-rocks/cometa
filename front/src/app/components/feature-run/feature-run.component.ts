@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy, Optional, Host } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, Optional, Host, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { VideoComponent } from '@dialogs/video/video.component';
