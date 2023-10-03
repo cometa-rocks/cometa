@@ -5,6 +5,7 @@ from .exceptions import *
 from .variables import *
 from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.common.exceptions import InvalidSelectorException
 import time, requests, json, os, datetime, sys, subprocess, re, shutil
 from src.backend.common import *
 from src.backend.utility.cometa_logger import CometaLogger
@@ -13,16 +14,7 @@ from secret_variables import COMETA_UPLOAD_ENCRYPTION_PASSPHRASE
 
 # setup logging
 logging.setLoggerClass(CometaLogger)
-logger = logging.getLogger(__name__)
-logger.setLevel(BEHAVE_DEBUG_LEVEL)
-# create a formatter for the logger
-formatter = logging.Formatter(LOGGER_FORMAT, LOGGER_DATE_FORMAT)
-# create a stream logger
-streamLogger = logging.StreamHandler()
-# set the format of streamLogger to formatter
-streamLogger.setFormatter(formatter)
-# add the stream handle to logger
-logger.addHandler(streamLogger)
+logger = logging.getLogger('FeatureExecution')
 
 """
 Python library with common utility functions
@@ -131,6 +123,8 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
                 logger.exception(err)
                 # Max retries exceeded, raise error
                 raise
+            except InvalidSelectorException as err: 
+                logger.debug(f"Invalid Selector Exception: Selector Type: {selec_type}, Selector: {selector}.")
             except Exception as err:
                 # logger.error("Exception occured during the selector find, will continue looking for the element.")
                 # logger.exception(err)
