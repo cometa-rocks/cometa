@@ -3,7 +3,7 @@
   <cometa-feature-actions></cometa-feature-actions>
 </div>
 
-<div class="chart-section" *ngLet="paginatedList?.pagination$ | async as pagination" [ngClass]="{'noChart': pagination?.results?.length < 10}">
+<div class="chart-section" [ngClass]="{'noChart': total < 10}">
   <div class="return">
     <div (click)="returnToMain()" class="return-item">
       <i></i>
@@ -12,14 +12,14 @@
   </div>
   <ng-container>
     <!--charts will be displayed when test has been performed more than 10 times-->
-    <div *ngIf="isloaded && pagination?.results?.length >= 10" class="charts">
+    <div *ngIf="total >= 10" class="charts">
       <div class="behave-charts">
         <!-- Highchart -->
-        <behave-chart-desktop-steps *ngIf="pagination?.results as results" [data]="results"></behave-chart-desktop-steps>
+        <behave-chart-desktop-steps *ngIf="results" [data]="results"></behave-chart-desktop-steps>
       </div>
     </div>
     <!-- will be shown if the test has not been performed 10 times-->
-    <div *ngIf="isloaded && pagination?.results?.length < 10" class="no-chart">
+    <div *ngIf="total < 10" class="no-chart">
       <img src="assets/img/poster_2.svg" alt="shown when there is no charts">
       <p>This screen shows the results of your testruns. <br><br> Once you have more then 10 results, co.meta will show you a beautiful linechart with execution times and more.</p>
     </div>
@@ -30,7 +30,7 @@
       <div class="last_test">Last test</div>
     </div>
     <!-- Mobile Stats -->
-    <div class="mobile-info" *ngIf="pagination?.results[0] as lastRun">
+    <div class="mobile-info" *ngIf="results[0] as lastRun">
       <div class="steps">{{ lastRun.total}}</div>
       <div class="steps">{{ 1 }}</div>
       <div class="steps last-result-status" *ngLet="lastRun.success as passed" [ngClass]="passed ? 'success' : 'failed'">{{ passed ? 'OK' : 'NOK' }}</div>
@@ -38,32 +38,111 @@
   </ng-container>
 </div>
 
-<div class="table_rows">
-  <network-paginated-list  *ngLet="featureId$ | async as featureId"
-    [listId]="'runs_' + featureId"
-    [endpointUrl]="featureRunsUrl$ | async"
-    [headerTemplate]="headTemplate"
-    [noItemsTemplate]="noItemsFound"
-    [injectIndex]="false"
-    [useSkeletons]="true"
-    skeletonsHeight="50px"
-    [showHeaderOnNoResults]="true"
-    trackByKey="feature_result_id"
-    [itemTemplate]="listItem">
-    <ng-template #listItem let-item>
-      <cometa-feature-run [test]="item"></cometa-feature-run>
+<mtx-grid [data]="results"
+          [columns]="columns"
+          [sortOnFront]="true"
+          sortActive="result_date"
+          sortDirection="desc"
+          [sortDisableClear]="true"
+          [sortDisabled]="false"
+          [showToolbar]="true"
+          [showColumnMenuButton]="true"
+          [columnMenuButtonType]="'stroked'"
+          [columnMenuButtonIcon]="'view_column'"
+          [length]="total"
+          [loading]="isLoading"
+          [pageOnFront]="false"
+          [pageIndex]="query.page"
+          [pageSize]="query.size"
+          [pageSizeOptions]="[10,50,100]"
+          (rowClick)="openContent($event.rowData)"
+          [cellTemplate]="{status: statusTpl, result_date: dateTpl, execution_time: timeTpl, pixel_diff: pixelTpl, browser: browserTpl}"
+          [noResultTemplate]="noResultTpl"
+          [showPaginator]="showPagination"
+          [toolbarTemplate]="toolbarTpl"
+          (page)="updateData($event)">
+</mtx-grid>
+
+<!-- ROW TEMPLATES -->
+<ng-template #statusTpl let-row let-index="index" let-col="colDef">
+  <div class="cell status" *ngLet="row.status == 'Success' as passed">
+    <!-- Status box -->
+    <div class="status-box passed" stopPropagation [matMenuTriggerFor]="runStatus" *ngIf="passed; else failed">
+        Passed</div>
+    <ng-template #failed>
+        <div class="status-box failed" stopPropagation [matMenuTriggerFor]="runStatus">Failed</div>
     </ng-template>
-    <ng-template #headTemplate>
-        <cometa-main-view-header></cometa-main-view-header>
-    </ng-template>
-    <ng-template #noItemsFound>
-      <div class="no-tests">
-        <p>Please execute your first feature clicking the blue run-button. </p>
-        <br />
-        <p class="greyed">If you just added a feature and it's executing now you will have to wait until it's finished.</p>
-        <br />
-        <p class="greyed">These results are reloaded automatically.</p>
-      </div>
-    </ng-template>
-  </network-paginated-list>
-</div>
+    <!-- Override feature result status -->
+    <mat-menu #runStatus="matMenu">
+      <div class="menu-header">Override run status:</div>
+      <button (click)="setResultStatus(row, 'Success')" mat-menu-item>
+          <div class="status-option passed">Passed</div>
+      </button>
+      <button (click)="setResultStatus(row, 'Failed')" mat-menu-item>
+          <div class="status-option failed">Failed</div>
+      </button>
+      <mat-divider></mat-divider>
+      <button (click)="setResultStatus(row, '')" mat-menu-item>
+          <div class="status-option default">Default</div>
+      </button>
+    </mat-menu>
+  </div>
+</ng-template>
+
+<ng-template #dateTpl let-row let-index="index" let-col="colDef">
+  <span>{{ row.result_date | amParse | amDateFormat:'MMMM d yyyy, HH:mm' }}</span>
+</ng-template>
+
+<ng-template #timeTpl let-row let-index="index" let-col="colDef">
+  <span>{{ row.execution_time | secondsToHumanReadable }}</span>
+</ng-template>
+
+<ng-template #pixelTpl let-row let-index="index" let-col="colDef">
+  <span>{{ row.pixel_diff | pixelDifference }}</span>
+</ng-template>
+
+<ng-template #browserTpl let-row let-index="index" let-col="colDef">
+  <i class="browser-icon aligned-center" [attr.data-browser-version]="row.browser.browser_version" matTooltipPosition="above" [matTooltip]="row.browser.browser | titlecase"
+            [style.backgroundImage]="row.browser.browser | browserIcon"></i>
+</ng-template>
+
+<!-- TOOLBAR TEMPLATE -->
+<ng-template #toolbarTpl>
+  <div class="custom_toolbar">
+    <mat-checkbox color="primary" [checked]="archived$ | async" (change)="handleArchived($event)">Show archived items</mat-checkbox>
+    <button mat-stroked-button [matMenuTriggerFor]="clearRunsTemplate">
+      <mat-icon>delete</mat-icon>
+      <span class="mdc-button__label">Clear Feature Results</span>
+    </button>
+  </div>
+
+  <!-- CLEAR Feature Results MENU -->
+  <mat-menu #clearRunsTemplate>
+    <div stopPropagation class="mat-menu-panel-category">Clear results</div>
+    <!-- All 4 options to delete runs -->
+    <button mat-menu-item (click)="clearRuns('all')">Clear all</button>
+    <button mat-menu-item (click)="clearRuns('all_failed')">Clear all failed</button>
+    <button mat-menu-item (click)="clearRuns('all_except_last')">Clear all except last run</button>
+    <mat-divider></mat-divider>
+    <div stopPropagation class="mat-menu-panel-category">Options</div>
+    <!-- Handle checkbox, if the user also wants to delete the associated template images -->
+    <button stopPropagation mat-menu-item>
+        <mat-checkbox [matTooltip]="'tooltips.delete_templates_with_features' | translate"
+            matTooltipPosition="below" [checked]="deleteTemplateWithResults$ | async"
+            (change)="handleDeleteTemplateWithResults($event)" color="primary">
+            Also delete templates
+        </mat-checkbox>
+    </button>
+  </mat-menu>
+</ng-template>
+
+<!-- NO RESULTS TEMPLATE -->
+<ng-template #noResultTpl>
+  <div class="no-tests">
+    <p>Please execute your first feature clicking the blue run-button. </p>
+    <br />
+    <p class="greyed">If you just added a feature and it's executing now you will have to wait until it's finished.</p>
+    <br />
+    <p class="greyed">These results are reloaded automatically.</p>
+  </div>
+</ng-template>
