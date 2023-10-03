@@ -2148,22 +2148,18 @@ class FeatureViewSet(viewsets.ModelViewSet):
         Process schedule if requested
         """
         # Set schedule of feature if provided in data, if schedule is empty will be removed
+        set_schedule = False
         if 'schedule' in data:
             schedule = data['schedule']
             logger.debug("Saveing schedule: "+str(schedule) )
             # Check if schedule is not 'now'
-            if schedule != 'now':
+            if schedule != '' and schedule != 'now':
                 # Validate cron format before sending to Behave
                 if schedule != "" and not CronSlices.is_valid(schedule):
                     return JsonResponse({ 'success': False, "error": 'Schedule format is invalid.' }, status=200)
-                # Save schedule in Behave docker Crontab
-                response = set_test_schedule(feature.feature_id, schedule, request.session['user']['user_id'])
-                if response.status_code != 200:
-                    # Oops, something went wrong while saving schedule
-                    logger.debug("Ooops - something went wrong saveing the schedule. You should probably check the crontab file mounted into docker to be a file and not a directory.")
-                    json_data = response.json()
-                    return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule. Check crontab directory of docker.') }, status=200)
+                set_schedule = True
             # Save schedule, at this point is 100% valid and saved
+            logger.debug("Adding schedule to database")
             feature.schedule = schedule
 
         """
@@ -2178,6 +2174,15 @@ class FeatureViewSet(viewsets.ModelViewSet):
         else:
             # Save without steps
             result = feature.save()
+
+        if set_schedule:
+            # Save schedule in Behave docker Crontab
+            response = set_test_schedule(feature.feature_id, schedule, request.session['user']['user_id'])
+            if response.status_code != 200:
+                # Oops, something went wrong while saving schedule
+                logger.debug("Ooops - something went wrong saveing the schedule. You should probably check the crontab file mounted into docker to be a file and not a directory.")
+                json_data = response.json()
+                return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule. Check crontab directory of docker.') }, status=200)
 
         """
         Send WebSockets
