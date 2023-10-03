@@ -40,7 +40,11 @@
 
 <mtx-grid [data]="results"
           [columns]="columns"
-          [sortActive]="'Execution Date'"
+          [sortOnFront]="true"
+          sortActive="result_date"
+          sortDirection="desc"
+          [sortDisableClear]="true"
+          [sortDisabled]="false"
           [showToolbar]="true"
           [showColumnMenuButton]="true"
           [columnMenuButtonType]="'stroked'"
@@ -53,6 +57,9 @@
           [pageSizeOptions]="[10,50,100]"
           (rowClick)="openContent($event.rowData)"
           [cellTemplate]="{status: statusTpl, result_date: dateTpl, execution_time: timeTpl, pixel_diff: pixelTpl, browser: browserTpl}"
+          [noResultTemplate]="noResultTpl"
+          [showPaginator]="showPagination"
+          [toolbarTemplate]="toolbarTpl"
           (page)="updateData($event)">
 </mtx-grid>
 
@@ -97,4 +104,45 @@
 <ng-template #browserTpl let-row let-index="index" let-col="colDef">
   <i class="browser-icon aligned-center" [attr.data-browser-version]="row.browser.browser_version" matTooltipPosition="above" [matTooltip]="row.browser.browser | titlecase"
             [style.backgroundImage]="row.browser.browser | browserIcon"></i>
+</ng-template>
+
+<!-- TOOLBAR TEMPLATE -->
+<ng-template #toolbarTpl>
+  <div class="custom_toolbar">
+    <mat-checkbox color="primary" [checked]="archived$ | async" (change)="handleArchived($event)">Show archived items</mat-checkbox>
+    <button mat-stroked-button [matMenuTriggerFor]="clearRunsTemplate">
+      <mat-icon>delete</mat-icon>
+      <span class="mdc-button__label">Clear Feature Results</span>
+    </button>
+  </div>
+
+  <!-- CLEAR Feature Results MENU -->
+  <mat-menu #clearRunsTemplate>
+    <div stopPropagation class="mat-menu-panel-category">Clear results</div>
+    <!-- All 4 options to delete runs -->
+    <button mat-menu-item (click)="clearRuns('all')">Clear all</button>
+    <button mat-menu-item (click)="clearRuns('all_failed')">Clear all failed</button>
+    <button mat-menu-item (click)="clearRuns('all_except_last')">Clear all except last run</button>
+    <mat-divider></mat-divider>
+    <div stopPropagation class="mat-menu-panel-category">Options</div>
+    <!-- Handle checkbox, if the user also wants to delete the associated template images -->
+    <button stopPropagation mat-menu-item>
+        <mat-checkbox [matTooltip]="'tooltips.delete_templates_with_features' | translate"
+            matTooltipPosition="below" [checked]="deleteTemplateWithResults$ | async"
+            (change)="handleDeleteTemplateWithResults($event)" color="primary">
+            Also delete templates
+        </mat-checkbox>
+    </button>
+  </mat-menu>
+</ng-template>
+
+<!-- NO RESULTS TEMPLATE -->
+<ng-template #noResultTpl>
+  <div class="no-tests">
+    <p>Please execute your first feature clicking the blue run-button. </p>
+    <br />
+    <p class="greyed">If you just added a feature and it's executing now you will have to wait until it's finished.</p>
+    <br />
+    <p class="greyed">These results are reloaded automatically.</p>
+  </div>
 </ng-template>
