@@ -54,7 +54,7 @@
               <textarea spellcheck="false" formControlName="description" matInput rows="1"></textarea>
             </mat-form-field>
           </div>
-          <div *ngIf="featureForm.value.department_name.value === 'Default' && departments$.length > 1" class="department-warning">
+          <div *ngIf="selected_department === 'Default' && departments$.length > 1" class="department-warning">
             <mat-icon>info</mat-icon>
             <span>Selecting <strong>Default</strong> department will make this feature visible to everyone, use it with caution!</span>
           </div>
