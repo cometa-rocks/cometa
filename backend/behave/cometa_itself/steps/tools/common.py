@@ -5,7 +5,7 @@ from .exceptions import *
 from .variables import *
 from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.common.exceptions import InvalidSelectorException
+from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException
 import time, requests, json, os, datetime, sys, subprocess, re, shutil
 from src.backend.common import *
 from src.backend.utility.cometa_logger import CometaLogger
@@ -125,6 +125,10 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
                 raise
             except InvalidSelectorException as err: 
                 logger.debug(f"Invalid Selector Exception: Selector Type: {selec_type}, Selector: {selector}.")
+            except NoSuchElementException as err:
+                logger.debug(f"No Such Element Exception: Selector Type: {selec_type}, Selector: {selector}.")
+            except KeyError:
+                raise
             except Exception as err:
                 # logger.error("Exception occured during the selector find, will continue looking for the element.")
                 # logger.exception(err)
