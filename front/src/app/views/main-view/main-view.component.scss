@@ -13,6 +13,7 @@
 
 :host::ng-deep {
     .mtx-grid{
+        z-index: 0;
         .mtx-grid-toolbar-content {
             flex-grow: 1;
             .custom_toolbar {
