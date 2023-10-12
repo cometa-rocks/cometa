@@ -61,7 +61,7 @@ export class MainViewComponent implements OnInit {
           icon: 'videocam',
           tooltip: 'View results replay',
           color: 'primary',
-          disabled: (result: FeatureResult) => !result.video_url ? true : false,
+          iif: (result: FeatureResult) => result.video_url ? true : false,
           click: (result: FeatureResult) => this.openVideo(result),
         },
         {
@@ -130,6 +130,7 @@ export class MainViewComponent implements OnInit {
   total = 0;
   isLoading = true;
   showPagination = true;
+  latestFeatureResultId: number = 0;
 
   query = {
     page: 0,
@@ -181,7 +182,10 @@ export class MainViewComponent implements OnInit {
         next: (res: any) => {
           this.results = res.results
           this.total = res.count
-          this.showPagination = this.total > 0 ? true : false 
+          this.showPagination = this.total > 0 ? true : false
+
+          // set latest feature id
+          if (this.showPagination) this.latestFeatureResultId = this.results[0].feature_result_id;
         },
         error: (err) => {
           console.error(err)
