@@ -37,7 +37,7 @@ export class L1TreeViewComponent implements OnInit{
   findEmbededObject(data: any, obj: any) {
     // if data type is feature, add feature id as suffix in name
     // if data type is not feature, just truncate name
-    if (data.type === 'feature' && !data.name.includes(data.id + " - ")) {
+    if (data.type === 'feature' && !data.name.includes(" - " + data.id)) {
       data.name = this.truncateString(data.name, 25) + ` - ${data.id}`;
     } else {
       data.name = this.truncateString(data.name, 25);
