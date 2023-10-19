@@ -46,8 +46,23 @@ const routes: Routes = [
     },
     {
       path: 'data-driven/:id',
-      title: 'Data-Driven Run',
-      loadComponent: () => import('./views/main-view/main-view.component').then(m => m.MainViewComponent)
+      children: [{
+          path: '',
+          title: 'Data-Driven Run',
+          loadComponent: () => import('@components/data-driven-runs/data-driven-results/data-driven-results.component').then(m => m.DataDrivenResultsComponent),
+        },{
+            path: 'step/:feature_result_id',
+            children: [{
+                path: '',
+                title: 'Data-Driven Result',
+                loadComponent: () => import('@components/data-driven-runs/data-driven-steps/data-driven-steps.component').then(m => m.DataDrivenStepViewComponent)
+            },
+            {
+                path: 'detail/:step_result_id',
+                title: 'Step Details',
+                loadComponent: () => import('@components/data-driven-runs/data-driven-step-details/data-driven-step-details.component').then(m => m.DataDrivenStepDetailViewComponent)
+            }]
+        }],
     }
 ];
 

@@ -16,7 +16,6 @@ import { L1FeatureTeamListComponent } from '../components/l1-feature-team-list/l
 import { L1TreeViewComponent } from '../components/l1-tree-view/l1-tree-view.component';
 import { WelcomeComponent } from '@components/welcome/welcome.component';
 import { DataDrivenRunsComponent } from '@components/data-driven-runs/data-driven-runs.component'
-import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
 
 const routes: Routes = [
     {
@@ -52,8 +51,7 @@ const routes: Routes = [
     L1FeatureTeamListComponent,
     L1TreeViewComponent,
     WelcomeComponent,
-    DataDrivenRunsComponent,
-    PixelDifferencePipe
+    DataDrivenRunsComponent
   ]
 })
 export class NewlandingModule { }

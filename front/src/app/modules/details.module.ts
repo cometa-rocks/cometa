@@ -9,7 +9,6 @@ import { FeatureTitlesComponent } from '@components/feature-titles/feature-title
 import { FeatureActionsComponent } from '@components/feature-actions/feature-actions.component';
 import { HighchartsChartModule } from 'highcharts-angular';
 import { NumeralPipe } from '@pipes/numeral.pipe';
-import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
 import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
 import { RoundProgressModule } from 'angular-svg-round-progressbar';
 import { EditSchedule } from '@dialogs/edit-schedule/edit-schedule.component';
@@ -72,18 +71,17 @@ const routes: Routes = [
         TranslateModule.forChild({
             extend: true
         }),
-        HighchartsChartModule,
-        RoundProgressModule,
+        // HighchartsChartModule,
+        // RoundProgressModule,
         RouterModule.forChild(routes),
         SharedModule,
         CommonModule
     ],
     declarations: [
         /* Pipes */
-        NumeralPipe,
+        // NumeralPipe,
         ArchivedRunsPipe,
-        PixelDifferencePipe,
-        FirstLetterUppercasePipe,
+        // FirstLetterUppercasePipe,
         PdfLinkPipe,
         SumByPropertyPipe,
         DownloadLinkPipe,
@@ -91,7 +89,7 @@ const routes: Routes = [
         /* Components */
         FeatureTitlesComponent,
         EditSchedule,
-        BehaveChartTestComponent,
+        // BehaveChartTestComponent,
         VideoComponent,
         FeatureRunComponent,
         LogOutputComponent,
@@ -105,7 +103,7 @@ const routes: Routes = [
         FeatureRunPassedPipe,
         FeatureResultPassedPipe,
         MainViewHeaderComponent,
-        ScreenshotBgPipe,
+        // ScreenshotBgPipe,
         RunColumnDirective
   ]
 })

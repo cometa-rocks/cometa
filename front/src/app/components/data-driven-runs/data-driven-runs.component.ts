@@ -3,6 +3,7 @@ import { Component, ChangeDetectionStrategy, HostListener, ChangeDetectorRef, On
 import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { MtxGridColumn } from '@ng-matero/extensions/grid';
+import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
 import { SharedActionsService } from '@services/shared-actions.service';
 
 @Component({
