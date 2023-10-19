@@ -1,13 +1,6 @@
 @import 'color';
 @import 'breakpoints';
 
-:host {
-  display: block;
-  margin-bottom: -1px;
-  margin-right: -1px;
-  min-width: 300px;
-}
-
 video {
   width: 100%;
   height: auto;

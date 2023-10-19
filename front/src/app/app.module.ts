@@ -40,6 +40,7 @@ import { NgxNetworkErrorModule } from 'ngx-network-error';
 
 /* Services */
 import { ApiService } from '@services/api.service';
+import { DownloadService } from '@services/download.service';
 import { PaymentsService } from '@services/payments.service';
 import { SocketService } from '@services/socket.service';
 import { ConfigService } from '@services/config.service';
@@ -282,6 +283,7 @@ export function getStripeApiKey() {
   providers: [
     ConfigService,
     ApiService,
+    DownloadService,
     PaymentsService,
     SocketService,
     ConfigService,

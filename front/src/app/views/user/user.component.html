@@ -106,8 +106,10 @@
     <mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.useNewDashboard" (change)="toggleNewDashboard($event)">Use new dashboard by default</mat-slide-toggle>
     <br /><br />
     <!-- Toggle for people who can help on features -->
-    <mat-slide-toggle *ngIf="!(isDefaultDepartment$ | async)" color="primary" matTooltipPosition="after" [matTooltip]="'need_help.can_help' | translate" [checked]="account.settings?.can_help" (change)="handleAccountSetting($event, 'can_help')">I can help</mat-slide-toggle>
-    <br /><br />
+    <ng-container *ngIf="!(isDefaultDepartment$ | async)">
+      <mat-slide-toggle color="primary" matTooltipPosition="after" [matTooltip]="'need_help.can_help' | translate" [checked]="account.settings?.can_help" (change)="handleAccountSetting($event, 'can_help')">I can help</mat-slide-toggle>
+      <br /><br />
+    </ng-container>
     <mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.logWebsockets" (change)="toggleLogWebsockets($event)">Log WebSockets into Console</mat-slide-toggle>
     <br /><br />
     <div class="edit-feature-toggles">

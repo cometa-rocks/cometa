@@ -15,9 +15,10 @@ from src.backend.utility.cometa_logger import CometaLogger
 import secret_variables
 from src.backend.common import *
 
+LOGGER_FORMAT = '\33[96m[%(asctime)s][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s'
 # setup logging
 logging.setLoggerClass(CometaLogger)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('FeatureExecution')
 logger.setLevel(BEHAVE_DEBUG_LEVEL)
 # create a formatter for the logger
 formatter = logging.Formatter(LOGGER_FORMAT, LOGGER_DATE_FORMAT)
@@ -37,6 +38,7 @@ S3ENABLED = getattr(secret_variables, 'COMETA_S3_ENABLED', False)
 
 # handle SIGTERM when user stops the testcase
 def stopExecution(signum, frame, context):
+    logger.warn("SIGTERM Found, will stop the session")
     context.aborted = True
 
 # check if context has a variable 
@@ -82,6 +84,10 @@ def error_handling(*_args, **_kwargs):
 
 @error_handling()
 def before_all(context):
+    # Create a logger for file handler
+    fileHandle = logging.FileHandler(f"/code/src/logs/{os.environ['feature_result_id']}.log")
+    fileHandle.setFormatter(formatter)
+    logger.addHandler(fileHandle)
     # handle SIGTERM signal
     signal.signal(signal.SIGTERM, lambda signum, frame, ctx=context: stopExecution(signum, frame, ctx))
     # create index counter for steps
@@ -311,6 +317,7 @@ def before_all(context):
 
     # update counters total
     context.counters['total'] = len(response.json()['results'])
+    os.environ['total_steps'] = str(context.counters['total'])
     
     # send a websocket request about that feature has been started
     request = requests.get('http://cometa_socket:3001/feature/%s/started' % context.feature_id, data={
@@ -319,7 +326,9 @@ def before_all(context):
         "feature_result_id": os.environ['feature_result_id'],
         "run_id": os.environ['feature_run'],
         "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-    })        
+    })
+
+    logger.info("Processing done ... will continue with the steps.")
 
 # Get video url with context of browser
 def get_video_url(context):
@@ -329,6 +338,8 @@ def get_video_url(context):
 
 @error_handling()
 def after_all(context):
+    del os.environ['current_step']
+    del os.environ['total_steps']
     # check if any alertboxes are open before quiting the browser
     try:
         while(context.browser.switch_to.alert):
@@ -492,8 +503,10 @@ def after_all(context):
 
 @error_handling()
 def before_step(context, step):
+    os.environ['current_step'] = str(context.counters['index'] + 1)
     # complete step name to let front know about the step that will be executed next
     step_name = "%s %s" % (step.keyword, step.name)
+    logger.info(f"-> {step_name}")
     # step index
     index = context.counters['index']
     # pass all the data about the step to the step_data in context, step_data has name, screenshot, compare, enabled and type

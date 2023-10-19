@@ -75,7 +75,7 @@ SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
 ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
 
 # setup logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('FeatureExecution')
 
 DATETIMESTRING=time.strftime("%Y%m%d-%H%M%S")
 
@@ -159,6 +159,21 @@ def dynamicDateGenerator(content: str):
         content = re.sub(pattern, finalDate, content)
     return content
 
+def reset_element_highlight(context):
+    try:
+        if 'highlighted_element' in context:
+            element = context.highlighted_element['element']
+            send_step_details(context, 'Resetting Highligthed element')
+            context.browser.execute_script('''
+            const element = arguments[0];
+            element.style.outline = window.cometa.oldOutlineValue;
+            element.style.outlineOffset = window.cometa.oldOutlineOffsetValue;
+            ''', element)
+            del context.highlighted_element
+    except Exception as err:
+        logger.exception(err)
+
+
 # ########################################################################## #
 # decorator to ease up making of steps ##################################### #
 # this decorator will reduce the code ###################################### #
@@ -202,16 +217,18 @@ def done( *_args, **_kwargs ):
                     for key in env_variables:
                         variable_name = key['variable_name']
                         variable_value = str(key['variable_value'])
+                        pattern = r'\${?%s(?:}|\b)' % variable_name
                         if args[0].text and 'Loop' not in save_message: # we do not want to replace all the variables inside the loop sub-steps
                             # Replace in step description for multiline step values
-                            args[0].text = re.sub(r'\$%s\b' % variable_name, returnDecrypted(variable_value), args[0].text)
+                            args[0].text = re.sub(pattern, returnDecrypted(variable_value), args[0].text)
                             # ###
                             # variable was not being replaced correctly if variable contained another variable name in itself.
                             # ###
                             # args[0].text = args[0].text.replace(("$%s" % variable_name), returnDecrypted(variable_value))
-                        if re.search(r'\$%s\b' % variable_name, kwargs[parameter]):
+                        if re.search(pattern, kwargs[parameter]):
                             # Replace in step content
-                            kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
+                            kwargs[parameter]= re.sub(pattern, returnDecrypted(variable_value), kwargs[parameter])
+                            # kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
                     # replace job parameters
                     for parameter_key in job_parameters.keys(): # we do not want to replace all the parameters inside the loop sub-steps
                         if args[0].text and 'Loop' not in save_message:
@@ -223,7 +240,7 @@ def done( *_args, **_kwargs ):
 
                     # update using dynamic date
                     kwargs[parameter] = dynamicDateGenerator(kwargs[parameter])
-                
+
                 # update dates inside the text
                 args[0].text = dynamicDateGenerator(args[0].text)
 
@@ -247,6 +264,8 @@ def done( *_args, **_kwargs ):
                 # return True meaning everything went as expected
                 return result
             except Exception as err:
+                # reset timeout incase of exception in function
+                signal.alarm(0)
                 # print stack trace
                 traceback.print_exc()
                 # set the error message to the step_error inside context so we can pass it through websockets!
@@ -261,7 +280,7 @@ def done( *_args, **_kwargs ):
                 # check if feature was aborted
                 aborted = str(err) == "'aborted'"
                 logger.debug("Checking if feature was aborted: " + str(aborted))
-                
+
                 # check the continue on failure hierarchy
                 continue_on_failure = False # default value
                 continue_on_failure = (
@@ -278,6 +297,9 @@ def done( *_args, **_kwargs ):
                 else:
                     # fail the feature
                     raise AssertionError(str(err))
+            finally:
+                # reset element highligh is any
+                reset_element_highlight(args[0])
             # if the user gets here means that something went wrong somewhere.
             return False
         return execute
@@ -1375,6 +1397,29 @@ def step_iml(context, css_selector):
     waitSelector(context, "css", css_selector)
     send_step_details(context, 'Focusing on element')
     context.browser.execute_script('let elem=document.querySelector("'+css_selector+'"); elem.scrollIntoView(); elem.focus()')
+
+# Highlight element
+@step(u'Highlight element with "{selector}"')
+@done(u'Highlight element with "{selector}"')
+def step_iml(context, selector):
+    send_step_details(context, 'Looking for selector')
+    element = waitSelector(context, "css", selector)
+    if isinstance(element, list) and len(element) > 0:
+        element = element[0]
+    send_step_details(context, 'Highlighting the element')
+    context.browser.execute_script('''
+    const element = arguments[0];
+    if (!window.cometa) window.cometa = {}
+    window.cometa.oldOutlineValue = element.style.outline;
+    window.cometa.oldOutlineOffsetValue = element.style.outlineOffset;
+    element.style.outline = "2px solid #f00";
+    element.style.outlineOffset = "1px";
+    ''', element)
+
+    # set highlight setting to be removed after step
+    context.highlighted_element = {
+        'element': element
+    }
 
 # Press Enter key
 @step(u'Press Enter')
@@ -2757,7 +2802,9 @@ def editFile(context, excelfile, value, cell):
     sheet = wb.active
 
     # assert the cell with value
-    cell_value = str(sheet[cell].value).strip()
+    cell = sheet[cell]
+    logger.debug(cell.data_type)
+    cell_value = str(cell.internal_value).strip()
     value = str(value).strip()
     logger.debug("Cell value: %s" % cell_value)
     logger.debug("Value to compare: %s" % value)
@@ -3106,21 +3153,21 @@ def test_ibm_cognos_cube(context, all_or_partial, variable_name, prefix, suffix)
         # trim the value to be searched
         search = search.strip()
         # click on search button
-        element = waitSelector(context, "xpath", '//span[text()="Search..."]', 10)
+        element = waitSelector(context, "xpath", '//span[text()="Search..."]', 5)
         element[0].click()
         # wait for the popup window
-        waitSelector(context, "xpath", '//*[text()="Keywords:"]', 10)
+        waitSelector(context, "xpath", '//*[text()="Keywords:"]', 5)
         # send keys once the popup window is open
         context.browser.switch_to.active_element.send_keys(search)
         # click on search
-        element = waitSelector(context, "xpath", '//button//span[text()="Search"]', 10)
+        element = waitSelector(context, "xpath", '//button//span[text()="Search"]', 5)
         element[0].click()
         # sleep 500ms for search result to appear
         time.sleep(0.5)
         # don't throw an error if not found at the end fail the step and let user know about missing values
         try:
             # look for the search value in the search tree
-            waitSelector(context, "xpath", '//*[contains(@id, "Tree_Search")]//*[text()="%s"]' % search, 10)
+            waitSelector(context, "xpath", '//*[contains(@id, "Tree_Search")]//*[text()="%s"]' % search, 5)
             logger.debug("Found %s in the report cube..." % search)
             fileContent.append([search, "Found"])
             values_found.append("%s (%s)" % (value, search))
@@ -3130,7 +3177,7 @@ def test_ibm_cognos_cube(context, all_or_partial, variable_name, prefix, suffix)
             values_not_found.append("%s (%s)" % (value, search))
             fileContent.append([search, "Not Found"])
         # go back and search for next value
-        element = waitSelector(context, "css", "#idSourcesPane_btnClearSearch", 10)
+        element = waitSelector(context, "css", "#idSourcesPane_btnClearSearch", 5)
         element[0].click()
 
     fileContent.insert(0, ["Feature ID", int(context.feature_id)])
@@ -3156,7 +3203,6 @@ def test_ibm_cognos_cube(context, all_or_partial, variable_name, prefix, suffix)
     if (len(values_not_found) > 0 and all_or_partial == 'all') or (len(values_found) == 0):
         missin_values = "; ".join(values_not_found)
         raise CustomError("Here are the missing values in Report Cube: %s" % missin_values)
-
 # compares a report cube's content to a list saved in variable
 @step(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
 @done(u'Test IBM Cognos Cube Dimension to contain all values from list variable "{variable_name}" use prefix "{prefix}" and suffix "{suffix}"')
@@ -3190,7 +3236,7 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
     except CustomError as customError:
         elements = []
     # get elements values
-    element_values = [element.get_attribute("innerText") or element.get_attribute("value") for element in elements]
+    element_values = [(element.get_attribute("innerText") or element.get_attribute("value")).strip() for element in elements]
 
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
@@ -3210,7 +3256,7 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
         values.extend(variable_value.split(";"))
 
     # add prefix and suffix to the values
-    values = [("%s%s%s" % (prefix, value, suffix)).strip() for value in values]
+    values = [("%s%s%s" % (prefix, value.strip(), suffix)).strip() for value in values]
 
     # equalize the lenght of both lists
     values_eq = values[:len(element_values)] if len(values) > len(element_values) else values
@@ -3436,7 +3482,7 @@ def step_imp(context, css_selector, variable_names, prefix, suffix):
     # get all the values from css_selector
     elements = waitSelector(context, "css", css_selector)
     # get elements values
-    element_values = [element.get_attribute("innerText") or element.get_attribute("value") for element in elements]
+    element_values = [(element.get_attribute("innerText") or element.get_attribute("value")).strip() for element in elements]
 
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
@@ -3456,7 +3502,7 @@ def step_imp(context, css_selector, variable_names, prefix, suffix):
         values.extend(variable_value.split(";"))
 
     # add prefix and suffix to the values
-    values = [("%s%s%s" % (prefix, value, suffix)).strip() for value in values]
+    values = [("%s%s%s" % (prefix, value.strip(), suffix)).strip() for value in values]
 
     # equalize the lenght of both lists
     values_eq = values[:len(element_values)] if len(values) > len(element_values) else values

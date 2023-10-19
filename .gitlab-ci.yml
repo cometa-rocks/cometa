@@ -106,6 +106,7 @@ stages:
     - docker exec cometa_django fuser -k -HUP 8000/tcp
     - echo -e "Now reloading gunicorn for behave"
     - docker exec cometa_behave fuser -k -HUP 8001/tcp
+    - docker exec cometa_behave bash -c "supervisorctl restart django-rq:"
     - echo -e "\e[0Ksection_end:`date +%s`:reloading_gunicorn\r\e[0K"
 
 # create a deploy job for amvara2 for branch stage
