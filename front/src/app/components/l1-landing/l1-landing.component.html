@@ -139,6 +139,12 @@ Author: dph000
       <cometa-welcome> </cometa-welcome>
     </ng-container>
 
+    <!-- List of the DataDriven Runs -->
+    <ng-container *ngIf="(aciveList$ | async) == 'data-driven'">
+      <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-data-driven-runs></cometa-data-driven-runs>
+    </ng-container>
+
     <!-- List of the Department variables -->
     <!-- DEPARTMENT VARIABLES -->
     <ng-container *ngIf="(aciveList$ | async) == 'variables'">

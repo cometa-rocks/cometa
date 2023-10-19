@@ -43,6 +43,11 @@ const routes: Routes = [
     {
       path: 'data-driven',
       loadComponent: () => import('@components/data-driven/data-driven.component').then(m => m.DataDrivenComponent),
+    },
+    {
+      path: 'data-driven/:id',
+      title: 'Data-Driven Run',
+      loadComponent: () => import('./views/main-view/main-view.component').then(m => m.MainViewComponent)
     }
 ];
 

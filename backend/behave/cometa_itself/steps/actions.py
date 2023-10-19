@@ -2421,10 +2421,15 @@ def addVariable(context, variable_name, result, encrypted=False):
         env_variables[index]['variable_value'] = result
         env_variables[index]['encrypted'] = encrypted
         env_variables[index]['updated_by'] = context.PROXY_USER['user_id']
-        # make the request to cometa_django and add the environment variable
-        response = requests.patch('http://cometa_django:8000/api/variables/' + str(env_variables[index]['id']) + '/', headers={"Host": "cometa.local"}, json=env_variables[index])
-        if response.status_code == 200:
-            env_variables[index] = response.json()['data']
+
+        # do not update if scope is data-driven
+        if 'scope' in env_variables[index] and env_variables[index]['scope'] == 'data-driven':
+            logger.info("Will not send request to update the variable in co.meta since we are in 'data-driven' scope.")
+        else:
+            # make the request to cometa_django and add the environment variable
+            response = requests.patch('http://cometa_django:8000/api/variables/' + str(env_variables[index]['id']) + '/', headers={"Host": "cometa.local"}, json=env_variables[index])
+            if response.status_code == 200:
+                env_variables[index] = response.json()['data']
     else: # create new variable
         logger.debug("Creating variable")
         # create data to send to django

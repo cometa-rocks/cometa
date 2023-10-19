@@ -51,7 +51,7 @@ export class MainViewComponent implements OnInit {
       header: 'Options',
       field: 'options',
       width: '230px',
-      pinned: 'right',
+      // pinned: 'right',
       right: '0px',
       type: 'button',
       buttons: [
