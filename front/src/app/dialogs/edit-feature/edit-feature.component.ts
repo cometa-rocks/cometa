@@ -265,7 +265,7 @@ export class EditFeature implements OnInit, OnDestroy {
         }
         break;
       case KEY_CODES.V:
-        if (event.ctrlKey) this.editVariables();
+        if (event.ctrlKey && event.altKey) this.editVariables();
         break;
     }
   }
