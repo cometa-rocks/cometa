@@ -14,6 +14,7 @@ import { HeaderComponent } from '@components/header/header.component';
 import { ToursComponent } from '@components/tours/tours.component';
 import { FooterComponent } from '@components/footer/footer.component';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
+import { DataDrivenExecution } from '@dialogs/data-driven-execution/data-driven-execution.component';
 import { CookiesExpiredDialog } from '@dialogs/cookies-expired/cookies-expired.component';
 import { WhatsNewDialog } from '@dialogs/whats-new/whats-new.component';
 import { SureRemoveFeatureComponent } from '@dialogs/sure-remove-feature/sure-remove-feature.component';
@@ -27,6 +28,7 @@ import { LiveStepComponent } from '@dialogs/live-steps/live-step/live-step.compo
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
+import { DataDrivenTestExecuted } from '@dialogs/data-driven-execution/data-driven-executed/data-driven-executed.component';
 
 /* Plugins */
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
@@ -206,8 +208,10 @@ export function getStripeApiKey() {
     FooterComponent,
     ImportJSONComponent,
     EditFeature,
+    DataDrivenExecution,
     ScheduleHelp,
     FeatureCreated,
+    DataDrivenTestExecuted,
     SureRemoveFeatureComponent,
     AddStepComponent,
     LiveStepsComponent,
