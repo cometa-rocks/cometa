@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, ChangeDetectionStrategy, HostListener, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
+import { DataDrivenExecution } from '@dialogs/data-driven-execution/data-driven-execution.component';
 import { MtxGridColumn } from '@ng-matero/extensions/grid';
-import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
 import { SharedActionsService } from '@services/shared-actions.service';
 
 @Component({
@@ -18,6 +19,7 @@ export class DataDrivenRunsComponent implements OnInit{
     private cdRef: ChangeDetectorRef,
     private _router: Router,
     private _http: HttpClient,
+    public _dialog: MatDialog,
   ) { }
 
   columns: MtxGridColumn[] = [
@@ -93,6 +95,15 @@ export class DataDrivenRunsComponent implements OnInit{
         this.isLoading = false
         this.cdRef.detectChanges();
       }
+    })
+  }
+
+  openNewDataDrivenRun() {
+    this._dialog.open(DataDrivenExecution, {
+      disableClose: true,
+      autoFocus: false,
+      panelClass: 'edit-feature-panel',
+      data: { }
     })
   }
 

@@ -1,0 +1,11 @@
+<h2 mat-dialog-title>Data Driven test executed successfully!</h2>
+<mat-dialog-content>
+    <p>
+        The data driven test for file {{ data.file_name }} is being executed, would you like to view the results now?
+    </p>
+    <br />
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-stroked-button color="primary" (click)="go()">Yes</button>
+    <button mat-stroked-button color="warn" (click)="onNoClick()">No</button>
+</mat-dialog-actions>

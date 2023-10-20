@@ -1,5 +1,5 @@
 {
-    "client_id" : "@@GITCLIENTID@@",
-    "client_secret" : "@@GITCLIENTSECRET@@",
+    "client_id" : "124062a13d9b1381c9a4955e5204892e8087b0ffbbf1040c39dbbf90c48182c0",
+    "client_secret" : "e7857cbe378f375317a9a3523ed57ba90552f92afc07fb9d784298eb6aa99e31",
     "response_type" : "id_token"
 }

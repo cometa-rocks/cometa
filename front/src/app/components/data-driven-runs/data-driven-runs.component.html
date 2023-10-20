@@ -68,9 +68,8 @@
     <div>
       Found <span><span class="blue">{{ total }}</span> Data Driven Runs</span>
     </div>
-    <button mat-flat-button color="primary">
-      <mat-icon>add_box</mat-icon>
-      <span class="mdc-button__label">New Data Driven Run</span>
+    <button mat-flat-button color="primary" (click)="openNewDataDrivenRun()">
+      <span class="mdc-button__label">Data Driven Test</span>
     </button>
   </div>
 </ng-template>

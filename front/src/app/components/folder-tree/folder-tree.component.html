@@ -15,7 +15,7 @@ Author: dph000
 <cometa-folder-item-tree [department]="true" [folder]="folder" [parent]="[folder]" [level]="0" *ngFor="let folder of folders$ | async"></cometa-folder-item-tree>
 <!-- Data Driven Runs List button -->
 <div (click)="toggleList('data-driven')" [class.selected]="(activeList$ | async) === 'data-driven'">
-  <mat-icon>tune</mat-icon>
+  <mat-icon>format_indent_increase</mat-icon>
   Data Driven
 </div>
 <!-- Variables list button -->

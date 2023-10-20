@@ -2,8 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { UntilDestroy } from '@ngneat/until-destroy';
-import { Store } from '@ngxs/store';
+import { Actions, Store, ofActionDispatched } from '@ngxs/store';
 import { MtxGridColumn } from '@ng-matero/extensions/grid';
 import { HttpClient } from '@angular/common/http';
 import { PageEvent } from '@angular/material/paginator';
@@ -12,13 +11,14 @@ import { Configuration } from '@store/actions/config.actions';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { VideoComponent } from '@dialogs/video/video.component';
-import { ApiService } from '@services/api.service';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { PdfLinkPipe } from '@pipes/pdf-link.pipe';
 import { DownloadService } from '@services/download.service';
 import { InterceptorParams } from 'ngx-network-error';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@modules/shared.module';
+import { WebSockets } from '@store/actions/results.actions';
 
 @UntilDestroy()
 @Component({
@@ -151,7 +151,7 @@ export class DataDrivenResultsComponent implements OnInit {
     private cdRef: ChangeDetectorRef,
     private _dialog: MatDialog,
     private _snack: MatSnackBar,
-    private _api: ApiService,
+    private _actions: Actions,
     private _pdfLinkPipe: PdfLinkPipe,
     private _downloadService: DownloadService
   ) { }
@@ -243,12 +243,12 @@ export class DataDrivenResultsComponent implements OnInit {
     this.getResults()
 
     // Reload current page of runs whenever a feature run completes
-    // this._actions.pipe(
-    //   untilDestroyed(this),
-    //   ofActionDispatched(WebSockets.FeatureRunCompleted)
-    // ).subscribe(_ => {
-    //   this.getResults()
-    // });
+    this._actions.pipe(
+      untilDestroyed(this),
+      ofActionDispatched(WebSockets.FeatureRunCompleted)
+    ).subscribe(_ => {
+      this.getResults()
+    });
 
   }
 

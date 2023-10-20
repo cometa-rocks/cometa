@@ -968,12 +968,11 @@ def dataDrivenExecution(request, row, ddr: DataDriven_Runs):
             ddr.skipped += fr.skipped
             ddr.pixel_diff += fr.pixel_diff
             ddr.execution_time += fr.execution_time
+            ddr.save()
 
-def startDataDrivenRun(request, rows: list[FileData]):
+def startDataDrivenRun(request, rows: list[FileData], ddr: DataDriven_Runs):
     user = request.session['user']
     logger.info(f"Starting Data Driven Test {user['name']}")
-    ddr = DataDriven_Runs(file=rows[0].file, status="Running")
-    ddr.save()
     with ThreadPoolExecutor(max_workers=1) as executor:
         futures = []
         for row in rows:
@@ -1019,11 +1018,13 @@ def runDataDriven(request, *args, **kwargs):
             "error": "No rows found for selected data driven file."
         }, status=400)
     try:
+        ddr = DataDriven_Runs(file_id=file_id, status="Running")
+        ddr.save()
         # Spawn thread to launch feature run
-        t = Thread(target=startDataDrivenRun, args=(request, file_data, ))
+        t = Thread(target=startDataDrivenRun, args=(request, file_data, ddr))
         t.start()
 
-        return JsonResponse({ 'success': True })
+        return JsonResponse({ 'success': True, 'run_id': ddr.pk })
     except Exception as e:
         return JsonResponse({ 'success': False, 'error': str(e) })
 

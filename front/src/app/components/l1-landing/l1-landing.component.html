@@ -37,13 +37,15 @@ Author: dph000
         </div>
         Create feature
       </button>
-            <button *ngIf="canCreateFeature && hasSubscription" class="addDataDrivenIcon" mat-raised-button
-              aria-label="Create Data Driven button" [routerLink]="['/data-driven']" [class.hideAdd]="!openedAdd">
-              <div class="icon">
-                <i class="feature-icon"></i>
-              </div>
-              Create Data Driven Test
-            </button>
+      <!--
+        <button *ngIf="canCreateFeature && hasSubscription" class="addDataDrivenIcon" mat-raised-button
+          aria-label="Create Data Driven button" [routerLink]="['/data-driven']" [class.hideAdd]="!openedAdd">
+          <div class="icon">
+            <i class="feature-icon"></i>
+          </div>
+          Create Data Driven Test
+        </button>
+      -->
     </div>
     <!-- The whole directory tree and options to switch the shown list -->
     <div class="folder-tree">

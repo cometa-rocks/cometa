@@ -111,6 +111,7 @@ import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
 import { NumeralPipe } from '@pipes/numeral.pipe';
 import { RoundProgressModule } from 'angular-svg-round-progressbar';
 import { ScreenshotBgPipe } from '@pipes/screenshot-bg.pipe';
+import { AvailableFilesPipe } from '@pipes/available-files.pipe';
 
 
 const components = [
@@ -207,7 +208,8 @@ const pipes = [
   PixelDifferencePipe,
   FirstLetterUppercasePipe,
   NumeralPipe,
-  ScreenshotBgPipe
+  ScreenshotBgPipe,
+  AvailableFilesPipe
 ];
 
 const dialogs = [

@@ -21,7 +21,7 @@
     "@angular/platform-browser-dynamic": "^15.2.9",
     "@angular/router": "^15.2.9",
     "@angular/service-worker": "^15.2.9",
-    "@ng-matero/extensions": "^15.5.0",
+    "@ng-matero/extensions": "^15.6.0",
     "@ng-select/ng-select": "^10.0.3",
     "@ngneat/until-destroy": "^8.0.4",
     "@ngtools/webpack": "^15.2.8",
