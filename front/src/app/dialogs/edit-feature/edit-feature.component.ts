@@ -264,6 +264,8 @@ export class EditFeature implements OnInit, OnDestroy {
         } else {
           this.dialogRef.close();
         }
+      case KEY_CODES.V:
+        this.editVariables();
     }
   }
 
