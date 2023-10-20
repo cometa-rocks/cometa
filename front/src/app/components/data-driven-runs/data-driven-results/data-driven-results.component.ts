@@ -1,40 +1,40 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Actions, ofActionDispatched, Select } from '@ngxs/store';
-import { combineLatest, Observable, fromEvent } from 'rxjs';
-import { CustomSelectors } from '@others/custom-selectors';
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { Store } from '@ngxs/store';
+import { Actions, Store, ofActionDispatched } from '@ngxs/store';
 import { MtxGridColumn } from '@ng-matero/extensions/grid';
 import { HttpClient } from '@angular/common/http';
 import { PageEvent } from '@angular/material/paginator';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { WebSockets } from '@store/actions/results.actions';
 import { Configuration } from '@store/actions/config.actions';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { VideoComponent } from '@dialogs/video/video.component';
-import { ApiService } from '@services/api.service';
-import { LoadingSnack } from '@components/snacks/loading/loading.snack';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { PdfLinkPipe } from '@pipes/pdf-link.pipe';
 import { DownloadService } from '@services/download.service';
 import { InterceptorParams } from 'ngx-network-error';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@modules/shared.module';
+import { WebSockets } from '@store/actions/results.actions';
 
 @UntilDestroy()
 @Component({
-  selector: 'main-view',
-  templateUrl: './main-view.component.html',
-  styleUrls: ['./main-view.component.scss'],
+  selector: 'data-driven-results',
+  templateUrl: './data-driven-results.component.html',
+  styleUrls: ['./data-driven-results.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     PdfLinkPipe
   ],
+  imports: [CommonModule, SharedModule],
+  standalone: true
 })
-export class MainViewComponent implements OnInit {
+export class DataDrivenResultsComponent implements OnInit {
 
-  @Select(CustomSelectors.GetConfigProperty('internal.showArchived')) showArchived$: Observable<boolean>;
+//   @Select(CustomSelectors.GetConfigProperty('internal.showArchived')) showArchived$: Observable<boolean>;
 
   columns: MtxGridColumn[] = [
     {header: 'Status', field: 'status', sortable: true, class: 'aligned-center'},
@@ -144,7 +144,6 @@ export class MainViewComponent implements OnInit {
 
   constructor(
     private _route: ActivatedRoute,
-    private _actions: Actions,
     private _store: Store,
     private _router: Router,
     public _sharedActions: SharedActionsService,
@@ -152,18 +151,17 @@ export class MainViewComponent implements OnInit {
     private cdRef: ChangeDetectorRef,
     private _dialog: MatDialog,
     private _snack: MatSnackBar,
-    private _api: ApiService,
+    private _actions: Actions,
     private _pdfLinkPipe: PdfLinkPipe,
     private _downloadService: DownloadService
   ) { }
 
-  featureId$: Observable<number>;
+  runId$: Observable<number>;
 
   openContent(feature_result: FeatureResult) {
     this._router.navigate([
-      this._route.snapshot.paramMap.get('app'),
-      this._route.snapshot.paramMap.get('environment'),
-      this._route.snapshot.paramMap.get('feature'),
+      'data-driven',
+      this._route.snapshot.paramMap.get('id'),
       'step',
       feature_result.feature_result_id
     ]);
@@ -171,11 +169,9 @@ export class MainViewComponent implements OnInit {
 
   getResults() {
     this.isLoading = true;
-    combineLatest([this.featureId$,this.showArchived$]).subscribe(([featureId, archived]) => {
-      this._http.get(`/backend/api/feature_results_by_featureid/`, {
+    this.runId$.subscribe(runId => {
+      this._http.get(`/backend/api/data_driven/results/${runId}`, {
         params: {
-          feature_id: featureId,
-          archived: archived,
           ...this.params
         }
       }).subscribe({
@@ -183,9 +179,6 @@ export class MainViewComponent implements OnInit {
           this.results = res.results
           this.total = res.count
           this.showPagination = this.total > 0 ? true : false
-
-          // set latest feature id
-          if (this.showPagination) this.latestFeatureResultId = this.results[0].feature_result_id;
         },
         error: (err) => {
           console.error(err)
@@ -232,37 +225,6 @@ export class MainViewComponent implements OnInit {
     })
   }
 
-  /**
-   * Clears runs depending on the type of clearing passed
-   * @param clearing ClearRunsType
-   * @returns void
-   */
-  clearRuns(clearing: ClearRunsType) {
-    // Open Loading Snack
-    const loadingRef = this._snack.openFromComponent(LoadingSnack, {
-      data: 'Clearing history...',
-      duration: 60000
-    });
-    const featureId = +this._route.snapshot.params.feature;
-    const deleteTemplateWithResults = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('deleteTemplateWithResults'));
-    this._api.removeMultipleFeatureRuns(featureId, clearing, deleteTemplateWithResults).subscribe({
-      next: _ => {
-        this.getResults();
-      },
-      error: (err) => {
-        console.error(err)
-      },
-      complete: () => {
-        // Close loading snack
-        loadingRef.dismiss();
-        // Show completed snack
-        this._snack.open('History cleared', 'OK', {
-          duration: 5000
-        });
-      }
-    })
-  }
-
   handleDeleteTemplateWithResults({ checked }: MatCheckboxChange) {
     return this._store.dispatch(new Configuration.SetProperty('deleteTemplateWithResults', checked));
   }
@@ -271,11 +233,11 @@ export class MainViewComponent implements OnInit {
    * Enables or disables archived runs from checkbox
    * @param change MatCheckboxChange
    */
-  handleArchived = (change: MatCheckboxChange) => this._store.dispatch(new Configuration.SetProperty('internal.showArchived', change.checked));
+//   handleArchived = (change: MatCheckboxChange) => this._store.dispatch(new Configuration.SetProperty('internal.showArchived', change.checked));
 
   ngOnInit() {
-    this.featureId$ = this._route.paramMap.pipe(
-      map(params => +params.get('feature'))
+    this.runId$ = this._route.paramMap.pipe(
+      map(params => +params.get('id'))
     )
     this.query.size = parseInt(localStorage.getItem('co_results_page_size')) || 10;
     this.getResults()
