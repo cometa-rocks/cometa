@@ -234,6 +234,20 @@ interface FeatureRun {
     pixel_diff: number;
 }
 
+interface DataDrivenRun {
+    run_id: number;
+    date_time: string;
+    archived: boolean;
+    status: string;
+    total: number;
+    fails: number;
+    ok: number;
+    skipped: number;
+    execution_time: number;
+    pixel_diff: number;
+    file: File;
+}
+
 // Applications
 
 interface Application {
