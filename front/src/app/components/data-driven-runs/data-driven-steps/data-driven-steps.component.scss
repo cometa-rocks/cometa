@@ -1,0 +1,425 @@
+
+@import 'breakpoints';
+@import 'color';
+
+:host {
+    display: flex;
+    flex-flow: column;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+    max-height: calc(100vh - var(--header-height));
+    height: calc(100vh - var(--header-height));
+}
+
+.edit, .log {
+    display: block;
+    position: absolute;
+    top: 110px;
+    right: 28px;
+    cursor: pointer;
+    height: 32px;
+    width: 32px;
+    background: url(^assets/internal/COM_Edit_Icon.svg) no-repeat;
+    background-size: contain;
+    transform: scale(1) rotate(0deg);
+    transition: transform .2s ease-in-out;
+    z-index: 1;
+    &:hover {
+        transform: scale(1.1) rotate(10deg);
+    }
+}
+
+.log{
+    right: 172px;
+    background: transparent;
+    border: 1px solid;
+    border-radius: 50%;
+    font-size: 12px;
+    text-align: center;
+    line-height: 32px;
+}
+
+.stats {
+    display: block;
+    width: 100%;
+    position: relative;
+    text-align: center;
+    padding: 30px 30px 60px; // table header will be in the same position in feature result component and step view component
+    box-sizing: border-box;
+
+    @include for-tablet-portrait-up-plus30 {
+        padding: 30px 30px 83px;
+    }
+
+    // comented because when screen is resized makes table header change position on y axis without any reason
+    // @include maxWidth(700px) {
+    //     padding: 15px;
+    // }
+
+    .return {
+        opacity: .6;
+        display: flex;
+        cursor: pointer;
+        height: 50px;
+        align-items: center;
+        .return-text {
+            flex: initial;
+            line-height: 50px;
+            font-size: 14pt;
+            font-weight: bold;
+            color: rgba(black, .6);
+            &:first-letter {
+                text-transform: uppercase;
+            }
+        }
+        i {
+            flex: initial;
+            height: 15px;
+            width: 15px;
+            margin-right: 20px;
+            background: url(^assets/left-arrow.svg) no-repeat;
+            background-size: contain;
+        }
+    }
+}
+
+.current_filters {
+    // previous flex box rules made filter action icons have too much space between them
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    margin: 15px 20px 0;
+    height: 85px;
+    @include for-tablet-portrait-up-plus30 {
+        flex-direction: row;
+    }
+}
+
+.result-stats {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    width: 100%;
+    max-width: 600px;
+    @include for-tablet-portrait-up {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        margin: 0 auto;
+        justify-content: space-between;
+    }
+    .info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        @include for-tablet-portrait-up {
+            flex: 0 400px;
+        }
+        .circular-progress {
+            flex: initial;
+        }
+    }
+}
+
+.circular-progress {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 110px;
+    .value {
+        position: absolute;
+        height: 25px;
+        width: 100%;
+        top: 35px;
+        font-size: 20pt;
+        font-weight: 500;
+        margin: auto;
+        text-align: center;
+
+        &::after {
+            content: attr(data-value);
+            display: block;
+            font-size: 12pt;
+            font-weight: 100;
+        }
+    }
+    .title {
+        margin-top: 20px;
+        font-weight: bold;
+        color: rgba(0,0,0,0.6);
+        text-align: center;
+    }
+}
+
+.info {
+    display: flex;
+    margin-top: 20px;
+    justify-content: space-evenly;
+}
+.total_pixel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    margin-top: 20px;
+    @include for-tablet-portrait-up {
+        flex: 0 105px;
+        max-width: 105px;
+        flex-direction: column;
+    }
+    .red {
+        flex: 0 33.33333%;
+        font-size: 40pt;
+        color: #D4145A;
+        text-transform: uppercase;
+        @include for-tablet-portrait-up {
+            flex: initial;
+            font-size: 30pt;
+        }
+    }
+    .total-pixel-title {
+        flex: 0 33.33333%;
+        padding: 0 15px;
+        box-sizing: border-box;
+        font-size: 18pt;
+        @include for-tablet-portrait-up {
+            flex: initial;
+            font-size: 15pt;
+        }
+    }
+    .pixel_graphic {
+        flex: 0 33.33333%;
+        height: 50px;
+    }
+}
+
+.pixel_graphic {
+    display: block;
+    width: 130px;
+    height: 60px;
+    margin: 0 auto;
+    margin-top: 0px;
+    background: url(^assets/pixels_grafic.svg) no-repeat;
+    background-size: contain;
+    @include for-tablet-portrait-up {
+        margin-top: 20px;
+    }
+}
+
+.run {
+    display: block;
+    position: absolute;
+    top: 110px;
+    right: 100px;
+    cursor: pointer;
+    height: 32px;
+    width: 32px;
+    background: url(^assets/play-button.svg) no-repeat;
+    background-size: contain;
+    transform: scale(1);
+    transition: transform .2s ease-in-out;
+    z-index: 1;
+    &:hover {
+        transform: scale(1.2);
+    }
+}
+
+.running {
+    display: block;
+    position: absolute;
+    top: 105px;
+    right: 100px;
+    cursor: pointer;
+    height: 40px;
+    width: 40px;
+    background: url(^assets/running_loading_blue.svg) no-repeat;
+    background-size: contain;
+}
+
+:host::ng-deep network-paginated-list {
+    .header {
+        flex: 1 100%;
+        display: flex;
+        align-items: center;
+        text-align: center;
+        background-color: #474747;
+        color: white;
+        text-transform: uppercase;
+        padding: 12px 0;
+        box-sizing: border-box;
+        padding-right: 10px;
+
+        // commented because breaks syncronization between table header and table rows, column names do not coincide with their corresponding values
+        // @include for-tablet-portrait-up {
+        //     padding-right: 85px;
+        // }
+    }
+    .name {
+        // commented because breaks syncronization between table header and table rows, column names do not coincide with their corresponding values
+        // flex: 0 60%;
+        // max-width: 60%;
+        // @include for-tablet-portrait-up {
+            flex: 0 40%;
+            max-width: 40%;
+        // }
+    }
+    .status,
+    .time,
+    .difference {
+        flex: 0 20%;
+        max-width: 20%;
+        text-align: center;
+    }
+    .difference-desktop {
+        flex: 0 20%;
+        max-width: 20%;
+        text-align: center;
+        display: none;
+        @include for-tablet-portrait-up {
+            display: initial;
+        }
+    }
+    .difference-mobile {
+        flex: 0 20%;
+        max-width: 20%;
+        // @include for-tablet-portrait-up-plus30 {
+        //     display: none;
+        // }
+    }
+    .step-row {
+        display: flex;
+        align-items: center;
+        min-height: 53px;
+        box-sizing: border-box;
+        font-weight: bold;
+        cursor: pointer;
+        padding-right: 10px;
+        @include for-tablet-portrait-up {
+            padding-right: 0;
+        }
+        &:nth-child(odd) {
+            background-color: #e6e6e6;
+            border-bottom: 2px solid rgba(black, .05);
+        }
+        &:nth-child(even) {
+            background-color: #f2f2f2;
+            border-bottom: 2px solid rgba(black, .1);
+        }
+        &:hover .name {
+            color: $blue;
+        }
+        .status-bar {
+            flex: 0 5px;
+            max-width: 5px;
+            height: 100%;
+            &.success {
+                background-color: $good;
+            }
+            &.failed {
+                background-color: $bad;
+            }
+            @include for-tablet-portrait-up {
+                display: none;
+            }
+        }
+        .name {
+            padding-left: 10px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            font-size: .9rem;
+            @include for-tablet-portrait-up {
+                padding-left: 20px;
+                font-size: 1rem;
+            }
+            .step-index {
+                margin-right: 15px;
+                color: $blue;
+                min-width: 30px;
+                text-align: center;
+                display: none;
+                @include for-tablet-portrait-up {
+                    display: initial;
+                }
+            }
+            .step-content {
+                max-width: 100%;
+                // padding: 10px 0; prevents step row from increasing its height when custom error message has to be displayed, thus causing content overflow
+                .feature-reference, .step-error {
+                    font-size: .8rem;
+                    margin-bottom: 3px;
+                    display: inline-flex;
+                    position: relative;
+                    transform: translate3d(0, 0, 0);
+                    transition: transform .15s ease-in-out;
+
+                }
+
+                .feature-reference {
+                    color: rgba(black, .55);
+                    &:hover {
+                        transform: translate3d(10px, 0, 0);
+                    }
+                }
+
+                .step-name, .step-error { word-break: break-all; }
+
+                .step-error {
+                    max-width: 100%;
+                    color: $bad;
+                }
+            }
+        }
+        .item-options {
+            margin-right: 10px;
+            width: 80px;
+            display: flex;
+            justify-content: flex-end;
+            .option {
+                flex: 0 40px;
+            }
+        }
+        .status {
+            display: none;
+            @include for-tablet-portrait-up {
+                display: initial;
+            }
+            &.ok {
+                color: $good;
+            }
+            &.nok {
+                color: $medium;
+            }
+        }
+        .time {
+            color: $bad;
+        }
+        .item-options {
+            display: none;
+            @include for-tablet-portrait-up {
+                display: flex;
+            }
+        }
+
+
+        .screenshots-wrapper {
+            width: 24px;
+            height: 24px;
+            transform: translateX(150%);
+        }
+    }
+    .header {
+        .status {
+            display: none;
+            @include for-tablet-portrait-up {
+                display: initial;
+            }
+        }
+    }
+    .pagination {
+        // @include pagination-mobile {
+        //     margin-top: 37px;
+        // }
+    }
+}
