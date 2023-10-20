@@ -90,6 +90,13 @@ class AdminFeature_run(admin.ModelAdmin):
         # Return all feature runs, including those marked as removed
         return Feature_Runs.all_objects
 
+class AdminDataDriven_run(admin.ModelAdmin):
+    model = DataDriven_Runs
+
+    def get_queryset(self, request):
+        # Return all feature runs, including those marked as removed
+        return DataDriven_Runs.all_objects
+
 class AdminFeature_result(admin.ModelAdmin):
     model = Feature_result
     search_fields = ['feature_name', 'app_name', 'environment_name', 'department_name']
@@ -288,6 +295,7 @@ admin.site.register(Feature_result, AdminFeature_result)
 admin.site.register(Folder, AdminFolder)
 admin.site.register(Folder_Feature, AdminFolder_Feature)
 admin.site.register(Feature_Runs, AdminFeature_run)
+admin.site.register(DataDriven_Runs, AdminDataDriven_run)
 admin.site.register(MiamiContact)
 admin.site.register(Application)
 admin.site.register(Environment)
