@@ -1,0 +1,80 @@
+<mtx-grid [data]="results"
+          [columns]="columns"
+          [sortOnFront]="true"
+          sortActive="date_time"
+          sortDirection="desc"
+          [sortDisableClear]="true"
+          [sortDisabled]="false"
+          [showToolbar]="true"
+          [showColumnMenuButton]="true"
+          [columnMenuButtonType]="'stroked'"
+          [columnMenuButtonIcon]="'view_column'"
+          [length]="total"
+          [loading]="isLoading"
+          [pageOnFront]="false"
+          [pageIndex]="query.page"
+          [pageSize]="query.size"
+          [pageSizeOptions]="[10,50,100]"
+          (rowClick)="openContent($event.rowData)"
+          [cellTemplate]="{status: statusTpl, date_time: dateTpl, execution_time: timeTpl, pixel_diff: pixelTpl}"
+          [noResultTemplate]="noResultTpl"
+          [showPaginator]="showPagination"
+          [toolbarTemplate]="toolbarTpl"
+          (page)="updateData($event)">
+</mtx-grid>
+
+<!-- ROW TEMPLATES -->
+<ng-template #statusTpl let-row let-index="index" let-col="colDef">
+  
+  <div class="cell status" *ngLet="(row.status == 'Success' || row.status == 'Passed') as passed">
+    <!-- Status box -->
+    <div class="status-box passed" stopPropagation *ngIf="passed; else failed">
+        Passed</div>
+    <ng-template #failed>
+        <div class="status-box failed" stopPropagation [matMenuTriggerFor]="runStatus">Failed</div>
+    </ng-template>
+    <!-- Override feature result status -->
+    <mat-menu #runStatus="matMenu">
+      <div class="menu-header">Override run status:</div>
+      <button (click)="setResultStatus(row, 'Success')" mat-menu-item>
+          <div class="status-option passed">Passed</div>
+      </button>
+      <button (click)="setResultStatus(row, 'Failed')" mat-menu-item>
+          <div class="status-option failed">Failed</div>
+      </button>
+      <mat-divider></mat-divider>
+      <button (click)="setResultStatus(row, '')" mat-menu-item>
+          <div class="status-option default">Default</div>
+      </button>
+    </mat-menu>
+  </div>
+</ng-template>
+
+<ng-template #dateTpl let-row let-index="index" let-col="colDef">
+  <span>{{ row.date_time | amParse | amDateFormat:'MMMM d yyyy, HH:mm' }}</span>
+</ng-template>
+
+<ng-template #timeTpl let-row let-index="index" let-col="colDef">
+  <span>{{ row.execution_time | secondsToHumanReadable }}</span>
+</ng-template>
+
+<ng-template #pixelTpl let-row let-index="index" let-col="colDef">
+  <span>{{ row.pixel_diff | pixelDifference }}</span>
+</ng-template>
+
+<!-- TOOLBAR TEMPLATE -->
+<ng-template #toolbarTpl>
+  <div class="custom_toolbar">
+    <div>
+      Found <span><span class="blue">{{ total }}</span> Data Driven Runs</span>
+    </div>
+    <button mat-flat-button color="primary" (click)="openNewDataDrivenRun()">
+      <span class="mdc-button__label">Data Driven Test</span>
+    </button>
+  </div>
+</ng-template>
+
+<!-- NO RESULTS TEMPLATE -->
+<ng-template #noResultTpl>
+  There are no Data Driven Tests as of now, please create a new Data Driven test.
+</ng-template>
