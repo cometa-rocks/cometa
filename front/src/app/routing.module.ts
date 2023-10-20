@@ -39,6 +39,30 @@ const routes: Routes = [
     {
       path: 'new',
       loadChildren: () => import('@modules/newlanding.module').then(m => m.NewlandingModule)
+    },
+    {
+      path: 'data-driven',
+      loadComponent: () => import('@components/data-driven/data-driven.component').then(m => m.DataDrivenComponent),
+    },
+    {
+      path: 'data-driven/:id',
+      children: [{
+          path: '',
+          title: 'Data-Driven Run',
+          loadComponent: () => import('@components/data-driven-runs/data-driven-results/data-driven-results.component').then(m => m.DataDrivenResultsComponent),
+        },{
+            path: 'step/:feature_result_id',
+            children: [{
+                path: '',
+                title: 'Data-Driven Result',
+                loadComponent: () => import('@components/data-driven-runs/data-driven-steps/data-driven-steps.component').then(m => m.DataDrivenStepViewComponent)
+            },
+            {
+                path: 'detail/:step_result_id',
+                title: 'Step Details',
+                loadComponent: () => import('@components/data-driven-runs/data-driven-step-details/data-driven-step-details.component').then(m => m.DataDrivenStepDetailViewComponent)
+            }]
+        }],
     }
 ];
 
