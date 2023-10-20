@@ -1,0 +1,146 @@
+<ng-container *ngIf="test$ | async as test; else loader">
+    <div class="stats">
+        <div (click)="returnToMain()" class="return">
+            <i [@returnArrow]="test"></i>
+            <div class="return-text" [@returnText]="test">
+                {{ test.result_date | amParse | amDateFormat:"MMMM d yyyy',' HH:mm a" | firstLetterUppercase }}
+            </div>
+        </div>
+        <div class="result-stats">
+            <div class="info" [@progressIn]="test">
+                <div class="circular-progress" *ngIf="test">
+                    <round-progress [current]="test.total" [max]="test.total" [color]="'#4D4D4D'" [background]="'#D3D3D3'" [responsive]="true"
+                        [stroke]="20" [duration]="800" [animation]="'easeInOutQuart'" [animationDelay]="0"></round-progress>
+                    <div class="value" [attr.data-value]="test.total" [style.color]="'#4D4D4D'">{{ test.total | percentage:test.total }}</div>
+                    <div class="title">TOTAL TEST</div>
+                </div>
+                <div class="circular-progress" *ngIf="test">
+                    <round-progress [current]="test.ok" [max]="test.total" [color]="'#00A99D'"
+                        [background]="'#A1D4D0'" [responsive]="true" [stroke]="20" [duration]="800" [animation]="'easeInOutQuart'"
+                        [animationDelay]="0"></round-progress>
+                    <div class="value" [attr.data-value]="test.ok" [style.color]="'#00A99D'">{{ test.ok | percentage:test.total }}</div>
+                    <div class="title">OK</div>
+                </div>
+                <div class="circular-progress" *ngIf="test">
+                    <round-progress [current]="test.fails" [max]="test.total" [color]="'#F7931E'"
+                        [background]="'#EBCDAA'" [responsive]="true" [stroke]="20" [duration]="800" [animation]="'easeInOutQuart'"
+                        [animationDelay]="0"></round-progress>
+                    <div class="value" [attr.data-value]="test.fails" [style.color]="'#F7931E'">{{ test.fails | percentage:test.total }}</div>
+                    <div class="title">FAIL</div>
+                </div>
+            </div>
+            <div class="total_pixel" [@info]="test">
+                <div class="red">
+                    {{ (test.pixel_diff | numeral) || 0 }}
+                </div>
+                <div class="total-pixel-title">TOTAL PIXEL DIFFERENCE</div>
+                <div class="pixel_graphic"></div>
+            </div>
+        </div>
+    </div>
+    <div class="data">
+        <network-paginated-list
+          listId="steps"
+          [endpointUrl]="stepResultsUrl$ | async"
+          [headerTemplate]="headTemplate"
+          [injectIndex]="true"
+          [itemTemplate]="listItem">
+            <ng-template #listItem let-item>
+                <ng-container *ngLet="(item.status === 'Success' || (!item.status && item.success)) as passed">
+                    <div class="step-row" (click)="goToDetail(item.step_result_id)">
+                        <div class="status-bar" [ngClass]="passed ? 'success' : 'failed'"></div>
+                        <div class="name">
+                            <div class="step-index">{{ item.index }}</div>
+                            <div class="step-content">
+                                <ng-container *ngLet="featureId$ | async as featureId">
+                                    <div
+                                        stopPropagation
+                                        (click)="_sharedActions.openEditFeature(item.belongs_to.feature_id, 'edit')"
+                                        [matTooltip]="'tooltips.edit_feature' | translate"
+                                        matTooltipPosition="after"
+                                        *ngIf="item.belongs_to && featureId !== item.belongs_to.feature_id"
+                                        class="feature-reference">From feature: {{ item.belongs_to.feature_name }}</div>
+                                </ng-container>
+                                <div class="step-name">{{ item?.step_name }}</div>
+                                <small *ngIf="item?.error" class="step-error"> Custom error: {{item?.error}} </small>
+                            </div>
+                        </div>
+                        <div class="status">
+                            <!-- Status Box -->
+                            <div  class="status-box" stopPropagation [matMenuTriggerFor]="resultStatus" [ngClass]="passed ? 'passed' : 'failed'">
+                                {{ passed ? 'Passed' : 'Failed' }}
+                            </div>
+                            <!-- Override result status -->
+                            <mat-menu #resultStatus="matMenu">
+                                <div class="menu-header">Override step status:</div>
+                                <button (click)="setStepStatus(item, 'Success')" mat-menu-item>
+                                    <div class="status-option passed">Passed</div>
+                                </button>
+                                <button (click)="setStepStatus(item, 'Failed')" mat-menu-item>
+                                    <div class="status-option failed">Failed</div>
+                                </button>
+                                <mat-divider></mat-divider>
+                                <button (click)="setStepStatus(item, 'Default')" mat-menu-item>
+                                    <div class="status-option default">Default</div>
+                                </button>
+                            </mat-menu>
+                        </div>
+                        <div class="time">{{ item?.execution_time | secondsToHumanReadable }}</div>
+                        <div class="difference"
+                             [matTooltip]="!item.screenshot_difference ? '' : 'Click to see Image comparison details'"
+                             matTooltipPosition="above"
+                             (click)="loadImages(item.screenshot_difference)"
+                             stopPropagation>{{ item?.pixel_diff | pixelDifference }}
+                        </div>
+                        <div class="screenshots-wrapper">
+                            <div class="screenshot" *ngIf="item.screenshot_current" (click)="loadImages(item.screenshot_current)" stopPropagation>
+                                <mat-icon>insert_photo</mat-icon>
+                            </div>
+                        </div>
+                        <!-- Icon options for each step result -->
+                        <div class="item-options">
+                            <!-- View HTML Difference -->
+                            <div class="option view-html-diff" *ngIf="item?.diff">
+                                <button (click)="_sharedActions.openHTMLDiff(item.step_result_id)" matTooltip="View HTML difference" matTooltipPosition="before" stopPropagation mat-icon-button>
+                                    <mat-icon>code</mat-icon>
+                                </button>
+                            </div>
+                            <!-- Download attached files to Step Result -->
+                            <div class="option download-file" *ngIf="item?.files?.length > 0">
+                                <!-- Check if there are files -->
+                                <ng-container>
+                                    <ng-container *ngIf="item.files.length === 1; else multipleFiles">
+                                        <!-- Link for unique file download -->
+                                        <a [matTooltip]="item.files[0] | downloadName" matTooltipPosition="before" stopPropagation [href]="item.files[0] | downloadLink" mat-icon-button>
+                                            <mat-icon>insert_drive_file</mat-icon>
+                                        </a>
+                                    </ng-container>
+                                    <ng-template #multipleFiles>
+                                        <!-- Menu for multiple files download-->
+                                        <button stopPropagation [matMenuTriggerFor]="fileSelector" mat-icon-button>
+                                            <mat-icon>insert_drive_file</mat-icon>
+                                        </button>
+                                        <mat-menu #fileSelector>
+                                            <a stopPropagation [href]="file | downloadLink" *ngFor="let file of item.files" mat-menu-item>{{ file | downloadName }}</a>
+                                        </mat-menu>
+                                    </ng-template>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+            </ng-template>
+            <ng-template #headTemplate>
+                <div class="name">STEP</div>
+                <div class="status">RESULT</div>
+                <div class="time">TIME</div>
+                <div class="difference-mobile">PIXEL DIFF</div>
+                <!-- <div class="difference-desktop">PIXEL DIFFERENCE</div> -->
+                <div class="Screenshots">SCREENSHOTS</div>
+            </ng-template>
+        </network-paginated-list>
+    </div>
+</ng-container>
+<ng-template #loader>
+    <mat-spinner class="loading" diameter="35" color="primary"></mat-spinner>
+</ng-template>
