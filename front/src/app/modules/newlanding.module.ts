@@ -15,6 +15,7 @@ import { L1FeatureTrashbinListComponent } from '../components/l1-feature-trashbi
 import { L1FeatureTeamListComponent } from '../components/l1-feature-team-list/l1-feature-team-list.component';
 import { L1TreeViewComponent } from '../components/l1-tree-view/l1-tree-view.component';
 import { WelcomeComponent } from '@components/welcome/welcome.component';
+import { DataDrivenRunsComponent } from '@components/data-driven-runs/data-driven-runs.component'
 
 const routes: Routes = [
     {
@@ -49,7 +50,8 @@ const routes: Routes = [
     L1FeatureTrashbinListComponent,
     L1FeatureTeamListComponent,
     L1TreeViewComponent,
-    WelcomeComponent
+    WelcomeComponent,
+    DataDrivenRunsComponent
   ]
 })
 export class NewlandingModule { }
