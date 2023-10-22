@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from "@angular/core";
-import { Select, Store } from "@ngxs/store";
+import { Select } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { FeaturesState } from "@store/features.state";
 import { ViewSelectSnapshot } from "@ngxs-labs/select-snapshot";
@@ -7,15 +7,13 @@ import { ConfigState } from "@store/config.state";
 import { FileUploadService } from "@services/file-upload.service";
 import { UserState } from "@store/user.state";
 import { MatSnackBar } from "@angular/material/snack-bar";
-import { ApplicationsState } from "@store/applications.state";
-import { EnvironmentsState } from "@store/environments.state";
 import { KEY_CODES } from "@others/enums";
-import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { MtxGridColumn } from "@ng-matero/extensions/grid";
 import { HttpClient } from "@angular/common/http";
 import { InterceptorParams } from "ngx-network-error";
-import { LoadingSnack } from "@components/snacks/loading/loading.snack";
 import { DataDrivenTestExecuted } from "./data-driven-executed/data-driven-executed.component";
+import { DepartmentsState } from "@store/departments.state";
+import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 
 @Component({
   selector: "data-driven-execution",
@@ -24,7 +22,10 @@ import { DataDrivenTestExecuted } from "./data-driven-executed/data-driven-execu
 })
 export class DataDrivenExecution implements OnInit {
   columns: MtxGridColumn[] = [
-    {header: 'Status', field: 'status', showExpand: true},
+    {header: 'Status', field: 'status', showExpand: true, class: (row: UploadedFile, col: MtxGridColumn) => {
+      if (row && row.status !== 'Done') return 'no-expand';
+      else return '';
+    }},
     {header: 'File Name', field: 'name', sortable: true, class: 'name'},
     {header: 'Size', field: 'size', sortable: true},
     {header: 'Uploaded By', field: 'uploaded_by.name', sortable: true},
@@ -60,9 +61,7 @@ export class DataDrivenExecution implements OnInit {
     }
   ];
 
-  departments$ = this._store.selectSnapshot(UserState.RetrieveUserDepartments);
-  applications$ = this._store.selectSnapshot(ApplicationsState);
-  environments$ = this._store.selectSnapshot(EnvironmentsState);
+  @Select(DepartmentsState) departments$: Observable<Department[]>;
 
   @Select(FeaturesState.GetFeaturesWithinFolder) features$: Observable<
     ReturnType<typeof FeaturesState.GetFeaturesWithinFolder>
@@ -71,16 +70,13 @@ export class DataDrivenExecution implements OnInit {
   @ViewSelectSnapshot(UserState) user!: UserInfo;
 
   department: Department;
-  application: Application;
-  environment: Environment;
 
   constructor(
     private fileUpload: FileUploadService,
-    private _store: Store,
     private _snackBar: MatSnackBar,
     private _http: HttpClient,
-    private _dialog: MatDialog,
     private cdRef: ChangeDetectorRef,
+    private _dialog: MatDialog,
     public dialogRef: MatDialogRef<DataDrivenExecution>,
   ) {
    
@@ -102,6 +98,7 @@ export class DataDrivenExecution implements OnInit {
     formData.append("department_id", detpid);
 
     this.fileUpload.startUpload(files, formData, this.department, this.user);
+    this.cdRef.detectChanges();
   }
 
   onDeleteFile(file: UploadedFile) {
@@ -174,17 +171,11 @@ export class DataDrivenExecution implements OnInit {
   preSelectedOrDefaultOptions() {
     const { 
       preselectDepartment,
-      preselectApplication,
-      preselectEnvironment
     } = this.user.settings;
     
-    const department: Department = this.departments$.find(d => d.department_id == preselectDepartment) || this.departments$[0];
-    const application: Application = this.applications$.find(a => a.app_id == preselectApplication) || this.applications$[0]
-    const environment: Environment = this.environments$.find(e => e.environment_id == preselectEnvironment) || this.environments$[0]
-
-    this.department = department;
-    this.application = application;
-    this.environment = environment;
+    this.departments$.subscribe(deps => {
+      this.department = deps.find(d => d.department_id == (this.department ? this.department.department_id : preselectDepartment)) || deps[0];
+    });
   }
 
   // Handle keyboard keys
@@ -235,6 +226,7 @@ export class DataDrivenExecution implements OnInit {
   }
 
   getFileData(row) {
+    row.isLoading = true;
     this._http.get(`/backend/api/data_driven/file/${row.id}`, {
       params: new InterceptorParams({
         skipInterceptor: true,
@@ -291,10 +283,7 @@ export class DataDrivenExecution implements OnInit {
     if (event.expanded) {
       console.log(event)
       const row = event.data;
-
-      row.isLoading = true;
       if (!row.file_data) {
-        row.columns = []
         // set some params
         row.params = {
           page: 0,
@@ -303,8 +292,6 @@ export class DataDrivenExecution implements OnInit {
         // fetch data
         this.getFileData(row)
       }
-
-      row.isLoading = false;
     }
   }
 }
