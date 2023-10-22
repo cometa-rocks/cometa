@@ -157,7 +157,7 @@ edit-variables {
         // align-items: center;
         // justify-content: flex-start;
         // box-sizing: border-box;
-        .addIcon, .addFeatureIcon, .addFolderIcon {
+        .addIcon, .addFeatureIcon, .addFolderIcon, .addDataDrivenIcon {
             width: auto;
             height: 40px;
             background: $blue;
@@ -174,6 +174,30 @@ edit-variables {
             position: absolute;
             visibility: visible;
             top: 125px;
+            transition: all .3s ease-in-out;
+            z-index: 102;
+            // Add-feature icon on desktop. The size of 21 pixels is due to the lack of padding on the icon
+            .icon {
+                outline: 0;
+                float: left;
+                margin-top: 8px;
+                padding-right: 5px;
+                i {
+                    height: 21px;
+                    width: 21px;
+                    &.feature-icon {
+                        background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
+                        background-size: contain;
+                        stroke-width: 3;
+                        height: 21px;
+                    }
+                }
+            }
+        }
+        .addDataDrivenIcon {
+            position: absolute;
+            visibility: visible;
+            top: 180px;
             transition: all .3s ease-in-out;
             z-index: 102;
             // Add-feature icon on desktop. The size of 21 pixels is due to the lack of padding on the icon

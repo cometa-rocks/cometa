@@ -1,0 +1,28 @@
+.mat-expansion-panel {
+    margin-top : 35px;
+    margin-left: 10px;
+    margin-right: 10px;
+
+    table {
+        width: 100%;
+    }
+
+    .edit-data-driven-test {
+        display: flex;
+
+        mat-form-field {
+            flex-grow: 1;
+            margin: 0 1px;
+        }
+    }
+
+    .department-warning {
+        display: flex;
+        align-items: center;
+        margin-bottom: 18px;
+
+        span {
+            margin-left: 3px;
+        }
+    }
+}
