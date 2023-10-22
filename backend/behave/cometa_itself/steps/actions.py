@@ -159,6 +159,21 @@ def dynamicDateGenerator(content: str):
         content = re.sub(pattern, finalDate, content)
     return content
 
+def reset_element_highlight(context):
+    try:
+        if 'highlighted_element' in context:
+            element = context.highlighted_element['element']
+            send_step_details(context, 'Resetting Highligthed element')
+            context.browser.execute_script('''
+            const element = arguments[0];
+            element.style.outline = window.cometa.oldOutlineValue;
+            element.style.outlineOffset = window.cometa.oldOutlineOffsetValue;
+            ''', element)
+            del context.highlighted_element
+    except Exception as err:
+        logger.exception(err)
+
+
 # ########################################################################## #
 # decorator to ease up making of steps ##################################### #
 # this decorator will reduce the code ###################################### #
@@ -249,6 +264,8 @@ def done( *_args, **_kwargs ):
                 # return True meaning everything went as expected
                 return result
             except Exception as err:
+                # reset timeout incase of exception in function
+                signal.alarm(0)
                 # print stack trace
                 traceback.print_exc()
                 # set the error message to the step_error inside context so we can pass it through websockets!
@@ -280,6 +297,9 @@ def done( *_args, **_kwargs ):
                 else:
                     # fail the feature
                     raise AssertionError(str(err))
+            finally:
+                # reset element highligh is any
+                reset_element_highlight(args[0])
             # if the user gets here means that something went wrong somewhere.
             return False
         return execute
@@ -1378,6 +1398,29 @@ def step_iml(context, css_selector):
     send_step_details(context, 'Focusing on element')
     context.browser.execute_script('let elem=document.querySelector("'+css_selector+'"); elem.scrollIntoView(); elem.focus()')
 
+# Highlight element
+@step(u'Highlight element with "{selector}"')
+@done(u'Highlight element with "{selector}"')
+def step_iml(context, selector):
+    send_step_details(context, 'Looking for selector')
+    element = waitSelector(context, "css", selector)
+    if isinstance(element, list) and len(element) > 0:
+        element = element[0]
+    send_step_details(context, 'Highlighting the element')
+    context.browser.execute_script('''
+    const element = arguments[0];
+    if (!window.cometa) window.cometa = {}
+    window.cometa.oldOutlineValue = element.style.outline;
+    window.cometa.oldOutlineOffsetValue = element.style.outlineOffset;
+    element.style.outline = "2px solid #f00";
+    element.style.outlineOffset = "1px";
+    ''', element)
+
+    # set highlight setting to be removed after step
+    context.highlighted_element = {
+        'element': element
+    }
+
 # Press Enter key
 @step(u'Press Enter')
 @done(u'Press Enter')
@@ -2378,10 +2421,15 @@ def addVariable(context, variable_name, result, encrypted=False):
         env_variables[index]['variable_value'] = result
         env_variables[index]['encrypted'] = encrypted
         env_variables[index]['updated_by'] = context.PROXY_USER['user_id']
-        # make the request to cometa_django and add the environment variable
-        response = requests.patch('http://cometa_django:8000/api/variables/' + str(env_variables[index]['id']) + '/', headers={"Host": "cometa.local"}, json=env_variables[index])
-        if response.status_code == 200:
-            env_variables[index] = response.json()['data']
+
+        # do not update if scope is data-driven
+        if 'scope' in env_variables[index] and env_variables[index]['scope'] == 'data-driven':
+            logger.info("Will not send request to update the variable in co.meta since we are in 'data-driven' scope.")
+        else:
+            # make the request to cometa_django and add the environment variable
+            response = requests.patch('http://cometa_django:8000/api/variables/' + str(env_variables[index]['id']) + '/', headers={"Host": "cometa.local"}, json=env_variables[index])
+            if response.status_code == 200:
+                env_variables[index] = response.json()['data']
     else: # create new variable
         logger.debug("Creating variable")
         # create data to send to django
@@ -2759,7 +2807,9 @@ def editFile(context, excelfile, value, cell):
     sheet = wb.active
 
     # assert the cell with value
-    cell_value = str(sheet[cell].value).strip()
+    cell = sheet[cell]
+    logger.debug(cell.data_type)
+    cell_value = str(cell.internal_value).strip()
     value = str(value).strip()
     logger.debug("Cell value: %s" % cell_value)
     logger.debug("Value to compare: %s" % value)
