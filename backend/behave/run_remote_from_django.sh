@@ -30,4 +30,7 @@ ln -sf /opt/code/cometa_itself/environment.py ${FOLDERPATH}/environment.py
 
 # execute the testcase
 echo "1 - /usr/local/bin/behave $FEATURE_FILE --summary --junit --junit-directory ${FOLDERPATH}/junit_reports/"
-/usr/local/bin/behave "$FEATURE_FILE" --summary --junit --junit-directory ${FOLDERPATH}/junit_reports/ 
+/usr/local/bin/behave "$FEATURE_FILE" \
+    --summary --junit --junit-directory \
+    ${FOLDERPATH}/junit_reports/ --no-skipped \
+    --quiet --no-multiline --format=null

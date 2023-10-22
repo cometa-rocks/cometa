@@ -1,0 +1,266 @@
+
+@import 'color';
+@import 'breakpoints';
+
+:host::ng-deep .edit-feature-info .mat-form-field .mat-form-field-infix {
+    width: 130px;
+}
+
+.edit-feature-info {
+    @media (max-width: 600px) {
+        flex-wrap: wrap;
+    }
+    .mat-form-field {
+        @-moz-document url-prefix() {
+            textarea {
+              height: 15px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            flex: 1 100% !important;
+        }
+    }
+}
+
+
+
+.table-container {
+    max-height: 300px;
+    overflow: auto;
+    tr.mat-header-row {
+        position: sticky;
+        z-index: 1;
+        top: 0;
+    }
+    table.mat-table {
+        width: 100%;
+        min-width: 700px;
+    }
+
+    td.mat-cell,
+    th.mat-header-cell {
+        padding: 0;
+    }
+
+    .removed {
+        td:not(:last-child) {
+            opacity: 0.6;
+        }
+    }
+
+    .mat-column-name {
+        height: 50px;
+        div.name-wrapper {
+            display:flex;
+            align-items: center;
+            color: $blue;
+            font-weight: bold;
+            mat-spinner {
+                margin-right: 5px;
+            }
+            span.canDownload {
+                cursor: pointer;
+            }
+        }
+    }
+}
+
+
+
+.no-clouds {
+    font-size: 1.05rem;
+    color: rgba(black, .75);
+}
+
+a {
+    color: $blue;
+    text-decoration: none;
+}
+
+.mat-radio-button {
+    margin: 0 10px;
+}
+
+.mat-expansion-panel {
+    // overflow: unset;
+}
+
+:host::ng-deep .mat-dialog-content {
+    padding: 0 10px 5px;
+    @include for-tablet-portrait-up {
+        padding: 0 24px 5px;
+    }
+}
+
+:host::ng-deep .mat-expansion-panel-body {
+    padding: 0 15px 16px;
+    @include for-tablet-portrait-up {
+        padding: 0 24px 16px;
+    }
+}
+
+.schedule-help {
+    margin-top: 10px;
+    cursor: pointer;
+    color: #0171BC;
+    font-size: 10pt;
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.run-now {
+    text-align: center;
+    margin: 20px 0 30px;
+}
+
+.edit-feature-loader {
+    margin: 0 auto;
+}
+
+.edit-variables {
+    margin-left: 0;
+    margin-top: 20px;
+    @include for-tablet-portrait-up {
+        margin-left: 20px;
+        margin-top: 0;
+    }
+}
+
+.department-warning {
+    display: inline-flex;
+    align-items: center;
+    color: $blue;
+    margin-bottom: 15px;
+    .mat-icon {
+        font-size: 20px;
+        height: 20px;
+        margin-right: 5px;
+    }
+}
+
+.depends {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    @include for-tablet-portrait-up {
+        flex-direction: row;
+        align-items: center;
+        .mat-checkbox:not(:first-child) {
+            margin-left: 20px;
+        }
+    }
+}
+
+::ng-deep .options .mat-ripple-element {
+    background-color: rgba($color: $blue, $alpha: .1) !important
+}
+
+.last-edition {
+    margin-top: 20px;
+    display: inline-block;
+}
+
+h2 {
+    color: $blue;
+}
+
+button {
+    font-weight: bold;
+}
+
+.add {
+    cursor: pointer;
+    margin-left: 15px;
+    margin-top: 10px;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+}
+
+.remove_all {
+    cursor: pointer;
+    margin-left: 15px;
+    margin-top: 10px;
+    position: absolute;
+    top: 10px;
+    right: 130px;
+}
+
+.mobile {
+    display: none;
+}
+
+.edit-feature-info {
+    display: flex;
+    .edit-description {
+        flex: 1 60%;
+    }
+    .edit-app {
+        flex: 1 20%;
+    }
+    .edit-env {
+        flex: 1 20%;
+    }
+}
+
+.schedule {
+    width: 100%;
+}
+
+.schedule::ng-deep .mat-form-field-infix {
+    width: auto !important;
+    text-align: center;
+}
+
+.mat-radio-button {
+    display: block;
+    margin-top: 15px;
+    @include for-tablet-portrait-up {
+        display: inline-block;
+        margin-top: 0;
+    }
+}
+
+.edit-feature-help-icon {
+    position: absolute;
+    bottom: 10px;
+    right: 30px;
+}
+
+.next_run {
+	line-height: 1.2rem;
+	li {
+		margin-left: 10px;
+		list-style: "\2192  ";
+	}
+}
+
+.right {
+    display: flex;
+    justify-content: flex-end;
+}
+
+:host ::ng-deep .mtx-grid {
+    padding-bottom: 25px;
+    .mtx-grid-toolbar {
+        padding: 0;
+    }
+    .mtx-grid-toolbar-content {
+        flex-grow: 1;
+        .custom_toolbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-right: 5px;
+
+            button {
+                font-weight: 100;
+            }
+        }
+    }
+    .no-expand .mtx-grid-row-expand-button {
+        visibility: hidden;
+    }    
+}

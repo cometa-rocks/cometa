@@ -37,6 +37,15 @@ Author: dph000
         </div>
         Create feature
       </button>
+      <!--
+        <button *ngIf="canCreateFeature && hasSubscription" class="addDataDrivenIcon" mat-raised-button
+          aria-label="Create Data Driven button" [routerLink]="['/data-driven']" [class.hideAdd]="!openedAdd">
+          <div class="icon">
+            <i class="feature-icon"></i>
+          </div>
+          Create Data Driven Test
+        </button>
+      -->
     </div>
     <!-- The whole directory tree and options to switch the shown list -->
     <div class="folder-tree">
@@ -130,6 +139,12 @@ Author: dph000
     <ng-container *ngIf="(aciveList$ | async) == 'home'">
       <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
       <cometa-welcome> </cometa-welcome>
+    </ng-container>
+
+    <!-- List of the DataDriven Runs -->
+    <ng-container *ngIf="(aciveList$ | async) == 'data-driven'">
+      <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-data-driven-runs></cometa-data-driven-runs>
     </ng-container>
 
     <!-- List of the Department variables -->
