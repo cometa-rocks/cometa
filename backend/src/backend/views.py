@@ -1496,7 +1496,7 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
         df.columns = df.columns.str.replace(" ", "_").str.lower()
 
         # check if feature id or feature name column is present
-        if 'feature_id' not in df.columns or 'feature_name' not in df.columns:
+        if 'feature_id' not in df.columns and 'feature_name' not in df.columns:
             raise Exception("Missing 'Feature id' or 'Feature Name' columns, please add one and re-try.")
 
         # convert row to json

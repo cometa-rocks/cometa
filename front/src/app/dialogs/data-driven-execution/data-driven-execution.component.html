@@ -15,13 +15,13 @@
             <mat-form-field appearance="fill" class="edit-dep">
               <mat-label>Department</mat-label>
               <mat-select [(ngModel)]="department">
-                <mat-option *ngFor="let dep of departments$ | sortBy:'department_name'" [value]="dep">
+                <mat-option *ngFor="let dep of ( departments$ | async ) | sortBy:'department_name'" [value]="dep">
                   {{ dep.department_name }}
                 </mat-option>
               </mat-select>
             </mat-form-field>
           </div>
-          <div *ngIf="department.department_name === 'Default' && departments$.length > 1" class="department-warning">
+          <div *ngIf="department.department_name === 'Default' && (departments$ | async).length > 1" class="department-warning">
             <mat-icon>warning</mat-icon>
             <span>Selecting <strong>Default</strong> department will make all the files you upload visible to everyone, use it with caution!</span>
           </div>
@@ -37,7 +37,7 @@
           <mat-panel-description>Upload/Download department files</mat-panel-description>
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
-          <ng-container *ngIf="department?.files.length > 0; else noFiles">
+          <ng-container>
             <div class="table-container">
               <mtx-grid [data]="department?.files | availableFiles"
                         [columns]="columns"
@@ -54,6 +54,7 @@
                         [pageSizeOptions]="[10,50,100]"
                         [cellTemplate]="{status: statusTpl, size: sizeTpl, created_on: dateTpl}"
                         [showPaginator]="showPagination"
+                        [noResultTemplate]="noFilesTpl"
                         [toolbarTemplate]="toolbarTpl"
                         (page)="updateData($event)"
                         [expandable]="true"
@@ -62,11 +63,6 @@
               </mtx-grid>
             </div>
           </ng-container>
-          <ng-template #noFiles>
-            <div class="no-files">
-                <p>Currently this department has no files, upload one by clicking upload button.</p>
-            </div>
-          </ng-template>
         </ng-template>
       </mat-expansion-panel>
       <!-- FILE UPLOAD -->
@@ -96,7 +92,6 @@
   </div>
 </ng-template>
 
-
 <ng-template #expansionTpl let-row>
   <mtx-grid [data]="row.file_data"
     [columns]="row.columns || []"
@@ -119,4 +114,9 @@
 <!-- NO RESULTS TEMPLATE -->
 <ng-template #noFileDataTpl>
   No Data Found.
+</ng-template>
+
+<!-- No Results template for the execution popup! -->
+<ng-template #noFilesTpl>
+  <p>Currently this department has no files, upload one by clicking upload button.</p>
 </ng-template>
