@@ -98,7 +98,6 @@ export class DataDrivenExecution implements OnInit {
     formData.append("department_id", detpid);
 
     this.fileUpload.startUpload(files, formData, this.department, this.user);
-    this.cdRef.detectChanges();
   }
 
   onDeleteFile(file: UploadedFile) {
@@ -281,7 +280,6 @@ export class DataDrivenExecution implements OnInit {
 
   expand(event) {
     if (event.expanded) {
-      console.log(event)
       const row = event.data;
       if (!row.file_data) {
         // set some params
