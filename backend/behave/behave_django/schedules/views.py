@@ -75,8 +75,8 @@ def run_test(request):
     logger.debug('Environment Variables: {}'.format(VARIABLES))
     PROXY_USER = request.POST['HTTP_PROXY_USER'] # user who executed the testcase
     logger.debug('Executed By: {}'.format(PROXY_USER))
-    browsers = json.loads(request.POST['browsers']) # browsers list of the feature
-    logger.debug('Browsers: {}'.format(browsers))
+    executions = json.loads(request.POST['browsers']) # browsers list of the feature
+    logger.debug('Executions: {}'.format(executions))
     feature_id = request.POST['feature_id'] # id of the feature that is being executed
     logger.debug('Feature id: {}'.format(feature_id))
     department = request.POST['department'] # department where the feature belongs, set in request so we can get the department settings
@@ -94,104 +94,22 @@ def run_test(request):
         'department': department,
         'feature_id': feature_id
     }
-    """
-    os.environ['feature_run'] = str(feature_run)
-    os.environ['X_SERVER'] = X_SERVER
-    os.environ['PROXY_USER'] = PROXY_USER
-    os.environ['VARIABLES'] = VARIABLES
-    os.environ['PARAMETERS'] = PARAMETERS
-    os.environ['department'] = department
-    """
 
     # Loads user data
     user_data = json.loads(PROXY_USER)
 
-    # Prefetch Browserstack browsers and local
-    # Only if some browser has 'latest' in browser_version
-    logger.debug("Prefetching browsers from local and BrowserStack in case browsers contain 'latest' as browser version.")
-    cloud_browsers = []
-    local_browsers = []
-    for browser in browsers:
-        #3013: Fix missing cloud property in outdated favourited browsers
-        if 'cloud' not in browser and browser.get("os","").lower() == "generic":
-            browser['cloud'] = "local"
-        # Check selected cloud is local and we don't have it yet
-        if browser.get('cloud') == 'local' and len(local_browsers) == 0:
-            logger.debug("Found 'local' as cloud for browser. Getting local browsers.")
-            # Get local browsers
-            response = requests_retry.get('http://cometa_django:8000/api/browsers/', headers={'Host': 'cometa.local'})
-            # Save downloaded browsers
-            local_browsers = list(map(lambda x: x.get('browser_json'), response.json()))
-            logger.debug('Response status code from local browsers api: {}'.format(response.status_code))
-        # Check selected cloud is browserstack and we don't have it yet
-        elif len(cloud_browsers) == 0:
-            logger.debug("Found 'cloud' as cloud for browser. Getting BrowserStack browsers.")
-            response = requests_retry.get('http://cometa_django:8000/browsers/browserstack/', headers={'Host': 'cometa.local'})
-            cloud_browsers = response.json()['results']
-            logger.debug('Response status code from BrowserStack browsers api: {}'.format(response.status_code))
-    
-    # Generate random hash for image url obfuscating
-    run_hash = secrets.token_hex(nbytes=8)
-
-    # Initialize Thread Pool with one worker for each browser
-    logger.debug('Creating a thread pool to execute testcase in parallel.')
-    # Return completed run if not browsers are found
-    if len(browsers) == 0:
-        logger.debug('Feature has no browser assigned.')
-        requests.post('http://cometa_socket:3001/feature/%d/runCompleted' % int(feature_id), json={
-            'type': '[WebSockets] Completed Feature Run',
-            'run_id': int(feature_run),
-            'datetime': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-            'user_id': user_data['user_id']
-        })
-        return JsonResponse({}, status = 200)
-    
     # save all the jobs
     jobs = []
 
     # create a thread for each browser
-    for browser in browsers:
+    for execution in executions:
+        browser = execution['browser']
+        feature_result_id = execution['feature_result_id']
+        run_hash = execution['run_hash']
+
         logger.debug("Execution testcase in browser: {}".format(browser))
-        # Check browser for valid values and repairs outdated versions
-        try:
-            browser = checkBrowser(browser, local_browsers, cloud_browsers)
-        except Exception as err:
-            # Show error in Live Steps Viewer
-            requests.post('http://cometa_socket:3001/feature/%s/error' % feature_id, data={
-                "browser_info": json.dumps(browser),
-                "feature_result_id": 0,
-                "run_id": feature_run,
-                "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-                "error": str(err),
-                "user_id": user_data['user_id']
-            })
-            # Continue on next browser, skipping current browser execution
-            continue
         # dump the json as string
         browser = json.dumps(browser)
-        # data to create a feature_result for the current session
-        data = {
-            "feature_id": feature_id,
-            "result_date": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-            "browser": browser,
-            "feature_run": feature_run,
-            "executed_by": user_data['user_id'],
-            "running": True,
-            "run_hash": run_hash
-        }
-        # send the request with the data
-        response = requests_retry.post('http://cometa_django:8000/api/feature_results/', headers={'Host': 'cometa.local'}, data=data)
-        if response.status_code != 201:
-            # Something went wrong while creating a feature result for current browser
-            # This can be due to a Server Error
-            logger.error('Unable to retrieve feature_result_id for current browser execution.')
-            exit
-        # save the feature_result_id to the environment variable
-        try:
-            feature_result_id = str(response.json()['feature_result_id'])
-        except json.decoder.JSONDecodeError as err:
-            logger.error('Failed to parse Django response as JSON. See Sentry for details.')
-            capture_exception(err)
         # send websocket about the feature has been queued
         request = requests.get('http://cometa_socket:3001/feature/%s/queued' % feature_id, data={
             "user_id": user_data['user_id'],
@@ -202,7 +120,7 @@ def run_test(request):
         })
         # add missing variables to environment_variables dict
         environment_variables['BROWSER_INFO'] = browser
-        environment_variables['feature_result_id'] = feature_result_id
+        environment_variables['feature_result_id'] = str(feature_result_id)
         environment_variables['RUN_HASH'] = run_hash
         # Add the current browser to the thread pool
         job = django_rq.enqueue(
@@ -221,48 +139,6 @@ def run_test(request):
 
     # Wait for the thread pool to finish
     return JsonResponse({}, status = 200)
-
-# Checks if the selected browser is valid using the array of available browsers
-# for the selected cloud, it also tries to repair the selected browser object
-def checkBrowser(selected, local_browsers, cloud_browsers):
-    # Retrieve all browsers from either local or browserstack
-    browsers = local_browsers if selected.get('cloud', 'browserstack') == 'local' else cloud_browsers
-    if selected.get('cloud', '') == 'local' and selected.get('mobile_emulation', False):
-        # In that case just assign the latest version of Chrome for the emulated browser
-        # Exclude non stable versions by checking if version can be numeric (without dots)
-        browsers = [ x for x in browsers if x.get('browser_version').replace('.', '').isnumeric() and x.get('browser') == 'chrome' ]
-        # Sort browsers by browser_version
-        browsers = sorted(browsers, key=lambda k: int(k.get('browser_version').replace('.', '')), reverse=True)
-        version = browsers[0].get('browser_version')
-        selected['browser_version'] = version
-        selected['mobile_user_agent'] = selected['mobile_user_agent'].replace('$version', version)
-        selected['browser'] = 'chrome'
-        return selected
-    # Set common browser properties
-    fields = ['browser', 'device', 'os', 'os_version', 'real_mobile']
-    # Filter corresponding browsers with properties from selected browser
-    # If the resulting array contains 0 elements, it means the selected browser
-    # is not found, and therefore is invalid
-    for field in fields:
-        browsers = [ x for x in browsers if x.get(field) == selected.get(field) ]
-    if len(browsers) == 0:
-        raise Exception('Found invalid browser object')
-    # Filter browsers by the version in the selected browser
-    # If the resulting array contains 0 elements, it means the selected browser
-    # has an outdated browser version or invalid, in that case 
-    browsers_versions = [ x for x in browsers if x.get('browser_version') == selected.get('browser_version') ]
-    # Handle exception of "latest" version, it is handled later
-    if selected.get('browser_version', '') == "latest" or len(browsers_versions) == 0:
-        # Exclude non stable versions by checking if version can be numeric (without dots)
-        browsers = [ x for x in browsers if x.get('browser_version').replace('.', '').isnumeric() ]
-        # Sort browsers by browser_version
-        browsers = sorted(browsers, key=lambda k: int(k.get('browser_version').replace('.', '')), reverse=True)
-        try:
-            # Assign the version of the first sorted browser
-            selected['browser_version'] = browsers[0].get('browser_version')
-        except:
-            raise Exception('Unable to find latest version for the selected browser')
-    return selected
     
 @require_http_methods(["GET"])
 @csrf_exempt

@@ -247,7 +247,6 @@ export class EditFeature implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(event: KeyboardEvent) {
     // only execute switch case if child dialog is closed
     if (this.variable_dialog_isActive) return
-
     switch (event.keyCode) {
       case KEY_CODES.ESCAPE:
         // Check if form has been modified before closing
@@ -264,6 +263,10 @@ export class EditFeature implements OnInit, OnDestroy {
         } else {
           this.dialogRef.close();
         }
+        break;
+      case KEY_CODES.V:
+        if (event.ctrlKey && event.altKey) this.editVariables();
+        break;
     }
   }
 
