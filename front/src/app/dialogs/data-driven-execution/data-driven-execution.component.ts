@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from "@angular/core";
-import { Select } from "@ngxs/store";
+import { Select, Store } from "@ngxs/store";
 import { Observable } from "rxjs";
 import { FeaturesState } from "@store/features.state";
 import { ViewSelectSnapshot } from "@ngxs-labs/select-snapshot";
@@ -14,6 +14,7 @@ import { InterceptorParams } from "ngx-network-error";
 import { DataDrivenTestExecuted } from "./data-driven-executed/data-driven-executed.component";
 import { DepartmentsState } from "@store/departments.state";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { Departments } from "@store/actions/departments.actions";
 
 @Component({
   selector: "data-driven-execution",
@@ -70,12 +71,14 @@ export class DataDrivenExecution implements OnInit {
   @ViewSelectSnapshot(UserState) user!: UserInfo;
 
   department: Department;
+  file_data = {};
 
   constructor(
     private fileUpload: FileUploadService,
     private _snackBar: MatSnackBar,
     private _http: HttpClient,
     private cdRef: ChangeDetectorRef,
+    private _store: Store,
     private _dialog: MatDialog,
     public dialogRef: MatDialogRef<DataDrivenExecution>,
   ) {
@@ -174,6 +177,21 @@ export class DataDrivenExecution implements OnInit {
     
     this.departments$.subscribe(deps => {
       this.department = deps.find(d => d.department_id == (this.department ? this.department.department_id : preselectDepartment)) || deps[0];
+      this.department.files.forEach((file: UploadedFile) => {
+        if (!file.is_removed && !this.file_data[file.id]) this.file_data[file.id] = {
+          id: file.id,
+          file_data: [],
+          columns: [],
+          params: {
+            page: 0,
+            size: 10
+          },
+          total: 0,
+          isLoading: false,
+          showPagination: false,
+          fetched: false
+        }
+      })
     });
   }
 
@@ -267,6 +285,7 @@ export class DataDrivenExecution implements OnInit {
       },
       complete: () => {
         row.isLoading = false
+        row.fetched = true;
         this.cdRef.detectChanges();
       }
     })
@@ -280,13 +299,8 @@ export class DataDrivenExecution implements OnInit {
 
   expand(event) {
     if (event.expanded) {
-      const row = event.data;
-      if (!row.file_data) {
-        // set some params
-        row.params = {
-          page: 0,
-          size: 10
-        }
+      const row = this.file_data[event.data.id] 
+      if (!row.fetched) {
         // fetch data
         this.getFileData(row)
       }
