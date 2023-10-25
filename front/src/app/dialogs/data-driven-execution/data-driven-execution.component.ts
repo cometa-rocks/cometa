@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from "@angular/core";
 import { Select, Store } from "@ngxs/store";
-import { Observable } from "rxjs";
+import { Observable, finalize } from "rxjs";
 import { FeaturesState } from "@store/features.state";
 import { ViewSelectSnapshot } from "@ngxs-labs/select-snapshot";
 import { ConfigState } from "@store/config.state";
@@ -24,8 +24,8 @@ import { Departments } from "@store/actions/departments.actions";
 export class DataDrivenExecution implements OnInit {
   columns: MtxGridColumn[] = [
     {header: 'Status', field: 'status', showExpand: true, class: (row: UploadedFile, col: MtxGridColumn) => {
-      if (row && row.status !== 'Done') return 'no-expand';
-      else return '';
+      if (this.showDataChecks(row)) return '';
+      else return 'no-expand';
     }},
     {header: 'File Name', field: 'name', sortable: true, class: 'name'},
     {header: 'Size', field: 'size', sortable: true},
@@ -47,6 +47,7 @@ export class DataDrivenExecution implements OnInit {
           click: (result: UploadedFile) => {
             this.execute_data_driven(result, this)
           },
+          iif: (row) => this.showDataChecks(row) && this.dataDrivenExecutable(row)
         },
         {
           type: 'icon',
@@ -170,6 +171,26 @@ export class DataDrivenExecution implements OnInit {
     }
   }
   
+  showDataChecks(row: UploadedFile) {
+    if (
+        row &&
+        row.status === 'Done'
+    ) return true;
+
+    return false;
+  }
+
+  dataDrivenExecutable(row: UploadedFile) {
+    if (
+        row &&
+        row.extras &&
+        row.extras.ddr &&
+        row.extras.ddr['data-driven-ready']
+    ) return true;
+
+    return false;
+  }
+
   preSelectedOrDefaultOptions() {
     const { 
       preselectDepartment,
@@ -251,7 +272,11 @@ export class DataDrivenExecution implements OnInit {
         size: row.params.size,
         page: row.params.page + 1
       })
-    }).subscribe({
+    }).pipe(finalize(() => {
+        row.isLoading = false
+        row.fetched = true;
+        this.cdRef.detectChanges();
+    })).subscribe({
       next: (res: any) => {
         res = JSON.parse(res);
         row.file_data = res.results.map(d => d.data)
@@ -282,11 +307,6 @@ export class DataDrivenExecution implements OnInit {
           ]
           row.showPagination = false;
         }
-      },
-      complete: () => {
-        row.isLoading = false
-        row.fetched = true;
-        this.cdRef.detectChanges();
       }
     })
   }
