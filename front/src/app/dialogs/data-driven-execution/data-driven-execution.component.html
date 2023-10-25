@@ -93,20 +93,20 @@
 </ng-template>
 
 <ng-template #expansionTpl let-row>
-  <mtx-grid [data]="row.file_data"
-    [columns]="row.columns || []"
+  <mtx-grid [data]="file_data[row.id].file_data"
+    [columns]="file_data[row.id].columns"
     [sortOnFront]="true"
     sortDirection="desc"
     [sortDisableClear]="true"
     [sortDisabled]="false"
     [pageOnFront]="false"
-    [pageIndex]="row.params ? row.params.page : 0"
-    [pageSize]="row.params ? row.params.size : 10"
-    [length]="row.total"
+    [pageIndex]="file_data[row.id].params ? file_data[row.id].params.page : 0"
+    [pageSize]="file_data[row.id].params ? file_data[row.id].params.size : 10"
+    [length]="file_data[row.id].total"
     [pageSizeOptions]="[10,50,100]"
     [noResultTemplate]="noFileDataTpl"
-    [loading]="row.isLoading"
-    [showPaginator]="row.showPagination"
+    [loading]="file_data[row.id].isLoading"
+    [showPaginator]="file_data[row.id].showPagination"
     (page)="updateData($event, row)">
   </mtx-grid>
 </ng-template>

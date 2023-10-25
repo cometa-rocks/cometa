@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, HostListener, OnInit } from "@angular/core";
-import { Select } from "@ngxs/store";
-import { Observable } from "rxjs";
+import { Select, Store } from "@ngxs/store";
+import { Observable, finalize } from "rxjs";
 import { FeaturesState } from "@store/features.state";
 import { ViewSelectSnapshot } from "@ngxs-labs/select-snapshot";
 import { ConfigState } from "@store/config.state";
@@ -14,6 +14,7 @@ import { InterceptorParams } from "ngx-network-error";
 import { DataDrivenTestExecuted } from "./data-driven-executed/data-driven-executed.component";
 import { DepartmentsState } from "@store/departments.state";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { Departments } from "@store/actions/departments.actions";
 
 @Component({
   selector: "data-driven-execution",
@@ -23,8 +24,8 @@ import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 export class DataDrivenExecution implements OnInit {
   columns: MtxGridColumn[] = [
     {header: 'Status', field: 'status', showExpand: true, class: (row: UploadedFile, col: MtxGridColumn) => {
-      if (row && row.status !== 'Done') return 'no-expand';
-      else return '';
+      if (this.showDataChecks(row)) return '';
+      else return 'no-expand';
     }},
     {header: 'File Name', field: 'name', sortable: true, class: 'name'},
     {header: 'Size', field: 'size', sortable: true},
@@ -46,6 +47,7 @@ export class DataDrivenExecution implements OnInit {
           click: (result: UploadedFile) => {
             this.execute_data_driven(result, this)
           },
+          iif: (row) => this.showDataChecks(row) && this.dataDrivenExecutable(row)
         },
         {
           type: 'icon',
@@ -70,12 +72,14 @@ export class DataDrivenExecution implements OnInit {
   @ViewSelectSnapshot(UserState) user!: UserInfo;
 
   department: Department;
+  file_data = {};
 
   constructor(
     private fileUpload: FileUploadService,
     private _snackBar: MatSnackBar,
     private _http: HttpClient,
     private cdRef: ChangeDetectorRef,
+    private _store: Store,
     private _dialog: MatDialog,
     public dialogRef: MatDialogRef<DataDrivenExecution>,
   ) {
@@ -167,6 +171,26 @@ export class DataDrivenExecution implements OnInit {
     }
   }
   
+  showDataChecks(row: UploadedFile) {
+    if (
+        row &&
+        row.status === 'Done'
+    ) return true;
+
+    return false;
+  }
+
+  dataDrivenExecutable(row: UploadedFile) {
+    if (
+        row &&
+        row.extras &&
+        row.extras.ddr &&
+        row.extras.ddr['data-driven-ready']
+    ) return true;
+
+    return false;
+  }
+
   preSelectedOrDefaultOptions() {
     const { 
       preselectDepartment,
@@ -174,6 +198,21 @@ export class DataDrivenExecution implements OnInit {
     
     this.departments$.subscribe(deps => {
       this.department = deps.find(d => d.department_id == (this.department ? this.department.department_id : preselectDepartment)) || deps[0];
+      this.department.files.forEach((file: UploadedFile) => {
+        if (!file.is_removed && !this.file_data[file.id]) this.file_data[file.id] = {
+          id: file.id,
+          file_data: [],
+          columns: [],
+          params: {
+            page: 0,
+            size: 10
+          },
+          total: 0,
+          isLoading: false,
+          showPagination: false,
+          fetched: false
+        }
+      })
     });
   }
 
@@ -233,7 +272,11 @@ export class DataDrivenExecution implements OnInit {
         size: row.params.size,
         page: row.params.page + 1
       })
-    }).subscribe({
+    }).pipe(finalize(() => {
+        row.isLoading = false
+        row.fetched = true;
+        this.cdRef.detectChanges();
+    })).subscribe({
       next: (res: any) => {
         res = JSON.parse(res);
         row.file_data = res.results.map(d => d.data)
@@ -264,10 +307,6 @@ export class DataDrivenExecution implements OnInit {
           ]
           row.showPagination = false;
         }
-      },
-      complete: () => {
-        row.isLoading = false
-        this.cdRef.detectChanges();
       }
     })
   }
@@ -280,13 +319,8 @@ export class DataDrivenExecution implements OnInit {
 
   expand(event) {
     if (event.expanded) {
-      const row = event.data;
-      if (!row.file_data) {
-        // set some params
-        row.params = {
-          page: 0,
-          size: 10
-        }
+      const row = this.file_data[event.data.id] 
+      if (!row.fetched) {
         // fetch data
         this.getFileData(row)
       }
