@@ -14,7 +14,7 @@
           <div class="edit-data-driven-test">
             <mat-form-field appearance="fill" class="edit-dep">
               <mat-label>Department</mat-label>
-              <mat-select [(ngModel)]="department">
+              <mat-select [(ngModel)]="department" (selectionChange)="generateFileData()">
                 <mat-option *ngFor="let dep of ( departments$ | async ) | sortBy:'department_name'" [value]="dep">
                   {{ dep.department_name }}
                 </mat-option>
