@@ -58,7 +58,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 # import humanize for time conversion
 from backend.templatetags.humanize import *
 from sentry_sdk import capture_exception
-from backend.utility.uploadFile import UploadFile
+from backend.utility.uploadFile import UploadFile, getFileContent, decryptFile
 # from silk.profiling.profiler import silk_profile
 
 SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
@@ -1398,23 +1398,6 @@ def uploadFilesThread(files, department_id, uploaded_by):
         uploadFile = UploadFile(file, department_id, uploaded_by)
         print(uploadFile.proccessUploadFile())
 
-def decryptFile(source):
-    import tempfile
-    target = "/tmp/%s" % next(tempfile._get_candidate_names())
-
-    logger.debug(f"Decrypting source {source}")
-
-    try:
-        result = subprocess.run(["bash", "-c", f"gpg --output {target} --batch --passphrase {secret_variables.COMETA_UPLOAD_ENCRYPTION_PASSPHRASE} -d {source}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if result.returncode > 0:
-            # get the error
-            errOutput = result.stderr.decode('utf-8')
-            logger.error(errOutput)
-            raise Exception('Failed to decrypt the file, please contact an administrator.')
-        return target
-    except Exception as err:
-        raise Exception(str(err))
-
 class DataDrivenResultsViewset(viewsets.ModelViewSet):
     queryset = DataDriven_Runs.objects.none()
     serializer_class = FeatureResultSerializer
@@ -1480,42 +1463,6 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
     serializer_class = FileSerializer
     renderer_classes = (JSONRenderer, )
 
-    def getFileContent(self, file: File):
-        # decrypt file
-        targetPath = decryptFile(file.path)
-
-        import pandas as pd
-        try:
-            df = pd.read_csv(targetPath, header=0, skipinitialspace=True, skip_blank_lines=True)
-        except ValueError:
-            df = pd.read_excel(targetPath, header=0)
-        except:
-            raise Exception("Unable to parse excel or csv file.")
-        
-        # replace " " with "_" and to lower the column names
-        df.columns = df.columns.str.replace(" ", "_").str.lower()
-
-        # check if feature id or feature name column is present
-        if 'feature_id' not in df.columns and 'feature_name' not in df.columns:
-            raise Exception("Missing 'Feature id' or 'Feature Name' columns, please add one and re-try.")
-
-        # convert row to json
-        json_data = df.to_json(orient='records', lines=True).splitlines()
-
-        # add all the lines to the FileData
-        rows = (FileData(file=file, data=json.loads(data)) for data in json_data)
-        
-        # how many row we want to save in single query
-        batch_size = 100
-        file_data = []
-        while True:
-            batch = list(islice(rows, batch_size))
-            if not batch:
-                break
-            file_data.extend(FileData.objects.bulk_create(batch, batch_size))
-
-        return file_data
-
     def list(self, request, *args, **kwargs):
         file_id = kwargs.get('file_id', None)
         reparse = request.GET.get('reparse', None)
@@ -1544,7 +1491,8 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
             file_data.delete()
             try:
                 # parse file data
-                file_data = self.getFileContent(file)
+                file_data = getFileContent(file)
+                file.save()
             except Exception as err:
                 return JsonResponse({
                     "success": False,

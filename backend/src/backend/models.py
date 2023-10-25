@@ -36,6 +36,7 @@ file_status = (
     ('Unknown', 'Unknown',),
     ('Processing', 'Processing',),
     ('Scanning', 'Scanning',),
+    ('DataDriven', 'Data Driven Check',),
     ('Encrypting', 'Encrypting',),
     ('Done', 'Done',),
     ('Error', 'Error',),
@@ -1430,6 +1431,7 @@ class File(SoftDeletableModel):
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="files")
     status = models.CharField(max_length=10, choices=file_status, default="Unknown")
     uploaded_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True)
+    extras = models.JSONField(default=dict)
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
 
     def restore(self, using=None):
