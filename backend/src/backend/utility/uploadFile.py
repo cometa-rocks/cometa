@@ -1,12 +1,12 @@
-from django.http import JsonResponse
+from itertools import islice
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.uploadhandler import TemporaryFileUploadHandler
 from django.core.files.uploadedfile import UploadedFile
 from django.core.files import temp as tempfile
 from django.conf import settings
-import subprocess, magic, os, sys, requests, re
+import subprocess, magic, os, sys, requests, re, json
 from backend.common import UPLOADS_FOLDER
-from backend.models import File
+from backend.models import File, FileData
 from backend.serializers import FileSerializer
 from backend.utility.functions import getLogger
 sys.path.append("/code")
@@ -56,6 +56,76 @@ class TempFileUploadHandler(TemporaryFileUploadHandler):
         self.file = TempUploadedFile(
             self.file_name, self.content_type, 0, self.charset, self.content_type_extra
         )
+
+def decryptFile(source):
+    import tempfile
+    target = "/tmp/%s" % next(tempfile._get_candidate_names())
+
+    logger.debug(f"Decrypting source {source}")
+
+    try:
+        result = subprocess.run(["bash", "-c", f"gpg --output {target} --batch --passphrase {COMETA_UPLOAD_ENCRYPTION_PASSPHRASE} -d {source}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode > 0:
+            # get the error
+            errOutput = result.stderr.decode('utf-8')
+            logger.error(errOutput)
+            raise Exception('Failed to decrypt the file, please contact an administrator.')
+        return target
+    except Exception as err:
+        raise Exception(str(err))
+
+def getFileContent(file: File):
+    # decrypt file
+    targetPath = decryptFile(file.path)
+
+    import pandas as pd
+    try:
+        df = pd.read_csv(targetPath, header=0, skipinitialspace=True, skip_blank_lines=True)
+    except ValueError:
+        try:
+            df = pd.read_excel(targetPath, header=0)
+        except:
+            logger.info("saving data...")
+            file.extras['ddr'] = {
+                'data-driven-ready': False,
+                'reason': 'Unable to parse Excel or CSV file, please upload a valid Excel or CSV file.'
+            }
+            file.save()
+            raise Exception("Unable to parse excel or csv file.")
+    
+    # replace " " with "_" and to lower the column names
+    df.columns = df.columns.str.replace(" ", "_").str.lower()
+
+    # check if feature id or feature name column is present
+    if 'feature_id' not in df.columns and 'feature_name' not in df.columns:
+        file.extras['ddr'] = {
+            'data-driven-ready': False,
+            'reason': 'Missing \'feature_id\' or \'feature_name\' columns, please add one and re-upload.'
+        }
+        file.save()
+        raise Exception("Missing 'Feature id' or 'Feature Name' columns, please add one and re-try.")
+
+    # convert row to json
+    json_data = df.to_json(orient='records', lines=True).splitlines()
+
+    # add all the lines to the FileData
+    rows = (FileData(file=file, data=json.loads(data)) for data in json_data)
+    
+    # how many row we want to save in single query
+    batch_size = 100
+    file_data = []
+    while True:
+        batch = list(islice(rows, batch_size))
+        if not batch:
+            break
+        file_data.extend(FileData.objects.bulk_create(batch, batch_size))
+
+    file.extras['ddr'] = {
+        'data-driven-ready': True
+    }
+    file.save()
+
+    return file_data
 
 """
 
@@ -109,8 +179,13 @@ class UploadFile():
             return None
         
         # finally save the object if everything went well
-        self.file.status = "Done"
         try:
+            # ddr required file id
+            self.file.save()
+            # check the ddr
+            self.check_data_driven()
+            # update the status
+            self.file.status = "Done"
             self.file.save()
         except Exception as err:
             logger.error("Exception occured while trying to save file to database.")
@@ -259,3 +334,16 @@ class UploadFile():
     
     def sanitize(self, filename: str):
         return re.sub(r'[^A-Za-z0-9\.]', '-', filename)
+    
+    def check_data_driven(self):
+        logger.debug(f"Checking if file {self.tempFile.name} is data-driven ready ...")
+        self.file.status = "DataDriven"
+        # send a websocket about the processing being done.
+        self.sendWebsocket({
+            "type": "[Files] Checking Data Driven",
+            "file": FileSerializer(self.file, many=False).data
+        })
+        try:
+            getFileContent(self.file)
+        except Exception as err:
+            logger.warning(f"{self.file.name} is not DDR Ready.")

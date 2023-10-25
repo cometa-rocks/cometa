@@ -580,6 +580,10 @@ interface Toggles {
     hideSendMail: boolean;
 }
 
+interface FileExtras {
+    [key: string]: any;
+}
+
 interface UploadedFile {
     created_on?: string,
     id?: number,
@@ -593,7 +597,8 @@ interface UploadedFile {
     uploadPath?: string,
     uploaded_by?: Uploader,
     error?: FileUploadError,
-    status?: 'Unknown' | 'Processing' | 'Scanning' | 'Encrypting' | 'Done' | 'Error'
+    extras?: FileExtras,
+    status?: 'Unknown' | 'Processing' | 'Scanning' | 'Encrypting' | 'DataDriven' | 'Done' | 'Error'
 }
 
 interface Uploader {

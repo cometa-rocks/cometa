@@ -104,31 +104,8 @@
 <!-- TOOLBAR TEMPLATE -->
 <ng-template #toolbarTpl>
   <div class="custom_toolbar">
-    <mat-checkbox color="primary" [checked]="archived$ | async" (change)="handleArchived($event)">Show archived items</mat-checkbox>
-    <button mat-stroked-button [matMenuTriggerFor]="clearRunsTemplate">
-      <mat-icon>delete</mat-icon>
-      <span class="mdc-button__label">Clear Feature Results</span>
-    </button>
+    
   </div>
-
-  <!-- CLEAR Feature Results MENU -->
-  <mat-menu #clearRunsTemplate>
-    <div stopPropagation class="mat-menu-panel-category">Clear results</div>
-    <!-- All 4 options to delete runs -->
-    <button mat-menu-item (click)="clearRuns('all')">Clear all</button>
-    <button mat-menu-item (click)="clearRuns('all_failed')">Clear all failed</button>
-    <button mat-menu-item (click)="clearRuns('all_except_last')">Clear all except last run</button>
-    <mat-divider></mat-divider>
-    <div stopPropagation class="mat-menu-panel-category">Options</div>
-    <!-- Handle checkbox, if the user also wants to delete the associated template images -->
-    <button stopPropagation mat-menu-item>
-        <mat-checkbox [matTooltip]="'tooltips.delete_templates_with_features' | translate"
-            matTooltipPosition="below" [checked]="deleteTemplateWithResults$ | async"
-            (change)="handleDeleteTemplateWithResults($event)" color="primary">
-            Also delete templates
-        </mat-checkbox>
-    </button>
-  </mat-menu>
 </ng-template>
 
 <!-- NO RESULTS TEMPLATE -->
