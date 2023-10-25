@@ -13,6 +13,7 @@
 # ################################################################
 
 # CHANGELOG	VERSION	BY			COMMENT
+# 23-10-25  0.5     ASOHAIL     Adding ROOT CA Certificates to the browers if any.
 # 22-06-17  0.4     RROEBER     Adding Volume with for Upload Dummy Files
 # 22-04-06	0.3		ASOHAIL		Fixed jq issues with jq version 1.5
 # 22-04-05	0.2		ASOHAIL		Added change log and added output to stdout.
@@ -82,6 +83,8 @@ BASE_OPTIONS=`cat<<-EOF
 EOF
 `
 
+CA_ROOTS_VARIABLES='[]'
+
 # SOURCE LOGGER FUNCTIONS
 test `command -v log_wfr` || source ${HELPERS}/logger.sh
 
@@ -95,10 +98,10 @@ test `command -v log_wfr` || source ${HELPERS}/logger.sh
 # ################################################################
 function show_version_information() {
 	# Get script version from changelog
-	DATE=`cat $0 | grep -A1 CHANGELOG | head -n2 | tail -n1 | sed 's/# //g' | cut -f1`
-	VERSION=`cat $0 | grep -A1 CHANGELOG | head -n2 | tail -n1 | sed 's/# //g' | cut -f2`
-	AUTHOR=`cat $0 | grep -A1 CHANGELOG | head -n2 | tail -n1 | sed 's/# //g' | cut -f4`
-	COMMIT=`cat $0 | grep -A1 CHANGELOG | head -n2 | tail -n1 | sed 's/# //g' | cut -f6`
+	DATE=`cat $0 | grep -A1 CHANGELOG | head -n2 | tail -n1 | sed 's/# //g' | awk '{print $1}'`
+	VERSION=`cat $0 | grep -A1 CHANGELOG | head -n2 | tail -n1 | sed 's/# //g' | awk '{print $2}'`
+	AUTHOR=`cat $0 | grep -A1 CHANGELOG | head -n2 | tail -n1 | sed 's/# //g' | awk '{print $3}'`
+	COMMIT=`cat $0 | grep -A1 CHANGELOG | head -n2 | tail -n1 | sed 's/# //g' | awk '{print substr($0, index($0,$4))}'`
 	
 	echo -ne "Here is version information about ${0}.
 	
@@ -135,10 +138,35 @@ EXAMPLES:
 }
 
 # ################################################################
+# Get CA ROOT Certificate variables ready for the browsers  	 #
+# ################################################################
+function ca_root_variables() {
+    local certs_folder='/data/cometa/certs'
+
+    # check if the folder has any content
+    if [[ -d ${certs_folder} && `find ${certs_folder} -type f -readable | wc -l` -gt 0 ]]; then
+        # loop over all files and generate a variable
+        for cert in `find ${certs_folder} -type f -readable`; do
+            local checksum=`md5sum ${cert} | cut -d' ' -f1`
+            local content=`cat ${cert}`
+            local certdata="ROOT_CA_${checksum}=${content}"
+            CA_ROOTS_VARIABLES=`echo ${CA_ROOTS_VARIABLES} | jq ". |= .+ [\"${certdata}\"]"`
+        done
+    fi
+
+    # add variables to the base options if any
+    if [[ `echo ${CA_ROOTS_VARIABLES} | jq 'length'` -gt 0 ]]; then
+        BASE_OPTIONS=`echo ${BASE_OPTIONS} | jq ".env += ${CA_ROOTS_VARIABLES}"`
+    fi
+}
+
+# ################################################################
 # Main function that will populate all the necessary variables   #
 # to generate browsers.json file, pull, remove images			 #
 # ################################################################
 function main() {
+    # update the base options with CA_ROOT_CERTS if any
+    ca_root_variables
     # loop over browser
     for BROWSER in ${BROWSERS}
     do
