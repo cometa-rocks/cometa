@@ -14,7 +14,6 @@ import { InterceptorParams } from "ngx-network-error";
 import { DataDrivenTestExecuted } from "./data-driven-executed/data-driven-executed.component";
 import { DepartmentsState } from "@store/departments.state";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
-import { Departments } from "@store/actions/departments.actions";
 
 @Component({
   selector: "data-driven-execution",
@@ -63,7 +62,7 @@ export class DataDrivenExecution implements OnInit {
     }
   ];
 
-  @Select(DepartmentsState) departments$: Observable<Department[]>;
+  @Select(UserState.RetrieveUserDepartments) departments$: Observable<Department[]>;
 
   @Select(FeaturesState.GetFeaturesWithinFolder) features$: Observable<
     ReturnType<typeof FeaturesState.GetFeaturesWithinFolder>
@@ -191,14 +190,8 @@ export class DataDrivenExecution implements OnInit {
     return false;
   }
 
-  preSelectedOrDefaultOptions() {
-    const { 
-      preselectDepartment,
-    } = this.user.settings;
-    
-    this.departments$.subscribe(deps => {
-      this.department = deps.find(d => d.department_id == (this.department ? this.department.department_id : preselectDepartment)) || deps[0];
-      this.department.files.forEach((file: UploadedFile) => {
+  generateFileData() {
+    this.department.files.forEach((file: UploadedFile) => {
         if (!file.is_removed && !this.file_data[file.id]) this.file_data[file.id] = {
           id: file.id,
           file_data: [],
@@ -212,7 +205,17 @@ export class DataDrivenExecution implements OnInit {
           showPagination: false,
           fetched: false
         }
-      })
+    })
+  }
+
+  preSelectedOrDefaultOptions() {
+    const { 
+      preselectDepartment,
+    } = this.user.settings;
+    
+    this.departments$.subscribe(deps => {
+      this.department = deps.find(d => d.department_id == (this.department ? this.department.department_id : preselectDepartment)) || deps[0];
+      this.generateFileData()
     });
   }
 
