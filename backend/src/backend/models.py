@@ -435,6 +435,7 @@ class SoftDeletableModel(models.Model):
     Default manager returns only not-removed entries.
     """
     is_removed = models.BooleanField(default=False)
+    removed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -445,6 +446,7 @@ class SoftDeletableModel(models.Model):
 
     def restore(self, using=None):
         self.is_removed = False
+        self.removed_at = None
         self.save(using=using)
 
     def delete(self, using=None, soft=True, *args, **kwargs):
@@ -454,6 +456,7 @@ class SoftDeletableModel(models.Model):
         """
         if soft:
             self.is_removed = True
+            self.removed_at = datetime.datetime.utcnow()
             self.save(using=using)
             """ print('Entering delete() of SoftDeletableModel')
             self.deleted = True
@@ -1435,11 +1438,12 @@ class File(SoftDeletableModel):
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
 
     def restore(self, using=None):
+        delete_sufix = f"__{self.id}__deleted"
         # restore the file back to original state if exists
-        if os.path.exists(self.path) and '__deleted' in self.path:
-            newPath = self.path.replace("__deleted", "")
+        if os.path.exists(self.path) and delete_sufix in self.path:
+            newPath = self.path.replace(delete_sufix, "")
             logger.debug(f"Restoring {self.path} to {newPath}.")
-            shutil.move(self.path, newPath)
+            shutil.move(self.path, newPath) 
             self.path = newPath
 
         return super().restore(using)
@@ -1447,12 +1451,13 @@ class File(SoftDeletableModel):
     def delete(self, using=None, soft=True, *args, **kwargs):
         # if soft is set to True add __deleted to the filename
         if soft:
-            logger.debug(f"Soft delete: Moving {self.path} to {self.path}__deleted")
+            new_file_name = f"{self.path}__{self.id}__deleted"
+            logger.debug(f"Soft delete: Moving {self.path} to {new_file_name}")
             try:
-                shutil.move(self.path, f"{self.path}__deleted")
+                shutil.move(self.path, new_file_name)
             except FileNotFoundError:
                 logger.info("File not found, doing some cleanup.")
-            self.path = self.path + "__deleted"
+            self.path = new_file_name
 
         return super().delete(using=using, soft=soft, *args, **kwargs)
 
