@@ -14,14 +14,14 @@
           <div class="edit-data-driven-test">
             <mat-form-field appearance="fill" class="edit-dep">
               <mat-label>Department</mat-label>
-              <mat-select [(ngModel)]="department" (selectionChange)="generateFileData()">
-                <mat-option *ngFor="let dep of ( departments$ | async ) | sortBy:'department_name'" [value]="dep">
+              <mat-select [(ngModel)]="department_id" (selectionChange)="changeDepartment()">
+                <mat-option *ngFor="let dep of userDepartments$ | sortBy:'department_name'" [value]="dep.department_id">
                   {{ dep.department_name }}
                 </mat-option>
               </mat-select>
             </mat-form-field>
           </div>
-          <div *ngIf="department.department_name === 'Default' && (departments$ | async).length > 1" class="department-warning">
+          <div *ngIf="department.department_name === 'Default' && userDepartments$.length > 1" class="department-warning">
             <mat-icon>warning</mat-icon>
             <span>Selecting <strong>Default</strong> department will make all the files you upload visible to everyone, use it with caution!</span>
           </div>
