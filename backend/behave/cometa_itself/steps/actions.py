@@ -213,6 +213,8 @@ def done( *_args, **_kwargs ):
 
                 # replace variables in kwargs
                 for parameter in kwargs:
+                    if not kwargs[parameter]:
+                        continue
                     # replace variables
                     for key in env_variables:
                         variable_name = key['variable_name']
@@ -3632,8 +3634,20 @@ def step_imp(context, error_message):
     else:
         logger.warn(f"This is the last step, cannot assign custom error message to next step.")
 
+use_step_matcher("re")
+
+@step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?))\")*')
+@done(u'Make an API call')
+def api_call(context, method, endpoint, parameters, headers):
+    logger.debug({
+        "method": method,
+        "endpoint": endpoint,
+        "parameters": parameters,
+        "headers": headers
+    })
+
 # Ignores undefined steps
-@step(u'{step}')
+@step(u'(?P<step>.*)')
 @done(u'{step}')
 def step_imp(context, step):
     raise NotImplementedError(f"Unknown step found: '{step}'")
