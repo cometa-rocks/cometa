@@ -62,7 +62,9 @@ export class DataDrivenExecution implements OnInit {
     }
   ];
 
-  @Select(UserState.RetrieveUserDepartments) departments$: Observable<Department[]>;
+  @ViewSelectSnapshot(UserState.RetrieveUserDepartments) userDepartments$: Observable<Department[]>;
+  @Select(DepartmentsState) departments$: Observable<Department[]>;
+
 
   @Select(FeaturesState.GetFeaturesWithinFolder) features$: Observable<
     ReturnType<typeof FeaturesState.GetFeaturesWithinFolder>
@@ -70,6 +72,7 @@ export class DataDrivenExecution implements OnInit {
   @ViewSelectSnapshot(ConfigState) config$!: Config;
   @ViewSelectSnapshot(UserState) user!: UserInfo;
 
+  department_id: number;
   department: Department;
   file_data = {};
 
@@ -208,13 +211,22 @@ export class DataDrivenExecution implements OnInit {
     })
   }
 
+  changeDepartment() {
+    this.departments$.subscribe(deps => {
+      this.department = deps.find(d => d.department_id == this.department_id) || deps[0];
+      this.department_id = this.department.department_id;
+      this.generateFileData()
+    });
+  }
+
   preSelectedOrDefaultOptions() {
     const { 
       preselectDepartment,
     } = this.user.settings;
     
     this.departments$.subscribe(deps => {
-      this.department = deps.find(d => d.department_id == (this.department ? this.department.department_id : preselectDepartment)) || deps[0];
+      this.department = deps.find(d => d.department_id == (this.department_id ? this.department_id : preselectDepartment)) || deps[0];
+      this.department_id = this.department.department_id;
       this.generateFileData()
     });
   }
