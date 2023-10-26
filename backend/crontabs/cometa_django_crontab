@@ -2,9 +2,11 @@
 # This is the crontab which goes inside cometa django container via mounted volume from docker-compose
 # ####
 # Changelog:
+# 2023-10-24 ASO Soft Deletable Model object delete cronjob added.
 # 2021-08-24 RRO created
 # ####
 # ---
 # Execute housekeeping videos and feature results, every day at 1:00 am
 # ---
 0 0 * * * /usr/local/bin/python /opt/code/manage.py cleanup_videos; /usr/local/bin/python /opt/code/manage.py cleanup_results --all-departments --days 90;
+1 0 * * * /usr/local/bin/python /opt/code/manage.py cleanup_soft_deletes --all-departments;
