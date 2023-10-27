@@ -116,7 +116,7 @@ services:
     restart: always
 
   crontab:
-    image: cometa_crontab:1.0
+    image: cometa_cron:0.0.1-dev
     container_name: cometa_crontab
     networks:
       - testing

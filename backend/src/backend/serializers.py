@@ -285,11 +285,13 @@ class FeatureSerializer(serializers.ModelSerializer, FeatureMixin):
     info = FeatureRunInfoSerializer(many=False)
     last_edited = BasicOIDCAccountSerializer(many=False)
     created_by = BasicOIDCAccountSerializer(many=False)
+    schedule = serializers.CharField(source='schedule.schedule', allow_null=True, default="")
     last_edited_date = serializers.DateTimeField(format=datetimeTZFormat)
 
     class Meta:
         model = Feature
         fields = '__all__'
+        extra_fields = ('schedule', )
     def create(self, validated_data):
         return Feature.objects.create(**validated_data)
 
