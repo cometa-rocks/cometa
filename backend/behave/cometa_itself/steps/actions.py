@@ -163,13 +163,25 @@ def reset_element_highlight(context):
     try:
         if 'highlighted_element' in context:
             element = context.highlighted_element['element']
-            send_step_details(context, 'Resetting Highligthed element')
+            send_step_details(context, 'Resetting Highlighted element')
             context.browser.execute_script('''
             const element = arguments[0];
             element.style.outline = window.cometa.oldOutlineValue;
             element.style.outlineOffset = window.cometa.oldOutlineOffsetValue;
             ''', element)
             del context.highlighted_element
+    except Exception as err:
+        logger.exception(err)
+
+    try:
+        if 'highlighted_text' in context:
+            send_step_details(context, 'Resetting Highlighted text')
+            context.browser.execute_script('''
+            const element = document.body;
+            const pattern = new RegExp(`<mark data-by=(?:\'|\")co.meta(?:\'|\")>(.*?)</mark>`, 'gi');
+            element.innerHTML = element.innerHTML.replaceAll(pattern, "$1");
+            ''')
+            del context.highlighted_text
     except Exception as err:
         logger.exception(err)
 
@@ -1420,6 +1432,23 @@ def step_iml(context, selector):
     context.highlighted_element = {
         'element': element
     }
+
+# Highlight element
+@step(u'Highlight "{text}" on the page')
+@done(u'Highlight "{text}" on the page')
+def step_iml(context, text):
+    send_step_details(context, 'Highlighting the text')
+    context.browser.execute_script(f'''
+    const element = document.body;
+    const pattern = new RegExp('({text})', 'gi');
+    element.innerHTML = element.innerHTML.replaceAll(
+        pattern,
+        "<mark data-by='co.meta'>$1</mark>"
+    );
+    ''')
+
+    # set highlight setting to be removed after step
+    context.highlighted_text = True
 
 # Press Enter key
 @step(u'Press Enter')
