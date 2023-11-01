@@ -104,6 +104,14 @@ import { MtxGridModule } from '@ng-matero/extensions/grid';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 
 import { FeatureRunningPipe } from '../pipes/feature-running.pipe';
+import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
+import { BehaveChartTestComponent } from '@components/behave-charts/behave-chart.component';
+import { HighchartsChartModule } from 'highcharts-angular';
+import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
+import { NumeralPipe } from '@pipes/numeral.pipe';
+import { RoundProgressModule } from 'angular-svg-round-progressbar';
+import { ScreenshotBgPipe } from '@pipes/screenshot-bg.pipe';
+import { AvailableFilesPipe } from '@pipes/available-files.pipe';
 
 const components = [
   EnterValueComponent,
@@ -119,6 +127,7 @@ const components = [
   FolderComponent,
   NewFolderComponent,
   MoveFolderItemComponent,
+  BehaveChartTestComponent,
 ];
 
 const materialModules = [
@@ -149,6 +158,8 @@ const materialModules = [
   MatSortModule,
   MtxGridModule,
   ScrollingModule,
+  HighchartsChartModule,
+  RoundProgressModule,
 ];
 
 const snacks = [LoadingSnack];
@@ -191,6 +202,11 @@ const pipes = [
   DepartmentNamePipe,
   FeatureRunningPipe,
   HumanizeBytesPipe,
+  PixelDifferencePipe,
+  FirstLetterUppercasePipe,
+  NumeralPipe,
+  ScreenshotBgPipe,
+  AvailableFilesPipe,
 ];
 
 const dialogs = [

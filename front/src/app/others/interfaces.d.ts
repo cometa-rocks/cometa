@@ -233,6 +233,20 @@ interface FeatureRun {
   pixel_diff: number;
 }
 
+interface DataDrivenRun {
+  run_id: number;
+  date_time: string;
+  archived: boolean;
+  status: string;
+  total: number;
+  fails: number;
+  ok: number;
+  skipped: number;
+  execution_time: number;
+  pixel_diff: number;
+  file: File;
+}
+
 // Applications
 
 interface Application {
@@ -564,6 +578,10 @@ interface Toggles {
   hideSendMail: boolean;
 }
 
+interface FileExtras {
+  [key: string]: any;
+}
+
 interface UploadedFile {
   created_on?: string;
   id?: number;
@@ -577,11 +595,13 @@ interface UploadedFile {
   uploadPath?: string;
   uploaded_by?: Uploader;
   error?: FileUploadError;
+  extras?: FileExtras;
   status?:
     | 'Unknown'
     | 'Processing'
     | 'Scanning'
     | 'Encrypting'
+    | 'DataDriven'
     | 'Done'
     | 'Error';
 }

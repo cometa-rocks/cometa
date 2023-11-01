@@ -51,19 +51,11 @@
         z-index: 5 !important;
       }
     }
-  }
-  tbody tr {
-    height: 45px;
-    cursor: pointer;
-    &:nth-child(2n + 2) {
-      background-color: $low-black-opaque;
-    }
-    &:hover {
-      background-color: $high-black-opaque;
-    }
-    &.selected {
-      background-color: $selected-black-opaque;
-      td {
+    
+    td {
+        font-weight: bold;
+        color: $dark;
+        /* text-align: center; */
         &.name {
           color: $blue;
         }
