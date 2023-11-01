@@ -131,17 +131,7 @@ sed -i_template "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <ou
 # Check client id has been replaced
 #
 if grep -Rq "COMETA" "front/apache-conf/metadata/accounts.google.com.client"  ; then 
-	warning "Found default string in accounts.google.com.client file - you must replace this before going forward."
-    read -n 1 -s -r -p "Press any key to continue"
-    if grep -Rq "GITCLIENTID" "front/apache-conf/metadata/git.amvara.de.client"  ; then 
-        warning "Found default string in git.amvara.de.client file - you must replace this before going forward."
-        warning "If neither Google nor Gitlab is configured, you will not be able to login."
-        warning "Going forward with installation does not make sense, until SSO is configured. Exiting."
-        warning "Goto git.amvara.de, create an account. Goto Settings, Applications, add new Application and retrieve your access token."
-        exit
-    else 
-        info "The default string in git.amvara.de.client was replaced with something else - hopefully your Gitlab oAuth client credentials";
-    fi
+	warning "Found default string in accounts.google.com.client file - you must replace this before going forward";
 else 
 	info "The default string in accounts.google.com.client was replaced with something else - hopefully your google oAuth client credentials";
 fi
@@ -151,7 +141,7 @@ fi
 # Bring up the system
 #
 info "Starting containers"
-docker-compose up -d && info "Started docker ... now waiting for container to come alive " || warn "docker-compose command finished with error"
+docker compose up -d && info "Started docker ... now waiting for container to come alive " || warn "docker-compose command finished with error"
 
 #
 # How to wait for System ready?
@@ -163,7 +153,7 @@ docker-compose up -d && info "Started docker ... now waiting for container to co
 #
 if [ "${RUNSELENOIDSCRIPT:-false}" = "true" ]; then
 	info "Downloading latest browser versions"
-	./backend/selenoid/deploy_selenoid.sh -n 3 || warning "Something went wrong getting the latests browsers for the system"
+	./backend/selenoid/deploy_selenoid.sh -n 1 || warning "Something went wrong getting the latests browsers for the system"
 fi
 
 #

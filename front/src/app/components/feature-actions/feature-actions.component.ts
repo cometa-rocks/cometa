@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   OnInit,
   Inject,
+  Input,
 } from '@angular/core';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { LogOutputComponent } from '@dialogs/log-output/log-output.component';
@@ -46,6 +47,8 @@ export class FeatureActionsComponent implements OnInit {
   featureId$: Observable<number>;
   featureResultId$: Observable<number>;
   running$: Observable<boolean>;
+
+  @Input() latestFeatureResultId: number = 0;
 
   constructor(
     private _dialog: MatDialog,
@@ -150,12 +153,9 @@ export class FeatureActionsComponent implements OnInit {
   viewLog() {
     // Get feature result id from URL params
     let featureResultId = +this._ac.snapshot.paramMap.get('feature_result_id');
-    if (!featureResultId) {
+    if (!featureResultId && this.latestFeatureResultId != 0) {
       // Or get id from last run object
-      const feature_results = this._store.selectSnapshot(
-        PaginatedListsState.GetItems
-      )('runs_' + this.getFeatureId());
-      featureResultId = feature_results[0].feature_result_id;
+      featureResultId = this.latestFeatureResultId;
     }
     // Open Log Dialog
     this._dialog

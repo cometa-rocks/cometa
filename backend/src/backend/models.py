@@ -36,6 +36,7 @@ file_status = (
     ('Unknown', 'Unknown',),
     ('Processing', 'Processing',),
     ('Scanning', 'Scanning',),
+    ('DataDriven', 'Data Driven Check',),
     ('Encrypting', 'Encrypting',),
     ('Done', 'Done',),
     ('Error', 'Error',),
@@ -1113,7 +1114,25 @@ class Feature_Runs(SoftDeletableModel):
         # super(Feature_Runs, self).delete()
 
         return True
-        
+
+class DataDriven_Runs(SoftDeletableModel):
+    run_id = models.AutoField(primary_key=True)
+    file = models.ForeignKey("File", on_delete=models.SET_NULL, null=True, related_name="ddr_file")
+    feature_results = models.ManyToManyField(Feature_result)
+    date_time = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    archived = models.BooleanField(default=False)
+    status = models.CharField(max_length=100, default='')
+    total = models.IntegerField(default=0)
+    fails = models.IntegerField(default=0)
+    ok = models.IntegerField(default=0)
+    skipped = models.IntegerField(default=0)
+    execution_time = models.IntegerField(default=0)
+    pixel_diff = models.BigIntegerField(default=0)
+    
+    class Meta:
+        ordering = ['-date_time']
+        verbose_name_plural = "Data Driven Runs"
+
 class Feature_Task(models.Model):
     task_id = models.AutoField(primary_key=True)
     feature = models.ForeignKey(Feature, on_delete=models.CASCADE, related_name="feature_tasks")
@@ -1412,6 +1431,7 @@ class File(SoftDeletableModel):
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="files")
     status = models.CharField(max_length=10, choices=file_status, default="Unknown")
     uploaded_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True)
+    extras = models.JSONField(default=dict)
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
 
     def restore(self, using=None):
@@ -1436,6 +1456,15 @@ class File(SoftDeletableModel):
 
         return super().delete(using=using, soft=soft, *args, **kwargs)
 
+class FileData(SoftDeletableModel):
+    id = models.AutoField(primary_key=True)
+    file = models.ForeignKey(File, on_delete=models.CASCADE, related_name="file")
+    data = models.JSONField(default=dict)
+    extras = models.JSONField(default=dict)
+    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
+
+    class Meta:
+        verbose_name_plural = "Files Data"
 
 """
 Make sure to delete the files on the fs when ever deleting the record.

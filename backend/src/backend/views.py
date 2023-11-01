@@ -1,4 +1,5 @@
 # Import all models and all the utility methods
+from itertools import islice
 from backend.models import *
 # Import all serializers
 from backend.serializers import *
@@ -53,11 +54,11 @@ import secrets
 sys.path.append("/code")
 import secret_variables
 from threading import Thread
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 # import humanize for time conversion
 from backend.templatetags.humanize import *
 from sentry_sdk import capture_exception
-from backend.utility.uploadFile import UploadFile
+from backend.utility.uploadFile import UploadFile, getFileContent, decryptFile
 # from silk.profiling.profiler import silk_profile
 
 SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
@@ -110,7 +111,7 @@ def UserRelatedDepartments(user_email, type="id"):
         departmentsList.append(d.department_id if type == "id" else Department.objects.all().filter(department_id=d.department_id)[0].department_name)
     return departmentsList
 
-def GetBrowserStackBrowsers(request):
+def browser_stack_request():
     # set default value for results to empty array
     results = []
     # get browserstack cloud from database
@@ -121,12 +122,19 @@ def GetBrowserStackBrowsers(request):
         if browsers.status_code == 200:
             results = browsers.json()
         else:
-            logger.error(browsers.text)
-            return JsonResponse({
-                "success": False,
-                "msg": "Failed to make request to Browserstack, maybe provided credentials are incorrect?",
-                "results": []
-            })
+            raise Exception(browsers.text)
+    return results
+
+def GetBrowserStackBrowsers(request):
+    try:
+        results = browser_stack_request()
+    except Exception as err:
+        logger.exception(err)
+        return JsonResponse({
+            "success": False,
+            "msg": "Failed to make request to Browserstack, maybe provided credentials are incorrect?",
+            "results": []
+        })
     # send a response back
     return JsonResponse({
         "success": True,
@@ -652,9 +660,84 @@ def features_sql(department_id=None, folder_id=None, recursive=False):
 
     return features
 
-def runFeature(request, feature_id, data={}):
+# Checks if the selected browser is valid using the array of available browsers
+# for the selected cloud, it also tries to repair the selected browser object
+def checkBrowser(selected, local_browsers, cloud_browsers):
+    # Retrieve all browsers from either local or browserstack
+    browsers = local_browsers if selected.get('cloud', 'browserstack') == 'local' else cloud_browsers
+    if selected.get('cloud', '') == 'local' and selected.get('mobile_emulation', False):
+        # In that case just assign the latest version of Chrome for the emulated browser
+        # Exclude non stable versions by checking if version can be numeric (without dots)
+        browsers = [ x for x in browsers if x.get('browser_version').replace('.', '').isnumeric() and x.get('browser') == 'chrome' ]
+        # Sort browsers by browser_version
+        browsers = sorted(browsers, key=lambda k: int(k.get('browser_version').replace('.', '')), reverse=True)
+        version = browsers[0].get('browser_version')
+        selected['browser_version'] = version
+        selected['mobile_user_agent'] = selected['mobile_user_agent'].replace('$version', version)
+        selected['browser'] = 'chrome'
+        return selected
+    # Set common browser properties
+    fields = ['browser', 'device', 'os', 'os_version', 'real_mobile']
+    # Filter corresponding browsers with properties from selected browser
+    # If the resulting array contains 0 elements, it means the selected browser
+    # is not found, and therefore is invalid
+    for field in fields:
+        browsers = [ x for x in browsers if x.get(field) == selected.get(field) ]
+    if len(browsers) == 0:
+        raise Exception('Found invalid browser object')
+    # Filter browsers by the version in the selected browser
+    # If the resulting array contains 0 elements, it means the selected browser
+    # has an outdated browser version or invalid, in that case 
+    browsers_versions = [ x for x in browsers if x.get('browser_version') == selected.get('browser_version') ]
+    # Handle exception of "latest" version, it is handled later
+    if selected.get('browser_version', '') == "latest" or len(browsers_versions) == 0:
+        # Exclude non stable versions by checking if version can be numeric (without dots)
+        browsers = [ x for x in browsers if x.get('browser_version').replace('.', '').isnumeric() ]
+        # Sort browsers by browser_version
+        browsers = sorted(browsers, key=lambda k: int(k.get('browser_version').replace('.', '')), reverse=True)
+        try:
+            # Assign the version of the first sorted browser
+            selected['browser_version'] = browsers[0].get('browser_version')
+        except:
+            raise Exception('Unable to find latest version for the selected browser')
+    return selected
+
+def getFeatureBrowsers(feature: Feature):
+    feature_browsers = feature.browsers
+    local_browsers = []
+    cloud_browsers = []
+    browsers = []
+
+    for browser in feature_browsers:
+        #3013: Fix missing cloud property in outdated favourited browsers
+        if 'cloud' not in browser and browser.get("os","").lower() == "generic":
+            browser['cloud'] = "local"
+        # Check selected cloud is local and we don't have it yet
+        if browser.get('cloud') == 'local' and len(local_browsers) == 0:
+            logger.debug("Found 'local' as cloud for browser. Getting local browsers.")
+            local_browsers = list(Browser.objects.all().values_list('browser_json', flat=True))
+        # Check selected cloud is browserstack and we don't have it yet
+        elif len(cloud_browsers) == 0:
+            logger.debug("Found 'cloud' as cloud for browser. Getting BrowserStack browsers.")
+            try:
+                cloud_browsers = browser_stack_request()
+            except Exception as err:
+                logger.exception(err)
+
+        browsers.append(checkBrowser(browser, local_browsers, cloud_browsers))
+    
+    return browsers
+
+
+def runFeature(request, feature_id, data={}, additional_variables=list):
+
+    # set default value for additional_variables
+    if additional_variables == list:
+        additional_variables = []
+
     # Verify feature id exists
     try:
+        logger.info(f"Getting feature with id {feature_id} to run.")
         feature = Feature.objects.get(pk=feature_id)
     except Feature.DoesNotExist:
         return { 'success': False, 'error': 'Provided Feature ID does not exist.' }
@@ -663,6 +746,12 @@ def runFeature(request, feature_id, data={}):
     userDepartments = GetUserDepartments(request)
     if feature.department_id not in userDepartments:
         return { 'success': False, 'error': 'Provided Feature ID does not exist.' }
+    
+    if len(feature.browsers) == 0:
+        return JsonResponse({
+            'success': False,
+            'error': 'No browsers selected.'
+        }, status=400)
 
     # Verify access to submitted browsers
     try:
@@ -707,6 +796,14 @@ def runFeature(request, feature_id, data={}):
     fRun = Feature_Runs(feature=feature, date_time=date_time)
     fRun.save()
 
+    try:
+        get_feature_browsers = getFeatureBrowsers(feature)
+    except Exception as err:
+        return JsonResponse({
+            'success': False,
+            'error': str(err)
+        }, status=400)
+
     # update feature info
     feature.info = fRun
 
@@ -714,6 +811,30 @@ def runFeature(request, feature_id, data={}):
     steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
     feature.save(steps=list(steps))
     json_path = get_feature_path(feature)['fullPath']+'_meta.json'
+
+    executions = []
+    frs = []
+    for browser in get_feature_browsers:
+        # Generate random hash for image url obfuscating
+        run_hash = secrets.token_hex(nbytes=8)
+        # create a feature_result
+        feature_result = Feature_result(
+            feature_id_id=feature.feature_id,
+            result_date=datetime.datetime.utcnow(),
+            run_hash=run_hash,
+            running=True,
+            browser=browser,
+            executed_by_id=user['user_id']
+        )
+        feature_result.save()
+        frs.append(feature_result)
+
+        executions.append({
+            "feature_result_id": feature_result.feature_result_id,
+            "run_hash": run_hash,
+            "browser": browser
+        })
+    fRun.feature_results.add(*frs) 
 
     # check if job exists
     jobParameters = {}
@@ -725,6 +846,9 @@ def runFeature(request, feature_id, data={}):
         except Exception as err:
             return {'success': False, 'error': str(err)}
 
+    # get keynames from the additional variables
+    additional_variables_names = [v['variable_name'] for v in additional_variables]
+
     # get environment variables
     env = Environment.objects.filter(environment_name=feature.environment_name)[0]
     dep = Department.objects.filter(department_name=feature.department_name)[0]
@@ -732,9 +856,13 @@ def runFeature(request, feature_id, data={}):
         Q(department=dep, based='department') |
         Q(department=dep, environment=env, based='environment') |
         Q(feature=feature, based='feature')
+    ).exclude(
+        variable_name__in=additional_variables_names
     ).order_by('variable_name', '-based').distinct('variable_name')
     seri = VariablesSerializer(env_variables, many=True).data
 
+    additional_variables.extend(list(seri))
+    
     # user data
     user = request.session['user']
 
@@ -743,8 +871,8 @@ def runFeature(request, feature_id, data={}):
         'feature_run': fRun.run_id,
         'HTTP_PROXY_USER': json.dumps(user),
         'HTTP_X_SERVER': request.META.get("HTTP_X_SERVER","none"),
-        "variables": json.dumps(seri),
-        "browsers": json.dumps(feature.browsers),
+        "variables": json.dumps(additional_variables),
+        "browsers": json.dumps(executions),
         "feature_id": feature.feature_id,
         "department": json.dumps(model_to_dict(dep), default=str),
         "parameters": json.dumps(jobParameters)
@@ -755,7 +883,10 @@ def runFeature(request, feature_id, data={}):
         t = Thread(target=startFeatureRun, args=(datum, ))
         t.start()
 
-        return { 'success': True }
+        return {
+            'success': True,
+            'feature_result_ids': [fr.feature_result_id for fr in frs],
+        }
     except Exception as e:
         return { 'success': False, 'error': str(e) }
 
@@ -782,6 +913,120 @@ def runBatch(request, *args, **kwargs):
             return JsonResponse({ 'success': False, 'error': 'No features found.' })
     except Exception as err:
         return JsonResponse({ 'success': False, 'error': str(err) })
+
+def dataDrivenExecution(request, row, ddr: DataDriven_Runs):
+    data = row.data
+    feature_id = data.get('feature_id', None)
+    feature_name = data.get('feature_name', None)
+
+    if not feature_id and not feature_name:
+        raise Exception("Missing 'feature_id' and 'feature_name' in row.")
+
+    try:
+        feature = Feature.objects.get(pk=feature_id)
+    except Feature.DoesNotExist:
+        feature = Feature.objects.get(feature_name=feature_name)
+    except:
+        raise Exception("Feature not found.")
+    
+    additional_variables = [
+        {
+            'variable_name': k,
+            'variable_value': v,
+            'scope': 'data-driven'
+        } for k,v in data.items()
+    ]
+
+    result = runFeature(request, feature.feature_id, additional_variables=additional_variables)
+
+    if not result['success']:
+        raise Exception("Feature execution failed: %s" % result['error'])
+    
+    feature_result_ids = result['feature_result_ids']
+    ddr.feature_results.add(*feature_result_ids)
+
+    MAX_EXECUTION_TIMEOUT=7500
+    start = time.time()
+
+    for feature_result_id in feature_result_ids:
+        while True:
+            try:
+                fr = Feature_result.objects.get(pk=feature_result_id)
+                if fr.running and (time.time() - start) < MAX_EXECUTION_TIMEOUT:
+                    logger.debug(f"Feature Result {fr.feature_result_id} is still running, will wait for it.")
+                    time.sleep(10)
+                else:
+                    break
+            except Feature_result.DoesNotExist:
+                raise Exception(f'Feature Result with id {feature_result_id} probably failed.')
+            
+        # add feature result data to the ddr
+        if fr:
+            ddr.total += fr.total
+            ddr.ok += fr.ok
+            ddr.fails += fr.fails
+            ddr.skipped += fr.skipped
+            ddr.pixel_diff += fr.pixel_diff
+            ddr.execution_time += fr.execution_time
+            ddr.save()
+
+def startDataDrivenRun(request, rows: list[FileData], ddr: DataDriven_Runs):
+    user = request.session['user']
+    logger.info(f"Starting Data Driven Test {user['name']}")
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        futures = []
+        for row in rows:
+            logger.info(row)
+            futures.append(executor.submit(dataDrivenExecution, request, row, ddr))
+        
+        for future in as_completed(futures):
+            try:
+                logger.info(future.result())
+            except Exception as err:
+                logger.exception(err)
+    
+    ddr.status = 'Failed' if ddr.fails > 0 else 'Passed'
+    ddr.save()
+
+@csrf_exempt
+@require_subscription()
+@require_permissions("run_feature")
+def runDataDriven(request, *args, **kwargs):
+    # Verify body can be parsed as JSON
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({ 'success': False, 'error': 'Unable to parse request body.' }, status=400)
+    
+    file_id = data.get('file_id', None)
+    if not file_id:
+        return JsonResponse({ 'success': False, 'error': 'Missing \'file_id\' parameter.' }, status=400)
+    
+    try:
+        file = File.objects.prefetch_related('file').get(pk=file_id)
+    except File.DoesNotExist:
+        return JsonResponse({
+            "success": False,
+            "error": "File not found."
+        }, status=404)
+    
+    file_data = file.file.all()
+
+    if len(file_data) == 0:
+        return JsonResponse({
+            "success": False,
+            "error": "No rows found for selected data driven file."
+        }, status=400)
+    try:
+        ddr = DataDriven_Runs(file_id=file_id, status="Running")
+        ddr.save()
+        # Spawn thread to launch feature run
+        t = Thread(target=startDataDrivenRun, args=(request, file_data, ddr))
+        t.start()
+
+        return JsonResponse({ 'success': True, 'run_id': ddr.pk })
+    except Exception as e:
+        return JsonResponse({ 'success': False, 'error': str(e) })
 
 @csrf_exempt
 @require_subscription()
@@ -1153,27 +1398,118 @@ def uploadFilesThread(files, department_id, uploaded_by):
         uploadFile = UploadFile(file, department_id, uploaded_by)
         print(uploadFile.proccessUploadFile())
 
-class UploadViewSet(viewsets.ModelViewSet):
+class DataDrivenResultsViewset(viewsets.ModelViewSet):
+    queryset = DataDriven_Runs.objects.none()
+    serializer_class = FeatureResultSerializer
+    renderer_classes = (JSONRenderer, )
+
+    def list(self, request, *args, **kwargs):
+        run_id = kwargs.get('run_id', None)
+        user_departments = GetUserDepartments(request)
+
+        if not run_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'No \'run_id\' provided.'
+            }, status=400)
+        try:
+            ddr = DataDriven_Runs.objects.prefetch_related('feature_results').get(pk=run_id, file__department_id__in=user_departments)
+        except DataDriven_Runs.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Data Driven Run not found.'
+            }, status=404)
+
+        page = self.paginate_queryset(ddr.feature_results.all())
+        # serialize the data
+        serialized_data = self.serializer_class(page, many=True).data
+        # return the data with count, next and previous pages.
+        return self.get_paginated_response(serialized_data)
+
+
+class DataDrivenViewset(viewsets.ModelViewSet):
+    queryset = DataDriven_Runs.objects.none()
+    serializer_class = DataDrivenRunsSerializer
+    renderer_classes = (JSONRenderer, )
+
+    def list(self, request, *args, **kwargs):
+        run_id = kwargs.get('run_id', None)
+        user_departments = GetUserDepartments(request)
+
+        if run_id:
+            try:
+                ddr = DataDriven_Runs.objects.get(pk=run_id, file__department_id__in=user_departments)
+            except DataDriven_Runs.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Data Driven Run not found.'
+                }, status=404)
+            # get the data related to the run
+            return JsonResponse({
+                'success': True,
+                'result': DataDrivenRunsSerializer(ddr, many=False).data
+            })
+
+        ddrs = DataDriven_Runs.objects.filter(file__department_id__in=user_departments).order_by('-date_time', '-run_id')
+        # get the amount of data per page using the queryset
+        page = self.paginate_queryset(DataDrivenRunsSerializer.setup_eager_loading(ddrs))
+        # serialize the data
+        serialized_data = DataDrivenRunsSerializer(page, many=True).data
+        # return the data with count, next and previous pages.
+        return self.get_paginated_response(serialized_data)
+
+class DataDrivenFileViewset(viewsets.ModelViewSet):
     queryset = File.objects.none()
     serializer_class = FileSerializer
     renderer_classes = (JSONRenderer, )
 
-    def decryptFile(self, source):
-        import tempfile
-        target = "/tmp/%s" % next(tempfile._get_candidate_names())
-
-        logger.debug(f"Decrypting source {source}")
+    def list(self, request, *args, **kwargs):
+        file_id = kwargs.get('file_id', None)
+        reparse = request.GET.get('reparse', None)
 
         try:
-            result = subprocess.run(["bash", "-c", f"gpg --output {target} --batch --passphrase {secret_variables.COMETA_UPLOAD_ENCRYPTION_PASSPHRASE} -d {source}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if result.returncode > 0:
-                # get the error
-                errOutput = result.stderr.decode('utf-8')
-                logger.error(errOutput)
-                raise Exception('Failed to decrypt the file, please contact an administrator.')
-            return target
-        except Exception as err:
-            raise Exception(str(err))
+            file = File.objects.prefetch_related('file').get(pk=file_id)
+        except File.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "error": "File not found."
+            }, status=404)
+        
+        # get user departments
+        user_departments = GetUserDepartments(request)
+        if file.department.department_id not in user_departments:
+            return JsonResponse({
+                "success": False,
+                "error": "You do not have access to this object."
+            }, status=403)
+        
+        # file.all() comes from the reverse relation between FileData and File model.
+        file_data = file.file.all()
+
+        if reparse or not file_data:
+            # delete any old data only works incase of reparse
+            file_data.delete()
+            try:
+                # parse file data
+                file_data = getFileContent(file)
+                file.save()
+            except Exception as err:
+                return JsonResponse({
+                    "success": False,
+                    "error": str(err) 
+                }, status=400)
+        
+        # paginate the queryset
+        page = self.paginate_queryset(file_data)
+        # serialize the paginated data
+        serialized_data = FileDataSerializer(page, many=True).data
+        # return data to the user
+        return self.get_paginated_response(serialized_data)
+
+class UploadViewSet(viewsets.ModelViewSet):
+    queryset = File.objects.none()
+    serializer_class = FileSerializer
+    renderer_classes = (JSONRenderer, )
 
     def list(self, request, *args, **kwargs):
         file_id = kwargs.get('file_id', None)
@@ -1191,7 +1527,7 @@ class UploadViewSet(viewsets.ModelViewSet):
             self.userHasAccess(request, file)
 
             # decrypt file
-            targetPath = self.decryptFile(file.path)
+            targetPath = decryptFile(file.path)
             # check if fullpath exists
             if os.path.exists(targetPath):
                 # open the file
@@ -2148,22 +2484,18 @@ class FeatureViewSet(viewsets.ModelViewSet):
         Process schedule if requested
         """
         # Set schedule of feature if provided in data, if schedule is empty will be removed
+        set_schedule = False
         if 'schedule' in data:
             schedule = data['schedule']
             logger.debug("Saveing schedule: "+str(schedule) )
             # Check if schedule is not 'now'
-            if schedule != 'now':
+            if schedule != '' and schedule != 'now':
                 # Validate cron format before sending to Behave
                 if schedule != "" and not CronSlices.is_valid(schedule):
                     return JsonResponse({ 'success': False, "error": 'Schedule format is invalid.' }, status=200)
-                # Save schedule in Behave docker Crontab
-                response = set_test_schedule(feature.feature_id, schedule, request.session['user']['user_id'])
-                if response.status_code != 200:
-                    # Oops, something went wrong while saving schedule
-                    logger.debug("Ooops - something went wrong saveing the schedule. You should probably check the crontab file mounted into docker to be a file and not a directory.")
-                    json_data = response.json()
-                    return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule. Check crontab directory of docker.') }, status=200)
+                set_schedule = True
             # Save schedule, at this point is 100% valid and saved
+            logger.debug("Adding schedule to database")
             feature.schedule = schedule
 
         """
@@ -2178,6 +2510,15 @@ class FeatureViewSet(viewsets.ModelViewSet):
         else:
             # Save without steps
             result = feature.save()
+
+        if set_schedule:
+            # Save schedule in Behave docker Crontab
+            response = set_test_schedule(feature.feature_id, schedule, request.session['user']['user_id'])
+            if response.status_code != 200:
+                # Oops, something went wrong while saving schedule
+                logger.debug("Ooops - something went wrong saveing the schedule. You should probably check the crontab file mounted into docker to be a file and not a directory.")
+                json_data = response.json()
+                return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule. Check crontab directory of docker.') }, status=200)
 
         """
         Send WebSockets

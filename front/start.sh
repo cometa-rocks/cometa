@@ -36,7 +36,7 @@ function install_essentials(){
 	echo -e "\e[32mOK\e[0m"
 
 	echo -e "\e[37mInstalling NodeJS & NPM...\e[0m"
-	curl -sL https://deb.nodesource.com/setup_14.x | bash - >> output.log 2>&1
+	curl -sL https://deb.nodesource.com/setup_18.x | bash - >> output.log 2>&1
 	apt-get install -y nodejs >> output.log 2>&1
 	echo -e "\e[32mOK\e[0m"
 

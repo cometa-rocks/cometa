@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   Optional,
   Host,
+  OnInit,
 } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';

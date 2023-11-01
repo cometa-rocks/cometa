@@ -6,7 +6,7 @@ authors = ["AMVARA CONSULTING <info@amvara.de>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.9,<3.13"
 Django = "^3.2.20"
 psycopg2 = "^2.9.6"
 psycopg2-binary = "^2.9.6"
@@ -27,6 +27,9 @@ Pygments = "^2.15.1"
 python-crontab = "^2.7.1"
 gunicorn = "^20.1.0"
 python-magic = "^0.4.27"
+pandas = "^2.1.1"
+openpyxl = "^3.1.2"
+odfpy = "^1.4.1"
 
 [tool.poetry.dev-dependencies]
 
