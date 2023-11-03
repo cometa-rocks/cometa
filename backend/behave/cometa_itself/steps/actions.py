@@ -1985,16 +1985,18 @@ def addParameter(context, key, value):
 @done(u'Run Javascript function')
 def step_impl(context, function):
     js_function = context.text
-    # FIXME ... needs to set the script timeout accordingly to what was selected in cometa - see https://www.selenium.dev/selenium/docs/api/py/webdriver_remote/selenium.webdriver.remote.webdriver.html#selenium.webdriver.remote.webdriver.WebDriver.set_script_timeout
-    # driver.set_script_timeout(30)
+    step_timeout = context.step_data['timeout']
+    context.browser.set_script_timeout(step_timeout)
     try:
         result = context.browser.execute_script("""
 %s
         """ % js_function)
 
         addParameter(context, "js_return", result)
+        context.browser.set_script_timeout(30)
     except Exception as err:
         addParameter(context, "js_return", "")
+        context.browser.set_script_timeout(30)
         raise CustomError(err)
 
 # Click on element using an XPath Selector
@@ -3636,18 +3638,50 @@ def step_imp(context, error_message):
 
 use_step_matcher("re")
 
+def parse_parameters(parameters):
+    if parameters:
+        parameters = list(filter(None, re.split(r'(?<!\\);', parameters)))
+        parameters_dict = {}
+
+        for parameter in parameters:
+                key, value = parameter.split("=", maxsplit=1)
+                parameters_dict[key] = value
+    
+        return parameters_dict
+    return None
+
 @step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?))\")*')
 @done(u'Make an API call')
 def api_call(context, method, endpoint, parameters, headers):
+
     logger.debug({
         "method": method,
         "endpoint": endpoint,
         "parameters": parameters,
-        "headers": headers
+        "parsed_parameters": parse_parameters(parameters),
+        "headers": headers,
+        "parsed_headers": parse_parameters(headers)
     })
 
+    cookies = {
+        cookie['name'] : cookie['value'] for cookie in context.browser.get_cookies()
+        # TODO: Match Cookie Domain with the Endpoint Domain.
+    }
+
+    response = requests.request(
+        method=method,
+        url=endpoint,
+        params=parse_parameters(parameters),
+        headers=parse_parameters(headers),
+        cookies=cookies
+    )
+
+    logger.debug(response.json())
+
+use_step_matcher("parse")
+
 # Ignores undefined steps
-@step(u'(?P<step>.*)')
+@step(u'{step}')
 @done(u'{step}')
 def step_imp(context, step):
     raise NotImplementedError(f"Unknown step found: '{step}'")
