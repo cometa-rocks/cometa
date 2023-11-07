@@ -3638,6 +3638,49 @@ def step_imp(context, error_message):
 
 use_step_matcher("re")
 
+def parse_cookie(cookie):
+    cookie_object = {
+        "name": cookie.name,
+        "value": cookie.value,
+        "domain": cookie.domain,
+        "path": cookie.path,
+        "secure": cookie.secure,
+        "expires": cookie.expires
+    }
+
+    return cookie_object
+
+def parse_content(response: requests.Response):
+
+    content_type = response.headers.get("content-type")
+    if content_type == "application/json":
+        return response.json()
+    else:
+        return response.text
+
+def build_rest_api_object(session: requests.Session, response: requests.Response):
+    rest_api_object = {
+        "request": {
+            "method": response.request.method,
+            "headers": dict(response.request.headers),
+            "url": response.request.url,
+            "path": response.request.path_url,
+            "cookies": [parse_cookie(cookie) for cookie in list(session.cookies)]
+        },
+        "response": {
+            "headers": dict(response.headers),
+            "cookies": [parse_cookie(cookie) for cookie in list(response.cookies)],
+            # "elapsed": response.elapsed,
+            "history": [build_rest_api_object(session, history_response) for history_response in response.history],
+            "is_redirect": response.is_redirect,
+            "status_code": response.status_code,
+            "url": response.url,
+            "content": parse_content(response)
+        }
+    }
+
+    return rest_api_object
+
 def parse_parameters(parameters):
     if parameters:
         parameters = list(filter(None, re.split(r'(?<!\\);', parameters)))
@@ -3668,17 +3711,58 @@ def api_call(context, method, endpoint, parameters, headers):
         # TODO: Match Cookie Domain with the Endpoint Domain.
     }
 
-    response = requests.request(
+    logger.debug(context.browser.get_cookies())
+    session = requests.Session()
+    session.cookies.update(cookies)
+    response = session.request(
         method=method,
         url=endpoint,
         params=parse_parameters(parameters),
         headers=parse_parameters(headers),
-        cookies=cookies
     )
 
-    logger.debug(response.json())
+    api_call = build_rest_api_object(session, response)
+    logger.debug(json.dumps(api_call, indent=2))
+
+    context.api_call = api_call
+
+@step(u'Assert last API Call property \"(?P<jq_pattern>.*?)\" to "(?P<condition>be equal to|contain)" \"(?P<value>.*?)\"')
+@done(u'Assert last API Call property "{jq_pattern}" to "{condition}" "{value}"')
+def assert_imp(context, jq_pattern, condition, value):
+    
+    import jq
+
+    try:
+        parsed_value = jq.compile(jq_pattern).input(context.api_call).text()
+    except Exception as err:
+        logger.error("Invalid JQ pattern")
+        logger.exception(err)
+        parsed_value = ""
+
+    assert_failed_error = f"{parsed_value} ({jq_pattern}) does not match {value}"
+    assert_failed_error = logger.mask_values(assert_failed_error)
+
+    if condition == "be equal to":
+        assert parsed_value == value, assert_failed_error
+    else:
+        assert parsed_value in value, assert_failed_error
 
 use_step_matcher("parse")
+
+@step(u'Save last API Call property "{jq_pattern}" to "{environment_variable}"')
+@done(u'Save last API Call property "{jq_pattern}" to "{environment_variable}"')
+def assert_imp(context, jq_pattern, environment_variable):
+
+    import jq
+
+    try:
+        parsed_value = jq.compile(jq_pattern).input(context.api_call).text()
+    except Exception as err:
+        logger.error("Invalid JQ pattern")
+        logger.exception(err)
+        parsed_value = ""
+
+    addVariable(context, environment_variable, parsed_value)
 
 # Ignores undefined steps
 @step(u'{step}')

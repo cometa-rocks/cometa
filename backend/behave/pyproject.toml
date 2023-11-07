@@ -36,6 +36,7 @@ pandas = "^1.5.3"
 pyotp = "^2.8.0"
 redis = "^5.0.0"
 django-rq = "^2.8.1"
+jq = "^1.6.0"
 
 [tool.poetry.dev-dependencies]
 
