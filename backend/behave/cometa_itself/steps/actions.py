@@ -3726,7 +3726,7 @@ def api_call(context, method, endpoint, parameters, headers):
 
     context.api_call = api_call
 
-@step(u'Assert last API Call property \"(?P<jq_pattern>.*?)\" to "(?P<condition>be equal to|contain)" \"(?P<value>.*?)\"')
+@step(u'Assert last API Call property \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert last API Call property "{jq_pattern}" to "{condition}" "{value}"')
 def assert_imp(context, jq_pattern, condition, value):
     
@@ -3739,13 +3739,13 @@ def assert_imp(context, jq_pattern, condition, value):
         logger.exception(err)
         parsed_value = ""
 
-    assert_failed_error = f"{parsed_value} ({jq_pattern}) does not match {value}"
+    assert_failed_error = f"{parsed_value} ({jq_pattern}) does not { condition } {value}"
     assert_failed_error = logger.mask_values(assert_failed_error)
 
-    if condition == "be equal to":
+    if condition == "match":
         assert parsed_value == value, assert_failed_error
     else:
-        assert parsed_value in value, assert_failed_error
+        assert value in parsed_value, assert_failed_error
 
 use_step_matcher("parse")
 
