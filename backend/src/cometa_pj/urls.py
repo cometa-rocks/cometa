@@ -106,6 +106,7 @@ urlpatterns = [
     url(r'^encrypt/', views.Encrypt),
     url(r'^parseActions/', views.parseActions),
     url(r'^parseBrowsers/', views.parseBrowsers),
+    url(r'^compile_jq/', views.compileJQ),
     url(r'browsers/browserstack', cache_page(browserstackCacheTime)(views.GetBrowserStackBrowsers)),
     url(r'^feature_results/(?P<feature_result_id>[0-9]+)/log', views.getLog),
     url(r'^html_diff/(?P<step_result_id>[0-9]+)/', views.getHtmlDiff),
