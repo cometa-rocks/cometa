@@ -1288,6 +1288,42 @@ def parseBrowsers(request):
     return JsonResponse({ 'success': True })
 
 @csrf_exempt
+def compileJQ(request):
+    data = json.loads(request.body)
+
+    if 'pattern' not in data:
+        return JsonResponse({
+            "success": False,
+            "error": "Missing 'pattern' parameter."
+        }, status=400)
+    
+    if 'content' not in data:
+        return JsonResponse({
+            "success": False,
+            "error": "Missing 'content' parameter."
+        }, status=400)
+    
+    pattern = data.get('pattern')
+    content = data.get('content')
+    try:
+        content = json.loads(content)
+    except Exception as err:
+        logger.exception(err)
+    
+    try:
+        import jq
+        result = jq.compile(pattern).input_value(content).text()
+        return JsonResponse({
+            'success': True,
+            'result': result
+        })
+    except Exception as err:
+        return JsonResponse({
+            'success': False,
+            'error': str(err)
+        }, status=400)
+
+@csrf_exempt
 def parseActions(request):
     actions_file = '/code/behave/cometa_itself/steps/actions.py'
     with open(actions_file) as file:
