@@ -386,6 +386,7 @@ interface Success {
     sessionId?: string;
     url?: string;
     action?: string;
+    result?: any;
 }
 
 interface DiffResponse extends Success {

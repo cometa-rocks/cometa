@@ -65,6 +65,8 @@ router.register(r'data_driven/results/(?P<run_id>[0-9]+)', views.DataDrivenResul
 router.register(r'data_driven/file/(?P<file_id>[0-9]+)', views.DataDrivenFileViewset)
 router.register(r'data_driven/(?P<run_id>[0-9]+)', views.DataDrivenViewset)
 router.register(r'data_driven', views.DataDrivenViewset)
+router.register(r'rest_api/(?P<id>[0-9]+)', views.RestAPIViewset)
+router.register(r'rest_api', views.RestAPIViewset)
 # provides numbers of system usage
 router.register(r'cometausage', views.CometaUsageViewSet)
 

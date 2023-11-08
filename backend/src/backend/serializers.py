@@ -536,6 +536,21 @@ class FileDataSerializer(serializers.ModelSerializer):
         depth = 0
 
 ################################
+# Rest API model serializers #
+################################
+class RESTAPISerializer(serializers.ModelSerializer):
+    call = serializers.SerializerMethodField()
+    class Meta:
+        model = REST_API
+        fields = '__all__'
+        depth = 0
+    
+    def get_call(self, instance):
+        if type(instance.call) == dict:
+            return instance.call
+        return json.loads(instance.call)
+
+################################
 # Department model serializers #
 ################################
 class DepartmentSerializer(serializers.ModelSerializer):

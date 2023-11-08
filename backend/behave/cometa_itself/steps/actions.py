@@ -319,7 +319,8 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         'pixel_diff': float(pixel_diff),
         'success': success,
         'status': "Success" if success else "Failed",
-        'belongs_to': context.step_data['belongs_to']
+        'belongs_to': context.step_data['belongs_to'],
+        'rest_api_id': context.step_data.get('rest_api', None)
     }
     # add custom error if exists
     if 'custom_error' in context.step_data:
@@ -3722,8 +3723,24 @@ def api_call(context, method, endpoint, parameters, headers):
     )
 
     api_call = build_rest_api_object(session, response)
-    logger.debug(json.dumps(api_call, indent=2))
 
+    # save the api call
+    response = requests.post("http://cometa_django:8000/api/rest_api/", json={
+        "call": api_call,
+        "department_id": int(context.feature_info['department_id'])
+    }, headers={"Host": "cometa.local"})
+
+    try:
+        json_res = response.json()
+    except Exception as err:
+        json_res = {
+            "success": False,
+            "error": str(err)
+        }
+    if response.status_code != 201 and not json_res['success']:
+        raise CustomError(f"Error while saving the call to the database: {json_res['error']}")
+    
+    context.step_data['rest_api'] = json_res['id']
     context.api_call = api_call
 
 @step(u'Assert last API Call property \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')

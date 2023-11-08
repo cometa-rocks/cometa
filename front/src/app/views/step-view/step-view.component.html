@@ -96,13 +96,19 @@
                              (click)="loadImages(item.screenshot_difference)"
                              stopPropagation>{{ item?.pixel_diff | pixelDifference }}
                         </div>
-                        <div class="screenshots-wrapper">
-                            <div class="screenshot" *ngIf="item.screenshot_current" (click)="loadImages(item.screenshot_current)" stopPropagation>
-                                <mat-icon>insert_photo</mat-icon>
-                            </div>
-                        </div>
                         <!-- Icon options for each step result -->
                         <div class="item-options">
+                            <div class="option view-screenshot" *ngIf="item?.screenshot_current">
+                                <button (click)="loadImages(item.screenshot_current)" matTooltip="View Screenshot" matTooltipPosition="before" stopPropagation mat-icon-button>
+                                    <mat-icon>insert_photo</mat-icon>
+                                </button>
+                            </div>
+                            <!-- View REST API CALL -->
+                            <div class="option view-rest-api" *ngIf="item?.rest_api">
+                                <button (click)="loadRestApi(item.rest_api)" matTooltip="View REST API Call" matTooltipPosition="before" stopPropagation mat-icon-button>
+                                    <mat-icon>http</mat-icon>
+                                </button>
+                            </div>
                             <!-- View HTML Difference -->
                             <div class="option view-html-diff" *ngIf="item?.diff">
                                 <button (click)="_sharedActions.openHTMLDiff(item.step_result_id)" matTooltip="View HTML difference" matTooltipPosition="before" stopPropagation mat-icon-button>
@@ -140,7 +146,7 @@
                 <div class="time">TIME</div>
                 <div class="difference-mobile">PIXEL DIFF</div>
                 <!-- <div class="difference-desktop">PIXEL DIFFERENCE</div> -->
-                <div class="Screenshots">SCREENSHOTS</div>
+                <div class="Screenshots">OPTIONS</div>
             </ng-template>
         </network-paginated-list>
     </div>

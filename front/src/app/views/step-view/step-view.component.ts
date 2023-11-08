@@ -11,6 +11,7 @@ import { NetworkPaginatedListComponent } from '@components/network-paginated-lis
 import { SharedActionsService } from '@services/shared-actions.service';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
+import { JsonViewerComponent } from '../json-view/json-view.component';
 
 @Component({
   selector: 'step-view',
@@ -171,5 +172,16 @@ export class StepViewComponent implements OnInit {
         panelClass: 'screenshot-panel'
       });
     }
+  }
+
+  loadRestApi (item) {
+    this._api.getRestAPI(item).subscribe((result) => {
+      this._dialog.open(JsonViewerComponent, {
+        data: result.call,
+        width: '100vw',
+        maxHeight: '80vh',
+        maxWidth: '75vw'
+      })
+    })
   }
 }

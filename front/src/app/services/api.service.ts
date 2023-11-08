@@ -145,6 +145,13 @@ export class ApiService {
     )
   }
 
+  // Get REST API call
+  getRestAPI(id: number) {
+    return this._http.get<Success>(`${this.api}rest_api/${id}/`).pipe(
+      map(res => res.result)
+    )
+  }
+
   /**
    * Retrieves the requested step result object by ID
    * in a Success response type
