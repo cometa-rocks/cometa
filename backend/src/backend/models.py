@@ -15,6 +15,7 @@ import shutil
 from backend.common import *
 from django.db.models.signals import post_delete, pre_delete
 from django.dispatch import receiver
+from django_cryptography.fields import encrypt
 
 # GLOBAL VARIABLES
 
@@ -871,6 +872,7 @@ class Step_result(models.Model):
     screenshot_difference = models.CharField(max_length=255, default='', null=True, blank=True)
     screenshot_template = models.CharField(max_length=255, default='', null=True, blank=True)
     belongs_to = models.IntegerField(null=True) # feature that step belongs to
+    rest_api = models.ForeignKey("REST_API", on_delete=models.CASCADE, null=True, default=None)
     error = models.TextField(null=True, blank=True)
 
     class Meta:
@@ -1477,3 +1479,11 @@ def post_file_delete(instance, sender, using, **kwargs):
     if os.path.exists(instance.path):
         os.unlink(instance.path)
 
+class REST_API(SoftDeletableModel):
+    id = models.AutoField(primary_key=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    call = encrypt(models.JSONField(default=dict))
+    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
+
+    class Meta:
+        verbose_name_plural = "Files Data"

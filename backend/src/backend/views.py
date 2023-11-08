@@ -1506,6 +1506,51 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
         # return data to the user
         return self.get_paginated_response(serialized_data)
 
+class RestAPIViewset(viewsets.ModelViewSet):
+    queryset = REST_API.objects.none()
+    serializer_class = RESTAPISerializer
+    renderer_classes = (JSONRenderer, )
+
+    def list(self, request, *args, **kwargs):
+        api_id = kwargs.get('id', None)
+        try:
+            api = REST_API.objects.get(pk=api_id, department__in=GetUserDepartments(request))
+        except REST_API.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "error": "API call not found."
+            }, status=404)
+
+        data = RESTAPISerializer(api, many=False).data
+
+        return JsonResponse({
+            'success': True,
+            "result": data
+        })
+
+    def create(self, request, *args, **kwargs):
+        # get data from request
+        data = json.loads(request.body)
+
+        if 'call' not in data:
+            return JsonResponse({
+                "success": False,
+                "error": "Missing 'call' parameter."
+            })
+        
+        if 'department_id' not in data:
+            return JsonResponse({
+                "success": False,
+                "error": "Missing 'department_id' parameter."
+            })
+        
+        api = REST_API(call=data.get('call'), department_id=data.get('department_id'))
+        api.save()
+        return JsonResponse({
+            "success": True,
+            "id": api.pk
+        }, status=201)
+
 class UploadViewSet(viewsets.ModelViewSet):
     queryset = File.objects.none()
     serializer_class = FileSerializer
