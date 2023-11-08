@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "behave"
+name = "cometa_behave"
 version = "0.1.0"
 description = ""
 authors = ["AMVARA CONSULTING <info@amvara.de>"]
@@ -37,6 +37,7 @@ pyotp = "^2.8.0"
 redis = "^5.0.0"
 django-rq = "^2.8.1"
 jq = "^1.6.0"
+behave = "^1.2.6"
 
 [tool.poetry.dev-dependencies]
 
