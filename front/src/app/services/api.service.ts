@@ -152,6 +152,19 @@ export class ApiService {
     )
   }
 
+  // Parse JQ
+  getParsedJQFilter(filter: string, rest_id: number) {
+    return this._http.post<Success>(`${this.base}compile_jq/`, {
+      "pattern": filter,
+      "rest_api": rest_id
+    }, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+        silent: true
+      })
+    })
+  }
+
   /**
    * Retrieves the requested step result object by ID
    * in a Success response type
