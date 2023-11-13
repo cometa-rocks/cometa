@@ -177,10 +177,11 @@ export class StepViewComponent implements OnInit {
   loadRestApi (item) {
     this._api.getRestAPI(item).subscribe((result) => {
       this._dialog.open(JsonViewerComponent, {
-        data: result.call,
+        data: result,
         width: '100vw',
-        maxHeight: '80vh',
-        maxWidth: '75vw'
+        maxHeight: '90vh',
+        maxWidth: '85vw',
+        panelClass: 'rest-api-panel'
       })
     })
   }

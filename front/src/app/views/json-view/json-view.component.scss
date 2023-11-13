@@ -1,0 +1,45 @@
+hr {
+    margin: 20px auto;
+}
+
+#jq-form-container {
+    display: flex;
+    width: 100%;
+    height: 80%;
+    position: relative;
+    justify-content: space-between;
+    overflow: hidden;
+
+    .json_content {
+        display: block;
+        border: 1px solid rgba(220,220,220,255);
+        background-color: rgba(248,248,248,255);
+        padding: 10px;
+        max-width: calc(50% - 5px);
+        margin-right: 5px;
+        overflow: scroll;
+        flex-grow: 1;
+
+        ngx-json-viewer {
+            display: block;
+        }
+    }
+
+    #jq-result {
+        max-height: 100%;
+        resize: none;
+        padding: 10px;
+        flex-grow: 1;
+        font-size: 20px;
+    }
+}
+
+#jq-filter {
+    max-width: calc(100% - 22px);
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    height: 25px;
+    font-size: 20px;
+    font-weight: 500;
+}

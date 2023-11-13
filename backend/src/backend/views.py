@@ -1297,14 +1297,25 @@ def compileJQ(request):
             "error": "Missing 'pattern' parameter."
         }, status=400)
     
-    if 'content' not in data:
+    if 'content' not in data and 'rest_api' not in data:
         return JsonResponse({
             "success": False,
-            "error": "Missing 'content' parameter."
+            "error": "Missing 'content' or 'rest_api' parameter."
         }, status=400)
-    
+
+    if 'rest_api' in data:
+        try:
+            rest_api = REST_API.objects.get(pk=data.get('rest_api'), department__in=GetUserDepartments(request))
+            content = rest_api.call
+        except REST_API.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "error": "REST API Object not found."
+            }, status=404)
+    else:
+        content = data.get('content')
+
     pattern = data.get('pattern')
-    content = data.get('content')
     try:
         content = json.loads(content)
     except Exception as err:
@@ -1320,11 +1331,27 @@ def compileJQ(request):
     except Exception as err:
         return JsonResponse({
             'success': False,
-            'error': str(err)
-        }, status=400)
+            'result': str(err)
+        }, status=200)
 
 @csrf_exempt
 def parseActions(request):
+
+    def parseAction(action):
+        regex = r"\@(.*)\((u|)'(.*)'\)"
+        matches = re.findall(regex,action)
+        if matches[0][2] == "{step}":
+            return
+        actionsParsed.append(matches[0][2])
+        actionObject = Action(
+            action_name = matches[0][2],
+            department = 'DIF',
+            application = 'amvara',
+            values = matches[0][2].count("{"),
+            description = previousAction[2:]
+        )
+        actionObject.save()
+
     actions_file = '/code/behave/cometa_itself/steps/actions.py'
     with open(actions_file) as file:
         actions = file.readlines()
@@ -1332,20 +1359,11 @@ def parseActions(request):
     Action.objects.all().delete()
     previousAction = ''
     for action in actions:
-        if action.startswith("@step"):
-            regex = r"\@(.*)\((u|)'(.*)'\)"
-            matches = re.findall(regex,action)
-            if matches[0][2] == "{step}":
-                continue
-            actionsParsed.append(matches[0][2])
-            actionObject = Action(
-                action_name = matches[0][2],
-                department = 'DIF',
-                application = 'amvara',
-                values = matches[0][2].count("{"),
-                description = previousAction[2:]
-            )
-            actionObject.save()
+        if action.startswith("@step") and '(?P<' not in action:
+            parseAction(action)
+        if action.startswith('@done') and '(?P<' in previousAction:
+            parseAction(action)
+
         previousAction = action
 
     # send a request to websockets about the actions update
