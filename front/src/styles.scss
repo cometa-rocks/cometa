@@ -539,6 +539,13 @@ mat-option {
     }
 }
 
+.rest-api-panel {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
 .variable-columns-menu {
     .mat-menu-content {
       display: flex;
