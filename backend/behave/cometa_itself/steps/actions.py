@@ -3724,7 +3724,7 @@ def parse_parameters(parameters):
     return None
 
 @step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?))\")*')
-@done(u'Make an API call')
+@done(u'Make an API call with "{method}" to "{endpoint}" with "params:{parameters}" and "headers:{headers}"')
 def api_call(context, method, endpoint, parameters, headers):
 
     logger.debug({
