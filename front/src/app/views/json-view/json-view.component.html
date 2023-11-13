@@ -1,0 +1,9 @@
+<h1>REST API CALL</h1>
+<hr>
+<div id="jq-form-container">
+    <div class="json_content">
+        <ngx-json-viewer [json]="data.call" [expanded]="true"></ngx-json-viewer>
+    </div>
+    <textarea #jqResult name="jq-result" id="jq-result" disabled="true"></textarea>
+</div>
+<textarea name="jq-filter" id="jq-filter" (keyup)="getJQResult($event)"></textarea>
