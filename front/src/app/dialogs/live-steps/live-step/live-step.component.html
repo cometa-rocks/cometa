@@ -8,8 +8,8 @@
             {{ detail }}
         </div>
     </div>
-    <div class="screenshot" *ngIf="(_liveSteps.steps$ | async)[index]?.screenshot; else hyphen">
-        <i class="screen-image" *ngIf="status != 'success'; else showBefore" [ngClass]="status"></i>
+    <div class="screenshot" *ngIf="(_liveSteps.steps$ | async)[index]?.screenshot || screenshots?.current; else hyphen">
+        <i class="screen-image" *ngIf="status == 'running' || status == 'waiting'; else showBefore" [ngClass]="status"></i>
         <ng-template #showBefore>
             <i class="screen-preview" matTooltip="View screenshot" matTooltipPosition="above" (click)="openScreenshot('current')" [style.backgroundImage]="getScreenshot('current')"></i>
         </ng-template>
@@ -25,6 +25,11 @@
         <ng-template #showBefore>
             <i class="screen-preview" matTooltip="View screenshot" matTooltipPosition="above" (click)="openScreenshot('difference')" [style.backgroundImage]="getScreenshot('difference')"></i>
         </ng-template>
+    </div>
+    <div class="screenshot" *ngIf="this.rest_api; else hyphen">
+        <i class="api_call" matTooltip="View HTTP Request" matTooltipPosition="above" (click)="openRequest()">
+            <mat-icon>http</mat-icon>
+        </i>
     </div>
     <ng-template #hyphen>
         <div class="screenshot">-</div>

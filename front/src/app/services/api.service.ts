@@ -10,7 +10,6 @@ import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-
 
 @Injectable()
 export class ApiService {
-
   constructor(
     private _http: HttpClient,
     private _dialog: MatDialog,
@@ -625,6 +624,10 @@ export class ApiService {
 
   deleteFile(file_id: number) {
     return this._http.delete<any>(`${this.api}uploads/${file_id}/`);
+  }
+
+  deleteDataDrivenTest(run_id: number) {
+    return this._http.delete<any>(`${this.api}data_driven/${run_id}/`);
   }
 
   downloadFile(file_id: number) {
