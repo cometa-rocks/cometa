@@ -22,12 +22,19 @@
         "pixel": "Pixel difference"
     },
     "need_help": {
-        "filter": "Asking for help",
+        "filter": "Asking for help",                                                                   
         "poster": "Needs help",
         "ask_for": "Ask for help",
-        "can_help": "Enabling this option allows you to assist on features marked with \"Ask for help\"",
-        "tooltip": "This feature is asking for help",
-        "explanation": "Enabling this option allows other users to help you on this feature"
+        "can_help": "My name is arslan \"Ask for help\"",
+        "tooltip": "This feature is asking for help"
+    },
+    "edit_feature":{
+        "depends_on_other_feature": "If enabled, only a third feature can run this feature",
+        "send_mail": "If enabled, a new section will be displayed for sending the results to the desired email address.",
+        "record_video": "Every time the feature is executed, a video will be recorded",
+        "continue_on_failure_global": "If enabled, the feature's steps will continue even in the presence of errors; if disabled, individual step settings take precedence",
+        "explanation": "Enabling this option allows other users to help you on this feature",
+        "edit_variable": "In this section, we can add or edit variables among other functionalities"
     },
     "whats_new": {
         "title": "What's new",

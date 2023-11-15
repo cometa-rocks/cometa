@@ -1,5 +1,5 @@
 {
-	"version": "2.8.316",
+	"version": "2.8.317",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -190,6 +190,16 @@
 		"Dream it. Believe it. Build it."
 	],
 	"changelog": [
+		{
+            "version": "2.8.317",
+            "date": "2023-11-15",
+            "features": [
+				{
+				"title": "Changes to improve the page's navigation and visual appeal",
+				"description:": "Dialogs for radio buttons in the Edit Feature function. Moved the 'Edit Variables' button; it's now located within the 'Steps Definition' box. The 'Add Variable' and 'Close' buttons have been repositioned in the 'Edit Variables' window."
+				}
+            ]
+        },
         {
             "version": "2.8.316",
             "date": "2023-10-20",
