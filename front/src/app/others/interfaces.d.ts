@@ -150,6 +150,7 @@ interface StepResult {
     screenshot_difference: string;
     screenshot_template: string;
     error: null | string;
+    rest_api: number;
 }
 
 interface BelongsTo {
