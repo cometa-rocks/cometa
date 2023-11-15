@@ -9,6 +9,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { JsonViewerComponent } from 'app/views/json-view/json-view.component';
+import { ApiService } from '@services/api.service';
 
 @UntilDestroy()
 @Component({
@@ -41,7 +43,8 @@ export class LiveStepComponent implements OnInit {
     private _store: Store,
     @Host() public _liveSteps: LiveStepsComponent,
     private _dialog: MatDialog,
-    private _sanitizer: DomSanitizer
+    private _sanitizer: DomSanitizer,
+    private _api: ApiService
   ) { }
 
   @Input() step: FeatureStep;
@@ -52,6 +55,7 @@ export class LiveStepComponent implements OnInit {
   details$: Observable<LiveStepSubDetail>;
 
   screenshots;
+  rest_api: number;
 
   ngOnInit() {
     this.details$ = this._store.select(
@@ -68,6 +72,7 @@ export class LiveStepComponent implements OnInit {
           this.status$.next('running');
         } else {
           this.status$.next(steps[this.index].info.success ? 'success' : 'failed');
+          this.rest_api = steps[this.index].info.rest_api;
         }
         this.screenshots = steps[this.index].screenshots;
         if (steps[this.index].error) this.error$.next(steps[this.index].error)
@@ -81,7 +86,10 @@ export class LiveStepComponent implements OnInit {
   resultSteps: StepStatus[] = [];
 
   getScreenshot = (type: string) => {
-    return this._sanitizer.bypassSecurityTrustStyle(`url(/v2/screenshots/${this.screenshots[type]})`);
+    if (this.screenshots && this.screenshots[type]){
+      return this._sanitizer.bypassSecurityTrustStyle(`url(/v2/screenshots/${this.screenshots[type]})`);
+    }
+    return ""
   };
 
   openScreenshot(type: string) {
@@ -89,6 +97,20 @@ export class LiveStepComponent implements OnInit {
       data: this.screenshots[type],
       panelClass: 'screenshot-panel'
     });
+  }
+
+  openRequest() {
+    if (this.rest_api) {
+      this._api.getRestAPI(this.rest_api).subscribe((result) => {
+        this._dialog.open(JsonViewerComponent, {
+          data: result,
+          width: '100vw',
+          maxHeight: '90vh',
+          maxWidth: '85vw',
+          panelClass: 'rest-api-panel'
+        })
+      })
+    }
   }
 
 }
