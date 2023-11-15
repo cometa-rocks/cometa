@@ -87,6 +87,8 @@ h2 {
   margin-bottom: 15px;
   padding-right: 10px;
   box-sizing: border-box;
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
   & > div {
     flex: initial;
     &.text {
@@ -152,8 +154,8 @@ h2 {
       // min-width: 800px;
       width: 100%;
       @include for-tablet-portrait-up {
-        width: 800px;
-        min-width: 800px;
+        width: 900px;
+        min-width: 900px;
       }
       // min-height: 300px;
       resize: horizontal;

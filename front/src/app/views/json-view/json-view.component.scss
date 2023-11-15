@@ -2,6 +2,12 @@ hr {
     margin: 20px auto;
 }
 
+.title {
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
 #jq-form-container {
     display: flex;
     width: 100%;
@@ -42,4 +48,33 @@ hr {
     height: 25px;
     font-size: 20px;
     font-weight: 500;
+}
+
+footer {
+    display: flex;
+    justify-content: space-between;
+
+    .extra-info {
+        a {
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+    
+            &:before {
+                content: '';
+                position: absolute;
+                left: 50%;
+                bottom: 0;
+                transform: translateX(-50%);
+                width: 0%;
+                height: 1px;
+                background-color: #000;
+                transition: width .2s ease-in-out;
+            }
+    
+            &:hover:before {
+                width: 100%;
+            }
+        }
+    }
 }

@@ -19,6 +19,7 @@ export class JsonViewerComponent implements OnInit {
 
     constructor(
         @Inject(MAT_DIALOG_DATA) public data: any,
+        public dialogRef: MatDialogRef<JsonViewerComponent>,
         private _api: ApiService
     ) {}
 
@@ -50,5 +51,9 @@ export class JsonViewerComponent implements OnInit {
     getJQResult(event: Event) {
         const filterValue = (event.target as HTMLTextAreaElement).value;
         this.jq_filter$.next(filterValue);
+    }
+
+    closeDialog() {
+        this.dialogRef.close();
     }
 }
