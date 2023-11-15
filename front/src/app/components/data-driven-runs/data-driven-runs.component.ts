@@ -5,6 +5,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { DataDrivenExecution } from '@dialogs/data-driven-execution/data-driven-execution.component';
 import { MtxGridColumn } from '@ng-matero/extensions/grid';
+import { ApiService } from '@services/api.service';
 import { SharedActionsService } from '@services/shared-actions.service';
 
 @Component({
@@ -20,6 +21,7 @@ export class DataDrivenRunsComponent implements OnInit{
     private _router: Router,
     private _http: HttpClient,
     public _dialog: MatDialog,
+    private _api: ApiService
   ) { }
 
   columns: MtxGridColumn[] = [
@@ -46,7 +48,14 @@ export class DataDrivenRunsComponent implements OnInit{
           tooltip: 'Delete result',
           color: 'warn',
           click: (result: DataDrivenRun) => {
-            // delete
+            this._api.deleteDataDrivenTest(result.run_id).subscribe({
+              next: _ => {
+                // maybe we should just delete from the array and that is it?
+                // this.getResults();
+
+                this.results = this.results.filter(run => run.run_id != result.run_id)
+              }
+            })
           },
         }
       ]

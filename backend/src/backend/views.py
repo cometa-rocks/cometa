@@ -938,7 +938,7 @@ def dataDrivenExecution(request, row, ddr: DataDriven_Runs):
     ]
 
     result = runFeature(request, feature.feature_id, additional_variables=additional_variables)
-
+    
     if not result['success']:
         raise Exception("Feature execution failed: %s" % result['error'])
     
@@ -1511,6 +1511,29 @@ class DataDrivenViewset(viewsets.ModelViewSet):
         serialized_data = DataDrivenRunsSerializer(page, many=True).data
         # return the data with count, next and previous pages.
         return self.get_paginated_response(serialized_data)
+    
+    def delete(self, request, *args, **kwargs):
+        run_id = kwargs.get('run_id', None)
+
+        if not run_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Missing \'run_id\' parameter.'
+            }, status=400)
+
+        try:
+            ddr = DataDriven_Runs.objects.get(pk=run_id, file__department__in=GetUserDepartments(request))
+        except DataDriven_Runs.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Run not found.'
+            }, status=404)
+        
+        ddr.delete()
+
+        return JsonResponse({
+            'success': True
+        })
 
 class DataDrivenFileViewset(viewsets.ModelViewSet):
     queryset = File.objects.none()
