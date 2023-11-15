@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Inject, OnInit, ViewChild } from "@angular/core";
+import { MatButtonModule } from "@angular/material/button";
 import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { ApiService } from "@services/api.service";
 import { NgxJsonViewerModule } from "ngx-json-viewer";
@@ -10,7 +11,7 @@ import { EMPTY, Subject, debounceTime, distinctUntilChanged, switchMap } from "r
     styleUrls: ['./json-view.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-    imports: [NgxJsonViewerModule]
+    imports: [NgxJsonViewerModule, MatButtonModule]
 })
 export class JsonViewerComponent implements OnInit {
 
