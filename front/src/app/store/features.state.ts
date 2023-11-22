@@ -300,24 +300,26 @@ export class FeaturesState {
   setFolderRoute({ setState, dispatch }: StateContext<IFeaturesState>, { folder }: Features.SetFolderRoute) {
     setState(
       produce((ctx: IFeaturesState) => {
-        let departmentsList = this._store.select<Folder[]>(CustomSelectors.GetDepartmentFolders()); // Get the list of existing departments
-        let department;
-        let path;
-        // Check if the department path already exists, if not add it
-        if (!folder[0]?.type) {
-          // Adds the department variable
-          departmentsList.subscribe(val => department = val.filter(department => department.department == folder[0]?.department));
-          // Empties the folder array to save space
-          department.folders = [];
-          // Adds the department to the first position of the folder array
-          path = [...department, ...folder];
-        } else {
-          // Gets the folder path
-          path = folder;
+        if (folder) {
+          let departmentsList = this._store.select<Folder[]>(CustomSelectors.GetDepartmentFolders()); // Get the list of existing departments
+          let department;
+          let path;
+          // Check if the department path already exists, if not add it
+          if (!folder[0]?.type) {
+            // Adds the department variable
+            departmentsList.subscribe(val => department = val.filter(department => department.department == folder[0]?.department));
+            // Empties the folder array to save space
+            department.folders = [];
+            // Adds the department to the first position of the folder array
+            path = [...department, ...folder];
+          } else {
+            // Gets the folder path
+            path = folder;
+          }
+          path.forEach(f => delete f['route']); // Remove all the route variables
+          ctx.filters = []; // Remove the filters
+          ctx.currentRouteNew = path || []; // Set the new current route
         }
-        path.forEach(f => delete f['route']); // Remove all the route variables
-        ctx.filters = []; // Remove the filters
-        ctx.currentRouteNew = path || []; // Set the new current route
       })
     );
 
