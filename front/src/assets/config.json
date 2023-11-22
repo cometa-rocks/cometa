@@ -1,5 +1,5 @@
 {
-	"version": "2.8.316",
+	"version": "2.8.317",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -16,7 +16,7 @@
 	},
 	"sorting": "execution",
 	"reverse": false,
-	"useNewDashboard": false,
+	"useNewDashboard": true,
 	"co_active_list": "recent",
 	"co_features_pagination": 10,
 	"co_first_time_cometa": true,
@@ -190,6 +190,13 @@
 		"Dream it. Believe it. Build it."
 	],
 	"changelog": [
+		{
+            "version": "2.8.317",
+            "date": "2023-11-22",
+            "features": [
+                "Defaulting to new dashboard, old view has been moved to the sidebar menu."
+            ]
+        },
         {
             "version": "2.8.316",
             "date": "2023-10-20",
