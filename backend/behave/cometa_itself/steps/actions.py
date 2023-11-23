@@ -177,10 +177,21 @@ def reset_element_highlight(context):
         if 'highlighted_text' in context:
             send_step_details(context, 'Resetting Highlighted text')
             context.browser.execute_script('''
-            const element = document.body;
-            const pattern = new RegExp(`<mark data-by=(?:\'|\")co.meta(?:\'|\")>(.*?)</mark>`, 'gi');
-            element.innerHTML = element.innerHTML.replaceAll(pattern, "$1");
+            if (window.getSelection) {
+                if (window.getSelection().empty) {  // Chrome
+                    window.getSelection().empty();
+                } else if (window.getSelection().removeAllRanges) {  // Firefox
+                    window.getSelection().removeAllRanges();
+                }
+            } else if (document.selection) {  // IE?
+                document.selection.empty();
+            }
             ''')
+            # context.browser.execute_script('''
+            # const element = document.body;
+            # const pattern = new RegExp(`<mark data-by=(?:\'|\")co.meta(?:\'|\")>(.*?)</mark>`, 'gi');
+            # element.innerHTML = element.innerHTML.replaceAll(pattern, "$1");
+            # ''')
             del context.highlighted_text
     except Exception as err:
         logger.exception(err)
@@ -1441,16 +1452,21 @@ def step_iml(context, selector):
 @done(u'Highlight "{text}" on the page')
 def step_iml(context, text):
     send_step_details(context, 'Highlighting the text')
+    # action = ActionChains(context.browser)
+    # action.key_down(Keys.LEFT_CONTROL).send_keys('f').key_up(Keys.LEFT_CONTROL).perform()
     context.browser.execute_script(f'''
-    const element = document.body;
-    const pattern = new RegExp('({text})', 'gi');
-    element.innerHTML = element.innerHTML.replaceAll(
-        pattern,
-        "<mark data-by='co.meta'>$1</mark>"
-    );
+    window.find('{text}', false, false, true);
     ''')
+    # context.browser.execute_script(f'''
+    # const element = document.body;
+    # const pattern = new RegExp('({text})', 'gi');
+    # element.innerHTML = element.innerHTML.replaceAll(
+    #     pattern,
+    #     "<mark data-by='co.meta'>$1</mark>"
+    # );
+    # ''')
 
-    # set highlight setting to be removed after step
+    # # set highlight setting to be removed after step
     context.highlighted_text = True
 
 # Press Enter key
