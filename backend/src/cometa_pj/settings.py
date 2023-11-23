@@ -184,12 +184,12 @@ USE_TZ = False
 if getattr(secret_variables, 'COMETA_EMAIL_ENABLED', 'False') == "True":
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = getattr(secret_variables, 'COMETA_EMAIL_HOST', '')
-    EMAIL_PORT = 25
+    EMAIL_PORT = getattr(secret_variables, 'COMETA_EMAIL_PORT', 25)
     EMAIL_HOST_USER = getattr(secret_variables, 'COMETA_EMAIL_USER', '')
     COMETA_EMAIL_PASSWORD = getattr(secret_variables, 'COMETA_EMAIL_PASSWORD', '')
     if COMETA_EMAIL_PASSWORD != '':
         EMAIL_HOST_PASSWORD = COMETA_EMAIL_PASSWORD
-    EMAIL_USE_TLS = False
+    EMAIL_USE_TLS = getattr(secret_variables, 'COMETA_EMAIL_TLS', 'False') == "True"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
