@@ -776,6 +776,7 @@ class Feature_result(SoftDeletableModel):
     environment_name = models.CharField(max_length=100, blank=True)
     department_id = models.IntegerField(blank=True)
     department_name = models.CharField(max_length=100, blank=True)
+    description = models.TextField(null=True, blank=True, default=None)
     browser = models.JSONField(default=dict)
     total = models.IntegerField(default=0)
     fails = models.IntegerField(default=0)

@@ -46,6 +46,7 @@ export class MainViewComponent implements OnInit {
     {header: 'Browser', field: 'browser', class: 'aligned-center'},
     {header: 'Browser Version', field: 'browser.browser_version', hide: true, sortable: true, class: 'aligned-center'},
     {header: 'Duration', field: 'execution_time', sortable: true, class: "aligned-right"},
+    {header: 'Description', field: 'description', width: '250px'},
     {header: 'Pixel Difference', field: 'pixel_diff', sortable: true, class: "aligned-right"},
     {
       header: 'Options',
