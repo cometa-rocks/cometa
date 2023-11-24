@@ -56,7 +56,7 @@
           [pageSize]="query.size"
           [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
           (rowClick)="openContent($event.rowData)"
-          [cellTemplate]="{status: statusTpl, result_date: dateTpl, execution_time: timeTpl, pixel_diff: pixelTpl, browser: browserTpl}"
+          [cellTemplate]="{status: statusTpl, result_date: dateTpl, execution_time: timeTpl, description: descriptionTpl, pixel_diff: pixelTpl, browser: browserTpl}"
           [noResultTemplate]="noResultTpl"
           [showPaginator]="showPagination"
           [toolbarTemplate]="toolbarTpl"
@@ -96,6 +96,13 @@
 <ng-template #timeTpl let-row let-index="index" let-col="colDef">
   <span>{{ row.execution_time | secondsToHumanReadable }}</span>
 </ng-template>
+
+<ng-template #descriptionTpl let-row let-index="index" let-col="colDef">
+  <span *ngIf="row.description; else hyphen" [matTooltip]="row.description" class="feature_description">{{ row.description }}</span>
+
+  <ng-template #hyphen>-</ng-template>
+</ng-template>
+
 
 <ng-template #pixelTpl let-row let-index="index" let-col="colDef">
   <span>{{ row.pixel_diff | pixelDifference }}</span>
