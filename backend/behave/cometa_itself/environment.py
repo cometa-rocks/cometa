@@ -87,8 +87,8 @@ def parseVariables(text, variables):
         if not variable:
             return False
         if variable['variable_value'].startswith(ENCRYPTION_START): # encrypted variable.
-            return False # do not resolve ... or you could also return "[MASKED]"
-        
+            return '[ENCRYPTED]' # return False in case we want to show the variable name it self.
+
         return variable['variable_value']
 
     def replaceVariable(match):
