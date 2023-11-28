@@ -938,7 +938,7 @@ def dataDrivenExecution(request, row, ddr: DataDriven_Runs):
     ]
 
     result = runFeature(request, feature.feature_id, additional_variables=additional_variables)
-
+    
     if not result['success']:
         raise Exception("Feature execution failed: %s" % result['error'])
     
@@ -1288,7 +1288,70 @@ def parseBrowsers(request):
     return JsonResponse({ 'success': True })
 
 @csrf_exempt
+def compileJQ(request):
+    data = json.loads(request.body)
+
+    if 'pattern' not in data:
+        return JsonResponse({
+            "success": False,
+            "error": "Missing 'pattern' parameter."
+        }, status=400)
+    
+    if 'content' not in data and 'rest_api' not in data:
+        return JsonResponse({
+            "success": False,
+            "error": "Missing 'content' or 'rest_api' parameter."
+        }, status=400)
+
+    if 'rest_api' in data:
+        try:
+            rest_api = REST_API.objects.get(pk=data.get('rest_api'), department__in=GetUserDepartments(request))
+            content = rest_api.call
+        except REST_API.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "error": "REST API Object not found."
+            }, status=404)
+    else:
+        content = data.get('content')
+
+    pattern = data.get('pattern')
+    try:
+        content = json.loads(content)
+    except Exception as err:
+        logger.exception(err)
+    
+    try:
+        import jq
+        result = jq.compile(pattern).input_value(content).text()
+        return JsonResponse({
+            'success': True,
+            'result': result
+        })
+    except Exception as err:
+        return JsonResponse({
+            'success': False,
+            'result': str(err)
+        }, status=200)
+
+@csrf_exempt
 def parseActions(request):
+
+    def parseAction(action):
+        regex = r"\@(.*)\((u|)'(.*)'\)"
+        matches = re.findall(regex,action)
+        if matches[0][2] == "{step}":
+            return
+        actionsParsed.append(matches[0][2])
+        actionObject = Action(
+            action_name = matches[0][2],
+            department = 'DIF',
+            application = 'amvara',
+            values = matches[0][2].count("{"),
+            description = previousAction[2:]
+        )
+        actionObject.save()
+
     actions_file = '/code/behave/cometa_itself/steps/actions.py'
     with open(actions_file) as file:
         actions = file.readlines()
@@ -1296,20 +1359,11 @@ def parseActions(request):
     Action.objects.all().delete()
     previousAction = ''
     for action in actions:
-        if action.startswith("@step"):
-            regex = r"\@(.*)\((u|)'(.*)'\)"
-            matches = re.findall(regex,action)
-            if matches[0][2] == "{step}":
-                continue
-            actionsParsed.append(matches[0][2])
-            actionObject = Action(
-                action_name = matches[0][2],
-                department = 'DIF',
-                application = 'amvara',
-                values = matches[0][2].count("{"),
-                description = previousAction[2:]
-            )
-            actionObject.save()
+        if action.startswith("@step") and '(?P<' not in action:
+            parseAction(action)
+        if action.startswith('@done') and '(?P<' in previousAction:
+            parseAction(action)
+
         previousAction = action
 
     # send a request to websockets about the actions update
@@ -1457,6 +1511,29 @@ class DataDrivenViewset(viewsets.ModelViewSet):
         serialized_data = DataDrivenRunsSerializer(page, many=True).data
         # return the data with count, next and previous pages.
         return self.get_paginated_response(serialized_data)
+    
+    def delete(self, request, *args, **kwargs):
+        run_id = kwargs.get('run_id', None)
+
+        if not run_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Missing \'run_id\' parameter.'
+            }, status=400)
+
+        try:
+            ddr = DataDriven_Runs.objects.get(pk=run_id, file__department__in=GetUserDepartments(request))
+        except DataDriven_Runs.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Run not found.'
+            }, status=404)
+        
+        ddr.delete()
+
+        return JsonResponse({
+            'success': True
+        })
 
 class DataDrivenFileViewset(viewsets.ModelViewSet):
     queryset = File.objects.none()
@@ -1505,6 +1582,51 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
         serialized_data = FileDataSerializer(page, many=True).data
         # return data to the user
         return self.get_paginated_response(serialized_data)
+
+class RestAPIViewset(viewsets.ModelViewSet):
+    queryset = REST_API.objects.none()
+    serializer_class = RESTAPISerializer
+    renderer_classes = (JSONRenderer, )
+
+    def list(self, request, *args, **kwargs):
+        api_id = kwargs.get('id', None)
+        try:
+            api = REST_API.objects.get(pk=api_id, department__in=GetUserDepartments(request))
+        except REST_API.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "error": "API call not found."
+            }, status=404)
+
+        data = RESTAPISerializer(api, many=False).data
+
+        return JsonResponse({
+            'success': True,
+            "result": data
+        })
+
+    def create(self, request, *args, **kwargs):
+        # get data from request
+        data = json.loads(request.body)
+
+        if 'call' not in data:
+            return JsonResponse({
+                "success": False,
+                "error": "Missing 'call' parameter."
+            })
+        
+        if 'department_id' not in data:
+            return JsonResponse({
+                "success": False,
+                "error": "Missing 'department_id' parameter."
+            })
+        
+        api = REST_API(call=data.get('call'), department_id=data.get('department_id'))
+        api.save()
+        return JsonResponse({
+            "success": True,
+            "id": api.pk
+        }, status=201)
 
 class UploadViewSet(viewsets.ModelViewSet):
     queryset = File.objects.none()

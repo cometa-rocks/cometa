@@ -14,7 +14,7 @@
           [pageOnFront]="false"
           [pageIndex]="query.page"
           [pageSize]="query.size"
-          [pageSizeOptions]="[10,50,100]"
+          [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
           (rowClick)="openContent($event.rowData)"
           [cellTemplate]="{status: statusTpl, date_time: dateTpl, execution_time: timeTpl, pixel_diff: pixelTpl}"
           [noResultTemplate]="noResultTpl"

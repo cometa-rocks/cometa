@@ -65,6 +65,8 @@ router.register(r'data_driven/results/(?P<run_id>[0-9]+)', views.DataDrivenResul
 router.register(r'data_driven/file/(?P<file_id>[0-9]+)', views.DataDrivenFileViewset)
 router.register(r'data_driven/(?P<run_id>[0-9]+)', views.DataDrivenViewset)
 router.register(r'data_driven', views.DataDrivenViewset)
+router.register(r'rest_api/(?P<id>[0-9]+)', views.RestAPIViewset)
+router.register(r'rest_api', views.RestAPIViewset)
 # provides numbers of system usage
 router.register(r'cometausage', views.CometaUsageViewSet)
 
@@ -104,6 +106,7 @@ urlpatterns = [
     url(r'^encrypt/', views.Encrypt),
     url(r'^parseActions/', views.parseActions),
     url(r'^parseBrowsers/', views.parseBrowsers),
+    url(r'^compile_jq/', views.compileJQ),
     url(r'browsers/browserstack', cache_page(browserstackCacheTime)(views.GetBrowserStackBrowsers)),
     url(r'^feature_results/(?P<feature_result_id>[0-9]+)/log', views.getLog),
     url(r'^html_diff/(?P<step_result_id>[0-9]+)/', views.getHtmlDiff),
