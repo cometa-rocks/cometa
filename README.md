@@ -34,7 +34,7 @@ Here is what you need to be able to run Cometa.
 - Docker Compose
 - Use Linux as operating system. Have a look at pre-build [Virtual Boxes](https://osboxes.org/)
 
-In any case that you are stuck for more than 5 minutes - please us know. And please give us the oportunity to help you. We want to learn how you are using cometa and what problems you encounter. <a href="https://cometa.rocks/support/">Contact us</a>. We are happy to help.
+In case you are stuck for more than 5 minutes - please let us know. And please give us the opportunity to help you. We want to learn how you are using Co.Meta and what problems you encounter. <a href="https://cometa.rocks/support/">Contact us</a>. We are happy to help.
 
 #### Manual
 
