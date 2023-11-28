@@ -7,7 +7,7 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
-Django = "^3.2.20"
+Django = "^3.2.23"
 psycopg2 = "^2.9.6"
 psycopg2-binary = "^2.9.6"
 djangorestframework = "^3.14.0"
