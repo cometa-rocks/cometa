@@ -285,6 +285,7 @@ mat-option {
 
 .mat-tooltip {
     font-size: 12px !important;
+    white-space: pre-line;
 }
 
 .step_adding .mat-checkbox-disabled:not(.mat-checkbox-checked) .mat-checkbox-frame {
@@ -537,6 +538,13 @@ mat-option {
         padding: 0;
         background-color: transparent !important;
     }
+}
+
+.rest-api-panel {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
 }
 
 .variable-columns-menu {

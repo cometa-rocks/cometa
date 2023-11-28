@@ -52,6 +52,7 @@
     "nested-property": "^4.0.0",
     "ngx-amvara-toolbox": "0.0.17",
     "ngx-clipboard": "^15.1.0",
+    "ngx-json-viewer": "^3.2.1",
     "ngx-network-error": "^0.6.35-c",
     "npm": "^9.6.7",
     "socket.io": "^4.6.1",

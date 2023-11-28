@@ -150,6 +150,7 @@ interface StepResult {
     screenshot_difference: string;
     screenshot_template: string;
     error: null | string;
+    rest_api: number;
 }
 
 interface BelongsTo {
@@ -386,6 +387,7 @@ interface Success {
     sessionId?: string;
     url?: string;
     action?: string;
+    result?: any;
 }
 
 interface DiffResponse extends Success {
