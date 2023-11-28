@@ -5,7 +5,7 @@
     </ng-container>
     <ng-template #editTitle>
       <ng-container *ngIf="data.mode === 'edit'; else cloneTitle">
-        <h2 mat-dialog-title>Edit feature {{ featureForm.get('feature_name').value }}</h2>
+        <h2 mat-dialog-title><span id="title">Edit feature: </span>{{ featureForm.get('feature_name').value }}</h2>
       </ng-container>
       <ng-template #cloneTitle>
         <h2 mat-dialog-title>Clone feature</h2>
@@ -48,11 +48,11 @@
               </mat-form-field>
               <mat-form-field appearance="fill" class="edit-name">
                 <mat-label>Name</mat-label>
-                <input matInput spellcheck="false" formControlName="feature_name">
+                <input matInput spellcheck="false" formControlName="feature_name" (focus)="onInputFocus()" (blur)="onInputBlur()">
               </mat-form-field>
               <mat-form-field appearance="fill" class="edit-description">
                 <mat-label>Description</mat-label>
-                <textarea spellcheck="false" formControlName="description" matInput rows="1"></textarea>
+                <textarea spellcheck="false" formControlName="description" matInput rows="1" (focus)="onInputFocus()" (blur)="onInputBlur()"></textarea>
               </mat-form-field>
             </div>
             <div *ngIf="selected_department === 'Default' && departments$.length > 1" class="department-warning">
@@ -60,13 +60,31 @@
               <span>Selecting <strong>Default</strong> department will make this feature visible to everyone, use it with caution!</span>
             </div>
             <div class="depends">
-              <mat-checkbox color="primary" formControlName="depends_on_others" [matTooltip]="'edit_feature.depends_on_other_feature' | translate" matTooltipPosition="above">Depends on other feature</mat-checkbox>
-              <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">Send mail on finish</mat-checkbox>
-              <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="'edit_feature.record_video' | translate" matTooltipPosition="above">Record video</mat-checkbox>
-              <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
-                <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">Continue on failure</mat-checkbox>
-              </ng-container>
-              <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
+              <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                <mat-checkbox color="primary" formControlName="depends_on_others" [matTooltip]="'edit_feature.depends_on_other_feature' | translate" matTooltipPosition="above">Depends on other feature</mat-checkbox>
+                <div class="hover-box">(D)</div>
+              </div>
+              <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
+                <mat-checkbox color="primary" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">Send email</mat-checkbox>
+                <div class="hover-box">(M)</div>
+              </div>
+
+              <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
+                <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="'edit_feature.record_video' | translate" matTooltipPosition="above">Record video</mat-checkbox>
+                <div class="hover-box">(R)</div>
+              </div>
+
+              <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">  
+                <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
+                  <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">Continue on failure</mat-checkbox>
+                  <div class="hover-box">(F)</div>
+                </ng-container>
+              </div>
+              
+              <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()"> 
+                <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
+                <div class="hover-box">(H)</div>
+              </div>
 
             </div>
           </ng-template>
@@ -89,16 +107,17 @@
                       [matChipInputFor]="chipList"
                       [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                       [matChipInputAddOnBlur]="true"
-                      (matChipInputTokenEnd)="addAddress($event)">
+                      (matChipInputTokenEnd)="addAddress($event)" 
+                      (focus)="onInputFocus()" (blur)="onInputBlur()">
               </mat-chip-list>
             </mat-form-field>
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Subject. Leave it empty for a default subject. </mat-label>
-              <input matInput spellcheck="false" formControlName="email_subject">
+              <input matInput spellcheck="false" formControlName="email_subject" (focus)="onInputFocus()" (blur)="onInputBlur()">
             </mat-form-field>
             <mat-form-field appearance="fill" class="full-width">
               <mat-label>Message Body. Leave it empty for a default message with info about the feature.</mat-label>
-              <textarea matInput spellcheck="false" formControlName="email_body"></textarea>
+              <textarea matInput spellcheck="false" formControlName="email_body" (focus)="onInputFocus()" (blur)="onInputBlur()"></textarea>
             </mat-form-field>
             <mat-radio-group formControlName="send_mail_on_error">
               When to send email:
@@ -228,15 +247,18 @@
             <mat-panel-description>Edit the steps for the current feature (applies to all selected browsers)</mat-panel-description>
           </mat-expansion-panel-header>
           <ng-template matExpansionPanelContent>
-            <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
-              <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables" class="move-right">
-                <button color="primary" [disabled]="disableVariables" (click)="editVariables()" mat-stroked-button [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="above">Edit Variables</button>
-              </span>
-            </ng-container>
-            <cometa-step-editor *ngIf="feature | async as feat" [mode]="data.mode" [department]="department" [feature]="feat" [variables]="variables" [name]="featureForm.get('feature_name').value"></cometa-step-editor>
+              <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
+                <div class="checkbox-container move-right"> 
+                  <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+                    <button color="primary" [disabled]="disableVariables" (click)="editVariables()" mat-stroked-button [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="left">Edit Variables</button>
+                  </span>
+                  <div class="hover-box-Vshortcut">(V)</div>
+                </div>
+              </ng-container>
+            <cometa-step-editor (textareaFocusToParent)="receiveDataFromChild($event)" *ngIf="feature | async as feat" [mode]="data.mode" [department]="department" [feature]="feat" [variables]="variables" [name]="featureForm.get('feature_name').value"></cometa-step-editor>
           </ng-template>
         </mat-expansion-panel>
-  ,
+  
         <!-- SCHEDULE -->
         <mat-expansion-panel [expanded]="!config$.toggles.hideSchedule">
           <mat-expansion-panel-header>

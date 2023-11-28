@@ -30,7 +30,15 @@ Author: dph000
   <!-- Search bar -->
   <div class="new-search-input" [class.search-opened]="openedSearch$ | async">
     <mat-form-field>
-      <input matInput class="search-input-box" type="text" [(ngModel)]="searchInput" (keydown.enter)="searchFeature()" disableAutocomplete placeholder="Search in co.meta" #addTest>
+      <input matInput class="search-input-box" 
+        type="text" 
+        [(ngModel)]="searchInput" 
+        (keydown.enter)="searchFeature()" 
+        disableAutocomplete 
+        placeholder="Search in co.meta" 
+        #addTest 
+        (focus)="sendInputFocusToParent(true)" 
+        (blur)="sendInputFocusToParent(false)">
     </mat-form-field>
   </div>
   <!-- Filters list, if there is any active -->

@@ -9,7 +9,7 @@
  * @author: dph000
  */
 
-import { ChangeDetectionStrategy, Component, HostListener, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, Input, OnInit, Output, EventEmitter} from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
@@ -20,7 +20,8 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { InputFocusService } from '@services/inputFocus.service';
 
 @UntilDestroy()
 @Component({
@@ -30,13 +31,24 @@ import { BehaviorSubject, Observable } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class L1FilterComponent implements OnInit {
+  private InputFocusService = new Subject<boolean>();
+
+  inputFocus$ = this.InputFocusService.asObservable();
 
   constructor(
     public _sharedActions: SharedActionsService,
     private _store: Store,
     private _router: Router,
-    private log: LogService
+    private log: LogService,
+    private inputFocusService: InputFocusService
   ) { }
+
+  sendInputFocusToParent(inputFocus: boolean): void {
+    console.log('sendInputFocusToParent', inputFocus);
+    
+    // Utiliza el servicio para emitir el cambio de foco
+    this.inputFocusService.setInputFocus(inputFocus);
+  }
 
   /**
    * Declaration of variables used in the class

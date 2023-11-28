@@ -13,7 +13,6 @@ import { Observable } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AboutComponent {
-
   @Select(CustomSelectors.GetConfigProperty('serverInfo.version')) serverVersion$: Observable<string>;
   @ViewSelectSnapshot(ConfigState) config$ !: Config;
 

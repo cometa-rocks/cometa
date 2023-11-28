@@ -32,6 +32,7 @@ import { ScreenshotBgPipe } from '../pipes/screenshot-bg.pipe';
 import { RunColumnDirective } from '../directives/run-column.directive';
 import { Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
+import { DragabbleWindowComponent } from '@dialogs/draggable-window/draggable-window.component';
 
 const resolveFeatureTitle: ResolveFn<string> = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
     const featureId = route.paramMap.get('feature');

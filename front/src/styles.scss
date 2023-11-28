@@ -940,4 +940,14 @@ input::-webkit-inner-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+
+draggable-window{
+    display: none;
+}
+
+mat-dialog-container draggable-window{
+    display: block;
+}
+
+
 /***************************************************************/

@@ -68,6 +68,23 @@ edit-variables {
     transition: opacity .5s ease-in-out;
 }
 
+// Shortcut
+
+.checkbox-container {
+    display: flex;
+    position: relative;
+}
+  
+.hover-box {
+    display: none;
+    position: absolute;
+    top: 35%;
+    padding-left: 85px;
+}
+
+.add-from-sidenav:hover .hover-box {
+    display: block;
+}
 
 .searcher {
     display: block;

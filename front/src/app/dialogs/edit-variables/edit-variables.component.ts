@@ -12,7 +12,6 @@ import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-
 import { MatSort, Sort } from '@angular/material/sort';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
 import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
-
 interface PassedData {
   environment_id: number;
   department_id: number;
