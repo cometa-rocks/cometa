@@ -33,6 +33,7 @@ import { Configuration } from '@store/actions/config.actions';
 import { parseExpression } from 'cron-parser';
 import { DepartmentsState } from '@store/departments.state';
 import { VariablesState } from '@store/variables.state';
+import { AddStepComponent } from '@dialogs/add-step/add-step.component';
 
 @Component({
   selector: 'edit-feature',
@@ -41,6 +42,8 @@ import { VariablesState } from '@store/variables.state';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EditFeature implements OnInit, OnDestroy {
+  @ViewChild('Step-editor-component') StepEditorComponent!: StepEditorComponent;
+  
   displayedColumns: string[] = ['name','mime','size','uploaded_by.name','created_on', 'actions'];
 
   @ViewSelectSnapshot(ConfigState) config$ !: Config;
@@ -156,24 +159,24 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   parseSchedule(expression) {
-	// ignore if schedule is disabled
-	if (!this.featureForm.value.run_now) return;
+	  // ignore if schedule is disabled
+    if (!this.featureForm.value.run_now) return;
 
-	try {
-		// parse cron expression
-		let parser = parseExpression(Object.values(expression).join(" "), {utc: true});
-		// reset errors
-		this.parseError.error = false;
-		// reset nextRuns arrays
-		this.nextRuns = [];
-		for(let i = 0; i<5; i++) { this.nextRuns.push(parser.next().toDate().toLocaleString()); }
-	} catch (error) {
-		this.nextRuns = [];
-		this.parseError = {
-			"error": true,
-			"msg": error.message
-		}
-	}
+    try {
+      // parse cron expression
+      let parser = parseExpression(Object.values(expression).join(" "), {utc: true});
+      // reset errors
+      this.parseError.error = false;
+      // reset nextRuns arrays
+      this.nextRuns = [];
+      for(let i = 0; i<5; i++) { this.nextRuns.push(parser.next().toDate().toLocaleString()); }
+    } catch (error) {
+      this.nextRuns = [];
+      this.parseError = {
+        "error": true,
+        "msg": error.message
+      }
+    }
   }
 
   changeSchedule({ checked }: MatCheckboxChange) {
@@ -244,9 +247,11 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Handle keyboard keys
+  inputFocus: boolean = false;
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(event: KeyboardEvent) {
     // only execute switch case if child dialog is closed
-    if (this.variable_dialog_isActive) return
+    if (this.variable_dialog_isActive) return;
+    let KeyPressed = event.keyCode;
     switch (event.keyCode) {
       case KEY_CODES.ESCAPE:
         // Check if form has been modified before closing
@@ -265,9 +270,93 @@ export class EditFeature implements OnInit, OnDestroy {
         }
         break;
       case KEY_CODES.V:
-        if (event.ctrlKey && event.altKey) this.editVariables();
+        // Edit variables
+        if (!this.inputFocus) this.editVariables();
+        break;
+      case KEY_CODES.D:
+        if (!this.inputFocus) {
+          // Depends on other featre
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.M:
+        if (!this.inputFocus) {
+          // Send email
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.R:
+        if (!this.inputFocus) {
+          // Record video
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.F:
+        if (!this.inputFocus) {
+          // Continue on failure
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.H:
+        if (!this.inputFocus) {
+          // Need help
+          this.toggleDependsOnOthers(KeyPressed);
+        }
         break;
     }
+  }
+
+  // Shortcut emitter to parent component
+  receiveDataFromChild(isFocused: boolean) {
+    this.inputFocus = isFocused;
+  }
+
+  onInputFocus() {
+    this.inputFocus = true;
+  }
+
+  onInputBlur() {
+    this.inputFocus = false;
+  }
+
+  toggleDependsOnOthers(KeyPressed) {
+    let checkboxValue = this.featureForm.get('send_mail').value;
+    let dependsOnOthers = this.featureForm.get('depends_on_others').value;
+    if(KeyPressed === KEY_CODES.D) {
+      dependsOnOthers = this.featureForm.get('depends_on_others').value;
+      this.featureForm.get('depends_on_others').setValue(!dependsOnOthers);
+    }
+    else if (KeyPressed === KEY_CODES.F) {
+      checkboxValue = this.featureForm.get('continue_on_failure').value;
+      this.featureForm.get('continue_on_failure').setValue(!checkboxValue);
+    }
+    else if (KeyPressed === KEY_CODES.H) {
+      checkboxValue = this.featureForm.get('need_help').value;
+      this.featureForm.get('need_help').setValue(!checkboxValue);
+    }
+    if(dependsOnOthers === false){
+      if(KeyPressed === KEY_CODES.M) {
+        checkboxValue = this.featureForm.get('send_mail').value;
+        this.featureForm.get('send_mail').setValue(!checkboxValue);
+      }
+      else if (KeyPressed === KEY_CODES.R) {
+        checkboxValue = this.featureForm.get('video').value;
+        this.featureForm.get('video').setValue(!checkboxValue);
+      }
+    }
+  }
+
+  // Check if mouse is over the dialog
+  isHovered = false;
+
+  onMouseOver() {
+    this.isHovered = true;
+    console.log('Mouse over');
+  }
+
+  onMouseOut() {
+    this.isHovered = false;
+    console.log('Mouse out');
   }
 
   // Deeply check if two arrays are equal, in length and values

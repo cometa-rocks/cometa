@@ -9,7 +9,7 @@
  */
 
 import { animate, query, stagger, state, style, transition, trigger } from '@angular/animations';
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormControl, Validators } from '@angular/forms';
 import { Store, Select } from '@ngxs/store';
 import { Router } from '@angular/router';
@@ -23,11 +23,13 @@ import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { Configuration } from '@store/actions/config.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { Observable } from 'rxjs';
+import { Observable, Subscription  } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { LogService } from '@services/log.service';
 import { User } from '@store/actions/user.actions';
-
+import { ElementRef, HostListener } from '@angular/core';
+import { KEY_CODES } from '@others/enums';
+import { InputFocusService } from '@services/inputFocus.service';
 
 @UntilDestroy()
 @Component({
@@ -60,6 +62,7 @@ import { User } from '@store/actions/user.actions';
   ]
 })
 export class L1LandingComponent implements OnInit {
+  private focusSubscription: Subscription;
 
   constructor(
     private _router: Router,
@@ -67,7 +70,9 @@ export class L1LandingComponent implements OnInit {
     private _store: Store,
     public _sharedActions: SharedActionsService,
     private activatedRoute: ActivatedRoute,
-    private log: LogService
+    private log: LogService,
+    private buttonAddFolderFeature: ElementRef,
+    private inputFocusService: InputFocusService
   ) {
     const filtersStorage = localStorage.getItem('filters');
     if (!!filtersStorage) {
@@ -85,7 +90,11 @@ export class L1LandingComponent implements OnInit {
 
     // forces the components content to reload when url parameters are changed manually
     this._router.routeReuseStrategy.shouldReuseRoute = () => false;
-    
+
+    this.focusSubscription = this.inputFocusService.inputFocus$.subscribe((inputFocused) => {
+      this.inputFocus = inputFocused;
+      // Do something with the inputFocus variable
+    });
   }
 
   // Contains all the features and folders data
@@ -159,6 +168,71 @@ export class L1LandingComponent implements OnInit {
    * General functions
    */
 
+  // Show Shortcut
+
+  // Check if mouse is over the button
+  isHovered = false;
+
+  onMouseOver() {
+    this.isHovered = true;
+  }
+
+  onMouseOut() {
+    this.isHovered = false;
+  }
+
+  // Keyboard event shortcut
+  inputFocus: boolean = false;
+  @HostListener('document:keydown', ['$event']) 
+  handleKeyboardEvent(event: KeyboardEvent) {
+    switch (event.keyCode) {
+      case KEY_CODES.PLUS:
+        // Click add if input is not focused
+        if (!this.inputFocus){
+          // Clic on add button
+          this.buttonAddFolderFeature.nativeElement.querySelector('.addIcon').click();
+        }
+        break;
+        case KEY_CODES.B:
+          // Click add if input is not focused
+          if (!this.inputFocus){
+            if(this.openedAdd) {
+              this.createFolder();
+            }
+          }
+        break;
+        case KEY_CODES.F:
+          if (!this.inputFocus){
+            if(this.openedAdd) {
+              this.createFolder();
+            }
+          }
+          if (!this.inputFocus){
+            if(this.openedAdd) {
+              this.SAopenCreateFeature();
+            }
+          }
+        break;
+    }
+  }
+
+  onInputFocus() {
+    this.inputFocus = true;
+    console.log('Input focused:', this.inputFocus);
+    this.inputFocusService.setInputFocus(true);
+  }
+  
+  onInputBlur() {
+    this.inputFocus = false;
+    console.log('Input blurred:', this.inputFocus);
+    this.inputFocusService.setInputFocus(false);
+  }
+
+  ngOnDestroy() {
+    console.log('Unsubscribing from focusSubscription');
+    this.focusSubscription.unsubscribe();
+  }
+
   // Closes the add feature / folder menu
   closeAdd() {
     this.openedAdd = false;
@@ -199,7 +273,6 @@ export class L1LandingComponent implements OnInit {
     let folderIdRoute = this.activatedRoute.snapshot.paramMap.get('breadcrumb');
     return folderIdRoute ? true : false;
   }
-
 
   // #3414 -----------------------------------------------------------------------------------------start
   // generates a folder path with folder ids retrieved from url and redirect to there to show content

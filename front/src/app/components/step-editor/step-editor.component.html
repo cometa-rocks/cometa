@@ -79,7 +79,10 @@
                     autocomplete="off"
                     formControlName="step_content"
                     [matAutocomplete]="stepHelp"
-                    placeholder="Step Code"></textarea>
+                    placeholder="Step Code"
+                    (focus)="sendTextareaFocusToParent(true)" 
+                    (blur)="sendTextareaFocusToParent(false)">
+                  </textarea>
           <mat-list class="var_name_autoComplete" [ngStyle]="{'bottom.px': displayedVariables.length > 4 ? -118 : (-displayedVariables.length * 30) + 2 }" *ngIf="stepVariableData.currentStepIndex == i && displayedVariables.length > 0" role="list">
             <mat-list-item id="{{variable.id}}" tabindex="0" *ngFor="let variable of displayedVariables" (click)="onClickVariable(variable.variable_name, i)">
               <div class="variable-wrapper" *ngIf="variable.variable_name; else noVariable">

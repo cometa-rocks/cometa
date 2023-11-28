@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy, Input, ChangeDetectorRef, Host, ElementRef, NgZone, ViewChild, ViewChildren, QueryList, Renderer2 } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, Input, Output, EventEmitter, ChangeDetectorRef, Host, ElementRef, NgZone, ViewChild, ViewChildren, QueryList, Renderer2 } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { AddStepComponent } from '@dialogs/add-step/add-step.component';
 import { MatLegacyDialog as MatDialog , MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
@@ -34,6 +34,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   @ViewSelectSnapshot(ActionsState) actions: Action[];
   @ViewSelectSnapshot(UserState) user !: UserInfo;
 
+  @Output() textareaFocusToParent = new EventEmitter<boolean>();
   @Input() feature: Feature;
   @Input() name: string;
   @Input() mode: 'new' | 'edit' | 'clone';
@@ -63,6 +64,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   ) {
     super();
     this.stepsForm = this._fb.array([]);
+  }
+
+  // Shortcut emitter to parent component
+  public sendTextareaFocusToParent(isFocused: boolean) {
+    this.textareaFocusToParent.emit(isFocused);
+    console.log(this.textareaFocusToParent);
   }
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {

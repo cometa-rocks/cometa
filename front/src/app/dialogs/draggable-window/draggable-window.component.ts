@@ -1,5 +1,5 @@
 import { Component, Inject, ViewEncapsulation, ChangeDetectionStrategy, OnInit } from '@angular/core';
-
+import { SharedModule } from '@modules/shared.module';
 
 @Component({
   selector: 'draggable-window',

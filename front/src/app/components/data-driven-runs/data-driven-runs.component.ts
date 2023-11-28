@@ -7,6 +7,8 @@ import { DataDrivenExecution } from '@dialogs/data-driven-execution/data-driven-
 import { MtxGridColumn } from '@ng-matero/extensions/grid';
 import { ApiService } from '@services/api.service';
 import { SharedActionsService } from '@services/shared-actions.service';
+import { ElementRef, HostListener } from '@angular/core';
+import { KEY_CODES } from '@others/enums';
 
 @Component({
   selector: 'cometa-data-driven-runs',
@@ -21,7 +23,8 @@ export class DataDrivenRunsComponent implements OnInit{
     private _router: Router,
     private _http: HttpClient,
     public _dialog: MatDialog,
-    private _api: ApiService
+    private _api: ApiService,
+    private buttonDataDrivenTest: ElementRef
   ) { }
 
   columns: MtxGridColumn[] = [
@@ -129,5 +132,35 @@ export class DataDrivenRunsComponent implements OnInit{
     this.query.size = parseInt(localStorage.getItem('co_results_page_size')) || 10;
     this.getResults()
   }
+
+  // Shortcut click()
+
+  @HostListener('document:keydown', ['$event']) 
+  handleKeyboardEvent(event: KeyboardEvent) {
+    switch (event.keyCode) {
+      case KEY_CODES.T:
+        // Click DATA DRIVEN TEST button
+        this.buttonDataDrivenTest.nativeElement.querySelector('.mdc-button__label').click();
+        break;
+      case KEY_CODES.S:
+        // Click Column shown
+         
+        break;
+    }
+  }
+
+  // show shortcut in page
+
+   // Check if mouse is over the button
+   isHovered = false;
+
+   onMouseOver() {
+     this.isHovered = true;
+   }
+ 
+   onMouseOut() {
+     this.isHovered = false;
+   }
+ 
 
 }

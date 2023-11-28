@@ -11,13 +11,33 @@
     max-height: calc(100vh - var(--header-height));
 }
 
-a {
-    color: $blue;
-    text-decoration: none;
-    &:hover {
-        text-decoration: underline;
-    }
+.shortcuts-dialog{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    text-align: center;
 }
+
+.shortcuts-dialog > div > h2 {
+    margin-bottom: 2px;
+    padding: 0;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+mtx-grid{
+    max-width: 400px;
+    z-index: -1;
+}
+
+mtx-grid th {
+    font-weight: bold;
+    
+}
+
+mtx-grid td {
+    text-align: center;
+  }
 
 .websocket {
     align-items: center;

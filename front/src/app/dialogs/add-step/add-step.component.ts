@@ -1,4 +1,4 @@
-import { Component, Inject, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, ViewEncapsulation, ChangeDetectionStrategy, Input } from '@angular/core';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { EnterValueComponent } from '@dialogs/enter-value/enter-value.component';
 import { MatLegacyDialogRef as MatDialogRef, MatLegacyDialog as MatDialog, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
@@ -21,7 +21,7 @@ import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
   ]
 })
 export class AddStepComponent {
-
+  @Input() inputFocus: boolean = false;
   @Select(ActionsState) actions$: Observable<Action[]>;
 
   constructor(
@@ -125,5 +125,4 @@ export class AddStepComponent {
     this.currentStep.text = this.step;
     return { ...this.currentStep };
   }
-
 }

@@ -34,6 +34,7 @@ import { ErrorDialog } from '@dialogs/error/error.dialog';
 import { MAT_LEGACY_SNACK_BAR_DEFAULT_OPTIONS as MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/legacy-snack-bar';
 import { MAT_LEGACY_DIALOG_DEFAULT_OPTIONS as MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/legacy-dialog';
 import { NetworkPaginatedListComponent } from '@components/network-paginated-list/network-paginated-list.component';
+import { DragabbleWindowComponent } from '@dialogs/draggable-window/draggable-window.component';
 
 /* Pipes */
 import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
@@ -119,6 +120,7 @@ const components = [
   AddFolderComponent,
   OfferTourComponent,
   EditVariablesComponent,
+  DragabbleWindowComponent,
   NetworkPaginatedListComponent,
   DisableAutocompleteDirective,
   NgInitDirective,

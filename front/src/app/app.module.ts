@@ -29,7 +29,6 @@ import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
 import { DataDrivenTestExecuted } from '@dialogs/data-driven-execution/data-driven-executed/data-driven-executed.component';
-import { DragabbleWindowComponent } from '@dialogs/draggable-window/draggable-window.component'
 
 /* Plugins */
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
@@ -52,6 +51,7 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { WhatsNewService } from '@services/whats-new.service';
 import { Tours } from '@services/tours';
 import { CometaTitleStrategyService } from '@services/titles/cometa-title.service'
+import { InputFocusService } from '@services/inputFocus.service';
 
 /* Module */
 import { SharedModule } from '@modules/shared.module';
@@ -209,7 +209,6 @@ export function getStripeApiKey() {
     FooterComponent,
     ImportJSONComponent,
     EditFeature,
-    DragabbleWindowComponent,
     DataDrivenExecution,
     ScheduleHelp,
     FeatureCreated,
@@ -297,6 +296,7 @@ export function getStripeApiKey() {
     WhatsNewService,
     SharedActionsService,
     Tours,
+    InputFocusService,
     {
       provide: HTTP_INTERCEPTORS,
       useClass: SuccessHandlerInterceptor,

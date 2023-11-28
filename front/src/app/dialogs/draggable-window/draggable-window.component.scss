@@ -1,7 +1,11 @@
+.container{
+    position: relative;
+}
+
 .handle {
     position: absolute;
-    top: 25px;
-    right: 38px;
+    top: 10px;
+    right: 15px;
     color: #ccc;
     cursor: move;
     width: 26px;
