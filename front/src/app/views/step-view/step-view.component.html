@@ -115,6 +115,12 @@
                                     <mat-icon>code</mat-icon>
                                 </button>
                             </div>
+                            <!-- View Notes -->
+                            <div class="option" *ngIf="(item?.notes | json) !== ({} | json)">
+                                <button (click)="openStepNotes(item)" [matTooltip]="item.notes.title" matTooltipPosition="before" stopPropagation mat-icon-button>
+                                    <mat-icon>description</mat-icon>
+                                </button>
+                            </div>
                             <!-- Download attached files to Step Result -->
                             <div class="option download-file" *ngIf="item?.files?.length > 0">
                                 <!-- Check if there are files -->
