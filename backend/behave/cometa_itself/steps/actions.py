@@ -343,7 +343,8 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         'success': success,
         'status': "Success" if success else "Failed",
         'belongs_to': context.step_data['belongs_to'],
-        'rest_api_id': context.step_data.get('rest_api', None)
+        'rest_api_id': context.step_data.get('rest_api', None),
+        'notes': context.step_data.get('notes', {})
     }
     # add custom error if exists
     if 'custom_error' in context.step_data:
@@ -2030,6 +2031,8 @@ def addParameter(context, key, value):
 @step(u'Run Javascript function "{function}"')
 @done(u'Run Javascript function')
 def step_impl(context, function):
+    if context.browser.capabilities.get('browserName', None) != 'firefox':
+        _ = context.browser.get_log('browser') # clear browser logs
     js_function = context.text
     step_timeout = context.step_data['timeout']
     context.browser.set_script_timeout(step_timeout)
@@ -3681,6 +3684,35 @@ def step_imp(context, error_message):
         logger.info(f"Custom error message set for step: {steps[next_step]['step_content']}")
     else:
         logger.warn(f"This is the last step, cannot assign custom error message to next step.")
+
+@step(u'Fetch Console.log from Browser and attach it to the feature result')
+@done(u'Fetch Console.log from Browser and attach it to the feature result')
+def attach_console_logs(context):
+    if context.browser.capabilities.get('browserName', None) == 'firefox':
+        raise CustomError("Console logs are not reachable in firefox, please try another browser.")
+    logs = context.browser.get_log('browser')
+    notes = ""
+    for log in logs:
+        date = datetime.datetime.utcfromtimestamp(log['timestamp'] / 1000) # divide it my 1000 since JS timezone in in ms.
+        parse_log = re.search(r'^(?P<script_url>.*?) (?P<line_column>.*?) \"?(?P<message>.*?)\"?$', log['message'], flags=re.M | re.S)
+        if not parse_log:
+            continue
+        message = parse_log.groupdict().get('message', '---')
+
+        notes += f"[{date.strftime('%Y-%m-%d %H:%M:%S')}][{log['level']}] - {message}\n"
+    
+    context.step_data['notes'] = {
+        'title': "Browser Console Logs",
+        'content': notes
+    }
+
+@step(u'Fetch HTML Source of current Browser page and attach it to the feature result')
+@done(u'Fetch HTML Source of current Browser page and attach it to the feature result')
+def fetch_page_source(context):
+    context.step_data['notes'] = {
+        'title': "Page Source Content",
+        'content': context.browser.page_source
+    }
 
 use_step_matcher("re")
 
