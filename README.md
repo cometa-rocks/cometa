@@ -1,4 +1,3 @@
-
 <!-- PROJECT LOGO -->
 
 <p  align="center">
@@ -45,16 +44,18 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 
 2. Setup at least 1 authentication provider:
 
-	To setup Google:
+	To setup Google (for a more in detail guide [click here](./docs/GoogleAuthentication.md) ):
 	* Go to [Google Developer Console](https://console.cloud.google.com/)
 	* Create an OAuth application
 	* Add your domain to the allowed hosts
 	* Retrieve the `client_id` and `secret_id` and paste them in `./front/apache-conf/metadata/accounts.google.com.client`
 
-	* Set `redirect_uri` to `https://<domain>/callback`
+	* Set `redirect_uri` to `https://<domain>/callback` on your project's credential page 
 
-	To setup Gitlab:
-	* Goto [git.amvara.de](https://git.amvara.de/)
+	* For further information please refer to [Google Cloud Platform Console Help](https://support.google.com/cloud/answer/6158849?hl=en#zippy=)
+
+	To setup Gitlab (for a more in detail guide [click here](./docs/GitAuthentication.md) ):
+	* Go to [git.amvara.de](https://git.amvara.de/)
 	* Create a new account
 	* Settings > Application > Add new application
 	* Add your domain to the allowed hosts
@@ -65,7 +66,7 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 	In both cases, the default URL when installing on you Desktop or Laptop, is `localhost`.
 
 
-Very nice: Instead of following the manual setup instructions below, you may execute `./cometa.sh` to bring up a localhost version on your machine.
+**Don't miss this note**: Instead of following the manual setup instructions below, you may execute `./cometa.sh` to bring up a localhost version on your machine.
 
 
 3. Create a crontab file for scheduling your automated tests
