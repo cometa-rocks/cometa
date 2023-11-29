@@ -206,6 +206,9 @@ def before_all(context):
         'enableVideo': context.record_video,
         'chromeOptions': {
             # 'w3c': False
+        },
+        'goog:loggingPrefs': {
+            'browser': 'ALL'
         }
     }
 
