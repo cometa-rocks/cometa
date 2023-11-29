@@ -44,7 +44,7 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 
 2. Setup at least 1 authentication provider:
 
-	To setup Google:
+	To setup Google (for a more in detail guide [click here](./docs/GoogleAuthentication.md) ):
 	* Go to [Google Developer Console](https://console.cloud.google.com/)
 	* Create an OAuth application
 	* Add your domain to the allowed hosts
@@ -54,7 +54,7 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 
 	* For further information please refer to [Google Cloud Platform Console Help](https://support.google.com/cloud/answer/6158849?hl=en#zippy=)
 
-	To setup Gitlab:
+	To setup Gitlab (for a more in detail guide [click here](./docs/GitAuthentication.md) ):
 	* Go to [git.amvara.de](https://git.amvara.de/)
 	* Create a new account
 	* Settings > Application > Add new application
