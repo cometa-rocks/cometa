@@ -1,5 +1,5 @@
 {
-	"version": "2.8.317",
+	"version": "2.8.319",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -190,6 +190,22 @@
 		"Dream it. Believe it. Build it."
 	],
 	"changelog": [
+		{
+            "version": "2.8.319",
+            "date": "2023-11-30",
+            "features": [
+                "Console Logs can now be viewed using 'Fetch Console.log from Browser and attach it to the feature result' step.",
+				"Page source can now be viewed using 'Fetch HTML Source of current Browser page and attach it to the feature result' step."
+            ]
+        },
+		{
+            "version": "2.8.318",
+            "date": "2023-11-28",
+            "features": [
+                "REST API Testing has been implemented to Co.meta!",
+				"Parsing feature description to fesults view, variables used in feature description will be parsed before the execution."
+            ]
+        },
 		{
             "version": "2.8.317",
             "date": "2023-11-22",
