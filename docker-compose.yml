@@ -1,11 +1,5 @@
 version: '3'
 
-x-browser-limit: &browser-limit
-  # get browser limit from environment variables
-  # if not specified default to 6
-  # Idealy ( <number of cpus> - 2 )
-  BROWSER_LIMIT: ${BROWSER_LIMIT:-6}
-
 services:
   db:
     container_name: cometa_postgres
@@ -106,17 +100,17 @@ services:
     environment:
       TZ: Europe/Berlin
       OVERRIDE_VIDEO_OUTPUT_DIR: /data/cometa/videos
-      <<: *browser-limit
     networks:
       - testing
     restart: always
-    entrypoint: sh -c "/usr/bin/selenoid \
+    # entrypoint with limit on browser executions to CPU-2 or Defaulting to 2 if number is less then 2
+    entrypoint: sh -c "LIMIT=$$(($$(nproc)-2))  && LIMIT=$$((LIMIT > 2 ? $$LIMIT:2)) && /usr/bin/selenoid \
       -listen :4444 \
       -conf /etc/selenoid/browsers.json \
       -video-output-dir /opt/selenoid/video \
       -log-output-dir /opt/selenoid/logs \
       -container-network cometa_testing \
-      -limit $${BROWSER_LIMIT}"
+      -limit $$LIMIT"
 
   novnc:
     image: cometa/novnc:1.0
