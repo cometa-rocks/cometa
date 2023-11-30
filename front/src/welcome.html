@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Login - Complete Meta Test Automation</title>
+  <title>Login - Complete Meta Test Platform</title>
   <base href="/">
   <link rel="icon" href="assets/favicons/@@BRANCH@@/favicon.ico?v=2">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -165,12 +165,15 @@
       <div class="cometa"><span>co.</span>meta</div>
       <div class="sentence"></div>
       <div class="author">— Anonymous —</div>
-      <form novalidate>
+      <form novalidate style="display: inline !important;">
         <div class="alert alert-error"></div>
         <!-- Captcha Plugin Component -->
         <div class="captcha-box"></div>
         <!-- Captcha Input --> 
-        <input type="text" onkeydown="return event.key != 'Enter';" autofocus required id="userCaptchaInput">
+        <div aria-label="CaptchaInputBox">
+          <legend>Repeat Captcha here</legend> 
+          <input type="text" onkeydown="return event.key != 'Enter';" autofocus required id="userCaptchaInput">
+        </div>
         <br />
       </form>
       <div class="provider_buttons"></div>
@@ -206,11 +209,12 @@
         provider_buttons.appendChild(button);
       });
       window.captchaRequired = results.some(res => res.useCaptcha);
+      console.log("Show captcha: ".captchaRequired)
       // if captchaRequired == false then hide the form
       if (window.captchaRequired) {
         loadCaptcha();
       } else {
-        document.querySelector("form").style.display = "none";
+        document.querySelector("form").style.display = "inline";
       }
     })
     .catch(err => {
