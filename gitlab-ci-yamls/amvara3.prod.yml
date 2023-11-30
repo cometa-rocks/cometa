@@ -17,8 +17,6 @@
     COMETA_EMAIL_TLS: 'True'
     COMETA_PROXY_ENABLED: 'False'
     COMETA_PROXY: ''
-    # limit the number of browsers to CPUs-2 ... the same for Redis Workers
-    BROWSER_LIMIT: `$(($(nproc)-2))`    
     #########################################################
     # FRONTEND
     #########################################################
