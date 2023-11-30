@@ -3689,17 +3689,18 @@ def step_imp(context, error_message):
 @done(u'Fetch Console.log from Browser and attach it to the feature result')
 def attach_console_logs(context):
     if context.browser.capabilities.get('browserName', None) == 'firefox':
-        raise CustomError("Console logs are not reachable in firefox, please try another browser.")
-    logs = context.browser.get_log('browser')
-    notes = ""
-    for log in logs:
-        date = datetime.datetime.utcfromtimestamp(log['timestamp'] / 1000) # divide it my 1000 since JS timezone in in ms.
-        parse_log = re.search(r'^(?P<script_url>.*?) (?P<line_column>.*?) \"?(?P<message>.*?)\"?$', log['message'], flags=re.M | re.S)
-        if not parse_log:
-            continue
-        message = parse_log.groupdict().get('message', '---')
+        notes = "Console logs are not reachable in firefox, please try another browser."
+    else:
+        logs = context.browser.get_log('browser')
+        notes = ""
+        for log in logs:
+            date = datetime.datetime.utcfromtimestamp(log['timestamp'] / 1000) # divide it my 1000 since JS timezone in in ms.
+            parse_log = re.search(r'^(?P<script_url>.*?) (?P<line_column>.*?) \"?(?P<message>.*?)\"?$', log['message'], flags=re.M | re.S)
+            if not parse_log:
+                continue
+            message = parse_log.groupdict().get('message', '---')
 
-        notes += f"[{date.strftime('%Y-%m-%d %H:%M:%S')}][{log['level']}] - {message}\n"
+            notes += f"[{date.strftime('%Y-%m-%d %H:%M:%S')}][{log['level']}] - {message}\n"
     
     context.step_data['notes'] = {
         'title': "Browser Console Logs",
