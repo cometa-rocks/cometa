@@ -1,5 +1,5 @@
 {
-	"version": "2.8.317",
+	"version": "2.8.319",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -191,24 +191,61 @@
 	],
 	"changelog": [
 		{
+            "version": "2.8.319",
+            "date": "2023-11-30",
+            "features": [
+				{
+					"title": "Browser Logs in feature results",
+					"description": "Console Logs can now be viewed using 'Fetch Console.log from Browser and attach it to the feature result' step."
+				},
+				{
+					"title": "Page Source in feature results",
+					"description": "Page source can now be viewed using 'Fetch HTML Source of current Browser page and attach it to the feature result' step." 
+				}
+            ]
+        },
+		{
+            "version": "2.8.318",
+            "date": "2023-11-28",
+            "features": [
+				{
+					"title": "REST API Testing",
+					"description": "REST API Testing is now possible in Co.meta! Please use API steps in your features."
+				},
+				{
+					"title": "Parsed description in feature results",
+					"description": "Parsing feature description to fesults view, variables used in feature description will be parsed before the execution."
+				}
+            ]
+        },
+		{
             "version": "2.8.317",
             "date": "2023-11-22",
             "features": [
-                "Defaulting to new dashboard, old view has been moved to the sidebar menu."
+                {
+					"title": "Main V2 as Default Dashboard",
+					"description": "Defaulting to new dashboard, old view has been moved to the sidebar menu."
+				}
             ]
         },
         {
             "version": "2.8.316",
             "date": "2023-10-20",
             "features": [
-                "Data Driven Test Implemented."
+                {
+					"title": "Data Driven Test",
+					"description": "Data Driven Test has been implemented and is now visiable on the left sidebar as \"Data Driven\"."
+				}
             ]
         },
 		{
 			"version": "2.8.315",
 			"date": "2023-10-17",
             "features": [
-                "New step to highlight elements in screenshot."
+                {
+					"title": "New step to highlight elements in screenshot",
+					"description": "Highlight element with \"{selector}\", will highlight with an outline the element found with selector, which will be displayed in the screenshot."
+				}
             ],
 			"bugfixes": [
 				"Feature id repeated twice in tree view."
