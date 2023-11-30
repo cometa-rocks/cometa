@@ -14,6 +14,8 @@
     COMETA_EMAIL_USER: '$COMETA_CLIENT01_EMAIL_USER'
     COMETA_PROXY_ENABLED: 'True'
     COMETA_PROXY: '$COMETA_CLIENT01_PROXY_PROD'
+    # limit the number of browsers to CPUs-2 ... the same for Redis Workers
+    BROWSER_LIMIT: `$(($(nproc)-2))`
     #########################################################
     # FRONTEND
     #########################################################
