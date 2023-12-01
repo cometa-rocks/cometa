@@ -165,7 +165,7 @@
       <div class="cometa"><span>co.</span>meta</div>
       <div class="sentence"></div>
       <div class="author">— Anonymous —</div>
-      <form novalidate style="display: inline !important;">
+      <form novalidate style="display: block; opacity: 0;">
         <div class="alert alert-error"></div>
         <!-- Captcha Plugin Component -->
         <div class="captcha-box"></div>
@@ -213,8 +213,7 @@
       // if captchaRequired == false then hide the form
       if (window.captchaRequired) {
         loadCaptcha();
-      } else {
-        document.querySelector("form").style.display = "inline";
+        document.querySelector("form").style.opacity = 1;
       }
     })
     .catch(err => {
