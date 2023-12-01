@@ -351,12 +351,10 @@ export class EditFeature implements OnInit, OnDestroy {
 
   onMouseOver() {
     this.isHovered = true;
-    console.log('Mouse over');
   }
 
   onMouseOut() {
     this.isHovered = false;
-    console.log('Mouse out');
   }
 
   // Deeply check if two arrays are equal, in length and values

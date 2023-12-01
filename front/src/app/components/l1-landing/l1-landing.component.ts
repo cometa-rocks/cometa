@@ -218,18 +218,15 @@ export class L1LandingComponent implements OnInit {
 
   onInputFocus() {
     this.inputFocus = true;
-    console.log('Input focused:', this.inputFocus);
     this.inputFocusService.setInputFocus(true);
   }
   
   onInputBlur() {
     this.inputFocus = false;
-    console.log('Input blurred:', this.inputFocus);
     this.inputFocusService.setInputFocus(false);
   }
 
   ngOnDestroy() {
-    console.log('Unsubscribing from focusSubscription');
     this.focusSubscription.unsubscribe();
   }
 

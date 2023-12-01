@@ -9,7 +9,6 @@ export class InputFocusService {
   inputFocus$ = this.inputFocusSubject.asObservable();
 
   setInputFocus(value: boolean): void {
-    console.log('Setting input focus to:', value);
     this.inputFocusSubject.next(value);
   }
 }
