@@ -62,7 +62,6 @@ services:
     working_dir: /opt/code/behave_django
     environment:
       PYTHONUNBUFFERED: 1
-      <<: *browser-limit
     networks:
      - testing
     restart: always
