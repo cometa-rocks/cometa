@@ -96,7 +96,6 @@ services:
     environment:
       TZ: Europe/Berlin
       OVERRIDE_VIDEO_OUTPUT_DIR: /data/cometa/videos
-      <<: *browser-limit
     networks:
       - testing
     restart: always
