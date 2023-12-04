@@ -101,7 +101,7 @@
     flex-wrap: wrap;
     flex-direction: column;
     width: 100%;
-    max-width: 600px;
+    max-width: 650px;
     @include for-tablet-portrait-up {
         flex-direction: row;
         flex-wrap: nowrap;
@@ -113,7 +113,7 @@
         justify-content: space-between;
         align-items: center;
         @include for-tablet-portrait-up {
-            flex: 0 400px;
+            flex: 0 500px;
         }
         .circular-progress {
             flex: initial;
