@@ -29,11 +29,40 @@ Open source is the future. Co.Meta is an advanced & evolving meta-test product t
 
 Here is what you need to be able to run Cometa.
 
-- Docker
-- Docker Compose
-- Use Linux as operating system. Have a look at pre-build [Virtual Boxes](https://osboxes.org/)
+- Docker and Docker Compose
+
+  Docker and Docker Compose run seamlessly on both Mac and Windows. Installations have been successfully carried out using Docker Desktop 4.25.2 on macOS 14.1 with Rosetta x86/amd64 emulation. Additionally, running WSL with Ubuntu is a viable option. The choice ultimately depends on your personal preference. We recommend running Co.meta on Linux, considering that Linux is its native environment. Please use Linux as the operating system. You can explore pre-built  [Virtual Boxes](https://osboxes.org/) for your convenience.
+
+- Internet Connection
+
+  The machine your are installing on, needs to be able to fetch software from the internet. For example python libraries, pre-built containers with virtual browser.
+
+  If you are installing Co.meta in a corporate environment, make sure to whitelist the following domains on your corporate Secure Proxy:
+
+  * https://*.amvara.de
+  * https://github.com
+  * https://*.githubusercontent.com
+  * https://*.docker.com
+  * https://*.docker.io
+  * https://registry.npmjs.org
+  * https://www.npmjs.com
+  * https://repo.maven.apache.org
+  * https://kubernetes-charts.storage.googleapis.com
+  * https://plugins.gradle.org:443
+  * https://registry.yarnpkg.com
+  * https://deb.nodesource.com
+  * https://mod-auth-openidc.org
+  * https://pypi.org
+
+
+- Server time
+
+	Your server must be in sync with the global time - consider using [NTP](https://en.wikipedia.org/wiki/Network_Time_Protocol) to keep your local server time syncronised. Time deviation of more than 10 minutes is not supported.
+
+	Why is this important? Because Co.meta supports Single Sign On Providers like oAuth from Gitlab, Github, Azure, Google, Facebook, Ping or others. And the cookie timestamp must be accurate.
 
 In case you are stuck for more than 5 minutes - please let us know. And please give us the opportunity to help you. We want to learn how you are using Co.Meta and what problems you encounter. <a href="https://cometa.rocks/support/">Contact us</a>. We are happy to help.
+
 
 #### Manual
 
