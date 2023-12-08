@@ -29,15 +29,16 @@ Open source is the future. Co.Meta is an advanced & evolving meta-test product t
 
 Here is what you need to be able to run Cometa.
 
-- Docker and Docker Compose
+* **Docker and Docker Compose**
 
   Docker and Docker Compose run seamlessly on both Mac and Windows. Installations have been successfully carried out using Docker Desktop 4.25.2 on macOS 14.1 with Rosetta x86/amd64 emulation. Additionally, running WSL with Ubuntu is a viable option. The choice ultimately depends on your personal preference. We recommend running Co.meta on Linux, considering that Linux is its native environment. Please use Linux as the operating system. You can explore pre-built  [Virtual Boxes](https://osboxes.org/) for your convenience.
+  <br><p>
 
-- Internet Connection
+* **Internet Connection**
 
   Co.Meta needs to be able to fetch software from the internet. For example python libraries, pre-built containers with virtual browser.
 
-  If you are installing Co.meta in a corporate environment, make sure to whitelist the following domains on your corporate Secure Proxy:
+  When installing Co.meta in a corporate environment, make sure to whitelist the following domains on the Secure Proxy:
 
   * https://*.amvara.de
   * https://github.com
@@ -53,9 +54,13 @@ Here is what you need to be able to run Cometa.
   * https://deb.nodesource.com
   * https://mod-auth-openidc.org
   * https://pypi.org
+  <br><p>
 
-  For corporate environments using a Secure Proxy do the following:
-  `nano ~/.docker/config.json`
+  For corporate environments using a Secure Proxy the Proxy Usage needs to be configured:
+  Edit the following `nano ~/.docker/config.json`
+
+  <br>
+  Add the following:
 
   ```
   {
@@ -68,11 +73,11 @@ Here is what you need to be able to run Cometa.
 				"noProxy": "localhost,127.0.0.1,172.0.0.1/8,cometa_socket,cometa_zalenium,cometa_front,cometa_behave,cometa_django,cometa_postgres,behave" 
 			}
 		}
-	}
-```
-
+  }
+  ```
+  This configuration ensures, that the Co.Meta container use the proxy server, when spinning up virtual browsers. 
   Add any internal Websites, ERPs or Application Endpoints into the above file to be accessible without Proxy. 
-
+  <br><p>
 
   Modify /etc/systemd/system/docker.service.d/http_proxy.conf or create the file if missing and add this content:
 
@@ -83,7 +88,10 @@ Here is what you need to be able to run Cometa.
   
   Then restart the services: `run systemctl daemon-reload` and `systemctl restart docker.service`
 
-- Server time
+  <br><p>
+
+
+* **Server time**
 
 	Your server must be in sync with the global time - consider using [NTP](https://en.wikipedia.org/wiki/Network_Time_Protocol) to keep your local server time syncronised. Time deviation of more than 10 minutes is not supported.
 
@@ -92,7 +100,7 @@ Here is what you need to be able to run Cometa.
 In case you are stuck for more than 5 minutes - please let us know. And please give us the opportunity to help you. We want to learn how you are using Co.Meta and what problems you encounter. <a href="https://cometa.rocks/support/">Contact us</a>. We are happy to help.
 
 
-#### Manual
+#### Installation
 
 1. Clone the repo
 	```sh
@@ -146,7 +154,7 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 	```
 
 	Co.Meta starts on port 443. If that port is used on your machine, change it `docker-compose.yml` to e.g. "8443:443"
-	Co.Meta also starts on port 80. If that is not available you could change that to 8081 ind `docker-compose.yml`
+	Co.Meta also starts on port 80. If that is not available you could change that to 8081 in `docker-compose.yml`
 
 	View some logs `docker-compose logs -f --tail=10` of the installation process, to get a understanding, when Co.Meta is ready.
 
