@@ -54,6 +54,34 @@ Here is what you need to be able to run Cometa.
   * https://mod-auth-openidc.org
   * https://pypi.org
 
+  For corporate environments using a Secure Proxy do the following:
+  `nano ~/.docker/config.json`
+
+  ```
+  {
+	"proxies":
+	{
+		"default":
+			{
+				"httpProxy": "http://<host>:<port>",
+				"httpsProxy": "http://<host>:<port>",
+				"noProxy": "localhost,127.0.0.1,172.0.0.1/8,cometa_socket,cometa_zalenium,cometa_front,cometa_behave,cometa_django,cometa_postgres,behave" 
+			}
+		}
+	}
+```
+
+  Add any internal Websites, ERPs or Application Endpoints into the above file to be accessible without Proxy. 
+
+
+  Modify /etc/systemd/system/docker.service.d/http_proxy.conf or create the file if missing and add this content:
+
+  ```
+  [Service]
+  Environment="HTTP_PROXY=http://<host>:<port>/" "NOPROXY=localhost,127.0.0.1,behave,cometa_behave,cometa_django" 
+  ```
+  
+  Then restart the services: `run systemctl daemon-reload` and `systemctl restart docker.service`
 
 - Server time
 
