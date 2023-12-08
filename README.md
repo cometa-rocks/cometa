@@ -29,15 +29,16 @@ Open source is the future. Co.Meta is an advanced & evolving meta-test product t
 
 Here is what you need to be able to run Cometa.
 
-- Docker and Docker Compose
+* **Docker and Docker Compose**
 
   Docker and Docker Compose run seamlessly on both Mac and Windows. Installations have been successfully carried out using Docker Desktop 4.25.2 on macOS 14.1 with Rosetta x86/amd64 emulation. Additionally, running WSL with Ubuntu is a viable option. The choice ultimately depends on your personal preference. We recommend running Co.meta on Linux, considering that Linux is its native environment. Please use Linux as the operating system. You can explore pre-built  [Virtual Boxes](https://osboxes.org/) for your convenience.
+  <br><p>
 
-- Internet Connection
+* **Internet Connection**
 
-  The machine your are installing on, needs to be able to fetch software from the internet. For example python libraries, pre-built containers with virtual browser.
+  Co.Meta needs to be able to fetch software from the internet. For example python libraries, pre-built containers with virtual browser.
 
-  If you are installing Co.meta in a corporate environment, make sure to whitelist the following domains on your corporate Secure Proxy:
+  When installing Co.meta in a corporate environment, make sure to whitelist the following domains on the Secure Proxy:
 
   * https://*.amvara.de
   * https://github.com
@@ -53,18 +54,53 @@ Here is what you need to be able to run Cometa.
   * https://deb.nodesource.com
   * https://mod-auth-openidc.org
   * https://pypi.org
+  <br><p>
+
+  For corporate environments using a Secure Proxy the Proxy Usage needs to be configured:
+  Edit the following `nano ~/.docker/config.json`
+
+  <br>
+  Add the following:
+
+  ```
+  {
+	"proxies":
+	{
+		"default":
+			{
+				"httpProxy": "http://<host>:<port>",
+				"httpsProxy": "http://<host>:<port>",
+				"noProxy": "localhost,127.0.0.1,172.0.0.1/8,cometa_socket,cometa_zalenium,cometa_front,cometa_behave,cometa_django,cometa_postgres,behave" 
+			}
+		}
+  }
+  ```
+  This configuration ensures, that the Co.Meta container use the proxy server, when spinning up virtual browsers. 
+  Add any internal Websites, ERPs or Application Endpoints into the above file to be accessible without Proxy. 
+  <br><p>
+
+  Modify /etc/systemd/system/docker.service.d/http_proxy.conf or create the file if missing and add this content:
+
+  ```
+  [Service]
+  Environment="HTTP_PROXY=http://<host>:<port>/" "NOPROXY=localhost,127.0.0.1,behave,cometa_behave,cometa_django" 
+  ```
+  
+  Then restart the services: `run systemctl daemon-reload` and `systemctl restart docker.service`
+
+  <br><p>
 
 
-- Server time
+* **Server time**
 
 	Your server must be in sync with the global time - consider using [NTP](https://en.wikipedia.org/wiki/Network_Time_Protocol) to keep your local server time syncronised. Time deviation of more than 10 minutes is not supported.
 
-	Why is this important? Because Co.meta supports Single Sign On Providers like oAuth from Gitlab, Github, Azure, Google, Facebook, Ping or others. And the cookie timestamp must be accurate.
+	Why is this important? Because Co.Meta supports Single Sign On Providers like oAuth from Gitlab, Github, Azure, Google, Facebook, Ping or others. And the cookie timestamp must be accurate.
 
 In case you are stuck for more than 5 minutes - please let us know. And please give us the opportunity to help you. We want to learn how you are using Co.Meta and what problems you encounter. <a href="https://cometa.rocks/support/">Contact us</a>. We are happy to help.
 
 
-#### Manual
+#### Installation
 
 1. Clone the repo
 	```sh
@@ -117,12 +153,12 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 	docker-compose up -d && docker-compose logs -f --tail=10
 	```
 
-	Cometa starts on port 443. If that port is used on your machine, change it `docker-compose.yml` to e.g. "8443:443"
-	Cometa also starts on port 80. If that is not available you could change that to 8081 ind `docker-compose.yml`
+	Co.Meta starts on port 443. If that port is used on your machine, change it `docker-compose.yml` to e.g. "8443:443"
+	Co.Meta also starts on port 80. If that is not available you could change that to 8081 in `docker-compose.yml`
 
-	View some logs `docker-compose logs -f --tail=10` of the installation process, to get a understanding, when cometa is ready.
+	View some logs `docker-compose logs -f --tail=10` of the installation process, to get a understanding, when Co.Meta is ready.
 
-	Give cometa some minutes to install python, setup django, download npm and docker files, compile the front end.
+	Give Co.Meta some minutes to install python, setup django, download npm and docker files, compile the front end.
 	Depending on your computer this can take a couple of minutes.
 
 	You want a development server?
@@ -147,15 +183,15 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 
 	This will configure and pull the three newest Docker images with virtual browsers for Selenoid.
 
-	Selenoid image are the browser that you will be able use and select in cometa. 
+	Selenoid image are the browser that you will be able use and select in Co.Meta. 
 
 	Of course there are options to include browserstack, headspin or sourcelabs browsers. But that is a bit you would not want to configure on your first setup.
 
 	This step will take some time as all the default browser images are being pulled.
 
-	Once cometa is up and running, you can parse the new browser images avaible into Cometa by calling `https://localhost/backend/parseBrowsers/`
+	Once Co.Meta is up and running, you can parse the new browser images avaible into Co.Meta by calling `https://localhost/backend/parseBrowsers/`
 
-7. See cometa rocks in your browser
+7. See Co.Meta in your browser
 
 	Test server access `curl -k  https://<yourdomain>:<specified port - default 443>/`
 
@@ -181,7 +217,7 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 
 #### Notes
 
-* Final Cometa is available at `https://localhost/`
+* Final Co.Meta is available at `https://localhost/`
 * To enable Debug mode on front:
 	```bash
 	docker exec -it cometa_front bash
@@ -227,5 +263,5 @@ Copyright 2022 COMETA ROCKS S.L.
 Portions of this software are licensed as follows:
 
 * All content that resides under "ee/" directory of this repository (Enterprise Edition) is licensed under the license defined in "ee/LICENSE". (Work in progress)
-* All third party components incorporated into the cometa.rocks Software are licensed under the original license provided by the owner of the applicable component.
+* All third party components incorporated into the Co.Meta Software are licensed under the original license provided by the owner of the applicable component.
 * Content outside of the above mentioned directories or restrictions above is available under the "AGPLv3" license as defined in `LICENSE` file.
