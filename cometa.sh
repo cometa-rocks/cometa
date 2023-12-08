@@ -5,11 +5,12 @@
 # ##################################################
 #
 # Changelog:
+# 2023-08-12 RRO Added check on docker hub is reachable by downloading image "Hello-World"
 # 2022-10-04 ASO changed sed logic and checking if docker is installed and running.
 # 2022-10-03 ASO changing data mount point based on the parameter.
 # 2022-09-08 RRO first version
 #
-VERSION="2022-09-08"
+VERSION="2023-12-08"
 
 #
 # source our nice logger
@@ -18,7 +19,9 @@ HELPERS="helpers"
 # source logger function if not sourced already
 test `command -v log_wfr` || source "${HELPERS}/logger.sh" || exit
 
+info "------------------------------------------------------------------------"
 info "This is $0 version ${VERSION} running for your convinience"
+info "------------------------------------------------------------------------"
 
 ########################################
 #
@@ -63,6 +66,20 @@ function checkDocker() {
         error "Either docker daemon is not running or user <${USER}> does not have permissions to use docker."
         info "Please start the docker service or ask your server administrator to add user <${USER}> to 'docker' group."
         exit 5;
+    fi
+
+    # check if docker hub is reachable
+    if [[ ! $(docker pull "hello-world" ) ]]; then
+        error "Docker pull command did not excute correctly. Dockerhub is not reachable.";
+        info "--------------------------------------------------------------------------"
+        info "Please check your internet connection.";
+        info "If running behind a secure proxy, check ~/.docker/config.json ";
+        info "And check /etc/systemd/system/docker.service.d/http_proxy.conf to contain the needed";
+        info "If you cannot find a solution, please contact us. We are happy to help you.";
+        exit 5;
+    else
+        info "[OK] Checked that docker hub is reachable and images can be downloaded."
+        docker rmi hello-world 2>&1 >/dev/null || info "Hello-world image could not be removed"
     fi
 }
 
@@ -151,7 +168,7 @@ fi
 # Bring up the system
 #
 info "Starting containers"
-docker-compose up -d && info "Started docker ... now waiting for container to come alive " || warn "docker-compose command finished with error"
+docker-compose up -d && info "Started docker ... now waiting for container to come alive " || { warning "docker-compose command finished with error"; exit; }
 
 #
 # How to wait for System ready?
