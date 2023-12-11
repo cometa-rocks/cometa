@@ -4,7 +4,7 @@
       <span class="secondary-color as-text">co.</span>meta
     </div>
     <div class="confidential-title">
-      Complete Meta Test Automation
+      Complete Meta Test Platform
     </div>
   </div>
   <div class="fRight action-buttons">
@@ -23,8 +23,8 @@
   <i (click)="closeMenu()" class="close"></i>
   <ul>
     <!--router link implementation was out of date-->
-    <li [routerLink]="['/']" (click)="closeMenu()">main</li>
-    <li [routerLink]="['/new']" (click)="closeMenu()">Main v.2 (beta)</li>
+    <li [routerLink]="['/new']" (click)="closeMenu()">main</li>
+    <li [routerLink]="['/search']" (click)="closeMenu()">Main old</li>
     <li [routerLink]="['/pricing']" *ngIf="requiresPayment" (click)="closeMenu()" >pricing</li>
     <li [routerLink]="['/about']" (click)="closeMenu()">about</li>
     <li [routerLink]="['/help']" (click)="closeMenu()">help</li>
