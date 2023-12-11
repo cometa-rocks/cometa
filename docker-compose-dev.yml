@@ -116,7 +116,7 @@ services:
     restart: always
 
   apache:
-    image: "httpd:2.4.48"
+    image: "arslansb/cometa_front:0.0.1"
     container_name: cometa_front
     volumes:
       - ./front/:/code
@@ -129,7 +129,7 @@ services:
     ports:
       - "443:443"
       - "4200:4200"
-    command: bash /code/start.sh openidc basic angular compile
+    # command: bash /code/start.sh openidc basic angular compile
     # command: bash /code/start.sh compile 
     networks:
       - testing
