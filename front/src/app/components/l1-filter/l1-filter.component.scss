@@ -6,6 +6,12 @@
 @import 'breakpoints';
 @import 'color';
 
+//folderTree
+.l1Filter {
+    fill: #5F6368;
+    margin-right: 8px;
+}
+
 .upper-container {
     display: flex;
     height: var(--new-landing-filters-height);

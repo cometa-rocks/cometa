@@ -7,7 +7,8 @@ Author: dph000
 -->
 <!-- Home button -->
 <div (click)="toggleList('home')" [class.selected]="(route$ | async).length == 0 && (activeList$ | async) === 'home'" [matTooltip]="'sidenav_page.home' | translate" matTooltipPosition="right">
-  <mat-icon>home</mat-icon>
+  <!-- <mat-icon>home</mat-icon> -->
+  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="folderTree"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
   Home
 </div>
 <!-- Departments and folders recursive item tree -->
@@ -15,31 +16,37 @@ Author: dph000
 <cometa-folder-item-tree [department]="true" [folder]="folder" [parent]="[folder]" [level]="0" *ngFor="let folder of folders$ | async"></cometa-folder-item-tree>
 <!-- Data Driven Runs List button -->
 <div (click)="toggleList('data-driven')" [class.selected]="(activeList$ | async) === 'data-driven'" [matTooltip]="'sidenav_page.data_driven_sidenav' | translate" matTooltipPosition="right">
-  <mat-icon>format_indent_increase</mat-icon>
+  <!-- <mat-icon>format_indent_increase</mat-icon> -->
+  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="folderTree"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 21h18v-2H3v2zM3 8v8l4-4-4-4zm8 9h10v-2H11v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z"/></svg>
   Data Driven
 </div>
 <!-- Variables list button -->
 <div (click)="toggleList('variables')" [class.selected]="(activeList$ | async) === 'variables'" [matTooltip]="'sidenav_page.variables_sidenav' | translate" matTooltipPosition="right">
-  <mat-icon>settings_input_component</mat-icon>
+  <!-- <mat-icon>settings_input_component</mat-icon> -->
+  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="folderTree"><path d="M0 0h24v24H0z" fill="none"/><path d="M5 2c0-.55-.45-1-1-1s-1 .45-1 1v4H1v6h6V6H5V2zm4 14c0 1.3.84 2.4 2 2.82V23h2v-4.18c1.16-.41 2-1.51 2-2.82v-2H9v2zm-8 0c0 1.3.84 2.4 2 2.82V23h2v-4.18C6.16 18.4 7 17.3 7 16v-2H1v2zM21 6V2c0-.55-.45-1-1-1s-1 .45-1 1v4h-2v6h6V6h-2zm-8-4c0-.55-.45-1-1-1s-1 .45-1 1v4H9v6h6V6h-2V2zm4 14c0 1.3.84 2.4 2 2.82V23h2v-4.18c1.16-.41 2-1.51 2-2.82v-2h-6v2z"/></svg>
   Variables
 </div>
 <!-- Team shared features and foldes list button -->
 <div (click)="toggleList('team')" [class.selected]="(activeList$ | async) === 'team'" [matTooltip]="'sidenav_page.team_drives' | translate" matTooltipPosition="right">
-  <mat-icon>people</mat-icon>
+  <!-- <mat-icon>people</mat-icon> -->
+  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="folderTree"><path d="M0 0h24v24H0z" fill="none"/><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
   Team drives
 </div>
 <!-- Recently modified features list button -->
 <div (click)="toggleList('recent')" [class.selected]="(activeList$ | async) === 'recent'" [matTooltip]="'sidenav_page.recent' | translate" matTooltipPosition="right">
-  <mat-icon>restore</mat-icon>
+  <!-- <mat-icon>restore</mat-icon> -->
+  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="folderTree"><path d="M0 0h24v24H0z" fill="none"/><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
   Recent
 </div>
 <!-- Starred features list button -->
 <div (click)="toggleList('starred')" [class.selected]="(activeList$ | async) === 'starred'" [matTooltip]="'sidenav_page.starred' | translate" matTooltipPosition="right">
-  <mat-icon>star_border</mat-icon>
+  <!-- <mat-icon>star_border</mat-icon> -->
+  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="folderTree"><path d="M0 0h24v24H0z" fill="none"/><path d="M22 9.24l-7.19-.62L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.63-7.03L22 9.24zM12 15.4l-3.76 2.27 1-4.28-3.32-2.88 4.38-.38L12 6.1l1.71 4.04 4.38.38-3.32 2.88 1 4.28L12 15.4z"/></svg>
   Starred
 </div>
 <!-- Trash bin list button -->
 <div (click)="toggleList('trashbin')" [class.selected]="(activeList$ | async) === 'trashbin'" [matTooltip]="'sidenav_page.trash_bin' | translate" matTooltipPosition="right">
-  <mat-icon>delete</mat-icon>
+  <!-- <mat-icon>delete</mat-icon> -->
+  <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="folderTree"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
   Trash bin
 </div>
