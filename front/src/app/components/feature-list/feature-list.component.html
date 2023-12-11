@@ -91,7 +91,7 @@
                     </td>
                     <!-- Feature schedule -->
                     <td class="cursorPointer schedule" stopPropagation (click)="_sharedActions.editSchedule(info.feature_id)" [matTooltip]="'tooltips.edit_schedule' | translate" matTooltipPosition="below">
-                        <mat-checkbox class="noPointerEvents" [checked]="info.schedule.length > 0" color="primary"></mat-checkbox>
+                        <mat-checkbox class="noPointerEvents" [checked]="info.schedule?.length > 0" color="primary"></mat-checkbox>
                     </td>
                     <!-- Feature settings icon with dropdown -->
                     <td matTooltip="Options" class="settings">

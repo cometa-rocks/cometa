@@ -177,10 +177,21 @@ def reset_element_highlight(context):
         if 'highlighted_text' in context:
             send_step_details(context, 'Resetting Highlighted text')
             context.browser.execute_script('''
-            const element = document.body;
-            const pattern = new RegExp(`<mark data-by=(?:\'|\")co.meta(?:\'|\")>(.*?)</mark>`, 'gi');
-            element.innerHTML = element.innerHTML.replaceAll(pattern, "$1");
+            if (window.getSelection) {
+                if (window.getSelection().empty) {  // Chrome
+                    window.getSelection().empty();
+                } else if (window.getSelection().removeAllRanges) {  // Firefox
+                    window.getSelection().removeAllRanges();
+                }
+            } else if (document.selection) {  // IE?
+                document.selection.empty();
+            }
             ''')
+            # context.browser.execute_script('''
+            # const element = document.body;
+            # const pattern = new RegExp(`<mark data-by=(?:\'|\")co.meta(?:\'|\")>(.*?)</mark>`, 'gi');
+            # element.innerHTML = element.innerHTML.replaceAll(pattern, "$1");
+            # ''')
             del context.highlighted_text
     except Exception as err:
         logger.exception(err)
@@ -332,7 +343,8 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         'success': success,
         'status': "Success" if success else "Failed",
         'belongs_to': context.step_data['belongs_to'],
-        'rest_api_id': context.step_data.get('rest_api', None)
+        'rest_api_id': context.step_data.get('rest_api', None),
+        'notes': context.step_data.get('notes', {})
     }
     # add custom error if exists
     if 'custom_error' in context.step_data:
@@ -1441,16 +1453,21 @@ def step_iml(context, selector):
 @done(u'Highlight "{text}" on the page')
 def step_iml(context, text):
     send_step_details(context, 'Highlighting the text')
+    # action = ActionChains(context.browser)
+    # action.key_down(Keys.LEFT_CONTROL).send_keys('f').key_up(Keys.LEFT_CONTROL).perform()
     context.browser.execute_script(f'''
-    const element = document.body;
-    const pattern = new RegExp('({text})', 'gi');
-    element.innerHTML = element.innerHTML.replaceAll(
-        pattern,
-        "<mark data-by='co.meta'>$1</mark>"
-    );
+    window.find('{text}', false, false, true);
     ''')
+    # context.browser.execute_script(f'''
+    # const element = document.body;
+    # const pattern = new RegExp('({text})', 'gi');
+    # element.innerHTML = element.innerHTML.replaceAll(
+    #     pattern,
+    #     "<mark data-by='co.meta'>$1</mark>"
+    # );
+    # ''')
 
-    # set highlight setting to be removed after step
+    # # set highlight setting to be removed after step
     context.highlighted_text = True
 
 # Press Enter key
@@ -2014,6 +2031,8 @@ def addParameter(context, key, value):
 @step(u'Run Javascript function "{function}"')
 @done(u'Run Javascript function')
 def step_impl(context, function):
+    if context.browser.capabilities.get('browserName', None) != 'firefox':
+        _ = context.browser.get_log('browser') # clear browser logs
     js_function = context.text
     step_timeout = context.step_data['timeout']
     context.browser.set_script_timeout(step_timeout)
@@ -3665,6 +3684,36 @@ def step_imp(context, error_message):
         logger.info(f"Custom error message set for step: {steps[next_step]['step_content']}")
     else:
         logger.warn(f"This is the last step, cannot assign custom error message to next step.")
+
+@step(u'Fetch Console.log from Browser and attach it to the feature result')
+@done(u'Fetch Console.log from Browser and attach it to the feature result')
+def attach_console_logs(context):
+    if context.browser.capabilities.get('browserName', None) == 'firefox':
+        notes = "Console logs are not reachable in firefox, please try another browser."
+    else:
+        logs = context.browser.get_log('browser')
+        notes = ""
+        for log in logs:
+            date = datetime.datetime.utcfromtimestamp(log['timestamp'] / 1000) # divide it my 1000 since JS timezone in in ms.
+            parse_log = re.search(r'^(?P<script_url>.*?) (?P<line_column>.*?) \"?(?P<message>.*?)\"?$', log['message'], flags=re.M | re.S)
+            if not parse_log:
+                continue
+            message = parse_log.groupdict().get('message', '---')
+
+            notes += f"[{date.strftime('%Y-%m-%d %H:%M:%S')}][{log['level']}] - {message}\n"
+    
+    context.step_data['notes'] = {
+        'title': "Browser Console Logs",
+        'content': notes
+    }
+
+@step(u'Fetch HTML Source of current Browser page and attach it to the feature result')
+@done(u'Fetch HTML Source of current Browser page and attach it to the feature result')
+def fetch_page_source(context):
+    context.step_data['notes'] = {
+        'title': "Page Source Content",
+        'content': context.browser.page_source
+    }
 
 if __name__ != 'actions':
     sys.path.append('/code/behave/')
