@@ -1,45 +1,52 @@
+FROM node:20.10.0-slim as cometa_front_compiler
+
+# set maintainers
+LABEL org.opencontainers.image.author1="Arslan Sohail <hello.arslan@amvara.de>"
+LABEL org.opencontainers.image.author2="AMVARA CONSULTING S.L. <tec_dev@amvara.de>"
+
+WORKDIR /home/cometa/front
+COPY . /home/cometa/front
+
+# install all the packages
+# RUN npm ci
+
+# compile the front
+RUN npx ng build -c production
+
 # initialize base httpd image
-FROM httpd:2.4.48
+FROM httpd:2.4.48 as production
 
-# author of the image
-LABEL AUTHOR="COMETA ROCKS S.L."
+# set maintainers
+LABEL org.opencontainers.image.author1="Arslan Sohail <hello.arslan@amvara.de>"
+LABEL org.opencontainers.image.author2="AMVARA CONSULTING S.L. <tec_dev@amvara.de>"
 
-# set a default shell
-SHELL ["/bin/bash", "-c"]
+# install libraries for mod_auth_openidc
+RUN apt update
+RUN apt install -y libcjose0 \
+    libcjose-dev \
+    libssl-dev \
+    libjansson-dev \
+    libcurl4-openssl-dev \
+    openssl \
+    wget
 
-# make a /code directory that will save all the git repo data
-RUN mkdir /code
+# copy the dist folder from the compiler stage
+COPY --from=cometa_front_compiler /home/cometa/front/dist /usr/local/apache2/htdocs
 
-# COPY repository code to /code
-COPY . /code
-
-# set workdir to /code for compiling purposes
-WORKDIR /code
-
-# copy apache configuration files
-COPY apache-conf/httpd.conf /usr/local/apache2/conf/httpd.conf
-COPY apache-conf/openidc.conf_basic /usr/local/apache2/conf/openidc.conf
-COPY apache-conf/paths.conf /usr/local/apache2/conf/paths.conf
-COPY apache-conf/mod_auth_openidc.so /usr/local/apache2/modules/mod_auth_openidc.so
-
-# make sure start.sh has execution permissions
-RUN chmod +x /code/start.sh
-
-# run /code/start.sh script to install everything we need
-RUN /code/start.sh openidc basic angular compile no-restart
-
-# finally set workdir to httpd htdocs
-WORKDIR /usr/local/apache2
-
-# remove /code directory
-RUN rm -r /code
-
-# expose necessary ports
-EXPOSE 80
-EXPOSE 443
+# copy the compiled mod_auth_openidc module
+# FIXME:
+# Create another stage to compile the mod_auth_openidc
+# so we have the latest version with security updates
+COPY --from=cometa_front_compiler \
+    /home/cometa/front/apache-conf/mod_auth_openidc.so \
+    /usr/local/apache2/modules/mod_auth_openidc.so
 
 # generate self-signed certificate
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt -subj "/C=/ST=/L=/O=/OU=/CN="
+RUN openssl req -x509 -nodes -days 365 \
+    -newkey rsa:2048 -keyout /etc/ssl/certs/apache-self-signed.key \
+    -out /etc/ssl/certs/apache-self-signed.crt \
+    -subj "/C=/ST=/L=/O=/OU=/CN="
 
-# tail a logfile as ENTRYPOINT
-CMD ["httpd-foreground"]
+# configure Health Check for the container
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s \
+    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
