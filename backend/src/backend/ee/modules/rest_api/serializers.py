@@ -1,3 +1,7 @@
+# ###
+# Sponsored by Mercedes-Benz AG, Stuttgart
+# ###
+
 from rest_framework import serializers
 from .models import (
     REST_API

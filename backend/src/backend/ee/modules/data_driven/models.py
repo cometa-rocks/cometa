@@ -1,3 +1,7 @@
+# ###
+# Sponsored by Mercedes-Benz AG, Stuttgart
+# ###
+
 from backend.models import (
     SoftDeletableModel,
     Feature_result
