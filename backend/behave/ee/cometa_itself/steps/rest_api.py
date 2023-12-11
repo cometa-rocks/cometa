@@ -1,3 +1,7 @@
+# ###
+# Sponsored by Mercedes-Benz AG, Stuttgart
+# ###
+
 from behave import (
     step,
     use_step_matcher
