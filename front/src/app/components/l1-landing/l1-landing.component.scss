@@ -68,6 +68,11 @@ edit-variables {
     transition: opacity .5s ease-in-out;
 }
 
+//Dropdown
+.dropdownLandingPage {
+    fill: rgba(240, 240, 240, 0.85);
+}
+
 // Shortcut
 
 .checkbox-container {
@@ -206,7 +211,7 @@ edit-variables {
                         background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
                         background-size: contain;
                         stroke-width: 3;
-                        height: 21px;
+                        height: 16px;
                     }
                 }
             }
@@ -222,7 +227,7 @@ edit-variables {
                 outline: 0;
                 float: left;
                 margin-top: 8px;
-                padding-right: 5px;
+                padding-right: 1px;
                 i {
                     height: 21px;
                     width: 21px;

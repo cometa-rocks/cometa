@@ -23,12 +23,16 @@ Author: dph000
         <div (click)="openedAdd = false" [class.desktop_backdrop]="openedAdd"></div>
         <!-- Button to display / hide the other 2 buttons -->
         <button class="addIcon" mat-raised-button aria-label="Add button" (click)="openedAdd = !openedAdd">
-          <mat-icon>add</mat-icon>
+          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" class="dropdownLandingPage"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg>
+          <!-- Old -->
+          <!-- <mat-icon>add</mat-icon> -->
           Add
         </button>
         <!-- Add folder button -->
         <button class="addFolderIcon" mat-raised-button aria-label="Create folder button" (click)="createFolder()" [class.hideAdd]="!openedAdd">
-          <mat-icon>folder_open</mat-icon>
+          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" class="dropdownLandingPage"><path d="M560-320h80v-80h80v-80h-80v-80h-80v80h-80v80h80v80ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></svg>
+          <!-- Old -->
+          <!-- <mat-icon>folder_open</mat-icon> -->
           Create folder (B)
         </button>
         <!-- Add feature button -->
@@ -36,7 +40,7 @@ Author: dph000
           <div class="icon">
             <i class="feature-icon"></i>
           </div>
-          Create feature (F)
+          Create feature <span>(F)</span>
         </button>
         <!--
           <button *ngIf="canCreateFeature && hasSubscription" class="addDataDrivenIcon" mat-raised-button
