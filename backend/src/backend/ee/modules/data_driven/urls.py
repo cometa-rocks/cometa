@@ -1,3 +1,7 @@
+# ###
+# Sponsored by Mercedes-Benz AG, Stuttgart
+# ###
+
 from .views import (
     DataDrivenResultsViewset,
     DataDrivenFileViewset,
