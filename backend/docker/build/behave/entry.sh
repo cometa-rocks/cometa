@@ -41,14 +41,16 @@ CPUCORES=`getconf _NPROCESSORS_ONLN`
 # calculate workers
 # GUNI_WORKERS=$((($CPUCORES*2+1)))
 GUNI_WORKERS=$((($CPUCORES+1)))
+REDIS_WORKERS=$((($CPUCORES-2)))
 
-# configure django-rq service in supervisor
+# configure django-rq service in supervisor / redis - number of workers equals number of CPUs - #4236
+# limit number of procs to Cores - 2
 cat <<EOF > /etc/supervisor/conf.d/django-rq.conf
 [program:django-rq]
 environment=PYTHONUNBUFFERED=1
 process_name=%(program_name)s-%(process_num)s
 command=python manage.py rqworker default
-numprocs=6
+numprocs=$REDIS_WORKERS
 directory=/opt/code/behave_django
 stopsignal=TERM
 autostart=true
