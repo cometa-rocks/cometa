@@ -12,7 +12,9 @@ Author: dph000
         <div class="top-left-container" [matTooltip]="'need_help.tooltip' | translate" matTooltipPosition="above" [ngClass]="{'visible': item.help && !running}">
           <div class="current-step">
             <div class="triangle"></div>
-            <mat-icon class="state-icon">help</mat-icon>
+            <!-- Old -->
+            <!-- <mat-icon class="state-icon">help</mat-icon> -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000" class="state-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
             <span>{{ 'need_help.poster' | translate }}</span>
           </div>
         </div>
@@ -38,9 +40,15 @@ Author: dph000
             <mat-spinner class="item-loader" diameter="18" *ngIf="running; else showState"></mat-spinner>
             <ng-template #showState>
               <ng-container [ngSwitch]="item.status | lowercase">
-                <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon>
-                <mat-icon class="state-icon" *ngSwitchCase="'canceled'">remove_circle</mat-icon>
-                <mat-icon class="state-icon" *ngSwitchCase="'failed'">error</mat-icon>
+                <!-- Old -->
+                <!-- <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon> -->
+                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" class="state-icon" *ngSwitchCase="'success'"><path d="M400-304 240-464l56-56 104 104 264-264 56 56-320 320Z"/></svg>
+                <!-- Old -->
+                <!-- <mat-icon class="state-icon" *ngSwitchCase="'canceled'">remove_circle</mat-icon> -->
+                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" viewBox="0 0 24 24"  fill="#000000" class="state-icon" *ngSwitchCase="'canceled'"><g><path d="M0,0h24v24H0V0z" fill="none"/></g><g><g><path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M17,13H7v-2h10V13z"/></g></g></svg>
+                <!-- Old -->
+                <!-- <mat-icon class="state-icon" *ngSwitchCase="'failed'">error</mat-icon> -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000" class="state-icon" *ngSwitchCase="'failed'"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
               </ng-container>
               <span style="vertical-align:middle;">{{ item.status }}</span>
             </ng-template>
@@ -48,8 +56,12 @@ Author: dph000
           <div class="run" stopPropagation (click)="_sharedActions.run(item.id)">
             <div class="triangle"></div>
             <ng-container [ngSwitch]="running">
-              <mat-icon class="state-icon" *ngSwitchCase="true">remove_red_eye</mat-icon>
-              <mat-icon class="state-icon" *ngSwitchCase="false">play_arrow</mat-icon>
+              <!-- Old -->
+              <!-- <mat-icon class="state-icon" *ngSwitchCase="true">remove_red_eye</mat-icon> -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="state-icon" *ngSwitchCase="true"><path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z"/></svg>
+              <!-- Old -->
+              <!-- <mat-icon class="state-icon" *ngSwitchCase="false">play_arrow</mat-icon> -->
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000" class="state-icon" *ngSwitchCase="false"><path d="M0 0h24v24H0z" fill="none"/><path d="M8 5v14l11-7z"/></svg>
             </ng-container>
             <span style="vertical-align:middle;">Run</span>
           </div>
@@ -74,41 +86,53 @@ Author: dph000
         <button matTooltip="Feature options" matTooltipPosition="above" stopPropagation class="options" mat-icon-button [matMenuTriggerFor]="featureOptions">
           <!-- Old -->
           <!-- <mat-icon>more_vert</mat-icon> -->
-          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" class="itemListComponent"><path d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="itemListComponent"><path d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"/></svg>
         </button>
         <mat-menu class="feature-options" #featureOptions="matMenu" xPosition="after">
           <ng-container *ngIf="!item.depends_on_others">
             <!-- Run feature button -->
             <button (click)="_sharedActions.run(item.id)" class="run-feature" [matTooltip]="'tooltips.run_feature' | translate" matTooltipPosition="after" mat-menu-item>
-              <mat-icon>play_circle_filled</mat-icon>
+              <!-- Old -->
+              <!-- <mat-icon>play_circle_filled</mat-icon> -->
+              <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="mat-icon"><g><rect fill="none" height="24" width="24"/></g><g><path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M9.5,16.5v-9l7,4.5L9.5,16.5z"/></g></svg>
               <span>Run</span>
             </button>
             <mat-divider></mat-divider>
           </ng-container>
           <!-- Edit feature -->
           <button *ngIf="canEditFeature$ | async" (click)="_sharedActions.openEditFeature(item.id, 'edit')" matTooltip="Edit {{item.name}} steps" matTooltipPosition="before" class="modify-feature" mat-menu-item>
-            <mat-icon>edit</mat-icon>
-            <span>Modify</span>
+            <!-- Old -->
+            <!-- <mat-icon>edit</mat-icon> -->
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="mat-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+            <span class="icons">Modify</span>
           </button>
           <!-- Clone feature -->
           <button *ngIf="canCreateFeature" (click)="_sharedActions.openEditFeature(item.id, 'clone')" matTooltip="Clone {{item.name}}" matTooltipPosition="before" class="modify-feature" mat-menu-item>
-            <mat-icon>content_copy</mat-icon>
-            <span>Clone</span>
+            <!-- Old -->
+            <!-- <mat-icon>content_copy</mat-icon> -->
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="mat-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+            <span class="icons">Clone</span>
           </button>
           <!-- Move feature -->
           <button (click)="SAmoveFeature(item.reference)" matTooltip="Move {{item.name}}" matTooltipPosition="before" class="move-feature" mat-menu-item>
-            <mat-icon>folder</mat-icon>
-            <span>Move</span>
+            <!-- Old -->
+            <!-- <mat-icon>folder</mat-icon> -->
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="mat-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+            <span class="icons">Move</span>
           </button>
           <mat-divider></mat-divider>
           <button mat-menu-item [matMenuTriggerFor]="otherOptions">
-            <mat-icon>settings</mat-icon>
-            <span>Settings</span>
+            <!-- Old -->
+            <!-- <mat-icon>settings</mat-icon> -->
+            <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="mat-icon"><g><path d="M0,0h24v24H0V0z" fill="none"/><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></g></svg>
+            <span class="icons">Settings</span>
           </button>
           <mat-divider></mat-divider>
           <!-- Delete feature -->
           <button *ngIf="canDeleteFeature$ | async" (click)="_sharedActions.deleteFeature(item.id)" matTooltip="Delete feature {{item.name}}" matTooltipPosition="before" class="delete-feature" mat-menu-item>
-            <mat-icon>delete</mat-icon>
+            <!-- Old -->
+            <!-- <mat-icon>delete</mat-icon> -->
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="mat-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
             <span>Delete</span>
           </button>
         </mat-menu>
