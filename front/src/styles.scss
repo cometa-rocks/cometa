@@ -42,6 +42,8 @@
     font-feature-settings: 'liga';
 }
 
+
+
 @font-face {
     font-family: CorpoS;
     src: url(^assets/c063003t.ttf) format('truetype');
@@ -236,23 +238,34 @@ body::-webkit-scrollbar-corner {
 .mat-menu-panel.feature-options {
     background: darken(white, .5) !important;
     .mat-icon {
-      font-size: 21px !important;
+      height: 21px !important;
+      fill: #5F6368;
     }
-    .run-feature * {
-      color: $blue !important;
+    .run-feature .mat-icon {
+      fill: $blue !important;
+    }
+    .run-feature span {
+        color: $blue !important;
     }
     .run-feature::after {
-      color: $blue !important;
+      fill: $blue !important;
     }
-    .delete-feature * {
-      color: $remove !important;
+    .delete-feature .mat-icon {
+      fill: $remove !important;
+    }
+    .delete-feature span{
+        color: $remove !important;
     }
     .move-feature .mat-icon {
-      color: orange !important;
+      fill: orange !important;
     }
     .mat-menu-item {
         font-weight: bold;
     }
+}
+
+.icons {
+    color: #5F6368;
 }
 
 .mat-menu-item {
@@ -576,7 +589,7 @@ mat-option {
         display: inline-block;
         vertical-align: middle;
     }
-    .mat-icon {
+    svg {
         /* margin-right: 10px !important; */
         font-size: 21px;
     }
