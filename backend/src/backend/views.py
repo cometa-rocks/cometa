@@ -1191,9 +1191,12 @@ def parseActions(request):
         )
         actionObject.save()
 
-    actions_file = '/code/behave/cometa_itself/steps/actions.py'
-    with open(actions_file) as file:
-        actions = file.readlines()
+    actions = []
+    actions_files = ['/code/behave/cometa_itself/steps/actions.py']
+    for actions_file in actions_files:
+        with open(actions_file) as file:
+            actions.append(file.readlines())
+
     actionsParsed = []
     Action.objects.all().delete()
     previousAction = ''
