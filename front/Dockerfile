@@ -8,7 +8,7 @@ WORKDIR /home/cometa/front
 COPY . /home/cometa/front
 
 # install all the packages
-# RUN npm ci
+RUN npm ci
 
 # compile the front
 RUN npx ng build -c production
@@ -48,5 +48,6 @@ RUN openssl req -x509 -nodes -days 365 \
     -subj "/C=/ST=/L=/O=/OU=/CN="
 
 # configure Health Check for the container
-HEALTHCHECK --interval=10s --timeout=3s --start-period=5s \
-    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
+    CMD wget --no-verbose --tries=1 --spider --no-check-certificate \
+    https://localhost/welcome.html || exit 1

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function install_cron() {
-    apt install -y cron
+    # apt install -y cron
     touch /etc/cron.d/crontab
     chmod 0644 /etc/cron.d/crontab
     crontab /etc/cron.d/crontab
@@ -10,22 +10,22 @@ function install_cron() {
 
 # sh -c service rsyslog start; tail -f /dev/null # FIXME: This fails every time
 # Install requirements
-apt update
-apt install --no-install-recommends -y rsyslog vim jq nano supervisor
-service rsyslog start
-apt-get purge -y exim*
-# Upgrade PIP
-python -m pip install -U pip
-# Install poetry package manager
-curl -sSL https://install.python-poetry.org | python3 -
-# Create symbolic link to Poetry so it's available as command everywhere
-ln -s /root/.local/bin/poetry /usr/local/bin/poetry
-# Disable creation of virtual env
-poetry config virtualenvs.create false
+# apt update
+# apt install --no-install-recommends -y rsyslog vim jq nano supervisor
+# service rsyslog start
+# apt-get purge -y exim*
+# # Upgrade PIP
+# python -m pip install -U pip
+# # Install poetry package manager
+# curl -sSL https://install.python-poetry.org | python3 -
+# # Create symbolic link to Poetry so it's available as command everywhere
+# ln -s /root/.local/bin/poetry /usr/local/bin/poetry
+# # Disable creation of virtual env
+# poetry config virtualenvs.create false
 # Install project dependencies
 poetry install --no-interaction --no-ansi
-# Install Behave
-pip install behave
+# # Install Behave
+# pip install behave
 # Run Django migrations
 python manage.py makemigrations
 python manage.py migrate

@@ -38,7 +38,7 @@ done
 
 
 install_cron() {
-    apt install -y cron
+    # apt install -y cron
     touch /etc/cron.d/crontab
     chmod 0744 /etc/cron.d/crontab
     crontab /etc/cron.d/crontab
@@ -96,22 +96,22 @@ EOF
 # Make sure log folder exists
 mkdir -p /opt/code/logs || true
 # Install requirements
-apt update && apt install -y rsyslog jq nano vim clamav-daemon
-service rsyslog start
+# apt update && apt install -y rsyslog jq nano vim clamav-daemon
+# service rsyslog start
 # Install cron
 install_cron
 # check and create secret_variables.py
 create_secret_variables
 # Install poetry package manager
-curl -sSL https://install.python-poetry.org | python3 -
-# Create symbolic link to Poetry so it's available as command everywhere
-ln -s /root/.local/bin/poetry /usr/local/bin/poetry
-# Disable creation of virtual env
-poetry config virtualenvs.create false
+# curl -sSL https://install.python-poetry.org | python3 -
+# # Create symbolic link to Poetry so it's available as command everywhere
+# ln -s /root/.local/bin/poetry /usr/local/bin/poetry
+# # Disable creation of virtual env
+# poetry config virtualenvs.create false
 # Install project dependencies
 poetry install --no-interaction --no-ansi
 # Upgrade PIP
-pip install -U pip
+# pip install -U pip
 # Run Django migrations
 python manage.py makemigrations backend
 python manage.py migrate
@@ -125,7 +125,8 @@ fi
 
 
 # update clamav database and start clamav in daemon mode
-echo "0" > /tmp/clam_started && freshclam && service clamav-daemon start && echo "1" > /tmp/clam_started
+# echo "0" > /tmp/clam_started && freshclam && service clamav-daemon start && echo "1" > /tmp/clam_started
+service clamav-daemon start 
 
 #
 # in DEVMODE Start Django server
