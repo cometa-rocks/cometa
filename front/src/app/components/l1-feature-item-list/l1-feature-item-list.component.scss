@@ -155,6 +155,9 @@
 
 // Item list
 .itemListComponent {
+  height: 25px !important;
+  width: 25px !important;
+  // rotate: 90deg;
   fill: #5F6368;
 }
 
@@ -201,6 +204,11 @@
   // font-size: 16px !important;
 }
 
+.folder-icon{
+  height: 21px !important;
+  fill: #5F6368;
+}
+
 input {
   border: 0;
   background-color: transparent;
@@ -232,7 +240,7 @@ input {
   pointer-events: none;
   &.visible {
     opacity: 1;
-    left: -1.5px;
+    left: 0.6px;
     pointer-events: initial;
   }
   top: -27px;
