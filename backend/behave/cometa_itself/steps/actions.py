@@ -3715,6 +3715,20 @@ def fetch_page_source(context):
         'content': context.browser.page_source
     }
 
+@step(u'Drag "{element_selector}" and drop it in "{destination_selector}"')
+@done(u'Drag "{element_selector}" and drop it in "{destination_selector}"')
+def drag_n_drop(context, element_selector, destination_selector):
+    element = waitSelector(context, "xpath", element_selector)
+    destination = waitSelector(context, "xpath", destination_selector)
+    
+    if isinstance(element, list) and len(element) > 0:
+        element = element[0]
+    if isinstance(destination, list) and len(destination) > 0:
+        destination = destination[0]
+     
+    ActionChains(context.browser).click_and_hold(element).move_to_element(destination).release(destination).perform()
+
+
 use_step_matcher("re")
 
 def parse_cookie(cookie):
