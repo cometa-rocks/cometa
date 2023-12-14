@@ -271,6 +271,24 @@ body::-webkit-scrollbar-corner {
 .l1-f-l-mat-icon{
     height: 25px !important;
     fill: $blue !important;
+    margin-left: 25px;
+}
+
+.l1-f-l-mat-icon-fail{
+    height: 25px !important;
+    fill: #c62828 !important;
+    margin-right: 5px;
+}
+
+.l1-f-l-mat-icon-success{
+    height: 25px !important;
+    fill: #00A99D !important;
+    margin-right: 5px;
+}
+
+.l1-f-l-mat-icon-points{
+    height: 25px !important;
+    fill: #5F6368;
 }
 
 .mat-menu-item {
