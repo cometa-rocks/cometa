@@ -1192,13 +1192,20 @@ def parseActions(request):
         actionObject.save()
 
     actions = []
-    actions_files = ['/code/behave/cometa_itself/steps/actions.py']
+    actions_files = [
+        '/code/behave/cometa_itself/steps/actions.py',
+        '/code/behave/ee/cometa_itself/steps/rest_api.py'
+    ]
+    
     for actions_file in actions_files:
+        logger.debug(f"Reading Action from {actions_file}")
         with open(actions_file) as file:
-            actions.append(file.readlines())
+            lines_in_file = file.readlines()
+            logger.debug(f"Found {len(lines_in_file)} lines in the file : {actions_file}")
+            actions = actions+lines_in_file
 
     actionsParsed = []
-    Action.objects.all().delete()
+    Action.objects.all().delete()  
     previousAction = ''
     for action in actions:
         if action.startswith("@step") and '(?P<' not in action:
