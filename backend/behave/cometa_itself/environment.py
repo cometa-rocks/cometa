@@ -33,6 +33,7 @@ BROWSERSTACK_USERNAME = getattr(secret_variables, 'COMETA_BROWSERSTACK_USERNAME'
 BROWSERSTACK_PASSWORD = getattr(secret_variables, 'COMETA_BROWSERSTACK_PASSWORD', False)
 PROXY_ENABLED = getattr(secret_variables, 'COMETA_PROXY_ENABLED', False)
 PROXY = getattr(secret_variables, 'COMETA_PROXY', False)
+NO_PROXY = getattr(secret_variables, 'COMETA_NO_PROXY', '')
 DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
 S3ENABLED = getattr(secret_variables, 'COMETA_S3_ENABLED', False)
 ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
@@ -220,6 +221,7 @@ def before_all(context):
         pxy.proxy_type = ProxyType.MANUAL
         pxy.http_proxy = PROXY
         pxy.ssl_proxy = PROXY
+        pxy.no_proxy = NO_PROXY
 
         # add proxy configuration to capabilities
         logger.debug("Adding proxy setting to capabilities.")
