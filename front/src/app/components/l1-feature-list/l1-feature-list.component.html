@@ -64,7 +64,7 @@ Author: dph000
   </ng-container>
   <!-- Folder icon -->
   <ng-template #folderIcon>
-    <i class="folderIcon"></i>
+    <i class="folderIcon l1-f-l-mat-icon"></i>
   </ng-template>
 </ng-template>
 
@@ -107,9 +107,14 @@ Author: dph000
         class="state"
         [ngClass]="!running && (row.status | lowercase)">
           <ng-container [ngSwitch]="row.status | lowercase">
-            <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon>
-            <mat-icon class="state-icon" *ngSwitchCase="'canceled'">remove_circle</mat-icon>
-            <mat-icon class="state-icon" *ngSwitchCase="'failed'">close</mat-icon>
+            <!-- Old -->
+            <!-- <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon> -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000" class="state-icon l1-f-l-mat-icon-success" *ngSwitchCase="'success'"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+            <!-- Old -->
+            <!-- <mat-icon class="state-icon" *ngSwitchCase="'canceled'">remove_circle</mat-icon> -->
+  
+            <!-- <mat-icon class="state-icon" *ngSwitchCase="'failed'">close</mat-icon> -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"  fill="#000000" class="state-icon l1-f-l-mat-icon-fail" *ngSwitchCase="'failed'"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
             <span style="text-align: right;" *ngSwitchDefault>-</span>
           </ng-container>
           <span style="vertical-align:middle;">{{ row.status }}</span>
@@ -219,23 +224,31 @@ Author: dph000
 <ng-template #optionsTpl let-row let-index="index" let-col="colDef">
   <!-- Button to open folder / feature manage menu -->
   <button stopPropagation [matMenuTriggerFor]="row.type === 'feature' ? featureOptions : folderOptions" mat-icon-button>
-    <mat-icon>more_vert</mat-icon>
+    <!-- Old -->
+    <!-- <mat-icon>more_vert</mat-icon> -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="state-icon l1-f-l-mat-icon-points"><path d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"/></svg>
   </button>
   <!-- Menu to manage feature -->
   <mat-menu class="feature-options" #featureOptions="matMenu" xPosition="after">
     <!-- Edit feature -->
     <button *ngIf="row.id | hasPermission:'edit_feature' | async" (click)="SAopenEditFeature(row.id, 'edit')" matTooltip="Edit {{row.name}} steps" matTooltipPosition="before" class="modify-feature" mat-menu-item>
-      <mat-icon>edit</mat-icon>
+      <!-- Old -->
+      <!-- <mat-icon>edit</mat-icon> -->
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="mat-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
       <span>Modify</span>
     </button>
     <!-- Clone feature -->
     <button *ngIf="row.id | hasPermission:'create_feature' | async" (click)="SAopenEditFeature(row.id, 'clone')" matTooltip="Clone {{row.name}}" matTooltipPosition="before" class="modify-feature" mat-menu-item>
-      <mat-icon>content_copy</mat-icon>
+      <!-- Old -->
+      <!-- <mat-icon>content_copy</mat-icon> -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000" class="mat-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
       <span>Clone</span>
     </button>
     <!-- Move feature -->
     <button (click)="SAmoveFeature(row.reference)" matTooltip="Move {{row.name}}" matTooltipPosition="before" class="move-feature" mat-menu-item>
-      <mat-icon>folder</mat-icon>
+      <!-- Old -->
+      <!-- <mat-icon>folder</mat-icon> -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000" class="mat-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
       <span>Move</span>
     </button>
     <mat-divider></mat-divider>
@@ -246,7 +259,9 @@ Author: dph000
     <mat-divider></mat-divider>
     <!-- Delete feature -->
     <button *ngIf="row.id | hasPermission:'delete_feature' | async" (click)="SAdeleteFeature(row.id)" matTooltip="Delete feature {{row.name}}" matTooltipPosition="before" class="delete-feature" mat-menu-item>
-      <mat-icon>delete</mat-icon>
+      <!-- Old -->
+      <!-- <mat-icon>delete</mat-icon> -->
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="mat-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
       <span>Delete</span>
     </button>
   </mat-menu>

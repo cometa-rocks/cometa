@@ -19,6 +19,22 @@ export class L1TreeViewComponent implements OnInit{
   viewingData = {}
   @Select(FeaturesState.GetNewSelectionFolders) currentRoute$: Observable<ReturnType<typeof FeaturesState.GetNewSelectionFolders>>;
 
+  //To do: add svg icons
+  // svgs: {
+  //   svg1: SVG,
+  //   svg2: SVG
+  // } = {
+  //   svg1: {
+  //     //domain
+  //     id: 'svg-1',
+  //     path: `M80-120v-720h400v160h400v560H80Zm80-80h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h320v-400H480v80h80v80h-80v80h80v80h-80v80Zm160-240v-80h80v80h-80Zm0 160v-80h80v80h-80Z`
+  //   },
+  //   svg2: {
+  //     //folder
+  //     id: 'svg-2',
+  //     path: `M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z`
+  //   }
+  // };
 
   widthChecker(text) {
     const p = document.createElement("p");
@@ -318,4 +334,6 @@ export class L1TreeViewComponent implements OnInit{
       }
     })
   }
+
+
 }
