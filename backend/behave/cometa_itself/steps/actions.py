@@ -767,6 +767,15 @@ def step_impl(context,css_selector):
     send_step_details(context, 'Clicking')
     ActionChains(context.browser).move_to_element(elem[0]).perform()
 
+# Moves the mouse to the center of css selector
+@step(u'I move mouse to "{css_selector}" and right-click')
+@done(u'I move mouse to "{css_selector}" and right-click')
+def step_impl(context, css_selector):
+    send_step_details(context, 'Looking for selector')
+    elem = waitSelector(context, "css", css_selector)
+    send_step_details(context, 'Right Clicking')
+    ActionChains(context.browser).context_click(elem[0]).perform()
+
 # Moves the mouse to random element in selector and click
 @step(u'I can move mouse and click randomly "{x}" times on elements in "{selector}"')
 @done(u'I can move mouse and click randomly "{x}" times on elements in "{selector}"')
@@ -3714,6 +3723,20 @@ def fetch_page_source(context):
         'title': "Page Source Content",
         'content': context.browser.page_source
     }
+
+@step(u'Drag "{element_selector}" and drop it in "{destination_selector}"')
+@done(u'Drag "{element_selector}" and drop it in "{destination_selector}"')
+def drag_n_drop(context, element_selector, destination_selector):
+    element = waitSelector(context, "xpath", element_selector)
+    destination = waitSelector(context, "xpath", destination_selector)
+    
+    if isinstance(element, list) and len(element) > 0:
+        element = element[0]
+    if isinstance(destination, list) and len(destination) > 0:
+        destination = destination[0]
+     
+    ActionChains(context.browser).click_and_hold(element).move_to_element(destination).release(destination).perform()
+
 
 use_step_matcher("re")
 
