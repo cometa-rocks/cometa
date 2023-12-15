@@ -13,28 +13,21 @@ import { debounceTime, Observable } from 'rxjs';
   styleUrls: ['./l1-tree-view.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
+
 export class L1TreeViewComponent implements OnInit{
 
   data = {}
   viewingData = {}
   @Select(FeaturesState.GetNewSelectionFolders) currentRoute$: Observable<ReturnType<typeof FeaturesState.GetNewSelectionFolders>>;
 
-  //To do: add svg icons
-  // svgs: {
-  //   svg1: SVG,
-  //   svg2: SVG
-  // } = {
-  //   svg1: {
-  //     //domain
-  //     id: 'svg-1',
-  //     path: `M80-120v-720h400v160h400v560H80Zm80-80h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h320v-400H480v80h80v80h-80v80h80v80h-80v80Zm160-240v-80h80v80h-80Zm0 160v-80h80v80h-80Z`
-  //   },
-  //   svg2: {
-  //     //folder
-  //     id: 'svg-2',
-  //     path: `M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z`
-  //   }
-  // };
+  svgs = {
+    domain: `<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M80-120v-720h400v160h400v560H80Zm80-80h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h320v-400H480v80h80v80h-80v80h80v80h-80v80Zm160-240v-80h80v80h-80Zm0 160v-80h80v80h-80Z"/></svg>`,
+    folder:`<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>`,
+    home:`<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    `,
+    description:`<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M8 16h8v2H8zm0-4h8v2H8zm6-10H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>`,
+    ethernet:`<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.77 6.76L6.23 5.48.82 12l5.41 6.52 1.54-1.28L3.42 12l4.35-5.24zM7 13h2v-2H7v2zm10-2h-2v2h2v-2zm-6 2h2v-2h-2v2zm6.77-7.52l-1.54 1.28L20.58 12l-4.35 5.24 1.54 1.28L23.18 12l-5.41-6.52z"/></svg>`,
+  }
 
   widthChecker(text) {
     const p = document.createElement("p");
@@ -236,29 +229,57 @@ export class L1TreeViewComponent implements OnInit{
                                       }
                                     })
 
-      nodeEnter.append("text")
+      nodeEnter.append((d) => {
+        const icon_element = document.createElement("div");
+        switch (d.data.type) {
+          case "department":
+            icon_element.innerHTML = this.svgs.domain;
+            break;
+          case "folder":
+            icon_element.innerHTML = this.svgs.folder;
+            break;
+          case "home":
+            icon_element.innerHTML = this.svgs.home;
+            break;
+          case "feature":
+            icon_element.innerHTML = this.svgs.description;
+            break;
+          case "variables":
+            icon_element.innerHTML = this.svgs.ethernet;
+            break;
+          case "variable":
+            icon_element.innerHTML = this.svgs.ethernet;
+            break;
+          default:
+            icon_element.innerHTML = "<svg></svg>";
+            break;
+        }
+        return icon_element.firstChild;
+      })
                 .attr("width", imageSize)
                 .attr("height", imageSize)
-                .style("font-family", 'Material Icons')
-                .style("transform", `translate(-${imageSize/2}px, ${imageSize/2}px)`)
-                .attr('font-size', "20px")
+                // // Old
+                // // .style("font-family", 'Material Icons')
+                .attr("x", `-${imageSize/2}`)
+                .attr("y", `-${imageSize/2}`)
+                // .attr('font-size', "20px")
                 .attr('fill', d =>  d.data.type === "feature" && d.data.depends_on_others ? 'gray' : 'black')
                 .attr("class", d => d.data.type != "feature" && !d.children && !d._children ? 'disabled' : '')
-                .text(d => {
-                  switch (d.data.type) {
-                    case "department":
-                      return "domain";
-                    case "folder":
-                      return "folder icon";
-                    case "home":
-                      return "home";
-                    case "feature":
-                      return "description icon";
-                    case "variables":
-                    case "variable":
-                      return "settings_ethernet";
-                  }
-                })
+                // .text(d => {
+                //   switch (d.data.type) {
+                //     case "department":
+                //       return ;
+                //     case "folder":
+                //       return ;
+                //     case "home":
+                //       return "home";
+                //     case "feature":
+                //       return "description icon";
+                //     case "variables":
+                //     case "variable":
+                //       return "settings_ethernet";
+                //   }
+                // })
       
       nodeEnter.append("text")
                 .attr("dy", "0.40em")
