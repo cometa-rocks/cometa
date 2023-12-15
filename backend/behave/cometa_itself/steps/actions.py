@@ -605,7 +605,7 @@ def compareImage(context):
         metricFile = '%s/metrics/%s_%s_%s.metric' % (pwd, slugify(feature_data['feature_name']), str(context.feature_id), context.browser_hash)
         with open(metricFile, "w+") as metric:
             # Run compare command
-            cmd = "/usr/bin/compare -channel all -metric AE %s %s %s" % (actimg, styleimg, diff)
+            cmd = "/usr/bin/compare -fuzz 10%% -channel all -metric AE  %s %s %s" % (actimg, styleimg, diff)
             logger.debug("Before executing command: %s" % cmd)
             # FIXME: without this print throws error on arguments length too long.
             logger.debug("Command length: %d" % len(cmd))
@@ -800,7 +800,7 @@ def step_impl(context, x, selector):
                 click_element(context, element)
             else:
                 raise err
-        # let the page breathe a bit 
+        # let the page breathe a bit
         time.sleep(0.5)
 
 # Set Environment ID
@@ -819,7 +819,7 @@ def step_impl(context, something):
     send_step_details(context, 'Searching for %s in IBM Cognos' % something )
 
     # first try to find and click a CA11.1 or CA11.2 searchbox
-    # ... then select everything with CTRL+A and send the new searchstring 
+    # ... then select everything with CTRL+A and send the new searchstring
     # ... Hit Enter and click on the first item in the search result
 
     # Looking for the searchbox
@@ -851,7 +851,7 @@ def step_impl(context, something):
             # now click in input
             elms = context.browser.find_elements_by_xpath("//input[@role='searchbox']")
             logger.debug("Found %s Searchboxes" % len(elms))
-            # we might need to loop here as Cognos produces various searchboxes the HTML 
+            # we might need to loop here as Cognos produces various searchboxes the HTML
             for elm in elms:
                 try:
                     elm.click()
@@ -1697,7 +1697,7 @@ def step_impl(context, css_selector, value):
             return element
         except:
             raise CustomError("Unable to find selector using %s." % css_selector)
-    
+
     element = element_selector(context, css_selector)
     send_step_details(context, 'Waiting for the element to interactable.')
     while True:
@@ -1708,7 +1708,7 @@ def step_impl(context, css_selector, value):
             raise CustomError("Selector never got enabled ... will not be able to select the value.")
         except StaleElementReferenceException:
             element = element_selector(context, css_selector)
-    
+
     selector = Select(element)
     send_step_details(context, 'Selecting value/index')
     # Get value or index reference in DOM
@@ -2276,7 +2276,7 @@ def step_impl(context, column_name, filter_value):
         context.browser.execute_script('document.querySelector("[name=\'QsdlgNullOptions\'] option[value=\'' + missing + '\']").selected=true')
 
     # wait for the filter list of values to be displayed before selecting them
-    # this just works for Filter (Pick values from a list) but do not work inside if... 
+    # this just works for Filter (Pick values from a list) but do not work inside if...
     #elem = waitSelector(context, "xpath", "//div[@id='selectListpList']")
 
     # sleep for wait last waitSelector comented
@@ -2640,11 +2640,11 @@ def step_imp(context, linktext):
     send_step_details(context, 'Preparing download')
     # get session id from browser
     session_id = str(context.browser.session_id)
-    # selenoid download URL 
+    # selenoid download URL
     downloadURL = "http://cometa_selenoid:4444/download/%s/" % session_id
     logger.debug("DownloadURL: %s" % downloadURL)
     logger.debug("Selenoid preference download directory: %s" % context.downloadDirectoryOutsideSelenium)
-    
+
     # find and click on the element
     send_step_details(context, 'Looking for download link element')
     elem = waitSelector(context, 'css', linktext)
@@ -2693,11 +2693,11 @@ def step_imp(context, linktext):
         if len(links) > 0 and not CONTINUE:
             logger.debug("There was no file to be downloaded at the link location")
             break
-        
+
         # if break does not get triggered then sum the counter and sleep for 1s
         counter += 1
         time.sleep(1)
-    
+
     # get the file that has been created
     downloadedFiles = []
 
@@ -2706,7 +2706,7 @@ def step_imp(context, linktext):
         logger.debug("Downloading %s..." % link)
         # generate link with download path and download file
         fileURL = "%s%s" % (downloadURL, link)
-        # generate filename 
+        # generate filename
         filename = urllib.parse.unquote(fileURL.split('/')[-1]).replace(" ", "_")  # be careful with file names
         # check if filename is empty ... then name the file cometa_download
         logger.debug("calling function for saveing the file %s " % filename)
@@ -2806,23 +2806,23 @@ def updateExcel(excelFilePath, cell, value, savePath):
 
     # save excel file back
     wb.save(filename=excelFilePath)
-    
+
     # give some time for syncing filesystem
     time.sleep(0.1)
 
 def updateCsv(excelFilePath, cell, value, savePath):
     # importing the pandas library
     import pandas as pd
-    
+
     # reading the csv file
     df = pd.read_csv(excelFilePath)
-    
+
     # get excel equivalent to CSV index
     indexes = index_transform(cell)
 
     # updating the column value/data
     df.iloc[indexes[0], indexes[1]] = value
-    
+
     # writing into the file
     df.to_csv(savePath, index=False)
 
@@ -2836,13 +2836,13 @@ def editFile(context, file, value, cell):
 
     # convert csv file to execl before continuing
     oldPath = filePath
-    filePath, isCSV = CSVtoExcel(context, filePath) 
-    
+    filePath, isCSV = CSVtoExcel(context, filePath)
+
     updateExcel(filePath, cell, value, filePath)
 
     if isCSV:
         ExcelToCSV(context, filePath, oldPath)
-    
+
     updateSourceFile(context, oldPath, file)
 
     # give some time for syncing filesystem
@@ -2860,7 +2860,7 @@ def editFile(context, excelfile, value, cell):
 
     # convert csv file to execl before continuing
     oldPath = excelFilePath
-    excelFilePath, isCSV = CSVtoExcel(context, excelFilePath) 
+    excelFilePath, isCSV = CSVtoExcel(context, excelFilePath)
 
     # load excel file
     wb = load_workbook(filename=excelFilePath)
@@ -2890,7 +2890,7 @@ def editFile(context, excelfile, variable_name, cell):
 
     # convert csv file to execl before continuing
     oldPath = excelFilePath
-    excelFilePath, isCSV = CSVtoExcel(context, excelFilePath) 
+    excelFilePath, isCSV = CSVtoExcel(context, excelFilePath)
 
     # load excel file
     wb = load_workbook(filename=excelFilePath)
@@ -2900,11 +2900,11 @@ def editFile(context, excelfile, variable_name, cell):
 
     # assert the cell with value
     logger.debug("Setting value value: %s to variable %s " % (sheet[cell].value, variable_name) )
-    
+
     # add variable
     addVariable(context, variable_name, sheet[cell].value)
 
-# get total cells from the cell ranges and 
+# get total cells from the cell ranges and
 def getTotalCells(sheet, cells, values=[]):
     # split cells using semicolon (;)
     cells = cells.split(";")
@@ -2924,7 +2924,7 @@ def getTotalCells(sheet, cells, values=[]):
             # update the cell range
             cell_range = "%s%s" % (cell_range, str(int(groups['row']) + len(values) - 1))
             logger.debug("New range: %s" % cell_range)
-        
+
         cell = sheet[cell_range]
         if type(cell) == tuple:
             for x in cell:
@@ -2959,7 +2959,7 @@ def ExcelToCSV(context, filePath, newPath):
 @step(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
 @done(u'Open Excel from "{file}" and test that cells "{excel_range}" contain "{values}" options "{match_type}"')
 def excel_step_implementation(context, file, excel_range, values, match_type):
-    
+
     # match options
     match_options = ['match exact', 'match any', 'match X number of times', 'match partial']
     # check if match type is one of next options
@@ -2971,7 +2971,7 @@ def excel_step_implementation(context, file, excel_range, values, match_type):
 
     excelFilePath = uploadFileTarget(context, file)
     logger.debug("Excel file opening: %s", excelFilePath)
-    
+
     # check if file is a CSV file if so convert it to excel
     OLDPATH=excelFilePath
     excelFilePath, ISCSV = CSVtoExcel(context, excelFilePath)
@@ -2988,7 +2988,7 @@ def excel_step_implementation(context, file, excel_range, values, match_type):
 
     # separate cells using semicolon
     cells = getTotalCells(sheet, excel_range, values)
-    
+
 
     if len(cells) != len(values):
         raise CustomError("Cells and values should contain the same number of properties separated by semicolon (;). Total cells found %d and total values found: %d." % (len(cells), len(values)))
@@ -3014,7 +3014,7 @@ def excel_step_implementation(context, file, excel_range, values, match_type):
         overAllStatus = True in allStatus
     else:
         raise CustomError("match_type: %s is not implemented yet." % match_type)
-    
+
     # save date and time an later format it
     dateTime = datetime.datetime.now()
 
@@ -3039,7 +3039,7 @@ def excel_step_implementation(context, file, excel_range, values, match_type):
             row["expected_value"],
             row["status"]
         ])
-    
+
     # save lists to file and link it to the step
     fileName = "Excel_Assert_Values_%s.csv" % dateTime.strftime("%Y%m%d%H%M%S%f")
     filePath = "%s/%s" % (context.downloadDirectoryOutsideSelenium, fileName)
@@ -3070,7 +3070,7 @@ def assert_row_count(context, excelfile, column, starting_row, total_rows, optio
 
     excelFilePath = uploadFileTarget(context, excelfile)
     logger.debug("Excel file opening: %s", excelFilePath)
-    
+
     # check if file is a CSV file if so convert it to excel
     OLDPATH=excelFilePath
     excelFilePath, ISCSV = CSVtoExcel(context, excelFilePath)
@@ -3087,7 +3087,7 @@ def assert_row_count(context, excelfile, column, starting_row, total_rows, optio
     # get all rows from start to finish
     cells = sheet[f"{column}{starting_row}:{column}{max_rows}"]
     totalCells = len(cells)
-    
+
     if option == "do not count empty cells":
         totalCells = 0
         for cell in cells:
@@ -3284,7 +3284,7 @@ def imp(context, all_or_partial, variable_name, prefix, suffix):
     # check the value for all_or_partial
     if all_or_partial not in ['all', 'partial']:
         raise CustomError("all_or_partial value should be 'all' or 'partial'.")
-    
+
     test_ibm_cognos_cube(context, all_or_partial, variable_name, prefix, suffix)
 
 @step(u'Test list of "{css_selector}" elements to contain "{all_or_partial}" values from list variable "{variable_names}" use prefix "{prefix}" and suffix "{suffix}"')
@@ -3411,7 +3411,7 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
                 val, # Variable List value,
                 result # result of comparison
             ])
-        
+
         status = (values_eq == element_values_eq) or (values_sorted_eq == element_sorted_values_eq)
     else:
         # add additional text to fileContent
@@ -3486,7 +3486,7 @@ def step_loop(context, x, index):
     context.executedStepsInLoop = 0
     # match regexp to find steps and step descriptions
     steps = list(filter(None, re.findall(r".*\n?(?:\t'''(?:.|\n)+?'''\n?)?", steps)))
-    
+
     try:
         logger.debug("Steps: {}".format(steps))
         for i in range(int(index), int(x) + int(index)):
@@ -3710,7 +3710,7 @@ def attach_console_logs(context):
             message = parse_log.groupdict().get('message', '---')
 
             notes += f"[{date.strftime('%Y-%m-%d %H:%M:%S')}][{log['level']}] - {message}\n"
-    
+
     context.step_data['notes'] = {
         'title': "Browser Console Logs",
         'content': notes
@@ -3791,7 +3791,7 @@ def parse_parameters(parameters):
         for parameter in parameters:
                 key, value = parameter.split("=", maxsplit=1)
                 parameters_dict[key] = value
-    
+
         return parameters_dict
     return None
 
@@ -3840,14 +3840,14 @@ def api_call(context, method, endpoint, parameters, headers):
         }
     if response.status_code != 201 and not json_res['success']:
         raise CustomError(f"Error while saving the call to the database: {json_res['error']}")
-    
+
     context.step_data['rest_api'] = json_res['id']
     context.api_call = api_call
 
 @step(u'Assert last API Call property \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert last API Call property "{jq_pattern}" to "{condition}" "{value}"')
 def assert_imp(context, jq_pattern, condition, value):
-    
+
     import jq
 
     try:
