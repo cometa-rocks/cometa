@@ -103,7 +103,9 @@
           <i *ngIf="importedSteps.length > 0 && step.value.step_content | checkDuplicate:importedSteps" class="duplicate-step-sign" matTooltip="This step definition has been found inside an import" matTooltipPosition="above"></i>
         </ng-container>
         <button mat-icon-button [matMenuTriggerFor]="stepOptions">
-          <mat-icon>more_vert</mat-icon>
+          <!-- Old -->
+          <!-- <mat-icon>more_vert</mat-icon> -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" class="generalIconsMoreVert"><path d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"/></svg>
         </button>
         <!-- Step Options Menu -->
         <mat-menu class="step-options-menu" #stepOptions="matMenu">
@@ -118,7 +120,9 @@
             <span>seconds</span>
           </button>
           <button mat-menu-item (click)="deleteStep(i)" [matTooltip]="'tooltips.step_delete' | translate" matTooltipPosition="left">
-            <mat-icon color="warn">delete</mat-icon>Delete
+            <!-- <mat-icon color="warn">delete</mat-icon>Delete -->
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000" class="trashbinIconsMoreVert mat-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            <span>Delete</span>
           </button>
         </mat-menu>
         <mat-autocomplete class="edit-feature-step-suggestions" #stepHelp="matAutocomplete" (optionSelected)="selectFirstVariable($event, i)">
