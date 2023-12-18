@@ -142,10 +142,11 @@ export class DataDrivenRunsComponent implements OnInit{
         // Click DATA DRIVEN TEST button
         this.buttonDataDrivenTest.nativeElement.querySelector('.mdc-button__label').click();
         break;
-      case KEY_CODES.S:
-        // Click Column shown
+      //Maybe in the future (S)
+      // case KEY_CODES.S:
+      //   // Click Column shown
          
-        break;
+      //   break;
     }
   }
 
