@@ -273,9 +273,25 @@ body::-webkit-scrollbar-corner {
     color: #5F6368;
 }
 
+.iconsEditVar {
+    height: 18px !important;
+    fill: #0000008a;
+}
+
 .trashbinIconsMoreVert {
     height: 21px !important;
     fill: #c62828 !important;
+    margin-left: -2px;
+    margin-right: 5px;
+}
+
+.trashbinTextMoreVert {
+    color: #c62828 !important;
+    margin-bottom: 10px;
+}
+
+.searchIcon {
+    margin-right: 15px;
 }
 
 .e-f-compo {

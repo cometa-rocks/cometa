@@ -121,8 +121,8 @@
           </button>
           <button mat-menu-item (click)="deleteStep(i)" [matTooltip]="'tooltips.step_delete' | translate" matTooltipPosition="left">
             <!-- <mat-icon color="warn">delete</mat-icon>Delete -->
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000" class="trashbinIconsMoreVert mat-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-            <span>Delete</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#000000" class="trashbinIconsMoreVert"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            <span class="trashbinTextMoreVert">Delete</span>
           </button>
         </mat-menu>
         <mat-autocomplete class="edit-feature-step-suggestions" #stepHelp="matAutocomplete" (optionSelected)="selectFirstVariable($event, i)">
