@@ -54,9 +54,10 @@ Here is what you need to be able to run Cometa.
   * https://deb.nodesource.com
   * https://mod-auth-openidc.org
   * https://pypi.org
+  * http://*.debian.org and https://*.debian.org
   <br><p>
 
-  For corporate environments using a Secure Proxy the Proxy Usage needs to be configured:
+  For corporate environments using a Secure Proxy the Proxy usage needs to be configured:
   Edit the following `nano ~/.docker/config.json`
 
   <br>
@@ -76,7 +77,9 @@ Here is what you need to be able to run Cometa.
   }
   ```
   This configuration ensures, that the Co.Meta container use the proxy server, when spinning up virtual browsers. 
-  Add any internal Websites, ERPs or Application Endpoints into the above file to be accessible without Proxy. 
+  Add any internal Websites, ERPs or Application Endpoints into the above file to be accessible without Proxy.
+  <br><p>
+  Selenoid Container must be built without above file. So, before rebuilding (e.g. with option --force-recreate) move above to *_bkp (`mv ~/.docker/config.json ~/.docker/config.json_bkp`), then rebuilt selenoid and finally move the file back to original name using `mv ~/.docker/config.json_bkp ~/.docker/config.json`.  
   <br><p>
 
   Modify /etc/systemd/system/docker.service.d/http_proxy.conf or create the file if missing and add this content:
@@ -90,12 +93,16 @@ Here is what you need to be able to run Cometa.
 
   <br><p>
 
+* **ulimit -n 8192**
+
+    Normally a `ulimit -n` of 1024 is sufficient. When using cntlm to divert internal and external traffic in a corporate environment, the ulimit should be set to 8192.
 
 * **Server time**
 
 	Your server must be in sync with the global time - consider using [NTP](https://en.wikipedia.org/wiki/Network_Time_Protocol) to keep your local server time syncronised. Time deviation of more than 10 minutes is not supported.
 
 	Why is this important? Because Co.Meta supports Single Sign On Providers like oAuth from Gitlab, Github, Azure, Google, Facebook, Ping or others. And the cookie timestamp must be accurate.
+
 
 In case you are stuck for more than 5 minutes - please let us know. And please give us the opportunity to help you. We want to learn how you are using Co.Meta and what problems you encounter. <a href="https://cometa.rocks/support/">Contact us</a>. We are happy to help.
 
