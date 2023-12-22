@@ -190,6 +190,7 @@ export class L1LandingComponent implements OnInit {
         // Click add if input is not focused
         if (!this.inputFocus){
           // Clic on add button
+          console.log(this.inputFocus);
           this.buttonAddFolderFeature.nativeElement.querySelector('.addIcon').click();
         }
         break;
@@ -202,11 +203,6 @@ export class L1LandingComponent implements OnInit {
           }
         break;
         case KEY_CODES.F:
-          if (!this.inputFocus){
-            if(this.openedAdd) {
-              this.createFolder();
-            }
-          }
           if (!this.inputFocus){
             if(this.openedAdd) {
               this.SAopenCreateFeature();
