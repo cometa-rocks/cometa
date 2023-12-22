@@ -89,6 +89,7 @@ edit-variables {
 
 .add-from-sidenav:hover .hover-box {
     display: block;
+    cursor: pointer;
 }
 
 .searcher {
@@ -389,6 +390,10 @@ p {
     mat-icon {
         color: $body-bg-color;
     }
+}
+
+.Add{
+    display: inline-block;
 }
 
 .add-button {
