@@ -71,10 +71,13 @@ edit-variables {
 //Dropdown
 .dropdownLandingPage {
     fill: rgba(240, 240, 240, 0.85);
+    pointer-events: all;
+    height: 22px;
+    width: 22px;
+    z-index: 15;
 }
 
 // Shortcut
-
 .checkbox-container {
     display: flex;
     position: relative;
@@ -392,9 +395,9 @@ p {
     }
 }
 
-.Add{
-    display: inline-block;
-}
+// .Add{
+//     display: inline-block;
+// }
 
 .add-button {
     bottom: 20px;
