@@ -7,6 +7,7 @@ import { STRIPE_PUBLIC_LIVE_KEY, STRIPE_PUBLIC_TEST_KEY } from './deploy-tokens'
 import { SuccessHandlerInterceptor } from '@services/success-handler.interceptor';
 import { LoadingInterceptor } from '@services/loading.interceptor';
 import { CometaRoutingModule } from './routing.module';
+import { MatButtonModule } from '@angular/material/button';
 
 /* Components */
 import { CometaComponent } from './app.component';
@@ -229,6 +230,7 @@ export function getStripeApiKey() {
     HttpClientModule,
     CometaRoutingModule,
     ClipboardModule,
+    MatButtonModule,
     SharedModule.forRoot(),
     NgxsFormPluginModule.forRoot(),
     NgxsModule.forRoot([
