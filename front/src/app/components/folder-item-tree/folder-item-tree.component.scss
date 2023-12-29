@@ -30,12 +30,12 @@
             text-overflow: ellipsis;
         }
 
-        mat-icon {
+        svg {
             flex: 0 24px;
             margin-right: 8px;
         }
     }
-    mat-icon {
+    svg {
         flex: 0 20px;
         transition: transform .15s ease-in-out;
     }

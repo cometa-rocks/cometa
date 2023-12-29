@@ -16,14 +16,15 @@ Author: dph000
   -->
   <!-- <div class="searcher" [class.opened]="showFolders$ | async" [class.closed]="(showFolders$ | async) == false">  previous -->
   <div class="searcher" [class.closed]="showFolders$ | async">
-    <div class="checkbox-container"> 
+    <div class="checkbox-container" [matTooltip]="'sidenav_page.add' | translate" matTooltipPosition="right"> 
       <!-- Buttons to either create a feature or a folder -->
-      <div class="add-from-sidenav" #addFromSidenav [matTooltip]="'sidenav_page.add' | translate" matTooltipPosition="right">
+      <div class="add-from-sidenav" #addFromSidenav>
         <!-- Div used to hide the buttons when clicked elsewhere but them (only mobile) -->
         <div (click)="openedAdd = false" [class.desktop_backdrop]="openedAdd"></div>
         <!-- Button to display / hide the other 2 buttons -->
         <button class="addIcon" mat-raised-button aria-label="Add button" (click)="openedAdd = !openedAdd">
-          <p mat-button (click)="toggleDropdown()">+ Add</p>
+         <span>+ Add</span>
+         <span class="hover-box">(+)</span>
         </button>
         <!-- Add folder button -->
         <button class="addFolderIcon" mat-raised-button aria-label="Create folder button" (click)="createFolder()" [class.hideAdd]="!openedAdd">
@@ -48,7 +49,6 @@ Author: dph000
             Create Data Driven Test
           </button>
         -->
-        <div class="hover-box">(+)</div>
       </div>
     </div>
     <!-- The whole directory tree and options to switch the shown list -->
