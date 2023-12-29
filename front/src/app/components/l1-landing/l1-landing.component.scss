@@ -72,9 +72,6 @@ edit-variables {
 .dropdownLandingPage {
     fill: rgba(240, 240, 240, 0.85);
     pointer-events: all;
-    height: 22px;
-    width: 22px;
-    z-index: 15;
 }
 
 // Shortcut
@@ -86,13 +83,16 @@ edit-variables {
 .hover-box {
     display: none;
     position: absolute;
-    top: 35%;
-    padding-left: 85px;
+    top: 5%;
+    padding-left: 65px;
+    color: black;
 }
 
 .add-from-sidenav:hover .hover-box {
     display: block;
     cursor: pointer;
+    height: 10px;
+    width: 10px;
 }
 
 .searcher {
@@ -246,7 +246,7 @@ edit-variables {
         }
         button {
             color: $white-text;
-            font-size: 1.2rem;
+            font-size: 1.0rem;
             display: flex;
             align-items: center;
         }
@@ -390,9 +390,9 @@ p {
 
 .addIcon {
     background: $blue;
-    mat-icon {
-        color: $body-bg-color;
-    }
+    // mat-icon {
+    //     color: $body-bg-color;
+    // }
 }
 
 // .Add{

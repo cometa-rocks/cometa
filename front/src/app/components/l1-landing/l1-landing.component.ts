@@ -139,12 +139,12 @@ export class L1LandingComponent implements OnInit {
     .subscribe(value => {
       localStorage.setItem('co_active_list', value) // Initialize the recentList_active variable in the local storage 
     });
+  }
 
-    // Espera a que el DOM se haya cargado completamente
-    document.addEventListener('DOMContentLoaded', () => {
-      // Ejecuta la función toggleDropdown()
-      this.toggleDropdown();
-    });
+  // En tu componente
+  toggleDropdown() {
+    this.openedAdd = !this.openedAdd;
+    console.log('Dropdown state:', this.openedAdd); // Verifica en la consola si el estado cambia
   }
 
   /**
@@ -173,12 +173,6 @@ export class L1LandingComponent implements OnInit {
   /**
    * General functions
    */
-
-  // En tu componente
-  toggleDropdown() {
-    this.openedAdd = !this.openedAdd;
-    console.log('Dropdown state:', this.openedAdd); // Verifica en la consola si el estado cambia
-  }
 
   // Show Shortcut
 
