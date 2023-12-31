@@ -259,8 +259,8 @@
                 <div class="checkbox-container move-right"> 
                   <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
                     <button color="primary" [disabled]="disableVariables" (click)="editVariables()" mat-stroked-button [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="left">Edit Variables</button>
+                    <div class="hover-box-Vshortcut">(V)</div>
                   </span>
-                  <div class="hover-box-Vshortcut">(V)</div>
                 </div>
               </ng-container>
             <cometa-step-editor (textareaFocusToParent)="receiveDataFromChild($event)" *ngIf="feature | async as feat" [mode]="data.mode" [department]="department" [feature]="feat" [variables]="variables" [name]="featureForm.get('feature_name').value"></cometa-step-editor>
