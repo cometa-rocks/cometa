@@ -5,26 +5,33 @@ Component containing each single directory in the folder tree
 Author: dph000
 
 -->
+<!-- folder-tree-item.component.html
+
+Component containing each single directory in the folder tree
+
+Author: dph000
+
+-->
 <ng-container *ngLet="expanded$ | async as expanded">
     <!--folderState[this.folder.name]?.open will check if folder state is set to open: true, and adapt arrow icon's direction depending on value-->
     <div (click)="toggleExpand()" [class.opened]="folderState[folder.name]?.open"
-        [style.paddingLeft.px]="level * 25" matRipple class="row" *ngLet="lastFolder$ | async as lastFolder"
+        [style.paddingLeft.px]="level * 20" matRipple class="row" *ngLet="lastFolder$ | async as lastFolder"
         [class.selected]="lastFolder === folder.folder_id">
         <!-- Arrow to show / hide the folder -->
         <!-- Old -->
         <!-- <mat-icon class="arrow" [class.hidden]="folder.folders.length === 0">
-            keyboard_arrow_right</mat-icon> -->
+            keyboard_arrow_right</mat-icon> -->  
         <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" class="arrow" [class.hidden]="folder.folders.length === 0"><path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/></svg>
         <!-- Folder icon and name -->
-        <div class="item" [style.--itemMinWidth]="level * 25 + 'px'" [style.--folderNameWidth]="level === 1 ? '0px': (level-1) * 25 + 'px'">
+        <div class="item folderTree" [style.--itemMinWidth]="level * 25 + 'px'" [style.--folderNameWidth]="level === 1 ? '0px': (level-1) * 25 + 'px'">
             <!-- Show different depending if the item is a folder or department -->
             <!-- Old -->
             <!-- <mat-icon *ngIf="department === true; else folderIcon">domain</mat-icon> -->
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" *ngIf="department === true; else folderIcon"><path d="M80-120v-720h400v160h400v560H80Zm80-80h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h320v-400H480v80h80v80h-80v80h80v80h-80v80Zm160-240v-80h80v80h-80Zm0 160v-80h80v80h-80Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 -960 960 960" *ngIf="department === true; else folderIcon"><path d="M80-120v-720h400v160h400v560H80Zm80-80h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm0-160h80v-80h-80v80Zm160 480h320v-400H480v80h80v80h-80v80h80v80h-80v80Zm160-240v-80h80v80h-80Zm0 160v-80h80v80h-80Z"/></svg>
             <ng-template #folderIcon>
                 <!-- Old -->
                 <!-- <mat-icon>folder</mat-icon> -->
-                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" height="20px" width="20px" viewBox="0 0 24 24" fill="#000000" class="folderTree"><path d="M0 0h24v24H0z" fill="none"/><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
             </ng-template>
             <div class="folderName">{{ folder.name }}</div>
         </div>

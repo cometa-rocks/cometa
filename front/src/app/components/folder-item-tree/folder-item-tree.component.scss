@@ -30,12 +30,12 @@
             text-overflow: ellipsis;
         }
 
-        svg {
+        mat-icon {
             flex: 0 24px;
             margin-right: 8px;
         }
     }
-    svg {
+    mat-icon {
         flex: 0 20px;
         transition: transform .15s ease-in-out;
     }
@@ -57,7 +57,7 @@
 //folderTree
 .folderTree {
     fill: #5F6368;
-    margin-right: 8px;
+    // margin-right: 8px;
 }
 
 .opened {
