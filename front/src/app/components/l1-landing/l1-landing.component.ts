@@ -144,7 +144,6 @@ export class L1LandingComponent implements OnInit {
   // En tu componente
   toggleDropdown() {
     this.openedAdd = !this.openedAdd;
-    console.log('Dropdown state:', this.openedAdd); // Verifica en la consola si el estado cambia
   }
 
   /**

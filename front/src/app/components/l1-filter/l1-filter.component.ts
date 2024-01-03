@@ -44,9 +44,6 @@ export class L1FilterComponent implements OnInit {
   ) { }
 
   sendInputFocusToParent(inputFocus: boolean): void {
-    console.log('sendInputFocusToParent', inputFocus);
-    
-    // Utiliza el servicio para emitir el cambio de foco
     this.inputFocusService.setInputFocus(inputFocus);
   }
 

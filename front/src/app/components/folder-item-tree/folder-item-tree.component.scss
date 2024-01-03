@@ -34,20 +34,8 @@
             flex: 0 24px;
             margin-right: 8px;
         }
-
-        svg{
-            flex: 0 24px;
-            margin-right: 8px;
-        }
     }
     mat-icon {
-        flex: 0 20px;
-        transition: transform .15s ease-in-out;
-    }
-    &:hover {
-        background: $medium-black;
-    }
-    svg {
         flex: 0 20px;
         transition: transform .15s ease-in-out;
     }
