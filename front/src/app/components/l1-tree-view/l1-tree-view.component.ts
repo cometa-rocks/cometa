@@ -366,7 +366,7 @@ export class L1TreeViewComponent implements OnInit{
       const data = this.dataFromCurrentRoute(d);
       if (data) {
         this.viewingData = data;
-        d3.select("svg").remove();
+        d3.select("#tree-view").select("svg").remove();
         this.draw();
       }
     })
