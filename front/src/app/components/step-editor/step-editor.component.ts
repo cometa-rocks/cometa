@@ -69,7 +69,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   // Shortcut emitter to parent component
   public sendTextareaFocusToParent(isFocused: boolean) {
     this.textareaFocusToParent.emit(isFocused);
-    console.log(this.textareaFocusToParent);
   }
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {

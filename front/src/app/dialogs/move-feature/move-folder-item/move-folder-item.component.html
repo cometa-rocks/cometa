@@ -3,7 +3,8 @@
     <i></i>
     <span>{{ folder.name }} - {{ folder.folder_id }}</span>
     <button stopPropagation [matMenuTriggerFor]="folderOptions" class="folder-options" mat-icon-button>
-      <mat-icon>more_vert</mat-icon>
+      <!-- <mat-icon>more_vert</mat-icon> -->
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" class="mat-icon"><path d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"/></svg>
     </button>
 </div>
 <div class="folders-inside" *ngIf="extended$ | async">
@@ -11,7 +12,8 @@
 </div>
 <mat-menu #folderOptions="matMenu">
   <button mat-menu-item (click)="createFolder()">
-    <mat-icon>create_new_folder</mat-icon>
+    <!-- <mat-icon>create_new_folder</mat-icon> -->
+    
     <span>New folder</span>
   </button>
   <ng-container *ngIf="folder.folder_id">

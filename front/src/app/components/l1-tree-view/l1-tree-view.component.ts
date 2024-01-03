@@ -107,13 +107,9 @@ export class L1TreeViewComponent implements OnInit{
     if (treeViewElement) {
         // Get the bounding rectangle only if the element is present
         boundries = treeViewElement.getBoundingClientRect();
-
-        // Resto del código...
     } else {
         console.log('El elemento con ID "tree-view" no está presente en el DOM.');
     }
-
-    console.log("My boundry ", boundries);
 
     // viewer width and height
     const width = boundries.width;
