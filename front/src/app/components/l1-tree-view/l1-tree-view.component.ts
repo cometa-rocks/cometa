@@ -98,7 +98,23 @@ export class L1TreeViewComponent implements OnInit{
 
   draw() {
 
-    const boundries = d3.select("#tree-view").node().getBoundingClientRect();
+    // Obtén el elemento con el ID 'tree-view'
+    const treeViewElement = d3.select("#tree-view").node();
+
+    let boundries = {width: 0, height: 0};
+
+    // Check if the element is present in the DOM
+    if (treeViewElement) {
+        // Get the bounding rectangle only if the element is present
+        boundries = treeViewElement.getBoundingClientRect();
+
+        // Resto del código...
+    } else {
+        console.log('El elemento con ID "tree-view" no está presente en el DOM.');
+    }
+
+    console.log("My boundry ", boundries);
+
     // viewer width and height
     const width = boundries.width;
     const height = boundries.height;
