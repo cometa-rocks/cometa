@@ -27,8 +27,8 @@
         .crumb {
             background-image: url(^assets/icons/next.white.svg);
         }
-        .folder-options .mat-icon {
-            color: white;
+        .folder-options svg {
+            fill: white;
         }
     }
     &.showCrumb .crumb {
@@ -85,14 +85,25 @@
     height: 30px;
     width: 30px;
     opacity: 0;
-    .mat-icon {
+    svg {
         line-height: 15px;
-        color: grey;
+        fill: grey;
     }
 }
 
-.move-feature-mat-icon{
+.move-feature-more-vert{
     height: 21px !important;
     fill: #5F6368;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+}
+
+.move-feature-mat-icon{
+    line-height: 15px;
+    // height: 21px !important;
+    fill: #5F6368;
+}
+
+.mat-menu-item svg {
+    margin-right: 16px;
+    vertical-align: middle;
 }

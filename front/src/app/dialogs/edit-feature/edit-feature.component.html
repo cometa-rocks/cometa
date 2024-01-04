@@ -76,7 +76,7 @@
 
               <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">  
                 <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
-                  <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">Continue on failure</mat-checkbox>
+                  <mat-checkbox [matTooltip]="'edit_feature.continue_on_failure_global' | translate" [matTooltipDisabled]="disabled" color="primary" disabled="disabled" formControlName="continue_on_failure">Continue on failure</mat-checkbox>
                   <div class="hover-box">(F)</div>
                 </ng-container>
               </div>

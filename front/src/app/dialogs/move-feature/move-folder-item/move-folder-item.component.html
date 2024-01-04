@@ -4,7 +4,7 @@
     <span>{{ folder.name }} - {{ folder.folder_id }}</span>
     <button stopPropagation [matMenuTriggerFor]="folderOptions" class="folder-options" mat-icon-button>
       <!-- <mat-icon>more_vert</mat-icon> -->
-      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" class="mat-icon"><path d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" class="move-feature-more-vert"><path d="M480-160q-33 0-56.5-23.5T400-240q0-33 23.5-56.5T480-320q33 0 56.5 23.5T560-240q0 33-23.5 56.5T480-160Zm0-240q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm0-240q-33 0-56.5-23.5T400-720q0-33 23.5-56.5T480-800q33 0 56.5 23.5T560-720q0 33-23.5 56.5T480-640Z"/></svg>
     </button>
 </div>
 <div class="folders-inside" *ngIf="extended$ | async">
@@ -13,16 +13,18 @@
 <mat-menu #folderOptions="matMenu">
   <button mat-menu-item (click)="createFolder()">
     <!-- <mat-icon>create_new_folder</mat-icon> -->
-    
+    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" class="move-feature-mat-icon"><path d="M560-320h80v-80h80v-80h-80v-80h-80v80h-80v80h80v80ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></svg>
     <span>New folder</span>
   </button>
   <ng-container *ngIf="folder.folder_id">
     <button mat-menu-item (click)="modifyFolder()">
-      <mat-icon>mode_edit</mat-icon>
+      <!-- <mat-icon>mode_edit</mat-icon> -->
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="move-feature-mat-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
       <span>Modify folder</span>
     </button>
     <button mat-menu-item (click)="deleteFolder()">
-      <mat-icon>delete</mat-icon>
+      <!-- <mat-icon>delete</mat-icon> -->
+      <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000" class="move-feature-mat-icon"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
       <span>Delete folder</span>
     </button>
   </ng-container>
