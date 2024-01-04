@@ -134,7 +134,8 @@ export class EditFeature implements OnInit, OnDestroy {
       'day_month': ['1', Validators.compose([Validators.required, Validators.pattern('^[0-9,-/*]+$')])],
       'month': ['*', Validators.compose([Validators.required, Validators.pattern('^[0-9,-/*]+$')])],
       'day_week': ['*', Validators.compose([Validators.required, Validators.pattern('^[0-9,-/*]+$')])]
-    });
+    }
+    );
     // Gets the currently active route
     let route = this._store.selectSnapshot(FeaturesState.GetCurrentRouteNew);
     // Initialize the departments, applications and environments
