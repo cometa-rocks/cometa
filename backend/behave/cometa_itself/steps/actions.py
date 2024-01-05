@@ -826,7 +826,7 @@ def step_impl(context, something):
     try:
         # CA11.1 search box
         logger.debug("Trying to search on CA11.1")
-        elm = context.browser.find_element_by_xpath("//*[@id='com.ibm.bi.search.search']")
+        elm = context.browser.find_element(By.XPATH, "//*[@id='com.ibm.bi.search.search']")
         logger.debug("elm returned")
         logger.debug("Got elm %s " % elm )
         elm.click()
@@ -840,7 +840,7 @@ def step_impl(context, something):
 
             # Click on search icon - just in case browser is set to small to click on the input
             try:
-                context.browser.find_element_by_xpath("//div[@role='search']").click()
+                context.browser.find_element(By.XPATH, "//div[@role='search']").click()
                 logger.debug("Clicked search Icon ... searchbox should now be visible.")
             except:
                 logger.debug("Tried to click search icon ... but failed. This happens, when browser is maximize and searchbox is visible.")
@@ -849,7 +849,7 @@ def step_impl(context, something):
             time.sleep(0.01)
 
             # now click in input
-            elms = context.browser.find_elements_by_xpath("//input[@role='searchbox']")
+            elms = context.browser.find_elements(By.XPATH, "//input[@role='searchbox']")
             logger.debug("Found %s Searchboxes" % len(elms))
             # we might need to loop here as Cognos produces various searchboxes the HTML
             for elm in elms:
@@ -917,7 +917,7 @@ def step_impl(context, folder_name):
 # @timeout("Couldn't find any text inside report for <seconds> seconds.")
 def wait_for_element_text(context, css_selector):
     while True:
-        elements = context.browser.find_elements_by_css_selector(css_selector)
+        elements = context.browser.find_elements(By.CSS_SELECTOR, css_selector)
         if len(elements) > 0:
             inner_text = elements[0].get_attribute('innerText')
             if inner_text:
@@ -932,9 +932,9 @@ def loopSubFolders(context):
     # Make sure all folder items are in the list
     cognos_scroll_folder_till_bottom(context, True)
     # get all sub-folders inside current folder
-    subFolders = context.browser.find_elements_by_xpath('//*[@title="Folder" or @title="Package"]/ancestor::tr//*[contains(@class, "name")]/div')
+    subFolders = context.browser.find_elements(By.XPATH, '//*[@title="Folder" or @title="Package"]/ancestor::tr//*[contains(@class, "name")]/div')
     # get all reports in current folder
-    reports = context.browser.find_elements_by_xpath('//*[@title="Report" or @title="Query"]/ancestor::tr//*[contains(@class, "name")]/div')
+    reports = context.browser.find_elements(By.XPATH, '//*[@title="Report" or @title="Query"]/ancestor::tr//*[contains(@class, "name")]/div')
     # loop over each folder and find subFolders
     for index, sF in enumerate(subFolders):
         # get the subFolder again using index just in case cognos was reloaded and we lost the refrence
@@ -1027,7 +1027,7 @@ def test_folder(context, parameters = {}):
         cognos_scroll_folder_till_bottom(context, True)
         # Retrieve element again as DOM can later be changed
         logger.debug("Getting DOM element %d in folder" % (int(index)+1))
-        element = context.browser.find_element_by_xpath('//div[@id="teamFoldersSlideoutContent"]/descendant::div[@title and @class="nameColumnDiv contentListFocusable clickable active"][position()=%s]' % str(int(index)+1))
+        element = context.browser.find_element(By.XPATH, '//div[@id="teamFoldersSlideoutContent"]/descendant::div[@title and @class="nameColumnDiv contentListFocusable clickable active"][position()=%s]' % str(int(index)+1))
         # save reportname for later usage
         report_name=str(element.get_attribute('innerText'))
         logger.debug(" ==> Executing report [%s] " % report_name)
@@ -1041,7 +1041,7 @@ def test_folder(context, parameters = {}):
         waitSelector(context, 'css', 'iframe:nth-child(2), .ViewerContainer iframe, .pageViewContent')
         # Try to switch to new iframe if exists (only reports with prompts have iframe)
         had_iframe = False
-        iframe = context.browser.find_elements_by_css_selector( 'iframe:nth-child(2), .ViewerContainer iframe' )
+        iframe = context.browser.find_elements(By.CSS_SELECTOR,  'iframe:nth-child(2), .ViewerContainer iframe' )
         if len(iframe) > 0:
             logger.debug('Switched to iframe')
             context.browser.switch_to_frame( iframe[0] )
@@ -1150,7 +1150,7 @@ def test_folder_aso(context, parameters = {}):
         cognos_scroll_folder_till_bottom(context, True)
         # Retrieve element again as DOM can later be changed
         logger.debug("Getting DOM element %d in folder" % (int(index)+1))
-        element = context.browser.find_element_by_xpath('//div[@id="teamFoldersSlideoutContent"]/descendant::div[@title and @class="nameColumnDiv contentListFocusable clickable active"][position()=%s]' % str(int(index)+1))
+        element = context.browser.find_element(By.XPATH, '//div[@id="teamFoldersSlideoutContent"]/descendant::div[@title and @class="nameColumnDiv contentListFocusable clickable active"][position()=%s]' % str(int(index)+1))
         # save reportname for later usage
         report_name=str(element.get_attribute('innerText'))
         logger.debug(" ==> Executing report [%s] " % report_name)
@@ -1179,7 +1179,7 @@ def test_folder_aso(context, parameters = {}):
             had_iframe = True
         else:
             # check if there is a loader displayed
-            loaderElements = context.browser.find_elements_by_css_selector("table.rsBlockerDlg")
+            loaderElements = context.browser.find_elements(By.CSS_SELECTOR, "table.rsBlockerDlg")
             logger.debug(loaderElements)
             if len(loaderElements) > 0 and loaderElements[0].is_displayed():
                 logger.debug("%s with storeID %s took longer than timeout to load." % (report_name, storeID))
@@ -1263,7 +1263,7 @@ def close_ibm_cognos_view(context, parameters = {}):
     elements = waitSelector(context, 'css', '.popover.switcher ul li:last-child .removeItemIcon')
     elements[0].click()
     time.sleep(1)
-    elements = context.browser.find_elements_by_css_selector('.button.dialogButton[id=ok]')
+    elements = context.browser.find_elements(By.CSS_SELECTOR, '.button.dialogButton[id=ok]')
     if len(elements) > 0:
         elements[0].click()
     time.sleep(0.5)
@@ -1560,14 +1560,14 @@ def step_impl(context,iframe_id):
     while True:
         try:
             # Try getting iframe by iframe_id as text
-            iframe = context.browser.find_element_by_id( iframe_id )
+            iframe = context.browser.find_element(By.ID,  iframe_id )
             context.browser.switch_to_frame( iframe.get_attribute('id') )
             return True
         except:
             # failed switching to ID .. try overloading
             # Added method overloading with error handling by Ralf
             # Get total iframe count on current page source
-            iframe_count = len(context.browser.find_elements_by_tag_name('iframe'))
+            iframe_count = len(context.browser.find_elements(By.TAG_NAME, 'iframe'))
             if isINT(iframe_id):
                 iframe_id = int(iframe_id) - 1 # since the index for iFrames ids starts at 0
                 if iframe_id <= iframe_count:
@@ -1645,12 +1645,12 @@ def cannot_see_selector(context, selector):
 # @timeout("Unable to find specified linktext inside the iFrames")
 def step_impl(context,linktext):
     while True:
-        for child_frame in context.browser.find_elements_by_tag_name('iframe'):
+        for child_frame in context.browser.find_elements(By.TAG_NAME, 'iframe'):
             child_frame_name = child_frame.get_attribute('name')
             child_frame_id = child_frame.get_attribute('id')
             logger.debug("Childframe:",child_frame_name)
             context.browser.switch_to.frame(child_frame_id)
-            if context.browser.find_elements_by_link_text(linktext):
+            if context.browser.find_elements(By.LINK_TEXT, linktext):
                 return True
         time.sleep(1)
 
@@ -1875,7 +1875,7 @@ def click_on_element(elem):
 
 def find_and_click_link_text(context,linktext):
     start_time = time.time()
-    elem = context.browser.find_elements_by_link_text(linktext)
+    elem = context.browser.find_elements(By.LINK_TEXT, linktext)
     if ( len(elem)>0 ):
         if ( click_on_element(elem[0]) ):
             return True
@@ -1884,7 +1884,7 @@ def find_and_click_link_text(context,linktext):
 
 def find_and_click_custom_css(context, linktext):
     start_time = time.time()
-    elem = context.browser.find_elements_by_css_selector(linktext)
+    elem = context.browser.find_elements(By.CSS_SELECTOR, linktext)
     if ( len(elem)>0 ):
         if ( click_on_element(elem[0]) ):
             return True
@@ -1893,7 +1893,7 @@ def find_and_click_custom_css(context, linktext):
 
 def find_and_click_link_td(context,linktext):
     start_time = time.time()
-    elem = context.browser.find_elements_by_xpath("//td[text()='"+linktext+"']")
+    elem = context.browser.find_elements(By.XPATH, "//td[text()='"+linktext+"']")
     if ( len(elem)>0 ):
         if ( click_on_element(elem[0]) ):
             return True
@@ -1902,7 +1902,7 @@ def find_and_click_link_td(context,linktext):
 
 def find_and_click_link_div(context,linktext):
     start_time = time.time()
-    elem = context.browser.find_elements_by_xpath("//div[text()='"+linktext+"']")
+    elem = context.browser.find_elements(By.XPATH, "//div[text()='"+linktext+"']")
     if ( len(elem)>0 ):
         if ( click_on_element(elem[0]) ):
             return True
@@ -1912,7 +1912,7 @@ def find_and_click_link_div(context,linktext):
 def find_and_click_link_id(context,linktext):
     start_time = time.time()
     try:
-        elem = context.browser.find_element_by_id(linktext)
+        elem = context.browser.find_element(By.ID, linktext)
         if ( click_on_element(elem) ):
             return True
         else:
@@ -2182,16 +2182,16 @@ def step_impl(context, column_name):
         counter=0
         while True:
             try:
-                elem = context.browser.find_elements_by_xpath('//nobr[img[contains(@src, "icon_tree_T")]]/span/span/a[text()="' + x + '"]')
+                elem = context.browser.find_elements(By.XPATH, '//nobr[img[contains(@src, "icon_tree_T")]]/span/span/a[text()="' + x + '"]')
                 elem[0].click()
                 break
             except:
                 try:
-                    elem = context.browser.find_elements_by_xpath('//nobr[img[contains(@src, "icon_tree_I")]]/span/span/a[text()="' + x + '"]')
+                    elem = context.browser.find_elements(By.XPATH, '//nobr[img[contains(@src, "icon_tree_I")]]/span/span/a[text()="' + x + '"]')
                     elem[0].click()
                     break
                 except:
-                    elem = context.browser.find_elements_by_xpath('//nobr[img[contains(@src, "icon_tree_L")]]/span/span/a[text()="' + x + '"]')
+                    elem = context.browser.find_elements(By.XPATH, '//nobr[img[contains(@src, "icon_tree_L")]]/span/span/a[text()="' + x + '"]')
                     elem[0].click()
                     break
             if counter > MAXRETRIES:
@@ -2239,8 +2239,8 @@ def step_impl(context, filter_name):
     elem[0].click()
     iframe = waitSelector(context, "id", "dialogIFrame" )
     context.browser.switch_to_frame( iframe.get_attribute('id') )
-    if context.browser.find_elements_by_link_text("OK"):
-        elem = context.browser.find_elements_by_link_text("OK")
+    if context.browser.find_elements(By.LINK_TEXT, "OK"):
+        elem = context.browser.find_elements(By.LINK_TEXT, "OK")
         elem[0].click()
     time.sleep(5)
 
@@ -2324,8 +2324,8 @@ def step_impl(context, column_name, filter_value):
     # depending in the filter situation, cognos requests one or more times "OK" ... loop 3 times for 3 seconds, searching for OK button
     timer=3
     while timer != 0:
-        if context.browser.find_elements_by_link_text("OK"):
-            elem = context.browser.find_elements_by_link_text("OK")
+        if context.browser.find_elements(By.LINK_TEXT, "OK"):
+            elem = context.browser.find_elements(By.LINK_TEXT, "OK")
             elem[0].click()
             logger.debug("Number of OK elements found: %d with timer %d" % (len(elem), timer))
         time.sleep(1)
