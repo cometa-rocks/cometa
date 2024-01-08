@@ -1,6 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.proxy import Proxy, ProxyType
-import time, requests, json, os, datetime, xml.etree.ElementTree as ET, subprocess, traceback, signal, sys, itertools, glob, logging
+import time, requests, json, os, datetime, xml.etree.ElementTree as ET, subprocess, traceback, signal, sys, itertools, glob, logging, re
 
 from pprint import pprint, pformat
 from pathlib import Path
@@ -33,8 +33,10 @@ BROWSERSTACK_USERNAME = getattr(secret_variables, 'COMETA_BROWSERSTACK_USERNAME'
 BROWSERSTACK_PASSWORD = getattr(secret_variables, 'COMETA_BROWSERSTACK_PASSWORD', False)
 PROXY_ENABLED = getattr(secret_variables, 'COMETA_PROXY_ENABLED', False)
 PROXY = getattr(secret_variables, 'COMETA_PROXY', False)
+NO_PROXY = getattr(secret_variables, 'COMETA_NO_PROXY', '')
 DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
 S3ENABLED = getattr(secret_variables, 'COMETA_S3_ENABLED', False)
+ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
 
 # handle SIGTERM when user stops the testcase
 def stopExecution(signum, frame, context):
@@ -80,7 +82,24 @@ def error_handling(*_args, **_kwargs):
         return decorated
     return decorator
 
+def parseVariables(text, variables):
+    def decrypted_value(variable_name):
+        variable = next((var for var in variables if var['variable_name'] == variable_name), None)
+        if not variable:
+            return False
+        if variable['variable_value'].startswith(ENCRYPTION_START): # encrypted variable.
+            return '[ENCRYPTED]' # return False in case we want to show the variable name it self.
 
+        return variable['variable_value']
+
+    def replaceVariable(match):
+        variable_found = match.group()
+        variable_name = match.groups()[0]
+
+        return decrypted_value(variable_name) or variable_found
+
+    variable_pattern = r'\$\{?(.+?)(?:\}|\b)'
+    return re.sub(variable_pattern, replaceVariable, text)
 
 @error_handling()
 def before_all(context):
@@ -122,6 +141,9 @@ def before_all(context):
 
     # load the feature file to data
     data = json.loads(os.environ['FEATURE_DATA'])
+    feature_description = data.get('description', '')
+    if feature_description:
+        feature_description = parseVariables(feature_description, json.loads(context.VARIABLES))
 
     # Prepare folders and paths for screenshots and templates
     # Screenshot images are saved in /<screenshots_dir>/<feature_id>/<feature_run>/<feature_result_id>/<rand_hash>/<step_result_id>/AMVARA_<current|style|difference>.png
@@ -185,6 +207,9 @@ def before_all(context):
         'enableVideo': context.record_video,
         'chromeOptions': {
             # 'w3c': False
+        },
+        'goog:loggingPrefs': {
+            'browser': 'ALL'
         }
     }
 
@@ -196,6 +221,7 @@ def before_all(context):
         pxy.proxy_type = ProxyType.MANUAL
         pxy.http_proxy = PROXY
         pxy.ssl_proxy = PROXY
+        pxy.no_proxy = NO_PROXY
 
         # add proxy configuration to capabilities
         logger.debug("Adding proxy setting to capabilities.")
@@ -305,7 +331,8 @@ def before_all(context):
     # set payload for the request
     data = {
         'feature_result_id': os.environ['feature_result_id'],
-        'session_id': context.browser.session_id
+        'session_id': context.browser.session_id,
+        'description': feature_description
     }
     # update feature_result with session_id
     requests.patch('http://cometa_django:8000/api/feature_results/', json=data, headers=headers)

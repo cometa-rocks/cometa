@@ -40,15 +40,24 @@ install_cron
 CPUCORES=`getconf _NPROCESSORS_ONLN`
 # calculate workers
 # GUNI_WORKERS=$((($CPUCORES*2+1)))
+
 GUNI_WORKERS=$((($CPUCORES+1)))
 
-# configure django-rq service in supervisor
+# prevents $CPUCORES to be set to <=0, which causes failure during test execution on Cometa due to non existant CPU cores.
+if [ $CPUCORES < 2 ]; then
+    REDIS_WORKERS=$((($CPUCORES)))
+else
+    REDIS_WORKERS=$((($CPUCORES-2)))
+fi
+
+# configure django-rq service in supervisor / redis - number of workers equals number of CPUs - #4236
+# limit number of procs to Cores - 2
 cat <<EOF > /etc/supervisor/conf.d/django-rq.conf
 [program:django-rq]
 environment=PYTHONUNBUFFERED=1
 process_name=%(program_name)s-%(process_num)s
 command=python manage.py rqworker default
-numprocs=6
+numprocs=$REDIS_WORKERS
 directory=/opt/code/behave_django
 stopsignal=TERM
 autostart=true
@@ -67,7 +76,7 @@ gunicorn behave_django.wsgi:application --workers=2 --threads=${THREADS:-2} --wo
 
 # SEMFILE="stop_behave_semaphore.sem"
 
-# while [ ! -e "${SEMFILE}" ] 
+# while [ ! -e "${SEMFILE}" ]
 # do
 #     sleep 30s
 #     logger "Behave Docker up and running, polling for ${SEMFILE} ... "

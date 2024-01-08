@@ -173,6 +173,26 @@ export class ApiService {
       .pipe(map(res => res.results));
   }
 
+  // Get REST API call
+  getRestAPI(id: number) {
+    return this._http.get<Success>(`${this.api}rest_api/${id}/`).pipe(
+      map(res => res.result)
+    )
+  }
+
+  // Parse JQ
+  getParsedJQFilter(filter: string, rest_id: number) {
+    return this._http.post<Success>(`${this.base}compile_jq/`, {
+      "pattern": filter,
+      "rest_api": rest_id
+    }, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+        silent: true
+      })
+    })
+  }
+
   /**
    * Retrieves the requested step result object by ID
    * in a Success response type
@@ -736,6 +756,10 @@ export class ApiService {
 
   deleteFile(file_id: number) {
     return this._http.delete<any>(`${this.api}uploads/${file_id}/`);
+  }
+
+  deleteDataDrivenTest(run_id: number) {
+    return this._http.delete<any>(`${this.api}data_driven/${run_id}/`);
   }
 
   downloadFile(file_id: number) {

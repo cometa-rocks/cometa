@@ -15,6 +15,11 @@ import re
 from django.urls import re_path
 router = routers.DefaultRouter()
 
+
+# import EE Modules
+import backend.ee.modules.data_driven.urls as DataDrivenEndpoints
+import backend.ee.modules.rest_api.urls as RestAPIEndpoints
+
 #
 # router.register URLs are exposed as https://server:8000/api/[xyz]
 # ... Theses need to have a "class xyzViewSet" definition in views.py
@@ -61,10 +66,6 @@ router.register(r'schedule', views.ScheduleViewSet)
 router.register(r'subscriptions', views.SubscriptionsViewSet)
 router.register(r'uploads/(?P<file_id>[0-9]+)', views.UploadViewSet)
 router.register(r'uploads', views.UploadViewSet)
-router.register(r'data_driven/results/(?P<run_id>[0-9]+)', views.DataDrivenResultsViewset)
-router.register(r'data_driven/file/(?P<file_id>[0-9]+)', views.DataDrivenFileViewset)
-router.register(r'data_driven/(?P<run_id>[0-9]+)', views.DataDrivenViewset)
-router.register(r'data_driven', views.DataDrivenViewset)
 # provides numbers of system usage
 router.register(r'cometausage', views.CometaUsageViewSet)
 
@@ -97,7 +98,6 @@ urlpatterns = [
     url(r'^schedule/(?P<feature_id>.+)/', views.UpdateSchedule),
     url(r'^exectest/', views.runTest),
     url(r'^exec_batch/', views.runBatch),
-    url(r'^exec_data_driven/', views.runDataDriven),
     url(r'^info/', views.GetInfo),
     url(r'^migrateScreenshots', views.MigrateScreenshots),
     url(r'^checkBrowserstackVideo', views.CheckBrowserstackVideo),
@@ -126,4 +126,8 @@ urlpatterns = [
     url(r'^departments/(?P<department_id>[0-9]+)/updateStepTimeout/', views.UpdateStepTimeout),
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
-] + static('/static/', document_root=STATIC_ADMIN_FILES)
+] + static('/static/', document_root=STATIC_ADMIN_FILES) + [
+    # EE static endpoints
+    *DataDrivenEndpoints.static_endpoints,
+    *RestAPIEndpoints.static_endpoints
+]

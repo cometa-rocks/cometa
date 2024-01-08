@@ -129,26 +129,27 @@ interface StepRequirements {
 }
 
 interface StepResult {
-  belongs_to?: BelongsTo;
-  step_result_id: number;
-  feature_result_id: number;
-  step_name: string;
-  execution_time: number;
-  pixel_diff: number;
-  success: boolean;
-  screenshot?: boolean;
-  compare?: boolean;
-  template_name?: string;
-  screenshots?: Screenshots;
-  previous: null | number;
-  next: null | number;
-  status: string;
-  files: string[];
-  screenshot_current: string;
-  screenshot_style: string;
-  screenshot_difference: string;
-  screenshot_template: string;
-  error: null | string;
+    belongs_to?: BelongsTo;
+    step_result_id: number;
+    feature_result_id: number;
+    step_name: string;
+    execution_time: number;
+    pixel_diff: number;
+    success: boolean;
+    screenshot?: boolean;
+    compare?: boolean;
+    template_name?: string;
+    screenshots?: Screenshots;
+    previous: null | number;
+    next: null | number;
+    status: string;
+    files: string[];
+    screenshot_current: string;
+    screenshot_style: string;
+    screenshot_difference: string;
+    screenshot_template: string;
+    error: null | string;
+    rest_api: number;
 }
 
 interface BelongsTo {
@@ -377,14 +378,15 @@ interface Schedule {
 }
 
 interface Success {
-  success: boolean;
-  error?: string;
-  /** If true or setted it means any error is already handled by an interceptor */
-  handled?: boolean;
-  results?: any;
-  sessionId?: string;
-  url?: string;
-  action?: string;
+    success: boolean;
+    error?: string;
+    /** If true or setted it means any error is already handled by an interceptor */
+    handled?: boolean;
+    results?: any;
+    sessionId?: string;
+    url?: string;
+    action?: string;
+    result?: any;
 }
 
 interface DiffResponse extends Success {

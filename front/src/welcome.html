@@ -1,15 +1,12 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Login - Complete Meta Test Automation</title>
-    <base href="/" />
-    <link rel="icon" href="assets/favicons/@@BRANCH@@/favicon.ico?v=2" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script>
-      /**
-       * Run URL checks before loading anything.
-       */
+<head>
+  <meta charset="utf-8">
+  <title>Login - Complete Meta Test Platform</title>
+  <base href="/">
+  <link rel="icon" href="assets/favicons/@@BRANCH@@/favicon.ico?v=2">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
 
       // check if query parameters contain target_link_uri if not redirect to /
       if (
@@ -106,9 +103,106 @@
         font-style: italic;
         height: 58px; /* fixed jumping screen buttons when changeing to long sentences */
       }
-      .author {
-        margin-bottom: 30px;
-        color: rgba(255, 255, 255, 0.6);
+    }
+    .BDC_CaptchaDiv {
+      margin: 0 auto !important;
+    }
+    .BDC_ReloadLink {
+      display: inline !important;
+    }
+    input {
+      background-color: transparent;
+      border: 2px solid #E5B355;
+      border-radius: 5px;
+      padding: 15px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      color: #E5B355;
+      caret-color: #E5B355;
+      outline: 0;
+      text-align: center;
+    }
+    .captcha-box > div {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    button {
+      margin: 0 auto;
+      display: block;
+      background-color: #1565C0;
+      color: white;
+      border: 0;
+      padding: 15px;
+      box-sizing: border-box;
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: 0;
+      margin-top: 20px;
+      cursor: pointer;
+      width: 200px;
+    }
+  </style>
+  <meta name="theme-color" content="#1976d2">
+</head>
+<body>
+  <div class="host">
+    <!-- Relative content wrapper -->
+    <div class="content">
+      <!-- Headers -->
+      <div class="welcome">Welcome to</div>
+      <div class="cometa"><span>co.</span>meta</div>
+      <div class="sentence"></div>
+      <div class="author">— Anonymous —</div>
+      <form novalidate style="display: block; opacity: 0;">
+        <div class="alert alert-error"></div>
+        <!-- Captcha Plugin Component -->
+        <div class="captcha-box"></div>
+        <!-- Captcha Input --> 
+        <div aria-label="CaptchaInputBox">
+          <legend>Repeat Captcha here</legend> 
+          <input type="text" onkeydown="return event.key != 'Enter';" autofocus required id="userCaptchaInput">
+        </div>
+        <br />
+      </form>
+      <div class="provider_buttons"></div>
+    </div>
+  </div>
+  <noscript>Please enable JavaScript to continue using this application.</noscript>
+  <script>
+    function focusInput() {
+      // Focus captcha input
+      document.querySelector('#userCaptchaInput').focus();
+    }
+    // fetch all providers 
+    fetch("/backend/api/authproviders/")
+    .then(response => response.json())
+    .then(json => {
+      // get all the results
+      var results = json.results;
+      // get element of where to insert provider buttons
+      var provider_buttons = document.querySelector(".provider_buttons");
+      // loop over results
+      results.forEach(provider => {
+        // create a button element
+        var button = document.createElement("button");
+        button.style.backgroundColor = provider.background_color;
+        button.style.backgroundImage = 
+        button.addEventListener("click", () => onSubmit(button));
+        button.setAttribute("issuer", provider.issuer);
+        button.type = "button";
+        var i = document.createElement("i");
+        i.style.backgroundImage = `url(${provider.icon})`;
+        button.appendChild(i);
+        button.innerHTML += `Login with ${provider.name}`;
+        provider_buttons.appendChild(button);
+      });
+      window.captchaRequired = results.some(res => res.useCaptcha);
+      console.log("Show captcha: ".captchaRequired)
+      // if captchaRequired == false then hide the form
+      if (window.captchaRequired) {
+        loadCaptcha();
+        document.querySelector("form").style.opacity = 1;
       }
       button i {
         display: inline-block;

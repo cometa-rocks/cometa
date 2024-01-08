@@ -1,4 +1,3 @@
-
 <!-- PROJECT LOGO -->
 
 <p  align="center">
@@ -30,13 +29,85 @@ Open source is the future. Co.Meta is an advanced & evolving meta-test product t
 
 Here is what you need to be able to run Cometa.
 
-- Docker
-- Docker Compose
-- Use Linux as operating system. Have a look at pre-build [Virtual Boxes](https://osboxes.org/)
+* **Docker and Docker Compose**
 
-In any case that you are stuck for more than 5 minutes - please us know. And please give us the oportunity to help you. We want to learn how you are using cometa and what problems you encounter. <a href="https://cometa.rocks/support/">Contact us</a>. We are happy to help.
+  Docker and Docker Compose run seamlessly on both Mac and Windows. Installations have been successfully carried out using Docker Desktop 4.25.2 on macOS 14.1 with Rosetta x86/amd64 emulation. Additionally, running WSL with Ubuntu is a viable option. The choice ultimately depends on your personal preference. We recommend running Co.meta on Linux, considering that Linux is its native environment. Please use Linux as the operating system. You can explore pre-built  [Virtual Boxes](https://osboxes.org/) for your convenience.
+  <br><p>
 
-#### Manual
+* **Internet Connection**
+
+  Co.Meta needs to be able to fetch software from the internet. For example python libraries, pre-built containers with virtual browser.
+
+  When installing Co.meta in a corporate environment, make sure to whitelist the following domains on the Secure Proxy:
+
+  * https://*.amvara.de
+  * https://github.com
+  * https://*.githubusercontent.com
+  * https://*.docker.com
+  * https://*.docker.io
+  * https://registry.npmjs.org
+  * https://www.npmjs.com
+  * https://repo.maven.apache.org
+  * https://kubernetes-charts.storage.googleapis.com
+  * https://plugins.gradle.org:443
+  * https://registry.yarnpkg.com
+  * https://deb.nodesource.com
+  * https://mod-auth-openidc.org
+  * https://pypi.org
+  * http://*.debian.org and https://*.debian.org
+  <br><p>
+
+  For corporate environments using a Secure Proxy the Proxy usage needs to be configured:
+  Edit the following `nano ~/.docker/config.json`
+
+  <br>
+  Add the following:
+
+  ```
+  {
+	"proxies":
+	{
+		"default":
+			{
+				"httpProxy": "http://<host>:<port>",
+				"httpsProxy": "http://<host>:<port>",
+				"noProxy": "localhost,127.0.0.1,172.0.0.1/8,cometa_socket,cometa_zalenium,cometa_front,cometa_behave,cometa_django,cometa_postgres,behave" 
+			}
+		}
+  }
+  ```
+  This configuration ensures, that the Co.Meta container use the proxy server, when spinning up virtual browsers. 
+  Add any internal Websites, ERPs or Application Endpoints into the above file to be accessible without Proxy.
+  <br><p>
+  Selenoid Container must be built without above file. So, before rebuilding (e.g. with option --force-recreate) move above to *_bkp (`mv ~/.docker/config.json ~/.docker/config.json_bkp`), then rebuilt selenoid and finally move the file back to original name using `mv ~/.docker/config.json_bkp ~/.docker/config.json`.  
+  <br><p>
+
+  Modify /etc/systemd/system/docker.service.d/http_proxy.conf or create the file if missing and add this content:
+
+  ```
+  [Service]
+  Environment="HTTP_PROXY=http://<host>:<port>/" "NOPROXY=localhost,127.0.0.1,behave,cometa_behave,cometa_django" 
+  ```
+  
+  Then restart the services: `run systemctl daemon-reload` and `systemctl restart docker.service`
+
+  <br><p>
+
+* **ulimit -n 8192**
+
+    Normally a `ulimit -n` of 1024 is sufficient. When using cntlm to divert internal and external traffic in a corporate environment, the ulimit should be set to 8192.
+
+* **Server time**
+
+	Your server must be in sync with the global time - consider using [NTP](https://en.wikipedia.org/wiki/Network_Time_Protocol) to keep your local server time syncronised. Time deviation of more than 10 minutes is not supported.
+
+	Why is this important? Because Co.Meta supports Single Sign On Providers like oAuth from Gitlab, Github, Azure, Google, Facebook, Ping or others. And the cookie timestamp must be accurate.
+
+
+In case you are stuck for more than 5 minutes - please let us know. And please give us the opportunity to help you. We want to learn how you are using Co.Meta and what problems you encounter. <a href="https://cometa.rocks/support/">Contact us</a>. We are happy to help.
+
+
+#### Installation
 
 1. Clone the repo
 	```sh
@@ -45,16 +116,18 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 
 2. Setup at least 1 authentication provider:
 
-	To setup Google:
+	To setup Google (for a more in detail guide [click here](./docs/GoogleAuthentication.md) ):
 	* Go to [Google Developer Console](https://console.cloud.google.com/)
 	* Create an OAuth application
 	* Add your domain to the allowed hosts
 	* Retrieve the `client_id` and `secret_id` and paste them in `./front/apache-conf/metadata/accounts.google.com.client`
 
-	* Set `redirect_uri` to `https://<domain>/callback`
+	* Set `redirect_uri` to `https://<domain>/callback` on your project's credential page 
 
-	To setup Gitlab:
-	* Goto [git.amvara.de](https://git.amvara.de/)
+	* For further information please refer to [Google Cloud Platform Console Help](https://support.google.com/cloud/answer/6158849?hl=en#zippy=)
+
+	To setup Gitlab (for a more in detail guide [click here](./docs/GitAuthentication.md) ):
+	* Go to [git.amvara.de](https://git.amvara.de/)
 	* Create a new account
 	* Settings > Application > Add new application
 	* Add your domain to the allowed hosts
@@ -65,7 +138,7 @@ In any case that you are stuck for more than 5 minutes - please us know. And ple
 	In both cases, the default URL when installing on you Desktop or Laptop, is `localhost`.
 
 
-Very nice: Instead of following the manual setup instructions below, you may execute `./cometa.sh` to bring up a localhost version on your machine.
+**Don't miss this note**: Instead of following the manual setup instructions below, you may execute `./cometa.sh` to bring up a localhost version on your machine.
 
 
 3. Create a crontab file for scheduling your automated tests
@@ -87,12 +160,12 @@ Very nice: Instead of following the manual setup instructions below, you may exe
 	docker-compose up -d && docker-compose logs -f --tail=10
 	```
 
-	Cometa starts on port 443. If that port is used on your machine, change it `docker-compose.yml` to e.g. "8443:443"
-	Cometa also starts on port 80. If that is not available you could change that to 8081 ind `docker-compose.yml`
+	Co.Meta starts on port 443. If that port is used on your machine, change it `docker-compose.yml` to e.g. "8443:443"
+	Co.Meta also starts on port 80. If that is not available you could change that to 8081 in `docker-compose.yml`
 
-	View some logs `docker-compose logs -f --tail=10` of the installation process, to get a understanding, when cometa is ready.
+	View some logs `docker-compose logs -f --tail=10` of the installation process, to get a understanding, when Co.Meta is ready.
 
-	Give cometa some minutes to install python, setup django, download npm and docker files, compile the front end.
+	Give Co.Meta some minutes to install python, setup django, download npm and docker files, compile the front end.
 	Depending on your computer this can take a couple of minutes.
 
 	You want a development server?
@@ -117,15 +190,15 @@ Very nice: Instead of following the manual setup instructions below, you may exe
 
 	This will configure and pull the three newest Docker images with virtual browsers for Selenoid.
 
-	Selenoid image are the browser that you will be able use and select in cometa. 
+	Selenoid image are the browser that you will be able use and select in Co.Meta. 
 
 	Of course there are options to include browserstack, headspin or sourcelabs browsers. But that is a bit you would not want to configure on your first setup.
 
 	This step will take some time as all the default browser images are being pulled.
 
-	Once cometa is up and running, you can parse the new browser images avaible into Cometa by calling `https://localhost/backend/parseBrowsers/`
+	Once Co.Meta is up and running, you can parse the new browser images avaible into Co.Meta by calling `https://localhost/backend/parseBrowsers/`
 
-7. See cometa rocks in your browser
+7. See Co.Meta in your browser
 
 	Test server access `curl -k  https://<yourdomain>:<specified port - default 443>/`
 
@@ -140,18 +213,18 @@ Very nice: Instead of following the manual setup instructions below, you may exe
 	`https://localhost/backend/parseActions/` ... as a result cometa will show all actions that have been parsed and are now available for selection in cometa-front.
 
 
-8. Run your first test
+9. Run your first test
 
 	Click on the "+" on the very top. Select Department, Environment and Feature Name
 
-	And import this JSON to search for "cometa Rocks" on google
+	Please delete or disable the first step shown as an example and import this JSON to search for "Cometa Rocks" on google
 
-	```[{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"Goto URL \"https://www.google.de/\"","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":false,"step_keyword":"Given","compare":false,"step_content":"Maximize the browser","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"wait until I can see \"google\" on page","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"I move mouse to \"//button[2]\" and click","step_type":"normal","continue_on_failure":true,"timeout":5},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"I move mouse to \"//input\" and click","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"Send keys \"cometa rocks\"","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"Press Enter","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"wait until I can see \"cometa rocks\" on page","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":true,"step_content":"I sleep \"1\" seconds","step_type":"normal","continue_on_failure":false,"timeout":60}]```
+   ```[{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"Goto URL \"https://www.google.de/\"","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":false,"step_keyword":"Given","compare":false,"step_content":"Maximize the browser","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"wait until I can see \"google\" on page","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"I move mouse to \"//button[2]\" and click","step_type":"normal","continue_on_failure":true,"timeout":5},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"I move mouse to \"//textarea\" and click","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"Send keys \"cometa rocks\"","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"Press Enter","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":false,"step_content":"wait until I can see \"cometa rocks\" on page","step_type":"normal","continue_on_failure":false,"timeout":60},{"enabled":true,"screenshot":true,"step_keyword":"Given","compare":true,"step_content":"I sleep \"1\" seconds","step_type":"normal","continue_on_failure":false,"timeout":6}]```
 
 
 #### Notes
 
-* Final Cometa is available at `https://localhost/`
+* Final Co.Meta is available at `https://localhost/`
 * To enable Debug mode on front:
 	```bash
 	docker exec -it cometa_front bash
@@ -197,5 +270,5 @@ Copyright 2022 COMETA ROCKS S.L.
 Portions of this software are licensed as follows:
 
 * All content that resides under "ee/" directory of this repository (Enterprise Edition) is licensed under the license defined in "ee/LICENSE". (Work in progress)
-* All third party components incorporated into the cometa.rocks Software are licensed under the original license provided by the owner of the applicable component.
+* All third party components incorporated into the Co.Meta Software are licensed under the original license provided by the owner of the applicable component.
 * Content outside of the above mentioned directories or restrictions above is available under the "AGPLv3" license as defined in `LICENSE` file.
