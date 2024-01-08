@@ -1,6 +1,8 @@
 from django.contrib import admin
 from .models import *
 
+from backend.ee.modules.data_driven.models import DataDriven_Runs
+
 from pygments import highlight
 from pygments.lexers import JsonLexer
 from pygments.formatters import HtmlFormatter

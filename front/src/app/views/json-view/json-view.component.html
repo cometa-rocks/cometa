@@ -1,0 +1,15 @@
+<h3 class="title">API Call - {{ data.call.request.method }} {{ data.call.request.url }}</h3>
+<hr>
+<div id="jq-form-container">
+    <div class="json_content">
+        <ngx-json-viewer [json]="data.call" [expanded]="true" [depth]="1"></ngx-json-viewer>
+    </div>
+    <textarea #jqResult name="jq-result" id="jq-result" placeholder="Result from the JQ filter will go here..." disabled="true"></textarea>
+</div>
+<textarea placeholder="JQ Filter Example: .request.cookies[] | {(.name): .value}" name="jq-filter" id="jq-filter" (keyup)="getJQResult($event)"></textarea>
+<footer>
+    <div class="extra-info">
+        <a href="https://jqlang.github.io/jq/manual/" target="_blank">JQ Documentation</a>
+    </div>
+    <button color="warn" mat-stroked-button (click)="closeDialog()">Close</button>
+</footer>

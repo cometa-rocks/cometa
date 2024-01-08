@@ -10,10 +10,11 @@ export class CometaTitleStrategyService extends TitleStrategy {
     super();
   }
 
-  override updateTitle(snapshot: RouterStateSnapshot): void {
-    const title = this.buildTitle(snapshot);
-    if (title) {
-      this.title.setTitle(`${title} - Complete Meta Test Automation`);
+    override updateTitle(snapshot: RouterStateSnapshot): void {
+        const title = this.buildTitle(snapshot);
+        if (title) {
+            this.title.setTitle(`${title} - Complete Meta Test Platform`)
+        }
     }
   }
 }

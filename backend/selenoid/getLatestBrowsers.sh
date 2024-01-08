@@ -76,8 +76,7 @@ BASE_OPTIONS=`cat<<-EOF
     "volumes": [
         "<bgPath>:/usr/share/images/fluxbox/aerokube.png",
         "<fluxboxPath>/init:/home/selenium/.fluxbox/init",
-        "<fluxboxPath>/aerokube:/home/selenium/.fluxbox/aerokube",
-        "<downloadsPath>/../uploads:/home/selenium/uploads"
+        "<fluxboxPath>/aerokube:/home/selenium/.fluxbox/aerokube"
     ]
 }
 EOF

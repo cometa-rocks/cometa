@@ -31,7 +31,17 @@
           margin-right: 8px;
           display: inline-block;
         }
-      }
+
+        .feature_description {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            width: 250px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            font-size: 14px;
+            font-weight: normal;
+        }
     }
     table {
       border-radius: 5px;

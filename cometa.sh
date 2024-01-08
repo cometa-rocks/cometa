@@ -5,11 +5,14 @@
 # ##################################################
 #
 # Changelog:
+# 2023-08-12 RRO Added check on docker hub is reachable by downloading image "Hello-World"
 # 2022-10-04 ASO changed sed logic and checking if docker is installed and running.
 # 2022-10-03 ASO changing data mount point based on the parameter.
 # 2022-09-08 RRO first version
 #
-VERSION="2022-09-08"
+VERSION="2023-12-08"
+
+DOCKER_COMPOSE_COMMAND="docker-compose"
 
 #
 # source our nice logger
@@ -18,7 +21,9 @@ HELPERS="helpers"
 # source logger function if not sourced already
 test `command -v log_wfr` || source "${HELPERS}/logger.sh" || exit
 
+info "------------------------------------------------------------------------"
 info "This is $0 version ${VERSION} running for your convinience"
+info "------------------------------------------------------------------------"
 
 ########################################
 #
@@ -26,7 +31,7 @@ info "This is $0 version ${VERSION} running for your convinience"
 # Retry for curl or any other command
 # $1 {curl command}
 # $2 {retries}
-# $3 {wait retry} 
+# $3 {wait retry}
 #
 #
 ########################################
@@ -64,6 +69,20 @@ function checkDocker() {
         info "Please start the docker service or ask your server administrator to add user <${USER}> to 'docker' group."
         exit 5;
     fi
+
+    # check if docker hub is reachable
+    if [[ ! $(docker pull "hello-world" ) ]]; then
+        error "Docker pull command did not excute correctly. Dockerhub is not reachable.";
+        info "--------------------------------------------------------------------------"
+        info "Please check your internet connection.";
+        info "If running behind a secure proxy, check ~/.docker/config.json ";
+        info "And check /etc/systemd/system/docker.service.d/http_proxy.conf to contain the needed";
+        info "If you cannot find a solution, please contact us. We are happy to help you.";
+        exit 5;
+    else
+        info "[OK] Checked that docker hub is reachable and images can be downloaded."
+        docker rmi hello-world 2>&1 >/dev/null || info "Hello-world image could not be removed"
+    fi
 }
 
 #
@@ -78,6 +97,52 @@ function switchDataMountPoint() {
         # change /data => ./data
         sed -i_template "s#- /data#- \./data#g" docker-compose.yml
     fi
+}
+
+function checkDockerCompose() {
+    # Check if docker-compose is installed.
+    if [[ ! -x "$(command -v docker-compose)" ]]; then
+        # Check if docker compose is installed.
+        if [[ ! $(docker compose version) ]]; then
+            error "Missing docker compose and docker-compose. Please install docker compose and try again."
+            exit 5;
+        else
+            DOCKER_COMPOSE_COMMAND="docker compose"
+        fi
+    fi
+}
+
+function checkDiskSpace() {
+    # Disk space check. If too low, the script exits.
+    if [[ $(df -h / | awk 'NR==2 {print $4}' | sed 's/G//') < 10 ]]; then
+        error "Insufficient disk space."
+        info "Please make sure you have at least 10Gb free on your disk for the installation."
+        exit 5;
+    fi
+}
+
+function checkCPUCores() {
+    # Checks the total number of CPU's. If too low sends a warning.
+    if [[ $(getconf _NPROCESSORS_ONLN) < 8 ]]; then
+        info "Compared your CPU's core number to be at least 8."
+        info "Your CPU has less than 8 cores. Cometa may perform slower than usual."
+    fi
+}
+
+function checkRAMSpace() {
+    # Checks the total RAM memory Gb. If too low sends a warning.
+    if [[ $(free --si -g | awk '/^Mem/ {print $2}') < 8 ]]; then
+        info "Compared your RAM memory to be at least 8Gb."
+        info "Your RAM memory is lower than 8Gb. Cometa may run into performance issues."
+    fi
+}
+
+function checkRequirements() {
+    checkDocker
+    checkDockerCompose
+    checkDiskSpace
+    checkCPUCores
+    checkRAMSpace
 }
 
 function get_cometa_up_and_running() {
@@ -130,19 +195,19 @@ sed -i_template "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <ou
 #
 # Check client id has been replaced
 #
-if grep -Rq "COMETA" "front/apache-conf/metadata/accounts.google.com.client"  ; then 
+if grep -Rq "COMETA" "front/apache-conf/metadata/accounts.google.com.client"  ; then
 	warning "Found default string in accounts.google.com.client file - you must replace this before going forward."
     read -n 1 -s -r -p "Press any key to continue"
-    if grep -Rq "GITCLIENTID" "front/apache-conf/metadata/git.amvara.de.client"  ; then 
+    if grep -Rq "GITCLIENTID" "front/apache-conf/metadata/git.amvara.de.client"  ; then
         warning "Found default string in git.amvara.de.client file - you must replace this before going forward."
         warning "If neither Google nor Gitlab is configured, you will not be able to login."
         warning "Going forward with installation does not make sense, until SSO is configured. Exiting."
         warning "Goto git.amvara.de, create an account. Goto Settings, Applications, add new Application and retrieve your access token."
         exit
-    else 
+    else
         info "The default string in git.amvara.de.client was replaced with something else - hopefully your Gitlab oAuth client credentials";
     fi
-else 
+else
 	info "The default string in accounts.google.com.client was replaced with something else - hopefully your google oAuth client credentials";
 fi
 
@@ -151,7 +216,7 @@ fi
 # Bring up the system
 #
 info "Starting containers"
-docker-compose up -d && info "Started docker ... now waiting for container to come alive " || warn "docker-compose command finished with error"
+$DOCKER_COMPOSE_COMMAND up -d && info "Started docker ... now waiting for container to come alive " || warn "docker compose command finished with error"
 
 #
 # How to wait for System ready?
@@ -199,8 +264,10 @@ do
     esac
 done
 
-checkDocker
+
+checkRequirements
 get_cometa_up_and_running
+
 
 info "The test automation platform is ready to rumble at https://localhost/"
 info "Thank you for using the easy peasy setup script."

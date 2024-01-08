@@ -1,32 +1,26 @@
-<mtx-grid
-  [data]="results"
-  [columns]="columns"
-  [sortOnFront]="true"
-  sortActive="date_time"
-  sortDirection="desc"
-  [sortDisableClear]="true"
-  [sortDisabled]="false"
-  [showToolbar]="true"
-  [showColumnMenuButton]="true"
-  [columnMenuButtonType]="'stroked'"
-  [columnMenuButtonIcon]="'view_column'"
-  [length]="total"
-  [loading]="isLoading"
-  [pageOnFront]="false"
-  [pageIndex]="query.page"
-  [pageSize]="query.size"
-  [pageSizeOptions]="[10, 50, 100]"
-  (rowClick)="openContent($event.rowData)"
-  [cellTemplate]="{
-    status: statusTpl,
-    date_time: dateTpl,
-    execution_time: timeTpl,
-    pixel_diff: pixelTpl
-  }"
-  [noResultTemplate]="noResultTpl"
-  [showPaginator]="showPagination"
-  [toolbarTemplate]="toolbarTpl"
-  (page)="updateData($event)">
+<mtx-grid [data]="results"
+          [columns]="columns"
+          [sortOnFront]="true"
+          sortActive="date_time"
+          sortDirection="desc"
+          [sortDisableClear]="true"
+          [sortDisabled]="false"
+          [showToolbar]="true"
+          [showColumnMenuButton]="true"
+          [columnMenuButtonType]="'stroked'"
+          [columnMenuButtonIcon]="'view_column'"
+          [length]="total"
+          [loading]="isLoading"
+          [pageOnFront]="false"
+          [pageIndex]="query.page"
+          [pageSize]="query.size"
+          [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
+          (rowClick)="openContent($event.rowData)"
+          [cellTemplate]="{status: statusTpl, date_time: dateTpl, execution_time: timeTpl, pixel_diff: pixelTpl}"
+          [noResultTemplate]="noResultTpl"
+          [showPaginator]="showPagination"
+          [toolbarTemplate]="toolbarTpl"
+          (page)="updateData($event)">
 </mtx-grid>
 
 <!-- ROW TEMPLATES -->

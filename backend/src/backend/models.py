@@ -775,6 +775,7 @@ class Feature_result(SoftDeletableModel):
     environment_name = models.CharField(max_length=100, blank=True)
     department_id = models.IntegerField(blank=True)
     department_name = models.CharField(max_length=100, blank=True)
+    description = models.TextField(null=True, blank=True, default=None)
     browser = models.JSONField(default=dict)
     total = models.IntegerField(default=0)
     fails = models.IntegerField(default=0)
@@ -871,6 +872,8 @@ class Step_result(models.Model):
     screenshot_difference = models.CharField(max_length=255, default='', null=True, blank=True)
     screenshot_template = models.CharField(max_length=255, default='', null=True, blank=True)
     belongs_to = models.IntegerField(null=True) # feature that step belongs to
+    rest_api = models.ForeignKey("REST_API", on_delete=models.CASCADE, null=True, default=None)
+    notes = models.JSONField(default=dict)
     error = models.TextField(null=True, blank=True)
 
     class Meta:
@@ -1114,24 +1117,6 @@ class Feature_Runs(SoftDeletableModel):
         # super(Feature_Runs, self).delete()
 
         return True
-
-class DataDriven_Runs(SoftDeletableModel):
-    run_id = models.AutoField(primary_key=True)
-    file = models.ForeignKey("File", on_delete=models.SET_NULL, null=True, related_name="ddr_file")
-    feature_results = models.ManyToManyField(Feature_result)
-    date_time = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
-    archived = models.BooleanField(default=False)
-    status = models.CharField(max_length=100, default='')
-    total = models.IntegerField(default=0)
-    fails = models.IntegerField(default=0)
-    ok = models.IntegerField(default=0)
-    skipped = models.IntegerField(default=0)
-    execution_time = models.IntegerField(default=0)
-    pixel_diff = models.BigIntegerField(default=0)
-    
-    class Meta:
-        ordering = ['-date_time']
-        verbose_name_plural = "Data Driven Runs"
 
 class Feature_Task(models.Model):
     task_id = models.AutoField(primary_key=True)
@@ -1477,3 +1462,6 @@ def post_file_delete(instance, sender, using, **kwargs):
     if os.path.exists(instance.path):
         os.unlink(instance.path)
 
+# import EE Modules
+from backend.ee.modules.data_driven.models import DataDriven_Runs
+from backend.ee.modules.rest_api.models import REST_API

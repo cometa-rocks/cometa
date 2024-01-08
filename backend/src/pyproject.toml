@@ -30,6 +30,8 @@ python-magic = "^0.4.27"
 pandas = "^2.1.1"
 openpyxl = "^3.1.2"
 odfpy = "^1.4.1"
+django-cryptography = "^1.1"
+jq = "^1.6.0"
 
 [tool.poetry.dev-dependencies]
 

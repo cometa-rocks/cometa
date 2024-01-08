@@ -13,6 +13,8 @@
     COMETA_EMAIL_HOST: 'mail.amvara.de'
     COMETA_EMAIL_USER: 'tec_dev@amvara.de'
     COMETA_EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+    COMETA_EMAIL_PORT: 587
+    COMETA_EMAIL_TLS: 'True'
     COMETA_PROXY_ENABLED: 'False'
     COMETA_PROXY: ''
     #########################################################
