@@ -13,7 +13,7 @@ class AdminOIDCAccount(admin.ModelAdmin):
     model = OIDCAccount
     search_fields = ['name', 'email', 'stripe_customer_id']
     list_filter = ('user_permissions',)
-    list_display = ('name', 'email', 'user_permissions', 'stripe_customer_id')
+    list_display = ('name', 'email', 'user_permissions', 'stripe_customer_id', 'login_counter', 'last_login', 'created_on')
     readonly_fields = ('favourite_browsers_prettified', 'settings_prettified', )
     exclude = ('favourite_browsers', 'settings', )
 
@@ -287,6 +287,11 @@ class AdminFile(admin.ModelAdmin):
     
     fileExistsOnFS.short_description = "Does file exist on FS?"
 
+class AdminDepartment(admin.ModelAdmin):
+    model = Department
+    search_fields = ['department_name']
+    list_display = ("department_name", "created_on")
+    list_filter = ('created_on',)
 
 admin.site.register(OIDCAccount, AdminOIDCAccount)
 admin.site.register(Account_role, AdminAccount_role)
@@ -301,7 +306,7 @@ admin.site.register(DataDriven_Runs, AdminDataDriven_run)
 admin.site.register(MiamiContact)
 admin.site.register(Application)
 admin.site.register(Environment)
-admin.site.register(Department)
+admin.site.register(Department, AdminDepartment)
 admin.site.register(Browser)
 admin.site.register(File, AdminFile)
 admin.site.register(Action)
