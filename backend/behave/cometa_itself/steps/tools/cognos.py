@@ -6,6 +6,7 @@ import time
 import logging
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
 from src.backend.common import *
+from selenium.webdriver.common.by import By
 
 # setup logging
 logger = logging.getLogger('FeatureExecution')
@@ -88,12 +89,12 @@ def clearFolderFilters(context):
     logger.debug("Open Team Folder")
     open_team_folder(context)
     # Check if current view is filtered
-    filterByBtn = context.browser.find_element_by_css_selector('#teamFoldersSlideoutContent .contentNavFilter')
+    filterByBtn = context.browser.find_element(By.CSS_SELECTOR, '#teamFoldersSlideoutContent .contentNavFilter')
     logger.debug("Checking if filter tab is opened")
     if element_has_class(filterByBtn, 'filtered'):
         logger.debug("Looking for .searchinput")
         # Check if search sidenav needs to be opened
-        searchInputs = context.browser.find_elements_by_css_selector('[id^="com.ibm.bi.contentApps.teamFoldersSlideout"] .searchinput')
+        searchInputs = context.browser.find_elements(By.CSS_SELECTOR, '[id^="com.ibm.bi.contentApps.teamFoldersSlideout"] .searchinput')
         if len(searchInputs) == 0:
             logger.debug("Unable to find .searchinput, that means filter tab is closed, clicking on filter icon to open filters tab")
             # Open filter section
@@ -135,8 +136,8 @@ def auto_select_cognos_prompts(context, **kwargs):
 
         # Check if current view is a prompt page
         # If it's not, it means the report has successfully loaded without any prompt
-        clsPromptComponents = context.browser.find_elements_by_css_selector('.clsPromptComponent:not([pt])')
-        inputs = context.browser.find_elements_by_xpath('//table[@lid="defaultPromptPage"]//input/parent::td/parent::tr/parent::tbody/parent::table/parent::div')
+        clsPromptComponents = context.browser.find_elements(By.CSS_SELECTOR, '.clsPromptComponent:not([pt])')
+        inputs = context.browser.find_elements(By.XPATH, '//table[@lid="defaultPromptPage"]//input/parent::td/parent::tr/parent::tbody/parent::table/parent::div')
         if len(inputs) > 0:
             if not inputs[0].is_displayed():
                 inputs = []
@@ -165,13 +166,13 @@ def auto_select_cognos_prompts(context, **kwargs):
 
         try:
             # Click on OK
-            # Does not work reliable because of language .... context.browser.find_element_by_xpath("//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[.=\"Finish\"]").click()
+            # Does not work reliable because of language .... context.browser.find_element(By.XPATH, "//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[.=\"Finish\"]").click()
             # Try clicking ok ... 
             # ... autogenerate prompts have "OK" Button
             # ... promptPages have a promptButton with type finsh in a generate attribute
             logger.debug("Trying to click ok on promptpage")
             # FIXME ... needs fallbacks for autosubmit, second promptpage with next .... 
-            elem = context.browser.find_element_by_xpath("//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[@*=\"finish\" and not(@disabled)]|//button[@*=\"oCV_NS_.promptAction('finish')\" and not(@disabled)]")
+            elem = context.browser.find_element(By.XPATH, "//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[@*=\"finish\" and not(@disabled)]|//button[@*=\"oCV_NS_.promptAction('finish')\" and not(@disabled)]")
 
             # if found click on submit
             elem.click()
@@ -229,8 +230,8 @@ def auto_select_cognos_prompts_aso(context, **kwargs):
 
         # Check if current view is a prompt page
         # If it's not, it means the report has successfully loaded without any prompt
-        clsPromptComponents = context.browser.find_elements_by_css_selector('.clsPromptComponent:not([pt])')
-        # inputs = context.browser.find_elements_by_xpath('//table[@lid="defaultPromptPage"]//input/parent::td/parent::tr/parent::tbody/parent::table/parent::div')
+        clsPromptComponents = context.browser.find_elements(By.CSS_SELECTOR, '.clsPromptComponent:not([pt])')
+        # inputs = context.browser.find_elements(By.XPATH, '//table[@lid="defaultPromptPage"]//input/parent::td/parent::tr/parent::tbody/parent::table/parent::div')
         # if len(inputs) > 0:
         #    if not inputs[0].is_displayed():
         #        inputs = []
@@ -259,13 +260,13 @@ def auto_select_cognos_prompts_aso(context, **kwargs):
 
         try:
             # Click on OK
-            # Does not work reliable because of language .... context.browser.find_element_by_xpath("//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[.=\"Finish\"]").click()
+            # Does not work reliable because of language .... context.browser.find_element(By.XPATH, "//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[.=\"Finish\"]").click()
             # Try clicking ok ... 
             # ... autogenerate prompts have "OK" Button
             # ... promptPages have a promptButton with type finsh in a generate attribute
             logger.debug("Trying to click ok on promptpage")
             # FIXME ... needs fallbacks for autosubmit, second promptpage with next .... 
-            elem = context.browser.find_element_by_xpath("//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[@*=\"finish\" and not(@disabled)]|//button[@*=\"oCV_NS_.promptAction('finish')\" and not(@disabled)]")
+            elem = context.browser.find_element(By.XPATH, "//div[@class=\"clsPromptComponent\"]/button[text()='OK']|//button[span=\"OK\"]|//button[@*=\"finish\" and not(@disabled)]|//button[@*=\"oCV_NS_.promptAction('finish')\" and not(@disabled)]")
 
             # if found click on submit
             elem.click()
@@ -313,8 +314,8 @@ def selectCognosPrompt(context, **kwargs):
     prompts = kwargs.get('prompts', None)
     if prompts is None:
         # Look for all prompt controls in current view
-        clsPromptComponents = context.browser.find_elements_by_css_selector('.clsPromptComponent:not([pt])')
-        inputs = context.browser.find_elements_by_xpath('//table[@lid="defaultPromptPage"]//input/parent::td/parent::tr/parent::tbody/parent::table/parent::div')
+        clsPromptComponents = context.browser.find_elements(By.CSS_SELECTOR, '.clsPromptComponent:not([pt])')
+        inputs = context.browser.find_elements(By.XPATH, '//table[@lid="defaultPromptPage"]//input/parent::td/parent::tr/parent::tbody/parent::table/parent::div')
         prompts = clsPromptComponents + inputs
     parameters = kwargs.get('parameters', {})
     
@@ -322,7 +323,7 @@ def selectCognosPrompt(context, **kwargs):
     selector = prompts[controlIndex]
     
     # Check if the prompt control has an input element, in that case is a basic control and we can inject default values if found
-    input_element = selector.find_elements_by_css_selector('input:not([type=hidden])')
+    input_element = selector.find_elements(By.CSS_SELECTOR, 'input:not([type=hidden])')
     if len(input_element) > 0:
         # Handle as: INPUT
         input_element = input_element[0]
@@ -347,7 +348,7 @@ def selectCognosPrompt(context, **kwargs):
             raise PromptValueEmpty(id)
     
     # Check if the prompt control is a selector
-    option = selector.find_elements_by_css_selector('option,[type=checkbox],[type=radio]')
+    option = selector.find_elements(By.CSS_SELECTOR, 'option,[type=checkbox],[type=radio]')
     if len(option) > 0:
         logger.debug("Check if prompt control is a selector returned true. Will try to hit #%s option index" % optionIndex)
         try:
@@ -358,7 +359,7 @@ def selectCognosPrompt(context, **kwargs):
             option[optionIndex].selected = True
     
     # Try to click on Insert button (for multiple selection prompt controls)
-    insert = selector.find_elements_by_xpath('.//button/span[text()=\'Insert\']/parent::button')
+    insert = selector.find_elements(By.XPATH, './/button/span[text()=\'Insert\']/parent::button')
     if len(insert) > 0:
         logger.debug("Trying to click on insert button for multiple selection prompt controls")
         context.browser.execute_script("arguments[0].click();", insert[0])
@@ -385,8 +386,8 @@ def selectCognosPrompt_rro(context, **kwargs):
     if prompts is None:
         # Look for all prompt controls in current view
         logger.debug("Looking for prompts in current view")
-        clsPromptComponents = context.browser.find_elements_by_css_selector('.clsPromptComponent:not([pt])')
-        inputs = context.browser.find_elements_by_xpath('//table[@lid="defaultPromptPage"]//input/parent::td/parent::tr/parent::tbody/parent::table/parent::div')
+        clsPromptComponents = context.browser.find_elements(By.CSS_SELECTOR, '.clsPromptComponent:not([pt])')
+        inputs = context.browser.find_elements(By.XPATH, '//table[@lid="defaultPromptPage"]//input/parent::td/parent::tr/parent::tbody/parent::table/parent::div')
         prompts = clsPromptComponents + inputs
 
     # Map to the selected control index
@@ -396,7 +397,7 @@ def selectCognosPrompt_rro(context, **kwargs):
     logger.debug(selector.get_attribute("innerHTML"))
 
     # Check if the prompt control has an input element, in that case is a basic control and we can inject default values if found
-    input_element = selector.find_elements_by_css_selector('input:not([type=hidden])')
+    input_element = selector.find_elements(By.CSS_SELECTOR, 'input:not([type=hidden])')
     if len(input_element) > 0:
         logger.debug("Prompt is input element")
         # Handle as: INPUT
@@ -429,7 +430,7 @@ def selectCognosPrompt_rro(context, **kwargs):
             input_element.send_keys("12345")
 
     # Check if the prompt control is a selector
-    option = selector.find_elements_by_css_selector('option,[type=checkbox],[type=radio]')
+    option = selector.find_elements(By.CSS_SELECTOR, 'option,[type=checkbox],[type=radio]')
     if len(option) > 0:
         logger.debug("Prompt is a selector")
         # Retrieve name ID of prompt control
@@ -452,7 +453,7 @@ def selectCognosPrompt_rro(context, **kwargs):
         # If we have a value ... try to find it in selector
         if value:
             logger.debug("Value is set to %s - trying to find it in selector" % value)
-            elm=selector.find_elements_by_xpath('.//option[@value="%s"] | .//option[text()="%s"] | .//option[@dv="%s"]' % (value, value, value))
+            elm=selector.find_elements(By.XPATH, './/option[@value="%s"] | .//option[text()="%s"] | .//option[@dv="%s"]' % (value, value, value))
             if len(elm) > 0:
                 logger.debug("Found option for the value")
                 try:
@@ -474,7 +475,7 @@ def selectCognosPrompt_rro(context, **kwargs):
     # Try to click on Insert button (for multiple selection prompt controls)
     logger.debug("Looking for insert button on this prompt")
     # the starting "." declares to look only inside this element - https://stackoverflow.com/questions/14049983/selenium-webdriver-finding-an-element-in-a-sub-element
-    insert = selector.find_elements_by_xpath('.//button[@class="clsInsertRemoveButton"]')
+    insert = selector.find_elements(By.XPATH, './/button[@class="clsInsertRemoveButton"]')
     if len(insert) > 0:
         logger.debug("Found insert button trying to click on insert button for multiple selection prompt controls")
         context.browser.execute_script("arguments[0].click();", insert[0])
@@ -504,13 +505,13 @@ def wait_until_selector_fails(context, selector, max_iterations=20):
     iterator=1
     while iterator<max_iterations:
         # search for something
-        elements = context.browser.find_elements_by_css_selector(selector)
+        elements = context.browser.find_elements(By.CSS_SELECTOR, selector)
         # if not found ... try to exit infinite loop
         if len(elements) == 0:
             # sleep
             time.sleep(1)
             # check again just in case
-            elements = context.browser.find_elements_by_css_selector(selector)
+            elements = context.browser.find_elements(By.CSS_SELECTOR, selector)
             # if not found ... break infite loop
             if len(elements) == 0:
                 break
@@ -523,9 +524,9 @@ def wait_until_selector_fails(context, selector, max_iterations=20):
 
 def get_prompt_name_id(controlElement):
     # Get reference ID of prompt control
-    element = controlElement.find_elements_by_css_selector('input[type=hidden]')
+    element = controlElement.find_elements(By.CSS_SELECTOR, 'input[type=hidden]')
     # Try also to get reference ID from label
-    label_element = controlElement.find_elements_by_css_selector('div[void]')
+    label_element = controlElement.find_elements(By.CSS_SELECTOR, 'div[void]')
     if len(element) > 0:
         element = element[0]
         # Get name attribute, which contains the ID

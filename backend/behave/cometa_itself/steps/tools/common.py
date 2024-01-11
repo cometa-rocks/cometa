@@ -5,6 +5,7 @@ from .exceptions import *
 from .variables import *
 from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.common.by import By
 from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException
 import time, requests, json, os, datetime, sys, subprocess, re, shutil
 from src.backend.common import *
@@ -91,13 +92,13 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
     counter = 0
     # Switch selector type
     types = {
-        "css": "context.browser.find_elements_by_css_selector(selector)",
-        "id": "context.browser.find_element_by_id(selector)",
-        "link_text": "context.browser.find_elements_by_link_text(selector)",
-        "xpath": "context.browser.find_elements_by_xpath(selector)",
-        "name": "context.browser.find_element_by_name(selector)",
-        "tag_name": "context.browser.find_elements_by_tag_name(selector)",
-        "class": "context.browser.find_elements_by_class_name(selector)"
+        "css": "context.browser.find_elements(By.CSS_SELECTOR, selector)",
+        "id": "context.browser.find_element(By.ID, selector)",
+        "link_text": "context.browser.find_elements(By.LINK_TEXT, selector)",
+        "xpath": "context.browser.find_elements(By.XPATH, selector)",
+        "name": "context.browser.find_element(By.NAME, selector)",
+        "tag_name": "context.browser.find_elements(By.TAG_NAME, selector)",
+        "class": "context.browser.find_elements(By.CLASS_NAME, selector)"
     }
     # place selector_type on the top
     selector_type_value = types.pop(selector_type, 'css')
