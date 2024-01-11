@@ -15,7 +15,6 @@ import shutil
 from backend.common import *
 from django.db.models.signals import post_delete, pre_delete
 from django.dispatch import receiver
-from django_cryptography.fields import encrypt
 
 # GLOBAL VARIABLES
 
@@ -1119,24 +1118,6 @@ class Feature_Runs(SoftDeletableModel):
 
         return True
 
-class DataDriven_Runs(SoftDeletableModel):
-    run_id = models.AutoField(primary_key=True)
-    file = models.ForeignKey("File", on_delete=models.SET_NULL, null=True, related_name="ddr_file")
-    feature_results = models.ManyToManyField(Feature_result)
-    date_time = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
-    archived = models.BooleanField(default=False)
-    status = models.CharField(max_length=100, default='')
-    total = models.IntegerField(default=0)
-    fails = models.IntegerField(default=0)
-    ok = models.IntegerField(default=0)
-    skipped = models.IntegerField(default=0)
-    execution_time = models.IntegerField(default=0)
-    pixel_diff = models.BigIntegerField(default=0)
-    
-    class Meta:
-        ordering = ['-date_time']
-        verbose_name_plural = "Data Driven Runs"
-
 class Feature_Task(models.Model):
     task_id = models.AutoField(primary_key=True)
     feature = models.ForeignKey(Feature, on_delete=models.CASCADE, related_name="feature_tasks")
@@ -1481,11 +1462,6 @@ def post_file_delete(instance, sender, using, **kwargs):
     if os.path.exists(instance.path):
         os.unlink(instance.path)
 
-class REST_API(SoftDeletableModel):
-    id = models.AutoField(primary_key=True)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    call = encrypt(models.JSONField(default=dict))
-    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
-
-    class Meta:
-        verbose_name_plural = "Files Data"
+# import EE Modules
+from backend.ee.modules.data_driven.models import DataDriven_Runs
+from backend.ee.modules.rest_api.models import REST_API
