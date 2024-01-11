@@ -252,25 +252,18 @@ def before_all(context):
     options.set_capability('goog:loggingPrefs', { 'browser': 'ALL' })
 
     # proxy configuration
-    pxy = None
     if PROXY_ENABLED and PROXY:
         logger.debug("Proxy is enabled for this feature ... will use \"%s\" as proxy configuration." % PROXY)
-        pxy = Proxy()
-        pxy.proxy_type = ProxyType.MANUAL
-        pxy.http_proxy = PROXY
-        pxy.ssl_proxy = PROXY
-        pxy.no_proxy = NO_PROXY
-
         # add proxy configuration to capabilities
         logger.debug("Adding proxy setting to capabilities.")
-        options['proxy'] = {
+        options.set_capability('proxy', {
             "httpProxy": PROXY,
             "sslProxy": PROXY,
             "noProxy": None,
-            "proxyType": "MANUAL",
+            "proxyType": "manual", # case sensitive
             "class": "org.openqa.selenium.Proxy",
             "autodetect": False
-        }
+        })
 
     # LOCAL only
     # download preferences for chrome
