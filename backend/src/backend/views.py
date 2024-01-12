@@ -193,6 +193,80 @@ def departmentExists(department_id) -> int:
         return -1
 
 @csrf_exempt
+def GetStepResultsData(request, *args, **kwargs):
+    FEATURE_ID = kwargs.get('feature_id', None)
+    if not FEATURE_ID:
+        return JsonResponse({
+            'success': False,
+            'error': 'No feature_id provided'
+        }, status=400)
+
+    try:
+        feature = Feature.objects.get(pk=FEATURE_ID, department_id__in=GetUserDepartments(request))
+    except Feature.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'No feature found.'
+        }, status=404)
+    
+    query = f"""
+    SELECT
+        fr.feature_result_id,
+        fr.feature_name,
+        fr.result_date,
+        fr.app_name,
+        fr.environment_name,
+        fr.department_name,
+        sr.step_name,
+        sr.execution_time,
+        sr.success
+    FROM
+        backend_feature_result fr
+    INNER JOIN
+        backend_step_result sr
+    ON
+        fr.feature_result_id = sr.feature_result_id
+    WHERE
+        fr.feature_id_id = {FEATURE_ID}
+    ORDER
+        BY fr.feature_result_id,
+        fr.result_date;
+    """
+
+    rows = [{
+        "Feature Result": row.feature_result_id,
+        "Feature Name": row.feature_name,
+        "Result Date (UTC)": row.result_date,
+        "Application": row.app_name,
+        "Environment": row.environment_name,
+        "Department": row.department_name,
+        "Step Name": row.step_name,
+        "Execution Time (ms)": row.execution_time,
+        "Passed": row.success
+    } for row in Feature_result.objects.raw(query)]
+
+    # get keys from the first row
+    if not rows:
+        return JsonResponse({
+            'success': False,
+            'error': 'No results found.'
+        }, status=404)
+    
+    headers = rows[0].keys()
+
+    response = HttpResponse(
+        content_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{FEATURE_ID}_steps_results.csv"'},
+    )
+
+    import csv
+    csv_content = csv.DictWriter(response, fieldnames=headers)
+    csv_content.writeheader()
+    csv_content.writerows(rows)
+
+    return response
+
+@csrf_exempt
 def CreateOIDCAccount(request):
     return JsonResponse(request.session['user'], status=200)
 
