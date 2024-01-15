@@ -116,7 +116,9 @@ services:
     restart: always
 
   crontab:
-    image: cometa_cron:0.0.1-dev
+    build:
+      context: backend/docker/build/cron
+      dockerfile: Dockerfile
     container_name: cometa_crontab
     networks:
       - testing

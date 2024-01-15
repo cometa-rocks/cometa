@@ -2,7 +2,7 @@
 FROM alpine:3.15.0
 
 # install basic packages needed
-RUN apk add curl jq
+RUN apk update && apk add curl jq
 
 # make /code folder
 RUN mkdir /code/
