@@ -1,4 +1,9 @@
 from selenium import webdriver
+
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+# for chromium based browsers like Chrome, Edge and Opera
+from selenium.webdriver.chromium.options import ChromiumOptions
+
 from selenium.webdriver.common.proxy import Proxy, ProxyType
 import time, requests, json, os, datetime, xml.etree.ElementTree as ET, subprocess, traceback, signal, sys, itertools, glob, logging, re
 
@@ -190,67 +195,11 @@ def before_all(context):
     # video recording on or off
     context.record_video = data['video'] if 'video' in data else True
 
-    # capabilities
-    capabilities={
-        'javascriptEnabled': True,
-        'name': data['feature_name'],
-        'screenResolution': '1920x1080',
-        'resolution': '1920x1080',
-        'acceptSslCerts': True,
-        'acceptInsecureCerts': True,
-        'idleTimeout': 150,
-        'browserstack.video': context.record_video,
-        'recordVideo': context.record_video,
-        'testFileNameTemplate': '{seleniumSessionId}',
-        'enableVNC': True,
-        'sessionTimeout': '30m',
-        'enableVideo': context.record_video,
-        'chromeOptions': {
-            # 'w3c': False
-        },
-        'goog:loggingPrefs': {
-            'browser': 'ALL'
-        }
-    }
-
-    # proxy configuration
-    pxy = None
-    if PROXY_ENABLED and PROXY:
-        logger.debug("Proxy is enabled for this feature ... will use \"%s\" as proxy configuration." % PROXY)
-        pxy = Proxy()
-        pxy.proxy_type = ProxyType.MANUAL
-        pxy.http_proxy = PROXY
-        pxy.ssl_proxy = PROXY
-        pxy.no_proxy = NO_PROXY
-
-        # add proxy configuration to capabilities
-        logger.debug("Adding proxy setting to capabilities.")
-        capabilities['proxy'] = {
-            "httpProxy": PROXY,
-            "sslProxy": PROXY,
-            "noProxy": None,
-            "proxyType": "MANUAL",
-            "class": "org.openqa.selenium.Proxy",
-            "autodetect": False
-        }
-
-    # LOCAL only
-    # download preferences for chrome
-    # context.downloadDirectoryInsideSelenium = r'/home/selenium/Downloads/%s' % str(os.environ['feature_result_id'])
-    context.downloadDirectoryOutsideSelenium = r'/code/behave/downloads/%s' % str(os.environ['feature_result_id'])
-    context.uploadDirectoryOutsideSelenium = r'/code/behave/uploads/%s' % str(context.department['department_id'])
-    # os.makedirs(context.downloadDirectoryInsideSelenium, exist_ok=True)
-    os.makedirs(context.downloadDirectoryOutsideSelenium, exist_ok=True)
-    # change outside directory owner
-    # os.chown(context.downloadDirectoryOutsideSelenium, 106, 0)
-    # os.chmod(context.downloadDirectoryOutsideSelenium, 0o777)
-    # prefs = {
-    #     'download.default_directory': context.downloadDirectoryInsideSelenium,
-    #     'download.prompt_for_download': False
-    # }
-    options = None
-    if context.browser_info['browser'] == "chrome":
-        options = webdriver.ChromeOptions()
+    # create the options based on the browser name
+    if context.browser_info['browser'] == 'firefox':
+        options = FirefoxOptions()
+    else:
+        options = ChromiumOptions()
         # disable shm since newer chrome version will run out of memory
         # https://github.com/stephen-fox/chrome-docker/issues/8
         # read more about chrome options:
@@ -267,9 +216,60 @@ def before_all(context):
                 'userAgent': context.browser_info.get('mobile_user_agent', '')
             }
             options.add_experimental_option("mobileEmulation", mobile_emulation)
+    
+    if context.browser_info['browser'] == 'opera':
+        # Opera does not support Selenium 4 W3C Protocol by default
+        # force it by adding a experimental option
+        # https://github.com/operasoftware/operachromiumdriver/issues/100#issuecomment-1134141616
+        options.add_experimental_option('w3c', True)
 
-    # if context.cloud == "local" and options is not None:
-    #    options.add_experimental_option('prefs', prefs)
+    # Configure WC3 Webdriver 
+    # more options can be found at:
+    # https://www.w3.org/TR/webdriver1/#capabilities
+    options.set_capability('browserName', context.browser_info['browser'])
+    options.browser_version = context.browser_info['browser_version']
+    options.accept_insecure_certs = True
+
+    # selenoid specific capabilities
+    # more options can be found at:
+    # https://aerokube.com/selenoid/latest/#_special_capabilities
+    selenoid_capabilities = {
+        'name': data['feature_name'],
+        'enableVNC': True,
+        'screenResolution': '1920x1080x24',
+        'enableVideo': context.record_video,
+        'sessionTimeout': '30m',
+        'timeZone': 'Etc/UTC', # based on the user settings maybe it can be updated/changed
+        'labels': {
+            'by': 'COMETA ROCKS'
+        },
+        's3KeyPattern': '$sessionId/$fileType$fileExtension' # previously used for s3 which is not currently being used.
+    }
+
+    # add cloud/provider capabilities to the
+    # browser capabilities
+    options.set_capability('selenoid:options', selenoid_capabilities)
+    options.set_capability('goog:loggingPrefs', { 'browser': 'ALL' })
+
+    # proxy configuration
+    if PROXY_ENABLED and PROXY:
+        logger.debug("Proxy is enabled for this feature ... will use \"%s\" as proxy configuration." % PROXY)
+        # add proxy configuration to capabilities
+        logger.debug("Adding proxy setting to capabilities.")
+        options.set_capability('proxy', {
+            "httpProxy": PROXY,
+            "sslProxy": PROXY,
+            "noProxy": None,
+            "proxyType": "manual", # case sensitive
+            "class": "org.openqa.selenium.Proxy",
+            "autodetect": False
+        })
+
+    # LOCAL only
+    # download preferences for chrome
+    context.downloadDirectoryOutsideSelenium = r'/code/behave/downloads/%s' % str(os.environ['feature_result_id'])
+    context.uploadDirectoryOutsideSelenium = r'/code/behave/uploads/%s' % str(context.department['department_id'])
+    os.makedirs(context.downloadDirectoryOutsideSelenium, exist_ok=True)
 
     # save downloadedFiles in context
     context.downloadedFiles = {}
@@ -290,37 +290,15 @@ def before_all(context):
     logger.info("Checking environment to run on: {}".format(context.cloud))
     if context.cloud == "local":
         logger.debug("Running local")
-        # command = "http://169.38.135.238:4444/wd/hub"
         command = "http://cometa_selenoid:4444/wd/hub"
-        capabilities['browserName'] = context.browser_info['browser']
-        capabilities['browserVersion'] = context.browser_info['browser_version']
-        # 2021-03-25 RRO added sessionTimeout with Alex to close hanging containers after 30minutes
-        capabilities['selenoid:options'] = {
-            'enableVNC': True,
-            'sessionTimeout': '30m',
-            'enableVideo': context.record_video,
-            's3KeyPattern': '$sessionId/$fileType$fileExtension'
-        }
     else:
         logger.debug("Running on cloud")
         command = "http://%s:%s@%s/wd/hub" % ( BROWSERSTACK_USERNAME, BROWSERSTACK_PASSWORD, "hub.browserstack.com" if X_SERVER != "Confidential" else "cometa_front" )
-        # updated capabilities
-        for key in context.browser_info:
-            if key not in capabilities:
-                capabilities[key] = context.browser_info[key]
-    
-    # Add environment capability
-    try:
-        capabilities['environment'] = DOMAIN
-    except:
-        logger.debug('\33[93m'+'COMETA_DOMAIN not found in secret_variables'+'\33[0m')
 
-    logger.debug('Driver Capabilities: {}'.format(capabilities))
+    logger.debug('Driver Capabilities: {}'.format(options.to_capabilities()))
     logger.info("Trying to get a browser context")
     context.browser = webdriver.Remote(
-        desired_capabilities=capabilities,
         command_executor=command,
-        proxy=pxy,
         options=options
     )
 
