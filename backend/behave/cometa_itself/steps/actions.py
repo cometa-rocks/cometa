@@ -2636,7 +2636,7 @@ def step_imp(context, linktext):
 
     # get already downloaded files
     downloadedFiles = sum(list(context.downloadedFiles.values()), [])
-    logger.debug("Downloaded files during this feature: %s" % downloadedFiles)
+    logger.debug("\n\n\n\n\nDownloaded files during this feature: %s" % downloadedFiles)
 
     send_step_details(context, 'Preparing download')
     # get session id from browser
@@ -2661,6 +2661,7 @@ def step_imp(context, linktext):
     maxTimer = 120
     send_step_details(context, 'Waiting for download file')
     # get all links
+    links_from_request = []
     links = []
     while counter < maxTimer:
         # get all the files downloaded from selenoid
@@ -2672,28 +2673,37 @@ def step_imp(context, linktext):
             request = requests.get(downloadURL)
             logger.debug("Download URL: %s" % downloadURL)
             logger.debug("Request content: %s" % request.content)
-            # get all links from download URL (List of files which are downloaded or still downloading)
-            links = re.findall(br'href="([^\"]+)', request.content)
-            if len(links)>len(downloadedFiles):
+            # Get all links from download URL (List of files which are downloaded or still downloading)
+            links_from_request = re.findall(br'href="([^\"]+)', request.content)
+            # Check if file list from response content contains new file name (Compare previously downloaded file and new downloaded files)   
+            logger.debug("Got file list from response content %s" % links_from_request)
+            if len(links_from_request) > len(downloadedFiles):
                 break
-            time.sleep(1)
+            # Sleep 300 miliseconds before retring for list of files
+            time.sleep(0.3)
             logger.debug(f"Retry no : {retries} | Trying to fetch request again. response content dose not contain current download link")
 
-        logger.debug("Links to be downloaded: %s" % links)
+        logger.debug("Links to be downloaded: %s" % links_from_request)
         # check if need to continue because files are still being downloaded
         CONTINUE=False
 
+        links = []
         # remove already downloaded files from the links
-        links = [link.decode('utf-8') for link in links if "%s/%s" % (os.environ['feature_result_id'], link.decode('utf-8')) not in downloadedFiles]
+        for link in links_from_request:
+            # file link is url encoded convert it to string
+            file_name =  urllib.parse.unquote(link.decode('utf-8'))
+            # Add feature name and replace space with _ Because "downloadFiles" variable hold file name simmiler way
+            file_name_for_comparision = "%s/%s" % (os.environ['feature_result_id'], file_name.replace(" ", "_"))
+            # check file name in the downloadFiles
+            if file_name_for_comparision not in downloadedFiles:
+                logger.debug(f"New download file name : {file_name}")
+                # Add new download file to links 
+                links.append(file_name)
 
-        logger.debug("Final links after processing: %s" % links)
-
-        # check if files are still being downloaded
-        for link in links:
-            logger.debug("Checking on download link: %s" % link)
-            if re.match(r'(?:.*?\..*?download\b|^\.com\..*)', link):
+            # check if files are still being downloaded
+            if re.match(r'(?:.*?\..*?download\b|^\.com\..*)', file_name):
                 # there are files still being downloaded
-                logger.debug('==> %s file is still being downloaded' % link)
+                logger.debug('==> %s file is still being downloaded' % file_name)
                 CONTINUE=True
                 break
 
@@ -2713,20 +2723,20 @@ def step_imp(context, linktext):
         logger.debug("Downloading %s..." % link)
         # generate link with download path and download file
         fileURL = "%s%s" % (downloadURL, link)
+        logger.debug("file URL : %s " % fileURL)
+        
         # generate filename
-        filename = urllib.parse.unquote(fileURL.split('/')[-1]).replace(" ", "_")  # be careful with file names
-        # check if filename is empty ... then name the file cometa_download
+        filename = link.split('/')[-1].replace(" ", "_")  # be careful with file names
+        
         logger.debug("calling function for saveing the file %s " % filename)
         downloadFileFromURL(fileURL, context.downloadDirectoryOutsideSelenium, filename)
-        #add link to downloaded files
         
-        # Old code removed, it dose not check for
-        # [downloadedFilesInThisStep.append("%s/%s" % (os.environ['feature_result_id'], x.split(os.sep)[-1])) for x in glob.glob(context.downloadDirectoryOutsideSelenium + "/*") if filename in x]
-    
-        for x in glob.glob(context.downloadDirectoryOutsideSelenium + "/*"):
-            complete_file_name = "%s/%s" % (os.environ['feature_result_id'], x.split(os.sep)[-1])
-            if filename in x and complete_file_name not in downloadedFiles:
-                downloadedFilesInThisStep.append(complete_file_name)
+        # logger.debug("Exact file path till downloads dir : %s " % filename)
+        complete_file_name = "%s/%s" % (os.environ['feature_result_id'], filename)
+        logger.debug("Complete File name with Feature : %s " % complete_file_name)
+        
+        # Attaching file to be attached with steps  
+        downloadedFilesInThisStep.append(complete_file_name)
         
     # updated downloadedFiles in context
     logger.debug("Attaching downloaded files to feature run: %s " % downloadedFilesInThisStep)
