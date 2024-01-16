@@ -2734,7 +2734,6 @@ def step_imp(context, linktext):
 
 
 # Delete files from Downloads folder. Files Which are matching with to {pattern} will be deleted 
-# -- Not Completed
 @step(u'Delete files matching "{pattern}" from local download folder')
 @done(u'Delete files matching "{pattern}" from local download folder')
 def step_imp(context, pattern):
@@ -2742,15 +2741,23 @@ def step_imp(context, pattern):
         raise CustomError("This step does not work in browserstack, please choose local browser and try again.")
 
     send_step_details(context, 'Searching file in local directory')
+    # list all file matching with regex 
     files = glob.glob(f"{context.downloadDirectoryOutsideSelenium}/{pattern}")
-    logger.debug(f"files found related using regex : {files}")
-    send_step_details(context, 'Waiting for download file')
-    
-    # loop over all the file which are be deleted
-    for file in files:
-        logger.debug(f"Deleting file {file}...")
-        logger.debug(f"{file} Deleted")
-    
+    logger.debug(f"files found using regex {pattern} : {files}")
+    send_step_details(context, f'Deleting {len(files)} files from download folder')    
+    # In case of any IO/Permission error related to files, Count how many files are deleted 
+    count = 0
+    try:
+        # loop over all the file which are be deleted
+        for file in files:
+            logger.debug(f'Deleting file "{file}"...')
+            # delete file
+            os.remove(file)
+            logger.debug(f'File "{file}" deleted')
+            count+=1
+    except Exception as exception:
+        send_step_details(context, f'{count} files deleted')
+        raise exception
 
 # schedule a job that runs a feature with specific key:value parameters separated by semi-colon (;) and crontab patterned schedules like "* * * * *" schedule can use <today> and <tomorrow> which are replaced dynamically.
 @step(u'Schedule Job "{feature_name}" using parameters "{parameters}" and crontab pattern "{schedule}"')
