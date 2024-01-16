@@ -2583,10 +2583,11 @@ def downloadFileFromURL(url, dest_folder, filename):
 
         # sleep some time to gives discs time to sync
         time.sleep(0.25)
-
+        return file_path
     else:  # HTTP status code 4XX/5XX
         logger.error("Download failed: status code {}\n{}".format(r.status_code, r.text))
-
+        return None
+    
 # Upload a file by selecting the upload input field and sending the keys with the folder/filename. Cometa offers folder uploads with files inside the headless browser in Downloads/ and uploads/ folder. Separate multiple files by semicolon.
 @step(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
 @done(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
@@ -2659,19 +2660,26 @@ def step_imp(context, linktext):
     counter = 0
     maxTimer = 120
     send_step_details(context, 'Waiting for download file')
-
     # get all links
     links = []
-
     while counter < maxTimer:
         # get all the files downloaded from selenoid
-        request = requests.get(downloadURL)
-        logger.debug("Download URL: %s" % downloadURL)
-        logger.debug("Request content: %s" % request.content)
-        # get all links from download URL
-        links = re.findall(br'href="([^\"]+)', request.content)
-        logger.debug("Links to be downloaded: %s" % links)
+        retries = 0
+        max_retries = 20
+        #  If the Selenium download request does not give a response containing the current request entry, then retry.
+        while retries<max_retries:
+            retries+=1
+            request = requests.get(downloadURL)
+            logger.debug("Download URL: %s" % downloadURL)
+            logger.debug("Request content: %s" % request.content)
+            # get all links from download URL (List of files which are downloaded or still downloading)
+            links = re.findall(br'href="([^\"]+)', request.content)
+            if len(links)>len(downloadedFiles):
+                break
+            time.sleep(1)
+            logger.debug(f"Retry no : {retries} | Trying to fetch request again. response content dose not contain current download link")
 
+        logger.debug("Links to be downloaded: %s" % links)
         # check if need to continue because files are still being downloaded
         CONTINUE=False
 
@@ -2699,8 +2707,7 @@ def step_imp(context, linktext):
         time.sleep(1)
 
     # get the file that has been created
-    downloadedFiles = []
-
+    downloadedFilesInThisStep = []
     # loop over all links and download them to local folders
     for link in links:
         logger.debug("Downloading %s..." % link)
@@ -2712,11 +2719,38 @@ def step_imp(context, linktext):
         logger.debug("calling function for saveing the file %s " % filename)
         downloadFileFromURL(fileURL, context.downloadDirectoryOutsideSelenium, filename)
         #add link to downloaded files
-        [downloadedFiles.append("%s/%s" % (os.environ['feature_result_id'], x.split(os.sep)[-1])) for x in glob.glob(context.downloadDirectoryOutsideSelenium + "/*") if filename in x]
-
+        
+        # Old code removed, it dose not check for
+        # [downloadedFilesInThisStep.append("%s/%s" % (os.environ['feature_result_id'], x.split(os.sep)[-1])) for x in glob.glob(context.downloadDirectoryOutsideSelenium + "/*") if filename in x]
+    
+        for x in glob.glob(context.downloadDirectoryOutsideSelenium + "/*"):
+            complete_file_name = "%s/%s" % (os.environ['feature_result_id'], x.split(os.sep)[-1])
+            if filename in x and complete_file_name not in downloadedFiles:
+                downloadedFilesInThisStep.append(complete_file_name)
+        
     # updated downloadedFiles in context
-    logger.debug("Attaching downloaded files to feature run: %s " % downloadedFiles)
-    context.downloadedFiles[context.counters['index']] = downloadedFiles
+    logger.debug("Attaching downloaded files to feature run: %s " % downloadedFilesInThisStep)
+    context.downloadedFiles[context.counters['index']] = downloadedFilesInThisStep
+
+
+# Delete files from Downloads folder. Files Which are matching with to {pattern} will be deleted 
+# -- Not Completed
+@step(u'Delete files matching "{pattern}" from local download folder')
+@done(u'Delete files matching "{pattern}" from local download folder')
+def step_imp(context, pattern):
+    if context.cloud != "local":
+        raise CustomError("This step does not work in browserstack, please choose local browser and try again.")
+
+    send_step_details(context, 'Searching file in local directory')
+    files = glob.glob(f"{context.downloadDirectoryOutsideSelenium}/{pattern}")
+    logger.debug(f"files found related using regex : {files}")
+    send_step_details(context, 'Waiting for download file')
+    
+    # loop over all the file which are be deleted
+    for file in files:
+        logger.debug(f"Deleting file {file}...")
+        logger.debug(f"{file} Deleted")
+    
 
 # schedule a job that runs a feature with specific key:value parameters separated by semi-colon (;) and crontab patterned schedules like "* * * * *" schedule can use <today> and <tomorrow> which are replaced dynamically.
 @step(u'Schedule Job "{feature_name}" using parameters "{parameters}" and crontab pattern "{schedule}"')
