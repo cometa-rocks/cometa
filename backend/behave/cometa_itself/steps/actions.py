@@ -2636,7 +2636,7 @@ def step_imp(context, linktext):
 
     # get already downloaded files
     downloadedFiles = sum(list(context.downloadedFiles.values()), [])
-    logger.debug("\n\n\n\n\nDownloaded files during this feature: %s" % downloadedFiles)
+    logger.debug("Downloaded files during this feature: %s" % downloadedFiles)
 
     send_step_details(context, 'Preparing download')
     # get session id from browser
@@ -2724,7 +2724,7 @@ def step_imp(context, linktext):
         # generate link with download path and download file
         fileURL = "%s%s" % (downloadURL, link)
         logger.debug("file URL : %s " % fileURL)
-        
+
         # generate filename
         filename = link.split('/')[-1].replace(" ", "_")  # be careful with file names
         
