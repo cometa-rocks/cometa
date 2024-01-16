@@ -1239,7 +1239,7 @@ class Schedule(models.Model):
             self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST http://django:8000/exectest/""" % (self.feature.feature_id, self.owner.user_id)
         # create the comment
         if self.comment is None:
-            self.comment = "# added by cometa JobID: <jobId> on %s, to be deleted on %s" % (self.created_on.strftime("%Y-%m-%d"), self.delete_on.strftime("%Y-%m-%d") if self.delete_on is not None else "***never***")
+            self.comment = "# added by cometa JobID: <jobId> on %s, to be deleted on %s" % (self.created_on.strftime("%Y-%m-%d"), self.delete_on.strftime("%Y-%m-%d") if self.delete_on is not None else "***never*** (disable it in feature)")
 
         # check if schedule has a <today> and <tomorrow> in string
         if "<today>" in self.schedule:

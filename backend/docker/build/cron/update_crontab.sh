@@ -8,7 +8,7 @@ function getSchedules() {
         return 10
     fi
 
-    ( cat /code/persistent_crontab_configuration; cat ${TMPFILE} | jq -r ".schedules|.[]" ) | crontab -
+    ( cat /home/amvara/crontab/persistent_crontab_configuration; cat ${TMPFILE} | jq -r ".schedules|.[]" ) | crontab -
 
     rm ${TMPFILE}
 }

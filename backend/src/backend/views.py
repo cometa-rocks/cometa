@@ -1421,7 +1421,8 @@ def schedule_update(feature_id, schedule, user_id):
             schedule_model = Schedule.objects.create(
                 feature_id=feature.pk,
                 schedule=schedule,
-                owner_id=user_id
+                owner_id=user_id,
+                delete_after_days=0
             )
             schedule_model.save()
             features.update(schedule=schedule_model)
@@ -3317,6 +3318,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer, )
 
     def list(self, request, *args, **kwargs):
+
         # get all schedules whom delete date is not due yet
         schedules = Schedule.objects.filter(Q(delete_on__gt=datetime.datetime.now()) | Q(delete_on=None))
         
@@ -3336,9 +3338,9 @@ class ScheduleViewSet(viewsets.ModelViewSet):
         # get request payload
         data = json.loads(request.body)
         # get the feature
-        feature = Feature.objects.filter(feature_name=data['feature'])
+        feature = Feature.objects.filter(Q(feature_name=data['feature']) | Q(pk=data['feature']))
         if not feature.exists():
-            return JsonResponse({"success": False, "error": "No feature found with specified name."})
+            return JsonResponse({"success": False, "error": "No feature found with specified name."}, status=404)
         data['feature'] = feature[0]
         # check if id exists in payload else throw error
         try:
@@ -3347,7 +3349,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             # return success response if all went OK
             return JsonResponse({'success': True})
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
     def patch(self, request, *args, **kwargs):
         # get request payload
