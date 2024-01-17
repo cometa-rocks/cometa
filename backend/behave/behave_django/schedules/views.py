@@ -106,6 +106,7 @@ def run_test(request):
         browser = execution['browser']
         feature_result_id = execution['feature_result_id']
         run_hash = execution['run_hash']
+        connection_url = execution['connection_url']
 
         logger.debug("Execution testcase in browser: {}".format(browser))
         # dump the json as string
@@ -122,6 +123,7 @@ def run_test(request):
         environment_variables['BROWSER_INFO'] = browser
         environment_variables['feature_result_id'] = str(feature_result_id)
         environment_variables['RUN_HASH'] = run_hash
+        environment_variables['CONNECTION_URL'] = connection_url
         # Add the current browser to the thread pool
         job = django_rq.enqueue(
             run_browser, 

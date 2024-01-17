@@ -450,6 +450,10 @@ export class ApiService {
     });
   }
 
+  getLyridBrowsers() {
+    return this._http.get<BrowserstackBrowsersResponse>(`${this.base}browsers/lyrid`);
+  }
+
   getBrowserstackBrowsers() {
     return this._http.get<BrowserstackBrowsersResponse>(`${this.base}browsers/browserstack`);
   }

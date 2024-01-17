@@ -105,6 +105,7 @@ urlpatterns = [
     url(r'^parseActions/', views.parseActions),
     url(r'^parseBrowsers/', views.parseBrowsers),
     url(r'browsers/browserstack', cache_page(browserstackCacheTime)(views.GetBrowserStackBrowsers)),
+    url(r'browsers/lyrid', cache_page(browserstackCacheTime)(views.get_lyrid_browsers)),
     url(r'^feature_results/(?P<feature_result_id>[0-9]+)/log', views.getLog),
     url(r'^html_diff/(?P<step_result_id>[0-9]+)/', views.getHtmlDiff),
     path('admin/', admin.site.urls),
