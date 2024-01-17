@@ -59,6 +59,7 @@ import { NgxsFormPluginModule } from '@ngxs/form-plugin';
 /* States */
 import { FeaturesState } from '@store/features.state';
 import { BrowsersState } from '@store/browsers.state';
+import { LyridBrowsersState } from '@store/browserlyrid.state';
 import { ApplicationsState } from '@store/applications.state';
 import { EnvironmentsState } from '@store/environments.state';
 import { BrowserstackState } from '@store/browserstack.state';
@@ -242,6 +243,7 @@ export function getStripeApiKey() {
       ResultsState,
       AccountsState,
       BrowsersState,
+      LyridBrowsersState,
       VariablesState,
       StepDefinitionsState,
       FeatureResultsState,

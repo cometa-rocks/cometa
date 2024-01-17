@@ -651,6 +651,8 @@ interface BrowserstackBrowser {
     mobile_height?: number;
     mobile_pixel_ratio?: number;
     mobile_user_agent?: string;
+    cloud?: string;
+    concurrency?: number;
 }
 
 interface BrowserstackBrowsersResponse {
