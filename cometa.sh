@@ -13,6 +13,7 @@
 VERSION="2023-12-08"
 
 DOCKER_COMPOSE_COMMAND="docker-compose"
+CURRENT_PATH=$PWD
 
 #
 # source our nice logger
@@ -145,6 +146,15 @@ function checkRequirements() {
     checkRAMSpace
 }
 
+function updateCrontab() {
+    if ! ( crontab -l 2>/dev/null | grep -Fq "${1}" ); then
+        ( crontab -l 2>/dev/null; echo "${1}" ) | crontab -
+        debug "Crontab ${2}  created."
+    else
+        debug "Crontab ${2}  already exists."
+    fi
+}
+
 function get_cometa_up_and_running() {
 
 #
@@ -173,6 +183,12 @@ fi
 if [ ! -f backend/behave/schedules/crontab ]; then
 	touch backend/behave/schedules/crontab && info "Created crontab file"
 fi
+
+#
+# Calls updateCrontab to update browsers and restart gunicorn
+#
+updateCrontab "0 0 * * * cd $CURRENT_PATH/backend/scripts && ./housekeeping.sh" "housekeeping.sh"
+updateCrontab "0 0 * * * bash -c \"docker exec cometa_django fuser -k -HUP 8000/tcp\"" "gunicorn"
 
 #
 # Touch browsers.json
@@ -264,10 +280,8 @@ do
     esac
 done
 
-
 checkRequirements
 get_cometa_up_and_running
-
 
 info "The test automation platform is ready to rumble at https://localhost/"
 info "Thank you for using the easy peasy setup script."
