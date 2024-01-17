@@ -191,6 +191,20 @@
 	],
 	"changelog": [
 		{
+            "version": "2.8.320",
+            "date": "2024-01-17",
+            "features": [
+				{
+					"title": "Downloading multiple files within a feature. Issue fixed",
+					"description": "Download multiple files within the feature. Only the file downloaded with the step will be attached to the step report."
+				},
+				{
+					"title": "Delete the downloaded files using the step.",
+					"description": "Files can be deleted while executing the feature. Use regular expression to select files with the step 'Delete files matching \"{pattern}\" from the local download folder.'"
+				}
+            ]
+        },
+		{
             "version": "2.8.319",
             "date": "2023-11-30",
             "features": [
