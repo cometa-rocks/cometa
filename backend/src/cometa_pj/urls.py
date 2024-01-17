@@ -122,6 +122,7 @@ urlpatterns = [
     url(r'^updatePayment/', payments.updatePayment),
     url(r'^customerPortal', payments.getCustomerPortal),
     url(r'^createDonation/', payments.createDonation),
+    url(r'get_steps_result_csv/(?P<feature_id>[0-9]+)', views.GetStepResultsData),
     # Additional department updates
     url(r'^departments/(?P<department_id>[0-9]+)/updateStepTimeout/', views.UpdateStepTimeout),
     # Reporting
