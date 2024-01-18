@@ -13,4 +13,8 @@
     </ng-container>
     <!-- PDF Download Link -->
     <a *ngIf="pdfLink$ | async as link" [href]="link" target="_blank" matTooltip="Download complete Feature Report as PDF" class="pdf"></a>
+
+    <!-- CSV Download Link -->
+    <a *ngIf="csvLink$ | async as link" [href]="link" target="_blank" matTooltip="Download complete Feature Report as CSV" class="csv"></a>
+
 </ng-container>
