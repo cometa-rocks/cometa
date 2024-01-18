@@ -75,7 +75,22 @@
 .pdf {
     height: 32px;
     width: 30px;
+    margin-right: 30px;
     background-image: url(^assets/icons/pdf.svg);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    transform: scale(1);
+    transition: transform .2s ease-in-out;
+    &:hover {
+        transform: scale(1.2);
+    }
+}
+
+.csv {
+    height: 32px;
+    width: 30px;
+    background-image: url(^assets/icons/csv.svg);
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
