@@ -2801,7 +2801,8 @@ def step_imp(context, feature_name, parameters, schedule):
     payload = {
         "feature": feature_name,
         "parameters": params,
-        "schedule": schedule
+        "schedule": schedule,
+        "owner_id": context.PROXY_USER['user_id']
     }
 
     # make the request to save the object
