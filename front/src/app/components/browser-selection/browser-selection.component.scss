@@ -351,3 +351,19 @@ h4 {
         }
     }
 }
+
+.join {
+    display: flex;
+}
+.multiplier {
+    display: flex;
+    margin-left: 8px;
+    line-height: 42px;
+    span {
+        margin-right: 4px;
+    }
+}
+
+.concurrency-icon{
+    margin-left: 6px;
+}
