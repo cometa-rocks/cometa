@@ -1966,6 +1966,12 @@ def step_impl(context, something):
     if not waitFor(context, something):
         raise CustomError("Waited for %ds but unable to find \"%s\", be aware that search is case sensitive!" % (MAXRETRIES, something))
 
+@step(u'wait until "{selector}" is loaded')
+@done(u'wait until "{selector}" is loaded')
+def step_impl(context, selector):
+    waitSelector(context, "xpath", selector)
+
+
 # Do a login using OIDC Authentication, please use variables to mask sensitive values like passwords
 @step(u'I can do a OIDC auth with username "{username}" and "{password}"')
 @done(u'I can do a OIDC auth with username and password')
