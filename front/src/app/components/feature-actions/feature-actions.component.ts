@@ -31,6 +31,7 @@ export class FeatureActionsComponent implements OnInit {
   notificationEnabled$: Observable<boolean>;
   canEditFeature$: Observable<boolean>;
   pdfLink$: Observable<SafeUrl>;
+  csvLink$: Observable<SafeUrl>;
 
   featureId$: Observable<number>;
   featureResultId$: Observable<number>;
@@ -74,6 +75,10 @@ export class FeatureActionsComponent implements OnInit {
     // Show PDF download link in Feature Actions toolbar
     this.pdfLink$ = this.featureResultId$.pipe(
       map(resultId => resultId ? this._sanitizer.bypassSecurityTrustUrl(`${this._api_base}pdf/?feature_result_id=${resultId}&download=true`) : null)
+    )
+    // Show CSV download link in Feature Actions toolbar
+    this.csvLink$ = this.featureId$.pipe(
+      map(featureId => featureId ? this._sanitizer.bypassSecurityTrustUrl(`${this._api_base}get_steps_result_csv/${featureId}/`) : null)
     )
     this.canEditFeature$ = this.featureId$.pipe(
       switchMap(id => this._store.select(CustomSelectors.HasPermission('edit_feature', id)))
