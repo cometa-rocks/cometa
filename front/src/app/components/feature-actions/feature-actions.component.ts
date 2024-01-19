@@ -77,8 +77,8 @@ export class FeatureActionsComponent implements OnInit {
       map(resultId => resultId ? this._sanitizer.bypassSecurityTrustUrl(`${this._api_base}pdf/?feature_result_id=${resultId}&download=true`) : null)
     )
     // Show CSV download link in Feature Actions toolbar
-    this.csvLink$ = this.featureResultId$.pipe(
-      map(resultId => resultId ? this._sanitizer.bypassSecurityTrustUrl(`${this._api_base}pdf/?feature_result_id=${resultId}&download=true`) : null)
+    this.csvLink$ = this.featureId$.pipe(
+      map(featureId => featureId ? this._sanitizer.bypassSecurityTrustUrl(`${this._api_base}get_steps_result_csv/${featureId}/`) : null)
     )
     this.canEditFeature$ = this.featureId$.pipe(
       switchMap(id => this._store.select(CustomSelectors.HasPermission('edit_feature', id)))
