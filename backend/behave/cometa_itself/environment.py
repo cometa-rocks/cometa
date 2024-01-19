@@ -132,6 +132,8 @@ def before_all(context):
     context.PARAMETERS = os.environ['PARAMETERS']
     # context.browser_info contains '{"os": "Windows", "device": null, "browser": "edge", "os_version": "10", "real_mobile": false, "browser_version": "84.0.522.49"}'
     context.browser_info = json.loads(os.environ['BROWSER_INFO'])
+    # get the connection URL for the browser
+    connection_url = os.environ['CONNECTION_URL']
     # set loop settings
     context.insideLoop = False # meaning we are inside a loop
     context.jumpLoopIndex = 0 # meaning how many indexes we need to jump after loop is finished
@@ -288,17 +290,11 @@ def before_all(context):
     logger.info('\33[92mRunning feature...\33[0m')
     logger.info('\33[94mGetting browser context on \33[92m%s Version: %s\33[0m' % (str(context.browser_info['browser']), str(context.browser_info['browser_version'])))
     logger.info("Checking environment to run on: {}".format(context.cloud))
-    if context.cloud == "local":
-        logger.debug("Running local")
-        command = "http://cometa_selenoid:4444/wd/hub"
-    else:
-        logger.debug("Running on cloud")
-        command = "http://%s:%s@%s/wd/hub" % ( BROWSERSTACK_USERNAME, BROWSERSTACK_PASSWORD, "hub.browserstack.com" if X_SERVER != "Confidential" else "cometa_front" )
 
     logger.debug('Driver Capabilities: {}'.format(options.to_capabilities()))
     logger.info("Trying to get a browser context")
     context.browser = webdriver.Remote(
-        command_executor=command,
+        command_executor=connection_url,
         options=options
     )
 
@@ -377,7 +373,7 @@ def after_all(context):
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None
     if context.record_video:
-        if context.cloud != "local":
+        if context.cloud == "browserstack":
             # Observed browserstack delay when creating video files
             # Retrying get_video_url every 1 second for max 10 tries
             retries = 1
@@ -388,6 +384,8 @@ def after_all(context):
                     retries += 1
                 else:
                     break
+        elif context.cloud == "Lyrid.io":
+            pass
         else:
             if S3ENABLED:
                 S3ENDPOINT=getattr(secret_variables, 'COMETA_S3_ENDPOINT', False)

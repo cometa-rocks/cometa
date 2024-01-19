@@ -7,6 +7,7 @@ import { User } from './actions/user.actions';
 import produce from 'immer';
 import { Browserstack } from './actions/browserstack.actions';
 import { Browsers } from './actions/browsers.actions';
+import { Lyrid } from './actions/browserslyrid.actions';
 
 /**
  * @description Contains the state of the Configuration
@@ -59,12 +60,16 @@ export class UserState {
         }
         // Request browser items for each available clouds
         for (const cloud of account.clouds) {
+          if (!cloud.active) continue;
           switch (cloud.name) {
             case 'local':
               dispatch(new Browsers.GetBrowsers);
               break;
             case 'browserstack':
               dispatch(new Browserstack.GetBrowserstack);
+              break;
+            case 'Lyrid.io':
+              dispatch(new Lyrid.GetLyridBrowsers);
               break;
           }
         }
