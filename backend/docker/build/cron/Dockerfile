@@ -11,6 +11,7 @@ WORKDIR /home/amvara/crontab/
 COPY ./persistent_crontab_configuration .
 COPY ./update_crontab.sh .
 COPY ./entrypoint.sh .
+COPY ./.curlrc /root/.
 
 # create a starting root user crontab
 RUN cp persistent_crontab_configuration /var/spool/cron/crontabs/root
