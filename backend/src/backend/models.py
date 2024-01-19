@@ -15,6 +15,7 @@ import shutil
 from backend.common import *
 from django.db.models.signals import post_delete, pre_delete
 from django.dispatch import receiver
+from django_cryptography.fields import encrypt
 
 # GLOBAL VARIABLES
 
@@ -1170,6 +1171,12 @@ class Cloud(models.Model):
     name = models.CharField(max_length=255, default=None, blank=False, null=False)
     #label = models.CharField(max_length=255, default=None, blank=False, null=False)
     active = models.BooleanField(default=False)
+    connection_url = models.CharField(max_length=255, default="", blank=True, null=False)
+    username = encrypt(models.CharField(max_length=255, default="", blank=True, null=False))
+    password = encrypt(models.CharField(max_length=255, default="", blank=True, null=False))
+    browsers_url = models.CharField(max_length=255, default="", blank=True, null=False)
+    concurrency = models.BooleanField(default=False)
+    max_concurrency = models.IntegerField(default=0)
 
     def __str__( self ):
         return u"%s" % self.name.capitalize()

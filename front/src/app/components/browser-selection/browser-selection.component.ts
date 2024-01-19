@@ -12,6 +12,7 @@ import { classifyByProperty } from 'ngx-amvara-toolbox';
 import { User } from '@store/actions/user.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Store } from '@ngxs/store';
+import { LyridBrowsersState } from '@store/browserlyrid.state';
 
 /**
  * BrowserSelectionComponent
@@ -38,6 +39,7 @@ export class BrowserSelectionComponent implements OnInit {
   @ViewSelectSnapshot(UserState.GetBrowserFavourites) favourites$: BrowserstackBrowser[];
   @ViewSelectSnapshot(BrowsersState.getBrowserJsons) localBrowsers$: BrowserstackBrowser[];
   @ViewSelectSnapshot(BrowserstackState) onlineBrowsers$: BrowserstackBrowser[];
+  @ViewSelectSnapshot(LyridBrowsersState) lyridBrowsers$: BrowserstackBrowser[];
 
   @ViewSelectSnapshot(UserState.GetAvailableClouds) clouds$: Cloud[];
 
@@ -45,6 +47,10 @@ export class BrowserSelectionComponent implements OnInit {
     // Get unique key for platform selector values
     return `${key}%${version}`;
   }
+
+  // MAX_CONCURRENCY = 100;
+  MIN_CONCURRENCY = 1;
+  DEFAULT_CONCURRENCY = 1;
 
   constructor(
     private _favouritePipe: BrowserFavouritedPipe,
@@ -105,6 +111,9 @@ export class BrowserSelectionComponent implements OnInit {
         case 'local':
           // Grab local browsers from backend instead of static ones from DataService
           this.rollupOS(this.localBrowsers$);
+          break;
+        case 'Lyrid.io':
+          this.rollupOS(this.lyridBrowsers$);
           break;
         // Origin fallback: Local (Backend)
         default:
@@ -195,11 +204,37 @@ export class BrowserSelectionComponent implements OnInit {
       this.browsersSelected.next(selectedBrowsers);
     } else {
       const selectedBrowsers = this.browsersSelected.getValue();
-      const index = selectedBrowsers.findIndex(br => JSON.stringify(br) === JSON.stringify(browser));
+      const index = selectedBrowsers.findIndex(br => this.toJson(br, ['concurrency']) === this.toJson(browser, ['concurrency']));
       selectedBrowsers.splice(index, 1);
       this.browsersSelected.next(selectedBrowsers);
     }
     this.selectionChange.emit(this.browsersSelected.getValue());
+  }
+
+  handleConcurrencyChange(browser, element) {
+    const selectedBrowsers = this.browsersSelected.getValue();
+    const br = selectedBrowsers.find(br => this.toJson(br, ['concurrency']) === this.toJson(browser, ['concurrency']));
+    br.concurrency = parseInt(element.value);
+  }
+
+  getCurrentlySelectedBrowser(browser) {
+    const selectedBrowsers = this.browsersSelected.getValue();
+    const br = selectedBrowsers.find(br => this.toJson(br, ['concurrency']) === this.toJson(browser, ['concurrency']));
+    return br;
+  }
+
+  getSelectedCloud() {
+    return this.clouds$.find(cloud => cloud.name === this.testing_cloud.value);
+  }
+
+  toJson(json_object, fields_to_ignore) {
+    const obj = { ...json_object };
+
+    for (let field of fields_to_ignore) {
+      delete obj[field];
+    }
+
+    return JSON.stringify(obj);
   }
 
 }

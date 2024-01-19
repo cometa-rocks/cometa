@@ -112,18 +112,17 @@ def UserRelatedDepartments(user_email, type="id"):
     return departmentsList
 
 def browser_stack_request():
-    # set default value for results to empty array
-    results = []
     # get browserstack cloud from database
-    bsCloud = Cloud.objects.filter(name="browserstack")
-    # check if bsCloud exists and is active
-    if len(bsCloud) > 0 and bsCloud[0].active:
-        browsers = requests.get("https://api.browserstack.com/automate/browsers.json", auth=HTTPBasicAuth(BROWSERSTACK_USERNAME, BROWSERSTACK_PASSWORD))
+    try:
+        bsCloud = Cloud.objects.get(name="browserstack")
+        browsers = requests.get("https://api.browserstack.com/automate/browsers.json", auth=HTTPBasicAuth(bsCloud.username, bsCloud.password))
         if browsers.status_code == 200:
             results = browsers.json()
         else:
             raise Exception(browsers.text)
-    return results
+        return results
+    except Cloud.DoesNotExist:
+        return []
 
 def GetBrowserStackBrowsers(request):
     try:
@@ -141,6 +140,29 @@ def GetBrowserStackBrowsers(request):
         "results": results
     }, safe=False)
 
+def get_lyrid_browsers(request):
+    results = []
+    try:
+        lyridCloud = Cloud.objects.get(name="Lyrid.io")
+        if lyridCloud.active:
+            results = [
+                {
+                    "os": "Lyrid.io",
+                    "cloud": "Lyrid.io",
+                    "device": None,
+                    "browser": "chrome",
+                    "os_version": "Cloud",
+                    "real_mobile": False,
+                    "browser_version": "120.0"
+                }
+            ]
+    except Cloud.DoesNotExist:
+        logger.debug("Lyrid cloud does not exists returning empty browsers list.")
+    
+    return JsonResponse({
+        "success": True,
+        "results": results
+    }, safe=False)
 
 def GetUserDepartments(request):
     # Get an array of the departments ids owned by the current logged user
@@ -256,7 +278,9 @@ def GetStepResultsData(request, *args, **kwargs):
 
     response = HttpResponse(
         content_type="text/csv",
-        headers={"Content-Disposition": f'attachment; filename="{FEATURE_ID}_steps_results.csv"'},
+        headers={
+            "Content-Disposition": f'attachment; filename="{feature.department_name}_{feature.feature_name}_{feature.pk}_{datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")}.csv"'
+        },
     )
 
     import csv
@@ -736,9 +760,14 @@ def features_sql(department_id=None, folder_id=None, recursive=False):
 
 # Checks if the selected browser is valid using the array of available browsers
 # for the selected cloud, it also tries to repair the selected browser object
-def checkBrowser(selected, local_browsers, cloud_browsers):
+def checkBrowser(selected, local_browsers, cloud_browsers, lyrid_browsers):
     # Retrieve all browsers from either local or browserstack
-    browsers = local_browsers if selected.get('cloud', 'browserstack') == 'local' else cloud_browsers
+    if selected.get('cloud', '') == 'local':
+        browsers = local_browsers
+    elif selected.get('cloud', '') == 'Lyrid.io':
+        browsers = lyrid_browsers
+    else:
+        browsers = cloud_browsers
     if selected.get('cloud', '') == 'local' and selected.get('mobile_emulation', False):
         # In that case just assign the latest version of Chrome for the emulated browser
         # Exclude non stable versions by checking if version can be numeric (without dots)
@@ -780,9 +809,11 @@ def getFeatureBrowsers(feature: Feature):
     feature_browsers = feature.browsers
     local_browsers = []
     cloud_browsers = []
+    lyrid_browser = []
     browsers = []
 
-    for browser in feature_browsers:
+    for b in feature_browsers:
+        browser = b.copy()
         #3013: Fix missing cloud property in outdated favourited browsers
         if 'cloud' not in browser and browser.get("os","").lower() == "generic":
             browser['cloud'] = "local"
@@ -791,14 +822,28 @@ def getFeatureBrowsers(feature: Feature):
             logger.debug("Found 'local' as cloud for browser. Getting local browsers.")
             local_browsers = list(Browser.objects.all().values_list('browser_json', flat=True))
         # Check selected cloud is browserstack and we don't have it yet
-        elif len(cloud_browsers) == 0:
+        elif browser.get('cloud', 'browserstack') == 'browserstack' and len(cloud_browsers) == 0:
             logger.debug("Found 'cloud' as cloud for browser. Getting BrowserStack browsers.")
             try:
                 cloud_browsers = browser_stack_request()
             except Exception as err:
                 logger.exception(err)
+        elif browser.get('cloud') == 'Lyrid.io' and len(lyrid_browser) == 0:
+            logger.debug("Found 'Lyrid.io' as cloud for browser. Getting Lyrid.io browsers.")
+            try:
+                lyridCloud = Cloud.objects.get(name="Lyrid.io")
+                if lyridCloud.active:
+                    response = requests.get(f'http://django:8000/{lyridCloud.browsers_url}')
+                    if response.status_code == 200:
+                        lyrid_browser = response.json()['results']
+                    else:
+                        logger.error("Unable to get the browsers for the lyrid cloud.")
+                else:
+                    logger.error("Lyrid cloud is inactive will not execute the feature in this browser.")
+            except Cloud.DoesNotExist:
+                logger.info("Lyrid Cloud does not exists ... will ignore this browser.")
 
-        browsers.append(checkBrowser(browser, local_browsers, cloud_browsers))
+        browsers.append(checkBrowser(browser, local_browsers, cloud_browsers, lyrid_browser))
     
     return browsers
 
@@ -872,6 +917,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
 
     try:
         get_feature_browsers = getFeatureBrowsers(feature)
+
     except Exception as err:
         return JsonResponse({
             'success': False,
@@ -889,25 +935,47 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     executions = []
     frs = []
     for browser in get_feature_browsers:
-        # Generate random hash for image url obfuscating
-        run_hash = secrets.token_hex(nbytes=8)
-        # create a feature_result
-        feature_result = Feature_result(
-            feature_id_id=feature.feature_id,
-            result_date=datetime.datetime.utcnow(),
-            run_hash=run_hash,
-            running=True,
-            browser=browser,
-            executed_by_id=user['user_id']
-        )
-        feature_result.save()
-        frs.append(feature_result)
+        concurrency = 1
 
-        executions.append({
-            "feature_result_id": feature_result.feature_result_id,
-            "run_hash": run_hash,
-            "browser": browser
-        })
+        cloud = browser.get('cloud', 'browserstack')
+        try:
+            cloud_object = Cloud.objects.get(name=cloud)
+            connection_url = cloud_object.connection_url
+            if cloud_object.concurrency:
+                concurrency = browser.get('concurrency', 1)
+                if concurrency > cloud_object.max_concurrency:
+                    concurrency = cloud_object.max_concurrency
+            if cloud_object.username and cloud_object.password:
+                protocol = connection_url.split("//")[0]
+                uri = connection_url.split("//")[1]
+                connection_url = f'{protocol}//{cloud_object.username}:{cloud_object.password}@{uri}'
+        except Cloud.DoesNotExist:
+            logger.error(f"Cloud with name '{cloud}' not found.")
+            continue
+
+        for i in range(0, concurrency):
+            # Generate random hash for image url obfuscating
+            run_hash = secrets.token_hex(nbytes=8)
+            # create a feature_result
+            feature_result = Feature_result(
+                feature_id_id=feature.feature_id,
+                result_date=datetime.datetime.utcnow(),
+                run_hash=run_hash,
+                running=True,
+                browser=browser,
+                executed_by_id=user['user_id']
+            )
+
+            feature_result.save()
+            frs.append(feature_result)
+            
+            executions.append({
+                "feature_result_id": feature_result.feature_result_id,
+                "run_hash": run_hash,
+                "browser": browser,
+                "connection_url": connection_url
+            })
+
     fRun.feature_results.add(*frs) 
 
     # check if job exists

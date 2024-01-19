@@ -42,6 +42,7 @@
           <div (click)="handleCheckbox(browser, false)" class="selected-browser" [matTooltip]="browser | browserComboText" matTooltipPosition="after" *ngFor="let browser of browsersSelected | async">
             <i class="icon" [style.backgroundImage]="browser | browserIcon"></i>
             <span [innerText]="browser | browserComboText"></span>
+            <span class="concurrency-icon" *ngIf="browser.concurrency && browser.concurrency > 1"> x {{ browser.concurrency }}</span>
           </div>
         </div>
       </div>
@@ -84,17 +85,18 @@
       </div>
     </div>
     <!-- Browser selection section -->
-    <div class="browser-selector-box">
+    <div class="browser-selector-box" *ngLet="getSelectedCloud() as selected_cloud">
       <h4>Browsers</h4>
       <div class="browsers">
         <div class="browser" *ngFor="let browser of browsers | async | keyvalue">
           <div class="icon" [style.backgroundImage]="browser.key | browserIcon"></div>
           <div class="versions" [ngClass]="browser.key">
             <div
-              [matTooltip]="'tooltips.latest_browser' | translate"
-              [matTooltipDisabled]="version.browser_version !== 'latest'"
-              class="version"
-              *ngFor="let version of browser.value | versionSort | addLatest">
+            [matTooltip]="'tooltips.latest_browser' | translate"
+            [matTooltipDisabled]="version.browser_version !== 'latest'"
+            class="version"
+            *ngFor="let version of browser.value | versionSort | addLatest">
+              <div class="join">
                 <mat-checkbox (change)="handleCheckbox(version, $event.checked)" [checked]="version | checkSelectedBrowser | async" color="primary">
                   <ng-container *ngIf="version.device as name; else onlyVersion">
                     <div class="flex" [ngClass]="{'align-left': !version.browser_version }">
@@ -106,7 +108,20 @@
                     {{ version?.browser_version | titlecase | formatVersion }}
                   </ng-template>
                 </mat-checkbox>
-                <i class="favourite" (click)="toggleFavourite(version)" [class.favourited]="version | browserFavourited:favourites$"></i>
+                <div class="multiplier" *ngIf="selected_cloud.concurrency && version | checkSelectedBrowser | async">
+                  <span>x</span>
+                  <input *ngLet="getCurrentlySelectedBrowser(version) as selected"
+                    type="number"
+                    inputmode="numeric"
+                    matInput
+                    [min]="MIN_CONCURRENCY"
+                    [max]="selected_cloud.max_concurrency"
+                    [value]="selected.concurrency ? selected.concurrency : DEFAULT_CONCURRENCY"
+                    (change)="handleConcurrencyChange(version, $event.srcElement)"
+                  />
+                </div>
+              </div>
+              <i class="favourite" (click)="toggleFavourite(version)" [class.favourited]="version | browserFavourited:favourites$"></i>
             </div>
           </div>
           <!-- Button to load more versions for a given browser -->
