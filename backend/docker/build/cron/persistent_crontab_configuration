@@ -1,0 +1,27 @@
+################################################
+# This file will always be persistent
+# add any cronjobs you want to maintain
+################################################
+
+################################################
+# cron schedule format
+# field          allowed values
+# -----          --------------
+# minute         0-59
+# hour           0-23
+# day of month   1-31
+# month          1-12 (or names, see below)
+# day of week    0-7 (0 or 7 is Sunday, or use names)
+#
+# A field may contain an asterisk (*), which always stands for "first-last".
+################################################
+
+################################################
+# DO NOT REMOVE THESE LINES
+# OR ELSE CRONJOBS MAY NOT UPDATE
+################################################
+*/5 * * * * /home/amvara/crontab/update_crontab.sh
+
+################################################
+# DYNAMIC SCHEDULES
+################################################
