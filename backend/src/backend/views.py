@@ -1408,6 +1408,32 @@ def Contact(request):
         return JsonResponse({'success': False, 'error': 'An error occured: %s' % str(err)})
     return JsonResponse({ 'success': True })
 
+def schedule_update(feature_id, schedule, user_id):
+    features = Feature.objects.filter(pk=feature_id)
+    feature = features[0]
+    current_schedule = feature.schedule
+    schedule_model = None
+    if current_schedule and current_schedule.schedule == schedule:
+        logger.info("Same schedule found ... will not update.")
+    else:
+        # Check if new schedule is set
+        if schedule != 'now' and schedule != "":
+            schedule_model = Schedule.objects.create(
+                feature_id=feature.pk,
+                schedule=schedule,
+                owner_id=user_id,
+                delete_after_days=0
+            )
+            schedule_model.save()
+            features.update(schedule=schedule_model)
+            
+        else:
+            features.update(schedule=None)
+
+        if current_schedule:
+            current_schedule.delete()
+    return schedule_model
+
 @csrf_exempt
 @require_permissions('edit_feature')
 def UpdateSchedule(request, feature_id, *args, **kwargs):
@@ -1422,20 +1448,12 @@ def UpdateSchedule(request, feature_id, *args, **kwargs):
     if not features.exists():
         return JsonResponse({ 'success': False, 'error': 'Feature not found with specified ID.' })
     feature = features[0]
-    # Check if new schedule is set
-    if schedule != 'now':
-        # Validate cron format before sending to Behave
-        if schedule != "" and not CronSlices.is_valid(schedule):
-            return JsonResponse({ 'success': False, "error": 'Schedule format is invalid.' }, status=200)
-        # Set schedule in Behave
-        response = set_test_schedule(feature.feature_id, schedule, request.session['user']['user_id'])
-        if response.status_code != 200:
-            # Oops, something went wrong while saving schedule
-            json_data = response.json()
-            return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule.') }, status=200)
+    
+    try:
+        schedule_update(feature.pk, schedule, request.session['user']['user_id'])
+    except Exception as err:
+        return JsonResponse({ 'success': False, 'error': str(err) })
 
-    # Update schedule property
-    features.update(schedule = schedule)
     return JsonResponse({ 'success': True })
 
 def uploadFilesThread(files, department_id, uploaded_by):
@@ -2344,23 +2362,13 @@ class FeatureViewSet(viewsets.ModelViewSet):
         Process schedule if requested
         """
         if 'schedule' in request.data:
-            schedule = request.data['schedule']
-            # Check if schedule is not 'now'
-            if schedule != 'now':
-                # Validate cron format before sending to Behave
-                if schedule != "" and not CronSlices.is_valid(schedule):
-                    return JsonResponse({ 'success': False, "error": 'Schedule format is invalid.' }, status=200)
-                # Save schedule in Behave docker Crontab
-                response = set_test_schedule(newFeature.feature_id, schedule, request.session['user']['user_id'])
-                if response.status_code == 200:
-                    # Update feature object with new schedule
-                    newFeature.schedule = schedule
-                else:
-                    # Oops, something went wrong while saving schedule
-                    json_data = response.json()
-                    return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule.') }, status=200)
+            try:
+                schedule_update(newFeature.pk, request.data['schedule'], request.session['user']['user_id'])
+            except Exception as err:
+                logger.error("Unable to save the schedule...")
+                logger.exception(err)
 
-        returnResult = Feature.objects.filter(feature_id=newFeature.feature_id) # FIXME: Why this line?
+        # ??? returnResult = Feature.objects.filter(feature_id=newFeature.feature_id) # FIXME: Why this line?
         return Response(FeatureSerializer(newFeature, many=False, context={"from": "folder"}).data, status=201)
 
     @require_permissions("edit_feature")
@@ -2418,24 +2426,6 @@ class FeatureViewSet(viewsets.ModelViewSet):
         feature.last_edited_date = datetime.datetime.utcnow()
 
         """
-        Process schedule if requested
-        """
-        # Set schedule of feature if provided in data, if schedule is empty will be removed
-        set_schedule = False
-        if 'schedule' in data:
-            schedule = data['schedule']
-            logger.debug("Saveing schedule: "+str(schedule) )
-            # Check if schedule is not 'now'
-            if schedule != '' and schedule != 'now':
-                # Validate cron format before sending to Behave
-                if schedule != "" and not CronSlices.is_valid(schedule):
-                    return JsonResponse({ 'success': False, "error": 'Schedule format is invalid.' }, status=200)
-                set_schedule = True
-            # Save schedule, at this point is 100% valid and saved
-            logger.debug("Adding schedule to database")
-            feature.schedule = schedule
-
-        """
         Save submitted feature steps
         """
         # Save feature into database
@@ -2448,14 +2438,16 @@ class FeatureViewSet(viewsets.ModelViewSet):
             # Save without steps
             result = feature.save()
 
-        if set_schedule:
-            # Save schedule in Behave docker Crontab
-            response = set_test_schedule(feature.feature_id, schedule, request.session['user']['user_id'])
-            if response.status_code != 200:
-                # Oops, something went wrong while saving schedule
-                logger.debug("Ooops - something went wrong saveing the schedule. You should probably check the crontab file mounted into docker to be a file and not a directory.")
-                json_data = response.json()
-                return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule. Check crontab directory of docker.') }, status=200)
+        """
+        Process schedule if requested
+        """
+        if 'schedule' in data:
+            try:
+                newSchedule = schedule_update(feature.pk, data['schedule'], request.session['user']['user_id'])
+                feature.schedule = newSchedule
+            except Exception as err:
+                logger.error("Unable to save the schedule...")
+                logger.exception(err)
 
         """
         Send WebSockets
@@ -3325,13 +3317,30 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     serializer_class = ScheduleSerializer
     renderer_classes = (JSONRenderer, )
 
+    def list(self, request, *args, **kwargs):
+
+        # get all schedules whom delete date is not due yet
+        schedules = Schedule.objects.filter(Q(delete_on__gt=datetime.datetime.now()) | Q(delete_on=None))
+        
+        # save all schedules here
+        cronSchedules = []
+
+        # loop over all schedules and generate a line of crontab
+        for schedule in schedules:
+            cronString = "%s %s %s" % (schedule.schedule, schedule.command, schedule.comment)
+            cronString = cronString.replace("<jobId>", str(schedule.id))
+            cronSchedules.append(cronString)
+
+        # Return reponse
+        return JsonResponse({ "success": True, "schedules": cronSchedules })
+
     def create(self, request, *args, **kwargs):
         # get request payload
         data = json.loads(request.body)
         # get the feature
-        feature = Feature.objects.filter(feature_name=data['feature'])
+        feature = Feature.objects.filter(Q(feature_name=data['feature']) | Q(pk=data['feature']))
         if not feature.exists():
-            return JsonResponse({"success": False, "error": "No feature found with specified name."})
+            return JsonResponse({"success": False, "error": "No feature found with specified name."}, status=404)
         data['feature'] = feature[0]
         # check if id exists in payload else throw error
         try:
@@ -3340,7 +3349,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             # return success response if all went OK
             return JsonResponse({'success': True})
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
     def patch(self, request, *args, **kwargs):
         # get request payload
