@@ -11,7 +11,7 @@ from pprint import pprint, pformat
 from pathlib import Path
 from slugify import slugify
 import hashlib
-import os
+import os, pickle
 from selenium.common.exceptions import InvalidCookieDomainException
 # just to import secrets
 sys.path.append("/code")
@@ -114,6 +114,15 @@ def before_all(context):
     logger.addHandler(fileHandle)
     # handle SIGTERM signal
     signal.signal(signal.SIGTERM, lambda signum, frame, ctx=context: stopExecution(signum, frame, ctx))
+
+    # get the data from the pickle file
+    execution_data_file = os.environ.get('execution_data', None)
+    if not execution_data_file:
+        raise Exception("No data found ... no details about the feature provided.")
+    
+    with open(execution_data_file, 'rb') as file:
+        execution_data = pickle.load(file)
+
     # create index counter for steps
     context.counters = {"total": 0, "ok": 0, "nok": 0, 'index': 0, 'pixel_diff': 0} # failed and skipped can be found from the junit summary.
     logger.debug('context.counters set to: {}'.format(pformat(context.counters)))
@@ -127,7 +136,7 @@ def before_all(context):
     # department where the feature belongs
     context.department = json.loads(os.environ['department'])
     # environment variables for the testcase
-    context.VARIABLES = os.environ['VARIABLES']
+    context.VARIABLES = execution_data['VARIABLES']
     # job parameters if executed using schedule step
     context.PARAMETERS = os.environ['PARAMETERS']
     # context.browser_info contains '{"os": "Windows", "device": null, "browser": "edge", "os_version": "10", "real_mobile": false, "browser_version": "84.0.522.49"}'
@@ -276,7 +285,9 @@ def before_all(context):
     # save downloadedFiles in context
     context.downloadedFiles = {}
     # save tempfiles in context
-    context.tempfiles = []
+    context.tempfiles = [
+        execution_data_file
+    ]
 
     # call update task to create a task with pid.
     task = {
