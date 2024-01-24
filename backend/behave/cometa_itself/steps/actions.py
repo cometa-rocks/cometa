@@ -3814,9 +3814,8 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
         max_time = time.time() + timeout
         selector_element = waitSelector(context, "css", selector,timeout)
         logger.debug(f"Got selector")
-        logger.debug(selector_element)
-        
-        # If element was loaded in dom but hiden, wait for it to display with max timeout 
+   
+        # If element was loaded in dom but hidden, wait for it to display with max timeout 
         while time.time()<max_time and len(selector_element)>0 and not selector_element[0].is_displayed():
             time.sleep(0.5)
 
