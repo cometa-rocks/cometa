@@ -9,6 +9,7 @@ from django.views.generic import View
 from xhtml2pdf import pisa
 from django.template.loader import get_template
 from io import BytesIO
+from zoneinfo import ZoneInfo
 from django.core.mail import EmailMultiAlternatives
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -129,6 +130,7 @@ class GeneratePDF(View):
             # Build the HTML and then render it into a PDF.
             self.pdf = self.BuildHtmlAndRenderPdf()
 
+            
             # save the pdf to file
             with open(self.downloadFullPath, 'wb') as f:
                 f.write(self.pdf.content)
@@ -327,9 +329,12 @@ class GeneratePDF(View):
         browserinfo = self.feature.browser['browser']+" "+str(self.feature.browser['browser_version'])
         domain = 'https://%s' % DOMAIN
         # Send the context to the template. The context in this case is a dictionary containing variables with value to use in the template.
+        date_and_time = self.feature.result_date.replace(tzinfo=ZoneInfo('UTC'))
         context = {
             "invoice_id": self.feature.feature_name,
-            "date": self.feature.result_date,
+            "utc_date": date_and_time,
+            "cet_date": date_and_time.astimezone(ZoneInfo("Europe/Paris")),
+            "ist_date": date_and_time.astimezone(ZoneInfo("Asia/Kolkata")),
             "stepsarray": self.steps,
             "domain": domain,
             "featureinfo": self.feature,
@@ -398,6 +403,11 @@ class GeneratePDF(View):
     """
     def BuildEmailBody(self):
         # Email body building with template
+
+        date_and_time = self.feature.result_date.replace(tzinfo=ZoneInfo('UTC'))
+        cet_date = date_and_time.astimezone(ZoneInfo("Europe/Paris")),
+        ist_date = date_and_time.astimezone(ZoneInfo("Asia/Kolkata")),
+        mutiple_timezons = f"{str(date_and_time)} UTC | {str(cet_date[0])} CET | {str(ist_date[0])} IST"
         email_body = """
             Dear user!<br><br>
             Below you can find the information about the feature result.<br><br>
@@ -423,7 +433,7 @@ class GeneratePDF(View):
             self.feature.app_name,
             self.feature.environment_name,
             self.feature.feature_name,
-            str(self.feature.result_date),
+            mutiple_timezons,
             str(self.feature.pixel_diff),
             "" if self.feature_template.email_body == None else """
             <strong>Custom message:</strong><br>
