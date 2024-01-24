@@ -5,7 +5,8 @@ from rq.timeouts import JobTimeoutException
 from rq.command import send_stop_job_command
 from rq.job import Job
 from rq import get_current_job
-import django_rq
+import django_rq, pickle
+from tempfile import NamedTemporaryFile
 
 # just to import secrets
 sys.path.append("/code")
@@ -26,6 +27,16 @@ logger.addHandler(streamLogger)
 
 @job
 def run_browser(json_path, env, **kwargs):
+    tempfile = NamedTemporaryFile(suffix="_feature_execution.pickle", delete=False)
+    # save variables from environment variables to a file using pickle
+    variables = env.pop('VARIABLES')
+    env['execution_data'] = tempfile.name
+
+    with open(tempfile.name, 'wb') as file:
+        pickle.dump({
+            'VARIABLES': variables
+        }, file)
+    
     # Start running feature with current browser
     with subprocess.Popen(["bash", settings.RUNTEST_COMMAND_PATH, json_path], env=env, stdout=subprocess.PIPE) as process:
         try:
