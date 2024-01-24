@@ -122,7 +122,17 @@
 
         <div class='details'>
             <p> <B> App: </b> {{ featureinfo.app_name }} | <b> Environment: </b> {{ featureinfo.environment_name}} | <b> Test Name: </b> {{featureinfo.feature_name }} [{{featureinfo.feature_id_id}}] | <b> Browser:</b> {{ browserinfo }}</p>
-            Executed on {{ date }} UTC<br/>
+            
+            <table style="width: 100%; border:0px">
+                <tr>
+                    <td width="15%"><br/>Executed on :<br/></td>
+                    <td align="left">
+                        {{ utc_date }} UTC<br/>
+                        {{ cet_date }} CET<br/>
+                        {{ ist_date }} IST<br/>
+                    </td>
+                </tr>
+            </table>
             <hr class='hrItem' />
         </div>
         <div class="stats" >
