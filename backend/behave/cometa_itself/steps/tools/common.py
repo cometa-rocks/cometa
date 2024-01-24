@@ -313,15 +313,3 @@ def updateSourceFile(context, source, target):
     elif 'uploads' in target:
         # decrypt the file and get the target
         target = encryptFile(source, target)
-
-
-def waitSelectorToDisappear(element):
-    logger.debug(f"Waiting for selector to disappear")
-    count = 0
-    while element.is_displayed() and count < 60:
-        count+=1
-        time.sleep(1)
-    if count<60:
-        logger.debug(f"Selector disappeared")
-    else:
-        raise Exception("Max time reached element to disappear")
