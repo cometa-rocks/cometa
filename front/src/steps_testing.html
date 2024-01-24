@@ -124,6 +124,19 @@
             </a>
         </section>
 
+        <section id="Load_with_Delays">
+            <h2>5 Buttons will be loaded with delay of 5, 10, 20, 30 and 40</h2>
+            <br>
+            <div id="5_Second"></div>
+            <br> 
+            <div id="10_Second"></div>
+            <br>
+            <div id="20_Second"></div>
+            <br>
+            <div id="30_Second"></div>
+            <br>
+            <div id="40_Second"></div>
+        </section>
     </body>
     <script>
         var clickables = document.querySelectorAll('.click');
@@ -187,5 +200,43 @@
                 throw 'Set value "{text}" on "{selector}"` failed'
             }
         }
+
+        setTimeout(function() {
+            document.getElementById("5_Second").innerHTML = `
+            <button id="Load_in_5_Secs">This button loads in 5 seconds and will disapper in another 5 seconds</button>
+            `;
+        }, 5000); 
+        setTimeout(function() {
+            document.getElementById("5_Second").innerHTML = ``;
+        }, 10000);
+        setTimeout(function() {
+            document.getElementById("10_Second").innerHTML = `
+            <button id="Load_in_10_Secs">This button loads in 10 seconds</button>
+            `;
+        }, 10000);   
+        setTimeout(function() {
+            document.getElementById("20_Second").innerHTML = `
+            <button id="Load_in_20_Secs">This button loads in 20 seconds and will disapper in next 20 seconds </button>
+            `;
+        }, 20000); 
+        setTimeout(function() {
+            document.getElementById("20_Second").innerHTML = ``;
+        }, 40000);
+        setTimeout(function() {
+            document.getElementById("30_Second").innerHTML = `
+            <button id="Load_in_30_Secs">This button loads in 30 seconds and will disapper in next 20 seconds</button>
+            `;
+        }, 30000); 
+        setTimeout(function() {
+            document.getElementById("30_Second").innerHTML = ``;
+        }, 50000);
+        setTimeout(function() {
+            document.getElementById("40_Second").innerHTML = `
+            <button id="Load_in_40_Secs">This button loads in 40 seconds</button>
+            `;
+        }, 40000);
+      
+
+        
     </script>
 </html>
