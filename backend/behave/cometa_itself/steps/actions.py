@@ -3802,11 +3802,6 @@ if __name__ != 'actions':
     sys.path.append('/code/behave/cometa_itself')
     from steps import unimplemented_steps
 
-    
-# # possible options: do not count empty cells or include empty cells
-# @step(u'Open "{excelfile}" and compare the number of rows in the "{column}" column, starting from row "{starting_row}", to ensure that there are "{total_rows}" rows with option "{option}"')
-# @done(u'Open "{excelfile}" and compare the number of rows in the "{column}" column, starting from row "{starting_row}", to ensure that there are "{total_rows}" rows with option "{option}"')
-
 @step(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 @done(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 def wait_for_appear_and_disappear(context, timeout, selector, option):
@@ -3814,7 +3809,6 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
     # Removing any spaces in the front and last
     option = option.strip()
     timeout = float(timeout)
-    logger.debug(f"\n\n Executing Step : wait_for_appear_and_disappear with option {option} ")
     # match options
     assert_options = ['do not fail if not visible','fail if never visible']
     # check if match type is one of next options
