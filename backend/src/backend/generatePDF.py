@@ -84,6 +84,7 @@ class GeneratePDF(View):
         self.downloadPath = "/code/behave/pdf"
         self.downloadFullPath = "%s/%s-%s.pdf" % (self.downloadPath, str(self.feature.feature_name), str(self.feature_result_id))
 
+
         # check if download path exists
         if not exists(self.downloadPath):
             self.my_logger.debug("Download path does not exists .... creating one...")
@@ -102,6 +103,8 @@ class GeneratePDF(View):
 
         # If the request GET parameter "download" is present, download the PDF instead of emailing it to it's recipient
         download = self.request.GET.get('download', None)
+
+        
 
         # check if file already exists
         if not exists(self.downloadFullPath):
@@ -170,7 +173,8 @@ class GeneratePDF(View):
 
             # Send the email.
             self.SendEmail()
-
+        
+        
         # Finish
         return HttpResponse("200")
 
@@ -216,6 +220,7 @@ class GeneratePDF(View):
      Also, if there send email is set to false, get out of the function.
     """
     def ValidateEmails(self):
+        
         # If the email does not need to get sent, get out...
         if(self.feature_template.send_mail == False):
             self.my_logger.debug("[GeneratePDF] "+str(self.feature.feature_id)+" | Send email is set to False. No email sent.")
@@ -405,9 +410,9 @@ class GeneratePDF(View):
         # Email body building with template
 
         date_and_time = self.feature.result_date.replace(tzinfo=ZoneInfo('UTC'))
-        cet_date = date_and_time.astimezone(ZoneInfo("Europe/Paris")),
-        ist_date = date_and_time.astimezone(ZoneInfo("Asia/Kolkata")),
-        mutiple_timezons = f"{str(date_and_time)} UTC | {str(cet_date[0])} CET | {str(ist_date[0])} IST"
+        cet_date = date_and_time.astimezone(ZoneInfo("Europe/Paris")).strftime("%Y-%m-%d %H:%M:%S")
+        ist_date = date_and_time.astimezone(ZoneInfo("Asia/Kolkata")).strftime("%Y-%m-%d %H:%M:%S")
+        date_and_time = date_and_time.strftime("%Y-%m-%d %H:%M:%S")
         email_body = """
             Dear user!<br><br>
             Below you can find the information about the feature result.<br><br>
@@ -418,7 +423,25 @@ class GeneratePDF(View):
                 <li><strong>App:</strong> %s</li>
                 <li><strong>Environment:</strong> %s</li>
                 <li><strong>Test:</strong> %s</li>
-                <li><strong>Date + Time:</strong> %s</li>
+               
+
+                <li style="padding-top:3px">
+                    <table border=0px style="padding:0; margin-left:-3px; "><tr>
+                        <td><strong style="float:left;">Date + Time:</strong> </td>
+                        <td>%s UTC</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                        <td>%s CET </td>
+                        </tr>
+                        <tr>
+                            <td></td>      
+                        <td>%s IST</td>
+                        </tr>
+                    </table>
+                </li>
+
+
                 <li><strong>Pixel Difference:</strong> %s</li>
             </ul><br><br>
             %s
@@ -433,7 +456,9 @@ class GeneratePDF(View):
             self.feature.app_name,
             self.feature.environment_name,
             self.feature.feature_name,
-            mutiple_timezons,
+            date_and_time,
+            cet_date,
+            ist_date,
             str(self.feature.pixel_diff),
             "" if self.feature_template.email_body == None else """
             <strong>Custom message:</strong><br>
