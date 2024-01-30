@@ -42,7 +42,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.common.keys import Keys
 from functools import wraps
-from selenium.webdriver import ActionChains
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.remote.file_detector import LocalFileDetector
 # just to import secrets
@@ -3794,6 +3795,54 @@ def fetch_page_source(context):
         'title': "Page Source Content",
         'content': context.browser.page_source
     }
+
+# Scroll to element in lazy-loaded table, specially useful when working with AG Grid
+@step(u'Scroll to element with "{selector}" in lazy loaded table "{scrollable_element_selector}"')
+@done(u'Scroll to element with "{selector}" in lazy loaded table "{scrollable_element_selector}"')
+def find_element_in_lazy_loaded_element(context, selector, scrollable_element_selector):
+
+    # get the scrollable element
+    scrollable_elements = waitSelector(context, 'xpath', scrollable_element_selector)
+    if len(scrollable_elements) > 0:
+        scrollable_element = scrollable_elements[0]
+    else:
+        raise CustomError("Unable to find scrollable element.")
+    # get the height of the scrollable element
+    total_scrollable_height = scrollable_element.rect['height']
+
+    # get scrollable element parent node
+    # scrollable_element_parent: WebElement = context.browser.execute_script('return arguments[0].parentNode', scrollable_element)
+    # total height of the parent element
+    # total_scrollable_parent_height = scrollable_element_parent.rect['height']
+
+    # how many scrolls are required in total?
+    # total_scrolls = int(total_scrollable_height/total_scrollable_parent_height)
+    # scroll it by 10% - not a good solution...
+    percentual_height = total_scrollable_height * 0.1
+    total_scrolls = int(total_scrollable_height/percentual_height)
+
+    # is element found or not
+    found = False
+
+    # scroll and find the element
+    for i in range(0, total_scrolls):
+        scroll_amount = int(i * percentual_height)
+        scroll_origin = ScrollOrigin.from_element(scrollable_element)
+        ActionChains(context.browser).scroll_from_origin(scroll_origin, 0, scroll_amount).perform()
+        try:
+            element = waitSelector(context, 'css', selector, 5)
+            if isinstance(element, list) and len(element) > 0:
+                element = element[0]
+            if element:
+                found = True
+                # bring the element into the view
+                ActionChains(context.browser).scroll_to_element(element).perform()
+                break
+        except CometaMaxTimeoutReachedException:
+            pass
+    
+    if not found:
+        raise CustomError('Element not found in lazy-loaded table... please try a different selector.')
 
 if __name__ != 'actions':
     sys.path.append('/code/behave/')
