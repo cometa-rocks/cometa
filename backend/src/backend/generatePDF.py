@@ -26,7 +26,7 @@ import sys
 from os.path import isfile, exists
 sys.path.append("/code")
 import secret_variables
-
+import pytz
 # Python basics
 import logging
 import logging.handlers
@@ -105,7 +105,6 @@ class GeneratePDF(View):
         download = self.request.GET.get('download', None)
 
         
-
         # check if file already exists
         if not exists(self.downloadFullPath):
             self.my_logger.debug("Creating a lock file for %s" % self.downloadFullPath)
@@ -143,6 +142,7 @@ class GeneratePDF(View):
                 self.my_logger.debug("Removing lock file for %s" % self.downloadFullPath)
                 os.remove(self.downloadFullPath + ".lock")
 
+  
         # Validate the emails. If emailsend is set to false or all emails are bad, we get out of execution.
         # We don't raise exception here to not cause issues when debugging, as having email set as false is not an error.
         # 2020-07-28 ABP Mark this "if" as an exception to download parameter, email send is not required to download directly the PDF file
@@ -152,7 +152,8 @@ class GeneratePDF(View):
         # read file content and save it to PDFContent
         with open(self.downloadFullPath, 'rb') as f:
             PDFContent = f.read()
-
+        
+        
         # download param should contain something, otherwise it is considered Falsy, ex: ?download=true
         if download == 'true':
             # Download the PDF
@@ -334,12 +335,16 @@ class GeneratePDF(View):
         browserinfo = self.feature.browser['browser']+" "+str(self.feature.browser['browser_version'])
         domain = 'https://%s' % DOMAIN
         # Send the context to the template. The context in this case is a dictionary containing variables with value to use in the template.
-        date_and_time = self.feature.result_date.replace(tzinfo=ZoneInfo('UTC'))
+        date_time = self.feature.result_date.replace(tzinfo=ZoneInfo('UTC'))
+        utc_date =  date_time.astimezone(pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')
+        cet_date =  date_time.astimezone(pytz.timezone('CET')).strftime('%Y-%m-%d %H:%M:%S %Z')
+        ist_date =  date_time.astimezone(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S %Z')
+        
         context = {
             "invoice_id": self.feature.feature_name,
-            "utc_date": date_and_time,
-            "cet_date": date_and_time.astimezone(ZoneInfo("Europe/Paris")),
-            "ist_date": date_and_time.astimezone(ZoneInfo("Asia/Kolkata")),
+            "utc_date": utc_date,
+            "cet_date": cet_date,
+            "ist_date": ist_date,
             "stepsarray": self.steps,
             "domain": domain,
             "featureinfo": self.feature,
@@ -407,36 +412,34 @@ class GeneratePDF(View):
         We send it back to the main function.
     """
     def BuildEmailBody(self):
-        # Email body building with template
+        date_time = self.feature.result_date.replace(tzinfo=ZoneInfo('UTC'))
+        utc_date =  date_time.astimezone(pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')
+        cet_date =  date_time.astimezone(pytz.timezone('CET')).strftime('%Y-%m-%d %H:%M:%S %Z')
+        ist_date =  date_time.astimezone(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S %Z')
 
-        date_and_time = self.feature.result_date.replace(tzinfo=ZoneInfo('UTC'))
-        cet_date = date_and_time.astimezone(ZoneInfo("Europe/Paris")).strftime("%Y-%m-%d %H:%M:%S")
-        ist_date = date_and_time.astimezone(ZoneInfo("Asia/Kolkata")).strftime("%Y-%m-%d %H:%M:%S")
-        date_and_time = date_and_time.strftime("%Y-%m-%d %H:%M:%S")
         email_body = """
             Dear user!<br><br>
             Below you can find the information about the feature result.<br><br>
 
             <ul>
-                <li><strong>Resume:</strong> %d total steps, %d OK steps, %d failed/skipped steps</li>
+                <li><strong>Feature ID:</strong> %d</li>
+                <li><strong>Summary:</strong> %d total steps, %d OK steps, %d failed/skipped steps</li>
                 <li><strong>Department:</strong> %s</li>
                 <li><strong>App:</strong> %s</li>
                 <li><strong>Environment:</strong> %s</li>
                 <li><strong>Test:</strong> %s</li>
-               
-
                 <li style="padding-top:3px">
                     <table border=0px style="padding:0; margin-left:-3px; "><tr>
                         <td><strong style="float:left;">Date + Time:</strong> </td>
-                        <td>%s UTC</td>
+                        <td>%s</td>
                         </tr>
                         <tr>
                             <td></td>
-                        <td>%s CET </td>
+                        <td>%s</td>
                         </tr>
                         <tr>
                             <td></td>      
-                        <td>%s IST</td>
+                        <td>%s</td>
                         </tr>
                     </table>
                 </li>
@@ -449,6 +452,7 @@ class GeneratePDF(View):
             Thanks you for using co.meta<br><br>
             Best regards<br><br>
         """ % (
+            self.feature.feature_id.feature_id,
             self.feature.total,
             self.feature.ok,
             self.totalnok,
@@ -456,7 +460,7 @@ class GeneratePDF(View):
             self.feature.app_name,
             self.feature.environment_name,
             self.feature.feature_name,
-            date_and_time,
+            utc_date,
             cet_date,
             ist_date,
             str(self.feature.pixel_diff),
