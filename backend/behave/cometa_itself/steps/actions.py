@@ -2594,7 +2594,7 @@ def downloadFileFromURL(url, dest_folder, filename):
     else:  # HTTP status code 4XX/5XX
         logger.error("Download failed: status code {}\n{}".format(r.status_code, r.text))
         return None
-    
+
 # Upload a file by selecting the upload input field and sending the keys with the folder/filename. Cometa offers folder uploads with files inside the headless browser in Downloads/ and uploads/ folder. Separate multiple files by semicolon.
 @step(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
 @done(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
@@ -2682,7 +2682,7 @@ def step_imp(context, linktext):
             logger.debug("Request content: %s" % request.content)
             # Get all links from download URL (List of files which are downloaded or still downloading)
             links_from_request = re.findall(br'href="([^\"]+)', request.content)
-            # Check if file list from response content contains new file name (Compare previously downloaded file and new downloaded files)   
+            # Check if file list from response content contains new file name (Compare previously downloaded file and new downloaded files)
             logger.debug("Got file list from response content %s" % links_from_request)
             if len(links_from_request) > len(downloadedFiles):
                 break
@@ -2704,7 +2704,7 @@ def step_imp(context, linktext):
             # check file name in the downloadFiles
             if file_name_for_comparision not in downloadedFiles:
                 logger.debug(f"New download file name : {file_name}")
-                # Add new download file to links 
+                # Add new download file to links
                 links.append(file_name)
 
             # check if files are still being downloaded
@@ -2734,23 +2734,23 @@ def step_imp(context, linktext):
 
         # generate filename
         filename = link.split('/')[-1].replace(" ", "_")  # be careful with file names
-        
+
         logger.debug("calling function for saveing the file %s " % filename)
         downloadFileFromURL(fileURL, context.downloadDirectoryOutsideSelenium, filename)
-        
+
         # logger.debug("Exact file path till downloads dir : %s " % filename)
         complete_file_name = "%s/%s" % (os.environ['feature_result_id'], filename)
         logger.debug("Complete File name with Feature : %s " % complete_file_name)
-        
-        # Attaching file to be attached with steps  
+
+        # Attaching file to be attached with steps
         downloadedFilesInThisStep.append(complete_file_name)
-        
+
     # updated downloadedFiles in context
     logger.debug("Attaching downloaded files to feature run: %s " % downloadedFilesInThisStep)
     context.downloadedFiles[context.counters['index']] = downloadedFilesInThisStep
 
 
-# Delete files from Downloads folder. Files Which are matching with to {pattern} will be deleted 
+# Delete files from Downloads folder. Files Which are matching with to {pattern} will be deleted
 @step(u'Delete files matching "{pattern}" from local download folder')
 @done(u'Delete files matching "{pattern}" from local download folder')
 def step_imp(context, pattern):
@@ -2758,11 +2758,11 @@ def step_imp(context, pattern):
         raise CustomError("This step does not work in browserstack, please choose local browser and try again.")
 
     send_step_details(context, 'Searching file in local directory')
-    # list all file matching with regex 
+    # list all file matching with regex
     files = glob.glob(f"{context.downloadDirectoryOutsideSelenium}/{pattern}")
     logger.debug(f"files found using regex {pattern} : {files}")
-    send_step_details(context, f'Deleting {len(files)} files from download folder')    
-    # In case of any IO/Permission error related to files, Count how many files are deleted 
+    send_step_details(context, f'Deleting {len(files)} files from download folder')
+    # In case of any IO/Permission error related to files, Count how many files are deleted
     count = 0
     try:
         # loop over all the file which are be deleted
@@ -3780,12 +3780,12 @@ def attach_console_logs(context):
 def drag_n_drop(context, element_selector, destination_selector):
     element = waitSelector(context, "xpath", element_selector)
     destination = waitSelector(context, "xpath", destination_selector)
-    
+
     if isinstance(element, list) and len(element) > 0:
         element = element[0]
     if isinstance(destination, list) and len(destination) > 0:
         destination = destination[0]
-     
+
     ActionChains(context.browser).click_and_hold(element).move_to_element(destination).release(destination).perform()
 
 @step(u'Fetch HTML Source of current Browser page and attach it to the feature result')
@@ -3854,7 +3854,7 @@ if __name__ != 'actions':
 @step(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 @done(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 def wait_for_appear_and_disappear(context, timeout, selector, option):
-    
+
     # Removing any spaces in the front and last
     option = option.strip()
     timeout = float(timeout)
@@ -3863,15 +3863,15 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
     # check if match type is one of next options
     if option not in assert_options:
         raise CustomError("Unknown option, option can be one of these options: %s." % ", ".join(assert_options))
-    # Try ... except to handel option 
+    # Try ... except to handel option
     try:
         logger.debug(f"Waiting for selector to appear")
         send_step_details(context, 'Waiting for selector to appear')
         max_time = time.time() + timeout
         selector_element = waitSelector(context, "css", selector,timeout)
         logger.debug(f"Got selector")
-   
-        # If element was loaded in dom but hidden, wait for it to display with max timeout 
+
+        # If element was loaded in dom but hidden, wait for it to display with max timeout
         while time.time()<max_time and len(selector_element)>0 and not selector_element[0].is_displayed():
             time.sleep(0.5)
 
@@ -3885,24 +3885,73 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
             try:
                 # continue loop if element is displayed for wait time is less then 60 seconds
                 while selector_element[0].is_displayed() and count < 60:
-                    count+=1 
+                    count+=1
                     time.sleep(1)
             except Exception as e:
                 # The only syntax that can throw error is is_displayed() method. which means element diappeared
-                send_step_details(context, 'Selector disappeared successfully')   
+                send_step_details(context, 'Selector disappeared successfully')
 
             # If selector was not disappeard so count will be 60 so considering that as element not disappeared
             if not count<60:
                 raise CustomError("Selector did not disappeared")
 
         # if element was not found or displayed then check if option selected to fail, if yes then raise exception
-        elif option == 'fail if never visible':   
+        elif option == 'fail if never visible':
             logger.debug(f"raising error : Selector to appeared")
             raise CustomError("Selector not displayed")
 
     except Exception as exception:
         traceback.print_exc()
         # if got execption while checking to appear or disappear then check if option selected to fail, if yes then raise exception
-        if option == 'fail if never visible':   
+        if option == 'fail if never visible':
             raise exception
-  
+
+@step(u'Scroll through lazy loading table with selector "{selector}"')
+@done(u'Scroll through lazy loading table with selector "{selector}"')
+def scrollThroughLazyLoading(context, selector):
+    context.browser.execute_script('''
+    const XPathSelector = "%s"; // Define the XPath selector to catch the relative final argument of your table
+    function wait(milliseconds) {
+    return new Promise(resolve => {
+        setTimeout(() => {resolve("")}, milliseconds);
+    });
+    }
+    async function scrollToEnd(maxScrolls, maxTimeInSeconds) {
+    let lastScrollPosition = -1;
+    let tries = 0;
+    let numberOfScrolls = 0;
+    const startTime = Date.now();
+    const maximumScrolls = Math.abs(maxScrolls);
+    const maxTime = Math.abs(maxTimeInSeconds) * 1000;
+    async function doesScroll() {
+        if (numberOfScrolls >= maximumScrolls || (Date.now() - startTime) > maxTime) {
+            return;
+        }
+        let lastElement = document.evaluate(XPathSelector, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        if (lastElement) {
+            lastElement.scrollIntoView();
+        }
+
+        if (window.scrollY === lastScrollPosition) {
+            tries++;
+            if (tries > 4) { // Sets max amount of scrolling attempts before exiting
+            return;
+            }
+        } else {
+            lastScrollPosition = window.scrollY;
+            tries = 0;
+            numberOfScrolls++;
+        }
+        await wait(500); // Wait time between scrolling attempts in miliseconds
+        await doesScroll();
+    }
+    await doesScroll();
+    }
+    const MaxNumberOfScrolls = 100; // Define max number of total scrolls
+    const MaxTimeOfWaiting = 60;   // Define JS script time of life in seconds
+    await scrollToEnd(MaxNumberOfScrolls, MaxTimeOfWaiting);
+    ''' % selector)
+
+
+
+
