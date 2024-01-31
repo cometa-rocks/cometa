@@ -38,6 +38,8 @@ redis = "^5.0.0"
 django-rq = "^2.8.1"
 jq = "^1.6.0"
 behave = "^1.2.6"
+pytest-playwright = "^0.4.3"
+playwright = "^1.41.1"
 
 [tool.poetry.dev-dependencies]
 

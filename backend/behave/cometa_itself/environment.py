@@ -346,6 +346,9 @@ def after_all(context):
     del os.environ['current_step']
     del os.environ['total_steps']
     # check if any alertboxes are open before quiting the browser
+    if hasattr(context,"pw"):
+        context.pw.stop()
+
     try:
         while(context.browser.switch_to.alert):
             logger.debug("Found an open alert before shutting down the browser...")
@@ -401,7 +404,7 @@ def after_all(context):
     # load feature into data
     data = json.loads(os.environ['FEATURE_DATA'])
     # junit file path for the executed testcase
-    xmlFilePath = '/opt/code/department_data/%s/%s/%s/junit_reports/TESTS-features.%s_%s.xml' % (slugify(data['department_name']), slugify(data['app_name']), data['environment_name'], context.feature_id, slugify(data['feature_name']))
+    xmlFilePath = '/opt/code/department_data/%s/%s/%s/junit_reports/TESTS-features.%s_%s.xml' % (slugify(data['department_name'],lowercase=False), slugify(data['app_name'],lowercase=False), data['environment_name'], context.feature_id, slugify(data['feature_name'],lowercase=False))
     logger.debug("xmlFilePath: %s" % xmlFilePath)
     # load the file using XML parser
     xmlFile = ET.parse(xmlFilePath).getroot()
@@ -516,7 +519,7 @@ def before_step(context, step):
     index = context.counters['index']
     # pass all the data about the step to the step_data in context, step_data has name, screenshot, compare, enabled and type
     context.step_data = json.loads(os.environ['STEPS'])[index]
-
+    
     # in video show as a message which step is being executed
     # only works in local video and not in browserstack
 
@@ -549,6 +552,7 @@ def after_step(context, step):
     # complete step name to let front know about the step that has been executed
     step_name = "%s %s" % (step.keyword, step.name)
     # step index
+    logger.debug(f"Finished Step  : {step}")
     index = context.counters['index']
     # step result this contains the execution time, success and name
     step_result = context.step_result if hasattr(context, 'step_result') else None

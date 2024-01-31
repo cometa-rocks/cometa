@@ -289,6 +289,7 @@ def done( *_args, **_kwargs ):
                 # return True meaning everything went as expected
                 return result
             except Exception as err:
+                logger.exception(err)
                 # reset timeout incase of exception in function
                 signal.alarm(0)
                 # print stack trace
@@ -3780,6 +3781,36 @@ def drag_n_drop(context, element_selector, destination_selector):
      
     ActionChains(context.browser).click_and_hold(element).move_to_element(destination).release(destination).perform()
 
+
+@step(u'PW Goto Url "{url}"')
+@done(u'PW Goto Url "{url}"')
+def step_goto_url(context, url):
+    
+    logger.debug(f"navigating to {url}")
+    send_step_details(context, f'Navigating to {url}')
+    context.page.goto(url)
+    logger.debug(f"navigated  {url}")
+    
+
+@step(u'PW Move mouse to "{selector}" and click')
+@done(u'PW Move mouse to "{selector}" and click')
+def step_move_and_click(context, selector):
+    send_step_details(context, f'Wait selector to be visible')
+    element = context.page.locator(selector)
+    send_step_details(context, f'Mouse Over')
+    element.hover()
+    send_step_details(context, f'click element')
+    element.click()
+
+
+@step(u'PW Wait until "{selector}" is visible')
+@done(u'PW Wait until "{selector}" is visible')
+def step_wait_until_visible(context,selector):
+    send_step_details(context, f'Wait selector to be visible')
+    context.page.wait_for_selector(selector, state='visible')
+
+
+
 @step(u'Fetch HTML Source of current Browser page and attach it to the feature result')
 @done(u'Fetch HTML Source of current Browser page and attach it to the feature result')
 def fetch_page_source(context):
@@ -3790,10 +3821,10 @@ def fetch_page_source(context):
 
 if __name__ != 'actions':
     sys.path.append('/code/behave/')
-    from ee.cometa_itself.steps import rest_api  # adding here has dependency to parseActions.py
+    from ee.cometa_itself.steps import *  # adding here has dependency to parseActions.py
 
     sys.path.append('/code/behave/cometa_itself')
-    from steps import unimplemented_steps
+    # from steps import unimplemented_steps
 
 @step(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 @done(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
@@ -3849,4 +3880,5 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
         # if got execption while checking to appear or disappear then check if option selected to fail, if yes then raise exception
         if option == 'fail if never visible':   
             raise exception
-  
+
+
