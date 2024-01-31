@@ -112,18 +112,17 @@ def UserRelatedDepartments(user_email, type="id"):
     return departmentsList
 
 def browser_stack_request():
-    # set default value for results to empty array
-    results = []
     # get browserstack cloud from database
-    bsCloud = Cloud.objects.filter(name="browserstack")
-    # check if bsCloud exists and is active
-    if len(bsCloud) > 0 and bsCloud[0].active:
-        browsers = requests.get("https://api.browserstack.com/automate/browsers.json", auth=HTTPBasicAuth(BROWSERSTACK_USERNAME, BROWSERSTACK_PASSWORD))
+    try:
+        bsCloud = Cloud.objects.get(name="browserstack")
+        browsers = requests.get("https://api.browserstack.com/automate/browsers.json", auth=HTTPBasicAuth(bsCloud.username, bsCloud.password))
         if browsers.status_code == 200:
             results = browsers.json()
         else:
             raise Exception(browsers.text)
-    return results
+        return results
+    except Cloud.DoesNotExist:
+        return []
 
 def GetBrowserStackBrowsers(request):
     try:
@@ -141,6 +140,29 @@ def GetBrowserStackBrowsers(request):
         "results": results
     }, safe=False)
 
+def get_lyrid_browsers(request):
+    results = []
+    try:
+        lyridCloud = Cloud.objects.get(name="Lyrid.io")
+        if lyridCloud.active:
+            results = [
+                {
+                    "os": "Lyrid.io",
+                    "cloud": "Lyrid.io",
+                    "device": None,
+                    "browser": "chrome",
+                    "os_version": "Cloud",
+                    "real_mobile": False,
+                    "browser_version": "120.0"
+                }
+            ]
+    except Cloud.DoesNotExist:
+        logger.debug("Lyrid cloud does not exists returning empty browsers list.")
+    
+    return JsonResponse({
+        "success": True,
+        "results": results
+    }, safe=False)
 
 def GetUserDepartments(request):
     # Get an array of the departments ids owned by the current logged user
@@ -256,7 +278,9 @@ def GetStepResultsData(request, *args, **kwargs):
 
     response = HttpResponse(
         content_type="text/csv",
-        headers={"Content-Disposition": f'attachment; filename="{FEATURE_ID}_steps_results.csv"'},
+        headers={
+            "Content-Disposition": f'attachment; filename="{feature.department_name}_{feature.feature_name}_{feature.pk}_{datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")}.csv"'
+        },
     )
 
     import csv
@@ -736,9 +760,14 @@ def features_sql(department_id=None, folder_id=None, recursive=False):
 
 # Checks if the selected browser is valid using the array of available browsers
 # for the selected cloud, it also tries to repair the selected browser object
-def checkBrowser(selected, local_browsers, cloud_browsers):
+def checkBrowser(selected, local_browsers, cloud_browsers, lyrid_browsers):
     # Retrieve all browsers from either local or browserstack
-    browsers = local_browsers if selected.get('cloud', 'browserstack') == 'local' else cloud_browsers
+    if selected.get('cloud', '') == 'local':
+        browsers = local_browsers
+    elif selected.get('cloud', '') == 'Lyrid.io':
+        browsers = lyrid_browsers
+    else:
+        browsers = cloud_browsers
     if selected.get('cloud', '') == 'local' and selected.get('mobile_emulation', False):
         # In that case just assign the latest version of Chrome for the emulated browser
         # Exclude non stable versions by checking if version can be numeric (without dots)
@@ -780,9 +809,11 @@ def getFeatureBrowsers(feature: Feature):
     feature_browsers = feature.browsers
     local_browsers = []
     cloud_browsers = []
+    lyrid_browser = []
     browsers = []
 
-    for browser in feature_browsers:
+    for b in feature_browsers:
+        browser = b.copy()
         #3013: Fix missing cloud property in outdated favourited browsers
         if 'cloud' not in browser and browser.get("os","").lower() == "generic":
             browser['cloud'] = "local"
@@ -791,14 +822,28 @@ def getFeatureBrowsers(feature: Feature):
             logger.debug("Found 'local' as cloud for browser. Getting local browsers.")
             local_browsers = list(Browser.objects.all().values_list('browser_json', flat=True))
         # Check selected cloud is browserstack and we don't have it yet
-        elif len(cloud_browsers) == 0:
+        elif browser.get('cloud', 'browserstack') == 'browserstack' and len(cloud_browsers) == 0:
             logger.debug("Found 'cloud' as cloud for browser. Getting BrowserStack browsers.")
             try:
                 cloud_browsers = browser_stack_request()
             except Exception as err:
                 logger.exception(err)
+        elif browser.get('cloud') == 'Lyrid.io' and len(lyrid_browser) == 0:
+            logger.debug("Found 'Lyrid.io' as cloud for browser. Getting Lyrid.io browsers.")
+            try:
+                lyridCloud = Cloud.objects.get(name="Lyrid.io")
+                if lyridCloud.active:
+                    response = requests.get(f'http://django:8000/{lyridCloud.browsers_url}')
+                    if response.status_code == 200:
+                        lyrid_browser = response.json()['results']
+                    else:
+                        logger.error("Unable to get the browsers for the lyrid cloud.")
+                else:
+                    logger.error("Lyrid cloud is inactive will not execute the feature in this browser.")
+            except Cloud.DoesNotExist:
+                logger.info("Lyrid Cloud does not exists ... will ignore this browser.")
 
-        browsers.append(checkBrowser(browser, local_browsers, cloud_browsers))
+        browsers.append(checkBrowser(browser, local_browsers, cloud_browsers, lyrid_browser))
     
     return browsers
 
@@ -872,6 +917,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
 
     try:
         get_feature_browsers = getFeatureBrowsers(feature)
+
     except Exception as err:
         return JsonResponse({
             'success': False,
@@ -889,25 +935,47 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     executions = []
     frs = []
     for browser in get_feature_browsers:
-        # Generate random hash for image url obfuscating
-        run_hash = secrets.token_hex(nbytes=8)
-        # create a feature_result
-        feature_result = Feature_result(
-            feature_id_id=feature.feature_id,
-            result_date=datetime.datetime.utcnow(),
-            run_hash=run_hash,
-            running=True,
-            browser=browser,
-            executed_by_id=user['user_id']
-        )
-        feature_result.save()
-        frs.append(feature_result)
+        concurrency = 1
 
-        executions.append({
-            "feature_result_id": feature_result.feature_result_id,
-            "run_hash": run_hash,
-            "browser": browser
-        })
+        cloud = browser.get('cloud', 'browserstack')
+        try:
+            cloud_object = Cloud.objects.get(name=cloud)
+            connection_url = cloud_object.connection_url
+            if cloud_object.concurrency:
+                concurrency = browser.get('concurrency', 1)
+                if concurrency > cloud_object.max_concurrency:
+                    concurrency = cloud_object.max_concurrency
+            if cloud_object.username and cloud_object.password:
+                protocol = connection_url.split("//")[0]
+                uri = connection_url.split("//")[1]
+                connection_url = f'{protocol}//{cloud_object.username}:{cloud_object.password}@{uri}'
+        except Cloud.DoesNotExist:
+            logger.error(f"Cloud with name '{cloud}' not found.")
+            continue
+
+        for i in range(0, concurrency):
+            # Generate random hash for image url obfuscating
+            run_hash = secrets.token_hex(nbytes=8)
+            # create a feature_result
+            feature_result = Feature_result(
+                feature_id_id=feature.feature_id,
+                result_date=datetime.datetime.utcnow(),
+                run_hash=run_hash,
+                running=True,
+                browser=browser,
+                executed_by_id=user['user_id']
+            )
+
+            feature_result.save()
+            frs.append(feature_result)
+            
+            executions.append({
+                "feature_result_id": feature_result.feature_result_id,
+                "run_hash": run_hash,
+                "browser": browser,
+                "connection_url": connection_url
+            })
+
     fRun.feature_results.add(*frs) 
 
     # check if job exists
@@ -1340,6 +1408,32 @@ def Contact(request):
         return JsonResponse({'success': False, 'error': 'An error occured: %s' % str(err)})
     return JsonResponse({ 'success': True })
 
+def schedule_update(feature_id, schedule, user_id):
+    features = Feature.objects.filter(pk=feature_id)
+    feature = features[0]
+    current_schedule = feature.schedule
+    schedule_model = None
+    if current_schedule and current_schedule.schedule == schedule:
+        logger.info("Same schedule found ... will not update.")
+    else:
+        # Check if new schedule is set
+        if schedule != 'now' and schedule != "":
+            schedule_model = Schedule.objects.create(
+                feature_id=feature.pk,
+                schedule=schedule,
+                owner_id=user_id,
+                delete_after_days=0
+            )
+            schedule_model.save()
+            features.update(schedule=schedule_model)
+            
+        else:
+            features.update(schedule=None)
+
+        if current_schedule:
+            current_schedule.delete()
+    return schedule_model
+
 @csrf_exempt
 @require_permissions('edit_feature')
 def UpdateSchedule(request, feature_id, *args, **kwargs):
@@ -1354,20 +1448,12 @@ def UpdateSchedule(request, feature_id, *args, **kwargs):
     if not features.exists():
         return JsonResponse({ 'success': False, 'error': 'Feature not found with specified ID.' })
     feature = features[0]
-    # Check if new schedule is set
-    if schedule != 'now':
-        # Validate cron format before sending to Behave
-        if schedule != "" and not CronSlices.is_valid(schedule):
-            return JsonResponse({ 'success': False, "error": 'Schedule format is invalid.' }, status=200)
-        # Set schedule in Behave
-        response = set_test_schedule(feature.feature_id, schedule, request.session['user']['user_id'])
-        if response.status_code != 200:
-            # Oops, something went wrong while saving schedule
-            json_data = response.json()
-            return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule.') }, status=200)
+    
+    try:
+        schedule_update(feature.pk, schedule, request.session['user']['user_id'])
+    except Exception as err:
+        return JsonResponse({ 'success': False, 'error': str(err) })
 
-    # Update schedule property
-    features.update(schedule = schedule)
     return JsonResponse({ 'success': True })
 
 def uploadFilesThread(files, department_id, uploaded_by):
@@ -2276,23 +2362,13 @@ class FeatureViewSet(viewsets.ModelViewSet):
         Process schedule if requested
         """
         if 'schedule' in request.data:
-            schedule = request.data['schedule']
-            # Check if schedule is not 'now'
-            if schedule != 'now':
-                # Validate cron format before sending to Behave
-                if schedule != "" and not CronSlices.is_valid(schedule):
-                    return JsonResponse({ 'success': False, "error": 'Schedule format is invalid.' }, status=200)
-                # Save schedule in Behave docker Crontab
-                response = set_test_schedule(newFeature.feature_id, schedule, request.session['user']['user_id'])
-                if response.status_code == 200:
-                    # Update feature object with new schedule
-                    newFeature.schedule = schedule
-                else:
-                    # Oops, something went wrong while saving schedule
-                    json_data = response.json()
-                    return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule.') }, status=200)
+            try:
+                schedule_update(newFeature.pk, request.data['schedule'], request.session['user']['user_id'])
+            except Exception as err:
+                logger.error("Unable to save the schedule...")
+                logger.exception(err)
 
-        returnResult = Feature.objects.filter(feature_id=newFeature.feature_id) # FIXME: Why this line?
+        # ??? returnResult = Feature.objects.filter(feature_id=newFeature.feature_id) # FIXME: Why this line?
         return Response(FeatureSerializer(newFeature, many=False, context={"from": "folder"}).data, status=201)
 
     @require_permissions("edit_feature")
@@ -2350,24 +2426,6 @@ class FeatureViewSet(viewsets.ModelViewSet):
         feature.last_edited_date = datetime.datetime.utcnow()
 
         """
-        Process schedule if requested
-        """
-        # Set schedule of feature if provided in data, if schedule is empty will be removed
-        set_schedule = False
-        if 'schedule' in data:
-            schedule = data['schedule']
-            logger.debug("Saveing schedule: "+str(schedule) )
-            # Check if schedule is not 'now'
-            if schedule != '' and schedule != 'now':
-                # Validate cron format before sending to Behave
-                if schedule != "" and not CronSlices.is_valid(schedule):
-                    return JsonResponse({ 'success': False, "error": 'Schedule format is invalid.' }, status=200)
-                set_schedule = True
-            # Save schedule, at this point is 100% valid and saved
-            logger.debug("Adding schedule to database")
-            feature.schedule = schedule
-
-        """
         Save submitted feature steps
         """
         # Save feature into database
@@ -2380,14 +2438,16 @@ class FeatureViewSet(viewsets.ModelViewSet):
             # Save without steps
             result = feature.save()
 
-        if set_schedule:
-            # Save schedule in Behave docker Crontab
-            response = set_test_schedule(feature.feature_id, schedule, request.session['user']['user_id'])
-            if response.status_code != 200:
-                # Oops, something went wrong while saving schedule
-                logger.debug("Ooops - something went wrong saveing the schedule. You should probably check the crontab file mounted into docker to be a file and not a directory.")
-                json_data = response.json()
-                return JsonResponse({ 'success': False, "error": json_data.get('error', 'Something went wrong while saving schedule. Check crontab directory of docker.') }, status=200)
+        """
+        Process schedule if requested
+        """
+        if 'schedule' in data:
+            try:
+                newSchedule = schedule_update(feature.pk, data['schedule'], request.session['user']['user_id'])
+                feature.schedule = newSchedule
+            except Exception as err:
+                logger.error("Unable to save the schedule...")
+                logger.exception(err)
 
         """
         Send WebSockets
@@ -3257,13 +3317,30 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     serializer_class = ScheduleSerializer
     renderer_classes = (JSONRenderer, )
 
+    def list(self, request, *args, **kwargs):
+
+        # get all schedules whom delete date is not due yet
+        schedules = Schedule.objects.filter(Q(delete_on__gt=datetime.datetime.now()) | Q(delete_on=None))
+        
+        # save all schedules here
+        cronSchedules = []
+
+        # loop over all schedules and generate a line of crontab
+        for schedule in schedules:
+            cronString = "%s %s %s" % (schedule.schedule, schedule.command, schedule.comment)
+            cronString = cronString.replace("<jobId>", str(schedule.id))
+            cronSchedules.append(cronString)
+
+        # Return reponse
+        return JsonResponse({ "success": True, "schedules": cronSchedules })
+
     def create(self, request, *args, **kwargs):
         # get request payload
         data = json.loads(request.body)
         # get the feature
-        feature = Feature.objects.filter(feature_name=data['feature'])
+        feature = Feature.objects.filter(Q(feature_name=data['feature']) | Q(pk=data['feature']))
         if not feature.exists():
-            return JsonResponse({"success": False, "error": "No feature found with specified name."})
+            return JsonResponse({"success": False, "error": "No feature found with specified name."}, status=404)
         data['feature'] = feature[0]
         # check if id exists in payload else throw error
         try:
@@ -3272,7 +3349,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             # return success response if all went OK
             return JsonResponse({'success': True})
         except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)})
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
     def patch(self, request, *args, **kwargs):
         # get request payload
