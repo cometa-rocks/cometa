@@ -44,7 +44,7 @@ CPUCORES=`getconf _NPROCESSORS_ONLN`
 GUNI_WORKERS=$((($CPUCORES+1)))
 
 # prevents $CPUCORES to be set to <=0, which causes failure during test execution on Cometa due to non existant CPU cores.
-if [ $CPUCORES < 2 ]; then
+if [ $CPUCORES -le 2 ]; then
     REDIS_WORKERS=$((($CPUCORES)))
 else
     REDIS_WORKERS=$((($CPUCORES-2)))
