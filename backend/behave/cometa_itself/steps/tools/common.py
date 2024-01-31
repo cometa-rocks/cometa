@@ -7,6 +7,11 @@ from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+
 import time, requests, json, os, datetime, sys, subprocess, re, shutil
 from src.backend.common import *
 from src.backend.utility.cometa_logger import CometaLogger
@@ -107,6 +112,7 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
     # add the selector_type value first and then the rest of the values
     types_new[selector_type] = selector_type_value
     types_new.update(types)
+    logger.debug("Starting loop")
     # Loop until maxtries is reached and then exit with exception
     while (time.time() - start_time < max_timeout if max_timeout is not None else True):
         for selec_type in list(types_new.keys()):
@@ -139,6 +145,7 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
                 logger.exception(err)
         # give page some time to render the search
         time.sleep(1)
+    logger.debug("Starting loop")
     raise CometaMaxTimeoutReachedException(f"Programmed to find the element in {max_timeout} seconds, max timeout reached.")
 
 
