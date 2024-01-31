@@ -1268,7 +1268,8 @@ def parseActions(request):
     actions = []
     actions_files = [
         '/code/behave/cometa_itself/steps/actions.py',
-        '/code/behave/ee/cometa_itself/steps/rest_api.py'
+        '/code/behave/ee/cometa_itself/steps/rest_api.py',
+        '/code/behave/ee/cometa_itself/steps/actions_playwright.py'
     ]
     
     for actions_file in actions_files:
