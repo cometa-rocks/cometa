@@ -11,7 +11,7 @@ from pprint import pprint, pformat
 from pathlib import Path
 from slugify import slugify
 import hashlib
-import os
+import os, pickle
 from selenium.common.exceptions import InvalidCookieDomainException
 # just to import secrets
 sys.path.append("/code")
@@ -114,6 +114,15 @@ def before_all(context):
     logger.addHandler(fileHandle)
     # handle SIGTERM signal
     signal.signal(signal.SIGTERM, lambda signum, frame, ctx=context: stopExecution(signum, frame, ctx))
+
+    # get the data from the pickle file
+    execution_data_file = os.environ.get('execution_data', None)
+    if not execution_data_file:
+        raise Exception("No data found ... no details about the feature provided.")
+    
+    with open(execution_data_file, 'rb') as file:
+        execution_data = pickle.load(file)
+
     # create index counter for steps
     context.counters = {"total": 0, "ok": 0, "nok": 0, 'index': 0, 'pixel_diff': 0} # failed and skipped can be found from the junit summary.
     logger.debug('context.counters set to: {}'.format(pformat(context.counters)))
@@ -127,11 +136,13 @@ def before_all(context):
     # department where the feature belongs
     context.department = json.loads(os.environ['department'])
     # environment variables for the testcase
-    context.VARIABLES = os.environ['VARIABLES']
+    context.VARIABLES = execution_data['VARIABLES']
     # job parameters if executed using schedule step
     context.PARAMETERS = os.environ['PARAMETERS']
     # context.browser_info contains '{"os": "Windows", "device": null, "browser": "edge", "os_version": "10", "real_mobile": false, "browser_version": "84.0.522.49"}'
     context.browser_info = json.loads(os.environ['BROWSER_INFO'])
+    # get the connection URL for the browser
+    connection_url = os.environ['CONNECTION_URL']
     # set loop settings
     context.insideLoop = False # meaning we are inside a loop
     context.jumpLoopIndex = 0 # meaning how many indexes we need to jump after loop is finished
@@ -274,7 +285,9 @@ def before_all(context):
     # save downloadedFiles in context
     context.downloadedFiles = {}
     # save tempfiles in context
-    context.tempfiles = []
+    context.tempfiles = [
+        execution_data_file
+    ]
 
     # call update task to create a task with pid.
     task = {
@@ -288,17 +301,11 @@ def before_all(context):
     logger.info('\33[92mRunning feature...\33[0m')
     logger.info('\33[94mGetting browser context on \33[92m%s Version: %s\33[0m' % (str(context.browser_info['browser']), str(context.browser_info['browser_version'])))
     logger.info("Checking environment to run on: {}".format(context.cloud))
-    if context.cloud == "local":
-        logger.debug("Running local")
-        command = "http://cometa_selenoid:4444/wd/hub"
-    else:
-        logger.debug("Running on cloud")
-        command = "http://%s:%s@%s/wd/hub" % ( BROWSERSTACK_USERNAME, BROWSERSTACK_PASSWORD, "hub.browserstack.com" if X_SERVER != "Confidential" else "cometa_front" )
 
     logger.debug('Driver Capabilities: {}'.format(options.to_capabilities()))
     logger.info("Trying to get a browser context")
     context.browser = webdriver.Remote(
-        command_executor=command,
+        command_executor=connection_url,
         options=options
     )
 
@@ -377,7 +384,7 @@ def after_all(context):
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None
     if context.record_video:
-        if context.cloud != "local":
+        if context.cloud == "browserstack":
             # Observed browserstack delay when creating video files
             # Retrying get_video_url every 1 second for max 10 tries
             retries = 1
@@ -388,6 +395,8 @@ def after_all(context):
                     retries += 1
                 else:
                     break
+        elif context.cloud == "Lyrid.io":
+            pass
         else:
             if S3ENABLED:
                 S3ENDPOINT=getattr(secret_variables, 'COMETA_S3_ENDPOINT', False)

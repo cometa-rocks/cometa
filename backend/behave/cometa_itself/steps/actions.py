@@ -1966,6 +1966,12 @@ def step_impl(context, something):
     if not waitFor(context, something):
         raise CustomError("Waited for %ds but unable to find \"%s\", be aware that search is case sensitive!" % (MAXRETRIES, something))
 
+@step(u'wait until "{selector}" is loaded')
+@done(u'wait until "{selector}" is loaded')
+def step_impl(context, selector):
+    waitSelector(context, "xpath", selector)
+
+
 # Do a login using OIDC Authentication, please use variables to mask sensitive values like passwords
 @step(u'I can do a OIDC auth with username "{username}" and "{password}"')
 @done(u'I can do a OIDC auth with username and password')
@@ -2795,7 +2801,8 @@ def step_imp(context, feature_name, parameters, schedule):
     payload = {
         "feature": feature_name,
         "parameters": params,
-        "schedule": schedule
+        "schedule": schedule,
+        "owner_id": context.PROXY_USER['user_id']
     }
 
     # make the request to save the object
@@ -3794,3 +3801,59 @@ if __name__ != 'actions':
 
     sys.path.append('/code/behave/cometa_itself')
     from steps import unimplemented_steps
+
+@step(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
+@done(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
+def wait_for_appear_and_disappear(context, timeout, selector, option):
+    
+    # Removing any spaces in the front and last
+    option = option.strip()
+    timeout = float(timeout)
+    # match options
+    assert_options = ['do not fail if not visible','fail if never visible']
+    # check if match type is one of next options
+    if option not in assert_options:
+        raise CustomError("Unknown option, option can be one of these options: %s." % ", ".join(assert_options))
+    # Try ... except to handel option 
+    try:
+        logger.debug(f"Waiting for selector to appear")
+        send_step_details(context, 'Waiting for selector to appear')
+        max_time = time.time() + timeout
+        selector_element = waitSelector(context, "css", selector,timeout)
+        logger.debug(f"Got selector")
+   
+        # If element was loaded in dom but hidden, wait for it to display with max timeout 
+        while time.time()<max_time and len(selector_element)>0 and not selector_element[0].is_displayed():
+            time.sleep(0.5)
+
+        # Counting time to disappear the element
+        count = 0
+        if len(selector_element)>0 and selector_element[0].is_displayed():
+            send_step_details(context, 'Selector appeared, Wait for it to disappear')
+            logger.debug(f"Selector to appeared")
+            # If incase object disappears and gets removed from Dom it self the while checking is_displayed() it will throw error,
+            # Considerting element was disappeard
+            try:
+                # continue loop if element is displayed for wait time is less then 60 seconds
+                while selector_element[0].is_displayed() and count < 60:
+                    count+=1 
+                    time.sleep(1)
+            except Exception as e:
+                # The only syntax that can throw error is is_displayed() method. which means element diappeared
+                send_step_details(context, 'Selector disappeared successfully')   
+
+            # If selector was not disappeard so count will be 60 so considering that as element not disappeared
+            if not count<60:
+                raise CustomError("Selector did not disappeared")
+
+        # if element was not found or displayed then check if option selected to fail, if yes then raise exception
+        elif option == 'fail if never visible':   
+            logger.debug(f"raising error : Selector to appeared")
+            raise CustomError("Selector not displayed")
+
+    except Exception as exception:
+        traceback.print_exc()
+        # if got execption while checking to appear or disappear then check if option selected to fail, if yes then raise exception
+        if option == 'fail if never visible':   
+            raise exception
+  

@@ -15,6 +15,8 @@ import shutil
 from backend.common import *
 from django.db.models.signals import post_delete, pre_delete
 from django.dispatch import receiver
+from django_cryptography.fields import encrypt
+from crontab import CronSlices
 
 # GLOBAL VARIABLES
 
@@ -680,7 +682,7 @@ class Feature(models.Model):
     environment_id = models.IntegerField()
     environment_name = models.CharField(max_length=255)
     steps = models.IntegerField()
-    schedule = models.CharField(max_length=255, blank=True, null=True)
+    schedule = models.ForeignKey("Schedule", on_delete=models.SET_DEFAULT, null=True, default=None, related_name="scheduled")
     department_id = models.IntegerField()
     department_name = models.CharField(max_length=255)
     screenshot = models.TextField(null=False)
@@ -1170,6 +1172,12 @@ class Cloud(models.Model):
     name = models.CharField(max_length=255, default=None, blank=False, null=False)
     #label = models.CharField(max_length=255, default=None, blank=False, null=False)
     active = models.BooleanField(default=False)
+    connection_url = models.CharField(max_length=255, default="", blank=True, null=False)
+    username = encrypt(models.CharField(max_length=255, default="", blank=True, null=False))
+    password = encrypt(models.CharField(max_length=255, default="", blank=True, null=False))
+    browsers_url = models.CharField(max_length=255, default="", blank=True, null=False)
+    concurrency = models.BooleanField(default=False)
+    max_concurrency = models.IntegerField(default=0)
 
     def __str__( self ):
         return u"%s" % self.name.capitalize()
@@ -1209,6 +1217,7 @@ class Schedule(models.Model):
     schedule = models.CharField(max_length=255)
     command = models.CharField(max_length=255, blank=True, null=True)
     comment = models.CharField(max_length=255, blank=True, null=True)
+    owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, related_name="schedule_owner")
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     delete_after_days = models.IntegerField(default=1)
     delete_on = models.DateTimeField(null=True, blank=True)
@@ -1218,15 +1227,19 @@ class Schedule(models.Model):
         verbose_name_plural = "Schedules"
     
     def save(self, *args, **kwargs):
+        # check if schedule is valid
+        if not CronSlices.is_valid(self.schedule):
+            raise Exception("Schedule is not valid... please check and re-try.")
+
         # update delete time
-        if self.delete_after_days != 0:
+        if self.delete_after_days != 0 or self.delete_on is not None:
             self.delete_on = self.created_on + datetime.timedelta(days=self.delete_after_days)
-        else:
-            self.delete_on = None
         # create the command
-        self.command = """root curl --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA_ORIGIN: CRONTAB" -X POST http://django:8000/exectest/""" % self.feature.feature_id
+        if self.command is None:
+            self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST http://django:8000/exectest/""" % (self.feature.feature_id, self.owner.user_id)
         # create the comment
-        self.comment = "# added by cometa JobID: <jobId> on %s, to be deleted on %s" % (self.created_on.strftime("%Y-%m-%d"), self.delete_on.strftime("%Y-%m-%d"))
+        if self.comment is None:
+            self.comment = "# added by cometa JobID: <jobId> on %s, to be deleted on %s" % (self.created_on.strftime("%Y-%m-%d"), self.delete_on.strftime("%Y-%m-%d") if self.delete_on is not None else "***never*** (disable it in feature)")
 
         # check if schedule has a <today> and <tomorrow> in string
         if "<today>" in self.schedule:
@@ -1240,48 +1253,15 @@ class Schedule(models.Model):
         # save the object to get the jobId
         super(Schedule, self).save(*args, **kwargs)
 
-        try:
-            # make request to behave and save the schedule to the crontab.
-            # make payload to send to behave
-            payload = {
-                "jobId": self.id,
-                "schedule": self.schedule,
-                "command": self.command,
-                "comment": self.comment
-            }
+        # make the request to crontab
+        requests.get('http://crontab:8080/')
+        return True
 
-            # make the request to behave
-            response = requests.post('http://behave:8001/set_test_schedule/', data=payload)
-            
-            # check the response status code if 200 then all went ok
-            if response.status_code != 200:
-                print("Got status: %s" % str(response.status_code))
-                self.delete(no_request=True)
-                return False
-            return True
-        except Exception as err:
-            print(str(err))
-            self.delete(no_request=True)
-            return False
-    
     def delete(self, *args, **kwargs):
-        # send request to behave and delete the schedule from the crontab.
-        no_request = kwargs.get('no_request', False)
-        print(no_request)
-        if not no_request:
-            # make payload to send to behave
-            payload = {
-                "jobId": self.id
-            }
-            # make the request
-            response = requests.post("http://behave:8001/remove_test_schedule/", data=payload)
-            
-            # check response and delete only if response status code is 200
-            if response.status_code != 200:
-                print("Got status_code: %s" % str(response.status_code))
-                return False
-        # if everything is ok delete the object and return true
+        # delete the object and send request to crontab to update
         super(Schedule, self).delete()
+        # make the request to crontab
+        requests.get('http://crontab:8080/')
         return True
 
 IntegrationApplications = (
