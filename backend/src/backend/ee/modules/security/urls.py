@@ -3,17 +3,15 @@
 # ###
 
 from .views import (
-    RestAPIViewset,
-    compileJQ
+    ResponseHeadersViewSet
 )
-from django.conf.urls import url
-from cometa_pj.urls import router
+from rest_framework import routers
+from django.urls import path, include
 
-# Rest API Endpoints
-router.register(r'rest_api/(?P<id>[0-9]+)', RestAPIViewset)
-router.register(r'rest_api', RestAPIViewset)
+# network_headers Endpoints
+router = routers.DefaultRouter()
+router.register(r'network_headers', ResponseHeadersViewSet)
 
-# static endpoints
-static_endpoints = [
-    url(r'^compile_jq/', compileJQ),
+urlpatterns = [
+    path('', include(router.urls)),
 ]

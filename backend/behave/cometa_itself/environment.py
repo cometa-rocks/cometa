@@ -215,7 +215,8 @@ def before_all(context):
         # https://github.com/stephen-fox/chrome-docker/issues/8
         # read more about chrome options:
         # https://peter.sh/experiments/chromium-command-line-switches/
-        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-dev-shm-usage")   
+        
         # Handle local emulated mobile devices
         if context.browser_info.get('mobile_emulation', False):
             mobile_emulation = {
@@ -260,7 +261,9 @@ def before_all(context):
     # add cloud/provider capabilities to the
     # browser capabilities
     options.set_capability('selenoid:options', selenoid_capabilities)
-    options.set_capability('goog:loggingPrefs', { 'browser': 'ALL' })
+    options.add_argument('--enable-logging')
+    options.add_argument('--log-level=0')
+    options.set_capability('goog:loggingPrefs', {'browser': 'ALL','performance': 'ALL' })
 
     # proxy configuration
     if PROXY_ENABLED and PROXY:
@@ -557,63 +560,64 @@ def before_step(context, step):
 
 
 def find_vulnerable_headers(context)->int:
+    try:
+        header_info = []
+        performance_logs = context.browser.get_log('performance')
+        logger.debug(f"Performance logs received Count is : {len(performance_logs)}")
+        # filter vulnerable_headers from a single response header list and return 
+        def filter_vulnerability_headers(headers: dict) -> list:
+            # Add all headers in lower case for matching 
+            list_of_vulnerable_headers = ["server", "x-powered-by", "x-aspnet-version", "x-aspnetmvc-version"] 
+            # List of header if they found to be vulnerable 
+            vulnerable_header_names = []
+            for header_name, header_value in headers.items():
+                # Create a copy and then convert to lovercase for comparision
+                lower_header = header_name[:].lower()
+                # check if header name is in list_of_vulnerable_headers add in 
+                if lower_header in list_of_vulnerable_headers:
+                    vulnerable_header_names.append({header_name: header_value})
 
-    header_info = []
-    performance_logs = web_driver.get_log('performance')
-    logger.debug(f"Performance logs received Count is : {len(performance_logs)}")
-    # filter vulnerable_headers from a single response header list and return 
-    def filter_vulnerability_headers(headers: dict) -> list:
-        # Add all headers in lower case for matching 
-        list_of_vulnerable_headers = ["server", "x-powered-by", "x-aspnet-version", "x-aspnetmvc-version"] 
-        # List of header if they found to be vulnerable 
-        vulnerable_header_names = []
-        for header_name, header_value in headers.items():
-            # Create a copy and then convert to lovercase for comparision
-            lower_header = header_name[:].lower()
-            # check if header name is in list_of_vulnerable_headers add in 
-            if lower_header in list_of_vulnerable_headers:
-                vulnerable_header_names.append({header_name: header_value})
-
-        return vulnerable_header_names
-    # performance_logs is list of network requests and responses url and header information 
-    logger.debug(f"Response header analysis Started for current Step")
-    for logs in performance_logs:
-        # message.message is string json covert so parse json
-        information = json.loads(logs['message'])["message"]
-        # Check if log type is Response received to get response headers later time
-        if information['method'] == "Network.responseReceived":
-            logger.debug(f"Processing network response")
-            # Get response details from the network response object  
-            response = information['params']['response']
-            # check and filter for vur vulnerability_headers
-            logger.debug(f"Processing respose headers {response['headers']}")
-            vulnerable_headers = filter_vulnerability_headers(response['headers'])
-            # check if request has some vulnerable_headers then add that to header_info 
-            logger.debug(f"Found vulnerable headers {vulnerable_headers}")
-            if len(vulnerable_headers)>0:
-                header_info.append({
-                    "status": response['status'],
-                    # "headers": response['headers'],
-                    "vulnerable_headers": vulnerable_headers,
-                    "url": response['url'],
-                })
-    # Check if context contains vulnerability_headers list yes then append to that list 
-    logger.debug(f"Response header analysis completed for current Step")
-    if hasattr(context, "vulnerability_headers"):
-        context.vulnerability_headers.append({
-            "step_id": 5,
-            "vulnerable_headers":header_info
-        })
-    else:    
-    # if dose not have attribute vulnerability_headers then initilze list add vulnerability headers
-        context.vulnerability_headers = [{
-            "step_id": 5,
-            "vulnerable_headers":header_info
-        }]
-    # Return number of vernability headers 
-    logger.debug(f"Return header info : {header_info}")
-    return len(header_info)
-
+            return vulnerable_header_names
+        # performance_logs is list of network requests and responses url and header information 
+        logger.debug(f"Response header analysis Started for current Step")
+        for logs in performance_logs:
+            # message.message is string json covert so parse json
+            information = json.loads(logs['message'])["message"]
+            # Check if log type is Response received to get response headers later time
+            if information['method'] == "Network.responseReceived":
+                logger.debug(f"Processing network response")
+                # Get response details from the network response object  
+                response = information['params']['response']
+                # check and filter for vur vulnerability_headers
+                logger.debug(f"Processing respose headers {response['headers']}")
+                vulnerable_headers = filter_vulnerability_headers(response['headers'])
+                # check if request has some vulnerable_headers then add that to header_info 
+                logger.debug(f"Found vulnerable headers {vulnerable_headers}")
+                if len(vulnerable_headers)>0:
+                    header_info.append({
+                        "status": response['status'],
+                        # "headers": response['headers'],
+                        "vulnerable_headers": vulnerable_headers,
+                        "url": response['url'],
+                    })
+        # Check if context contains vulnerability_headers list yes then append to that list 
+        logger.debug(f"Response header analysis completed for current Step")
+        if hasattr(context, "vulnerability_headers"):
+            context.vulnerability_headers.append({
+                "step_id": 5,
+                "vulnerable_headers":header_info
+            })
+        else:    
+        # if dose not have attribute vulnerability_headers then initilze list add vulnerability headers
+            context.vulnerability_headers = [{
+                "step_id": 5,
+                "vulnerable_headers":header_info
+            }]
+        # Return number of vernability headers 
+        logger.debug(f"Return header info : {header_info}")
+        return len(header_info)
+    except Exception as e:
+        logger.exception(e)
 
 @error_handling()
 def after_step(context, step):
@@ -636,7 +640,7 @@ def after_step(context, step):
         screenshots['difference'] = context.DB_DIFFERENCE_SCREENSHOT
     
     # vulnerable_headers_count = find_vulnerable_headers(context=context)
-    # vulnerable_headers_count = find_vulnerable_headers(context=context)
+    vulnerable_headers_count = find_vulnerable_headers(context=context)
 
     # get step error
     step_error = None
