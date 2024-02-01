@@ -191,6 +191,16 @@
 	],
 	"changelog": [
 		{
+            "version": "2.8.322",
+            "date": "2024-02-01",
+            "features": [
+				{
+					"title": "Meta Data Information implementation for steps",
+					"description": "Multiline Meta Data information implementation for actions is implemented, complete text will be avaiable in the help section"
+				}
+            ]
+        },		
+		{
             "version": "2.8.321",
             "date": "2024-01-24",
             "features": [
