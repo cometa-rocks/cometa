@@ -657,8 +657,7 @@ def after_step(context, step):
         'step_time': step.duration,
         'error': step_error,
         'belongs_to': context.step_data['belongs_to'],
-        'screenshots': json.dumps(screenshots), # load screenshots object
-        'vulnerable_headers_count' : vulnerable_headers_count 
+        'screenshots': json.dumps(screenshots) # load screenshots object
     })
 
     # update countes
