@@ -303,7 +303,8 @@ def before_all(context):
     logger.info("Checking environment to run on: {}".format(context.cloud))
 
     logger.debug('Driver Capabilities: {}'.format(options.to_capabilities()))
-    logger.info("Trying to get a browser context")
+    logger.info(f"Trying to get a browser context {connection_url}")
+
     context.browser = webdriver.Remote(
         command_executor=connection_url,
         options=options
@@ -596,16 +597,16 @@ def find_vulnerable_headers(context)->int:
                     "vulnerable_headers": vulnerable_headers,
                     "url": response['url'],
                 })
-    # Check if context contains vernability_headers list yes then append to that list 
+    # Check if context contains vulnerability_headers list yes then append to that list 
     logger.debug(f"Response header analysis completed for current Step")
-    if hasattr(context, "vernability_headers"):
-        context.vernability_headers.append({
+    if hasattr(context, "vulnerability_headers"):
+        context.vulnerability_headers.append({
             "step_id": 5,
             "vulnerable_headers":header_info
         })
     else:    
-    # if dose not have attribute vernability_headers then initilze list add vernalbility header 
-        context.vernability_headers = [{
+    # if dose not have attribute vulnerability_headers then initilze list add vulnerability headers
+        context.vulnerability_headers = [{
             "step_id": 5,
             "vulnerable_headers":header_info
         }]
@@ -635,7 +636,7 @@ def after_step(context, step):
         screenshots['difference'] = context.DB_DIFFERENCE_SCREENSHOT
     
     # vulnerable_headers_count = find_vulnerable_headers(context=context)
-    vulnerable_headers_count = find_vulnerable_headers(context=context)
+    # vulnerable_headers_count = find_vulnerable_headers(context=context)
 
     # get step error
     step_error = None
