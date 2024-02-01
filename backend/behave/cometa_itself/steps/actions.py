@@ -3840,7 +3840,7 @@ def find_element_in_lazy_loaded_element(context, selector, scrollable_element_se
                 break
         except CometaMaxTimeoutReachedException:
             pass
-    
+
     if not found:
         raise CustomError('Element not found in lazy-loaded table... please try a different selector.')
 
@@ -3906,9 +3906,10 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
         if option == 'fail if never visible':
             raise exception
 
-@step(u'Scroll through lazy loading table with selector "{selector}"')
-@done(u'Scroll through lazy loading table with selector "{selector}"')
-def scrollThroughLazyLoading(context, selector):
+# Scroll to the end of the page/table depending on the xpath with maximum scrolls and time of life.
+@step(u'Scroll to the last position of the desired element identified by "{xpath}" with maximum number of scrolls "{MaxScrolls}" and maximum time of  "{MaxTimeOfLife}"')
+@done(u'Scroll to the last position of the desired element identified by "{xpath}" with maximum number of scrolls "{MaxScrolls}" and maximum time of  "{MaxTimeOfLife}"')
+def scrollThroughLazyLoading(context, xpath, MaxScrolls, MaxTimeOfLife):
     context.browser.execute_script('''
     const XPathSelector = "%s"; // Define the XPath selector to catch the relative final argument of your table
     function wait(milliseconds) {
@@ -3947,10 +3948,10 @@ def scrollThroughLazyLoading(context, selector):
     }
     await doesScroll();
     }
-    const MaxNumberOfScrolls = 100; // Define max number of total scrolls
-    const MaxTimeOfWaiting = 60;   // Define JS script time of life in seconds
+    const MaxNumberOfScrolls = %s; // Define max number of total scrolls
+    const MaxTimeOfWaiting = %s;   // Define JS script time of life in seconds
     await scrollToEnd(MaxNumberOfScrolls, MaxTimeOfWaiting);
-    ''' % selector)
+    ''' % (xpath, MaxScrolls, MaxTimeOfLife))
 
 
 
