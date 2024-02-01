@@ -4,17 +4,18 @@
 
 from backend.models import (
     SoftDeletableModel,
-    Department
+    Department,
+    Feature_result
 )
 from django.db import models
 from datetime import datetime
-from django_cryptography.fields import encrypt
 
-class REST_API(SoftDeletableModel):
+class ResponseHeaders(SoftDeletableModel):
     id = models.AutoField(primary_key=True)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
-    call = encrypt(models.JSONField(default=dict))
+    feature_result = models.OneToOneField(Feature_result, related_name="feature_results", on_delete=models.CASCADE,blank=False)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE,blank=False)
+    vulnerable_headers_info = models.JSONField(default=list)
     created_on = models.DateTimeField(default=datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
-
+    headers_count = models.IntegerField(default=0)
     class Meta:
-        verbose_name_plural = "REST APIs"
+        verbose_name_plural = "ResponseHeaders"

@@ -128,6 +128,8 @@ urlpatterns = [
     url(r'^departments/(?P<department_id>[0-9]+)/updateStepTimeout/', views.UpdateStepTimeout),
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
+    # Security Feature
+    path('security/',include('backend.ee.modules.security.urls'))
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) + [
     # EE static endpoints
     *DataDrivenEndpoints.static_endpoints,
