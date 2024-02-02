@@ -1772,13 +1772,16 @@ class FeatureResultByFeatureIdViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ('result_date',)
 
+
     # @silk_profile(name="FeatureResultByFeatureId")
     def list(self, request, *args, **kwargs):
+        from django.db.models import F
         # check if feature_id in GET parameters
         feature_id = request.GET.get('feature_id', False)
         # get if user want only archived runs
         archived = request.GET.get('archived', False) == 'true'
         if feature_id and feature_id.isnumeric():
+
 
             # get all the feature runs for specific run
             feature_result = self.queryset.filter(feature_id=feature_id, archived=archived).order_by('-result_date', '-feature_result_id')
