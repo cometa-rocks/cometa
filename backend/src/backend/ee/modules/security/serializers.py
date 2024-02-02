@@ -5,6 +5,7 @@
 from rest_framework import serializers
 from .models import ResponseHeaders
 from backend.views import GetUserDepartments
+from backend.models import Department
 
 
 ################################
@@ -16,11 +17,11 @@ class ResponseHeadersSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResponseHeaders
         # This fields also shows in the Django Rest Framework screen
-        fields = ['id', 'feature_result', 'department', 
-                  'vulnerable_headers_info', 'headers_count','created_on']
+        fields = ['id', 'result_id',
+                  'vulnerable_headers_info', 'headers_count', 'created_on']
 
     def validate(self, data):
-        departments = GetUserDepartments(self.context['request'])
-        if data.get('department') not in departments:
-            raise serializers.ValidationError("You do not belong to this department")
+        if data.get('result_id'):
+            department = Department.objects.get(department_id=data.get('result_id').department_id)
+            data['department'] = department
         return data
