@@ -292,6 +292,8 @@ def before_all(context):
         execution_data_file
     ]
 
+    context.vulnerability_headers = []
+
     # call update task to create a task with pid.
     task = {
         'action': 'start',
@@ -384,8 +386,9 @@ def after_all(context):
         "feature_result_id": os.environ['feature_result_id'],
         "run_id": os.environ['feature_run'],
         "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-    })
-
+    }) 
+    
+   
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None
     if context.record_video:
@@ -490,7 +493,18 @@ def after_all(context):
             "feature_result_info": json.dumps(request_info.json()['result']),
             "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         })
-
+    if hasattr(context,"vulnerability_headers"):
+        logger.info("Sending vulnerability_headers ")
+        # request to save vulnerable network headers
+        response = requests.post("http://cometa_django:8000/security/network_headers/", headers=headers, data=json.dumps({
+            "result_id": os.environ['feature_result_id'],
+            "vulnerable_headers_info": context.vulnerability_headers,
+            "headers_count": len(context.vulnerability_headers)
+        }))
+        if response.status_code == 201:
+            logger.debug("Vulnerability Headers Saved ")
+        else:
+            logger.debug(f"Error while saving Vulnerability Headers : {json.dumps(response.json())}")
     # send mail
     sendemail = requests.get('http://cometa_django:8000/pdf/?feature_result_id=%s' % os.environ['feature_result_id'], headers={'Host': 'cometa.local'})
     logger.debug('SendEmail status: '+str(sendemail.status_code))
@@ -559,7 +573,7 @@ def before_step(context, step):
     })
 
 
-def find_vulnerable_headers(context)->int:
+def find_vulnerable_headers(context, step_index)->int:
     try:
         header_info = []
         performance_logs = context.browser.get_log('performance')
@@ -585,14 +599,14 @@ def find_vulnerable_headers(context)->int:
             information = json.loads(logs['message'])["message"]
             # Check if log type is Response received to get response headers later time
             if information['method'] == "Network.responseReceived":
-                logger.debug(f"Processing network response")
+                # logger.debug(f"Processing network response")
                 # Get response details from the network response object  
                 response = information['params']['response']
                 # check and filter for vur vulnerability_headers
-                logger.debug(f"Processing respose headers {response['headers']}")
+                # logger.debug(f"Processing respose headers ")
                 vulnerable_headers = filter_vulnerability_headers(response['headers'])
                 # check if request has some vulnerable_headers then add that to header_info 
-                logger.debug(f"Found vulnerable headers {vulnerable_headers}")
+                # logger.debug(f"Found vulnerable headers ")
                 if len(vulnerable_headers)>0:
                     header_info.append({
                         "status": response['status'],
@@ -601,10 +615,10 @@ def find_vulnerable_headers(context)->int:
                         "url": response['url'],
                     })
         # Check if context contains vulnerability_headers list yes then append to that list 
-        logger.debug(f"Response header analysis completed for current Step")
+        logger.debug(f"Response header analysis completed for current Step {step_index}")
         if hasattr(context, "vulnerability_headers"):
             context.vulnerability_headers.append({
-                "step_id": 5,
+                "step_id": step_index,
                 "vulnerable_headers":header_info
             })
         else:    
@@ -614,7 +628,7 @@ def find_vulnerable_headers(context)->int:
                 "vulnerable_headers":header_info
             }]
         # Return number of vernability headers 
-        logger.debug(f"Return header info : {header_info}")
+        logger.debug(f"Return header info : {len(context.vulnerability_headers)}")
         return len(header_info)
     except Exception as e:
         logger.exception(e)
@@ -638,10 +652,13 @@ def after_step(context, step):
     # check if difference file is assigned
     if hasattr(context, 'DB_DIFFERENCE_SCREENSHOT'):
         screenshots['difference'] = context.DB_DIFFERENCE_SCREENSHOT
-    
-    # vulnerable_headers_count = find_vulnerable_headers(context=context)
-    vulnerable_headers_count = find_vulnerable_headers(context=context)
-
+    vulnerable_headers_count = 0
+    try:
+        # vulnerable_headers_count = find_vulnerable_headers(context=context)
+        vulnerable_headers_count = find_vulnerable_headers(context=context,step_index=index)
+    except Exception as e:
+        logger.exception(e)
+        
     # get step error
     step_error = None
     if 'custom_error' in context.step_data and context.step_data['custom_error'] is not None:
