@@ -888,6 +888,7 @@ interface StepStatus {
     error?: string;
     info?: StepResult;
     screenshots: any;
+    vulnerable_headers_count:number;
 }
 
 interface IRunsState {
