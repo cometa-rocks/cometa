@@ -337,7 +337,7 @@ class GeneratePDF(View):
         # Send the context to the template. The context in this case is a dictionary containing variables with value to use in the template.
         date_time = self.feature.result_date.replace(tzinfo=ZoneInfo('UTC'))
         utc_date =  date_time.astimezone(pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')
-        cet_date =  date_time.astimezone(pytz.timezone('CET')).strftime('%Y-%m-%d %H:%M:%S %Z')
+        cet_date =  date_time.astimezone(pytz.timezone('Europe/Berlin')).strftime('%Y-%m-%d %H:%M:%S %Z')
         ist_date =  date_time.astimezone(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S %Z')
         
         context = {
@@ -414,7 +414,7 @@ class GeneratePDF(View):
     def BuildEmailBody(self):
         date_time = self.feature.result_date.replace(tzinfo=ZoneInfo('UTC'))
         utc_date =  date_time.astimezone(pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')
-        cet_date =  date_time.astimezone(pytz.timezone('CET')).strftime('%Y-%m-%d %H:%M:%S %Z')
+        cet_date =  date_time.astimezone(pytz.timezone('Europe/Berlin')).strftime('%Y-%m-%d %H:%M:%S %Z')
         ist_date =  date_time.astimezone(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S %Z')
 
         email_body = """
