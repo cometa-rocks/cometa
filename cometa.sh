@@ -110,7 +110,7 @@ EOF
     minimum_disk_space=28
 
     # Get available disk space in gigabytes (using awk to extract the relevant information)
-    available_disk_space=$(df -h . | awk 'NR==2 { print $4 }' | sed 's/G//')
+    available_disk_space=$(df -h /var/lib/docker | awk 'NR==2 { print $4 }' | sed 's/G//')
 
     info "Available disk space: $available_disk_space GB."
 
