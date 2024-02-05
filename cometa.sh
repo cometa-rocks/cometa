@@ -80,13 +80,24 @@ function checkDocker() {
     error "Current ulimit is $current_ulimit which is not sufficient to run cometa."
     cat <<EOF 
 
-Instructions to change ulimit:
-    1. Add the following line to your shell configuration file 
+Instructions to change ulimit :
+    First Way
+     1. Add the following line to your shell configuration file 
         e.g. In the file ~/.bashrc or ~/.bash_profile add below line
         
         ulimit -n 8192
 
-    2. Restart your shell or run 'source ~/.bashrc' to apply the changes.
+     2. Restart your shell or run 'source ~/.bashrc' to apply the changes
+
+    Second Way
+     1. Open the /etc/security/limits.conf file in a text editor: i.e. sudo nano /etc/security/limits.conf
+     2. Add the Configuration
+
+        * hard nofile 65536
+        * soft nofile 65536
+        
+     3. Save and Close the File. 
+     4. Open new terminal or logout and login.
 
 Exit installation ... Exited
 EOF
