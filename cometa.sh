@@ -91,13 +91,12 @@ Instructions to change ulimit :
 
     Second Way
      1. Open the /etc/security/limits.conf file in a text editor: i.e. sudo nano /etc/security/limits.conf
-     2. Add the Configuration
+     2. Add the configuration, save and close the file
 
         * hard nofile 65536
-        * soft nofile 65536
-        
-     3. Save and Close the File. 
-     4. Open new terminal or logout and login.
+        * soft nofile 65536 
+     
+     3. Restart your shell to apply the changes
 
 Exit installation ... Exited
 EOF
