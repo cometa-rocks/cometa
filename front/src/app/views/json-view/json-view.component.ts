@@ -4,14 +4,14 @@ import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALO
 import { ApiService } from "@services/api.service";
 import { NgxJsonViewerModule } from "ngx-json-viewer";
 import { EMPTY, Subject, debounceTime, distinctUntilChanged, switchMap } from "rxjs";
-
+import { CommonModule } from '@angular/common';  
 @Component({
     selector: 'json-viewer',
     templateUrl: './json-view.component.html',
     styleUrls: ['./json-view.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
-    imports: [NgxJsonViewerModule, MatButtonModule]
+    imports: [NgxJsonViewerModule, MatButtonModule,CommonModule]
 })
 export class JsonViewerComponent implements OnInit {
 

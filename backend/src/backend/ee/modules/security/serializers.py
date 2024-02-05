@@ -4,7 +4,6 @@
 
 from rest_framework import serializers
 from .models import ResponseHeaders
-from backend.views import GetUserDepartments
 from backend.models import Department
 
 
