@@ -69,7 +69,50 @@ function checkDocker() {
         error "Either docker daemon is not running or user <${USER}> does not have permissions to use docker."
         info "Please start the docker service or ask your server administrator to add user <${USER}> to 'docker' group."
         exit 5;
+    fi  
+
+    # Get the current ulimit value
+    current_ulimit=$(ulimit -n)
+    
+    info "Ulimit is to $current_ulimit."
+    # Check if ulimit is less than 8192
+    if [ "$current_ulimit" -lt 8192 ]; then
+    error "Current ulimit is $current_ulimit which is not sufficient to run cometa."
+    cat <<EOF 
+
+Instructions to change ulimit:
+    1. Add the following line to your shell configuration file 
+        e.g. In the file ~/.bashrc or ~/.bash_profile add below line
+        
+        ulimit -n 8192
+
+    2. Restart your shell or run 'source ~/.bashrc' to apply the changes.
+
+Exit installation ... Exited
+EOF
+    exit 5;
+    else
+        info "Ulimit is set to 8192. ulimit is sufficient to run cometa "
     fi
+
+    
+    # Minimum required disk space in gigabytes
+    minimum_disk_space=28
+
+    # Get available disk space in gigabytes (using awk to extract the relevant information)
+    available_disk_space=$(df -h . | awk 'NR==2 { print $4 }' | sed 's/G//')
+
+    info "Available disk space: $available_disk_space GB."
+
+    # Check if available disk space is less than the minimum required
+    if (( available_disk_space < minimum_disk_space )); then
+        warning "Warning: Cometa Container normally use around $minimum_disk_space Available disk space is less than $minimum_disk_space GB. Consider freeing up space or upgrade."
+        error "Exit installation ... Exited"
+        exit 5;
+    else
+        info "Disk space is sufficient."
+    fi
+
 
     # check if docker hub is reachable
     if [[ ! $(docker pull "hello-world" ) ]]; then
