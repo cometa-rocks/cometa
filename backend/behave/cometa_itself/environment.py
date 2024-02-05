@@ -5,7 +5,8 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.chromium.options import ChromiumOptions
 
 from selenium.webdriver.common.proxy import Proxy, ProxyType
-import time, requests, json, os, datetime, xml.etree.ElementTree as ET, subprocess, traceback, signal, sys, itertools, glob, logging, re
+import time, requests, json, os, datetime, xml.etree.ElementTree as ET, subprocess, traceback, signal, sys, itertools, \
+    glob, logging, re
 
 from pprint import pprint, pformat
 from pathlib import Path
@@ -13,6 +14,7 @@ from slugify import slugify
 import hashlib
 import os, pickle
 from selenium.common.exceptions import InvalidCookieDomainException
+
 # just to import secrets
 sys.path.append("/code")
 from src.backend.utility.functions import *
@@ -43,15 +45,17 @@ DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
 S3ENABLED = getattr(secret_variables, 'COMETA_S3_ENABLED', False)
 ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
 
+
 # handle SIGTERM when user stops the testcase
 def stopExecution(signum, frame, context):
     logger.warn("SIGTERM Found, will stop the session")
     context.aborted = True
 
-# check if context has a variable 
+
+# check if context has a variable
 def error_handling(*_args, **_kwargs):
     def decorator(fn):
-        def decorated(*args, **kwargs):       
+        def decorated(*args, **kwargs):
             if 'FEATURE_FAILED' not in os.environ or os.environ['FEATURE_FAILED'] != "True":
                 try:
                     result = fn(*args, **kwargs)
@@ -63,8 +67,10 @@ def error_handling(*_args, **_kwargs):
 
                     # remove the feature_result if it was created
                     if "feature_result_id" in os.environ:
-                        response = requests.delete('http://cometa_django:8000/api/feature_results/%s' % os.environ['feature_result_id'], headers={'Host': 'cometa.local'})
-                        
+                        response = requests.delete(
+                            'http://cometa_django:8000/api/feature_results/%s' % os.environ['feature_result_id'],
+                            headers={'Host': 'cometa.local'})
+
                     # let the front user know that the feature has been failed
                     logger.debug("Sending a error websocket....")
                     request = requests.post('http://cometa_socket:3001/feature/%s/error' % args[0].feature_id, data={
@@ -75,25 +81,28 @@ def error_handling(*_args, **_kwargs):
                         "error": str(err),
                         "user_id": args[0].PROXY_USER['user_id']
                     })
-                    
+
                     # let behave know that feature has been failed
                     os.environ['FEATURE_FAILED'] = "True"
                     args[0].failed = True
-                    
+
                     # fail the feature
                     raise AssertionError(str(err))
             else:
                 logger.debug("Feature has already been failed please check the output above..")
+
         return decorated
+
     return decorator
+
 
 def parseVariables(text, variables):
     def decrypted_value(variable_name):
         variable = next((var for var in variables if var['variable_name'] == variable_name), None)
         if not variable:
             return False
-        if variable['variable_value'].startswith(ENCRYPTION_START): # encrypted variable.
-            return '[ENCRYPTED]' # return False in case we want to show the variable name it self.
+        if variable['variable_value'].startswith(ENCRYPTION_START):  # encrypted variable.
+            return '[ENCRYPTED]'  # return False in case we want to show the variable name it self.
 
         return variable['variable_value']
 
@@ -105,6 +114,7 @@ def parseVariables(text, variables):
 
     variable_pattern = r'\$\{?(.+?)(?:\}|\b)'
     return re.sub(variable_pattern, replaceVariable, text)
+
 
 @error_handling()
 def before_all(context):
@@ -119,12 +129,13 @@ def before_all(context):
     execution_data_file = os.environ.get('execution_data', None)
     if not execution_data_file:
         raise Exception("No data found ... no details about the feature provided.")
-    
+
     with open(execution_data_file, 'rb') as file:
         execution_data = pickle.load(file)
 
     # create index counter for steps
-    context.counters = {"total": 0, "ok": 0, "nok": 0, 'index': 0, 'pixel_diff': 0} # failed and skipped can be found from the junit summary.
+    context.counters = {"total": 0, "ok": 0, "nok": 0, 'index': 0,
+                        'pixel_diff': 0}  # failed and skipped can be found from the junit summary.
     logger.debug('context.counters set to: {}'.format(pformat(context.counters)))
     # set feature file path
     context.filepath = os.environ['FEATURE_FILE']
@@ -144,9 +155,9 @@ def before_all(context):
     # get the connection URL for the browser
     connection_url = os.environ['CONNECTION_URL']
     # set loop settings
-    context.insideLoop = False # meaning we are inside a loop
-    context.jumpLoopIndex = 0 # meaning how many indexes we need to jump after loop is finished
-    context.executedStepsInLoop = 0 # how many steps have been executed inside a loop
+    context.insideLoop = False  # meaning we are inside a loop
+    context.jumpLoopIndex = 0  # meaning how many indexes we need to jump after loop is finished
+    context.executedStepsInLoop = 0  # how many steps have been executed inside a loop
 
     # Get MD5 from browser information - we preserve this piece of code to be able to migrate style images of previous version
     browser_code = '%s-%s' % (context.browser_info['browser'], context.browser_info['browser_version'])
@@ -170,9 +181,11 @@ def before_all(context):
     # Set root folder of screenshots
     context.SCREENSHOTS_ROOT = '/opt/code/screenshots/'
     # Construct screenshots path for saving images
-    context.SCREENSHOTS_PATH = context.SCREENSHOTS_ROOT + '%s/%s/%s/%s/' % (str(data['feature_id']), str(run_id), str(os.environ['feature_result_id']), context.RUN_HASH)
+    context.SCREENSHOTS_PATH = context.SCREENSHOTS_ROOT + '%s/%s/%s/%s/' % (
+    str(data['feature_id']), str(run_id), str(os.environ['feature_result_id']), context.RUN_HASH)
     # Construct templates path for saving or getting styles
-    context.TEMPLATES_PATH = context.SCREENSHOTS_ROOT + 'templates/%s/%s/' % (str(data['feature_id']), context.BROWSER_KEY)
+    context.TEMPLATES_PATH = context.SCREENSHOTS_ROOT + 'templates/%s/%s/' % (
+    str(data['feature_id']), context.BROWSER_KEY)
     # Make sure all screenshots and templates folders exists
     Path(context.SCREENSHOTS_PATH).mkdir(parents=True, exist_ok=True)
     Path(context.TEMPLATES_PATH).mkdir(parents=True, exist_ok=True)
@@ -181,7 +194,7 @@ def before_all(context):
 
     # HTML Comparing
     # Set and create the folder used to store and compare HTML step snapshots
-    context.HTML_PATH='/opt/code/html/'
+    context.HTML_PATH = '/opt/code/html/'
     Path(context.HTML_PATH).mkdir(parents=True, exist_ok=True)
 
     context.feature_info = data
@@ -191,7 +204,7 @@ def before_all(context):
     # save the continue on failure for feature to the context
     context.feature_continue_on_failure = data.get('continue_on_failure', False)
 
-    payload={
+    payload = {
         "user_id": context.PROXY_USER['user_id'],
         "browser_info": os.environ['BROWSER_INFO'],
         "feature_result_id": os.environ['feature_result_id'],
@@ -201,8 +214,9 @@ def before_all(context):
     request = requests.get('http://cometa_socket:3001/feature/%s/initializing' % str(context.feature_id), data=payload)
 
     # browser data
-    context.cloud = context.browser_info.get("cloud", "browserstack") # default it back to browserstack incase it is not set.
-    
+    context.cloud = context.browser_info.get("cloud",
+                                             "browserstack")  # default it back to browserstack incase it is not set.
+
     # video recording on or off
     context.record_video = data['video'] if 'video' in data else True
 
@@ -215,8 +229,8 @@ def before_all(context):
         # https://github.com/stephen-fox/chrome-docker/issues/8
         # read more about chrome options:
         # https://peter.sh/experiments/chromium-command-line-switches/
-        options.add_argument("--disable-dev-shm-usage")   
-        
+        options.add_argument("--disable-dev-shm-usage")
+
         # Handle local emulated mobile devices
         if context.browser_info.get('mobile_emulation', False):
             mobile_emulation = {
@@ -228,7 +242,7 @@ def before_all(context):
                 'userAgent': context.browser_info.get('mobile_user_agent', '')
             }
             options.add_experimental_option("mobileEmulation", mobile_emulation)
-    
+
     if context.browser_info['browser'] == 'opera':
         # Opera does not support Selenium 4 W3C Protocol by default
         # force it by adding a experimental option
@@ -251,11 +265,12 @@ def before_all(context):
         'screenResolution': '1920x1080x24',
         'enableVideo': context.record_video,
         'sessionTimeout': '30m',
-        'timeZone': 'Etc/UTC', # based on the user settings maybe it can be updated/changed
+        'timeZone': 'Etc/UTC',  # based on the user settings maybe it can be updated/changed
         'labels': {
             'by': 'COMETA ROCKS'
         },
-        's3KeyPattern': '$sessionId/$fileType$fileExtension' # previously used for s3 which is not currently being used.
+        's3KeyPattern': '$sessionId/$fileType$fileExtension'
+        # previously used for s3 which is not currently being used.
     }
 
     # add cloud/provider capabilities to the
@@ -263,7 +278,7 @@ def before_all(context):
     options.set_capability('selenoid:options', selenoid_capabilities)
     options.add_argument('--enable-logging')
     options.add_argument('--log-level=0')
-    options.set_capability('goog:loggingPrefs', {'browser': 'ALL','performance': 'ALL' })
+    options.set_capability('goog:loggingPrefs', {'browser': 'ALL', 'performance': 'ALL'})
 
     # proxy configuration
     if PROXY_ENABLED and PROXY:
@@ -274,7 +289,7 @@ def before_all(context):
             "httpProxy": PROXY,
             "sslProxy": PROXY,
             "noProxy": None,
-            "proxyType": "manual", # case sensitive
+            "proxyType": "manual",  # case sensitive
             "class": "org.openqa.selenium.Proxy",
             "autodetect": False
         })
@@ -301,10 +316,12 @@ def before_all(context):
         'feature_id': context.feature_id,
         'pid': str(os.getpid())
     }
-    response = requests.post('http://cometa_django:8000/updateTask/', headers={'Host': 'cometa.local'}, data=json.dumps(task))
-    
+    response = requests.post('http://cometa_django:8000/updateTask/', headers={'Host': 'cometa.local'},
+                             data=json.dumps(task))
+
     logger.info('\33[92mRunning feature...\33[0m')
-    logger.info('\33[94mGetting browser context on \33[92m%s Version: %s\33[0m' % (str(context.browser_info['browser']), str(context.browser_info['browser_version'])))
+    logger.info('\33[94mGetting browser context on \33[92m%s Version: %s\33[0m' % (
+    str(context.browser_info['browser']), str(context.browser_info['browser_version'])))
     logger.info("Checking environment to run on: {}".format(context.cloud))
 
     logger.debug('Driver Capabilities: {}'.format(options.to_capabilities()))
@@ -329,14 +346,15 @@ def before_all(context):
     requests.patch('http://cometa_django:8000/api/feature_results/', json=data, headers=headers)
 
     # get all the steps from django
-    response = requests.get('http://cometa_django:8000/steps/%s/?subSteps=True' % context.feature_id, headers={"Host": "cometa.local"})
+    response = requests.get('http://cometa_django:8000/steps/%s/?subSteps=True' % context.feature_id,
+                            headers={"Host": "cometa.local"})
     # save the steps to environment variable
     os.environ['STEPS'] = json.dumps(response.json()['results'])
 
     # update counters total
     context.counters['total'] = len(response.json()['results'])
     os.environ['total_steps'] = str(context.counters['total'])
-    
+
     # send a websocket request about that feature has been started
     request = requests.get('http://cometa_socket:3001/feature/%s/started' % context.feature_id, data={
         "user_id": context.PROXY_USER['user_id'],
@@ -348,10 +366,13 @@ def before_all(context):
 
     logger.info("Processing done ... will continue with the steps.")
 
+
 # Get video url with context of browser
 def get_video_url(context):
     # get the video url from browserstack backend
-    bsSessionRequest = requests.get("https://api.browserstack.com/automate/sessions/" + str(context.browser.session_id) + ".json", auth=requests.auth.HTTPBasicAuth(BROWSERSTACK_USERNAME, BROWSERSTACK_PASSWORD))
+    bsSessionRequest = requests.get(
+        "https://api.browserstack.com/automate/sessions/" + str(context.browser.session_id) + ".json",
+        auth=requests.auth.HTTPBasicAuth(BROWSERSTACK_USERNAME, BROWSERSTACK_PASSWORD))
     return bsSessionRequest.json()['automation_session'].get('video_url', None)
 
 
@@ -361,13 +382,13 @@ def after_all(context):
     del os.environ['total_steps']
     # check if any alertboxes are open before quiting the browser
     try:
-        while(context.browser.switch_to.alert):
+        while (context.browser.switch_to.alert):
             logger.debug("Found an open alert before shutting down the browser...")
             alert = context.browser.switch_to.alert
             alert.dismiss()
     except:
         logger.debug("No alerts found ... before shutting down the browser...")
-    
+
     try:
         # for some reasons this throws error when running on browserstack with safari
         if context.cloud == "local":
@@ -386,9 +407,8 @@ def after_all(context):
         "feature_result_id": os.environ['feature_result_id'],
         "run_id": os.environ['feature_run'],
         "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-    }) 
-    
-   
+    })
+
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None
     if context.record_video:
@@ -407,18 +427,21 @@ def after_all(context):
             pass
         else:
             if S3ENABLED:
-                S3ENDPOINT=getattr(secret_variables, 'COMETA_S3_ENDPOINT', False)
-                S3BUCKETNAME=getattr(secret_variables, 'COMETA_S3_BUCKETNAME', False)
+                S3ENDPOINT = getattr(secret_variables, 'COMETA_S3_ENDPOINT', False)
+                S3BUCKETNAME = getattr(secret_variables, 'COMETA_S3_BUCKETNAME', False)
                 if S3ENDPOINT and S3BUCKETNAME:
                     bsVideoURL = "%s/%s/%s/video.mp4" % (S3ENDPOINT, S3BUCKETNAME, context.browser.session_id)
                 else:
-                    logger.error("S3 is enabled but COMETA_S3_ENDPOINT and COMETA_S3_BUCKETNAME seems to be empty ... please check.")
+                    logger.error(
+                        "S3 is enabled but COMETA_S3_ENDPOINT and COMETA_S3_BUCKETNAME seems to be empty ... please check.")
             else:
                 bsVideoURL = "/videos/%s.mp4" % context.browser.session_id
     # load feature into data
     data = json.loads(os.environ['FEATURE_DATA'])
     # junit file path for the executed testcase
-    xmlFilePath = '/opt/code/department_data/%s/%s/%s/junit_reports/TESTS-features.%s_%s.xml' % (slugify(data['department_name']), slugify(data['app_name']), data['environment_name'], context.feature_id, slugify(data['feature_name']))
+    xmlFilePath = '/opt/code/department_data/%s/%s/%s/junit_reports/TESTS-features.%s_%s.xml' % (
+    slugify(data['department_name']), slugify(data['app_name']), data['environment_name'], context.feature_id,
+    slugify(data['feature_name']))
     logger.debug("xmlFilePath: %s" % xmlFilePath)
     # load the file using XML parser
     xmlFile = ET.parse(xmlFilePath).getroot()
@@ -455,7 +478,7 @@ def after_all(context):
         stderr = testcase.find("./failure").text
         if testcase.find("./failure").attrib['message'] == "'aborted'":
             data['status'] = "Canceled"
-    
+
     # get the system output from the xmlfile
     stdout = testcase.find("./system-out").text
 
@@ -480,35 +503,38 @@ def after_all(context):
     headers = {'Content-type': 'application/json', 'Host': 'cometa.local'}
     # send the patch request
     requests.patch('http://cometa_django:8000/api/feature_results/', json=data, headers=headers)
-    
-    logger.debug('\33[92m'+'FeatureResult ran successfully!'+'\33[0m')
-    
+
+    logger.debug('\33[92m' + 'FeatureResult ran successfully!' + '\33[0m')
+
     # get the final result for the feature_result
-    request_info = requests.get("http://cometa_django:8000/api/feature_results/%s" % os.environ['feature_result_id'], headers=headers)
+    request_info = requests.get("http://cometa_django:8000/api/feature_results/%s" % os.environ['feature_result_id'],
+                                headers=headers)
     requests.post('http://cometa_socket:3001/feature/%s/finished' % context.feature_id, data={
-            "user_id": context.PROXY_USER['user_id'],
-            "browser_info": json.dumps(context.browser_info),
-            "feature_result_id": os.environ['feature_result_id'],
-            "run_id": os.environ['feature_run'],
-            "feature_result_info": json.dumps(request_info.json()['result']),
-            "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
-        })
-    if hasattr(context,"vulnerability_headers"):
+        "user_id": context.PROXY_USER['user_id'],
+        "browser_info": json.dumps(context.browser_info),
+        "feature_result_id": os.environ['feature_result_id'],
+        "run_id": os.environ['feature_run'],
+        "feature_result_info": json.dumps(request_info.json()['result']),
+        "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    })
+    if hasattr(context, "vulnerability_headers"):
         logger.info("Sending vulnerability_headers ")
         # request to save vulnerable network headers
-        response = requests.post("http://cometa_django:8000/security/network_headers/", headers=headers, data=json.dumps({
-            "result_id": os.environ['feature_result_id'],
-            "vulnerable_headers_info": context.vulnerability_headers,
-            "headers_count": len(context.vulnerability_headers)
-        }))
+        response = requests.post("http://cometa_django:8000/security/network_headers/", headers=headers,
+                                 data=json.dumps({
+                                     "result_id": os.environ['feature_result_id'],
+                                     "vulnerable_headers_info": context.vulnerability_headers,
+                                     "headers_count": len(context.vulnerability_headers)
+                                 }))
         if response.status_code == 201:
             logger.debug("Vulnerability Headers Saved ")
         else:
             logger.debug(f"Error while saving Vulnerability Headers : {json.dumps(response.json())}")
     # send mail
-    sendemail = requests.get('http://cometa_django:8000/pdf/?feature_result_id=%s' % os.environ['feature_result_id'], headers={'Host': 'cometa.local'})
-    logger.debug('SendEmail status: '+str(sendemail.status_code))
-    
+    sendemail = requests.get('http://cometa_django:8000/pdf/?feature_result_id=%s' % os.environ['feature_result_id'],
+                             headers={'Host': 'cometa.local'})
+    logger.debug('SendEmail status: ' + str(sendemail.status_code))
+
     # remove download folder if no files where downloaded during the testcase
     downloadedFiles = glob.glob(context.downloadDirectoryOutsideSelenium + "/*")
     if len(downloadedFiles) == 0:
@@ -531,7 +557,8 @@ def after_all(context):
         'feature_id': context.feature_id,
         'pid': str(os.getpid())
     }
-    response = requests.post('http://cometa_django:8000/updateTask/', headers={'Host': 'cometa.local'}, data=json.dumps(task))
+    response = requests.post('http://cometa_django:8000/updateTask/', headers={'Host': 'cometa.local'},
+                             data=json.dumps(task))
 
 
 @error_handling()
@@ -573,15 +600,16 @@ def before_step(context, step):
     })
 
 
-def find_vulnerable_headers(context, step_index)->int:
+def find_vulnerable_headers(context, step_index) -> int:
     try:
-        header_info = []
+        network_responses = []
         performance_logs = context.browser.get_log('performance')
         logger.debug(f"Performance logs received Count is : {len(performance_logs)}")
-        # filter vulnerable_headers from a single response header list and return 
+
+        # filter vulnerable_headers from a single response header list and return
         def filter_vulnerability_headers(headers: dict) -> list:
             # Add all headers in lower case for matching 
-            list_of_vulnerable_headers = ["server", "x-powered-by", "x-aspnet-version", "x-aspnetmvc-version"] 
+            list_of_vulnerable_headers = ["server", "x-powered-by", "x-aspnet-version", "x-aspnetmvc-version"]
             # List of header if they found to be vulnerable 
             vulnerable_header_names = []
             for header_name, header_value in headers.items():
@@ -592,8 +620,10 @@ def find_vulnerable_headers(context, step_index)->int:
                     vulnerable_header_names.append({header_name: header_value})
 
             return vulnerable_header_names
-        # performance_logs is list of network requests and responses url and header information 
+
+        # performance_logs is list of network requests and responses url and header information
         logger.debug(f"Response header analysis Started for current Step")
+        vulnerability_headers_count = 0
         for logs in performance_logs:
             # message.message is string json covert so parse json
             information = json.loads(logs['message'])["message"]
@@ -605,33 +635,37 @@ def find_vulnerable_headers(context, step_index)->int:
                 # check and filter for vur vulnerability_headers
                 # logger.debug(f"Processing respose headers ")
                 vulnerable_headers = filter_vulnerability_headers(response['headers'])
-                # check if request has some vulnerable_headers then add that to header_info 
+                # check if request has some vulnerable_headers then add that to network_responses
                 # logger.debug(f"Found vulnerable headers ")
-                if len(vulnerable_headers)>0:
-                    header_info.append({
-                        "status": response['status'],
-                        # "headers": response['headers'],
+                if len(vulnerable_headers) > 0:
+                    vulnerability_headers_count += 1
+                if len(vulnerable_headers) > 0:
+                    network_responses.append({
+                        "response": response,
                         "vulnerable_headers": vulnerable_headers,
-                        "url": response['url'],
                     })
         # Check if context contains vulnerability_headers list yes then append to that list 
         logger.debug(f"Response header analysis completed for current Step {step_index}")
         if hasattr(context, "vulnerability_headers"):
             context.vulnerability_headers.append({
                 "step_id": step_index,
-                "vulnerable_headers":header_info
+                "network_responses": network_responses,
+                "vulnerability_headers_count":vulnerability_headers_count
             })
-        else:    
-        # if dose not have attribute vulnerability_headers then initilze list add vulnerability headers
+        else:
+            # if it does not have attribute vulnerability_headers then initilze list add vulnerability headers
             context.vulnerability_headers = [{
                 "step_id": 5,
-                "vulnerable_headers":header_info
+                "network_responses": network_responses,
+                "vulnerability_headers_count": vulnerability_headers_count
+
             }]
         # Return number of vernability headers 
         logger.debug(f"Return header info : {len(context.vulnerability_headers)}")
-        return len(header_info)
+        return vulnerability_headers_count
     except Exception as e:
         logger.exception(e)
+
 
 @error_handling()
 def after_step(context, step):
@@ -655,10 +689,10 @@ def after_step(context, step):
     vulnerable_headers_count = 0
     try:
         # vulnerable_headers_count = find_vulnerable_headers(context=context)
-        vulnerable_headers_count = find_vulnerable_headers(context=context,step_index=index)
+        vulnerable_headers_count = find_vulnerable_headers(context=context, step_index=index)
     except Exception as e:
         logger.exception(e)
-        
+
     # get step error
     step_error = None
     if 'custom_error' in context.step_data and context.step_data['custom_error'] is not None:
@@ -678,8 +712,8 @@ def after_step(context, step):
         'step_time': step.duration,
         'error': step_error,
         'belongs_to': context.step_data['belongs_to'],
-        'screenshots': json.dumps(screenshots), # load screenshots object
-        'vulnerable_headers_count' : vulnerable_headers_count 
+        'screenshots': json.dumps(screenshots),  # load screenshots object
+        'vulnerable_headers_count': vulnerable_headers_count
     })
 
     # update countes
@@ -694,7 +728,7 @@ def after_step(context, step):
         context.counters['ok'] += 1
     else:
         context.counters['nok'] += 1
-    
+
     # Cleanup variables
     keys = [
         'DB_CURRENT_SCREENSHOT',

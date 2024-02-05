@@ -1,5 +1,8 @@
 # Import all models and all the utility methods
 from itertools import islice
+
+from backend.ee.modules.security.models import ResponseHeaders
+from backend.ee.modules.security.serializers import ResponseHeadersSerializer
 from backend.models import *
 # Import all serializers
 from backend.serializers import *
@@ -1986,12 +1989,23 @@ class StepResultViewSet(viewsets.ModelViewSet):
             # if feature_result_id was found in the url
             # find all the step_results related to specified feature_result
             queryset = Step_result.objects.filter(feature_result_id=feature_result_id).order_by('step_result_id')
+            response_headers = ResponseHeaders.objects.filter(result_id=feature_result_id)
             # get the amount of data per page using the queryset
             page = self.paginate_queryset(queryset)
             # serialize the data
             serializer = StepResultSerializer(page, many=True)
+            step_result = serializer.data
+            # Checking if step has some response stored
+            if len(response_headers) > 0:
+                response_headers = ResponseHeadersSerializer(response_headers[0])
+                logger.debug("Adding network response to steps")
+                for i,step in enumerate(response_headers.data['vulnerable_headers_info']):
+                    step_result[i]['network_response'] = step.get('network_responses')
+                    step_result[i]['vulnerability_headers_count'] = step.get('vulnerability_headers_count')
+                    logger.debug(step_result)
+
             # return the data with count, next and previous pages.
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_response(step_result)
 
         # get step_result_id from the url if passed means
         # that user wants to only see that particular step_result
