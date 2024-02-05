@@ -10,7 +10,7 @@ from backend.models import (
 from django.db import models
 from datetime import datetime
 
-
+# This Model contains all the network reponse which was received while receiving response
 class ResponseHeaders(SoftDeletableModel):
     id = models.AutoField(primary_key=True)
     result_id = models.OneToOneField(Feature_result, related_name="result_id", on_delete=models.CASCADE,

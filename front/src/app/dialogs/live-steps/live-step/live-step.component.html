@@ -33,7 +33,7 @@
     </div>
     <div class="screenshot" *ngIf="this.vulnerable_headers_count; else hyphen">
         <i class="api_call" matTooltip="Security Vulnerability | {{this.vulnerable_headers_count}} Requests response has vulnerable headers values, refer to execution reports for details" matTooltipPosition="above">
-            <mat-icon [ngStyle]="{'color':'red'}">report_problem</mat-icon>
+            <mat-icon [ngStyle]="{'color':'red'}">report_problem</mat-icon> 
         </i>
     </div>
     <ng-template #hyphen>

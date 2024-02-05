@@ -4,7 +4,6 @@ import traceback
 from django.http import JsonResponse
 from rest_framework.permissions import AllowAny
 
-from backend.views import GetUserDepartments
 from .serializers import ResponseHeadersSerializer
 from .models import ResponseHeaders
 from rest_framework.viewsets import ModelViewSet
@@ -19,7 +18,7 @@ class ResponseHeadersViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         try:
-            # Add department in the filter
+             # Add department in the filter
             instance = ResponseHeaders.objects.get(result_id=int(kwargs['pk']))
             serializer = self.get_serializer(instance)
             return JsonResponse(serializer.data)
