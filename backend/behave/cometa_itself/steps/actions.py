@@ -517,7 +517,7 @@ def takeScreenshot(context, step_id):
 
     # check if an alert box exists
     try:
-        context.browser.switch_to_alert()
+        context.browser.switch_to.alert
         logger.debug("Alert found ... if we take a screenshot now the alert box will be ignored...")
     except Exception as err:
         # create the screenshot
@@ -1045,7 +1045,7 @@ def test_folder(context, parameters = {}):
         iframe = context.browser.find_elements(By.CSS_SELECTOR,  'iframe:nth-child(2), .ViewerContainer iframe' )
         if len(iframe) > 0:
             logger.debug('Switched to iframe')
-            context.browser.switch_to_frame( iframe[0] )
+            context.browser.switch_to.frame( iframe[0] )
             had_iframe = True
         # Automatically fill all necessary prompts
         logger.debug("Check for filling prompt with magic")
@@ -1065,7 +1065,7 @@ def test_folder(context, parameters = {}):
 
             # switch content
             logger.debug("Try switching to default content")
-            context.browser.switch_to_default_content()
+            context.browser.switch_to.default_content()
 
             # try closing the report view
             logger.debug("Trying to close report view")
@@ -1082,7 +1082,7 @@ def test_folder(context, parameters = {}):
             logger.debug("Waiting for iFrame to render IBM Cognos content")
             wait_for_element_text(context, 'body.viewer table, .clsViewerPage')
             logger.debug("Try switching to default content")
-            context.browser.switch_to_default_content()
+            context.browser.switch_to.default_content()
         else:
             logger.debug("Waiting for IBM Cognos pageViewContent")
             wait_for_element_text(context, '.pageViewContent')
@@ -1176,7 +1176,7 @@ def test_folder_aso(context, parameters = {}):
             iframe = []
         if len(iframe) > 0:
             logger.debug('Switched to iframe')
-            context.browser.switch_to_frame( iframe[0] )
+            context.browser.switch_to.frame( iframe[0] )
             had_iframe = True
         else:
             # check if there is a loader displayed
@@ -1209,7 +1209,7 @@ def test_folder_aso(context, parameters = {}):
 
             # switch content
             logger.debug("Try switching to default content")
-            context.browser.switch_to_default_content()
+            context.browser.switch_to.default_content()
 
             # try closing the report view
             logger.debug("Trying to close report view")
@@ -1226,7 +1226,7 @@ def test_folder_aso(context, parameters = {}):
             logger.debug("Waiting for iFrame to render IBM Cognos content")
             wait_for_element_text(context, 'body.viewer table, .clsViewerPage')
             logger.debug("Try switching to default content")
-            context.browser.switch_to_default_content()
+            context.browser.switch_to.default_content()
         # else:
             # logger.debug("Waiting for IBM Cognos pageViewContent")
             # wait_for_element_text(context, '.pageViewContent')
@@ -1308,7 +1308,7 @@ def step_impl(context, foldername):
             time.sleep(0.1)
             current_value = context.browser.window_handles
             looper=looper+1
-            context.browser.switch_to_window(context.browser.window_handles[-1])
+            context.browser.switch_to.window(context.browser.window_handles[-1])
 
         try:
             element = WebDriverWait(context.browser, 30).until(
@@ -1342,7 +1342,7 @@ def step_impl(context, foldername):
         time.sleep(1.5)
         context.browser.close()
         time.sleep(0.5)
-        context.browser.switch_to_window(context.browser.window_handles[0])
+        context.browser.switch_to.window(context.browser.window_handles[0])
         time.sleep(0.5)
 
 # Change Language depending on the version of Cognos
@@ -1545,13 +1545,13 @@ def step_impl(context,linktext):
 @step(u'I can switch to new Window')
 @done(u'I can switch to new Window')
 def step_impl(context):
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
 
 # Switches to the main Window/Tab
 @step(u'I can switch to main Window')
 @done(u'I can switch to main Window')
 def step_impl(context):
-    context.browser.switch_to_window(context.browser.window_handles[0])
+    context.browser.switch_to.window(context.browser.window_handles[0])
 
 # Switches to a iframe tag inside the document within the specified ID
 @step(u'I can switch to iFrame with id "{iframe_id}"')
@@ -1562,18 +1562,19 @@ def step_impl(context,iframe_id):
         try:
             # Try getting iframe by iframe_id as text
             iframe = context.browser.find_element(By.ID,  iframe_id )
-            context.browser.switch_to_frame( iframe.get_attribute('id') )
+            context.browser.switch_to.frame( iframe )
             return True
         except:
             # failed switching to ID .. try overloading
             # Added method overloading with error handling by Ralf
             # Get total iframe count on current page source
-            iframe_count = len(context.browser.find_elements(By.TAG_NAME, 'iframe'))
+            iframes = context.browser.find_elements(By.TAG_NAME, 'iframe')
+            iframes_count = len(iframes)
             if isINT(iframe_id):
                 iframe_id = int(iframe_id) - 1 # since the index for iFrames ids starts at 0
-                if iframe_id <= iframe_count:
+                if iframe_id <= iframes_count:
                     # Try getting iframe by iframe_id as index (int)
-                    context.browser.switch_to_frame( iframe_id )
+                    context.browser.switch_to.frame( iframes[iframe_id] )
                     return True
         time.sleep(1)
 
@@ -1584,14 +1585,13 @@ def step_impl(context,iframe_name):
     send_step_details(context, 'Looking for selector')
     iframe = waitSelector(context, "name", iframe_name )
     send_step_details(context, 'Switching to iframe')
-    context.browser.switch_to_frame( iframe.get_attribute('name') )
-
+    context.browser.switch_to.frame( iframe.get_attribute('name') )
 
 # Changes the testing context to the main document in the current Tab/Window, similar to using window.top
 @step(u'I switch to defaultContent')
 @done(u'I switch to defaultContent')
 def step_impl(context):
-    context.browser.switch_to_default_content()
+    context.browser.switch_to.default_content()
 
 # Checks if can click on a button with the specified text or attribute text, e.g. //button[.="'+button_name+'"] | //button[@*="'+button_name+'"]
 @step(u'I can click on button "{button_name}"')
@@ -2089,7 +2089,7 @@ def step_impl(context):
     time.sleep(1.5)
     context.browser.close()
     time.sleep(0.5)
-    context.browser.switch_to_window(context.browser.window_handles[0])
+    context.browser.switch_to.window(context.browser.window_handles[0])
     time.sleep(0.5)
 
 # Throws an error with a custom message and stops feature execution
@@ -2114,19 +2114,19 @@ def step_impl(context, selector):
         raise CustomError("Found a coincidence with css selector for %s" % selector)
 
 def sort_column(context, column_name, reverse=False):
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     iframe = waitSelector(context, "name", "reportIFrame" )
-    context.browser.switch_to_frame( iframe.get_attribute('name') )
+    context.browser.switch_to.frame( iframe.get_attribute('name') )
     elem = waitSelector(context, "xpath", "//td/span[text()='"+column_name+"']")
     elem[0].click()
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     elem = waitSelector(context, "css", "button[title='Sort']")
     elem[0].click()
     send_step_details(context, 'Requesting sorting of column - waiting for iFrame to appear')
     # wait for report to be ready
     time.sleep(2)
     iframe = waitSelector(context, "name", "reportIFrame" )
-    context.browser.switch_to_frame( iframe.get_attribute('name') )
+    context.browser.switch_to.frame( iframe.get_attribute('name') )
     # sleep 100ms to give browser time to react and switch to the iFrame
     time.sleep(.1)
     send_step_details(context, 'Found iFrame - waiting for content to appear')
@@ -2134,15 +2134,15 @@ def sort_column(context, column_name, reverse=False):
     # Click again on sort icon, if reverse sort was selected
     send_step_details(context, 'Found content - checking on reverse sorting')
     if reverse:
-        context.browser.switch_to_window(context.browser.window_handles[-1])
+        context.browser.switch_to.window(context.browser.window_handles[-1])
         elem = waitSelector(context, "css", "button[title='Sort']")
         elem[0].click()
         iframe = waitSelector(context, "name", "reportIFrame" )
-        context.browser.switch_to_frame( iframe.get_attribute('name') )
+        context.browser.switch_to.frame( iframe.get_attribute('name') )
         # sleep 100ms to give browser time to react and switch to the iFrame
         time.sleep(.1)
         elem = waitSelector(context, "xpath", "//td/span[text()='"+column_name+"']")
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     send_step_details(context, 'Sorting on this column done - looping over next column')
 
 # Sort a QueryStudio table by a given column name
@@ -2150,7 +2150,7 @@ def sort_column(context, column_name, reverse=False):
 @done(u'I can sort QueryStudio table column with "{column_name}"')
 def step_impl(context, column_name):
     links=column_name.split(";")
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     for x in links:
         # check that x is not empty
         if not x:
@@ -2165,7 +2165,7 @@ def step_impl(context, column_name):
 def step_impl(context, column_name):
     # now we can split
     links=column_name.split(";")
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     # loop over columns
     for x in links:
         # check that x is not empty
@@ -2215,14 +2215,14 @@ def step_impl(context, column_name):
         logger.info("Column %s waiting for report to be ready" % x )
         logger.info("=============================================")
         iframe = waitSelector(context, "name", "reportIFrame" )
-        context.browser.switch_to_frame( iframe.get_attribute('name') )
+        context.browser.switch_to.frame( iframe.get_attribute('name') )
         elem = waitSelector(context,"xpath", "//td/span[text()=\""+x+"\"]" )
 
         # handle special flag sort column
         if sort:
             sort_column(context, x,reverse)
 
-        context.browser.switch_to_window(context.browser.window_handles[-1])
+        context.browser.switch_to.window(context.browser.window_handles[-1])
 
         # wait for iFrame to contain the timestamp only if column should stay in report which means the page is ready
         if not keep:
@@ -2230,22 +2230,22 @@ def step_impl(context, column_name):
             logger.info("Keeping column waiting for report to be ready")
             logger.info("=============================================")
             iframe = waitSelector(context, "name", "reportIFrame" )
-            context.browser.switch_to_frame( iframe.get_attribute('name') )
+            context.browser.switch_to.frame( iframe.get_attribute('name') )
             elem = waitSelector(context, "xpath", "//td[@class='pf']")
             elem[0].click();
-            context.browser.switch_to_window(context.browser.window_handles[-1])
+            context.browser.switch_to.window(context.browser.window_handles[-1])
 
 # Add a filter name to a QueryStudio table
 @step(u'I can add an filter with "{filter_name}" to QueryStudio table')
 @done(u'I can add an filter with "{filter_name}" to QueryStudio table')
 def step_impl(context, filter_name):
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     elem = waitSelector(context, "link_text", filter_name)
     elem[0].click()
     elem = waitSelector(context, "css", ".dialogButtonText")
     elem[0].click()
     iframe = waitSelector(context, "id", "dialogIFrame" )
-    context.browser.switch_to_frame( iframe.get_attribute('id') )
+    context.browser.switch_to.frame( iframe )
     if context.browser.find_elements(By.LINK_TEXT, "OK"):
         elem = context.browser.find_elements(By.LINK_TEXT, "OK")
         elem[0].click()
@@ -2266,17 +2266,17 @@ def step_impl(context, column_name, filter_value):
         column_name = name_split[0]
         missingFilter=True
         missing=name_split[1]
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     iframe = waitSelector(context, "name", "reportIFrame" )
-    context.browser.switch_to_frame( iframe.get_attribute('name') )
+    context.browser.switch_to.frame( iframe.get_attribute('name') )
     elem = waitSelector(context, "xpath", "//td/span[text()='"+column_name+"']")
     elem[0].click()
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     elem = waitSelector(context, "css", "button[title='Filter']")
     elem[0].click()
     time.sleep(2)
     iframe = waitSelector(context, "id", "dialogIFrame" )
-    context.browser.switch_to_frame( iframe.get_attribute('id') )
+    context.browser.switch_to.frame( iframe )
     if missingFilter:
         elem = waitSelector(context, "xpath", "//a[text()='Missing values']")
         elem[0].click()
@@ -2337,9 +2337,9 @@ def step_impl(context, column_name, filter_value):
             logger.debug("Number of OK elements found: %d with timer %d" % (len(elem), timer))
         time.sleep(1)
         timer -=1
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     iframe = waitSelector(context, "name", "reportIFrame" )
-    context.browser.switch_to_frame( iframe.get_attribute('name') )
+    context.browser.switch_to.frame( iframe )
     # Wait for filter value to appear
     logger.debug("Waiting for filter item to appear in Querystudio report with max. retries: %ds " % MAXRETRIES)
     elem = waitSelector(context, "class", "filterSubtitleStyle" )
@@ -2349,16 +2349,16 @@ def step_impl(context, column_name, filter_value):
 @step(u'I can set not to the filter "{filter_text}"')
 @done(u'I can set not to the filter "{filter_text}"')
 def step_impl(context, filter_text):
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     iframe = waitSelector(context, "name", "reportIFrame" )
-    context.browser.switch_to_frame( iframe.get_attribute('name') )
+    context.browser.switch_to.frame( iframe.get_attribute('name') )
     elem = waitSelector(context, "xpath", "//span[contains(text(), '"+filter_text+"')]")
     elem[0].click()
     time.sleep(2)
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     elem = waitSelector(context, "css", "button[title='Filter']")
     iframe = waitSelector(context, "id", "dialogIFrame" )
-    context.browser.switch_to_frame( iframe.get_attribute('id') )
+    context.browser.switch_to.frame( iframe )
     context.browser.execute_script('document.querySelector("[name=\'oExcludeSelectedValues\'] option[value=\'true\']").selected=true')
     elem = waitSelector(context, "css", "#executeButton")
     elem[0].click()
@@ -2368,23 +2368,23 @@ def step_impl(context, filter_text):
 @step(u'I can remove the filter "{filter_text}"')
 @done(u'I can remove the filter "{filter_text}"')
 def step_impl(context, filter_text):
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     iframe = waitSelector(context, "name", "reportIFrame" )
-    context.browser.switch_to_frame( iframe.get_attribute('name') )
+    context.browser.switch_to.frame( iframe )
     actionChains = ActionChains(context.browser)
     elem = waitSelector(context, "xpath", "//span[contains(text(), '"+filter_text+"')]")
     actionChains.context_click(elem[0]).perform()
     elem = waitSelector(context, "css", "#Delete28")
     actionChains.click(elem[0]).perform()
     time.sleep(2)
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
 
 # Remove a column name from a QueryStudio table. It is recommended to reduce the step timeout to 5s, as a Cognos dialogiFrame waiting takes 60s per default
 @step(u'I can delete QueryStudio table column with "{column_name}"')
 @done(u'I can delete QueryStudio table column with "{column_name}"')
 def step_impl(context, column_name):
     links=column_name.split(";")
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     send_step_details(context, 'Looping over columns to delete')
     logger.debug("Looping over columns to delete: %s" % column_name)
     for x in links:
@@ -2392,11 +2392,11 @@ def step_impl(context, column_name):
         if not x:
             continue
         iframe = waitSelector(context, "name", "reportIFrame" )
-        context.browser.switch_to_frame( iframe.get_attribute('name') )
+        context.browser.switch_to.frame( iframe.get_attribute('name') )
         elem = waitSelector(context, "xpath", "//td/span[text()='"+x+"']")
         elem[0].click()
         time.sleep(.1)
-        context.browser.switch_to_window(context.browser.window_handles[-1])
+        context.browser.switch_to.window(context.browser.window_handles[-1])
         time.sleep(.1)
         elem = waitSelector(context, "css", "button[title='Delete']")
         elem[0].click()
@@ -2404,7 +2404,7 @@ def step_impl(context, column_name):
         logger.debug("Instructed Cognos to delete column - now waiting for dialog frame")
         try:
             iframe = waitSelector(context, "id", "dialogIFrame" )
-            context.browser.switch_to_frame( iframe.get_attribute('id') )
+            context.browser.switch_to.frame( iframe )
             time.sleep(.1)
             elem = waitSelector(context, "link_text", "OK")
             elem[0].click()
@@ -2413,27 +2413,27 @@ def step_impl(context, column_name):
             pass
         send_step_details(context, 'Finished delete column')
         logger.debug("Finished delete column")
-        context.browser.switch_to_window(context.browser.window_handles[-1])
+        context.browser.switch_to.window(context.browser.window_handles[-1])
         time.sleep(5)
 
 # Moves a column name before another column name
 @step(u'I can cut QueryStudio table column with "{column_name}" and paste it before column with "{column_name_2}"')
 @done(u'I can cut QueryStudio table column with "{column_name}" and paste it before column with "{column_name_2}"')
 def step_impl(context, column_name, column_name_2):
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     iframe = waitSelector(context, "name", "reportIFrame" )
-    context.browser.switch_to_frame( iframe.get_attribute('name') )
+    context.browser.switch_to.frame( iframe.get_attribute('name') )
     elem = waitSelector(context, "xpath", "//td/span[text()='"+column_name+"']")
     elem[0].click()
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     elem = waitSelector(context, "xpath", "button[title='Cut']")
     elem[0].click()
 
     iframe = waitSelector(context, "name", "reportIFrame" )
-    context.browser.switch_to_frame( iframe.get_attribute('name') )
+    context.browser.switch_to.frame( iframe.get_attribute('name') )
     elem = waitSelector(context, "xpath", "//td/span[text()='"+column_name_2+"']")
     elem[0].click()
-    context.browser.switch_to_window(context.browser.window_handles[-1])
+    context.browser.switch_to.window(context.browser.window_handles[-1])
     elem = waitSelector(context, "css", "button[title='Paste (before the selected report item)']")
     elem[0].click()
 
