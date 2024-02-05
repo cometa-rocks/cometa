@@ -3365,7 +3365,11 @@ class ScheduleViewSet(viewsets.ModelViewSet):
         # get request payload
         data = json.loads(request.body)
         # get the feature
-        feature = Feature.objects.filter(Q(feature_name=data['feature']) | Q(pk=data['feature']))
+        try:
+            fid = int(data['feature'])
+            feature = Feature.objects.filter(pk=fid)
+        except ValueError:
+            feature = Feature.objects.filter(feature_name=data['feature'])
         if not feature.exists():
             return JsonResponse({"success": False, "error": "No feature found with specified name."}, status=404)
         data['feature'] = feature[0]
