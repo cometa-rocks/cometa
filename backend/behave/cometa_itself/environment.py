@@ -182,10 +182,10 @@ def before_all(context):
     context.SCREENSHOTS_ROOT = '/opt/code/screenshots/'
     # Construct screenshots path for saving images
     context.SCREENSHOTS_PATH = context.SCREENSHOTS_ROOT + '%s/%s/%s/%s/' % (
-    str(data['feature_id']), str(run_id), str(os.environ['feature_result_id']), context.RUN_HASH)
+        str(data['feature_id']), str(run_id), str(os.environ['feature_result_id']), context.RUN_HASH)
     # Construct templates path for saving or getting styles
     context.TEMPLATES_PATH = context.SCREENSHOTS_ROOT + 'templates/%s/%s/' % (
-    str(data['feature_id']), context.BROWSER_KEY)
+        str(data['feature_id']), context.BROWSER_KEY)
     # Make sure all screenshots and templates folders exists
     Path(context.SCREENSHOTS_PATH).mkdir(parents=True, exist_ok=True)
     Path(context.TEMPLATES_PATH).mkdir(parents=True, exist_ok=True)
@@ -276,9 +276,11 @@ def before_all(context):
     # add cloud/provider capabilities to the
     # browser capabilities
     options.set_capability('selenoid:options', selenoid_capabilities)
+    if context.browser_info['browser'] == 'chrome':
+        options.set_capability('goog:loggingPrefs', {'browser': 'ALL', 'performance': 'ALL'})
+
     options.add_argument('--enable-logging')
     options.add_argument('--log-level=0')
-    options.set_capability('goog:loggingPrefs', {'browser': 'ALL', 'performance': 'ALL'})
 
     # proxy configuration
     if PROXY_ENABLED and PROXY:
@@ -307,7 +309,7 @@ def before_all(context):
         execution_data_file
     ]
 
-    context.vulnerability_headers = []
+    context.network_responses = []
 
     # call update task to create a task with pid.
     task = {
@@ -440,8 +442,8 @@ def after_all(context):
     data = json.loads(os.environ['FEATURE_DATA'])
     # junit file path for the executed testcase
     xmlFilePath = '/opt/code/department_data/%s/%s/%s/junit_reports/TESTS-features.%s_%s.xml' % (
-    slugify(data['department_name']), slugify(data['app_name']), data['environment_name'], context.feature_id,
-    slugify(data['feature_name']))
+        slugify(data['department_name']), slugify(data['app_name']), data['environment_name'], context.feature_id,
+        slugify(data['feature_name']))
     logger.debug("xmlFilePath: %s" % xmlFilePath)
     # load the file using XML parser
     xmlFile = ET.parse(xmlFilePath).getroot()
@@ -517,14 +519,27 @@ def after_all(context):
         "feature_result_info": json.dumps(request_info.json()['result']),
         "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     })
-    if hasattr(context, "vulnerability_headers"):
-        logger.info("Sending vulnerability_headers ")
+    if hasattr(context, "network_responses"):
+
+        network_response_count = 0
+        vulnerable_response_count = 0
+        logger.debug("Get count of total network responses and count of vulnerability_headers_count")
+        # logger.debug(context.network_responses)
+        for response in context.network_responses:
+            network_response_count += len(response['responses_and_vulnerable_header'])
+            vulnerable_response_count += response['vulnerability_headers_count']
+
+        logger.debug(f"Total Network responses {network_response_count}")
+        logger.debug(f"Vulnerable Count {vulnerable_response_count}")
+
+        logger.info("Sending vulnerability_headers")
         # request to save vulnerable network headers
         response = requests.post("http://cometa_django:8000/security/network_headers/", headers=headers,
                                  data=json.dumps({
                                      "result_id": os.environ['feature_result_id'],
-                                     "vulnerable_headers_info": context.vulnerability_headers,
-                                     "headers_count": len(context.vulnerability_headers)
+                                     "responses": context.network_responses,
+                                     "vulnerable_response_count": vulnerable_response_count,
+                                     "network_response_count": network_response_count
                                  }))
         if response.status_code == 201:
             logger.debug("Vulnerability Headers Saved ")
@@ -602,7 +617,7 @@ def before_step(context, step):
 
 def find_vulnerable_headers(context, step_index) -> int:
     try:
-        network_responses = []
+        responses_and_vulnerable_header = []
         performance_logs = context.browser.get_log('performance')
         logger.debug(f"Performance logs received Count is : {len(performance_logs)}")
 
@@ -635,33 +650,33 @@ def find_vulnerable_headers(context, step_index) -> int:
                 # check and filter for vur vulnerability_headers
                 # logger.debug(f"Processing respose headers ")
                 vulnerable_headers = filter_vulnerability_headers(response['headers'])
-                # check if request has some vulnerable_headers then add that to network_responses
+                # check if request has some vulnerable_headers then add that to responses_and_vulnerable_header
                 # logger.debug(f"Found vulnerable headers ")
                 if len(vulnerable_headers) > 0:
                     vulnerability_headers_count += 1
-                if len(vulnerable_headers) > 0:
-                    network_responses.append({
-                        "response": response,
-                        "vulnerable_headers": vulnerable_headers,
-                    })
+                # Store all network responses
+                responses_and_vulnerable_header.append({
+                    "response": response,
+                    "vulnerable_headers": vulnerable_headers,
+                })
+
         # Check if context contains vulnerability_headers list yes then append to that list 
         logger.debug(f"Response header analysis completed for current Step {step_index}")
-        if hasattr(context, "vulnerability_headers"):
-            context.vulnerability_headers.append({
+        if hasattr(context, "network_responses"):
+            context.network_responses.append({
                 "step_id": step_index,
-                "network_responses": network_responses,
-                "vulnerability_headers_count":vulnerability_headers_count
+                "responses_and_vulnerable_header": responses_and_vulnerable_header,
+                "vulnerability_headers_count": vulnerability_headers_count
             })
         else:
             # if it does not have attribute vulnerability_headers then initilze list add vulnerability headers
-            context.vulnerability_headers = [{
-                "step_id": 5,
-                "network_responses": network_responses,
+            context.network_responses = [{
+                "step_id": step_index,
+                "responses_and_vulnerable_header": responses_and_vulnerable_header,
                 "vulnerability_headers_count": vulnerability_headers_count
-
             }]
         # Return number of vernability headers 
-        logger.debug(f"Return header info : {len(context.vulnerability_headers)}")
+        logger.debug(f"Return header info : {len(context.network_responses)}")
         return vulnerability_headers_count
     except Exception as e:
         logger.exception(e)
