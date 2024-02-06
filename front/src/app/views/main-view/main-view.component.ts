@@ -34,6 +34,7 @@ import { InterceptorParams } from 'ngx-network-error';
 })
 export class MainViewComponent implements OnInit {
 
+
   @Select(CustomSelectors.GetConfigProperty('internal.showArchived')) showArchived$: Observable<boolean>;
 
   columns: MtxGridColumn[] = [
@@ -51,7 +52,7 @@ export class MainViewComponent implements OnInit {
     {
       header: 'Options',
       field: 'options',
-      width: '230px',
+      width: '290px',
       // pinned: 'right',
       right: '0px',
       type: 'button',
@@ -89,6 +90,22 @@ export class MainViewComponent implements OnInit {
               error: console.error
             })
           },
+        },
+        {
+          type: 'icon',
+          text: 'Network Responses',
+          icon: 'sync',
+          tooltip: 'You can see network responses',
+          color: 'accent',
+          iif: (result: FeatureResult) => result.network_response_count>0 && result.vulnerable_response_count==0
+        },
+        {
+          type: 'icon',
+          text: 'Vulnerable Network Responses',
+          icon: 'sync_problem',
+          tooltip: 'Refer to the step reports to view vulnerable headers in the network responses.',
+          color: 'warn',
+          iif: (result: FeatureResult) => result.network_response_count>0 && result.vulnerable_response_count>0
         },
         {
           type: 'icon',
@@ -178,7 +195,7 @@ export class MainViewComponent implements OnInit {
           feature_id: featureId,
           archived: archived,
           ...this.params
-        }
+        } 
       }).subscribe({
         next: (res: any) => {
           this.results = res.results
@@ -208,6 +225,10 @@ export class MainViewComponent implements OnInit {
     localStorage.setItem('co_results_page_size', e.pageSize.toString())
   }
 
+  getVulnerabilityMessage(result: FeatureResult): string {
+    const message = `${result.vulnerable_response_count} network responses received. `;
+    return result.vulnerable_response_count > 0 ? message + `${result.vulnerable_response_count} responses contain vulnerable headers` : message;
+  }
   /**
    * Performs the overriding action through the Store
    */
