@@ -142,6 +142,7 @@ export namespace WebSockets {
      * @param {string} error Optional error text
      * @param {number} step_time Execution duration of step
      * @param {string} datetime Current datetime
+     * @param {number} vulnerable_headers_count vulnerable_headers_count
      */
     export class StepFinished {
         static readonly type = '[WebSockets] Finished Step';
@@ -156,8 +157,10 @@ export namespace WebSockets {
             public error: string,
             public step_time: number,
             public datetime: string,
-            public screenshots: any
-        ) { }
+            public screenshots: any,
+            public vulnerable_headers_count:number
+        ) { 
+        }
     }
 
     /**
@@ -178,7 +181,8 @@ export namespace WebSockets {
             public browser_info: BrowserstackBrowser,
             public feature_result_info: FeatureResult,
             public datetime: string
-        ) { }
+        ) {
+         }
     }
 
     /**

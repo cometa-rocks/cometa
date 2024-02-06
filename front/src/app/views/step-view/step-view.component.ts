@@ -187,6 +187,20 @@ export class StepViewComponent implements OnInit {
     })
   }
 
+  loadNetworkResponses (networkResponses,stepName) {
+    
+      this._dialog.open(JsonViewerComponent, {
+        data: {
+          responses:networkResponses,
+          stepName:stepName
+        },
+        width: '100vw',
+        maxHeight: '90vh',
+        maxWidth: '85vw',
+        panelClass: 'rest-api-panel'
+      })
+  }
+
   openStepNotes (item) {
     this._dialog.open(StepNotesComponent, {
       data: item.notes,
