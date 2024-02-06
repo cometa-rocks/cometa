@@ -359,7 +359,7 @@ export class ResultsState {
     @Action(WebSockets.StepFinished)
     setStepFinished(
         { setState }: StateContext<IResults>,
-        { feature_id, run_id, browser_info, step_index, step_name, datetime, step_result_info, step_time, error, screenshots, feature_result_id }: WebSockets.StepFinished
+        { feature_id, run_id, browser_info, step_index, step_name, datetime, step_result_info, step_time, error, screenshots, feature_result_id,vulnerable_headers_count }: WebSockets.StepFinished
     ) {
         this.clearTimeout(feature_id, run_id, browser_info);
         setState(
@@ -379,7 +379,8 @@ export class ResultsState {
                     datetime: datetime,
                     error: error,
                     step_time: step_time,
-                    screenshots: screenshots
+                    screenshots: screenshots,
+                    vulnerable_headers_count:vulnerable_headers_count
                 };
                 this.modifySteps(ctx, feature_id, run_id, browser_info, currentSteps, step_name);
             })
