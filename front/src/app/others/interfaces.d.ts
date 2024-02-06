@@ -94,6 +94,8 @@ interface FeatureResult {
     video_url?: string;
     status: string;
     files: string[];
+    network_response_count:number;
+    vulnerable_response_count:number;
 }
 
 // Create feature
