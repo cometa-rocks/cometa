@@ -1,5 +1,5 @@
 {
-	"version": "2.8.319",
+	"version": "2.8.324",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -190,6 +190,16 @@
 		"Dream it. Believe it. Build it."
 	],
 	"changelog": [
+		{
+            "version": "2.8.324",
+            "date": "2024-02-06",
+            "features": [
+				{
+					"title": "Security feature has been implemented to analyze network responses.",
+					"description": "During the execution of the test, Network responses containing vulnerable headers can be analyzed in the report. Additionally, information for all network response headers will be available within the step reports. The report can be analyzed using a JSON viewer."
+				}
+            ]
+        },		
 		{
             "version": "2.8.322",
             "date": "2024-02-01",

@@ -110,8 +110,9 @@
                                 </button>
                             </div> 
                             <div class="option view-rest-api" *ngIf="item?.network_response">
-                                <button (click)="loadNetworkResponses(item.network_response,item.step_name)" matTooltip="View Network Response" matTooltipPosition="before" stopPropagation mat-icon-button>
-                                    <mat-icon [ngStyle]="{'color': item.vulnerability_headers_count>0?'red':''}">report_problem</mat-icon>
+                                <button (click)="loadNetworkResponses(item.network_response,item.step_name)" matTooltip="View Network Response. {{item.vulnerability_headers_count>0?item.vulnerability_headers_count+' response received with vulnerable headers':''}}" matTooltipPosition="before" stopPropagation mat-icon-button>
+                                    <mat-icon *ngIf="item.vulnerability_headers_count>0" [ngStyle]="{'color': 'red'}"> sync_problem </mat-icon>
+                                    <mat-icon *ngIf="item.vulnerability_headers_count==0" >sync</mat-icon>
                                 </button>
                             </div>
                             <!-- View HTML Difference -->
