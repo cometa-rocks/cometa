@@ -16,8 +16,8 @@ class ResponseHeadersSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResponseHeaders
         # This fields also shows in the Django Rest Framework screen
-        fields = ['id', 'result_id',
-                  'vulnerable_headers_info', 'headers_count', 'created_on']
+        fields = ['id', 'result_id', 'responses', 'network_response_count',
+                  'vulnerable_response_count', 'created_on']
 
     def validate(self, data):
         if data.get('result_id'):
