@@ -25,10 +25,15 @@
         <ng-template #showBefore>
             <i class="screen-preview" matTooltip="View screenshot" matTooltipPosition="above" (click)="openScreenshot('difference')" [style.backgroundImage]="getScreenshot('difference')"></i>
         </ng-template>
-    </div>
+    </div> 
     <div class="screenshot" *ngIf="this.rest_api; else hyphen">
         <i class="api_call" matTooltip="View HTTP Request" matTooltipPosition="above" (click)="openRequest()">
             <mat-icon>http</mat-icon>
+        </i>
+    </div>
+    <div class="screenshot" *ngIf="this.vulnerable_headers_count; else hyphen">
+        <i class="api_call" matTooltip="Security Vulnerability | {{this.vulnerable_headers_count}} Requests response has vulnerable headers values, refer to execution reports for details" matTooltipPosition="above">
+            <mat-icon [ngStyle]="{'color':'red'}">report_problem</mat-icon> 
         </i>
     </div>
     <ng-template #hyphen>
