@@ -241,7 +241,8 @@ app.post('/feature/:feature_id/stepFinished', (req, res) => {
     step_time: req.body.step_time,
     error: req.body.error,
     user_id: +req.body.user_id,
-    screenshots: req.body.screenshots ? JSON.parse(req.body.screenshots) : {}
+    screenshots: req.body.screenshots ? JSON.parse(req.body.screenshots) : {},
+    vulnerable_headers_count:req.body.vulnerable_headers_count
   }
   io.emit('message', payload)
   // Add message to history
