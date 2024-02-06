@@ -72,33 +72,37 @@
     }
 }
 
-.pdf {
-    height: 32px;
-    width: 30px;
-    margin-right: 30px;
-    background-image: url(^assets/icons/pdf.svg);
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-position: center;
-    transform: scale(1);
+.pdf, .csv {
+    background: transparent;
+    border: 1px solid black;
+    border-radius: 50%;
+    font-size: 12px;
+    text-align: center;
+    line-height: 32px;
+    transform: scale(1) rotate(0deg);
     transition: transform .2s ease-in-out;
     &:hover {
-        transform: scale(1.2);
+        transform: scale(1.1) rotate(10deg);
     }
 }
 
+.pdf {
+    height: 30px;
+    width: 30px;
+    background-size: 22px 20px;
+    margin-right: 30px;
+    background-image: url(^assets/icons/pdf.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
 .csv {
-    height: 32px;
+    height: 30px;
     width: 30px;
     background-image: url(^assets/icons/csv.svg);
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
-    transform: scale(1);
-    transition: transform .2s ease-in-out;
-    &:hover {
-        transform: scale(1.2);
-    }
 }
 
 .more {
