@@ -1,5 +1,8 @@
 # Import all models and all the utility methods
 from itertools import islice
+
+from backend.ee.modules.security.models import ResponseHeaders
+from backend.ee.modules.security.serializers import ResponseHeadersSerializer
 from backend.models import *
 # Import all serializers
 from backend.serializers import *
@@ -24,7 +27,9 @@ from django.http import HttpResponse, JsonResponse, Http404, HttpResponseBadRequ
 from django.shortcuts import redirect, render
 from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_exempt
-from backend.payments import SubscriptionPublicSerializer, ForbiddenBrowserCloud, check_browser_access, get_browsers_by_cloud, get_requires_payment, has_subscription_by_cloud, get_subscriptions_from_request, get_user_usage_money, BudgetAhead, check_user_will_exceed_budget, check_enabled_budget
+from backend.payments import SubscriptionPublicSerializer, ForbiddenBrowserCloud, check_browser_access, \
+    get_browsers_by_cloud, get_requires_payment, has_subscription_by_cloud, get_subscriptions_from_request, \
+    get_user_usage_money, BudgetAhead, check_user_will_exceed_budget, check_enabled_budget
 # Basic Imports
 import os, sys, json, glob, base64, binascii, re, uuid, bcrypt, socket, urllib, smtplib, datetime, time, mimetypes
 # Request related imports
@@ -47,9 +52,10 @@ from functools import wraps
 from backend.common import *
 from slugify import slugify
 from django.db.models import Q
-from django.db.models import Avg, Sum    # needed for CometaUsage calcs
+from django.db.models import Avg, Sum  # needed for CometaUsage calcs
 from django.db import connection
 import secrets
+
 # just to import secrets
 sys.path.append("/code")
 import secret_variables
@@ -59,6 +65,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from backend.templatetags.humanize import *
 from sentry_sdk import capture_exception
 from backend.utility.uploadFile import UploadFile, decryptFile
+
 # from silk.profiling.profiler import silk_profile
 
 SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
@@ -69,6 +76,7 @@ ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
 
 logger = getLogger()
 
+
 def timediff(method):
     def wrapper(*args, **kwargs):
         method_name = method.__qualname__ or method.__name__
@@ -76,46 +84,56 @@ def timediff(method):
         start = time.time()
         result = method(*args, **kwargs)
         end = time.time()
-        logger.debug(method_name + " took: " + str(end-start) + " seconds")
+        logger.debug(method_name + " took: " + str(end - start) + " seconds")
         return result
+
     return wrapper
 
 
 def bytesToMegaBytes(bytes):
-    kilobytes = bytes/1024
-    megabytes = kilobytes/1024
+    kilobytes = bytes / 1024
+    megabytes = kilobytes / 1024
 
     return megabytes
+
 
 def GetUserAuth(authToken):
     return OIDCAccount.objects.filter(email=authToken)[0]
 
+
 def GetUserPermission(authToken):
     return GetUserAuth(authToken).user_permissions.permission_name
+
 
 def CheckOIDCAccount(search_value):
     email = OIDCAccount.objects.filter(email=search_value)
     return email.count() > 0
+
 
 def AddOIDCAccount(name, email):
     oidc = OIDCAccount(name=name, email=email)
     state = oidc.save()
     return state == None
 
+
 def UserRelatedDepartments(user_email, type="id"):
-    account=OIDCAccount.objects.filter(email=user_email)
-    user_id=account[0].user_id
+    account = OIDCAccount.objects.filter(email=user_email)
+    user_id = account[0].user_id
     DepartmentsRelated = Account_role.objects.all().filter(user=user_id)
-    departmentsList=[]
+    departmentsList = []
     for d in DepartmentsRelated:
-        departmentsList.append(d.department_id if type == "id" else Department.objects.all().filter(department_id=d.department_id)[0].department_name)
+        departmentsList.append(
+            d.department_id if type == "id" else Department.objects.all().filter(department_id=d.department_id)[
+                0].department_name)
     return departmentsList
+
 
 def browser_stack_request():
     # get browserstack cloud from database
     try:
         bsCloud = Cloud.objects.get(name="browserstack")
-        browsers = requests.get("https://api.browserstack.com/automate/browsers.json", auth=HTTPBasicAuth(bsCloud.username, bsCloud.password))
+        browsers = requests.get("https://api.browserstack.com/automate/browsers.json",
+                                auth=HTTPBasicAuth(bsCloud.username, bsCloud.password))
         if browsers.status_code == 200:
             results = browsers.json()
         else:
@@ -123,6 +141,7 @@ def browser_stack_request():
         return results
     except Cloud.DoesNotExist:
         return []
+
 
 def GetBrowserStackBrowsers(request):
     try:
@@ -139,6 +158,7 @@ def GetBrowserStackBrowsers(request):
         "success": True,
         "results": results
     }, safe=False)
+
 
 def get_lyrid_browsers(request):
     results = []
@@ -158,11 +178,12 @@ def get_lyrid_browsers(request):
             ]
     except Cloud.DoesNotExist:
         logger.debug("Lyrid cloud does not exists returning empty browsers list.")
-    
+
     return JsonResponse({
         "success": True,
         "results": results
     }, safe=False)
+
 
 def GetUserDepartments(request):
     # Get an array of the departments ids owned by the current logged user
@@ -177,6 +198,7 @@ def GetUserDepartments(request):
     # return userDepartments + list(set(departmentsOwning) - set(userDepartments))
     return userDepartments + list(set(userDepartments))
 
+
 # function that recieves feature_run are removes all feature_results not
 # marked as archived.
 def removeNotArchivedFeatureResults(feature_run, *args, **kwargs):
@@ -187,18 +209,19 @@ def removeNotArchivedFeatureResults(feature_run, *args, **kwargs):
         # finally remove the feature_result
         feature_result.delete(deleteTemplate=deleteTemplate)
 
+
 @csrf_exempt
 def DepartmentsRelatedToAccountView(request):
     user_email = request.META.get("HTTP_PROXY_USER")
 
-    departmentsList=UserRelatedDepartments(user_email)
+    departmentsList = UserRelatedDepartments(user_email)
 
     querySet = Department.objects.all().filter(department_id__in=departmentsList)
-    serializer=DepartmentSerializer(querySet, many=True)
+    serializer = DepartmentSerializer(querySet, many=True)
 
-    data=serializer.data
-    count=len(querySet)
-    d=json.dumps(data)
+    data = serializer.data
+    count = len(querySet)
+    d = json.dumps(data)
 
     return JsonResponse({
         "count": count,
@@ -207,12 +230,14 @@ def DepartmentsRelatedToAccountView(request):
         "results": json.loads(d)
     })
 
+
 def departmentExists(department_id) -> int:
     try:
         department = Department.objects.get(department_id=department_id)
         return department.department_id
     except Exception as err:
         return -1
+
 
 @csrf_exempt
 def GetStepResultsData(request, *args, **kwargs):
@@ -230,7 +255,7 @@ def GetStepResultsData(request, *args, **kwargs):
             'success': False,
             'error': 'No feature found.'
         }, status=404)
-    
+
     query = f"""
     SELECT
         fr.feature_result_id,
@@ -273,7 +298,7 @@ def GetStepResultsData(request, *args, **kwargs):
             'success': False,
             'error': 'No results found.'
         }, status=404)
-    
+
     headers = rows[0].keys()
 
     response = HttpResponse(
@@ -290,9 +315,11 @@ def GetStepResultsData(request, *args, **kwargs):
 
     return response
 
+
 @csrf_exempt
 def CreateOIDCAccount(request):
     return JsonResponse(request.session['user'], status=200)
+
 
 """ def Screenshot(request, screenshot_name):
     os.chdir('/code/behave/screenshots/')
@@ -320,6 +347,7 @@ def CreateOIDCAccount(request):
     except IOError:
         return HttpResponse('ImageError') """
 
+
 # Retrieves all possible information of parents objects from a step result
 def getStepResultParents(step_result_id):
     # Get step result object using id
@@ -346,6 +374,7 @@ def getStepResultParents(step_result_id):
         "feature": feature
     }
 
+
 @csrf_exempt
 def featureRunning(request, feature_id, *args, **kwargs):
     """
@@ -359,6 +388,7 @@ def featureRunning(request, feature_id, *args, **kwargs):
     )
     return django_response
 
+
 @csrf_exempt
 def noVNCProxy(request, feature_result_id, *args, **kwargs):
     # request.session['user'] = OIDCAccountLoginSerializer(OIDCAccount.objects.get(user_id=5), many=False).data
@@ -369,7 +399,7 @@ def noVNCProxy(request, feature_result_id, *args, **kwargs):
         user_departments = [x['department_id'] for x in request.session['user']['departments']]
         # check if logged in user is the one that executed this feature_result
         # or if user belongs to the feature department
-        if ( fr.executed_by.user_id == request.session['user']['user_id'] or fr.department_id in user_departments ):
+        if (fr.executed_by.user_id == request.session['user']['user_id'] or fr.department_id in user_departments):
             # check if session is still running
             if not fr.running:
                 raise Exception("Live session has ended.")
@@ -380,6 +410,7 @@ def noVNCProxy(request, feature_result_id, *args, **kwargs):
             raise Exception("You don't have permissions to view this live session.")
     except Exception as error:
         return JsonResponse({'success': False, 'error': str(error)})
+
 
 @csrf_exempt
 def userDetails(request, *args, **kwargs):
@@ -394,6 +425,7 @@ def userDetails(request, *args, **kwargs):
         info['usage_money'] = round(get_user_usage_money(user['user_id']), 2)
     return JsonResponse(info)
 
+
 @csrf_exempt
 @require_permissions("remove_screenshot")
 def removeScreenshot(request, *args, **kwargs):
@@ -404,23 +436,23 @@ def removeScreenshot(request, *args, **kwargs):
 
     # Check if we have what we need
     if not step_result_id or not screen_type:
-        return JsonResponse({ 'success': False }, status=400)
+        return JsonResponse({'success': False}, status=400)
 
     # Retrieve information related to current step
     step_result = Step_result.objects.filter(step_result_id=step_result_id)
     if not step_result.exists():
-        return JsonResponse({ 'success': False, 'error': 'Step result not found with ID: ' + str(step_result_id) })
+        return JsonResponse({'success': False, 'error': 'Step result not found with ID: ' + str(step_result_id)})
     step_result = step_result[0]
     # Construct screenshots folders and screenshot filename
     screenshots_root = '/code/behave/screenshots/'
     filename = getattr(step_result, 'screenshot_' + screen_type, '')
     # print(step_result.screenshot_current)
     if not filename:
-        return JsonResponse({ 'success': False, 'error': 'Screenshot filename not found with key: ' + screen_type })
+        return JsonResponse({'success': False, 'error': 'Screenshot filename not found with key: ' + screen_type})
     file = screenshots_root + filename
     # Make sure the file exists in disk before anything else
     if not os.path.isfile(file):
-        return JsonResponse({ 'success': False, 'error': 'File was not found.' })
+        return JsonResponse({'success': False, 'error': 'File was not found.'})
     try:
         # Remove the PNG
         os.remove(file)
@@ -432,9 +464,10 @@ def removeScreenshot(request, *args, **kwargs):
         # Update database
         setattr(step_result, 'screenshot_' + screen_type, '')
         step_result.save()
-        return JsonResponse({ 'success': True })
+        return JsonResponse({'success': True})
     except OSError:
-        return JsonResponse({ 'success': False, 'error': 'Failed to delete file.' })
+        return JsonResponse({'success': False, 'error': 'Failed to delete file.'})
+
 
 @csrf_exempt
 @require_permissions("remove_screenshot")
@@ -446,33 +479,35 @@ def removeTemplate(request, *args, **kwargs):
 
     # Check if we have what we need
     if not template or not step_result_id:
-        return JsonResponse({ 'success': False }, status=400)
+        return JsonResponse({'success': False}, status=400)
 
     step_result = Step_result.objects.filter(step_result_id=step_result_id)
     if not step_result.exists():
-        return JsonResponse({ 'success': False, 'error': 'Specified step result id not found.' })
+        return JsonResponse({'success': False, 'error': 'Specified step result id not found.'})
 
     # Construct screenshots folders and screenshot filename
     screenshots_root = '/code/behave/screenshots/'
     file = screenshots_root + template
     # Make sure the file exists in disk before anything else
     if not os.path.isfile(file):
-        return JsonResponse({ 'success': False, 'error': 'Template file was not found.' })
+        return JsonResponse({'success': False, 'error': 'Template file was not found.'})
     try:
         # Remove the PNG
         os.remove(file)
         # Update database
         step_result.update(screenshot_template='')
-        return JsonResponse({ 'success': True })
+        return JsonResponse({'success': True})
     except OSError:
-        return JsonResponse({ 'success': False, 'error': 'Failed to delete template file.' })
+        return JsonResponse({'success': False, 'error': 'Failed to delete template file.'})
+
 
 def Screenshots(step_result_id):
     os.chdir('/code/behave/screenshots/')
     screenshots = {}
     try:
         # FIXME: Dirty fix for getting correct current image
-        files = [x for x in glob.glob(SCREENSHOT_PREFIX + step_result_id + '_*.png') if not 'style' in x and not 'diff' in x]
+        files = [x for x in glob.glob(SCREENSHOT_PREFIX + step_result_id + '_*.png') if
+                 not 'style' in x and not 'diff' in x]
         if len(files) > 0:
             screenshots['current'] = files[0]
         else:
@@ -500,6 +535,7 @@ def Screenshots(step_result_id):
         pass
     return screenshots
 
+
 # Function to automatically send help email to users who have "I can help" enabled
 def SendHelpEmail(request, feature):
     # send email to users with can_help if feature was marked as need_help
@@ -507,16 +543,19 @@ def SendHelpEmail(request, feature):
         # get all the users with can_help attribute
         can_help = OIDCAccount.objects.filter(settings__can_help=True)
         # remove all default department from the can_help list
-        can_help = [user for user in can_help if user.account_role_set.exclude(department__department_name="Default").count() > 0]
+        can_help = [user for user in can_help if
+                    user.account_role_set.exclude(department__department_name="Default").count() > 0]
         # filter users in feature department
-        can_help = Account_role.objects.filter(department__department_id=feature.department_id, user__in=can_help).values_list('user__email', flat=True)
+        can_help = Account_role.objects.filter(department__department_id=feature.department_id,
+                                               user__in=can_help).values_list('user__email', flat=True)
         # convert can_help from querySet object to list object
         can_help = list(can_help)
         # if can_help list is empty that means no one is ready to help yet
         # fallback and sent the email to all SUPERUSERS
         if len(can_help) == 0:
             # get all the superusers
-            can_help = OIDCAccount.objects.filter(user_permissions__permission_name='SUPERUSER').values_list('email', flat=True)
+            can_help = OIDCAccount.objects.filter(user_permissions__permission_name='SUPERUSER').values_list('email',
+                                                                                                             flat=True)
             # convert can_help from querySet object to list object
             can_help = list(can_help)
         # generate email subject
@@ -565,7 +604,9 @@ def SendHelpEmail(request, feature):
                 settings.EMAIL_HOST_USER,
                 to=["noreply@amvara.de"],
                 bcc=can_help,
-                headers={'X-COMETA': 'proudly_generated_by_amvara_cometa', 'X-COMETA-SERVER': 'AMVARA', 'X-COMETA-VERSION': str(version), 'X-COMETA-FEATURE': feature.feature_name, 'X-COMETA-DEPARTMENT':feature.department_name}
+                headers={'X-COMETA': 'proudly_generated_by_amvara_cometa', 'X-COMETA-SERVER': 'AMVARA',
+                         'X-COMETA-VERSION': str(version), 'X-COMETA-FEATURE': feature.feature_name,
+                         'X-COMETA-DEPARTMENT': feature.department_name}
             )
             # attatch html content (body)
             email.attach_alternative(email_body, "text/html")
@@ -576,6 +617,7 @@ def SendHelpEmail(request, feature):
             pprint(can_help)
         except Exception as err:
             print(str(err))
+
 
 @csrf_exempt
 @require_permissions("download_result_files")
@@ -618,9 +660,11 @@ def downloadFeatureFiles(request, filepath, *args, **kwargs):
             return response
     raise Http404
 
+
 # Sends the request to behave without waiting
 def startFeatureRun(data):
     result = requests.post('http://behave:8001/run_test/', data=data)
+
 
 @csrf_exempt
 def viewRunStatus(request, feature_id):
@@ -628,7 +672,7 @@ def viewRunStatus(request, feature_id):
     try:
         feature = Feature.objects.get(feature_id=feature_id)
     except Feature.DoesNotExist:
-        return JsonResponse({ 'success': False, 'error': 'Provided Feature ID does not exist.' }, status=404)
+        return JsonResponse({'success': False, 'error': 'Provided Feature ID does not exist.'}, status=404)
 
     onlyProgress = request.GET.get('onlyProgress', False)
     logger.debug(f"OnlyProgress? - {onlyProgress}")
@@ -636,8 +680,8 @@ def viewRunStatus(request, feature_id):
     # check if user belong to the department
     userDepartments = GetUserDepartments(request)
     if feature.department_id not in userDepartments:
-        return JsonResponse({ 'success': False, 'error': 'Provided Feature ID does not exist.' })
-    
+        return JsonResponse({'success': False, 'error': 'Provided Feature ID does not exist.'})
+
     # check if it feature is currently running
     request_response = requests.get(f'http://cometa_socket:3001/featureStatus/{feature_id}')
 
@@ -673,7 +717,8 @@ Feature Result ID: {last_feature_result.feature_result_id}
             else:
                 i = 1
                 for step_result in step_results:
-                    sn = step_result.step_name if len(step_result.step_name) < 97 else step_result.step_name[:97] + '...'
+                    sn = step_result.step_name if len(step_result.step_name) < 97 else step_result.step_name[
+                                                                                       :97] + '...'
                     row = [i, sn, _humanize(step_result.execution_time), '🗸' if step_result.success else '✖']
                     result += "{:>4}) {:<100} | {:^14} | {:^7} \n".format(*row)
                     i += 1
@@ -694,11 +739,11 @@ Total Execution Time: {_humanize(last_feature_result.execution_time)}
             'error': 'Feature is not running.'
         }, status=404)
 
-def features_sql(department_id=None, folder_id=None, recursive=False):
 
+def features_sql(department_id=None, folder_id=None, recursive=False):
     if department_id is None and folder_id is None:
         raise Exception("Either department_id or folder_id must be provided.")
-    
+
     if department_id is not None and folder_id is not None:
         raise Exception("Please provide either department_id or folder_id. Both properties are not allowed.")
 
@@ -719,13 +764,13 @@ def features_sql(department_id=None, folder_id=None, recursive=False):
 
     if department_id:
         query += f"feature.department_id = {department_id}"
-    
+
     if department_id and not recursive:
         query += f" AND bff.folder_id is null"
-    
+
     if folder_id and not recursive:
         query += f"folder.folder_id = {folder_id}"
-    
+
     if folder_id and recursive:
         query = f"""
         WITH RECURSIVE recursive_folders AS (
@@ -752,11 +797,12 @@ def features_sql(department_id=None, folder_id=None, recursive=False):
         WHERE 
             feature.depends_on_others IS NOT TRUE
         """
-    
+
     results = Feature.objects.raw(query)
     features = [result for result in results]
 
     return features
+
 
 # Checks if the selected browser is valid using the array of available browsers
 # for the selected cloud, it also tries to repair the selected browser object
@@ -771,7 +817,8 @@ def checkBrowser(selected, local_browsers, cloud_browsers, lyrid_browsers):
     if selected.get('cloud', '') == 'local' and selected.get('mobile_emulation', False):
         # In that case just assign the latest version of Chrome for the emulated browser
         # Exclude non stable versions by checking if version can be numeric (without dots)
-        browsers = [ x for x in browsers if x.get('browser_version').replace('.', '').isnumeric() and x.get('browser') == 'chrome' ]
+        browsers = [x for x in browsers if
+                    x.get('browser_version').replace('.', '').isnumeric() and x.get('browser') == 'chrome']
         # Sort browsers by browser_version
         browsers = sorted(browsers, key=lambda k: int(k.get('browser_version').replace('.', '')), reverse=True)
         version = browsers[0].get('browser_version')
@@ -785,17 +832,17 @@ def checkBrowser(selected, local_browsers, cloud_browsers, lyrid_browsers):
     # If the resulting array contains 0 elements, it means the selected browser
     # is not found, and therefore is invalid
     for field in fields:
-        browsers = [ x for x in browsers if x.get(field) == selected.get(field) ]
+        browsers = [x for x in browsers if x.get(field) == selected.get(field)]
     if len(browsers) == 0:
         raise Exception('Found invalid browser object')
     # Filter browsers by the version in the selected browser
     # If the resulting array contains 0 elements, it means the selected browser
     # has an outdated browser version or invalid, in that case 
-    browsers_versions = [ x for x in browsers if x.get('browser_version') == selected.get('browser_version') ]
+    browsers_versions = [x for x in browsers if x.get('browser_version') == selected.get('browser_version')]
     # Handle exception of "latest" version, it is handled later
     if selected.get('browser_version', '') == "latest" or len(browsers_versions) == 0:
         # Exclude non stable versions by checking if version can be numeric (without dots)
-        browsers = [ x for x in browsers if x.get('browser_version').replace('.', '').isnumeric() ]
+        browsers = [x for x in browsers if x.get('browser_version').replace('.', '').isnumeric()]
         # Sort browsers by browser_version
         browsers = sorted(browsers, key=lambda k: int(k.get('browser_version').replace('.', '')), reverse=True)
         try:
@@ -804,6 +851,7 @@ def checkBrowser(selected, local_browsers, cloud_browsers, lyrid_browsers):
         except:
             raise Exception('Unable to find latest version for the selected browser')
     return selected
+
 
 def getFeatureBrowsers(feature: Feature):
     feature_browsers = feature.browsers
@@ -814,8 +862,8 @@ def getFeatureBrowsers(feature: Feature):
 
     for b in feature_browsers:
         browser = b.copy()
-        #3013: Fix missing cloud property in outdated favourited browsers
-        if 'cloud' not in browser and browser.get("os","").lower() == "generic":
+        # 3013: Fix missing cloud property in outdated favourited browsers
+        if 'cloud' not in browser and browser.get("os", "").lower() == "generic":
             browser['cloud'] = "local"
         # Check selected cloud is local and we don't have it yet
         if browser.get('cloud') == 'local' and len(local_browsers) == 0:
@@ -844,12 +892,11 @@ def getFeatureBrowsers(feature: Feature):
                 logger.info("Lyrid Cloud does not exists ... will ignore this browser.")
 
         browsers.append(checkBrowser(browser, local_browsers, cloud_browsers, lyrid_browser))
-    
+
     return browsers
 
 
 def runFeature(request, feature_id, data={}, additional_variables=list):
-
     # set default value for additional_variables
     if additional_variables == list:
         additional_variables = []
@@ -859,13 +906,13 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
         logger.info(f"Getting feature with id {feature_id} to run.")
         feature = Feature.objects.get(pk=feature_id)
     except Feature.DoesNotExist:
-        return { 'success': False, 'error': 'Provided Feature ID does not exist.' }
-    
+        return {'success': False, 'error': 'Provided Feature ID does not exist.'}
+
     # check if user belong to the department
     userDepartments = GetUserDepartments(request)
     if feature.department_id not in userDepartments:
-        return { 'success': False, 'error': 'Provided Feature ID does not exist.' }
-    
+        return {'success': False, 'error': 'Provided Feature ID does not exist.'}
+
     if len(feature.browsers) == 0:
         return JsonResponse({
             'success': False,
@@ -877,7 +924,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
         subscriptions = get_subscriptions_from_request(request)
         check_browser_access(feature.browsers, subscriptions)
     except Exception as err:
-        return { 'success': False, 'error': str(err) }
+        return {'success': False, 'error': str(err)}
 
     # Get user session
     user = request.session['user']
@@ -890,7 +937,8 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
             # Prevent continue if user will exceed quota and has marked the option to prevent schedules from running
             scheduled_behavior = user['settings'].get('budget_schedule_behavior', '')
             if check_user_will_exceed_budget(user['user_id'], feature.feature_id) and scheduled_behavior == 'prevent':
-                return { 'success': False, 'error': 'Execution will exceed budget and user has `prevent` option configured.' }
+                return {'success': False,
+                        'error': 'Execution will exceed budget and user has `prevent` option configured.'}
         else:
             # Request coming from front user
             # Retrieve confirm parameter from body JSON
@@ -900,15 +948,15 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
                     budget_exceeded = check_user_will_exceed_budget(user['user_id'], feature.feature_id)
                     if budget_exceeded:
                         # Budget will or has already exceeded the budget
-                        return { 'success': False, 'action': 'confirm_exceeded' }
+                        return {'success': False, 'action': 'confirm_exceeded'}
                 except BudgetAhead as err:
                     # Budget is very close to be reached
-                    return { 'success': False, 'action': 'confirm_ahead' }
+                    return {'success': False, 'action': 'confirm_ahead'}
                 except Exception as err:
                     # An unkown error occurred
                     capture_exception(err)
                     logger.error(str(err))
-                    return { 'success': False, 'error': str(err) }
+                    return {'success': False, 'error': str(err)}
 
     # create a run id for the executed test
     date_time = datetime.datetime.utcnow()
@@ -930,7 +978,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     # Make sure feature files exists
     steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
     feature.save(steps=list(steps))
-    json_path = get_feature_path(feature)['fullPath']+'_meta.json'
+    json_path = get_feature_path(feature)['fullPath'] + '_meta.json'
 
     executions = []
     frs = []
@@ -968,7 +1016,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
 
             feature_result.save()
             frs.append(feature_result)
-            
+
             executions.append({
                 "feature_result_id": feature_result.feature_result_id,
                 "run_hash": run_hash,
@@ -976,7 +1024,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
                 "connection_url": connection_url
             })
 
-    fRun.feature_results.add(*frs) 
+    fRun.feature_results.add(*frs)
 
     # check if job exists
     jobParameters = {}
@@ -1004,7 +1052,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     seri = VariablesSerializer(env_variables, many=True).data
 
     additional_variables.extend(list(seri))
-    
+
     # user data
     user = request.session['user']
 
@@ -1012,7 +1060,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
         'json_path': json_path,
         'feature_run': fRun.run_id,
         'HTTP_PROXY_USER': json.dumps(user),
-        'HTTP_X_SERVER': request.META.get("HTTP_X_SERVER","none"),
+        'HTTP_X_SERVER': request.META.get("HTTP_X_SERVER", "none"),
         "variables": json.dumps(additional_variables),
         "browsers": json.dumps(executions),
         "feature_id": feature.feature_id,
@@ -1022,7 +1070,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
 
     try:
         # Spawn thread to launch feature run
-        t = Thread(target=startFeatureRun, args=(datum, ))
+        t = Thread(target=startFeatureRun, args=(datum,))
         t.start()
 
         return {
@@ -1030,7 +1078,8 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
             'feature_result_ids': [fr.feature_result_id for fr in frs],
         }
     except Exception as e:
-        return { 'success': False, 'error': str(e) }
+        return {'success': False, 'error': str(e)}
+
 
 @csrf_exempt
 @require_subscription()
@@ -1040,21 +1089,23 @@ def runBatch(request, *args, **kwargs):
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse({ 'success': False, 'error': 'Unable to parse request body.' })
+        return JsonResponse({'success': False, 'error': 'Unable to parse request body.'})
 
     try:
-        features = features_sql(data.get('department_id', None), data.get('folder_id', None), data.get('recursive', False))
+        features = features_sql(data.get('department_id', None), data.get('folder_id', None),
+                                data.get('recursive', False))
         if features:
-            feature_results = {feature.pk : runFeature(request, feature.pk) for feature in features}
+            feature_results = {feature.pk: runFeature(request, feature.pk) for feature in features}
             print(feature_results)
             return JsonResponse({
                 'success': True,
                 'results': feature_results
             })
         else:
-            return JsonResponse({ 'success': False, 'error': 'No features found.' })
+            return JsonResponse({'success': False, 'error': 'No features found.'})
     except Exception as err:
-        return JsonResponse({ 'success': False, 'error': str(err) })
+        return JsonResponse({'success': False, 'error': str(err)})
+
 
 @csrf_exempt
 @require_subscription()
@@ -1064,7 +1115,7 @@ def runTest(request, *args, **kwargs):
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse({ 'success': False, 'error': 'Unable to parse request body.' })
+        return JsonResponse({'success': False, 'error': 'Unable to parse request body.'})
 
     return JsonResponse(runFeature(request, data.get('feature_id', None), data))
 
@@ -1075,11 +1126,13 @@ def GetSteps(request, feature_id):
     if request.GET.get("subSteps", False):
         queryset = queryset.filter(Q(step_type="normal") | Q(step_type="substep")).filter(enabled=True)
     data = StepSerializer(queryset.order_by('id'), many=True).data
-    return JsonResponse({ 'results': data })
+    return JsonResponse({'results': data})
+
 
 @csrf_exempt
 def GetInfo(request):
-    return JsonResponse({ 'version': version })
+    return JsonResponse({'version': version})
+
 
 @csrf_exempt
 def GetStepsByName(request):
@@ -1089,9 +1142,10 @@ def GetStepsByName(request):
         feature_id = feature[0].feature_id
         queryset = Step.objects.filter(feature_id=feature_id).order_by('id').values()
         data = list(queryset)
-        return JsonResponse({ 'results': data })
+        return JsonResponse({'results': data})
     else:
-        return JsonResponse({ 'results': [] })
+        return JsonResponse({'results': []})
+
 
 @csrf_exempt
 def UpdatePixelDifference(request, step_result_id):
@@ -1111,19 +1165,21 @@ def UpdatePixelDifference(request, step_result_id):
     if 'pixel_diff' in updateObj:
         StepResult = Step_result.objects.get(step_result_id=step_result_id)
         FeatureResult = Feature_result.objects.filter(feature_result_id=StepResult.feature_result_id)
-        FeatureResult.update(pixel_diff = FeatureResult.first().pixel_diff + updateObj['pixel_diff'])
-    return JsonResponse({ 'success': True })
+        FeatureResult.update(pixel_diff=FeatureResult.first().pixel_diff + updateObj['pixel_diff'])
+    return JsonResponse({'success': True})
+
 
 @csrf_exempt
 def UpdateScreenshots(request, step_result_id):
     data = json.loads(request.body)
     Step_result.objects.filter(step_result_id=step_result_id).update(
-        screenshot_current = data.get('screenshot_current', ''),
-        screenshot_style = data.get('screenshot_style', ''),
-        screenshot_difference = data.get('screenshot_difference', ''),
-        screenshot_template = data.get('screenshot_template', '')
+        screenshot_current=data.get('screenshot_current', ''),
+        screenshot_style=data.get('screenshot_style', ''),
+        screenshot_difference=data.get('screenshot_difference', ''),
+        screenshot_template=data.get('screenshot_template', '')
     )
-    return JsonResponse({ 'success': True })
+    return JsonResponse({'success': True})
+
 
 @csrf_exempt
 def MigrateScreenshots(request):
@@ -1246,6 +1302,7 @@ def MigrateScreenshots(request):
     print(result)
     return JsonResponse(result)
 
+
 @csrf_exempt
 def CheckBrowserstackVideo(request):
     data = json.loads(request.body)
@@ -1253,16 +1310,17 @@ def CheckBrowserstackVideo(request):
 
     # Check passed video url in POST payload
     if not video_url:
-        return JsonResponse({ 'success': False, 'error': 'Invalid video url.' }, status=400)
+        return JsonResponse({'success': False, 'error': 'Invalid video url.'}, status=400)
 
     # Return response of checking if browserstack video exists
-    response = requests.get(video_url, headers={ 'Range': 'bytes=0-1024' })
+    response = requests.get(video_url, headers={'Range': 'bytes=0-1024'})
     django_response = HttpResponse(
         content=response.content,
         status=response.status_code,
         content_type=response.headers['Content-Type']
     )
     return django_response
+
 
 @csrf_exempt
 def parseBrowsers(request):
@@ -1271,13 +1329,13 @@ def parseBrowsers(request):
     # Check if browser.json file exists
     if not os.path.exists(browsersFile):
         print("File %s doesn't exist, please execute deploy_selenoid.sh outside of docker to create it")
-        return JsonResponse({ 'success': False, 'error': 'browser.json not found' }, status=503)
+        return JsonResponse({'success': False, 'error': 'browser.json not found'}, status=503)
     # Load JSON data of browsers.json
     with open(browsersFile) as file:
         try:
             browsers = json.load(file)
         except:
-            return JsonResponse({ 'success': False, 'error': 'browser.json contains invalid JSON data' }, status=503)
+            return JsonResponse({'success': False, 'error': 'browser.json contains invalid JSON data'}, status=503)
     # Delete all previous browser objects
     Browser.objects.all().delete()
     # Iterate over each available browser name
@@ -1313,28 +1371,30 @@ def parseBrowsers(request):
     requests.post('http://cometa_socket:3001/sendAction', json={
         'type': '[Browsers] Get All'
     })
-    return JsonResponse({ 'success': True })
+    return JsonResponse({'success': True})
+
 
 @csrf_exempt
 def parseActions(request):
     # variable to contain action comment
     action_comments = []
+
     def parseAction(action):
         regex = r"\@(.*)\((u|)'(.*)'\)"
-        matches = re.findall(regex,action)
+        matches = re.findall(regex, action)
         if matches[0][2] == "{step}":
             return
         logger.debug(f"Action matcher Found : {matches[0]}")
         logger.debug(f"Action Value : {matches[0][2]}")
         actionsParsed.append(matches[0][2])
         actionObject = Action(
-            action_name = matches[0][2],
-            department = 'DIF',
-            application = 'amvara',
-            values = matches[0][2].count("{"),
-            description = '<br>'.join(action_comments)
+            action_name=matches[0][2],
+            department='DIF',
+            application='amvara',
+            values=matches[0][2].count("{"),
+            description='<br>'.join(action_comments)
         )
-        
+
         logger.debug(f"Adding action comments : {actionObject.description}")
         actionObject.save()
 
@@ -1351,16 +1411,15 @@ def parseActions(request):
         with open(actions_file) as file:
             lines_in_file = file.readlines()
             logger.debug(f"Found {len(lines_in_file)} lines in the file : {actions_file}")
-            actions = actions+lines_in_file
+            actions = actions + lines_in_file
 
     actionsParsed = []
-    Action.objects.all().delete()  
-    
-    
+    Action.objects.all().delete()
+
     # variable to contain previous line
     previousLine = ''
     logger.debug(f"String Action Parse")
-    for action in actions:        
+    for action in actions:
         if action.startswith("@step") and '(?P<' not in action:
             logger.debug(f"Parsing Step Action : {action}")
             # parse action will use action_comments, if found to be action otherwise make it empty
@@ -1369,7 +1428,7 @@ def parseActions(request):
         # This condition rarely executes
         # If action started with @step then it never start with @done and in case above condition is false then any how this will be executed
         # not need of two if conditions
-        elif action.startswith('@done') and '(?P<' in previousLine:             
+        elif action.startswith('@done') and '(?P<' in previousLine:
             logger.debug(f"Parsing Done Action : {action}")
             parseAction(action)
 
@@ -1377,9 +1436,10 @@ def parseActions(request):
         # If there is Muti line comments, keep on adding in the list 
         elif action.startswith('# '):
             # Action Comments to be written in with out line gaps
-            action_comments.append(action[2:])  # [2:] to remove # and single space from the front of the comment        
+            action_comments.append(
+                action[2:])  # [2:] to remove # and single space from the front of the comment
         else:
-            action_comments=[] # if other then comments found remove empty the list
+            action_comments = []  # if other then comments found remove empty the list
 
         previousLine = action
 
@@ -1389,17 +1449,18 @@ def parseActions(request):
         'type': '[Actions] Get All'
     })
 
-    return JsonResponse({ 'success': True, 'actions': actionsParsed })
+    return JsonResponse({'success': True, 'actions': actionsParsed})
+
 
 @csrf_exempt
 def Contact(request):
     data = json.loads(request.body)
     contact = MiamiContact(
-        email = data['email'],
-        name = data['name'],
-        tel = data['tel'],
-        origin = data['origin'],
-        language = data['lang']
+        email=data['email'],
+        name=data['name'],
+        tel=data['tel'],
+        origin=data['origin'],
+        language=data['lang']
     )
     contact.save()
 
@@ -1433,7 +1494,8 @@ def Contact(request):
     except Exception as err:
         print(str(err))
         return JsonResponse({'success': False, 'error': 'An error occured: %s' % str(err)})
-    return JsonResponse({ 'success': True })
+    return JsonResponse({'success': True})
+
 
 def schedule_update(feature_id, schedule, user_id):
     features = Feature.objects.filter(pk=feature_id)
@@ -1453,13 +1515,14 @@ def schedule_update(feature_id, schedule, user_id):
             )
             schedule_model.save()
             features.update(schedule=schedule_model)
-            
+
         else:
             features.update(schedule=None)
 
         if current_schedule:
             current_schedule.delete()
     return schedule_model
+
 
 @csrf_exempt
 @require_permissions('edit_feature')
@@ -1468,39 +1531,41 @@ def UpdateSchedule(request, feature_id, *args, **kwargs):
     schedule = data.get('schedule', None)
     # Check schedule is provided
     if schedule is None:
-        return JsonResponse({ 'success': False, 'error': 'Schedule not provided.' })
+        return JsonResponse({'success': False, 'error': 'Schedule not provided.'})
     # Retrieve feature
-    features = Feature.objects.filter(feature_id = feature_id)
+    features = Feature.objects.filter(feature_id=feature_id)
     # Check feature exists
     if not features.exists():
-        return JsonResponse({ 'success': False, 'error': 'Feature not found with specified ID.' })
+        return JsonResponse({'success': False, 'error': 'Feature not found with specified ID.'})
     feature = features[0]
-    
+
     try:
         schedule_update(feature.pk, schedule, request.session['user']['user_id'])
     except Exception as err:
-        return JsonResponse({ 'success': False, 'error': str(err) })
+        return JsonResponse({'success': False, 'error': str(err)})
 
-    return JsonResponse({ 'success': True })
+    return JsonResponse({'success': True})
+
 
 def uploadFilesThread(files, department_id, uploaded_by):
     for file in files:
         uploadFile = UploadFile(file, department_id, uploaded_by)
         print(uploadFile.proccessUploadFile())
 
+
 class UploadViewSet(viewsets.ModelViewSet):
     queryset = File.objects.none()
     serializer_class = FileSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def list(self, request, *args, **kwargs):
         file_id = kwargs.get('file_id', None)
         XHR = request.headers.get('X-Requested-With', None)
-        
+
         # check if file id was passed.
         if file_id is None:
-            return JsonResponse({ 'success': False, 'error': 'Missing file id.' })
-        
+            return JsonResponse({'success': False, 'error': 'Missing file id.'})
+
         try:
             # get the file from file id
             file = File.objects.get(id=file_id)
@@ -1522,20 +1587,20 @@ class UploadViewSet(viewsets.ModelViewSet):
                     response['Content-Disposition'] = 'attachment; filename="%s"' % file.name
                 os.remove(targetPath)
                 return response
-            return JsonResponse({ 'success': True })
+            return JsonResponse({'success': True})
         except Exception as err:
             logger.error(f"Error occured while trying to download the file: {file_id}.")
             logger.exception(err)
-            return JsonResponse({ 'success': False, 'error': 'File does not exists.' }, status=404)
+            return JsonResponse({'success': False, 'error': 'File does not exists.'}, status=404)
 
     def put(self, request, *args, **kwargs):
         file_id = kwargs.get('file_id', None)
         restore = request.POST.get('restore', False)
-        
+
         # check if file id was passed.
         if file_id is None:
-            return JsonResponse({ 'success': False, 'error': 'Missing file id.' })
-        
+            return JsonResponse({'success': False, 'error': 'Missing file id.'})
+
         try:
             # get the file from file id
             file = File.all_objects.get(id=file_id)
@@ -1545,33 +1610,34 @@ class UploadViewSet(viewsets.ModelViewSet):
 
             if restore == "true":
                 file.restore()
-            return JsonResponse({ 'success': True })
+            return JsonResponse({'success': True})
         except Exception as err:
             logger.error(f"Error occured while trying to update the file: {file_id}.")
             logger.exception(err)
-            return JsonResponse({ 'success': False, 'error': 'File does not exists.' })
+            return JsonResponse({'success': False, 'error': 'File does not exists.'})
 
     def create(self, request):
         # get the department_id from the request
         department_id = request.POST.get('department_id', -1)
         if department_id == -1 or departmentExists(department_id) == -1:
-            return JsonResponse({ 'success': False, 'error': "Department does not exist." })
+            return JsonResponse({'success': False, 'error': "Department does not exist."})
 
         try:
             # Spawn thread to upload files in background
-            t = Thread(target=uploadFilesThread, args=(request.FILES.getlist('files'), department_id, request.session['user']['user_id']))
+            t = Thread(target=uploadFilesThread,
+                       args=(request.FILES.getlist('files'), department_id, request.session['user']['user_id']))
             t.start()
-            return JsonResponse({ 'success': True })
+            return JsonResponse({'success': True})
         except Exception as e:
-            return JsonResponse({ 'success': False, 'error': str(e) })
-    
+            return JsonResponse({'success': False, 'error': str(e)})
+
     def delete(self, request, *args, **kwargs):
         file_id = kwargs.get('file_id', None)
-        
+
         # check if file id was passed.
         if file_id is None:
-            return JsonResponse({ 'success': False, 'error': 'Missing file id.' })
-        
+            return JsonResponse({'success': False, 'error': 'Missing file id.'})
+
         try:
             # get the file from file id
             file = File.objects.get(id=file_id)
@@ -1580,12 +1646,12 @@ class UploadViewSet(viewsets.ModelViewSet):
             self.userHasAccess(request, file)
 
             file.delete()
-            return JsonResponse({ 'success': True })
+            return JsonResponse({'success': True})
         except Exception as err:
             logger.error(f"Error occured while trying to delete the file: {file_id}.")
             logger.exception(err)
-            return JsonResponse({ 'success': False, 'error': 'File does not exists.' })
-    
+            return JsonResponse({'success': False, 'error': 'File does not exists.'})
+
     def userHasAccess(self, request, file):
         # get department id from the userb
         department_id = file.department_id
@@ -1594,9 +1660,9 @@ class UploadViewSet(viewsets.ModelViewSet):
 
         if department_id not in user_departments:
             raise Exception('User trying to access file with no access to the department.')
-        
+
         return True
-        
+
 
 class AccountViewset(viewsets.ModelViewSet):
     """
@@ -1604,7 +1670,7 @@ class AccountViewset(viewsets.ModelViewSet):
     """
     queryset = OIDCAccount.objects.all()
     serializer_class = OIDCAccountSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     @require_permissions("view_accounts||view_accounts_panel")
     def list(self, request, *args, **kwargs):
@@ -1612,7 +1678,8 @@ class AccountViewset(viewsets.ModelViewSet):
         search = request.GET.get('search', False)
         if search:
             # search for users in db with search criteria
-            users = OIDCAccount.objects.filter(Q(name__icontains=search) | Q(email__icontains=search) | Q(user_permissions__permission_name__icontains=search)).order_by("-created_on")
+            users = OIDCAccount.objects.filter(Q(name__icontains=search) | Q(email__icontains=search) | Q(
+                user_permissions__permission_name__icontains=search)).order_by("-created_on")
         else:
             # get all users from db
             users = OIDCAccount.objects.all().order_by("-created_on")
@@ -1630,31 +1697,34 @@ class AccountViewset(viewsets.ModelViewSet):
         serializer = OIDCAccountJsonSerializer(data=data)
         if serializer.is_valid():
             OIDCAccount.objects.filter(user_id=user_id).update(
-                name = data['name'],
-                email = data['email']
+                name=data['name'],
+                email=data['email']
             )
             user = OIDCAccount.objects.filter(user_id=user_id)
             if 'favourite_browsers' in data:
-                user.update( favourite_browsers = json.loads(data['favourite_browsers']) )
+                user.update(favourite_browsers=json.loads(data['favourite_browsers']))
             if 'settings' in data:
-                user.update( settings = data['settings'] )
+                user.update(settings=data['settings'])
             if 'permission_name' in data:
                 user_permission = Permissions.objects.filter(permission_name=data['permission_name'])
-                if user_permission.exists() and request.session['user']['user_permissions']['permission_power'] >= user_permission[0].permission_power:
+                if user_permission.exists() and request.session['user']['user_permissions']['permission_power'] >= \
+                        user_permission[0].permission_power:
                     user.update(
-                        user_permissions = user_permission[0]
+                        user_permissions=user_permission[0]
                     )
                 else:
-                    return JsonResponse({ 'success': False, 'error': 'You do not have permissions to set higher role than your current role.'}, status=403)
+                    return JsonResponse({'success': False,
+                                         'error': 'You do not have permissions to set higher role than your current role.'},
+                                        status=403)
             if 'departments' in data and not kwargs['usersOwn']:
                 Account_role.objects.filter(user=user_id).delete()
                 for department in data['departments']:
-                    department = Department.objects.filter(department_id = department)[0]
+                    department = Department.objects.filter(department_id=department)[0]
                     Account_role.objects.create(
-                        user = user[0],
-                        department = department
+                        user=user[0],
+                        department=department
                     )
-                
+
             # get user thats been updated
             user = OIDCAccount.objects.filter(user_id=user_id)[0]
             # send a websocket to front about the creation
@@ -1663,7 +1733,7 @@ class AccountViewset(viewsets.ModelViewSet):
                 'account': IAccount(user, many=False).data
             })
 
-            return JsonResponse({ 'success': True }, status=200)
+            return JsonResponse({'success': True}, status=200)
         else:
             return JsonResponse(serializer.errors, status=400)
 
@@ -1672,7 +1742,7 @@ class AccountViewset(viewsets.ModelViewSet):
         user_id = self.kwargs['account_id']
         users = OIDCAccount.objects.filter(user_id=user_id)
         if not users.exists():
-            return JsonResponse({"success": False , "error": "User_id invalid or doesn't exist."}, status=400)
+            return JsonResponse({"success": False, "error": "User_id invalid or doesn't exist."}, status=400)
 
         users.delete()
 
@@ -1682,7 +1752,8 @@ class AccountViewset(viewsets.ModelViewSet):
             'account_id': user_id
         })
 
-        return JsonResponse({"success": True }, status=200)
+        return JsonResponse({"success": True}, status=200)
+
 
 class ActionViewSet(viewsets.ModelViewSet):
     """
@@ -1690,7 +1761,7 @@ class ActionViewSet(viewsets.ModelViewSet):
     """
     queryset = Action.objects.all()
     serializer_class = ActionSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def list(self, request):
         queryset = Action.objects.all()
@@ -1704,6 +1775,7 @@ class ActionViewSet(viewsets.ModelViewSet):
         return Response({
             'results': ActionSerializer(queryset, many=True).data
         })
+
 
 # # FeatureResultByFeatureIdViewSet
 # # ... takes parameter FeatureId and returns all results for that ID from featureResults
@@ -1731,7 +1803,7 @@ class ActionViewSet(viewsets.ModelViewSet):
 #         if "feature_id" in kwargs:
 #             # query feature_results for the id and order by date and result_id
 #             feature_result = self.queryset.filter(feature_id=kwargs['feature_id']).order_by('-result_date', '-feature_result_id')
-            
+
 #             # Check on number of results and return data with success=false or results
 #             if len(feature_result) > 0:
 #                 logger.debug("Found "+str(len(feature_result))+" results")
@@ -1758,7 +1830,6 @@ class ActionViewSet(viewsets.ModelViewSet):
 #         return JsonResponse({'success': False, 'error': 'No feature_result_id nor feature_id specified...'}, status=400)
 
 
-
 # FeatureResultByFeatureIdViewSet
 # ... takes parameter FeatureId and returns all results for that ID from featureResults
 # ... this enables showing all results without grouping them by featureRun
@@ -1768,12 +1839,13 @@ class FeatureResultByFeatureIdViewSet(viewsets.ModelViewSet):
     """
     queryset = Feature_result.available_objects.all()
     serializer_class = FeatureResultSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ('result_date',)
 
     # @silk_profile(name="FeatureResultByFeatureId")
     def list(self, request, *args, **kwargs):
+        from django.db.models import F
         # check if feature_id in GET parameters
         feature_id = request.GET.get('feature_id', False)
         # get if user want only archived runs
@@ -1781,17 +1853,26 @@ class FeatureResultByFeatureIdViewSet(viewsets.ModelViewSet):
         if feature_id and feature_id.isnumeric():
 
             # get all the feature runs for specific run
-            feature_result = self.queryset.filter(feature_id=feature_id, archived=archived).order_by('-result_date', '-feature_result_id')
-
+            feature_result = self.queryset.filter(feature_id=feature_id, archived=archived).order_by('-result_date',
+                                                                                                     '-feature_result_id')
             # get the amount of data per page using the queryset
             page = self.paginate_queryset(feature_result)
             serializer = self.get_serializer(page, many=True)
+            feature_results = serializer.data
+            for result in feature_results:
+                try:
+                    response_headers = ResponseHeaders.objects.values('network_response_count',
+                                                                      'vulnerable_response_count').get(
+                        result_id=result["feature_result_id"])
+                    result["network_response_count"] = response_headers["network_response_count"]
+                    result["vulnerable_response_count"] = response_headers["vulnerable_response_count"]
+                except Exception as e:
+                    pass
+
             # return the data with count, next and previous pages.
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_response(feature_results)
 
         return JsonResponse({'success': False, 'error': 'No feature_result_id nor feature_id specified...'}, status=400)
-
-
 
 
 class FeatureResultViewSet(viewsets.ModelViewSet):
@@ -1800,7 +1881,7 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
     """
     queryset = Feature_result.available_objects.all()
     serializer_class = FeatureResultSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ('result_date',)
 
@@ -1820,22 +1901,24 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
             except Exception as err:
                 logger.debug('Unable to find feature run for the feature result id:', str(feature_result_id))
                 logger.error(str(err))
-            if data.get('running', None) == False: # check if running is set to False from data not featureResult
+            if data.get('running', None) == False:  # check if running is set to False from data not featureResult
                 # get the feature_result
                 fr = self.queryset.get(feature_result_id=feature_result_id)
                 # get integrations if any
                 integrations = Integration.objects.filter(department__department_id=fr.department_id, active=True)
-                if data['success']: # get only the after_test_execution
+                if data['success']:  # get only the after_test_execution
                     integrations = integrations.filter(send_on__after_test_execution=True)
-                else: # get after_test_execution and after_test_execution_failed
-                    integrations = integrations.filter(Q(send_on__after_test_execution=True) | Q(send_on__after_test_execution_failed=True))
+                else:  # get after_test_execution and after_test_execution_failed
+                    integrations = integrations.filter(
+                        Q(send_on__after_test_execution=True) | Q(send_on__after_test_execution_failed=True))
                 # loop over all integrations
                 for integration in integrations:
                     # get the application from integrations
                     application = integration.application
                     # get the payload for send_on__after_test_execution or send_on__after_test_execution_failed
                     try:
-                        intPayload = IntegrationPayload.objects.filter(application=application).get(Q(send_on="after_test_execution") | Q(send_on="after_test_execution_failed"))
+                        intPayload = IntegrationPayload.objects.filter(application=application).get(
+                            Q(send_on="after_test_execution") | Q(send_on="after_test_execution_failed"))
                     except IntegrationPayload.DoesNotExist as err:
                         capture_exception(err)
                         logger.error('Unable to retrieve payload for application %s' % str(application))
@@ -1845,8 +1928,11 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
                         "feature_result_id": fr.feature_result_id,
                         "feature_id": fr.feature_id.feature_id,
                         "feature_name": fr.feature_id.feature_name,
-                        "color": (3066993 if fr.success else 15158332) if intPayload.application == 'Discord' else ("#2ECC71" if fr.success else "#E74C3C"),
-                        "feature_result_url": 'https://%s/#/%s/%s/%s/run/%s/step/%s' % (DOMAIN, fr.app_name, fr.environment_name, str(fr.feature_id.feature_id), str(fr.feature_runs_set.get().run_id), str(feature_result_id)),
+                        "color": (3066993 if fr.success else 15158332) if intPayload.application == 'Discord' else (
+                            "#2ECC71" if fr.success else "#E74C3C"),
+                        "feature_result_url": 'https://%s/#/%s/%s/%s/run/%s/step/%s' % (
+                            DOMAIN, fr.app_name, fr.environment_name, str(fr.feature_id.feature_id),
+                            str(fr.feature_runs_set.get().run_id), str(feature_result_id)),
                         "execution_time": Humanize(fr.execution_time),
                         "pixel_diff": fr.pixel_diff,
                         "total": fr.total,
@@ -1855,7 +1941,8 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
                         "skipped": fr.skipped,
                         "username": fr.executed_by.name,
                         "browser_name": str(fr.browser.get('browser', "Browser name unkown")).capitalize(),
-                        "browser_version": str(fr.browser.get('browser_version', 'Browser version unknown')).capitalize(),
+                        "browser_version": str(
+                            fr.browser.get('browser_version', 'Browser version unknown')).capitalize(),
                         "os_name": str(fr.browser.get('os', "O.S. name unknown")).capitalize(),
                         "os_version": str(fr.browser.get('os_version', "O.S. version unknown")).capitalize(),
                         "feature_description": fr.feature_id.description
@@ -1886,7 +1973,8 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
         archived = request.GET.get('archived', False) == 'true'
         if feature_id and feature_id.isnumeric():
             # get all the feature runs for specific run
-            feature_runs = Feature_Runs.available_objects.filter(feature=feature_id, archived=archived).order_by('-date_time', '-run_id')
+            feature_runs = Feature_Runs.available_objects.filter(feature=feature_id, archived=archived).order_by(
+                '-date_time', '-run_id')
             # get the amount of data per page using the queryset
             page = self.paginate_queryset(FeatureRunsSerializer.setup_eager_loading(feature_runs))
             # serialize the data
@@ -1906,12 +1994,14 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
             feature_result = self.queryset.filter(feature_result_id=kwargs['feature_result_id'])
             # check if exists
             if not feature_result.exists():
-                return JsonResponse({'success': False, 'error': 'No feature_result found with id: %s' % str(kwargs['feature_result_id'])})
+                return JsonResponse({'success': False,
+                                     'error': 'No feature_result found with id: %s' % str(kwargs['feature_result_id'])})
             # get the first element as save as feature_result
             feature_result = feature_result[0]
             # check if feature_result is marked as archived if so return error else keep going
             if feature_result.archived:
-                return JsonResponse({'success': False, 'error': 'Feature result that you are trying to remove is marked as archived, please uncheck archived and try again.'})
+                return JsonResponse({'success': False,
+                                     'error': 'Feature result that you are trying to remove is marked as archived, please uncheck archived and try again.'})
             # get feature_runs object from the feature_result
             feature_run = feature_result.feature_runs_set.all()
             # check if feature_run exists
@@ -1920,7 +2010,8 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
                 feature_run = feature_run[0]
                 # check if feature_run that contains this feature_result is not marked as archived
                 if feature_run.archived:
-                    return JsonResponse({'success': False, 'error': 'Feature run that contains this feature result is marked as archived. Unable to remove feature result.'})
+                    return JsonResponse({'success': False,
+                                         'error': 'Feature run that contains this feature result is marked as archived. Unable to remove feature result.'})
                 # if feature_results length in feature_run is lower or equal to 1 mean this is the only feature_result in the feature_run so we should remove it as well
                 if len(feature_run.feature_results.all()) <= 1:
                     # delete the object if this feature_result is only one in feature_run
@@ -1932,13 +2023,14 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
 
+
 class StepResultViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
     queryset = Step_result.objects.all().order_by('step_result_id')
     serializer_class = StepResultSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def create(self, request, *args, **kwargs):
         # get data from request
@@ -1968,7 +2060,8 @@ class StepResultViewSet(viewsets.ModelViewSet):
             # Get all step results in current feature result
             step_results = Step_result.objects.filter(feature_result_id=feature_result_id)
             # Filter successed steps
-            failed_steps = [ step for step in step_results if (step.status and step.status == 'Failed') or (not step.status and not step.success) ]
+            failed_steps = [step for step in step_results if
+                            (step.status and step.status == 'Failed') or (not step.status and not step.success)]
             success = len(failed_steps) == 0
             # Update feature result
             self.queryset.filter(feature_result_id=feature_result_id).update(success=success)
@@ -1983,12 +2076,25 @@ class StepResultViewSet(viewsets.ModelViewSet):
             # if feature_result_id was found in the url
             # find all the step_results related to specified feature_result
             queryset = Step_result.objects.filter(feature_result_id=feature_result_id).order_by('step_result_id')
+
             # get the amount of data per page using the queryset
             page = self.paginate_queryset(queryset)
             # serialize the data
             serializer = StepResultSerializer(page, many=True)
+            step_result = serializer.data
+            # Checking if step has some response stored
+            try:
+                response_headers = ResponseHeaders.objects.get(result_id=feature_result_id)
+                response_headers = ResponseHeadersSerializer(response_headers)
+                logger.debug("Adding network response to steps")
+                for i, step in enumerate(response_headers.data['responses']):
+                    step_result[i]['network_response'] = step.get('responses_and_vulnerable_header')
+                    step_result[i]['vulnerability_headers_count'] = step.get('vulnerability_headers_count')
+                    # logger.debug(step_result)
+            except Exception as e:
+                pass
             # return the data with count, next and previous pages.
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_response(step_result)
 
         # get step_result_id from the url if passed means
         # that user wants to only see that particular step_result
@@ -1999,7 +2105,8 @@ class StepResultViewSet(viewsets.ModelViewSet):
             step_result = Step_result.objects.filter(step_result_id=step_result_id)
             # if specified step_result_id does not exists throw an error
             if not step_result.exists():
-                return JsonResponse({"success": False, "error": "Unable to find step_result_id %s..." % (str(step_result_id))})
+                return JsonResponse(
+                    {"success": False, "error": "Unable to find step_result_id %s..." % (str(step_result_id))})
             # get the first index from the step_results found and save it as step_result
             step_result = step_result[0]
             # all screenshots related to step_result into queryset
@@ -2010,12 +2117,12 @@ class StepResultViewSet(viewsets.ModelViewSet):
             current = list(steps).index(step_result)
             # try to get the previous step if it throws an error means there is an index issue and can't go back and should be set to None
             try:
-                step_result.previous = steps[current-1].step_result_id
+                step_result.previous = steps[current - 1].step_result_id
             except:
                 step_result.previous = None
             # try to get the next step if it throws an error means there is an index issue and can't go forward and should be set to None
             try:
-                step_result.next = steps[current+1].step_result_id
+                step_result.next = steps[current + 1].step_result_id
             except:
                 step_result.next = None
 
@@ -2034,7 +2141,7 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
     """
     queryset = Environment.objects.all()
     serializer_class = EnvironmentSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def list(self, request, *args, **kwargs):
         return Response({
@@ -2047,28 +2154,29 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
         environment_name = self.kwargs['environment_name']
         environments = Environment.objects.filter(environment_id=environment_id)
         if not environments.exists():
-            return JsonResponse({"success": False , "error": "Environment_id invalid or doesn't exist."}, status=400)
+            return JsonResponse({"success": False, "error": "Environment_id invalid or doesn't exist."}, status=400)
         environments.update(environment_name=environment_name)
         # send a websocket to front about the creation
         response = requests.post('http://cometa_socket:3001/sendAction', json={
             'type': '[Environments] Update one',
             'environment': IEnvironment(environments[0], many=False).data
         })
-        return JsonResponse({"success": True }, status=200)
+        return JsonResponse({"success": True}, status=200)
 
     @require_permissions("delete_environment")
     def delete(self, request, *args, **kwargs):
         environment_id = self.kwargs['environment_id']
         environments = Environment.objects.filter(environment_id=environment_id)
         if not environments.exists():
-            return JsonResponse({"success": False , "error": "Environment id invalid or doesn't exist."}, status=400)
+            return JsonResponse({"success": False, "error": "Environment id invalid or doesn't exist."}, status=400)
         environments.delete()
         # send a websocket to front about the creation
         response = requests.post('http://cometa_socket:3001/sendAction', json={
             'type': '[Environments] Remove Environment',
             'environment_id': environment_id
         })
-        return JsonResponse({"success": True }, status=200)
+        return JsonResponse({"success": True}, status=200)
+
 
 class BrowserViewSet(viewsets.ModelViewSet):
     """
@@ -2076,14 +2184,13 @@ class BrowserViewSet(viewsets.ModelViewSet):
     """
     queryset = Browser.objects.all()
     serializer_class = BrowserSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def list(self, request, *args, **kwargs):
-
         browsers = Browser.objects.all()
 
         data = {
-            "results": BrowserSerializer(browsers , many=True).data,
+            "results": BrowserSerializer(browsers, many=True).data,
         }
 
         return JsonResponse(data['results'], safe=False)
@@ -2093,7 +2200,7 @@ class BrowserViewSet(viewsets.ModelViewSet):
         browser_id = self.kwargs['browser_id']
         browsers = Browser.objects.filter(browser_id=browser_id)
         if not browsers.exists():
-            return JsonResponse({"success": False , "error": "Browser_id invalid or doesn't exist."}, status=400)
+            return JsonResponse({"success": False, "error": "Browser_id invalid or doesn't exist."}, status=400)
         browsers.delete()
 
         # send a websocket to front about the creation
@@ -2102,7 +2209,8 @@ class BrowserViewSet(viewsets.ModelViewSet):
             'browser_id': browser_id
         })
 
-        return JsonResponse({"success": True }, status=200)
+        return JsonResponse({"success": True}, status=200)
+
 
 class ApplicationViewSet(viewsets.ModelViewSet):
     """
@@ -2110,7 +2218,7 @@ class ApplicationViewSet(viewsets.ModelViewSet):
     """
     queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def list(self, request, *args, **kwargs):
         return Response({
@@ -2123,7 +2231,7 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         app_name = self.kwargs['app_name']
         apps = Application.objects.filter(app_id=app_id)
         if not apps.exists():
-            return JsonResponse({"success": False , "error": "Application_id invalid or doesn't exist."}, status=400)
+            return JsonResponse({"success": False, "error": "Application_id invalid or doesn't exist."}, status=400)
         apps.update(app_name=app_name)
 
         # send a websocket to front about the creation
@@ -2132,14 +2240,14 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             'app': IApplication(apps[0], many=False).data
         })
 
-        return JsonResponse({"success": True }, status=200)
+        return JsonResponse({"success": True}, status=200)
 
     @require_permissions("delete_application")
     def delete(self, request, *args, **kwargs):
         app_id = self.kwargs['app_id']
         apps = Application.objects.filter(app_id=app_id)
         if not apps.exists():
-            return JsonResponse({"success": False , "error": "Application_id invalid or doesn't exist."}, status=400)
+            return JsonResponse({"success": False, "error": "Application_id invalid or doesn't exist."}, status=400)
         apps.delete()
 
         # send a websocket to front about the creation
@@ -2148,12 +2256,12 @@ class ApplicationViewSet(viewsets.ModelViewSet):
             'app_id': app_id
         })
 
-        return JsonResponse({"success": True }, status=200)
+        return JsonResponse({"success": True}, status=200)
+
 
 @csrf_exempt
 @require_permissions("edit_department")
 def UpdateStepTimeout(request, department_id, *args, **kwargs):
-
     def checkParameter(object, property, valueType):
         if property not in object:
             raise ValueError(f"Missing mandatory parameter '{property}' from the request body.")
@@ -2173,7 +2281,7 @@ def UpdateStepTimeout(request, department_id, *args, **kwargs):
             'success': False,
             'error': str(err)
         }, status=400)
-    
+
     try:
         # get department from the db
         department = Department.objects.get(pk=department_id)
@@ -2182,7 +2290,8 @@ def UpdateStepTimeout(request, department_id, *args, **kwargs):
         # get all the steps in these features
         steps = Step.objects.filter(feature_id__in=features, timeout=step_timeout_from)
         # get total features that will be updated
-        total_features_updated = len(steps.order_by('feature_id').distinct('feature_id').values_list('feature_id', flat=True))
+        total_features_updated = len(
+            steps.order_by('feature_id').distinct('feature_id').values_list('feature_id', flat=True))
         # update steps to their new timeout
         steps_updated = steps.update(timeout=step_timeout_to)
         return JsonResponse({
@@ -2196,13 +2305,14 @@ def UpdateStepTimeout(request, department_id, *args, **kwargs):
             "error": "Department does not exists."
         }, status=404)
 
+
 class DepartmentViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
     queryset = Department.objects.prefetch_related('files').all()
     serializer_class = DepartmentSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def list(self, request, *args, **kwargs):
         # set default value for qs
@@ -2222,7 +2332,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
             qs = Department.objects.prefetch_related(
                 Prefetch('files', queryset=File.all_objects.all())
             ).filter(department_id__in=user_departments)
-            
+
         # get show_department_users permission
         show_department_users = request.session['user']['user_permissions']['show_department_users']
         # if user has show_department_users permission the show users aswell
@@ -2239,11 +2349,11 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwards):
         # create a new department
         user = OIDCAccount.objects.filter(user_id=request.session['user']['user_id'])[0]
-        data=json.loads(request.body)
+        data = json.loads(request.body)
         department_name = data['department_name']
         department = Department(department_name=department_name)
         department.save()
-        account_role=Account_role(user=user, department=department)
+        account_role = Account_role(user=user, department=department)
         account_role.save()
 
         # send a websocket to front about the creation
@@ -2258,7 +2368,9 @@ class DepartmentViewSet(viewsets.ModelViewSet):
             'account': IAccount(user, many=False).data
         })
 
-        return JsonResponse({"success": True, "department_id": department.department_id, "department_name": department_name }, status=200)
+        return JsonResponse(
+            {"success": True, "department_id": department.department_id, "department_name": department_name},
+            status=200)
 
     @require_permissions("edit_department")
     def patch(self, request, *args, **kwargs):
@@ -2270,20 +2382,23 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         departments = Department.objects.filter(department_id=department_id)
         # check if department found from database exists
         if not departments.exists():
-            return JsonResponse({"success": False , "error": "Department_id invalid or doesn't exist."}, status=400)
+            return JsonResponse({"success": False, "error": "Department_id invalid or doesn't exist."}, status=400)
         # check if department_name is in payload and needs to be changed else do nothing
         if 'department_name' in data and data['department_name'] != departments[0].department_name:
             # check if exists more than one department with new name
             departmentsWithNewName = Department.objects.filter(department_name=data['department_name'])
             # check if exists departments with that name
             if departmentsWithNewName.exists():
-                return JsonResponse({'success': False, 'error': 'Department with name "%s" already exists please try another name for the department.' % data['department_name']}, status=200)
+                return JsonResponse({'success': False,
+                                     'error': 'Department with name "%s" already exists please try another name for the department.' %
+                                              data['department_name']}, status=200)
             # get path of old department folder
             old_p = "/code/behave/department_data/" + departments[0].slug
             # check if path exists
             if os.path.exists(old_p):
                 # rename department folder
-                os.rename("/code/behave/department_data/%s" % departments[0].slug, "/code/behave/department_data/%s" % slugify(data['department_name']))
+                os.rename("/code/behave/department_data/%s" % departments[0].slug,
+                          "/code/behave/department_data/%s" % slugify(data['department_name']))
             else:
                 # create incase it does not exists
                 os.makedirs("/code/behave/department_data/%s" % slugify(data['department_name']), exist_ok=True)
@@ -2297,7 +2412,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
                 'options': IDepartment(departments[0], many=False).data
             })
             # return OK if everything went OK
-            return JsonResponse({"success": True }, status=200)
+            return JsonResponse({"success": True}, status=200)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
 
@@ -2306,14 +2421,15 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         department_id = self.kwargs['department_id']
         departments = Department.objects.filter(department_id=department_id)
         if not departments.exists():
-            return JsonResponse({"success": False , "error": "Department_id invalid or doesn't exist."}, status=400)
+            return JsonResponse({"success": False, "error": "Department_id invalid or doesn't exist."}, status=400)
         departments.delete()
         # send a websocket to front about the creation
         response = requests.post('http://cometa_socket:3001/sendAction', json={
             'type': '[Departments] Remove Admin Department',
             'department_id': department_id
         })
-        return JsonResponse({"success": True }, status=200)
+        return JsonResponse({"success": True}, status=200)
+
 
 class FeatureViewSet(viewsets.ModelViewSet):
     """
@@ -2321,15 +2437,17 @@ class FeatureViewSet(viewsets.ModelViewSet):
     """
     queryset = Feature.objects.all()
     serializer_class = FeatureSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def list(self, request, *args, **kwargs):
         superuser = request.session['user']['user_permissions']['permission_name'] == "SUPERUSER"
         if superuser:
-            queryset = Feature.objects.select_related('last_edited', 'created_by', 'info').prefetch_related('info__feature_results')
+            queryset = Feature.objects.select_related('last_edited', 'created_by', 'info').prefetch_related(
+                'info__feature_results')
         else:
             departments = [x['department_id'] for x in request.session['user']['departments']]
-            queryset = Feature.objects.select_related('last_edited', 'created_by', 'info').prefetch_related('info__feature_results').filter(department_id__in=departments)
+            queryset = Feature.objects.select_related('last_edited', 'created_by', 'info').prefetch_related(
+                'info__feature_results').filter(department_id__in=departments)
 
         if 'feature_id' in kwargs:
             feature_id = kwargs['feature_id']
@@ -2352,32 +2470,33 @@ class FeatureViewSet(viewsets.ModelViewSet):
             subscriptions = get_subscriptions_from_request(request)
             check_browser_access(request.data['browsers'] or [], subscriptions)
         except Exception as err:
-            return JsonResponse({ 'success': False, 'error': str(err) })
+            return JsonResponse({'success': False, 'error': str(err)})
 
         """
         Create feature with POST data
         """
         newFeature = Feature(
-            feature_name = request.data['feature_name'],
-            app_id = request.data['app_id'],
-            app_name = request.data['app_name'],
-            description = request.data['description'],
-            environment_id = request.data['environment_id'],
-            environment_name = request.data['environment_name'],
-            steps = len([x for x in request.data['steps']['steps_content'] if x['enabled'] == True]),
+            feature_name=request.data['feature_name'],
+            app_id=request.data['app_id'],
+            app_name=request.data['app_name'],
+            description=request.data['description'],
+            environment_id=request.data['environment_id'],
+            environment_name=request.data['environment_name'],
+            steps=len([x for x in request.data['steps']['steps_content'] if x['enabled'] == True]),
             # schedule = request.data['schedule'], # Handle it later, we need to validate it
-            department_id = request.data['department_id'],
-            department_name = request.data['department_name'],
-            screenshot = "", # ! Deprecated: now each step has it's own screenshot value
-            compare = "", # ! Deprecated: now each step has it's own compare value
-            depends_on_others = False if 'depends_on_others' not in request.data else (False if request.data['depends_on_others'] == None else request.data['depends_on_others']),
-            browsers = request.data['browsers'],
-            cloud = request.data['cloud'],
-            video = request.data['video'],
-            continue_on_failure = request.data.get('continue_on_failure', False),
-            last_edited_id = request.session['user']['user_id'],
-            last_edited_date = datetime.datetime.utcnow(),
-            created_by_id = request.session['user']['user_id']
+            department_id=request.data['department_id'],
+            department_name=request.data['department_name'],
+            screenshot="",  # ! Deprecated: now each step has it's own screenshot value
+            compare="",  # ! Deprecated: now each step has it's own compare value
+            depends_on_others=False if 'depends_on_others' not in request.data else (
+                False if request.data['depends_on_others'] == None else request.data['depends_on_others']),
+            browsers=request.data['browsers'],
+            cloud=request.data['cloud'],
+            video=request.data['video'],
+            continue_on_failure=request.data.get('continue_on_failure', False),
+            last_edited_id=request.session['user']['user_id'],
+            last_edited_date=datetime.datetime.utcnow(),
+            created_by_id=request.session['user']['user_id']
         )
 
         """
@@ -2430,7 +2549,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
             subscriptions = get_subscriptions_from_request(request)
             check_browser_access(data.get('browsers', []), subscriptions)
         except Exception as err:
-            return JsonResponse({ 'success': False, 'error': str(err) })
+            return JsonResponse({'success': False, 'error': str(err)})
 
         """
         Merge fields of feature model with values from body payload
@@ -2493,14 +2612,13 @@ class FeatureViewSet(viewsets.ModelViewSet):
             })
 
         # Spawn thread to send help email about 'Ask for help'
-        t = Thread(target=SendHelpEmail, args=(request, feature, ))
+        t = Thread(target=SendHelpEmail, args=(request, feature,))
         t.start()
 
         return JsonResponse(result, status=200)
 
-
     def run_test(self, json_path):
-        post_data = { 'json_path': json_path }
+        post_data = {'json_path': json_path}
         response = requests.post('http://behave:8001/run_test/', data=post_data)
         return response.status_code
 
@@ -2512,7 +2630,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
         features = Feature.objects.filter(feature_id=feature_id)
         # check if feature exists with id found in url
         if not features.exists():
-            return JsonResponse({"success": False , "error": "Feature_id invalid or doesn't exist."}, status=400)
+            return JsonResponse({"success": False, "error": "Feature_id invalid or doesn't exist."}, status=400)
         # get the feature from the array
         feature = features[0]
         # find feature runs not marked as archive related to the feature
@@ -2529,17 +2647,18 @@ class FeatureViewSet(viewsets.ModelViewSet):
         # Delete files in disk (not backups!)
         featureFileName = get_feature_path(features[0])['fullPath']
         try:
-            os.remove(featureFileName+'.feature')
-            os.remove(featureFileName+'.json')
-            os.remove(featureFileName+'_meta.json')
+            os.remove(featureFileName + '.feature')
+            os.remove(featureFileName + '.json')
+            os.remove(featureFileName + '_meta.json')
         except OSError:
             pass
         # Delete feature if feature_runs count is == 0 else don't since it contains archived data
         if len(feature.feature_runs.all()) == 0:
             feature.delete()
         else:
-            return JsonResponse({'success': False, 'error': 'Feature is not fully deleted since it contains SAVED results, to remove it completely please remove SAVED runs and results.'})
-        return JsonResponse({"success": True }, status=200)
+            return JsonResponse({'success': False,
+                                 'error': 'Feature is not fully deleted since it contains SAVED results, to remove it completely please remove SAVED runs and results.'})
+        return JsonResponse({"success": True}, status=200)
 
 
 class StepViewSet(viewsets.ModelViewSet):
@@ -2548,13 +2667,13 @@ class StepViewSet(viewsets.ModelViewSet):
     """
     queryset = Step.objects.all()
     serializer_class = StepSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def get_queryset(self):
-
         feature_id = self.kwargs['feature_id']
         queryset = Step.objects.filter(feature_id=feature_id)
         return queryset
+
 
 class AccountRoleViewSet(viewsets.ModelViewSet):
     """
@@ -2562,22 +2681,23 @@ class AccountRoleViewSet(viewsets.ModelViewSet):
     """
     queryset = Account_role.objects.all()
     serializer_class = AccountRoleSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
+
 
 def render_to_pdf(template_src, context_dict={}):
     template = get_template(template_src)
-    html  = template.render(context_dict)
+    html = template.render(context_dict)
     result = BytesIO()
     pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-16")), result)
     if not pdf.err:
         return HttpResponse(result.getvalue(), content_type='application/pdf')
     return None
 
-class FolderViewset(viewsets.ModelViewSet):
 
+class FolderViewset(viewsets.ModelViewSet):
     queryset = Folder.objects.all()
     serializer_class = FolderSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     '''
     Function find_in_dict
@@ -2591,13 +2711,14 @@ class FolderViewset(viewsets.ModelViewSet):
     Return:
         @result     Dict that contains the @key, @value pair.
     '''
+
     def find_in_dict(self, objects, key, value):
         for obj in objects.values() if isinstance(objects, dict) else objects:
             if obj[key] == value: return obj
             result = self.find_in_dict(obj['folders'], key, value)
             if result is not None:
                 return result
-    
+
     def find_in_dict_for_tree(self, objects, key, value):
         for obj in objects.values() if isinstance(objects, dict) else objects:
             if obj['type'] != 'folder': continue
@@ -2657,7 +2778,8 @@ class FolderViewset(viewsets.ModelViewSet):
                         {
                             "name": "Variables",
                             "type": "variables",
-                            "children": VariablesTreeSerializer(Variable.objects.filter(department_id=result.d_id), many=True).data
+                            "children": VariablesTreeSerializer(Variable.objects.filter(department_id=result.d_id),
+                                                                many=True).data
                         }
                     ]
                 }
@@ -2672,12 +2794,13 @@ class FolderViewset(viewsets.ModelViewSet):
                 }
             # if feature_id exists that means feature belongs to folder_id
             if result.feature_id is not None:
-                feature_object = FeatureHasSubFeatureSerializer(Feature.objects.get(feature_id=result.feature_id), many=False).data
+                feature_object = FeatureHasSubFeatureSerializer(Feature.objects.get(feature_id=result.feature_id),
+                                                                many=False).data
                 if result.folder_id is not None:
                     objectsCreated["folders"][result.folder_id]['children'].append(feature_object)
                 else:
                     objectsCreated['departments'][result.d_id]['children'].append(feature_object)
-        
+
         # loop over all the folders with parent_id not None
         not_none_folders = [v for k, v in objectsCreated["folders"].items() if v['parent_id'] is not None]
         for folder in not_none_folders:
@@ -2691,7 +2814,7 @@ class FolderViewset(viewsets.ModelViewSet):
         for folder in folders:
             objectsCreated['departments'][folder['department']]['children'].append(folder)
             del objectsCreated["folders"][folder['id']]
-        
+
         logger.debug("Finished recursive lookup")
 
         return {
@@ -2710,6 +2833,7 @@ class FolderViewset(viewsets.ModelViewSet):
     Return:
         @folders    JSON formatted data
     '''
+
     def serializeResultsFromRawQuery(self, results):
         # save all the folders in this variable
         folders = {}
@@ -2775,7 +2899,7 @@ class FolderViewset(viewsets.ModelViewSet):
 
         # get the departments from the session user
         departments = tuple([x['department_id'] for x in request.session['user']['departments']])
-        logger.debug("Departments for FolderViewset %s", departments )
+        logger.debug("Departments for FolderViewset %s", departments)
         logger.debug("User object %s", request.session['user'])
         logger.debug("UserID: %s", request.session['user']['user_id'])
 
@@ -2785,7 +2909,7 @@ class FolderViewset(viewsets.ModelViewSet):
                 "folders": [],
                 "features": []
             })
-        
+
         if request.query_params.get('tree') is not None:
             return Response(self.serializeResultsFromRawQueryForTree(departments, MAX_FOLDER_HIERARCHY))
 
@@ -2813,7 +2937,6 @@ class FolderViewset(viewsets.ModelViewSet):
         #     bf.department_id IN %s
         # ORDER BY rf.folder_id;
         # '''
-
 
         #
         # give me all folders and features inside recursively in a flat table from my selected departments,
@@ -2859,7 +2982,6 @@ class FolderViewset(viewsets.ModelViewSet):
                             ( rf.department_id is null and bf.department_id IN %s )
                     ORDER BY rf.folder_id
         '''
-
 
         # make a raw query to folders table
         results = Folder.objects.raw(query, [MAX_FOLDER_HIERARCHY, departments, departments, departments])
@@ -2925,9 +3047,8 @@ class FolderViewset(viewsets.ModelViewSet):
                     'exclude': [request.session['user']['user_id']]
                 })
             except Exception as err:
-                return JsonResponse({"success": False, "error": str(err) }, status=200)
-        return JsonResponse({"success": True }, status=200)
-
+                return JsonResponse({"success": False, "error": str(err)}, status=200)
+        return JsonResponse({"success": True}, status=200)
 
     @require_permissions("delete_folder", folder_id="kwargs['folder_id']")
     def destroy(self, request, *args, **kwargs):
@@ -2936,7 +3057,8 @@ class FolderViewset(viewsets.ModelViewSet):
             try:
                 folder = Folder.objects.get(folder_id=folder_id)
             except Folder.DoesNotExist:
-                return JsonResponse({"success": False, "error": "No folder with folder_id: " + str(folder_id) }, status=200)
+                return JsonResponse({"success": False, "error": "No folder with folder_id: " + str(folder_id)},
+                                    status=200)
             department_id = folder.department.department_id
             if folder.delete():
                 requests.post('http://cometa_socket:3001/updatedObjects/folders')
@@ -2945,17 +3067,19 @@ class FolderViewset(viewsets.ModelViewSet):
                     'folder_id': int(folder_id),
                     'department_id': int(department_id)
                 })
-                return JsonResponse({"success": True }, status=200)
+                return JsonResponse({"success": True}, status=200)
             else:
-                return JsonResponse({"success": False, "error": "An error occurred while deleting folder with id: " + str(folder_id) }, status=200)
+                return JsonResponse(
+                    {"success": False, "error": "An error occurred while deleting folder with id: " + str(folder_id)},
+                    status=200)
         else:
-            return JsonResponse({"success": False, "error": "missing folder_id" }, status=200)
+            return JsonResponse({"success": False, "error": "missing folder_id"}, status=200)
+
 
 class FolderFeatureViewset(viewsets.ModelViewSet):
-
     queryset = Folder_Feature.objects.all()
     serializer_class = Folder_FeatureSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def patch(self, request, *args, **kwargs):
         old_folder = request.data['old_folder'] if 'old_folder' in request.data else None
@@ -2969,20 +3093,20 @@ class FolderFeatureViewset(viewsets.ModelViewSet):
         feat = Feature.objects.filter(feature_id=feature)
         if not feat.exists():
             error = "Feature with id %d does not exists." % (feature)
-            return JsonResponse({"success": False , "error": error}, status=400)
+            return JsonResponse({"success": False, "error": error}, status=400)
 
         feat = feat[0]
 
         if feat.department_id not in user_deps:
             error = "You are not allowed to see this feature, since you don't belong in this feature departments."
-            return JsonResponse({"success": False , "error": error}, status=400)
+            return JsonResponse({"success": False, "error": error}, status=400)
 
         # Check if the front is sending the department id, meaning that the testcase will be moved to another department
-        if department_id is not None :
+        if department_id is not None:
             # Check if the user has access to the destination department
             if department_id not in user_deps:
                 error = "You don't have access to the specified department."
-                return JsonResponse({"success": False , "error": error}, status=403)
+                return JsonResponse({"success": False, "error": error}, status=403)
             try:
                 # Get the list of departments
                 department = Department.objects.get(department_id=department_id)
@@ -2995,7 +3119,7 @@ class FolderFeatureViewset(viewsets.ModelViewSet):
                 feat.save(steps=list(steps))
             except Exception as er:
                 # Return an error if the previous fails
-                return JsonResponse({"success": False , "error": str(er)}, status=404)
+                return JsonResponse({"success": False, "error": str(er)}, status=404)
             # Send testcase websockets
             requests.post('http://cometa_socket:3001/sendAction', json={
                 'type': '[Features] Update feature offline',
@@ -3005,10 +3129,11 @@ class FolderFeatureViewset(viewsets.ModelViewSet):
         # if new_folder is None that means we need to delete instance
 
         if new_folder is not None:
-            newFolder = Folder.objects.filter(folder_id=new_folder) if str(new_folder).isnumeric() else Folder.objects.filter(name=new_folder)
+            newFolder = Folder.objects.filter(folder_id=new_folder) if str(
+                new_folder).isnumeric() else Folder.objects.filter(name=new_folder)
             if not newFolder.exists():
                 error = "No folder found with id or name %s...." % str(new_folder)
-                return JsonResponse({"success": False , "error": error}, status=400)
+                return JsonResponse({"success": False, "error": error}, status=400)
             newFolder = newFolder[0]
 
         Folder_Feature.objects.filter(feature=feat).delete()
@@ -3022,12 +3147,15 @@ class FolderFeatureViewset(viewsets.ModelViewSet):
 
         return JsonResponse({"success": True}, status=200)
 
+
 def getLog(request, feature_result_id):
     fr = Feature_result.objects.filter(feature_result_id=feature_result_id)
     if len(fr) > 0:
-        return JsonResponse({"success": True , "log": fr[0].log}, status=200)
+        return JsonResponse({"success": True, "log": fr[0].log}, status=200)
     else:
-        return JsonResponse({"success": False , "error": "No feature_result found with id " + feature_result_id}, status=200)
+        return JsonResponse({"success": False, "error": "No feature_result found with id " + feature_result_id},
+                            status=200)
+
 
 # --------------
 # Retrieves the HTML Diff file for a given Step Result ID
@@ -3047,9 +3175,10 @@ def getHtmlDiff(request, step_result_id):
     except:
         # Error handling
         return JsonResponse({
-            "success": False ,
+            "success": False,
             "error": "No html difference found with step result id " + step_result_id
         }, status=200)
+
 
 @csrf_exempt
 def UpdateTask(request):
@@ -3061,17 +3190,18 @@ def UpdateTask(request):
     # The action can be 'start' or 'finish' only
     if action == 'start':
         Feature_Task.objects.create(
-            feature_id = feature_id,
-            browser = browser,
-            pid = pid
+            feature_id=feature_id,
+            browser=browser,
+            pid=pid
         )
     else:
-        tasks = Feature_Task.objects.filter(pid = pid).delete()
+        tasks = Feature_Task.objects.filter(pid=pid).delete()
     return JsonResponse({"success": True})
+
 
 @csrf_exempt
 def KillTask(request, feature_id):
-    tasks = Feature_Task.objects.filter(feature_id = feature_id)
+    tasks = Feature_Task.objects.filter(feature_id=feature_id)
     for task in tasks:
         request = requests.get('http://behave:8001/kill_task/' + str(task.pid) + "/")
         Feature_Task.objects.filter(pid=task.pid).delete()
@@ -3080,21 +3210,24 @@ def KillTask(request, feature_id):
         request = requests.get('http://cometa_socket:3001/feature/%s/killed' % feature_id)
     return JsonResponse({"success": True, "tasks": len(tasks)}, status=200)
 
+
 @csrf_exempt
 def KillTaskPID(request, pid):
-    tasks = Feature_Task.objects.filter(pid = pid)
+    tasks = Feature_Task.objects.filter(pid=pid)
     for task in tasks:
         request = requests.get('http://behave:8001/kill_task/' + str(task.pid) + "/")
         Feature_Task.objects.filter(pid=task.pid).delete()
     return JsonResponse({"success": True, "tasks": len(tasks)}, status=200)
 
+
 @csrf_exempt
 def GetJsonFile(request, feature_id):
     feature = Feature.objects.get(feature_id=feature_id)
-    jsonFile = get_feature_path(feature)['fullPath']+'.json'
+    jsonFile = get_feature_path(feature)['fullPath'] + '.json'
     f = open(jsonFile, "r")
     content = json.loads(f.read())
     return JsonResponse(content, status=200, safe=False)
+
 
 @csrf_exempt
 def Encrypt(request):
@@ -3105,13 +3238,13 @@ def Encrypt(request):
         result = encrypt(text)
     else:
         result = decrypt(text)
-    return JsonResponse({ 'result': result }, status=200)
+    return JsonResponse({'result': result}, status=200)
+
 
 class VariablesViewSet(viewsets.ModelViewSet):
-
     queryset = Variable.objects.all()
     serializer_class = VariablesSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def list(self, request, *args, **kwargs):
         user_departments = GetUserDepartments(request)
@@ -3142,7 +3275,7 @@ class VariablesViewSet(viewsets.ModelViewSet):
 
     def optionalValidator(self, data, key, default):
         return data.get(key, default)
-    
+
     def optionalValidatorWithObject(self, data, key, default, obj=None):
         value = data.get(key, default)
         if obj is not None and isinstance(value, int):
@@ -3151,7 +3284,6 @@ class VariablesViewSet(viewsets.ModelViewSet):
             except:
                 raise Exception(f"{key} does not exists.")
         return value
-        
 
     @require_permissions("create_variable")
     def create(self, request, *args, **kwargs):
@@ -3169,16 +3301,20 @@ class VariablesViewSet(viewsets.ModelViewSet):
                 "variable_value": self.validator(data, 'variable_value'),
                 "encrypted": self.optionalValidator(data, 'encrypted', False),
                 "based": self.optionalValidator(data, 'based', 'feature'),
-                "created_by": self.optionalValidatorWithObject(data, 'created_by', request.session['user']['user_id'], OIDCAccount),
-                "updated_by": self.optionalValidatorWithObject(data, 'updated_by', request.session['user']['user_id'], OIDCAccount)
+                "created_by": self.optionalValidatorWithObject(data, 'created_by', request.session['user']['user_id'],
+                                                               OIDCAccount),
+                "updated_by": self.optionalValidatorWithObject(data, 'updated_by', request.session['user']['user_id'],
+                                                               OIDCAccount)
             }
             # encrypt the value if needed
             if valid_data['encrypted'] and not valid_data['variable_value'].startswith(ENCRYPTION_START):
                 valid_data['variable_value'] = encrypt(valid_data['variable_value'])
             # check if feature belongs to the department, only if feature is not null 
-            if valid_data['feature'] is not None and valid_data['feature'].department_id != None and valid_data['feature'].department_id != valid_data['department'].department_id:
+            if valid_data['feature'] is not None and valid_data['feature'].department_id != None and valid_data[
+                'feature'].department_id != valid_data['department'].department_id:
                 raise Exception(f"Feature does not belong the same department id, please check.")
-            logger.debug("Validation done. I think, we should validate that variable name is unique in relation to department or environment or feature ... FIXME??")
+            logger.debug(
+                "Validation done. I think, we should validate that variable name is unique in relation to department or environment or feature ... FIXME??")
         except Exception as err:
             logger.debug("Exception while creating variable: %s" % err)
             return JsonResponse({
@@ -3203,7 +3339,7 @@ class VariablesViewSet(viewsets.ModelViewSet):
             "success": True,
             "data": VariablesSerializer(variable, many=False).data
         }, status=201)
-    
+
     @require_permissions("edit_variable")
     def patch(self, request, *args, **kwargs):
         data = json.loads(request.body)
@@ -3211,13 +3347,15 @@ class VariablesViewSet(viewsets.ModelViewSet):
             # get the variable
             variable = self.validator(kwargs, 'id', Variable)
             variable.department = self.optionalValidatorWithObject(data, 'department', variable.department, Department)
-            variable.environment = self.optionalValidatorWithObject(data, 'environment', variable.environment, Environment)
-            variable.feature =  self.optionalValidatorWithObject(data, 'feature', variable.feature, Feature)
+            variable.environment = self.optionalValidatorWithObject(data, 'environment', variable.environment,
+                                                                    Environment)
+            variable.feature = self.optionalValidatorWithObject(data, 'feature', variable.feature, Feature)
             variable.variable_name = self.optionalValidator(data, 'variable_name', variable.variable_name)
             variable.variable_value = self.optionalValidator(data, 'variable_value', variable.variable_value)
             variable.encrypted = self.optionalValidator(data, 'encrypted', variable.encrypted)
             variable.based = self.optionalValidator(data, 'based', variable.based)
-            variable.updated_by = self.optionalValidatorWithObject(data, 'updated_by', request.session['user']['user_id'], OIDCAccount)
+            variable.updated_by = self.optionalValidatorWithObject(data, 'updated_by',
+                                                                   request.session['user']['user_id'], OIDCAccount)
             # encrypt the value if needed
             if variable.encrypted and not variable.variable_value.startswith(ENCRYPTION_START):
                 variable.variable_value = encrypt(variable.variable_value)
@@ -3253,11 +3391,11 @@ class VariablesViewSet(viewsets.ModelViewSet):
             "success": True
         }, status=200)
 
-class FeatureRunViewSet(viewsets.ModelViewSet):
 
+class FeatureRunViewSet(viewsets.ModelViewSet):
     queryset = Feature_Runs.available_objects.all()
     serializer_class = FeatureRunsSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def patch(self, request, *args, **kwargs):
         # get request payload
@@ -3286,20 +3424,23 @@ class FeatureRunViewSet(viewsets.ModelViewSet):
             feature_run = self.queryset.filter(run_id=kwargs['run_id'], archived=False)
             # check if there are any runs with the conditions marked
             if not feature_run.exists():
-                return JsonResponse({'success': False, 'error': 'No feature runs found with id %s or it is marked as "Saved".'})
+                return JsonResponse(
+                    {'success': False, 'error': 'No feature runs found with id %s or it is marked as "Saved".'})
             # get the run from the array of runs
             feature_run = feature_run[0]
             # check if run is marked as archived
             if feature_run.archived:
-                return JsonResponse({'success': False, 'error': 'Feature run is marked as archived, please uncheck the archived checkbox and try again.'})
+                return JsonResponse({'success': False,
+                                     'error': 'Feature run is marked as archived, please uncheck the archived checkbox and try again.'})
             # remove feature_results not marked as archived
             removeNotArchivedFeatureResults(feature_run, deleteTemplate=deleteTemplate)
             # check if there are any results left in the run if so don't delete the run
             if len(feature_run.feature_results.all()) != 0:
-                return JsonResponse({'success': False, 'error': 'Unable to remove some feature results since they are marked as SAVED.'})
+                return JsonResponse({'success': False,
+                                     'error': 'Unable to remove some feature results since they are marked as SAVED.'})
             # remove the feature run if results in run are 0
             feature_run.delete(deleteTemplate=deleteTemplate)
-        elif request.GET.get('type', False): # check if client wants to delete bunch of runs
+        elif request.GET.get('type', False):  # check if client wants to delete bunch of runs
             # get type to later switch case over it
             deleteType = request.GET.get('type')
             # get the feature_id from which we'll be getting the runs.
@@ -3311,13 +3452,15 @@ class FeatureRunViewSet(viewsets.ModelViewSet):
             feature_runs = self.queryset.filter(archived=False, feature_id=feature_id).order_by('-date_time')
             # switch case over type
             if deleteType == "all":
-                pass # pass because there is no need to filter over feature_runs since it contains all the runs that we want to delete
+                pass  # pass because there is no need to filter over feature_runs since it contains all the runs that we want to delete
             elif deleteType == 'all_failed':
-                feature_runs = feature_runs.filter(Q(status='Failed') | Q(feature_results__fails__gt=0) | Q(feature_results__success=False))
+                feature_runs = feature_runs.filter(
+                    Q(status='Failed') | Q(feature_results__fails__gt=0) | Q(feature_results__success=False))
             elif deleteType == 'all_except_last':
                 feature_runs = feature_runs[1:]
             else:
-                return JsonResponse({'success': False, 'error': 'Unknow type, please send one of next types: all, all_failed, all_except_last'})
+                return JsonResponse({'success': False,
+                                     'error': 'Unknow type, please send one of next types: all, all_failed, all_except_last'})
 
             # loop over all feature_runs and delete them one by one
             for feature_run in feature_runs:
@@ -3326,29 +3469,29 @@ class FeatureRunViewSet(viewsets.ModelViewSet):
                 # check if all results where removed else keep the run, main reason being results are archived
                 if len(feature_run.feature_results.all()) == 0:
                     feature_run.delete(deleteTemplate=deleteTemplate)
-        else: # throw error because unable to find run_id or type
+        else:  # throw error because unable to find run_id or type
             return JsonResponse({'success': False, 'error': 'Unable to find run_id or type.'})
 
         # return success response if all went OK
         return JsonResponse({"success": True})
 
-class AuthenticationProviderViewSet(viewsets.ModelViewSet):
 
+class AuthenticationProviderViewSet(viewsets.ModelViewSet):
     queryset = AuthenticationProvider.objects.filter(active=True)
     serializer_class = AuthenticationProviderSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
+
 
 class ScheduleViewSet(viewsets.ModelViewSet):
-
     queryset = Schedule.objects.none()
     serializer_class = ScheduleSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def list(self, request, *args, **kwargs):
 
         # get all schedules whom delete date is not due yet
         schedules = Schedule.objects.filter(Q(delete_on__gt=datetime.datetime.now()) | Q(delete_on=None))
-        
+
         # save all schedules here
         cronSchedules = []
 
@@ -3359,7 +3502,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             cronSchedules.append(cronString)
 
         # Return reponse
-        return JsonResponse({ "success": True, "schedules": cronSchedules })
+        return JsonResponse({"success": True, "schedules": cronSchedules})
 
     def create(self, request, *args, **kwargs):
         # get request payload
@@ -3409,6 +3552,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             return JsonResponse({'success': True})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=404)
+
 
 def sendInvite(request, receiver, departments, code, customText):
     try:
@@ -3471,7 +3615,9 @@ def sendInvite(request, receiver, departments, code, customText):
             "",
             settings.EMAIL_HOST_USER,
             to=[receiver],
-            headers={'X-COMETA': 'proudly_generated_by_amvara_cometa', 'X-COMETA-SERVER': 'AMVARA', 'X-COMETA-VERSION': str(version), 'X-COMETA-DEPARTMENTS':", ".join(departments.values_list('department_name', flat=True))}
+            headers={'X-COMETA': 'proudly_generated_by_amvara_cometa', 'X-COMETA-SERVER': 'AMVARA',
+                     'X-COMETA-VERSION': str(version),
+                     'X-COMETA-DEPARTMENTS': ", ".join(departments.values_list('department_name', flat=True))}
         )
         # attatch html content (body)
         email.attach_alternative(email_body, "text/html")
@@ -3482,24 +3628,24 @@ def sendInvite(request, receiver, departments, code, customText):
     except Exception as err:
         print("Error: %s" % str(err))
 
-class InviteViewSet(viewsets.ModelViewSet):
 
+class InviteViewSet(viewsets.ModelViewSet):
     queryset = Invite.objects.all()
     serializer_class = InviteSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     # @require_permissions("create_invite")
     def create(self, request, *args, **kwargs):
         # Get parameters from request body
-        data=json.loads(request.body)
+        data = json.loads(request.body)
         emails = data['emails']
         department_ids = data['departments']
         custom_text = data['custom_text'] or ''
 
         # Get & check deparment
-        departments =  Department.objects.filter(department_id__in=department_ids)
+        departments = Department.objects.filter(department_id__in=department_ids)
         if not departments.exists():
-            return JsonResponse({"success": False, "error": "The department you selected does not exist." }, status=200)
+            return JsonResponse({"success": False, "error": "The department you selected does not exist."}, status=200)
 
         # Create Thread Pool for emails, 1 at a time
         executor = ThreadPoolExecutor(max_workers=1)
@@ -3510,8 +3656,8 @@ class InviteViewSet(viewsets.ModelViewSet):
             token = secrets.token_hex(20)
             # Create invite
             invite = Invite(
-                issuer_id = request.session['user']['user_id'],
-                code = token
+                issuer_id=request.session['user']['user_id'],
+                code=token
             )
             # Save invite
             invite.save()
@@ -3521,13 +3667,13 @@ class InviteViewSet(viewsets.ModelViewSet):
             executor.submit(sendInvite, request, email, departments, token, custom_text)
 
         # Send response to Front
-        return JsonResponse({"success": True }, status=200)
+        return JsonResponse({"success": True}, status=200)
+
 
 class IntegrationViewSet(viewsets.ModelViewSet):
-
     queryset = Integration.objects.select_related('department').all()
     serializer_class = IntegrationSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     def list(self, request, *args, **kwargs):
         # Get all the departments which the current user has access to
@@ -3555,11 +3701,11 @@ class IntegrationViewSet(viewsets.ModelViewSet):
         # Get id from URL param
         id = self.kwargs.get('id', None)
         if not id:
-            return JsonResponse({"success": False, "error": "No integration ID provided." }, status=200)
+            return JsonResponse({"success": False, "error": "No integration ID provided."}, status=200)
         # Check id is valid
         integrations = self.queryset.filter(id=id)
         if not integrations.exists():
-            return JsonResponse({"success": False, "error": "Invalid integration ID provided." }, status=200)
+            return JsonResponse({"success": False, "error": "Invalid integration ID provided."}, status=200)
         # Update properties
         integrations.update(**data)
         # Return reponse
@@ -3569,15 +3715,16 @@ class IntegrationViewSet(viewsets.ModelViewSet):
         # Get id from URL param
         id = self.kwargs.get('id', None)
         if not id:
-            return JsonResponse({"success": False, "error": "No integration ID provided." }, status=200)
+            return JsonResponse({"success": False, "error": "No integration ID provided."}, status=200)
         # Check id is valid
         integrations = self.queryset.filter(id=id)
         if not integrations.exists():
-            return JsonResponse({"success": False, "error": "Invalid integration ID provided." }, status=200)
+            return JsonResponse({"success": False, "error": "Invalid integration ID provided."}, status=200)
         # Perform delete of integration
         integrations.delete()
         # Return reponse
-        return JsonResponse({ "success": True })
+        return JsonResponse({"success": True})
+
 
 class SubscriptionsViewSet(viewsets.ModelViewSet):
     """
@@ -3585,7 +3732,8 @@ class SubscriptionsViewSet(viewsets.ModelViewSet):
     """
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionPublicSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
+
 
 #
 # FIXME - Why is this needed to register the router-url?
@@ -3594,7 +3742,8 @@ class CometaUsageViewSet(viewsets.ModelViewSet):
     # Get the feature runs
     queryset = Feature_Runs.objects.all()
     serializer_class = FeatureRunsSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
+
 
 @csrf_exempt
 def CometaUsage(request):
@@ -3607,7 +3756,7 @@ def CometaUsage(request):
     # Get the feature runs
     queryset = Feature_Runs.objects.all()
     serializer_class = FeatureRunsSerializer
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer,)
 
     # calc average times on feature runs
     avg_execution_time = Feature_Runs.objects.all().aggregate(Avg('execution_time')).get('execution_time__avg', 0.00)
@@ -3615,30 +3764,30 @@ def CometaUsage(request):
 
     # calc total times on feature runs
     sum_execution_time = Feature_Runs.objects.all().aggregate(Sum('execution_time')).get('execution_time__sum', 0.00)
-    sum_execution_time_seconds = sum_execution_time/1000
-    sum_execution_time_minutes = sum_execution_time/1000/60
-    sum_execution_time_hours = sum_execution_time/1000/60/60
+    sum_execution_time_seconds = sum_execution_time / 1000
+    sum_execution_time_minutes = sum_execution_time / 1000 / 60
+    sum_execution_time_hours = sum_execution_time / 1000 / 60 / 60
 
     # get total number of runs
     total_tests_executed = queryset.count()
 
     # some logging before returning JSON
-    logger.debug("Count: "+str(total_tests_executed))
+    logger.debug("Count: " + str(total_tests_executed))
 
     #
     # get number of features
     #
     logger.debug("Getting number of features")
     queryset = Feature.objects.all()
-    total_number_of_features = queryset.count() 
+    total_number_of_features = queryset.count()
 
     # This is something needed to calculate numbers depending on department that the user has access to
     departments = tuple([x['department_id'] for x in request.session['user']['departments']])
 
     return JsonResponse(
         {
-            "average_execution_time_ms": str(avg_execution_time), 
-            "average_execution_time_s": str(avg_execution_time_seconds), 
+            "average_execution_time_ms": str(avg_execution_time),
+            "average_execution_time_s": str(avg_execution_time_seconds),
             "total_execution_time_ms": str(sum_execution_time),
             "total_execution_time_s": str(sum_execution_time_seconds),
             "total_execution_time_m": str(sum_execution_time_minutes),
@@ -3681,7 +3830,6 @@ def CometaUsage(request):
     # 4. number of succeded tests
     # 5. number of failed tests
     '''
-
 
 
 # import EE Modules

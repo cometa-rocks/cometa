@@ -94,6 +94,8 @@ interface FeatureResult {
     video_url?: string;
     status: string;
     files: string[];
+    network_response_count:number;
+    vulnerable_response_count:number;
 }
 
 // Create feature
@@ -888,6 +890,7 @@ interface StepStatus {
     error?: string;
     info?: StepResult;
     screenshots: any;
+    vulnerable_headers_count:number;
 }
 
 interface IRunsState {
