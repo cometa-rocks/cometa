@@ -13,7 +13,6 @@ from backend.utility.response_manager import ResponseManager
 class ResponseHeadersViewSet(ModelViewSet):
     serializer_class = ResponseHeadersSerializer
     queryset = ResponseHeaders.objects.all()
-    permission_classes = (AllowAny,)
     response_manager = ResponseManager('ResponseHeaders')
 
     def retrieve(self, request, *args, **kwargs):
