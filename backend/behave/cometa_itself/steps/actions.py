@@ -3880,19 +3880,16 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
         while time.time()<max_time and len(selector_element)>0 and not selector_element[0].is_displayed():
             time.sleep(0.5)
 
-        # Counting time to disappear the element
-        count = 0
         if len(selector_element)>0 and selector_element[0].is_displayed():
             send_step_details(context, 'Selector appeared, Wait for it to disappear')
             logger.debug(f"Selector to appeared")
-            # If incase object disappears and gets removed from Dom it self the while checking is_displayed() it will throw error,
+            # If in case object disappears and gets removed from Dom it self the while checking is_displayed() it will throw error,
             # Considerting element was disappeard
             is_element_disappeared = False
             try:
                 # continue loop if element is displayed for wait time is less then 60 seconds
                 while selector_element[0].is_displayed() and time.time()<max_time:
-                    count+=1
-                    time.sleep(1)
+                    time.sleep(0.5)
                 # In case element disappeard but present in the dom
                 is_element_disappeared = not selector_element[0].is_displayed()
             except Exception as e:
@@ -3901,7 +3898,7 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
                 is_element_disappeared = True
                 send_step_details(context, 'Selector disappeared successfully')
 
-            # If selector was not disappeard so count will be 60 so considering that as element not disappeared
+            # If is_element_disappeared is set to false it means selector was not disappeard
             if not is_element_disappeared:
                 raise CustomError("Selector did not disappeared")
 
