@@ -2495,13 +2495,13 @@ class FeatureViewSet(viewsets.ModelViewSet):
             browsers=request.data['browsers'],
             cloud=request.data['cloud'],
             video=request.data['video'],
-            network_logging=request.data.get('continue_on_failure', False),
+            network_logging=request.data.get('network_logging', False), 
             continue_on_failure=request.data.get('continue_on_failure', False),
             last_edited_id=request.session['user']['user_id'],
             last_edited_date=datetime.datetime.utcnow(),
             created_by_id=request.session['user']['user_id']
         )
-
+ 
         """
         Save feature object into DB while also saving new steps
         """
