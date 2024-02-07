@@ -3898,7 +3898,7 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
                 is_element_disappeared = True
                 send_step_details(context, 'Selector disappeared successfully')
 
-            # If is_element_disappeared is set to false it means selector was not disappeard
+            # If is_element_disappeared is set to false it means selector has not disappeard
             if not is_element_disappeared:
                 raise CustomError("Selector did not disappeared")
 
