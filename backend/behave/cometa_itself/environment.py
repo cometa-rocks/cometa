@@ -153,6 +153,8 @@ def before_all(context):
     # context.browser_info contains '{"os": "Windows", "device": null, "browser": "edge", "os_version": "10", "real_mobile": false, "browser_version": "84.0.522.49"}'
     context.browser_info = json.loads(os.environ['BROWSER_INFO'])
     # get the connection URL for the browser
+    context.network_logging_enabled = os.environ.get('NETWORK_LOGING')=="Yes"
+    # get the connection URL for the browser
     connection_url = os.environ['CONNECTION_URL']
     # set loop settings
     context.insideLoop = False  # meaning we are inside a loop
@@ -276,7 +278,7 @@ def before_all(context):
     # add cloud/provider capabilities to the
     # browser capabilities
     options.set_capability('selenoid:options', selenoid_capabilities)
-    if context.browser_info['browser'] == 'chrome':
+    if context.browser_info['browser'] == 'chrome' and context.network_logging_enabled :
         options.set_capability('goog:loggingPrefs', {'browser': 'ALL', 'performance': 'ALL'})
 
     options.add_argument('--enable-logging')
@@ -519,14 +521,16 @@ def after_all(context):
         "feature_result_info": json.dumps(request_info.json()['result']),
         "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     })
-    if hasattr(context, "network_responses"):
+    if hasattr(context, "network_responses") and context.network_logging_enabled:
 
         network_response_count = 0
         vulnerable_response_count = 0
         logger.debug("Get count of total network responses and count of vulnerability_headers_count")
         # logger.debug(context.network_responses)
         for response in context.network_responses:
+            # network_response_count counts total network responses received
             network_response_count += len(response['responses_and_vulnerable_header'])
+            # vulnerable_response_count counts those network responses which contains vulnerability headers
             vulnerable_response_count += response['vulnerability_headers_count']
 
         logger.debug(f"Total Network responses {network_response_count}")
@@ -544,7 +548,8 @@ def after_all(context):
         if response.status_code == 201:
             logger.debug("Vulnerability Headers Saved ")
         else:
-            logger.debug(f"Error while saving Vulnerability Headers : {json.dumps(response.json())}")
+            # logger.debug(f"Error while saving Vulnerability Headers : {json.dumps(response.json())}")
+            logger.debug(f"Error while saving Vulnerability Headers : {response}")
     # send mail
     sendemail = requests.get('http://cometa_django:8000/pdf/?feature_result_id=%s' % os.environ['feature_result_id'],
                              headers={'Host': 'cometa.local'})
@@ -703,8 +708,9 @@ def after_step(context, step):
         screenshots['difference'] = context.DB_DIFFERENCE_SCREENSHOT
     vulnerable_headers_count = 0
     try:
+        if context.network_logging_enabled: 
         # vulnerable_headers_count = find_vulnerable_headers(context=context)
-        vulnerable_headers_count = find_vulnerable_headers(context=context, step_index=index)
+            vulnerable_headers_count = find_vulnerable_headers(context=context, step_index=index)
     except Exception as e:
         logger.exception(e)
 

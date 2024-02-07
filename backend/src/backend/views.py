@@ -1010,6 +1010,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
                 result_date=datetime.datetime.utcnow(),
                 run_hash=run_hash,
                 running=True,
+                network_logging_enabled = feature.network_logging,
                 browser=browser,
                 executed_by_id=user['user_id']
             )
@@ -1021,6 +1022,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
                 "feature_result_id": feature_result.feature_result_id,
                 "run_hash": run_hash,
                 "browser": browser,
+                "network_logging_enabled":feature.network_logging,
                 "connection_url": connection_url
             })
 
@@ -2493,6 +2495,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
             browsers=request.data['browsers'],
             cloud=request.data['cloud'],
             video=request.data['video'],
+            network_logging=request.data.get('continue_on_failure', False),
             continue_on_failure=request.data.get('continue_on_failure', False),
             last_edited_id=request.session['user']['user_id'],
             last_edited_date=datetime.datetime.utcnow(),
