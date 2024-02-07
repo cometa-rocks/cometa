@@ -153,7 +153,7 @@ def before_all(context):
     # context.browser_info contains '{"os": "Windows", "device": null, "browser": "edge", "os_version": "10", "real_mobile": false, "browser_version": "84.0.522.49"}'
     context.browser_info = json.loads(os.environ['BROWSER_INFO'])
     # get the connection URL for the browser
-    context.network_logging_enabled = os.environ.get('NETWORK_LOGING')=="Yes"
+    context.network_logging_enabled = os.environ.get('NETWORK_LOGGING')=="Yes"
     # get the connection URL for the browser
     connection_url = os.environ['CONNECTION_URL']
     # set loop settings
