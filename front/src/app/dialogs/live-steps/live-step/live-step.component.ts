@@ -11,6 +11,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { JsonViewerComponent } from 'app/views/json-view/json-view.component';
 import { ApiService } from '@services/api.service';
+import { log } from 'console';
 
 @UntilDestroy()
 @Component({
@@ -55,6 +56,7 @@ export class LiveStepComponent implements OnInit {
   details$: Observable<LiveStepSubDetail>;
 
   screenshots;
+  vulnerable_headers_count;
   rest_api: number;
 
   ngOnInit() {
@@ -67,6 +69,7 @@ export class LiveStepComponent implements OnInit {
       untilDestroyed(this),
       tap((steps: StepStatus[]) => this.resultSteps = steps)
     ).subscribe(steps => {
+      
       if (steps && steps[this.index]) {
         if (steps[this.index].running) {
           this.status$.next('running');
@@ -74,9 +77,10 @@ export class LiveStepComponent implements OnInit {
           this.status$.next(steps[this.index].info.success ? 'success' : 'failed');
           this.rest_api = steps[this.index].info.rest_api;
         }
+        console.log(steps[this.index].vulnerable_headers_count)
+        this.vulnerable_headers_count = steps[this.index].vulnerable_headers_count
         this.screenshots = steps[this.index].screenshots;
         if (steps[this.index].error) this.error$.next(steps[this.index].error)
-        // this.step.error = steps[this.index].error;
       } else {
         this.status$.next('waiting');
       }
