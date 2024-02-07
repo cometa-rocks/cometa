@@ -107,7 +107,8 @@ def run_test(request):
         feature_result_id = execution['feature_result_id']
         run_hash = execution['run_hash']
         connection_url = execution['connection_url']
-
+        # Added network_logging_enabled to control security checking
+        network_logging_enabled = execution['network_logging_enabled']
         logger.debug("Execution testcase in browser: {}".format(browser))
         # dump the json as string
         browser = json.dumps(browser)
@@ -115,11 +116,13 @@ def run_test(request):
         request = requests.get('http://cometa_socket:3001/feature/%s/queued' % feature_id, data={
             "user_id": user_data['user_id'],
             "browser_info": browser,
+            "network_logging_enabled": network_logging_enabled,
             "feature_result_id": feature_result_id,
             "run_id": feature_run,
             "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         })
         # add missing variables to environment_variables dict
+        environment_variables['NETWORK_LOGGING'] = "Yes" if execution['network_logging_enabled']  else "No"
         environment_variables['BROWSER_INFO'] = browser
         environment_variables['feature_result_id'] = str(feature_result_id)
         environment_variables['RUN_HASH'] = run_hash
