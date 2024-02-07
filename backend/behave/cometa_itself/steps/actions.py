@@ -3851,6 +3851,10 @@ if __name__ != 'actions':
     sys.path.append('/code/behave/cometa_itself')
     from steps import unimplemented_steps
 
+# This step involves waiting for the selector to appear and then waiting for it to disappear within the specified timeout (in seconds). The options provided are 'do not fail if not visible' or 'fail if never visible'.
+# If the selector does not appear within the specified timeout:
+# 1. If the selected option is 'do not fail if not visible', the step will not fail, and it will skip the wait for it to disappear.
+# 2. If the selected option is 'fail if never visible', the step will fail.
 @step(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 @done(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 def wait_for_appear_and_disappear(context, timeout, selector, option):
@@ -3867,8 +3871,9 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
     try:
         logger.debug(f"Waiting for selector to appear")
         send_step_details(context, 'Waiting for selector to appear')
+        # Get the maximum wait timeout 
         max_time = time.time() + timeout
-        selector_element = waitSelector(context, "css", selector,timeout)
+        selector_element = waitSelector(context, "css", selector, timeout)
         logger.debug(f"Got selector")
 
         # If element was loaded in dom but hidden, wait for it to display with max timeout
@@ -3884,7 +3889,7 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
             # Considerting element was disappeard
             try:
                 # continue loop if element is displayed for wait time is less then 60 seconds
-                while selector_element[0].is_displayed() and count < 60:
+                while selector_element[0].is_displayed() and count < timeout:
                     count+=1
                     time.sleep(1)
             except Exception as e:
@@ -3892,7 +3897,7 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
                 send_step_details(context, 'Selector disappeared successfully')
 
             # If selector was not disappeard so count will be 60 so considering that as element not disappeared
-            if not count<60:
+            if not count<timeout:
                 raise CustomError("Selector did not disappeared")
 
         # if element was not found or displayed then check if option selected to fail, if yes then raise exception
