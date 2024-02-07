@@ -40,3 +40,6 @@ secret_variables.py
 
 # browsers.json from selenoid
 browsers.json
+
+# IDEs
+**/.idea/
