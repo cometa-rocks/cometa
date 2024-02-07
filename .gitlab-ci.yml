@@ -79,6 +79,7 @@ stages:
     - docker exec cometa_behave poetry install
     # Detect & Install Django migration
     - docker exec cometa_django python manage.py makemigrations
+    - docker exec cometa_django python manage.py makemigrations security
     - docker exec cometa_django python manage.py migrate
     # Update steps in database
     - echo -e "\e[0Ksection_start:`date +%s`:parse_actions\r\e[0KParsing actions to update databse"
