@@ -169,6 +169,7 @@ class FeatureResultInfoSerializer(serializers.ModelSerializer):
             'execution_time',
             'app_name',
             'environment_name',
+            'network_logging_enabled',
             'feature_result_id'
         ]
         read_only_fields = fields

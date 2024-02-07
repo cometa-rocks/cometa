@@ -108,6 +108,12 @@
                                 <button (click)="loadRestApi(item.rest_api)" matTooltip="View REST API Call" matTooltipPosition="before" stopPropagation mat-icon-button>
                                     <mat-icon>http</mat-icon>
                                 </button>
+                            </div> 
+                            <div class="option view-rest-api" *ngIf="item?.network_response">
+                                <button (click)="loadNetworkResponses(item.network_response,item.step_name)" matTooltip="View Network Response. {{item.vulnerability_headers_count>0?item.vulnerability_headers_count+' response received with vulnerable headers':''}}" matTooltipPosition="before" stopPropagation mat-icon-button>
+                                    <mat-icon *ngIf="item.vulnerability_headers_count>0" [ngStyle]="{'color': 'red'}"> sync_problem </mat-icon>
+                                    <mat-icon *ngIf="item.vulnerability_headers_count==0" >sync</mat-icon>
+                                </button>
                             </div>
                             <!-- View HTML Difference -->
                             <div class="option view-html-diff" *ngIf="item?.diff">
@@ -148,7 +154,7 @@
             </ng-template>
             <ng-template #headTemplate>
                 <div class="name">STEP</div>
-                <div class="status">RESULT</div>
+                <div class="status">RESULT</div>  
                 <div class="time">TIME</div>
                 <div class="difference-mobile">PIXEL DIFF</div>
                 <!-- <div class="difference-desktop">PIXEL DIFFERENCE</div> -->
