@@ -121,6 +121,7 @@ export class EditFeature implements OnInit, OnDestroy {
       'depends_on_others': [false],
       'run_now': [false], // Value changed to false so the create testcase dialog will have the schedule checkbox disabled by default
       'send_mail': [false],
+      'network_logging': [false],
       'need_help': [false],
       'send_mail_on_error': [false],
       'continue_on_failure': [false],

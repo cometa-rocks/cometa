@@ -133,7 +133,7 @@ def assert_imp(context, jq_pattern, condition, value):
         logger.error("Invalid JQ pattern")
         logger.exception(err)
         parsed_value = ""
-
+    print(parsed_value)
     assert_failed_error = f"{parsed_value} ({jq_pattern}) does not { condition } {value}"
     assert_failed_error = logger.mask_values(assert_failed_error)
 
