@@ -122,7 +122,7 @@ def run_test(request):
             "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
         })
         # add missing variables to environment_variables dict
-        environment_variables['NETWORK_LOGING'] = "Yes" if execution['network_logging_enabled']  else "No"
+        environment_variables['NETWORK_LOGGING'] = "Yes" if execution['network_logging_enabled']  else "No"
         environment_variables['BROWSER_INFO'] = browser
         environment_variables['feature_result_id'] = str(feature_result_id)
         environment_variables['RUN_HASH'] = run_hash
