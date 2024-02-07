@@ -75,7 +75,7 @@
                       <div class="screenshot">Screenshot</div>
                       <div class="screenshot">Compare</div>
                       <div class="screenshot">Difference</div>
-                      <div class="screenshot">Additional Information</div>
+                      <div class="screenshot">Others</div>
                     </div>
                     <div class="steps-container" [attr.browser]="browser.key">
                       <cometa-live-step *ngFor="let step of steps$ | async; trackBy: trackStepFn; let i = index" [featureRunID]="run_id" [browser]="browser.value.browser_info" [step]="step" [index]="i"></cometa-live-step>

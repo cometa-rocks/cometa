@@ -701,6 +701,7 @@ class Feature(models.Model):
     email_subject = models.CharField(max_length=250, null=True, blank=True)
     email_body = models.TextField(null=True, blank=True)
     video = models.BooleanField(default=True)
+    network_logging = models.BooleanField(default=False)
     continue_on_failure = models.BooleanField(default=False)
     need_help = models.BooleanField(default=False)
     info = models.ForeignKey('Feature_Runs', on_delete=models.SET_NULL, null=True, default=None, related_name='info')
@@ -798,6 +799,7 @@ class Feature_result(SoftDeletableModel):
     executed_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None)
     run_hash = models.CharField(max_length=100, default='')
     session_id = models.CharField(max_length=255, null=True, default=None)
+    network_logging_enabled = models.BooleanField(default=False) # If set to false it will not query in NetworkResponse, will reduce query time
     class Meta:
         ordering = ['result_date']
         verbose_name_plural = "Feature Results"
