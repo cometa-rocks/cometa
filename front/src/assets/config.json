@@ -196,7 +196,7 @@
             "features": [
 				{
 					"title": "Security feature has been implemented to analyze network responses.",
-					"description": "During the execution of the test, Network responses containing vulnerable headers can be analyzed in the report. Additionally, information for all network response headers will be available within the step reports. The report can be analyzed using a JSON viewer."
+					"description": "During the execution of the test, network responses containing vulnerable headers can be analyzed in the report by enabling the Network Logging option in the create feature screen. Additionally, information for all network response headers will be available within the step reports. The report can be analyzed using a JSON viewer."
 				}
             ]
         },		
