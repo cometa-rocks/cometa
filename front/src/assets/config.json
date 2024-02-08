@@ -175,7 +175,7 @@
 		}
 	],
 	"welcomeSentences": [
-		"Your limitation it’s only your imagination.",
+		"Your limitation is only your imagination.",
 		"Great things never come from comfort zones.",
 		"Dream it. Wish it. Do it.",
 		"Success doesn’t just find you. You have to go out and get it.",
@@ -194,7 +194,7 @@
 			"version": "2.8.325",
 			"date": "2024-02-08",
 			"bugfixes": [
-				"#4481 - Fixed the results order in the results executions CSV file. Added new column to better under stand the steps order."
+				"#4481 - Fixed the results order in the results executions CSV file. Added new column to better understand the steps order."
 			]
 		},
 		{
