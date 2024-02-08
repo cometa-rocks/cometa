@@ -264,6 +264,7 @@ def GetStepResultsData(request, *args, **kwargs):
         fr.app_name,
         fr.environment_name,
         fr.department_name,
+        sr.step_result_id,
         sr.step_name,
         sr.execution_time,
         sr.success
@@ -276,12 +277,14 @@ def GetStepResultsData(request, *args, **kwargs):
     WHERE
         fr.feature_id_id = {FEATURE_ID}
     ORDER
-        BY fr.feature_result_id,
-        fr.result_date;
+        BY fr.feature_result_id DESC,
+        fr.result_date DESC,
+        sr.step_result_id ASC;
     """
 
     rows = [{
         "Feature Result": row.feature_result_id,
+        "Feature Result Id + Step Result Id": f"Feature Result Id: {row.feature_result_id} - Step Result Id: {row.step_result_id}",
         "Feature Name": row.feature_name,
         "Result Date (UTC)": row.result_date,
         "Application": row.app_name,
@@ -2039,6 +2042,18 @@ class StepResultViewSet(viewsets.ModelViewSet):
         data = json.loads(request.body)
         if not isinstance(data['files'], list):
             data['files'] = json.loads(data['files'])
+        
+        logger.debug("Checking for last step")
+        last_step = Step_result.objects.filter(feature_result_id = data['feature_result_id']).order_by('-step_result_id').first()
+        if last_step:
+            # This will execute if it is not the report of the execution
+            logger.debug("Found last step relative calculating time")
+            data['relative_execution_time'] = last_step.relative_execution_time + data['execution_time']
+        else:
+            # This will execute if it is a first step report of the execution
+            logger.debug("Relative time Initated")
+            data['relative_execution_time'] = data['execution_time']
+
         step_result = Step_result.objects.create(**data)
         return JsonResponse(StepResultSerializer(step_result, many=False).data)
 
