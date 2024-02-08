@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Loading Elements Testing</title>
+        <base href="/">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            * {
+                font-family: 'Courier New';
+                padding: 0;
+                margin: 0;
+                box-sizing: border-box;
+            }
+            body {
+                margin: 50px;
+                display: flex;
+                justify-content: space-around;
+                flex-wrap: wrap;
+            }
+
+            .loader-container {
+                position: relative;
+                width: 500px;
+                height: 300px;
+                border: 1px solid #000;
+                margin-bottom: 50px;
+                margin-left: 10px;
+            }
+
+            .loader-container::before {
+                position: absolute;
+                content: attr(data-title);
+                top: -25px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            .loader {
+                position: absolute;
+                width: 100px;
+                height: 100px;
+                border: 15px solid #000;
+                border-bottom-color: transparent;
+                border-right-color: transparent;
+                border-radius: 50%;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                animation: loader-animation 1s ease-in-out infinite;
+            }
+
+            @keyframes loader-animation {
+                0% {
+                    transform: translate(-50%, -50%) rotate(0deg);
+                }
+                100% {
+                    transform: translate(-50%, -50%) rotate(360deg);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="loader-container remove-element" data-title="Remove after loading">
+            <div class="loader"></div>
+        </div>
+        <div class="loader-container hide-element" data-title="Hide after loading">
+            <div class="loader"></div>
+        </div>
+        <script type="module">
+            // get all the elements!
+            const removeContainer = document.querySelector(".remove-element");
+            const hideContainer = document.querySelector(".hide-element");
+            const removeLoader = removeContainer.querySelector(".loader");
+            const hideLoader = hideContainer.querySelector(".loader");
+            let currentStatus = 'show';
+
+            // get the timeout from the URL param ?appearTimeout=xzy&disappearTimeout=xyz
+            const appearTimeout = parseInt(URIParams('appearTimeout', 10)); // default to 10s if no parameter is passed.
+            const disappearTimeout = parseInt(URIParams('disappearTimeout', 10));
+            const startWithLoader = URIParams('startWithLoader', false) == 'true' ? true : false;
+            console.log({appearTimeout, disappearTimeout, startWithLoader})
+            
+            if (!startWithLoader) {
+                toggleLoaders();
+            }
+
+            // get parameters from the URL
+            function URIParams(key, defaultValue) {
+                const pattern = new RegExp(`${key}=(?<value>.*?)(?:&|$)`);
+                const match = window.location.search
+                                .match(pattern);
+                const defaultParam = {value: defaultValue};
+                const groups = match ? match.groups ?? defaultParam : defaultParam;
+                return groups.value;
+            }
+
+            // wait for x ms
+            function wait(miliseconds) {
+                return new Promise(resolve => {
+                    setTimeout(() => { resolve(''); }, miliseconds);
+                });
+            }
+
+            function toggleLoaders() {
+                if (currentStatus == 'hide') {
+                    console.log("Showing elements.")
+                    hideLoader.style.display = "block";
+                    removeContainer.append(removeLoader);
+                    currentStatus = 'show';
+                } else {
+                    console.log("Hiding elements.")
+                    // remove the loader in removeContainer
+                    removeLoader.remove();
+                    // hide the loader in hideContainer
+                    hideLoader.style.display = "none";
+                    currentStatus = 'hide';
+                }
+            }
+
+            async function showOrHideWithWaits() {
+                if (startWithLoader) {
+                    await wait(disappearTimeout * 1000);
+                    toggleLoaders();
+                    await wait(appearTimeout * 1000);
+                    toggleLoaders();
+                } else {
+                    await wait(appearTimeout * 1000);
+                    toggleLoaders();
+                    await wait(disappearTimeout * 1000);
+                    toggleLoaders();
+                }
+            }
+            
+            showOrHideWithWaits();
+            setInterval(await showOrHideWithWaits, (appearTimeout + disappearTimeout) * 1000);
+        </script>
+    </body>
+</html>
