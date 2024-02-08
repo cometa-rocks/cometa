@@ -3851,9 +3851,9 @@ if __name__ != 'actions':
     sys.path.append('/code/behave/cometa_itself')
     from steps import unimplemented_steps
 
-# This step involves waiting for the selector to appear and then waiting for it to disappear within the specified timeout (in seconds). The options provided are 'do not fail if not visible' or 'fail if never visible'.
+# This step waits for the selector to appear within the given timeout (in seconds) and then wait the step timeout to disappear. The options provided are 'do not fail if not visible' or 'fail if never visible'
 # If the selector does not appear within the specified timeout:
-# 1. If the selected option is 'do not fail if not visible', the step will not fail, and it will skip the wait for it to disappear.
+# 1. If the selected option is 'do not fail if not visible', the step will not fail, and it will skip the wait to disappear.
 # 2. If the selected option is 'fail if never visible', the step will fail.
 @step(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 @done(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
@@ -3883,31 +3883,26 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
         if len(selector_element)>0 and selector_element[0].is_displayed():
             send_step_details(context, 'Selector appeared, Wait for it to disappear')
             logger.debug(f"Selector to appeared")
-            # If in case object disappears and gets removed from Dom it self the while checking is_displayed() it will throw error,
-            # Considerting element was disappeard
-            is_element_disappeared = False
+            # If in case object disappears and gets removed from DOM it self the while checking is_displayed() it will throw error
+            # Considerting error as element was disappeard
             try:
                 # continue loop if element is displayed for wait time is less then 60 seconds
-                while selector_element[0].is_displayed() and time.time()<max_time:
+                while selector_element[0].is_displayed():
                     time.sleep(0.5)
-                # In case element disappeard but present in the dom
-                is_element_disappeared = not selector_element[0].is_displayed()
-            except Exception as e:
+                # In case element disappeard but present in the DOM
+                if not selector_element[0].is_displayed(): 
+                    send_step_details(context, 'Selector disappeared successfully')
+            except StaleElementReferenceException as e:
                 # The only syntax that can throw error is is_displayed() method. which means element diappeared
-                # In case element disappeard and not present in the dom
-                is_element_disappeared = True
-                send_step_details(context, 'Selector disappeared successfully')
-
-            # If is_element_disappeared is set to false it means selector was not disappeard
-            if not is_element_disappeared:
-                raise CustomError("Selector did not disappeared")
+                # In case element disappeard and not present in the DOM notify
+                send_step_details(context, 'Selector disappeared completely')
 
         # if element was not found or displayed then check if option selected to fail, if yes then raise exception
         elif option == 'fail if never visible':
             logger.debug(f"raising error : Selector to appeared")
             raise CustomError("Selector not displayed")
 
-    except Exception as exception:
+    except (StaleElementReferenceException, CometaMaxTimeoutReachedException) as exception:
         traceback.print_exc()
         # if got execption while checking to appear or disappear then check if option selected to fail, if yes then raise exception
         if option == 'fail if never visible':
