@@ -137,6 +137,7 @@ interface StepResult {
     feature_result_id: number;
     step_name: string;
     execution_time: number;
+    relative_execution_time: number;
     pixel_diff: number;
     success: boolean;
     screenshot?: boolean;
