@@ -21,7 +21,8 @@
               "src/manifest.json",
               "src/logout.html",
               "src/welcome.html",
-              "src/steps_testing.html"
+              "src/steps_testing.html",
+              "src/loader_testing.html"
             ],
             "styles": [
               "src/styles.scss"
