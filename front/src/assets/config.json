@@ -187,7 +187,11 @@
 		"Little things make big days.",
 		"Don’t wait for opportunity. Create it.",
 		"The key to success is to focus on goals, not obstacles.",
-		"Dream it. Believe it. Build it."
+		"Dream it. Believe it. Build it.",
+		"Let's get things done!",
+		"The only constant in software is change",
+		"All code is guilty until proven innocent.",
+		"{Code is Poetry}"
 	],
 	"changelog": [	
 		{
@@ -195,7 +199,13 @@
 			"date": "2024-02-08",
 			"bugfixes": [
 				"#4481 - Fixed the results order in the results executions CSV file. Added new column to better understand the steps order."
-			]
+			],
+			"features": [
+				{
+					"title": "View the relative time for the Cometa step reports",
+					"description": "Check the step execution time to understand at which second each step was executed. In case of an error in any step, this will help to correlate the step execution with the recorded video"
+				}
+            ]
 		},
 		{
             "version": "2.8.324",
