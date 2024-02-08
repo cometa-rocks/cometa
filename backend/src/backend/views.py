@@ -264,6 +264,7 @@ def GetStepResultsData(request, *args, **kwargs):
         fr.app_name,
         fr.environment_name,
         fr.department_name,
+        sr.step_result_id,
         sr.step_name,
         sr.execution_time,
         sr.success
@@ -276,12 +277,14 @@ def GetStepResultsData(request, *args, **kwargs):
     WHERE
         fr.feature_id_id = {FEATURE_ID}
     ORDER
-        BY fr.feature_result_id,
-        fr.result_date;
+        BY fr.feature_result_id DESC,
+        fr.result_date DESC,
+        sr.step_result_id ASC;
     """
 
     rows = [{
         "Feature Result": row.feature_result_id,
+        "Feature Result Id + Step Result Id": f"Feature Result Id: {row.feature_result_id} - Step Result Id: {row.step_result_id}",
         "Feature Name": row.feature_name,
         "Result Date (UTC)": row.result_date,
         "Application": row.app_name,
