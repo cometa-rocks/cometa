@@ -2042,6 +2042,18 @@ class StepResultViewSet(viewsets.ModelViewSet):
         data = json.loads(request.body)
         if not isinstance(data['files'], list):
             data['files'] = json.loads(data['files'])
+        
+        logger.debug("Checking for last step")
+        last_step = Step_result.objects.filter(feature_result_id = data['feature_result_id']).order_by('-step_result_id').first()
+        if last_step:
+            # This will execute if it is not the report of the execution
+            logger.debug("Found last step relative calculating time")
+            data['relative_execution_time'] = last_step.relative_execution_time + data['execution_time']
+        else:
+            # This will execute if it is a first step report of the execution
+            logger.debug("Relative time Initated")
+            data['relative_execution_time'] = data['execution_time']
+
         step_result = Step_result.objects.create(**data)
         return JsonResponse(StepResultSerializer(step_result, many=False).data)
 
