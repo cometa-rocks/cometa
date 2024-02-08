@@ -865,6 +865,7 @@ class Step_result(models.Model):
     feature_result_id = models.IntegerField()
     step_name = models.TextField()
     execution_time = models.IntegerField(default=0)
+    relative_execution_time = models.IntegerField(default=0)
     status = models.CharField(max_length=100, default="") # added to be able to override step result success
     pixel_diff = models.BigIntegerField(default=0)
     template_name = models.CharField(max_length=255, default='', null=True, blank=True) # Remove when possible
