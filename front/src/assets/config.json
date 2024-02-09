@@ -1,5 +1,5 @@
 {
-	"version": "2.8.324",
+	"version": "2.8.326",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -195,6 +195,16 @@
 	],
 	"changelog": [	
 		{
+			"version": "2.8.326",
+			"date": "2024-02-09",
+			"features": [
+				{
+					"title": "View the total execution time and relative time for each step in the PDF report.",
+					"description": "In the report, both the total feature execution time and relative time can be observed, facilitating a better understanding of the results."
+				}
+            ]
+		},
+		{
 			"version": "2.8.325",
 			"date": "2024-02-08",
 			"bugfixes": [
@@ -202,8 +212,8 @@
 			],
 			"features": [
 				{
-					"title": "View the relative time for the Cometa step reports",
-					"description": "Check the step execution time to understand at which second each step was executed. In case of an error in any step, this will help to correlate the step execution with the recorded video"
+					"title": "View the relative time for the Cometa step reports.",
+					"description": "Check the step execution time to understand at which second each step was executed. In case of an error in any step, this will help to correlate the step execution with the recorded video."
 				}
             ]
 		},
