@@ -353,7 +353,6 @@ class GeneratePDF(View):
             "totalnok": self.totalnok,
             "screenshots_array": self.screenshots_array,
             "browserinfo": browserinfo,
-            "total_time": self.steps[step_length-1].relative_execution_time if step_length >0 else 0
         }
         
         # Render template to HTML
