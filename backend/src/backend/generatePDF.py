@@ -339,7 +339,7 @@ class GeneratePDF(View):
         utc_date =  date_time.astimezone(pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')
         cet_date =  date_time.astimezone(pytz.timezone('Europe/Berlin')).strftime('%Y-%m-%d %H:%M:%S %Z')
         ist_date =  date_time.astimezone(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S %Z')
-        
+        step_length = len(self.steps)
         context = {
             "invoice_id": self.feature.feature_name,
             "utc_date": utc_date,
@@ -353,6 +353,7 @@ class GeneratePDF(View):
             "totalnok": self.totalnok,
             "screenshots_array": self.screenshots_array,
             "browserinfo": browserinfo,
+            "totol_time": self.steps[step_length-1].relative_execution_time if step_length >0 else 0
         }
         
         # Render template to HTML
