@@ -339,7 +339,6 @@ class GeneratePDF(View):
         utc_date =  date_time.astimezone(pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')
         cet_date =  date_time.astimezone(pytz.timezone('Europe/Berlin')).strftime('%Y-%m-%d %H:%M:%S %Z')
         ist_date =  date_time.astimezone(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S %Z')
-        
         context = {
             "invoice_id": self.feature.feature_name,
             "utc_date": utc_date,
@@ -357,7 +356,7 @@ class GeneratePDF(View):
         
         # Render template to HTML
         try:
-            html = template.render(context)
+            # html = template.render(context)
             # Render HTML to PDF
             pdf = render_to_pdf('generatePDF.html', context)
             return pdf

@@ -1,4 +1,4 @@
-
+{% load humanize %}
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
     <head>
@@ -48,7 +48,7 @@
                padding: 10px 20px 0px 20px;
             }
             .details {
-                padding: 10px 20px 0px 20px;
+                /* padding: 10px 20px 0px 20px; */
                 text-align: left !important;
                 /*margin-left: 40%;*/
             }
@@ -123,14 +123,20 @@
         <div class='details'>
             <p> <B> App: </b> {{ featureinfo.app_name }} | <b> Environment: </b> {{ featureinfo.environment_name}} | <b> Test Name: </b> {{featureinfo.feature_name }} [{{featureinfo.feature_id_id}}] | <b> Browser:</b> {{ browserinfo }}</p>
             
-            <table style="width: 100%; border:0px">
+            <table style="width: 100%; border:0px; text-align: left">
                 <tr>
-                    <td width="15%"><br/>Executed on :<br/></td>
+                    <td width="15%"><b>Executed on</b></td>
                     <td align="left">
                         {{ utc_date }} <br/>
                         {{ cet_date }} <br/>
                         {{ ist_date }} <br/>
                     </td>
+                </tr>
+            </table>
+            <table style="width: 100%; border:0px; text-align: left">
+                <tr>
+                    <td width="23%"><b>Total Execution Time </b></td>
+                    <td align="left"> {{ featureinfo.execution_time | Humanize}}</td>
                 </tr>
             </table>
             <hr class='hrItem' />
@@ -145,8 +151,9 @@
              <th> STEP </th>
              <th> RESULT </th>
              <th> TIME </th>
-             <th> PIXEL DIFFERENCE </th>
-             {% load humanize %}
+             <th> REL. TIME </th>
+             <th> PIXEL DIFF. </th>
+            
              {% for step in stepsarray %}
 
                 <tr>
@@ -173,6 +180,9 @@
 
                     <td style="color: #d4145a; font-weight: bold;"> 
                          {{ step.execution_time | Humanize }}
+                    </td>
+                    <td style="color: #d4145a; font-weight: bold;"> 
+                         {{ step.relative_execution_time | Humanize }}
                     </td>
 
                     {% if step.pixel_diff == 0 %}
