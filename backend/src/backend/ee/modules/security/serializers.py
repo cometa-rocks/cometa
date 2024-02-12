@@ -3,7 +3,7 @@
 # ###
 
 from rest_framework import serializers
-from .models import ResponseHeaders
+from .models import ResponseHeaders,VulnerableHeader
 from backend.models import Department
 
 
@@ -24,3 +24,10 @@ class ResponseHeadersSerializer(serializers.ModelSerializer):
             department = Department.objects.get(department_id=data.get('result_id').department_id)
             data['department'] = department
         return data
+
+class VulnerableHeaderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VulnerableHeader
+        # This fields also shows in the Django Rest Framework screen
+        fields = ['id', 'header_name', 'vulnerable_values', 'reasons_of_vulnerabiltiy', 'created_on']
+

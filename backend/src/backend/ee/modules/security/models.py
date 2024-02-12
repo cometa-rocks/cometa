@@ -20,7 +20,20 @@ class ResponseHeaders(SoftDeletableModel):
     network_response_count = models.IntegerField(default=0)
     vulnerable_response_count = models.IntegerField(default=0)
     created_on = models.DateTimeField(default=datetime.utcnow, editable=True, null=False, blank=False,
-                                      help_text='When was created')
+                                      help_text='When it was created')
 
     class Meta:
         verbose_name_plural = "ResponseHeaders"
+
+class VulnerableHeader(models.Model):
+    id = models.AutoField(primary_key=True)
+    header_name = models.CharField(blank=False, null=False, max_length=30)
+    # A value or value pattern which can be vulnerable as the value of this header.
+    vulnerable_values = models.JSONField(default=list)
+    # This will store links or blogs reporting the reported vulnerability. In case it is necessary to show the user on the screen why this is considered a vulnerability.
+    reasons_of_vulnerabiltiy = models.JSONField(default=list)
+    created_on = models.DateTimeField(default=datetime.utcnow, editable=True, null=False, blank=False,
+                                      help_text='When it was created')
+
+    class Meta:
+        verbose_name_plural = "VulnerableHeaders"
