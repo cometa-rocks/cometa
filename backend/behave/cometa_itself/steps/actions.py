@@ -59,6 +59,7 @@ from src.backend.utility.functions import *
 from slugify import slugify
 from html_diff import diff
 from threading import Thread
+from bs4 import BeautifulSoup
 
 # pycrypto imports
 from Crypto import Random
@@ -647,6 +648,17 @@ def waitMetric(metricFile):
         time.sleep(1)
     return []
 
+def clear_html_page_source(page_source):
+    # parse html content
+    soup = BeautifulSoup(page_source, "html.parser")
+ 
+    for data in soup(['style', 'script']):
+        # Remove tags
+        data.decompose()
+ 
+    # return the HTML and minify it
+    return re.sub(r'\n', '', str(soup))
+
 def mySafeToFile(filename, myString):
     text_file = open(filename, "w")
     text_file.write(myString)
@@ -734,14 +746,30 @@ def step_impl(context):
 def step_impl(context,css_selector):
     send_step_details(context, 'Looking for selector')
     elem = waitSelector(context, "css", css_selector)
+    generate_dataset = context.feature_info.get('generate_dataset', False)
+    logger.debug(f"Generate Dataset: {str(generate_dataset)}")
+    payload = {
+        'context': base64.b64encode(clear_html_page_source(context.browser.page_source).encode()).decode(),
+        'target': css_selector,
+        'success': False,
+        'feature_result_id': os.environ['feature_result_id']
+    }
     send_step_details(context, 'Clicking')
     try:
         ActionChains(context.browser).move_to_element(elem[0]).click().perform()
+        
+        if generate_dataset:
+            payload['success'] = True
+            requests.post('http://cometa_django:8000/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
     except Exception as err:
         if isCommandNotSupported(err):
             # I move mouse is not supported in the current device, falling back to "click element with css"
             send_step_details(context, 'Incompatible step, falling back to "I click on css selector"')
             click_element_by_css(context, css_selector)
+
+            if generate_dataset:
+                payload['success'] = False
+                requests.post('http://cometa_django:8000/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
         else:
             raise err
 
