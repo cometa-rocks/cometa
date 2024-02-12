@@ -327,6 +327,7 @@ export class DataDrivenExecution implements OnInit {
   }
 
   updateData(e, row) {
+    row = this.file_data[row.id];
     row.params.page = e.pageIndex;
     row.params.size = e.pageSize;
     this.getFileData(row);
