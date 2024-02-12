@@ -2510,7 +2510,8 @@ class FeatureViewSet(viewsets.ModelViewSet):
             browsers=request.data['browsers'],
             cloud=request.data['cloud'],
             video=request.data['video'],
-            network_logging=request.data.get('network_logging', False), 
+            network_logging=request.data.get('network_logging', False),
+            generate_dataset=request.data.get('generate_dataset', False),
             continue_on_failure=request.data.get('continue_on_failure', False),
             last_edited_id=request.session['user']['user_id'],
             last_edited_date=datetime.datetime.utcnow(),
@@ -2711,6 +2712,41 @@ def render_to_pdf(template_src, context_dict={}):
         return HttpResponse(result.getvalue(), content_type='application/pdf')
     return None
 
+class DatasetViewset(viewsets.ModelViewSet):
+    queryset = Dataset.objects.none()
+    renderer_classes = (JSONRenderer,)
+
+    def create(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+
+        if 'context' not in data or 'target' not in data or 'feature_result_id' not in data:
+            return JsonResponse({
+                'success': False,
+                'error': 'Payload is missing parameters, required parameters: context, target and feature_result_id.'
+            }, status=400)
+
+        # get the feature result id
+        feature_result_id = data.pop('feature_result_id')
+
+        # save it to the dataset
+        dataset = Dataset(
+            feature_result_id = feature_result_id,
+            data = data
+        )
+        if dataset.save():
+            return JsonResponse({
+                'success': True
+            }, status=201)
+        return JsonResponse({
+            'success': False,
+            'error': 'Unable to save dataset'
+        })
+
+    def list(self, request, *args, **kwargs):
+        return JsonResponse({
+            'success': True,
+            'message': 'Nothing to do here!'
+        })
 
 class FolderViewset(viewsets.ModelViewSet):
     queryset = Folder.objects.all()
