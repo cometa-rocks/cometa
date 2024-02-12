@@ -1,5 +1,5 @@
 {
-	"version": "2.8.324",
+	"version": "2.8.326",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -175,7 +175,7 @@
 		}
 	],
 	"welcomeSentences": [
-		"Your limitation it’s only your imagination.",
+		"Your limitation is only your imagination.",
 		"Great things never come from comfort zones.",
 		"Dream it. Wish it. Do it.",
 		"Success doesn’t just find you. You have to go out and get it.",
@@ -187,9 +187,46 @@
 		"Little things make big days.",
 		"Don’t wait for opportunity. Create it.",
 		"The key to success is to focus on goals, not obstacles.",
-		"Dream it. Believe it. Build it."
+		"Dream it. Believe it. Build it.",
+		"Let's get things done!",
+		"The only constant in software is change",
+		"All code is guilty until proven innocent.",
+		"{Code is Poetry}"
 	],
 	"changelog": [	
+		{
+			"version": "2.8.327",
+			"date": "2024-02-13",
+			"features": [
+				{
+					"title": "Add the list of vulnerable headers from the backend.",
+					"description": "Dependency on code change has been removed to set the vulnerable headers. They can now be updated using the Django admin panel."
+				}
+            ]
+		},
+		{
+			"version": "2.8.326",
+			"date": "2024-02-09",
+			"features": [
+				{
+					"title": "View the total execution time and relative time for each step in the PDF report.",
+					"description": "In the report, both the total feature execution time and relative time can be observed, facilitating a better understanding of the results."
+				}
+            ]
+		},
+		{
+			"version": "2.8.325",
+			"date": "2024-02-08",
+			"bugfixes": [
+				"#4481 - Fixed the results order in the results executions CSV file. Added new column to better understand the steps order."
+			],
+			"features": [
+				{
+					"title": "View the relative time for the Cometa step reports.",
+					"description": "Check the step execution time to understand at which second each step was executed. In case of an error in any step, this will help to correlate the step execution with the recorded video."
+				}
+            ]
+		},
 		{
             "version": "2.8.324",
             "date": "2024-02-06",
@@ -207,13 +244,17 @@
 				{
 					"title": "Enhanced Browser Performance Control",
 					"description": "Take charge of your browsing experience! With the latest update, you can now effortlessly boost your performance testing by choosing how many times a browser should run concurrently. Fine-tune your settings for a smoother and more efficient online testing experience."
+				},
+				{
+					"title": "Enhance Installscript",
+					"description": "Installation script will check for disk space and user-level resource limits for processes befor installing cometa"
 				}
 			]
-		},
+		},	
 		{
-			"version": "2.8.322",
-			"date": "2024-02-01",
-			"features": [
+            "version": "2.8.322",
+            "date": "2024-02-01",
+            "features": [
 				{
 					"title": "New steps implemented to scroll to different elements",
 					"description": "New steps implemented -> u'Scroll to the last position of the desired element identified by \"{xpath}\" with maximum number of scrolls \"{MaxScrolls}\" and maximum time of  \"{MaxTimeOfLife}\" and Scroll to element with \"{selector}\" in lazy loaded table \"{scrollable_element_selector}\""
@@ -222,8 +263,8 @@
 					"title": "Meta Data Information implementation for steps",
 					"description": "Multiline Meta Data information implementation for actions is implemented, complete text will be avaiable in the help section"
 				}
-			]
-		},
+            ]
+        },		
 		{
             "version": "2.8.321",
             "date": "2024-01-24",
@@ -259,7 +300,7 @@
 				},
 				{
 					"title": "Page Source in feature results",
-					"description": "Page source can now be viewed using 'Fetch HTML Source of current Browser page and attach it to the feature result' step."
+					"description": "Page source can now be viewed using 'Fetch HTML Source of current Browser page and attach it to the feature result' step." 
 				}
             ]
         },
@@ -356,14 +397,14 @@
 			"date": "2023-06-26",
 			"bugfixes": [
 				"Department variables were not being picked up."
-			]
+			] 
 		},
 		{
 			"version": "2.8.308",
 			"date": "2023-06-21",
 			"bugfixes": [
 				"Added link to public github documentation in help section."
-			]
+			] 
 		},
 		{
 			"version": "2.8.307",
