@@ -114,6 +114,20 @@ develop = ["coverage", "invoke (>=0.21.0)", "modernize (>=0.5)", "path.py (>=8.1
 docs = ["sphinx (>=1.6)", "sphinx-bootstrap-theme (>=0.6)"]
 
 [[package]]
+name = "bs4"
+version = "0.0.2"
+description = "Dummy package for Beautiful Soup (beautifulsoup4)"
+optional = false
+python-versions = "*"
+files = [
+    {file = "bs4-0.0.2-py2.py3-none-any.whl", hash = "sha256:abf8742c0805ef7f662dce4b51cca104cffe52b835238afc169142ab9b3fbccc"},
+    {file = "bs4-0.0.2.tar.gz", hash = "sha256:a48685c58f50fe127722417bae83fe6badf500d54b55f7e39ffe43b798653925"},
+]
+
+[package.dependencies]
+beautifulsoup4 = "*"
+
+[[package]]
 name = "certifi"
 version = "2023.5.7"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -1581,4 +1595,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "db53d82dc60030ec947cc562aafbfa7f048e451e487b1c1dbe47759f89657da3"
+content-hash = "e103297d3cb2316b41ab6b2bcfc2e3bc85bcd9bf95f5d5e68005167e258d3585"
