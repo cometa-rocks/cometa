@@ -339,7 +339,6 @@ class GeneratePDF(View):
         utc_date =  date_time.astimezone(pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')
         cet_date =  date_time.astimezone(pytz.timezone('Europe/Berlin')).strftime('%Y-%m-%d %H:%M:%S %Z')
         ist_date =  date_time.astimezone(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S %Z')
-        
         context = {
             "invoice_id": self.feature.feature_name,
             "utc_date": utc_date,
@@ -357,7 +356,7 @@ class GeneratePDF(View):
         
         # Render template to HTML
         try:
-            html = template.render(context)
+            # html = template.render(context)
             # Render HTML to PDF
             pdf = render_to_pdf('generatePDF.html', context)
             return pdf
@@ -420,33 +419,25 @@ class GeneratePDF(View):
         email_body = """
             Dear user!<br><br>
             Below you can find the information about the feature result.<br><br>
-
-            <ul>
-                <li><strong>Feature ID:</strong> %d</li>
-                <li><strong>Summary:</strong> %d total steps, %d OK steps, %d failed/skipped steps</li>
-                <li><strong>Department:</strong> %s</li>
-                <li><strong>App:</strong> %s</li>
-                <li><strong>Environment:</strong> %s</li>
-                <li><strong>Test:</strong> %s</li>
-                <li style="padding-top:3px">
-                    <table border=0px style="padding:0; margin-left:-3px; "><tr>
-                        <td><strong style="float:left;">Date + Time:</strong> </td>
-                        <td>%s</td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                        <td>%s</td>
-                        </tr>
-                        <tr>
-                            <td></td>      
-                        <td>%s</td>
-                        </tr>
-                    </table>
-                </li>
-
-
-                <li><strong>Pixel Difference:</strong> %s</li>
-            </ul><br><br>
+ 
+            <table border="0px">
+                <tr><td><strong>Feature ID:</strong></td><td>%d</td></tr>
+                <tr><td><strong>Summary:</strong></td><td>%d total steps, %d OK steps, %d failed/skipped steps</td></tr>
+                <tr><td><strong>Department:</strong></td><td>%s</td></tr>
+                <tr><td><strong>App:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Environment:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Test:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Date + Time:<br><br><br></strong></td>
+                            <td>
+                                %s
+                                <br>
+                                %s
+                                <br>
+                                %s
+                            </td>
+                </tr>
+                <tr><td><strong>Pixel Difference:</strong></td><td>%s</td></tr>
+            </table>
             %s
             %s
             Thanks you for using co.meta<br><br>
