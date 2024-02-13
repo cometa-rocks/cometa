@@ -702,6 +702,7 @@ class Feature(models.Model):
     email_body = models.TextField(null=True, blank=True)
     video = models.BooleanField(default=True)
     network_logging = models.BooleanField(default=False)
+    generate_dataset = models.BooleanField(default=False)
     continue_on_failure = models.BooleanField(default=False)
     need_help = models.BooleanField(default=False)
     info = models.ForeignKey('Feature_Runs', on_delete=models.SET_NULL, null=True, default=None, related_name='info')
@@ -1444,6 +1445,20 @@ def post_file_delete(instance, sender, using, **kwargs):
     # check if file exists on the fs
     if os.path.exists(instance.path):
         os.unlink(instance.path)
+
+# Choise for the dataset types
+dataset_types = (
+    ('selector', 'Selector',),
+)
+
+class Dataset(models.Model):
+    id = models.AutoField(primary_key=True)
+    type = models.CharField(max_length=10, choices=dataset_types, default="selector")
+    data = models.JSONField(default=dict)
+    feature_result = models.ForeignKey(Feature_result, on_delete=models.SET_NULL, null=True, related_name="feature_result_dataset")
+
+    class Meta:
+        verbose_name_plural = "Datasets"
 
 # import EE Modules
 from backend.ee.modules.data_driven.models import DataDriven_Runs
