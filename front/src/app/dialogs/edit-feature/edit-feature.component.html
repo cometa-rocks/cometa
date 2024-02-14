@@ -59,16 +59,16 @@
             <span>Selecting <strong>Default</strong> department will make this feature visible to everyone, use it with caution!</span>
           </div>
           <div class="depends">
-            <mat-checkbox color="primary" formControlName="depends_on_others">Depends on other feature</mat-checkbox>
-            <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="send_mail">Send mail on finish</mat-checkbox>
-            <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video">Record video</mat-checkbox>
-            <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="network_logging">Network Logging</mat-checkbox>
+            <mat-checkbox color="primary" formControlName="depends_on_others" matTooltip="Enable this option if you wish to execute this feature with other features" matTooltipPosition="above">Depends on other feature</mat-checkbox>
+            <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="send_mail" matTooltip="Enable this option to receive a report email upon completion of the execution" matTooltipPosition="above">Send mail on finish</mat-checkbox>
+            <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" matTooltip="Enable video recording of feature execution" matTooltipPosition="above">Record video</mat-checkbox>
+            <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="network_logging" matTooltip="Enable this option to record network responses, including analysis of vulnerable headers" matTooltipPosition="above">Network Logging</mat-checkbox>
             <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
-              <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">Continue on failure</mat-checkbox>
+              <mat-checkbox color="primary" [disabled]="disabled" formControlName="continue_on_failure" matTooltip="Enable this option to proceed with test execution regardless of any failures encountered" matTooltipPosition="above">Continue on failure</mat-checkbox>
             </ng-container>
             <mat-checkbox formControlName="need_help" color="primary" [matTooltip]="'need_help.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
             <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
-              <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+              <span class="edit-variables" matTooltip="Add/Modify environment and secret variables." matTooltipPosition="above">
                 <button color="primary" [disabled]="disableVariables" (click)="editVariables()" mat-stroked-button>Edit Variables</button>
               </span>
             </ng-container>
