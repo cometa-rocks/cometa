@@ -1,5 +1,5 @@
 {
-	"version": "2.8.326",
+	"version": "2.8.327",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -195,8 +195,8 @@
 	],
 	"changelog": [	
 		{
-			"version": "2.8.326",
-			"date": "2024-02-08",
+			"version": "2.8.327",
+			"date": "2024-02-14",
 			"bugfixes": [
 				"#4433 - No host specified error fixed"
 			],
