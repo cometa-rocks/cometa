@@ -63,6 +63,7 @@
             <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="send_mail" matTooltip="Enable this option to receive a report email upon completion of the execution" matTooltipPosition="above">Send mail on finish</mat-checkbox>
             <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" matTooltip="Enable video recording of feature execution" matTooltipPosition="above">Record video</mat-checkbox>
             <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="network_logging" matTooltip="Enable this option to record network responses, including analysis of vulnerable headers" matTooltipPosition="above">Network Logging</mat-checkbox>
+            <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="generate_dataset" matTooltip="Create a dataset from your web application" matTooltipPosition="above">Generate Dataset</mat-checkbox>
             <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
               <mat-checkbox color="primary" [disabled]="disabled" formControlName="continue_on_failure" matTooltip="Enable this option to proceed with test execution regardless of any failures encountered" matTooltipPosition="above">Continue on failure</mat-checkbox>
             </ng-container>

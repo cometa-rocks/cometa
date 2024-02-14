@@ -38,6 +38,7 @@ redis = "^5.0.0"
 django-rq = "^2.8.1"
 jq = "^1.6.0"
 behave = "^1.2.6"
+bs4 = "^0.0.2"
 
 [tool.poetry.dev-dependencies]
 
