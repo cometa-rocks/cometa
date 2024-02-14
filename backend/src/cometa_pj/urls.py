@@ -66,6 +66,7 @@ router.register(r'schedule', views.ScheduleViewSet)
 router.register(r'subscriptions', views.SubscriptionsViewSet)
 router.register(r'uploads/(?P<file_id>[0-9]+)', views.UploadViewSet)
 router.register(r'uploads', views.UploadViewSet)
+router.register(r'dataset', views.DatasetViewset)
 # provides numbers of system usage
 router.register(r'cometausage', views.CometaUsageViewSet)
 
