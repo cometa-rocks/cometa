@@ -19,6 +19,10 @@ class AuthenticationMiddleware:
         self.get_response = get_response
         # One-time configuration and initialization.
 
+    def append_custom_headers(self, response):
+        response['X-Powered-By'] = 'Opensource'
+        return response
+
     def __call__(self, request):
         # save all public routes, this is a temporary fix.
         # FIXME not a good idea.
@@ -27,7 +31,8 @@ class AuthenticationMiddleware:
         ]
         public_route_found = len([x for x in public_routes if request.get_full_path().startswith(x)]) > 0
         if public_route_found:
-            return self.get_response(request)
+
+            return self.append_custom_headers(self.get_response(request))
 
         # check if user_info is already saved in session
         user_info = request.session.get('user_info', None)
@@ -76,7 +81,7 @@ class AuthenticationMiddleware:
             if result != True:
                 return result
         # pass the request to next middleware
-        return self.get_response(request)
+        return self.append_custom_headers(self.get_response(request))
     
     def checkSessionUser(self, request): # check if user in HTTP_PROXY_USER and session.user are the same
         REMOTE_USER = self.user_info.get('email', None)
