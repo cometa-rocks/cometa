@@ -180,6 +180,7 @@ function install_openidc(){
 	apt-get install -y autoconf automake libtool
 	apt-get install -y libssl-dev libjansson-dev libcurl4-openssl-dev check
 	apt-get install -y libpcre3-dev zlib1g-dev libcjose0 libcjose-dev
+	apt-get install -y libapache2-mod-security2
 	cd -
 }
 
