@@ -1,5 +1,5 @@
 {
-	"version": "2.8.324",
+	"version": "2.8.326",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -194,6 +194,19 @@
 		"{Code is Poetry}"
 	],
 	"changelog": [	
+		{
+			"version": "2.8.326",
+			"date": "2024-02-08",
+			"bugfixes": [
+				"#4433 - No host specified error fixed"
+			],
+			"features": [
+				{
+					"title": "#4496 Created hover on any option in edit feature",
+					"description": "Display a message when the user hovers over any checkbox in the information section "
+				}
+            ]
+		},
 		{
 			"version": "2.8.325",
 			"date": "2024-02-08",
