@@ -29,6 +29,7 @@ import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
 import { DataDrivenTestExecuted } from '@dialogs/data-driven-execution/data-driven-executed/data-driven-executed.component';
+import { DataDrivenTestStop } from '@dialogs/data-driven-execution/data-driven-stop/data-driven-stop.component';
 
 /* Plugins */
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
@@ -213,6 +214,7 @@ export function getStripeApiKey() {
     ScheduleHelp,
     FeatureCreated,
     DataDrivenTestExecuted,
+    DataDrivenTestStop,
     SureRemoveFeatureComponent,
     AddStepComponent,
     LiveStepsComponent,
