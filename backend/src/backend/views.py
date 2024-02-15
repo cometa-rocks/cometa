@@ -3205,17 +3205,23 @@ def UpdateTask(request):
     browser = data['browser']
     feature_id = data['feature_id']
     pid = data['pid']
-    # The action can be 'start' or 'finish' only
-    if action == 'start':
-        Feature_Task.objects.create(
-            feature_id=feature_id,
-            browser=browser,
-            pid=pid
-        )
-    else:
-        tasks = Feature_Task.objects.filter(pid=pid).delete()
-    return JsonResponse({"success": True})
-
+    feature_result_id = data['feature_result_id']
+    try:
+        # Feature task contains feature result ID, Using feature result (Which are available with Data Driven Runs) we can identify task to stop DD Tests
+        feature_result = Feature_result.objects.get(feature_result_id=int(feature_result_id))
+        # The action can be 'start' or 'finish' only
+        if action == 'start':
+            Feature_Task.objects.create(
+                feature_id=feature_id,
+                browser=browser,
+                pid=pid,
+                feature_result_id = feature_result
+            )
+        else:
+            tasks = Feature_Task.objects.filter(pid=pid).delete()
+        return JsonResponse({"success": True})
+    except Feature_result.DoesNotExist as exception:
+        return JsonResponse({"success": True,'message':str(exception)})
 
 @csrf_exempt
 def KillTask(request, feature_id):
@@ -3227,7 +3233,6 @@ def KillTask(request, feature_id):
         # Force state of stopped for current feature in WebSocket Server
         request = requests.get('http://cometa_socket:3001/feature/%s/killed' % feature_id)
     return JsonResponse({"success": True, "tasks": len(tasks)}, status=200)
-
 
 @csrf_exempt
 def KillTaskPID(request, pid):
