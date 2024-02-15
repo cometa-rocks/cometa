@@ -323,7 +323,8 @@ def before_all(context):
         'action': 'start',
         'browser': json.dumps(context.browser_info),
         'feature_id': context.feature_id,
-        'pid': str(os.getpid())
+        'pid': str(os.getpid()),
+        'feature_result_id': os.environ['feature_result_id'],
     }
     response = requests.post('http://cometa_django:8000/updateTask/', headers={'Host': 'cometa.local'},
                              data=json.dumps(task))
@@ -579,6 +580,7 @@ def after_all(context):
     task = {
         'action': 'delete',
         'browser': json.dumps(context.browser_info),
+        'feature_result_id': os.environ['feature_result_id'],
         'feature_id': context.feature_id,
         'pid': str(os.getpid())
     }
