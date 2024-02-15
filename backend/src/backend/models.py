@@ -1126,6 +1126,7 @@ class Feature_Runs(SoftDeletableModel):
 class Feature_Task(models.Model):
     task_id = models.AutoField(primary_key=True)
     feature = models.ForeignKey(Feature, on_delete=models.CASCADE, related_name="feature_tasks")
+    feature_result_id = models.ForeignKey(Feature_result, on_delete=models.CASCADE, related_name="Feature_result_id",null=True, blank=True, default=None)
     browser = models.JSONField(default=dict)
     pid = models.CharField(max_length=10, default=0)
     
