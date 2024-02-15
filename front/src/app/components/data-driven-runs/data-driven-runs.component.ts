@@ -4,9 +4,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { DataDrivenExecution } from '@dialogs/data-driven-execution/data-driven-execution.component';
+import { DataDrivenTestStop } from '@dialogs/data-driven-execution/data-driven-stop/data-driven-stop.component';
 import { MtxGridColumn } from '@ng-matero/extensions/grid';
 import { ApiService } from '@services/api.service';
 import { SharedActionsService } from '@services/shared-actions.service';
+import { InterceptorParams } from 'ngx-network-error';
 
 @Component({
   selector: 'cometa-data-driven-runs',
@@ -27,20 +29,33 @@ export class DataDrivenRunsComponent implements OnInit{
   columns: MtxGridColumn[] = [
     {header: 'Status', field: 'status', sortable: true},
     {header: 'File Name', field: 'file.name', sortable: true, class: 'name'},
-    {header: 'Execution Date', field: 'date_time', sortable: true, width: '230px', sortProp: { start: 'desc', id: 'date_time'}},
+    {header: 'Execution Date', field: 'date_time', sortable: true, width: '190px', sortProp: { start: 'desc', id: 'date_time'}},
     {header: 'Total', field: 'total', sortable: true},
     {header: 'OK', field: 'ok', sortable: true},
     {header: 'NOK', field: 'fails', sortable: true},
     {header: 'Skipped', field: 'skipped'},
     {header: 'Duration', field: 'execution_time', sortable: true},
-    {header: 'Pixel Difference', field: 'pixel_diff', sortable: true},
+    {header: 'Pixel Diff', field: 'pixel_diff', sortable: true},
     {
       header: 'Options',
       field: 'options',
       // pinned: 'right',
       right: '0px',
       type: 'button',
+      width: '130px',
       buttons: [
+        {
+          type: 'icon',
+          text: 'Stop', 
+          icon: 'stop',
+          tooltip: 'Stop Execution',
+          color: 'warn',
+          click: (result: DataDrivenRun) => {
+            this.stop_data_driven(result, this)
+            console.log(result.running)
+          },
+          iif: (result: DataDrivenRun) => result.running
+        },
         {
           type: 'icon',
           text: 'delete',
@@ -58,6 +73,7 @@ export class DataDrivenRunsComponent implements OnInit{
             })
           },
         }
+       
       ]
     }
   ];
@@ -128,6 +144,36 @@ export class DataDrivenRunsComponent implements OnInit{
   ngOnInit(): void {
     this.query.size = parseInt(localStorage.getItem('co_results_page_size')) || 10;
     this.getResults()
+  }
+
+
+  // Stop data driven test
+  stop_data_driven(result,parent) {
+    let run_id = result.run_id;
+    this._http.post<any>(`/backend/stop_data_driven/${run_id}/`,{}).subscribe({
+      next(res: any) {
+        if (res.success) {
+          result.running=false;
+          parent._dialog.open(DataDrivenTestStop, {
+            minWidth: '500px',
+            panelClass: 'edit-feature-panel',
+            data: {
+              run_id: res.run_id,
+              test_count: res.tasks
+            }
+          });
+          
+        }
+      },
+      error(err) {
+        if (err.status >= 400 && err.status < 500) {
+          const error = JSON.parse(err.error);
+          parent._snackBar.open(`Error: ${error.error}. Please try again.`, 'OK', {
+            duration: 30000
+          });
+        } 
+      }
+    })
   }
 
 }
