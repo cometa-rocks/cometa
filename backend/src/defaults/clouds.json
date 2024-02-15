@@ -4,7 +4,8 @@
         "pk": 1,
         "fields": {
             "name": "local",
-            "active": true
+            "active": true,
+            "connection_url":"http://cometa_selenoid:4444/wd/hub/"
         }
     },
     {
