@@ -202,7 +202,7 @@
 					"title": "Stop test data driven tests",
 					"description": "A feature has been implemented to stop data-driven tests. Tests running in data-driven mode can now be halted using the stop button provided alongside the list of data-driven tests."
 				}
-            ]
+			]
 		},
 		{
 			"version": "2.8.328",
@@ -215,7 +215,7 @@
 					"title": "#4496 Created hover on any option in edit feature",
 					"description": "Display a message when the user hovers over any checkbox in the information section "
 				}
-            ]
+			]
 		},
 		{
 			"version": "2.8.327",
@@ -229,7 +229,7 @@
 					"title": "If there are no execution logs for the feature and the user clicks on the log button, display the message..",
 					"description": "If there are no execution log feature and user clicks on logs button show message \" There are no logs for this feature. Please execute the feature and then review the logs. If you think this is a bug, please let us know. \""
 				}
-            ]
+			]
 		},
 		{
 			"version": "2.8.326",
