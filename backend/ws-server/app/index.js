@@ -15,6 +15,9 @@ const messagesObj = {};
 // Save feature statuses
 const status = {};
 
+// Save data_driven statuses
+const dataDrivenRunStatus = {};
+
 // Save client information for each SocketID
 const clients = {};
 
@@ -47,6 +50,18 @@ function setRunningStatus(featureId, running) {
     status[featureId] = {};
   }
   status[featureId].running = running;
+}
+
+/**
+ * Sets the current status for a given data driven run ID 
+ * @param dataDrivenRunID Feature ID
+ * @param running Whether or not the feature is running
+ */
+function setDataDrivenRunningStatus(dataDrivenRunID, running) {
+  if (!dataDrivenRunStatus.hasOwnProperty(dataDrivenRunID)) {
+    dataDrivenRunStatus[dataDrivenRunID] = {};
+  }
+  dataDrivenRunStatus[dataDrivenRunID].running = running;
 }
 
 /**
@@ -385,6 +400,22 @@ app.get('/featureStatus/:feature_id', (req, res) => {
   let running = false;
   if (status[featureId] && status[featureId].running) running = true;
   res.status(200).json({ running: running });
+})
+
+/* WS Endpoint: Get Data Driven run status */
+app.get('/dataDrivenStatus/:dataDrivenRunID', (req, res) => {
+  const dataDrivenRunID = +req.params.dataDrivenRunID;
+  let running = false;
+  if (dataDrivenRunStatus[dataDrivenRunID] && dataDrivenRunStatus[dataDrivenRunID].running) running = true;
+  res.status(200).json({ running: running });
+})
+
+/* WS Endpoint: Updating Data Driven running status */
+app.post('/dataDrivenStatus/:dataDrivenRunID', (req, res) => {
+  console.log(req.body.running)
+  setDataDrivenRunningStatus(+req.params.dataDrivenRunID, req.body.running=='True');
+  console.log('Updating Data Driven', req.params.dataDrivenRunID)
+  res.status(200).json({ success: true })
 })
 
 /* WS Endpoint: Reload actions in front */
