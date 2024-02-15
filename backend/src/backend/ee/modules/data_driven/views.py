@@ -286,9 +286,10 @@ def runDataDriven(request, *args, **kwargs):
     file_id = data.get('file_id', None)
     if not file_id:
         return JsonResponse({ 'success': False, 'error': 'Missing \'file_id\' parameter.' }, status=400)
-    
+    user_departments = GetUserDepartments(request)
+    # User security added
     try:
-        file = File.objects.prefetch_related('file').get(pk=file_id)
+        file = File.objects.prefetch_related('file').get(pk=file_id, department__in=user_departments)
     except File.DoesNotExist:
         return JsonResponse({
             "success": False,
@@ -323,7 +324,9 @@ def stop_data_driven_test(request, *args, **kwargs):
     run_id = kwargs.get('run_id', None)
     if not run_id:
         return JsonResponse({ 'success': False, 'error': 'Missing \'run_id\'' }, status=400)
-    
+
+    # User security added
+    user_departments = GetUserDepartments(request)
     try:
         data_driven_run = DataDriven_Runs.objects.get(run_id=run_id)
     except DataDriven_Runs.DoesNotExist:
@@ -333,6 +336,10 @@ def stop_data_driven_test(request, *args, **kwargs):
         }, status=404)
     # Get all feature results ID
     feature_results = data_driven_run.feature_results.all()
+
+    # User security added
+    if len(feature_results)>0 and feature_results[0].department_id not in user_departments:
+         return JsonResponse({ 'success': False, 'error': 'You do not have access to this department' }, status=400)
 
     # Get all task ID which are running feature with different browsers and test data
     tasks = Feature_Task.objects.filter(feature_result_id__in=feature_results)
