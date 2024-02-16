@@ -2745,7 +2745,6 @@ class DatasetViewset(viewsets.ModelViewSet):
         })
 
     def list(self, request, *args, **kwargs):
-        
          # Fetch data from your Dataset model
         data_sets = Dataset.objects.all()
         logger.debug(f"Found dataset with size : {len(data_sets)}")
@@ -2754,7 +2753,7 @@ class DatasetViewset(viewsets.ModelViewSet):
         ws = wb.active
 
         # Add Excel headers
-        ws.append(['Se.No.','Success','target', 'context'])
+        ws.append(['Se.No.','Success','Target', 'Context'])
         logger.debug("Added Header in dataset")
         # Write data rows
         for i, record in enumerate(data_sets):
@@ -2771,12 +2770,14 @@ class DatasetViewset(viewsets.ModelViewSet):
                 
             ws.append([i+1, data['success'], data['target'],decoded_context])  # Adjust fields as per your model
 
-        logger.info("Added Header in dataset")
-
-        # Save the workbook
+        logger.info("Added dataset to workbook")
+        logger.info("Getting time for file name")
+        file_name_date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename=data_set.xlsx'
+        response['Content-Disposition'] = f'attachment; filename=Dataset_{file_name_date}.xlsx'
+        # Attach workbook to reponse
         wb.save(response)
+        logger.info("Workbook data attched to response")
         return response
     
 
