@@ -11,7 +11,7 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { map } from 'rxjs/operators';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Store } from '@ngxs/store';
-import { MtxGridColumn } from '@ng-matero/extensions/grid';
+import { MtxGridColumn, MtxGridModule } from '@ng-matero/extensions/grid';
 import { HttpClient } from '@angular/common/http';
 import { PageEvent } from '@angular/material/paginator';
 import { SharedActionsService } from '@services/shared-actions.service';
@@ -26,6 +26,24 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 import { PdfLinkPipe } from '@pipes/pdf-link.pipe';
 import { DownloadService } from '@services/download.service';
 import { InterceptorParams } from 'ngx-network-error';
+import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
+import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
+import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { BehaveChartTestComponent } from '../../components/behave-charts/behave-chart.component';
+import { NgClass, NgIf, AsyncPipe, TitleCasePipe } from '@angular/common';
+import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
+import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
 
 @UntilDestroy()
 @Component({
@@ -34,6 +52,31 @@ import { InterceptorParams } from 'ngx-network-error';
   styleUrls: ['./main-view.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [PdfLinkPipe],
+  standalone: true,
+  imports: [
+    FeatureTitlesComponent,
+    FeatureActionsComponent,
+    NgClass,
+    NgIf,
+    BehaveChartTestComponent,
+    LetDirective,
+    MtxGridModule,
+    StopPropagationDirective,
+    MatLegacyMenuModule,
+    MatDividerModule,
+    MatLegacyTooltipModule,
+    MatLegacyCheckboxModule,
+    MatLegacyButtonModule,
+    MatIconModule,
+    TranslateModule,
+    AmParsePipe,
+    AmDateFormatPipe,
+    SecondsToHumanReadablePipe,
+    BrowserIconPipe,
+    PixelDifferencePipe,
+    AsyncPipe,
+    TitleCasePipe,
+  ],
 })
 export class MainViewComponent implements OnInit {
   @Select(CustomSelectors.GetConfigProperty('internal.showArchived'))

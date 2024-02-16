@@ -3,13 +3,17 @@ import { Router } from '@angular/router';
 import {
   MatLegacyDialogRef as MatDialogRef,
   MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
+  MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 
 @Component({
   selector: 'feature-created',
   templateUrl: 'feature-created.component.html',
   styleUrls: ['feature-created.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [MatLegacyDialogModule, MatLegacyButtonModule],
 })
 export class FeatureCreated {
   constructor(

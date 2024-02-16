@@ -16,7 +16,11 @@ import {
   Input,
   OnInit,
 } from '@angular/core';
-import { UntypedFormControl } from '@angular/forms';
+import {
+  UntypedFormControl,
+  ReactiveFormsModule,
+  FormsModule,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Select, Store } from '@ngxs/store';
@@ -27,6 +31,14 @@ import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { FilterTextPipe } from '@pipes/filter-text.pipe';
+import { StoreSelectorPipe } from '../../pipes/store-selector.pipe';
+import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { NgFor, NgIf, AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 
 @UntilDestroy()
 @Component({
@@ -34,6 +46,21 @@ import { BehaviorSubject, Observable } from 'rxjs';
   templateUrl: './l1-filter.component.html',
   styleUrls: ['./l1-filter.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    MatLegacyTooltipModule,
+    MatIconModule,
+    NgFor,
+    MatLegacyFormFieldModule,
+    MatLegacyInputModule,
+    ReactiveFormsModule,
+    DisableAutocompleteDirective,
+    FormsModule,
+    NgIf,
+    StoreSelectorPipe,
+    FilterTextPipe,
+    AsyncPipe,
+  ],
 })
 export class L1FilterComponent implements OnInit {
   constructor(

@@ -21,12 +21,24 @@ import {
   AreYouSureData,
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
+import { NgIf, AsyncPipe } from '@angular/common';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
+import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
 
 @Component({
   selector: 'feature',
   templateUrl: './feature.component.html',
   styleUrls: ['./feature.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    MatLegacyCheckboxModule,
+    DisableAutocompleteDirective,
+    MatLegacyTooltipModule,
+    NgIf,
+    AsyncPipe,
+  ],
 })
 export class FeatureComponent implements OnInit {
   canEditFeature$: Observable<boolean>;

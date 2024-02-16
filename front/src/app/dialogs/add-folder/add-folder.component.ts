@@ -3,10 +3,12 @@ import {
   UntypedFormBuilder,
   UntypedFormGroup,
   Validators,
+  ReactiveFormsModule,
 } from '@angular/forms';
 import {
   MatLegacyDialogRef as MatDialogRef,
   MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
+  MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { Store } from '@ngxs/store';
@@ -15,12 +17,34 @@ import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
 import { UserState } from '@store/user.state';
 import { map, switchMap } from 'rxjs/operators';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { NgIf, NgFor } from '@angular/common';
 
 @Component({
   selector: 'add-folder',
   templateUrl: './add-folder.component.html',
   styleUrls: ['./add-folder.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    MatLegacyDialogModule,
+    NgIf,
+    ReactiveFormsModule,
+    MatLegacyFormFieldModule,
+    MatLegacyInputModule,
+    DisableAutocompleteDirective,
+    MatLegacySelectModule,
+    NgFor,
+    MatLegacyOptionModule,
+    MatLegacyButtonModule,
+    SortByPipe,
+  ],
 })
 export class AddFolderComponent {
   /**
