@@ -1,6 +1,12 @@
 import { NgModule, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Routes, RouterModule, ResolveFn, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import {
+  Routes,
+  RouterModule,
+  ResolveFn,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+} from '@angular/router';
 import { SharedModule } from './shared.module';
 import { MainViewComponent } from '../views/main-view/main-view.component';
 import { StepViewComponent } from '../views/step-view/step-view.component';
@@ -33,78 +39,83 @@ import { RunColumnDirective } from '../directives/run-column.directive';
 import { Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 
-const resolveFeatureTitle: ResolveFn<string> = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
-    const featureId = route.paramMap.get('feature');
-    const feature = inject(Store).selectSnapshot(CustomSelectors.GetFeatureInfo(parseInt(featureId)))
-    return `${feature.feature_name} (${feature.feature_id})`
-}
+const resolveFeatureTitle: ResolveFn<string> = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot
+) => {
+  const featureId = route.paramMap.get('feature');
+  const feature = inject(Store).selectSnapshot(
+    CustomSelectors.GetFeatureInfo(parseInt(featureId))
+  );
+  return `${feature.feature_name} (${feature.feature_id})`;
+};
 
 const routes: Routes = [
-    {
+  {
+    path: '',
+    title: resolveFeatureTitle,
+    component: MainViewComponent,
+  },
+  {
+    path: 'step/:feature_result_id',
+    children: [
+      {
         path: '',
         title: resolveFeatureTitle,
-        component: MainViewComponent
-    },
-    {
-        path: 'step/:feature_result_id',
-        children: [
-            {
-                path: '',
-                title: resolveFeatureTitle,
-                component: StepViewComponent
-            },
-            {
-                path: 'detail/:step_result_id',
-                title: 'Step Details',
-                component: DetailViewComponent
-            }
-        ]
-    },
-    {
-        path: 'run/:run/step/:feature_result_id',
-        redirectTo: 'step/:feature_result_id' 
-    }
+        component: StepViewComponent,
+      },
+      {
+        path: 'detail/:step_result_id',
+        title: 'Step Details',
+        component: DetailViewComponent,
+      },
+    ],
+  },
+  {
+    path: 'run/:run/step/:feature_result_id',
+    redirectTo: 'step/:feature_result_id',
+  },
 ];
 
 @NgModule({
-    imports: [
-        TranslateModule.forChild({
-            extend: true
-        }),
-        // HighchartsChartModule,
-        // RoundProgressModule,
-        RouterModule.forChild(routes),
-        SharedModule,
-        CommonModule
-    ],
-    declarations: [
-        /* Pipes */
-        // NumeralPipe,
-        ArchivedRunsPipe,
-        // FirstLetterUppercasePipe,
-        PdfLinkPipe,
-        SumByPropertyPipe,
-        DownloadLinkPipe,
-        DownloadNamePipe,
-        /* Components */
-        FeatureTitlesComponent,
-        EditSchedule,
-        // BehaveChartTestComponent,
-        VideoComponent,
-        FeatureRunComponent,
-        LogOutputComponent,
-        FeatureActionsComponent,
-        MainViewComponent,
-        StepViewComponent,
-        DetailViewComponent,
-        TotalDifferencePipe,
-        TotalOkPipe,
-        TotalNokPipe,
-        FeatureRunPassedPipe,
-        FeatureResultPassedPipe,
-        MainViewHeaderComponent,
-        // ScreenshotBgPipe,
-        RunColumnDirective
-  ]
+  imports: [
+    TranslateModule.forChild({
+      extend: true,
+    }),
+    // HighchartsChartModule,
+    // RoundProgressModule,
+    RouterModule.forChild(routes),
+    SharedModule,
+    CommonModule,
+  ],
+  declarations: [
+    /* Pipes */
+    // NumeralPipe,
+    ArchivedRunsPipe,
+    // FirstLetterUppercasePipe,
+    PdfLinkPipe,
+    SumByPropertyPipe,
+    DownloadLinkPipe,
+    DownloadNamePipe,
+    /* Components */
+    FeatureTitlesComponent,
+    EditSchedule,
+    // BehaveChartTestComponent,
+    VideoComponent,
+    FeatureRunComponent,
+    LogOutputComponent,
+    FeatureActionsComponent,
+    MainViewComponent,
+    StepViewComponent,
+    DetailViewComponent,
+    TotalDifferencePipe,
+    TotalOkPipe,
+    TotalNokPipe,
+    FeatureRunPassedPipe,
+    FeatureResultPassedPipe,
+    MainViewHeaderComponent,
+    // ScreenshotBgPipe,
+    RunColumnDirective,
+  ],
 })
-export class DetailsModule { }
+export class DetailsModule {}

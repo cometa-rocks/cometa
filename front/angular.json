@@ -24,13 +24,9 @@
               "src/steps_testing.html",
               "src/loader_testing.html"
             ],
-            "styles": [
-              "src/styles.scss"
-            ],
+            "styles": ["src/styles.scss"],
             "stylePreprocessorOptions": {
-              "includePaths": [
-                "./src/app/common/"
-              ]
+              "includePaths": ["./src/app/common/"]
             },
             "scripts": [],
             "allowedCommonJsDependencies": [
@@ -108,13 +104,8 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "src/tsconfig.spec.json",
             "scripts": [],
-            "styles": [
-              "src/styles.scss"
-            ],
-            "assets": [
-              "src/assets",
-              "src/manifest.json"
-            ]
+            "styles": ["src/styles.scss"],
+            "assets": ["src/assets", "src/manifest.json"]
           }
         }
       }
@@ -124,8 +115,7 @@
       "sourceRoot": "e2e",
       "projectType": "application",
       "architect": {
-        "e2e": {
-        }
+        "e2e": {}
       }
     }
   },

@@ -4,6 +4,6 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   selector: 'cometa-easter-egg',
   templateUrl: './easter-egg.component.html',
   styleUrls: ['./easter-egg.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EasterEggComponent { }
+export class EasterEggComponent {}

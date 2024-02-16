@@ -1,4 +1,12 @@
-import { Component, Input, ChangeDetectionStrategy, OnInit, Output, EventEmitter, Host } from '@angular/core';
+import {
+  Component,
+  Input,
+  ChangeDetectionStrategy,
+  OnInit,
+  Output,
+  EventEmitter,
+  Host,
+} from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
@@ -9,16 +17,18 @@ import { FeaturesComponent } from '../features.component';
 import { Observable } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Features } from '@store/actions/features.actions';
-import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
+import {
+  AreYouSureData,
+  AreYouSureDialog,
+} from '@dialogs/are-you-sure/are-you-sure.component';
 
 @Component({
   selector: 'feature',
   templateUrl: './feature.component.html',
   styleUrls: ['./feature.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FeatureComponent implements OnInit {
-
   canEditFeature$: Observable<boolean>;
   canDeleteFeature$: Observable<boolean>;
 
@@ -30,7 +40,7 @@ export class FeatureComponent implements OnInit {
     private _dialog: MatDialog,
     private _store: Store,
     @Host() private _features: FeaturesComponent
-  ) { }
+  ) {}
 
   checked$: Observable<boolean>;
 
@@ -40,8 +50,12 @@ export class FeatureComponent implements OnInit {
     this.checked$ = this._features.toExport.pipe(
       map(exports => exports.includes(this.feature.feature_id))
     );
-    this.canEditFeature$ = this._store.select(CustomSelectors.HasPermission('edit_feature', this.feature));
-    this.canDeleteFeature$ = this._store.select(CustomSelectors.HasPermission('delete_feature', this.feature));
+    this.canEditFeature$ = this._store.select(
+      CustomSelectors.HasPermission('edit_feature', this.feature)
+    );
+    this.canDeleteFeature$ = this._store.select(
+      CustomSelectors.HasPermission('delete_feature', this.feature)
+    );
   }
 
   saveOrEdit() {
@@ -55,25 +69,34 @@ export class FeatureComponent implements OnInit {
         feature: {
           app: this.feature.app_name,
           environment: this.feature.environment_name,
-          feature_id: this.feature.feature_id
-        }
-      } as IEditFeature
+          feature_id: this.feature.feature_id,
+        },
+      } as IEditFeature,
     });
   }
 
   removeIt() {
-    this._dialog.open(AreYouSureDialog, {
-      data: {
-        title: 'translate:you_sure.delete_item_title',
-        description: 'translate:you_sure.delete_item_desc'
-      } as AreYouSureData
-    }).afterClosed().subscribe(answer => {
-      if (answer) this._api.deleteFeature(this.feature.feature_id).subscribe(res => {
-        if (res.success) {
-          this._store.dispatch( new Features.RemoveFeature(this.feature.feature_id) );
-          this._snack.open('Feature removed successfully!', 'OK');
-        }
-      }, err => this._snack.open('An error ocurred', 'OK'));
-    });
+    this._dialog
+      .open(AreYouSureDialog, {
+        data: {
+          title: 'translate:you_sure.delete_item_title',
+          description: 'translate:you_sure.delete_item_desc',
+        } as AreYouSureData,
+      })
+      .afterClosed()
+      .subscribe(answer => {
+        if (answer)
+          this._api.deleteFeature(this.feature.feature_id).subscribe(
+            res => {
+              if (res.success) {
+                this._store.dispatch(
+                  new Features.RemoveFeature(this.feature.feature_id)
+                );
+                this._snack.open('Feature removed successfully!', 'OK');
+              }
+            },
+            err => this._snack.open('An error ocurred', 'OK')
+          );
+      });
   }
 }

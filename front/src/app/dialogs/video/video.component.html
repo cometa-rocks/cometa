@@ -1,5 +1,9 @@
-<video (loadedmetadata)="showHeader$.next(true)" *ngIf="src; else loading" autoplay controls>
-  <source [src]="src" type="video/mp4">
+<video
+  (loadedmetadata)="showHeader$.next(true)"
+  *ngIf="src; else loading"
+  autoplay
+  controls>
+  <source [src]="src" type="video/mp4" />
   Your browser does not support the video tag.
 </video>
 <ng-template #loading>
@@ -7,7 +11,10 @@
 </ng-template>
 <div *ngIf="showHeader$ | async" class="header">
   <div class="left">
-    <button [matTooltip]="'whats_new.close' | translate | titlecase" (click)="dialogRef.close()" mat-icon-button>
+    <button
+      [matTooltip]="'whats_new.close' | translate | titlecase"
+      (click)="dialogRef.close()"
+      mat-icon-button>
       <mat-icon>arrow_back</mat-icon>
     </button>
     <div class="browser">

@@ -5,17 +5,13 @@ import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/leg
   selector: 'cometa-error',
   templateUrl: 'error.dialog.html',
   styleUrls: ['./error.dialog.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ErrorDialog {
-
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public error: Success
-  ) {
+  constructor(@Inject(MAT_DIALOG_DATA) public error: Success) {
     // Convert error to object if necessary
     if (typeof this.error !== 'object') {
       this.error = JSON.parse(this.error);
     }
   }
-
 }
