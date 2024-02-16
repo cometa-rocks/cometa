@@ -1,4 +1,12 @@
-import { Component, Input, SimpleChanges, OnChanges, ChangeDetectionStrategy, AfterViewInit, OnInit } from '@angular/core';
+import {
+  Component,
+  Input,
+  SimpleChanges,
+  OnChanges,
+  ChangeDetectionStrategy,
+  AfterViewInit,
+  OnInit,
+} from '@angular/core';
 import * as Highcharts from 'highcharts/highstock';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
@@ -10,13 +18,12 @@ import { SeriesSplineOptions } from 'highcharts';
   selector: 'behave-chart-desktop-steps',
   templateUrl: './behave-chart.component.html',
   styleUrls: ['./behave-chart.component.scss'],
-  providers: [
-    AmParsePipe
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  providers: [AmParsePipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BehaveChartTestComponent implements OnChanges, OnInit, AfterViewInit {
-
+export class BehaveChartTestComponent
+  implements OnChanges, OnInit, AfterViewInit
+{
   Highcharts: typeof Highcharts = Highcharts;
 
   @Input() data: FeatureResult[] = [];
@@ -28,16 +35,11 @@ export class BehaveChartTestComponent implements OnChanges, OnInit, AfterViewIni
     this.afterViewInitFired$.next(true);
   }
 
-  constructor(
-    private _amParse: AmParsePipe
-  ) { }
+  constructor(private _amParse: AmParsePipe) {}
 
   ngOnInit() {
     // Wait for ngOnChanges and ngAfterViewInit to process chart data
-    this.chart$ = combineLatest([
-      this.data$,
-      this.afterViewInitFired$
-    ]).pipe(
+    this.chart$ = combineLatest([this.data$, this.afterViewInitFired$]).pipe(
       filter(([_, init]: [any[], boolean]) => init),
       map(([data, _]: [any[], boolean]) => {
         // Get chart schema
@@ -49,18 +51,24 @@ export class BehaveChartTestComponent implements OnChanges, OnInit, AfterViewIni
           // Set ok, nok, pixel and execution on chart schema
           (chart_schema.series[0] as SeriesSplineOptions).data = chart_data.ok;
           (chart_schema.series[1] as SeriesSplineOptions).data = chart_data.nok;
-          (chart_schema.series[2] as SeriesSplineOptions).data = chart_data.pixel;
-          (chart_schema.series[3] as SeriesSplineOptions).data = chart_data.time;
+          (chart_schema.series[2] as SeriesSplineOptions).data =
+            chart_data.pixel;
+          (chart_schema.series[3] as SeriesSplineOptions).data =
+            chart_data.time;
           // Set minimum and maximum navigator extremes,
           // this is because when data is updated the chart preserves the min and max of the first page
-          (chart_schema.navigator.xAxis as Highcharts.NavigatorXAxisOptions).min = chart_data.ok?.[0]?.[0] || 0;
-          (chart_schema.navigator.xAxis as Highcharts.NavigatorXAxisOptions).max = chart_data.ok?.[chart_data.ok.length - 1]?.[0] || 0;
+          (
+            chart_schema.navigator.xAxis as Highcharts.NavigatorXAxisOptions
+          ).min = chart_data.ok?.[0]?.[0] || 0;
+          (
+            chart_schema.navigator.xAxis as Highcharts.NavigatorXAxisOptions
+          ).max = chart_data.ok?.[chart_data.ok.length - 1]?.[0] || 0;
         }
         return chart_schema;
       }),
       delay(0), // Implicit setTimeout, to allow for other page components to load before this
-      tap(_ => this.updateFlag = true) // Tell the highcharts plugin to update the chart
-    )
+      tap(_ => (this.updateFlag = true)) // Tell the highcharts plugin to update the chart
+    );
   }
 
   /** Used to emit ngOnChanges as Observable */
@@ -70,12 +78,16 @@ export class BehaveChartTestComponent implements OnChanges, OnInit, AfterViewIni
   afterViewInitFired$ = new BehaviorSubject<boolean>(false);
 
   ngOnChanges(changes: SimpleChanges) {
-    this.data$.next((changes?.data.currentValue || []));
+    this.data$.next(changes?.data.currentValue || []);
   }
 
   getSeriesData(data: FeatureResult[]) {
     // Sort data by date time
-    data = [...data].sort((a, b) => this._amParse.transform(a.result_date).getTime() - this._amParse.transform(b.result_date).getTime());
+    data = [...data].sort(
+      (a, b) =>
+        this._amParse.transform(a.result_date).getTime() -
+        this._amParse.transform(b.result_date).getTime()
+    );
     // Initialize array values of series
     const pixelArray = [];
     const timeArray = [];
@@ -85,27 +97,26 @@ export class BehaveChartTestComponent implements OnChanges, OnInit, AfterViewIni
     for (const run of data) {
       pixelArray.push([
         this._amParse.transform(run.result_date).getTime(),
-        run.pixel_diff
+        run.pixel_diff,
       ]);
       timeArray.push([
         this._amParse.transform(run.result_date).getTime(),
-        Number(run.execution_time) / 1000
+        Number(run.execution_time) / 1000,
       ]);
       okArray.push([
         this._amParse.transform(run.result_date).getTime(),
-        run.ok
+        run.ok,
       ]);
       nokArray.push([
         this._amParse.transform(run.result_date).getTime(),
-        run.fails
+        run.fails,
       ]);
-    };
+    }
     return {
       ok: okArray,
       nok: nokArray,
       pixel: pixelArray,
-      time: timeArray
-    }
+      time: timeArray,
+    };
   }
-
 }

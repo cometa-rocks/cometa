@@ -1,7 +1,15 @@
 <ng-container *ngLet="featureRunning$ | async as running">
-  <div class="wrapper" *ngIf="feature$ | async as feat" (click)="_sharedActions.goToFeature(feat.feature_id)" [class.running]="running">
+  <div
+    class="wrapper"
+    *ngIf="feature$ | async as feat"
+    (click)="_sharedActions.goToFeature(feat.feature_id)"
+    [class.running]="running">
     <!-- Need help box -->
-    <div class="top-left-container" [matTooltip]="'need_help.tooltip' | translate" matTooltipPosition="above" [ngClass]="{'visible': feat?.need_help && !running}">
+    <div
+      class="top-left-container"
+      [matTooltip]="'need_help.tooltip' | translate"
+      matTooltipPosition="above"
+      [ngClass]="{ visible: feat?.need_help && !running }">
       <div class="current-step">
         <div class="triangle"></div>
         <mat-icon class="state-icon">help</mat-icon>
@@ -10,7 +18,12 @@
     </div>
     <!-- Running steps box -->
     <ng-container *ngLet="featureStatus$ | async as status">
-      <div class="top-left-container" [ngClass]="{'visible': running}" [matTooltipDisabled]="!status" [matTooltip]="status" matTooltipPosition="above">
+      <div
+        class="top-left-container"
+        [ngClass]="{ visible: running }"
+        [matTooltipDisabled]="!status"
+        [matTooltip]="status"
+        matTooltipPosition="above">
         <div class="current-step">
           <div class="triangle"></div>
           <span>{{ status }}</span>
@@ -25,57 +38,113 @@
         [class.running]="running"
         [ngClass]="!running && (feat?.info.status | lowercase)">
         <div class="triangle"></div>
-        <mat-spinner class="item-loader" diameter="18" *ngIf="running; else showState"></mat-spinner>
+        <mat-spinner
+          class="item-loader"
+          diameter="18"
+          *ngIf="running; else showState"></mat-spinner>
         <ng-template #showState>
           <ng-container [ngSwitch]="feat?.info.status | lowercase">
-            <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon>
-            <mat-icon class="state-icon" *ngSwitchCase="'canceled'">remove_circle</mat-icon>
-            <mat-icon class="state-icon" *ngSwitchCase="'failed'">error</mat-icon>
+            <mat-icon class="state-icon" *ngSwitchCase="'success'"
+              >done</mat-icon
+            >
+            <mat-icon class="state-icon" *ngSwitchCase="'canceled'"
+              >remove_circle</mat-icon
+            >
+            <mat-icon class="state-icon" *ngSwitchCase="'failed'"
+              >error</mat-icon
+            >
           </ng-container>
-          <span style="vertical-align:middle;">{{ feat?.info.status }}</span>
+          <span style="vertical-align: middle">{{ feat?.info.status }}</span>
         </ng-template>
       </div>
-      <div class="run" stopPropagation (click)="_sharedActions.run(feat.feature_id)">
+      <div
+        class="run"
+        stopPropagation
+        (click)="_sharedActions.run(feat.feature_id)">
         <div class="triangle"></div>
         <ng-container [ngSwitch]="running">
-          <mat-icon class="state-icon" *ngSwitchCase="true">remove_red_eye</mat-icon>
-          <mat-icon class="state-icon" *ngSwitchCase="false">play_arrow</mat-icon>
+          <mat-icon class="state-icon" *ngSwitchCase="true"
+            >remove_red_eye</mat-icon
+          >
+          <mat-icon class="state-icon" *ngSwitchCase="false"
+            >play_arrow</mat-icon
+          >
         </ng-container>
-        <span style="vertical-align:middle;">Run</span>
+        <span style="vertical-align: middle">Run</span>
       </div>
     </div>
-    <div class="name" [matTooltip]="feat.description" matTooltipPosition="above">
+    <div
+      class="name"
+      [matTooltip]="feat.description"
+      matTooltipPosition="above">
       <span>{{ feat.feature_name }}</span>
     </div>
     <div *ngIf="feat.info as info" class="steps">
       <i class="my-icons clipboard"></i>
-      <span class="exec_time">{{ info?.total }} steps | {{ info?.execution_time | secondsToHumanReadable }} | <ng-container *ngIf="info.result_date as date">{{ date | amParse | amDateFormat:'dd.MM.yyyy HH:mm' }}</ng-container></span>
+      <span class="exec_time"
+        >{{ info?.total }} steps |
+        {{ info?.execution_time | secondsToHumanReadable }} |
+        <ng-container *ngIf="info.result_date as date">{{
+          date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm'
+        }}</ng-container></span
+      >
     </div>
     <div class="feature-id">ID: {{ feat.feature_id }}</div>
     <div class="browser" *ngIf="feat.browsers[0] as browser">
       <i class="my-icons" [ngClass]="browser.browser"></i>
       {{ browser | browserComboText }}
     </div>
-    <button matTooltip="Feature options" matTooltipPosition="above" stopPropagation class="options" mat-icon-button [matMenuTriggerFor]="featureOptions">
+    <button
+      matTooltip="Feature options"
+      matTooltipPosition="above"
+      stopPropagation
+      class="options"
+      mat-icon-button
+      [matMenuTriggerFor]="featureOptions">
       <mat-icon>more_vert</mat-icon>
     </button>
-    <mat-menu class="feature-options" #featureOptions="matMenu" xPosition="after">
+    <mat-menu
+      class="feature-options"
+      #featureOptions="matMenu"
+      xPosition="after">
       <ng-container *ngIf="!feat.depends_on_others">
-        <button (click)="_sharedActions.run(feat.feature_id)" class="run-feature" [matTooltip]="'tooltips.run_feature' | translate" matTooltipPosition="after" mat-menu-item>
+        <button
+          (click)="_sharedActions.run(feat.feature_id)"
+          class="run-feature"
+          [matTooltip]="'tooltips.run_feature' | translate"
+          matTooltipPosition="after"
+          mat-menu-item>
           <mat-icon>play_circle_filled</mat-icon>
           <span>Run</span>
         </button>
         <mat-divider></mat-divider>
       </ng-container>
-      <button *ngIf="canEditFeature$ | async" (click)="_sharedActions.openEditFeature(feat.feature_id, 'edit')" matTooltip="Edit {{feat.feature_name}} steps" matTooltipPosition="before" class="modify-feature" mat-menu-item>
+      <button
+        *ngIf="canEditFeature$ | async"
+        (click)="_sharedActions.openEditFeature(feat.feature_id, 'edit')"
+        matTooltip="Edit {{ feat.feature_name }} steps"
+        matTooltipPosition="before"
+        class="modify-feature"
+        mat-menu-item>
         <mat-icon>edit</mat-icon>
         <span>Modify</span>
       </button>
-      <button *ngIf="canCreateFeature" (click)="_sharedActions.openEditFeature(feat.feature_id, 'clone')" matTooltip="Clone {{feat.feature_name}}" matTooltipPosition="before" class="modify-feature" mat-menu-item>
+      <button
+        *ngIf="canCreateFeature"
+        (click)="_sharedActions.openEditFeature(feat.feature_id, 'clone')"
+        matTooltip="Clone {{ feat.feature_name }}"
+        matTooltipPosition="before"
+        class="modify-feature"
+        mat-menu-item>
         <mat-icon>content_copy</mat-icon>
         <span>Clone</span>
       </button>
-      <button (click)="_sharedActions.moveFeature(feat)" matTooltip="Move {{feat.feature_name}}" matTooltipPosition="before" class="move-feature" mat-menu-item>
+      <button
+        (click)="_sharedActions.moveFeature(feat)"
+        matTooltip="Move {{ feat.feature_name }}"
+        matTooltipPosition="before"
+        class="move-feature"
+        mat-menu-item>
         <mat-icon>folder</mat-icon>
         <span>Move</span>
       </button>
@@ -89,7 +158,13 @@
         <span>Integrate with</span>
       </button> -->
       <mat-divider></mat-divider>
-      <button *ngIf="canDeleteFeature$ | async" (click)="_sharedActions.deleteFeature(feat.feature_id)" matTooltip="Delete feature {{feat.feature_name}}" matTooltipPosition="before" class="delete-feature" mat-menu-item>
+      <button
+        *ngIf="canDeleteFeature$ | async"
+        (click)="_sharedActions.deleteFeature(feat.feature_id)"
+        matTooltip="Delete feature {{ feat.feature_name }}"
+        matTooltipPosition="before"
+        class="delete-feature"
+        mat-menu-item>
         <mat-icon>delete</mat-icon>
         <span>Delete</span>
       </button>
@@ -107,7 +182,16 @@
     <mat-menu #otherOptions="matMenu" xPosition="after">
       <!-- Ask for Help option -->
       <button stopPropagation mat-menu-item *ngIf="canEditFeature$ | async">
-        <mat-checkbox [checked]="feat?.need_help" (change)="_sharedActions.handleSetting(feat.feature_id, 'need_help', $event)" color="primary" [matTooltip]="'need_help.explanation' | translate" matTooltipPosition="after">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
+        <mat-checkbox
+          [checked]="feat?.need_help"
+          (change)="
+            _sharedActions.handleSetting(feat.feature_id, 'need_help', $event)
+          "
+          color="primary"
+          [matTooltip]="'need_help.explanation' | translate"
+          matTooltipPosition="after"
+          >{{ 'need_help.ask_for' | translate }}</mat-checkbox
+        >
       </button>
     </mat-menu>
   </div>
