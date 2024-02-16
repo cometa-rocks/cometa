@@ -1,91 +1,126 @@
-  <ng-container>
-    <h2 mat-dialog-title>Overview of Data Driven Tests</h2>
-  </ng-container>
-  <mat-dialog-content>
-    <mat-accordion multi>
-      <mat-expansion-panel [expanded]="!config$.toggles.hideInformation">
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <span>Information</span>
-          </mat-panel-title>
-          <mat-panel-description>Data Driven Test Information</mat-panel-description>
-        </mat-expansion-panel-header>
-        <ng-template matExpansionPanelContent>
-          <div class="edit-data-driven-test">
-            <mat-form-field appearance="fill" class="edit-dep">
-              <mat-label>Department</mat-label>
-              <mat-select [(ngModel)]="department_id" (selectionChange)="changeDepartment()">
-                <mat-option *ngFor="let dep of userDepartments$ | sortBy:'department_name'" [value]="dep.department_id">
-                  {{ dep.department_name }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-          <div *ngIf="department.department_name === 'Default' && userDepartments$.length > 1" class="department-warning">
-            <mat-icon>warning</mat-icon>
-            <span>Selecting <strong>Default</strong> department will make all the files you upload visible to everyone, use it with caution!</span>
-          </div>
-        </ng-template>
-      </mat-expansion-panel>
+<ng-container>
+  <h2 mat-dialog-title>Overview of Data Driven Tests</h2>
+</ng-container>
+<mat-dialog-content>
+  <mat-accordion multi>
+    <mat-expansion-panel [expanded]="!config$.toggles.hideInformation">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <span>Information</span>
+        </mat-panel-title>
+        <mat-panel-description
+          >Data Driven Test Information</mat-panel-description
+        >
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <div class="edit-data-driven-test">
+          <mat-form-field appearance="fill" class="edit-dep">
+            <mat-label>Department</mat-label>
+            <mat-select
+              [(ngModel)]="department_id"
+              (selectionChange)="changeDepartment()">
+              <mat-option
+                *ngFor="let dep of userDepartments$ | sortBy: 'department_name'"
+                [value]="dep.department_id">
+                {{ dep.department_name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div
+          *ngIf="
+            department.department_name === 'Default' &&
+            userDepartments$.length > 1
+          "
+          class="department-warning">
+          <mat-icon>warning</mat-icon>
+          <span
+            >Selecting <strong>Default</strong> department will make all the
+            files you upload visible to everyone, use it with caution!</span
+          >
+        </div>
+      </ng-template>
+    </mat-expansion-panel>
 
-      <!-- FILE UPLOAD -->
-      <mat-expansion-panel #uploadPanel [expanded]="!config$.toggles?.hideUploadedFiles">
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <span>Files</span>
-          </mat-panel-title>
-          <mat-panel-description>Upload/Download department files</mat-panel-description>
-        </mat-expansion-panel-header>
-        <ng-template matExpansionPanelContent>
-          <ng-container>
-            <div class="table-container">
-              <mtx-grid [data]="department?.files | availableFiles"
-                        [columns]="columns"
-                        [sortOnFront]="true"
-                        sortActive="date_time"
-                        sortDirection="desc"
-                        [sortDisableClear]="true"
-                        [sortDisabled]="false"
-                        [showToolbar]="true"
-                        [showColumnMenuButton]="true"
-                        [columnMenuButtonType]="'stroked'"
-                        [columnMenuButtonIcon]="'view_column'"
-                        [pageOnFront]="true"
-                        [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
-                        [cellTemplate]="{status: statusTpl, size: sizeTpl, created_on: dateTpl}"
-                        [showPaginator]="showPagination"
-                        [noResultTemplate]="noFilesTpl"
-                        [toolbarTemplate]="toolbarTpl"
-                        (page)="updateData($event)"
-                        [expandable]="true"
-                        [expansionTemplate]="expansionTpl"
-                        (expansionChange)="expand($event)">
-              </mtx-grid>
-            </div>
-          </ng-container>
-        </ng-template>
-      </mat-expansion-panel>
-      <!-- FILE UPLOAD -->
-
-    </mat-accordion>
-  </mat-dialog-content>
-  <mat-dialog-actions>
-    <div class="right">
-      <button color="warn" mat-stroked-button (click)="closeDialog()">CANCEL</button>
-    </div>
-  </mat-dialog-actions>
+    <!-- FILE UPLOAD -->
+    <mat-expansion-panel
+      #uploadPanel
+      [expanded]="!config$.toggles?.hideUploadedFiles">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <span>Files</span>
+        </mat-panel-title>
+        <mat-panel-description
+          >Upload/Download department files</mat-panel-description
+        >
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <ng-container>
+          <div class="table-container">
+            <mtx-grid
+              [data]="department?.files | availableFiles"
+              [columns]="columns"
+              [sortOnFront]="true"
+              sortActive="date_time"
+              sortDirection="desc"
+              [sortDisableClear]="true"
+              [sortDisabled]="false"
+              [showToolbar]="true"
+              [showColumnMenuButton]="true"
+              [columnMenuButtonType]="'stroked'"
+              [columnMenuButtonIcon]="'view_column'"
+              [pageOnFront]="true"
+              [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
+              [cellTemplate]="{
+                status: statusTpl,
+                size: sizeTpl,
+                created_on: dateTpl
+              }"
+              [showPaginator]="showPagination"
+              [noResultTemplate]="noFilesTpl"
+              [toolbarTemplate]="toolbarTpl"
+              (page)="updateData($event)"
+              [expandable]="true"
+              [expansionTemplate]="expansionTpl"
+              (expansionChange)="expand($event)">
+            </mtx-grid>
+          </div>
+        </ng-container>
+      </ng-template>
+    </mat-expansion-panel>
+    <!-- FILE UPLOAD -->
+  </mat-accordion>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <div class="right">
+    <button color="warn" mat-stroked-button (click)="closeDialog()">
+      CANCEL
+    </button>
+  </div>
+</mat-dialog-actions>
 
 <ng-template #dateTpl let-row let-index="index" let-col="colDef">
-  <span>{{ row.created_on | amParse | amDateFormat:'MMMM d yyyy, HH:mm' }}</span>
+  <span>{{
+    row.created_on | amParse | amDateFormat: 'MMMM d yyyy, HH:mm'
+  }}</span>
 </ng-template>
 <ng-template #sizeTpl let-row let-index="index" let-col="colDef">
   <span>{{ row.size | humanizeBytes }}</span>
 </ng-template>
 <!-- TOOLBAR TEMPLATE -->
 <ng-template #toolbarTpl>
-  <input type="file" multiple="true" (change)="onUploadFile($event)" #file style="display:none">
+  <input
+    type="file"
+    multiple="true"
+    (change)="onUploadFile($event)"
+    #file
+    style="display: none" />
   <div class="custom_toolbar">
-    <button mat-flat-button color="primary" stopPropagation (click)="file.click()">
+    <button
+      mat-flat-button
+      color="primary"
+      stopPropagation
+      (click)="file.click()">
       <mat-icon>add_box</mat-icon>
       <span class="mdc-button__label">Upload File</span>
     </button>
@@ -93,7 +128,8 @@
 </ng-template>
 
 <ng-template #expansionTpl let-row>
-  <mtx-grid [data]="file_data[row.id].file_data"
+  <mtx-grid
+    [data]="file_data[row.id].file_data"
     [columns]="file_data[row.id].columns"
     [sortOnFront]="true"
     sortDirection="desc"
@@ -112,11 +148,12 @@
 </ng-template>
 
 <!-- NO RESULTS TEMPLATE -->
-<ng-template #noFileDataTpl>
-  No Data Found.
-</ng-template>
+<ng-template #noFileDataTpl> No Data Found. </ng-template>
 
 <!-- No Results template for the execution popup! -->
 <ng-template #noFilesTpl>
-  <p>Currently this department has no files, upload one by clicking upload button.</p>
+  <p>
+    Currently this department has no files, upload one by clicking upload
+    button.
+  </p>
 </ng-template>

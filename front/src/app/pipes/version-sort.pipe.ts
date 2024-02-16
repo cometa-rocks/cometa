@@ -2,10 +2,9 @@ import { Pipe, PipeTransform } from '@angular/core';
 import compareVersions from 'compare-versions';
 
 @Pipe({
-  name: 'versionSort'
+  name: 'versionSort',
 })
 export class VersionSortPipe implements PipeTransform {
-
   transform(values: BrowserstackBrowser[]): any {
     values.sort((a, b) => {
       try {
@@ -16,5 +15,4 @@ export class VersionSortPipe implements PipeTransform {
     });
     return values;
   }
-
 }

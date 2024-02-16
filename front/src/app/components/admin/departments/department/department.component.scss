@@ -1,165 +1,164 @@
-
 @import 'color';
 
 :host {
-    display: flex;
-    width: 100%;
-    max-width: 400px;
-    height: 40px;
-    margin-bottom: 10px;
+  display: flex;
+  width: 100%;
+  max-width: 400px;
+  height: 40px;
+  margin-bottom: 10px;
 }
 
 .icon {
-    flex: 0 0 40px;
-    padding: 0 10px;
-    box-sizing: border-box;
-    position: relative;
-    &:after {
-        content: "";
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: auto;
-        height: 25px;
-        opacity: .7;
-        width: 25px;
-        background-image: url(^assets/department.svg);
-        background-size: contain;
-        background-repeat: no-repeat;
-    }
+  flex: 0 0 40px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  position: relative;
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    height: 25px;
+    opacity: 0.7;
+    width: 25px;
+    background-image: url(^assets/department.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
 }
 
 .name {
-    flex: 1;
-    padding: 0 10px;
+  flex: 1;
+  padding: 0 10px;
+  box-sizing: border-box;
+  input {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    outline: 0;
+    line-height: 40px;
+    border: 2px solid transparent;
+    border-radius: 3px;
+    padding: 0 15px;
     box-sizing: border-box;
-    input {
-        display: block;
-        width: 100%;
-        height: 100%;
-        background: transparent;
-        outline: 0;
-        line-height: 40px;
-        border: 2px solid transparent;
-        border-radius: 3px;
-        padding: 0 15px;
-        box-sizing: border-box;
-        // transition: border-color .2s ease-in-out;
-        &:not(:disabled) {
-            border-color: rgba(0,0,0,.3);
-        }
-        font-size: 16px;
-        color: rgba($color: $primary-color, $alpha: 1);
+    // transition: border-color .2s ease-in-out;
+    &:not(:disabled) {
+      border-color: rgba(0, 0, 0, 0.3);
     }
+    font-size: 16px;
+    color: rgba($color: $primary-color, $alpha: 1);
+  }
 }
 
 .modify {
-    flex: 0 0 40px;
-    padding: 0 10px;
-    box-sizing: border-box;
-    position: relative;
-    cursor: pointer;
-    &:hover:after {
-        transform: scale(1.2);
-    }
-    &:after {
-        content: "";
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: auto;
-        height: 15px;
-        width: 15px;
-        opacity: .8;
-        transition: transform .2s ease-in-out;
-        transform: scale(1);
-        background-image: url(^assets/edit.svg);
-        background-size: contain;
-        background-repeat: no-repeat;
-    }
-    &.validate:after {
-        background-image: url(^assets/validate.svg)
-    }
+  flex: 0 0 40px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+  &:hover:after {
+    transform: scale(1.2);
+  }
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    height: 15px;
+    width: 15px;
+    opacity: 0.8;
+    transition: transform 0.2s ease-in-out;
+    transform: scale(1);
+    background-image: url(^assets/edit.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+  &.validate:after {
+    background-image: url(^assets/validate.svg);
+  }
 }
 
 .remove {
-    flex: 0 0 40px;   
-    padding: 0 10px;
-    box-sizing: border-box;
-    position: relative;
-    cursor: pointer;
-    &:hover:after {
-        transform: scale(1.2);
-    }
-    &:after {
-        content: "";
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: auto;
-        height: 15px;
-        width: 15px;
-        opacity: .5;
-        transition: transform .2s ease-in-out;
-        transform: scale(1);
-        background-image: url(^assets/delete.svg);
-        background-size: contain;
-        background-repeat: no-repeat;
-    }
+  flex: 0 0 40px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+  &:hover:after {
+    transform: scale(1.2);
+  }
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    height: 15px;
+    width: 15px;
+    opacity: 0.5;
+    transition: transform 0.2s ease-in-out;
+    transform: scale(1);
+    background-image: url(^assets/delete.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
 }
 
 .timeout {
-    opacity: .6;
-    display: flex;
-    width: 40px;
-    align-items: center;
-    justify-content: center;
-    transition: transform .2s ease-in-out;
+  opacity: 0.6;
+  display: flex;
+  width: 40px;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease-in-out;
 
-    // clock icon
-    mat-icon {
-        padding: 0 10px;
-        height: 20px;
-        cursor: pointer;
-    }
+  // clock icon
+  mat-icon {
+    padding: 0 10px;
+    height: 20px;
+    cursor: pointer;
+  }
 
-    &:not(.disabled):hover {
-        transform: scale(1.2);
-    }
+  &:not(.disabled):hover {
+    transform: scale(1.2);
+  }
 }
 
 .users {
-    position: relative;
-    flex: 0 0 40px;   
-    padding: 0 10px;
-    box-sizing: border-box;
-    position: relative;
-    cursor: pointer;
-    height: 15px;
-    width: 15px;
-    opacity: .6;
-    margin-top: 5px;
-    transition: all .2s ease-in-out;
-    &:not(.disabled):hover {
-        margin-top: 3px;
-        transform: scale(1.2);
-    }
-    .amount {
-        position: absolute;
-        bottom: -15px;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 11px;
-        color: #000;
-    }
-    &.disabled {
-        cursor: default;
-        opacity: 0.2;
-    }
+  position: relative;
+  flex: 0 0 40px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+  height: 15px;
+  width: 15px;
+  opacity: 0.6;
+  margin-top: 5px;
+  transition: all 0.2s ease-in-out;
+  &:not(.disabled):hover {
+    margin-top: 3px;
+    transform: scale(1.2);
+  }
+  .amount {
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: #000;
+  }
+  &.disabled {
+    cursor: default;
+    opacity: 0.2;
+  }
 }

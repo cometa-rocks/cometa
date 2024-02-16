@@ -1,7 +1,16 @@
 <div class="searcher">
   <i [matMenuTriggerFor]="addMenu" class="filter-icon"></i>
-  <mat-menu #addMenu="matMenu" class="search" [overlapTrigger]="false" direction="right">
-    <button (click)="addFilter(filter)" mat-menu-item *ngFor="let filter of filters$ | async | alreadyTakenFilter">{{ filter.title }}</button>
+  <mat-menu
+    #addMenu="matMenu"
+    class="search"
+    [overlapTrigger]="false"
+    direction="right">
+    <button
+      (click)="addFilter(filter)"
+      mat-menu-item
+      *ngFor="let filter of filters$ | async | alreadyTakenFilter">
+      {{ filter.title }}
+    </button>
   </mat-menu>
   <div class="dialogs">
     <!-- Select department filter -->
@@ -9,52 +18,114 @@
       <h4>Add Department</h4>
       <br />
       <mat-select placeholder="Department" #addDept>
-        <mat-option *ngFor="let dept of departments$ | async | sortBy:'department_name'" [value]="dept.department_id">{{ dept.department_name }}</mat-option>
+        <mat-option
+          *ngFor="let dept of departments$ | async | sortBy: 'department_name'"
+          [value]="dept.department_id"
+          >{{ dept.department_name }}</mat-option
+        >
       </mat-select>
       <br />
       <br />
       <div class="buttons">
-        <button (click)="dialogs.dept.next(false)" color="warn" mat-stroked-button><b>CANCEL</b></button>
-        <button [disabled]="!addDept.value" (click)="addFilterOK('dept', addDept.value)" mat-stroked-button color="primary"><b>OK</b></button>
+        <button
+          (click)="dialogs.dept.next(false)"
+          color="warn"
+          mat-stroked-button>
+          <b>CANCEL</b>
+        </button>
+        <button
+          [disabled]="!addDept.value"
+          (click)="addFilterOK('dept', addDept.value)"
+          mat-stroked-button
+          color="primary">
+          <b>OK</b>
+        </button>
       </div>
     </div>
     <div *ngIf="dialogs.test | async" class="add-test dialog">
       <h4>Add Test</h4>
       <br />
       <mat-form-field>
-        <input matInput type="text" (keydown.enter)="addTest.value && addFilterOK('test', addTest.value)" disableAutocomplete placeholder="Test name" #addTest>
+        <input
+          matInput
+          type="text"
+          (keydown.enter)="addTest.value && addFilterOK('test', addTest.value)"
+          disableAutocomplete
+          placeholder="Test name"
+          #addTest />
       </mat-form-field>
       <br />
       <br />
       <div class="buttons">
-        <button (click)="dialogs.test.next(false)" color="warn" mat-stroked-button><b>CANCEL</b></button>
-        <button [disabled]="!addTest.value" (click)="addFilterOK('test', addTest.value)" mat-stroked-button color="primary"><b>OK</b></button>
+        <button
+          (click)="dialogs.test.next(false)"
+          color="warn"
+          mat-stroked-button>
+          <b>CANCEL</b>
+        </button>
+        <button
+          [disabled]="!addTest.value"
+          (click)="addFilterOK('test', addTest.value)"
+          mat-stroked-button
+          color="primary">
+          <b>OK</b>
+        </button>
       </div>
     </div>
     <div *ngIf="dialogs.app | async" class="add-app dialog">
       <h4>Add Application</h4>
       <br />
       <mat-select placeholder="Application" #addApp>
-        <mat-option *ngFor="let app of applications$ | async | sortBy:'app_name'" [value]="app.app_id">{{ app.app_name }}</mat-option>
+        <mat-option
+          *ngFor="let app of applications$ | async | sortBy: 'app_name'"
+          [value]="app.app_id"
+          >{{ app.app_name }}</mat-option
+        >
       </mat-select>
       <br />
       <br />
       <div class="buttons">
-        <button (click)="dialogs.app.next(false)" color="warn" mat-stroked-button><b>CANCEL</b></button>
-        <button [disabled]="!addApp.value" (click)="addFilterOK('app', addApp.value)" mat-stroked-button color="primary"><b>OK</b></button>
+        <button
+          (click)="dialogs.app.next(false)"
+          color="warn"
+          mat-stroked-button>
+          <b>CANCEL</b>
+        </button>
+        <button
+          [disabled]="!addApp.value"
+          (click)="addFilterOK('app', addApp.value)"
+          mat-stroked-button
+          color="primary">
+          <b>OK</b>
+        </button>
       </div>
     </div>
     <div *ngIf="dialogs.env | async" class="add-env dialog">
       <h4>Add Environment</h4>
       <br />
       <mat-select placeholder="Environment" #addEnv>
-        <mat-option *ngFor="let env of environments$ | async | sortBy:'environment_name'" [value]="env.environment_id">{{ env.environment_name }}</mat-option>
+        <mat-option
+          *ngFor="let env of environments$ | async | sortBy: 'environment_name'"
+          [value]="env.environment_id"
+          >{{ env.environment_name }}</mat-option
+        >
       </mat-select>
       <br />
       <br />
       <div class="buttons">
-        <button (click)="dialogs.env.next(false)" color="warn" mat-stroked-button><b>CANCEL</b></button>
-        <button [disabled]="!addEnv.value" (click)="addFilterOK('env', addEnv.value)" mat-stroked-button color="primary"><b>OK</b></button>
+        <button
+          (click)="dialogs.env.next(false)"
+          color="warn"
+          mat-stroked-button>
+          <b>CANCEL</b>
+        </button>
+        <button
+          [disabled]="!addEnv.value"
+          (click)="addFilterOK('env', addEnv.value)"
+          mat-stroked-button
+          color="primary">
+          <b>OK</b>
+        </button>
       </div>
     </div>
     <div *ngIf="dialogs.steps | async" class="add-steps dialog">
@@ -62,23 +133,43 @@
       <br />
       <mat-radio-group [formControl]="moreOrLessSteps">
         <mat-radio-button color="primary" value=">">
-          More than
-        </mat-radio-button><br /><br />
-        <mat-radio-button color="primary" value="is">
-          Exactly
-        </mat-radio-button><br /><br />
+          More than </mat-radio-button
+        ><br /><br />
+        <mat-radio-button color="primary" value="is"> Exactly </mat-radio-button
+        ><br /><br />
         <mat-radio-button color="primary" value="<">
-          Less than
-        </mat-radio-button><br />
+          Less than </mat-radio-button
+        ><br />
       </mat-radio-group>
       <mat-form-field>
-        <input matInput disableAutocomplete (keydown.enter)="addFilterOK('steps', steps.value, moreOrLessSteps.value)" type="number" min="0" #steps pattern="[0-9]{1,}" style="text-align: center;">
+        <input
+          matInput
+          disableAutocomplete
+          (keydown.enter)="
+            addFilterOK('steps', steps.value, moreOrLessSteps.value)
+          "
+          type="number"
+          min="0"
+          #steps
+          pattern="[0-9]{1,}"
+          style="text-align: center" />
       </mat-form-field>
       <br />
       <br />
       <div class="buttons">
-        <button (click)="dialogs.steps.next(false)" color="warn" mat-stroked-button><b>CANCEL</b></button>
-        <button [disabled]="!steps.value" (click)="addFilterOK('steps', steps.value, moreOrLessSteps.value)" mat-stroked-button color="primary"><b>OK</b></button>
+        <button
+          (click)="dialogs.steps.next(false)"
+          color="warn"
+          mat-stroked-button>
+          <b>CANCEL</b>
+        </button>
+        <button
+          [disabled]="!steps.value"
+          (click)="addFilterOK('steps', steps.value, moreOrLessSteps.value)"
+          mat-stroked-button
+          color="primary">
+          <b>OK</b>
+        </button>
       </div>
     </div>
     <div *ngIf="dialogs.ok | async" class="add-steps dialog">
@@ -86,33 +177,54 @@
       <br />
       <mat-radio-group [formControl]="moreOrLessSteps">
         <mat-radio-button color="primary" value=">">
-          More than
-        </mat-radio-button><br /><br />
-        <mat-radio-button color="primary" value="is">
-          Exactly
-        </mat-radio-button><br /><br />
+          More than </mat-radio-button
+        ><br /><br />
+        <mat-radio-button color="primary" value="is"> Exactly </mat-radio-button
+        ><br /><br />
         <mat-radio-button color="primary" value="<">
-          Less than
-        </mat-radio-button><br />
+          Less than </mat-radio-button
+        ><br />
       </mat-radio-group>
       <mat-form-field>
-        <input matInput disableAutocomplete type="number" (keydown.enter)="addFilterOK('ok', oks.value, moreOrLessSteps.value)" min="0" #oks pattern="[0-9]{1,}" style="text-align: center;">
+        <input
+          matInput
+          disableAutocomplete
+          type="number"
+          (keydown.enter)="addFilterOK('ok', oks.value, moreOrLessSteps.value)"
+          min="0"
+          #oks
+          pattern="[0-9]{1,}"
+          style="text-align: center" />
       </mat-form-field>
       <br />
       <br />
       <div class="buttons">
-        <button (click)="dialogs.ok.next(false)" color="warn" mat-stroked-button><b>CANCEL</b></button>
-        <button [disabled]="!oks.value" (click)="addFilterOK('ok', oks.value, moreOrLessSteps.value)" mat-stroked-button color="primary"><b>OK</b></button>
+        <button
+          (click)="dialogs.ok.next(false)"
+          color="warn"
+          mat-stroked-button>
+          <b>CANCEL</b>
+        </button>
+        <button
+          [disabled]="!oks.value"
+          (click)="addFilterOK('ok', oks.value, moreOrLessSteps.value)"
+          mat-stroked-button
+          color="primary">
+          <b>OK</b>
+        </button>
       </div>
     </div>
   </div>
   <div class="filters">
     <div class="filter" *ngFor="let filter of filters$ | async; trackBy: getId">
-      <span [innerHTML]="filter | filterText:moreOrLessSteps.value | storeSelector | async"></span>
+      <span
+        [innerHTML]="
+          filter | filterText: moreOrLessSteps.value | storeSelector | async
+        "></span>
       <div (click)="removeFilter(filter)" class="close"></div>
     </div>
     <div *ngIf="(filters$ | async).length == 0" class="advice">Filters</div>
-    <div style="clear: both;"></div>
+    <div style="clear: both"></div>
   </div>
 </div>
 <cometa-easter-egg *ngIf="isEasterEgg$ | async"></cometa-easter-egg>
@@ -121,7 +233,10 @@
     <i></i>
     <span>Home</span>
   </div>
-  <div class="breadcrumb" (click)="returnFolder(folder)" *ngFor="let folder of currentRoute$ | async">
+  <div
+    class="breadcrumb"
+    (click)="returnFolder(folder)"
+    *ngFor="let folder of currentRoute$ | async">
     <i></i>
     <span>{{ folder.name }}</span>
   </div>
@@ -142,12 +257,21 @@
     </mat-select>
   </mat-form-field>
 </div>
-<div *ngIf="(folders$ | async).length && (folders$ | async) as folders; else newFolder" [@listAnimation]="folders.length" class="folders-list">
+<div
+  *ngIf="
+    (folders$ | async).length && (folders$ | async) as folders;
+    else newFolder
+  "
+  [@listAnimation]="folders.length"
+  class="folders-list">
   <div *ngIf="folders.length > 0" class="folders_count">
     Found <span class="blue">{{ folders.length }}</span> folders
   </div>
   <div class="folder-container">
-    <cometa-folder (click)="goFolder(folder)" [folder]="folder" *ngFor="let folder of folders"></cometa-folder>
+    <cometa-folder
+      (click)="goFolder(folder)"
+      [folder]="folder"
+      *ngFor="let folder of folders"></cometa-folder>
     <cometa-new-folder (click)="createFolder()"></cometa-new-folder>
   </div>
 </div>
@@ -159,31 +283,64 @@
   </div>
 </ng-template>
 <!-- Pipe features$ observable -->
-<div *ngIf="(features$ | async) as features" [@listAnimation]="features.length" class="feature-list">
+<div
+  *ngIf="features$ | async as features"
+  [@listAnimation]="features.length"
+  class="feature-list">
   <!-- Check if there are feature available -->
   <ng-container *ngIf="features.length > 0; else noFeaturesFound">
     <!-- Show features without depends_on_others -->
-    <div *ngLet="features | depends:false | async as feats">
+    <div *ngLet="features | depends: false | async as feats">
       <!-- Section header -->
-      <ng-container *ngIf="feats.length > 0 && paginationWithoutDepends$ | async as page">
+      <ng-container
+        *ngIf="feats.length > 0 && paginationWithoutDepends$ | async as page">
         <div class="features-header">
-          <div class="count">Found <span class="blue">{{ feats.length }}</span> features</div>
+          <div class="count">
+            Found <span class="blue">{{ feats.length }}</span> features
+          </div>
           <div class="view-selector">
-            <div matRipple (click)="setView('without', 'tiles')" matTooltip="Tiles view" [class.selected]="itemsViewWithout === 'tiles'" class="tiles view"></div>
-            <div matRipple (click)="setView('without', 'list')" matTooltip="List view" [class.selected]="itemsViewWithout === 'list'" class="list view"></div>
+            <div
+              matRipple
+              (click)="setView('without', 'tiles')"
+              matTooltip="Tiles view"
+              [class.selected]="itemsViewWithout === 'tiles'"
+              class="tiles view"></div>
+            <div
+              matRipple
+              (click)="setView('without', 'list')"
+              matTooltip="List view"
+              [class.selected]="itemsViewWithout === 'list'"
+              class="list view"></div>
           </div>
         </div>
         <!-- Feature list -->
         <ng-container *ngIf="itemsViewWithout === 'tiles'; else listView">
-          <cometa-feature-item [feature_id]="feature" class="feature-item" *ngFor="let feature of feats | featureSort:sorting.value | async | pagination:page.pageIndex:page.pageSize"></cometa-feature-item>
+          <cometa-feature-item
+            [feature_id]="feature"
+            class="feature-item"
+            *ngFor="
+              let feature of feats
+                | featureSort: sorting.value
+                | async
+                | pagination: page.pageIndex : page.pageSize
+            "></cometa-feature-item>
         </ng-container>
         <ng-template #listView>
-          <cometa-feature-list [dependsOnOther]="false"  [features]="feats | featureSort:sorting.value | async | pagination:page.pageIndex:page.pageSize"></cometa-feature-list>
+          <cometa-feature-list
+            [dependsOnOther]="false"
+            [features]="
+              feats
+                | featureSort: sorting.value
+                | async
+                | pagination: page.pageIndex : page.pageSize
+            "></cometa-feature-list>
         </ng-template>
         <!-- Section ending -->
         <div style="clear: both"></div>
         <!-- Pagination -->
-        <mat-paginator class="paginator-center" *ngIf="feats.length > 25"
+        <mat-paginator
+          class="paginator-center"
+          *ngIf="feats.length > 25"
           [length]="feats.length"
           [pageIndex]="page.pageIndex"
           [pageSize]="page.pageSize"
@@ -194,27 +351,57 @@
       </ng-container>
     </div>
     <!-- Show features with depends_on_others -->
-    <div *ngLet="features | depends:true | async as feats">
+    <div *ngLet="features | depends: true | async as feats">
       <!-- Section header -->
-      <ng-container *ngIf="feats.length > 0 && paginationWithDepends$ | async as page">
+      <ng-container
+        *ngIf="feats.length > 0 && paginationWithDepends$ | async as page">
         <div class="features-header">
-          <div class="count">Found <span class="blue">{{ feats.length }}</span> related features</div>
+          <div class="count">
+            Found <span class="blue">{{ feats.length }}</span> related features
+          </div>
           <div class="view-selector">
-            <div matRipple (click)="setView('with', 'tiles')" matTooltip="Tiles view" [class.selected]="itemsViewWith === 'tiles'" class="tiles view"></div>
-            <div matRipple (click)="setView('with', 'list')" matTooltip="List view" [class.selected]="itemsViewWith === 'list'" class="list view"></div>
+            <div
+              matRipple
+              (click)="setView('with', 'tiles')"
+              matTooltip="Tiles view"
+              [class.selected]="itemsViewWith === 'tiles'"
+              class="tiles view"></div>
+            <div
+              matRipple
+              (click)="setView('with', 'list')"
+              matTooltip="List view"
+              [class.selected]="itemsViewWith === 'list'"
+              class="list view"></div>
           </div>
         </div>
         <!-- Feature list -->
         <ng-container *ngIf="itemsViewWith === 'tiles'; else listView">
-          <cometa-feature-item [feature_id]="feature" class="feature-item" *ngFor="let feature of feats | featureSort:sorting.value | async | pagination:page.pageIndex:page.pageSize"></cometa-feature-item>
+          <cometa-feature-item
+            [feature_id]="feature"
+            class="feature-item"
+            *ngFor="
+              let feature of feats
+                | featureSort: sorting.value
+                | async
+                | pagination: page.pageIndex : page.pageSize
+            "></cometa-feature-item>
         </ng-container>
         <ng-template #listView>
-          <cometa-feature-list [dependsOnOther]="true" [features]="feats | featureSort:sorting.value | async | pagination:page.pageIndex:page.pageSize"></cometa-feature-list>
+          <cometa-feature-list
+            [dependsOnOther]="true"
+            [features]="
+              feats
+                | featureSort: sorting.value
+                | async
+                | pagination: page.pageIndex : page.pageSize
+            "></cometa-feature-list>
         </ng-template>
         <!-- Section ending -->
         <div style="clear: both"></div>
         <!-- Pagination -->
-        <mat-paginator class="paginator-center" *ngIf="feats.length > 25"
+        <mat-paginator
+          class="paginator-center"
+          *ngIf="feats.length > 25"
           [length]="feats.length"
           [pageIndex]="page.pageIndex"
           [pageSize]="page.pageSize"
@@ -227,6 +414,14 @@
   </ng-container>
   <!-- Template for when no features are found -->
   <ng-template #noFeaturesFound>
-    <p>This folder is empty. <span *ngIf="canCreateFeature && hasSubscription">Would you like to <span class="new-feature-text" (click)="SAopenCreateFeature()">create a new feature</span>?</span></p>
+    <p>
+      This folder is empty.
+      <span *ngIf="canCreateFeature && hasSubscription"
+        >Would you like to
+        <span class="new-feature-text" (click)="SAopenCreateFeature()"
+          >create a new feature</span
+        >?</span
+      >
+    </p>
   </ng-template>
 </div>

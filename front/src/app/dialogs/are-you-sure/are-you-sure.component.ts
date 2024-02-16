@@ -6,10 +6,9 @@ import { TranslateService } from '@ngx-translate/core';
   selector: 'are-you-sure',
   templateUrl: './are-you-sure.component.html',
   styleUrls: ['./are-you-sure.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AreYouSureDialog {
-
   translatePrefix = 'translate:';
 
   constructor(
@@ -19,7 +18,9 @@ export class AreYouSureDialog {
     // Check if passed data needs to be translated
     for (const key in this.data) {
       if (this.data[key] && this.data[key].startsWith(this.translatePrefix)) {
-        this.data[key] = this._translate.instant(this.data[key].substring(this.translatePrefix.length))
+        this.data[key] = this._translate.instant(
+          this.data[key].substring(this.translatePrefix.length)
+        );
       }
     }
   }

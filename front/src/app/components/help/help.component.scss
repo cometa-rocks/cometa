@@ -1,169 +1,169 @@
-
-@use "sass:math";
+@use 'sass:math';
 
 @import 'color';
 @import 'breakpoints';
 
 :host {
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    width: 100%;
-    overflow-x: hidden;
-    max-height: calc(100vh - var(--header-height));
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  width: 100%;
+  overflow-x: hidden;
+  max-height: calc(100vh - var(--header-height));
 }
 
 .container {
-    max-width: 1000px;
-    padding: 45px 30px 100px;
-    line-height: 25px;
+  max-width: 1000px;
+  padding: 45px 30px 100px;
+  line-height: 25px;
 }
 
 .contact-info {
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    &:nth-child(2) {
-        margin-bottom: 30px;
-    }
-    &:last-child {
-        margin-bottom: 10px;
-    }
-    .category {
-        -webkit-box-flex: 1;
-            -ms-flex: 1 35%;
-                flex: 1 35%;
-        line-height: 25px;
-        padding-left: 30px;
-        -webkit-box-sizing: border-box;
-                box-sizing: border-box;
-    }
-    .telephones {
-        -webkit-box-flex: 1;
-            -ms-flex: 1 65%;
-                flex: 1 65%;
-        line-height: 25px;
-    }
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  &:nth-child(2) {
+    margin-bottom: 30px;
+  }
+  &:last-child {
+    margin-bottom: 10px;
+  }
+  .category {
+    -webkit-box-flex: 1;
+    -ms-flex: 1 35%;
+    flex: 1 35%;
+    line-height: 25px;
+    padding-left: 30px;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+  }
+  .telephones {
+    -webkit-box-flex: 1;
+    -ms-flex: 1 65%;
+    flex: 1 65%;
+    line-height: 25px;
+  }
 }
 
 p {
-    line-height: 20px;
-    text-align: justify;
+  line-height: 20px;
+  text-align: justify;
 }
 
 a {
-    color: $blue;
-    position: relative;
-    text-decoration: none;
-    &:hover:after {
-        width: 100%;
-    }
-    &:after {
-        content: "";
-        display: block;
-        width: 0%;
-        height: 2px;
-        opacity: .7;
-        -webkit-transition: width .2s ease-in-out;
-        -o-transition: width .2s ease-in-out;
-        transition: width .2s ease-in-out;
-        background-color: $blue;
-        bottom: -5px;
-        left: 0;
-        border-radius: 3px;
-        right: 0;
-        position: absolute;
-        margin: auto;
-    }
+  color: $blue;
+  position: relative;
+  text-decoration: none;
+  &:hover:after {
+    width: 100%;
+  }
+  &:after {
+    content: '';
+    display: block;
+    width: 0%;
+    height: 2px;
+    opacity: 0.7;
+    -webkit-transition: width 0.2s ease-in-out;
+    -o-transition: width 0.2s ease-in-out;
+    transition: width 0.2s ease-in-out;
+    background-color: $blue;
+    bottom: -5px;
+    left: 0;
+    border-radius: 3px;
+    right: 0;
+    position: absolute;
+    margin: auto;
+  }
 }
 
 .helpers {
-    text-align: center;
-    margin: 50px 0;
-    .helper {
-        display: inline-block;
-        background-size: contain;
-        background-repeat: no-repeat;
-    }
-    .portrait_landscape {
-        width: 250px;
-        height: 140px;
-        background-image: url(^assets/img/portrait_landscape.svg);
-        background-size: contain;
-        background-repeat: no-repeat;
-    }
-    .scroll_swipe {
-        width: 250px;
-        height: 135px;
-        background-image: url(^assets/img/scroll_swipe.svg);
-        background-size: contain;
-        background-repeat: no-repeat;
-    }
-    .hand1, .hand2 {
-        width: 50px;
-        height: 90px;
-    }
-    .hand1 {
-        background-image: url(^assets/img/hand1.svg);
-    }
-    .hand2 {
-        margin-left: 80px;
-        height: 95px;
-        background-image: url(^assets/img/hand2.svg);
-    }
+  text-align: center;
+  margin: 50px 0;
+  .helper {
+    display: inline-block;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+  .portrait_landscape {
+    width: 250px;
+    height: 140px;
+    background-image: url(^assets/img/portrait_landscape.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+  .scroll_swipe {
+    width: 250px;
+    height: 135px;
+    background-image: url(^assets/img/scroll_swipe.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+  .hand1,
+  .hand2 {
+    width: 50px;
+    height: 90px;
+  }
+  .hand1 {
+    background-image: url(^assets/img/hand1.svg);
+  }
+  .hand2 {
+    margin-left: 80px;
+    height: 95px;
+    background-image: url(^assets/img/hand2.svg);
+  }
 }
 
 br {
-    line-height: 50px;
+  line-height: 50px;
 }
 
 .hotkeys {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    .hotkey {
-        flex: 1 100%;
-        margin-bottom: 20px;
-        @include for-tablet-portrait-up {
-            $width: math.div(100%, 3);
-            flex: 1 $width;
-            max-width: $width;
-        }
-        @include for-tablet-landscape-up {
-            $width: math.div(100%, 4);
-            flex: 1 $width;
-            max-width: $width;
-        }
-        .combination {
-            font-weight: bold;
-            color: $blue;
-        }
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  .hotkey {
+    flex: 1 100%;
+    margin-bottom: 20px;
+    @include for-tablet-portrait-up {
+      $width: math.div(100%, 3);
+      flex: 1 $width;
+      max-width: $width;
     }
+    @include for-tablet-landscape-up {
+      $width: math.div(100%, 4);
+      flex: 1 $width;
+      max-width: $width;
+    }
+    .combination {
+      font-weight: bold;
+      color: $blue;
+    }
+  }
 }
 
 .action {
-    margin: 15px 0;
-    .action-title {
-        color: $blue;
-    }
-    .action-description {
-        font-weight: bold;
-        color: rgba(black, .5);
-    }
+  margin: 15px 0;
+  .action-title {
+    color: $blue;
+  }
+  .action-description {
+    font-weight: bold;
+    color: rgba(black, 0.5);
+  }
 }
 
 .contact {
-    margin-bottom: 20px;
-    .name,
-    .description,
-    .telephone {
-        line-height: 25px;
-    }
-    .name {
-        color: black;
-        font-weight: bold;
-    }
-    .telephone {
-        color: $blue;
-    }
+  margin-bottom: 20px;
+  .name,
+  .description,
+  .telephone {
+    line-height: 25px;
+  }
+  .name {
+    color: black;
+    font-weight: bold;
+  }
+  .telephone {
+    color: $blue;
+  }
 }
