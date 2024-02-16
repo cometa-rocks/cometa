@@ -1,210 +1,209 @@
-
 @import 'color';
 @import 'breakpoints';
 
 :host {
-    display: block;
-    width: 100%;
-    &:nth-child(odd) .row.run {
-        background-color: #e6e6e6;
-        border-bottom: 2px solid rgba(black, .05);
-    }
-    &:nth-child(even) .row.run {
-        background-color: #f2f2f2;
-        border-bottom: 2px solid rgba(black, .1);
-    }
+  display: block;
+  width: 100%;
+  &:nth-child(odd) .row.run {
+    background-color: #e6e6e6;
+    border-bottom: 2px solid rgba(black, 0.05);
+  }
+  &:nth-child(even) .row.run {
+    background-color: #f2f2f2;
+    border-bottom: 2px solid rgba(black, 0.1);
+  }
 }
 
 .row {
-    height: 50px;
-    line-height: 50px;
-    display: flex;
-    .cell {
-        padding: 0 10px;
+  height: 50px;
+  line-height: 50px;
+  display: flex;
+  .cell {
+    padding: 0 10px;
+    box-sizing: border-box;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    span {
+      display: inline-block;
+      vertical-align: middle;
+    }
+    &.status {
+      display: var(--status-display);
+      order: var(--status-order);
+      @include for-tablet-landscape-up {
+        flex: 0 100px;
+        padding: 5px;
         box-sizing: border-box;
-        font-weight: bold;
+        line-height: 25px;
+        height: 100%;
+        padding-left: 20px;
+        padding-right: 20px;
+        align-items: center;
+      }
+    }
+    &.ok,
+    &.nok,
+    &.skipped {
+      display: var(--skipped-display);
+      order: var(--skipped-order);
+      white-space: initial !important;
+      text-overflow: initial !important;
+      overflow: initial !important;
+      justify-content: center;
+    }
+    &.ok {
+      display: var(--ok-display);
+      order: var(--ok-order);
+      color: #00a99d;
+      justify-content: center;
+    }
+    &.nok {
+      display: var(--nok-display);
+      order: var(--nok-order);
+      color: #f97412;
+      justify-content: center;
+    }
+    &.time {
+      color: #d4145a;
+      display: var(--time-display);
+      order: var(--time-order);
+      justify-content: center;
+    }
+    &.total {
+      display: var(--steps-display);
+      order: var(--steps-order);
+      justify-content: center;
+    }
+    &.date_time {
+      flex: 0 200px;
+      display: var(--date-display);
+      order: var(--date-order);
+      align-items: center;
+      justify-content: space-between;
+      @include for-tablet-portrait-up {
+        flex: 0 200px;
+      }
+      i {
+        height: 50px;
+        width: 20px;
+        background-image: url(^assets/icons/clock.svg);
+        background-repeat: no-repeat;
+        background-size: 20px;
+        background-position: center 14px;
+        margin-right: 7px;
+      }
+    }
+    &.number {
+      flex: 1 35px;
+      text-align: center;
+      @include for-tablet-portrait-up {
+        flex: 0 90px;
+      }
+    }
+    &.execution_time {
+      text-align: center;
+      color: $bad;
+      display: var(--time-display);
+      order: var(--time-order);
+      justify-content: center;
+    }
+    &.browser {
+      display: var(--browser-display);
+      order: var(--browser-order);
+      @include for-desktop-up {
+        justify-content: center;
+      }
+      text-align: center;
+      .browser-icon {
+        display: block;
+        height: 35px;
+        width: 35px;
+        background-size: 20px;
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+    }
+    &.pixel {
+      text-align: center;
+      color: $blue;
+      display: var(--pixel-display);
+      order: var(--pixel-order);
+      justify-content: center;
+    }
+  }
+  .options {
+    order: var(--options-order);
+  }
+  &.run {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    &.showed {
+      border-bottom-color: #bdd0e7 !important;
+    }
+    .video {
+      display: var(--video-display);
+      order: var(--video-order);
+      margin-left: auto;
+      @include for-tablet-portrait-up {
+        justify-content: center;
+        flex: 0 35px;
+      }
+    }
+    .date_time {
+      @include for-tablet-portrait-up {
+        justify-content: initial;
+      }
+    }
+    .date_time i {
+      display: none;
+      @include for-tablet-portrait-up {
+        display: initial;
+      }
+    }
+  }
+  &.test {
+    height: 35px;
+    line-height: 35px;
+    cursor: pointer;
+    & {
+      background-color: #e7ebf0;
+      border-bottom: 2px solid #bdd0e7;
+    }
+    .video {
+      display: var(--video-display);
+      order: var(--video-order);
+      margin-left: auto;
+      align-items: center;
+      margin-left: auto;
+      justify-content: center;
+      @include for-tablet-portrait-up {
+        flex: 0 35px;
+      }
+    }
+    .date_time {
+      padding-left: 10px;
+      @include for-tablet-portrait-up {
+        padding-left: 30px;
+      }
+      i {
+        background-repeat: no-repeat;
+        background-size: 15px;
+        background-position: center;
+        height: 35px;
+        width: 15px;
+        margin-right: 7px;
+        flex: 0 20px;
+      }
+      .browser-title {
+        flex: 1;
+        text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
-        flex: 1;
-        span {
-            display: inline-block;
-            vertical-align: middle;
-        }
-        &.status {
-            display: var(--status-display);
-            order: var(--status-order);
-            @include for-tablet-landscape-up {
-                flex: 0 100px;
-                padding: 5px;
-                box-sizing: border-box;
-                line-height: 25px;
-                height: 100%;
-                padding-left: 20px;
-                padding-right: 20px;
-                align-items: center;
-            }
-        }
-        &.ok,
-        &.nok,
-        &.skipped {
-            display: var(--skipped-display);
-            order: var(--skipped-order);
-            white-space: initial !important;
-            text-overflow: initial !important;
-            overflow: initial !important;
-            justify-content: center;
-        }
-        &.ok {
-            display: var(--ok-display);
-            order: var(--ok-order);
-            color: #00a99d;
-            justify-content: center;
-        }
-        &.nok {
-            display: var(--nok-display);
-            order: var(--nok-order);
-            color: #f97412;
-            justify-content: center;
-        }
-        &.time {
-            color: #d4145a;
-            display: var(--time-display);
-            order: var(--time-order);
-            justify-content: center;
-        }
-        &.total {
-            display: var(--steps-display);
-            order: var(--steps-order);
-            justify-content: center;
-        }
-        &.date_time {
-            flex: 0 200px;
-            display: var(--date-display);
-            order: var(--date-order);
-            align-items: center;
-            justify-content: space-between;
-            @include for-tablet-portrait-up {
-                flex: 0 200px;
-            }
-            i {
-                height: 50px;
-                width: 20px;
-                background-image: url(^assets/icons/clock.svg);
-                background-repeat: no-repeat;
-                background-size: 20px;
-                background-position: center 14px;
-                margin-right: 7px;
-            }
-        }
-        &.number {
-            flex: 1 35px;
-            text-align: center;
-            @include for-tablet-portrait-up {
-                flex: 0 90px;
-            }
-        }
-        &.execution_time {
-            text-align: center;
-            color: $bad;
-            display: var(--time-display);
-            order: var(--time-order);
-            justify-content: center;
-        }
-        &.browser {
-            display: var(--browser-display);
-            order: var(--browser-order);
-            @include for-desktop-up {
-                justify-content: center;
-            }
-            text-align: center;
-            .browser-icon {
-                display: block;
-                height: 35px;
-                width: 35px;
-                background-size: 20px;
-                background-repeat: no-repeat;
-                background-position: center;
-            }
-        }
-        &.pixel {
-            text-align: center;
-            color: $blue;
-            display: var(--pixel-display);
-            order: var(--pixel-order);
-            justify-content: center;
-        }
+      }
     }
-    .options {
-            order: var(--options-order);
-    }
-    &.run {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        &.showed {
-            border-bottom-color: #BDD0E7 !important;
-        }
-        .video {
-            display: var(--video-display);
-            order: var(--video-order);
-            margin-left: auto;
-            @include for-tablet-portrait-up {
-                justify-content: center;
-                flex: 0 35px;
-            }
-        }
-        .date_time {
-            @include for-tablet-portrait-up {
-                justify-content: initial;
-            }
-        }
-        .date_time i {
-            display: none;
-            @include for-tablet-portrait-up {
-                display: initial;
-            }
-        }
-    }
-    &.test {
-        height: 35px;
-        line-height: 35px;
-        cursor: pointer;
-        & {
-            background-color: #E7EBF0;
-            border-bottom: 2px solid #BDD0E7;
-        }
-        .video {
-            display: var(--video-display);
-            order: var(--video-order);
-            margin-left: auto;
-            align-items: center;
-            margin-left: auto;
-            justify-content: center;
-            @include for-tablet-portrait-up {
-                flex: 0 35px;
-            }
-        }
-        .date_time {
-            padding-left: 10px;
-            @include for-tablet-portrait-up {
-                padding-left: 30px;
-            }
-            i {
-                background-repeat: no-repeat;
-                background-size: 15px;
-                background-position: center;
-                height: 35px;
-                width: 15px;
-                margin-right: 7px;
-                flex: 0 20px;
-            }
-            .browser-title {
-                flex: 1;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                overflow: hidden;
-            }
-        }
-    }
+  }
 }

@@ -1,100 +1,106 @@
-
 @import 'color';
 @import 'breakpoints';
 
 :host {
-    display: block;
-    padding: 45px 50px 100px;
-    box-sizing: border-box;
-    margin-bottom: 10px;
-    overflow-x: hidden;
-    max-height: calc(100vh - var(--header-height));
+  display: block;
+  padding: 45px 50px 100px;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  overflow-x: hidden;
+  max-height: calc(100vh - var(--header-height));
 }
 
 h1 {
-    font-size: 3rem;
-    color: $blue;
-    text-align: center;
-    position: relative;
-    &:after {
-        content: "";
-        position: absolute;
-        bottom: -20px;
-        width: 300px;
-        background-color: $blue;
-        border-radius: 50%;
-        height: 2px;
-        margin: auto;
-        left: 0;
-        right: 0;
-    }
+  font-size: 3rem;
+  color: $blue;
+  text-align: center;
+  position: relative;
+  &:after {
+    content: '';
+    position: absolute;
+    bottom: -20px;
+    width: 300px;
+    background-color: $blue;
+    border-radius: 50%;
+    height: 2px;
+    margin: auto;
+    left: 0;
+    right: 0;
+  }
 }
 
 h2 {
-    margin: 40px 0 25px;
-    text-align: center;
+  margin: 40px 0 25px;
+  text-align: center;
 }
 
 .cloud {
-    display: grid;
-    grid-auto-rows: 400px;
-    column-gap: 25px;
-    row-gap: 50px;
-    @include for-tablet-portrait-up {
-        grid-template-columns: repeat(2, 1fr);
-    }
+  display: grid;
+  grid-auto-rows: 400px;
+  column-gap: 25px;
+  row-gap: 50px;
+  @include for-tablet-portrait-up {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @include for-desktop-up {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .subscription {
+    width: 100%;
+    background-color: white;
+    border-radius: 5px;
+    position: relative;
+    box-shadow:
+      0 3px 1px -2px rgb(0 0 0 / 20%),
+      0 2px 2px 0 rgb(0 0 0 / 14%),
+      0 1px 5px 0 rgb(0 0 0 / 12%);
+    padding: 25px;
+    box-sizing: border-box;
     @include for-desktop-up {
-        grid-template-columns: repeat(5, 1fr);
+      margin: initial;
     }
-    .subscription {
-        width: 100%;
-        background-color: white;
-        border-radius: 5px;
-        position: relative;
-        box-shadow: 0 3px 1px -2px rgb(0 0 0 / 20%), 0 2px 2px 0 rgb(0 0 0 / 14%), 0 1px 5px 0 rgb(0 0 0 / 12%);
-        padding: 25px;
-        box-sizing: border-box;
-        @include for-desktop-up {
-            margin: initial;
-        }
-        h3 {
-            font-size: 2rem;
-            color: $blue;
-            text-align: center;
-            font-weight: bold;
-            margin-top: 30px;
-        }
-        .price-hour, .fee {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 1.3rem;
-        }
-        .digit {
-            font-size: 2rem;
-            margin: 10px 0;
-            color: $blue;
-        }
-        .purchase {
-            position: absolute;
-            bottom: -15px;
-            margin: auto;
-            left: 0;
-            right: 0;
-            width: 133px;
-            background-color: $blue;
-            color: white;
-            border: 0;
-            padding: 12px 25px;
-            &:hover {
-                background-color: darken($blue, 10);
-            }
-            &.done {
-                background-color: $good;
-            }
-            cursor: pointer;
-            font-size: 1.3rem;
-            border-radius: 5px;
-            box-shadow: 0 3px 1px -2px rgb(0 0 0 / 20%), 0 2px 2px 0 rgb(0 0 0 / 14%), 0 1px 5px 0 rgb(0 0 0 / 12%);
-        }
+    h3 {
+      font-size: 2rem;
+      color: $blue;
+      text-align: center;
+      font-weight: bold;
+      margin-top: 30px;
     }
+    .price-hour,
+    .fee {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 1.3rem;
+    }
+    .digit {
+      font-size: 2rem;
+      margin: 10px 0;
+      color: $blue;
+    }
+    .purchase {
+      position: absolute;
+      bottom: -15px;
+      margin: auto;
+      left: 0;
+      right: 0;
+      width: 133px;
+      background-color: $blue;
+      color: white;
+      border: 0;
+      padding: 12px 25px;
+      &:hover {
+        background-color: darken($blue, 10);
+      }
+      &.done {
+        background-color: $good;
+      }
+      cursor: pointer;
+      font-size: 1.3rem;
+      border-radius: 5px;
+      box-shadow:
+        0 3px 1px -2px rgb(0 0 0 / 20%),
+        0 2px 2px 0 rgb(0 0 0 / 14%),
+        0 1px 5px 0 rgb(0 0 0 / 12%);
+    }
+  }
 }

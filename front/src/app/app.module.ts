@@ -1,9 +1,22 @@
 /* Angular */
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule, APP_INITIALIZER, NO_ERRORS_SCHEMA } from '@angular/core';
-import { HttpClientModule, HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { API_URL, API_BASE, SOCKET_URL, WEBP_SUPPORT, STRIPE_API_KEY } from './tokens';
-import { STRIPE_PUBLIC_LIVE_KEY, STRIPE_PUBLIC_TEST_KEY } from './deploy-tokens';
+import {
+  HttpClientModule,
+  HttpClient,
+  HTTP_INTERCEPTORS,
+} from '@angular/common/http';
+import {
+  API_URL,
+  API_BASE,
+  SOCKET_URL,
+  WEBP_SUPPORT,
+  STRIPE_API_KEY,
+} from './tokens';
+import {
+  STRIPE_PUBLIC_LIVE_KEY,
+  STRIPE_PUBLIC_TEST_KEY,
+} from './deploy-tokens';
 import { SuccessHandlerInterceptor } from '@services/success-handler.interceptor';
 import { LoadingInterceptor } from '@services/loading.interceptor';
 import { CometaRoutingModule } from './routing.module';
@@ -51,7 +64,7 @@ import { TourService } from '@services/tour.service';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { WhatsNewService } from '@services/whats-new.service';
 import { Tours } from '@services/tours';
-import { CometaTitleStrategyService } from '@services/titles/cometa-title.service'
+import { CometaTitleStrategyService } from '@services/titles/cometa-title.service';
 
 /* Module */
 import { SharedModule } from '@modules/shared.module';
@@ -86,11 +99,16 @@ import { IntegrationsState } from '@store/integrations.state';
 
 import { environment } from '@environments/environment';
 
-
 import { i18nMatPaginatorIntl } from '@services/paginator-intl';
 import { MatLegacyPaginatorIntl as MatPaginatorIntl } from '@angular/material/legacy-paginator';
-import { MatLegacyTooltipDefaultOptions as MatTooltipDefaultOptions, MAT_LEGACY_TOOLTIP_DEFAULT_OPTIONS as MAT_TOOLTIP_DEFAULT_OPTIONS } from '@angular/material/legacy-tooltip';
-import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import {
+  MatLegacyTooltipDefaultOptions as MatTooltipDefaultOptions,
+  MAT_LEGACY_TOOLTIP_DEFAULT_OPTIONS as MAT_TOOLTIP_DEFAULT_OPTIONS,
+} from '@angular/material/legacy-tooltip';
+import {
+  MatLegacyDialogRef as MatDialogRef,
+  MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
+} from '@angular/material/legacy-dialog';
 import { TitleStrategy } from '@angular/router';
 
 /* Translate Loader */
@@ -104,32 +122,31 @@ export function configLoader(configService: ConfigService) {
 
 /**
  * function getApiBase()
- * 
- * has two ways of working ... 
+ *
+ * has two ways of working ...
  * 1. the old way .. a little bit confusing
  * 2. if local storage key co_backend_uri is present, then it returns that URL
- * 
+ *
  * @returns URI to backend depending on variables value in local storage
  */
 export function getApiBase() {
-
   /**
    * the new way
-   * if localstorage item co_backend_uri is available ... 
+   * if localstorage item co_backend_uri is available ...
    * then just return it
    */
 
   // Read local storage item
   var co_backend_uri = localStorage.getItem('co_backend_uri');
-  // If is set ... 
-  if ( co_backend_uri !== null) {
+  // If is set ...
+  if (co_backend_uri !== null) {
     // return the value
-    console.dir("C.: setting new API URL to: "+co_backend_uri)
-    return `${co_backend_uri}`
+    console.dir('C.: setting new API URL to: ' + co_backend_uri);
+    return `${co_backend_uri}`;
   }
 
   /**
-   * The old way 
+   * The old way
    */
   const developmentMode = location.host !== 'cometa.amvara.de';
   let protocol = location.protocol;
@@ -176,7 +193,7 @@ export const customTooltipDefaults: MatTooltipDefaultOptions = {
   showDelay: 0,
   hideDelay: 0,
   touchendHideDelay: 1500,
-  disableTooltipInteractivity: true
+  disableTooltipInteractivity: true,
 };
 
 export function getStripeApiKey() {
@@ -185,12 +202,14 @@ export function getStripeApiKey() {
     /stage\.cometa/,
     /localhost/,
     /co\.meta\.de/,
-    /cometa-dev\.ddns\./
+    /cometa-dev\.ddns\./,
   ];
 
   let STRIPE_TEST_KEY = STRIPE_PUBLIC_TEST_KEY;
   // Try to get also key from localStorage, useful for local testing purposes
-  const STRIPE_PUBLIC_TEST_KEY_STORAGE = localStorage?.getItem('STRIPE_PUBLIC_TEST_KEY');
+  const STRIPE_PUBLIC_TEST_KEY_STORAGE = localStorage?.getItem(
+    'STRIPE_PUBLIC_TEST_KEY'
+  );
   if (STRIPE_PUBLIC_TEST_KEY_STORAGE) {
     STRIPE_TEST_KEY = STRIPE_PUBLIC_TEST_KEY_STORAGE;
   }
@@ -224,7 +243,7 @@ export function getStripeApiKey() {
     LiveStepComponent,
     ScreenshotComponent,
     CookiesExpiredDialog,
-    WhatsNewDialog
+    WhatsNewDialog,
   ],
   imports: [
     BrowserAnimationsModule,
@@ -233,49 +252,52 @@ export function getStripeApiKey() {
     ClipboardModule,
     SharedModule.forRoot(),
     NgxsFormPluginModule.forRoot(),
-    NgxsModule.forRoot([
-      FeaturesState,
-      ApplicationsState,
-      EnvironmentsState,
-      BrowserstackState,
-      ActionsState,
-      ConfigState,
-      DepartmentsState,
-      UserState,
-      ResultsState,
-      AccountsState,
-      BrowsersState,
-      LyridBrowsersState,
-      VariablesState,
-      StepDefinitionsState,
-      FeatureResultsState,
-      LogsState,
-      PaginationsState,
-      PaginatedListsState,
-      LoadingsState,
-      IntegrationsState,
-      SearchState
+    NgxsModule.forRoot(
+      [
+        FeaturesState,
+        ApplicationsState,
+        EnvironmentsState,
+        BrowserstackState,
+        ActionsState,
+        ConfigState,
+        DepartmentsState,
+        UserState,
+        ResultsState,
+        AccountsState,
+        BrowsersState,
+        LyridBrowsersState,
+        VariablesState,
+        StepDefinitionsState,
+        FeatureResultsState,
+        LogsState,
+        PaginationsState,
+        PaginatedListsState,
+        LoadingsState,
+        IntegrationsState,
+        SearchState,
 
-      // Deprecated States or no longer used
-      // ScreenshotsState,
-      // RunsState,
-      // CloudsState,
-      // StepResultsState,
-    ], {
-      developmentMode: false,
-      selectorOptions: {
-        suppressErrors: false
+        // Deprecated States or no longer used
+        // ScreenshotsState,
+        // RunsState,
+        // CloudsState,
+        // StepResultsState,
+      ],
+      {
+        developmentMode: false,
+        selectorOptions: {
+          suppressErrors: false,
+        },
       }
-    }),
+    ),
     NgxsSelectSnapshotModule.forRoot(),
     ContextMenuModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: (createTranslateLoader),
-        deps: [HttpClient]
+        useFactory: createTranslateLoader,
+        deps: [HttpClient],
       },
-      isolate : false
+      isolate: false,
     }),
     SharedModule.forRoot(),
     JoyrideModule.forRoot(),
@@ -283,9 +305,9 @@ export function getStripeApiKey() {
       authType: 'openid',
       reporting: {
         sentryDSN: environment.sentryDSN,
-        ignoreErrors: ['ResizeObserver loop limit exceeded']
-      }
-    })
+        ignoreErrors: ['ResizeObserver loop limit exceeded'],
+      },
+    }),
   ],
   schemas: [NO_ERRORS_SCHEMA],
   providers: [
@@ -302,55 +324,55 @@ export function getStripeApiKey() {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: SuccessHandlerInterceptor,
-      multi: true
+      multi: true,
     },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: LoadingInterceptor,
-      multi: true
+      multi: true,
     },
     {
       provide: API_URL,
-      useValue: `${getApiBase()}api/`
+      useValue: `${getApiBase()}api/`,
     },
     {
       provide: API_BASE,
-      useValue: getApiBase()
+      useValue: getApiBase(),
     },
     {
       provide: SOCKET_URL,
-      useValue: getSocketUrl()
+      useValue: getSocketUrl(),
     },
     {
       provide: WEBP_SUPPORT,
-      useValue: getWebpSupport()
+      useValue: getWebpSupport(),
     },
     {
       provide: STRIPE_API_KEY,
-      useValue: getStripeApiKey()
+      useValue: getStripeApiKey(),
     },
     {
       // This loads the config.json file before the App is initialized
       provide: APP_INITIALIZER,
       useFactory: configLoader,
       deps: [ConfigService],
-      multi: true
+      multi: true,
     },
     {
       provide: MatPaginatorIntl,
-      useClass: i18nMatPaginatorIntl
+      useClass: i18nMatPaginatorIntl,
     },
 
     // provides default options for mat-tooltip, this will force tooltip to dissapear as soon as mouse pointer leaves hover zone
     // careful, this can not be used with tooltips that are supposted to be copied, as user will not be able to copy it
     {
       provide: MAT_TOOLTIP_DEFAULT_OPTIONS,
-      useValue: customTooltipDefaults
+      useValue: customTooltipDefaults,
     },
     { provide: MAT_DIALOG_DATA, useValue: {} },
     { provide: MatDialogRef, useValue: {} },
-    { provide: TitleStrategy, useClass:CometaTitleStrategyService }
+    { provide: TitleStrategy, useClass: CometaTitleStrategyService },
   ],
-  bootstrap: [CometaComponent]
+  bootstrap: [CometaComponent],
 })
-export class AppModule { }
+export class AppModule {}

@@ -1,10 +1,10 @@
 {
-	"/debug/**": {
-		"target": "https://localhost/",
-		"secure":false,
-		"logLevel":"debug",
-		"pathRewrite": {
-			"^/debug": ""
-		}
-	}
+  "/debug/**": {
+    "target": "https://localhost/",
+    "secure": false,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/debug": ""
+    }
+  }
 }
