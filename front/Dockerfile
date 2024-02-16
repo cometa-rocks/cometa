@@ -23,10 +23,10 @@ COPY apache-conf/paths.conf /usr/local/apache2/conf/paths.conf
 COPY apache-conf/mod_auth_openidc.so /usr/local/apache2/modules/mod_auth_openidc.so
 
 # make sure start.sh has execution permissions
-RUN chmod +x /code/start.sh
+RUN chmod +x /code/front/start.sh
 
-# run /code/start.sh script to install everything we need
-RUN /code/start.sh openidc basic angular compile no-restart
+# run /code/front/start.sh script to install everything we need
+RUN /code/front/start.sh openidc basic angular compile no-restart
 
 # finally set workdir to httpd htdocs
 WORKDIR /usr/local/apache2

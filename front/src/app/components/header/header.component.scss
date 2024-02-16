@@ -1,183 +1,182 @@
-
 @import 'color';
 @import 'breakpoints';
 
 :host {
-    width: 100vw;
-    flex: 0 var(--header-height);
-    max-width: 100%;
-    background-color: $header-bg-color;
-    z-index: 99;
+  width: 100vw;
+  flex: 0 var(--header-height);
+  max-width: 100%;
+  background-color: $header-bg-color;
+  z-index: 99;
 }
 
 .header-main {
-    display: inline-block;
-    height: 80px;
-    line-height: 80px;
-    width: 100%;
-    .title {
-        font-size: 25pt;
-        font-weight: 400;
-        margin-left: 30px;
-        color: $semi-white;
-        display: block;
-        float: left;
-        outline: none;
-        cursor: pointer;
-    }
+  display: inline-block;
+  height: 80px;
+  line-height: 80px;
+  width: 100%;
+  .title {
+    font-size: 25pt;
+    font-weight: 400;
+    margin-left: 30px;
+    color: $semi-white;
+    display: block;
+    float: left;
+    outline: none;
+    cursor: pointer;
+  }
 }
 
 .confidential-title {
-    display: block;
-    float: left;
-    font-size: 10pt;
-    color: $semi-white;
-    margin-left: 15px;
-    margin-top: 6px;
-    @include maxWidth (750px) {
-        display: none;
-    }
+  display: block;
+  float: left;
+  font-size: 10pt;
+  color: $semi-white;
+  margin-left: 15px;
+  margin-top: 6px;
+  @include maxWidth(750px) {
+    display: none;
+  }
 }
 
 .action-buttons {
-    .icon {
-        cursor: pointer;
-        display: block;
-        float: right;
-        width: 90px;
-        height: 84px;
-        outline: 0;
-        position: relative;
-        &:hover i, &.active i {
-            &.menu {
-                background: url(^assets/internal/COM_Menu_Icon.hover.svg) no-repeat;
-                background-size: contain;
-            }
-            &.settings {
-                background: url(^assets/internal/COM_Filter_Icon.hover.svg) no-repeat;
-                background-size: contain;
-            }
-            &.upload {
-                background: url(^assets/internal/COM_Add_Icon.hover.svg) no-repeat;
-                background-size: contain;
-            }
-            &.user {
-                background: url(^assets/internal/COM_User_Icon.hover.svg) no-repeat;
-                background-size: contain;
-            }
-        }
-        @include maxWidth (1100px) {
-            width: 60px;
-        }
-        i {
-            position: absolute;
-            margin: auto;
-            left: 0;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            display: block;
-            height: 22px;
-            width: 22px;
-            &.menu {
-                background: url(^assets/internal/COM_Menu_Icon.svg) no-repeat;
-                background-size: contain;
-                height: 17px;
-            }
-            &.settings {
-                background: url(^assets/internal/COM_Filter_Icon.svg) no-repeat;
-                background-size: contain;
-            }
-            &.upload {
-                background: url(^assets/internal/COM_Add_Icon.svg) no-repeat;
-                background-size: contain;
-            }
-            &.user {
-                background: url(^assets/internal/COM_User_Icon.svg) no-repeat;
-                background-size: contain;
-            }
-            &.landing {
-                border: 1px solid red;
-            }
-        }
+  .icon {
+    cursor: pointer;
+    display: block;
+    float: right;
+    width: 90px;
+    height: 84px;
+    outline: 0;
+    position: relative;
+    &:hover i,
+    &.active i {
+      &.menu {
+        background: url(^assets/internal/COM_Menu_Icon.hover.svg) no-repeat;
+        background-size: contain;
+      }
+      &.settings {
+        background: url(^assets/internal/COM_Filter_Icon.hover.svg) no-repeat;
+        background-size: contain;
+      }
+      &.upload {
+        background: url(^assets/internal/COM_Add_Icon.hover.svg) no-repeat;
+        background-size: contain;
+      }
+      &.user {
+        background: url(^assets/internal/COM_User_Icon.hover.svg) no-repeat;
+        background-size: contain;
+      }
     }
+    @include maxWidth(1100px) {
+      width: 60px;
+    }
+    i {
+      position: absolute;
+      margin: auto;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      display: block;
+      height: 22px;
+      width: 22px;
+      &.menu {
+        background: url(^assets/internal/COM_Menu_Icon.svg) no-repeat;
+        background-size: contain;
+        height: 17px;
+      }
+      &.settings {
+        background: url(^assets/internal/COM_Filter_Icon.svg) no-repeat;
+        background-size: contain;
+      }
+      &.upload {
+        background: url(^assets/internal/COM_Add_Icon.svg) no-repeat;
+        background-size: contain;
+      }
+      &.user {
+        background: url(^assets/internal/COM_User_Icon.svg) no-repeat;
+        background-size: contain;
+      }
+      &.landing {
+        border: 1px solid red;
+      }
+    }
+  }
 }
 
 :host::ng-deep mat-progress-bar {
-    height: 4px !important;
+  height: 4px !important;
 }
 
 :host::ng-deep .mat-progress-bar-fill::after {
-    background-color: $secondary-color;
+  background-color: $secondary-color;
 }
 
 :host::ng-deep .mat-progress-bar-buffer {
-    background-color: $header-env-bg-color;
+  background-color: $header-env-bg-color;
 }
 
 .menu_backdrop {
-    display: none;
-    position: absolute;
-    width: 100vw;
-    height: 100vh;
-    top: 0;
-    left: 0;
-    &.opened {
-        display: unset;
-    }
+  display: none;
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  &.opened {
+    display: unset;
+  }
 }
 
 .menu {
-    width: 360px;
-    height: calc(100vh - var(--footer-height));
-    background-color: $header-bg-color;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 6;
-    will-change: transform;
-    i.close {
-        display: block;
-        position: absolute;
-        top: 15px;
-        right: 20px;
-        height: 40px;
-        cursor: pointer;
-        width: 40px;
-        background: url(^assets/cross.svg) no-repeat;
-        background-size: 15px;
-        background-position: 12px 12px;
-        border-radius: 50%;
-        &:hover {
-            background-color: $menu-close-hover;
-        }
-        &:active {
-            background-color: $secondary-color;
-        }
+  width: 360px;
+  height: calc(100vh - var(--footer-height));
+  background-color: $header-bg-color;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 6;
+  will-change: transform;
+  i.close {
+    display: block;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    height: 40px;
+    cursor: pointer;
+    width: 40px;
+    background: url(^assets/cross.svg) no-repeat;
+    background-size: 15px;
+    background-position: 12px 12px;
+    border-radius: 50%;
+    &:hover {
+      background-color: $menu-close-hover;
     }
-    ul {
-        display: block;
-        margin-top: 100px;
-        box-sizing: border-box;
-        padding-right: 40px;
-        li {
-            outline: 0;
-            color: $semi-white;
-            margin-left: 40px;
-            margin-bottom: 10px;
-            list-style-type: none;
-            border-bottom: 1px solid $menu-border-bottom;
-            height: 35px;
-            line-height: 35px;
-            text-transform: uppercase;
-            font-size: 10pt;
-            padding-left: 15px;
-            cursor: pointer;
-            transition: color .1s ease-in-out;
-            &:hover {
-                color: $secondary-color;
-            }
-        }
+    &:active {
+      background-color: $secondary-color;
     }
-
+  }
+  ul {
+    display: block;
+    margin-top: 100px;
+    box-sizing: border-box;
+    padding-right: 40px;
+    li {
+      outline: 0;
+      color: $semi-white;
+      margin-left: 40px;
+      margin-bottom: 10px;
+      list-style-type: none;
+      border-bottom: 1px solid $menu-border-bottom;
+      height: 35px;
+      line-height: 35px;
+      text-transform: uppercase;
+      font-size: 10pt;
+      padding-left: 15px;
+      cursor: pointer;
+      transition: color 0.1s ease-in-out;
+      &:hover {
+        color: $secondary-color;
+      }
+    }
+  }
 }

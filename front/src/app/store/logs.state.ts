@@ -12,25 +12,27 @@ import { Logs } from './actions/logs.actions';
 @State<ILogsState>({
   name: 'logs',
   defaults: {
-      comment: 'This states saves the log output of each feature result as requested.'
-  }
+    comment:
+      'This states saves the log output of each feature result as requested.',
+  },
 })
 @Injectable()
 export class LogsState {
+  constructor(private _api: ApiService) {}
 
-    constructor( private _api: ApiService ) { }
-
-    @Action(Logs.GetLogs)
-    getLogs({ setState }: StateContext<ILogsState>, { featureResultId }: Logs.GetLogs) {
-        return this._api.getLogOutput(featureResultId).pipe(
-            tap(json => {
-                setState(
-                    produce((ctx: ILogsState) => {
-                        ctx[featureResultId] = json;
-                    })
-                )
-            })
+  @Action(Logs.GetLogs)
+  getLogs(
+    { setState }: StateContext<ILogsState>,
+    { featureResultId }: Logs.GetLogs
+  ) {
+    return this._api.getLogOutput(featureResultId).pipe(
+      tap(json => {
+        setState(
+          produce((ctx: ILogsState) => {
+            ctx[featureResultId] = json;
+          })
         );
-    }
-
+      })
+    );
+  }
 }

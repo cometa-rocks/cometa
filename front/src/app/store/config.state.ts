@@ -19,45 +19,68 @@ import { Router } from '@angular/router';
  */
 @State<Partial<Config>>({
   name: 'config',
-  defaults: {}
+  defaults: {},
 })
 @Injectable()
 export class ConfigState {
-
   constructor(
     private _api: ApiService,
     private _router: Router
-  ) { }
+  ) {}
 
   @Action(Configuration.GetConfig)
   getConfig({ setState }: StateContext<Config>) {
     // Initialize the co_active_list variable, starting with recent as this is the type of list a new user needs to see first (config.json)
-    configFile.co_active_list = localStorage.getItem('co_active_list') || configFile.co_active_list;
+    configFile.co_active_list =
+      localStorage.getItem('co_active_list') || configFile.co_active_list;
     // Initialize the co_features_pagination variable
-    configFile.co_features_pagination = parseInt(localStorage.getItem('co_features_pagination'), 10) || configFile.co_features_pagination;
+    configFile.co_features_pagination =
+      parseInt(localStorage.getItem('co_features_pagination'), 10) ||
+      configFile.co_features_pagination;
     // Initialize the co_first_time_cometa variable to control if the user has already seen the welcome page
-    configFile.co_first_time_cometa = localStorage.getItem('co_first_time_cometa') === 'true' || false;
+    configFile.co_first_time_cometa =
+      localStorage.getItem('co_first_time_cometa') === 'true' || false;
     configFile.language = localStorage.getItem('lang') || configFile.language;
-    configFile.logWebsockets = localStorage.getItem('logWebsockets') === 'true' || false;
-    configFile.disableAnimations = localStorage.getItem('da') === 'yes' || configFile.disableAnimations;
-    configFile.percentMode = localStorage.getItem('percentMode') === 'true' || false;
-    configFile.toggles.hideInformation = localStorage.getItem('hideInformation') === 'true' || configFile.toggles.hideInformation;
-    configFile.toggles.hideBrowsers = localStorage.getItem('hideBrowsers') === 'true' || configFile.toggles.hideBrowsers;
-    configFile.toggles.hideUploadedFiles = localStorage.getItem('hideUploadedFiles') === 'true' || configFile.toggles.hideUploadedFiles;
-    configFile.toggles.hideSteps = localStorage.getItem('hideSteps') === 'true' || configFile.toggles.hideSteps;
-    configFile.toggles.hideSchedule = localStorage.getItem('hideSchedule') === 'true' || configFile.toggles.hideSchedule;
-    configFile.toggles.hideSendMail = localStorage.getItem('hideSendMail') === 'true' || configFile.toggles.hideSendMail;
+    configFile.logWebsockets =
+      localStorage.getItem('logWebsockets') === 'true' || false;
+    configFile.disableAnimations =
+      localStorage.getItem('da') === 'yes' || configFile.disableAnimations;
+    configFile.percentMode =
+      localStorage.getItem('percentMode') === 'true' || false;
+    configFile.toggles.hideInformation =
+      localStorage.getItem('hideInformation') === 'true' ||
+      configFile.toggles.hideInformation;
+    configFile.toggles.hideBrowsers =
+      localStorage.getItem('hideBrowsers') === 'true' ||
+      configFile.toggles.hideBrowsers;
+    configFile.toggles.hideUploadedFiles =
+      localStorage.getItem('hideUploadedFiles') === 'true' ||
+      configFile.toggles.hideUploadedFiles;
+    configFile.toggles.hideSteps =
+      localStorage.getItem('hideSteps') === 'true' ||
+      configFile.toggles.hideSteps;
+    configFile.toggles.hideSchedule =
+      localStorage.getItem('hideSchedule') === 'true' ||
+      configFile.toggles.hideSchedule;
+    configFile.toggles.hideSendMail =
+      localStorage.getItem('hideSendMail') === 'true' ||
+      configFile.toggles.hideSendMail;
     // decide to useNewDashboard either from localStorage or from global configFile
-    configFile.useNewDashboard = localStorage.getItem('useNewDashboard') === 'true' || configFile.useNewDashboard;
-    configFile.sorting = localStorage.getItem('search_sorting') || configFile.sorting;
-    configFile.reverse = localStorage.getItem('search_sorting_reverse') === 'true' || configFile.reverse;
+    configFile.useNewDashboard =
+      localStorage.getItem('useNewDashboard') === 'true' ||
+      configFile.useNewDashboard;
+    configFile.sorting =
+      localStorage.getItem('search_sorting') || configFile.sorting;
+    configFile.reverse =
+      localStorage.getItem('search_sorting_reverse') === 'true' ||
+      configFile.reverse;
     let routerConfig = this._router.config;
     routerConfig[0].redirectTo = configFile.useNewDashboard ? 'new' : 'search';
     this._router.resetConfig(routerConfig);
     // Configuration to change the features view
     const featuresViewWith = localStorage.getItem('featuresView.with');
     if (featuresViewWith !== null) {
-      if (['tiles','list', 'tree'].includes(featuresViewWith)) {
+      if (['tiles', 'list', 'tree'].includes(featuresViewWith)) {
         configFile.featuresView.with = featuresViewWith;
       } else {
         localStorage.removeItem('featuresView.with');
@@ -66,7 +89,7 @@ export class ConfigState {
     // Configuration to change the related features view
     const featuresViewWithout = localStorage.getItem('featuresView.without');
     if (featuresViewWithout !== null) {
-      if (['tiles','list', 'tree'].includes(featuresViewWithout)) {
+      if (['tiles', 'list', 'tree'].includes(featuresViewWithout)) {
         configFile.featuresView.without = featuresViewWithout;
       } else {
         localStorage.removeItem('featuresView.without');
@@ -83,7 +106,10 @@ export class ConfigState {
   }
 
   @Action(Configuration.ToggleCollapsible)
-  toggleCollapsible({ setState }: StateContext<Config>, { key, value }: Configuration.ToggleCollapsible) {
+  toggleCollapsible(
+    { setState }: StateContext<Config>,
+    { key, value }: Configuration.ToggleCollapsible
+  ) {
     localStorage.setItem(key, value.toString());
     setState(
       produce((ctx: Config) => {
@@ -93,12 +119,18 @@ export class ConfigState {
   }
 
   @Action(Configuration.SetConfig)
-  setConfig({ setState }: StateContext<Config>, { config }: Configuration.SetConfig) {
+  setConfig(
+    { setState }: StateContext<Config>,
+    { config }: Configuration.SetConfig
+  ) {
     setState(config);
   }
 
   @Action(Configuration.SetProperty)
-  setProperty({ setState }: StateContext<Config>, { key, value, save }: Configuration.SetProperty) {
+  setProperty(
+    { setState }: StateContext<Config>,
+    { key, value, save }: Configuration.SetProperty
+  ) {
     if (save) {
       localStorage.setItem(key, value);
     }
@@ -111,11 +143,11 @@ export class ConfigState {
         let ref = ctx;
         if (parts.length > 0) {
           // Handles nested properties by re-referencing state
-          parts.forEach(part => ref = ref[part]);
+          parts.forEach(part => (ref = ref[part]));
         }
         ref[lastKey] = value;
       })
-    )
+    );
   }
 
   @Action(Configuration.ChangePercentMode)
@@ -126,13 +158,16 @@ export class ConfigState {
   }
 
   @Action(Configuration.SetPagination)
-  setPagination({ setState }: StateContext<Config>, { index, size }: Configuration.SetPagination) {
+  setPagination(
+    { setState }: StateContext<Config>,
+    { index, size }: Configuration.SetPagination
+  ) {
     setState(
       produce((ctx: Config) => {
         ctx.pagination.pageIndex = index;
         ctx.pagination.pageSize = size;
       })
-    )
+    );
   }
 
   @Selector()
@@ -146,7 +181,7 @@ export class ConfigState {
       let ref = state;
       if (parts.length > 0) {
         // Handles nested properties by re-referencing state
-        parts.forEach(part => ref = ref[part]);
+        parts.forEach(part => (ref = ref[part]));
       }
       return ref[lastKey];
     };
@@ -162,18 +197,18 @@ export class ConfigState {
     let date;
     try {
       date = state.changelog[0].date;
-    } catch (err) { }
+    } catch (err) {}
     if (date) {
       const parsed = parse(date, 'yyyy-MM-dd', new Date());
       if (parsed) {
         const locales = {
           en: enLocale,
           de: deLocale,
-          es: esLocale
-        }
+          es: esLocale,
+        };
         return format(parsed, 'MMMM d, yyyy', {
-          locale: locales[state.language]
-        })
+          locale: locales[state.language],
+        });
       }
     }
     return null;
@@ -196,8 +231,7 @@ export class ConfigState {
   @Selector()
   static pickRandomWelcomeSentence(state: Config) {
     const total = state.welcomeSentences.length - 1;
-    const randIndex = Math.floor( Math.random() * ( total + 1 ) );
+    const randIndex = Math.floor(Math.random() * (total + 1));
     return state.welcomeSentences[randIndex];
   }
-
 }

@@ -10,24 +10,25 @@ import { Lyrid } from './actions/browserslyrid.actions';
  */
 @State<BrowserstackBrowser[]>({
   name: 'lyrid_browsers',
-  defaults: []
+  defaults: [],
 })
 @Injectable()
 export class LyridBrowsersState {
+  constructor(private _api: ApiService) {}
 
-  constructor( private _api: ApiService ) { }
+  @Action(Lyrid.GetLyridBrowsers)
+  getLyridBrowsers({ setState }: StateContext<BrowserstackBrowser[]>) {
+    return this._api.getLyridBrowsers().pipe(
+      map(json => (json.success ? json.results : [])),
+      tap(browsers => setState(browsers))
+    );
+  }
 
-    @Action(Lyrid.GetLyridBrowsers)
-    getLyridBrowsers({ setState }: StateContext<BrowserstackBrowser[]>) {
-        return this._api.getLyridBrowsers().pipe(
-            map(json => json.success ? json.results : []),
-            tap(browsers => setState(browsers))
-        );
-    }
-
-    @Action(Lyrid.SetLyridBrowsers)
-    setLyridBrowsers({ setState }: StateContext<BrowserstackBrowser[]>, { browsers }: Lyrid.SetLyridBrowsers) {
-        setState(browsers);
-    }
-
+  @Action(Lyrid.SetLyridBrowsers)
+  setLyridBrowsers(
+    { setState }: StateContext<BrowserstackBrowser[]>,
+    { browsers }: Lyrid.SetLyridBrowsers
+  ) {
+    setState(browsers);
+  }
 }

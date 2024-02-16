@@ -4,10 +4,9 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   selector: 'cometa-email-template-help',
   templateUrl: 'email-template-help.component.html',
   styleUrls: ['email-template-help.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EmailTemplateHelp {
-
   variables = [
     ['status', 'The status of the result'],
     ['feature_result_id', 'ID of the result'],
@@ -25,7 +24,6 @@ export class EmailTemplateHelp {
     ['pixel_diff', 'Pixel difference of the result'],
     ['log', 'Log output of the result'],
     ['archived', 'Whether or not the result is archived'],
-    ['executed_by', 'User ID of who executed the result']
-  ]
-
+    ['executed_by', 'User ID of who executed the result'],
+  ];
 }
