@@ -10,12 +10,24 @@
       <!-- Displays a welcome message -->
       <div class="welcome_message">
         <!-- Welcome message with the username -->
-        <h1>Welcome <ng-container *ngIf="(showWelcome$ | async) == false">again</ng-container> to <span>co.</span>meta, {{ userName$ | async }}!</h1>
+        <h1>
+          Welcome
+          <ng-container *ngIf="(showWelcome$ | async) == false"
+            >again</ng-container
+          >
+          to <span>co.</span>meta, {{ userName$ | async }}!
+        </h1>
         <!-- Welcome text -->
         <p>
-          <ng-container *ngIf="(showWelcome$ | async) == true; else returnWelcome">Greetings! It seems like this is your first time in co.meta. Would you like to learn more about it? Then you can do so by clicking on the following buttons.</ng-container>
+          <ng-container
+            *ngIf="(showWelcome$ | async) == true; else returnWelcome"
+            >Greetings! It seems like this is your first time in co.meta. Would
+            you like to learn more about it? Then you can do so by clicking on
+            the following buttons.</ng-container
+          >
           <ng-template #returnWelcome>
-            Greetings! We are glad to see you again. Would you like to learn more about co.meta or do you need any help?
+            Greetings! We are glad to see you again. Would you like to learn
+            more about co.meta or do you need any help?
           </ng-template>
         </p>
       </div>
@@ -23,28 +35,46 @@
       <div class="welcome_buttons">
         <div>
           <div><i></i></div>
-          <a href="https://youtu.be/cuX7VJzWDYg" target="_blank"><h2>Co.meta tutorial</h2></a>
+          <a href="https://youtu.be/cuX7VJzWDYg" target="_blank"
+            ><h2>Co.meta tutorial</h2></a
+          >
           <p>Watch a tutorial</p>
-          <a href="https://youtu.be/cuX7VJzWDYg" target="_blank"><h3>Learn more</h3></a>
+          <a href="https://youtu.be/cuX7VJzWDYg" target="_blank"
+            ><h3>Learn more</h3></a
+          >
         </div>
         <div>
           <div><i></i></div>
           <a href="https://cometa.rocks/" target="_blank"><h2>Help</h2></a>
           <p>Get help</p>
-          <a href="https://cometa.rocks/" target="_blank"><h3>Learn more</h3></a>
+          <a href="https://cometa.rocks/" target="_blank"
+            ><h3>Learn more</h3></a
+          >
         </div>
         <div>
           <div><i></i></div>
-          <a href="https://github.com/cometa-rocks/cometa_documentation" target="_blank"><h2>Documentation</h2></a>
+          <a
+            href="https://github.com/cometa-rocks/cometa_documentation"
+            target="_blank"
+            ><h2>Documentation</h2></a
+          >
           <p>See the documentation</p>
-          <a href="https://github.com/cometa-rocks/cometa_documentation" target="_blank"><h3>Learn more</h3></a>
+          <a
+            href="https://github.com/cometa-rocks/cometa_documentation"
+            target="_blank"
+            ><h3>Learn more</h3></a
+          >
         </div>
       </div>
       <!-- Lower row of buttons with everything related to testcase creation -->
       <div class="create_testcase">
-        <div class="testcase_button" (click)="_sharedActions.openEditFeature()">Create your first testcase</div>
+        <div class="testcase_button" (click)="_sharedActions.openEditFeature()">
+          Create your first testcase
+        </div>
         <ng-container *ngLet="tours$ | async as tours">
-          <div (click)="startTour(tours[0])" class="tour_button">Start a tour on testcase creation</div>
+          <div (click)="startTour(tours[0])" class="tour_button">
+            Start a tour on testcase creation
+          </div>
         </ng-container>
       </div>
     </div>

@@ -1,13 +1,30 @@
-<h2 mat-dialog-title>Enter value for <i>{{ data.word }}</i></h2>
-<form [formGroup]="rForm" autocomplete="none" spellcheck="false" (ngSubmit)="submit(rForm.value)">
+<h2 mat-dialog-title>
+  Enter value for <i>{{ data.word }}</i>
+</h2>
+<form
+  [formGroup]="rForm"
+  autocomplete="none"
+  spellcheck="false"
+  (ngSubmit)="submit(rForm.value)">
   <mat-dialog-content>
     <mat-form-field appearance="outline" class="enter-value">
       <mat-label>{{ data.word }}</mat-label>
-      <input formControlName="value" disableAutocomplete spellcheck="false" [type]="isSecret(data.word) ? 'password' : 'text'" matInput placeholder="Value">
+      <input
+        formControlName="value"
+        disableAutocomplete
+        spellcheck="false"
+        [type]="isSecret(data.word) ? 'password' : 'text'"
+        matInput
+        placeholder="Value" />
     </mat-form-field>
   </mat-dialog-content>
   <mat-dialog-actions>
     <button mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
-    <button mat-stroked-button color="primary" [disabled]="rForm.value.value.length === 0">OK</button>
+    <button
+      mat-stroked-button
+      color="primary"
+      [disabled]="rForm.value.value.length === 0">
+      OK
+    </button>
   </mat-dialog-actions>
 </form>

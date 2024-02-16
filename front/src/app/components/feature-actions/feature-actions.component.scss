@@ -1,162 +1,163 @@
-
 @import 'color';
 @import 'breakpoints';
 
 :host {
-    display: flex;
-    z-index: 98;
-    flex: 0 80%;
-    height: 32px;
-    // creates too much space between action icons
-    // margin: 0 auto;
-    // justify-content: space-between;
-    // @include for-tablet-portrait-up {
-        flex: initial;
-    // }
-    & > div:not(:last-child) {
-        margin-right: 30px;
-    }
-    & > div {
-        vertical-align: top;
-        display: inline-block;
-        cursor: pointer;
-    }
+  display: flex;
+  z-index: 98;
+  flex: 0 80%;
+  height: 32px;
+  // creates too much space between action icons
+  // margin: 0 auto;
+  // justify-content: space-between;
+  // @include for-tablet-portrait-up {
+  flex: initial;
+  // }
+  & > div:not(:last-child) {
+    margin-right: 30px;
+  }
+  & > div {
+    vertical-align: top;
+    display: inline-block;
+    cursor: pointer;
+  }
 }
 
-.edit, .log {
-    height: 32px;
-    width: 32px;
-    background: url(^assets/internal/COM_Edit_Icon.svg) no-repeat;
-    background-size: contain;
-    transform: scale(1) rotate(0deg);
-    transition: transform .2s ease-in-out;
-    &:hover {
-        transform: scale(1.1) rotate(10deg);
-    }
+.edit,
+.log {
+  height: 32px;
+  width: 32px;
+  background: url(^assets/internal/COM_Edit_Icon.svg) no-repeat;
+  background-size: contain;
+  transform: scale(1) rotate(0deg);
+  transition: transform 0.2s ease-in-out;
+  &:hover {
+    transform: scale(1.1) rotate(10deg);
+  }
 }
 
-.log{
-    background: transparent;
-    border: 1px solid;
-    border-radius: 50%;
-    font-size: 12px;
-    text-align: center;
-    line-height: 32px;
+.log {
+  background: transparent;
+  border: 1px solid;
+  border-radius: 50%;
+  font-size: 12px;
+  text-align: center;
+  line-height: 32px;
 }
 
 .schedule {
-    height: 30px;
-    width: 30px;
-    opacity: .7;
-    border: 1px solid black;
-    border-radius: 50%;
-    background: url(^assets/icons/calendar.svg) no-repeat;
-    background-size: 16px;
-    background-position: 8px 7px;
-    transform: scale(1) rotate(0deg);
-    transition: transform .2s ease-in-out;
-    &:hover {
-        transform: scale(1.1) rotate(10deg);
-    }
+  height: 30px;
+  width: 30px;
+  opacity: 0.7;
+  border: 1px solid black;
+  border-radius: 50%;
+  background: url(^assets/icons/calendar.svg) no-repeat;
+  background-size: 16px;
+  background-position: 8px 7px;
+  transform: scale(1) rotate(0deg);
+  transition: transform 0.2s ease-in-out;
+  &:hover {
+    transform: scale(1.1) rotate(10deg);
+  }
 }
 
 .run {
-    height: 32px;
-    width: 32px;
-    background: url(^assets/play-button.svg) no-repeat;
-    background-size: contain;
-    transform: scale(1);
-    transition: transform .2s ease-in-out;
-    &:hover {
-        transform: scale(1.2);
-    }
+  height: 32px;
+  width: 32px;
+  background: url(^assets/play-button.svg) no-repeat;
+  background-size: contain;
+  transform: scale(1);
+  transition: transform 0.2s ease-in-out;
+  &:hover {
+    transform: scale(1.2);
+  }
 }
 
-.pdf, .csv {
-    background: transparent;
-    border: 1px solid black;
-    border-radius: 50%;
-    font-size: 12px;
-    text-align: center;
-    line-height: 32px;
-    transform: scale(1) rotate(0deg);
-    transition: transform .2s ease-in-out;
-    &:hover {
-        transform: scale(1.1) rotate(10deg);
-    }
+.pdf,
+.csv {
+  background: transparent;
+  border: 1px solid black;
+  border-radius: 50%;
+  font-size: 12px;
+  text-align: center;
+  line-height: 32px;
+  transform: scale(1) rotate(0deg);
+  transition: transform 0.2s ease-in-out;
+  &:hover {
+    transform: scale(1.1) rotate(10deg);
+  }
 }
 
 .pdf {
-    height: 30px;
-    width: 30px;
-    background-size: 22px 20px;
-    margin-right: 30px;
-    background-image: url(^assets/icons/pdf.svg);
-    background-repeat: no-repeat;
-    background-position: center;
+  height: 30px;
+  width: 30px;
+  background-size: 22px 20px;
+  margin-right: 30px;
+  background-image: url(^assets/icons/pdf.svg);
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .csv {
-    height: 30px;
-    width: 30px;
-    background-image: url(^assets/icons/csv.svg);
-    background-repeat: no-repeat;
-    background-size: contain;
-    background-position: center;
+  height: 30px;
+  width: 30px;
+  background-image: url(^assets/icons/csv.svg);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
 }
 
 .more {
-    height: 32px;
-    width: 30px;
-    opacity: .7;
-    background-image: url(^assets/icons/more.svg);
-    background-repeat: no-repeat;
-    background-size: 25px;
-    background-position: center;
-    transform: scale(1);
-    transition: transform .2s ease-in-out;
-    &:hover {
-        transform: scale(1.2);
-    }
+  height: 32px;
+  width: 30px;
+  opacity: 0.7;
+  background-image: url(^assets/icons/more.svg);
+  background-repeat: no-repeat;
+  background-size: 25px;
+  background-position: center;
+  transform: scale(1);
+  transition: transform 0.2s ease-in-out;
+  &:hover {
+    transform: scale(1.2);
+  }
 }
 
 .running {
-    height: 40px;
-    width: 40px;
-    background: url(^assets/running_loading_blue.svg) no-repeat;
-    background-size: contain;
+  height: 40px;
+  width: 40px;
+  background: url(^assets/running_loading_blue.svg) no-repeat;
+  background-size: contain;
 }
 
 .notification {
-    height: 30px;
-    width: 30px;
-    border: 1px solid black;
-    border-radius: 50%;
-    opacity: .7;
-    background-image: url(^assets/icons/bell.svg);
-    background-size: 16px;
-    background-repeat: no-repeat;
-    background-position: center;
-    transform: scale(1) rotate(0deg);
-    transition: all .2s ease-in-out;
-    &:hover {
-        transform: scale(1.1) rotate(10deg);
-    }
-    &.enabled {
-        border-color: $blue;
-        background-color: $blue;
-        opacity: 1;
-        background-image: url(^assets/icons/bell-white.svg);
-    }
+  height: 30px;
+  width: 30px;
+  border: 1px solid black;
+  border-radius: 50%;
+  opacity: 0.7;
+  background-image: url(^assets/icons/bell.svg);
+  background-size: 16px;
+  background-repeat: no-repeat;
+  background-position: center;
+  transform: scale(1) rotate(0deg);
+  transition: all 0.2s ease-in-out;
+  &:hover {
+    transform: scale(1.1) rotate(10deg);
+  }
+  &.enabled {
+    border-color: $blue;
+    background-color: $blue;
+    opacity: 1;
+    background-image: url(^assets/icons/bell-white.svg);
+  }
 }
 
 ::ng-deep .options-menu-panel {
-    min-width: 90px !important;
-    .mat-menu-item {
-        // padding-right: 15px;
-        // padding-left: 15px;
-        &:after {
-            display: none;
-        }
+  min-width: 90px !important;
+  .mat-menu-item {
+    // padding-right: 15px;
+    // padding-left: 15px;
+    &:after {
+      display: none;
     }
+  }
 }

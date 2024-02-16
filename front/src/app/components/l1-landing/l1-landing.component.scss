@@ -8,117 +8,118 @@
 @import 'breakpoints';
 
 :host {
-    display: block;
-    height: 100%;
+  display: block;
+  height: 100%;
 }
 
 .container {
-    display: flex;
-    position: relative;
-    height: 100%;
+  display: flex;
+  position: relative;
+  height: 100%;
 }
 
 edit-variables {
-    padding: 20px 0 0 10px;
-    height: 85%;
-    overflow: auto;
+  padding: 20px 0 0 10px;
+  height: 85%;
+  overflow: auto;
 
-    ::ng-deep button {
-        border: 0;
-        &.mat-stroked-button {
-            border: 1px solid rgba(0, 0, 0, 0.12);
-        }
+  ::ng-deep button {
+    border: 0;
+    &.mat-stroked-button {
+      border: 1px solid rgba(0, 0, 0, 0.12);
     }
+  }
 }
 
 // Add-feature icon on mobile. The size of 21 pixels is due to the lack of padding on the icon
 .icon {
-    cursor: pointer;
-    outline: 0;
-    i {
-        display: block;
-        height: 21px;
-        width: 21px;
-        &.feature-icon {
-            background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
-            background-size: contain;
-            stroke-width: 3;
-            height: 21px;
-        }
+  cursor: pointer;
+  outline: 0;
+  i {
+    display: block;
+    height: 21px;
+    width: 21px;
+    &.feature-icon {
+      background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
+      background-size: contain;
+      stroke-width: 3;
+      height: 21px;
     }
+  }
 }
 
 .backdrop {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background: $high-black;
-    // z-index: 5;
-    opacity: 0;
-    // pointer-events: none;
-    @include for-phone-only{
-        z-index: 1;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: $high-black;
+  // z-index: 5;
+  opacity: 0;
+  // pointer-events: none;
+  @include for-phone-only {
+    z-index: 1;
 
-        &.opened {
-            pointer-events: unset;
-            opacity: 0;
-            z-index: -1;
-        }
+    &.opened {
+      pointer-events: unset;
+      opacity: 0;
+      z-index: -1;
     }
-    transition: opacity .5s ease-in-out;
+  }
+  transition: opacity 0.5s ease-in-out;
 }
 
-
 .searcher {
-    display: block;
-    width: var(--sidenav-width); // fixed width of 300 px for sidenav by default
-    height: 100%;
-    min-height: 45px;
-    max-height: calc(100vh - var(--header-height));
-    background: $body-bg-color;
-    border-right: 1px solid $border-color;
-    box-sizing: border-box;
-    overflow: hidden;
-    white-space: nowrap;
-    transition: width 1s;
-    &.closed { width: 0%; }
+  display: block;
+  width: var(--sidenav-width); // fixed width of 300 px for sidenav by default
+  height: 100%;
+  min-height: 45px;
+  max-height: calc(100vh - var(--header-height));
+  background: $body-bg-color;
+  border-right: 1px solid $border-color;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width 1s;
+  &.closed {
+    width: 0%;
+  }
 
-    // width: 15vw;
+  // width: 15vw;
+  // flex: 0 var(--sidenav-width);
+  // transition: transform 2.5s;
+  // transition-timing-function: cubic-bezier(0.1, 0.5, 1.0, 0.1);
+  // transform: translateX(-100vw);
+  // position: absolute;
+
+  @include for-phone-only {
+    position: absolute;
+    width: 55vw;
+    z-index: 10;
     // flex: 0 var(--sidenav-width);
-    // transition: transform 2.5s;
-    // transition-timing-function: cubic-bezier(0.1, 0.5, 1.0, 0.1);
     // transform: translateX(-100vw);
-    // position: absolute;
-
-    @include for-phone-only {
-        position: absolute;
-        width: 55vw;
-        z-index: 10;
-        // flex: 0 var(--sidenav-width);
-        // transform: translateX(-100vw);
-        // margin-left: unset;
-        // width: 55vw; // sidenav will take approximately 50% of current screen size, only when app is reproduced in small device
-        // transform: translateX(-100vw);
-        // &.opened {
-            // transform: translateX(0);
-            // margin-left: unset;
-        // }
-        // &.closed {
-            // transform: translateX(0);
-        // }
-    }
-    // &.closed {
-        // position: relative;
-        // transform: translateX(0);
-        // margin-left: unset;
-        // @include for-phone-only {
-            // position: absolute;
-            // transform: translateX(-100vw);
-        // }
+    // margin-left: unset;
+    // width: 55vw; // sidenav will take approximately 50% of current screen size, only when app is reproduced in small device
+    // transform: translateX(-100vw);
+    // &.opened {
+    // transform: translateX(0);
+    // margin-left: unset;
     // }
+    // &.closed {
+    // transform: translateX(0);
+    // }
+  }
+  // &.closed {
+  // position: relative;
+  // transform: translateX(0);
+  // margin-left: unset;
+  // @include for-phone-only {
+  // position: absolute;
+  // transform: translateX(-100vw);
+  // }
+  // }
 
-    // hide sidebar leaves icons visible
-    /*@include for-phone-only {
+  // hide sidebar leaves icons visible
+  /*@include for-phone-only {
         // when sidebar is open in mobile devices
         &.opened {
 
@@ -148,313 +149,323 @@ edit-variables {
         }
     }*/
 
-    .add-from-sidenav {
-        display: inline-block;
-        padding: 15px 15px;
-        // display: flex;
-        // flex-wrap: wrap;
-        // width: 70%;
-        // align-items: center;
-        // justify-content: flex-start;
-        // box-sizing: border-box;
-        .addIcon, .addFeatureIcon, .addFolderIcon, .addDataDrivenIcon {
-            width: auto;
-            height: 40px;
-            background: $blue;
-            padding: 0 10px;
-        }
-        .addFolderIcon {
-            position: absolute;
-            visibility: visible;
-            top: 70px;
-            transition: all .3s ease-in-out;
-            z-index: 102;
-        }
-        .addFeatureIcon {
-            position: absolute;
-            visibility: visible;
-            top: 125px;
-            transition: all .3s ease-in-out;
-            z-index: 102;
-            // Add-feature icon on desktop. The size of 21 pixels is due to the lack of padding on the icon
-            .icon {
-                outline: 0;
-                float: left;
-                margin-top: 8px;
-                padding-right: 5px;
-                i {
-                    height: 21px;
-                    width: 21px;
-                    &.feature-icon {
-                        background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
-                        background-size: contain;
-                        stroke-width: 3;
-                        height: 21px;
-                    }
-                }
-            }
-        }
-        .addDataDrivenIcon {
-            position: absolute;
-            visibility: visible;
-            top: 180px;
-            transition: all .3s ease-in-out;
-            z-index: 102;
-            // Add-feature icon on desktop. The size of 21 pixels is due to the lack of padding on the icon
-            .icon {
-                outline: 0;
-                float: left;
-                margin-top: 8px;
-                padding-right: 5px;
-                i {
-                    height: 21px;
-                    width: 21px;
-                    &.feature-icon {
-                        background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
-                        background-size: contain;
-                        stroke-width: 3;
-                        height: 21px;
-                    }
-                }
-            }
-        }
-        button {
-            color: $white-text;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-        }
-        .hideAdd {
-            visibility: hidden;
-            opacity: 0;
-            top: 60px;
-            transition: all .3s ease-in-out;
-        }
-        @include for-phone-only {
-            display: none;
-        }
+  .add-from-sidenav {
+    display: inline-block;
+    padding: 15px 15px;
+    // display: flex;
+    // flex-wrap: wrap;
+    // width: 70%;
+    // align-items: center;
+    // justify-content: flex-start;
+    // box-sizing: border-box;
+    .addIcon,
+    .addFeatureIcon,
+    .addFolderIcon,
+    .addDataDrivenIcon {
+      width: auto;
+      height: 40px;
+      background: $blue;
+      padding: 0 10px;
     }
-    .folder-tree {
-        overflow: auto;
-        height: calc(100% - 70px);
+    .addFolderIcon {
+      position: absolute;
+      visibility: visible;
+      top: 70px;
+      transition: all 0.3s ease-in-out;
+      z-index: 102;
     }
-    .filter-icon {
+    .addFeatureIcon {
+      position: absolute;
+      visibility: visible;
+      top: 125px;
+      transition: all 0.3s ease-in-out;
+      z-index: 102;
+      // Add-feature icon on desktop. The size of 21 pixels is due to the lack of padding on the icon
+      .icon {
+        outline: 0;
         float: left;
-        display: block;
-        height: 50px;
-        width: 52px;
-        cursor: pointer;
-        background-image: url(^assets/filter.svg);
-        background-repeat: no-repeat;
-        background-size: 20px;
-        background-position: 16px 18px;
-        top: 0;
-        left: 0;
+        margin-top: 8px;
+        padding-right: 5px;
+        i {
+          height: 21px;
+          width: 21px;
+          &.feature-icon {
+            background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
+            background-size: contain;
+            stroke-width: 3;
+            height: 21px;
+          }
+        }
+      }
     }
+    .addDataDrivenIcon {
+      position: absolute;
+      visibility: visible;
+      top: 180px;
+      transition: all 0.3s ease-in-out;
+      z-index: 102;
+      // Add-feature icon on desktop. The size of 21 pixels is due to the lack of padding on the icon
+      .icon {
+        outline: 0;
+        float: left;
+        margin-top: 8px;
+        padding-right: 5px;
+        i {
+          height: 21px;
+          width: 21px;
+          &.feature-icon {
+            background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
+            background-size: contain;
+            stroke-width: 3;
+            height: 21px;
+          }
+        }
+      }
+    }
+    button {
+      color: $white-text;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+    }
+    .hideAdd {
+      visibility: hidden;
+      opacity: 0;
+      top: 60px;
+      transition: all 0.3s ease-in-out;
+    }
+    @include for-phone-only {
+      display: none;
+    }
+  }
+  .folder-tree {
+    overflow: auto;
+    height: calc(100% - 70px);
+  }
+  .filter-icon {
+    float: left;
+    display: block;
+    height: 50px;
+    width: 52px;
+    cursor: pointer;
+    background-image: url(^assets/filter.svg);
+    background-repeat: no-repeat;
+    background-size: 20px;
+    background-position: 16px 18px;
+    top: 0;
+    left: 0;
+  }
 }
 
 .list {
-    display: block;
-    float: left;
-    position: relative;
+  display: block;
+  float: left;
+  position: relative;
 }
 
 .viewer {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    flex: 1 100%;
-    overflow-y: scroll;
-    .features_folders_count {
-        padding-bottom: 20px;
-        padding-left: 10px;
-        .blue {
-            color: $blue;
-            font-weight: bold;
-        }
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1 100%;
+  overflow-y: scroll;
+  .features_folders_count {
+    padding-bottom: 20px;
+    padding-left: 10px;
+    .blue {
+      color: $blue;
+      font-weight: bold;
     }
+  }
 }
 
 .feature-list {
-    flex: 1;
-    padding: 25px 10px 0;
-    max-height: calc(100vh - var(--header-height) - var(--new-landing-filters-height));
-    overflow-x: hidden;
-    box-sizing: border-box;
-    @include for-phone-only {
-        max-width: 100vw;
-        padding: 20px 0 0 5px;
-    }
-    &.hide-features {
-        display: none;
-    }
+  flex: 1;
+  padding: 25px 10px 0;
+  max-height: calc(
+    100vh - var(--header-height) - var(--new-landing-filters-height)
+  );
+  overflow-x: hidden;
+  box-sizing: border-box;
+  @include for-phone-only {
+    max-width: 100vw;
+    padding: 20px 0 0 5px;
+  }
+  &.hide-features {
+    display: none;
+  }
 }
 
 p {
-    text-align: center;
+  text-align: center;
 }
 
 .features-header {
+  display: flex;
+  padding: 0 10px;
+  justify-content: space-between;
+  align-items: center;
+  height: 40px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: $high-dark;
+  .view-selector {
     display: flex;
-    padding: 0 10px;
     justify-content: space-between;
     align-items: center;
-    height: 40px;
-    margin-bottom: 10px;
-    font-weight: bold;
-    color: $high-dark;
-    .view-selector {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex: 0 120px;
-        height: 100%;
-        border-radius: 5px;
-        overflow: hidden;
-        box-shadow: 0 3px 1px -2px $table-low-shadow, 0 2px 2px 0 $table-medium-shadow, 0 1px 5px 0 $table-low-shadow;
-        .view {
-            flex: 0 40px;
-            height: 40px;
-            background-repeat: no-repeat;
-            background-position: center;
-            position: relative;
-            cursor: pointer;
-            background-color: $transparent-white;
-            &.selected {
-                background-color: rgba($blue, .85);
-                &:after {
-                    filter: brightness(1);
-                    opacity: 1;
-                }
-            }
-            &:after {
-                content: "";
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                background-repeat: no-repeat;
-                background-position: center;
-                filter: brightness(0.1);
-                opacity: .5;
-            }
-            &.tiles:after {
-                background-image: url(^assets/icons/tiles-view.svg);
-                background-size: 15px;
-            }
-            &.list:after {
-                background-image: url(^assets/icons/list-view.svg);
-                background-size: 20px;
-            }
-            &.tree:after {
-                background-image: url(^assets/icons/tree-view.svg);
-                background-size: 20px;
-            }
+    flex: 0 120px;
+    height: 100%;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow:
+      0 3px 1px -2px $table-low-shadow,
+      0 2px 2px 0 $table-medium-shadow,
+      0 1px 5px 0 $table-low-shadow;
+    .view {
+      flex: 0 40px;
+      height: 40px;
+      background-repeat: no-repeat;
+      background-position: center;
+      position: relative;
+      cursor: pointer;
+      background-color: $transparent-white;
+      &.selected {
+        background-color: rgba($blue, 0.85);
+        &:after {
+          filter: brightness(1);
+          opacity: 1;
         }
+      }
+      &:after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-repeat: no-repeat;
+        background-position: center;
+        filter: brightness(0.1);
+        opacity: 0.5;
+      }
+      &.tiles:after {
+        background-image: url(^assets/icons/tiles-view.svg);
+        background-size: 15px;
+      }
+      &.list:after {
+        background-image: url(^assets/icons/list-view.svg);
+        background-size: 20px;
+      }
+      &.tree:after {
+        background-image: url(^assets/icons/tree-view.svg);
+        background-size: 20px;
+      }
     }
+  }
 }
 
-.add-button, .add-feature, .add-folder {
-    display: none;
-    position: fixed;
-    z-index: 102;
-    @include for-phone-only {
-        display: unset;
-    }
+.add-button,
+.add-feature,
+.add-folder {
+  display: none;
+  position: fixed;
+  z-index: 102;
+  @include for-phone-only {
+    display: unset;
+  }
 }
 
 .addIcon {
-    background: $blue;
-    mat-icon {
-        color: $body-bg-color;
-    }
+  background: $blue;
+  mat-icon {
+    color: $body-bg-color;
+  }
 }
 
 .add-button {
-    bottom: 20px;
-    right: 20px;
+  bottom: 20px;
+  right: 20px;
 }
 
 .add-feature {
-    bottom: 140px;
-    right: 20px;
-    transition: all .3s ease-in-out;
+  bottom: 140px;
+  right: 20px;
+  transition: all 0.3s ease-in-out;
 }
 
 .add-folder {
-    bottom: 80px;
-    right: 20px;
-    transition: all .3s ease-in-out;
+  bottom: 80px;
+  right: 20px;
+  transition: all 0.3s ease-in-out;
 }
 
 .add-feature-tooltip {
-    display: none;
-    z-index: 102;
-    @include for-phone-only {
-        position: fixed;
-        display: unset;
-        bottom: 156px;
-        right: 95px;
-        background: $body-bg-color;
-        color: $primary-color;
-        padding: 3px 5px;
-        border-radius: 3px;
-        transition: all .3s ease-in-out;
-    }
+  display: none;
+  z-index: 102;
+  @include for-phone-only {
+    position: fixed;
+    display: unset;
+    bottom: 156px;
+    right: 95px;
+    background: $body-bg-color;
+    color: $primary-color;
+    padding: 3px 5px;
+    border-radius: 3px;
+    transition: all 0.3s ease-in-out;
+  }
 }
 
 .add-folder-tooltip {
-    display: none;
-    z-index: 102;
-    @include for-phone-only {
-        position: fixed;
-        display: unset;
-        bottom: 95px;
-        right: 95px;
-        background: $body-bg-color;
-        color: $primary-color;
-        padding: 3px 5px;
-        border-radius: 3px;
-        transition: all .3s ease-in-out;
-    }
+  display: none;
+  z-index: 102;
+  @include for-phone-only {
+    position: fixed;
+    display: unset;
+    bottom: 95px;
+    right: 95px;
+    background: $body-bg-color;
+    color: $primary-color;
+    padding: 3px 5px;
+    border-radius: 3px;
+    transition: all 0.3s ease-in-out;
+  }
 }
 
 .hide-add {
-    bottom: 20px;
-    right: 20px;
-    opacity: 0;
-    transition: all .3s ease-in-out;
+  bottom: 20px;
+  right: 20px;
+  opacity: 0;
+  transition: all 0.3s ease-in-out;
 }
 
 .new-feature-text {
-    color: $blue;
-    cursor: pointer;
+  color: $blue;
+  cursor: pointer;
 }
 
 .mobile_backdrop {
-    background: $transparent-bg;
+  background: $transparent-bg;
+  position: absolute;
+  top: -85px;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 101;
+  transition: all 0.3s ease-in-out;
+  @include for-tablet-portrait-up {
+    display: none;
+  }
+}
+
+.desktop_backdrop {
+  display: none;
+  @include for-tablet-portrait-up {
+    display: unset;
+    background: none;
     position: absolute;
     top: -85px;
     left: 0;
     width: 100vw;
     height: 100vh;
     z-index: 101;
-    transition: all .3s ease-in-out;
-    @include for-tablet-portrait-up {
-        display: none;
-    }
-}
-
-.desktop_backdrop {
-    display: none;
-    @include for-tablet-portrait-up {
-        display: unset;
-        background: none;
-        position: absolute;
-        top: -85px;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 101;
-        transition: all .3s ease-in-out;
-    }
+    transition: all 0.3s ease-in-out;
+  }
 }

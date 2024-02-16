@@ -14,21 +14,21 @@ import { Environments } from '@store/actions/environments.actions';
   selector: 'admin-environments',
   templateUrl: './environments.component.html',
   styleUrls: ['./environments.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EnvironmentsComponent implements OnInit {
-
   constructor(
     private _api: ApiService,
     private _dialog: MatDialog,
     private _store: Store
-  ) { }
+  ) {}
 
   trackByFn(index, item: Environment) {
     return item.environment_id;
   }
 
-  @Select(UserState.GetPermission('create_environment')) canCreateEnvironment$: Observable<boolean>;
+  @Select(UserState.GetPermission('create_environment'))
+  canCreateEnvironment$: Observable<boolean>;
   @Select(EnvironmentsState) environments$: Observable<Environment[]>;
 
   ngOnInit() {
@@ -37,22 +37,26 @@ export class EnvironmentsComponent implements OnInit {
 
   @Subscribe()
   new() {
-    return this._dialog.open(EnterValueComponent, {
-      autoFocus: true,
-      data: {
-        word: 'Environment'
-      }
-    }).afterClosed().pipe(
-      map(res => res.value),
-      filter(value => !!value),
-      switchMap(value => this._api.createEnvironment(value)),
-      switchMap(response => this._store.dispatch(
-        new Environments.AddEnvironment({
-          environment_id: response.environment_id,
-          environment_name: response.environment_name
-        })
-      ))
-    );
+    return this._dialog
+      .open(EnterValueComponent, {
+        autoFocus: true,
+        data: {
+          word: 'Environment',
+        },
+      })
+      .afterClosed()
+      .pipe(
+        map(res => res.value),
+        filter(value => !!value),
+        switchMap(value => this._api.createEnvironment(value)),
+        switchMap(response =>
+          this._store.dispatch(
+            new Environments.AddEnvironment({
+              environment_id: response.environment_id,
+              environment_name: response.environment_name,
+            })
+          )
+        )
+      );
   }
-
 }

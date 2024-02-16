@@ -5,14 +5,12 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Pipe({
-  name: 'loading'
+  name: 'loading',
 })
 export class LoadingPipe implements PipeTransform {
-
   @Select(LoadingsState) loadings$: Observable<ILoadingsState>;
 
   transform(id: string | number): Observable<boolean> {
-    return this.loadings$.pipe( map(loadings => loadings[id]) )
+    return this.loadings$.pipe(map(loadings => loadings[id]));
   }
-
 }
