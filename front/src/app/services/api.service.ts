@@ -6,7 +6,10 @@ import { filter, map, switchMap } from 'rxjs/operators';
 import { encodeURLParams } from 'ngx-amvara-toolbox';
 import { InterceptorParams } from 'ngx-network-error';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
-import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
+import {
+  AreYouSureData,
+  AreYouSureDialog,
+} from '@dialogs/are-you-sure/are-you-sure.component';
 
 @Injectable()
 export class ApiService {
@@ -15,19 +18,22 @@ export class ApiService {
     private _dialog: MatDialog,
     @Inject(API_URL) public api: string,
     @Inject(API_BASE) public base: string
-  ) {  }
+  ) {}
 
   /**
    * @description Save favourite browsers on the Backend for the current logged user
    * @author Alex Barba
    * @usedIn UserState
    */
-  saveBrowserFavourites(user: UserInfo, browsers: BrowserstackBrowser[]): Observable<boolean> {
+  saveBrowserFavourites(
+    user: UserInfo,
+    browsers: BrowserstackBrowser[]
+  ): Observable<boolean> {
     return this._http.patch<any>(`${this.api}accounts/${user.user_id}/`, {
       email: user.email,
       permission_name: user.user_permissions.permission_name,
       name: user.name,
-      favourite_browsers: JSON.stringify(browsers)
+      favourite_browsers: JSON.stringify(browsers),
     });
   }
 
@@ -41,21 +47,25 @@ export class ApiService {
     return this._http.patch<Success>(`${this.api}accounts/${user.user_id}/`, {
       email: user.email,
       name: user.name,
-      settings: settings
+      settings: settings,
     });
   }
 
-  doOIDCLogin = () => this._http.get<UserInfo>(`${this.base}addoidcaccount/${window.location.search}`);
+  doOIDCLogin = () =>
+    this._http.get<UserInfo>(
+      `${this.base}addoidcaccount/${window.location.search}`
+    );
 
   // Get Folders of features
   getFolders = () => this._http.get<FoldersResponse>(`${this.api}folders/`);
-  getTreeView = () => this._http.get<FoldersResponse>(`${this.api}folders/?tree`);
+  getTreeView = () =>
+    this._http.get<FoldersResponse>(`${this.api}folders/?tree`);
 
   // Create Folder on the backend for the current logged user and inside another folder
   createFolder(name: string, department_id: number, parent_id: number = 0) {
     const params = {
       name: name,
-      department: department_id
+      department: department_id,
     } as any;
     if (parent_id !== 0 && parent_id !== null) {
       params.parent_id = parent_id;
@@ -74,9 +84,14 @@ export class ApiService {
   }
 
   // Move feature folder on the backend for the current logged user
-  moveFeatureFolder(previous_id: number | string, next_id: number, feature_id: number, department_id?: number) {
+  moveFeatureFolder(
+    previous_id: number | string,
+    next_id: number,
+    feature_id: number,
+    department_id?: number
+  ) {
     const params = {
-      feature_id: feature_id
+      feature_id: feature_id,
     } as any;
     if (previous_id !== 0) {
       params.old_folder = previous_id;
@@ -93,33 +108,39 @@ export class ApiService {
 
   // Get Log Output
   getLogOutput(feature_result_id: number) {
-    return this._http.get<Log>(`${this.base}feature_results/${feature_result_id}/log`);
+    return this._http.get<Log>(
+      `${this.base}feature_results/${feature_result_id}/log`
+    );
   }
 
   // Get HTML Difference
   getHTMLDiff(step_result_id: number) {
-    return this._http.get<DiffResponse>(`${this.base}html_diff/${step_result_id}/`);
+    return this._http.get<DiffResponse>(
+      `${this.base}html_diff/${step_result_id}/`
+    );
   }
 
   // Get FeatureResult info
   getFeatureResult(feature_result_id: number) {
-    return this._http.get<any>(`${this.api}feature_results/${feature_result_id}/`).pipe(
-      map(json => json.result as FeatureResult)
-    );
+    return this._http
+      .get<any>(`${this.api}feature_results/${feature_result_id}/`)
+      .pipe(map(json => json.result as FeatureResult));
   }
 
   // Get Feature Runs
   getFeatureRuns(feature_id: number) {
-    return this._http.get<PaginatedResponse<FeatureRun>>(`${this.api}feature_results/?feature_id=${feature_id}`).pipe(
-      map(res => res.results)
-    );
+    return this._http
+      .get<
+        PaginatedResponse<FeatureRun>
+      >(`${this.api}feature_results/?feature_id=${feature_id}`)
+      .pipe(map(res => res.results));
   }
 
   // Remove step result screenshot file
   removeScreenshot(step_result_id: number, type: ScreenshotType) {
     return this._http.post<Success>(`${this.base}removeScreenshot/`, {
       step_result_id: step_result_id,
-      type: type
+      type: type,
     });
   }
 
@@ -127,41 +148,53 @@ export class ApiService {
   removeTemplate(step_result_id: number, file: string) {
     return this._http.post<Success>(`${this.base}removeTemplate/`, {
       step_result_id: step_result_id,
-      template: file
+      template: file,
     });
   }
 
   getFeature(FeatureID: number, params?) {
-    return this._http.get<PaginatedResponse<Feature>>(`${this.api}features/${FeatureID}/`, { params: params }).pipe(
-      map(res => res.results.find(feature => feature.feature_id === FeatureID))
-    );
+    return this._http
+      .get<
+        PaginatedResponse<Feature>
+      >(`${this.api}features/${FeatureID}/`, { params: params })
+      .pipe(
+        map(res =>
+          res.results.find(feature => feature.feature_id === FeatureID)
+        )
+      );
   }
 
   // Get all step specifying a ID or Name
   getFeatureSteps(feature_id: number, params?) {
-    return this._http.get<PaginatedResponse<FeatureStep>>(`${this.base}steps/${feature_id}/`, { params: params }).pipe(
-      map(res => res.results)
-    )
+    return this._http
+      .get<
+        PaginatedResponse<FeatureStep>
+      >(`${this.base}steps/${feature_id}/`, { params: params })
+      .pipe(map(res => res.results));
   }
 
   // Get REST API call
   getRestAPI(id: number) {
-    return this._http.get<Success>(`${this.api}rest_api/${id}/`).pipe(
-      map(res => res.result)
-    )
+    return this._http
+      .get<Success>(`${this.api}rest_api/${id}/`)
+      .pipe(map(res => res.result));
   }
 
   // Parse JQ
   getParsedJQFilter(filter: string, rest_id: number) {
-    return this._http.post<Success>(`${this.base}compile_jq/`, {
-      "pattern": filter,
-      "rest_api": rest_id
-    }, {
-      params: new InterceptorParams({
-        skipInterceptor: true,
-        silent: true
-      })
-    })
+    return this._http.post<Success>(
+      `${this.base}compile_jq/`,
+      {
+        pattern: filter,
+        rest_api: rest_id,
+      },
+      {
+        params: new InterceptorParams({
+          skipInterceptor: true,
+          silent: true,
+        }),
+      }
+    );
   }
 
   /**
@@ -171,9 +204,9 @@ export class ApiService {
    * @returns Observable<StepResult>
    */
   getStepResult(step_result_id: number) {
-    return this._http.get<Success>(`${this.api}step_result/${step_result_id}/`).pipe(
-      map(res => res.results)
-    )
+    return this._http
+      .get<Success>(`${this.api}step_result/${step_result_id}/`)
+      .pipe(map(res => res.results));
   }
 
   /**
@@ -182,7 +215,10 @@ export class ApiService {
    * @param patches Partial object of StepResult
    */
   patchStepResult(step_result_id: number, patches: Partial<StepResult>) {
-    return this._http.patch<Success>(`${this.api}step_result/${step_result_id}/`, patches);
+    return this._http.patch<Success>(
+      `${this.api}step_result/${step_result_id}/`,
+      patches
+    );
   }
 
   /**
@@ -190,10 +226,18 @@ export class ApiService {
    * @param featureResultId Feature result id
    * @param archive Partial object of FeatureResult
    */
-  patchFeatureResult(featureResultId: number, patches: Partial<FeatureResult>, params?) {
-    return this._http.patch<Success>(`${this.api}feature_results/${featureResultId}/`, patches, {
-      params: params
-    });
+  patchFeatureResult(
+    featureResultId: number,
+    patches: Partial<FeatureResult>,
+    params?
+  ) {
+    return this._http.patch<Success>(
+      `${this.api}feature_results/${featureResultId}/`,
+      patches,
+      {
+        params: params,
+      }
+    );
   }
 
   /**
@@ -202,40 +246,52 @@ export class ApiService {
    * @param archive Partial object of FeatureRun
    */
   patchRun(runId: number, patches: Partial<FeatureRun>, params?) {
-    return this._http.patch<Success>(`${this.api}feature_run/${runId}/`, patches, {
-      params: params
-    });
+    return this._http.patch<Success>(
+      `${this.api}feature_run/${runId}/`,
+      patches,
+      {
+        params: params,
+      }
+    );
   }
 
   // Get available steps with a department and application
   getAvailableActions(department: string = 'DIF', app: string = 'amvara') {
     const params = '?' + encodeURLParams({ department: department, app: app });
-    return this._http.get<PaginatedResponse<Action>>(`${this.api}actions/${params}`).pipe(
-      map(res => res.results)
-    );
+    return this._http
+      .get<PaginatedResponse<Action>>(`${this.api}actions/${params}`)
+      .pipe(map(res => res.results));
   }
 
   // Get Environment
   getEnvironments() {
-    return this._http.get<PaginatedResponse<Environment>>(`${this.api}environments/`);
+    return this._http.get<PaginatedResponse<Environment>>(
+      `${this.api}environments/`
+    );
   }
 
   // Get features
   getFeatures() {
-    return this._http.get<PaginatedResponse<Feature>>(`${this.api}features/`).pipe(
-      map(json => {
-        if (json.results && json.results[0] && json.results[0].browsers === null) {
-          json.results[0].browsers = [];
-        }
-        return json;
-      })
-    );
+    return this._http
+      .get<PaginatedResponse<Feature>>(`${this.api}features/`)
+      .pipe(
+        map(json => {
+          if (
+            json.results &&
+            json.results[0] &&
+            json.results[0].browsers === null
+          ) {
+            json.results[0].browsers = [];
+          }
+          return json;
+        })
+      );
   }
 
   // Create feature and run
   createFeature(query: SendFeature, params?) {
     return this._http.post<Feature>(`${this.api}features/`, query, {
-      params: params
+      params: params,
     });
   }
 
@@ -246,12 +302,16 @@ export class ApiService {
    * @returns Observable<EditFeatureResponse>
    */
   patchFeature(featureId: number, patches: Partial<Feature>, params?) {
-    return this._http.patch<EditFeatureResponse>(`${this.api}features/`, {
-      feature_id: featureId,
-      ...patches
-    }, {
-      params: params
-    })
+    return this._http.patch<EditFeatureResponse>(
+      `${this.api}features/`,
+      {
+        feature_id: featureId,
+        ...patches,
+      },
+      {
+        params: params,
+      }
+    );
   }
 
   /**
@@ -260,7 +320,13 @@ export class ApiService {
    * @param {Partial<Feature>} patches Partial object of Feature modified
    * @returns Observable<EditFeatureResponse>
    */
-   patchFeatureV2(featureId: number, patches: Partial<Feature>, previous_id: number | string, next_id: number, department_id?: number) {
+  patchFeatureV2(
+    featureId: number,
+    patches: Partial<Feature>,
+    previous_id: number | string,
+    next_id: number,
+    department_id?: number
+  ) {
     // Move the testcase to the specified folder, changing the department if necessary
     return this.moveFeatureFolder(
       previous_id,
@@ -272,7 +338,9 @@ export class ApiService {
 
   // Get applications
   getApplications() {
-    return this._http.get<PaginatedResponse<Application>>(`${this.api}applications/`);
+    return this._http.get<PaginatedResponse<Application>>(
+      `${this.api}applications/`
+    );
   }
 
   // Get browsers
@@ -282,58 +350,68 @@ export class ApiService {
 
   // Get all departments (Admin)
   getDepartments() {
-    return this._http.get<PaginatedResponse<Department>>(`${this.api}departments/`);
+    return this._http.get<PaginatedResponse<Department>>(
+      `${this.api}departments/`
+    );
   }
 
   // Run a feature just now
   runFeature(feature_id: number, shouldWait: boolean) {
-    return this._http.post<Success>(`${this.base}exectest/`, {
-      feature_id: feature_id,
-      wait: shouldWait || false
-    }).pipe(
-      switchMap(response => {
-        if (response.success) {
-          // Execution went OK
-          return of(response);
-        }
-        if (response.action) {
-          // Execution of a feature requires an action
-          let dialog: Observable<boolean>;
-          switch (response.action) {
-            case 'confirm_exceeded':
-              // Show confirm dialog
-              dialog = this._dialog.open(AreYouSureDialog, {
-                data: {
-                  title: 'translate:you_sure.budget_exceeded_title',
-                  description: 'translate:you_sure.budget_exceeded_desc'
-                } as AreYouSureData
-              }).afterClosed()
-              break;
-            case 'confirm_ahead':
-              // Show confirm dialog
-              dialog = this._dialog.open(AreYouSureDialog, {
-                data: {
-                  title: 'translate:you_sure.budget_ahead_title',
-                  description: 'translate:you_sure.budget_ahead_desc'
-                } as AreYouSureData
-              }).afterClosed()
-              break;
-            default:
-              dialog = of(false)
-          }
-          return dialog.pipe(
-            // Only repeat XHR if user confirms
-            filter(answer => !!answer),
-            // Repeat exectest with confirm: true
-            switchMap(_ => this._http.post<Success>(`${this.base}exectest/`, {
-              feature_id: feature_id,
-              wait: shouldWait || false,
-              confirm: true
-            }))
-          )
-        }
+    return this._http
+      .post<Success>(`${this.base}exectest/`, {
+        feature_id: feature_id,
+        wait: shouldWait || false,
       })
-    )
+      .pipe(
+        switchMap(response => {
+          if (response.success) {
+            // Execution went OK
+            return of(response);
+          }
+          if (response.action) {
+            // Execution of a feature requires an action
+            let dialog: Observable<boolean>;
+            switch (response.action) {
+              case 'confirm_exceeded':
+                // Show confirm dialog
+                dialog = this._dialog
+                  .open(AreYouSureDialog, {
+                    data: {
+                      title: 'translate:you_sure.budget_exceeded_title',
+                      description: 'translate:you_sure.budget_exceeded_desc',
+                    } as AreYouSureData,
+                  })
+                  .afterClosed();
+                break;
+              case 'confirm_ahead':
+                // Show confirm dialog
+                dialog = this._dialog
+                  .open(AreYouSureDialog, {
+                    data: {
+                      title: 'translate:you_sure.budget_ahead_title',
+                      description: 'translate:you_sure.budget_ahead_desc',
+                    } as AreYouSureData,
+                  })
+                  .afterClosed();
+                break;
+              default:
+                dialog = of(false);
+            }
+            return dialog.pipe(
+              // Only repeat XHR if user confirms
+              filter(answer => !!answer),
+              // Repeat exectest with confirm: true
+              switchMap(_ =>
+                this._http.post<Success>(`${this.base}exectest/`, {
+                  feature_id: feature_id,
+                  wait: shouldWait || false,
+                  confirm: true,
+                })
+              )
+            );
+          }
+        })
+      );
   }
 
   getInvoices() {
@@ -341,12 +419,12 @@ export class ApiService {
   }
 
   getInvoiceUrl(invoiceId: number) {
-    return this._http.get<Success>(`${this.base}invoices/${invoiceId}/`)
+    return this._http.get<Success>(`${this.base}invoices/${invoiceId}/`);
   }
 
   deleteFeature(feature_id: number, params?) {
     return this._http.delete<Success>(`${this.api}features/${feature_id}/`, {
-      params: params
+      params: params,
     });
   }
 
@@ -354,36 +432,51 @@ export class ApiService {
 
   createDepartment(department_name) {
     return this._http.post<any>(`${this.api}departments/`, {
-      department_name: department_name
+      department_name: department_name,
     });
   }
 
-  applyDepartmentStepsTimeout(department_id: number, options: {step_timeout_from: number, step_timeout_to: number}) {
-    return this._http.post<any>(`${this.base}departments/${department_id}/updateStepTimeout/`, options, {
-      params: new InterceptorParams({
-        skipInterceptor: true,
-      })
-    });
+  applyDepartmentStepsTimeout(
+    department_id: number,
+    options: { step_timeout_from: number; step_timeout_to: number }
+  ) {
+    return this._http.post<any>(
+      `${this.base}departments/${department_id}/updateStepTimeout/`,
+      options,
+      {
+        params: new InterceptorParams({
+          skipInterceptor: true,
+        }),
+      }
+    );
   }
 
   modifyDepartment(department_id: number, newOptions: Partial<Department>) {
-    return this._http.patch<Success>(`${this.api}departments/${department_id}/`, newOptions);
+    return this._http.patch<Success>(
+      `${this.api}departments/${department_id}/`,
+      newOptions
+    );
   }
 
   deleteDepartment(department_id: number) {
-    return this._http.delete<Success>(`${this.api}departments/${department_id}/`);
+    return this._http.delete<Success>(
+      `${this.api}departments/${department_id}/`
+    );
   }
 
   // Applications
 
   createApplication(app_name) {
     return this._http.post<any>(`${this.api}applications/`, {
-      app_name: app_name
+      app_name: app_name,
     });
   }
 
   renameApplication(app_id: number, app_name: string) {
-    return this._http.patch<Success>(`${this.api}applications/${app_id}/${app_name}/`, {});
+    return this._http.patch<Success>(
+      `${this.api}applications/${app_id}/${app_name}/`,
+      {}
+    );
   }
 
   deleteApplication(app_id: number) {
@@ -394,12 +487,15 @@ export class ApiService {
 
   createBrowser(browser_name) {
     return this._http.post<any>(`${this.api}browsers/`, {
-      browser_name: browser_name
+      browser_name: browser_name,
     });
   }
 
   renameBrowser(browser_id: number, browser_name: string) {
-    return this._http.patch<Success>(`${this.api}browsers/${browser_id}/${browser_name}/`, {});
+    return this._http.patch<Success>(
+      `${this.api}browsers/${browser_id}/${browser_name}/`,
+      {}
+    );
   }
 
   deleteBrowser(browser_id: number) {
@@ -410,28 +506,37 @@ export class ApiService {
 
   createEnvironment(environment_name) {
     return this._http.post<any>(`${this.api}environments/`, {
-      environment_name: environment_name
+      environment_name: environment_name,
     });
   }
 
   renameEnvironment(environment_id: number, environment_name: string) {
-    return this._http.patch<Success>(`${this.api}environments/${environment_id}/${environment_name}/`, {});
+    return this._http.patch<Success>(
+      `${this.api}environments/${environment_id}/${environment_name}/`,
+      {}
+    );
   }
 
   deleteEnvironment(environment_id: number) {
-    return this._http.delete<Success>(`${this.api}environments/${environment_id}/`, {});
+    return this._http.delete<Success>(
+      `${this.api}environments/${environment_id}/`,
+      {}
+    );
   }
 
   // Accounts
 
   getAccounts() {
-    return this._http.get<PaginatedResponse<IAccount>>(`${this.api}accounts/`).pipe(
-      map(json => json.results)
-    );
+    return this._http
+      .get<PaginatedResponse<IAccount>>(`${this.api}accounts/`)
+      .pipe(map(json => json.results));
   }
 
   modifyAccount(UserID: number, userInfo: IAccount) {
-    return this._http.patch<Success>(`${this.api}accounts/${UserID}/`, userInfo);
+    return this._http.patch<Success>(
+      `${this.api}accounts/${UserID}/`,
+      userInfo
+    );
   }
 
   deleteAccount(UserID: number) {
@@ -439,44 +544,65 @@ export class ApiService {
   }
 
   modifyPassword(UserID: number, password: string) {
-    return this._http.patch<Success>(`${this.api}accounts/${UserID}/password/`, {
-      password: btoa(unescape(encodeURIComponent(password)))
-    });
+    return this._http.patch<Success>(
+      `${this.api}accounts/${UserID}/password/`,
+      {
+        password: btoa(unescape(encodeURIComponent(password))),
+      }
+    );
   }
 
   updateSchedule(FeatureID: number, schedule: string) {
     return this._http.patch<Success>(`${this.base}schedule/${FeatureID}/`, {
-      schedule: schedule
+      schedule: schedule,
     });
   }
 
   getLyridBrowsers() {
-    return this._http.get<BrowserstackBrowsersResponse>(`${this.base}browsers/lyrid`);
+    return this._http.get<BrowserstackBrowsersResponse>(
+      `${this.base}browsers/lyrid`
+    );
   }
 
   getBrowserstackBrowsers() {
-    return this._http.get<BrowserstackBrowsersResponse>(`${this.base}browsers/browserstack`);
+    return this._http.get<BrowserstackBrowsersResponse>(
+      `${this.base}browsers/browserstack`
+    );
   }
 
-  removeFeatureResult(feature_result_id, deleteTemplate: boolean = false, params?) {
-    return this._http.delete<Success>(`${this.api}feature_results/${feature_result_id}/${deleteTemplate ? '?delete_template' : ''}`, {
-      params: params
-    });
+  removeFeatureResult(
+    feature_result_id,
+    deleteTemplate: boolean = false,
+    params?
+  ) {
+    return this._http.delete<Success>(
+      `${this.api}feature_results/${feature_result_id}/${deleteTemplate ? '?delete_template' : ''}`,
+      {
+        params: params,
+      }
+    );
   }
 
   removeFeatureRun(run_id, deleteTemplate: boolean = false, params?) {
-    return this._http.delete<Success>(`${this.api}feature_run/${run_id}/${deleteTemplate ? '?delete_template' : ''}`, {
-      params: params
-    });
+    return this._http.delete<Success>(
+      `${this.api}feature_run/${run_id}/${deleteTemplate ? '?delete_template' : ''}`,
+      {
+        params: params,
+      }
+    );
   }
 
-  removeMultipleFeatureRuns(featureId: number, type: ClearRunsType, deleteTemplate: boolean = false) {
+  removeMultipleFeatureRuns(
+    featureId: number,
+    type: ClearRunsType,
+    deleteTemplate: boolean = false
+  ) {
     return this._http.delete<Success>(`${this.api}feature_run/`, {
       params: {
-        ...(deleteTemplate && { delete_template: ''}),
+        ...(deleteTemplate && { delete_template: '' }),
         feature_id: featureId.toString(),
-        type: type
-      }
+        type: type,
+      },
     });
   }
 
@@ -501,23 +627,27 @@ export class ApiService {
     return this._http.post<Success>(`${this.api}variables/`, variable, {
       params: new InterceptorParams({
         skipInterceptor: true,
-      })
+      }),
     });
   }
 
   patchVariable(variable: VariablePair) {
-    return this._http.patch<Success>(`${this.api}variables/${variable.id}/`, variable, {
-      params: new InterceptorParams({
-        skipInterceptor: true,
-      })
-    });
+    return this._http.patch<Success>(
+      `${this.api}variables/${variable.id}/`,
+      variable,
+      {
+        params: new InterceptorParams({
+          skipInterceptor: true,
+        }),
+      }
+    );
   }
 
   deleteVariable(id: number) {
     return this._http.delete<Success>(`${this.api}variables/${id}`, {
       params: new InterceptorParams({
         skipInterceptor: true,
-      })
+      }),
     });
   }
 
@@ -525,15 +655,15 @@ export class ApiService {
     return this._http.post<Success>(`${this.api}invite/`, {
       emails: emails,
       departments: departmentIds,
-      custom_text: customText
-    })
+      custom_text: customText,
+    });
   }
 
   /**
    * API Endpoint to get variables
    */
   getVariables() {
-    return this._http.get<VariablePair[]>(`${this.api}variables/`)
+    return this._http.get<VariablePair[]>(`${this.api}variables/`);
   }
 
   // Manage encryption
@@ -541,7 +671,7 @@ export class ApiService {
   encrypt(text) {
     return this._http.post<any>(`${this.base}encrypt/`, {
       action: 'encrypt',
-      text: text
+      text: text,
     });
   }
 
@@ -559,9 +689,9 @@ export class ApiService {
   }
 
   getIntegrations() {
-    return this._http.get<PaginatedResponse<Integration>>(`${this.api}integrations/`).pipe(
-      map(json => json.results)
-    )
+    return this._http
+      .get<PaginatedResponse<Integration>>(`${this.api}integrations/`)
+      .pipe(map(json => json.results));
   }
 
   createIntegration(params: IntegrationPayload) {
@@ -577,12 +707,16 @@ export class ApiService {
   }
 
   checkBrowserstackVideo(videoUrl: string): Observable<HttpResponse<any>> {
-    return this._http.post(`${this.base}checkBrowserstackVideo/`, {
-      video: videoUrl
-    }, {
-      observe: 'response',
-      responseType: 'text'
-    })
+    return this._http.post(
+      `${this.base}checkBrowserstackVideo/`,
+      {
+        video: videoUrl,
+      },
+      {
+        observe: 'response',
+        responseType: 'text',
+      }
+    );
   }
 
   generateCustomerPortal() {
@@ -590,13 +724,13 @@ export class ApiService {
   }
 
   getUserDetails() {
-    return this._http.get<UserDetails>(`${this.base}userDetails/`)
+    return this._http.get<UserDetails>(`${this.base}userDetails/`);
   }
 
   isFeatureRunning(featureId: number) {
-    return this._http.get<any>(`${this.base}isFeatureRunning/${featureId}/`).pipe(
-      map(response => response.running)
-    );
+    return this._http
+      .get<any>(`${this.base}isFeatureRunning/${featureId}/`)
+      .pipe(map(response => response.running));
   }
 
   checkVideoAvailable(videoUrl: string): Observable<HttpResponse<any>> {
@@ -604,7 +738,7 @@ export class ApiService {
       headers: {
         // Fetch only the first 1024 bytes
         // This avoids having to download the entire video file
-        Range: 'bytes=0-1024'
+        Range: 'bytes=0-1024',
       },
       observe: 'response',
       responseType: 'text',
@@ -613,9 +747,9 @@ export class ApiService {
         skipInterceptor: true,
         ignoreDiskCache: true,
         ignoreProxyCache: true,
-        ignoreServiceWorkerCache: true
-      })
-    })
+        ignoreServiceWorkerCache: true,
+      }),
+    });
   }
 
   uploadFiles(formData: FormData) {
@@ -640,7 +774,7 @@ export class ApiService {
         skipInterceptor: true,
       }),
       responseType: 'text',
-      observe: 'response'
+      observe: 'response',
     });
   }
 }

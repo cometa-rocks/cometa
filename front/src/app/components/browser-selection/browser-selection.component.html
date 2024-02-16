@@ -4,15 +4,23 @@
       <mat-label>Cloud</mat-label>
       <mat-select [formControl]="testing_cloud">
         <!-- Available Clouds -->
-        <mat-option *ngFor="let cloud of clouds$ | sortBy:'name'" [value]="cloud.name">{{ cloud.name | titlecase }}</mat-option>
+        <mat-option
+          *ngFor="let cloud of clouds$ | sortBy: 'name'"
+          [value]="cloud.name"
+          >{{ cloud.name | titlecase }}</mat-option
+        >
       </mat-select>
     </mat-form-field>
     <!-- Platform selector only for mobiles -->
     <mat-form-field class="platform-selector-mobile" appearance="fill">
       <mat-label>Platforms</mat-label>
       <select [formControl]="browser" matNativeControl>
-        <optgroup *ngFor="let category of categories | async | keyvalue" [label]="category.key | translateName">
-          <option *ngFor="let version of category.value | platformSort:category.key" [value]="getBrowserKey(category.key, version)">
+        <optgroup
+          *ngFor="let category of categories | async | keyvalue"
+          [label]="category.key | translateName">
+          <option
+            *ngFor="let version of category.value | platformSort: category.key"
+            [value]="getBrowserKey(category.key, version)">
             {{ category.key | translateName }} - {{ version }}
           </option>
         </optgroup>
@@ -21,11 +29,17 @@
     <!-- Available Platforms -->
     <h4>Platforms</h4>
     <ul>
-      <li (click)="clickOnCategory(category.key, $event)" *ngFor="let category of categories | async | keyvalue">
+      <li
+        (click)="clickOnCategory(category.key, $event)"
+        *ngFor="let category of categories | async | keyvalue">
         <i [style.backgroundImage]="category.key | browserIcon"></i>
         <span>{{ category.key | translateName }}</span>
         <ul *ngIf="(selectedCategory | async) === category.key">
-          <li [ngClass]="{'selected': (selectedVersion | async) === version}" stopPropagation (click)="processVersion(category.key, version, $event)" *ngFor="let version of category.value | platformSort:category.key">
+          <li
+            [ngClass]="{ selected: (selectedVersion | async) === version }"
+            stopPropagation
+            (click)="processVersion(category.key, version, $event)"
+            *ngFor="let version of category.value | platformSort: category.key">
             <i [style.backgroundImage]="category.key | browserIcon"></i>
             <span>{{ version }}</span>
           </li>
@@ -39,10 +53,19 @@
       <div class="selected-browsers">
         <h4>Selected browsers</h4>
         <div class="browsers-box">
-          <div (click)="handleCheckbox(browser, false)" class="selected-browser" [matTooltip]="browser | browserComboText" matTooltipPosition="after" *ngFor="let browser of browsersSelected | async">
+          <div
+            (click)="handleCheckbox(browser, false)"
+            class="selected-browser"
+            [matTooltip]="browser | browserComboText"
+            matTooltipPosition="after"
+            *ngFor="let browser of browsersSelected | async">
             <i class="icon" [style.backgroundImage]="browser | browserIcon"></i>
             <span [innerText]="browser | browserComboText"></span>
-            <span class="concurrency-icon" *ngIf="browser.concurrency && browser.concurrency > 1"> x {{ browser.concurrency }}</span>
+            <span
+              class="concurrency-icon"
+              *ngIf="browser.concurrency && browser.concurrency > 1">
+              x {{ browser.concurrency }}</span
+            >
           </div>
         </div>
       </div>
@@ -51,18 +74,32 @@
         <h4>Favourites</h4>
         <div class="favourites-box">
           <ng-container *ngIf="favourites$.length > 0; else favouritesHint">
-            <div class="fav-browser" [contextMenu]="basicMenu" [contextMenuSubject]="fav" *ngFor="let fav of favourites$">
-              <div [matTooltip]="fav | browserComboText" matTooltipPosition="above">
-                <mat-checkbox (change)="handleCheckbox(fav, $event.checked)" [checked]="fav | checkSelectedBrowser | async" color="primary" [disabled]="!(fav | checkBrowserExists)">
-                  <i [style.backgroundImage]="fav | browserIcon" class="fav-icon"></i>
+            <div
+              class="fav-browser"
+              [contextMenu]="basicMenu"
+              [contextMenuSubject]="fav"
+              *ngFor="let fav of favourites$">
+              <div
+                [matTooltip]="fav | browserComboText"
+                matTooltipPosition="above">
+                <mat-checkbox
+                  (change)="handleCheckbox(fav, $event.checked)"
+                  [checked]="fav | checkSelectedBrowser | async"
+                  color="primary"
+                  [disabled]="!(fav | checkBrowserExists)">
+                  <i
+                    [style.backgroundImage]="fav | browserIcon"
+                    class="fav-icon"></i>
                   {{ fav | browserComboText }}
                 </mat-checkbox>
               </div>
-              <button 
+              <button
                 mat-icon-button
-                [matTooltip]="'Delete \''+ (fav | browserComboText) + '\' from favourites'"
+                [matTooltip]="
+                  'Delete \'' + (fav | browserComboText) + '\' from favourites'
+                "
                 matTooltipPosition="above"
-                aria-label="delete browser from favourites" 
+                aria-label="delete browser from favourites"
                 (click)="deleteFavourite(fav)">
                 <mat-icon>delete</mat-icon>
               </button>
@@ -85,50 +122,90 @@
       </div>
     </div>
     <!-- Browser selection section -->
-    <div class="browser-selector-box" *ngLet="getSelectedCloud() as selected_cloud">
+    <div
+      class="browser-selector-box"
+      *ngLet="getSelectedCloud() as selected_cloud">
       <h4>Browsers</h4>
       <div class="browsers">
-        <div class="browser" *ngFor="let browser of browsers | async | keyvalue">
-          <div class="icon" [style.backgroundImage]="browser.key | browserIcon"></div>
+        <div
+          class="browser"
+          *ngFor="let browser of browsers | async | keyvalue">
+          <div
+            class="icon"
+            [style.backgroundImage]="browser.key | browserIcon"></div>
           <div class="versions" [ngClass]="browser.key">
             <div
-            [matTooltip]="'tooltips.latest_browser' | translate"
-            [matTooltipDisabled]="version.browser_version !== 'latest'"
-            class="version"
-            *ngFor="let version of browser.value | versionSort | addLatest">
+              [matTooltip]="'tooltips.latest_browser' | translate"
+              [matTooltipDisabled]="version.browser_version !== 'latest'"
+              class="version"
+              *ngFor="let version of browser.value | versionSort | addLatest">
               <div class="join">
-                <mat-checkbox (change)="handleCheckbox(version, $event.checked)" [checked]="version | checkSelectedBrowser | async" color="primary">
-                  <ng-container *ngIf="version.device as name; else onlyVersion">
-                    <div class="flex" [ngClass]="{'align-left': !version.browser_version }">
+                <mat-checkbox
+                  (change)="handleCheckbox(version, $event.checked)"
+                  [checked]="version | checkSelectedBrowser | async"
+                  color="primary">
+                  <ng-container
+                    *ngIf="version.device as name; else onlyVersion">
+                    <div
+                      class="flex"
+                      [ngClass]="{ 'align-left': !version.browser_version }">
                       <div class="device-name">{{ name }}</div>
-                      <div class="device-version">{{ version.browser_version }}</div>
+                      <div class="device-version">
+                        {{ version.browser_version }}
+                      </div>
                     </div>
                   </ng-container>
                   <ng-template #onlyVersion>
                     {{ version?.browser_version | titlecase | formatVersion }}
                   </ng-template>
                 </mat-checkbox>
-                <div class="multiplier" *ngIf="selected_cloud.concurrency && version | checkSelectedBrowser | async">
+                <div
+                  class="multiplier"
+                  *ngIf="
+                    selected_cloud.concurrency && version
+                      | checkSelectedBrowser
+                      | async
+                  ">
                   <span>x</span>
-                  <input *ngLet="getCurrentlySelectedBrowser(version) as selected"
+                  <input
+                    *ngLet="getCurrentlySelectedBrowser(version) as selected"
                     type="number"
                     inputmode="numeric"
                     matInput
                     [min]="MIN_CONCURRENCY"
                     [max]="selected_cloud.max_concurrency"
-                    [value]="selected.concurrency ? selected.concurrency : DEFAULT_CONCURRENCY"
-                    (change)="handleConcurrencyChange(version, $event.srcElement)"
-                  />
+                    [value]="
+                      selected.concurrency
+                        ? selected.concurrency
+                        : DEFAULT_CONCURRENCY
+                    "
+                    (change)="
+                      handleConcurrencyChange(version, $event.srcElement)
+                    " />
                 </div>
               </div>
-              <i class="favourite" (click)="toggleFavourite(version)" [class.favourited]="version | browserFavourited:favourites$"></i>
+              <i
+                class="favourite"
+                (click)="toggleFavourite(version)"
+                [class.favourited]="
+                  version | browserFavourited: favourites$
+                "></i>
             </div>
           </div>
           <!-- Button to load more versions for a given browser -->
-          <button color="primary" *ngIf="browser.value.length > 6" mat-stroked-button class="load-more" (click)="showAll(browser.key)">SHOW ALL</button>
+          <button
+            color="primary"
+            *ngIf="browser.value.length > 6"
+            mat-stroked-button
+            class="load-more"
+            (click)="showAll(browser.key)">
+            SHOW ALL
+          </button>
         </div>
       </div>
-      <div class="swipe-hint">Swipe left or right to view more browsers (if available)</div>
+      <div class="swipe-hint">
+        Swipe left or right to view more browsers (if available)
+      </div>
     </div>
   </div>
 </ng-container>

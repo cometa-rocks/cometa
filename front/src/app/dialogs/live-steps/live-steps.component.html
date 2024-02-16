@@ -1,16 +1,38 @@
 <ng-container *ngIf="feature$ | async as feature; else loader">
   <h2 mat-dialog-title>Live Steps Viewer: {{ feature.feature_name }}</h2>
   <mat-dialog-content>
-    <ng-container *ngIf="(status$ | async) != 'queued' && results$ | async as results; else loader">
+    <ng-container
+      *ngIf="
+        (status$ | async) != 'queued' && results$ | async as results;
+        else loader
+      ">
       <mat-tab-group *ngIf="lastFeatureRunID | storeSelector | async as run_id">
         <ng-container *ngLet="results.results[run_id] | keyvalue as browsers">
-          <ng-container *ngIf="browsers?.length > 0; then browserTabs else loader"></ng-container>
+          <ng-container
+            *ngIf="
+              browsers?.length > 0;
+              then browserTabs;
+              else loader
+            "></ng-container>
           <ng-template #browserTabs>
             <mat-tab *ngFor="let browser of browsers; trackBy: trackBrowserFn">
-              <ng-template mat-tab-label *ngLet="browser.value.feature_result_id as feature_result_id">
-                <i class="browser-icon" [style.backgroundImage]="browser.value.browser_info | browserIcon"></i>
+              <ng-template
+                mat-tab-label
+                *ngLet="browser.value.feature_result_id as feature_result_id">
+                <i
+                  class="browser-icon"
+                  [style.backgroundImage]="
+                    browser.value.browser_info | browserIcon
+                  "></i>
                 {{ browser.value.browser_info | browserComboText }}
-                <mat-icon (click)="live(feature_result_id);" class="browser-icon live_preview" matTooltipPosition="below" matTooltip="View your feature GO live!" *ngIf="showLiveIcon(browser);">live_tv</mat-icon>
+                <mat-icon
+                  (click)="live(feature_result_id)"
+                  class="browser-icon live_preview"
+                  matTooltipPosition="below"
+                  matTooltip="View your feature GO live!"
+                  *ngIf="showLiveIcon(browser)"
+                  >live_tv</mat-icon
+                >
               </ng-template>
               <ng-container *ngIf="browser.value?.error; else browserContent">
                 <div>
@@ -22,44 +44,70 @@
               </ng-container>
               <ng-template #browserContent>
                 <!-- Live Status for every browser result tab -->
-                <ng-container *ngLet="feature_id | browserResultStatus:run_id:browser.value.browser_info | storeSelector | async as browserStatus">
+                <ng-container
+                  *ngLet="
+                    feature_id
+                      | browserResultStatus: run_id : browser.value.browser_info
+                      | storeSelector
+                      | async as browserStatus
+                  ">
                   <div [ngSwitch]="browserStatus">
                     <!-- Status: Initializing -->
                     <ng-container *ngSwitchCase="'Initializing'">
                       <div class="live-status">
-                        <mat-spinner color="primary" diameter="20"></mat-spinner>
-                        <ng-container *ngTemplateOutlet="resultStatusText"></ng-container>
-                        <ng-container *ngTemplateOutlet="counter"></ng-container>
+                        <mat-spinner
+                          color="primary"
+                          diameter="20"></mat-spinner>
+                        <ng-container
+                          *ngTemplateOutlet="resultStatusText"></ng-container>
+                        <ng-container
+                          *ngTemplateOutlet="counter"></ng-container>
                       </div>
                     </ng-container>
                     <!-- Status: Timeout -->
                     <ng-container *ngSwitchCase="'Timeout'">
                       <div class="live-status">
                         <div class="status-icon timeout"></div>
-                        <ng-container *ngTemplateOutlet="resultStatusText"></ng-container>
-                        <ng-container *ngTemplateOutlet="counter"></ng-container>
+                        <ng-container
+                          *ngTemplateOutlet="resultStatusText"></ng-container>
+                        <ng-container
+                          *ngTemplateOutlet="counter"></ng-container>
                       </div>
                     </ng-container>
                     <!-- Status: Completed -->
                     <ng-container *ngSwitchCase="'Completed'">
                       <div class="live-status">
                         <div class="status-icon checked"></div>
-                        <ng-container *ngTemplateOutlet="resultStatusText"></ng-container>
-                        <ng-container *ngTemplateOutlet="counter"></ng-container>
+                        <ng-container
+                          *ngTemplateOutlet="resultStatusText"></ng-container>
+                        <ng-container
+                          *ngTemplateOutlet="counter"></ng-container>
                       </div>
                     </ng-container>
                     <!-- Status: Any other (steps) -->
                     <ng-container *ngSwitchDefault>
                       <div class="live-status">
-                        <mat-spinner color="primary" diameter="20"></mat-spinner>
-                        <div class="status-text">{{ browser.value.status }}</div>
-                        <ng-container *ngTemplateOutlet="counter"></ng-container>
+                        <mat-spinner
+                          color="primary"
+                          diameter="20"></mat-spinner>
+                        <div class="status-text">
+                          {{ browser.value.status }}
+                        </div>
+                        <ng-container
+                          *ngTemplateOutlet="counter"></ng-container>
                       </div>
                     </ng-container>
                   </div>
                   <!-- Template for Live Counter -->
                   <ng-template #counter>
-                    <div class="counter">{{ browser.value.start_at | amParse | testDuration:browser.value.end_at | async }}</div>
+                    <div class="counter">
+                      {{
+                        browser.value.start_at
+                          | amParse
+                          | testDuration: browser.value.end_at
+                          | async
+                      }}
+                    </div>
                   </ng-template>
                   <!-- Template for Feature Result Status -->
                   <ng-template #resultStatusText>
@@ -68,7 +116,12 @@
                     </div>
                   </ng-template>
                   <!-- Template for Feature Result running steps -->
-                  <ng-container *ngIf="browserStatus !== 'Initializing' && browserStatus !== 'Timeout' && browserStatus !== 'Queued'">
+                  <ng-container
+                    *ngIf="
+                      browserStatus !== 'Initializing' &&
+                      browserStatus !== 'Timeout' &&
+                      browserStatus !== 'Queued'
+                    ">
                     <div class="headers">
                       <div class="index">#</div>
                       <div class="text">Step definition</div>
@@ -78,7 +131,16 @@
                       <div class="screenshot">Others</div>
                     </div>
                     <div class="steps-container" [attr.browser]="browser.key">
-                      <cometa-live-step *ngFor="let step of steps$ | async; trackBy: trackStepFn; let i = index" [featureRunID]="run_id" [browser]="browser.value.browser_info" [step]="step" [index]="i"></cometa-live-step>
+                      <cometa-live-step
+                        *ngFor="
+                          let step of steps$ | async;
+                          trackBy: trackStepFn;
+                          let i = index
+                        "
+                        [featureRunID]="run_id"
+                        [browser]="browser.value.browser_info"
+                        [step]="step"
+                        [index]="i"></cometa-live-step>
                     </div>
                   </ng-container>
                 </ng-container>
@@ -89,9 +151,21 @@
       </mat-tab-group>
     </ng-container>
   </mat-dialog-content>
-  <mat-checkbox color="primary" [checked]="autoScroll" (change)="handleScrollChange($event)">Scroll automatically</mat-checkbox>
+  <mat-checkbox
+    color="primary"
+    [checked]="autoScroll"
+    (change)="handleScrollChange($event)"
+    >Scroll automatically</mat-checkbox
+  >
   <mat-dialog-actions>
-    <button mat-stroked-button (click)="stopTest()" matTooltipPosition="after" matTooltip="Stops the current running process. This action can produce inconsistent step results!" color="warn">STOP EXECUTION</button>
+    <button
+      mat-stroked-button
+      (click)="stopTest()"
+      matTooltipPosition="after"
+      matTooltip="Stops the current running process. This action can produce inconsistent step results!"
+      color="warn">
+      STOP EXECUTION
+    </button>
     <button mat-stroked-button color="primary" mat-dialog-close>Close</button>
   </mat-dialog-actions>
 </ng-container>

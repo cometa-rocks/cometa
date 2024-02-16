@@ -1,4 +1,11 @@
-import { Component, ChangeDetectionStrategy, Output, EventEmitter, OnInit, Input } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  Output,
+  EventEmitter,
+  OnInit,
+  Input,
+} from '@angular/core';
 import { UntypedFormControl } from '@angular/forms';
 import { BrowserFavouritedPipe } from '@pipes/browser-favourited.pipe';
 import { BrowserstackState } from '@store/browserstack.state';
@@ -27,17 +34,15 @@ import { LyridBrowsersState } from '@store/browserlyrid.state';
   templateUrl: './browser-selection.component.html',
   styleUrls: ['./browser-selection.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    BrowserFavouritedPipe,
-    PlatformSortPipe
-  ]
+  providers: [BrowserFavouritedPipe, PlatformSortPipe],
 })
 export class BrowserSelectionComponent implements OnInit {
-
   @Input() feature: Feature;
 
-  @ViewSelectSnapshot(UserState.GetBrowserFavourites) favourites$: BrowserstackBrowser[];
-  @ViewSelectSnapshot(BrowsersState.getBrowserJsons) localBrowsers$: BrowserstackBrowser[];
+  @ViewSelectSnapshot(UserState.GetBrowserFavourites)
+  favourites$: BrowserstackBrowser[];
+  @ViewSelectSnapshot(BrowsersState.getBrowserJsons)
+  localBrowsers$: BrowserstackBrowser[];
   @ViewSelectSnapshot(BrowserstackState) onlineBrowsers$: BrowserstackBrowser[];
   @ViewSelectSnapshot(LyridBrowsersState) lyridBrowsers$: BrowserstackBrowser[];
 
@@ -56,7 +61,7 @@ export class BrowserSelectionComponent implements OnInit {
     private _favouritePipe: BrowserFavouritedPipe,
     private _platformSort: PlatformSortPipe,
     private _store: Store
-  ) { }
+  ) {}
 
   testing_cloud = new UntypedFormControl('browserstack');
   browser = new UntypedFormControl();
@@ -93,34 +98,39 @@ export class BrowserSelectionComponent implements OnInit {
       this.browsersSelected.next([]);
     }
     // Handle platform selection from mobile selector
-    this.browser.valueChanges.pipe(
-      untilDestroyed(this),
-      map(browser => ({ os: browser.split('%')[0], version: browser.split('%')[1] }))
-    ).subscribe(browser => this.processVersion(browser.os, browser.version));
+    this.browser.valueChanges
+      .pipe(
+        untilDestroyed(this),
+        map(browser => ({
+          os: browser.split('%')[0],
+          version: browser.split('%')[1],
+        }))
+      )
+      .subscribe(browser => this.processVersion(browser.os, browser.version));
     // Get latest value comming from @Input and BrowserstackState
-    this.testing_cloud.valueChanges.pipe(
-      untilDestroyed(this)
-    ).subscribe(origin => {
-      this.testingCloud.emit(origin);
-      switch (origin) {
-        // Origin: Browserstack
-        case 'browserstack':
-          this.rollupOS(this.onlineBrowsers$);
-          break;
-        // Origin: Local (Backend)
-        case 'local':
-          // Grab local browsers from backend instead of static ones from DataService
-          this.rollupOS(this.localBrowsers$);
-          break;
-        case 'Lyrid.io':
-          this.rollupOS(this.lyridBrowsers$);
-          break;
-        // Origin fallback: Local (Backend)
-        default:
-          // Grab local browsers from backend instead of static ones from DataService
-          this.rollupOS(this.localBrowsers$);
-      }
-    });
+    this.testing_cloud.valueChanges
+      .pipe(untilDestroyed(this))
+      .subscribe(origin => {
+        this.testingCloud.emit(origin);
+        switch (origin) {
+          // Origin: Browserstack
+          case 'browserstack':
+            this.rollupOS(this.onlineBrowsers$);
+            break;
+          // Origin: Local (Backend)
+          case 'local':
+            // Grab local browsers from backend instead of static ones from DataService
+            this.rollupOS(this.localBrowsers$);
+            break;
+          case 'Lyrid.io':
+            this.rollupOS(this.lyridBrowsers$);
+            break;
+          // Origin fallback: Local (Backend)
+          default:
+            // Grab local browsers from backend instead of static ones from DataService
+            this.rollupOS(this.localBrowsers$);
+        }
+      });
     // Check if feature has a cloud assigned, fallback is browserstack
     try {
       this.testing_cloud.setValue(this.feature.cloud || 'local');
@@ -131,13 +141,15 @@ export class BrowserSelectionComponent implements OnInit {
 
   showAll(browserKey: string) {
     // Show all versions for a given browser
-    document.querySelector(`.versions.${browserKey}`).classList.toggle('show_all');
+    document
+      .querySelector(`.versions.${browserKey}`)
+      .classList.toggle('show_all');
   }
-  
+
   toggleFavourite(browser: BrowserstackBrowser) {
-    return this._favouritePipe.transform(browser, this.favourites$) ?
-           this._store.dispatch(new User.RemoveBrowserFavourite(browser)) :
-           this._store.dispatch(new User.AddBrowserFavourite(browser));
+    return this._favouritePipe.transform(browser, this.favourites$)
+      ? this._store.dispatch(new User.RemoveBrowserFavourite(browser))
+      : this._store.dispatch(new User.AddBrowserFavourite(browser));
   }
 
   deleteFavourite(fav: BrowserstackBrowser) {
@@ -171,7 +183,10 @@ export class BrowserSelectionComponent implements OnInit {
       this.categories.next(categoryArray);
       const firstCategory = Object.keys(categories)[0];
       this.selectedCategory.next(firstCategory);
-      const latestVersion = this._platformSort.transform(Object.keys(categories[firstCategory]), firstCategory)[0];
+      const latestVersion = this._platformSort.transform(
+        Object.keys(categories[firstCategory]),
+        firstCategory
+      )[0];
       this.selectedVersion.next(latestVersion);
       this.processVersion(firstCategory, latestVersion);
     } else {
@@ -204,7 +219,11 @@ export class BrowserSelectionComponent implements OnInit {
       this.browsersSelected.next(selectedBrowsers);
     } else {
       const selectedBrowsers = this.browsersSelected.getValue();
-      const index = selectedBrowsers.findIndex(br => this.toJson(br, ['concurrency']) === this.toJson(browser, ['concurrency']));
+      const index = selectedBrowsers.findIndex(
+        br =>
+          this.toJson(br, ['concurrency']) ===
+          this.toJson(browser, ['concurrency'])
+      );
       selectedBrowsers.splice(index, 1);
       this.browsersSelected.next(selectedBrowsers);
     }
@@ -213,13 +232,21 @@ export class BrowserSelectionComponent implements OnInit {
 
   handleConcurrencyChange(browser, element) {
     const selectedBrowsers = this.browsersSelected.getValue();
-    const br = selectedBrowsers.find(br => this.toJson(br, ['concurrency']) === this.toJson(browser, ['concurrency']));
+    const br = selectedBrowsers.find(
+      br =>
+        this.toJson(br, ['concurrency']) ===
+        this.toJson(browser, ['concurrency'])
+    );
     br.concurrency = parseInt(element.value);
   }
 
   getCurrentlySelectedBrowser(browser) {
     const selectedBrowsers = this.browsersSelected.getValue();
-    const br = selectedBrowsers.find(br => this.toJson(br, ['concurrency']) === this.toJson(browser, ['concurrency']));
+    const br = selectedBrowsers.find(
+      br =>
+        this.toJson(br, ['concurrency']) ===
+        this.toJson(browser, ['concurrency'])
+    );
     return br;
   }
 
@@ -236,5 +263,4 @@ export class BrowserSelectionComponent implements OnInit {
 
     return JSON.stringify(obj);
   }
-
 }

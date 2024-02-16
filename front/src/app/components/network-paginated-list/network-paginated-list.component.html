@@ -1,47 +1,68 @@
 <!-- Header section-->
 <div class="header">
-    <ng-container *ngTemplateOutlet="headerTemplate"></ng-container>
+  <ng-container *ngTemplateOutlet="headerTemplate"></ng-container>
 </div>
 <ng-container *ngIf="pagination$ | async as pagination; else loadingPagination">
-    <ng-container *ngIf="pagination.results.length > 0; else noItemsFound">
-        <!-- Rows section -->
-        <div class="paginated-rows">
-            <ng-container *ngFor="let item of pagination.results; let $last = last; trackBy: trackFn.bind(this, trackByKey)" class="item">
-                <ng-container *ngTemplateOutlet="itemTemplate; context: { $implicit: item }"></ng-container>
-            </ng-container>
-        </div>
-        <div class="pagination">
-            <!-- Loader section-->
-            <ng-container *ngIf="loading$ | async as loading; else pageButtons">
-                <mat-spinner class="loading-page" color="primary" diameter="22"></mat-spinner>
-            </ng-container>
-            <!-- Pagination buttons section-->
-            <ng-template #pageButtons>
-                <!-- Only show pagination controls if the list total count is greater than the minimum page size -->
-                <ng-container *ngIf="pagination.count > 10">
-                    <mat-paginator [length]="pagination.count"
-                        [pageIndex]="pagination.page - 1"
-                        [pageSize]="pagination.size"
-                        [pageSizeOptions]="[10, 25, 100, 250, 500]"
-                        [showFirstLastButtons]="true"
-                        (page)="pageChange($event)">
-                    </mat-paginator>
-                </ng-container>
-            </ng-template>
-        </div>
-    </ng-container>
-    <ng-template #noItemsFound>
-        <!-- Not Found footer template -->
-        <div class="no-items" *ngIf="noItemsTemplate">
-            <ng-container *ngTemplateOutlet="noItemsTemplate"></ng-container>
-        </div>
-    </ng-template>
+  <ng-container *ngIf="pagination.results.length > 0; else noItemsFound">
+    <!-- Rows section -->
+    <div class="paginated-rows">
+      <ng-container
+        *ngFor="
+          let item of pagination.results;
+          let $last = last;
+          trackBy: trackFn.bind(this, trackByKey)
+        "
+        class="item">
+        <ng-container
+          *ngTemplateOutlet="
+            itemTemplate;
+            context: { $implicit: item }
+          "></ng-container>
+      </ng-container>
+    </div>
+    <div class="pagination">
+      <!-- Loader section-->
+      <ng-container *ngIf="loading$ | async as loading; else pageButtons">
+        <mat-spinner
+          class="loading-page"
+          color="primary"
+          diameter="22"></mat-spinner>
+      </ng-container>
+      <!-- Pagination buttons section-->
+      <ng-template #pageButtons>
+        <!-- Only show pagination controls if the list total count is greater than the minimum page size -->
+        <ng-container *ngIf="pagination.count > 10">
+          <mat-paginator
+            [length]="pagination.count"
+            [pageIndex]="pagination.page - 1"
+            [pageSize]="pagination.size"
+            [pageSizeOptions]="[10, 25, 100, 250, 500]"
+            [showFirstLastButtons]="true"
+            (page)="pageChange($event)">
+          </mat-paginator>
+        </ng-container>
+      </ng-template>
+    </div>
+  </ng-container>
+  <ng-template #noItemsFound>
+    <!-- Not Found footer template -->
+    <div class="no-items" *ngIf="noItemsTemplate">
+      <ng-container *ngTemplateOutlet="noItemsTemplate"></ng-container>
+    </div>
+  </ng-template>
 </ng-container>
 <ng-template #loadingPagination>
-    <div class="skeleton-rows" *ngIf="useSkeletons; else spinner">
-        <div class="skeleton-row" [style.height]="skeletonsHeight" [style.width]="skeletonsWidth" *ngFor="let item of skeletonItems$ | async"></div>
-    </div>
-    <ng-template #spinner>
-        <mat-spinner class="loading-pagination" color="primary" diameter="40"></mat-spinner>
-    </ng-template>
+  <div class="skeleton-rows" *ngIf="useSkeletons; else spinner">
+    <div
+      class="skeleton-row"
+      [style.height]="skeletonsHeight"
+      [style.width]="skeletonsWidth"
+      *ngFor="let item of skeletonItems$ | async"></div>
+  </div>
+  <ng-template #spinner>
+    <mat-spinner
+      class="loading-pagination"
+      color="primary"
+      diameter="40"></mat-spinner>
+  </ng-template>
 </ng-template>
