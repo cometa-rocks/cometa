@@ -15,12 +15,17 @@ import { FeaturesState } from '@store/features.state';
 import { Router } from '@angular/router';
 import { LogService } from '@services/log.service';
 import { SharedActionsService } from '@services/shared-actions.service';
+import { FolderItemTreeComponent } from '../folder-item-tree/folder-item-tree.component';
+import { NgFor, AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'cometa-folder-tree',
   templateUrl: './folder-tree.component.html',
   styleUrls: ['./folder-tree.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [MatIconModule, NgFor, FolderItemTreeComponent, AsyncPipe],
 })
 export class FolderTreeComponent implements OnInit {
   constructor(

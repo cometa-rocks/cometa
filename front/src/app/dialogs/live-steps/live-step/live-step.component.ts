@@ -18,6 +18,16 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { JsonViewerComponent } from 'app/views/json-view/json-view.component';
 import { ApiService } from '@services/api.service';
 import { log } from 'console';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import {
+  NgClass,
+  NgIf,
+  NgStyle,
+  AsyncPipe,
+  TitleCasePipe,
+} from '@angular/common';
+import { LetDirective } from '../../../directives/ng-let.directive';
 
 @UntilDestroy()
 @Component({
@@ -42,6 +52,17 @@ import { log } from 'console';
         ),
       ]),
     ]),
+  ],
+  standalone: true,
+  imports: [
+    LetDirective,
+    NgClass,
+    MatLegacyTooltipModule,
+    NgIf,
+    MatIconModule,
+    NgStyle,
+    AsyncPipe,
+    TitleCasePipe,
   ],
 })
 export class LiveStepComponent implements OnInit {

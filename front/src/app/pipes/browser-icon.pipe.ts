@@ -3,6 +3,7 @@ import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 
 @Pipe({
   name: 'browserIcon',
+  standalone: true,
 })
 export class BrowserIconPipe implements PipeTransform {
   constructor(private _sanitizer: DomSanitizer) {}

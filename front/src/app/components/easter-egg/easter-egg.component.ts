@@ -5,5 +5,6 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   templateUrl: './easter-egg.component.html',
   styleUrls: ['./easter-egg.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
 })
 export class EasterEggComponent {}
