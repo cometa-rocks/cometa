@@ -8,6 +8,7 @@ import {
   MatLegacyDialog as MatDialog,
   MatLegacyDialogRef as MatDialogRef,
   MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
+  MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
 import { Store } from '@ngxs/store';
 import { FeaturesState } from '@store/features.state';
@@ -19,12 +20,22 @@ import {
   AreYouSureData,
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
+import { AsyncPipe } from '@angular/common';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MoveFolderItemComponent } from './move-folder-item/move-folder-item.component';
 
 @Component({
   selector: 'cometa-move-item',
   templateUrl: './move-item.component.html',
   styleUrls: ['./move-item.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    MatLegacyDialogModule,
+    MoveFolderItemComponent,
+    MatLegacyButtonModule,
+    AsyncPipe,
+  ],
 })
 export class MoveItemDialog {
   homeFolder$: Observable<Folder>;

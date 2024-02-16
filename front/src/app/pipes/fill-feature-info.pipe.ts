@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 
 @Pipe({
   name: 'fillFeatureInfo',
+  standalone: true,
 })
 export class FillFeatureInfoPipe implements PipeTransform {
   constructor(private _store: Store) {}

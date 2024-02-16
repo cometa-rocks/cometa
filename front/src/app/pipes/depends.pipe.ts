@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 
 @Pipe({
   name: 'depends',
+  standalone: true,
 })
 export class DependsPipe implements PipeTransform {
   @Select(FeaturesState.GetFeatures) details$: Observable<IFeatureStateDetail>;
