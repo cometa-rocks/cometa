@@ -120,10 +120,13 @@ python manage.py migrate
 
 # if this is the first time initializing co.meta
 # import basic data
-if [ ! -f "/code/.initiated" ]; then
-    find defaults -name "*.json" | sort | xargs -I{} python manage.py loaddata {}
-    touch /code/.initiated
-fi
+# if [ ! -f "/code/.initiated" ]; then
+#     touch /code/.initiated
+# fi
+
+# import basic data
+find defaults -name "*.json" | sort | xargs -I{} python manage.py loaddata {}
+
 
 
 # update clamav database and start clamav in daemon mode

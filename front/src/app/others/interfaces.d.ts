@@ -250,6 +250,7 @@ interface DataDrivenRun {
     execution_time: number;
     pixel_diff: number;
     file: File;
+    running: boolean;
 }
 
 // Applications
