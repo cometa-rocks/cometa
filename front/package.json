@@ -8,7 +8,9 @@
     "build": "ng build -c production",
     "test": "snyk test && ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "format": "prettier . --write",
+    "prepare": "bash ../.hooks/prepare.sh"
   },
   "private": true,
   "dependencies": {
@@ -55,6 +57,7 @@
     "ngx-json-viewer": "^3.2.1",
     "ngx-network-error": "^0.6.35-c",
     "npm": "^9.6.7",
+    "prettier": "^3.2.5",
     "socket.io": "^4.6.1",
     "socket.io-client": "^4.5.3",
     "tslib": "^2.3.0",
