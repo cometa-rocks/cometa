@@ -16,6 +16,7 @@ class DataDriven_Runs(SoftDeletableModel):
     date_time = models.DateTimeField(default=datetime.utcnow, editable=True, null=False, blank=False)
     archived = models.BooleanField(default=False)
     status = models.CharField(max_length=100, default='')
+    running = models.BooleanField(default=False)
     total = models.IntegerField(default=0)
     fails = models.IntegerField(default=0)
     ok = models.IntegerField(default=0)
