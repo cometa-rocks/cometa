@@ -8,12 +8,25 @@ import { Subscribe } from 'app/custom-decorators';
 import { Features } from '@store/actions/features.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
 import { SharedActionsService } from '@services/shared-actions.service';
+import { DepartmentNamePipe } from '@pipes/department-name.pipe';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 
 @Component({
   selector: 'cometa-folder',
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    MatLegacyButtonModule,
+    StopPropagationDirective,
+    MatLegacyMenuModule,
+    MatIconModule,
+    DepartmentNamePipe,
+  ],
 })
 export class FolderComponent {
   constructor(

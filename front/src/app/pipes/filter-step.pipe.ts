@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'filterStep',
+  standalone: true,
 })
 export class FilterStepPipe implements PipeTransform {
   transform(steps: Action[], search: string, templates: boolean): Action[] {

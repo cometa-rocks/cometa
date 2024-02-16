@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 
 @Pipe({
   name: 'hasPermission',
+  standalone: true,
 })
 export class HasPermissionPipe implements PipeTransform {
   constructor(private _store: Store) {}

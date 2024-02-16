@@ -12,6 +12,7 @@ import { debounceTime, Observable } from 'rxjs';
   templateUrl: './l1-tree-view.component.html',
   styleUrls: ['./l1-tree-view.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
 })
 export class L1TreeViewComponent implements OnInit {
   data = {};

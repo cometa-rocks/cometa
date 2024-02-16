@@ -25,6 +25,10 @@ import { DocumentService } from '../../services/document.service';
 import { JoyrideOptionsService } from '../../services/joyride-options.service';
 import { LoggerService } from '../../services/logger.service';
 import { TemplatesService } from '../../services/templates.service';
+import { JoyrideButtonComponent } from '../button/button.component';
+import { JoyrideCloseButtonComponent } from '../close-button/close-button.component';
+import { JoyrideArrowComponent } from '../arrow/arrow.component';
+import { NgIf, NgTemplateOutlet, AsyncPipe } from '@angular/common';
 
 const STEP_MIN_WIDTH = 200;
 const STEP_MAX_WIDTH = 400;
@@ -41,6 +45,15 @@ const DEFAULT_DISTANCE_FROM_MARGIN_RIGHT = 5;
   templateUrl: './joyride-step.component.html',
   styleUrls: ['./joyride-step.component.scss'],
   encapsulation: ViewEncapsulation.None,
+  standalone: true,
+  imports: [
+    NgIf,
+    JoyrideArrowComponent,
+    JoyrideCloseButtonComponent,
+    NgTemplateOutlet,
+    JoyrideButtonComponent,
+    AsyncPipe,
+  ],
 })
 export class JoyrideStepComponent implements OnInit, OnDestroy, AfterViewInit {
   stepWidth: number = STEP_MIN_WIDTH;

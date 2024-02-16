@@ -14,12 +14,26 @@ import {
   AreYouSureData,
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { NgIf, AsyncPipe } from '@angular/common';
+import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
 
 @Component({
   selector: 'account',
   templateUrl: './account.component.html',
   styleUrls: ['./account.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    DisableAutocompleteDirective,
+    NgIf,
+    MatLegacyTooltipModule,
+    AmParsePipe,
+    AmDateFormatPipe,
+    AsyncPipe,
+  ],
 })
 export class AccountComponent {
   @Select(UserState.GetPermission('edit_account'))

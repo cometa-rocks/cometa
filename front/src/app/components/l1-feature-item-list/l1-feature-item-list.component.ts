@@ -20,11 +20,60 @@ import { ApiService } from '@services/api.service';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { LogService } from '@services/log.service';
+import { FeatureRunningPipe } from '../../pipes/feature-running.pipe';
+import { DepartmentNamePipe } from '@pipes/department-name.pipe';
+import { BrowserComboTextPipe } from '../../pipes/browser-combo-text.pipe';
+import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { LetDirective } from '../../directives/ng-let.directive';
+import {
+  NgIf,
+  NgClass,
+  NgSwitch,
+  NgSwitchCase,
+  AsyncPipe,
+  LowerCasePipe,
+} from '@angular/common';
 
 @Component({
   selector: 'cometa-l1-feature-item-list',
   templateUrl: './l1-feature-item-list.component.html',
   styleUrls: ['./l1-feature-item-list.component.scss'],
+  standalone: true,
+  imports: [
+    NgIf,
+    LetDirective,
+    MatLegacyTooltipModule,
+    NgClass,
+    MatIconModule,
+    StopPropagationDirective,
+    MatLegacyProgressSpinnerModule,
+    NgSwitch,
+    NgSwitchCase,
+    MatLegacyButtonModule,
+    MatLegacyMenuModule,
+    MatDividerModule,
+    MatLegacyCheckboxModule,
+    TranslateModule,
+    AmParsePipe,
+    AmDateFormatPipe,
+    SecondsToHumanReadablePipe,
+    BrowserComboTextPipe,
+    DepartmentNamePipe,
+    FeatureRunningPipe,
+    AsyncPipe,
+    LowerCasePipe,
+  ],
 })
 export class L1FeatureItemListComponent implements OnInit {
   constructor(

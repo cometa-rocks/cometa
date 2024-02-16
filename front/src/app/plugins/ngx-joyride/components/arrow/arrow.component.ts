@@ -5,6 +5,7 @@ import { Component, Input, ViewEncapsulation } from '@angular/core';
   templateUrl: './arrow.component.html',
   styleUrls: ['./arrow.component.scss'],
   encapsulation: ViewEncapsulation.None,
+  standalone: true,
 })
 export class JoyrideArrowComponent {
   @Input()

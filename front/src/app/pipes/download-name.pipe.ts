@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'downloadName',
+  standalone: true,
 })
 export class DownloadNamePipe implements PipeTransform {
   /**
