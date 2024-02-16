@@ -17,6 +17,7 @@ export class AdminWrapperComponent {
   @Select(UserState.GetPermission('view_departments_panel')) canViewDepartments$: Observable<boolean>;
   @Select(UserState.GetPermission('view_environments_panel')) canViewEnvironments$: Observable<boolean>;
   @Select(UserState.GetPermission('view_features_panel')) canViewFeatures$: Observable<boolean>;
+  @Select(UserState.GetPermission('view_others_panel')) canViewOthers$: Observable<boolean>;
 
   links: string[] = [
     'departments',
@@ -24,7 +25,8 @@ export class AdminWrapperComponent {
     'browsers',
     'environments',
     'features',
-    'accounts'
+    'accounts',
+    'others'
   ];
 
 }

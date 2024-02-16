@@ -1,5 +1,5 @@
 {
-	"version": "2.8.329",
+	"version": "2.8.330",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -194,6 +194,16 @@
 		"{Code is Poetry}"
 	],
 	"changelog": [	
+		{
+			"version": "2.8.330",
+			"date": "2024-02-15",
+			"features": [
+				{
+					"title": "Download your data from admin portal",
+					"description": "You can download your dataset from the admin portal. A link with 'Click to download Dataset' is created"
+				}
+			]
+		},
 		{
 			"version": "2.8.329",
 			"date": "2024-02-15",
