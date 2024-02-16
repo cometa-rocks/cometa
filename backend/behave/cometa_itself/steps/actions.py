@@ -3883,9 +3883,17 @@ if __name__ != 'actions':
 # If the selector does not appear within the specified timeout:
 # 1. If the selected option is 'do not fail if not visible', the step will not fail, and it will skip the wait to disappear.
 # 2. If the selected option is 'fail if never visible', the step will fail.
+# 3. If the selected option is 'reload page after appearing', then the page is reloaded 0.5 seconds after the selector appear
+# Options can be chained like:  'reload page after appearing;fail if never visible' 
 @step(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 @done(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 def wait_for_appear_and_disappear(context, timeout, selector, option):
+
+    #
+    # FIXME: Need to implement logic for new option reload page after appearing
+    # * split option string by ";"
+    # trim trailing and leading spaces
+    #
 
     # Removing any spaces in the front and last
     option = option.strip()
@@ -3909,6 +3917,9 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
             time.sleep(0.5)
 
         if len(selector_element)>0 and selector_element[0].is_displayed():
+            # Check if reload page options is set
+            logger.debug(f"Checking for reload Page Option")
+
             send_step_details(context, 'Selector appeared, Wait for it to disappear')
             logger.debug(f"Selector to appeared")
             # If in case object disappears and gets removed from DOM it self the while checking is_displayed() it will throw error
