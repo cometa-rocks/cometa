@@ -13,12 +13,12 @@ import { PricingSuccessComponent } from '../components/pricing/pricing-success/p
 const routes: Routes = [
   {
     path: '',
-    component: PricingComponent
+    component: PricingComponent,
   },
   {
     path: 'success',
-    component: PricingSuccessComponent
-  }
+    component: PricingSuccessComponent,
+  },
 ];
 
 @NgModule({
@@ -26,20 +26,15 @@ const routes: Routes = [
     TranslateModule.forChild({
       loader: {
         provide: TranslateLoader,
-        useFactory: (createTranslateLoader),
-        deps: [HttpClient]
-      }
+        useFactory: createTranslateLoader,
+        deps: [HttpClient],
+      },
     }),
-    NgxsModule.forFeature([
-      SubscriptionsState
-    ]),
+    NgxsModule.forFeature([SubscriptionsState]),
     RouterModule.forChild(routes),
     SharedModule,
-    CommonModule
+    CommonModule,
   ],
-  declarations: [
-    PricingComponent,
-    PricingSuccessComponent
-  ]
+  declarations: [PricingComponent, PricingSuccessComponent],
 })
-export class PricingModule { }
+export class PricingModule {}

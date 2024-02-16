@@ -7,10 +7,9 @@ import { debounce, map, startWith } from 'rxjs/operators';
   selector: 'admin-accounts',
   templateUrl: './accounts.component.html',
   styleUrls: ['./accounts.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountsComponent implements OnInit {
-
   accountsUrl$: Observable<string>;
 
   search = new UntypedFormControl('');
@@ -19,7 +18,7 @@ export class AccountsComponent implements OnInit {
     this.accountsUrl$ = this.search.valueChanges.pipe(
       startWith(this.search.value),
       // Set delay of 300ms if search term is provided
-      debounce(e => e ? timer(300) : timer(0)),
+      debounce(e => (e ? timer(300) : timer(0))),
       map(search => {
         if (search) {
           return `accounts/?search=${search}`;
@@ -27,7 +26,6 @@ export class AccountsComponent implements OnInit {
           return `accounts/`;
         }
       })
-    )
+    );
   }
-
 }

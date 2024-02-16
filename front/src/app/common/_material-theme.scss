@@ -7,15 +7,17 @@ $cometa-primary: mat.define-palette(mat.$blue-palette, 800);
 $cometa-accent: mat.define-palette(mat.$purple-palette, 900);
 $cometa-warn: mat.define-palette(mat.$red-palette, 400);
 
-$cometa-theme: mat.define-light-theme((
- color: (
-   primary: $cometa-primary,
-   accent: $cometa-accent,
-   warn: $cometa-warn,
- ),
- typography: mat.define-typography-config(),
- density: 0,
-));
+$cometa-theme: mat.define-light-theme(
+  (
+    color: (
+      primary: $cometa-primary,
+      accent: $cometa-accent,
+      warn: $cometa-warn,
+    ),
+    typography: mat.define-typography-config(),
+    density: 0,
+  )
+);
 
 @include mat.all-component-themes($cometa-theme);
 @include mat.all-legacy-component-themes($cometa-theme);

@@ -15,31 +15,31 @@ import { L1FeatureTrashbinListComponent } from '../components/l1-feature-trashbi
 import { L1FeatureTeamListComponent } from '../components/l1-feature-team-list/l1-feature-team-list.component';
 import { L1TreeViewComponent } from '../components/l1-tree-view/l1-tree-view.component';
 import { WelcomeComponent } from '@components/welcome/welcome.component';
-import { DataDrivenRunsComponent } from '@components/data-driven-runs/data-driven-runs.component'
+import { DataDrivenRunsComponent } from '@components/data-driven-runs/data-driven-runs.component';
 
 const routes: Routes = [
-    {
-        path: '',
-        title: 'Home',
-        component: L1LandingComponent
-    },
-    {
-        path: ':breadcrumb',
-        component: L1LandingComponent
-    }
+  {
+    path: '',
+    title: 'Home',
+    component: L1LandingComponent,
+  },
+  {
+    path: ':breadcrumb',
+    component: L1LandingComponent,
+  },
 ];
 
 @NgModule({
-    imports: [
-        TranslateModule.forChild({
-            extend: true
-        }),
-        RouterModule.forChild(routes),
-        MatRippleModule,
-        SharedModule,
-        CommonModule
-    ],
-    declarations: [
+  imports: [
+    TranslateModule.forChild({
+      extend: true,
+    }),
+    RouterModule.forChild(routes),
+    MatRippleModule,
+    SharedModule,
+    CommonModule,
+  ],
+  declarations: [
     L1LandingComponent,
     FolderTreeComponent,
     FolderItemTreeComponent,
@@ -51,7 +51,7 @@ const routes: Routes = [
     L1FeatureTeamListComponent,
     L1TreeViewComponent,
     WelcomeComponent,
-    DataDrivenRunsComponent
-  ]
+    DataDrivenRunsComponent,
+  ],
 })
-export class NewlandingModule { }
+export class NewlandingModule {}

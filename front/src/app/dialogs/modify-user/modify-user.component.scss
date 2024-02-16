@@ -1,42 +1,41 @@
-
 @import 'color';
 @import 'breakpoints';
 
 h2 {
-    color: $blue;
+  color: $blue;
 }
 
 button {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 button.submit {
-    color: $blue;
+  color: $blue;
 }
 
 .add {
-    cursor: pointer;
-    color: $blue;
-    margin-left: 15px;
-    margin-top: 10px;
+  cursor: pointer;
+  color: $blue;
+  margin-left: 15px;
+  margin-top: 10px;
 }
 
 :host::ng-deep .mat-dialog-content {
-    display: flex;
-    flex-wrap: wrap;
-    @include for-phone-landscape-up {
-        .mat-form-field {
-            flex: 0 calc(50% - 10px);
-            &:nth-child(odd) {
-                margin-right: 10px;
-            }
-            &:nth-child(even) {
-                margin-left: 10px;
-            }
-        }
+  display: flex;
+  flex-wrap: wrap;
+  @include for-phone-landscape-up {
+    .mat-form-field {
+      flex: 0 calc(50% - 10px);
+      &:nth-child(odd) {
+        margin-right: 10px;
+      }
+      &:nth-child(even) {
+        margin-left: 10px;
+      }
     }
+  }
 }
 
 .extra-info {
-    flex: 1 100%;
+  flex: 1 100%;
 }

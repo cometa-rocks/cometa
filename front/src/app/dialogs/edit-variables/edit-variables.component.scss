@@ -1,134 +1,138 @@
 @import 'color';
 
 .mat-dialog-title {
-    margin: 0;
-    height: 40px;
+  margin: 0;
+  height: 40px;
 }
 
 .mat-dialog-content {
-    display: unset;
+  display: unset;
 }
 
 .search-wrapper {
-    display: block;
+  display: block;
 
-    mat-icon {
-        margin-right: 15px;
-    }
+  mat-icon {
+    margin-right: 15px;
+  }
 }
 .table-wrapper.component {
-    height: calc(100% - 275px);
+  height: calc(100% - 275px);
 }
 
 .columns-button-wrapper {
-    text-align: end;
-    padding-bottom: 20px;
+  text-align: end;
+  padding-bottom: 20px;
 }
 
 .env-info {
-    display: flex;
+  display: flex;
 
-    .env-item {
-        margin-right: 20px;
-        .env-title { margin-right: 3px; }
-        .env-value { color: $blue; }
+  .env-item {
+    margin-right: 20px;
+    .env-title {
+      margin-right: 3px;
     }
+    .env-value {
+      color: $blue;
+    }
+  }
 }
 
 .table-wrapper {
-    height: 40vh;
-    overflow-y: auto;
-    scroll-behavior: smooth;
+  height: 40vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
 
-    table {
-        width: 100%;
+  table {
+    width: 100%;
 
-        .var-row:hover {
-            background-color: rgb(242, 242, 242);
-        }
-
-        .var-row.edit {
-            cursor: pointer;
-            td.mat-cell {
-                border-bottom: 1px solid $blue;
-            }
-        }
-
-        td.mat-cell {
-            small {
-                display: block;
-                font-size: 10px;
-            }
-        }
-
-        th.mat-header-cell {
-            font-size: 13px;
-            font-weight: bold;
-            color: $blue;
-        }
-
-        td.mat-cell,
-        th.mat-header-cell {
-            padding-right: 20px;
-        }
-
-        tr.mat-header-row {
-            position: sticky;
-            z-index: 1;
-            top: 0;
-        }
-
-        input {
-            background-color: transparent;
-            border: 0;
-            box-sizing: border-box;
-            width: 100%;
-            outline: 0;
-            pointer-events: none;
-            &.edit {
-                pointer-events: all;
-            }
-        }
-
-        .validation-error {
-            color: $blue;
-        }
-
-        .actions-wrapper {
-            display: flex;
-
-            .action-wrapper {
-                height: 22px;
-                line-height: 22px;
-                button {
-                    padding: 0;
-                    height: 22px !important;
-                    line-height: 22px !important;
-                    cursor: pointer;
-
-                    mat-icon {
-                        margin-right: 0 !important;
-                    }
-                }
-            }
-        }
+    .var-row:hover {
+      background-color: rgb(242, 242, 242);
     }
+
+    .var-row.edit {
+      cursor: pointer;
+      td.mat-cell {
+        border-bottom: 1px solid $blue;
+      }
+    }
+
+    td.mat-cell {
+      small {
+        display: block;
+        font-size: 10px;
+      }
+    }
+
+    th.mat-header-cell {
+      font-size: 13px;
+      font-weight: bold;
+      color: $blue;
+    }
+
+    td.mat-cell,
+    th.mat-header-cell {
+      padding-right: 20px;
+    }
+
+    tr.mat-header-row {
+      position: sticky;
+      z-index: 1;
+      top: 0;
+    }
+
+    input {
+      background-color: transparent;
+      border: 0;
+      box-sizing: border-box;
+      width: 100%;
+      outline: 0;
+      pointer-events: none;
+      &.edit {
+        pointer-events: all;
+      }
+    }
+
+    .validation-error {
+      color: $blue;
+    }
+
+    .actions-wrapper {
+      display: flex;
+
+      .action-wrapper {
+        height: 22px;
+        line-height: 22px;
+        button {
+          padding: 0;
+          height: 22px !important;
+          line-height: 22px !important;
+          cursor: pointer;
+
+          mat-icon {
+            margin-right: 0 !important;
+          }
+        }
+      }
+    }
+  }
 }
 
 .add-variable {
-    display: inline-block;
+  display: inline-block;
 }
 
 .mat-elevation-z8 {
-    box-shadow: none;
+  box-shadow: none;
 }
 
 p.inuse {
-    display: inline;
-    color: $bad;
-    font-weight: bold;
+  display: inline;
+  color: $bad;
+  font-weight: bold;
 }
 
 mat-dialog-actions {
-    gap: 8px;
+  gap: 8px;
 }

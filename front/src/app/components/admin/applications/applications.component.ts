@@ -14,17 +14,17 @@ import { Applications } from '@store/actions/applications.actions';
   selector: 'admin-applications',
   templateUrl: './applications.component.html',
   styleUrls: ['./applications.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApplicationsComponent implements OnInit {
-
-  @Select(UserState.GetPermission('create_application')) canCreateApplication$: Observable<boolean>;
+  @Select(UserState.GetPermission('create_application'))
+  canCreateApplication$: Observable<boolean>;
 
   constructor(
     private _api: ApiService,
     private _dialog: MatDialog,
     private _store: Store
-  ) { }
+  ) {}
 
   @Select(ApplicationsState) applications$: Observable<Application[]>;
 
@@ -38,21 +38,26 @@ export class ApplicationsComponent implements OnInit {
 
   @Subscribe()
   newApp() {
-    return this._dialog.open(EnterValueComponent, {
-      autoFocus: true,
-      data: {
-        word: 'Application'
-      }
-    }).afterClosed().pipe(
-      map(res => res.value),
-      filter(value => !!value),
-      switchMap(value => this._api.createApplication(value)),
-      switchMap(response => this._store.dispatch( new Applications.AddApplication({
-          app_id: response.app_id,
-          app_name: response.app_name
-        })
-      ))
-    );
+    return this._dialog
+      .open(EnterValueComponent, {
+        autoFocus: true,
+        data: {
+          word: 'Application',
+        },
+      })
+      .afterClosed()
+      .pipe(
+        map(res => res.value),
+        filter(value => !!value),
+        switchMap(value => this._api.createApplication(value)),
+        switchMap(response =>
+          this._store.dispatch(
+            new Applications.AddApplication({
+              app_id: response.app_id,
+              app_name: response.app_name,
+            })
+          )
+        )
+      );
   }
-
 }
