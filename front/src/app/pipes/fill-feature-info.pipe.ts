@@ -4,13 +4,10 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { Observable } from 'rxjs';
 
 @Pipe({
-  name: 'fillFeatureInfo'
+  name: 'fillFeatureInfo',
 })
 export class FillFeatureInfoPipe implements PipeTransform {
-
-  constructor(
-    private _store: Store
-  ) { }
+  constructor(private _store: Store) {}
 
   /**
    * Converts a given array of featureIds
@@ -18,14 +15,13 @@ export class FillFeatureInfoPipe implements PipeTransform {
    * in template
    */
   transform(featureIds: number[]): FeatureFilledInfo[] {
-    return [ ...featureIds ].map(id => ({
+    return [...featureIds].map(id => ({
       id: id,
       info: this._store.select(CustomSelectors.GetFeatureInfo(id)),
       running: this._store.select(CustomSelectors.GetFeatureRunningStatus(id)),
-      status: this._store.select(CustomSelectors.GetFeatureStatus(id))
-    }))
+      status: this._store.select(CustomSelectors.GetFeatureStatus(id)),
+    }));
   }
-
 }
 
 export interface FeatureFilledInfo {

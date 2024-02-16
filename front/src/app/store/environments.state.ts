@@ -11,51 +11,65 @@ import { Environments } from './actions/environments.actions';
  */
 @State<Environment[]>({
   name: 'environments',
-  defaults: []
+  defaults: [],
 })
 @Injectable()
 export class EnvironmentsState {
-
-  constructor( private _api: ApiService ) { }
+  constructor(private _api: ApiService) {}
 
   @Action(Environments.GetEnvironments)
   getEnvironments({ setState }: StateContext<Environment[]>) {
-      return this._api.getEnvironments().pipe(
-          map(json => json.results),
-          tap(environments => setState(environments))
-      );
+    return this._api.getEnvironments().pipe(
+      map(json => json.results),
+      tap(environments => setState(environments))
+    );
   }
 
   @Action(Environments.AddEnvironment)
-  addEnvironment({ setState, getState }: StateContext<Environment[]>, { env }: Environments.AddEnvironment) {
+  addEnvironment(
+    { setState, getState }: StateContext<Environment[]>,
+    { env }: Environments.AddEnvironment
+  ) {
     // Add department only if doesn't exist already
     if (!getState().some(en => en.environment_id === env.environment_id)) {
       // Add application
-      setState([ ...getState(), env ]);
+      setState([...getState(), env]);
     }
   }
 
   @Action(Environments.SetEnvironments)
-  setEnvironments({ setState }: StateContext<Environment[]>, { environments }: Environments.SetEnvironments) {
-      setState(environments);
+  setEnvironments(
+    { setState }: StateContext<Environment[]>,
+    { environments }: Environments.SetEnvironments
+  ) {
+    setState(environments);
   }
 
   @Action(Environments.UpdateEnvironment)
-  updateEnvironment({ setState, getState }: StateContext<Environment[]>, { environment }: Environments.UpdateEnvironment) {
+  updateEnvironment(
+    { setState, getState }: StateContext<Environment[]>,
+    { environment }: Environments.UpdateEnvironment
+  ) {
     setState(
       produce(getState(), (ctx: Environment[]) => {
-        const index = ctx.findIndex(env => env.environment_id === environment.environment_id);
+        const index = ctx.findIndex(
+          env => env.environment_id === environment.environment_id
+        );
         ctx[index] = environment;
       })
-    )
+    );
   }
 
   @Action(Environments.RemoveEnvironment)
-  removeEnvironment({ setState, getState }: StateContext<Environment[]>, { environment_id }: Environments.RemoveEnvironment) {
-      const environments = getState();
-      const index = environments.findIndex(env => env.environment_id === environment_id);
-      environments.splice(index, 1);
-      setState(environments);
+  removeEnvironment(
+    { setState, getState }: StateContext<Environment[]>,
+    { environment_id }: Environments.RemoveEnvironment
+  ) {
+    const environments = getState();
+    const index = environments.findIndex(
+      env => env.environment_id === environment_id
+    );
+    environments.splice(index, 1);
+    setState(environments);
   }
-
 }
