@@ -1,58 +1,58 @@
-
 :host {
-    display: flex;
-    flex: 0 1 auto;
-    position: relative;
-    height: 50px;
-    margin: 10px;
-    padding: 10px;
-    cursor: pointer;
-    line-height: 30px;
-    border-radius: 3px;
-    box-sizing: border-box;
-    background-color: rgba(white, .4);
-    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2),
-                0 2px 2px 0 rgba(0, 0, 0, 0.14),
-                0 1px 5px 0 rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex: 0 1 auto;
+  position: relative;
+  height: 50px;
+  margin: 10px;
+  padding: 10px;
+  cursor: pointer;
+  line-height: 30px;
+  border-radius: 3px;
+  box-sizing: border-box;
+  background-color: rgba(white, 0.4);
+  box-shadow:
+    0 3px 1px -2px rgba(0, 0, 0, 0.2),
+    0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    0 1px 5px 0 rgba(0, 0, 0, 0.12);
 }
 
 :host::ng-deep .mat-icon-button.menu-trigger {
-    width: 30px;
-    height: 30px;
-    line-height: 30px;
-    margin-left: 10px;
-    .mat-icon {
-        line-height: 20px;
-        opacity: .8;
-    }
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  margin-left: 10px;
+  .mat-icon {
+    line-height: 20px;
+    opacity: 0.8;
+  }
 }
 
 i {
-    display: block;
-    flex: initial;
-    width: 30px;
-    margin-right: 10px;
-    background-image: url(^assets/icons/folder.svg);
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
+  display: block;
+  flex: initial;
+  width: 30px;
+  margin-right: 10px;
+  background-image: url(^assets/icons/folder.svg);
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .fixed-add {
-    font-weight: bold;
-    color: rgba(black,.75);
-    position: absolute;
-    top: 12px;
-    bottom: 0;
-    left: 20px;
-    font-size: 20px;
-    height: 10px;
-    width: 10px;
+  font-weight: bold;
+  color: rgba(black, 0.75);
+  position: absolute;
+  top: 12px;
+  bottom: 0;
+  left: 20px;
+  font-size: 20px;
+  height: 10px;
+  width: 10px;
 }
 
 :host > span {
-    display: block;
-    flex: initial;
-    font-weight: bold;
-    color: rgba(black, .6);
+  display: block;
+  flex: initial;
+  font-weight: bold;
+  color: rgba(black, 0.6);
 }
