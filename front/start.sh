@@ -151,7 +151,7 @@ function build_project(){
 
 	# FIX me does not work in localhost
 	echo "Fixing user permissions, setting uid and gid to: ${UIDGID}"
-	chown -R ${UIDGID} /code
+	chown -R ${UIDGID} /code/front
 }
 
 # #########
