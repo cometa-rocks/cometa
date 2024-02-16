@@ -18,6 +18,7 @@ import { WebSockets } from '@store/actions/results.actions';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { PaginatedListsState } from '@store/paginated-list.state';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { ErrorDialog } from '@dialogs/error/error.dialog';
 
 @UntilDestroy()
 @Component({
@@ -138,13 +139,18 @@ export class FeatureActionsComponent implements OnInit {
     if (!featureResultId && this.latestFeatureResultId != 0) {
       // Or get id from last run object
       featureResultId = this.latestFeatureResultId;
+      this._dialog.open(LogOutputComponent, {
+        disableClose: true,
+        panelClass: 'enter-value-panel',
+        data: featureResultId
+      }).afterClosed().subscribe(_ => this._sharedActions.dialogActive = false);
     }
-    // Open Log Dialog
-    this._dialog.open(LogOutputComponent, {
-      disableClose: true,
-      panelClass: 'enter-value-panel',
-      data: featureResultId
-    }).afterClosed().subscribe(_ => this._sharedActions.dialogActive = false);
+    else{
+      this._dialog.open(ErrorDialog, {
+        id: 'error',
+        data: {"error":"There are no logs for this feature. Please execute the feature and then review the logs. If you think this is a bug, please let us know."}
+    });
+    }
   }
 
   async runNow() {
