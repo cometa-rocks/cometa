@@ -3884,7 +3884,9 @@ if __name__ != 'actions':
 # 1. If the selected option is 'do not fail if not visible', the step will not fail, and it will skip the wait to disappear.
 # 2. If the selected option is 'fail if never visible', the step will fail.
 # 3. If the selected option is 'reload page after appearing', then the page is reloaded 0.5 seconds after the selector appear
-# Options can be chained like:  'reload page after appearing;fail if never visible' 
+# 4. If the selected option is 'reload page while waiting to disappear', then the page is reloaded every minute while waiting to disappear. 
+# Options can be chained like:  'reload page after appearing;do not fail if not visible' 
+# For Option 4: the step timeout must be bigger then 1 minute, as the waiting time after reloading is set to 1 minute.
 @step(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 @done(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 def wait_for_appear_and_disappear(context, timeout, selector, option):
@@ -3917,8 +3919,9 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
             time.sleep(0.5)
 
         if len(selector_element)>0 and selector_element[0].is_displayed():
-            # Check if reload page options is set
+            # Check if "reload page after appearing" options is set
             logger.debug(f"Checking for reload Page Option")
+            # if option is set then sleep (0.5) and reload page
 
             send_step_details(context, 'Selector appeared, Wait for it to disappear')
             logger.debug(f"Selector to appeared")
@@ -3927,6 +3930,9 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
             try:
                 # continue loop if element is displayed for wait time is less then 60 seconds
                 while selector_element[0].is_displayed():
+                    # Reload if "reload page while waiting to disappear" is set
+                    # If set - reload page and sleep 1 minute
+                    # otherwise
                     time.sleep(0.5)
                 # In case element disappeard but present in the DOM
                 if not selector_element[0].is_displayed(): 
