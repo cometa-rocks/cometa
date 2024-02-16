@@ -26,7 +26,7 @@
 function install_essentials(){
 	echo -e "\e[37mStartup cleanup...\e[0m"
 	echo "" > output.log 2>&1
-	rm -rf /code/node_modules/ >> output.log 2>&1
+	rm -rf /code/front/node_modules/ >> output.log 2>&1
 	echo -e "\e[32mDone\e[0m"
 	echo -e "\e[37mUpdating packages...\e[0m"
 	apt-get update >> output.log 2>&1
@@ -67,9 +67,10 @@ function install_angular(){
 	# echo -e "\e[37mInstalling @angular/cli...\e[0m"
 	# npm install -g @angular/cli >> output.log 2>&1
 	# echo -e "\e[32mOK\e[0m"
+	npm config set unsafe-perm true
 	echo -e "\e[37mInstalling npm packages...\e[0m"
 	npm ci >> output.log 2>&1
-	# sed -i "s/CanvasPathMethods/CanvasPath/g" /code/node_modules/\@types/d3-shape/index.d.ts
+	# sed -i "s/CanvasPathMethods/CanvasPath/g" /code/front/node_modules/\@types/d3-shape/index.d.ts
 	echo -e "\e[32mOK\e[0m"
 }
 
@@ -132,7 +133,7 @@ function check_ssl_certificate() {
 # #########
 function build_project(){
 	# replace baseHref inside index.html before serving
-	sed -i 's#<base href="/debug/">#<base href="/">#' /code/src/index.html
+	sed -i 's#<base href="/debug/">#<base href="/">#' /code/front/src/index.html
 	# get uid and gid of user that owns content outside
 	UIDGID=$(stat -c "%u:%g" /code)
 	echo -e "\e[37mCompiling...\e[0m"
@@ -146,11 +147,11 @@ function build_project(){
 	cat output.log
 
 	echo -e "\e[37mCopying files to public folder...\e[0m"
-	cp -a /code/dist/. /usr/local/apache2/htdocs/ >> output.log 2>&1
+	cp -a /code/front/dist/. /usr/local/apache2/htdocs/ >> output.log 2>&1
 
 	# FIX me does not work in localhost
 	echo "Fixing user permissions, setting uid and gid to: ${UIDGID}"
-	chown -R ${UIDGID} /code
+	chown -R ${UIDGID} /code/front
 }
 
 # #########
@@ -161,7 +162,7 @@ function build_project(){
 # #########
 function serve_project() {
 	# replace baseHref inside index.html before serving
-	sed -i 's#<base href="/">#<base href="/debug/">#' /code/src/index.html
+	sed -i 's#<base href="/">#<base href="/debug/">#' /code/front/src/index.html
 	# serve the project
 	npx ng serve
 }

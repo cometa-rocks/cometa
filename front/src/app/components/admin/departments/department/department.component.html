@@ -1,16 +1,34 @@
 <div class="icon"></div>
 <div class="name">
-  <input spellcheck="false" disableAutocomplete [disabled]="!(modify | async)" [value]="department.department_name">
+  <input
+    spellcheck="false"
+    disableAutocomplete
+    [disabled]="!(modify | async)"
+    [value]="department.department_name" />
 </div>
-<div class="users" [ngClass]="{'disabled' : department.users.length < 1}" *ngIf="(canSeeUsers$ | async)" (click)="showUsers()">
+<div
+  class="users"
+  [ngClass]="{ disabled: department.users.length < 1 }"
+  *ngIf="canSeeUsers$ | async"
+  (click)="showUsers()">
   <mat-icon>people</mat-icon>
-  <span class="amount">{{department.users.length}}</span>
+  <span class="amount">{{ department.users.length }}</span>
 </div>
-<div *ngIf="canEditDepartment$ | async" class="modify" [ngClass]="{'validate': (modify | async) }" (click)="saveOrEdit()"></div>
+<div
+  *ngIf="canEditDepartment$ | async"
+  class="modify"
+  [ngClass]="{ validate: (modify | async) }"
+  (click)="saveOrEdit()"></div>
 
 <!-- Icon which opens modify department timeout dialog on click -->
-<div class="timeout" *ngIf="canEditDepartment$ | async" (click)="onModifyTimeoutClick()">
+<div
+  class="timeout"
+  *ngIf="canEditDepartment$ | async"
+  (click)="onModifyTimeoutClick()">
   <mat-icon>access_time</mat-icon>
 </div>
 
-<div *ngIf="canDeleteDepartment$ | async" (click)="removeIt()" class="remove"></div>
+<div
+  *ngIf="canDeleteDepartment$ | async"
+  (click)="removeIt()"
+  class="remove"></div>

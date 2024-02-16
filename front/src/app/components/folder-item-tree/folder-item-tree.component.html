@@ -6,28 +6,41 @@ Author: dph000
 
 -->
 <ng-container *ngLet="expanded$ | async as expanded">
-    <!--folderState[this.folder.name]?.open will check if folder state is set to open: true, and adapt arrow icon's direction depending on value-->
-    <div (click)="toggleExpand()" [class.opened]="folderState[folder.name]?.open"
-        [style.paddingLeft.px]="level * 25" matRipple class="row" *ngLet="lastFolder$ | async as lastFolder"
-        [class.selected]="lastFolder === folder.folder_id">
-        <!-- Arrow to show / hide the folder -->
-        <mat-icon class="arrow" [class.hidden]="folder.folders.length === 0">
-            keyboard_arrow_right</mat-icon>
-        <!-- Folder icon and name -->
-        <div class="item" [style.--itemMinWidth]="level * 25 + 'px'" [style.--folderNameWidth]="level === 1 ? '0px': (level-1) * 25 + 'px'">
-            <!-- Show different depending if the item is a folder or department -->
-            <mat-icon *ngIf="department === true; else folderIcon">domain</mat-icon>
-            <ng-template #folderIcon>
-                <mat-icon>folder</mat-icon>
-            </ng-template>
-            <div class="folderName">{{ folder.name }}</div>
-        </div>
+  <!--folderState[this.folder.name]?.open will check if folder state is set to open: true, and adapt arrow icon's direction depending on value-->
+  <div
+    (click)="toggleExpand()"
+    [class.opened]="folderState[folder.name]?.open"
+    [style.paddingLeft.px]="level * 25"
+    matRipple
+    class="row"
+    *ngLet="lastFolder$ | async as lastFolder"
+    [class.selected]="lastFolder === folder.folder_id">
+    <!-- Arrow to show / hide the folder -->
+    <mat-icon class="arrow" [class.hidden]="folder.folders.length === 0">
+      keyboard_arrow_right</mat-icon
+    >
+    <!-- Folder icon and name -->
+    <div
+      class="item"
+      [style.--itemMinWidth]="level * 25 + 'px'"
+      [style.--folderNameWidth]="level === 1 ? '0px' : (level - 1) * 25 + 'px'">
+      <!-- Show different depending if the item is a folder or department -->
+      <mat-icon *ngIf="department === true; else folderIcon">domain</mat-icon>
+      <ng-template #folderIcon>
+        <mat-icon>folder</mat-icon>
+      </ng-template>
+      <div class="folderName">{{ folder.name }}</div>
     </div>
-    <!--folderState[this.folder.name]?.open will check if folder state is set to open: true, and expand folder or not depending on the value-->
-    <div *ngIf="folderState[folder.name]?.open" class="container">
-        <!-- Recursion of directories -->
-        <!-- The department boolean is used to know wheter the sent object is a department or not -->
-        <cometa-folder-item-tree [department]="false" [parent]="parent.concat(folder)" [level]="level + 1"
-            [folder]="folder" *ngFor="let folder of folder.folders"></cometa-folder-item-tree>
-    </div>
+  </div>
+  <!--folderState[this.folder.name]?.open will check if folder state is set to open: true, and expand folder or not depending on the value-->
+  <div *ngIf="folderState[folder.name]?.open" class="container">
+    <!-- Recursion of directories -->
+    <!-- The department boolean is used to know wheter the sent object is a department or not -->
+    <cometa-folder-item-tree
+      [department]="false"
+      [parent]="parent.concat(folder)"
+      [level]="level + 1"
+      [folder]="folder"
+      *ngFor="let folder of folder.folders"></cometa-folder-item-tree>
+  </div>
 </ng-container>
