@@ -19,7 +19,7 @@ export class PermissionGuard implements CanActivate {
       const permission = this._store.selectSnapshot(UserState.GetPermission(next.data.require_permission));
       if (permission && next.data.require_permission === 'view_admin_panel') {
         const user = this._store.selectSnapshot<UserInfo>(UserState);
-        const tabs = ['departments', 'applications', 'browsers', 'environments', 'features', 'accounts']
+        const tabs = ['departments', 'applications', 'browsers', 'environments', 'features', 'accounts', 'others']
         const tab_permissions = tabs.filter(v => user.user_permissions[`view_${v}_panel`])
         if (tab_permissions.length > 0) {
           this._router.navigate(['/admin', tab_permissions[0]]);

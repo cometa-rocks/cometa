@@ -321,6 +321,7 @@ admin.site.register(Subscription, AdminSubscription)
 admin.site.register(PaymentRequest, AdminPaymentRequest)
 admin.site.register(StripeWebhook, AdminStripeWebhooks)
 admin.site.register(UserSubscription, AdminUserSubscription)
-admin.site.register(UsageInvoice, AdminUsageInvoice),
+admin.site.register(UsageInvoice, AdminUsageInvoice)
+admin.site.register(Dataset)
 
 # Register your models here.
