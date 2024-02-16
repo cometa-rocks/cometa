@@ -1,2 +1,4 @@
 <h2>Manage browsers</h2>
-<browser [browser]="browser" *ngFor="let browser of browsers$ | async; trackBy: trackByFn"></browser>
+<browser
+  [browser]="browser"
+  *ngFor="let browser of browsers$ | async; trackBy: trackByFn"></browser>

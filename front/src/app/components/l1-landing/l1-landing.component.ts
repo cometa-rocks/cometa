@@ -8,7 +8,15 @@
  * @author: dph000
  */
 
-import { animate, query, stagger, state, style, transition, trigger } from '@angular/animations';
+import {
+  animate,
+  query,
+  stagger,
+  state,
+  style,
+  transition,
+  trigger,
+} from '@angular/animations';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { UntypedFormControl, Validators } from '@angular/forms';
 import { Store, Select } from '@ngxs/store';
@@ -28,7 +36,6 @@ import { ActivatedRoute } from '@angular/router';
 import { LogService } from '@services/log.service';
 import { User } from '@store/actions/user.actions';
 
-
 @UntilDestroy()
 @Component({
   selector: 'cometa-l1-landing',
@@ -39,28 +46,37 @@ import { User } from '@store/actions/user.actions';
     trigger('listAnimation', [
       transition('* => *', [
         query(':enter', style({ opacity: 0, top: '30px' }), { optional: true }),
-        query(':enter', stagger('100ms', [
-          animate('.4s ease-in-out', style({ opacity: 1, top: '0px' }))
-        ]), { optional: true })
-      ])
+        query(
+          ':enter',
+          stagger('100ms', [
+            animate('.4s ease-in-out', style({ opacity: 1, top: '0px' })),
+          ]),
+          { optional: true }
+        ),
+      ]),
     ]),
     trigger('addDialog', [
-      state('false', style({
-        visibility: 'hidden',
-        left: '-30px',
-        opacity: 0
-      })),
-      state('true', style({
-        visibility: 'visible',
-        left: '0',
-        opacity: 1
-      })),
-      transition('false <=> true', animate('150ms ease-out'))
-    ])
-  ]
+      state(
+        'false',
+        style({
+          visibility: 'hidden',
+          left: '-30px',
+          opacity: 0,
+        })
+      ),
+      state(
+        'true',
+        style({
+          visibility: 'visible',
+          left: '0',
+          opacity: 1,
+        })
+      ),
+      transition('false <=> true', animate('150ms ease-out')),
+    ]),
+  ],
 })
 export class L1LandingComponent implements OnInit {
-
   constructor(
     private _router: Router,
     private _dialog: MatDialog,
@@ -74,37 +90,47 @@ export class L1LandingComponent implements OnInit {
       try {
         const parsedFilters = JSON.parse(filtersStorage);
         this._store.dispatch(new Features.SetFilters(parsedFilters));
-      } catch (err) { }
+      } catch (err) {}
     }
 
     // if user clicks on browser bookmark that saves location to certain folder or feature, it will not be loaded if active_list is not set to 'list', as 'list' renders the table
     // that's why we check if there are params in url and if so, set active_list to 'list'. So user can directly navigate to saved bookmark location
-    if (this.url_has_params())  {
-      this._store.dispatch(new Configuration.SetProperty('co_active_list', 'list', true));
+    if (this.url_has_params()) {
+      this._store.dispatch(
+        new Configuration.SetProperty('co_active_list', 'list', true)
+      );
     }
 
     // forces the components content to reload when url parameters are changed manually
     this._router.routeReuseStrategy.shouldReuseRoute = () => false;
-    
   }
 
   // Contains all the features and folders data
-  @Select(FeaturesState.GetNewFeaturesWithinFolder) data$: Observable<ReturnType<typeof FeaturesState.GetNewFeaturesWithinFolder>>;
+  @Select(FeaturesState.GetNewFeaturesWithinFolder) data$: Observable<
+    ReturnType<typeof FeaturesState.GetNewFeaturesWithinFolder>
+  >;
   // Contains the list of active filters
-  @Select(FeaturesState.GetFilters) filters$: Observable<ReturnType<typeof FeaturesState.GetFilters>>;
+  @Select(FeaturesState.GetFilters) filters$: Observable<
+    ReturnType<typeof FeaturesState.GetFilters>
+  >;
   // Checks if the sidenav is opened (only mobile)
-  @Select(CustomSelectors.GetConfigProperty('openedSidenav')) showFolders$: Observable<boolean>;
+  @Select(CustomSelectors.GetConfigProperty('openedSidenav'))
+  showFolders$: Observable<boolean>;
   // Checks if the search bar is opened
-  @Select(CustomSelectors.GetConfigProperty('openedSearch')) openedSearch$: Observable<boolean>;
+  @Select(CustomSelectors.GetConfigProperty('openedSearch'))
+  openedSearch$: Observable<boolean>;
   // Checks which list is active
-  @Select(CustomSelectors.GetConfigProperty('co_active_list')) aciveList$: Observable<string>;
+  @Select(CustomSelectors.GetConfigProperty('co_active_list'))
+  aciveList$: Observable<string>;
   // Type of view (list / item)
-  @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('featuresView.with')) itemsViewWith: FeatureViewTypes;
+  @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('featuresView.with'))
+  itemsViewWith: FeatureViewTypes;
   // Checks if the user can create features
-  @ViewSelectSnapshot(UserState.GetPermission('create_feature')) canCreateFeature: boolean;
+  @ViewSelectSnapshot(UserState.GetPermission('create_feature'))
+  canCreateFeature: boolean;
   // Checks if the user has an active subscription
-  @ViewSelectSnapshot(UserState.HasOneActiveSubscription) hasSubscription: boolean;
-
+  @ViewSelectSnapshot(UserState.HasOneActiveSubscription)
+  hasSubscription: boolean;
 
   // Global variables
   minADate = new UntypedFormControl('', Validators.required);
@@ -115,20 +141,20 @@ export class L1LandingComponent implements OnInit {
   sidenavClosed = false;
 
   ngOnInit() {
-    this.log.msg("1","Inicializing component...","landing");
+    this.log.msg('1', 'Inicializing component...', 'landing');
     // #3414 -------------------------------------------------start
     // check if there are folder ids in url params, if so redirect to that folder
-    this.redirect_with_url_params(); 
+    this.redirect_with_url_params();
     // #3414 --------------------------------------------------end
 
-    this.moreOrLessSteps.valueChanges.pipe(untilDestroyed(this))
-    .subscribe(value => {
-      this._store.dispatch( new Features.SetMoreOrLessSteps(value));
-    });
+    this.moreOrLessSteps.valueChanges
+      .pipe(untilDestroyed(this))
+      .subscribe(value => {
+        this._store.dispatch(new Features.SetMoreOrLessSteps(value));
+      });
 
-    this.aciveList$.pipe(untilDestroyed(this))
-    .subscribe(value => {
-      localStorage.setItem('co_active_list', value) // Initialize the recentList_active variable in the local storage 
+    this.aciveList$.pipe(untilDestroyed(this)).subscribe(value => {
+      localStorage.setItem('co_active_list', value); // Initialize the recentList_active variable in the local storage
     });
   }
 
@@ -138,22 +164,26 @@ export class L1LandingComponent implements OnInit {
 
   // Changes the type of view of the feature list (list / item)
   setView(type: string, view: FeatureViewTypes) {
-    this.log.msg("1","Changing feature list view type to...","landing", view);
+    this.log.msg('1', 'Changing feature list view type to...', 'landing', view);
     this.openedAdd = false;
 
     return this._store.dispatch([
       new User.SetSetting({ 'featuresView.with': view }),
-      new Configuration.SetProperty(`featuresView.${type}`, view, true)
+      new Configuration.SetProperty(`featuresView.${type}`, view, true),
     ]);
   }
 
   // Hides the sidenav
   hideSidenav() {
-    let currentSidebarState = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
+    let currentSidebarState = this._store.selectSnapshot<boolean>(
+      CustomSelectors.GetConfigProperty('openedSidenav')
+    );
     let newSidebarState = currentSidebarState ? false : true;
-    this.log.msg("1","Hiding sidenav...","landing");
-    return this._store.dispatch(new Configuration.SetProperty('openedSidenav', newSidebarState));
-  } 
+    this.log.msg('1', 'Hiding sidenav...', 'landing');
+    return this._store.dispatch(
+      new Configuration.SetProperty('openedSidenav', newSidebarState)
+    );
+  }
 
   /**
    * General functions
@@ -166,21 +196,22 @@ export class L1LandingComponent implements OnInit {
 
   // Open the create folder dialog
   createFolder() {
-    this.log.msg("1","Opening create folder dialog...","landing");
-    const currentFolder = this._store.selectSnapshot(FeaturesState).currentRouteNew as Folder[];
+    this.log.msg('1', 'Opening create folder dialog...', 'landing');
+    const currentFolder = this._store.selectSnapshot(FeaturesState)
+      .currentRouteNew as Folder[];
     let folder_id;
     if (currentFolder.length === 0) {
       folder_id = 0;
     } else {
-      folder_id = currentFolder[currentFolder.length - 1]
+      folder_id = currentFolder[currentFolder.length - 1];
     }
     this._dialog.open(AddFolderComponent, {
       autoFocus: true,
       data: {
-        mode : 'new',
-        folder: folder_id
-      } as IEditFolder
-    })
+        mode: 'new',
+        folder: folder_id,
+      } as IEditFolder,
+    });
   }
 
   /**
@@ -189,10 +220,9 @@ export class L1LandingComponent implements OnInit {
 
   // Opens a menu to create a new feature
   SAopenCreateFeature() {
-    this.log.msg("1","Opening create feature dialog...","landing");
+    this.log.msg('1', 'Opening create feature dialog...', 'landing');
     this._sharedActions.openEditFeature();
   }
-
 
   // checks if current url contains params and returns corresponding boolean
   url_has_params() {
@@ -200,35 +230,38 @@ export class L1LandingComponent implements OnInit {
     return folderIdRoute ? true : false;
   }
 
-
   // #3414 -----------------------------------------------------------------------------------------start
   // generates a folder path with folder ids retrieved from url and redirect to there to show content
   redirect_with_url_params() {
-    this.log.msg("1","Checking url params","landing");
+    this.log.msg('1', 'Checking url params', 'landing');
     // get url params - which contains a path created with folder ids, like 2:13:15 for example
     let folderIdRoute = this.activatedRoute.snapshot.paramMap.get('breadcrumb');
 
     // if there are folder ids in browser path
-    if(folderIdRoute) {      
+    if (folderIdRoute) {
       // remove first ':' from url params
-      folderIdRoute = folderIdRoute.indexOf(":") == 0 ? folderIdRoute.slice(1) : folderIdRoute;
+      folderIdRoute =
+        folderIdRoute.indexOf(':') == 0
+          ? folderIdRoute.slice(1)
+          : folderIdRoute;
 
       // split the url string to get array or folder ids base on ':'
-      const folderIDS = folderIdRoute.split(":");
+      const folderIDS = folderIdRoute.split(':');
 
       // checks if there is more than one id in url params
       // if so it means that user is currently inside a folder within department, so we load that folders content
       // if there is only one id it means user is currently in department, so we load all the folders that belong to that department
-      folderIDS.length > 1 ? this.show_folder_content(folderIDS) : this.show_department_content(folderIDS)
+      folderIDS.length > 1
+        ? this.show_folder_content(folderIDS)
+        : this.show_department_content(folderIDS);
     } else {
-      this.log.msg("1","No url params were found","landing");
+      this.log.msg('1', 'No url params were found', 'landing');
     }
   }
   // #3414 ------------------------------------------------------------------------------------------end
 
-
   // #3414 -----------------------------------------------------------------------------------------start
-  show_folder_content (folderIDS: any) {
+  show_folder_content(folderIDS: any) {
     // removes the first item from array, which is departmentId
     folderIDS.shift();
 
@@ -246,35 +279,50 @@ export class L1LandingComponent implements OnInit {
 
     // search recursively ids that are recieved from url params, search startpoint is the first folder
     // the next filter is always performed on previus filter result (recursive filtering)
-    for(let i = 1; i<folderIDS.length; i++ ) {
-      folder = folder[0].folders.filter(folder => folder.folder_id == folderIDS[i]);
+    for (let i = 1; i < folderIDS.length; i++) {
+      folder = folder[0].folders.filter(
+        folder => folder.folder_id == folderIDS[i]
+      );
       currentRoute.push(folder[0]);
     }
 
     // log folder id that app is redirected to
-    this.log.msg("1",`Folder id param found, redirectiong to folder with id ${currentRoute.slice(-1)[0].folder_id}`,"landing");
+    this.log.msg(
+      '1',
+      `Folder id param found, redirectiong to folder with id ${currentRoute.slice(-1)[0].folder_id}`,
+      'landing'
+    );
 
     // save the final folder path in localstorage
-    localStorage.setItem('co_last_selected_folder_route', JSON.stringify(currentRoute));
+    localStorage.setItem(
+      'co_last_selected_folder_route',
+      JSON.stringify(currentRoute)
+    );
   }
   // #3414 ------------------------------------------------------------------------------------------end
-
 
   // #3414 -----------------------------------------------------------------------------------------start
   // filters folders to show only the ones that belong to department id present in url params
   show_department_content(folderIDS: any) {
     // log department id where app is redirected to
-    this.log.msg("1",`Department id param found, redirectiong to department with id ${folderIDS[0]}`,"landing");
+    this.log.msg(
+      '1',
+      `Department id param found, redirectiong to department with id ${folderIDS[0]}`,
+      'landing'
+    );
 
     let department = [];
-    this._store.select(CustomSelectors.GetDepartmentFolders())
-      .subscribe(
-        data => {
-          department = data.filter(department => department.folder_id == Number(folderIDS[0]));
-        }
-      );
-      localStorage.setItem('co_last_selected_folder_route', JSON.stringify(department));
+    this._store
+      .select(CustomSelectors.GetDepartmentFolders())
+      .subscribe(data => {
+        department = data.filter(
+          department => department.folder_id == Number(folderIDS[0])
+        );
+      });
+    localStorage.setItem(
+      'co_last_selected_folder_route',
+      JSON.stringify(department)
+    );
   }
   // #3414 ------------------------------------------------------------------------------------------end
-  }
-
+}

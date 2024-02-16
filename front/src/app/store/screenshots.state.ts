@@ -12,43 +12,50 @@ import { Screenshots } from './actions/screenshots.actions';
  */
 @State<IScreenshotsState>({
   name: 'screenshots',
-  defaults: {}
+  defaults: {},
 })
 @Injectable()
 export class ScreenshotsState {
+  constructor(private _api: ApiService) {}
 
-    constructor( private _api: ApiService ) { }
-
-    @Action(Screenshots.GetScreenshots)
-    setAll({ setState }: StateContext<IScreenshotsState>, { stepResultId }: Screenshots.GetScreenshots) {
-        return this._api.getScreenshots(stepResultId).pipe(
-            tap(json => {
-                setState(
-                    produce((ctx: IScreenshotsState) => {
-                        // @ts-ignore
-                        ctx[stepResultId] = json.screenshots;
-                    })
-                )
-            })
-        )
-    }
-
-    @Action(Screenshots.SetScreenshots)
-    getAll({ setState }: StateContext<IScreenshotsState>, { stepResultId, screenshots }: Screenshots.SetScreenshots) {
+  @Action(Screenshots.GetScreenshots)
+  setAll(
+    { setState }: StateContext<IScreenshotsState>,
+    { stepResultId }: Screenshots.GetScreenshots
+  ) {
+    return this._api.getScreenshots(stepResultId).pipe(
+      tap(json => {
         setState(
-            produce((ctx: IScreenshotsState) => {
-                ctx[stepResultId] = screenshots;
-            })
-        )
-    }
+          produce((ctx: IScreenshotsState) => {
+            // @ts-ignore
+            ctx[stepResultId] = json.screenshots;
+          })
+        );
+      })
+    );
+  }
 
-    @Action(Screenshots.RemoveScreenshot)
-    remove({ setState }: StateContext<IScreenshotsState>, { stepResultId, index }: Screenshots.RemoveScreenshot) {
-        setState(
-            produce((ctx: IScreenshotsState) => {
-                ctx[stepResultId][index] = 'removed';
-            })
-        )
-    }
+  @Action(Screenshots.SetScreenshots)
+  getAll(
+    { setState }: StateContext<IScreenshotsState>,
+    { stepResultId, screenshots }: Screenshots.SetScreenshots
+  ) {
+    setState(
+      produce((ctx: IScreenshotsState) => {
+        ctx[stepResultId] = screenshots;
+      })
+    );
+  }
 
+  @Action(Screenshots.RemoveScreenshot)
+  remove(
+    { setState }: StateContext<IScreenshotsState>,
+    { stepResultId, index }: Screenshots.RemoveScreenshot
+  ) {
+    setState(
+      produce((ctx: IScreenshotsState) => {
+        ctx[stepResultId][index] = 'removed';
+      })
+    );
+  }
 }

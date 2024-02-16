@@ -26,21 +26,24 @@ import { EnvironmentsState } from '@store/environments.state';
   selector: 'account-settings',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserComponent implements OnInit {
-
   @Select(UserState) account$: Observable<UserInfo>;
-  @Select(ApplicationsState) applications$: Observable<Application>
-  @Select(EnvironmentsState) environments$: Observable<Environment>
+  @Select(ApplicationsState) applications$: Observable<Application>;
+  @Select(EnvironmentsState) environments$: Observable<Environment>;
   @ViewSelectSnapshot(ConfigState) config: Config;
-  @Select(UserState.RetrieveSettings) settings$: Observable<UserInfo['settings']>;
-  @Select(UserState.IsDefaultDepartment) isDefaultDepartment$: Observable<boolean>;
+  @Select(UserState.RetrieveSettings) settings$: Observable<
+    UserInfo['settings']
+  >;
+  @Select(UserState.IsDefaultDepartment)
+  isDefaultDepartment$: Observable<boolean>;
 
-  @ViewSelectSnapshot(IntegrationsState.ByDepartment) integrationsDept: IntegrationByDepartment;
-  @ViewSelectSnapshot(ConfigState) config$ !: Config;
+  @ViewSelectSnapshot(IntegrationsState.ByDepartment)
+  integrationsDept: IntegrationByDepartment;
+  @ViewSelectSnapshot(ConfigState) config$!: Config;
 
-  tours$: Observable<TourExtended[]>
+  tours$: Observable<TourExtended[]>;
 
   details$: Observable<UserDetails>;
   invoices$: Observable<UsageInvoice[]>;
@@ -54,36 +57,38 @@ export class UserComponent implements OnInit {
     private _snack: MatSnackBar,
     private _store: Store,
     private _router: Router,
-    private _translate: TranslateService,
+    private _translate: TranslateService
   ) {
     this.tours$ = this.settings$.pipe(
       map(settings => {
-        return Object.entries(this._tours)
-          // Remove injected services
-          .filter(entry => !entry[0].startsWith('_'))
-          // Map to value
-          .map(entry => entry[1])
-          // Add custom properties
-          .map((tour: Tour) => {
-            let completed
-            try {
-              completed = settings.tours_completed[tour.id] >= tour.version
-            } catch (err) {
-              completed = false
-            }
-            return {
-              ...tour,
-              completed: completed
-            }
-          })
+        return (
+          Object.entries(this._tours)
+            // Remove injected services
+            .filter(entry => !entry[0].startsWith('_'))
+            // Map to value
+            .map(entry => entry[1])
+            // Add custom properties
+            .map((tour: Tour) => {
+              let completed;
+              try {
+                completed = settings.tours_completed[tour.id] >= tour.version;
+              } catch (err) {
+                completed = false;
+              }
+              return {
+                ...tour,
+                completed: completed,
+              };
+            })
+        );
       })
-    )
+    );
   }
 
   goInvoice(invoiceId: number) {
     this._api.getInvoiceUrl(invoiceId).subscribe(res => {
       if (res.success && res.url) window.open(res.url);
-    })
+    });
   }
 
   ngOnInit() {
@@ -92,13 +97,15 @@ export class UserComponent implements OnInit {
   }
 
   removeIntegration(id: number) {
-    this._sharedActions.loadingObservable(
-      this._api.deleteIntegration(id),
-      'Deleting integration'
-    ).subscribe({
-      next: () => this._store.dispatch(new Integrations.RemoveOne(id)),
-      error: () => this._snack.open('An error ocurred', 'OK')
-    })
+    this._sharedActions
+      .loadingObservable(
+        this._api.deleteIntegration(id),
+        'Deleting integration'
+      )
+      .subscribe({
+        next: () => this._store.dispatch(new Integrations.RemoveOne(id)),
+        error: () => this._snack.open('An error ocurred', 'OK'),
+      });
   }
 
   goCustomerPortal() {
@@ -106,14 +113,16 @@ export class UserComponent implements OnInit {
       if (response.success) {
         location.href = response.url;
       }
-    })
+    });
   }
 
   setLang(code: string) {
     localStorage.setItem('lang', code);
     this._translate.use(code);
     this._snack.open('Language changed successfully!', 'OK');
-    return this._store.dispatch(new Configuration.SetProperty('language', code));
+    return this._store.dispatch(
+      new Configuration.SetProperty('language', code)
+    );
   }
 
   reloadLang() {
@@ -125,7 +134,7 @@ export class UserComponent implements OnInit {
     // save log websockets value in user setting and send it to backend to make it persistent
     return this._store.dispatch([
       new User.SetSetting({ logWebsockets: event.checked }),
-      new Configuration.SetProperty('logWebsockets', event.checked, true)
+      new Configuration.SetProperty('logWebsockets', event.checked, true),
     ]);
   }
 
@@ -134,7 +143,7 @@ export class UserComponent implements OnInit {
   }
 
   startTour(tour: Tour) {
-    this._tourService.startTourById(tour.id, true)
+    this._tourService.startTourById(tour.id, true);
   }
 
   handleDisableAnimations(event: MatCheckboxChange) {
@@ -143,7 +152,7 @@ export class UserComponent implements OnInit {
     // save disable animation value in user setting and send it to backend to make it persistent
     return this._store.dispatch([
       new User.SetSetting({ disableAnimations: event.checked }),
-      new Configuration.SetProperty('disableAnimations', event.checked)
+      new Configuration.SetProperty('disableAnimations', event.checked),
     ]);
   }
 
@@ -151,7 +160,7 @@ export class UserComponent implements OnInit {
     // save percent mode in user setting and send it to backend to make it persistent
     return this._store.dispatch([
       new User.SetSetting({ percentMode: event.checked }),
-      new Configuration.ChangePercentMode()
+      new Configuration.ChangePercentMode(),
     ]);
   }
 
@@ -163,12 +172,12 @@ export class UserComponent implements OnInit {
     // save toggle settings in user settings and send it to backend to make it persistent
     return this._store.dispatch([
       new User.SetSetting(toggleSetting),
-      new Configuration.ToggleCollapsible(prop, event.checked)
+      new Configuration.ToggleCollapsible(prop, event.checked),
     ]);
   }
 
   preselectSave(prop: string, value: string) {
-    let preselectSettings = {}
+    let preselectSettings = {};
     preselectSettings[prop] = value;
 
     return this._store.dispatch(new User.SetSetting(preselectSettings));
@@ -183,8 +192,8 @@ export class UserComponent implements OnInit {
     // save useNewDashboard value in user setting and send it to backend to make it persistent
     return this._store.dispatch([
       new User.SetSetting({ useNewDashboard: event.checked }),
-      new Configuration.SetProperty('useNewDashboard', event.checked, true)
-    ])
+      new Configuration.SetProperty('useNewDashboard', event.checked, true),
+    ]);
   }
 
   handleAccountSetting(ev: any, prop) {
@@ -192,11 +201,17 @@ export class UserComponent implements OnInit {
     if (ev.hasOwnProperty('checked')) {
       // Add exception if for Budgets
       if (prop === 'enable_budget' && ev.checked) {
-        return this._store.dispatch(new User.SetSetting({
-          budget: this._store.selectSnapshot(UserState.RetrieveSettings).budget || 0,
-          enable_budget: ev.checked,
-          budget_schedule_behavior: this._store.selectSnapshot(UserState.RetrieveSettings).budget_schedule_behavior || 'prevent'
-        }))
+        return this._store.dispatch(
+          new User.SetSetting({
+            budget:
+              this._store.selectSnapshot(UserState.RetrieveSettings).budget ||
+              0,
+            enable_budget: ev.checked,
+            budget_schedule_behavior:
+              this._store.selectSnapshot(UserState.RetrieveSettings)
+                .budget_schedule_behavior || 'prevent',
+          })
+        );
       }
       // Handle as checkbox
       return this._store.dispatch(new User.SetSetting({ [prop]: ev.checked }));

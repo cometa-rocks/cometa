@@ -7,22 +7,20 @@ import esLocale from 'date-fns/locale/es';
 import deLocale from 'date-fns/locale/de';
 
 @Pipe({
-  name: 'amDateFormat'
+  name: 'amDateFormat',
 })
 export class AmDateFormatPipe implements PipeTransform {
-
   locales = {
-    'es': esLocale,
-    'de': deLocale,
-    'en': enLocale
-  }
+    es: esLocale,
+    de: deLocale,
+    en: enLocale,
+  };
 
   @SelectSnapshot(ConfigState.GetLanguage) language: string;
 
   transform(value: Date, formato: string): string {
     return format(value, formato, {
-      locale: this.locales[this.language]
+      locale: this.locales[this.language],
     });
   }
-
 }

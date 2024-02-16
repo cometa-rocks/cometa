@@ -1,110 +1,110 @@
 {
-    "MAIN_VIEW": {
-        "DATE": "Datum"
-    },
-    "need_help": {
-        "filter": "Asking for help",
-        "poster": "Needs help",
-        "ask_for": "Ask for help",
-        "tooltip": "This feature is asking for help",
-        "can_help": "Enabling this option allows you to assist on features marked with \"Ask for help\"",
-        "explanation": "Enabling this option allows other users to help you on this feature"
-    },
-    "headers": {
-        "status": "Status",
-        "date": "Date",
-        "steps": "# Steps",
-        "ok": "# Ok",
-        "nok": "# Nok",
-        "skipped": "# Skipped",
-        "time": "Execution time",
-        "browser": "Browser",
-        "pixel": "Pixel difference"
-    },
-    "whats_new": {
-        "title": "Neuigkeiten",
-        "new_features": "Neue Funktionen",
-        "bugfixes": "Fehlerbeseitigung",
-        "close": "Schliessen"
-    },
-    "user": {
-        "tour_description": "Co.meta hat eine ReiseleiterIn - sie zeigt Dir neue Funktionen. So kannst Du  Schritt für Schritt den Umgang mit co.meta erlernen. Bewege den Mauszeiger über den Tour-Knopf um eine kurze Beschreibung zu erhalten.",
-        "webhooks_desc": "Durch die Integration von co.meta mit deinen bevorzugten Tools kannst du deinen Entwicklungsprozess optimieren. Durch die nahtlose Verbindung mit Co.Meta kannst du die Fertigstellung von Projekten beschleunigen, kontinuierliche Testpraktiken implementieren und Qualitätsupdates effektiv mit deinem gesamten Team teilen."
-    },
-    "websockets": {
-        "Initializing": "Initializing feature",
-        "Timeout": "Zeitüberschreitung bei der Suche nach Container mit Browserkontext.",
-        "Completed": "Feature completed"
-    },
-    "menu": {},
-    "connected": "Verbunden",
-    "not_connected": "Nicht verbunden",
-    "plandate": "Programmstand",
-    "region": "Region",
-    "product": "Produkt",
-    "regions": "Regionen",
-    "products": "Produkte",
-    "continue_on_failure": {
-        "tooltip": "Dieses Kontrollkästchen ist deaktiviert, weil \"Bei Fehler fortfahren\" bereits bei einem übergeordneten Element aktiviert ist."
-    },
-    "save": "Markiert das aktuelle Element als gespeichert.",
-    "unsave": "Hebt die Markierung des aktuellen Elements als gespeichert auf.",
-    "about": {
-        "config": "Config",
-        "sponsor": "Sponsor",
-        "credits": "Credits",
-        "thanks": "Danke",
-        "software": "Software",
-        "licenses": "Lizenzhinweise",
-        "technical_information": "Technische Informationen",
-        "changelog": "Changelog"
-    },
-    "tooltips": {
-        "delete_templates_with_features": "Wenn dieses Kontrollkästchen aktiviert ist, werden auch die Vorlagenbilder der einzelnen Ergebnisse gelöscht.",
-        "variables_requires": "Bitte wählen Sie eine Abteilung und Umgebung aus, um Variablen zu bearbeiten",
-        "run_feature": "Feature starten",
-        "edit_schedule": "Zeitplan bearbeiten",
-        "edit_feature": "Feature bearbeiten",
-        "loading_feature": "Feature laden",
-        "saving_feature": "Feature speichern",
-        "creating_feature": "Feature erstellen",
-        "deleting_feature": "Feature entfernen",
-        "latest_browser": "Es wird automatisch die neueste stabile Version dieses Browsers verwendet",
-        "invalid_edit_form": "Wir haben Fehler im Formular gefunden, bitte beheben Sie diese vor dem Speichern"
-    },
-    "paginator": {
-        "items": "Zeilen pro Seite",
-        "next": "Nächste Seite",
-        "previous": "Vorherige Seite",
-        "first": "Erste Seite",
-        "last": "letzte Seite",
-        "range": "{{startIndex}} - {{endIndex}} von {{length}}"
-    },
-    "you_sure": {
-        "delete_item_title": "Sind Sie sicher, dass Sie dieses Element löschen möchten?",
-        "delete_item_desc": "Dieser Vorgang kann nicht rückgängig gemacht werden.",
-        "quit_title": "Sind Sie sicher, dass Sie aufhören wollen?",
-        "quit_desc": "Sie haben nicht gespeicherte Änderungen.",
-        "decrypt_title": "Sind Sie sicher, dass Sie diese Variable entschlüsseln wollen?",
-        "decrypt_desc": "Das Entschlüsseln einer Variablen setzt den Wert der Umgebungsvariablen zurück.",
-        "remove_all_title": "Remove everything",
-        "remove_all": "Are you sure you want to remove all the steps?",
-        "budget_exceeded_title": "Budget überschritten",
-        "budget_exceeded_desc": "Die Funktion, die Sie ausführen wollen, wird Ihr konfiguriertes Budget überschreiten. Möchten Sie fortfahren?",
-        "budget_ahead_title": "Niedriges Budget",
-        "budget_ahead_desc": "Die Funktion, die Sie ausführen wollen, wird wahrscheinlich Ihr konfiguriertes Budget überschreiten. Möchten Sie fortfahren?",
-        "move_feature_title": "Verschieben",
-        "move_feature": "Wenn ein Test in eine andere Abteilung verschoben wird, werden die Umgebungsvariablen nicht mit übertragen. Soll der Test verschoben werden?"
-    },
-    "integrations": {
-        "add": "Integration hinzufügen",
-        "send_on": "weiterschicken",
-        "title": "Integrationen",
-        "edit": "Bearbeiten",
-        "delete": "Löschen"
-    },
-    "send_on": {
-        "after_test_execution": "Immer",
-        "after_test_execution_failed": "Bei Fehler"
-    }
+  "MAIN_VIEW": {
+    "DATE": "Datum"
+  },
+  "need_help": {
+    "filter": "Asking for help",
+    "poster": "Needs help",
+    "ask_for": "Ask for help",
+    "tooltip": "This feature is asking for help",
+    "can_help": "Enabling this option allows you to assist on features marked with \"Ask for help\"",
+    "explanation": "Enabling this option allows other users to help you on this feature"
+  },
+  "headers": {
+    "status": "Status",
+    "date": "Date",
+    "steps": "# Steps",
+    "ok": "# Ok",
+    "nok": "# Nok",
+    "skipped": "# Skipped",
+    "time": "Execution time",
+    "browser": "Browser",
+    "pixel": "Pixel difference"
+  },
+  "whats_new": {
+    "title": "Neuigkeiten",
+    "new_features": "Neue Funktionen",
+    "bugfixes": "Fehlerbeseitigung",
+    "close": "Schliessen"
+  },
+  "user": {
+    "tour_description": "Co.meta hat eine ReiseleiterIn - sie zeigt Dir neue Funktionen. So kannst Du  Schritt für Schritt den Umgang mit co.meta erlernen. Bewege den Mauszeiger über den Tour-Knopf um eine kurze Beschreibung zu erhalten.",
+    "webhooks_desc": "Durch die Integration von co.meta mit deinen bevorzugten Tools kannst du deinen Entwicklungsprozess optimieren. Durch die nahtlose Verbindung mit Co.Meta kannst du die Fertigstellung von Projekten beschleunigen, kontinuierliche Testpraktiken implementieren und Qualitätsupdates effektiv mit deinem gesamten Team teilen."
+  },
+  "websockets": {
+    "Initializing": "Initializing feature",
+    "Timeout": "Zeitüberschreitung bei der Suche nach Container mit Browserkontext.",
+    "Completed": "Feature completed"
+  },
+  "menu": {},
+  "connected": "Verbunden",
+  "not_connected": "Nicht verbunden",
+  "plandate": "Programmstand",
+  "region": "Region",
+  "product": "Produkt",
+  "regions": "Regionen",
+  "products": "Produkte",
+  "continue_on_failure": {
+    "tooltip": "Dieses Kontrollkästchen ist deaktiviert, weil \"Bei Fehler fortfahren\" bereits bei einem übergeordneten Element aktiviert ist."
+  },
+  "save": "Markiert das aktuelle Element als gespeichert.",
+  "unsave": "Hebt die Markierung des aktuellen Elements als gespeichert auf.",
+  "about": {
+    "config": "Config",
+    "sponsor": "Sponsor",
+    "credits": "Credits",
+    "thanks": "Danke",
+    "software": "Software",
+    "licenses": "Lizenzhinweise",
+    "technical_information": "Technische Informationen",
+    "changelog": "Changelog"
+  },
+  "tooltips": {
+    "delete_templates_with_features": "Wenn dieses Kontrollkästchen aktiviert ist, werden auch die Vorlagenbilder der einzelnen Ergebnisse gelöscht.",
+    "variables_requires": "Bitte wählen Sie eine Abteilung und Umgebung aus, um Variablen zu bearbeiten",
+    "run_feature": "Feature starten",
+    "edit_schedule": "Zeitplan bearbeiten",
+    "edit_feature": "Feature bearbeiten",
+    "loading_feature": "Feature laden",
+    "saving_feature": "Feature speichern",
+    "creating_feature": "Feature erstellen",
+    "deleting_feature": "Feature entfernen",
+    "latest_browser": "Es wird automatisch die neueste stabile Version dieses Browsers verwendet",
+    "invalid_edit_form": "Wir haben Fehler im Formular gefunden, bitte beheben Sie diese vor dem Speichern"
+  },
+  "paginator": {
+    "items": "Zeilen pro Seite",
+    "next": "Nächste Seite",
+    "previous": "Vorherige Seite",
+    "first": "Erste Seite",
+    "last": "letzte Seite",
+    "range": "{{startIndex}} - {{endIndex}} von {{length}}"
+  },
+  "you_sure": {
+    "delete_item_title": "Sind Sie sicher, dass Sie dieses Element löschen möchten?",
+    "delete_item_desc": "Dieser Vorgang kann nicht rückgängig gemacht werden.",
+    "quit_title": "Sind Sie sicher, dass Sie aufhören wollen?",
+    "quit_desc": "Sie haben nicht gespeicherte Änderungen.",
+    "decrypt_title": "Sind Sie sicher, dass Sie diese Variable entschlüsseln wollen?",
+    "decrypt_desc": "Das Entschlüsseln einer Variablen setzt den Wert der Umgebungsvariablen zurück.",
+    "remove_all_title": "Remove everything",
+    "remove_all": "Are you sure you want to remove all the steps?",
+    "budget_exceeded_title": "Budget überschritten",
+    "budget_exceeded_desc": "Die Funktion, die Sie ausführen wollen, wird Ihr konfiguriertes Budget überschreiten. Möchten Sie fortfahren?",
+    "budget_ahead_title": "Niedriges Budget",
+    "budget_ahead_desc": "Die Funktion, die Sie ausführen wollen, wird wahrscheinlich Ihr konfiguriertes Budget überschreiten. Möchten Sie fortfahren?",
+    "move_feature_title": "Verschieben",
+    "move_feature": "Wenn ein Test in eine andere Abteilung verschoben wird, werden die Umgebungsvariablen nicht mit übertragen. Soll der Test verschoben werden?"
+  },
+  "integrations": {
+    "add": "Integration hinzufügen",
+    "send_on": "weiterschicken",
+    "title": "Integrationen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen"
+  },
+  "send_on": {
+    "after_test_execution": "Immer",
+    "after_test_execution_failed": "Bei Fehler"
+  }
 }

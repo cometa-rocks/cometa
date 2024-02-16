@@ -1,13 +1,12 @@
-
 @import 'breakpoints';
 
 :host {
-    display: block;
-    flex: 1;
-    line-height: 30px;
-    margin-bottom: 20px;
-    // will remove margin screen width is 630 or more
-    @include for-tablet-portrait-up-plus30 {
-        margin-bottom: 0;
-    }
+  display: block;
+  flex: 1;
+  line-height: 30px;
+  margin-bottom: 20px;
+  // will remove margin screen width is 630 or more
+  @include for-tablet-portrait-up-plus30 {
+    margin-bottom: 0;
+  }
 }

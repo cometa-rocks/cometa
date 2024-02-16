@@ -24,10 +24,9 @@ import { LogService } from '@services/log.service';
 @Component({
   selector: 'cometa-l1-feature-item-list',
   templateUrl: './l1-feature-item-list.component.html',
-  styleUrls: ['./l1-feature-item-list.component.scss']
+  styleUrls: ['./l1-feature-item-list.component.scss'],
 })
 export class L1FeatureItemListComponent implements OnInit {
-
   constructor(
     private _router: NavigationService,
     private _store: Store,
@@ -36,12 +35,12 @@ export class L1FeatureItemListComponent implements OnInit {
     private _api: ApiService,
     private _snackBar: MatSnackBar,
     private log: LogService
-
-  ) { }
+  ) {}
 
   // Receives the item from the parent component
   @Input() item: any;
-  @ViewSelectSnapshot(UserState.GetPermission('create_feature')) canCreateFeature: boolean;
+  @ViewSelectSnapshot(UserState.GetPermission('create_feature'))
+  canCreateFeature: boolean;
   @Input() feature_id: number;
 
   /**
@@ -53,43 +52,54 @@ export class L1FeatureItemListComponent implements OnInit {
   canEditFeature$: Observable<boolean>;
   canDeleteFeature$: Observable<boolean>;
 
-
   // NgOnInit
   ngOnInit() {
-    this.log.msg("1","Inicializing component...","feature-item-list");
+    this.log.msg('1', 'Inicializing component...', 'feature-item-list');
 
-    this.feature$ = this._store.select(CustomSelectors.GetFeatureInfo(this.feature_id));
+    this.feature$ = this._store.select(
+      CustomSelectors.GetFeatureInfo(this.feature_id)
+    );
     // Subscribe to the running state comming from NGXS
-    this.featureRunning$ = this._store.select(CustomSelectors.GetFeatureRunningStatus(this.feature_id));
+    this.featureRunning$ = this._store.select(
+      CustomSelectors.GetFeatureRunningStatus(this.feature_id)
+    );
     // Subscribe to the status message comming from NGXS
-    this.featureStatus$ = this._store.select(CustomSelectors.GetFeatureStatus(this.feature_id));
-    this.canEditFeature$ = this._store.select(CustomSelectors.HasPermission('edit_feature', this.feature_id));
-    this.canDeleteFeature$ = this._store.select(CustomSelectors.HasPermission('delete_feature', this.feature_id));
+    this.featureStatus$ = this._store.select(
+      CustomSelectors.GetFeatureStatus(this.feature_id)
+    );
+    this.canEditFeature$ = this._store.select(
+      CustomSelectors.HasPermission('edit_feature', this.feature_id)
+    );
+    this.canDeleteFeature$ = this._store.select(
+      CustomSelectors.HasPermission('delete_feature', this.feature_id)
+    );
   }
 
   async goLastRun() {
     const feature = await observableLast<Feature>(this.feature$);
-    this._router.navigate([
-      `/${feature.info.app_name}`,
-      feature.info.environment_name,
-      feature.info.feature_id,
-      'step',
-      feature.info.feature_result_id
-    ], {
-      queryParams: {
-        runNow: 1
+    this._router.navigate(
+      [
+        `/${feature.info.app_name}`,
+        feature.info.environment_name,
+        feature.info.feature_id,
+        'step',
+        feature.info.feature_result_id,
+      ],
+      {
+        queryParams: {
+          runNow: 1,
+        },
       }
-    });
+    );
   }
 
-
   /**
-  * Folder control functions
-  */
+   * Folder control functions
+   */
 
   // Go to the clicked folder
   goFolder(route: Folder[]) {
-    this.log.msg("1","Opening folder...","feature-item-list", route);
+    this.log.msg('1', 'Opening folder...', 'feature-item-list', route);
     // dispach the route of clicked folder
     this._store.dispatch(new Features.SetFolderRoute(route));
 
@@ -106,30 +116,30 @@ export class L1FeatureItemListComponent implements OnInit {
       autoFocus: true,
       data: {
         mode: 'edit',
-        folder: folder
-      } as IEditFolder
-    })
+        folder: folder,
+      } as IEditFolder,
+    });
   }
 
   // Delete the clicked folder
   @Subscribe()
   delete(folder: Folder) {
-    this.log.msg("1","Deleting folder...","feature-item-list", folder);
+    this.log.msg('1', 'Deleting folder...', 'feature-item-list', folder);
     return this._api.removeFolder(folder.folder_id).pipe(
-      switchMap(_ => this._store.dispatch( new Features.GetFolders )),
+      switchMap(_ => this._store.dispatch(new Features.GetFolders())),
       tap(_ => this._snackBar.open(`Folder ${folder.name} removed`, 'OK'))
     );
   }
 
   // Moves the selected folder
   SAmoveFolder(folder: Folder) {
-    this.log.msg("1","Moving folder...","feature-item-list", folder);
+    this.log.msg('1', 'Moving folder...', 'feature-item-list', folder);
     this._sharedActions.moveFolder(folder);
   }
 
   // Moves the selected feature
   SAmoveFeature(feature: Feature) {
-    this.log.msg("1","Moving feature...","feature-item-list", feature);
+    this.log.msg('1', 'Moving feature...', 'feature-item-list', feature);
     this._sharedActions.moveFeature(feature);
   }
 }

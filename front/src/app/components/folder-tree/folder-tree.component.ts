@@ -20,32 +20,56 @@ import { SharedActionsService } from '@services/shared-actions.service';
   selector: 'cometa-folder-tree',
   templateUrl: './folder-tree.component.html',
   styleUrls: ['./folder-tree.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FolderTreeComponent implements OnInit {
-  constructor(private _store: Store, private _router: Router, private log: LogService, private _sharedActions: SharedActionsService) { }
+  constructor(
+    private _store: Store,
+    private _router: Router,
+    private log: LogService,
+    private _sharedActions: SharedActionsService
+  ) {}
 
-  @Select(CustomSelectors.GetConfigProperty('co_active_list')) activeList$: Observable<string>; // Checks if the recent list is active
-  @Select(FeaturesState.GetCurrentRouteNew) route$: Observable<ReturnType<typeof FeaturesState.GetCurrentRouteNew>>; // Get the current route
+  @Select(CustomSelectors.GetConfigProperty('co_active_list'))
+  activeList$: Observable<string>; // Checks if the recent list is active
+  @Select(FeaturesState.GetCurrentRouteNew) route$: Observable<
+    ReturnType<typeof FeaturesState.GetCurrentRouteNew>
+  >; // Get the current route
 
   // Global variables
   folders$: Observable<Folder[]>;
 
   ngOnInit() {
-    this.log.msg("1","Inicializing component...","folder-tree");
+    this.log.msg('1', 'Inicializing component...', 'folder-tree');
 
-    this.folders$ = this._store.select<Folder[]>(CustomSelectors.GetDepartmentFolders()); // Get the list of departments available to the user
-    this.activeList$.subscribe(value => localStorage.setItem('co_active_list', value)); // Initialize the recentList_active variable in the local storage
+    this.folders$ = this._store.select<Folder[]>(
+      CustomSelectors.GetDepartmentFolders()
+    ); // Get the list of departments available to the user
+    this.activeList$.subscribe(value =>
+      localStorage.setItem('co_active_list', value)
+    ); // Initialize the recentList_active variable in the local storage
 
     // as soon as the view is loaded, get the route of the folder that was selected last
     // the last selected folder route is saved in localstorage from store/actions/features.state.ts in a function called setFolderRoute
     // it is actualized ever time any folder is clicked
-    const last_selected_folder = JSON.parse(localStorage.getItem('co_last_selected_folder_route'));
-    this.log.msg("1","Getting last selected folder route...","folder-tree", last_selected_folder);
+    const last_selected_folder = JSON.parse(
+      localStorage.getItem('co_last_selected_folder_route')
+    );
+    this.log.msg(
+      '1',
+      'Getting last selected folder route...',
+      'folder-tree',
+      last_selected_folder
+    );
 
     // dispach recieved route to features state manager to adapt the path of the currently selected folder accordingly
     // this will load the same folder path that user was working on, before reloading browser window
-    this.log.msg("1","Dispatching last selected folder route to store...","folder-tree", last_selected_folder);
+    this.log.msg(
+      '1',
+      'Dispatching last selected folder route to store...',
+      'folder-tree',
+      last_selected_folder
+    );
     this._store.dispatch(new Features.SetFolderRoute(last_selected_folder));
   }
 
@@ -55,8 +79,10 @@ export class FolderTreeComponent implements OnInit {
 
   // Hides the sidenav
   hideSidenav() {
-    this.log.msg("1","Hiding sidenav...","folder-tree");
-    return this._store.dispatch(new Configuration.SetProperty('openedSidenav', false));
+    this.log.msg('1', 'Hiding sidenav...', 'folder-tree');
+    return this._store.dispatch(
+      new Configuration.SetProperty('openedSidenav', false)
+    );
   }
 
   /**
@@ -67,13 +93,14 @@ export class FolderTreeComponent implements OnInit {
    * @lastModification 08-10-21
    */
   toggleListType(listType: string) {
-    this.log.msg("1","Navigating to root(home)...","folder-tree");
-    this._sharedActions.set_url_folder_params("");
-    
-    this._router.navigate(['/new']);
-    return this._store.dispatch(new Configuration.SetProperty('co_active_list', listType, true));
-  }
+    this.log.msg('1', 'Navigating to root(home)...', 'folder-tree');
+    this._sharedActions.set_url_folder_params('');
 
+    this._router.navigate(['/new']);
+    return this._store.dispatch(
+      new Configuration.SetProperty('co_active_list', listType, true)
+    );
+  }
 
   /**
    * Global functions

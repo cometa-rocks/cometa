@@ -25,7 +25,7 @@
     </div>
   </ng-template>
   <ng-template contextMenuItem let-item>
-    <div (click)="addEmpty(item+1)">
+    <div (click)="addEmpty(item + 1)">
       <mat-icon>archive</mat-icon>
       <span>Insert new step below</span>
     </div>
@@ -37,7 +37,7 @@
     </div>
   </ng-template>
   <ng-template contextMenuItem let-item>
-    <div (click)="copyItem(item+1, 'down')">
+    <div (click)="copyItem(item + 1, 'down')">
       <mat-icon>archive</mat-icon>
       <span>Copy step below</span>
     </div>
@@ -51,40 +51,95 @@
 </context-menu>
 <!-- Editor step rows -->
 <div class="DragDropContainer" cdkDropList (cdkDropListDropped)="drop($event)">
-  <ng-container *ngFor="let step of stepsForm.controls; index as i; trackBy: trackStep">
+  <ng-container
+    *ngFor="let step of stepsForm.controls; index as i; trackBy: trackStep">
     <ng-container [formGroup]="step">
-      <div class="step-row" [class.invalid-step]="step.get('step_content').errors?.invalidStep" [class.disabled]="!step.controls.enabled.value" cdkDrag cdkDragLockAxis="y" [contextMenu]="basicMenu" [contextMenuValue]="i" [ngClass]="'step-id-' +i" >
+      <div
+        class="step-row"
+        [class.invalid-step]="step.get('step_content').errors?.invalidStep"
+        [class.disabled]="!step.controls.enabled.value"
+        cdkDrag
+        cdkDragLockAxis="y"
+        [contextMenu]="basicMenu"
+        [contextMenuValue]="i"
+        [ngClass]="'step-id-' + i">
         <div class="step-extras">
           <div class="move-row" cdkDragHandle></div>
-          <div class="index">{{ i+1 }}</div>
-            <mat-checkbox formControlName="enabled" aria-label="Enable" color="primary" class="enable checkbox-blue"></mat-checkbox>
-            <mat-checkbox formControlName="screenshot" aria-label="Screenshot" color="primary" class="screenshot checkbox-blue" (change)="screenshotChange($event, i)"></mat-checkbox>
-            <mat-checkbox formControlName="compare" aria-label="Compare" color="primary" class="compare checkbox-blue" [disabled]="!step.get('screenshot').value"></mat-checkbox>
+          <div class="index">{{ i + 1 }}</div>
+          <mat-checkbox
+            formControlName="enabled"
+            aria-label="Enable"
+            color="primary"
+            class="enable checkbox-blue"></mat-checkbox>
+          <mat-checkbox
+            formControlName="screenshot"
+            aria-label="Screenshot"
+            color="primary"
+            class="screenshot checkbox-blue"
+            (change)="screenshotChange($event, i)"></mat-checkbox>
+          <mat-checkbox
+            formControlName="compare"
+            aria-label="Compare"
+            color="primary"
+            class="compare checkbox-blue"
+            [disabled]="!step.get('screenshot').value"></mat-checkbox>
           <div class="prefix">
             <mat-select formControlName="step_keyword">
-              <mat-option *ngFor="let prefix of user.step_keywords" [value]="prefix">{{ prefix }}</mat-option>
+              <mat-option
+                *ngFor="let prefix of user.step_keywords"
+                [value]="prefix"
+                >{{ prefix }}</mat-option
+              >
             </mat-select>
           </div>
         </div>
-        <div class="step_content" tabindex="0" (focusout)="onStepFocusOut($event)" (keydown.esc)="onStepEscape($event)" (keydown.Tab)="onTextareaTab(i)">
-          <textarea (input)="onStepChange($event, i)"
-                    (blur)="fixStep($event, i)"
-                    (click)="stepVariableData['currentStepIndex'] === i ? stepVariableData.currentStepIndex = i : stepVariableData.currentStepIndex = null"
-                    (keydown.arrowdown)="onTextareaArrowKey($event, 'down')"
-                    (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
-                    (keydown.enter)="onTextareaEnter($event, i)"
-                    class="code"
-                    spellcheck="false"
-                    cdkTextareaAutosize
-                    autocomplete="off"
-                    formControlName="step_content"
-                    [matAutocomplete]="stepHelp"
-                    placeholder="Step Code"></textarea>
-          <mat-list class="var_name_autoComplete" [ngStyle]="{'bottom.px': displayedVariables.length > 4 ? -118 : (-displayedVariables.length * 30) + 2 }" *ngIf="stepVariableData.currentStepIndex == i && displayedVariables.length > 0" role="list">
-            <mat-list-item id="{{variable.id}}" tabindex="0" *ngFor="let variable of displayedVariables" (click)="onClickVariable(variable.variable_name, i)">
-              <div class="variable-wrapper" *ngIf="variable.variable_name; else noVariable">
-                <span class="var_name">${{variable.variable_name}}</span>
-                <span class="var_value">={{variable.variable_value}}</span>
+        <div
+          class="step_content"
+          tabindex="0"
+          (focusout)="onStepFocusOut($event)"
+          (keydown.esc)="onStepEscape($event)"
+          (keydown.Tab)="onTextareaTab(i)">
+          <textarea
+            (input)="onStepChange($event, i)"
+            (blur)="fixStep($event, i)"
+            (click)="
+              stepVariableData['currentStepIndex'] === i
+                ? (stepVariableData.currentStepIndex = i)
+                : (stepVariableData.currentStepIndex = null)
+            "
+            (keydown.arrowdown)="onTextareaArrowKey($event, 'down')"
+            (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
+            (keydown.enter)="onTextareaEnter($event, i)"
+            class="code"
+            spellcheck="false"
+            cdkTextareaAutosize
+            autocomplete="off"
+            formControlName="step_content"
+            [matAutocomplete]="stepHelp"
+            placeholder="Step Code"></textarea>
+          <mat-list
+            class="var_name_autoComplete"
+            [ngStyle]="{
+              'bottom.px':
+                displayedVariables.length > 4
+                  ? -118
+                  : -displayedVariables.length * 30 + 2
+            }"
+            *ngIf="
+              stepVariableData.currentStepIndex == i &&
+              displayedVariables.length > 0
+            "
+            role="list">
+            <mat-list-item
+              id="{{ variable.id }}"
+              tabindex="0"
+              *ngFor="let variable of displayedVariables"
+              (click)="onClickVariable(variable.variable_name, i)">
+              <div
+                class="variable-wrapper"
+                *ngIf="variable.variable_name; else noVariable">
+                <span class="var_name">${{ variable.variable_name }}</span>
+                <span class="var_value">={{ variable.variable_value }}</span>
               </div>
               <ng-template #noVariable>
                 <div class="variable-wrapper">
@@ -94,10 +149,25 @@
             </mat-list-item>
           </mat-list>
         </div>
-        <i *ngIf="step.get('step_content').errors?.invalidStep" class="invalid-sign" matTooltip="Invalid step definition" matTooltipPosition="above"></i>
-        <i *ngIf="step.get('timeout').errors?.max" class="invalid-sign" matTooltip="Step timeout is invalid, maximum value for timeout is 7200." matTooltipPosition="above"></i>
+        <i
+          *ngIf="step.get('step_content').errors?.invalidStep"
+          class="invalid-sign"
+          matTooltip="Invalid step definition"
+          matTooltipPosition="above"></i>
+        <i
+          *ngIf="step.get('timeout').errors?.max"
+          class="invalid-sign"
+          matTooltip="Step timeout is invalid, maximum value for timeout is 7200."
+          matTooltipPosition="above"></i>
         <ng-container *ngIf="importsSteps$ | async as importedSteps">
-          <i *ngIf="importedSteps.length > 0 && step.value.step_content | checkDuplicate:importedSteps" class="duplicate-step-sign" matTooltip="This step definition has been found inside an import" matTooltipPosition="above"></i>
+          <i
+            *ngIf="
+              importedSteps.length > 0 && step.value.step_content
+                | checkDuplicate: importedSteps
+            "
+            class="duplicate-step-sign"
+            matTooltip="This step definition has been found inside an import"
+            matTooltipPosition="above"></i>
         </ng-container>
         <button mat-icon-button [matMenuTriggerFor]="stepOptions">
           <mat-icon>more_vert</mat-icon>
@@ -105,21 +175,67 @@
         <!-- Step Options Menu -->
         <mat-menu class="step-options-menu" #stepOptions="matMenu">
           <button mat-menu-item stopPropagation>
-            <ng-container *ngLet="((_editFeature.departmentSettings$ | async)?.continue_on_failure || _editFeature.featureForm.value.continue_on_failure || user.settings?.continue_on_failure) as disabled">
-              <mat-checkbox matTooltipPosition="before" [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">Continue on failure</mat-checkbox>
+            <ng-container
+              *ngLet="
+                (_editFeature.departmentSettings$ | async)
+                  ?.continue_on_failure ||
+                _editFeature.featureForm.value.continue_on_failure ||
+                user.settings?.continue_on_failure as disabled
+              ">
+              <mat-checkbox
+                matTooltipPosition="before"
+                [matTooltip]="'continue_on_failure.tooltip' | translate"
+                [matTooltipDisabled]="!disabled"
+                color="primary"
+                [disabled]="disabled"
+                formControlName="continue_on_failure"
+                >Continue on failure</mat-checkbox
+              >
             </ng-container>
           </button>
-          <button class="custom-timeout" mat-menu-item stopPropagation [matTooltip]="(step.get('step_content').value.match('I (can )?sleep') ? 'tooltips.step_timeout_ignored' : 'tooltips.step_timeout') | translate" matTooltipPosition="left">
+          <button
+            class="custom-timeout"
+            mat-menu-item
+            stopPropagation
+            [matTooltip]="
+              (step.get('step_content').value.match('I (can )?sleep')
+                ? 'tooltips.step_timeout_ignored'
+                : 'tooltips.step_timeout'
+              ) | translate
+            "
+            matTooltipPosition="left">
             <span>Customize timeout:</span>
-            <input formControlName="timeout" min="0" max="7205" maxlength="4" type="number" [attr.disabled]="step.get('step_content').value.match('I (can )?sleep')">
+            <input
+              formControlName="timeout"
+              min="0"
+              max="7205"
+              maxlength="4"
+              type="number"
+              [attr.disabled]="
+                step.get('step_content').value.match('I (can )?sleep')
+              " />
             <span>seconds</span>
           </button>
-          <button mat-menu-item (click)="deleteStep(i)" [matTooltip]="'tooltips.step_delete' | translate" matTooltipPosition="left">
+          <button
+            mat-menu-item
+            (click)="deleteStep(i)"
+            [matTooltip]="'tooltips.step_delete' | translate"
+            matTooltipPosition="left">
             <mat-icon color="warn">delete</mat-icon>Delete
           </button>
         </mat-menu>
-        <mat-autocomplete class="edit-feature-step-suggestions" #stepHelp="matAutocomplete" (optionSelected)="selectFirstVariable($event, i)">
-          <mat-option *ngFor="let action of actions | filterStep:step.value.step_content:false" [value]="action.action_name">{{ action.action_name}}</mat-option>
+        <mat-autocomplete
+          class="edit-feature-step-suggestions"
+          #stepHelp="matAutocomplete"
+          (optionSelected)="selectFirstVariable($event, i)">
+          <mat-option
+            *ngFor="
+              let action of actions
+                | filterStep: step.value.step_content : false
+            "
+            [value]="action.action_name"
+            >{{ action.action_name }}</mat-option
+          >
         </mat-autocomplete>
       </div>
     </ng-container>
@@ -128,9 +244,27 @@
 <!-- Buttons actions -->
 <div class="button-actions">
   <div class="left">
-    <button color="primary" [matMenuTriggerFor]="importJSON" mat-stroked-button class="json_option">IMPORT JSON</button>
-    <button color="primary" [matMenuTriggerFor]="exportJSON" mat-stroked-button class="json_option">EXPORT JSON</button>
-    <input type="file" class="upload_json" (change)="readJson($event)" style="display:none;" accept="application/json" #file>
+    <button
+      color="primary"
+      [matMenuTriggerFor]="importJSON"
+      mat-stroked-button
+      class="json_option">
+      IMPORT JSON
+    </button>
+    <button
+      color="primary"
+      [matMenuTriggerFor]="exportJSON"
+      mat-stroked-button
+      class="json_option">
+      EXPORT JSON
+    </button>
+    <input
+      type="file"
+      class="upload_json"
+      (change)="readJson($event)"
+      style="display: none"
+      accept="application/json"
+      #file />
     <mat-menu #importJSON="matMenu" yPosition="above">
       <button (click)="importClipboard()" mat-menu-item>
         <mat-icon>content_copy</mat-icon>From Clipboard
@@ -149,8 +283,20 @@
     </mat-menu>
   </div>
   <div class="right">
-    <button color="primary" (click)="removeAll()" mat-stroked-button class="remove_all">REMOVE ALL STEPS</button>
-    <button color="primary" [matMenuTriggerFor]="addStep" mat-stroked-button class="add">ADD STEP</button>
+    <button
+      color="primary"
+      (click)="removeAll()"
+      mat-stroked-button
+      class="remove_all">
+      REMOVE ALL STEPS
+    </button>
+    <button
+      color="primary"
+      [matMenuTriggerFor]="addStep"
+      mat-stroked-button
+      class="add">
+      ADD STEP
+    </button>
     <mat-menu #addStep="matMenu" yPosition="below">
       <button (click)="addEmpty()" mat-menu-item>
         <mat-icon>chat_bubble</mat-icon>Empty

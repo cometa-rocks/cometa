@@ -1,4 +1,9 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -26,29 +31,63 @@ import { WebSockets } from '@store/actions/results.actions';
   templateUrl: './data-driven-results.component.html',
   styleUrls: ['./data-driven-results.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    PdfLinkPipe
-  ],
+  providers: [PdfLinkPipe],
   imports: [CommonModule, SharedModule],
-  standalone: true
+  standalone: true,
 })
 export class DataDrivenResultsComponent implements OnInit {
-
-//   @Select(CustomSelectors.GetConfigProperty('internal.showArchived')) showArchived$: Observable<boolean>;
+  //   @Select(CustomSelectors.GetConfigProperty('internal.showArchived')) showArchived$: Observable<boolean>;
 
   columns: MtxGridColumn[] = [
-    {header: 'Feature Name', field: 'feature_name', sortable: true, class: 'aligned-center'},
-    {header: 'Status', field: 'status', sortable: true, class: 'aligned-center'},
-    {header: 'Execution Date', field: 'result_date', sortable: true, width: '230px', sortProp: { start: 'desc', id: 'result_date'}},
-    {header: 'Total', field: 'total', sortable: true, class: 'aligned-center'},
-    {header: 'OK', field: 'ok', sortable: true, class: 'aligned-center'},
-    {header: 'NOK', field: 'fails', sortable: true, class: 'aligned-center'},
-    {header: 'Skipped', field: 'skipped', class: 'aligned-center'},
-    {header: 'Browser', field: 'browser', class: 'aligned-center'},
-    {header: 'Browser Version', field: 'browser.browser_version', hide: true, sortable: true, class: 'aligned-center'},
-    {header: 'Duration', field: 'execution_time', sortable: true, class: "aligned-right"},
-    {header: 'Description', field: 'description', width: '250px'},
-    {header: 'Pixel Difference', field: 'pixel_diff', sortable: true, class: "aligned-right"},
+    {
+      header: 'Feature Name',
+      field: 'feature_name',
+      sortable: true,
+      class: 'aligned-center',
+    },
+    {
+      header: 'Status',
+      field: 'status',
+      sortable: true,
+      class: 'aligned-center',
+    },
+    {
+      header: 'Execution Date',
+      field: 'result_date',
+      sortable: true,
+      width: '230px',
+      sortProp: { start: 'desc', id: 'result_date' },
+    },
+    {
+      header: 'Total',
+      field: 'total',
+      sortable: true,
+      class: 'aligned-center',
+    },
+    { header: 'OK', field: 'ok', sortable: true, class: 'aligned-center' },
+    { header: 'NOK', field: 'fails', sortable: true, class: 'aligned-center' },
+    { header: 'Skipped', field: 'skipped', class: 'aligned-center' },
+    { header: 'Browser', field: 'browser', class: 'aligned-center' },
+    {
+      header: 'Browser Version',
+      field: 'browser.browser_version',
+      hide: true,
+      sortable: true,
+      class: 'aligned-center',
+    },
+    {
+      header: 'Duration',
+      field: 'execution_time',
+      sortable: true,
+      class: 'aligned-right',
+    },
+    { header: 'Description', field: 'description', width: '250px' },
+    {
+      header: 'Pixel Difference',
+      field: 'pixel_diff',
+      sortable: true,
+      class: 'aligned-right',
+    },
     {
       header: 'Options',
       field: 'options',
@@ -63,7 +102,7 @@ export class DataDrivenResultsComponent implements OnInit {
           icon: 'videocam',
           tooltip: 'View results replay',
           color: 'primary',
-          iif: (result: FeatureResult) => result.video_url ? true : false,
+          iif: (result: FeatureResult) => (result.video_url ? true : false),
           click: (result: FeatureResult) => this.openVideo(result),
         },
         {
@@ -73,22 +112,26 @@ export class DataDrivenResultsComponent implements OnInit {
           tooltip: 'Download result PDF',
           color: 'primary',
           click: (result: FeatureResult) => {
-            const pdfLink = this._pdfLinkPipe.transform(result.feature_result_id)
-            this._http.get(pdfLink, {
-              params: new InterceptorParams({
-                skipInterceptor: true,
-              }),
-              responseType: 'text',
-              observe: 'response'
-            }).subscribe({
-              next: (res) => {
-                this._downloadService.downloadFile(res, {
-                  mime: 'application/pdf',
-                  name: `${result.feature_name}_${result.feature_result_id}.pdf`
-                })
-              },
-              error: console.error
-            })
+            const pdfLink = this._pdfLinkPipe.transform(
+              result.feature_result_id
+            );
+            this._http
+              .get(pdfLink, {
+                params: new InterceptorParams({
+                  skipInterceptor: true,
+                }),
+                responseType: 'text',
+                observe: 'response',
+              })
+              .subscribe({
+                next: res => {
+                  this._downloadService.downloadFile(res, {
+                    mime: 'application/pdf',
+                    name: `${result.feature_name}_${result.feature_result_id}.pdf`,
+                  });
+                },
+                error: console.error,
+              });
           },
         },
         {
@@ -98,9 +141,11 @@ export class DataDrivenResultsComponent implements OnInit {
           tooltip: 'Archive result',
           color: 'accent',
           click: (result: FeatureResult) => {
-            this._sharedActions.archive(result).subscribe(_ => this.getResults())
+            this._sharedActions
+              .archive(result)
+              .subscribe(_ => this.getResults());
           },
-          iif: (result: FeatureResult) => !result.archived
+          iif: (result: FeatureResult) => !result.archived,
         },
         {
           type: 'icon',
@@ -109,9 +154,11 @@ export class DataDrivenResultsComponent implements OnInit {
           tooltip: 'Unarchive result',
           color: 'accent',
           click: (result: FeatureResult) => {
-            this._sharedActions.archive(result).subscribe(_ => this.getResults())
+            this._sharedActions
+              .archive(result)
+              .subscribe(_ => this.getResults());
           },
-          iif: (result: FeatureResult) => result.archived
+          iif: (result: FeatureResult) => result.archived,
         },
         {
           type: 'icon',
@@ -120,12 +167,14 @@ export class DataDrivenResultsComponent implements OnInit {
           tooltip: 'Delete result',
           color: 'warn',
           click: (result: FeatureResult) => {
-            this._sharedActions.deleteFeatureResult(result).subscribe(_ => this.getResults())
+            this._sharedActions
+              .deleteFeatureResult(result)
+              .subscribe(_ => this.getResults());
           },
-          iif: (result: FeatureResult) => !result.archived
-        }
-      ]
-    }
+          iif: (result: FeatureResult) => !result.archived,
+        },
+      ],
+    },
   ];
 
   results = [];
@@ -136,12 +185,12 @@ export class DataDrivenResultsComponent implements OnInit {
 
   query = {
     page: 0,
-    size: 10
-  }
+    size: 10,
+  };
   get params() {
     const p = { ...this.query };
     p.page += 1;
-    return p
+    return p;
   }
 
   constructor(
@@ -156,7 +205,7 @@ export class DataDrivenResultsComponent implements OnInit {
     private _actions: Actions,
     private _pdfLinkPipe: PdfLinkPipe,
     private _downloadService: DownloadService
-  ) { }
+  ) {}
 
   runId$: Observable<number>;
 
@@ -165,41 +214,43 @@ export class DataDrivenResultsComponent implements OnInit {
       'data-driven',
       this._route.snapshot.paramMap.get('id'),
       'step',
-      feature_result.feature_result_id
+      feature_result.feature_result_id,
     ]);
   }
 
   getResults() {
     this.isLoading = true;
     this.runId$.subscribe(runId => {
-      this._http.get(`/backend/api/data_driven/results/${runId}`, {
-        params: {
-          ...this.params
-        }
-      }).subscribe({
-        next: (res: any) => {
-          this.results = res.results
-          this.total = res.count
-          this.showPagination = this.total > 0 ? true : false
-        },
-        error: (err) => {
-          console.error(err)
-        },
-        complete: () => {
-          this.isLoading = false
-          this.cdRef.detectChanges();
-        }
-      })
-    })
+      this._http
+        .get(`/backend/api/data_driven/results/${runId}`, {
+          params: {
+            ...this.params,
+          },
+        })
+        .subscribe({
+          next: (res: any) => {
+            this.results = res.results;
+            this.total = res.count;
+            this.showPagination = this.total > 0 ? true : false;
+          },
+          error: err => {
+            console.error(err);
+          },
+          complete: () => {
+            this.isLoading = false;
+            this.cdRef.detectChanges();
+          },
+        });
+    });
   }
 
   updateData(e: PageEvent) {
-    this.query.page = e.pageIndex
-    this.query.size = e.pageSize
-    this.getResults()
+    this.query.page = e.pageIndex;
+    this.query.size = e.pageSize;
+    this.getResults();
 
     // create a localstorage session
-    localStorage.setItem('co_results_page_size', e.pageSize.toString())
+    localStorage.setItem('co_results_page_size', e.pageSize.toString());
   }
 
   /**
@@ -208,50 +259,54 @@ export class DataDrivenResultsComponent implements OnInit {
   setResultStatus(results: FeatureResult, status: 'Success' | 'Failed' | '') {
     this._sharedActions.setResultStatus(results, status).subscribe(_ => {
       this.getResults();
-    })
+    });
   }
 
   openVideo(result: FeatureResult) {
-    this._sharedActions.loadingObservable(
-      this._sharedActions.checkVideo(result.video_url),
-      'Loading video'
-    ).subscribe({
-      next: _ => {
-        this._dialog.open(VideoComponent, {
-          backdropClass: 'video-player-backdrop',
-          panelClass: 'video-player-panel',
-          data: result
-        })
-      },
-      error: err => this._snack.open('An error ocurred', 'OK')
-    })
+    this._sharedActions
+      .loadingObservable(
+        this._sharedActions.checkVideo(result.video_url),
+        'Loading video'
+      )
+      .subscribe({
+        next: _ => {
+          this._dialog.open(VideoComponent, {
+            backdropClass: 'video-player-backdrop',
+            panelClass: 'video-player-panel',
+            data: result,
+          });
+        },
+        error: err => this._snack.open('An error ocurred', 'OK'),
+      });
   }
 
   handleDeleteTemplateWithResults({ checked }: MatCheckboxChange) {
-    return this._store.dispatch(new Configuration.SetProperty('deleteTemplateWithResults', checked));
+    return this._store.dispatch(
+      new Configuration.SetProperty('deleteTemplateWithResults', checked)
+    );
   }
 
   /**
    * Enables or disables archived runs from checkbox
    * @param change MatCheckboxChange
    */
-//   handleArchived = (change: MatCheckboxChange) => this._store.dispatch(new Configuration.SetProperty('internal.showArchived', change.checked));
+  //   handleArchived = (change: MatCheckboxChange) => this._store.dispatch(new Configuration.SetProperty('internal.showArchived', change.checked));
 
   ngOnInit() {
-    this.runId$ = this._route.paramMap.pipe(
-      map(params => +params.get('id'))
-    )
-    this.query.size = parseInt(localStorage.getItem('co_results_page_size')) || 10;
-    this.getResults()
+    this.runId$ = this._route.paramMap.pipe(map(params => +params.get('id')));
+    this.query.size =
+      parseInt(localStorage.getItem('co_results_page_size')) || 10;
+    this.getResults();
 
     // Reload current page of runs whenever a feature run completes
-    this._actions.pipe(
-      untilDestroyed(this),
-      ofActionDispatched(WebSockets.FeatureRunCompleted)
-    ).subscribe(_ => {
-      this.getResults()
-    });
-
+    this._actions
+      .pipe(
+        untilDestroyed(this),
+        ofActionDispatched(WebSockets.FeatureRunCompleted)
+      )
+      .subscribe(_ => {
+        this.getResults();
+      });
   }
 
   // return to v2 dashboard

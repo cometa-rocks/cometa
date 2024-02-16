@@ -1,4 +1,4 @@
-<div class="chart-section" [ngClass]="{'noChart': total < 10}">
+<div class="chart-section" [ngClass]="{ noChart: total < 10 }">
   <div class="return">
     <div (click)="returnToMain()" class="return-item">
       <i></i>
@@ -10,13 +10,19 @@
     <div *ngIf="total >= 10" class="charts">
       <div class="behave-charts">
         <!-- Highchart -->
-        <behave-chart-desktop-steps *ngIf="results" [data]="results"></behave-chart-desktop-steps>
+        <behave-chart-desktop-steps
+          *ngIf="results"
+          [data]="results"></behave-chart-desktop-steps>
       </div>
     </div>
     <!-- will be shown if the test has not been performed 10 times-->
     <div *ngIf="total < 10" class="no-chart">
-      <img src="assets/img/poster_2.svg" alt="shown when there is no charts">
-      <p>This screen shows the results of your testruns. <br><br> Once you have more then 10 results, co.meta will show you a beautiful linechart with execution times and more.</p>
+      <img src="assets/img/poster_2.svg" alt="shown when there is no charts" />
+      <p>
+        This screen shows the results of your testruns. <br /><br />
+        Once you have more then 10 results, co.meta will show you a beautiful
+        linechart with execution times and more.
+      </p>
     </div>
     <!-- Mobile Header -->
     <div class="mobile-info header">
@@ -26,66 +32,91 @@
     </div>
     <!-- Mobile Stats -->
     <div class="mobile-info" *ngIf="results[0] as lastRun">
-      <div class="steps">{{ lastRun.total}}</div>
+      <div class="steps">{{ lastRun.total }}</div>
       <div class="steps">{{ 1 }}</div>
-      <div class="steps last-result-status" *ngLet="lastRun.success as passed" [ngClass]="passed ? 'success' : 'failed'">{{ passed ? 'OK' : 'NOK' }}</div>
+      <div
+        class="steps last-result-status"
+        *ngLet="lastRun.success as passed"
+        [ngClass]="passed ? 'success' : 'failed'">
+        {{ passed ? 'OK' : 'NOK' }}
+      </div>
     </div>
   </ng-container>
 </div>
 
-<mtx-grid [data]="results"
-          [columns]="columns"
-          [sortOnFront]="true"
-          sortActive="result_date"
-          sortDirection="desc"
-          [sortDisableClear]="true"
-          [sortDisabled]="false"
-          [showToolbar]="true"
-          [showColumnMenuButton]="true"
-          [columnMenuButtonType]="'stroked'"
-          [columnMenuButtonIcon]="'view_column'"
-          [length]="total"
-          [loading]="isLoading"
-          [pageOnFront]="false"
-          [pageIndex]="query.page"
-          [pageSize]="query.size"
-          [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
-          (rowClick)="openContent($event.rowData)"
-          [cellTemplate]="{status: statusTpl, result_date: dateTpl, execution_time: timeTpl, description: descriptionTpl, pixel_diff: pixelTpl, browser: browserTpl}"
-          [noResultTemplate]="noResultTpl"
-          [showPaginator]="showPagination"
-          [toolbarTemplate]="toolbarTpl"
-          (page)="updateData($event)">
+<mtx-grid
+  [data]="results"
+  [columns]="columns"
+  [sortOnFront]="true"
+  sortActive="result_date"
+  sortDirection="desc"
+  [sortDisableClear]="true"
+  [sortDisabled]="false"
+  [showToolbar]="true"
+  [showColumnMenuButton]="true"
+  [columnMenuButtonType]="'stroked'"
+  [columnMenuButtonIcon]="'view_column'"
+  [length]="total"
+  [loading]="isLoading"
+  [pageOnFront]="false"
+  [pageIndex]="query.page"
+  [pageSize]="query.size"
+  [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
+  (rowClick)="openContent($event.rowData)"
+  [cellTemplate]="{
+    status: statusTpl,
+    result_date: dateTpl,
+    execution_time: timeTpl,
+    description: descriptionTpl,
+    pixel_diff: pixelTpl,
+    browser: browserTpl
+  }"
+  [noResultTemplate]="noResultTpl"
+  [showPaginator]="showPagination"
+  [toolbarTemplate]="toolbarTpl"
+  (page)="updateData($event)">
 </mtx-grid>
 
 <!-- ROW TEMPLATES -->
 <ng-template #statusTpl let-row let-index="index" let-col="colDef">
   <div class="cell status" *ngLet="row.status == 'Success' as passed">
     <!-- Status box -->
-    <div class="status-box passed" stopPropagation [matMenuTriggerFor]="runStatus" *ngIf="passed; else failed">
-        Passed</div>
+    <div
+      class="status-box passed"
+      stopPropagation
+      [matMenuTriggerFor]="runStatus"
+      *ngIf="passed; else failed">
+      Passed
+    </div>
     <ng-template #failed>
-        <div class="status-box failed" stopPropagation [matMenuTriggerFor]="runStatus">Failed</div>
+      <div
+        class="status-box failed"
+        stopPropagation
+        [matMenuTriggerFor]="runStatus">
+        Failed
+      </div>
     </ng-template>
     <!-- Override feature result status -->
     <mat-menu #runStatus="matMenu">
       <div class="menu-header">Override run status:</div>
       <button (click)="setResultStatus(row, 'Success')" mat-menu-item>
-          <div class="status-option passed">Passed</div>
+        <div class="status-option passed">Passed</div>
       </button>
       <button (click)="setResultStatus(row, 'Failed')" mat-menu-item>
-          <div class="status-option failed">Failed</div>
+        <div class="status-option failed">Failed</div>
       </button>
       <mat-divider></mat-divider>
       <button (click)="setResultStatus(row, '')" mat-menu-item>
-          <div class="status-option default">Default</div>
+        <div class="status-option default">Default</div>
       </button>
     </mat-menu>
   </div>
 </ng-template>
 
 <ng-template #dateTpl let-row let-index="index" let-col="colDef">
-  <span>{{ row.result_date | amParse | amDateFormat:'MMMM d yyyy, HH:mm' }}</span>
+  <span>{{
+    row.result_date | amParse | amDateFormat: 'MMMM d yyyy, HH:mm'
+  }}</span>
 </ng-template>
 
 <ng-template #timeTpl let-row let-index="index" let-col="colDef">
@@ -93,7 +124,12 @@
 </ng-template>
 
 <ng-template #descriptionTpl let-row let-index="index" let-col="colDef">
-  <span *ngIf="row.description; else hyphen" [matTooltip]="row.description" class="feature_description">{{ row.description }}</span>
+  <span
+    *ngIf="row.description; else hyphen"
+    [matTooltip]="row.description"
+    class="feature_description"
+    >{{ row.description }}</span
+  >
 
   <ng-template #hyphen>-</ng-template>
 </ng-template>
@@ -103,23 +139,28 @@
 </ng-template>
 
 <ng-template #browserTpl let-row let-index="index" let-col="colDef">
-  <i class="browser-icon aligned-center" [attr.data-browser-version]="row.browser.browser_version" matTooltipPosition="above" [matTooltip]="row.browser.browser | titlecase"
-            [style.backgroundImage]="row.browser.browser | browserIcon"></i>
+  <i
+    class="browser-icon aligned-center"
+    [attr.data-browser-version]="row.browser.browser_version"
+    matTooltipPosition="above"
+    [matTooltip]="row.browser.browser | titlecase"
+    [style.backgroundImage]="row.browser.browser | browserIcon"></i>
 </ng-template>
 
 <!-- TOOLBAR TEMPLATE -->
 <ng-template #toolbarTpl>
-  <div class="custom_toolbar">
-    
-  </div>
+  <div class="custom_toolbar"></div>
 </ng-template>
 
 <!-- NO RESULTS TEMPLATE -->
 <ng-template #noResultTpl>
   <div class="no-tests">
-    <p>Please execute your first feature clicking the blue run-button. </p>
+    <p>Please execute your first feature clicking the blue run-button.</p>
     <br />
-    <p class="greyed">If you just added a feature and it's executing now you will have to wait until it's finished.</p>
+    <p class="greyed">
+      If you just added a feature and it's executing now you will have to wait
+      until it's finished.
+    </p>
     <br />
     <p class="greyed">These results are reloaded automatically.</p>
   </div>
