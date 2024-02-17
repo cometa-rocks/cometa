@@ -526,6 +526,7 @@ class Permissions(models.Model):
     view_environments_panel = models.BooleanField(default=False)
     view_features_panel = models.BooleanField(default=False)
     view_accounts_panel = models.BooleanField(default=False)
+    view_others_panel = models.BooleanField(default=False)
 
     # FrontEnd department admin panel related
     show_all_departments = models.BooleanField(default=False)
