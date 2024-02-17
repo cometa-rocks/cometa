@@ -27,6 +27,7 @@ export class PermissionGuard implements CanActivate {
           'environments',
           'features',
           'accounts',
+          'others',
         ];
         const tab_permissions = tabs.filter(
           v => user.user_permissions[`view_${v}_panel`]
