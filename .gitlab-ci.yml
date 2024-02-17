@@ -3,7 +3,7 @@
 # for every installation / server / client
 # ######################################## #
 # Changelog:
-# 2023-02-17 RRO Changed docker-compose recreated check and start without changing directory, as entry point is now /code/front
+# 2023-02-17 RRO Changed docker-compose recreated check and start without changing directory, as entry point is now /code/front & changeing owner of front directory to gitlab-runner at the beginning, as it is changed later to root
 # 2022-01-26 RRO Added GITCLIENTID, GITCLIENTSECRET
 # 2022-01-06 RRO Added gunicorn reload for behave and django
 # ######################################## #
@@ -50,7 +50,13 @@ stages:
     - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
     # Replace co.meta favicon depending on the branch
     - for FILE in ${COMETA_REPLACE_FAVICON_IN}; do sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
-   
+
+    #########################################################
+    # Make gitlab-runner the owner of front directory
+    # ... needed as later it will be owned by root
+    #########################################################
+    - echo "Setting permissions to gitlab-runner on front directory"
+    - sudo chown -R gitlab-runner front
 
     #########################################################
     # COPY CODE TO DEPLOY_BACKEND_FOLDER
@@ -98,7 +104,7 @@ stages:
     - echo "Checking if cometa_front is already running else start it..."
     - echo "If there are changes to docker-compose file it will recreate the container..."
     - docker-compose up -d apache 2>&1 | grep -E "up-to-date|cometa_front.*?Running" && docker exec cometa_front bash -c "./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
-
+ 
     #########################################################
     # RELOAD GUNICORNS
     #########################################################
