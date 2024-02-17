@@ -3,6 +3,7 @@
 # for every installation / server / client
 # ######################################## #
 # Changelog:
+# 2023-02-17 RRO Changed docker-compose recreated check and start without changing directory, as entry point is now /code/front
 # 2022-01-26 RRO Added GITCLIENTID, GITCLIENTSECRET
 # 2022-01-06 RRO Added gunicorn reload for behave and django
 # ######################################## #
@@ -96,7 +97,7 @@ stages:
     # start container or if already started then compile else start from zero
     - echo "Checking if cometa_front is already running else start it..."
     - echo "If there are changes to docker-compose file it will recreate the container..."
-    - docker-compose up -d apache 2>&1 | grep -E "up-to-date|cometa_front.*?Running" && docker exec cometa_front bash -c "cd /code/; ./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
+    - docker-compose up -d apache 2>&1 | grep -E "up-to-date|cometa_front.*?Running" && docker exec cometa_front bash -c "./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
 
     #########################################################
     # RELOAD GUNICORNS
