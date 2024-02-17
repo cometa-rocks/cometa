@@ -8,6 +8,7 @@ import { BrowsersComponent } from '@components/admin/browsers/browsers.component
 import { EnvironmentsComponent } from '@components/admin/environments/environments.component';
 import { FeaturesComponent } from '@components/admin/features/features.component';
 import { AccountsComponent } from '@components/admin/accounts/accounts.component';
+import { AdminOthersComponent } from '@components/admin/others/others.component';
 import { DepartmentComponent } from '@components/admin/departments/department/department.component';
 import { SharedModule } from './shared.module';
 import { ApplicationComponent } from '@components/admin/applications/application/application.component';
@@ -91,6 +92,15 @@ const routes: Routes = [
           require_permission: 'view_accounts_panel',
         },
       },
+      {
+        path: 'others',
+        component: AdminOthersComponent,
+        title: 'Others - Admin',
+        canActivate: [PermissionGuard],
+        data: {
+          require_permission: 'view_others_panel',
+        },
+      },
     ],
   },
 ];
@@ -122,6 +132,7 @@ const routes: Routes = [
     BrowsersComponent,
     FeaturesComponent,
     AccountsComponent,
+    AdminOthersComponent,
     AccountsDialog,
   ],
 })
