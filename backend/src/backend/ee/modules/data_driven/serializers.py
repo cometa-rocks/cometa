@@ -2,9 +2,6 @@
 # Sponsored by Mercedes-Benz AG, Stuttgart
 # ###
 
-from backend.models import (
-    Feature_Runs
-)
 from backend.serializers import (
     FileSerializer
 )
