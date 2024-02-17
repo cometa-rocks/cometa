@@ -56,7 +56,8 @@ stages:
     # ... needed as later it will be owned by root
     #########################################################
     - echo "Setting permissions to gitlab-runner on front directory"
-    - sudo chown -R gitlab-runner $DEPLOY_BACKEND_FOLDER
+    - echo "$DEPLOY_BACKEND_FOLDER/front"
+    - sudo chown -R gitlab-runner $DEPLOY_BACKEND_FOLDER/front
 
     #########################################################
     # COPY CODE TO DEPLOY_BACKEND_FOLDER
