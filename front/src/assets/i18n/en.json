@@ -1,133 +1,133 @@
 {
-    "menu": {
-        "order_intake": "Order Intake",
-        "production_program": "Production Program",
-        "allocation": "Allocation",
-        "plant_stock": "Plant Stock",
-        "about": "About",
-        "help": "Help"
-    },
-    "MAIN_VIEW": {
-        "DATE": "DATE"
-    },
-    "headers": {
-        "status": "Status",
-        "date": "Date",
-        "steps": "# Steps",
-        "ok": "# Ok",
-        "nok": "# Nok",
-        "skipped": "# Skipped",
-        "time": "Execution time",
-        "browser": "Browser",
-        "pixel": "Pixel difference"
-    },
-    "need_help": {
-        "filter": "Asking for help",
-        "poster": "Needs help",
-        "ask_for": "Ask for help",
-        "can_help": "Enabling this option allows you to assist on features marked with \"Ask for help\"",
-        "tooltip": "This feature is asking for help",
-        "explanation": "Enabling this option allows other users to help you on this feature"
-    },
-    "whats_new": {
-        "title": "What's new",
-        "new_features": "New features",
-        "bugfixes": "Bugfixes",
-        "close": "CLOSE"
-    },
-    "websockets": {
-        "Initializing": "Initializing feature",
-        "Timeout": "Timed out searching for container with browser context.",
-        "Completed": "Feature completed"
-    },
-    "user": {
-        "tour_description": "In co.meta you can learn about features interactive using the virtual tour guide. The virtual tour guide will show you around and explain step by step the how's and where's. Move your mouse over the tour buttons to see a short description.",
-        "webhooks_desc": "Integrating co.meta with your preferred tools empowers you to optimize your development process. By seamlessly connecting Co.Meta, you can accelerate project completion, implement continuous testing practices, and effectively share quality updates with your entire department."
-    },
-    "connected": "Connected",
-    "not_connected": "Not connected",
-    "plandate": "Plandate",
-    "region": "Region",
-    "product": "Product",
-    "regions": "Regions",
-    "products": "Products",
-    "continue_on_failure": {
-        "tooltip": "This checkbox is disabled because Continue on failure is already enabled on a top item."
-    },
-    "save": "Marks the current item as saved.",
-    "unsave": "Unmarks the current item as saved.",
-    "production_program": {
-        "customer": "Customer",
-        "plan": "Plan",
-        "total": "Total",
-        "reserve": "Reserve"
-    },
-    "allocation": {
-        "program": "Program",
-        "allocation": "Allocation"
-    },
-    "about": {
-        "config": "Config",
-        "sponsor": "Sponsor",
-        "credits": "Credits",
-        "thanks": "Thank you",
-        "software": "Software",
-        "licenses": "Licenses",
-        "technical_information": "Technical Information",
-        "changelog": "Changelog"
-    },
-    "tooltips": {
-        "delete_templates_with_features": "If checked, the template images of each result will also be deleted",
-        "variables_requires": "Please select a department and environment to edit variables",
-        "run_feature": "Run feature",
-        "edit_schedule": "Edit schedule",
-        "edit_feature": "Edit feature",
-        "loading_feature": "Loading feature",
-        "saving_feature": "Saving feature",
-        "creating_feature": "Creating feature",
-        "deleting_feature": "Deleting feature",
-        "latest_browser": "The latest stable version of this browser will be used automatically",
-        "invalid_edit_form": "We found errors in the form, please fix them before saving",
+  "menu": {
+    "order_intake": "Order Intake",
+    "production_program": "Production Program",
+    "allocation": "Allocation",
+    "plant_stock": "Plant Stock",
+    "about": "About",
+    "help": "Help"
+  },
+  "MAIN_VIEW": {
+    "DATE": "DATE"
+  },
+  "headers": {
+    "status": "Status",
+    "date": "Date",
+    "steps": "# Steps",
+    "ok": "# Ok",
+    "nok": "# Nok",
+    "skipped": "# Skipped",
+    "time": "Execution time",
+    "browser": "Browser",
+    "pixel": "Pixel difference"
+  },
+  "need_help": {
+    "filter": "Asking for help",
+    "poster": "Needs help",
+    "ask_for": "Ask for help",
+    "can_help": "Enabling this option allows you to assist on features marked with \"Ask for help\"",
+    "tooltip": "This feature is asking for help",
+    "explanation": "Enabling this option allows other users to help you on this feature"
+  },
+  "whats_new": {
+    "title": "What's new",
+    "new_features": "New features",
+    "bugfixes": "Bugfixes",
+    "close": "CLOSE"
+  },
+  "websockets": {
+    "Initializing": "Initializing feature",
+    "Timeout": "Timed out searching for container with browser context.",
+    "Completed": "Feature completed"
+  },
+  "user": {
+    "tour_description": "In co.meta you can learn about features interactive using the virtual tour guide. The virtual tour guide will show you around and explain step by step the how's and where's. Move your mouse over the tour buttons to see a short description.",
+    "webhooks_desc": "Integrating co.meta with your preferred tools empowers you to optimize your development process. By seamlessly connecting Co.Meta, you can accelerate project completion, implement continuous testing practices, and effectively share quality updates with your entire department."
+  },
+  "connected": "Connected",
+  "not_connected": "Not connected",
+  "plandate": "Plandate",
+  "region": "Region",
+  "product": "Product",
+  "regions": "Regions",
+  "products": "Products",
+  "continue_on_failure": {
+    "tooltip": "This checkbox is disabled because Continue on failure is already enabled on a top item."
+  },
+  "save": "Marks the current item as saved.",
+  "unsave": "Unmarks the current item as saved.",
+  "production_program": {
+    "customer": "Customer",
+    "plan": "Plan",
+    "total": "Total",
+    "reserve": "Reserve"
+  },
+  "allocation": {
+    "program": "Program",
+    "allocation": "Allocation"
+  },
+  "about": {
+    "config": "Config",
+    "sponsor": "Sponsor",
+    "credits": "Credits",
+    "thanks": "Thank you",
+    "software": "Software",
+    "licenses": "Licenses",
+    "technical_information": "Technical Information",
+    "changelog": "Changelog"
+  },
+  "tooltips": {
+    "delete_templates_with_features": "If checked, the template images of each result will also be deleted",
+    "variables_requires": "Please select a department and environment to edit variables",
+    "run_feature": "Run feature",
+    "edit_schedule": "Edit schedule",
+    "edit_feature": "Edit feature",
+    "loading_feature": "Loading feature",
+    "saving_feature": "Saving feature",
+    "creating_feature": "Creating feature",
+    "deleting_feature": "Deleting feature",
+    "latest_browser": "The latest stable version of this browser will be used automatically",
+    "invalid_edit_form": "We found errors in the form, please fix them before saving",
 
-        "_comment": "// Tooltips for step options",
-        "step_timeout_ignored": "Timeout is ignored for this step.",
-        "step_timeout": "Set maximum timeout after which this step will be forced to stop.",
-        "step_delete": "Delete this step."
-    },
-    "paginator": {
-        "items": "Items per page",
-        "next": "Next page",
-        "previous": "Previous page",
-        "first": "First page",
-        "last": "Last page",
-        "range": "{{startIndex}} - {{endIndex}} of {{length}}"
-    },
-    "you_sure": {
-        "delete_item_title": "Are you sure you want to delete this item?",
-        "delete_item_desc": "This operation cannot be reversed.",
-        "quit_title": "Are you sure you want to quit?",
-        "quit_desc": "You have unsaved changes.",
-        "remove_all_title": "Remove everything",
-        "remove_all": "Are you sure you want to remove all the steps?",
-        "decrypt_title": "Are you sure you want to decrypt this variable?",
-        "decrypt_desc": "Decrypting a variable will reset the environment variable value.",
-        "budget_exceeded_title": "Budget exceed",
-        "budget_exceeded_desc": "The feature you are about to run will exceed your configured budget. Do you want to continue?",
-        "budget_ahead_title": "Low budget",
-        "budget_ahead_desc": "The feature you are about to run will likely exceed your configured budget. Do you want to continue?",
-        "move_feature_title": "Move feature",
-        "move_feature": "You are attempting to move feature to different department, environment variables that the feature in question is currently using, will no longer be usable. Do you want to continue?"
-    },
+    "_comment": "// Tooltips for step options",
+    "step_timeout_ignored": "Timeout is ignored for this step.",
+    "step_timeout": "Set maximum timeout after which this step will be forced to stop.",
+    "step_delete": "Delete this step."
+  },
+  "paginator": {
+    "items": "Items per page",
+    "next": "Next page",
+    "previous": "Previous page",
+    "first": "First page",
+    "last": "Last page",
+    "range": "{{startIndex}} - {{endIndex}} of {{length}}"
+  },
+  "you_sure": {
+    "delete_item_title": "Are you sure you want to delete this item?",
+    "delete_item_desc": "This operation cannot be reversed.",
+    "quit_title": "Are you sure you want to quit?",
+    "quit_desc": "You have unsaved changes.",
+    "remove_all_title": "Remove everything",
+    "remove_all": "Are you sure you want to remove all the steps?",
+    "decrypt_title": "Are you sure you want to decrypt this variable?",
+    "decrypt_desc": "Decrypting a variable will reset the environment variable value.",
+    "budget_exceeded_title": "Budget exceed",
+    "budget_exceeded_desc": "The feature you are about to run will exceed your configured budget. Do you want to continue?",
+    "budget_ahead_title": "Low budget",
+    "budget_ahead_desc": "The feature you are about to run will likely exceed your configured budget. Do you want to continue?",
+    "move_feature_title": "Move feature",
+    "move_feature": "You are attempting to move feature to different department, environment variables that the feature in question is currently using, will no longer be usable. Do you want to continue?"
+  },
 
-    "integrations": {
-        "add": "Add integration",
-        "send_on": "Send on",
-        "title": "Integrations",
-        "edit": "Edit",
-        "delete": "Delete"
-    },
-    "send_on": {
-        "after_test_execution": "Always",
-        "after_test_execution_failed": "On error"
-    }
+  "integrations": {
+    "add": "Add integration",
+    "send_on": "Send on",
+    "title": "Integrations",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "send_on": {
+    "after_test_execution": "Always",
+    "after_test_execution_failed": "On error"
+  }
 }

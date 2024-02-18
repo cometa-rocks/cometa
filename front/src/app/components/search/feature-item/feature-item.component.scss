@@ -1,4 +1,3 @@
-
 @import 'color';
 
 :host {
@@ -9,16 +8,16 @@
   height: 130px;
   margin-bottom: 30px;
   @media screen and (min-width: 600px) {
-      width: 50%;
+    width: 50%;
   }
   @media screen and (min-width: 1000px) {
-      width: 33.333333%;
+    width: 33.333333%;
   }
   @media screen and (min-width: 1300px) {
-      width: 25%;
+    width: 25%;
   }
   @media screen and (min-width: 1600px) {
-      width: 20%;
+    width: 20%;
   }
   float: left;
   position: relative;
@@ -40,7 +39,7 @@
         display: none;
       }
       .run:after {
-        content: "View";
+        content: 'View';
         vertical-align: middle;
       }
     }
@@ -81,15 +80,15 @@
         color: white;
         vertical-align: middle;
         position: relative;
-        font-size: .9rem;
+        font-size: 0.9rem;
         .triangle {
-            position: absolute;
-            bottom: 0;
-            left: -15px;
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-bottom: 26px solid transparent;
+          position: absolute;
+          bottom: 0;
+          left: -15px;
+          width: 0;
+          height: 0;
+          border-left: 15px solid transparent;
+          border-bottom: 26px solid transparent;
         }
       }
       .run {
@@ -100,7 +99,7 @@
         display: inline-block;
         position: relative;
         vertical-align: middle;
-        font-size: .9rem;
+        font-size: 0.9rem;
         border-top-right-radius: 5px;
         .run-test {
           height: 12px;
@@ -111,13 +110,13 @@
           vertical-align: middle;
         }
         .triangle {
-            position: absolute;
-            bottom: 0;
-            left: -15px;
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-bottom: 26px solid $blue;
+          position: absolute;
+          bottom: 0;
+          left: -15px;
+          width: 0;
+          height: 0;
+          border-left: 15px solid transparent;
+          border-bottom: 26px solid $blue;
         }
       }
     }
@@ -127,34 +126,37 @@
     background-color: rgba(255, 255, 255, 0.4);
     border-radius: 3px;
     cursor: pointer;
-    transition: all .2s ease-in-out;
-    box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
+    transition: all 0.2s ease-in-out;
+    box-shadow:
+      0 3px 1px -2px rgba(0, 0, 0, 0.2),
+      0 2px 2px 0 rgba(0, 0, 0, 0.14),
+      0 1px 5px 0 rgba(0, 0, 0, 0.12);
   }
   .options {
-      position: absolute;
-      margin: auto;
-      top: 0;
-      right: 0;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    right: 0;
   }
   .name {
-      color: $blue;
-      font-size: 21pt;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      width: 100%;
-      padding-right: 30px;
-      box-sizing: border-box;
+    color: $blue;
+    font-size: 21pt;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: 100%;
+    padding-right: 30px;
+    box-sizing: border-box;
   }
   .steps {
-      margin-top: 10px;
+    margin-top: 10px;
   }
   .exec_time {
-      color: $bad;
+    color: $bad;
   }
   .browser {
-      color: #546e7a;
-      margin-top: 10px;
+    color: #546e7a;
+    margin-top: 10px;
   }
 }
 
@@ -186,14 +188,14 @@ input {
   bottom: 8px;
   right: 10px;
   font-weight: bold;
-  color: rgba(black, .35);
+  color: rgba(black, 0.35);
 }
 
 .top-left-container {
   position: absolute;
   opacity: 0;
   left: 15px;
-  transition: all .2s ease-in-out;
+  transition: all 0.2s ease-in-out;
   pointer-events: none;
   &.visible {
     opacity: 1;
@@ -215,20 +217,20 @@ input {
     max-width: calc(100% - 15px);
     background-color: $step;
     color: white;
-    font-size: .9rem;
+    font-size: 0.9rem;
     height: 26px;
     line-height: 16px;
     position: relative;
     .mat-icon {
       margin-right: 8px !important;
-      color: rgba(white, .95);
+      color: rgba(white, 0.95);
     }
     span {
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
       display: inline-block;
-      width: 100%
+      width: 100%;
     }
     .triangle {
       position: absolute;
@@ -263,9 +265,16 @@ input {
   @keyframes progress-spinner-stroke-rotate {
     $start: 200%; /* approx 2/3 of circle circumference */
     $end: 20%;
-    0%   { stroke-dashoffset: $start; }
-    50%  { stroke-dashoffset: $end; }
+    0% {
+      stroke-dashoffset: $start;
+    }
+    50% {
+      stroke-dashoffset: $end;
+    }
     /* removing transform: rotate(720deg) causes wobble */
-    100% { stroke-dashoffset: $start; transform: rotate(720deg); }
+    100% {
+      stroke-dashoffset: $start;
+      transform: rotate(720deg);
+    }
   }
 }

@@ -4,8 +4,8 @@ import traceback
 from django.http import JsonResponse
 from rest_framework.permissions import AllowAny
 
-from .serializers import ResponseHeadersSerializer
-from .models import ResponseHeaders
+from .serializers import ResponseHeadersSerializer,VulnerableHeaderSerializer
+from .models import ResponseHeaders,VulnerableHeader
 from rest_framework.viewsets import ModelViewSet
 from backend.utility.response_manager import ResponseManager
 
@@ -26,3 +26,7 @@ class ResponseHeadersViewSet(ModelViewSet):
             return self.response_manager.validation_error_response({
                 'feature_result_id': f"Response Header dose not exists with Id {kwargs['pk']}"
             })
+
+class VulnerableHeaderViewSet(ModelViewSet):
+    serializer_class = VulnerableHeaderSerializer
+    queryset = VulnerableHeader.objects.all()

@@ -31,7 +31,8 @@ python manage.py makemigrations
 python manage.py migrate
 
 # install crontab
-install_cron
+# 2024-02-15 ASO No longer needed since we are using the contrab container for that.
+# install_cron
 
 # Start Django server
 # python manage.py runserver 0.0.0.0:8001

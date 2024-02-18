@@ -2,9 +2,6 @@
 # Sponsored by Mercedes-Benz AG, Stuttgart
 # ###
 
-from backend.models import (
-    Feature_Runs
-)
 from backend.serializers import (
     FileSerializer
 )
@@ -12,7 +9,7 @@ from backend.common import (
     datetimeTZFormat
 )
 from rest_framework import serializers
-
+from .models import DataDriven_Runs
 
 ######################################
 # Data Driven Runs model serializers #
@@ -34,7 +31,7 @@ class DataDrivenRunsSerializer(serializers.ModelSerializer):
     date_time = serializers.DateTimeField(format=datetimeTZFormat, read_only=True)
 
     class Meta:
-        model = Feature_Runs
+        model = DataDriven_Runs
         fields = (
             "run_id",
             "is_removed",
@@ -48,6 +45,7 @@ class DataDrivenRunsSerializer(serializers.ModelSerializer):
             "pixel_diff",
             "file",
             "date_time",
+            "running"
             # "feature_results"
         )
         # extra_fields = ['feature_results']
