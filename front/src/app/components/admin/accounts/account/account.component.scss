@@ -1,185 +1,187 @@
-
 @import 'color';
 @import 'breakpoints';
 
 :host {
-    display: flex;
-    width: 100%;
-    flex-direction: column;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
 }
 
 .container {
-    display: flex;
-    width: 100%;
-    height: 40px;
-    .icon {
-        flex: 0 0 40px;
-        padding: 0 10px;
-        box-sizing: border-box;
-        position: relative;
-        &:after {
-            content: "";
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 20px;
-            right: 0;
-            margin: auto;
-            height: 25px;
-            opacity: .7;
-            width: 25px;
-            background-image: url(^assets/user.svg);
-            background-size: contain;
-            background-repeat: no-repeat;
-            @include for-tablet-portrait-up {
-                top: 30px;
-            }
-        }
+  display: flex;
+  width: 100%;
+  height: 40px;
+  .icon {
+    flex: 0 0 40px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    position: relative;
+    &:after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 20px;
+      right: 0;
+      margin: auto;
+      height: 25px;
+      opacity: 0.7;
+      width: 25px;
+      background-image: url(^assets/user.svg);
+      background-size: contain;
+      background-repeat: no-repeat;
+      @include for-tablet-portrait-up {
+        top: 30px;
+      }
     }
-    
-    .name,.email,.permission_name {
-        flex: 1;
-        padding: 0 10px;
-        box-sizing: border-box;
-        input {
-            display: block;
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            border: 0;
-            outline: 0;
-            line-height: 40px;
-            border: 2px solid  transparent;
-            border-radius: 3px;
-            padding: 0 15px;
-            box-sizing: border-box;
-            // transition: border-color .2s ease-in-out;
-            &:not(:disabled) {
-                border-color: rgba(0,0,0,.3);
-            }
-            font-size: 16px;
-            color: rgba($color: $primary-color, $alpha: 1);
-        }
+  }
+
+  .name,
+  .email,
+  .permission_name {
+    flex: 1;
+    padding: 0 10px;
+    box-sizing: border-box;
+    input {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: 0;
+      outline: 0;
+      line-height: 40px;
+      border: 2px solid transparent;
+      border-radius: 3px;
+      padding: 0 15px;
+      box-sizing: border-box;
+      // transition: border-color .2s ease-in-out;
+      &:not(:disabled) {
+        border-color: rgba(0, 0, 0, 0.3);
+      }
+      font-size: 16px;
+      color: rgba($color: $primary-color, $alpha: 1);
     }
-    
-    .email, .permission_name {
-        display: none;
-        @include for-tablet-portrait-up {
-            display: block;
-        }
+  }
+
+  .email,
+  .permission_name {
+    display: none;
+    @include for-tablet-portrait-up {
+      display: block;
     }
-    
-    .change-password {
-        flex: 0 0 40px;
-        padding: 0 10px;
-        box-sizing: border-box;
-        position: relative;
-        cursor: pointer;
-        &:hover:after {
-            transform: scale(1.2);
-        }
-        &:after {
-            content: "";
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            margin: auto;
-            height: 16px;
-            width: 16px;
-            opacity: .5;
-            transition: transform .2s ease-in-out;
-            transform: scale(1);
-            background-image: url(^assets/key.svg);
-            background-size: contain;
-            background-repeat: no-repeat;
-        }
+  }
+
+  .change-password {
+    flex: 0 0 40px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    position: relative;
+    cursor: pointer;
+    &:hover:after {
+      transform: scale(1.2);
     }
-    
-    .modify {
-        flex: 0 0 40px;
-        padding: 0 10px;
-        box-sizing: border-box;
-        position: relative;
-        cursor: pointer;
-        &:hover:after {
-            transform: scale(1.2);
-        }
-        &:after {
-            content: "";
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            margin: auto;
-            height: 15px;
-            width: 15px;
-            opacity: .8;
-            transition: transform .2s ease-in-out;
-            transform: scale(1);
-            background-image: url(^assets/edit.svg);
-            background-size: contain;
-            background-repeat: no-repeat;
-        }
+    &:after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: auto;
+      height: 16px;
+      width: 16px;
+      opacity: 0.5;
+      transition: transform 0.2s ease-in-out;
+      transform: scale(1);
+      background-image: url(^assets/key.svg);
+      background-size: contain;
+      background-repeat: no-repeat;
     }
-    
-    .remove {
-        flex: 0 0 40px;   
-        padding: 0 10px;
-        box-sizing: border-box;
-        position: relative;
-        cursor: pointer;
-        &:hover:after {
-            transform: scale(1.2);
-        }
-        &:after {
-            content: "";
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            margin: auto;
-            height: 15px;
-            width: 15px;
-            opacity: .5;
-            transition: transform .2s ease-in-out;
-            transform: scale(1);
-            background-image: url(^assets/delete.svg);
-            background-size: contain;
-            background-repeat: no-repeat;
-        }
+  }
+
+  .modify {
+    flex: 0 0 40px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    position: relative;
+    cursor: pointer;
+    &:hover:after {
+      transform: scale(1.2);
     }
+    &:after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: auto;
+      height: 15px;
+      width: 15px;
+      opacity: 0.8;
+      transition: transform 0.2s ease-in-out;
+      transform: scale(1);
+      background-image: url(^assets/edit.svg);
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+  }
+
+  .remove {
+    flex: 0 0 40px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    position: relative;
+    cursor: pointer;
+    &:hover:after {
+      transform: scale(1.2);
+    }
+    &:after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: auto;
+      height: 15px;
+      width: 15px;
+      opacity: 0.5;
+      transition: transform 0.2s ease-in-out;
+      transform: scale(1);
+      background-image: url(^assets/delete.svg);
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+  }
 }
 
 .extra-info {
-    display: block;
-    margin-bottom: 10px;
-    margin-left: 10px;
-    opacity: .75;
+  display: block;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  opacity: 0.75;
+  @include for-tablet-portrait-up {
+    margin-left: 67px;
+  }
+  strong {
+    display: inline-block;
+    margin-right: 10px;
     @include for-tablet-portrait-up {
-        margin-left: 67px;
+      display: inline-block;
     }
-    strong {
-        display: inline-block;
-        margin-right: 10px;
-        @include for-tablet-portrait-up {
-            display: inline-block;
-        }
+  }
+  .date {
+    display: block;
+    @include for-tablet-portrait-up {
+      display: inline-block;
     }
-    .date {
-        display: block;
-        @include for-tablet-portrait-up {
-            display: inline-block;
-        }
+  }
+  .separator {
+    display: none;
+    margin: 0 15px;
+    @include for-tablet-portrait-up {
+      display: inline-block;
     }
-    .separator {
-        display: none;
-        margin: 0 15px;
-        @include for-tablet-portrait-up {
-            display: inline-block;
-        }
-    }
+  }
 }

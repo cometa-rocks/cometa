@@ -1,27 +1,27 @@
 <h1>Pricing</h1>
-<br>
-<br>
+<br />
+<br />
 <ng-container *ngFor="let cloud of clouds">
-    <h2>{{ cloud[0] | titlecase }}</h2>
-    <div class="cloud">
-        <div class="subscription" *ngFor="let sub of cloud[1]">
-            <h3>{{ sub.name | titlecase }}</h3>
-            <div class="price-hour">
-                Price / hour
-                <div class="digit">
-                    {{ sub.price_hour }} €
-                </div>
-            </div>
-            <div class="fee">
-                Fee
-                <div class="digit">
-                    {{ sub.fee }} € / mo.
-                </div>
-            </div>
-            <button class="purchase done" *ngIf="sub.active; else purchase">Active</button>
-            <ng-template #purchase>
-                <button class="purchase" (click)="purchaseSubscription(sub.id)">Subscribe</button>
-            </ng-template>
-        </div>
+  <h2>{{ cloud[0] | titlecase }}</h2>
+  <div class="cloud">
+    <div class="subscription" *ngFor="let sub of cloud[1]">
+      <h3>{{ sub.name | titlecase }}</h3>
+      <div class="price-hour">
+        Price / hour
+        <div class="digit">{{ sub.price_hour }} €</div>
+      </div>
+      <div class="fee">
+        Fee
+        <div class="digit">{{ sub.fee }} € / mo.</div>
+      </div>
+      <button class="purchase done" *ngIf="sub.active; else purchase">
+        Active
+      </button>
+      <ng-template #purchase>
+        <button class="purchase" (click)="purchaseSubscription(sub.id)">
+          Subscribe
+        </button>
+      </ng-template>
     </div>
+  </div>
 </ng-container>

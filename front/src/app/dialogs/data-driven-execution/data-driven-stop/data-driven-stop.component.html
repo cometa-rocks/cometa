@@ -1,0 +1,14 @@
+<h2 mat-dialog-title>
+  The data-driven execution has been successfully stopped
+</h2>
+<mat-dialog-content>
+  <p>
+    The data-driven execution with ID {{ data.run_id }} has been successfully
+    stopped. A total of {{ data.test_count ? data.test_count : 0 }} test was
+    terminated.
+  </p>
+  <br />
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-stroked-button color="warn" (click)="close()">Close</button>
+</mat-dialog-actions>

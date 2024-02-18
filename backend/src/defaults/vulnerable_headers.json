@@ -1,0 +1,54 @@
+[
+    {
+        "model": "security.vulnerableheader",
+        "pk": 1,
+        "fields": {
+            "header_name": "server",
+            "vulnerable_values": [
+                "Apache2"
+            ],
+            "reasons_of_vulnerabiltiy": [
+                "Contains sever version not a good practics"
+            ]
+        }
+    },
+    {
+        "model": "security.vulnerableheader",
+        "pk": 2,
+        "fields": {
+            "header_name": "x-powered-by",
+            "vulnerable_values": [
+                "Any"
+            ],
+            "reasons_of_vulnerabiltiy": [
+                "should not show version"
+            ]
+        }
+    },
+    {
+        "model": "security.vulnerableheader",
+        "pk": 3,
+        "fields": {
+            "header_name": "x-aspnet-version",
+            "vulnerable_values": [
+                "Any"
+            ],
+            "reasons_of_vulnerabiltiy": [
+                "Should not show the version"
+            ]
+        }
+    },
+    {
+        "model": "security.vulnerableheader",
+        "pk": 4,
+        "fields": {
+            "header_name": "x-aspnetmvc-version",
+            "vulnerable_values": [
+                "Any"
+            ],
+            "reasons_of_vulnerabiltiy": [
+                "Should not show the version"
+            ]
+        }
+    }
+]

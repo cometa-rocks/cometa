@@ -2,26 +2,44 @@
   <ng-container *ngIf="data.mode === 'new'; else editTitle">
     New folder
   </ng-container>
-  <ng-template #editTitle>
-    Modify folder
-  </ng-template>
+  <ng-template #editTitle> Modify folder </ng-template>
 </h2>
-<form [formGroup]="rForm" autocomplete="none" spellcheck="false" (ngSubmit)="submit(rForm.value)">
+<form
+  [formGroup]="rForm"
+  autocomplete="none"
+  spellcheck="false"
+  (ngSubmit)="submit(rForm.value)">
   <mat-dialog-content>
     <mat-form-field appearance="outline" class="enter-value">
       <mat-label>Name</mat-label>
-      <input formControlName="name" disableAutocomplete spellcheck="false" type="text" matInput>
+      <input
+        formControlName="name"
+        disableAutocomplete
+        spellcheck="false"
+        type="text"
+        matInput />
     </mat-form-field>
     <mat-form-field *ngIf="rForm.contains('department')" appearance="outline">
       <mat-label>Department</mat-label>
       <!-- Lock the department selection whenever the user is inside of a folder or department -->
-      <mat-select [(ngModel)]="selected_department" [disabled]="currentRouteNew.length > 0" formControlName="department">
-        <mat-option *ngFor="let department of availableDepartments | sortBy:'department_name'" [value]="department.department_id">{{ department.department_name }}</mat-option>
+      <mat-select
+        [(ngModel)]="selected_department"
+        [disabled]="currentRouteNew.length > 0"
+        formControlName="department">
+        <mat-option
+          *ngFor="
+            let department of availableDepartments | sortBy: 'department_name'
+          "
+          [value]="department.department_id"
+          >{{ department.department_name }}</mat-option
+        >
       </mat-select>
     </mat-form-field>
   </mat-dialog-content>
   <mat-dialog-actions>
     <button mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
-    <button mat-stroked-button color="primary" [disabled]="rForm.invalid">OK</button>
+    <button mat-stroked-button color="primary" [disabled]="rForm.invalid">
+      OK
+    </button>
   </mat-dialog-actions>
 </form>
