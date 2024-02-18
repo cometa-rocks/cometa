@@ -2,112 +2,182 @@
   <h2 mat-dialog-title>Edit schedule</h2>
   <mat-dialog-content>
     <!-- This is the first layout for ethe form to edit the schedule ... horizontal layout like crontab  -->
-    <div class="grid-schedule" *ngIf='formLayout==1'>
+    <div class="grid-schedule" *ngIf="formLayout == 1">
       <mat-form-field floatLabel="always">
         <mat-label>Minute</mat-label>
-        <input formControlName="minute" disableAutocomplete matInput>
-        <mat-error *ngIf="schedule.get('minute').hasError('pattern')">Invalid format</mat-error>
+        <input formControlName="minute" disableAutocomplete matInput />
+        <mat-error *ngIf="schedule.get('minute').hasError('pattern')"
+          >Invalid format</mat-error
+        >
       </mat-form-field>
       <mat-form-field floatLabel="always">
         <mat-label>Hour</mat-label>
-        <input formControlName="hour" disableAutocomplete matInput>
-        <mat-error *ngIf="schedule.get('hour').hasError('pattern')">Invalid format</mat-error>
+        <input formControlName="hour" disableAutocomplete matInput />
+        <mat-error *ngIf="schedule.get('hour').hasError('pattern')"
+          >Invalid format</mat-error
+        >
       </mat-form-field>
       <mat-form-field floatLabel="always">
         <mat-label>Day</mat-label>
-        <input formControlName="day" disableAutocomplete matInput>
-        <mat-error *ngIf="schedule.get('day').hasError('pattern')">Invalid format</mat-error>
+        <input formControlName="day" disableAutocomplete matInput />
+        <mat-error *ngIf="schedule.get('day').hasError('pattern')"
+          >Invalid format</mat-error
+        >
       </mat-form-field>
       <mat-form-field floatLabel="always">
         <mat-label>Month</mat-label>
-        <input formControlName="month" disableAutocomplete matInput>
-        <mat-error *ngIf="schedule.get('month').hasError('pattern')">Invalid format</mat-error>
+        <input formControlName="month" disableAutocomplete matInput />
+        <mat-error *ngIf="schedule.get('month').hasError('pattern')"
+          >Invalid format</mat-error
+        >
       </mat-form-field>
       <mat-form-field floatLabel="always">
         <mat-label>Day of week</mat-label>
-        <input formControlName="dayWeek" disableAutocomplete matInput>
-        <mat-error *ngIf="schedule.get('dayWeek').hasError('pattern')">Invalid format</mat-error>
+        <input formControlName="dayWeek" disableAutocomplete matInput />
+        <mat-error *ngIf="schedule.get('dayWeek').hasError('pattern')"
+          >Invalid format</mat-error
+        >
       </mat-form-field>
     </div>
     <!-- This is the second layout for ethe form to edit the schedule ... vertical layout  -->
-    <div class="grid-schedule-layout-2" *ngIf='formLayout==2'>
+    <div class="grid-schedule-layout-2" *ngIf="formLayout == 2">
       <div class="inputcontainer">
         <div>
           <mat-form-field floatLabel="always">
             <mat-label>Minute</mat-label>
-            <input formControlName="minute" disableAutocomplete matInput>
-            <mat-error *ngIf="schedule.get('minute').hasError('pattern')">Invalid format</mat-error>
+            <input formControlName="minute" disableAutocomplete matInput />
+            <mat-error *ngIf="schedule.get('minute').hasError('pattern')"
+              >Invalid format</mat-error
+            >
           </mat-form-field>
         </div>
-        <div><b>Example:</b> Setting the minute to "0,15,30,45" executes the feature every 15 minutes.</div>
+        <div>
+          <b>Example:</b> Setting the minute to "0,15,30,45" executes the
+          feature every 15 minutes.
+        </div>
       </div>
       <div class="inputcontainer">
         <div>
           <mat-form-field floatLabel="always">
             <mat-label>Hour</mat-label>
-            <input formControlName="hour" disableAutocomplete matInput>
-            <mat-error *ngIf="schedule.get('hour').hasError('pattern')">Invalid format</mat-error>
+            <input formControlName="hour" disableAutocomplete matInput />
+            <mat-error *ngIf="schedule.get('hour').hasError('pattern')"
+              >Invalid format</mat-error
+            >
           </mat-form-field>
         </div>
-        <div>Setting the hour to "*/2" executes every second hour combined with the minute setting.</div>
+        <div>
+          Setting the hour to "*/2" executes every second hour combined with the
+          minute setting.
+        </div>
       </div>
       <p></p>
       <div class="inputcontainer">
         <div>
           <mat-form-field floatLabel="always">
             <mat-label>Day of Month</mat-label>
-            <input formControlName="day" disableAutocomplete matInput>
-            <mat-error *ngIf="schedule.get('day').hasError('pattern')">Invalid format</mat-error>
+            <input formControlName="day" disableAutocomplete matInput />
+            <mat-error *ngIf="schedule.get('day').hasError('pattern')"
+              >Invalid format</mat-error
+            >
           </mat-form-field>
         </div>
-        <div>Setting the day to "1-31" executes the feature from the first to the 31th day of the respective month.</div>
+        <div>
+          Setting the day to "1-31" executes the feature from the first to the
+          31th day of the respective month.
+        </div>
       </div>
       <div class="inputcontainer">
         <div>
           <mat-form-field floatLabel="always">
             <mat-label>Month</mat-label>
-            <input formControlName="month" disableAutocomplete matInput>
-            <mat-error *ngIf="schedule.get('month').hasError('pattern')">Invalid format</mat-error>
+            <input formControlName="month" disableAutocomplete matInput />
+            <mat-error *ngIf="schedule.get('month').hasError('pattern')"
+              >Invalid format</mat-error
+            >
           </mat-form-field>
         </div>
-        <div>Using the "*" is a placeholder that meets any condition, like any month, day our hour. The above mentioned input value can also be used here.</div>
+        <div>
+          Using the "*" is a placeholder that meets any condition, like any
+          month, day our hour. The above mentioned input value can also be used
+          here.
+        </div>
       </div>
       <div class="inputcontainer">
         <div>
           <mat-form-field floatLabel="always">
             <mat-label>Day of week</mat-label>
-            <input formControlName="dayWeek" disableAutocomplete matInput>
-            <mat-error *ngIf="schedule.get('dayWeek').hasError('pattern')">Invalid format</mat-error>
+            <input formControlName="dayWeek" disableAutocomplete matInput />
+            <mat-error *ngIf="schedule.get('dayWeek').hasError('pattern')"
+              >Invalid format</mat-error
+            >
           </mat-form-field>
         </div>
-        <div>Can use "*" as a wildcard. Or SUN, MON, ... to execute on one or more days of the week. </div>
+        <div>
+          Can use "*" as a wildcard. Or SUN, MON, ... to execute on one or more
+          days of the week.
+        </div>
       </div>
     </div>
-	<div class="next_run" *ngIf="enableSchedule | async">
-		<ng-container *ngIf="!parseError.error">
-			<p><strong>Note:</strong> Your feature will be scheduled in <strong>UTC</strong> timezone.</p>
-			<p>Here are some executions (in <strong>"{{timezone}}"</strong> timezone) based on the crontab expression:</p>
-			<li *ngFor="let nextRun of nextRuns"><strong>Next Run:</strong> {{nextRun}}</li>
-		</ng-container>
-		<ng-container *ngIf="parseError.error">
-			<p><strong>Error:</strong> Found error while parsing crontab expression, please check.</p>
-		</ng-container>
-	</div>
-	<br>
-    <mat-slide-toggle style="display:block;" color="primary" [checked]="enableSchedule | async" (change)="changeSchedule($event)">Enable schedule</mat-slide-toggle>
-    <br>
+    <div class="next_run" *ngIf="enableSchedule | async">
+      <ng-container *ngIf="!parseError.error">
+        <p>
+          <strong>Note:</strong> Your feature will be scheduled in
+          <strong>UTC</strong> timezone.
+        </p>
+        <p>
+          Here are some executions (in
+          <strong>"{{ timezone }}"</strong> timezone) based on the crontab
+          expression:
+        </p>
+        <li *ngFor="let nextRun of nextRuns">
+          <strong>Next Run:</strong> {{ nextRun }}
+        </li>
+      </ng-container>
+      <ng-container *ngIf="parseError.error">
+        <p>
+          <strong>Error:</strong> Found error while parsing crontab expression,
+          please check.
+        </p>
+      </ng-container>
+    </div>
+    <br />
+    <mat-slide-toggle
+      style="display: block"
+      color="primary"
+      [checked]="enableSchedule | async"
+      (change)="changeSchedule($event)"
+      >Enable schedule</mat-slide-toggle
+    >
+    <br />
     <div class="helpContainer">
       <div>
-        <span class="info" (click)="getHelp()"><mat-icon [inline]="true">info</mat-icon>Schedule format</span>
+        <span class="info" (click)="getHelp()"
+          ><mat-icon [inline]="true">info</mat-icon>Schedule format</span
+        >
       </div>
       <div>
-        <span class="info" (click)="switchFormLayout()"><mat-icon [inline]="true">{{formLayoutIcon}}</mat-icon>Switch to {{formLayoutTextSelected}} layout</span>
+        <span class="info" (click)="switchFormLayout()"
+          ><mat-icon [inline]="true">{{ formLayoutIcon }}</mat-icon
+          >Switch to {{ formLayoutTextSelected }} layout</span
+        >
       </div>
     </div>
   </mat-dialog-content>
   <mat-dialog-actions>
-    <span style="margin-left: 8px;" matTooltipPosition="above" [matTooltip]="'tooltips.invalid_edit_form' | translate" [matTooltipDisabled]="schedule.valid">
-      <button [disabled]="(enableSchedule | async) && !schedule.valid" color="primary" mat-stroked-button class="submit" (click)="updateSchedule()">SAVE</button>
+    <span
+      style="margin-left: 8px"
+      matTooltipPosition="above"
+      [matTooltip]="'tooltips.invalid_edit_form' | translate"
+      [matTooltipDisabled]="schedule.valid">
+      <button
+        [disabled]="(enableSchedule | async) && !schedule.valid"
+        color="primary"
+        mat-stroked-button
+        class="submit"
+        (click)="updateSchedule()">
+        SAVE
+      </button>
     </span>
   </mat-dialog-actions>
 </form>

@@ -1,3 +1,14 @@
 <h2>Manage departments</h2>
-<department [department]="dept" *ngFor="let dept of departments$ | async | sortBy:'department_name'; trackBy: trackByFn"></department>
-<button *ngIf="canCreateDepartment$ | async" class="add-item" (click)="newDepartment()" mat-stroked-button><mat-icon>add</mat-icon>Add department</button>
+<department
+  [department]="dept"
+  *ngFor="
+    let dept of departments$ | async | sortBy: 'department_name';
+    trackBy: trackByFn
+  "></department>
+<button
+  *ngIf="canCreateDepartment$ | async"
+  class="add-item"
+  (click)="newDepartment()"
+  mat-stroked-button>
+  <mat-icon>add</mat-icon>Add department
+</button>

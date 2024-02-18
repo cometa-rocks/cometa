@@ -1,15 +1,17 @@
 import { Injectable } from '@angular/core';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NotificationService {
-
   checkNotificationAPIAccess(): Promise<boolean> {
     return new Promise(resolve => {
       if (!('Notification' in window)) resolve(false);
       else if (Notification.permission === 'granted') resolve(true);
-      else if (Notification.permission !== 'denied') Notification.requestPermission(permission => resolve(permission === 'granted'));
+      else if (Notification.permission !== 'denied')
+        Notification.requestPermission(permission =>
+          resolve(permission === 'granted')
+        );
     });
   }
 

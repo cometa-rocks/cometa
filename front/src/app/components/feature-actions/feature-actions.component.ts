@@ -1,4 +1,10 @@
-import { Component, ChangeDetectionStrategy, OnInit, Inject, Input } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  OnInit,
+  Inject,
+  Input,
+} from '@angular/core';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { LogOutputComponent } from '@dialogs/log-output/log-output.component';
 import { ApiService } from '@services/api.service';
@@ -6,7 +12,14 @@ import { LiveStepsComponent } from '@dialogs/live-steps/live-steps.component';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { Store } from '@ngxs/store';
 import { ResultsState } from '@store/results.state';
-import { debounceTime, distinctUntilChanged, filter, map, shareReplay, switchMap } from 'rxjs/operators';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  map,
+  shareReplay,
+  switchMap,
+} from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { FeaturesState } from '@store/features.state';
 import { SafeUrl, DomSanitizer } from '@angular/platform-browser';
@@ -18,16 +31,16 @@ import { WebSockets } from '@store/actions/results.actions';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { PaginatedListsState } from '@store/paginated-list.state';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { ErrorDialog } from '@dialogs/error/error.dialog';
 
 @UntilDestroy()
 @Component({
   selector: 'cometa-feature-actions',
   templateUrl: './feature-actions.component.html',
   styleUrls: ['./feature-actions.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FeatureActionsComponent implements OnInit {
-
   notificationEnabled$: Observable<boolean>;
   canEditFeature$: Observable<boolean>;
   pdfLink$: Observable<SafeUrl>;
@@ -47,20 +60,20 @@ export class FeatureActionsComponent implements OnInit {
     private _ac: ActivatedRoute,
     private _sanitizer: DomSanitizer,
     public _sharedActions: SharedActionsService,
-    @Inject(API_BASE) private _api_base: string,
+    @Inject(API_BASE) private _api_base: string
   ) {
     // Get feature id from URL params
     this.featureId$ = this._ac.paramMap.pipe(
       map(params => +params.get('feature')),
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: true })
-    )
+    );
     // Get feature result id from URL params
     this.featureResultId$ = this._ac.paramMap.pipe(
       map(params => +params.get('feature_result_id')),
       distinctUntilChanged(),
       shareReplay({ bufferSize: 1, refCount: true })
-    )
+    );
   }
 
   getFeatureId = () => +this._ac.snapshot.paramMap.get('feature');
@@ -68,29 +81,45 @@ export class FeatureActionsComponent implements OnInit {
   ngOnInit() {
     this.feature$ = this.featureId$.pipe(
       switchMap(id => this._store.select(CustomSelectors.GetFeatureInfo(id)))
-    )
+    );
     this.running$ = this.featureId$.pipe(
-      switchMap(id => this._store.select(CustomSelectors.GetFeatureRunningStatus(id)))
-    )
+      switchMap(id =>
+        this._store.select(CustomSelectors.GetFeatureRunningStatus(id))
+      )
+    );
     // Show PDF download link in Feature Actions toolbar
     this.pdfLink$ = this.featureResultId$.pipe(
-      map(resultId => resultId ? this._sanitizer.bypassSecurityTrustUrl(`${this._api_base}pdf/?feature_result_id=${resultId}&download=true`) : null)
-    )
+      map(resultId =>
+        resultId
+          ? this._sanitizer.bypassSecurityTrustUrl(
+              `${this._api_base}pdf/?feature_result_id=${resultId}&download=true`
+            )
+          : null
+      )
+    );
     // Show CSV download link in Feature Actions toolbar
     this.csvLink$ = this.featureId$.pipe(
-      map(featureId => featureId ? this._sanitizer.bypassSecurityTrustUrl(`${this._api_base}get_steps_result_csv/${featureId}/`) : null)
-    )
+      map(featureId =>
+        featureId
+          ? this._sanitizer.bypassSecurityTrustUrl(
+              `${this._api_base}get_steps_result_csv/${featureId}/`
+            )
+          : null
+      )
+    );
     this.canEditFeature$ = this.featureId$.pipe(
-      switchMap(id => this._store.select(CustomSelectors.HasPermission('edit_feature', id)))
-    )
+      switchMap(id =>
+        this._store.select(CustomSelectors.HasPermission('edit_feature', id))
+      )
+    );
     this.notificationEnabled$ = this.featureId$.pipe(
-      switchMap(id => this._store.select(CustomSelectors.GetNotificationEnabled(id)))
-    )
-    fromEvent(document, 'keydown').pipe(
-      untilDestroyed(this),
-      distinctUntilChanged(),
-      debounceTime(150)
-    ).subscribe((event: KeyboardEvent) => this.handleKeyboardEvent(event));
+      switchMap(id =>
+        this._store.select(CustomSelectors.GetNotificationEnabled(id))
+      )
+    );
+    fromEvent(document, 'keydown')
+      .pipe(untilDestroyed(this), distinctUntilChanged(), debounceTime(150))
+      .subscribe((event: KeyboardEvent) => this.handleKeyboardEvent(event));
   }
 
   feature$: Observable<Feature>;
@@ -103,10 +132,11 @@ export class FeatureActionsComponent implements OnInit {
     // - S: Schedule test
     // - N: Toggle notifications
     // Only if no dialog is opened
-    const isAnyDialogOpened = document.querySelectorAll('.mat-dialog-container').length > 0;
+    const isAnyDialogOpened =
+      document.querySelectorAll('.mat-dialog-container').length > 0;
     if (!isAnyDialogOpened && !this._sharedActions.dialogActive) {
       let hotkeyFound = true;
-      switch ( event.keyCode ) {
+      switch (event.keyCode) {
         case KEY_CODES.SPACE:
           this.runNow();
           break;
@@ -138,19 +168,33 @@ export class FeatureActionsComponent implements OnInit {
     if (!featureResultId && this.latestFeatureResultId != 0) {
       // Or get id from last run object
       featureResultId = this.latestFeatureResultId;
+      this._dialog
+        .open(LogOutputComponent, {
+          disableClose: true,
+          panelClass: 'enter-value-panel',
+          data: featureResultId,
+        })
+        .afterClosed()
+        .subscribe(_ => (this._sharedActions.dialogActive = false));
+    } else {
+      this._dialog.open(ErrorDialog, {
+        id: 'error',
+        data: {
+          error:
+            'There are no logs for this feature. Please execute the feature and then review the logs. If you think this is a bug, please let us know.',
+        },
+      });
     }
-    // Open Log Dialog
-    this._dialog.open(LogOutputComponent, {
-      disableClose: true,
-      panelClass: 'enter-value-panel',
-      data: featureResultId
-    }).afterClosed().subscribe(_ => this._sharedActions.dialogActive = false);
   }
 
   async runNow() {
-    const featureStore = this._store.selectSnapshot(FeaturesState.GetFeatureInfo)(this.getFeatureId());
+    const featureStore = this._store.selectSnapshot(
+      FeaturesState.GetFeatureInfo
+    )(this.getFeatureId());
     // Request backend to know if feature is running
-    const isRunning = await this._api.isFeatureRunning(this.getFeatureId()).toPromise();
+    const isRunning = await this._api
+      .isFeatureRunning(this.getFeatureId())
+      .toPromise();
     if (isRunning) {
       // Notify WebSocket Server to send me last websockets of feature
       this._sharedActions.retrieveLastFeatureSockets(this.getFeatureId());
@@ -158,23 +202,36 @@ export class FeatureActionsComponent implements OnInit {
     } else {
       // Check if the feature has at least 1 browser selected, if not, show a warning
       if (featureStore.browsers.length > 0) {
-        this._api.runFeature(featureStore.feature_id, false).pipe(
-          filter(json => !!json.success),
-          switchMap(res => this._store.dispatch( new WebSockets.FeatureTaskQueued(featureStore.feature_id)).pipe(
-            map(_ => res)
-          ))
-        ).subscribe(res => {
-          if (res.success) {
-            this._snack.open(`Feature ${featureStore.feature_name} is running...`, 'OK');
-            this.openLiveSteps(featureStore.feature_id);
-          } else {
-            this._snack.open('An error ocurred', 'OK');
-          }
-        }, err => {
-          this._snack.open('An error ocurred', 'OK');
-        });
+        this._api
+          .runFeature(featureStore.feature_id, false)
+          .pipe(
+            filter(json => !!json.success),
+            switchMap(res =>
+              this._store
+                .dispatch(
+                  new WebSockets.FeatureTaskQueued(featureStore.feature_id)
+                )
+                .pipe(map(_ => res))
+            )
+          )
+          .subscribe(
+            res => {
+              if (res.success) {
+                this._snack.open(
+                  `Feature ${featureStore.feature_name} is running...`,
+                  'OK'
+                );
+                this.openLiveSteps(featureStore.feature_id);
+              } else {
+                this._snack.open('An error ocurred', 'OK');
+              }
+            },
+            err => {
+              this._snack.open('An error ocurred', 'OK');
+            }
+          );
       } else {
-        this._snack.open('This feature doesn\'t have browsers selected.', 'OK');
+        this._snack.open("This feature doesn't have browsers selected.", 'OK');
       }
     }
   }
@@ -182,17 +239,24 @@ export class FeatureActionsComponent implements OnInit {
   openLiveSteps(feature_id: number) {
     this._dialog.open(LiveStepsComponent, {
       data: feature_id,
-      panelClass: 'live-steps-panel'
+      panelClass: 'live-steps-panel',
     });
   }
 
   toggleNotification() {
-    const featureStore = this._store.selectSnapshot(FeaturesState.GetFeatureInfo)(this.getFeatureId());
-    const notifications = this._store.selectSnapshot(ResultsState.GetNotifications);
+    const featureStore = this._store.selectSnapshot(
+      FeaturesState.GetFeatureInfo
+    )(this.getFeatureId());
+    const notifications = this._store.selectSnapshot(
+      ResultsState.GetNotifications
+    );
 
-  return notifications.includes(featureStore.feature_id) ?
-          this._store.dispatch(new WebSockets.RemoveNotificationID(featureStore.feature_id)) :
-          this._store.dispatch( new WebSockets.AddNotificationID(featureStore.feature_id))
+    return notifications.includes(featureStore.feature_id)
+      ? this._store.dispatch(
+          new WebSockets.RemoveNotificationID(featureStore.feature_id)
+        )
+      : this._store.dispatch(
+          new WebSockets.AddNotificationID(featureStore.feature_id)
+        );
   }
-
 }

@@ -1,5 +1,11 @@
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, Host, OnInit, Optional } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Host,
+  OnInit,
+  Optional,
+} from '@angular/core';
 import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { ActivatedRoute } from '@angular/router';
@@ -18,19 +24,22 @@ import { NetworkPaginatedListComponent } from '@components/network-paginated-lis
   selector: 'cometa-main-view-header',
   templateUrl: './main-view-header.component.html',
   styleUrls: ['./main-view-header.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainViewHeaderComponent implements OnInit {
-
   /** Holds all the current headers of the results table */
-  @Select(CustomSelectors.RetrieveResultHeaders(true, true)) allHeaders: Observable<ResultHeader[]>;
+  @Select(CustomSelectors.RetrieveResultHeaders(true, true))
+  allHeaders: Observable<ResultHeader[]>;
 
-  @Select(CustomSelectors.GetConfigProperty('percentMode')) percentMode$: Observable<boolean>;
+  @Select(CustomSelectors.GetConfigProperty('percentMode'))
+  percentMode$: Observable<boolean>;
 
   /** Variable holding archived option of Config */
-  @Select(CustomSelectors.GetConfigProperty('internal.showArchived')) archived$: Observable<boolean>;
+  @Select(CustomSelectors.GetConfigProperty('internal.showArchived'))
+  archived$: Observable<boolean>;
 
-  @Select(CustomSelectors.GetConfigProperty('deleteTemplateWithResults')) deleteTemplateWithResults$: Observable<boolean>;
+  @Select(CustomSelectors.GetConfigProperty('deleteTemplateWithResults'))
+  deleteTemplateWithResults$: Observable<boolean>;
 
   saveHeadersDebounce = new Subject<ResultHeader[]>();
 
@@ -40,14 +49,12 @@ export class MainViewHeaderComponent implements OnInit {
     private _route: ActivatedRoute,
     private _api: ApiService,
     @Optional() @Host() private _paginatedList: NetworkPaginatedListComponent
-  ) { }
+  ) {}
 
   ngOnInit() {
-    this.saveHeadersDebounce.pipe(
-      debounceTime(500)
-    ).subscribe(headers => {
-      this._store.dispatch( new User.SetSetting({ result_headers: headers }))
-    })
+    this.saveHeadersDebounce.pipe(debounceTime(500)).subscribe(headers => {
+      this._store.dispatch(new User.SetSetting({ result_headers: headers }));
+    });
   }
 
   /**
@@ -56,7 +63,9 @@ export class MainViewHeaderComponent implements OnInit {
    */
   headerChanged(event: CdkDragDrop<ResultHeader[]>) {
     // Get current headers
-    const currentHeaders = deepClone(this._store.selectSnapshot(CustomSelectors.RetrieveResultHeaders(true)));
+    const currentHeaders = deepClone(
+      this._store.selectSnapshot(CustomSelectors.RetrieveResultHeaders(true))
+    );
     // Perform index move
     moveItemInArray(currentHeaders, event.previousIndex, event.currentIndex);
     // Save into user settings, in backend and locally
@@ -69,7 +78,9 @@ export class MainViewHeaderComponent implements OnInit {
    */
   handleHeaderChange(event: MatCheckboxChange, index: number) {
     // Get current headers
-    const currentHeaders = deepClone(this._store.selectSnapshot(CustomSelectors.RetrieveResultHeaders(true)));
+    const currentHeaders = deepClone(
+      this._store.selectSnapshot(CustomSelectors.RetrieveResultHeaders(true))
+    );
     // Perform index move
     currentHeaders[index].enable = event.checked;
     // Save into user settings, in backend and locally
@@ -81,7 +92,9 @@ export class MainViewHeaderComponent implements OnInit {
   }
 
   handleDeleteTemplateWithResults({ checked }: MatCheckboxChange) {
-    return this._store.dispatch(new Configuration.SetProperty('deleteTemplateWithResults', checked));
+    return this._store.dispatch(
+      new Configuration.SetProperty('deleteTemplateWithResults', checked)
+    );
   }
 
   changeSort(prop: string) {
@@ -107,28 +120,31 @@ export class MainViewHeaderComponent implements OnInit {
     // Open Loading Snack
     const loadingRef = this._snack.openFromComponent(LoadingSnack, {
       data: 'Clearing history...',
-      duration: 60000
+      duration: 60000,
     });
     const featureId = +this._route.snapshot.params.feature;
-    const deleteTemplateWithResults = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('deleteTemplateWithResults'));
-    this._api.removeMultipleFeatureRuns(featureId, clearing, deleteTemplateWithResults).pipe(
-      switchMap(res => {
-        if (this._paginatedList) {
-          return this._paginatedList.reloadCurrentPage().pipe(
-            map(_ => res)
-          );
-        } else {
-          return of(res);
-        }
-      })
-    ).subscribe(_ => {
-      // Close loading snack
-      loadingRef.dismiss();
-      // Show completed snack
-      this._snack.open('History cleared', 'OK', {
-        duration: 5000
+    const deleteTemplateWithResults = this._store.selectSnapshot<boolean>(
+      CustomSelectors.GetConfigProperty('deleteTemplateWithResults')
+    );
+    this._api
+      .removeMultipleFeatureRuns(featureId, clearing, deleteTemplateWithResults)
+      .pipe(
+        switchMap(res => {
+          if (this._paginatedList) {
+            return this._paginatedList.reloadCurrentPage().pipe(map(_ => res));
+          } else {
+            return of(res);
+          }
+        })
+      )
+      .subscribe(_ => {
+        // Close loading snack
+        loadingRef.dismiss();
+        // Show completed snack
+        this._snack.open('History cleared', 'OK', {
+          duration: 5000,
+        });
       });
-    })
   }
 
   sortBy = 'result_date';
@@ -138,6 +154,8 @@ export class MainViewHeaderComponent implements OnInit {
    * Enables or disables archived runs from checkbox
    * @param change MatCheckboxChange
    */
-  handleArchived = (change: MatCheckboxChange) => this._store.dispatch(new Configuration.SetProperty('internal.showArchived', change.checked));
-
+  handleArchived = (change: MatCheckboxChange) =>
+    this._store.dispatch(
+      new Configuration.SetProperty('internal.showArchived', change.checked)
+    );
 }

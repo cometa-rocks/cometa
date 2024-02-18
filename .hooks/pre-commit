@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+# download logger and source
+if [[ ! -f /tmp/.logger.sh ]]; then
+    curl -s -o /tmp/.logger.sh https://gist.githubusercontent.com/ArslanSB/92663e81e5128d1fc3b9ef053f08852e/raw/4d911d8e2ccdddf75e0397b4cd7bdb2d09e08acb/logger.sh
+fi
+source /tmp/.logger.sh || { echo "Unable to source logger script, please contact your administrator."; exit 10; }
+
+# basic commands check
+function basic_commands_check() {
+    local use_docker=0;
+    local use_npm=0;
+    local npm_command="";
+    # check if docker is present and cometa_front is up and running
+    if docker --version &>/dev/null; then
+        if docker ps -q --filter "name=cometa_front" | grep -q .; then
+            use_docker=1;
+            npm_command="docker exec cometa_front npm"
+        else
+            warning "cometa_front container is not running will check if 'npm' is installed in local machine, if not please start the cometa_front container."
+        fi
+    fi
+    if npm -vi &>/dev/null; then
+        local front_folder="`dirname $(realpath $0)`/../front";
+        use_npm=1;
+        cd ${front_folder}
+        npm_command="npm"
+    fi
+    if [[ ${use_docker} -eq 0 && ${use_npm} -eq 0 ]]; then 
+        critical "Docker in not installed on the machine nor NPM, at least one is required for the formatter to work."
+        exit 5;
+    fi
+
+    # set the NPM command
+    NPM_COMMAND=${npm_command}
+}
+
+function prettier() {
+    info "Executing prettier before commiting the changes"
+    # run the prettier command
+    ${NPM_COMMAND} run format
+
+    # only stage, previously staged files
+    git add `git diff-index --cached --name-only HEAD | xargs`
+}
+
+# get the NPM COMMAND
+basic_commands_check
+# run the prettier if docker or npm is available
+prettier

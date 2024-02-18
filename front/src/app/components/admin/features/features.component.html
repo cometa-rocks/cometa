@@ -1,17 +1,31 @@
 <h2>Manage features</h2>
 <ng-container *ngIf="features.length > 0; else loading">
-    <feature (checkboxChange)="handleCheckbox(feature.feature_id, $event)" [feature]="feature" *ngFor="let feature of features | sortBy:'feature_name'; trackBy: trackByFn"></feature>
+  <feature
+    (checkboxChange)="handleCheckbox(feature.feature_id, $event)"
+    [feature]="feature"
+    *ngFor="
+      let feature of features | sortBy: 'feature_name';
+      trackBy: trackByFn
+    "></feature>
 </ng-container>
 <ng-template #loading>
-    <mat-spinner color="primary" diameter="30"></mat-spinner>
+  <mat-spinner color="primary" diameter="30"></mat-spinner>
 </ng-template>
-<button *ngIf="canCreateFeature" class="add-item" (click)="new()" mat-stroked-button><mat-icon>add</mat-icon>Add feature</button>
+<button
+  *ngIf="canCreateFeature"
+  class="add-item"
+  (click)="new()"
+  mat-stroked-button>
+  <mat-icon>add</mat-icon>Add feature
+</button>
 <button class="select-all" (click)="selectAll()" mat-stroked-button>
-    <mat-icon>check_box</mat-icon>Select all
+  <mat-icon>check_box</mat-icon>Select all
 </button>
 <button class="export-features" (click)="export()" mat-stroked-button>
-    <mat-spinner diameter="25" *ngIf="loadingExport$ | async; else exportText"></mat-spinner>
-    <ng-template #exportText>
-        <mat-icon>add</mat-icon>Export as JSON
-    </ng-template>
+  <mat-spinner
+    diameter="25"
+    *ngIf="loadingExport$ | async; else exportText"></mat-spinner>
+  <ng-template #exportText>
+    <mat-icon>add</mat-icon>Export as JSON
+  </ng-template>
 </button>
