@@ -280,6 +280,11 @@ def before_all(context):
     options.set_capability('selenoid:options', selenoid_capabilities)
     if context.browser_info['browser'] == 'chrome' and context.network_logging_enabled :
         options.set_capability('goog:loggingPrefs', {'browser': 'ALL', 'performance': 'ALL'})
+        # If network logging enabled then fetch vulnerability headers info from server
+        response =  requests.get('http://cometa_django:8000/security/vulnerable_headers/', headers={'Host': 'cometa.local'})
+        logger.info("vulnerable headers info received")
+        context.vulnerability_headers_info = response.json()["results"]
+        logger.info("stored in the context")
 
     options.add_argument('--enable-logging')
     options.add_argument('--log-level=0')
@@ -318,7 +323,8 @@ def before_all(context):
         'action': 'start',
         'browser': json.dumps(context.browser_info),
         'feature_id': context.feature_id,
-        'pid': str(os.getpid())
+        'pid': str(os.getpid()),
+        'feature_result_id': os.environ['feature_result_id'],
     }
     response = requests.post('http://cometa_django:8000/updateTask/', headers={'Host': 'cometa.local'},
                              data=json.dumps(task))
@@ -574,6 +580,7 @@ def after_all(context):
     task = {
         'action': 'delete',
         'browser': json.dumps(context.browser_info),
+        'feature_result_id': os.environ['feature_result_id'],
         'feature_id': context.feature_id,
         'pid': str(os.getpid())
     }
@@ -628,16 +635,14 @@ def find_vulnerable_headers(context, step_index) -> int:
 
         # filter vulnerable_headers from a single response header list and return
         def filter_vulnerability_headers(headers: dict) -> list:
-            # Add all headers in lower case for matching 
-            list_of_vulnerable_headers = ["server", "x-powered-by", "x-aspnet-version", "x-aspnetmvc-version"]
             # List of header if they found to be vulnerable 
             vulnerable_header_names = []
-            for header_name, header_value in headers.items():
-                # Create a copy and then convert to lovercase for comparision
-                lower_header = header_name[:].lower()
-                # check if header name is in list_of_vulnerable_headers add in 
-                if lower_header in list_of_vulnerable_headers:
-                    vulnerable_header_names.append({header_name: header_value})
+            # vulnerability_headers_info were added to context in before_all method
+            for vulnerable_header_info in context.vulnerability_headers_info:
+                header_name = vulnerable_header_info["header_name"].lower()
+                # Check if header added in the DB exists in response header
+                if header_name in headers.keys():
+                    vulnerable_header_names.append({header_name: headers[header_name]})
 
             return vulnerable_header_names
 

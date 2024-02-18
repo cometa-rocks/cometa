@@ -1,19 +1,21 @@
 import { Directive, ElementRef, Renderer2 } from '@angular/core';
 
 @Directive({
-  selector: '[disableAutocomplete]'
+  selector: '[disableAutocomplete]',
 })
 export class DisableAutocompleteDirective {
-
   constructor(
     private readonly el: ElementRef,
     private readonly renderer: Renderer2
-  ) { }
+  ) {}
 
   ngAfterViewInit() {
     const randomString = Math.random().toString(36).slice(-10);
     this.renderer.setAttribute(this.el.nativeElement, 'name', randomString);
-    this.renderer.setAttribute(this.el.nativeElement, 'autocomplete', randomString);
+    this.renderer.setAttribute(
+      this.el.nativeElement,
+      'autocomplete',
+      randomString
+    );
   }
-
 }

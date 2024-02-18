@@ -1,309 +1,344 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>COMETA TESTING</title>
-        <base href="/">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            * {
-                font-family: 'Courier New';
-            }
-            body {
-                margin: 50px;
-            }
-            .step {
-                margin: 30px 0 20px;
-            }
-            .rectangle {
-                display: block;
-                height: 30px;
-                width: 30px;
-            }
-            h1 {
-                color: green;
-            }
-            .red {
-                background-color: red;
-            }
-            .scrollable {
-                height: 150px;
-                overflow-x: hidden;
-                width: 400px;
-            }
-            .scrollable > * {
-                height: 30px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-        </style>
-    </head>
-    <body>
-        <section>
-            <h1>COMETA TESTING</h1>
-            <p>This page tests every single step in Cometa Behave.</p>
-        </section>
-        <section id="mouse_mouse_and_click">
-            <h2>I move mouse to "{css_selector}" and click</h2>
-            <div class="rectangle red click"></div>
-        </section>
-        <section id="move_mouse_over">
-            <h2>I move mouse over "{css_selector}"</h2>
-            <div class="rectangle red hover"></div>
-        </section>
-        <section id="press_enter">
-            <h2>Press Enter</h2>
-            <input class="rectangle red enter" type="text">
-        </section>
-        <section id="press_tab">
-            <h2>Press TAB</h2>
-            <input class="rectangle red tab" type="text">
-        </section>
-        <section id="scroll_amount_element">
-            <h2>Scroll to "{amount}"px on element "{selector}"</h2>
-            <div class="scrollable">
-                <div>World Travel: An Irreverent Guide</div>
-                <div>Cook This Book: Techniques That Teach and Recipes to Repeat: A Cookbook</div>
-                <div>Eat Better, Feel Better: My Recipes for Wellness and Healing, Inside and Out</div>
-                <div>Rule of Wolves (King of Scars Duology, 2)</div>
-                <div>Rodney Scott's World of BBQ: Every Day Is a Good Day: A Cookbook</div>
-                <div>What the Road Said</div>
-                <div>Eyes That Kiss in the Corners</div>
-                <div>Rowley Jefferson’s Awesome Friendly Spooky Stories</div>
-                <div>Time for School, Little Blue Truck</div>
-                <div>Everyone's Table: Global Recipes for Modern Health</div>
-                <div>Getaway: Food & Drink to Transport You</div>
-            </div>
-        </section>
-        <section id="scroll_amount_element">
-            <h2>Scroll to "{amount}"px on element "{selector}"</h2>
-            <div class="scrollable">
-                <div>World Travel: An Irreverent Guide</div>
-                <div>Cook This Book: Techniques That Teach and Recipes to Repeat: A Cookbook</div>
-                <div>Eat Better, Feel Better: My Recipes for Wellness and Healing, Inside and Out</div>
-                <div>Rule of Wolves (King of Scars Duology, 2)</div>
-                <div>Rodney Scott's World of BBQ: Every Day Is a Good Day: A Cookbook</div>
-                <div>What the Road Said</div>
-                <div>Eyes That Kiss in the Corners</div>
-                <div>Rowley Jefferson’s Awesome Friendly Spooky Stories</div>
-                <div>Time for School, Little Blue Truck</div>
-                <div>Everyone's Table: Global Recipes for Modern Health</div>
-                <div>Getaway: Food & Drink to Transport You</div>
-            </div>
-        </section>
-        <section id="set_value_on">
-            <h2>Set value "{text}" on "{selector}"</h2>
-            <input type="text">
-        </section>
-        <section id="send_keys">
-            <h2>Send keys "{keys}"</h2>
-            <input type="text">
-        </section>
-        <section id="see_link_text">
-            <h2>I can see a link with "{linktext}"</h2>
-            <a target="_blank" href="https://stage.cometa.rocks/">Go to COMETA STAGE</a>
-        </section>
-        <section id="switch_iframe_id">
-            <h2>I can switch to iFrame with id "{iframe_id}"</h2>
-            <iframe id="switch_iframe_id_element" name="switch_iframe_name_element" src="/"></iframe>
-        </section>
-        <section id="click_button">
-            <h2>I can click on button "{button_name}"</h2>
-            <button title="click_button_title" onclick="addText()" name="click_button_name">Click</button>
-        </section>
-        <section id="control_click">
-            <h2>I can Control Click at "{element}"</h2>
-            <a href="https://stage.cometa.rocks/">Go to COMETA STAGE</a>
-        </section>
-        <section id="save_selector_environment_variable">
-            <h2>Save selector "{css_selector}" value to environment variable "{variable_name}"</h2>
-            <input type="text" value="PE:1269;CO:01;AC:01">
-        </section>
-        <section id="download_file">
-            <h2>Download a file by clicking on "{linktext}"</h2>
-            <a download href="/welcome.html">Download file</a>
-            <br>
-            <br>
-            <a download href="/steps_testing_csv_business-finance.csv">
-                Excel File 1
-            </a>
-            <br>
-            <br>
-            <a download href="/steps_testing_csv_price-and-wage.csv">
-                Excel File 2
-            </a>
-            <br>
-            <br>
-            <a download href="https://www.stats.govt.nz/assets/Uploads/Business-operations-survey/Business-operations-survey-2022/Download-data/business-operations-survey-2022-information-and-communications-technology.csv">
-                Excel File 3
-            </a>
-        </section>
+  <head>
+    <meta charset="utf-8" />
+    <title>COMETA TESTING</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      * {
+        font-family: 'Courier New';
+      }
+      body {
+        margin: 50px;
+      }
+      .step {
+        margin: 30px 0 20px;
+      }
+      .rectangle {
+        display: block;
+        height: 30px;
+        width: 30px;
+      }
+      h1 {
+        color: green;
+      }
+      .red {
+        background-color: red;
+      }
+      .scrollable {
+        height: 150px;
+        overflow-x: hidden;
+        width: 400px;
+      }
+      .scrollable > * {
+        height: 30px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      <h1>COMETA TESTING</h1>
+      <p>This page tests every single step in Cometa Behave.</p>
+    </section>
+    <section id="mouse_mouse_and_click">
+      <h2>I move mouse to "{css_selector}" and click</h2>
+      <div class="rectangle red click"></div>
+    </section>
+    <section id="move_mouse_over">
+      <h2>I move mouse over "{css_selector}"</h2>
+      <div class="rectangle red hover"></div>
+    </section>
+    <section id="press_enter">
+      <h2>Press Enter</h2>
+      <input class="rectangle red enter" type="text" />
+    </section>
+    <section id="press_tab">
+      <h2>Press TAB</h2>
+      <input class="rectangle red tab" type="text" />
+    </section>
+    <section id="scroll_amount_element">
+      <h2>Scroll to "{amount}"px on element "{selector}"</h2>
+      <div class="scrollable">
+        <div>World Travel: An Irreverent Guide</div>
+        <div>
+          Cook This Book: Techniques That Teach and Recipes to Repeat: A
+          Cookbook
+        </div>
+        <div>
+          Eat Better, Feel Better: My Recipes for Wellness and Healing, Inside
+          and Out
+        </div>
+        <div>Rule of Wolves (King of Scars Duology, 2)</div>
+        <div>
+          Rodney Scott's World of BBQ: Every Day Is a Good Day: A Cookbook
+        </div>
+        <div>What the Road Said</div>
+        <div>Eyes That Kiss in the Corners</div>
+        <div>Rowley Jefferson’s Awesome Friendly Spooky Stories</div>
+        <div>Time for School, Little Blue Truck</div>
+        <div>Everyone's Table: Global Recipes for Modern Health</div>
+        <div>Getaway: Food & Drink to Transport You</div>
+      </div>
+    </section>
+    <section id="scroll_amount_element">
+      <h2>Scroll to "{amount}"px on element "{selector}"</h2>
+      <div class="scrollable">
+        <div>World Travel: An Irreverent Guide</div>
+        <div>
+          Cook This Book: Techniques That Teach and Recipes to Repeat: A
+          Cookbook
+        </div>
+        <div>
+          Eat Better, Feel Better: My Recipes for Wellness and Healing, Inside
+          and Out
+        </div>
+        <div>Rule of Wolves (King of Scars Duology, 2)</div>
+        <div>
+          Rodney Scott's World of BBQ: Every Day Is a Good Day: A Cookbook
+        </div>
+        <div>What the Road Said</div>
+        <div>Eyes That Kiss in the Corners</div>
+        <div>Rowley Jefferson’s Awesome Friendly Spooky Stories</div>
+        <div>Time for School, Little Blue Truck</div>
+        <div>Everyone's Table: Global Recipes for Modern Health</div>
+        <div>Getaway: Food & Drink to Transport You</div>
+      </div>
+    </section>
+    <section id="set_value_on">
+      <h2>Set value "{text}" on "{selector}"</h2>
+      <input type="text" />
+    </section>
+    <section id="send_keys">
+      <h2>Send keys "{keys}"</h2>
+      <input type="text" />
+    </section>
+    <section id="see_link_text">
+      <h2>I can see a link with "{linktext}"</h2>
+      <a target="_blank" href="https://stage.cometa.rocks/"
+        >Go to COMETA STAGE</a
+      >
+    </section>
+    <section id="switch_iframe_id">
+      <h2>I can switch to iFrame with id "{iframe_id}"</h2>
+      <iframe
+        id="switch_iframe_id_element"
+        name="switch_iframe_name_element"
+        src="/"></iframe>
+    </section>
+    <section id="click_button">
+      <h2>I can click on button "{button_name}"</h2>
+      <button
+        title="click_button_title"
+        onclick="addText()"
+        name="click_button_name">
+        Click
+      </button>
+    </section>
+    <section id="control_click">
+      <h2>I can Control Click at "{element}"</h2>
+      <a href="https://stage.cometa.rocks/">Go to COMETA STAGE</a>
+    </section>
+    <section id="save_selector_environment_variable">
+      <h2>
+        Save selector "{css_selector}" value to environment variable
+        "{variable_name}"
+      </h2>
+      <input type="text" value="PE:1269;CO:01;AC:01" />
+    </section>
+    <section id="download_file">
+      <h2>Download a file by clicking on "{linktext}"</h2>
+      <a download href="/welcome.html">Download file</a>
+      <br />
+      <br />
+      <a download href="/steps_testing_csv_business-finance.csv">
+        Excel File 1
+      </a>
+      <br />
+      <br />
+      <a download href="/steps_testing_csv_price-and-wage.csv">
+        Excel File 2
+      </a>
+      <br />
+      <br />
+      <a
+        download
+        href="https://www.stats.govt.nz/assets/Uploads/Business-operations-survey/Business-operations-survey-2022/Download-data/business-operations-survey-2022-information-and-communications-technology.csv">
+        Excel File 3
+      </a>
+    </section>
 
-        <section id="Load_with_Delays">
-            <h2>5 Buttons will be loaded with delay of 5, 10, 20, 30 and 40</h2>
-            <br>
-            <div id="5_Second"></div>
-            <br>
-            <div id="10_Second"></div>
-            <br>
-            <div id="20_Second"></div>
-            <br>
-            <div id="30_Second"></div>
-            <br>
-            <div id="40_Second"></div>
-            <br>
-            <h2>This button has show/hide functionality</h2>
-            <div>
-                <button id="show_hide_in_10_10_Secs" style="display: none;">This button will shown after 10 seconds of page load, and will be hide in next 10 seconds </button>
-            </div>
-        </section>
-        <section id="lazy_loading">
-            <h2>Scroll through a lazy loading table</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Data</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                </tbody>
-            </table>
-        </section>
-    </body>
-    <script>
-        var clickables = document.querySelectorAll('.click');
-        for (var el of clickables) {
-            el.addEventListener('click', function() {
-                this.style.backgroundColor = 'lightgreen';
-            })
+    <section id="Load_with_Delays">
+      <h2>5 Buttons will be loaded with delay of 5, 10, 20, 30 and 40</h2>
+      <br />
+      <div id="5_Second"></div>
+      <br />
+      <div id="10_Second"></div>
+      <br />
+      <div id="20_Second"></div>
+      <br />
+      <div id="30_Second"></div>
+      <br />
+      <div id="40_Second"></div>
+      <br />
+      <h2>This button has show/hide functionality</h2>
+      <div>
+        <button id="show_hide_in_10_10_Secs" style="display: none">
+          This button will shown after 10 seconds of page load, and will be hide
+          in next 10 seconds
+        </button>
+      </div>
+    </section>
+    <section id="lazy_loading">
+      <h2>Scroll through a lazy loading table</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Data</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </section>
+  </body>
+  <script>
+    var clickables = document.querySelectorAll('.click');
+    for (var el of clickables) {
+      el.addEventListener('click', function () {
+        this.style.backgroundColor = 'lightgreen';
+      });
+    }
+    var hoverables = document.querySelectorAll('.hover');
+    for (var el of hoverables) {
+      el.addEventListener('mouseenter', function () {
+        this.style.backgroundColor = 'lightgreen';
+      });
+    }
+    var enters = document.querySelectorAll('.enter');
+    for (var el of enters) {
+      el.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+          this.style.backgroundColor = 'lightgreen';
         }
-        var hoverables = document.querySelectorAll('.hover');
-        for (var el of hoverables) {
-            el.addEventListener('mouseenter', function() {
-                this.style.backgroundColor = 'lightgreen';
-            })
+        e.preventDefault();
+      });
+    }
+    var tabs = document.querySelectorAll('.tab');
+    for (var el of tabs) {
+      el.addEventListener('keydown', function (e) {
+        console.log(e);
+        if (e.keyCode === 9) {
+          this.style.backgroundColor = 'lightgreen';
         }
-        var enters = document.querySelectorAll('.enter');
-        for (var el of enters) {
-            el.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    this.style.backgroundColor = 'lightgreen';
-                }
-                e.preventDefault();
-            })
-        }
-        var tabs = document.querySelectorAll('.tab');
-        for (var el of tabs) {
-            el.addEventListener('keydown', function(e) {
-                console.log(e)
-                if (e.keyCode === 9) {
-                    this.style.backgroundColor = 'lightgreen';
-                }
-                e.preventDefault();
-            })
-        }
-        function addText() {
-            var el = document.querySelector('#click_button')
-            var node = document.createElement("p");
-            var textnode = document.createTextNode("Button clicked!");
-            node.appendChild(textnode);
-            el.appendChild(node);
-        }
-        function check_results() {
-            // Check I move mouse to "{css_selector}" and click
-            var element;
-            element = document.querySelector('#mouse_mouse_and_click .click')
-            if (element.style.backgroundColor !== 'lightgreen') {
-                throw 'Check for `I move mouse to "{css_selector}" and click` failed'
-            }
-            // Check I move mouse over "{css_selector}"
-            element = document.querySelector('#move_mouse_over .hover')
-            if (element.style.backgroundColor !== 'lightgreen') {
-                throw 'Check for `I move mouse over "{css_selector}"` failed'
-            }
-            // Check Scroll to "{amount}"px on element "{selector}"
-            element = document.querySelector('#scroll_amount_element .scrollable')
-            if (element.scrollTop !== 100) {
-                throw 'Scroll to "{amount}"px on element "{selector}"` failed'
-            }
-            // Check Set value "{text}" on "{selector}"
-            element = document.querySelector('#set_value_on input')
-            if (element.value !== 'cometa') {
-                throw 'Set value "{text}" on "{selector}"` failed'
-            }
-        }
-        let lastIDloaded = 0;
-        const amountPerLoad = 50;
-        const totalData = 1000;
-        function loadData() {
-            const tbody = document.getElementById('table-body');
-            for (let i = lastIDloaded; i < lastIDloaded + amountPerLoad && i < totalData ; i++) {
-                tbody.innerHTML += `<tr>
+        e.preventDefault();
+      });
+    }
+    function addText() {
+      var el = document.querySelector('#click_button');
+      var node = document.createElement('p');
+      var textnode = document.createTextNode('Button clicked!');
+      node.appendChild(textnode);
+      el.appendChild(node);
+    }
+    function check_results() {
+      // Check I move mouse to "{css_selector}" and click
+      var element;
+      element = document.querySelector('#mouse_mouse_and_click .click');
+      if (element.style.backgroundColor !== 'lightgreen') {
+        throw 'Check for `I move mouse to "{css_selector}" and click` failed';
+      }
+      // Check I move mouse over "{css_selector}"
+      element = document.querySelector('#move_mouse_over .hover');
+      if (element.style.backgroundColor !== 'lightgreen') {
+        throw 'Check for `I move mouse over "{css_selector}"` failed';
+      }
+      // Check Scroll to "{amount}"px on element "{selector}"
+      element = document.querySelector('#scroll_amount_element .scrollable');
+      if (element.scrollTop !== 100) {
+        throw 'Scroll to "{amount}"px on element "{selector}"` failed';
+      }
+      // Check Set value "{text}" on "{selector}"
+      element = document.querySelector('#set_value_on input');
+      if (element.value !== 'cometa') {
+        throw 'Set value "{text}" on "{selector}"` failed';
+      }
+    }
+    let lastIDloaded = 0;
+    const amountPerLoad = 50;
+    const totalData = 1000;
+    function loadData() {
+      const tbody = document.getElementById('table-body');
+      for (
+        let i = lastIDloaded;
+        i < lastIDloaded + amountPerLoad && i < totalData;
+        i++
+      ) {
+        tbody.innerHTML += `<tr>
                                         <td>${i}</td>
                                         <td>Element ${i}</td>
                                         <td>Data ${i}</td>
                                     </tr>`;
-            }
-            lastIDloaded += amountPerLoad ;
-        }
-        // Scroll event for data loading
-        window.addEventListener('scroll', () => {
-            if (window.innerHeight + window.pageYOffset >= document.body.offsetHeight) {
-                loadData();
-            }
-        });
-        // Loads first n data rows
+      }
+      lastIDloaded += amountPerLoad;
+    }
+    // Scroll event for data loading
+    window.addEventListener('scroll', () => {
+      if (
+        window.innerHeight + window.pageYOffset >=
+        document.body.offsetHeight
+      ) {
         loadData();
+      }
+    });
+    // Loads first n data rows
+    loadData();
 
-
-        // This code is required to buttons to appear and disappear 
-        setTimeout(function() {
-            document.getElementById("5_Second").innerHTML = `
+    // This code is required to buttons to appear and disappear
+    setTimeout(function () {
+      document.getElementById('5_Second').innerHTML = `
             <button id="Load_in_5_Secs">This button appear in 5 seconds and will disappear in another 5 seconds</button>
             `;
-        }, 5000); 
-        setTimeout(function() {
-            document.getElementById("5_Second").innerHTML = ``;
-        }, 10000);
-        setTimeout(function() {
-            document.getElementById("10_Second").innerHTML = `
+    }, 5000);
+    setTimeout(function () {
+      document.getElementById('5_Second').innerHTML = ``;
+    }, 10000);
+    setTimeout(function () {
+      document.getElementById('10_Second').innerHTML = `
             <button id="Load_in_10_Secs">This button appear in 10 seconds</button>
             `;
-        }, 10000);   
-        setTimeout(function() {
-            document.getElementById("20_Second").innerHTML = `
+    }, 10000);
+    setTimeout(function () {
+      document.getElementById('20_Second').innerHTML = `
             <button id="Load_in_20_Secs">This button appear in 20 seconds and will disappear in next 20 seconds </button>
             `;
-        }, 20000); 
-        setTimeout(function() {
-            document.getElementById("20_Second").innerHTML = ``;
-        }, 40000);
-        setTimeout(function() {
-            document.getElementById("30_Second").innerHTML = `
+    }, 20000);
+    setTimeout(function () {
+      document.getElementById('20_Second').innerHTML = ``;
+    }, 40000);
+    setTimeout(function () {
+      document.getElementById('30_Second').innerHTML = `
             <button id="Load_in_30_Secs">This button appear in 30 seconds and will disappear in next 20 seconds</button>
             `;
-        }, 30000); 
-        setTimeout(function() {
-            document.getElementById("30_Second").innerHTML = ``;
-        }, 50000);
-        setTimeout(function() {
-            document.getElementById("40_Second").innerHTML = `
+    }, 30000);
+    setTimeout(function () {
+      document.getElementById('30_Second').innerHTML = ``;
+    }, 50000);
+    setTimeout(function () {
+      document.getElementById('40_Second').innerHTML = `
             <button id="Load_in_40_Secs">This button appear in 40 seconds</button>
             `;
-        }, 40000);
-        setTimeout(function() {
-            document.getElementById("show_hide_in_10_10_Secs").style.display = 'block';
-        }, 10000);
-        setTimeout(function() {
-            document.getElementById("show_hide_in_10_10_Secs").style.display = 'none';
-        }, 20000);
-
-
-
-    </script>
+    }, 40000);
+    setTimeout(function () {
+      document.getElementById('show_hide_in_10_10_Secs').style.display =
+        'block';
+    }, 10000);
+    setTimeout(function () {
+      document.getElementById('show_hide_in_10_10_Secs').style.display = 'none';
+    }, 20000);
+  </script>
 </html>
-
-

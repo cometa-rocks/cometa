@@ -9,21 +9,19 @@ const routes: Routes = [
   {
     path: '',
     title: 'Profile',
-    component: UserComponent
-  }
+    component: UserComponent,
+  },
 ];
 
 @NgModule({
   imports: [
     TranslateModule.forChild({
-        extend: true
+      extend: true,
     }),
     RouterModule.forChild(routes),
     SharedModule,
-    CommonModule
+    CommonModule,
   ],
-  declarations: [
-    UserComponent
-  ]
+  declarations: [UserComponent],
 })
-export class MyAccountModule { }
+export class MyAccountModule {}
