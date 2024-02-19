@@ -1,5 +1,5 @@
 {
-	"version": "2.8.329",
+	"version": "2.8.331",
 	"language": "en",
 	"appTitle": "co.meta",
 	"scenario": "dev",
@@ -194,6 +194,16 @@
 		"{Code is Poetry}"
 	],
 	"changelog": [	
+		{
+			"version": "2.8.331",
+			"date": "2024-02-20",
+			"features": [
+				{
+					"title": "Reload option added to reload page in between with step 'Wait \"{timeout}\" seconds for \"{selector}\" to appear and disappear using option \"{option}\"'",
+					"description": "Reload page using options 'reload page after appearing' and 'reload page while waiting to disappear' with step 'Wait \"{timeout}\" seconds for \"{selector}\" to appear and disappear using option \"{option}\"'"
+				}
+			]
+		},	
 		{
 			"version": "2.8.329",
 			"date": "2024-02-15",
