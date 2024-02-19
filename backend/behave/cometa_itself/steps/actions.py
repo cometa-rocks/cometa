@@ -3891,20 +3891,34 @@ if __name__ != 'actions':
 @done(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 def wait_for_appear_and_disappear(context, timeout, selector, option):
 
-    #
-    # FIXME: Need to implement logic for new option reload page after appearing
-    # * split option string by ";"
-    # trim trailing and leading spaces
-    #
+    assert_options = ['do not fail if not visible','fail if never visible']
+    reload_options = ['reload page after appearing','reload page while waiting to disappear']
+
+    options = option.split(";")
+
+    # By default page reload in between is false
+    page_reload = ''
+
+    # When 2 option are provided in combination of 'reload page after appearing' and 'do not fail if not visible'/'fail if never visible'
+    if len(options)>1:
+        # then first option is related to 'reload page after appearing/reload page while waiting to disappear'
+        page_reload = options[0].strip()
+        fail_option = options[1]
+    else: 
+        fail_option = options[0]
 
     # Removing any spaces in the front and last
-    option = option.strip()
+    fail_option = fail_option.strip()
     timeout = float(timeout)
-    # match options
-    assert_options = ['do not fail if not visible','fail if never visible']
+    
     # check if match type is one of next options
-    if option not in assert_options:
-        raise CustomError("Unknown option, option can be one of these options: %s." % ", ".join(assert_options))
+    if fail_option not in assert_options:
+        raise CustomError("Unknown option, 'fail/do not fail' can be one of these options: %s." % ", ".join(assert_options))
+
+    # check if match type is one of reload_options
+    if page_reload !='' and page_reload not in reload_options:
+        raise CustomError("Unknown option, page_reload can be one of these options: %s." % ", ".join(reload_options))
+
     # Try ... except to handel option
     try:
         logger.debug(f"Waiting for selector to appear")
@@ -3919,21 +3933,40 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
             time.sleep(0.5)
 
         if len(selector_element)>0 and selector_element[0].is_displayed():
-            # Check if "reload page after appearing" options is set
-            logger.debug(f"Checking for reload Page Option")
-            # if option is set then sleep (0.5) and reload page
-
             send_step_details(context, 'Selector appeared, Wait for it to disappear')
-            logger.debug(f"Selector to appeared")
+            logger.debug(f"Waiting for selector to disappeared")
+
+            # Check if "reload page after appearing" options is set
+            logger.debug(f"Checking for 'reload page after appearing'")
+            # if option is set then sleep (0.5) and reload page
+            if page_reload=='reload page after appearing':
+                time.sleep(0.5)
+                send_step_details(context, 'Reloading page after appearing')
+                context.browser.refresh()
+                logger.debug("Page reloading")
+                # This is required because when the page reloads, the selector_element does not remain valid.
+                # It will throw a StaleElementReferenceException even if the element exists, try to get a new instance of the element.                        
+                selector_element = waitSelector(context, "css", selector, timeout)
+
             # If in case object disappears and gets removed from DOM it self the while checking is_displayed() it will throw error
             # Considerting error as element was disappeard
             try:
                 # continue loop if element is displayed for wait time is less then 60 seconds
                 while selector_element[0].is_displayed():
                     # Reload if "reload page while waiting to disappear" is set
-                    # If set - reload page and sleep 1 minute
-                    # otherwise
-                    time.sleep(0.5)
+                    if page_reload=='reload page while waiting to disappear':
+                        send_step_details(context, 'Reloading the page while waiting for the selector to disappear')
+                        logger.debug("Page reloading")
+                        context.browser.refresh()
+                        # If set - reload page and sleep 1 minute
+                        send_step_details(context, 'Waiting for 1 minute after the page reloads')
+                        logger.debug("Waiting for 1 minute after the page reloads")
+                        time.sleep(10)
+                        # This is required because when the page reloads, the selector_element does not remain valid.
+                        # It will throw a StaleElementReferenceException even if the element exists, try to get a new instance of the element.                        
+                        selector_element = waitSelector(context, "css", selector, timeout)
+                    else:
+                        time.sleep(0.5)
                 # In case element disappeard but present in the DOM
                 if not selector_element[0].is_displayed(): 
                     send_step_details(context, 'Selector disappeared successfully')
@@ -3941,16 +3974,17 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
                 # The only syntax that can throw error is is_displayed() method. which means element diappeared
                 # In case element disappeard and not present in the DOM notify
                 send_step_details(context, 'Selector disappeared completely')
+                logger.debug("Element was disappeared due to exception")
 
         # if element was not found or displayed then check if option selected to fail, if yes then raise exception
-        elif option == 'fail if never visible':
+        elif fail_option == 'fail if never visible':
             logger.debug(f"raising error : Selector to appeared")
             raise CustomError("Selector not displayed")
 
     except (StaleElementReferenceException, CometaMaxTimeoutReachedException) as exception:
         traceback.print_exc()
         # if got execption while checking to appear or disappear then check if option selected to fail, if yes then raise exception
-        if option == 'fail if never visible':
+        if fail_option == 'fail if never visible':
             raise exception
 
 # Scroll to the end of the page/table depending on the xpath with maximum scrolls and time of life.
