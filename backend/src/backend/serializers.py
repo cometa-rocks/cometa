@@ -296,6 +296,25 @@ class FeatureSerializer(serializers.ModelSerializer, FeatureMixin):
     def create(self, validated_data):
         return Feature.objects.create(**validated_data)
 
+class FeatureHistorySerializer(serializers.ModelSerializer, FeatureMixin):
+
+     # get info about the latest feature result
+    info = FeatureRunInfoSerializer(many=False)
+    last_edited = BasicOIDCAccountSerializer(many=False)
+    created_by = BasicOIDCAccountSerializer(many=False)
+    schedule = serializers.CharField(source='schedule.schedule', allow_null=True, default="")
+    last_edited_date = serializers.DateTimeField(format=datetimeTZFormat)
+
+    class Meta:
+        model = FeatureHistory 
+        fields = '__all__'
+        extra_fields = ('schedule', )
+        
+    def create(self, validated_data):
+        return FeatureHistory.objects.create(**validated_data)
+
+
+
 class BasicFeatureInfoSerializer(serializers.ModelSerializer, FeatureMixin):
     class Meta:
         model = Feature

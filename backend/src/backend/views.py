@@ -8,6 +8,7 @@ from backend.models import *
 from backend.serializers import *
 # import django exceptions
 from django.core.exceptions import *
+from backend.utility.response_manager import ResponseManager
 # Import permissions related methods
 from backend.utility.decorators import require_permissions, hasPermission, require_subscription
 from backend.templatetags.humanize import _humanize
@@ -2544,7 +2545,8 @@ class FeatureViewSet(viewsets.ModelViewSet):
         data = json.loads(request.body)
         # Get feature id from body
         featureId = data.get('feature_id', 0)
-
+        # Create feature history before updating
+        feature_history = FeatureHistory()
         """
         Edit or Create Feature
         """
@@ -2555,8 +2557,15 @@ class FeatureViewSet(viewsets.ModelViewSet):
             if not features.exists():
                 return JsonResponse({"success": False, "error": "Feature not found"})
             feature = features[0]
-            # Retrieve feature path details
-            feature_dir = get_feature_path(featureId)
+            
+            logger.debug("Creating feature history")
+            # Copy feature value to feature_history
+            copy_attributes(feature, feature_history)
+            # Set history action type
+            feature_history.action = "update"
+            feature_history.save()
+            logger.debug("Feature history saved.")
+
         else:
             # Create new feature
             feature = Feature()
@@ -2598,7 +2607,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
             # Save with steps
             steps = data['steps']['steps_content'] or []
             feature.steps = len([x for x in steps if x['enabled'] == True])
-            result = feature.save(steps=steps)
+            result = feature.save(steps=steps, action_type='update', feature_history_id=feature_history.id )
         else:
             # Save without steps
             result = feature.save()
@@ -2652,6 +2661,17 @@ class FeatureViewSet(viewsets.ModelViewSet):
             return JsonResponse({"success": False, "error": "Feature_id invalid or doesn't exist."}, status=400)
         # get the feature from the array
         feature = features[0]
+
+        # Create feature history before updating
+        feature_history = FeatureHistory()
+        logger.debug("Creating feature history")
+        # Copy feature value to feature_history
+        copy_attributes(feature, feature_history)
+        # Set history action type
+        feature_history.action = "delete"
+        feature_history.save()
+        logger.debug("Feature history saved.")
+
         # find feature runs not marked as archive related to the feature
         feature_runs = feature.feature_runs.filter(archived=False)
         # loop over all the feature_runs found
@@ -2661,8 +2681,21 @@ class FeatureViewSet(viewsets.ModelViewSet):
             # check if feature_run contains any feature_results if so do not delete it else do so
             if len(feature_run.feature_results.all()) == 0:
                 feature_run.delete()
+
+        # Create steps history
+        logger.debug("Creating step history before deleting")
+        steps = Step.objects.filter(feature_id=feature_id).order_by('id')
+        for step in steps:
+            step_history = StepHistory()
+            copy_attributes(step,step_history)
+            step_history.action = 'delete'
+            step_history.feature_history_id = feature_history.id
+            step_history.save()
+        logger.debug("Step history created")
+
         # remove feature steps
-        Step.objects.filter(feature_id=feature_id).delete()
+        steps.delete()
+
         # Delete files in disk (not backups!)
         featureFileName = get_feature_path(features[0])['fullPath']
         try:
@@ -2678,6 +2711,83 @@ class FeatureViewSet(viewsets.ModelViewSet):
             return JsonResponse({'success': False,
                                  'error': 'Feature is not fully deleted since it contains SAVED results, to remove it completely please remove SAVED runs and results.'})
         return JsonResponse({"success": True}, status=200)
+
+
+from rest_framework.permissions import IsAuthenticated, AllowAny
+class FeatureHistoryViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = FeatureHistory.objects.all()
+    serializer_class = FeatureHistorySerializer
+    renderer_classes = (JSONRenderer,)
+    response_manager = ResponseManager('FeatureHistory')
+    permission_classes = (AllowAny,)
+
+      # Changing to have all details with BookSerializer
+    # @require_permissions("create_feature")
+    def list(self, request, *args, **kwargs):
+        feature_history_id = int(kwargs.get('feature_history_id','0'))
+        feature_id = int(kwargs.get('feature_id','0'))
+        superuser = request.session['user']['user_permissions']['permission_name'] == "SUPERUSER"
+        if feature_history_id != 0:
+            # If feature_id and feature_history_id both provided then fetch single feature_history id
+            try:
+                if superuser:
+                    queryset = FeatureHistory.objects.select_related('last_edited', 'created_by', 'info').get(id=feature_history_id, feature_id=feature_id)
+                else:
+                    departments = [x['department_id'] for x in request.session['user']['departments']]
+                    queryset = FeatureHistory.objects.select_related('last_edited', 'created_by', 'info').prefetch_related(
+                        'info__feature_results').get(department_id__in=departments, id=feature_history_id, feature_id=feature_id)
+                    
+                response =  FeatureHistorySerializer(queryset).data
+                return self.response_manager.get_response(dict_data=response) 
+            except FeatureHistory.DoesNotExist:
+                return self.response_manager.id_not_found_error_response(feature_history_id)         
+        else:
+            # If feature_id and feature_history_id both provided then fetch single feature_history id
+            if superuser:
+                queryset = FeatureHistory.objects.select_related('last_edited', 'created_by', 'info').prefetch_related(
+                    'info__feature_results').filter(feature_id = feature_id)
+            else:
+                departments = [x['department_id'] for x in request.session['user']['departments']]
+                queryset = FeatureHistory.objects.select_related('last_edited', 'created_by', 'info').prefetch_related(
+                    'info__feature_results').filter(department_id__in=departments, feature_id = feature_id)
+
+            response = FeatureHistorySerializer(FeatureHistorySerializer.fast_loader(queryset), many=True).data
+            return self.response_manager.get_response(list_data=response)
+
+    # @require_permissions("create_feature")
+    def create(self, request, *args, **kwargs):
+        # Feature history can not be created by the user
+        return self.response_manager.validation_error_response({'success':False, 'message':"Creating feature history not allowed"})
+
+    # @require_permissions("edit_feature")
+    def patch(self, request, *args, **kwargs):
+        # Feature history can not be updated by the user
+        return self.response_manager.validation_error_response({'success':False, 'message':"Update feature history not allowed"})
+
+    # @require_permissions("delete_feature")
+    def destroy(self, request, *args, **kwargs):
+        feature_history_id = int(kwargs.get('feature_history_id','0'))
+        feature_id = int(kwargs.get('feature_id','0'))           
+
+        try:
+            superuser = request.session['user']['user_permissions']['permission_name'] == "SUPERUSER"
+            if superuser:
+                queryset = FeatureHistory.objects.select_related('last_edited', 'created_by', 'info').get(id=feature_history_id, 
+                                                                                                          feature_id=feature_id)
+            else:
+                departments = [x['department_id'] for x in request.session['user']['departments']]
+                queryset = FeatureHistory.objects.select_related('last_edited', 'created_by', 'info').prefetch_related(
+                    'info__feature_results').get(department_id__in=departments, id=feature_history_id, feature_id=feature_id)
+
+            StepHistory.objects.filter(feature_history_id=feature_history_id).delete()
+            queryset.delete()
+            return self.response_manager.deleted_response_with_count(1)
+        except FeatureHistory.DoesNotExist as e:
+            return self.response_manager.id_not_found_error_response(feature_history_id)
+
 
 
 class StepViewSet(viewsets.ModelViewSet):
@@ -2711,6 +2821,7 @@ def render_to_pdf(template_src, context_dict={}):
     if not pdf.err:
         return HttpResponse(result.getvalue(), content_type='application/pdf')
     return None
+
 
 class DatasetViewset(viewsets.ModelViewSet):
     queryset = Dataset.objects.none()
@@ -2747,6 +2858,7 @@ class DatasetViewset(viewsets.ModelViewSet):
             'success': True,
             'message': 'Nothing to do here!'
         })
+
 
 class FolderViewset(viewsets.ModelViewSet):
     queryset = Folder.objects.all()

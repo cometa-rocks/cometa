@@ -54,6 +54,13 @@ variable_base = (
 # utility functions
 
 
+def copy_attributes(model1, model2):
+    for name in vars(model1):
+        if not name.startswith("__") and hasattr(model2, name):
+            setattr(model2, name, getattr(model1,name))
+
+    return model2
+
 def get_feature_path(feature):
     """
     Returns the store path for the given feature meta and steps files
@@ -655,6 +662,8 @@ class Department(models.Model):
         ordering = ['department_name']
         verbose_name_plural = "Departments"
 
+HISTORY_TYPE = (('create','create'),('update','update'),('delete','delete'))
+
 class Step(models.Model):
     id = models.AutoField(primary_key=True)
     feature_id = models.IntegerField()
@@ -672,6 +681,30 @@ class Step(models.Model):
     class Meta:
         ordering = ['id']
         verbose_name_plural = "Steps"
+
+
+class StepHistory(models.Model):
+    step_id =  models.AutoField(primary_key=True)
+    feature_history_id = models.IntegerField(null=True)
+    id = models.IntegerField()
+    feature_id = models.IntegerField()
+    step_keyword = models.CharField(max_length=10, choices=step_keywords, default="Given")
+    step_content = models.TextField()
+    enabled = models.BooleanField(default=True)
+    step_type = models.CharField(max_length=255, default="normal", blank=False, null=False)
+    screenshot = models.BooleanField(default=False)
+    compare = models.BooleanField(default=False)
+    belongs_to = models.IntegerField(null=True)
+    timeout = models.IntegerField(default=60)
+    continue_on_failure = models.BooleanField(default=False)
+    action = models.CharField(choices=HISTORY_TYPE, max_length=10, default="")  
+
+    def __str__( self ):
+        return u"Step_name = %s" % self.step_content
+    class Meta:
+        ordering = ['id']
+        verbose_name_plural = "Steps History"
+
 
 class Feature(models.Model):
     feature_id = models.AutoField(primary_key=True)
@@ -724,8 +757,21 @@ class Feature(models.Model):
         if not kwargs.get('dontSaveSteps', False):
             # get featureFileName
             featureFileName = get_feature_path(self)['fullPath']
+
+            # Create step history before updating
+            logger.debug("Creating step history created")
+            steps = Step.objects.filter(feature_id=self.feature_id).order_by('id')
+            for step in steps:
+                step_history = StepHistory()
+                copy_attributes(step,step_history)
+                step_history.action = kwargs.get('action_type')
+                step_history.feature_history_id = kwargs.get('feature_history_id')
+                step_history.save()
+            logger.debug("Step history created")
+
             # Create / Update .feature and jsons whenever feature info is updated / created
             steps = kwargs.get('steps', list(Step.objects.filter(feature_id=self.feature_id).order_by('id').values()))
+                
             logger.debug(f"Saving steps received from Front: {steps}")
             # Create .feature
             response = create_feature_file(self, steps, featureFileName)
@@ -767,6 +813,51 @@ class Feature(models.Model):
     class Meta:
         ordering = ['last_edited_date']
         verbose_name_plural = "Features"
+
+class FeatureHistory(models.Model):
+    id =  models.AutoField(primary_key=True)
+    feature_id = models.IntegerField()
+    feature_name = models.CharField(max_length=255)
+    description = models.TextField(null=True)
+    app_id = models.IntegerField()
+    app_name = models.CharField(max_length=255)
+    environment_id = models.IntegerField()
+    environment_name = models.CharField(max_length=255)
+    steps = models.IntegerField()
+    schedule = models.ForeignKey("Schedule", on_delete=models.SET_DEFAULT, null=True, default=None, related_name="history_scheduled")
+    department_id = models.IntegerField()
+    department_name = models.CharField(max_length=255)
+    screenshot = models.TextField(null=False)
+    compare = models.TextField(null=True, blank=True)
+    slug = models.SlugField(default=None, null = True, blank=True, max_length=255)
+    depends_on_others = models.BooleanField(default=False)
+    cloud = models.TextField(max_length=100, null=False, blank=False, default="local")
+    browsers = models.JSONField(default=list)
+    last_edited = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None, related_name="history_last_edited")
+    last_edited_date = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
+    created_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None, related_name="history_created_by")
+    send_mail = models.BooleanField(default=False)
+    send_mail_on_error = models.BooleanField(default=False)
+    email_address = ArrayField(models.CharField(max_length=250), null=True, blank=True, default=list)
+    email_subject = models.CharField(max_length=250, null=True, blank=True)
+    email_body = models.TextField(null=True, blank=True)
+    video = models.BooleanField(default=True)
+    network_logging = models.BooleanField(default=False)
+    generate_dataset = models.BooleanField(default=False)
+    continue_on_failure = models.BooleanField(default=False)
+    need_help = models.BooleanField(default=False)
+    info = models.ForeignKey('Feature_Runs', on_delete=models.SET_NULL, null=True, default=None, related_name='history_info')
+    readonly_fields=('feature_id',)
+    action = models.CharField(choices=HISTORY_TYPE, max_length=10, default="")  # 'create', 'update', or 'delete'
+
+    def __str__( self ):
+        return f"{self.id} {self.feature_name} ({self.feature_id})"
+
+    class Meta:
+        ordering = ['last_edited_date']
+        verbose_name_plural = "Features History"
+
 
 class Feature_result(SoftDeletableModel):
     feature_result_id = models.AutoField(primary_key=True)
