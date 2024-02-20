@@ -79,11 +79,15 @@ class ResponseManager:
 
     def get_response(self, dict_data: dict = None, list_data: list = None):
         if dict_data is not None:
-            return JsonResponse({self.__app_name.lower(): dict_data},
-                                status=status.HTTP_200_OK)
+            return JsonResponse({
+                "success": True,
+                self.__app_name.lower(): dict_data
+                },status=status.HTTP_200_OK)
         else:
-            return JsonResponse({self.__app_name.lower() + 's': list_data},
-                                status=status.HTTP_200_OK)
+            return JsonResponse({
+                "success": True,
+                self.__app_name.lower() + 's': list_data
+                }, status=status.HTTP_200_OK)
 
     def response(self, dict_data: dict = None, list_data: list = None):
         if dict_data is not None:
