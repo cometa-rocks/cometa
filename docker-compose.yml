@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 
 services:
   db:
@@ -20,10 +20,10 @@ services:
       driver: json-file
     command: bash start.sh
     volumes:
-      - /data/cometa/screenshots:/code/behave/screenshots
-      - /data/cometa/videos:/code/behave/videos
-      - /data/cometa/pdf:/code/behave/pdf
-      - /data/cometa/downloads:/code/behave/downloads
+      - ./data/cometa/screenshots:/code/behave/screenshots
+      - ./data/cometa/videos:/code/behave/videos
+      - ./data/cometa/pdf:/code/behave/pdf
+      - ./data/cometa/downloads:/code/behave/downloads
       - ./backend:/code
       - ./backend/src:/opt/code:rw
       - "./backend/crontabs/cometa_django_crontab:/etc/cron.d/crontab"
@@ -51,10 +51,10 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - /data/cometa/screenshots:/opt/code/screenshots
-      - /data/cometa/videos:/opt/code/videos
-      - /data/cometa/pdf:/code/behave/pdf
-      - /data/cometa/downloads:/code/behave/downloads
+      - ./data/cometa/screenshots:/opt/code/screenshots
+      - ./data/cometa/videos:/opt/code/videos
+      - ./data/cometa/pdf:/code/behave/pdf
+      - ./data/cometa/downloads:/code/behave/downloads
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
       - "./backend/behave/schedules/crontab:/etc/cron.d/crontab"
@@ -86,7 +86,7 @@ services:
 
   selenoid:
     # Please use ./selenoid/deploy_selenoid.sh to create necessary files of Selenoid
-    image: aerokube/selenoid:1.10.12
+    image: aerokube/selenoid:1.11.2
     container_name: cometa_selenoid
     logging:
       driver: json-file
@@ -95,10 +95,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./backend/selenoid/:/etc/selenoid/:ro
-      - /data/cometa/videos:/opt/selenoid/video
+      - ./data/cometa/videos:/opt/selenoid/video
     environment:
       TZ: Europe/Berlin
-      OVERRIDE_VIDEO_OUTPUT_DIR: /data/cometa/videos
+      OVERRIDE_VIDEO_OUTPUT_DIR: ${PWD}/data/cometa/videos
     networks:
       - testing
     restart: always
@@ -134,7 +134,7 @@ services:
       - ./front/apache-conf/openidc.conf_<server>:/usr/local/apache2/conf/openidc.conf
       - ./front/apache-conf/paths.conf:/usr/local/apache2/conf/paths.conf
       - ./front/apache-conf/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
-      - /data/cometa/screenshots:/screenshots
+      - ./data/cometa/screenshots:/screenshots
     working_dir: /code/front
     privileged: true
     ports:
