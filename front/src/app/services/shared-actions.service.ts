@@ -26,6 +26,8 @@ import { from, Observable, of, BehaviorSubject } from 'rxjs';
 import { concatMap, delay, finalize, switchMap, toArray, timeout, map, filter, tap } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { SocketService } from './socket.service';
+import { ListFeatureHistoryComponent } from '@dialogs/list-feature-history/list-feature-history.component';
+import { log } from 'console';
 
 /**
  * This service is used to execute function which should be accessible from application and Tour definitions
@@ -222,6 +224,17 @@ export class SharedActionsService {
         } as IEditFeature
       });
     }
+  }
+
+  showEditFeatureHistory(featureId: number = null) {
+    this._api.getFeatureHistory(featureId, { loading: 'translate:tooltips.loading_feature' }).subscribe(featureHistory => {
+      this._dialog.open(ListFeatureHistoryComponent, {
+        disableClose: false,
+        autoFocus: false,
+        panelClass: 'edit-feature-panel',
+        data: featureHistory 
+      }).afterClosed().subscribe(_ => this.dialogActive = false);
+    })
   }
 
   deleteFeature(featureId: number) {

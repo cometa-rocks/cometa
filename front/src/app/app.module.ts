@@ -14,6 +14,7 @@ import { HeaderComponent } from '@components/header/header.component';
 import { ToursComponent } from '@components/tours/tours.component';
 import { FooterComponent } from '@components/footer/footer.component';
 import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
+import { ListFeatureHistoryComponent } from '@dialogs/list-feature-history/list-feature-history.component';
 import { DataDrivenExecution } from '@dialogs/data-driven-execution/data-driven-execution.component';
 import { CookiesExpiredDialog } from '@dialogs/cookies-expired/cookies-expired.component';
 import { WhatsNewDialog } from '@dialogs/whats-new/whats-new.component';
@@ -210,6 +211,7 @@ export function getStripeApiKey() {
     FooterComponent,
     ImportJSONComponent,
     EditFeature,
+    ListFeatureHistoryComponent,
     DataDrivenExecution,
     ScheduleHelp,
     FeatureCreated,

@@ -6,6 +6,7 @@
         </ng-template>
     </ng-container>
     <div *ngIf="canEditFeature$ | async" matTooltip="Edit Feature (E)" (click)="_sharedActions.openEditFeature(feature.feature_id, 'edit');" class="edit"></div>
+    <div *ngIf="canEditFeature$ | async" matTooltip="Show feature changes history" (click)="_sharedActions.showEditFeatureHistory(feature.feature_id);" class="history"></div>
     <ng-container *ngIf="!feature.depends_on_others">
         <div matTooltip="Show Log Output (L)" (click)="viewLog()" class="log">LOG</div>
         <div matTooltip="Edit Schedule (S)" (click)="_sharedActions.editSchedule(feature.feature_id)" class="schedule"></div>

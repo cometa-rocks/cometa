@@ -223,6 +223,10 @@ interface Feature {
     need_help: boolean;
     current_folder_id?: number;
 }
+interface FeatureHistory extends Feature {
+    id:number;
+    action:string;
+}
 
 interface FeatureRun {
     run_id: number;

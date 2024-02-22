@@ -2713,7 +2713,6 @@ class FeatureViewSet(viewsets.ModelViewSet):
         return JsonResponse({"success": True}, status=200)
 
 
-from rest_framework.permissions import IsAuthenticated, AllowAny
 class FeatureHistoryViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
@@ -2722,7 +2721,6 @@ class FeatureHistoryViewSet(viewsets.ModelViewSet):
     serializer_class = FeatureHistorySerializer
     renderer_classes = (JSONRenderer,)
     response_manager = ResponseManager('FeatureHistory')
-    permission_classes = (AllowAny,)
 
       # Changing to have all details with BookSerializer
     # @require_permissions("create_feature")
@@ -2748,14 +2746,14 @@ class FeatureHistoryViewSet(viewsets.ModelViewSet):
             # If feature_id and feature_history_id both provided then fetch single feature_history id
             if superuser:
                 queryset = FeatureHistory.objects.select_related('last_edited', 'created_by', 'info').prefetch_related(
-                    'info__feature_results').filter(feature_id = feature_id)
+                    'info__feature_results').filter(feature_id = feature_id).order_by("-last_edited_date")
             else:
                 departments = [x['department_id'] for x in request.session['user']['departments']]
                 queryset = FeatureHistory.objects.select_related('last_edited', 'created_by', 'info').prefetch_related(
-                    'info__feature_results').filter(department_id__in=departments, feature_id = feature_id)
+                    'info__feature_results').filter(department_id__in=departments, feature_id = feature_id).order_by("-last_edited_date")
 
             response = FeatureHistorySerializer(FeatureHistorySerializer.fast_loader(queryset), many=True).data
-            return self.response_manager.get_response(list_data=response)
+            return self.response_manager.get_list_response(list_data=response)
 
     # @require_permissions("create_feature")
     def create(self, request, *args, **kwargs):
@@ -2858,6 +2856,7 @@ class DatasetViewset(viewsets.ModelViewSet):
             'success': True,
             'message': 'Nothing to do here!'
         })
+
 
 
 class FolderViewset(viewsets.ModelViewSet):

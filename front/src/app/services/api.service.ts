@@ -143,6 +143,11 @@ export class ApiService {
       map(res => res.results)
     )
   }
+ 
+  // Get all step specifying a ID or Name
+  getFeatureHistory(feature_id: number, params?) {
+    return this._http.get<PaginatedResponse<FeatureHistory>>(`${this.base}api/features_history/${feature_id}/`, { params: params })
+  }
 
   // Get REST API call
   getRestAPI(id: number) {
