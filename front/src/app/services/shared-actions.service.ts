@@ -225,6 +225,40 @@ export class SharedActionsService {
       });
     }
   }
+/**
+   * Automatically open the EditFeature dialog
+   * @param featureId The feature ID to edit, provide null if new
+   * @param mode Defined the behavior of EditFeature
+   */
+  openEditFeatureFromHistory(featureId: number = null) {
+      // const feature = deepClone(this._store.selectSnapshot<FeatureHistory>(CustomSelectors.GetFeatureInfo(featureId))) as FeatureHistory;
+      // // const feature: FeatureHistory ={}  // deepClone(this._store.selectSnapshot<FeatureHistory>(CustomSelectors.GetFeatureInfo(featureId))) as FeatureHistory;
+      // // // Get data of feature and steps
+      // // this._api.getFeatureSteps(featureId, { loading: 'translate:tooltips.loading_feature' }).subscribe(steps => {
+      // //   // Save steps into NGXS Store
+      // // // this._store.dispatch(new StepDefinitions.SetStepsForFeature(mode === 'clone' ? 0 : featureId, steps));
+      // // // Open Edit Feature
+      // // this._dialog.open(EditFeature, {
+      // //   disableClose: true,
+      // //   autoFocus: false,
+      // //   panelClass: 'edit-feature-panel',
+      // //   // @ts-ignore
+      // //   data: {
+      // //     mode: 'clone',
+      // //     feature: {
+      // //       app: feature.app_name,
+      // //       environment: feature.environment_name,
+      // //       feature_id: feature.feature_id,
+      // //       description: feature.description
+      // //     },
+      // //     info: feature,
+      // //     steps: deepClone(steps)
+      // //   } as IEditFeature
+      // }).afterClosed().subscribe(_ => this.dialogActive = false);
+    // })
+  } 
+    
+  
 
   showEditFeatureHistory(featureId: number = null) {
     this._api.getFeatureHistory(featureId, { loading: 'translate:tooltips.loading_feature' }).subscribe(featureHistory => {
