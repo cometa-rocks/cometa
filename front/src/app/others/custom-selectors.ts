@@ -63,6 +63,7 @@ export class CustomSelectors {
     return createSelector([FeaturesState.GetFeatureInfo], featureFn => featureFn(featureId))
   }
 
+
   /**
    * Custom Selector for retrieving feature running status
    * @param featureId number

@@ -210,14 +210,8 @@ export class ListFeatureHistoryComponent implements  OnDestroy {
   }
 
 
-  // Delete the clicked folder
-  @Subscribe()
-  delete(folder: Folder) {
-    this.log.msg("1", "Deleting folder...", "feature-list", folder);
-    return this._api.removeFolder(folder.folder_id).pipe(
-      switchMap((_) => this._store.dispatch(new Features.GetFolders())),
-      tap((_) => this._snackBar.open(`Folder ${folder.name} removed`, "OK"))
-    );
+  deleteFeatureHistory(){
+    
   }
 
 }

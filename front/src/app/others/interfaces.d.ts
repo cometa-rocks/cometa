@@ -368,6 +368,22 @@ interface FeatureStep {
     timeout?: number;
 }
 
+interface FeatureHistoryStep extends FeatureStep {
+    step_id: number;
+    feature_history_id : number;
+    action : string;
+    id?: number;
+    step_content: string;
+    step_keyword: string;
+    screenshot?: boolean;
+    compare?: boolean;
+    enabled?: boolean;
+    error?: string;
+    step_type?: StepType;
+    continue_on_failure?: boolean;
+    timeout?: number;
+}
+
 declare type StepType = 'normal' | 'subfeature' | 'substep' | 'loop';
 
 interface GroupContentObject {
