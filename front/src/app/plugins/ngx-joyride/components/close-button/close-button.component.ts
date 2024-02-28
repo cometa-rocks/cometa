@@ -6,5 +6,6 @@ import { Component } from '@angular/core';
     <line x1="1" y1="24" x2="24" y2="1" stroke="black" stroke-width="3" />
     <line x1="1" y1="1" x2="24" y2="24" stroke="black" stroke-width="3" />
   </svg>`,
+  standalone: true,
 })
 export class JoyrideCloseButtonComponent {}

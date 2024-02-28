@@ -32,6 +32,36 @@ import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
 import { JsonViewerComponent } from '../json-view/json-view.component';
 import { StepNotesComponent } from '@dialogs/step-notes/step-notes.component';
+import { DownloadNamePipe } from '@pipes/download-name.pipe';
+import { DownloadLinkPipe } from '@pipes/download-link.pipe';
+import { NumeralPipe } from '@pipes/numeral.pipe';
+import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
+import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
+import { PercentagePipe } from '@pipes/percentage.pipe';
+import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { NetworkPaginatedListComponent as NetworkPaginatedListComponent_1 } from '../../components/network-paginated-list/network-paginated-list.component';
+import { RoundProgressModule } from 'angular-svg-round-progressbar';
+import {
+  NgIf,
+  NgClass,
+  NgStyle,
+  NgFor,
+  AsyncPipe,
+  JsonPipe,
+} from '@angular/common';
+import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
+import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
 
 @Component({
   selector: 'step-view',
@@ -134,6 +164,37 @@ import { StepNotesComponent } from '@dialogs/step-notes/step-notes.component';
       ),
       transition('false => true', animate('200ms 100ms ease-in-out')),
     ]),
+  ],
+  standalone: true,
+  imports: [
+    FeatureTitlesComponent,
+    FeatureActionsComponent,
+    NgIf,
+    RoundProgressModule,
+    NetworkPaginatedListComponent_1,
+    LetDirective,
+    NgClass,
+    StopPropagationDirective,
+    MatLegacyTooltipModule,
+    MatLegacyMenuModule,
+    MatDividerModule,
+    MatLegacyButtonModule,
+    MatIconModule,
+    NgStyle,
+    NgFor,
+    MatLegacyProgressSpinnerModule,
+    TranslateModule,
+    AmParsePipe,
+    AmDateFormatPipe,
+    SecondsToHumanReadablePipe,
+    PercentagePipe,
+    PixelDifferencePipe,
+    FirstLetterUppercasePipe,
+    NumeralPipe,
+    AsyncPipe,
+    JsonPipe,
+    DownloadLinkPipe,
+    DownloadNamePipe,
   ],
 })
 export class StepViewComponent implements OnInit {
