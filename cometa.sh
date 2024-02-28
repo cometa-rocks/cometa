@@ -5,6 +5,7 @@
 # ##################################################
 #
 # Changelog:
+# 2024-02-16 RRO Added option to restart recreate selenoid
 # 2023-08-12 RRO Added check on docker hub is reachable by downloading image "Hello-World"
 # 2022-10-04 ASO changed sed logic and checking if docker is installed and running.
 # 2022-10-03 ASO changing data mount point based on the parameter.
@@ -323,9 +324,50 @@ function get_cometa_up_and_running() {
 
 } # end of function get_cometA_up_and_running
 
+#
+# Show logfiles of docker containers
+#
+function show_logfiles() {
+    case $container_name in
+        selenoid)
+            docker logs -f --tail=100 cometa_selenoid
+            ;;
+        all)
+            docker-compose logs -f --tail=100 selenoid front django behave
+            ;;
+    esac
+}
+
+#
+# Switch case for grab information to save it
+#
+# * Reminder: first debug, then help and last the other options
 while [[ $# -gt 0 ]]
 do
     case "$1" in
+        -d | --debug)
+            set -x
+            shift
+            ;;
+        -h | --help)
+            SHOW_HELP
+            exit 0
+            ;;
+        -l|--logs)
+            container_name=$2
+            show_logfiles
+            exit 0
+            ;;
+        --update-docker) # Work in progress
+            # for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
+            exit 0
+            ;;
+        -r | --restart)
+            container_name=$2
+            info "Recreating $container_name"
+            docker-compose up -d --force-recreate $container_name && info [ok] || warn "Restarting failed. look at the logs"
+            exit 0
+            ;;
         --root-mount-point)
             MOUNTPOINT="root"
             shift
