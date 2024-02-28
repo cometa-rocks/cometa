@@ -1,33 +1,32 @@
-
 @import 'color';
 
 :host {
-    display: flex;
-    position: absolute;
-    width: 100%;
-    height: calc(100% - 200px);
-    background-color: $body-bg-color;
-    z-index: 999;
-    padding: 30px;
-    box-sizing: border-box;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    font-weight: bold;
+  display: flex;
+  position: absolute;
+  width: 100%;
+  height: calc(100% - 200px);
+  background-color: $body-bg-color;
+  z-index: 999;
+  padding: 30px;
+  box-sizing: border-box;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  font-weight: bold;
 }
 
 .poetry {
-    display: flex;
-    color: $blue;
-    font-size: 2rem;
-    height: 50px;
-    align-items: center;
+  display: flex;
+  color: $blue;
+  font-size: 2rem;
+  height: 50px;
+  align-items: center;
 }
 
 .love {
-    display: flex;
-    align-items: center;
-    height: 50px;
-    font-size: 1.1rem;
-    opacity: .8;
+  display: flex;
+  align-items: center;
+  height: 50px;
+  font-size: 1.1rem;
+  opacity: 0.8;
 }

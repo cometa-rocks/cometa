@@ -1,13 +1,26 @@
-<div (click)="selectFolder()" [style.paddingLeft.px]="20 * child" [class.extended]="extended$ | async" [class.selected]="(_config.selectedFolderId | async).id == folder.folder_id" [class.showCrumb]="folder.folders.length > 0" class="folder-item">
-    <div stopPropagation (click)="expandControl()" class="crumb"></div>
-    <i></i>
-    <span>{{ folder.name }} - {{ folder.folder_id }}</span>
-    <button stopPropagation [matMenuTriggerFor]="folderOptions" class="folder-options" mat-icon-button>
-      <mat-icon>more_vert</mat-icon>
-    </button>
+<div
+  (click)="selectFolder()"
+  [style.paddingLeft.px]="20 * child"
+  [class.extended]="extended$ | async"
+  [class.selected]="(_config.selectedFolderId | async).id == folder.folder_id"
+  [class.showCrumb]="folder.folders.length > 0"
+  class="folder-item">
+  <div stopPropagation (click)="expandControl()" class="crumb"></div>
+  <i></i>
+  <span>{{ folder.name }} - {{ folder.folder_id }}</span>
+  <button
+    stopPropagation
+    [matMenuTriggerFor]="folderOptions"
+    class="folder-options"
+    mat-icon-button>
+    <mat-icon>more_vert</mat-icon>
+  </button>
 </div>
 <div class="folders-inside" *ngIf="extended$ | async">
-    <cometa-move-folder-item [child]="child + 1" [folder]="fold" *ngFor="let fold of folder.folders"></cometa-move-folder-item>
+  <cometa-move-folder-item
+    [child]="child + 1"
+    [folder]="fold"
+    *ngFor="let fold of folder.folders"></cometa-move-folder-item>
 </div>
 <mat-menu #folderOptions="matMenu">
   <button mat-menu-item (click)="createFolder()">

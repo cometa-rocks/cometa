@@ -15,11 +15,11 @@ import { Store } from '@ngxs/store';
   selector: 'admin-features',
   templateUrl: './features.component.html',
   styleUrls: ['./features.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FeaturesComponent implements OnInit {
-
-  @ViewSelectSnapshot(UserState.GetPermission('create_feature')) canCreateFeature: boolean;
+  @ViewSelectSnapshot(UserState.GetPermission('create_feature'))
+  canCreateFeature: boolean;
   @ViewSelectSnapshot(FeaturesState.GetFeaturesAsArray) features: Feature[];
 
   constructor(
@@ -27,7 +27,7 @@ export class FeaturesComponent implements OnInit {
     private _snack: MatSnackBar,
     private _actionsService: SharedActionsService,
     private _store: Store
-  ) { }
+  ) {}
 
   trackByFn(index, item: Feature) {
     return item.feature_id;
@@ -44,19 +44,25 @@ export class FeaturesComponent implements OnInit {
   loadingExport$ = new BehaviorSubject<boolean>(false);
 
   export() {
-    const requests = this.features.filter(f => this.toExport.getValue().includes(f.feature_id)).map(f => this._api.getJsonFeatureFile(f.feature_id).pipe(
-      map(response => ({ ...f, steps: response }))
-    ));
+    const requests = this.features
+      .filter(f => this.toExport.getValue().includes(f.feature_id))
+      .map(f =>
+        this._api
+          .getJsonFeatureFile(f.feature_id)
+          .pipe(map(response => ({ ...f, steps: response })))
+      );
     if (requests.length > 0) {
       this.loadingExport$.next(true);
       const results = [];
-      from(requests).pipe(
-        concatMap(res => res),
-        finalize(() => {
-          this.loadingExport$.next(false);
-          exportToJSONFile('exported_features', results);
-        })
-      ).subscribe(response => results.push(response));
+      from(requests)
+        .pipe(
+          concatMap(res => res),
+          finalize(() => {
+            this.loadingExport$.next(false);
+            exportToJSONFile('exported_features', results);
+          })
+        )
+        .subscribe(response => results.push(response));
     } else {
       this._snack.open('Nothing to export', 'OK');
     }
@@ -81,5 +87,4 @@ export class FeaturesComponent implements OnInit {
     }
     this.toExport.next(toExport);
   }
-
 }

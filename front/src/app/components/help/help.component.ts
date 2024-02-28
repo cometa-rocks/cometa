@@ -8,10 +8,9 @@ import { Observable } from 'rxjs';
   selector: 'cometa-help',
   templateUrl: './help.component.html',
   styleUrls: ['./help.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HelpComponent {
-
   @Select(ActionsState) actions$: Observable<Action[]>;
   @Select(ConfigState) config$: Observable<Config>;
 
@@ -22,9 +21,8 @@ export class HelpComponent {
     { hotkey: 'L', text: 'Show Log Output' },
     { hotkey: 'N', text: 'Enable/Disable notifications' },
     { hotkey: 'S', text: 'Edit Schedule' },
-    { hotkey: 'Shift + Alt + F', text: 'Open search'},
-    { hotkey: 'Shift + Alt + H', text: 'Return to home'},
-    { hotkey: 'Shift + Alt + X', text: 'Remove all the filters'}
-  ]
-
+    { hotkey: 'Shift + Alt + F', text: 'Open search' },
+    { hotkey: 'Shift + Alt + H', text: 'Return to home' },
+    { hotkey: 'Shift + Alt + X', text: 'Remove all the filters' },
+  ];
 }

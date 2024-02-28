@@ -1,114 +1,115 @@
-
 @import 'color';
 
 :host::ng-deep h2 {
-    color: $blue;
+  color: $blue;
 }
 
 .step {
-    width: 100%;
-    text-align: center !important;
+  width: 100%;
+  text-align: center !important;
 }
 
 .step .mat-form-field-infix {
-    border-top: .24375em solid transparent !important;
+  border-top: 0.24375em solid transparent !important;
 }
 
 .search-step {
-    width: 100%;
-    .mat-icon-button {
-        height: 20px;
-        width: 20px;
-    }
-    .mat-icon-button .mat-button-focus-overlay {
-        opacity: 1;
-    }
-    .mat-icon {
-        color: white;
-        position: relative;
-        z-index: 99;
-        top: -1px;
-    }
-    .mat-button-focus-overlay {
-        background-color: rgba($color: $blue, $alpha: .8) !important;
-    }
-    .mat-ripple-element {
-        background-color: rgba($color: $blue, $alpha: .3) !important;
-    }
+  width: 100%;
+  .mat-icon-button {
+    height: 20px;
+    width: 20px;
+  }
+  .mat-icon-button .mat-button-focus-overlay {
+    opacity: 1;
+  }
+  .mat-icon {
+    color: white;
+    position: relative;
+    z-index: 99;
+    top: -1px;
+  }
+  .mat-button-focus-overlay {
+    background-color: rgba($color: $blue, $alpha: 0.8) !important;
+  }
+  .mat-ripple-element {
+    background-color: rgba($color: $blue, $alpha: 0.3) !important;
+  }
 }
 
 .mat-form-field.mat-focused .mat-form-field-label,
 .mat-form-field-appearance-outline .mat-form-field-outline-thick,
 .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
-    color: $blue !important;
+  color: $blue !important;
 }
 
 :host h4 {
-    margin: 20px 0;
-    color: $blue;
+  margin: 20px 0;
+  color: $blue;
 }
 
 .actions-container {
-    display: block;
-    max-height: 150px;
-    overflow-y: scroll;
+  display: block;
+  max-height: 150px;
+  overflow-y: scroll;
 }
 
 .search-step.mat-form-field.mat-focused .mat-form-field-ripple {
-    background-color: $blue !important;
+  background-color: $blue !important;
 }
 
 .separator {
-    display: block;
-    width: 25%;
-    height: 1px;
-    border-radius: 1px;
-    background-color: rgba($color: $blue, $alpha: .7);
-    margin: 40px auto;
+  display: block;
+  width: 25%;
+  height: 1px;
+  border-radius: 1px;
+  background-color: rgba($color: $blue, $alpha: 0.7);
+  margin: 40px auto;
 }
 
 .metas {
-    .header {
-        margin-bottom: 20px;
-        .screenshot, .compare {
-            width: 50%;
-            color: $blue;
-            font-weight: bold;
-            text-align: center;
-            float: left;
-        }
+  .header {
+    margin-bottom: 20px;
+    .screenshot,
+    .compare {
+      width: 50%;
+      color: $blue;
+      font-weight: bold;
+      text-align: center;
+      float: left;
     }
-    .wrapper {
-        .screenshot, .compare {
-            width: 50%;
-            color: $blue;
-            font-weight: bold;
-            text-align: center;
-            float: left;
-        }
+  }
+  .wrapper {
+    .screenshot,
+    .compare {
+      width: 50%;
+      color: $blue;
+      font-weight: bold;
+      text-align: center;
+      float: left;
     }
+  }
 }
 
 .fix {
-    opacity: 0;
+  opacity: 0;
 }
 
 .action-row {
-    display: block;
-    width: 100%;
-    min-height: 35px;
-    line-height: 35px;
-    cursor: pointer;
-    padding-left: 10px;
-    box-sizing: border-box;
-    // Allow the user to select text
-    // user-select: none;
-    transition: all .1s ease-in-out;
-    &:not(:last-child) {
-        border-bottom: 1px solid $blue;
-    }
-    &:hover {
-        background-color: $blue;
-        color: white;
-    }
+  display: block;
+  width: 100%;
+  min-height: 35px;
+  line-height: 35px;
+  cursor: pointer;
+  padding-left: 10px;
+  box-sizing: border-box;
+  // Allow the user to select text
+  // user-select: none;
+  transition: all 0.1s ease-in-out;
+  &:not(:last-child) {
+    border-bottom: 1px solid $blue;
+  }
+  &:hover {
+    background-color: $blue;
+    color: white;
+  }
 }
