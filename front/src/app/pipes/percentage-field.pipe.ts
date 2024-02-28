@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'percentageField',
+  standalone: true,
 })
 export class PercentageFieldPipe implements PipeTransform {
   /**

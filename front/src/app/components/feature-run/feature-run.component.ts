@@ -17,12 +17,59 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { Observable } from 'rxjs';
 import { Select } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
+import { FeatureResultPassedPipe } from '@pipes/feature-result-passed.pipe';
+import { PdfLinkPipe } from '@pipes/pdf-link.pipe';
+import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
+import { PercentageFieldPipe } from '@pipes/percentage-field.pipe';
+import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
+import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
+import {
+  NgClass,
+  NgIf,
+  NgTemplateOutlet,
+  AsyncPipe,
+  TitleCasePipe,
+} from '@angular/common';
+import { LetDirective } from '../../directives/ng-let.directive';
 
 @Component({
   selector: 'cometa-feature-run',
   templateUrl: './feature-run.component.html',
   styleUrls: ['./feature-run.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    LetDirective,
+    NgClass,
+    NgIf,
+    StopPropagationDirective,
+    MatLegacyMenuModule,
+    MatDividerModule,
+    NgTemplateOutlet,
+    MatLegacyTooltipModule,
+    MatLegacyButtonModule,
+    MatIconModule,
+    TranslateModule,
+    AmParsePipe,
+    AmDateFormatPipe,
+    SecondsToHumanReadablePipe,
+    BrowserIconPipe,
+    PercentageFieldPipe,
+    PixelDifferencePipe,
+    AsyncPipe,
+    TitleCasePipe,
+    PdfLinkPipe,
+    FeatureResultPassedPipe,
+  ],
 })
 export class FeatureRunComponent {
   @Select(CustomSelectors.GetConfigProperty('percentMode'))

@@ -36,12 +36,23 @@ function basic_commands_check() {
 }
 
 function prettier() {
-    info "Executing prettier before commiting the changes"
-    # run the prettier command
-    ${NPM_COMMAND} run format
+    # only format staged files in front/src
+    local staged_files=`git diff-index --cached --name-only HEAD | grep front/src | xargs`
+    # check if there are staged files in front
+    if [[ ! -z ${staged_files} ]]; then
+        # update the path incase the command will be executed in docker
+        if [[ "${NPM_COMMAND}" =~ "docker" ]]; then
+            staged_files=${staged_files//front\//.\/}
+        fi
+        info "Executing prettier before commiting the changes"
+        # run the prettier command
+        ${NPM_COMMAND} run format-staged ${staged_files//front\//.\/}
 
-    # only stage, previously staged files
-    git add `git diff-index --cached --name-only HEAD | xargs`
+        # only stage, previously staged files
+        git add ${staged_files}
+    else
+        info "¡No files to format!"
+    fi
 }
 
 # get the NPM COMMAND

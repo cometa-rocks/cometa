@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'percentage',
+  standalone: true,
 })
 export class PercentagePipe implements PipeTransform {
   transform(part: number, total: number, sign: boolean = true): string {

@@ -25,8 +25,6 @@ const routes: Routes = [
     MatRippleModule,
     SharedModule,
     CommonModule,
-  ],
-  declarations: [
     /* Pipes */
     /* Components */
     MoveItemDialog,

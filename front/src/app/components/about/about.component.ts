@@ -5,12 +5,27 @@ import { SocketService } from '@services/socket.service';
 import { Select } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Observable } from 'rxjs';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { SafeUrlPipe } from '@pipes/safe-url.pipe';
+import { TranslateModule } from '@ngx-translate/core';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'cometa-about',
   templateUrl: './about.component.html',
   styleUrls: ['./about.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    NgFor,
+    LetDirective,
+    NgIf,
+    TranslateModule,
+    SafeUrlPipe,
+    SortByPipe,
+    AsyncPipe,
+  ],
 })
 export class AboutComponent {
   @Select(CustomSelectors.GetConfigProperty('serverInfo.version'))

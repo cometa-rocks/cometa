@@ -4,6 +4,7 @@ import { ApiService } from '@services/api.service';
 
 @Pipe({
   name: 'downloadLink',
+  standalone: true,
 })
 export class DownloadLinkPipe implements PipeTransform {
   constructor(
