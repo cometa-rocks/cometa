@@ -10,12 +10,24 @@ import {
   AreYouSureData,
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
+import { NgIf, NgClass, AsyncPipe } from '@angular/common';
+import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'application',
   templateUrl: './application.component.html',
   styleUrls: ['./application.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    ReactiveFormsModule,
+    DisableAutocompleteDirective,
+    FormsModule,
+    NgIf,
+    NgClass,
+    AsyncPipe,
+  ],
 })
 export class ApplicationComponent {
   @Select(UserState.GetPermission('edit_application'))

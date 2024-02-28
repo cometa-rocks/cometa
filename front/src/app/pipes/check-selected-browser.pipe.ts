@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 
 @Pipe({
   name: 'checkSelectedBrowser',
+  standalone: true,
 })
 export class CheckSelectedBrowserPipe implements PipeTransform {
   constructor(@Host() private _browserSelection: BrowserSelectionComponent) {}

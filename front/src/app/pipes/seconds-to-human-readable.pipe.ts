@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'secondsToHumanReadable',
+  standalone: true,
 })
 export class SecondsToHumanReadablePipe implements PipeTransform {
   transform(value: string): string {

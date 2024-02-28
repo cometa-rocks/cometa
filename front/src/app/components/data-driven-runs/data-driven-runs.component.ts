@@ -10,16 +10,40 @@ import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { DataDrivenExecution } from '@dialogs/data-driven-execution/data-driven-execution.component';
 import { DataDrivenTestStop } from '@dialogs/data-driven-execution/data-driven-stop/data-driven-stop.component';
-import { MtxGridColumn } from '@ng-matero/extensions/grid';
+import { MtxGridColumn, MtxGridModule } from '@ng-matero/extensions/grid';
 import { ApiService } from '@services/api.service';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { InterceptorParams } from 'ngx-network-error';
+import { PixelDifferencePipe } from '@pipes/pixel-difference.pipe';
+import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
+import { NgIf } from '@angular/common';
+import { LetDirective } from '../../directives/ng-let.directive';
 
 @Component({
   selector: 'cometa-data-driven-runs',
   templateUrl: './data-driven-runs.component.html',
   styleUrls: ['./data-driven-runs.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    MtxGridModule,
+    LetDirective,
+    NgIf,
+    StopPropagationDirective,
+    MatLegacyMenuModule,
+    MatDividerModule,
+    MatLegacyButtonModule,
+    AmParsePipe,
+    AmDateFormatPipe,
+    SecondsToHumanReadablePipe,
+    PixelDifferencePipe,
+  ],
 })
 export class DataDrivenRunsComponent implements OnInit {
   constructor(

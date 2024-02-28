@@ -6,6 +6,7 @@ import { distinctUntilChanged, map } from 'rxjs/operators';
 
 @Pipe({
   name: 'archivedRuns',
+  standalone: true,
 })
 export class ArchivedRunsPipe implements PipeTransform {
   /** This variable holds the Internal Options of Config */

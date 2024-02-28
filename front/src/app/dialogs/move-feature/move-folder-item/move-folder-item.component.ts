@@ -1,4 +1,9 @@
-import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  Input,
+  forwardRef,
+} from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { Store } from '@ngxs/store';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
@@ -9,12 +14,28 @@ import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack
 import { ConfigService } from '@services/config.service';
 import { Features } from '@store/actions/features.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
+import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { StopPropagationDirective } from '../../../directives/stop-propagation.directive';
 
 @Component({
   selector: 'cometa-move-folder-item',
   templateUrl: './move-folder-item.component.html',
   styleUrls: ['./move-folder-item.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    StopPropagationDirective,
+    MatLegacyButtonModule,
+    MatLegacyMenuModule,
+    MatIconModule,
+    NgIf,
+    NgFor,
+    forwardRef(() => MoveFolderItemComponent),
+    AsyncPipe,
+  ],
 })
 export class MoveFolderItemComponent {
   constructor(

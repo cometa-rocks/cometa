@@ -3,6 +3,7 @@ import { Store } from '@ngxs/store';
 
 @Pipe({
   name: 'storeSelector',
+  standalone: true,
 })
 export class StoreSelectorPipe implements PipeTransform {
   constructor(private _store: Store) {}

@@ -3,6 +3,7 @@ import { isValid, parse, parseISO } from 'date-fns';
 
 @Pipe({
   name: 'amParse',
+  standalone: true,
 })
 export class AmParsePipe implements PipeTransform {
   formats = ["yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.SSSS"];

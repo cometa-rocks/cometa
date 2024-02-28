@@ -3,6 +3,7 @@ import { API_BASE } from 'app/tokens';
 
 @Pipe({
   name: 'pdfLink',
+  standalone: true,
 })
 export class PdfLinkPipe implements PipeTransform {
   constructor(@Inject(API_BASE) private _base: string) {}
