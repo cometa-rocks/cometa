@@ -5,6 +5,7 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
   templateUrl: './others.component.html',
   styleUrls: ['./others.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
 })
 export class AdminOthersComponent implements OnInit {
   constructor() {}
