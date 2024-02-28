@@ -5,6 +5,7 @@ import { differenceInMilliseconds, isValid } from 'date-fns';
 
 @Pipe({
   name: 'testDuration',
+  standalone: true,
 })
 export class TestDurationPipe implements PipeTransform {
   transform(startTime: Date | null, endTime: Date | null): Observable<string> {

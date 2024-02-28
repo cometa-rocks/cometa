@@ -36,6 +36,16 @@ import {
   AreYouSureData,
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
+import { ScreenshotBgPipe } from '@pipes/screenshot-bg.pipe';
+import { NumeralPipe } from '@pipes/numeral.pipe';
+import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
+import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { NgIf, NgClass, AsyncPipe } from '@angular/common';
+import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
+import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
 
 @Component({
   selector: 'detail-view',
@@ -100,6 +110,21 @@ import {
       ),
       transition('false => true', animate('200ms 700ms ease-in-out')),
     ]),
+  ],
+  standalone: true,
+  imports: [
+    FeatureTitlesComponent,
+    FeatureActionsComponent,
+    NgIf,
+    NgClass,
+    MatLegacyProgressSpinnerModule,
+    AmParsePipe,
+    AmDateFormatPipe,
+    SecondsToHumanReadablePipe,
+    FirstLetterUppercasePipe,
+    NumeralPipe,
+    ScreenshotBgPipe,
+    AsyncPipe,
   ],
 })
 export class DetailViewComponent implements OnInit {

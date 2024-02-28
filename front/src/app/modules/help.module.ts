@@ -13,7 +13,11 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forChild(routes), SharedModule, CommonModule],
-  declarations: [HelpComponent],
+  imports: [
+    RouterModule.forChild(routes),
+    SharedModule,
+    CommonModule,
+    HelpComponent,
+  ],
 })
 export class HelpModule {}

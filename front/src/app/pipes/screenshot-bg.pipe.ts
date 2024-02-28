@@ -3,6 +3,7 @@ import { DomSanitizer, SafeStyle } from '@angular/platform-browser';
 
 @Pipe({
   name: 'screenshotBg',
+  standalone: true,
 })
 export class ScreenshotBgPipe implements PipeTransform {
   constructor(private _sanitizer: DomSanitizer) {}

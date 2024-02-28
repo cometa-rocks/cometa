@@ -133,7 +133,7 @@ function check_ssl_certificate() {
 # #########
 function build_project(){
 	# replace baseHref inside index.html before serving
-	sed -i 's#<base href="/debug/">#<base href="/">#' /code/front/src/index.html
+	sed -i 's#<base href="/debug/" />#<base href="/" />#' /code/front/src/index.html
 	# get uid and gid of user that owns content outside
 	UIDGID=$(stat -c "%u:%g" /code)
 	echo -e "\e[37mCompiling...\e[0m"

@@ -10,6 +10,7 @@ import {
   Component,
   Input,
   OnInit,
+  forwardRef,
 } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { SharedActionsService } from '@services/shared-actions.service';
@@ -19,12 +20,26 @@ import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { LogService } from '@services/log.service';
+import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatRippleModule } from '@angular/material/core';
+import { LetDirective } from '../../directives/ng-let.directive';
 
 @Component({
   selector: 'cometa-folder-item-tree',
   templateUrl: './folder-item-tree.component.html',
   styleUrls: ['./folder-item-tree.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    LetDirective,
+    MatRippleModule,
+    MatIconModule,
+    NgIf,
+    NgFor,
+    forwardRef(() => FolderItemTreeComponent),
+    AsyncPipe,
+  ],
 })
 export class FolderItemTreeComponent implements OnInit {
   // stores state for each folder in hierarchy
