@@ -162,7 +162,7 @@ function build_project(){
 # #########
 function serve_project() {
 	# replace baseHref inside index.html before serving
-	sed -i 's#<base href="/">#<base href="/debug/">#' /code/front/src/index.html
+	sed -i 's#<base href="/" />#<base href="/debug/" />#' /code/front/src/index.html
 	# serve the project
 	npx ng serve
 }
