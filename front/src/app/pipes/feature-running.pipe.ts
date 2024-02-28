@@ -12,6 +12,7 @@ import { Observable } from 'rxjs';
 
 @Pipe({
   name: 'featureRunning',
+  standalone: true,
 })
 export class FeatureRunningPipe implements PipeTransform {
   constructor(private _store: Store) {}

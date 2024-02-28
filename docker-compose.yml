@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 
 services:
   db:
@@ -86,7 +86,7 @@ services:
 
   selenoid:
     # Please use ./selenoid/deploy_selenoid.sh to create necessary files of Selenoid
-    image: aerokube/selenoid:1.10.12
+    image: aerokube/selenoid:1.11.2
     container_name: cometa_selenoid
     logging:
       driver: json-file
@@ -98,7 +98,7 @@ services:
       - /data/cometa/videos:/opt/selenoid/video
     environment:
       TZ: Europe/Berlin
-      OVERRIDE_VIDEO_OUTPUT_DIR: /data/cometa/videos
+      OVERRIDE_VIDEO_OUTPUT_DIR: ${PWD}/data/cometa/videos
     networks:
       - testing
     restart: always

@@ -3,6 +3,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 @Pipe({
   name: 'sendOn',
+  standalone: true,
 })
 export class SendOnPipe implements PipeTransform {
   constructor(private _translate: TranslateService) {}

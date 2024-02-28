@@ -220,7 +220,6 @@ const dialogs = [
 const directives = [StopPropagationDirective, AttachToDirective, LetDirective];
 
 @NgModule({
-  declarations: [...components, ...directives, ...pipes, ...dialogs, ...snacks],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -234,6 +233,11 @@ const directives = [StopPropagationDirective, AttachToDirective, LetDirective];
       },
       isolate: false,
     }),
+    ...components,
+    ...directives,
+    ...pipes,
+    ...dialogs,
+    ...snacks,
   ],
   providers: [
     {

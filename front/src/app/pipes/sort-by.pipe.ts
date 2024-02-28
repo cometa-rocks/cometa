@@ -3,6 +3,7 @@ import { sortBy } from 'ngx-amvara-toolbox';
 
 @Pipe({
   name: 'sortBy',
+  standalone: true,
 })
 export class SortByPipe implements PipeTransform {
   transform(

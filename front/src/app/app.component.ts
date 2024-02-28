@@ -17,12 +17,25 @@ import { CookiesExpiredDialog } from '@dialogs/cookies-expired/cookies-expired.c
 import { SelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { TourService } from '@services/tour.service';
 import { WhatsNewService } from '@services/whats-new.service';
+import { AsyncPipe } from '@angular/common';
+import { FooterComponent } from './components/footer/footer.component';
+import { ToursComponent } from './components/tours/tours.component';
+import { RouterOutlet } from '@angular/router';
+import { HeaderComponent } from './components/header/header.component';
 
 @Component({
   selector: 'cometa',
   templateUrl: './cometa.component.html',
   styleUrls: ['./cometa.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    HeaderComponent,
+    RouterOutlet,
+    ToursComponent,
+    FooterComponent,
+    AsyncPipe,
+  ],
 })
 export class CometaComponent implements OnInit {
   @Select(ConfigState) config$: Observable<Config>;

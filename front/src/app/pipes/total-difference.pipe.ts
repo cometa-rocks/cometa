@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'totalDifference',
+  standalone: true,
 })
 export class TotalDifferencePipe implements PipeTransform {
   transform(steps: StepResult[]): number {

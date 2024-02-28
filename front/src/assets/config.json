@@ -1,5 +1,5 @@
 {
-  "version": "2.8.330",
+  "version": "2.8.332",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,21 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.332",
+      "date": "2024-02-27",
+      "bugfixes": ["#4540 - Fixed scrollable screen in the Admin Manage Account section."]
+    },
+    {
+      "version": "2.8.331",
+      "date": "2024-02-26",
+      "features": [
+        {
+          "title": "Added 'Additional Information' page in PDF report ",
+          "description": "You can find the table containing information about the symbols or short forms used in this report on the last page of the PDF report. 'REL. TIME' is explained there."
+        }
+      ]
+    },
     {
       "version": "2.8.330",
       "date": "2024-02-15",
