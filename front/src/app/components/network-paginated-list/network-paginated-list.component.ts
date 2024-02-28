@@ -7,7 +7,10 @@ import {
   SimpleChanges,
   TemplateRef,
 } from '@angular/core';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import {
+  LegacyPageEvent as PageEvent,
+  MatLegacyPaginatorModule,
+} from '@angular/material/legacy-paginator';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
@@ -16,6 +19,8 @@ import { PaginatedListsState } from '@store/paginated-list.state';
 import { SafeGetStorage, StorageType } from 'ngx-amvara-toolbox';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { NgTemplateOutlet, NgIf, NgFor, AsyncPipe } from '@angular/common';
 
 /**
  * This component is used to display an array of items in a paginated fashion using network.
@@ -26,6 +31,15 @@ import { map, switchMap, tap } from 'rxjs/operators';
   templateUrl: './network-paginated-list.component.html',
   styleUrls: ['./network-paginated-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    NgTemplateOutlet,
+    NgIf,
+    NgFor,
+    MatLegacyProgressSpinnerModule,
+    MatLegacyPaginatorModule,
+    AsyncPipe,
+  ],
 })
 export class NetworkPaginatedListComponent implements OnChanges {
   /**

@@ -16,10 +16,20 @@ import {
   MatLegacyDialogRef as MatDialogRef,
   MatLegacyDialog as MatDialog,
   MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
+  MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
 import { Select } from '@ngxs/store';
 import { ActionsState } from '@store/actions.state';
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
+import { FilterStepPipe } from '@pipes/filter-step.pipe';
+import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 
 @Component({
   selector: 'add-step',
@@ -33,6 +43,22 @@ import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
       state('true', style({ 'font-size': '16px' })),
       transition('* => *', animate(100)),
     ]),
+  ],
+  standalone: true,
+  imports: [
+    MatLegacyDialogModule,
+    MatLegacyFormFieldModule,
+    MatLegacyInputModule,
+    ReactiveFormsModule,
+    FormsModule,
+    NgIf,
+    MatLegacyButtonModule,
+    MatIconModule,
+    NgFor,
+    MatLegacyTooltipModule,
+    MatLegacyCheckboxModule,
+    AsyncPipe,
+    FilterStepPipe,
   ],
 })
 export class AddStepComponent {

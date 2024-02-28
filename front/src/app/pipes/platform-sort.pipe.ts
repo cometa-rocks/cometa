@@ -5,6 +5,7 @@ import compareVersions from 'compare-versions';
 
 @Pipe({
   name: 'platformSort',
+  standalone: true,
 })
 export class PlatformSortPipe implements PipeTransform {
   transform(values: any[], os: string): any {
