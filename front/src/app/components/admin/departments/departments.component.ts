@@ -9,12 +9,27 @@ import { Subscribe } from 'app/custom-decorators';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { Departments } from '@store/actions/departments.actions';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { DepartmentComponent } from './department/department.component';
+import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'admin-departments',
   templateUrl: './departments.component.html',
   styleUrls: ['./departments.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    NgFor,
+    DepartmentComponent,
+    NgIf,
+    MatLegacyButtonModule,
+    MatIconModule,
+    SortByPipe,
+    AsyncPipe,
+  ],
 })
 export class DepartmentsComponent implements OnInit {
   constructor(

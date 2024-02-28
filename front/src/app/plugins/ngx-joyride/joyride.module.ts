@@ -22,8 +22,9 @@ export const routerModuleForChild: ModuleWithProviders<JoyrideModule> =
   RouterModule.forChild([]);
 
 @NgModule({
-  imports: [CommonModule, routerModuleForChild],
-  declarations: [
+  imports: [
+    CommonModule,
+    routerModuleForChild,
     JoyrideDirective,
     JoyrideStepComponent,
     JoyrideArrowComponent,

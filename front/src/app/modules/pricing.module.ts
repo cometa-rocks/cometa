@@ -34,7 +34,8 @@ const routes: Routes = [
     RouterModule.forChild(routes),
     SharedModule,
     CommonModule,
+    PricingComponent,
+    PricingSuccessComponent,
   ],
-  declarations: [PricingComponent, PricingSuccessComponent],
 })
 export class PricingModule {}

@@ -26,6 +26,7 @@ export const NO_POSITION = 'NO_POSITION';
 
 @Directive({
   selector: 'joyrideStep, [joyrideStep]',
+  standalone: true,
 })
 export class JoyrideDirective implements AfterViewInit, OnChanges, OnDestroy {
   @Input('joyrideStep')

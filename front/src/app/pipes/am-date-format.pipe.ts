@@ -8,6 +8,7 @@ import deLocale from 'date-fns/locale/de';
 
 @Pipe({
   name: 'amDateFormat',
+  standalone: true,
 })
 export class AmDateFormatPipe implements PipeTransform {
   locales = {

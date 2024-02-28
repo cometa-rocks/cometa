@@ -1,4 +1,10 @@
-import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import {
+  CdkDragDrop,
+  moveItemInArray,
+  CdkDropList,
+  CdkDrag,
+  CdkDragHandle,
+} from '@angular/cdk/drag-drop';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,7 +12,10 @@ import {
   OnInit,
   Optional,
 } from '@angular/core';
-import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
+import {
+  MatLegacyCheckboxChange as MatCheckboxChange,
+  MatLegacyCheckboxModule,
+} from '@angular/material/legacy-checkbox';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { ActivatedRoute } from '@angular/router';
 import { Select, Store } from '@ngxs/store';
@@ -19,12 +28,35 @@ import { ApiService } from '@services/api.service';
 import { debounceTime, map, switchMap } from 'rxjs/operators';
 import { User } from '@store/actions/user.actions';
 import { NetworkPaginatedListComponent } from '@components/network-paginated-list/network-paginated-list.component';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { StopPropagationDirective } from '../../../directives/stop-propagation.directive';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { NgClass, NgFor, AsyncPipe } from '@angular/common';
+import { LetDirective } from '../../../directives/ng-let.directive';
 
 @Component({
   selector: 'cometa-main-view-header',
   templateUrl: './main-view-header.component.html',
   styleUrls: ['./main-view-header.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    LetDirective,
+    NgClass,
+    MatLegacyMenuModule,
+    StopPropagationDirective,
+    MatLegacyCheckboxModule,
+    CdkDropList,
+    NgFor,
+    CdkDrag,
+    CdkDragHandle,
+    MatLegacyTooltipModule,
+    MatDividerModule,
+    TranslateModule,
+    AsyncPipe,
+  ],
 })
 export class MainViewHeaderComponent implements OnInit {
   /** Holds all the current headers of the results table */

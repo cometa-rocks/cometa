@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'browserFavourited',
+  standalone: true,
 })
 export class BrowserFavouritedPipe implements PipeTransform {
   transform(

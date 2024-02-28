@@ -8,6 +8,7 @@ import {
 import {
   MatLegacyDialogRef as MatDialogRef,
   MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
+  MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
 import { Store, Actions, ofActionCompleted } from '@ngxs/store';
@@ -20,13 +21,40 @@ import {
   shareReplay,
   tap,
 } from 'rxjs/operators';
-import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
+import {
+  MatLegacyCheckboxChange as MatCheckboxChange,
+  MatLegacyCheckboxModule,
+} from '@angular/material/legacy-checkbox';
 import { Observable } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { WebSockets } from '@store/actions/results.actions';
 import { StepDefinitions } from '@store/actions/step_definitions.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { getBrowserKey } from '@services/tools';
+import { TranslateModule } from '@ngx-translate/core';
+import { TestDurationPipe } from '../../pipes/test-duration.pipe';
+import { BrowserComboTextPipe } from '../../pipes/browser-combo-text.pipe';
+import { StoreSelectorPipe } from '../../pipes/store-selector.pipe';
+import { BrowserResultStatusPipe } from '@pipes/browser-result-status.pipe';
+import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { LiveStepComponent } from './live-step/live-step.component';
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatIconModule } from '@angular/material/icon';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { MatLegacyTabsModule } from '@angular/material/legacy-tabs';
+import {
+  NgIf,
+  NgFor,
+  NgSwitch,
+  NgSwitchCase,
+  NgTemplateOutlet,
+  NgSwitchDefault,
+  AsyncPipe,
+  KeyValuePipe,
+} from '@angular/common';
 
 @UntilDestroy()
 @Component({
@@ -34,6 +62,33 @@ import { getBrowserKey } from '@services/tools';
   templateUrl: './live-steps.component.html',
   styleUrls: ['./live-steps.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    NgIf,
+    MatLegacyDialogModule,
+    MatLegacyTabsModule,
+    LetDirective,
+    NgFor,
+    MatIconModule,
+    MatLegacyTooltipModule,
+    NgSwitch,
+    NgSwitchCase,
+    MatLegacyProgressSpinnerModule,
+    NgTemplateOutlet,
+    NgSwitchDefault,
+    LiveStepComponent,
+    MatLegacyCheckboxModule,
+    MatLegacyButtonModule,
+    AsyncPipe,
+    KeyValuePipe,
+    AmParsePipe,
+    BrowserIconPipe,
+    BrowserResultStatusPipe,
+    StoreSelectorPipe,
+    BrowserComboTextPipe,
+    TestDurationPipe,
+    TranslateModule,
+  ],
 })
 export class LiveStepsComponent implements OnInit, OnDestroy {
   results$: Observable<IResult>;
