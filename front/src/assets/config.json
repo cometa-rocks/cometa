@@ -1,2817 +1,2646 @@
 {
-	"version": "2.8.331",
-	"language": "en",
-	"appTitle": "co.meta",
-	"scenario": "dev",
-	"percentMode": false,
-	"delay": 0,
-	"heartbeat": 300000,
-	"disableAnimations": false,
-	"copyright": "COMETA ROCKS S.L.",
-	"license": "MIT",
-	"languageCodes": {
-		"en": "English",
-		"de": "Deutsch",
-		"es": "Spanish"
-	},
-	"sorting": "execution",
-	"reverse": false,
-	"useNewDashboard": true,
-	"co_active_list": "recent",
-	"co_features_pagination": 10,
-	"co_first_time_cometa": true,
-	"openedSidenav": false,
-	"openedSearch": false,
-	"featuresView": {
-		"with": "tiles",
-		"without": "tiles",
-		"folder": "tiles"
-	},
-	"internal": {
-		"openedMenu": false,
-		"showArchived": false
-	},
-	"logWebsockets": false,
-	"pagination": {
-		"pageIndex": 0,
-		"pageSize": 5
-	},
-	"deleteTemplateWithResults": false,
-	"filters": [
-		{ "id": "dept", "text": "Department: $1", "text_copy": "Department: $1", "title": "Department", "value": "" },
-		{ "id": "test", "text": "Searching for $1", "text_copy": "Searching for $1", "title": "Test Name", "value": "" },
-		{ "id": "app", "text": "Application: $1", "text_copy": "Application: $1", "title": "Application", "value": "" },
-		{ "id": "env", "text": "Environment: $1", "text_copy": "Environment: $1", "title": "Environment", "value": "" },
-		{ "id": "steps", "text": "$1 $2 steps", "text_copy": "$1 $2 steps", "title": "# Steps", "value": null },
-		{ "id": "ok", "text": "$1 $2 OK", "text_copy": "$1 $2 OK", "title": "# OKs", "value": null },
-		{ "id": "help", "text": "Asking for help", "text_copy": "Asking for help", "title": "Asking for help" }
-	],
-	"tableHeaders": [
-		{ "enable": true, "id": "status", "disable": true },
-		{ "enable": true, "id": "date", "disable": true },
-		{ "enable": true, "id": "steps", "disable": true },
-		{ "enable": true, "id": "ok", "disable": true },
-		{ "enable": true, "id": "nok", "disable": true },
-		{ "enable": true, "id": "skipped", "disable": true },
-		{ "enable": true, "id": "execution_time", "disable": true },
-		{ "enable": true, "id": "browser", "disable": true },
-		{ "enable": true, "id": "pixel_diff", "disable": true }
-	],
-	"serverInfo": {},
-	"toggles": {
-		"hideInformation": false,
-		"hideBrowsers": false,
-		"hideSteps": false,
-		"hideSchedule": false,
-		"hideSendMail": false,
-		"hideUploadedFiles": false
-	},
-	"websocketsTimeout": 30000,
-	"flaticon": [
-		{
-			"name": "App",
-			"author": "SimpleIcon",
-			"link": "https://www.flaticon.com/authors/simpleicon"
-		},
-		{
-			"name": "Avatar",
-			"author": "Gregor Cresnar",
-			"link": "https://www.flaticon.com/authors/gregor-cresnar"
-		},
-		{
-			"name": "Check",
-			"author": "Freepik",
-			"link": "https://www.flaticon.com/authors/freepik"
-		},
-		{
-			"name": "Three Buildings",
-			"author": "Freepik",
-			"link": "https://www.flaticon.com/authors/freepik"
-		},
-		{
-			"name": "Edit",
-			"author": "Smashicons",
-			"link": "https://www.flaticon.com/authors/smashicons"
-		},
-		{
-			"name": "Cancel",
-			"author": "Roundicons",
-			"link": "https://www.flaticon.com/authors/roundicons"
-		},
-		{
-			"name": "Filter",
-			"author": "Google",
-			"link": "https://www.flaticon.com/authors/google"
-		},
-		{
-			"name": "Hourglass",
-			"author": "Smashicons",
-			"link": "https://www.flaticon.com/authors/smashicons"
-		},
-		{
-			"name": "Photo Camera",
-			"author": "Daniel Bruce",
-			"link": "https://www.flaticon.com/authors/daniel-bruce"
-		},
-		{
-			"name": "Search",
-			"author": "Smashicons",
-			"link": "https://www.flaticon.com/authors/smashicons"
-		},
-		{
-			"name": "Checked",
-			"author": "Roundicons",
-			"link": "https://www.flaticon.com/authors/roundicons"
-		},
-		{
-			"name": "Tire",
-			"author": "Freepik",
-			"link": "https://www.flaticon.com/authors/freepik"
-		},
-		{
-			"name": "Gregor Cresnar",
-			"author": "Gregor Cresnar",
-			"link": "https://www.flaticon.com/authors/gregor-cresnar"
-		},
-		{
-			"name": "Man User",
-			"author": "Freepik",
-			"link": "https://www.flaticon.com/authors/freepik"
-		},
-		{
-			"name": "Check Symbol",
-			"author": "Google",
-			"link": "https://www.flaticon.com/authors/google"
-		},
-		{
-			"name": "Warning",
-			"author": "Freepik",
-			"link": "https://www.flaticon.com/authors/freepik"
-		},
-		{
-			"name": "Business vector",
-			"author": "vectorjuice",
-			"link": "https://www.freepik.com/vectors/business"
-		},
-		{
-			"name": "People vector",
-			"author": "pch.vector",
-			"link": "https://www.freepik.com/vectors/people"
-		},
-		{
-			"name": "IT Professional",
-			"author": "vectorjuice",
-			"link": "https://www.freepik.com/vectors/business"
-		}
-	],
-	"contacts": [
-		{
-			"name": "COMETA ROCKS S.L.",
-			"description": "Coordinator",
-			"telephone": [
-				"+34 717 10 26 03",
-				"+49 711 89 46 70 29"
-			]
-		}
-	],
-	"welcomeSentences": [
-		"Your limitation is only your imagination.",
-		"Great things never come from comfort zones.",
-		"Dream it. Wish it. Do it.",
-		"Success doesn’t just find you. You have to go out and get it.",
-		"The harder you work for something, the greater you’ll feel when you achieve it.",
-		"Dream bigger. Do bigger.",
-		"Don’t stop when you’re tired. Stop when you’re done.",
-		"Wake up with determination. Go to bed with satisfaction.",
-		"Do something today that your future self will thank you for.",
-		"Little things make big days.",
-		"Don’t wait for opportunity. Create it.",
-		"The key to success is to focus on goals, not obstacles.",
-		"Dream it. Believe it. Build it.",
-		"Let's get things done!",
-		"The only constant in software is change",
-		"All code is guilty until proven innocent.",
-		"{Code is Poetry}"
-	],
-	"changelog": [	
-		{
-			"version": "2.8.331",
-			"date": "2024-02-20",
-			"features": [
-				{
-					"title": "Reload option added to reload page in between with step 'Wait \"{timeout}\" seconds for \"{selector}\" to appear and disappear using option \"{option}\"'",
-					"description": "Reload page using options 'reload page after appearing' and 'reload page while waiting to disappear' with step 'Wait \"{timeout}\" seconds for \"{selector}\" to appear and disappear using option \"{option}\"'"
-				}
-			]
-		},	
-		{
-			"version": "2.8.329",
-			"date": "2024-02-15",
-			"features": [
-				{
-					"title": "Stop test data driven tests",
-					"description": "A feature has been implemented to stop data-driven tests. Tests running in data-driven mode can now be halted using the stop button provided alongside the list of data-driven tests."
-				}
-			]
-		},
-		{
-			"version": "2.8.328",
-			"date": "2024-02-14",
-			"bugfixes": [
-				"#4433 - No host specified error fixed"
-			],
-			"features": [
-				{
-					"title": "#4496 Created hover on any option in edit feature",
-					"description": "Display a message when the user hovers over any checkbox in the information section "
-				}
-			]
-		},
-		{
-			"version": "2.8.327",
-			"date": "2024-02-13",
-			"features": [
-				{
-					"title": "Add the list of vulnerable headers from the backend.",
-					"description": "Dependency on code change has been removed to set the vulnerable headers. They can now be updated using the Django admin panel."
-				},
-				{
-					"title": "If there are no execution logs for the feature and the user clicks on the log button, display the message..",
-					"description": "If there are no execution log feature and user clicks on logs button show message \" There are no logs for this feature. Please execute the feature and then review the logs. If you think this is a bug, please let us know. \""
-				}
-			]
-		},
-		{
-			"version": "2.8.326",
-			"date": "2024-02-09",
-			"features": [
-				{
-					"title": "View the total execution time and relative time for each step in the PDF report.",
-					"description": "In the report, both the total feature execution time and relative time can be observed, facilitating a better understanding of the results."
-				}
-            ]
-		},
-		{
-			"version": "2.8.325",
-			"date": "2024-02-08",
-			"bugfixes": [
-				"#4481 - Fixed the results order in the results executions CSV file. Added new column to better understand the steps order."
-			],
-			"features": [
-				{
-					"title": "View the relative time for the Cometa step reports.",
-					"description": "Check the step execution time to understand at which second each step was executed. In case of an error in any step, this will help to correlate the step execution with the recorded video."
-				}
-            ]
-		},
-		{
-            "version": "2.8.324",
-            "date": "2024-02-06",
-            "features": [
-				{
-					"title": "Security feature has been implemented to analyze network responses.",
-					"description": "During the execution of the test, network responses containing vulnerable headers can be analyzed in the report by enabling the Network Logging option in the create feature screen. Additionally, information for all network response headers will be available within the step reports. The report can be analyzed using a JSON viewer."
-				}
-            ]
-        },		
-		{
-			"version": "2.8.223",
-			"date": "2024-02-05",
-			"features": [
-				{
-					"title": "Enhanced Browser Performance Control",
-					"description": "Take charge of your browsing experience! With the latest update, you can now effortlessly boost your performance testing by choosing how many times a browser should run concurrently. Fine-tune your settings for a smoother and more efficient online testing experience."
-				},
-				{
-					"title": "Enhance Installscript",
-					"description": "Installation script will check for disk space and user-level resource limits for processes befor installing cometa"
-				}
-			]
-		},	
-		{
-            "version": "2.8.322",
-            "date": "2024-02-01",
-            "features": [
-				{
-					"title": "New steps implemented to scroll to different elements",
-					"description": "New steps implemented -> u'Scroll to the last position of the desired element identified by \"{xpath}\" with maximum number of scrolls \"{MaxScrolls}\" and maximum time of  \"{MaxTimeOfLife}\" and Scroll to element with \"{selector}\" in lazy loaded table \"{scrollable_element_selector}\""
-				},
-				{
-					"title": "Meta Data Information implementation for steps",
-					"description": "Multiline Meta Data information implementation for actions is implemented, complete text will be avaiable in the help section"
-				}
-            ]
-        },		
-		{
-            "version": "2.8.321",
-            "date": "2024-01-24",
-            "features": [
-				{
-					"title": "New step implemented to appear and disappear loader",
-					"description": "New step implemented -> Wait \"{timeout}\" seconds for \"{selector}\" to appear and disappear using option \"{do not fail if not visible|fail if never visible}\""
-				}
-            ]
+  "version": "2.8.332",
+  "language": "en",
+  "appTitle": "co.meta",
+  "scenario": "dev",
+  "percentMode": false,
+  "delay": 0,
+  "heartbeat": 300000,
+  "disableAnimations": false,
+  "copyright": "COMETA ROCKS S.L.",
+  "license": "MIT",
+  "languageCodes": {
+    "en": "English",
+    "de": "Deutsch",
+    "es": "Spanish"
+  },
+  "sorting": "execution",
+  "reverse": false,
+  "useNewDashboard": true,
+  "co_active_list": "recent",
+  "co_features_pagination": 10,
+  "co_first_time_cometa": true,
+  "openedSidenav": false,
+  "openedSearch": false,
+  "featuresView": {
+    "with": "tiles",
+    "without": "tiles",
+    "folder": "tiles"
+  },
+  "internal": {
+    "openedMenu": false,
+    "showArchived": false
+  },
+  "logWebsockets": false,
+  "pagination": {
+    "pageIndex": 0,
+    "pageSize": 5
+  },
+  "deleteTemplateWithResults": false,
+  "filters": [
+    {
+      "id": "dept",
+      "text": "Department: $1",
+      "text_copy": "Department: $1",
+      "title": "Department",
+      "value": ""
+    },
+    {
+      "id": "test",
+      "text": "Searching for $1",
+      "text_copy": "Searching for $1",
+      "title": "Test Name",
+      "value": ""
+    },
+    {
+      "id": "app",
+      "text": "Application: $1",
+      "text_copy": "Application: $1",
+      "title": "Application",
+      "value": ""
+    },
+    {
+      "id": "env",
+      "text": "Environment: $1",
+      "text_copy": "Environment: $1",
+      "title": "Environment",
+      "value": ""
+    },
+    {
+      "id": "steps",
+      "text": "$1 $2 steps",
+      "text_copy": "$1 $2 steps",
+      "title": "# Steps",
+      "value": null
+    },
+    {
+      "id": "ok",
+      "text": "$1 $2 OK",
+      "text_copy": "$1 $2 OK",
+      "title": "# OKs",
+      "value": null
+    },
+    {
+      "id": "help",
+      "text": "Asking for help",
+      "text_copy": "Asking for help",
+      "title": "Asking for help"
+    }
+  ],
+  "tableHeaders": [
+    { "enable": true, "id": "status", "disable": true },
+    { "enable": true, "id": "date", "disable": true },
+    { "enable": true, "id": "steps", "disable": true },
+    { "enable": true, "id": "ok", "disable": true },
+    { "enable": true, "id": "nok", "disable": true },
+    { "enable": true, "id": "skipped", "disable": true },
+    { "enable": true, "id": "execution_time", "disable": true },
+    { "enable": true, "id": "browser", "disable": true },
+    { "enable": true, "id": "pixel_diff", "disable": true }
+  ],
+  "serverInfo": {},
+  "toggles": {
+    "hideInformation": false,
+    "hideBrowsers": false,
+    "hideSteps": false,
+    "hideSchedule": false,
+    "hideSendMail": false,
+    "hideUploadedFiles": false
+  },
+  "websocketsTimeout": 30000,
+  "flaticon": [
+    {
+      "name": "App",
+      "author": "SimpleIcon",
+      "link": "https://www.flaticon.com/authors/simpleicon"
+    },
+    {
+      "name": "Avatar",
+      "author": "Gregor Cresnar",
+      "link": "https://www.flaticon.com/authors/gregor-cresnar"
+    },
+    {
+      "name": "Check",
+      "author": "Freepik",
+      "link": "https://www.flaticon.com/authors/freepik"
+    },
+    {
+      "name": "Three Buildings",
+      "author": "Freepik",
+      "link": "https://www.flaticon.com/authors/freepik"
+    },
+    {
+      "name": "Edit",
+      "author": "Smashicons",
+      "link": "https://www.flaticon.com/authors/smashicons"
+    },
+    {
+      "name": "Cancel",
+      "author": "Roundicons",
+      "link": "https://www.flaticon.com/authors/roundicons"
+    },
+    {
+      "name": "Filter",
+      "author": "Google",
+      "link": "https://www.flaticon.com/authors/google"
+    },
+    {
+      "name": "Hourglass",
+      "author": "Smashicons",
+      "link": "https://www.flaticon.com/authors/smashicons"
+    },
+    {
+      "name": "Photo Camera",
+      "author": "Daniel Bruce",
+      "link": "https://www.flaticon.com/authors/daniel-bruce"
+    },
+    {
+      "name": "Search",
+      "author": "Smashicons",
+      "link": "https://www.flaticon.com/authors/smashicons"
+    },
+    {
+      "name": "Checked",
+      "author": "Roundicons",
+      "link": "https://www.flaticon.com/authors/roundicons"
+    },
+    {
+      "name": "Tire",
+      "author": "Freepik",
+      "link": "https://www.flaticon.com/authors/freepik"
+    },
+    {
+      "name": "Gregor Cresnar",
+      "author": "Gregor Cresnar",
+      "link": "https://www.flaticon.com/authors/gregor-cresnar"
+    },
+    {
+      "name": "Man User",
+      "author": "Freepik",
+      "link": "https://www.flaticon.com/authors/freepik"
+    },
+    {
+      "name": "Check Symbol",
+      "author": "Google",
+      "link": "https://www.flaticon.com/authors/google"
+    },
+    {
+      "name": "Warning",
+      "author": "Freepik",
+      "link": "https://www.flaticon.com/authors/freepik"
+    },
+    {
+      "name": "Business vector",
+      "author": "vectorjuice",
+      "link": "https://www.freepik.com/vectors/business"
+    },
+    {
+      "name": "People vector",
+      "author": "pch.vector",
+      "link": "https://www.freepik.com/vectors/people"
+    },
+    {
+      "name": "IT Professional",
+      "author": "vectorjuice",
+      "link": "https://www.freepik.com/vectors/business"
+    }
+  ],
+  "contacts": [
+    {
+      "name": "COMETA ROCKS S.L.",
+      "description": "Coordinator",
+      "telephone": ["+34 717 10 26 03", "+49 711 89 46 70 29"]
+    }
+  ],
+  "welcomeSentences": [
+    "Your limitation is only your imagination.",
+    "Great things never come from comfort zones.",
+    "Dream it. Wish it. Do it.",
+    "Success doesn’t just find you. You have to go out and get it.",
+    "The harder you work for something, the greater you’ll feel when you achieve it.",
+    "Dream bigger. Do bigger.",
+    "Don’t stop when you’re tired. Stop when you’re done.",
+    "Wake up with determination. Go to bed with satisfaction.",
+    "Do something today that your future self will thank you for.",
+    "Little things make big days.",
+    "Don’t wait for opportunity. Create it.",
+    "The key to success is to focus on goals, not obstacles.",
+    "Dream it. Believe it. Build it.",
+    "Let's get things done!",
+    "The only constant in software is change",
+    "All code is guilty until proven innocent.",
+    "{Code is Poetry}"
+  ],
+  "changelog": [
+    {
+      "version": "2.8.332",
+      "date": "2024-02-27",
+      "bugfixes": ["#4540 - Fixed scrollable screen in the Admin Manage Account section."]
+    },
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    {
+      "version": "2.8.330",
+      "date": "2024-02-15",
+      "features": [
+        {
+          "title": "Download your data from admin portal",
+          "description": "You can download your dataset from the admin portal. A link with 'Click to download Dataset' is created"
+        }
+      ]
+    },
+    {
+      "version": "2.8.329",
+      "date": "2024-02-15",
+      "features": [
+        {
+          "title": "Stop test data driven tests",
+          "description": "A feature has been implemented to stop data-driven tests. Tests running in data-driven mode can now be halted using the stop button provided alongside the list of data-driven tests."
+        }
+      ]
+    },
+    {
+      "version": "2.8.328",
+      "date": "2024-02-14",
+      "bugfixes": ["#4433 - No host specified error fixed"],
+      "features": [
+        {
+          "title": "#4496 Created hover on any option in edit feature",
+          "description": "Display a message when the user hovers over any checkbox in the information section "
+        }
+      ]
+    },
+    {
+      "version": "2.8.327",
+      "date": "2024-02-13",
+      "features": [
+        {
+          "title": "Add the list of vulnerable headers from the backend.",
+          "description": "Dependency on code change has been removed to set the vulnerable headers. They can now be updated using the Django admin panel."
         },
+        {
+          "title": "If there are no execution logs for the feature and the user clicks on the log button, display the message..",
+          "description": "If there are no execution log feature and user clicks on logs button show message \" There are no logs for this feature. Please execute the feature and then review the logs. If you think this is a bug, please let us know. \""
+        }
+      ]
+    },
+    {
+      "version": "2.8.326",
+      "date": "2024-02-09",
+      "features": [
+        {
+          "title": "View the total execution time and relative time for each step in the PDF report.",
+          "description": "In the report, both the total feature execution time and relative time can be observed, facilitating a better understanding of the results."
+        }
+      ]
+    },
+    {
+      "version": "2.8.325",
+      "date": "2024-02-08",
+      "bugfixes": [
+        "#4481 - Fixed the results order in the results executions CSV file. Added new column to better understand the steps order."
+      ],
+      "features": [
+        {
+          "title": "View the relative time for the Cometa step reports.",
+          "description": "Check the step execution time to understand at which second each step was executed. In case of an error in any step, this will help to correlate the step execution with the recorded video."
+        }
+      ]
+    },
+    {
+      "version": "2.8.324",
+      "date": "2024-02-06",
+      "features": [
+        {
+          "title": "Security feature has been implemented to analyze network responses.",
+          "description": "During the execution of the test, network responses containing vulnerable headers can be analyzed in the report by enabling the Network Logging option in the create feature screen. Additionally, information for all network response headers will be available within the step reports. The report can be analyzed using a JSON viewer."
+        }
+      ]
+    },
+    {
+      "version": "2.8.223",
+      "date": "2024-02-05",
+      "features": [
+        {
+          "title": "Enhanced Browser Performance Control",
+          "description": "Take charge of your browsing experience! With the latest update, you can now effortlessly boost your performance testing by choosing how many times a browser should run concurrently. Fine-tune your settings for a smoother and more efficient online testing experience."
+        },
+        {
+          "title": "Enhance Installscript",
+          "description": "Installation script will check for disk space and user-level resource limits for processes befor installing cometa"
+        }
+      ]
+    },
+    {
+      "version": "2.8.322",
+      "date": "2024-02-01",
+      "features": [
+        {
+          "title": "New steps implemented to scroll to different elements",
+          "description": "New steps implemented -> u'Scroll to the last position of the desired element identified by \"{xpath}\" with maximum number of scrolls \"{MaxScrolls}\" and maximum time of  \"{MaxTimeOfLife}\" and Scroll to element with \"{selector}\" in lazy loaded table \"{scrollable_element_selector}\""
+        },
+        {
+          "title": "Meta Data Information implementation for steps",
+          "description": "Multiline Meta Data information implementation for actions is implemented, complete text will be avaiable in the help section"
+        }
+      ]
+    },
+    {
+      "version": "2.8.321",
+      "date": "2024-01-24",
+      "features": [
+        {
+          "title": "New step implemented to appear and disappear loader",
+          "description": "New step implemented -> Wait \"{timeout}\" seconds for \"{selector}\" to appear and disappear using option \"{do not fail if not visible|fail if never visible}\""
+        }
+      ]
+    },
 
-		{
-            "version": "2.8.320",
-            "date": "2024-01-17",
-            "features": [
-				{
-					"title": "Downloading multiple files within a feature. Issue fixed",
-					"description": "Download multiple files within the feature. Only the file downloaded with the step will be attached to the step report."
-				},
-				{
-					"title": "Delete the downloaded files using the step.",
-					"description": "Files can be deleted while executing the feature. Use regular expression to select files with the step 'Delete files matching \"{pattern}\" from the local download folder.'"
-				}
-            ]
-        },
-		{
-            "version": "2.8.319",
-            "date": "2023-11-30",
-            "features": [
-				{
-					"title": "Browser Logs in feature results",
-					"description": "Console Logs can now be viewed using 'Fetch Console.log from Browser and attach it to the feature result' step."
-				},
-				{
-					"title": "Page Source in feature results",
-					"description": "Page source can now be viewed using 'Fetch HTML Source of current Browser page and attach it to the feature result' step." 
-				}
-            ]
-        },
-		{
-            "version": "2.8.318",
-            "date": "2023-11-28",
-            "features": [
-				{
-					"title": "REST API Testing",
-					"description": "REST API Testing is now possible in Co.meta! Please use API steps in your features."
-				},
-				{
-					"title": "Parsed description in feature results",
-					"description": "Parsing feature description to fesults view, variables used in feature description will be parsed before the execution."
-				}
-            ]
-        },
-		{
-            "version": "2.8.317",
-            "date": "2023-11-22",
-            "features": [
-                {
-					"title": "Main V2 as Default Dashboard",
-					"description": "Defaulting to new dashboard, old view has been moved to the sidebar menu."
-				}
-            ]
+    {
+      "version": "2.8.320",
+      "date": "2024-01-17",
+      "features": [
+        {
+          "title": "Downloading multiple files within a feature. Issue fixed",
+          "description": "Download multiple files within the feature. Only the file downloaded with the step will be attached to the step report."
         },
         {
-            "version": "2.8.316",
-            "date": "2023-10-20",
-            "features": [
-                {
-					"title": "Data Driven Test",
-					"description": "Data Driven Test has been implemented and is now visiable on the left sidebar as \"Data Driven\"."
-				}
-            ]
+          "title": "Delete the downloaded files using the step.",
+          "description": "Files can be deleted while executing the feature. Use regular expression to select files with the step 'Delete files matching \"{pattern}\" from the local download folder.'"
+        }
+      ]
+    },
+    {
+      "version": "2.8.319",
+      "date": "2023-11-30",
+      "features": [
+        {
+          "title": "Browser Logs in feature results",
+          "description": "Console Logs can now be viewed using 'Fetch Console.log from Browser and attach it to the feature result' step."
         },
-		{
-			"version": "2.8.315",
-			"date": "2023-10-17",
-            "features": [
-                {
-					"title": "New step to highlight elements in screenshot",
-					"description": "Highlight element with \"{selector}\", will highlight with an outline the element found with selector, which will be displayed in the screenshot."
-				}
-            ],
-			"bugfixes": [
-				"Feature id repeated twice in tree view."
-			]
-		},
-		{
-			"version": "2.8.314",
-			"date": "2023-07-19",
-			"bugfixes": [
-				"Feature results are deleted after feature execution has been fixed."
-			]
-		},
         {
-			"version": "2.8.313",
-			"date": "2023-07-05",
-			"bugfixes": [
-				"Fixed if uploaded file after decryption was not removed it threw an error on the next executions.",
-                "Feature results are not removed if feature run is removed, feature runs are no longer in use.",
-                "Added logging to gunicorn process."
-			]
-		},
-		{
-			"version": "2.8.312",
-			"date": "2023-07-04",
-			"bugfixes": [
-				"Fixed max step timeout value from 1000s to 7200s.",
-                "Now showing warning when step timeout is invalid."
-			]
-		},
+          "title": "Page Source in feature results",
+          "description": "Page source can now be viewed using 'Fetch HTML Source of current Browser page and attach it to the feature result' step."
+        }
+      ]
+    },
+    {
+      "version": "2.8.318",
+      "date": "2023-11-28",
+      "features": [
         {
-			"version": "2.8.311",
-			"date": "2023-06-30",
-			"bugfixes": [
-				"Updated the logic for the 'I cannot see element' step."
-			]
-		},
-		{
-			"version": "2.8.310",
-			"date": "2023-06-28",
-			"features": [
-				{
-					"title": "New Step: Double Click",
-					"description": "Double click on elements is now possible!"
-				}
-			]
-		},
-		{
-			"version": "2.8.309",
-			"date": "2023-06-26",
-			"bugfixes": [
-				"Department variables were not being picked up."
-			] 
-		},
-		{
-			"version": "2.8.308",
-			"date": "2023-06-21",
-			"bugfixes": [
-				"Added link to public github documentation in help section."
-			] 
-		},
-		{
-			"version": "2.8.307",
-			"date": "2023-06-07",
-			"bugfixes": [
-				"When uploading a file the filename should be the same as the file saved in the Upload tab."
-			]
-		},
-		{
-			"version": "2.8.306",
-			"date": "2023-05-31",
-			"features": [
-				{
-					"title": "New Step: Custom Error Message",
-					"description": "Set custom error messages that will show up on the live preview, step view as well as in PDF report."
-				}
-			]
-		},
-		{
-			"version": "2.8.305",
-			"date": "2023-05-24",
-			"features": [
-				{
-					"title": "Screenshot open on pixel difference click.",
-					"description": "Clicking on the pixel difference will open up the pixel difference screenshot in the step view."
-				},
-				{
-					"title": "Return to Main view",
-					"description": "Added 'Return to Main view' in feature result view."
-				}
-			]
-		},
-		{
-			"version": "2.8.304",
-			"date": "2023-05-23",
-			"bugfixes": [
-				"Updated translations for 'Integrations' field."
-			]
-		},
-		{
-			"version": "2.8.303",
-			"date": "2023-05-22",
-			"features": [
-				{
-					"title": "Screenshot icon on step view.",
-					"description": "Screenshot icon has been added next to the pixel difference in step view."
-				}
-			]
-		},
-		{
-			"version": "2.8.302",
-			"date": "2023-05-19",
-			"bugfixes": [
-				"Adding feature id as prefix to the feature name in tree view.",
-				"Feature icon will be set to gray color if feature is checked with depends on other features."
-			]
-		},
-		{
-			"version": "2.8.301",
-			"date": "2023-05-18",
-			"features": [
-				{
-					"title": "Screenshot of failed step.",
-					"description": "Screenshot will be taken on failed steps even though checkbox is not marked."
-				}
-			],
-			"bugfixes": [
-				"Browser does not stop if time limit is exceeded while loading the page.",
-				"Changed the max timout value in front from 1000s to 7200s (2 hours)."
-			]
-		},
-		{
-			"version": "2.8.300",
-			"date": "2023-05-04",
-			"features": [
-				{
-					"title": "Undefined Steps",
-					"description": "Undefined steps now throw an error in Live Preview."
-				},
-                {
-                    "title": "Step Timeouts",
-                    "description": "Test Managers now can update step timeouts of a department in batch."
-                }
-			]
-		},
+          "title": "REST API Testing",
+          "description": "REST API Testing is now possible in Co.meta! Please use API steps in your features."
+        },
         {
-			"version": "2.8.299",
-			"date": "2023-05-02",
-			"features": [
-				{
-					"title": "Welcome tour",
-					"description": "Fixed - welcome tour presentation didn't stop on ESC key press"
-				}
-			]
-		},
-		{
-			"version": "2.8.298",
-			"date": "2023-05-02",
-			"features": [
-				{
-					"title": "Default feature step",
-					"description": "From now on, whenever user creates new feature, default step - 'StartBrowser and call URL {url}' will be automatically inserted into it's steps."
-				}
-			]
-		},
-		{
-			"version": "2.8.297",
-			"date": "2023-04-28",
-			"features": [
-				{
-					"title": "Variable creation",
-					"description": "Users can now create variable even if feature creation is not finished, but in this case variable can only be based on department or environment."
-				}
-			]
-		},
-		{
-			"version": "2.8.296",
-			"date": "2023-04-28",
-			"features": [
-				{
-					"title": "Folder tree",
-					"description": "Fixed - Folder tree hierarchy layout is broken if name is too long."
-				}
-			]
-		},
-		{
-			"version": "2.8.295",
-			"date": "2023-04-19",
-			"features": [
-				{
-					"title": "Variable table column selection",
-					"description": "Users can now choose which columns must be displayed in variables table"
-				}
-			]
-		},
-		{
-			"version": "2.8.294",
-			"date": "2023-04-19",
-			"features": [
-				{
-					"title": "Variable insertion into new feature",
-					"description": "User can no make use of variable insertion even when currently edit feature is still not created"
-				}
-			]
-		},
-		{
-			"version": "2.8.293",
-			"date": "2023-04-19",
-			"features": [
-				{
-					"title": "Variable replacement",
-					"description": "User can now insert variable into step by clicking on desired variable in flyout, or alternatively by pressing enter on selected variable"
-				}
-			]
-		},
-		{
-			"version": "2.8.292",
-			"date": "2023-04-13",
-			"features": [
-				{
-					"title": "Variable filter popup",
-					"description": "User can now make use of live variable filter popup to accurately insert variable names in steps. Popup will appear once user replaces '{anything}' with '$'"
-				}
-			]
-		},
-		{
-			"version": "2.8.291",
-			"date": "2023-04-12",
-			"features": [
-				{
-					"title": "New step: I cannot see",
-					"description": "With this new step we can easily assert negative assumptions. So, not seeing a given selector is positive. For examaple, use this for testing the absence of elements when checking on access-rights."
-				}
-			]
-		},
-		{
-			"version": "2.8.290",
-			"date": "2023-03-12",
-			"features": [
-				{
-					"title": "Preselect Feature Options",
-					"description": "You can preselect feature options such as department, application, environment and record video when ever creating new features. These options can be changed in User settings."
-				},
-				{
-					"title": "New step: I cannot see",
-					"description": "With this new step we can easily assert negative assumptions. So, not seeing a given selector is positiv. For exmaple, use this for testing the absense of elements when checking on access-rights."
-				}
-			],
-			"bugfixes": [
-				"Typo fix from the step context menu."
-			]
-		},
-		{
-			"version": "2.8.289",
-			"date": "2023-03-10",
-			"features": [
-				{
-					"title": "Upload Files",
-					"description": "You can now upload files to co.meta and use these files in upload file steps."
-				},
-				{
-					"title": "Added step: Open {excelfile} and compare the number of rows in the {column} column, starting from row {starting_row}, to ensure that there are {total_rows} rows with option {option}",
-					"description": "Assert the number of rows to match the number of rows specified, possible options are: do not count empty cells or include empty cells."
-				},
-				{
-					"title": "Javascript function return variable",
-					"description": "If the Javascript function step has a return value, this value can now be used in co.meta using '%js_return' parameter."
-				}
-			],
-			"bugfixes": [
-				"#3931 - Fixed sub-folders were not being created inside the selected folder."
-			]
-		},
-		{
-			"version": "2.8.288",
-			"date": "2022-12-17",
-			"features": [
-				{
-					"title": "Added step: Add a timestamp to the {prefix} and save it to {variable_name}",
-					"description": "Adds timestamp to the prefix specified so the string becomes unique."
-				},
-				{
-					"title": "Added step: Create a string of random {x} numbers and save to {variable_name}",
-					"description": "Create a string of x random numbers."
-				}
-			],
-			"bugfixes": [
-				"#3828 - Fixed height issues when showing paginated rows.",
-				"#3828 - Fixed 'View Logs' button not working.",
-				"#3826 - Test list step now generated a CSV file even thought selector was empty or not found.",
-				"#3826 - Fixed Test list step to show correctly the values when using partial as option."
-			]
-		},{
-			"version": "2.8.287",
-			"date": "2022-07-25",
-			"features": [
-				{
-					"title": "Updated step: Edit {file} and set {value} to {cell}",
-					"description": "Updated edit excel step to now edit csv files as well. Supported extensions are: XLSX, XLS & CSV. CSV only supports UTF-8."
-				}
-			]
-		},
-		{
-			"version": "2.8.286",
-			"date": "2022-07-12",
-			"features": [
-				{
-					"title": "New step: Attach {filename} from Downloads folder to current execution results",
-					"description": "Added a new step to attach files to the execution results fo later investigation. Please read the documentation for more details. https://github.com/cometa-rocks/cometa_documentation/blob/main/cometa_actions.md"
-				}
-			]
-		},
-		{
-			"version": "2.8.285",
-			"date": "2022-07-09",
-			"bugfixes": [
-				"Fixed upload of multiple files by separating files with semicolon."
-			]
-		},
-		{
-			"version": "2.8.284",
-			"date": "2022-07-08",
-			"features": [
-				{
-					"title": "New steps: Open Excel and assert, Open Excel and set environment variable to value from cell",
-					"description": "Added new step to updated an excel file. Please read the documentation for more details. https://github.com/cometa-rocks/cometa_documentation/blob/main/cometa_actions.md"
-				}
-			]
-		},
-		{
-			"version": "2.8.283",
-			"date": "2022-06-22",
-			"features": [
-				{
-					"title": "New steps: Edit Excel Files",
-					"description": "Added new step to updated an excel file. Please read the documentation for more details."
-				}
-			]
-		},
-		{
-			"version": "2.8.282",
-			"date": "2022-05-10",
-			"features": [
-				{
-					"title": "New steps: Download a file + Upload a File",
-					"description": "Added exiting new steps to upload and download files. Please read the documentation for more details."
-				}
-			]
-		},
-		{
-			"version": "2.8.281",
-			"date": "2022-05-10",
-			"features": [
-				{
-					"title": "Multiple http request",
-					"description": "Fixed step edit component realizing multiple http requests when it has another feature dependency step"
-				}
-			]
-		},
-		{
-			"version": "2.8.280",
-			"date": "2022-05-09",
-			"features": [
-				{
-					"title": "Folder tree",
-					"description": "Fixed folder tree's unpersistent behaviour"
-				}
-			]
-		},
-		{
-			"version": "2.8.279",
-			"date": "2022-03-22",
-			"features": [
-				{
-					"title": "Sidebar",
-					"description": "New Animation for MAIN V.2 landing sidebar navigation"
-				}
-			]
-		},
-		{
-			"version": "2.8.278",
-			"date": "2022-03-21",
-			"bugfixes": [
-				"#3426 - Fixed chart diagram is displayed from the starting from first feature result, now it will be displayed when there are at least 10"
-			]
-		},
-		{
-			"version": "2.8.277",
-			"date": "2022-03-20",
-			"bugfixes": [
-				"#3449 - Fixed default settings in user panel are not persistent"
-			]
-		},
-		{
-			"version": "2.8.276",
-			"date": "2022-03-19",
-			"bugfixes": [
-				"#3461 - Fixed searchbar doesnt close when searching via click on search icon."
-			]
-		},
-		{
-			"version": "2.8.275",
-			"date": "2022-03-18",
-			"bugfixes": [
-				"#3470 - Fixed When new dashboard in is deactivated, a click on every folder tree item apart from departments and its content, redirects to /search.",
-				"#3470 - Fixed browser bookmarks not working if the last click before closing the app was performed on home, recent, starred, trash bin or team drives."
-			]
-		},
-		{
-			"version": "2.8.274",
-			"date": "2022-03-17",
-			"bugfixes": [
-				"#3467 - Fixed department id not updating when moving feature from department to another department's folder.",
-				"#3467 - Fixed when moving feature from folder to another, it is not moved but copied(creates duplicate)",
-				"#3467 - Fixed when moving feature from folder to department, action is not realized"
-			]
-		},
-		{
-			"version": "2.8.273",
-			"date": "2022-03-16",
-			"features": [
-				{
-					"title": "Department users",
-					"description": "Users with permissions to view the department panel are now able to view users inside each departments."
-				}
-			]
-		},
-		{
-			"version": "2.8.272",
-			"date": "2021-03-04",
-			"bugfixes": [
-				"#xxxx - New step 'Search for \"{something}\" in IBM Cognos and click on first result'"
-			]
-		},
-		{
-			"version": "2.8.271",
-			"date": "2021-03-01",
-			"bugfixes": [
-				"#xxxx - New step for hit OK button on popup message like alert, cofirm or prompt window."
-			]
-		},
-		{
-			"version": "2.8.270",
-			"date": "2021-12-27",
-			"bugfixes": [
-				"#3346 - Added Type column to sort maintain the old view of folders on top then features and finally feature that depend on others.",
-				"#3343 - Fixed where in new landing sorted table is reset after page reload.",
-				"#3343 - Fixed where in new landing moved/hidden columns are reset after page reload.",
-				"#3343 - Fixed where after executing a feature, folder with the same id as feature will show running state on status column."
-			]
-		},
-		{
-			"version": "2.8.269",
-			"date": "2021-11-08",
-			"features": [
-				{
-					"title": "Live Preview",
-					"description": "Live preview has been added to co.meta! To view live your testcases click on TV icon next to Browser name on live step view."
-				}
-			]
-		},
-		{
-			"version": "2.8.268",
-			"date": "2021-11-03",
-			"bugfixes": [
-				"#3207 - Improved download files step to work with all browsers currently working in Edge, Chrome and Opera.",
-				"#3209 - Removed timeout logic from sleep steps and disabled timeout field in front in case sleep step is selected."
-			]
-		},
-		{
-			"version": "2.8.267",
-			"date": "2021-10-15",
-			"bugfixes": [
-				"#2790 - Optimized folders request and features request."
-			]
-		},
-		{
-			"version": "2.8.266",
-			"date": "2021-09-07",
-			"bugfixes": [
-				"#3007 - Prevent front from saving schedules with bad formatting"
-			]
-		},
-		{
-			"version": "2.8.265",
-			"date": "2021-08-25",
-			"bugfixes": [
-				"#2989 - Fix pricing page styles"
-			]
-		},
-		{
-			"version": "2.8.264",
-			"date": "2021-08-25",
-			"bugfixes": [
-				"#3122 - Fix error in Live Steps Viewer when a run result doesn't have a previous status value"
-			]
-		},
-		{
-			"version": "2.8.263",
-			"date": "2021-08-24",
-			"bugfixes": [
-				"#3122 - Added persistent storage for WebSocket messages",
-				"#3122 - Use WebSocket server to retrieve feature running status instead of Store",
-				"#3122 - Retrieve all previous WebSocket messages when openning Live Steps Viewer for an already running feature"
-			]
-		},
-		{
-			"version": "2.8.262",
-			"date": "2021-08-06",
-			"bugfixes": [
-				"#2989 - Add invoices section in user page with Usages and links to Stripe Invoices"
-			]
-		},
-		{
-			"version": "2.8.261",
-			"date": "2021-08-06",
-			"bugfixes": [
-				"#2961 - Sort environment variables"
-			]
-		},
-		{
-			"version": "2.8.260",
-			"date": "2021-08-05",
-			"bugfixes": [
-				"#3159 - Add confirm dialog for running feature when budget is about to exceed"
-			]
-		},
-		{
-			"version": "2.8.259",
-			"date": "2021-08-02",
-			"features": [
-				{
-					"title": "Move and modify folders",
-					"description": "We have added some improvements on folder, you can now see to which department a folder belongs to, modify it and move a folder inside other folders."
-				}
-			]
-		},
-		{
-			"version": "2.8.258",
-			"date": "2021-07-27",
-			"bugfixes": [
-				"#3139 - Improved code to detect changed in Edit Feature"
-			]
-		},
-		{
-			"version": "2.8.257",
-			"date": "2021-07-27",
-			"bugfixes": [
-				"#3138 - Hide footer and move technnical content to About page"
-			]
-		},
-		{
-			"version": "2.8.256",
-			"date": "2021-07-26",
-			"bugfixes": [
-				"#3135 - Add Easter Egg"
-			]
-		},
-		{
-			"version": "2.8.255",
-			"date": "2021-07-26",
-			"bugfixes": [
-				"#2989 - Add customer portal link in User Page"
-			]
-		},
-		{
-			"version": "2.8.254",
-			"date": "2021-07-23",
-			"bugfixes": [
-				"#3009 - Fix show running status even when front misses StartedFeature WebSocket",
-				"#3009 - Show running status in Main View"
-			]
-		},
-		{
-			"version": "2.8.253",
-			"date": "2021-07-21",
-			"bugfixes": [
-				"#3080 - Switch for official Angular Highcharts plugin for better tree-shaking"
-			]
-		},
-		{
-			"version": "2.8.252",
-			"date": "2021-07-16",
-			"bugfixes": [
-				"#3122 - Fix Live Steps timer and added resizable popup"
-			]
-		},
-		{
-			"version": "2.8.251",
-			"date": "2021-07-14",
-			"bugfixes": [
-				"#2802 - Add expire results option in Admin Departments"
-			]
-		},
-		{
-			"version": "2.8.250",
-			"date": "2021-07-08",
-			"bugfixes": [
-				"#3046 - Moved saved results switcher to results header"
-			]
-		},
-		{
-			"version": "2.8.249",
-			"date": "2021-07-08",
-			"bugfixes": [
-				"#3046 - Fix focusing on step after adding step above or below"
-			]
-		},
-		{
-			"version": "2.8.248",
-			"date": "2021-07-08",
-			"bugfixes": [
-				"#3099 - Add favicons deploy and icons for each server"
-			]
-		},
-		{
-			"version": "2.8.247",
-			"date": "2021-07-06",
-			"bugfixes": [
-				"#3046 - Fix Session Expired popup after Logout",
-				"#3046 - Fix filter popup on mobile devices"
-			]
-		},
-		{
-			"version": "2.8.246",
-			"date": "2021-07-06",
-			"bugfixes": [
-				"#3004 - Improve Live Steps scroll by using step index instead of running step"
-			]
-		},
-		{
-			"version": "2.8.245",
-			"date": "2021-07-06",
-			"bugfixes": [
-				"#3096 - Filter folders by department filter",
-				"#3095 - Fix paginated results persisting after empty feature results"
-			]
-		},
-		{
-			"version": "2.8.244",
-			"date": "2021-07-05",
-			"bugfixes": [
-				"#3046 - Avoid scrolling when feature run ends"
-			]
-		},
-		{
-			"version": "2.8.243",
-			"date": "2021-07-01",
-			"features": [
-				{
-					"title": "Test duration",
-					"description": "We have added a duration timer in the Live Steps viewer."
-				}
-			]
-		},
-		{
-			"version": "2.8.242",
-			"date": "2021-07-01",
-			"bugfixes": [
-				"#3046 - Improve performance of showing feature results by reducing logic and moving totals calculation to backend"
-			]
-		},
-		{
-			"version": "2.8.241",
-			"date": "2021-06-30",
-			"bugfixes": [
-				"#3046 - Improve performance of showing feature results"
-			]
-		},
-		{
-			"version": "2.8.240",
-			"date": "2021-06-29",
-			"bugfixes": [
-				"#3046 - Fix auto scroll not working correctly",
-				"#3046 - Replace SubSinkAdapter with @ngneat/until-destroy"
-			]
-		},
-		{
-			"version": "2.8.239",
-			"date": "2021-06-21",
-			"bugfixes": [
-				"#3007 - Correctly set schedule fields on Edit Feature"
-			]
-		},
-		{
-			"version": "2.8.238",
-			"date": "2021-06-21",
-			"bugfixes": [
-				"#2961 - Sort all mat-select element lists",
-				"#3007 - Fix Sentry error when trying to parse video response"
-			]
-		},
-		{
-			"version": "2.8.237",
-			"date": "2021-06-19",
-			"bugfixes": [
-				"#3046 - Improve mobile experience"
-			]
-		},
-		{
-			"version": "2.8.236",
-			"date": "2021-06-17",
-			"bugfixes": [
-				"#3038 - Change mobile emulated browsers also for Live Steps"
-			]
-		},
-		{
-			"version": "2.8.235",
-			"date": "2021-06-14",
-			"bugfixes": [
-				"#2929 - Improve DOM Diff regex parser",
-				"#2929 - Don't open DOM Diff dialog if response is invalid"
-			]
-		},
-		{
-			"version": "2.8.234",
-			"date": "2021-06-14",
-			"bugfixes": [
-				"#3046 - Fix invite user broken by upgraded dependencies"
-			]
-		},
-		{
-			"version": "2.8.233",
-			"date": "2021-06-11",
-			"bugfixes": [
-				"#3046 - Add edit schedule in Edit Feature"
-			]
-		},
-		{
-			"version": "2.8.232",
-			"date": "2021-06-10",
-			"bugfixes": [
-				"#3046 - Fix long texts in Step View",
-				"#3046 - Show download button icon in dropdown for mobile users in Main View"
-			]
-		},
-		{
-			"version": "2.8.231",
-			"date": "2021-06-10",
-			"bugfixes": [
-				"#3060 - Add Live Step sub information"
-			]
-		},
-		{
-			"version": "2.8.229",
-			"date": "2021-06-08",
-			"bugfixes": [
-				"#3038 - Adapt front for emulated mobile browsers"
-			]
-		},
-		{
-			"version": "2.8.228",
-			"date": "2021-06-07",
-			"bugfixes": [
-				"#3046 - Add auto selection of step parameters"
-			]
-		},
-		{
-			"version": "2.8.227",
-			"date": "2021-06-07",
-			"bugfixes": [
-				"#3056 - Change chart so each serie has the maximum value of the same serie"
-			]
-		},
-		{
-			"version": "2.8.226",
-			"date": "2021-06-01",
-			"bugfixes": [
-				"#3046 - Add option to delete favourited browsers with right click"
-			]
-		},
-		{
-			"version": "2.8.225",
-			"date": "2021-05-25",
-			"bugfixes": [
-				"#3048 - Reset search pagination index after folder route change"
-			]
-		},
-		{
-			"version": "2.8.224",
-			"date": "2021-05-25",
-			"bugfixes": [
-				"#3046 - Various bugfixes and experience improvements"
-			]
-		},
-		{
-			"version": "2.8.223",
-			"date": "2021-05-21",
-			"bugfixes": [
-				"#3043 - Implement feedback mail in logout page coming from oidcaccount"
-			]
-		},
-		{
-			"version": "2.8.222",
-			"date": "2021-05-13",
-			"features": [
-				{
-					"title": "Payments",
-					"description": "We have added a subscription based system. For the moment it is deactivated in Prod environments."
-				}
-			]
-		},
-		{
-			"version": "2.8.221",
-			"date": "2021-05-10",
-			"bugfixes": [
-				"#3033 - Improve main view table layout in mobile"
-			]
-		},
-		{
-			"version": "2.8.220",
-			"date": "2021-05-06",
-			"bugfixes": [
-				"#3014 - Reload folders after clonning feature",
-				"#3037 - Fix pagination issue not preserving page size"
-			]
-		},
-		{
-			"version": "2.8.219",
-			"date": "2021-05-04",
-			"bugfixes": [
-				"#3014 - Adapt new images system",
-				"#3036 - Fix browserstack videos not fetching after api change"
-			]
-		},
-		{
-			"version": "2.8.218",
-			"date": "2021-05-03",
-			"bugfixes": [
-				"#3032 - Fix changing feature id through URL not triggering feature info to update"
-			]
-		},
-		{
-			"version": "2.8.217",
-			"date": "2021-05-03",
-			"bugfixes": [
-				"#3031 - Fix browser icons in List View",
-				"#3033 - Fix broken Detail View in Mobile"
-			]
-		},
-		{
-			"version": "2.8.216",
-			"date": "2021-04-30",
-			"bugfixes": [
-				"#2961 - Sort Edit Feature selectors alphabetically"
-			]
-		},
-		{
-			"version": "2.8.215",
-			"date": "2021-04-23",
-			"bugfixes": [
-				"#3001 - Fix feature run and feature result status not showing accordingly to backend",
-				"#3002 - Feature tiles view - hide steps information if not available",
-				"#3003 - Adjust seconds margins in detail view",
-				"#3016 - Preserve opened state of feature runs in Main View"
-			]
-		},
-		{
-			"version": "2.8.214",
-			"date": "2021-04-22",
-			"bugfixes": [
-				"#3007 - Solved some Sentry errors"
-			]
-		},
-		{
-			"version": "2.8.213",
-			"date": "2021-04-22",
-			"bugfixes": [
-				"#3004 - Fix AutoScroll always activated on Live Steps"
-			]
-		},
-		{
-			"version": "2.8.212",
-			"date": "2021-04-20",
-			"bugfixes": [
-				"#3005 - Improve browser text with device information"
-			]
-		},
-		{
-			"version": "2.8.211",
-			"date": "2021-04-16",
-			"bugfixes": [
-				"#2996 - Fix parallel execution of browsers causing file collision errors"
-			]
-		},
-		{
-			"version": "2.8.210",
-			"date": "2021-04-06",
-			"bugfixes": [
-				"#2920 - Add easter egg"
-			]
-		},
-		{
-			"version": "2.8.209",
-			"date": "2021-03-26",
-			"features": [
-				{
-					"title": "Webhooks",
-					"description": "You can now add, update and delete webhooks to use for your departments and your team."
-				}
-			]
-		},
-		{
-			"version": "2.8.208",
-			"date": "2021-03-25",
-			"bugfixes": [
-				"#2889 - Add an 'Are you sure' dialog before resting decrypted variable value",
-				"#2889 - Reset variable value when trying to decrypt a variable"
-			]
-		},
-		{
-			"version": "2.8.207",
-			"date": "2021-03-24",
-			"features": [
-				{
-					"title": "Department owners",
-					"description": "You can now be assigned as a department owner, therefore gaining access to manage the environments and accounts of the departments you own."
-				}
-			]
-		},
-		{
-			"version": "2.8.206",
-			"date": "2021-03-22",
-			"features": [
-				{
-					"title": "HTML Compare",
-					"description": "You can now see changes in the HTML page code for each step result, this comparison is also controlled by the Screenshot and Compare checkboxes and can be seen by clicking on the <icon>code</icon> icon in the right side of step results list."
-				}
-			]
-		},
-		{
-			"version": "2.8.205",
-			"date": "2021-03-19",
-			"bugfixes": [
-				"#2977 - Update front use patch feature and cleanup api service code"
-			]
-		},
-		{
-			"version": "2.8.204",
-			"date": "2021-03-17",
-			"bugfixes": [
-				"#2759 - Move corresponding logic from FeatureFinished websocket to FeatureRunCompleted"
-			]
-		},
-		{
-			"version": "2.8.203",
-			"date": "2021-03-17",
-			"features": [
-				{
-					"title": "Last edited sorting",
-					"description": "You can now sort feature in the Search View by their last edition."
-				}
-			]
-		},
-		{
-			"version": "2.8.202",
-			"date": "2021-03-16",
-			"features": [
-				{
-					"title": "Custom timeout",
-					"description": "You can now type the desired timeout for each step definition instead of the default 60 seconds. This option is provided inside the <icon>more_vert</icon> menu of the step editor."
-				}
-			]
-		},
-		{
-			"version": "2.8.201",
-			"date": "2021-03-16",
-			"bugfixes": [
-				"#2969 - Fix browserstack browser not being available"
-			]
-		},
-		{
-			"version": "2.8.200",
-			"date": "2021-03-15",
-			"bugfixes": [
-				"#2928 - Add parsing support for UTC dates"
-			]
-		},
-		{
-			"version": "2.8.199",
-			"date": "2021-03-12",
-			"bugfixes": [
-				"#2886 - Handle explicit redirection on front"
-			]
-		},
-		{
-			"version": "2.8.198",
-			"date": "2021-03-12",
-			"bugfixes": [
-				"#2964 - Add loading spinner for rechecking if result video is available",
-				"#2964 - Improve video player layout and design"
-			]
-		},
-		{
-			"version": "2.8.197",
-			"date": "2021-03-11",
-			"bugfixes": [
-				"Improve Main View and Step View layout and styles"
-			]
-		},
-		{
-			"version": "2.8.196",
-			"date": "2021-03-11",
-			"bugfixes": [
-				"#2945 - Show subfeature name in step results and add click to edit feature"
-			]
-		},
-		{
-			"version": "2.8.194",
-			"date": "2021-03-10",
-			"bugfixes": [
-				"#2961 - Sort various list items alphabetically",
-				"Change log state hotkey"
-			]
-		},
-		{
-			"version": "2.8.193",
-			"date": "2021-03-10",
-			"bugfixes": [
-				"#2948 - Fix minor bugs caused by Network Paginated lists",
-				"Cleanup not used states and code"
-			]
-		},
-		{
-			"version": "2.8.192",
-			"date": "2021-03-10",
-			"bugfixes": [
-				"#2958 - Fix Auto scroll checkbox on Live Steps not working correctly",
-				"Improve Live Steps performance and layout"
-			]
-		},
-		{
-			"version": "2.8.191",
-			"date": "2021-03-09",
-			"bugfixes": [
-				"#2953 - Save selected page size in localStorage for network paginated lists"
-			]
-		},
-		{
-			"version": "2.8.190",
-			"date": "2021-03-09",
-			"bugfixes": [
-				"#2952 - Add Latest browser version option",
-				"Improve List view layout",
-				"Minor bugfixes"
-			]
-		},
-		{
-			"version": "2.8.189",
-			"date": "2021-03-08",
-			"bugfixes": [
-				"#2946 - Add spinner for clicking run feature"
-			]
-		},
-		{
-			"version": "2.8.188",
-			"date": "2021-03-08",
-			"bugfixes": [
-				"#2951 - Fix clear run history not working due to paginated view"
-			]
-		},
-		{
-			"version": "2.8.187",
-			"date": "2021-03-05",
-			"bugfixes": [
-				"#2946 - Add spinner on Edit Feature Saving/Creating and Deleting feature"
-			]
-		},
-		{
-			"version": "2.8.186",
-			"date": "2021-03-05",
-			"bugfixes": [
-				"#2948 - Implement paginated list in Main View and Admin -> Accounts"
-			]
-		},
-		{
-			"version": "2.8.185",
-			"date": "2021-03-04",
-			"features": [
-				{
-					"title": "Email template variables",
-					"description": "You can now use variables in your email templates, those variables expose information about the feature and the result.<br>Please click on the <icon>help_outline</icon> icon inside the Email Template section for more information."
-				}
-			]
-		},
-		{
-			"version": "2.8.184",
-			"date": "2021-03-02",
-			"features": [
-				{
-					"title": "List view",
-					"description": "We have added a new List view to the main page, this new view is important for those who want a clean view with clear information."
-				}
-			]
-		},
-		{
-			"version": "2.8.183",
-			"date": "2021-02-25",
-			"features": [
-				{
-					"title": "Send invites",
-					"description": "You can now invite other people to co.meta in the department you choose. This option is available in your User Page."
-				}
-			]
-		},
-		{
-			"version": "2.8.182",
-			"date": "2021-02-25",
-			"bugfixes": [
-				"#2889 - Improve Edit environment variables dialog and tooltips"
-			]
-		},
-		{
-			"version": "2.8.181",
-			"date": "2021-02-24",
-			"bugfixes": [
-				"#2918 - Add pagination for Search View items",
-				"Fix translations not working correctly",
-				"#2823 - Adapt front to have department folders"
-			]
-		},
-		{
-			"version": "2.8.180",
-			"date": "2021-02-23",
-			"bugfixes": [
-				"#2730 - Fix various issues related to Live Steps"
-			]
-		},
-		{
-			"version": "2.8.179",
-			"date": "2021-02-23",
-			"bugfixes": [
-				"#2797 - Use HTML instead of plain text in Help > Actions"
-			]
-		},
-		{
-			"version": "2.8.178",
-			"date": "2021-02-22",
-			"bugfixes": [
-				"#2811 - Hide 'Can Help' switch in User page if user is only in Default department"
-			]
-		},
-		{
-			"version": "2.8.177",
-			"date": "2021-02-18",
-			"bugfixes": [
-				"#2923 - Fix adding email to SendMail with native autocomplete"
-			]
-		},
-		{
-			"version": "2.8.176",
-			"date": "2021-02-17",
-			"bugfixes": [
-				"#2873 - Add checkbox for optionally delete templates with Clear runs"
-			]
-		},
-		{
-			"version": "2.8.175",
-			"date": "2021-02-16",
-			"bugfixes": [
-				"#2816 - Align 3-dot icons in Result View when customizing headers"
-			]
-		},
-		{
-			"version": "2.8.174",
-			"date": "2021-02-15",
-			"bugfixes": [
-				"#2816 - Fix dynamic table fields shrinking incorrectly",
-				"#2816 - Fix read only properties error when changing table headers",
-				"#2911 - Fix related features sectionning in Search Page"
-			]
-		},
-		{
-			"version": "2.8.173",
-			"date": "2021-02-12",
-			"bugfixes": [
-				"#2890 - Automatically move feature to folder when creating or clonning"
-			]
-		},
-		{
-			"version": "2.8.172",
-			"date": "2021-02-12",
-			"bugfixes": [
-				"#2908 - Fix step validation for multiline parameters"
-			]
-		},
-		{
-			"version": "2.8.171",
-			"date": "2021-02-12",
-			"features": [
-				{
-					"title": "Schedule features with in feature",
-					"description": "A new step has been added to the list, which allows users to execute other features with schedule. Step is called Schedule Job \"{feature_name}\" using parameters \"{parameters}\" and crontab pattern \"{schedule}\". Feature_name is the feature that you want to schedule, parameters are key:value pairs separated by semi-colon (;) and finally schedule which is crontab based schedule, schedule can also hold <today> and <tomorrow> which will be dynamically replaced."
-				},
-				{
-					"title": "Remove schedule",
-					"description": "Another step has been added which will removed it self from the schedule if the step passes. Step is called Delete schedule that executed this feature."
-				}
-			]
-		},
-		{
-			"version": "2.8.170",
-			"date": "2021-02-11",
-			"features": [
-				{
-					"title": "Download attached files",
-					"description": "A new step has been added so you can now download files in the feature run and view them from the feature result and step results view. This step is called Download a file by clicking on \"<selector>\""
-				}
-			]
-		},
-		{
-			"version": "2.8.169",
-			"date": "2021-02-10",
-			"bugfixes": [
-				"#2895 - Fix invalid steps popup after reparsing actions"
-			]
-		},
-		{
-			"version": "2.8.168",
-			"date": "2021-02-09",
-			"bugfixes": [
-				"#2875 - Fix invalid time error everywhere"
-			]
-		},
-		{
-			"version": "2.8.167",
-			"date": "2021-02-08",
-			"bugfixes": [
-				"#2663 - Add anonymous author of sentences"
-			]
-		},
-		{
-			"version": "2.8.166",
-			"date": "2021-02-08",
-			"bugfixes": [
-				"#2881 - Sort Admin items by ascending name",
-				"#2881 - Fix adding items in Admin resulting in doubled items",
-				"#2881 - Fix adding new feature from Admin panel",
-				"#2881 - Fix cancelling modify user resulting in abnormal behavior"
-			]
-		},
-		{
-			"version": "2.8.165",
-			"date": "2021-02-05",
-			"features": [
-				{
-					"title": "Results table customization",
-					"description": "You can now customize the results table columns and its order by clicking on the three dot menu in the header > Table customization"
-				}
-			]
-		},
-		{
-			"version": "2.8.164",
-			"date": "2021-02-05",
-			"bugfixes": [
-				"#2815 - Improve feature run status behavior"
-			]
-		},
-		{
-			"version": "2.8.163",
-			"date": "2021-02-03",
-			"features": [
-				{
-					"title": "Ask for help",
-					"description": "Now you can mark a feature with \"Ask for help\", it allows any other user who enabled \"I can help\" in his profile to assist you on a feature."
-				}
-			]
-		},
-		{
-			"version": "2.8.162",
-			"date": "2021-02-02",
-			"features": [
-				{
-					"title": "Override steps status",
-					"description": "As we added overriding options for Feature Runs and Feature Results, you can now also override Step Result status."
-				}
-			]
-		},
-		{
-			"version": "2.8.161",
-			"date": "2021-02-02",
-			"bugfixes": [
-				"#2663 - Show captcha box on welcome only if some provider needs it"
-			]
-		},
-		{
-			"version": "2.8.160",
-			"date": "2021-02-01",
-			"bugfixes": [
-				"Fix getting languages not supported"
-			]
-		},
-		{
-			"version": "2.8.159",
-			"date": "2021-02-01",
-			"bugfixes": [
-				"Enable Live Steps to be closed by ESC"
-			]
-		},
-		{
-			"version": "2.8.158",
-			"date": "2021-02-01",
-			"bugfixes": [
-				"#2864 - Add detailed error messages when creating/saving feature, focus and scroll"
-			]
-		},
-		{
-			"version": "2.8.157",
-			"date": "2021-02-01",
-			"bugfixes": [
-				"About - Fix language not being saved in State"
-			]
-		},
-		{
-			"version": "2.8.156",
-			"date": "2021-02-01",
-			"bugfixes": [
-				"#2865 - Add protocol validation for actions URLs"
-			]
-		},
-		{
-			"version": "2.8.155",
-			"date": "2021-01-29",
-			"features": [
-				{
-					"title": "Milliseconds formatting",
-					"description": "The execution times have extended so that steps with less than 1 second of execution can display values in milliseconds."
-				}
-			]
-		},
-		{
-			"version": "2.8.154",
-			"date": "2021-01-29",
-			"features": [
-				{
-					"title": "Override results status",
-					"description": "You can now override every result status by clicking on the status tag, the default option of overriding will make the result/run status be recalculated or left as the original value"
-				}
-			]
-		},
-		{
-			"version": "2.8.153",
-			"date": "2021-01-29",
-			"bugfixes": [
-				"#2809 - Fix showing commented steps on Live Steps"
-			]
-		},
-		{
-			"version": "2.8.152",
-			"date": "2021-01-25",
-			"features": [
-				{
-					"title": "Live Steps Timeout",
-					"description": "A timeout text of 30 seconds has been added to be shown in Live Steps when Backend creates a new run but Behave isn't able to create/get a container to run it."
-				}
-			]
-		},
-		{
-			"version": "2.8.151",
-			"date": "2021-01-22",
-			"bugfixes": [
-				"#2663 - Create welcome.html with captcha"
-			]
-		},
-		{
-			"version": "2.8.150",
-			"date": "2021-01-22",
-			"bugfixes": [
-				"#2803 - Change poster of What's New"
-			]
-		},
-		{
-			"version": "2.8.149",
-			"date": "2021-01-22",
-			"bugfixes": [
-				"#2826 - Fix jumping pagination when navigating between pages"
-			]
-		},
-		{
-			"version": "2.8.148",
-			"date": "2021-01-21",
-			"features": [
-				{
-					"title": "Paginated items",
-					"description": "A new system of pagination has been developed and will be integrated in co.meta from now on. At the time of this writing it is implemented already in Step Result list view."
-				}
-			],
-			"bugfixes": [
-				"#2826 - Step Result view - Get overview stats from Feature Result instead of calculated value from step list"
-			]
-		},
-		{
-			"version": "2.8.147",
-			"date": "2021-01-20",
-			"bugfixes": [
-				"#2813 - Fix saving feature info in state after being created"
-			]
-		},
-		{
-			"version": "2.8.146",
-			"date": "2021-01-20",
-			"bugfixes": [
-				"#2755 - Fix user page tour section"
-			]
-		},
-		{
-			"version": "2.8.145",
-			"date": "2021-01-20",
-			"bugfixes": [
-				"#2803 - Change What's New post image"
-			]
-		},
-		{
-			"version": "2.8.144",
-			"date": "2021-01-19",
-			"features": [
-				{
-					"title": "Welcome page",
-					"description": "A new page named welcome has been added for new users not yet logged in."
-				}
-			]
-		},
-		{
-			"version": "2.8.143",
-			"date": "2021-01-18",
-			"features": [
-				{
-					"title": "Changelog overview",
-					"description": "From now on, you will see a popup explaining new features, changes and patches. Every new feature has an explanation of how it works and how to experiment with it. This popup is shown whenever there are some important changes and will continue to be displayed until you close it."
-				}
-			]
-		},
-		{
-			"version": "2.8.142",
-			"date": "2021-01-18",
-			"features": [
-				{
-					"title": "See tour again",
-					"description": "You can now repeat a tour by going to your User page and clicking on See again button of completed tours."
-				}
-			]
-		},
-		{
-			"version": "2.8.141",
-			"bugfixes": [
-				"#2759 - Improve SocketService behavior",
-				"#2759 - Show to the user the status connection of WebSockets",
-				"#2759 - Solve error happening in console when received a result message without feature run context",
-				"#2759 - Send user info with WebSocket connection"
-			]
-		},
-		{
-			"version": "2.8.140",
-			"features": [
-				{
-					"title": "See tour later",
-					"description": "We have placed a button to temporarily skip a tours, if you use See later the tour will be delayed until next day."
-				}
-			]
-		},
-		{
-			"version": "2.8.139",
-			"features": [
-				{
-					"title": "Achievements system",
-					"description": "A new achievements system has been implemented, you can see which achivements have you earned by going to your User page."
-				}
-			]
-		},
-		{
-			"version": "2.8.138",
-			"text": [
-				"#2702 - Move clear run history to black bar behind results"
-			]
-		},
-		{
-			"version": "2.8.137",
-			"text": [
-				"#2758 - Fix patching of feature result when using websocket"
-			]
-		},
-		{
-			"version": "2.8.136",
-			"text": [
-				"#2759 - Update front actions with documentation"
-			]
-		},
-		{
-			"version": "2.8.135",
-			"text": [
-				"#2703 - Update 'Create feature' tour with Continue on failure"
-			]
-		},
-		{
-			"version": "2.8.134",
-			"text": [
-				"#2702 - Avoid openning ErrorDialog if dialog is already opened"
-			]
-		},
-		{
-			"version": "2.8.133",
-			"text": [
-				"#2758 - Update feature info and runs with object comming from WebSockets"
-			]
-		},
-		{
-			"version": "2.8.132",
-			"text": [
-				"#2782 - Add first and last buttons to Admin Account pagination",
-				"#2782 - Add search in Admin Accounts"
-			]
-		},
-		{
-			"version": "2.8.131",
-			"text": [
-				"#2783 - Fix account not being updated after modifying in Admin page"
-			]
-		},
-		{
-			"version": "2.8.130",
-			"text": [
-				"Fix ngZone issue in feature item"
-			]
-		},
-		{
-			"version": "2.8.129",
-			"text": [
-				"Use ngZone in feature item"
-			]
-		},
-		{
-			"version": "2.8.128",
-			"text": [
-				"#2757 - Added success error handler interceptor",
-				"#2757 - Change 'archive' to 'save'",
-				"#2757 - Added tooltips to clarify what 'save' means for the user",
-				"#2757 - Deprecate ErrorInterceptor in favor of ngx-network-error"
-			]
-		},
-		{
-			"version": "2.8.127",
-			"text": [
-				"#2703 - Add tooltip to disabled checkboxes of continue on failure",
-				"Add pagination to admin accounts page",
-				"Fix admin features page"
-			]
-		},
-		{
-			"version": "2.8.126",
-			"text": [
-				"#2703 - Implement continue on failure"
-			]
-		},
-		{
-			"version": "2.8.125",
-			"text": [
-				"Custom implementation of ngx-joyride"
-			]
-		},
-		{
-			"version": "2.8.124",
-			"text": [
-				"Implement ngx-amvara-toolbox"
-			]
-		},
-		{
-			"version": "2.8.123",
-			"text": [
-				"#2702 - Implement clear history with possible options",
-				"#2702 - Implement archived for Feature Runs and Results",
-				"Implement SubSinkAdapter for automatic observable unsubscription",
-				"Added ngLet directive"
-			]
-		},
-		{
-			"version": "2.8.122",
-			"text": [
-				"#2703 - Centralized guided tours and versioning"
-			]
-		},
-		{
-			"version": "2.8.121",
-			"text": [
-				"#2703 - Added guided tour for creating a feature"
-			]
-		},
-		{
-			"version": "2.8.120",
-			"text": [
-				"#2754 - Reload runs after execution"
-			]
-		},
-		{
-			"version": "2.8.119",
-			"text": [
-				"#2753 - Add step validation"
-			]
-		},
-		{
-			"version": "2.8.118",
-			"text": [
-				"#2678 - Fix copying step above or below",
-				"#2678 - Align prefix selector to top of step"
-			]
-		},
-		{
-			"version": "2.8.117",
-			"text": [
-				"Add step keyword selector",
-				"Make step definition height adaptive to content"
-			]
-		},
-		{
-			"version": "2.8.116",
-			"text": [
-				"Fix error causing ESC not to work properly on EditFeature",
-				"Fix changes detection in EditFeature",
-				"Add option in About to toggle logging of WebSockets",
-				"Fix feature sort for when is not Last execution",
-				"Remove unnecessary requests when creating or updating features"
-			]
-		},
-		{
-			"version": "2.8.115",
-			"text": [
-				"Add heartbeat",
-				"Reload if 401 is returned on any backend request",
-				"Show cookies expired if heartbeat fails"
-			]
-		},
-		{
-			"version": "2.8.114",
-			"text": [
-				"Fix sorting features",
-				"Get user departments from addoidcaccount",
-				"Fixed filters"
-			]
-		},
-		{
-			"version": "2.8.113",
-			"text": [
-				"Reorganize folders and feature to optimize loading"
-			]
-		},
-		{
-			"version": "2.8.112",
-			"text": [
-				"Fix variables not being reloaded after changing state location"
-			]
-		},
-		{
-			"version": "2.8.111",
-			"text": [
-				"Step Editor - Use forms instead of state driven",
-				"Use FeatureResult status in Search results"
-			]
-		},
-		{
-			"version": "2.8.110",
-			"text": [
-				"Hide Send Mail, Record Video and browser selection on Edit Feature if Depends on others is checked",
-				"Fixed Live Steps browser status value",
-				"Fixed error when closing Live Steps",
-				"Removed deep JSON clone due to implementation of @ImmutableSelector"
-			]
-		},
-		{
-			"version": "2.8.109",
-			"text": [
-				"Implement changes of Backend for substeps, browser cloud and screenshot/compare"
-			]
-		},
-		{
-			"version": "2.8.108",
-			"text": [
-				"Fix steps not being cleared after editing / creating feature",
-				"Fix steps not being correctly saved on temporal state"
-			]
-		},
-		{
-			"version": "2.8.107",
-			"text": [
-				"Create state for logs",
-				"Make style templates available everywhere",
-				"Make TypeScript types available everywhere",
-				"Implement @SelectSnapshot",
-				"Implement @ImmutableSelector to avoid recent NGXS pitfalls",
-				"Remove DataService",
-				"Help Page - Add hotkeys information"
-			]
-		},
-		{
-			"version": "2.8.106",
-			"text": [
-				"Create state for step results, feature results, runs and screenshots",
-				"Create pipes for template functions",
-				"Use new state for Main View, Step View and Detail View",
-				"Automatic redirect of Admin menu tabs"
-			]
-		},
-		{
-			"version": "2.8.105",
-			"text": [
-				"Sort features without last run info to bottom",
-				"Organize code using Custom Selectors",
-				"Convert ToolsService to tree-shaking friendly functions",
-				"Remove code not used / dead"
-			]
-		},
-		{
-			"version": "2.8.104",
-			"text": [
-				"Change keyboard combination for showing state",
-				"Fix deleting steps"
-			]
-		},
-		{
-			"version": "2.8.103",
-			"text": [
-				"#2670 - Create state for step definitions",
-				"Solve steps related issues",
-				"Solve clonning feature with steps"
-			]
-		},
-		{
-			"version": "2.8.102",
-			"text": [
-				"#2670 - Create state for variables",
-				"#2670 - Save last search sorting value on localStorage",
-				"#2670 - Reload features on clone",
-				"#2670 - Create state for clouds and use it on browser selection"
-			]
-		},
-		{
-			"version": "2.8.101",
-			"text": [
-				"#2670 - Implement changes on Variables, Environment + Department",
-				"#2670 - Fix editing testcase, any option using right click, not working after clicking two times",
-				"#2670 - Fix Admin > Accounts, permission is undefined",
-				"#2670 - Fix Admin > Account, edit one, permissions coming from oidcaccount info",
-				"#2670 - Browser selection, value to send > default \"local\"",
-				"#2670 - Added clone feature button"
-			]
-		},
-		{
-			"version": "2.8.100",
-			"text": [
-				"#2313 - Fix adding multiple filters of same category",
-				"#2313 - Fix filter value substitution"
-			]
-		},
-		{
-			"version": "2.8.99",
-			"text": [
-				"Add lazy loading for Search view and its components"
-			]
-		},
-		{
-			"version": "2.8.98",
-			"text": [
-				"Remove request to callback"
-			]
-		},
-		{
-			"version": "2.8.97",
-			"text": [
-				"Remove old or obsolete code and libraries",
-				"Move ChartsModule to DetailsModule for main bundle optimization",
-				"Remove unused plugins",
-				"Convert Help and About page to modules"
-			]
-		},
-		{
-			"version": "2.8.96",
-			"text": [
-				"#2582 - Tell the store the feature run has finished once stopped",
-				"Implement produce from immer library for optimal code understanding and productivity",
-				"Fix showing filters in mobile"
-			]
-		},
-		{
-			"version": "2.8.95",
-			"text": [
-				"#2609 - Fixed sending 0 steps to backend while saving testcase even thought testcase had steps."
-			]
-		},
-		{
-			"version": "2.8.94",
-			"text": [
-				"#2611 - Fixed users unable to select browsers or add steps while creating a new testcase."
-			]
-		},
-		{
-			"version": "2.8.93",
-			"text": [
-				"#2602 - Fix and add fallback for empty cloud browsers"
-			]
-		},
-		{
-			"version": "2.8.92",
-			"text": [
-				"#2602 - Grab local browsers from Store (Backend) instead of DataService"
-			]
-		},
-		{
-			"version": "2.8.91",
-			"text": [
-				"Show Live Steps after running only in feature details"
-			]
-		},
-		{
-			"version": "2.8.90",
-			"text": [
-				"#2596 - Add Download PDF Link for Feature Results"
-			]
-		},
-		{
-			"version": "2.8.89",
-			"text": [
-				"Fix browser values not correctly shown after save"
-			]
-		},
-		{
-			"version": "2.8.88",
-			"text": [
-				"#2288 - Fix Insert step before, inserts new at the end",
-				"#2288 - Make Live Steps Viewer optional when clicking Run",
-				"#2288 - Fix depends on other is reseted when editing a feature",
-				"#2288 - Fix steps no correctly loaded if steps section is opened by default"
-			]
-		},
-		{
-			"version": "2.8.87",
-			"text": [
-				"#2288 - Fix default browserstack option"
-			]
-		},
-		{
-			"version": "2.8.86",
-			"text": [
-				"#2288 - Subscribe to param changes on detail view"
-			]
-		},
-		{
-			"version": "2.8.85",
-			"text": [
-				"#2288 - Remove template image when deleting style screenshot",
-				"#2288 - FeatureItem - Change from Input() to @Store",
-				"#2288 - Don't remove screenshot box at delete"
-			]
-		},
-		{
-			"version": "2.8.84",
-			"text": [
-				"#2288 - Fix scroll checkbox in Live Steps",
-				"#2288 - Add actions section in Help page"
-			]
-		},
-		{
-			"version": "2.8.83",
-			"text": [
-				"Also retrieve details from nested features inside folders"
-			]
-		},
-		{
-			"version": "2.8.82",
-			"text": [
-				"#2288 - Add spinners where necessary",
-				"#2288 - Set autofocus on entering add step and enter value dialog",
-				"#2288 - Close Live Steps Viewer after stop execution"
-			]
-		},
-		{
-			"version": "2.8.81",
-			"text": [
-				"#2288 - Hide disabled steps in Live Steps Viewer",
-				"#2288 - Delete Django cookies before each request"
-			]
-		},
-		{
-			"version": "2.8.80",
-			"text": [
-				"#2313 - Re-allow user to add multiple filter instances for some filters"
-			]
-		},
-		{
-			"version": "2.8.79",
-			"text": [
-				"#2288 - If feature doesn't have browsers, show warning popup or hide run button",
-				"#2288 - Let the user select old versions of browsers via \"View more\" button"
-			]
-		},
-		{
-			"version": "2.8.78",
-			"text": [
-				"#2288 - Cleanup runs info after closing live steps viewer",
-				"#2288 - Move live status from run to every browser run"
-			]
-		},
-		{
-			"version": "2.8.77",
-			"text": [
-				"#2288 - Remove SubSink",
-				"#2288 - paramMap to snapshot",
-				"#2288 - Remove CSS code not used",
-				"#2288 - Add Department filter logic"
-			]
-		},
-		{
-			"version": "2.8.76",
-			"text": [
-				"#2288 - Add loading spinner to sub details pages",
-				"#2288 - Disable feature name edit in search page",
-				"#2288 - Add rename in Edit Feature",
-				"#2288 - Restructure feature runs"
-			]
-		},
-		{
-			"version": "2.8.75",
-			"text": [
-				"#2288 - Fix sorting on main view",
-				"#2288 - Fix timezone of chart",
-				"#2288 - Distinct return buttons"
-			]
-		},
-		{
-			"version": "2.8.74",
-			"text": [
-				"#2288 - Add department filter (only UI)",
-				"#2288 - Adapt edit feature to mobile & desktop",
-				"#2288 - Autoplay video"
-			]
-		},
-		{
-			"version": "2.8.73",
-			"text": [
-				"#2288 - Add error interceptor",
-				"#2288 - Fix errors for running features"
-			]
-		},
-		{
-			"version": "2.8.72",
-			"text": [
-				"#2288 - Fusion edit feature and create feature",
-				"#2288 - Remove dead code"
-			]
-		},
-		{
-			"version": "2.8.71",
-			"text": [
-				"#2572 - Join all charts to Highcharts"
-			]
-		},
-		{
-			"version": "2.8.70",
-			"text": [
-				"#2572 - Move from NgxCharts to Highcharts"
-			]
-		},
-		{
-			"version": "2.8.69",
-			"text": [
-				"#2288 - Double X axis with different days",
-				"#2288 - Add Video viewer"
-			]
-		},
-		{
-			"version": "2.8.68",
-			"text": [
-				"Delete caches and reload if callback fails after logout"
-			]
-		},
-		{
-			"version": "2.8.67",
-			"text": [
-				"#2288 - Implement option for video recording"
-			]
-		},
-		{
-			"version": "2.8.66",
-			"text": [
-				"#2288 - Move percentage button + pagination controls",
-				"#2288 - Fix invalid date on search view",
-				"#2288 - Fix desktop and mobile views of detail-view and steps-view",
-				"#2288 - Change Default department warning style and conditions"
-			]
-		},
-		{
-			"version": "2.8.65",
-			"text": [
-				"#2288 - Adapt 3 feature views to Mobile and Desktop"
-			]
-		},
-		{
-			"version": "2.8.64",
-			"text": [
-				"#2288 - Fix Back button on feature results does not works",
-				"#2288 - Don't show screenshot boxes if they are not available",
-				"#2288 - Remove crypto-js, now done in Backend",
-				"#2288 - Replace encrypt local functions to API request",
-				"#2288 - Add guard for admin panel and edit variables",
-				"#2288 - Add remove variable"
-			]
-		},
-		{
-			"version": "2.8.63",
-			"text": [
-				"#2288 - Implement edit variables of environments",
-				"#2288 - Implement encryption through backend",
-				"#2288 - Remove front encryption functions"
-			]
-		},
-		{
-			"version": "2.8.62",
-			"text": [
-				"#2288 - Remove numeral plugin",
-				"#2288 - Create API endpoints and dialog for Environment Variables"
-			]
-		},
-		{
-			"version": "2.8.61",
-			"text": [
-				"#2559 - Warning when user selects Default department",
-				"#2559 - Disallow or remove blank step definitions on save",
-				"#2559 - Allow ESC key on edit feature, if feature has been modified, show warning popup",
-				"#2559 - Add buttons to export and import feature from edit feature popup",
-				"#2559 - Saved selected browsers and not selected after reopenning"
-			]
-		},
-		{
-			"version": "2.8.60",
-			"text": [
-				"#2288 - Multiple fixes of edit feature"
-			]
-		},
-		{
-			"version": "2.8.59",
-			"text": [
-				"#2288 - Order browser versions in descending order",
-				"#2288 - Fix favourited browsers selection and save"
-			]
-		},
-		{
-			"version": "2.8.58",
-			"text": [
-				"#2288 - Add button to export features, all or selected",
-				"#2288 - Limit admin panel access according to user role permissions",
-				"#2288 - Correctly sort browser selection version on dropdown selector",
-				"#2288 - Prettify observable concats",
-				"#2288 - Fix user state and interfaces to match new backend model JSON response"
-			]
-		},
-		{
-			"version": "2.8.57",
-			"text": [
-				"#2288 - Limit front pages and elements according to user role permissions"
-			]
-		},
-		{
-			"version": "2.8.56",
-			"text": [
-				"#2288 - Adapt backend changes of user permissions"
-			]
-		},
-		{
-			"version": "2.8.55",
-			"text": [
-				"#2288 - Prevent Default users from sending emails to 3rd partys v2"
-			]
-		},
-		{
-			"version": "2.8.54",
-			"text": [
-				"#2288 - Prevent Default users from sending emails to 3rd partys"
-			]
-		},
-		{
-			"version": "2.8.53",
-			"text": [
-				"#2288 - Fix feature items height",
-				"#2288 - Fix created_on error causing other various issues in cometa"
-			]
-		},
-		{
-			"version": "2.8.52",
-			"text": [
-				"#2288 - Update default schedule"
-			]
-		},
-		{
-			"version": "2.8.51",
-			"text": [
-				"#2288 - Fix issues within admin panel, sorting of accounts, fix schedule, fix send mail, show last login and creation date"
-			]
-		},
-		{
-			"version": "2.8.50",
-			"text": [
-				"#2288 - Add new folder button in main page",
-				"#2288 - Design change on user page",
-				"#2288 - Fix Live Steps taking previous run when not started",
-				"#2288 - Redesign remaining buttons"
-			]
-		},
-		{
-			"version": "2.8.49",
-			"text": [
-				"#2544 - Add backend logic for Department Manager",
-				"#2288 - Fix visual issues",
-				"#2288 - Fix show previous run when starting live steps"
-			]
-		},
-		{
-			"version": "2.8.48",
-			"text": [
-				"#2544 - Add department manager for users"
-			]
-		},
-		{
-			"version": "2.8.47",
-			"text": [
-				"#2543 - Adapt mobile main views",
-				"#2288 - Redesign buttons",
-				"#2288 - Join commonly used code",
-				"#2288 - Add kill running test feature"
-			]
-		},
-		{
-			"version": "2.8.46",
-			"text": [
-				"#2543 - Adapt admin and user pages to Mobile and Desktop accordingly"
-			]
-		},
-		{
-			"version": "2.8.45",
-			"text": [
-				"#2395 - Fix create folder and add rename folder option"
-			]
-		},
-		{
-			"version": "2.8.44",
-			"text": [
-				"#2399 - Disable schedule checkbox"
-			]
-		},
-		{
-			"version": "2.8.43",
-			"text": [
-				"#2253 - Fix screenshots being deleted incorrectly in front"
-			]
-		},
-		{
-			"version": "2.8.42",
-			"text": [
-				"#2528 - Remove trailing slash on some API endpoints to prevent double requests"
-			]
-		},
-		{
-			"version": "2.8.41",
-			"text": [
-				"#2395 - Update packages and remove unused imports"
-			]
-		},
-		{
-			"version": "2.8.40",
-			"text": [
-				"#2395 - Update packages",
-				"#2395 - Preserve state of sub pages"
-			]
-		},
-		{
-			"version": "2.8.39",
-			"text": [
-				"#2395 - Improvements in async code",
-				"#2395 - Cleanup not used code"
-			]
-		},
-		{
-			"version": "2.8.38",
-			"text": [
-				"#2395 - Removed unused code",
-				"#2395 - Organize code",
-				"#2395 - Fix Log Output"
-			]
-		},
-		{
-			"version": "2.8.36",
-			"text": [
-				"#2395 - Add state for browsers",
-				"#2395 - Extend admin panels with more info and options"
-			]
-		},
-		{
-			"version": "2.8.35",
-			"text": [
-				"#2395 - Reorganize code",
-				"#2395 - Remove unused code"
-			]
-		},
-		{
-			"version": "2.8.34",
-			"text": [
-				"#2395 - Use FeatureRunID instead of FeatureResultID in Live Steps and details view"
-			]
-		},
-		{
-			"version": "2.8.33",
-			"text": [
-				"#2395 - Show who edited feature last"
-			]
-		},
-		{
-			"version": "2.8.32",
-			"text": [
-				"#2395 - Update packages",
-				"#2395 - Fix feature browser description in search view"
-			]
-		},
-		{
-			"version": "2.8.31",
-			"text": [
-				"#2395 - Fix charts and show icons of browsers"
-			]
-		},
-		{
-			"version": "2.8.30",
-			"text": [
-				"#2395 - Adapt front detail view"
-			]
-		},
-		{
-			"version": "2.8.29",
-			"text": [
-				"#2395 - Adapt front for Backend changes"
-			]
-		},
-		{
-			"version": "2.8.28",
-			"text": [
-				"#2395 - Reduce code",
-				"#2395 - Add state for accounts"
-			]
-		},
-		{
-			"version": "2.8.27",
-			"text": [
-				"#2395 - Rename folders",
-				"#2395 - Distinct front features and admin features"
-			]
-		},
-		{
-			"version": "2.8.26",
-			"text": [
-				"#2395 - Feature to remove folders",
-				"#2395 - Add options to folders",
-				"#2395 - Add @Subscribe TypeScript decorator",
-				"#2395 - Reformat some switchMap operators",
-				"#2395 - Move filters code to state"
-			]
-		},
-		{
-			"version": "2.8.25",
-			"text": [
-				"#2395 - Finalize move feature folder dialog"
-			]
-		},
-		{
-			"version": "2.8.24",
-			"text": [
-				"#2395 - Implement Folders View and Move Feature Dialog"
-			]
-		},
-		{
-			"version": "2.8.23",
-			"text": [
-				"#2395 - Improve code to avoid duplicate requests",
-				"#2395 - Avoid duplicated code",
-				"#2395 - Store NGXS data in LocalStorage",
-				"#2395 - Fix edit schedule"
-			]
-		},
-		{
-			"version": "2.8.22",
-			"text": [
-				"#2395 - Add email addresses on add feature",
-				"#2395 - Add action for generic error and show it",
-				"#2395 - Fix user icon on user page",
-				"#2395 - Save Browser favourites in user profile"
-			]
-		},
-		{
-			"version": "2.8.21",
-			"text": [
-				"#2395 - Improve code on Search for running feature",
-				"#2395 - Code cleanning",
-				"#2395 - Remove unused components and dialogs"
-			]
-		},
-		{
-			"version": "2.8.20",
-			"text": [
-				"#2395 - Create Screenshot Viewer",
-				"#2395 - Improve live step viewer with screenshots and code cleanings",
-				"#2395 - Code cleanning",
-				"#2395 - Implement subscription to test completions and notifications"
-			]
-		},
-		{
-			"version": "2.8.19",
-			"text": [
-				"#2395 - Changes on WebSockets and in Live Steps Viewer"
-			]
-		},
-		{
-			"version": "2.8.18",
-			"text": [
-				"#2395 - Implement favourites in Local Storage",
-				"#2395 - Add send to email feature, with multiple addresses, subject and body"
-			]
-		},
-		{
-			"version": "2.8.17",
-			"text": [
-				"#2395 - Add Selected browsers",
-				"#2395 - Add favourite browsers",
-				"#2395 - Move cloud field to inside Browser Selection"
-			]
-		},
-		{
-			"version": "2.8.16",
-			"text": [
-				"#2413 - Fix autocomplete dialog"
-			]
-		},
-		{
-			"version": "2.8.15",
-			"text": [
-				"#2413 - Fix error caused by backend"
-			]
-		},
-		{
-			"version": "2.8.14",
-			"text": [
-				"#2413 - Get Browserstack parameters from backend"
-			]
-		},
-		{
-			"version": "2.8.13",
-			"text": [
-				"#2413 - Adapt backend changes"
-			]
-		},
-		{
-			"version": "2.8.12",
-			"text": [
-				"#2430 - mark steps in testplan to be executed/not executed when this plan is included somewhere else",
-				"#2395 - Improve other issues, config preferences and adaptations of browserstack changes"
-			]
-		},
-		{
-			"version": "2.8.11",
-			"text": [
-				"#2395 - Improve UI of Add/Edit feature",
-				"#2395 - Clean code of Add/Edit feature",
-				"#2395 - Create component for edit step, shared in Add/Edit",
-				"#2395 - Fixed code bugs and errors in both Add/Edit dialogs"
-			]
-		},
-		{
-			"version": "2.8.10",
-			"text": [
-				"#2395 - Add browser selection component on Add Test",
-				"#2395 - Hide pixel difference if 0 and add eye icon"
-			]
-		},
-		{
-			"version": "2.8.9",
-			"text": [
-				"Make sure last run pipe gets last ran test"
-			]
-		},
-		{
-			"version": "2.8.8",
-			"text": [
-				"#2288 - Fix some discussed bugs and improvements"
-			]
-		},
-		{
-			"version": "2.8.7",
-			"text": [
-				"#2288 - Don't scroll to bottom when adding step if is cancelled",
-				"#2288 - Added loader for test, feature results, and steps"
-			]
-		},
-		{
-			"version": "2.8.4",
-			"text": [
-				"#2264 - Make search of steps case insensitive"
-			]
-		},
-		{
-			"version": "2.8.3",
-			"text": [
-				"#2250 - Hide pixel difference if there are not screenshots"
-			]
-		},
-		{
-			"version": "2.8.3",
-			"text": [
-				"#2250 - Hide pixel difference if there are not screenshots"
-			]
-		},
-		{
-			"version": "2.8.2",
-			"text": [
-				"Fixed screenshots url"
-			]
-		},
-		{
-			"version": "2.8.1",
-			"text": [
-				"Run button also in feature result detail"
-			]
-		},
-		{
-			"version": "2.3.0",
-			"text": [
-				"Improvements",
-				"Search boxes with success or not and browser icon"
-			]
-		}
-	]
+          "title": "Parsed description in feature results",
+          "description": "Parsing feature description to fesults view, variables used in feature description will be parsed before the execution."
+        }
+      ]
+    },
+    {
+      "version": "2.8.317",
+      "date": "2023-11-22",
+      "features": [
+        {
+          "title": "Main V2 as Default Dashboard",
+          "description": "Defaulting to new dashboard, old view has been moved to the sidebar menu."
+        }
+      ]
+    },
+    {
+      "version": "2.8.316",
+      "date": "2023-10-20",
+      "features": [
+        {
+          "title": "Data Driven Test",
+          "description": "Data Driven Test has been implemented and is now visiable on the left sidebar as \"Data Driven\"."
+        }
+      ]
+    },
+    {
+      "version": "2.8.315",
+      "date": "2023-10-17",
+      "features": [
+        {
+          "title": "New step to highlight elements in screenshot",
+          "description": "Highlight element with \"{selector}\", will highlight with an outline the element found with selector, which will be displayed in the screenshot."
+        }
+      ],
+      "bugfixes": ["Feature id repeated twice in tree view."]
+    },
+    {
+      "version": "2.8.314",
+      "date": "2023-07-19",
+      "bugfixes": [
+        "Feature results are deleted after feature execution has been fixed."
+      ]
+    },
+    {
+      "version": "2.8.313",
+      "date": "2023-07-05",
+      "bugfixes": [
+        "Fixed if uploaded file after decryption was not removed it threw an error on the next executions.",
+        "Feature results are not removed if feature run is removed, feature runs are no longer in use.",
+        "Added logging to gunicorn process."
+      ]
+    },
+    {
+      "version": "2.8.312",
+      "date": "2023-07-04",
+      "bugfixes": [
+        "Fixed max step timeout value from 1000s to 7200s.",
+        "Now showing warning when step timeout is invalid."
+      ]
+    },
+    {
+      "version": "2.8.311",
+      "date": "2023-06-30",
+      "bugfixes": ["Updated the logic for the 'I cannot see element' step."]
+    },
+    {
+      "version": "2.8.310",
+      "date": "2023-06-28",
+      "features": [
+        {
+          "title": "New Step: Double Click",
+          "description": "Double click on elements is now possible!"
+        }
+      ]
+    },
+    {
+      "version": "2.8.309",
+      "date": "2023-06-26",
+      "bugfixes": ["Department variables were not being picked up."]
+    },
+    {
+      "version": "2.8.308",
+      "date": "2023-06-21",
+      "bugfixes": ["Added link to public github documentation in help section."]
+    },
+    {
+      "version": "2.8.307",
+      "date": "2023-06-07",
+      "bugfixes": [
+        "When uploading a file the filename should be the same as the file saved in the Upload tab."
+      ]
+    },
+    {
+      "version": "2.8.306",
+      "date": "2023-05-31",
+      "features": [
+        {
+          "title": "New Step: Custom Error Message",
+          "description": "Set custom error messages that will show up on the live preview, step view as well as in PDF report."
+        }
+      ]
+    },
+    {
+      "version": "2.8.305",
+      "date": "2023-05-24",
+      "features": [
+        {
+          "title": "Screenshot open on pixel difference click.",
+          "description": "Clicking on the pixel difference will open up the pixel difference screenshot in the step view."
+        },
+        {
+          "title": "Return to Main view",
+          "description": "Added 'Return to Main view' in feature result view."
+        }
+      ]
+    },
+    {
+      "version": "2.8.304",
+      "date": "2023-05-23",
+      "bugfixes": ["Updated translations for 'Integrations' field."]
+    },
+    {
+      "version": "2.8.303",
+      "date": "2023-05-22",
+      "features": [
+        {
+          "title": "Screenshot icon on step view.",
+          "description": "Screenshot icon has been added next to the pixel difference in step view."
+        }
+      ]
+    },
+    {
+      "version": "2.8.302",
+      "date": "2023-05-19",
+      "bugfixes": [
+        "Adding feature id as prefix to the feature name in tree view.",
+        "Feature icon will be set to gray color if feature is checked with depends on other features."
+      ]
+    },
+    {
+      "version": "2.8.301",
+      "date": "2023-05-18",
+      "features": [
+        {
+          "title": "Screenshot of failed step.",
+          "description": "Screenshot will be taken on failed steps even though checkbox is not marked."
+        }
+      ],
+      "bugfixes": [
+        "Browser does not stop if time limit is exceeded while loading the page.",
+        "Changed the max timout value in front from 1000s to 7200s (2 hours)."
+      ]
+    },
+    {
+      "version": "2.8.300",
+      "date": "2023-05-04",
+      "features": [
+        {
+          "title": "Undefined Steps",
+          "description": "Undefined steps now throw an error in Live Preview."
+        },
+        {
+          "title": "Step Timeouts",
+          "description": "Test Managers now can update step timeouts of a department in batch."
+        }
+      ]
+    },
+    {
+      "version": "2.8.299",
+      "date": "2023-05-02",
+      "features": [
+        {
+          "title": "Welcome tour",
+          "description": "Fixed - welcome tour presentation didn't stop on ESC key press"
+        }
+      ]
+    },
+    {
+      "version": "2.8.298",
+      "date": "2023-05-02",
+      "features": [
+        {
+          "title": "Default feature step",
+          "description": "From now on, whenever user creates new feature, default step - 'StartBrowser and call URL {url}' will be automatically inserted into it's steps."
+        }
+      ]
+    },
+    {
+      "version": "2.8.297",
+      "date": "2023-04-28",
+      "features": [
+        {
+          "title": "Variable creation",
+          "description": "Users can now create variable even if feature creation is not finished, but in this case variable can only be based on department or environment."
+        }
+      ]
+    },
+    {
+      "version": "2.8.296",
+      "date": "2023-04-28",
+      "features": [
+        {
+          "title": "Folder tree",
+          "description": "Fixed - Folder tree hierarchy layout is broken if name is too long."
+        }
+      ]
+    },
+    {
+      "version": "2.8.295",
+      "date": "2023-04-19",
+      "features": [
+        {
+          "title": "Variable table column selection",
+          "description": "Users can now choose which columns must be displayed in variables table"
+        }
+      ]
+    },
+    {
+      "version": "2.8.294",
+      "date": "2023-04-19",
+      "features": [
+        {
+          "title": "Variable insertion into new feature",
+          "description": "User can no make use of variable insertion even when currently edit feature is still not created"
+        }
+      ]
+    },
+    {
+      "version": "2.8.293",
+      "date": "2023-04-19",
+      "features": [
+        {
+          "title": "Variable replacement",
+          "description": "User can now insert variable into step by clicking on desired variable in flyout, or alternatively by pressing enter on selected variable"
+        }
+      ]
+    },
+    {
+      "version": "2.8.292",
+      "date": "2023-04-13",
+      "features": [
+        {
+          "title": "Variable filter popup",
+          "description": "User can now make use of live variable filter popup to accurately insert variable names in steps. Popup will appear once user replaces '{anything}' with '$'"
+        }
+      ]
+    },
+    {
+      "version": "2.8.291",
+      "date": "2023-04-12",
+      "features": [
+        {
+          "title": "New step: I cannot see",
+          "description": "With this new step we can easily assert negative assumptions. So, not seeing a given selector is positive. For examaple, use this for testing the absence of elements when checking on access-rights."
+        }
+      ]
+    },
+    {
+      "version": "2.8.290",
+      "date": "2023-03-12",
+      "features": [
+        {
+          "title": "Preselect Feature Options",
+          "description": "You can preselect feature options such as department, application, environment and record video when ever creating new features. These options can be changed in User settings."
+        },
+        {
+          "title": "New step: I cannot see",
+          "description": "With this new step we can easily assert negative assumptions. So, not seeing a given selector is positiv. For exmaple, use this for testing the absense of elements when checking on access-rights."
+        }
+      ],
+      "bugfixes": ["Typo fix from the step context menu."]
+    },
+    {
+      "version": "2.8.289",
+      "date": "2023-03-10",
+      "features": [
+        {
+          "title": "Upload Files",
+          "description": "You can now upload files to co.meta and use these files in upload file steps."
+        },
+        {
+          "title": "Added step: Open {excelfile} and compare the number of rows in the {column} column, starting from row {starting_row}, to ensure that there are {total_rows} rows with option {option}",
+          "description": "Assert the number of rows to match the number of rows specified, possible options are: do not count empty cells or include empty cells."
+        },
+        {
+          "title": "Javascript function return variable",
+          "description": "If the Javascript function step has a return value, this value can now be used in co.meta using '%js_return' parameter."
+        }
+      ],
+      "bugfixes": [
+        "#3931 - Fixed sub-folders were not being created inside the selected folder."
+      ]
+    },
+    {
+      "version": "2.8.288",
+      "date": "2022-12-17",
+      "features": [
+        {
+          "title": "Added step: Add a timestamp to the {prefix} and save it to {variable_name}",
+          "description": "Adds timestamp to the prefix specified so the string becomes unique."
+        },
+        {
+          "title": "Added step: Create a string of random {x} numbers and save to {variable_name}",
+          "description": "Create a string of x random numbers."
+        }
+      ],
+      "bugfixes": [
+        "#3828 - Fixed height issues when showing paginated rows.",
+        "#3828 - Fixed 'View Logs' button not working.",
+        "#3826 - Test list step now generated a CSV file even thought selector was empty or not found.",
+        "#3826 - Fixed Test list step to show correctly the values when using partial as option."
+      ]
+    },
+    {
+      "version": "2.8.287",
+      "date": "2022-07-25",
+      "features": [
+        {
+          "title": "Updated step: Edit {file} and set {value} to {cell}",
+          "description": "Updated edit excel step to now edit csv files as well. Supported extensions are: XLSX, XLS & CSV. CSV only supports UTF-8."
+        }
+      ]
+    },
+    {
+      "version": "2.8.286",
+      "date": "2022-07-12",
+      "features": [
+        {
+          "title": "New step: Attach {filename} from Downloads folder to current execution results",
+          "description": "Added a new step to attach files to the execution results fo later investigation. Please read the documentation for more details. https://github.com/cometa-rocks/cometa_documentation/blob/main/cometa_actions.md"
+        }
+      ]
+    },
+    {
+      "version": "2.8.285",
+      "date": "2022-07-09",
+      "bugfixes": [
+        "Fixed upload of multiple files by separating files with semicolon."
+      ]
+    },
+    {
+      "version": "2.8.284",
+      "date": "2022-07-08",
+      "features": [
+        {
+          "title": "New steps: Open Excel and assert, Open Excel and set environment variable to value from cell",
+          "description": "Added new step to updated an excel file. Please read the documentation for more details. https://github.com/cometa-rocks/cometa_documentation/blob/main/cometa_actions.md"
+        }
+      ]
+    },
+    {
+      "version": "2.8.283",
+      "date": "2022-06-22",
+      "features": [
+        {
+          "title": "New steps: Edit Excel Files",
+          "description": "Added new step to updated an excel file. Please read the documentation for more details."
+        }
+      ]
+    },
+    {
+      "version": "2.8.282",
+      "date": "2022-05-10",
+      "features": [
+        {
+          "title": "New steps: Download a file + Upload a File",
+          "description": "Added exiting new steps to upload and download files. Please read the documentation for more details."
+        }
+      ]
+    },
+    {
+      "version": "2.8.281",
+      "date": "2022-05-10",
+      "features": [
+        {
+          "title": "Multiple http request",
+          "description": "Fixed step edit component realizing multiple http requests when it has another feature dependency step"
+        }
+      ]
+    },
+    {
+      "version": "2.8.280",
+      "date": "2022-05-09",
+      "features": [
+        {
+          "title": "Folder tree",
+          "description": "Fixed folder tree's unpersistent behaviour"
+        }
+      ]
+    },
+    {
+      "version": "2.8.279",
+      "date": "2022-03-22",
+      "features": [
+        {
+          "title": "Sidebar",
+          "description": "New Animation for MAIN V.2 landing sidebar navigation"
+        }
+      ]
+    },
+    {
+      "version": "2.8.278",
+      "date": "2022-03-21",
+      "bugfixes": [
+        "#3426 - Fixed chart diagram is displayed from the starting from first feature result, now it will be displayed when there are at least 10"
+      ]
+    },
+    {
+      "version": "2.8.277",
+      "date": "2022-03-20",
+      "bugfixes": [
+        "#3449 - Fixed default settings in user panel are not persistent"
+      ]
+    },
+    {
+      "version": "2.8.276",
+      "date": "2022-03-19",
+      "bugfixes": [
+        "#3461 - Fixed searchbar doesnt close when searching via click on search icon."
+      ]
+    },
+    {
+      "version": "2.8.275",
+      "date": "2022-03-18",
+      "bugfixes": [
+        "#3470 - Fixed When new dashboard in is deactivated, a click on every folder tree item apart from departments and its content, redirects to /search.",
+        "#3470 - Fixed browser bookmarks not working if the last click before closing the app was performed on home, recent, starred, trash bin or team drives."
+      ]
+    },
+    {
+      "version": "2.8.274",
+      "date": "2022-03-17",
+      "bugfixes": [
+        "#3467 - Fixed department id not updating when moving feature from department to another department's folder.",
+        "#3467 - Fixed when moving feature from folder to another, it is not moved but copied(creates duplicate)",
+        "#3467 - Fixed when moving feature from folder to department, action is not realized"
+      ]
+    },
+    {
+      "version": "2.8.273",
+      "date": "2022-03-16",
+      "features": [
+        {
+          "title": "Department users",
+          "description": "Users with permissions to view the department panel are now able to view users inside each departments."
+        }
+      ]
+    },
+    {
+      "version": "2.8.272",
+      "date": "2021-03-04",
+      "bugfixes": [
+        "#xxxx - New step 'Search for \"{something}\" in IBM Cognos and click on first result'"
+      ]
+    },
+    {
+      "version": "2.8.271",
+      "date": "2021-03-01",
+      "bugfixes": [
+        "#xxxx - New step for hit OK button on popup message like alert, cofirm or prompt window."
+      ]
+    },
+    {
+      "version": "2.8.270",
+      "date": "2021-12-27",
+      "bugfixes": [
+        "#3346 - Added Type column to sort maintain the old view of folders on top then features and finally feature that depend on others.",
+        "#3343 - Fixed where in new landing sorted table is reset after page reload.",
+        "#3343 - Fixed where in new landing moved/hidden columns are reset after page reload.",
+        "#3343 - Fixed where after executing a feature, folder with the same id as feature will show running state on status column."
+      ]
+    },
+    {
+      "version": "2.8.269",
+      "date": "2021-11-08",
+      "features": [
+        {
+          "title": "Live Preview",
+          "description": "Live preview has been added to co.meta! To view live your testcases click on TV icon next to Browser name on live step view."
+        }
+      ]
+    },
+    {
+      "version": "2.8.268",
+      "date": "2021-11-03",
+      "bugfixes": [
+        "#3207 - Improved download files step to work with all browsers currently working in Edge, Chrome and Opera.",
+        "#3209 - Removed timeout logic from sleep steps and disabled timeout field in front in case sleep step is selected."
+      ]
+    },
+    {
+      "version": "2.8.267",
+      "date": "2021-10-15",
+      "bugfixes": ["#2790 - Optimized folders request and features request."]
+    },
+    {
+      "version": "2.8.266",
+      "date": "2021-09-07",
+      "bugfixes": [
+        "#3007 - Prevent front from saving schedules with bad formatting"
+      ]
+    },
+    {
+      "version": "2.8.265",
+      "date": "2021-08-25",
+      "bugfixes": ["#2989 - Fix pricing page styles"]
+    },
+    {
+      "version": "2.8.264",
+      "date": "2021-08-25",
+      "bugfixes": [
+        "#3122 - Fix error in Live Steps Viewer when a run result doesn't have a previous status value"
+      ]
+    },
+    {
+      "version": "2.8.263",
+      "date": "2021-08-24",
+      "bugfixes": [
+        "#3122 - Added persistent storage for WebSocket messages",
+        "#3122 - Use WebSocket server to retrieve feature running status instead of Store",
+        "#3122 - Retrieve all previous WebSocket messages when openning Live Steps Viewer for an already running feature"
+      ]
+    },
+    {
+      "version": "2.8.262",
+      "date": "2021-08-06",
+      "bugfixes": [
+        "#2989 - Add invoices section in user page with Usages and links to Stripe Invoices"
+      ]
+    },
+    {
+      "version": "2.8.261",
+      "date": "2021-08-06",
+      "bugfixes": ["#2961 - Sort environment variables"]
+    },
+    {
+      "version": "2.8.260",
+      "date": "2021-08-05",
+      "bugfixes": [
+        "#3159 - Add confirm dialog for running feature when budget is about to exceed"
+      ]
+    },
+    {
+      "version": "2.8.259",
+      "date": "2021-08-02",
+      "features": [
+        {
+          "title": "Move and modify folders",
+          "description": "We have added some improvements on folder, you can now see to which department a folder belongs to, modify it and move a folder inside other folders."
+        }
+      ]
+    },
+    {
+      "version": "2.8.258",
+      "date": "2021-07-27",
+      "bugfixes": ["#3139 - Improved code to detect changed in Edit Feature"]
+    },
+    {
+      "version": "2.8.257",
+      "date": "2021-07-27",
+      "bugfixes": [
+        "#3138 - Hide footer and move technnical content to About page"
+      ]
+    },
+    {
+      "version": "2.8.256",
+      "date": "2021-07-26",
+      "bugfixes": ["#3135 - Add Easter Egg"]
+    },
+    {
+      "version": "2.8.255",
+      "date": "2021-07-26",
+      "bugfixes": ["#2989 - Add customer portal link in User Page"]
+    },
+    {
+      "version": "2.8.254",
+      "date": "2021-07-23",
+      "bugfixes": [
+        "#3009 - Fix show running status even when front misses StartedFeature WebSocket",
+        "#3009 - Show running status in Main View"
+      ]
+    },
+    {
+      "version": "2.8.253",
+      "date": "2021-07-21",
+      "bugfixes": [
+        "#3080 - Switch for official Angular Highcharts plugin for better tree-shaking"
+      ]
+    },
+    {
+      "version": "2.8.252",
+      "date": "2021-07-16",
+      "bugfixes": ["#3122 - Fix Live Steps timer and added resizable popup"]
+    },
+    {
+      "version": "2.8.251",
+      "date": "2021-07-14",
+      "bugfixes": ["#2802 - Add expire results option in Admin Departments"]
+    },
+    {
+      "version": "2.8.250",
+      "date": "2021-07-08",
+      "bugfixes": ["#3046 - Moved saved results switcher to results header"]
+    },
+    {
+      "version": "2.8.249",
+      "date": "2021-07-08",
+      "bugfixes": [
+        "#3046 - Fix focusing on step after adding step above or below"
+      ]
+    },
+    {
+      "version": "2.8.248",
+      "date": "2021-07-08",
+      "bugfixes": ["#3099 - Add favicons deploy and icons for each server"]
+    },
+    {
+      "version": "2.8.247",
+      "date": "2021-07-06",
+      "bugfixes": [
+        "#3046 - Fix Session Expired popup after Logout",
+        "#3046 - Fix filter popup on mobile devices"
+      ]
+    },
+    {
+      "version": "2.8.246",
+      "date": "2021-07-06",
+      "bugfixes": [
+        "#3004 - Improve Live Steps scroll by using step index instead of running step"
+      ]
+    },
+    {
+      "version": "2.8.245",
+      "date": "2021-07-06",
+      "bugfixes": [
+        "#3096 - Filter folders by department filter",
+        "#3095 - Fix paginated results persisting after empty feature results"
+      ]
+    },
+    {
+      "version": "2.8.244",
+      "date": "2021-07-05",
+      "bugfixes": ["#3046 - Avoid scrolling when feature run ends"]
+    },
+    {
+      "version": "2.8.243",
+      "date": "2021-07-01",
+      "features": [
+        {
+          "title": "Test duration",
+          "description": "We have added a duration timer in the Live Steps viewer."
+        }
+      ]
+    },
+    {
+      "version": "2.8.242",
+      "date": "2021-07-01",
+      "bugfixes": [
+        "#3046 - Improve performance of showing feature results by reducing logic and moving totals calculation to backend"
+      ]
+    },
+    {
+      "version": "2.8.241",
+      "date": "2021-06-30",
+      "bugfixes": ["#3046 - Improve performance of showing feature results"]
+    },
+    {
+      "version": "2.8.240",
+      "date": "2021-06-29",
+      "bugfixes": [
+        "#3046 - Fix auto scroll not working correctly",
+        "#3046 - Replace SubSinkAdapter with @ngneat/until-destroy"
+      ]
+    },
+    {
+      "version": "2.8.239",
+      "date": "2021-06-21",
+      "bugfixes": ["#3007 - Correctly set schedule fields on Edit Feature"]
+    },
+    {
+      "version": "2.8.238",
+      "date": "2021-06-21",
+      "bugfixes": [
+        "#2961 - Sort all mat-select element lists",
+        "#3007 - Fix Sentry error when trying to parse video response"
+      ]
+    },
+    {
+      "version": "2.8.237",
+      "date": "2021-06-19",
+      "bugfixes": ["#3046 - Improve mobile experience"]
+    },
+    {
+      "version": "2.8.236",
+      "date": "2021-06-17",
+      "bugfixes": [
+        "#3038 - Change mobile emulated browsers also for Live Steps"
+      ]
+    },
+    {
+      "version": "2.8.235",
+      "date": "2021-06-14",
+      "bugfixes": [
+        "#2929 - Improve DOM Diff regex parser",
+        "#2929 - Don't open DOM Diff dialog if response is invalid"
+      ]
+    },
+    {
+      "version": "2.8.234",
+      "date": "2021-06-14",
+      "bugfixes": ["#3046 - Fix invite user broken by upgraded dependencies"]
+    },
+    {
+      "version": "2.8.233",
+      "date": "2021-06-11",
+      "bugfixes": ["#3046 - Add edit schedule in Edit Feature"]
+    },
+    {
+      "version": "2.8.232",
+      "date": "2021-06-10",
+      "bugfixes": [
+        "#3046 - Fix long texts in Step View",
+        "#3046 - Show download button icon in dropdown for mobile users in Main View"
+      ]
+    },
+    {
+      "version": "2.8.231",
+      "date": "2021-06-10",
+      "bugfixes": ["#3060 - Add Live Step sub information"]
+    },
+    {
+      "version": "2.8.229",
+      "date": "2021-06-08",
+      "bugfixes": ["#3038 - Adapt front for emulated mobile browsers"]
+    },
+    {
+      "version": "2.8.228",
+      "date": "2021-06-07",
+      "bugfixes": ["#3046 - Add auto selection of step parameters"]
+    },
+    {
+      "version": "2.8.227",
+      "date": "2021-06-07",
+      "bugfixes": [
+        "#3056 - Change chart so each serie has the maximum value of the same serie"
+      ]
+    },
+    {
+      "version": "2.8.226",
+      "date": "2021-06-01",
+      "bugfixes": [
+        "#3046 - Add option to delete favourited browsers with right click"
+      ]
+    },
+    {
+      "version": "2.8.225",
+      "date": "2021-05-25",
+      "bugfixes": [
+        "#3048 - Reset search pagination index after folder route change"
+      ]
+    },
+    {
+      "version": "2.8.224",
+      "date": "2021-05-25",
+      "bugfixes": ["#3046 - Various bugfixes and experience improvements"]
+    },
+    {
+      "version": "2.8.223",
+      "date": "2021-05-21",
+      "bugfixes": [
+        "#3043 - Implement feedback mail in logout page coming from oidcaccount"
+      ]
+    },
+    {
+      "version": "2.8.222",
+      "date": "2021-05-13",
+      "features": [
+        {
+          "title": "Payments",
+          "description": "We have added a subscription based system. For the moment it is deactivated in Prod environments."
+        }
+      ]
+    },
+    {
+      "version": "2.8.221",
+      "date": "2021-05-10",
+      "bugfixes": ["#3033 - Improve main view table layout in mobile"]
+    },
+    {
+      "version": "2.8.220",
+      "date": "2021-05-06",
+      "bugfixes": [
+        "#3014 - Reload folders after clonning feature",
+        "#3037 - Fix pagination issue not preserving page size"
+      ]
+    },
+    {
+      "version": "2.8.219",
+      "date": "2021-05-04",
+      "bugfixes": [
+        "#3014 - Adapt new images system",
+        "#3036 - Fix browserstack videos not fetching after api change"
+      ]
+    },
+    {
+      "version": "2.8.218",
+      "date": "2021-05-03",
+      "bugfixes": [
+        "#3032 - Fix changing feature id through URL not triggering feature info to update"
+      ]
+    },
+    {
+      "version": "2.8.217",
+      "date": "2021-05-03",
+      "bugfixes": [
+        "#3031 - Fix browser icons in List View",
+        "#3033 - Fix broken Detail View in Mobile"
+      ]
+    },
+    {
+      "version": "2.8.216",
+      "date": "2021-04-30",
+      "bugfixes": ["#2961 - Sort Edit Feature selectors alphabetically"]
+    },
+    {
+      "version": "2.8.215",
+      "date": "2021-04-23",
+      "bugfixes": [
+        "#3001 - Fix feature run and feature result status not showing accordingly to backend",
+        "#3002 - Feature tiles view - hide steps information if not available",
+        "#3003 - Adjust seconds margins in detail view",
+        "#3016 - Preserve opened state of feature runs in Main View"
+      ]
+    },
+    {
+      "version": "2.8.214",
+      "date": "2021-04-22",
+      "bugfixes": ["#3007 - Solved some Sentry errors"]
+    },
+    {
+      "version": "2.8.213",
+      "date": "2021-04-22",
+      "bugfixes": ["#3004 - Fix AutoScroll always activated on Live Steps"]
+    },
+    {
+      "version": "2.8.212",
+      "date": "2021-04-20",
+      "bugfixes": ["#3005 - Improve browser text with device information"]
+    },
+    {
+      "version": "2.8.211",
+      "date": "2021-04-16",
+      "bugfixes": [
+        "#2996 - Fix parallel execution of browsers causing file collision errors"
+      ]
+    },
+    {
+      "version": "2.8.210",
+      "date": "2021-04-06",
+      "bugfixes": ["#2920 - Add easter egg"]
+    },
+    {
+      "version": "2.8.209",
+      "date": "2021-03-26",
+      "features": [
+        {
+          "title": "Webhooks",
+          "description": "You can now add, update and delete webhooks to use for your departments and your team."
+        }
+      ]
+    },
+    {
+      "version": "2.8.208",
+      "date": "2021-03-25",
+      "bugfixes": [
+        "#2889 - Add an 'Are you sure' dialog before resting decrypted variable value",
+        "#2889 - Reset variable value when trying to decrypt a variable"
+      ]
+    },
+    {
+      "version": "2.8.207",
+      "date": "2021-03-24",
+      "features": [
+        {
+          "title": "Department owners",
+          "description": "You can now be assigned as a department owner, therefore gaining access to manage the environments and accounts of the departments you own."
+        }
+      ]
+    },
+    {
+      "version": "2.8.206",
+      "date": "2021-03-22",
+      "features": [
+        {
+          "title": "HTML Compare",
+          "description": "You can now see changes in the HTML page code for each step result, this comparison is also controlled by the Screenshot and Compare checkboxes and can be seen by clicking on the <icon>code</icon> icon in the right side of step results list."
+        }
+      ]
+    },
+    {
+      "version": "2.8.205",
+      "date": "2021-03-19",
+      "bugfixes": [
+        "#2977 - Update front use patch feature and cleanup api service code"
+      ]
+    },
+    {
+      "version": "2.8.204",
+      "date": "2021-03-17",
+      "bugfixes": [
+        "#2759 - Move corresponding logic from FeatureFinished websocket to FeatureRunCompleted"
+      ]
+    },
+    {
+      "version": "2.8.203",
+      "date": "2021-03-17",
+      "features": [
+        {
+          "title": "Last edited sorting",
+          "description": "You can now sort feature in the Search View by their last edition."
+        }
+      ]
+    },
+    {
+      "version": "2.8.202",
+      "date": "2021-03-16",
+      "features": [
+        {
+          "title": "Custom timeout",
+          "description": "You can now type the desired timeout for each step definition instead of the default 60 seconds. This option is provided inside the <icon>more_vert</icon> menu of the step editor."
+        }
+      ]
+    },
+    {
+      "version": "2.8.201",
+      "date": "2021-03-16",
+      "bugfixes": ["#2969 - Fix browserstack browser not being available"]
+    },
+    {
+      "version": "2.8.200",
+      "date": "2021-03-15",
+      "bugfixes": ["#2928 - Add parsing support for UTC dates"]
+    },
+    {
+      "version": "2.8.199",
+      "date": "2021-03-12",
+      "bugfixes": ["#2886 - Handle explicit redirection on front"]
+    },
+    {
+      "version": "2.8.198",
+      "date": "2021-03-12",
+      "bugfixes": [
+        "#2964 - Add loading spinner for rechecking if result video is available",
+        "#2964 - Improve video player layout and design"
+      ]
+    },
+    {
+      "version": "2.8.197",
+      "date": "2021-03-11",
+      "bugfixes": ["Improve Main View and Step View layout and styles"]
+    },
+    {
+      "version": "2.8.196",
+      "date": "2021-03-11",
+      "bugfixes": [
+        "#2945 - Show subfeature name in step results and add click to edit feature"
+      ]
+    },
+    {
+      "version": "2.8.194",
+      "date": "2021-03-10",
+      "bugfixes": [
+        "#2961 - Sort various list items alphabetically",
+        "Change log state hotkey"
+      ]
+    },
+    {
+      "version": "2.8.193",
+      "date": "2021-03-10",
+      "bugfixes": [
+        "#2948 - Fix minor bugs caused by Network Paginated lists",
+        "Cleanup not used states and code"
+      ]
+    },
+    {
+      "version": "2.8.192",
+      "date": "2021-03-10",
+      "bugfixes": [
+        "#2958 - Fix Auto scroll checkbox on Live Steps not working correctly",
+        "Improve Live Steps performance and layout"
+      ]
+    },
+    {
+      "version": "2.8.191",
+      "date": "2021-03-09",
+      "bugfixes": [
+        "#2953 - Save selected page size in localStorage for network paginated lists"
+      ]
+    },
+    {
+      "version": "2.8.190",
+      "date": "2021-03-09",
+      "bugfixes": [
+        "#2952 - Add Latest browser version option",
+        "Improve List view layout",
+        "Minor bugfixes"
+      ]
+    },
+    {
+      "version": "2.8.189",
+      "date": "2021-03-08",
+      "bugfixes": ["#2946 - Add spinner for clicking run feature"]
+    },
+    {
+      "version": "2.8.188",
+      "date": "2021-03-08",
+      "bugfixes": [
+        "#2951 - Fix clear run history not working due to paginated view"
+      ]
+    },
+    {
+      "version": "2.8.187",
+      "date": "2021-03-05",
+      "bugfixes": [
+        "#2946 - Add spinner on Edit Feature Saving/Creating and Deleting feature"
+      ]
+    },
+    {
+      "version": "2.8.186",
+      "date": "2021-03-05",
+      "bugfixes": [
+        "#2948 - Implement paginated list in Main View and Admin -> Accounts"
+      ]
+    },
+    {
+      "version": "2.8.185",
+      "date": "2021-03-04",
+      "features": [
+        {
+          "title": "Email template variables",
+          "description": "You can now use variables in your email templates, those variables expose information about the feature and the result.<br>Please click on the <icon>help_outline</icon> icon inside the Email Template section for more information."
+        }
+      ]
+    },
+    {
+      "version": "2.8.184",
+      "date": "2021-03-02",
+      "features": [
+        {
+          "title": "List view",
+          "description": "We have added a new List view to the main page, this new view is important for those who want a clean view with clear information."
+        }
+      ]
+    },
+    {
+      "version": "2.8.183",
+      "date": "2021-02-25",
+      "features": [
+        {
+          "title": "Send invites",
+          "description": "You can now invite other people to co.meta in the department you choose. This option is available in your User Page."
+        }
+      ]
+    },
+    {
+      "version": "2.8.182",
+      "date": "2021-02-25",
+      "bugfixes": [
+        "#2889 - Improve Edit environment variables dialog and tooltips"
+      ]
+    },
+    {
+      "version": "2.8.181",
+      "date": "2021-02-24",
+      "bugfixes": [
+        "#2918 - Add pagination for Search View items",
+        "Fix translations not working correctly",
+        "#2823 - Adapt front to have department folders"
+      ]
+    },
+    {
+      "version": "2.8.180",
+      "date": "2021-02-23",
+      "bugfixes": ["#2730 - Fix various issues related to Live Steps"]
+    },
+    {
+      "version": "2.8.179",
+      "date": "2021-02-23",
+      "bugfixes": ["#2797 - Use HTML instead of plain text in Help > Actions"]
+    },
+    {
+      "version": "2.8.178",
+      "date": "2021-02-22",
+      "bugfixes": [
+        "#2811 - Hide 'Can Help' switch in User page if user is only in Default department"
+      ]
+    },
+    {
+      "version": "2.8.177",
+      "date": "2021-02-18",
+      "bugfixes": [
+        "#2923 - Fix adding email to SendMail with native autocomplete"
+      ]
+    },
+    {
+      "version": "2.8.176",
+      "date": "2021-02-17",
+      "bugfixes": [
+        "#2873 - Add checkbox for optionally delete templates with Clear runs"
+      ]
+    },
+    {
+      "version": "2.8.175",
+      "date": "2021-02-16",
+      "bugfixes": [
+        "#2816 - Align 3-dot icons in Result View when customizing headers"
+      ]
+    },
+    {
+      "version": "2.8.174",
+      "date": "2021-02-15",
+      "bugfixes": [
+        "#2816 - Fix dynamic table fields shrinking incorrectly",
+        "#2816 - Fix read only properties error when changing table headers",
+        "#2911 - Fix related features sectionning in Search Page"
+      ]
+    },
+    {
+      "version": "2.8.173",
+      "date": "2021-02-12",
+      "bugfixes": [
+        "#2890 - Automatically move feature to folder when creating or clonning"
+      ]
+    },
+    {
+      "version": "2.8.172",
+      "date": "2021-02-12",
+      "bugfixes": ["#2908 - Fix step validation for multiline parameters"]
+    },
+    {
+      "version": "2.8.171",
+      "date": "2021-02-12",
+      "features": [
+        {
+          "title": "Schedule features with in feature",
+          "description": "A new step has been added to the list, which allows users to execute other features with schedule. Step is called Schedule Job \"{feature_name}\" using parameters \"{parameters}\" and crontab pattern \"{schedule}\". Feature_name is the feature that you want to schedule, parameters are key:value pairs separated by semi-colon (;) and finally schedule which is crontab based schedule, schedule can also hold <today> and <tomorrow> which will be dynamically replaced."
+        },
+        {
+          "title": "Remove schedule",
+          "description": "Another step has been added which will removed it self from the schedule if the step passes. Step is called Delete schedule that executed this feature."
+        }
+      ]
+    },
+    {
+      "version": "2.8.170",
+      "date": "2021-02-11",
+      "features": [
+        {
+          "title": "Download attached files",
+          "description": "A new step has been added so you can now download files in the feature run and view them from the feature result and step results view. This step is called Download a file by clicking on \"<selector>\""
+        }
+      ]
+    },
+    {
+      "version": "2.8.169",
+      "date": "2021-02-10",
+      "bugfixes": ["#2895 - Fix invalid steps popup after reparsing actions"]
+    },
+    {
+      "version": "2.8.168",
+      "date": "2021-02-09",
+      "bugfixes": ["#2875 - Fix invalid time error everywhere"]
+    },
+    {
+      "version": "2.8.167",
+      "date": "2021-02-08",
+      "bugfixes": ["#2663 - Add anonymous author of sentences"]
+    },
+    {
+      "version": "2.8.166",
+      "date": "2021-02-08",
+      "bugfixes": [
+        "#2881 - Sort Admin items by ascending name",
+        "#2881 - Fix adding items in Admin resulting in doubled items",
+        "#2881 - Fix adding new feature from Admin panel",
+        "#2881 - Fix cancelling modify user resulting in abnormal behavior"
+      ]
+    },
+    {
+      "version": "2.8.165",
+      "date": "2021-02-05",
+      "features": [
+        {
+          "title": "Results table customization",
+          "description": "You can now customize the results table columns and its order by clicking on the three dot menu in the header > Table customization"
+        }
+      ]
+    },
+    {
+      "version": "2.8.164",
+      "date": "2021-02-05",
+      "bugfixes": ["#2815 - Improve feature run status behavior"]
+    },
+    {
+      "version": "2.8.163",
+      "date": "2021-02-03",
+      "features": [
+        {
+          "title": "Ask for help",
+          "description": "Now you can mark a feature with \"Ask for help\", it allows any other user who enabled \"I can help\" in his profile to assist you on a feature."
+        }
+      ]
+    },
+    {
+      "version": "2.8.162",
+      "date": "2021-02-02",
+      "features": [
+        {
+          "title": "Override steps status",
+          "description": "As we added overriding options for Feature Runs and Feature Results, you can now also override Step Result status."
+        }
+      ]
+    },
+    {
+      "version": "2.8.161",
+      "date": "2021-02-02",
+      "bugfixes": [
+        "#2663 - Show captcha box on welcome only if some provider needs it"
+      ]
+    },
+    {
+      "version": "2.8.160",
+      "date": "2021-02-01",
+      "bugfixes": ["Fix getting languages not supported"]
+    },
+    {
+      "version": "2.8.159",
+      "date": "2021-02-01",
+      "bugfixes": ["Enable Live Steps to be closed by ESC"]
+    },
+    {
+      "version": "2.8.158",
+      "date": "2021-02-01",
+      "bugfixes": [
+        "#2864 - Add detailed error messages when creating/saving feature, focus and scroll"
+      ]
+    },
+    {
+      "version": "2.8.157",
+      "date": "2021-02-01",
+      "bugfixes": ["About - Fix language not being saved in State"]
+    },
+    {
+      "version": "2.8.156",
+      "date": "2021-02-01",
+      "bugfixes": ["#2865 - Add protocol validation for actions URLs"]
+    },
+    {
+      "version": "2.8.155",
+      "date": "2021-01-29",
+      "features": [
+        {
+          "title": "Milliseconds formatting",
+          "description": "The execution times have extended so that steps with less than 1 second of execution can display values in milliseconds."
+        }
+      ]
+    },
+    {
+      "version": "2.8.154",
+      "date": "2021-01-29",
+      "features": [
+        {
+          "title": "Override results status",
+          "description": "You can now override every result status by clicking on the status tag, the default option of overriding will make the result/run status be recalculated or left as the original value"
+        }
+      ]
+    },
+    {
+      "version": "2.8.153",
+      "date": "2021-01-29",
+      "bugfixes": ["#2809 - Fix showing commented steps on Live Steps"]
+    },
+    {
+      "version": "2.8.152",
+      "date": "2021-01-25",
+      "features": [
+        {
+          "title": "Live Steps Timeout",
+          "description": "A timeout text of 30 seconds has been added to be shown in Live Steps when Backend creates a new run but Behave isn't able to create/get a container to run it."
+        }
+      ]
+    },
+    {
+      "version": "2.8.151",
+      "date": "2021-01-22",
+      "bugfixes": ["#2663 - Create welcome.html with captcha"]
+    },
+    {
+      "version": "2.8.150",
+      "date": "2021-01-22",
+      "bugfixes": ["#2803 - Change poster of What's New"]
+    },
+    {
+      "version": "2.8.149",
+      "date": "2021-01-22",
+      "bugfixes": [
+        "#2826 - Fix jumping pagination when navigating between pages"
+      ]
+    },
+    {
+      "version": "2.8.148",
+      "date": "2021-01-21",
+      "features": [
+        {
+          "title": "Paginated items",
+          "description": "A new system of pagination has been developed and will be integrated in co.meta from now on. At the time of this writing it is implemented already in Step Result list view."
+        }
+      ],
+      "bugfixes": [
+        "#2826 - Step Result view - Get overview stats from Feature Result instead of calculated value from step list"
+      ]
+    },
+    {
+      "version": "2.8.147",
+      "date": "2021-01-20",
+      "bugfixes": [
+        "#2813 - Fix saving feature info in state after being created"
+      ]
+    },
+    {
+      "version": "2.8.146",
+      "date": "2021-01-20",
+      "bugfixes": ["#2755 - Fix user page tour section"]
+    },
+    {
+      "version": "2.8.145",
+      "date": "2021-01-20",
+      "bugfixes": ["#2803 - Change What's New post image"]
+    },
+    {
+      "version": "2.8.144",
+      "date": "2021-01-19",
+      "features": [
+        {
+          "title": "Welcome page",
+          "description": "A new page named welcome has been added for new users not yet logged in."
+        }
+      ]
+    },
+    {
+      "version": "2.8.143",
+      "date": "2021-01-18",
+      "features": [
+        {
+          "title": "Changelog overview",
+          "description": "From now on, you will see a popup explaining new features, changes and patches. Every new feature has an explanation of how it works and how to experiment with it. This popup is shown whenever there are some important changes and will continue to be displayed until you close it."
+        }
+      ]
+    },
+    {
+      "version": "2.8.142",
+      "date": "2021-01-18",
+      "features": [
+        {
+          "title": "See tour again",
+          "description": "You can now repeat a tour by going to your User page and clicking on See again button of completed tours."
+        }
+      ]
+    },
+    {
+      "version": "2.8.141",
+      "bugfixes": [
+        "#2759 - Improve SocketService behavior",
+        "#2759 - Show to the user the status connection of WebSockets",
+        "#2759 - Solve error happening in console when received a result message without feature run context",
+        "#2759 - Send user info with WebSocket connection"
+      ]
+    },
+    {
+      "version": "2.8.140",
+      "features": [
+        {
+          "title": "See tour later",
+          "description": "We have placed a button to temporarily skip a tours, if you use See later the tour will be delayed until next day."
+        }
+      ]
+    },
+    {
+      "version": "2.8.139",
+      "features": [
+        {
+          "title": "Achievements system",
+          "description": "A new achievements system has been implemented, you can see which achivements have you earned by going to your User page."
+        }
+      ]
+    },
+    {
+      "version": "2.8.138",
+      "text": ["#2702 - Move clear run history to black bar behind results"]
+    },
+    {
+      "version": "2.8.137",
+      "text": ["#2758 - Fix patching of feature result when using websocket"]
+    },
+    {
+      "version": "2.8.136",
+      "text": ["#2759 - Update front actions with documentation"]
+    },
+    {
+      "version": "2.8.135",
+      "text": ["#2703 - Update 'Create feature' tour with Continue on failure"]
+    },
+    {
+      "version": "2.8.134",
+      "text": ["#2702 - Avoid openning ErrorDialog if dialog is already opened"]
+    },
+    {
+      "version": "2.8.133",
+      "text": [
+        "#2758 - Update feature info and runs with object comming from WebSockets"
+      ]
+    },
+    {
+      "version": "2.8.132",
+      "text": [
+        "#2782 - Add first and last buttons to Admin Account pagination",
+        "#2782 - Add search in Admin Accounts"
+      ]
+    },
+    {
+      "version": "2.8.131",
+      "text": [
+        "#2783 - Fix account not being updated after modifying in Admin page"
+      ]
+    },
+    {
+      "version": "2.8.130",
+      "text": ["Fix ngZone issue in feature item"]
+    },
+    {
+      "version": "2.8.129",
+      "text": ["Use ngZone in feature item"]
+    },
+    {
+      "version": "2.8.128",
+      "text": [
+        "#2757 - Added success error handler interceptor",
+        "#2757 - Change 'archive' to 'save'",
+        "#2757 - Added tooltips to clarify what 'save' means for the user",
+        "#2757 - Deprecate ErrorInterceptor in favor of ngx-network-error"
+      ]
+    },
+    {
+      "version": "2.8.127",
+      "text": [
+        "#2703 - Add tooltip to disabled checkboxes of continue on failure",
+        "Add pagination to admin accounts page",
+        "Fix admin features page"
+      ]
+    },
+    {
+      "version": "2.8.126",
+      "text": ["#2703 - Implement continue on failure"]
+    },
+    {
+      "version": "2.8.125",
+      "text": ["Custom implementation of ngx-joyride"]
+    },
+    {
+      "version": "2.8.124",
+      "text": ["Implement ngx-amvara-toolbox"]
+    },
+    {
+      "version": "2.8.123",
+      "text": [
+        "#2702 - Implement clear history with possible options",
+        "#2702 - Implement archived for Feature Runs and Results",
+        "Implement SubSinkAdapter for automatic observable unsubscription",
+        "Added ngLet directive"
+      ]
+    },
+    {
+      "version": "2.8.122",
+      "text": ["#2703 - Centralized guided tours and versioning"]
+    },
+    {
+      "version": "2.8.121",
+      "text": ["#2703 - Added guided tour for creating a feature"]
+    },
+    {
+      "version": "2.8.120",
+      "text": ["#2754 - Reload runs after execution"]
+    },
+    {
+      "version": "2.8.119",
+      "text": ["#2753 - Add step validation"]
+    },
+    {
+      "version": "2.8.118",
+      "text": [
+        "#2678 - Fix copying step above or below",
+        "#2678 - Align prefix selector to top of step"
+      ]
+    },
+    {
+      "version": "2.8.117",
+      "text": [
+        "Add step keyword selector",
+        "Make step definition height adaptive to content"
+      ]
+    },
+    {
+      "version": "2.8.116",
+      "text": [
+        "Fix error causing ESC not to work properly on EditFeature",
+        "Fix changes detection in EditFeature",
+        "Add option in About to toggle logging of WebSockets",
+        "Fix feature sort for when is not Last execution",
+        "Remove unnecessary requests when creating or updating features"
+      ]
+    },
+    {
+      "version": "2.8.115",
+      "text": [
+        "Add heartbeat",
+        "Reload if 401 is returned on any backend request",
+        "Show cookies expired if heartbeat fails"
+      ]
+    },
+    {
+      "version": "2.8.114",
+      "text": [
+        "Fix sorting features",
+        "Get user departments from addoidcaccount",
+        "Fixed filters"
+      ]
+    },
+    {
+      "version": "2.8.113",
+      "text": ["Reorganize folders and feature to optimize loading"]
+    },
+    {
+      "version": "2.8.112",
+      "text": ["Fix variables not being reloaded after changing state location"]
+    },
+    {
+      "version": "2.8.111",
+      "text": [
+        "Step Editor - Use forms instead of state driven",
+        "Use FeatureResult status in Search results"
+      ]
+    },
+    {
+      "version": "2.8.110",
+      "text": [
+        "Hide Send Mail, Record Video and browser selection on Edit Feature if Depends on others is checked",
+        "Fixed Live Steps browser status value",
+        "Fixed error when closing Live Steps",
+        "Removed deep JSON clone due to implementation of @ImmutableSelector"
+      ]
+    },
+    {
+      "version": "2.8.109",
+      "text": [
+        "Implement changes of Backend for substeps, browser cloud and screenshot/compare"
+      ]
+    },
+    {
+      "version": "2.8.108",
+      "text": [
+        "Fix steps not being cleared after editing / creating feature",
+        "Fix steps not being correctly saved on temporal state"
+      ]
+    },
+    {
+      "version": "2.8.107",
+      "text": [
+        "Create state for logs",
+        "Make style templates available everywhere",
+        "Make TypeScript types available everywhere",
+        "Implement @SelectSnapshot",
+        "Implement @ImmutableSelector to avoid recent NGXS pitfalls",
+        "Remove DataService",
+        "Help Page - Add hotkeys information"
+      ]
+    },
+    {
+      "version": "2.8.106",
+      "text": [
+        "Create state for step results, feature results, runs and screenshots",
+        "Create pipes for template functions",
+        "Use new state for Main View, Step View and Detail View",
+        "Automatic redirect of Admin menu tabs"
+      ]
+    },
+    {
+      "version": "2.8.105",
+      "text": [
+        "Sort features without last run info to bottom",
+        "Organize code using Custom Selectors",
+        "Convert ToolsService to tree-shaking friendly functions",
+        "Remove code not used / dead"
+      ]
+    },
+    {
+      "version": "2.8.104",
+      "text": [
+        "Change keyboard combination for showing state",
+        "Fix deleting steps"
+      ]
+    },
+    {
+      "version": "2.8.103",
+      "text": [
+        "#2670 - Create state for step definitions",
+        "Solve steps related issues",
+        "Solve clonning feature with steps"
+      ]
+    },
+    {
+      "version": "2.8.102",
+      "text": [
+        "#2670 - Create state for variables",
+        "#2670 - Save last search sorting value on localStorage",
+        "#2670 - Reload features on clone",
+        "#2670 - Create state for clouds and use it on browser selection"
+      ]
+    },
+    {
+      "version": "2.8.101",
+      "text": [
+        "#2670 - Implement changes on Variables, Environment + Department",
+        "#2670 - Fix editing testcase, any option using right click, not working after clicking two times",
+        "#2670 - Fix Admin > Accounts, permission is undefined",
+        "#2670 - Fix Admin > Account, edit one, permissions coming from oidcaccount info",
+        "#2670 - Browser selection, value to send > default \"local\"",
+        "#2670 - Added clone feature button"
+      ]
+    },
+    {
+      "version": "2.8.100",
+      "text": [
+        "#2313 - Fix adding multiple filters of same category",
+        "#2313 - Fix filter value substitution"
+      ]
+    },
+    {
+      "version": "2.8.99",
+      "text": ["Add lazy loading for Search view and its components"]
+    },
+    {
+      "version": "2.8.98",
+      "text": ["Remove request to callback"]
+    },
+    {
+      "version": "2.8.97",
+      "text": [
+        "Remove old or obsolete code and libraries",
+        "Move ChartsModule to DetailsModule for main bundle optimization",
+        "Remove unused plugins",
+        "Convert Help and About page to modules"
+      ]
+    },
+    {
+      "version": "2.8.96",
+      "text": [
+        "#2582 - Tell the store the feature run has finished once stopped",
+        "Implement produce from immer library for optimal code understanding and productivity",
+        "Fix showing filters in mobile"
+      ]
+    },
+    {
+      "version": "2.8.95",
+      "text": [
+        "#2609 - Fixed sending 0 steps to backend while saving testcase even thought testcase had steps."
+      ]
+    },
+    {
+      "version": "2.8.94",
+      "text": [
+        "#2611 - Fixed users unable to select browsers or add steps while creating a new testcase."
+      ]
+    },
+    {
+      "version": "2.8.93",
+      "text": ["#2602 - Fix and add fallback for empty cloud browsers"]
+    },
+    {
+      "version": "2.8.92",
+      "text": [
+        "#2602 - Grab local browsers from Store (Backend) instead of DataService"
+      ]
+    },
+    {
+      "version": "2.8.91",
+      "text": ["Show Live Steps after running only in feature details"]
+    },
+    {
+      "version": "2.8.90",
+      "text": ["#2596 - Add Download PDF Link for Feature Results"]
+    },
+    {
+      "version": "2.8.89",
+      "text": ["Fix browser values not correctly shown after save"]
+    },
+    {
+      "version": "2.8.88",
+      "text": [
+        "#2288 - Fix Insert step before, inserts new at the end",
+        "#2288 - Make Live Steps Viewer optional when clicking Run",
+        "#2288 - Fix depends on other is reseted when editing a feature",
+        "#2288 - Fix steps no correctly loaded if steps section is opened by default"
+      ]
+    },
+    {
+      "version": "2.8.87",
+      "text": ["#2288 - Fix default browserstack option"]
+    },
+    {
+      "version": "2.8.86",
+      "text": ["#2288 - Subscribe to param changes on detail view"]
+    },
+    {
+      "version": "2.8.85",
+      "text": [
+        "#2288 - Remove template image when deleting style screenshot",
+        "#2288 - FeatureItem - Change from Input() to @Store",
+        "#2288 - Don't remove screenshot box at delete"
+      ]
+    },
+    {
+      "version": "2.8.84",
+      "text": [
+        "#2288 - Fix scroll checkbox in Live Steps",
+        "#2288 - Add actions section in Help page"
+      ]
+    },
+    {
+      "version": "2.8.83",
+      "text": ["Also retrieve details from nested features inside folders"]
+    },
+    {
+      "version": "2.8.82",
+      "text": [
+        "#2288 - Add spinners where necessary",
+        "#2288 - Set autofocus on entering add step and enter value dialog",
+        "#2288 - Close Live Steps Viewer after stop execution"
+      ]
+    },
+    {
+      "version": "2.8.81",
+      "text": [
+        "#2288 - Hide disabled steps in Live Steps Viewer",
+        "#2288 - Delete Django cookies before each request"
+      ]
+    },
+    {
+      "version": "2.8.80",
+      "text": [
+        "#2313 - Re-allow user to add multiple filter instances for some filters"
+      ]
+    },
+    {
+      "version": "2.8.79",
+      "text": [
+        "#2288 - If feature doesn't have browsers, show warning popup or hide run button",
+        "#2288 - Let the user select old versions of browsers via \"View more\" button"
+      ]
+    },
+    {
+      "version": "2.8.78",
+      "text": [
+        "#2288 - Cleanup runs info after closing live steps viewer",
+        "#2288 - Move live status from run to every browser run"
+      ]
+    },
+    {
+      "version": "2.8.77",
+      "text": [
+        "#2288 - Remove SubSink",
+        "#2288 - paramMap to snapshot",
+        "#2288 - Remove CSS code not used",
+        "#2288 - Add Department filter logic"
+      ]
+    },
+    {
+      "version": "2.8.76",
+      "text": [
+        "#2288 - Add loading spinner to sub details pages",
+        "#2288 - Disable feature name edit in search page",
+        "#2288 - Add rename in Edit Feature",
+        "#2288 - Restructure feature runs"
+      ]
+    },
+    {
+      "version": "2.8.75",
+      "text": [
+        "#2288 - Fix sorting on main view",
+        "#2288 - Fix timezone of chart",
+        "#2288 - Distinct return buttons"
+      ]
+    },
+    {
+      "version": "2.8.74",
+      "text": [
+        "#2288 - Add department filter (only UI)",
+        "#2288 - Adapt edit feature to mobile & desktop",
+        "#2288 - Autoplay video"
+      ]
+    },
+    {
+      "version": "2.8.73",
+      "text": [
+        "#2288 - Add error interceptor",
+        "#2288 - Fix errors for running features"
+      ]
+    },
+    {
+      "version": "2.8.72",
+      "text": [
+        "#2288 - Fusion edit feature and create feature",
+        "#2288 - Remove dead code"
+      ]
+    },
+    {
+      "version": "2.8.71",
+      "text": ["#2572 - Join all charts to Highcharts"]
+    },
+    {
+      "version": "2.8.70",
+      "text": ["#2572 - Move from NgxCharts to Highcharts"]
+    },
+    {
+      "version": "2.8.69",
+      "text": [
+        "#2288 - Double X axis with different days",
+        "#2288 - Add Video viewer"
+      ]
+    },
+    {
+      "version": "2.8.68",
+      "text": ["Delete caches and reload if callback fails after logout"]
+    },
+    {
+      "version": "2.8.67",
+      "text": ["#2288 - Implement option for video recording"]
+    },
+    {
+      "version": "2.8.66",
+      "text": [
+        "#2288 - Move percentage button + pagination controls",
+        "#2288 - Fix invalid date on search view",
+        "#2288 - Fix desktop and mobile views of detail-view and steps-view",
+        "#2288 - Change Default department warning style and conditions"
+      ]
+    },
+    {
+      "version": "2.8.65",
+      "text": ["#2288 - Adapt 3 feature views to Mobile and Desktop"]
+    },
+    {
+      "version": "2.8.64",
+      "text": [
+        "#2288 - Fix Back button on feature results does not works",
+        "#2288 - Don't show screenshot boxes if they are not available",
+        "#2288 - Remove crypto-js, now done in Backend",
+        "#2288 - Replace encrypt local functions to API request",
+        "#2288 - Add guard for admin panel and edit variables",
+        "#2288 - Add remove variable"
+      ]
+    },
+    {
+      "version": "2.8.63",
+      "text": [
+        "#2288 - Implement edit variables of environments",
+        "#2288 - Implement encryption through backend",
+        "#2288 - Remove front encryption functions"
+      ]
+    },
+    {
+      "version": "2.8.62",
+      "text": [
+        "#2288 - Remove numeral plugin",
+        "#2288 - Create API endpoints and dialog for Environment Variables"
+      ]
+    },
+    {
+      "version": "2.8.61",
+      "text": [
+        "#2559 - Warning when user selects Default department",
+        "#2559 - Disallow or remove blank step definitions on save",
+        "#2559 - Allow ESC key on edit feature, if feature has been modified, show warning popup",
+        "#2559 - Add buttons to export and import feature from edit feature popup",
+        "#2559 - Saved selected browsers and not selected after reopenning"
+      ]
+    },
+    {
+      "version": "2.8.60",
+      "text": ["#2288 - Multiple fixes of edit feature"]
+    },
+    {
+      "version": "2.8.59",
+      "text": [
+        "#2288 - Order browser versions in descending order",
+        "#2288 - Fix favourited browsers selection and save"
+      ]
+    },
+    {
+      "version": "2.8.58",
+      "text": [
+        "#2288 - Add button to export features, all or selected",
+        "#2288 - Limit admin panel access according to user role permissions",
+        "#2288 - Correctly sort browser selection version on dropdown selector",
+        "#2288 - Prettify observable concats",
+        "#2288 - Fix user state and interfaces to match new backend model JSON response"
+      ]
+    },
+    {
+      "version": "2.8.57",
+      "text": [
+        "#2288 - Limit front pages and elements according to user role permissions"
+      ]
+    },
+    {
+      "version": "2.8.56",
+      "text": ["#2288 - Adapt backend changes of user permissions"]
+    },
+    {
+      "version": "2.8.55",
+      "text": [
+        "#2288 - Prevent Default users from sending emails to 3rd partys v2"
+      ]
+    },
+    {
+      "version": "2.8.54",
+      "text": [
+        "#2288 - Prevent Default users from sending emails to 3rd partys"
+      ]
+    },
+    {
+      "version": "2.8.53",
+      "text": [
+        "#2288 - Fix feature items height",
+        "#2288 - Fix created_on error causing other various issues in cometa"
+      ]
+    },
+    {
+      "version": "2.8.52",
+      "text": ["#2288 - Update default schedule"]
+    },
+    {
+      "version": "2.8.51",
+      "text": [
+        "#2288 - Fix issues within admin panel, sorting of accounts, fix schedule, fix send mail, show last login and creation date"
+      ]
+    },
+    {
+      "version": "2.8.50",
+      "text": [
+        "#2288 - Add new folder button in main page",
+        "#2288 - Design change on user page",
+        "#2288 - Fix Live Steps taking previous run when not started",
+        "#2288 - Redesign remaining buttons"
+      ]
+    },
+    {
+      "version": "2.8.49",
+      "text": [
+        "#2544 - Add backend logic for Department Manager",
+        "#2288 - Fix visual issues",
+        "#2288 - Fix show previous run when starting live steps"
+      ]
+    },
+    {
+      "version": "2.8.48",
+      "text": ["#2544 - Add department manager for users"]
+    },
+    {
+      "version": "2.8.47",
+      "text": [
+        "#2543 - Adapt mobile main views",
+        "#2288 - Redesign buttons",
+        "#2288 - Join commonly used code",
+        "#2288 - Add kill running test feature"
+      ]
+    },
+    {
+      "version": "2.8.46",
+      "text": [
+        "#2543 - Adapt admin and user pages to Mobile and Desktop accordingly"
+      ]
+    },
+    {
+      "version": "2.8.45",
+      "text": ["#2395 - Fix create folder and add rename folder option"]
+    },
+    {
+      "version": "2.8.44",
+      "text": ["#2399 - Disable schedule checkbox"]
+    },
+    {
+      "version": "2.8.43",
+      "text": ["#2253 - Fix screenshots being deleted incorrectly in front"]
+    },
+    {
+      "version": "2.8.42",
+      "text": [
+        "#2528 - Remove trailing slash on some API endpoints to prevent double requests"
+      ]
+    },
+    {
+      "version": "2.8.41",
+      "text": ["#2395 - Update packages and remove unused imports"]
+    },
+    {
+      "version": "2.8.40",
+      "text": ["#2395 - Update packages", "#2395 - Preserve state of sub pages"]
+    },
+    {
+      "version": "2.8.39",
+      "text": [
+        "#2395 - Improvements in async code",
+        "#2395 - Cleanup not used code"
+      ]
+    },
+    {
+      "version": "2.8.38",
+      "text": [
+        "#2395 - Removed unused code",
+        "#2395 - Organize code",
+        "#2395 - Fix Log Output"
+      ]
+    },
+    {
+      "version": "2.8.36",
+      "text": [
+        "#2395 - Add state for browsers",
+        "#2395 - Extend admin panels with more info and options"
+      ]
+    },
+    {
+      "version": "2.8.35",
+      "text": ["#2395 - Reorganize code", "#2395 - Remove unused code"]
+    },
+    {
+      "version": "2.8.34",
+      "text": [
+        "#2395 - Use FeatureRunID instead of FeatureResultID in Live Steps and details view"
+      ]
+    },
+    {
+      "version": "2.8.33",
+      "text": ["#2395 - Show who edited feature last"]
+    },
+    {
+      "version": "2.8.32",
+      "text": [
+        "#2395 - Update packages",
+        "#2395 - Fix feature browser description in search view"
+      ]
+    },
+    {
+      "version": "2.8.31",
+      "text": ["#2395 - Fix charts and show icons of browsers"]
+    },
+    {
+      "version": "2.8.30",
+      "text": ["#2395 - Adapt front detail view"]
+    },
+    {
+      "version": "2.8.29",
+      "text": ["#2395 - Adapt front for Backend changes"]
+    },
+    {
+      "version": "2.8.28",
+      "text": ["#2395 - Reduce code", "#2395 - Add state for accounts"]
+    },
+    {
+      "version": "2.8.27",
+      "text": [
+        "#2395 - Rename folders",
+        "#2395 - Distinct front features and admin features"
+      ]
+    },
+    {
+      "version": "2.8.26",
+      "text": [
+        "#2395 - Feature to remove folders",
+        "#2395 - Add options to folders",
+        "#2395 - Add @Subscribe TypeScript decorator",
+        "#2395 - Reformat some switchMap operators",
+        "#2395 - Move filters code to state"
+      ]
+    },
+    {
+      "version": "2.8.25",
+      "text": ["#2395 - Finalize move feature folder dialog"]
+    },
+    {
+      "version": "2.8.24",
+      "text": ["#2395 - Implement Folders View and Move Feature Dialog"]
+    },
+    {
+      "version": "2.8.23",
+      "text": [
+        "#2395 - Improve code to avoid duplicate requests",
+        "#2395 - Avoid duplicated code",
+        "#2395 - Store NGXS data in LocalStorage",
+        "#2395 - Fix edit schedule"
+      ]
+    },
+    {
+      "version": "2.8.22",
+      "text": [
+        "#2395 - Add email addresses on add feature",
+        "#2395 - Add action for generic error and show it",
+        "#2395 - Fix user icon on user page",
+        "#2395 - Save Browser favourites in user profile"
+      ]
+    },
+    {
+      "version": "2.8.21",
+      "text": [
+        "#2395 - Improve code on Search for running feature",
+        "#2395 - Code cleanning",
+        "#2395 - Remove unused components and dialogs"
+      ]
+    },
+    {
+      "version": "2.8.20",
+      "text": [
+        "#2395 - Create Screenshot Viewer",
+        "#2395 - Improve live step viewer with screenshots and code cleanings",
+        "#2395 - Code cleanning",
+        "#2395 - Implement subscription to test completions and notifications"
+      ]
+    },
+    {
+      "version": "2.8.19",
+      "text": ["#2395 - Changes on WebSockets and in Live Steps Viewer"]
+    },
+    {
+      "version": "2.8.18",
+      "text": [
+        "#2395 - Implement favourites in Local Storage",
+        "#2395 - Add send to email feature, with multiple addresses, subject and body"
+      ]
+    },
+    {
+      "version": "2.8.17",
+      "text": [
+        "#2395 - Add Selected browsers",
+        "#2395 - Add favourite browsers",
+        "#2395 - Move cloud field to inside Browser Selection"
+      ]
+    },
+    {
+      "version": "2.8.16",
+      "text": ["#2413 - Fix autocomplete dialog"]
+    },
+    {
+      "version": "2.8.15",
+      "text": ["#2413 - Fix error caused by backend"]
+    },
+    {
+      "version": "2.8.14",
+      "text": ["#2413 - Get Browserstack parameters from backend"]
+    },
+    {
+      "version": "2.8.13",
+      "text": ["#2413 - Adapt backend changes"]
+    },
+    {
+      "version": "2.8.12",
+      "text": [
+        "#2430 - mark steps in testplan to be executed/not executed when this plan is included somewhere else",
+        "#2395 - Improve other issues, config preferences and adaptations of browserstack changes"
+      ]
+    },
+    {
+      "version": "2.8.11",
+      "text": [
+        "#2395 - Improve UI of Add/Edit feature",
+        "#2395 - Clean code of Add/Edit feature",
+        "#2395 - Create component for edit step, shared in Add/Edit",
+        "#2395 - Fixed code bugs and errors in both Add/Edit dialogs"
+      ]
+    },
+    {
+      "version": "2.8.10",
+      "text": [
+        "#2395 - Add browser selection component on Add Test",
+        "#2395 - Hide pixel difference if 0 and add eye icon"
+      ]
+    },
+    {
+      "version": "2.8.9",
+      "text": ["Make sure last run pipe gets last ran test"]
+    },
+    {
+      "version": "2.8.8",
+      "text": ["#2288 - Fix some discussed bugs and improvements"]
+    },
+    {
+      "version": "2.8.7",
+      "text": [
+        "#2288 - Don't scroll to bottom when adding step if is cancelled",
+        "#2288 - Added loader for test, feature results, and steps"
+      ]
+    },
+    {
+      "version": "2.8.4",
+      "text": ["#2264 - Make search of steps case insensitive"]
+    },
+    {
+      "version": "2.8.3",
+      "text": ["#2250 - Hide pixel difference if there are not screenshots"]
+    },
+    {
+      "version": "2.8.3",
+      "text": ["#2250 - Hide pixel difference if there are not screenshots"]
+    },
+    {
+      "version": "2.8.2",
+      "text": ["Fixed screenshots url"]
+    },
+    {
+      "version": "2.8.1",
+      "text": ["Run button also in feature result detail"]
+    },
+    {
+      "version": "2.3.0",
+      "text": [
+        "Improvements",
+        "Search boxes with success or not and browser icon"
+      ]
+    }
+  ]
 }

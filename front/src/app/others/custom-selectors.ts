@@ -12,7 +12,12 @@ import { StepDefinitionsState } from '@store/step-definitions.state';
 import { SubscriptionsState } from '@store/subscriptions.state';
 import { UserState } from '@store/user.state';
 import { classifyByProperty } from 'ngx-amvara-toolbox';
-import { MainViewFieldsDesktop, MainViewFieldsMobile, MainViewFieldsTabletLandscape, MainViewFieldsTabletPortrait} from '@others/variables'
+import {
+  MainViewFieldsDesktop,
+  MainViewFieldsMobile,
+  MainViewFieldsTabletLandscape,
+  MainViewFieldsTabletPortrait,
+} from '@others/variables';
 
 /**
  * CustomSelectors is used to retrieve data, changes or calculations when changes from
@@ -35,24 +40,29 @@ import { MainViewFieldsDesktop, MainViewFieldsMobile, MainViewFieldsTabletLandsc
  *     ])
  */
 export class CustomSelectors {
-
   /**
    * Custom Selector for retrieving permission of Edit Feature
    * @param featureId number
    * @param permission_name UserPermissions
    */
-  static HasPermission(permissionName: keyof UserPermissions, feature: number | Feature) {
-    return createSelector([
-      FeaturesState.GetFeatureInfo,
-      UserState.GetPermission(permissionName),
-      UserState,
-      UserState.RetrieveUserDepartments
-    ], (featureFn, permitted, user, depts) => {
-      if (typeof feature === 'number') {
-        feature = featureFn(feature) as Feature;
+  static HasPermission(
+    permissionName: keyof UserPermissions,
+    feature: number | Feature
+  ) {
+    return createSelector(
+      [
+        FeaturesState.GetFeatureInfo,
+        UserState.GetPermission(permissionName),
+        UserState,
+        UserState.RetrieveUserDepartments,
+      ],
+      (featureFn, permitted, user, depts) => {
+        if (typeof feature === 'number') {
+          feature = featureFn(feature) as Feature;
+        }
+        return permitted || ownFeature(feature, user, depts);
       }
-      return permitted || ownFeature(feature, user, depts);
-    })
+    );
   }
 
   /**
@@ -60,7 +70,9 @@ export class CustomSelectors {
    * @param featureId number
    */
   static GetFeatureInfo(featureId: number) {
-    return createSelector([FeaturesState.GetFeatureInfo], featureFn => featureFn(featureId))
+    return createSelector([FeaturesState.GetFeatureInfo], featureFn =>
+      featureFn(featureId)
+    );
   }
 
   /**
@@ -68,7 +80,9 @@ export class CustomSelectors {
    * @param featureId number
    */
   static GetFeatureRunningStatus(featureId: number) {
-    return createSelector([ResultsState.GetFeatureRunningStatus], featureFn => featureFn(featureId))
+    return createSelector([ResultsState.GetFeatureRunningStatus], featureFn =>
+      featureFn(featureId)
+    );
   }
 
   /**
@@ -76,7 +90,9 @@ export class CustomSelectors {
    * @param featureId number
    */
   static GetFeatureStatus(featureId: number) {
-    return createSelector([ResultsState.GetFeatureStatus], featureFn => featureFn(featureId))
+    return createSelector([ResultsState.GetFeatureStatus], featureFn =>
+      featureFn(featureId)
+    );
   }
 
   /**
@@ -92,7 +108,9 @@ export class CustomSelectors {
    * @param featureId number
    */
   static GetNotificationEnabled(featureId: number) {
-    return createSelector([ResultsState.GetNotificationEnabled], fn => fn(featureId))
+    return createSelector([ResultsState.GetNotificationEnabled], fn =>
+      fn(featureId)
+    );
   }
 
   /**
@@ -100,7 +118,9 @@ export class CustomSelectors {
    * @param featureId number
    */
   static GetLastFeatureRunID(featureId: number) {
-    return createSelector([ResultsState.GetLastFeatureRunID], fn => fn(featureId));
+    return createSelector([ResultsState.GetLastFeatureRunID], fn =>
+      fn(featureId)
+    );
   }
 
   /**
@@ -118,7 +138,12 @@ export class CustomSelectors {
    * @param showOnlyOriginal If true for showing only the original steps defined, false to show substeps of "run feature with *"
    * @param ignoreDisabled Wether or not to show disabled steps
    */
-  static GetFeatureSteps(featureId: number, editMode: EditMode = 'edit', showOnlyOriginal: boolean = true, ignoreDisabled: boolean = false) {
+  static GetFeatureSteps(
+    featureId: number,
+    editMode: EditMode = 'edit',
+    showOnlyOriginal: boolean = true,
+    ignoreDisabled: boolean = false
+  ) {
     return createSelector([StepDefinitionsState.GetFeatureSteps], fn => {
       let steps: FeatureStep[] = [];
       switch (editMode) {
@@ -132,13 +157,19 @@ export class CustomSelectors {
       }
       // Ignore disabled steps if passed
       if (ignoreDisabled) {
-        steps = steps.filter(step => !!step.enabled)
+        steps = steps.filter(step => !!step.enabled);
       }
       // Filter accordingly too where steps are required
       const typeToFilter = showOnlyOriginal ? 'subfeature' : 'substep';
       const addLoops = typeToFilter === 'subfeature';
-      return steps.filter(step => step.step_type === 'normal' || step.step_type === typeToFilter || !step.hasOwnProperty('step_type') || (addLoops && step.step_type === 'loop'));
-    })
+      return steps.filter(
+        step =>
+          step.step_type === 'normal' ||
+          step.step_type === typeToFilter ||
+          !step.hasOwnProperty('step_type') ||
+          (addLoops && step.step_type === 'loop')
+      );
+    });
   }
 
   /**
@@ -147,9 +178,16 @@ export class CustomSelectors {
    * @param runId number
    * @param browser BrowserstackBrowser
    */
-  static GetLastFeatureRunSteps(featureId: number, runId: number, browser: BrowserstackBrowser) {
+  static GetLastFeatureRunSteps(
+    featureId: number,
+    runId: number,
+    browser: BrowserstackBrowser
+  ) {
     const browserKey = getBrowserKey(browser);
-    return createSelector([ResultsState.GetLastFeatureRunSteps], fn => fn(featureId, runId, browserKey) as StepStatus[])
+    return createSelector(
+      [ResultsState.GetLastFeatureRunSteps],
+      fn => fn(featureId, runId, browserKey) as StepStatus[]
+    );
   }
 
   /**
@@ -158,9 +196,16 @@ export class CustomSelectors {
    * @param runId number
    * @param browser BrowserstackBrowser
    */
-  static GetLastFeatureRunDetails(featureId: number, runId: number, browser: BrowserstackBrowser, index: number) {
+  static GetLastFeatureRunDetails(
+    featureId: number,
+    runId: number,
+    browser: BrowserstackBrowser,
+    index: number
+  ) {
     const browserKey = getBrowserKey(browser);
-    return createSelector([ResultsState.GetLastFeatureRunDetails], fn => fn(featureId, runId, browserKey, index))
+    return createSelector([ResultsState.GetLastFeatureRunDetails], fn =>
+      fn(featureId, runId, browserKey, index)
+    );
   }
 
   /**
@@ -169,9 +214,15 @@ export class CustomSelectors {
    * @param runId number
    * @param browser BrowserstackBrowser
    */
-  static GetFeatureBrowserStatus(featureId: number, runId: number, browser: BrowserstackBrowser) {
+  static GetFeatureBrowserStatus(
+    featureId: number,
+    runId: number,
+    browser: BrowserstackBrowser
+  ) {
     const browserKey = getBrowserKey(browser);
-    return createSelector([ResultsState.GetFeatureBrowserStatus], fn => fn(featureId, runId, browserKey))
+    return createSelector([ResultsState.GetFeatureBrowserStatus], fn =>
+      fn(featureId, runId, browserKey)
+    );
   }
 
   /**
@@ -184,65 +235,99 @@ export class CustomSelectors {
 
   // Function used in filter text pipe to replace filter template with real value
   static FilterTextFunction(filter: Filter) {
-    return createSelector([
-      ApplicationsState,
-      UserState.RetrieveUserDepartments,
-      EnvironmentsState
-    ], (
-      apps: Application[],
-      depts: Department[],
-      envs: Environment[]
-    ) => {
-      if (!filter) return null;
-      let value = filter.text;
-      try {
-        switch (filter.id) {
-          case 'dept':
-            value = filter.text_copy.replace('$1', '<i>' + depts.find(dept => dept.department_id == filter.value).department_name + '</i>');
-            break;
-          case 'app':
-            value = filter.text_copy.replace('$1', '<i>' + apps.find(app => app.app_id == filter.value).app_name + '</i>');
-            break;
-          case 'env':
-            value = filter.text_copy.replace('$1', '<i>' + envs.find(env => env.environment_id == filter.value).environment_name + '</i>');
-            break;
-          case 'test':
-            value = filter.text_copy.replace('$1', '<i>' + filter.value + '</i>');
-            break;
-          case 'date':
-            value = filter.rangeText
-              .replace('$1', '<i>' + this.formatDate(filter.range1) + '</i>')
-              .replace('$2', '<i>' + this.formatDate(filter.range2) + '</i>');
-            break;
-          case 'steps':
-            value = filter.text_copy
-              .replace('$1', filter.more === '>' ? 'More than' : (filter.more === 'is' ? 'Has' : 'Less than'))
-              .replace('$2', '<i>' + filter.value + '</i>');
-            break;
-          case 'ok':
-            value = filter.text_copy
-              .replace('$1', filter.more === '>' ? 'More than' : (filter.more === 'is' ? 'Has' : 'Less than'))
-              .replace('$2', '<i>' + filter.value + '</i>');
-            break;
+    return createSelector(
+      [ApplicationsState, UserState.RetrieveUserDepartments, EnvironmentsState],
+      (apps: Application[], depts: Department[], envs: Environment[]) => {
+        if (!filter) return null;
+        let value = filter.text;
+        try {
+          switch (filter.id) {
+            case 'dept':
+              value = filter.text_copy.replace(
+                '$1',
+                '<i>' +
+                  depts.find(dept => dept.department_id == filter.value)
+                    .department_name +
+                  '</i>'
+              );
+              break;
+            case 'app':
+              value = filter.text_copy.replace(
+                '$1',
+                '<i>' +
+                  apps.find(app => app.app_id == filter.value).app_name +
+                  '</i>'
+              );
+              break;
+            case 'env':
+              value = filter.text_copy.replace(
+                '$1',
+                '<i>' +
+                  envs.find(env => env.environment_id == filter.value)
+                    .environment_name +
+                  '</i>'
+              );
+              break;
+            case 'test':
+              value = filter.text_copy.replace(
+                '$1',
+                '<i>' + filter.value + '</i>'
+              );
+              break;
+            case 'date':
+              value = filter.rangeText
+                .replace('$1', '<i>' + this.formatDate(filter.range1) + '</i>')
+                .replace('$2', '<i>' + this.formatDate(filter.range2) + '</i>');
+              break;
+            case 'steps':
+              value = filter.text_copy
+                .replace(
+                  '$1',
+                  filter.more === '>'
+                    ? 'More than'
+                    : filter.more === 'is'
+                      ? 'Has'
+                      : 'Less than'
+                )
+                .replace('$2', '<i>' + filter.value + '</i>');
+              break;
+            case 'ok':
+              value = filter.text_copy
+                .replace(
+                  '$1',
+                  filter.more === '>'
+                    ? 'More than'
+                    : filter.more === 'is'
+                      ? 'Has'
+                      : 'Less than'
+                )
+                .replace('$2', '<i>' + filter.value + '</i>');
+              break;
+          }
+        } catch (err) {
+          console.log(err);
         }
-      } catch (err) {
-        console.log(err)
+        return value;
       }
-      return value;
-    })
+    );
   }
-
 
   // Get date as human format
   static formatDate(date) {
-    let d = new Date(date), month = '' + (d.getMonth() + 1), day = '' + d.getDate(), year = d.getFullYear();
+    let d = new Date(date),
+      month = '' + (d.getMonth() + 1),
+      day = '' + d.getDate(),
+      year = d.getFullYear();
     if (month.length < 2) month = '0' + month;
     if (day.length < 2) day = '0' + day;
     return [day, month, year].join('/');
   }
 
   static GetFeatureResultById(resultId: number) {
-    return createSelector([FeatureResultsState], (ctx: IFeatureResultsState) => ctx[resultId]);
+    return createSelector(
+      [FeatureResultsState],
+      (ctx: IFeatureResultsState) => ctx[resultId]
+    );
   }
 
   /* static GetStepResultsById(resultId: number, page: number): (ctx: IStepResultsState) => Pagination<StepResult> {
@@ -256,7 +341,9 @@ export class CustomSelectors {
 
   static GetLogById(featureResultId: number) {
     return createSelector([LogsState], (ctx: ILogsState) => {
-      return ctx[featureResultId] && ctx[featureResultId].success ? ctx[featureResultId].log : '';
+      return ctx[featureResultId] && ctx[featureResultId].success
+        ? ctx[featureResultId].log
+        : '';
     });
   }
 
@@ -269,7 +356,12 @@ export class CustomSelectors {
    * @param department_id {number} Department Id
    */
   static GetDepartmentSettings(department_id: number) {
-    return createSelector([UserState], (user: UserInfo) => user.departments.find(dept => dept.department_id === department_id).settings);
+    return createSelector(
+      [UserState],
+      (user: UserInfo) =>
+        user.departments.find(dept => dept.department_id === department_id)
+          .settings
+    );
   }
 
   /**
@@ -278,159 +370,166 @@ export class CustomSelectors {
    * and the one in Config State
    */
   static RetrieveResultHeaders(all: boolean = true, disableViewFields = false) {
-    return createSelector([
-      CustomSelectors.GetConfigProperty('tableHeaders'),
-      UserState.RetrieveSettings
-    ], (
-      configHeaders: ResultHeader[],
-      settings: any
-    ) => {
-
-      let headers: ResultHeader[] = [];
-      // Check is user has saved headers in his account settings
-      if (settings?.result_headers) {
-        let savedHeaders = settings.result_headers as ResultHeader[];
-        headers = savedHeaders;
-        // Make sure headers in user settings doesn't get stuck with own headers
-        // This will merge headers from the user and the ones in config.json
-        configHeaders.forEach(header => {
-          if (!savedHeaders.some(h => h.id === header.id)) {
-            headers = headers.concat(header);
-          }
-        })
-      } else {
-        headers = configHeaders;
-      }
-      // Disable the run table customization checkbox if the element is hidden
-      if (disableViewFields) {
-        let showVariables;
-        if (window.innerWidth < 600) {
-          // Mobile
-          showVariables = MainViewFieldsMobile
-        } else if (window.innerWidth < 900) {
-          // Tablet Portrait
-          showVariables = MainViewFieldsTabletPortrait
-        } else if (window.innerWidth < 1200) {
-          // Tablet Landscape
-          showVariables = MainViewFieldsTabletLandscape;
+    return createSelector(
+      [
+        CustomSelectors.GetConfigProperty('tableHeaders'),
+        UserState.RetrieveSettings,
+      ],
+      (configHeaders: ResultHeader[], settings: any) => {
+        let headers: ResultHeader[] = [];
+        // Check is user has saved headers in his account settings
+        if (settings?.result_headers) {
+          let savedHeaders = settings.result_headers as ResultHeader[];
+          headers = savedHeaders;
+          // Make sure headers in user settings doesn't get stuck with own headers
+          // This will merge headers from the user and the ones in config.json
+          configHeaders.forEach(header => {
+            if (!savedHeaders.some(h => h.id === header.id)) {
+              headers = headers.concat(header);
+            }
+          });
         } else {
-          // Desktop
-          showVariables = MainViewFieldsDesktop;
+          headers = configHeaders;
         }
-        for (let i = 0 ; i < headers.length ; i++) {
-          if (showVariables.includes(headers[i].id)) {
-            headers[i].disabled = false;
+        // Disable the run table customization checkbox if the element is hidden
+        if (disableViewFields) {
+          let showVariables;
+          if (window.innerWidth < 600) {
+            // Mobile
+            showVariables = MainViewFieldsMobile;
+          } else if (window.innerWidth < 900) {
+            // Tablet Portrait
+            showVariables = MainViewFieldsTabletPortrait;
+          } else if (window.innerWidth < 1200) {
+            // Tablet Landscape
+            showVariables = MainViewFieldsTabletLandscape;
           } else {
-            headers[i].disabled = true;
+            // Desktop
+            showVariables = MainViewFieldsDesktop;
+          }
+          for (let i = 0; i < headers.length; i++) {
+            if (showVariables.includes(headers[i].id)) {
+              headers[i].disabled = false;
+            } else {
+              headers[i].disabled = true;
+            }
           }
         }
+        // Return all headers or just the enabled depending on requested
+        return all ? headers : headers.filter(h => h.enable);
       }
-      // Return all headers or just the enabled depending on requested
-      return all ? headers : headers.filter(h => h.enable)
-    });
+    );
   }
 
   /**
    * Retrieves the pagination object for the given ID
    */
-  static RetrievePagination(paginationId: string, defaultPageSize: number = 25) {
+  static RetrievePagination(
+    paginationId: string,
+    defaultPageSize: number = 25
+  ) {
     const storageSize = localStorage.getItem(`pagination.size.${paginationId}`);
-    return createSelector([PaginationsState], (paginations: IPaginationsState) => paginations[paginationId] || {
-        pageIndex: 0,
-        pageSize: storageSize ? parseInt(storageSize) : defaultPageSize,
-        id: paginationId
-      }
-    )
+    return createSelector(
+      [PaginationsState],
+      (paginations: IPaginationsState) =>
+        paginations[paginationId] || {
+          pageIndex: 0,
+          pageSize: storageSize ? parseInt(storageSize) : defaultPageSize,
+          id: paginationId,
+        }
+    );
   }
 
   static SubscriptionsByCloud() {
-    return createSelector([
-      UserState.GetSubscriptions,
-      SubscriptionsState
-    ], (
-      active_subscriptions: Subscription[],
-      subscriptions: Subscription[]
-    ) => {
-      const subs = subscriptions.map(sub => {
-        sub.active = active_subscriptions.some(sub2 => sub2.id === sub.id);
-        return sub
-      })
-      return Object.entries(classifyByProperty(subs, 'cloud'));
-    })
+    return createSelector(
+      [UserState.GetSubscriptions, SubscriptionsState],
+      (active_subscriptions: Subscription[], subscriptions: Subscription[]) => {
+        const subs = subscriptions.map(sub => {
+          sub.active = active_subscriptions.some(sub2 => sub2.id === sub.id);
+          return sub;
+        });
+        return Object.entries(classifyByProperty(subs, 'cloud'));
+      }
+    );
   }
 
   static IsFolderInRoute(folder: Folder) {
-    return createSelector([FeaturesState.IsFolderInRoute], (fn: ReturnType<typeof FeaturesState.IsFolderInRoute>) => fn(folder));
+    return createSelector(
+      [FeaturesState.IsFolderInRoute],
+      (fn: ReturnType<typeof FeaturesState.IsFolderInRoute>) => fn(folder)
+    );
   }
 
   static GetUserAccount() {
-    return createSelector([
-      UserState.GetUserId
-    ], (
-      user: ReturnType<typeof UserState.GetUserId>
-      ) => {
+    return createSelector(
+      [UserState.GetUserId],
+      (user: ReturnType<typeof UserState.GetUserId>) => {
         return user;
-      });
+      }
+    );
   }
 
   /**
    * Map departments as folders for new landing
    */
   static GetDepartmentFolders() {
-    return createSelector([
-      UserState.RetrieveUserDepartments,
-      FeaturesState.GetAllFolders
-    ], (
-      departments: ReturnType<typeof UserState.RetrieveUserDepartments>,
-      folders: ReturnType<typeof FeaturesState.GetAllFolders>
-    ) => {
-      return departments.map(dept => ({
-        name: dept.department_name,
-        folder_id: dept.department_id,
-        owner: 0,
-        features: [],
-        type: 'department',
-        department: dept.department_id,
-        folders: folders.filter(folder => folder.department === dept.department_id),
-        parent_id: 0
-      })) as Folder[]
-    })
+    return createSelector(
+      [UserState.RetrieveUserDepartments, FeaturesState.GetAllFolders],
+      (
+        departments: ReturnType<typeof UserState.RetrieveUserDepartments>,
+        folders: ReturnType<typeof FeaturesState.GetAllFolders>
+      ) => {
+        return departments.map(dept => ({
+          name: dept.department_name,
+          folder_id: dept.department_id,
+          owner: 0,
+          features: [],
+          type: 'department',
+          department: dept.department_id,
+          folders: folders.filter(
+            folder => folder.department === dept.department_id
+          ),
+          parent_id: 0,
+        })) as Folder[];
+      }
+    );
   }
 
   /**
    * Map departments as folders for new landing
    */
-   static GetDepartmentFoldersNew() {
-    return createSelector([
-      UserState.RetrieveUserDepartments,
-      FeaturesState.GetAllFolders
-    ], (
-      departments: ReturnType<typeof UserState.RetrieveUserDepartments>,
-      folders: ReturnType<typeof FeaturesState.GetAllFolders>
-    ) => {
-      // Map the folders to add the department level
-      let foldersMapped = departments.map(dept => ({
-        name: dept.department_name,
-        folder_id: dept.department_id,
-        owner: 0,
-        features: [],
-        type: 'department',
-        department: dept.department_id,
-        folders: folders.filter(folder => folder.department === dept.department_id),
-        parent_id: 0
-      })) as Folder[];
-      return {
-      // Map the folders to add the home level
-        name: 'Home',
-        folder_id: 0,
-        owner: 0,
-        features: [],
-        type: 'home',
-        department: null,
-        folders: foldersMapped,
-        parent_id: 0
-      } as Folder;
-    })
+  static GetDepartmentFoldersNew() {
+    return createSelector(
+      [UserState.RetrieveUserDepartments, FeaturesState.GetAllFolders],
+      (
+        departments: ReturnType<typeof UserState.RetrieveUserDepartments>,
+        folders: ReturnType<typeof FeaturesState.GetAllFolders>
+      ) => {
+        // Map the folders to add the department level
+        let foldersMapped = departments.map(dept => ({
+          name: dept.department_name,
+          folder_id: dept.department_id,
+          owner: 0,
+          features: [],
+          type: 'department',
+          department: dept.department_id,
+          folders: folders.filter(
+            folder => folder.department === dept.department_id
+          ),
+          parent_id: 0,
+        })) as Folder[];
+        return {
+          // Map the folders to add the home level
+          name: 'Home',
+          folder_id: 0,
+          owner: 0,
+          features: [],
+          type: 'home',
+          department: null,
+          folders: foldersMapped,
+          parent_id: 0,
+        } as Folder;
+      }
+    );
   }
-
 }
