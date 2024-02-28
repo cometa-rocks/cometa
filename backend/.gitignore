@@ -19,7 +19,7 @@ backups/
 migrations/
 downloads/
 videos/
-pdf/
+behave/pdf/
 
 crontab
 
