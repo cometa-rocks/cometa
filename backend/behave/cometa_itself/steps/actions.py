@@ -3949,7 +3949,7 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
                 selector_element = waitSelector(context, "css", selector, timeout)
 
             # If in case object disappears and gets removed from DOM it self the while checking is_displayed() it will throw error
-            # Considerting error as element was disappeard
+            # Considering error as element was disappeard
             try:
                 # continue loop if element is displayed for wait time is less then 60 seconds
                 while selector_element[0].is_displayed():
@@ -3965,13 +3965,15 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
                         # This is required because when the page reloads, the selector_element does not remain valid.
                         # It will throw a StaleElementReferenceException even if the element exists, try to get a new instance of the element.
                         logger.debug(f"Now waiting 2s for selector to be visible")
+                        # This throws CometaMaxTimeoutReachedException when selector does not appear in 2 seconds
                         selector_element = waitSelector(context, "css", selector, 2)
                     else:
                         time.sleep(0.5)
                 # In case element disappeard but present in the DOM
                 if not selector_element[0].is_displayed(): 
                     send_step_details(context, 'Selector disappeared successfully')
-            except StaleElementReferenceException as e:
+            except (StaleElementReferenceException, CometaMaxTimeoutReachedException) as e:
+                # CometaMaxTimeoutReachedException exception handled here  
                 # The only syntax that can throw error is is_displayed() method. which means element diappeared
                 # In case element disappeard and not present in the DOM notify
                 send_step_details(context, 'Selector disappeared completely')
