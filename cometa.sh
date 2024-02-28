@@ -210,116 +210,116 @@ function updateCrontab() {
 
 function get_cometa_up_and_running() {
 
-#
-# Switch mount point based on MOUNTPOINT
-#
-switchDataMountPoint "${MOUNTPOINT:-local}"
+    #
+    # Switch mount point based on MOUNTPOINT
+    #
+    switchDataMountPoint "${MOUNTPOINT:-local}"
 
-#
-# Create directory schedules
-#
-if [ ! -d backend/behave/schedules ]; then
-	mkdir -p backend/behave/schedules && info "Created schedules directory"
-fi
-
-#
-# If crontab is a directory ... remove it
-#
-if [ -d backend/behave/schedules/crontab ]; then
-	rm -rq backend/behave/schedules/crontab && info "Removed crontab directory"
-fi
-
-
-#
-# Touch crontab schedules
-#
-if [ ! -f backend/behave/schedules/crontab ]; then
-	touch backend/behave/schedules/crontab && info "Created crontab file"
-fi
-
-#
-# Calls updateCrontab to update browsers and restart gunicorn
-#
-updateCrontab "0 0 * * * cd $CURRENT_PATH/backend/scripts && ./housekeeping.sh" "housekeeping.sh"
-updateCrontab "0 0 * * * bash -c \"docker exec cometa_django fuser -k -HUP 8000/tcp\"" "gunicorn"
-
-#
-# Touch browsers.json
-#
-if [ ! -f backend/selenoid/browsers.json ] || [ $(cat backend/selenoid/browsers.json | grep . | wc -l) -eq 0 ]; then
-    RUNSELENOIDSCRIPT=true
-	echo "{}" > backend/selenoid/browsers.json && info "Created browsers.json file"
-fi
-
-#
-# Replace <server> in docker-compose.yml with "local"
-#
-sed -i_template "s|<server>|local|g" docker-compose.yml && info "Replaced <server> in docker-compose.yml with local"
-
-#
-# Replace <outside_port> in docker-compose.yml with "80"
-#
-sed -i_template "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <outside_port> in docker-compose.yml with 80"
-
-#
-# Check client id has been replaced
-#
-if grep -Rq "COMETA" "front/apache-conf/metadata/accounts.google.com.client"  ; then
-	warning "Found default string in accounts.google.com.client file - you must replace this before going forward."
-    read -n 1 -s -r -p "Press any key to continue"
-    if grep -Rq "GITCLIENTID" "front/apache-conf/metadata/git.amvara.de.client"  ; then
-        warning "Found default string in git.amvara.de.client file - you must replace this before going forward."
-        warning "If neither Google nor Gitlab is configured, you will not be able to login."
-        warning "Going forward with installation does not make sense, until SSO is configured. Exiting."
-        warning "Goto git.amvara.de, create an account. Goto Settings, Applications, add new Application and retrieve your access token."
-        exit
-    else
-        info "The default string in git.amvara.de.client was replaced with something else - hopefully your Gitlab oAuth client credentials";
+    #
+    # Create directory schedules
+    #
+    if [ ! -d backend/behave/schedules ]; then
+        mkdir -p backend/behave/schedules && info "Created schedules directory"
     fi
-else
-	info "The default string in accounts.google.com.client was replaced with something else - hopefully your google oAuth client credentials";
-fi
+
+    #
+    # If crontab is a directory ... remove it
+    #
+    if [ -d backend/behave/schedules/crontab ]; then
+        rm -rq backend/behave/schedules/crontab && info "Removed crontab directory"
+    fi
 
 
-#
-# Bring up the system
-#
-info "Starting containers"
-$DOCKER_COMPOSE_COMMAND up -d && info "Started docker ... now waiting for container to come alive " || warn "docker compose command finished with error"
+    #
+    # Touch crontab schedules
+    #
+    if [ ! -f backend/behave/schedules/crontab ]; then
+        touch backend/behave/schedules/crontab && info "Created crontab file"
+    fi
 
-#
-# How to wait for System ready?
-#
+    #
+    # Calls updateCrontab to update browsers and restart gunicorn
+    #
+    updateCrontab "0 0 * * * cd $CURRENT_PATH/backend/scripts && ./housekeeping.sh" "housekeeping.sh"
+    updateCrontab "0 0 * * * bash -c \"docker exec cometa_django fuser -k -HUP 8000/tcp\"" "gunicorn"
 
 
-#
-# Check selenoid browsers
-#
-if [ "${RUNSELENOIDSCRIPT:-false}" = "true" ]; then
-	info "Downloading latest browser versions"
-	./backend/selenoid/deploy_selenoid.sh -n 3 || warning "Something went wrong getting the latests browsers for the system"
-fi
+    #
+    # Replace <server> in docker-compose.yml with "local"
+    #
+    sed -i_template "s|<server>|local|g" docker-compose.yml && info "Replaced <server> in docker-compose.yml with local"
 
-#
-# parse browsers and actions
-#
+    #
+    # Replace <outside_port> in docker-compose.yml with "80"
+    #
+    sed -i_template "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <outside_port> in docker-compose.yml with 80"
 
-# check health status
-# Max retries
-MAX_RETRIES=60
-# wait between retries
-WAIT_RETRY=10
-# Total timeout
-TOTAL_TIMEOUT=$(($MAX_RETRIES*$WAIT_RETRY))
+    #
+    # Check client id has been replaced
+    #
+    if grep -Rq "COMETA" "front/apache-conf/metadata/accounts.google.com.client"  ; then
+        warning "Found default string in accounts.google.com.client file - you must replace this before going forward."
+        read -n 1 -s -r -p "Press any key to continue"
+        if grep -Rq "GITCLIENTID" "front/apache-conf/metadata/git.amvara.de.client"  ; then
+            warning "Found default string in git.amvara.de.client file - you must replace this before going forward."
+            warning "If neither Google nor Gitlab is configured, you will not be able to login."
+            warning "Going forward with installation does not make sense, until SSO is configured. Exiting."
+            warning "Goto git.amvara.de, create an account. Goto Settings, Applications, add new Application and retrieve your access token."
+            exit
+        else
+            info "The default string in git.amvara.de.client was replaced with something else - hopefully your Gitlab oAuth client credentials";
+        fi
+    else
+        info "The default string in accounts.google.com.client was replaced with something else - hopefully your google oAuth client credentials";
+    fi
 
-log_wfr "Waiting for parseBrowsers"
-retry "docker exec -it cometa_django curl --fail http://localhost:8000/parseBrowsers/ -o /dev/null -s " && log_res "[done]" || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container django is not running"; }
+    #
+    # Touch browsers.json
+    #
+    if [ ! -f backend/selenoid/browsers.json ] || [ $(cat backend/selenoid/browsers.json | grep . | wc -l) -eq 0 ]; then
+        RUNSELENOIDSCRIPT=true
+        echo "{}" > backend/selenoid/browsers.json && info "Created browsers.json file"
+    fi
 
-log_wfr "Waiting for parseActions"
-retry "docker exec -it cometa_django curl --fail http://localhost:8000/parseActions/ -o /dev/null -s " && log_res "[done]" || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container django is not running"; }
+    #
+    # Bring up the system
+    #
+    info "Starting containers"
+    $DOCKER_COMPOSE_COMMAND up -d && info "Started docker ... now waiting for container to come alive " || warn "docker compose command finished with error"
 
-log_wfr "Waiting for frontend to compile angular typescript into executable code "
-retry "curl --fail --insecure https://localhost/ -o /dev/null  -s -L" && log_res "[done] Feeling happy " || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container front is not running"; }
+    #
+    # How to wait for System ready?
+    #
+
+
+    #
+    # Check selenoid browsers
+    #
+    if [ "${RUNSELENOIDSCRIPT:-false}" = "true" ]; then
+        info "Downloading latest browser versions"
+        ./backend/selenoid/deploy_selenoid.sh -n 3 || warning "Something went wrong getting the latests browsers for the system"
+    fi
+
+    #
+    # parse browsers and actions
+    #
+
+    # check health status
+    # Max retries
+    MAX_RETRIES=60
+    # wait between retries
+    WAIT_RETRY=10
+    # Total timeout
+    TOTAL_TIMEOUT=$(($MAX_RETRIES*$WAIT_RETRY))
+
+    log_wfr "Waiting for parseBrowsers"
+    retry "docker exec -it cometa_django curl --fail http://localhost:8000/parseBrowsers/ -o /dev/null -s " && log_res "[done]" || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container django is not running"; }
+
+    log_wfr "Waiting for parseActions"
+    retry "docker exec -it cometa_django curl --fail http://localhost:8000/parseActions/ -o /dev/null -s " && log_res "[done]" || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container django is not running"; }
+
+    log_wfr "Waiting for frontend to compile angular typescript into executable code "
+    retry "curl --fail --insecure https://localhost/ -o /dev/null  -s -L" && log_res "[done] Feeling happy " || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container front is not running"; }
 
 } # end of function get_cometA_up_and_running
 
