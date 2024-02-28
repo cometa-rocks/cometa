@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'featureRunPassed',
+  standalone: true,
 })
 export class FeatureRunPassedPipe implements PipeTransform {
   transform(run: FeatureRun): boolean {

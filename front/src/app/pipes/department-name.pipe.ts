@@ -5,6 +5,7 @@ import memo from 'memo-decorator';
 
 @Pipe({
   name: 'departmentName',
+  standalone: true,
 })
 export class DepartmentNamePipe implements PipeTransform {
   @SelectSnapshot(UserState.RetrieveUserDepartments) departments: Department[];

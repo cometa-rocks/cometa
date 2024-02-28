@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'featureResultPassed',
+  standalone: true,
 })
 export class FeatureResultPassedPipe implements PipeTransform {
   transform(result: FeatureResult): boolean {

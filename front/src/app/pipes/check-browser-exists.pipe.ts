@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 
 @Pipe({
   name: 'checkBrowserExists',
+  standalone: true,
 })
 export class CheckBrowserExistsPipe implements PipeTransform {
   constructor(@Host() private _browserSelection: BrowserSelectionComponent) {}
