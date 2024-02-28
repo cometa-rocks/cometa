@@ -4,6 +4,7 @@ import {
   Input,
   Host,
   OnInit,
+  forwardRef,
 } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { tap } from 'rxjs/operators';
@@ -72,7 +73,6 @@ export class LiveStepComponent implements OnInit {
 
   constructor(
     private _store: Store,
-    @Host() public _liveSteps: LiveStepsComponent,
     private _dialog: MatDialog,
     private _sanitizer: DomSanitizer,
     private _api: ApiService
@@ -82,6 +82,8 @@ export class LiveStepComponent implements OnInit {
   @Input() index: number;
   @Input() featureRunID: number;
   @Input() browser: BrowserstackBrowser;
+  @Input() feature_id: number;
+  @Input() steps$: Observable<FeatureStep[]>;
 
   details$: Observable<LiveStepSubDetail>;
 
@@ -92,7 +94,7 @@ export class LiveStepComponent implements OnInit {
   ngOnInit() {
     this.details$ = this._store.select(
       CustomSelectors.GetLastFeatureRunDetails(
-        this._liveSteps.feature_id,
+        this.feature_id,
         this.featureRunID,
         this.browser,
         this.index
@@ -101,7 +103,7 @@ export class LiveStepComponent implements OnInit {
     this._store
       .select(
         CustomSelectors.GetLastFeatureRunSteps(
-          this._liveSteps.feature_id,
+          this.feature_id,
           this.featureRunID,
           this.browser
         )
@@ -120,7 +122,6 @@ export class LiveStepComponent implements OnInit {
             );
             this.rest_api = steps[this.index].info.rest_api;
           }
-          console.log(steps[this.index].vulnerable_headers_count);
           this.vulnerable_headers_count =
             steps[this.index].vulnerable_headers_count;
           this.screenshots = steps[this.index].screenshots;
