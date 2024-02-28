@@ -1,26 +1,25 @@
-
 @import 'color';
 @import 'breakpoints';
 
 h2 {
-    color: $blue;
+  color: $blue;
 }
 
 ul {
-    margin-top: 20px;
-    li {
-        list-style-type: none;
-        line-height: 25px;
-        display: flex;
-        justify-content: space-between;
-        b {
-            color: darken($blue, 10);
-        }
-        div:nth-child(2) {
-            font-size: .9rem;
-            @include for-tablet-portrait-up {
-                font-size: 1rem;
-            }
-        }
+  margin-top: 20px;
+  li {
+    list-style-type: none;
+    line-height: 25px;
+    display: flex;
+    justify-content: space-between;
+    b {
+      color: darken($blue, 10);
     }
+    div:nth-child(2) {
+      font-size: 0.9rem;
+      @include for-tablet-portrait-up {
+        font-size: 1rem;
+      }
+    }
+  }
 }

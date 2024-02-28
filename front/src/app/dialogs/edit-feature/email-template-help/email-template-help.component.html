@@ -1,18 +1,19 @@
 <h2 mat-dialog-title>Email template help</h2>
 <mat-dialog-content>
-    In this section you can customize how the email sended to the provided addresses will look like.<br>
-    You can also use the following information variables in the subject or body:
-    <ul>
-        <li *ngFor="let variable of variables">
-            <div>
-                <b>${{ variable[0] }}</b>
-            </div>
-            <div>
-                {{ variable[1] }}
-            </div>
-        </li>
-    </ul>
+  In this section you can customize how the email sended to the provided
+  addresses will look like.<br />
+  You can also use the following information variables in the subject or body:
+  <ul>
+    <li *ngFor="let variable of variables">
+      <div>
+        <b>${{ variable[0] }}</b>
+      </div>
+      <div>
+        {{ variable[1] }}
+      </div>
+    </li>
+  </ul>
 </mat-dialog-content>
 <mat-dialog-actions>
-    <button mat-stroked-button color="primary" mat-dialog-close>Close</button>
+  <button mat-stroked-button color="primary" mat-dialog-close>Close</button>
 </mat-dialog-actions>
