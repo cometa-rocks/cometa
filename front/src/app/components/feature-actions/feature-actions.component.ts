@@ -32,6 +32,8 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { PaginatedListsState } from '@store/paginated-list.state';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ErrorDialog } from '@dialogs/error/error.dialog';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { NgIf, AsyncPipe } from '@angular/common';
 
 @UntilDestroy()
 @Component({
@@ -39,6 +41,8 @@ import { ErrorDialog } from '@dialogs/error/error.dialog';
   templateUrl: './feature-actions.component.html',
   styleUrls: ['./feature-actions.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [NgIf, MatLegacyTooltipModule, AsyncPipe],
 })
 export class FeatureActionsComponent implements OnInit {
   notificationEnabled$: Observable<boolean>;

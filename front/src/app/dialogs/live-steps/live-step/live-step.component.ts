@@ -4,6 +4,7 @@ import {
   Input,
   Host,
   OnInit,
+  forwardRef,
 } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { tap } from 'rxjs/operators';
@@ -18,6 +19,16 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { JsonViewerComponent } from 'app/views/json-view/json-view.component';
 import { ApiService } from '@services/api.service';
 import { log } from 'console';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import {
+  NgClass,
+  NgIf,
+  NgStyle,
+  AsyncPipe,
+  TitleCasePipe,
+} from '@angular/common';
+import { LetDirective } from '../../../directives/ng-let.directive';
 
 @UntilDestroy()
 @Component({
@@ -43,6 +54,17 @@ import { log } from 'console';
       ]),
     ]),
   ],
+  standalone: true,
+  imports: [
+    LetDirective,
+    NgClass,
+    MatLegacyTooltipModule,
+    NgIf,
+    MatIconModule,
+    NgStyle,
+    AsyncPipe,
+    TitleCasePipe,
+  ],
 })
 export class LiveStepComponent implements OnInit {
   status$ = new BehaviorSubject<string>('waiting');
@@ -51,7 +73,6 @@ export class LiveStepComponent implements OnInit {
 
   constructor(
     private _store: Store,
-    @Host() public _liveSteps: LiveStepsComponent,
     private _dialog: MatDialog,
     private _sanitizer: DomSanitizer,
     private _api: ApiService
@@ -61,6 +82,8 @@ export class LiveStepComponent implements OnInit {
   @Input() index: number;
   @Input() featureRunID: number;
   @Input() browser: BrowserstackBrowser;
+  @Input() feature_id: number;
+  @Input() steps$: Observable<FeatureStep[]>;
 
   details$: Observable<LiveStepSubDetail>;
 
@@ -71,7 +94,7 @@ export class LiveStepComponent implements OnInit {
   ngOnInit() {
     this.details$ = this._store.select(
       CustomSelectors.GetLastFeatureRunDetails(
-        this._liveSteps.feature_id,
+        this.feature_id,
         this.featureRunID,
         this.browser,
         this.index
@@ -80,7 +103,7 @@ export class LiveStepComponent implements OnInit {
     this._store
       .select(
         CustomSelectors.GetLastFeatureRunSteps(
-          this._liveSteps.feature_id,
+          this.feature_id,
           this.featureRunID,
           this.browser
         )
@@ -99,7 +122,6 @@ export class LiveStepComponent implements OnInit {
             );
             this.rest_api = steps[this.index].info.rest_api;
           }
-          console.log(steps[this.index].vulnerable_headers_count);
           this.vulnerable_headers_count =
             steps[this.index].vulnerable_headers_count;
           this.screenshots = steps[this.index].screenshots;

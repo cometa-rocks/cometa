@@ -18,15 +18,65 @@ import { Integrations } from '@store/actions/integrations.actions';
 import { Configuration } from '@store/actions/config.actions';
 import { User } from '@store/actions/user.actions';
 import { Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { ApplicationsState } from '@store/applications.state';
 import { EnvironmentsState } from '@store/environments.state';
+import { SendOnPipe } from '../../pipes/send-on.pipe';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { FilterByPropertyPipe } from '@pipes/filter-by-property.pipe';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatLegacyRadioModule } from '@angular/material/legacy-radio';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatLegacySlideToggleModule } from '@angular/material/legacy-slide-toggle';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import {
+  NgIf,
+  NgFor,
+  NgClass,
+  AsyncPipe,
+  UpperCasePipe,
+  TitleCasePipe,
+  KeyValuePipe,
+} from '@angular/common';
+import { LetDirective } from '../../directives/ng-let.directive';
 
 @Component({
   selector: 'account-settings',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    LetDirective,
+    NgIf,
+    MatLegacyButtonModule,
+    NgFor,
+    MatIconModule,
+    MatLegacySlideToggleModule,
+    MatLegacyFormFieldModule,
+    MatLegacyInputModule,
+    MatLegacyRadioModule,
+    MatLegacySelectModule,
+    MatLegacyOptionModule,
+    MatLegacyTooltipModule,
+    NgClass,
+    TranslateModule,
+    FilterByPropertyPipe,
+    AmParsePipe,
+    AmDateFormatPipe,
+    SortByPipe,
+    SendOnPipe,
+    AsyncPipe,
+    UpperCasePipe,
+    TitleCasePipe,
+    KeyValuePipe,
+  ],
 })
 export class UserComponent implements OnInit {
   @Select(UserState) account$: Observable<UserInfo>;

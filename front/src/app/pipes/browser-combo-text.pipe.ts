@@ -3,6 +3,7 @@ import { getBrowserComboText } from '@services/tools';
 
 @Pipe({
   name: 'browserComboText',
+  standalone: true,
 })
 export class BrowserComboTextPipe implements PipeTransform {
   transform(browser: BrowserstackBrowser | string, so: boolean = true): string {

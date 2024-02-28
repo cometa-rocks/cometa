@@ -10,12 +10,29 @@ import { exportToJSONFile } from 'ngx-amvara-toolbox';
 import { Features } from '@store/actions/features.actions';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { Store } from '@ngxs/store';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { FeatureComponent } from './feature/feature.component';
+import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'admin-features',
   templateUrl: './features.component.html',
   styleUrls: ['./features.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    NgIf,
+    NgFor,
+    FeatureComponent,
+    MatLegacyProgressSpinnerModule,
+    MatLegacyButtonModule,
+    MatIconModule,
+    SortByPipe,
+    AsyncPipe,
+  ],
 })
 export class FeaturesComponent implements OnInit {
   @ViewSelectSnapshot(UserState.GetPermission('create_feature'))

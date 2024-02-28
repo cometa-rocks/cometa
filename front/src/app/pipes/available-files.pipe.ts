@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'availableFiles',
+  standalone: true,
 })
 export class AvailableFilesPipe implements PipeTransform {
   transform(files): string {
