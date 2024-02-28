@@ -1,7 +1,7 @@
 {
   "name": "cometa",
   "version": "0.1.0",
-  "license": "MIT",
+  "license": "AGPLv3",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -11,7 +11,7 @@
     "e2e": "ng e2e",
     "format": "prettier . --write",
     "format-staged": "prettier --write",
-    "prepare": "bash ../.hooks/prepare.sh"
+    "prepare": "bash .hooks/prepare.sh"
   },
   "private": true,
   "dependencies": {
@@ -37,6 +37,7 @@
     "@ngxs/storage-plugin": "^3.7.6",
     "@ngxs/store": "^3.8.0",
     "@perfectmemory/ngx-contextmenu": "^15.1.1",
+    "@types/body-parser": "^1.19.5",
     "@types/c3": "^0.7.8",
     "ajv-keywords": "^3.5.2",
     "angular-svg-round-progressbar": "^10.0.0",
