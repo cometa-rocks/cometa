@@ -7,6 +7,7 @@ import { AmParsePipe } from './am-parse.pipe';
 
 @Pipe({
   name: 'featureSort',
+  standalone: true,
 })
 export class FeatureSortPipe implements PipeTransform {
   @Select(FeaturesState.GetFeatures) features$: Observable<IFeatureStateDetail>;

@@ -3,6 +3,7 @@ import compareVersions from 'compare-versions';
 
 @Pipe({
   name: 'versionSort',
+  standalone: true,
 })
 export class VersionSortPipe implements PipeTransform {
   transform(values: BrowserstackBrowser[]): any {

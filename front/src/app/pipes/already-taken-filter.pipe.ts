@@ -4,6 +4,7 @@ import { CustomSelectors } from '@others/custom-selectors';
 
 @Pipe({
   name: 'alreadyTakenFilter',
+  standalone: true,
 })
 export class AlreadyTakenFilterPipe implements PipeTransform {
   // Key filters allowed to add multiple instances

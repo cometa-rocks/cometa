@@ -10,6 +10,7 @@ import { SafeStyle, DomSanitizer } from '@angular/platform-browser';
   templateUrl: './screenshot.component.html',
   styleUrls: ['./screenshot.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
 })
 export class ScreenshotComponent {
   image: SafeStyle;

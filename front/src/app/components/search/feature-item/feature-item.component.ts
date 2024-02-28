@@ -12,12 +12,57 @@ import { observableLast } from 'ngx-amvara-toolbox';
 import { NavigationService } from '@services/navigation.service';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { SharedActionsService } from '@services/shared-actions.service';
+import { BrowserComboTextPipe } from '../../../pipes/browser-combo-text.pipe';
+import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { StopPropagationDirective } from '../../../directives/stop-propagation.directive';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import {
+  NgIf,
+  NgClass,
+  NgSwitch,
+  NgSwitchCase,
+  AsyncPipe,
+  LowerCasePipe,
+} from '@angular/common';
+import { LetDirective } from '../../../directives/ng-let.directive';
 
 @Component({
   selector: 'cometa-feature-item',
   templateUrl: './feature-item.component.html',
   styleUrls: ['./feature-item.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    LetDirective,
+    NgIf,
+    MatLegacyTooltipModule,
+    NgClass,
+    MatIconModule,
+    StopPropagationDirective,
+    MatLegacyProgressSpinnerModule,
+    NgSwitch,
+    NgSwitchCase,
+    MatLegacyButtonModule,
+    MatLegacyMenuModule,
+    MatDividerModule,
+    MatLegacyCheckboxModule,
+    AsyncPipe,
+    LowerCasePipe,
+    TranslateModule,
+    AmParsePipe,
+    AmDateFormatPipe,
+    SecondsToHumanReadablePipe,
+    BrowserComboTextPipe,
+  ],
 })
 export class FeatureItemComponent implements OnInit {
   @ViewSelectSnapshot(UserState.GetPermission('create_feature'))

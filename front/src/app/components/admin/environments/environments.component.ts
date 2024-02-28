@@ -9,12 +9,27 @@ import { Subscribe } from 'app/custom-decorators';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { Environments } from '@store/actions/environments.actions';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { EnvironmentComponent } from './environment/environment.component';
+import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'admin-environments',
   templateUrl: './environments.component.html',
   styleUrls: ['./environments.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    NgFor,
+    EnvironmentComponent,
+    NgIf,
+    MatLegacyButtonModule,
+    MatIconModule,
+    SortByPipe,
+    AsyncPipe,
+  ],
 })
 export class EnvironmentsComponent implements OnInit {
   constructor(
