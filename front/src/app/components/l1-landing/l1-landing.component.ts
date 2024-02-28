@@ -35,6 +35,24 @@ import { Observable } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { LogService } from '@services/log.service';
 import { User } from '@store/actions/user.actions';
+import { L1FeatureTrashbinListComponent } from '../l1-feature-trashbin-list/l1-feature-trashbin-list.component';
+import { L1FeatureStarredListComponent } from '../l1-feature-starred-list/l1-feature-starred-list.component';
+import { L1FeatureRecentListComponent } from '../l1-feature-recent-list/l1-feature-recent-list.component';
+import { L1FeatureTeamListComponent } from '../l1-feature-team-list/l1-feature-team-list.component';
+import { EditVariablesComponent } from '../../dialogs/edit-variables/edit-variables.component';
+import { DataDrivenRunsComponent } from '../data-driven-runs/data-driven-runs.component';
+import { WelcomeComponent } from '../welcome/welcome.component';
+import { L1TreeViewComponent } from '../l1-tree-view/l1-tree-view.component';
+import { L1FeatureListComponent } from '../l1-feature-list/l1-feature-list.component';
+import { L1FeatureItemListComponent } from '../l1-feature-item-list/l1-feature-item-list.component';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatRippleModule } from '@angular/material/core';
+import { L1FilterComponent } from '../l1-filter/l1-filter.component';
+import { LetDirective } from '../../directives/ng-let.directive';
+import { FolderTreeComponent } from '../folder-tree/folder-tree.component';
+import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 
 @UntilDestroy()
 @Component({
@@ -74,6 +92,29 @@ import { User } from '@store/actions/user.actions';
       ),
       transition('false <=> true', animate('150ms ease-out')),
     ]),
+  ],
+  standalone: true,
+  imports: [
+    MatLegacyButtonModule,
+    MatIconModule,
+    NgIf,
+    FolderTreeComponent,
+    LetDirective,
+    L1FilterComponent,
+    MatRippleModule,
+    MatLegacyTooltipModule,
+    NgFor,
+    L1FeatureItemListComponent,
+    L1FeatureListComponent,
+    L1TreeViewComponent,
+    WelcomeComponent,
+    DataDrivenRunsComponent,
+    EditVariablesComponent,
+    L1FeatureTeamListComponent,
+    L1FeatureRecentListComponent,
+    L1FeatureStarredListComponent,
+    L1FeatureTrashbinListComponent,
+    AsyncPipe,
   ],
 })
 export class L1LandingComponent implements OnInit {

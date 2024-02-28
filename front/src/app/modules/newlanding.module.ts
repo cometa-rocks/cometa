@@ -38,8 +38,6 @@ const routes: Routes = [
     MatRippleModule,
     SharedModule,
     CommonModule,
-  ],
-  declarations: [
     L1LandingComponent,
     FolderTreeComponent,
     FolderItemTreeComponent,

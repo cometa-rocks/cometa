@@ -13,17 +13,53 @@ import { FileUploadService } from '@services/file-upload.service';
 import { UserState } from '@store/user.state';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { KEY_CODES } from '@others/enums';
-import { MtxGridColumn } from '@ng-matero/extensions/grid';
+import { MtxGridColumn, MtxGridModule } from '@ng-matero/extensions/grid';
 import { HttpClient } from '@angular/common/http';
 import { InterceptorParams } from 'ngx-network-error';
 import { DataDrivenTestExecuted } from './data-driven-executed/data-driven-executed.component';
 import { DepartmentsState } from '@store/departments.state';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { AvailableFilesPipe } from '@pipes/available-files.pipe';
+import { HumanizeBytesPipe } from '@pipes/humanize-bytes.pipe';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyOptionModule } from '@angular/material/legacy-core';
+import { NgFor, NgIf } from '@angular/common';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { MatLegacySelectModule } from '@angular/material/legacy-select';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 
 @Component({
   selector: 'data-driven-execution',
   templateUrl: './data-driven-execution.component.html',
   styleUrls: ['./data-driven-execution.component.scss'],
+  standalone: true,
+  imports: [
+    MatLegacyDialogModule,
+    MatExpansionModule,
+    MatLegacyFormFieldModule,
+    MatLegacySelectModule,
+    ReactiveFormsModule,
+    FormsModule,
+    NgFor,
+    MatLegacyOptionModule,
+    NgIf,
+    MatIconModule,
+    MtxGridModule,
+    MatLegacyButtonModule,
+    StopPropagationDirective,
+    AmParsePipe,
+    AmDateFormatPipe,
+    SortByPipe,
+    HumanizeBytesPipe,
+    AvailableFilesPipe,
+  ],
 })
 export class DataDrivenExecution implements OnInit {
   columns: MtxGridColumn[] = [

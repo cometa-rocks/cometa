@@ -20,7 +20,7 @@
   <div
     class="screenshot"
     *ngIf="
-      (_liveSteps.steps$ | async)[index]?.screenshot || screenshots?.current;
+      (steps$ | async)[index]?.screenshot || screenshots?.current;
       else hyphen
     ">
     <i
@@ -36,9 +36,7 @@
         [style.backgroundImage]="getScreenshot('current')"></i>
     </ng-template>
   </div>
-  <div
-    class="screenshot"
-    *ngIf="(_liveSteps.steps$ | async)[index]?.compare; else hyphen">
+  <div class="screenshot" *ngIf="(steps$ | async)[index]?.compare; else hyphen">
     <i
       class="screen-image"
       *ngIf="status != 'success'; else showBefore"
@@ -52,9 +50,7 @@
         [style.backgroundImage]="getScreenshot('template')"></i>
     </ng-template>
   </div>
-  <div
-    class="screenshot"
-    *ngIf="(_liveSteps.steps$ | async)[index]?.compare; else hyphen">
+  <div class="screenshot" *ngIf="(steps$ | async)[index]?.compare; else hyphen">
     <i
       class="screen-image"
       *ngIf="status != 'success'; else showBefore"

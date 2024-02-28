@@ -3,6 +3,7 @@ import { CustomSelectors } from '@others/custom-selectors';
 
 @Pipe({
   name: 'browserResultStatus',
+  standalone: true,
 })
 export class BrowserResultStatusPipe implements PipeTransform {
   /**

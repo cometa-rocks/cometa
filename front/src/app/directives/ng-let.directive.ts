@@ -12,6 +12,7 @@ import {
  */
 @Directive({
   selector: '[ngLet]',
+  standalone: true,
 })
 export class LetDirective {
   _ref: EmbeddedViewRef<any>;
