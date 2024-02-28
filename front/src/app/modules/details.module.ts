@@ -87,8 +87,6 @@ const routes: Routes = [
     RouterModule.forChild(routes),
     SharedModule,
     CommonModule,
-  ],
-  declarations: [
     /* Pipes */
     // NumeralPipe,
     ArchivedRunsPipe,

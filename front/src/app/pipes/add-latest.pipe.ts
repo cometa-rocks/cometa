@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'addLatest',
+  standalone: true,
 })
 export class AddLatestPipe implements PipeTransform {
   // Those os don't have browser_version,

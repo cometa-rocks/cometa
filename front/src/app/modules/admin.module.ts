@@ -113,8 +113,6 @@ const routes: Routes = [
     }),
     SharedModule,
     CommonModule,
-  ],
-  declarations: [
     ModifyUserComponent,
     ModifyPasswordComponent,
     ModifyDepartmentComponent,

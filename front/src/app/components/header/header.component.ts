@@ -13,6 +13,9 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { Configuration } from '@store/actions/config.actions';
 import { User } from '@store/actions/user.actions';
 import { Store } from '@ngxs/store';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { NgIf } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
   selector: 'header',
@@ -36,6 +39,8 @@ import { Store } from '@ngxs/store';
       transition('false <=> true', animate('250ms 0ms ease-in-out')),
     ]),
   ],
+  standalone: true,
+  imports: [RouterLink, NgIf, MatLegacyTooltipModule, RouterLinkActive],
 })
 export class HeaderComponent {
   @ViewSelectSnapshot(UserState.GetPermission('view_admin_panel'))

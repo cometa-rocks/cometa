@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 
 @Pipe({
   name: 'loading',
+  standalone: true,
 })
 export class LoadingPipe implements PipeTransform {
   @Select(LoadingsState) loadings$: Observable<ILoadingsState>;

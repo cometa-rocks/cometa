@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'totalOk',
+  standalone: true,
 })
 export class TotalOkPipe implements PipeTransform {
   transform(steps: StepResult[]): number {
