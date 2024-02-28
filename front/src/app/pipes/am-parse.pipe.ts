@@ -2,14 +2,10 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { isValid, parse, parseISO } from 'date-fns';
 
 @Pipe({
-  name: 'amParse'
+  name: 'amParse',
 })
 export class AmParsePipe implements PipeTransform {
-
-  formats = [
-    'yyyy-MM-dd\'T\'HH:mm:ss',
-    'yyyy-MM-dd\'T\'HH:mm:ss.SSSS'
-  ]
+  formats = ["yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.SSSS"];
 
   transform(value: string): Date {
     // Correct datetime yyyy-MM-dd'T'HH:mm:ss contains 19 characters
@@ -37,7 +33,12 @@ export class AmParsePipe implements PipeTransform {
    * @param {any} options
    * @returns {Date}
    */
-  parseMultiple( dateString: string, formatString: string | string[], referenceDate: number | Date, options? ) {
+  parseMultiple(
+    dateString: string,
+    formatString: string | string[],
+    referenceDate: number | Date,
+    options?
+  ) {
     let result;
     // Check if formatString is an array
     if (Array.isArray(formatString)) {
@@ -54,7 +55,7 @@ export class AmParsePipe implements PipeTransform {
       result = parse(dateString, formatString, referenceDate, options);
     }
     return result;
-  };
+  }
 
   parseDate(dateString: string, format: string) {
     // Check for UTC dates and calculate offset
@@ -75,5 +76,4 @@ export class AmParsePipe implements PipeTransform {
     return Math.sign(offset) !== -1 ? addMinutes(date, offset) : subMinutes(date, Math.abs(offset));
   }
    */
-
 }

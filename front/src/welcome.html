@@ -1,353 +1,411 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Login - Complete Meta Test Platform</title>
-  <base href="/">
-  <link rel="icon" href="assets/favicons/@@BRANCH@@/favicon.ico?v=2">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script>
+  <head>
+    <meta charset="utf-8" />
+    <title>Login - Complete Meta Test Platform</title>
+    <base href="/" />
+    <link rel="icon" href="assets/favicons/@@BRANCH@@/favicon.ico?v=2" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>
+      /**
+       * Run URL checks before loading anything.
+       */
 
-    /**
-     * Run URL checks before loading anything. 
-     */
+      // check if query parameters contain target_link_uri if not redirect to /
+      if (
+        !window.location.search.includes('target_link_uri') &&
+        window.location.host !== 'localhost'
+      ) {
+        console.log(
+          "You came directly to the welcome page. You should have been redirected to it. No worries we'll redirect you to it."
+        );
+        window.location.href = '/';
+      }
 
-    // check if query parameters contain target_link_uri if not redirect to /
-    if(!window.location.search.includes("target_link_uri") && window.location.host !== 'localhost') {
-      console.log("You came directly to the welcome page. You should have been redirected to it. No worries we'll redirect you to it.");
-      window.location.href = "/";
-    }
+      // check if there is a target_link_uri and check if there is hash fragment
+      if (
+        window.location.search.includes('target_link_uri') &&
+        window.location.hash
+      ) {
+        console.log(
+          'Found a target_link_uri and a hash fragment. Combining them together.'
+        );
+        // encode hash fragment of the uri
+        const hash = encodeURIComponent(window.location.hash);
+        // get the target_link_uri
+        const targetLinkURI = window.location.search
+          .substr(1)
+          .split('&')
+          .find(x => x.includes('target_link_uri'));
+        // create a new target_link_uri
+        const newTargetLinkURI = targetLinkURI + hash;
+        // replace the target_link_uri
+        const newSearchParameters = window.location.search.replace(
+          targetLinkURI,
+          newTargetLinkURI
+        );
+        // redirect user to new location
+        window.location.href = '/welcome.html' + newSearchParameters;
+      }
+    </script>
+    <style>
+      @font-face {
+        font-family: CorpoS;
+        src: url(assets/c063003t.ttf) format('truetype');
+      }
 
-    // check if there is a target_link_uri and check if there is hash fragment
-    if (window.location.search.includes("target_link_uri") && window.location.hash) {
-      console.log("Found a target_link_uri and a hash fragment. Combining them together.")
-      // encode hash fragment of the uri
-      const hash = encodeURIComponent(window.location.hash);
-      // get the target_link_uri
-      const targetLinkURI = window.location.search.substr(1).split("&").find(x => x.includes("target_link_uri"))
-      // create a new target_link_uri
-      const newTargetLinkURI = targetLinkURI + hash;
-      // replace the target_link_uri
-      const newSearchParameters = window.location.search.replace(targetLinkURI, newTargetLinkURI);
-      // redirect user to new location
-      window.location.href = "/welcome.html" + newSearchParameters
-    }
-  </script>
-  <style>
-    @font-face {
-      font-family: CorpoS;
-      src: url(assets/c063003t.ttf) format('truetype');
-    }
+      @font-face {
+        font-family: CorpoSDem;
+        src: url(assets/c063004t.ttf) format('truetype');
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        font-family: 'CorpoS', sans-serif;
+      }
+      body {
+        min-height: 100%;
+      }
+      .host {
+        position: fixed;
+        height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        top: 0;
+        left: 0;
+        overflow-x: hidden;
+        background-color: rgb(31, 31, 31);
+        color: rgba(255, 255, 255, 0.8);
+      }
 
-    @font-face {
-      font-family: CorpoSDem;
-      src: url(assets/c063004t.ttf) format('truetype');
-    }
-    * {
-      margin: 0;
-      padding: 0;
-      font-family: "CorpoS", sans-serif;
-    }
-    body{
-      min-height: 100%;
-    }
-    .host {
-      position: fixed;
-      height: 100vh;
-      width: 100vw;
-      z-index: 9999;
-      top: 0;
-      left: 0;
-      overflow-x: hidden;
-      background-color: rgb(31, 31, 31);
-      color: rgba(255, 255, 255, .8);
-    }
+      .alert-error {
+        margin: 20px auto;
+      }
 
-    .alert-error {
-      margin: 20px auto;
-    }
-
-    .content {
-      max-width: 500px;
-      margin: 0 auto;
-      padding: 0 20px;
-      box-sizing: border-box;
-      margin-top: 15vh;
-      text-align: center;
-    }
-    .content .welcome {
-      font-size: 2rem;
-    }
-    .content .cometa {
-      font-size: 5rem;
-    }
-    .content span {
-      color: #E5B355;
-    }
-    .sentence {
-      margin-top: 5vh;
-      font-size: 1.2rem;
-      margin-bottom: 10px;
-      font-style: italic;
-      height:58px; /* fixed jumping screen buttons when changeing to long sentences */
-    }
-    .author {
-      margin-bottom: 30px;
-      color: rgba(255, 255, 255, .6);
-    }
-    button i {
-      display: inline-block;
-      height: 18px;
-      width: 18px;
-      margin-right: 15px;
-      background-repeat: no-repeat;
-      background-size: contain;
-      background-position: center;
-    }
-    @media (min-width: 600px) {
+      .content {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 0 20px;
+        box-sizing: border-box;
+        margin-top: 15vh;
+        text-align: center;
+      }
       .content .welcome {
-        font-size: 5rem;
+        font-size: 2rem;
       }
       .content .cometa {
-        font-size: 8rem;
+        font-size: 5rem;
+      }
+      .content span {
+        color: #e5b355;
       }
       .sentence {
-        font-size: 1.6rem;
+        margin-top: 5vh;
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        font-style: italic;
+        height: 58px; /* fixed jumping screen buttons when changeing to long sentences */
       }
-    }
-    .BDC_CaptchaDiv {
-      margin: 0 auto !important;
-    }
-    .BDC_ReloadLink {
-      display: inline !important;
-    }
-    input {
-      background-color: transparent;
-      border: 2px solid #E5B355;
-      border-radius: 5px;
-      padding: 15px;
-      font-size: 1rem;
-      box-sizing: border-box;
-      color: #E5B355;
-      caret-color: #E5B355;
-      outline: 0;
-      text-align: center;
-    }
-    .captcha-box > div {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    button {
-      margin: 0 auto;
-      display: block;
-      background-color: #1565C0;
-      color: white;
-      border: 0;
-      padding: 15px;
-      box-sizing: border-box;
-      border-radius: 10px;
-      font-size: 1rem;
-      outline: 0;
-      margin-top: 20px;
-      cursor: pointer;
-      width: 200px;
-    }
-  </style>
-  <meta name="theme-color" content="#1976d2">
-</head>
-<body>
-  <div class="host">
-    <!-- Relative content wrapper -->
-    <div class="content">
-      <!-- Headers -->
-      <div class="welcome">Welcome to</div>
-      <div class="cometa"><span>co.</span>meta</div>
-      <div class="sentence"></div>
-      <div class="author">— Anonymous —</div>
-      <form novalidate style="display: block; opacity: 0;">
-        <div class="alert alert-error"></div>
-        <!-- Captcha Plugin Component -->
-        <div class="captcha-box"></div>
-        <!-- Captcha Input --> 
-        <div aria-label="CaptchaInputBox">
-          <legend>Repeat Captcha here</legend> 
-          <input type="text" onkeydown="return event.key != 'Enter';" autofocus required id="userCaptchaInput">
-        </div>
-        <br />
-      </form>
-      <div class="provider_buttons"></div>
-    </div>
-  </div>
-  <noscript>Please enable JavaScript to continue using this application.</noscript>
-  <script>
-    function focusInput() {
-      // Focus captcha input
-      document.querySelector('#userCaptchaInput').focus();
-    }
-    // fetch all providers 
-    fetch("/backend/api/authproviders/")
-    .then(response => response.json())
-    .then(json => {
-      // get all the results
-      var results = json.results;
-      // get element of where to insert provider buttons
-      var provider_buttons = document.querySelector(".provider_buttons");
-      // loop over results
-      results.forEach(provider => {
-        // create a button element
-        var button = document.createElement("button");
-        button.style.backgroundColor = provider.background_color;
-        button.style.backgroundImage = 
-        button.addEventListener("click", () => onSubmit(button));
-        button.setAttribute("issuer", provider.issuer);
-        button.type = "button";
-        var i = document.createElement("i");
-        i.style.backgroundImage = `url(${provider.icon})`;
-        button.appendChild(i);
-        button.innerHTML += `Login with ${provider.name}`;
-        provider_buttons.appendChild(button);
-      });
-      window.captchaRequired = results.some(res => res.useCaptcha);
-      console.log("Show captcha: ".captchaRequired)
-      // if captchaRequired == false then hide the form
-      if (window.captchaRequired) {
-        loadCaptcha();
-        document.querySelector("form").style.opacity = 1;
+      .author {
+        margin-bottom: 30px;
+        color: rgba(255, 255, 255, 0.6);
       }
-    })
-    .catch(err => {
-      console.log(err);
-    })
-
-    /**
-     * angular-captcha plugin internal stuff
-     */
-    function getCaptchaEndpointHandler(captchaEndpoint) {
-      var splited = captchaEndpoint.split('/');
-      return splited[splited.length - 1];
-    }
-    function getBackendBaseUrl(captchaEndpoint, captchaEndpointHandler) {
-      var lastIndex = captchaEndpoint.lastIndexOf(captchaEndpointHandler);
-      return captchaEndpoint.substring(0, lastIndex);
-    }
-    function changeRelativeToAbsoluteUrls(originCaptchaHtml, captchaEndpoint) {
-      var captchaEndpointHandler = this.getCaptchaEndpointHandler(captchaEndpoint);
-      var backendUrl = this.getBackendBaseUrl(captchaEndpoint, captchaEndpointHandler);
-      originCaptchaHtml = originCaptchaHtml.replace(/<script.*<\/script>/g, '');
-      var relativeUrls = originCaptchaHtml.match(/(src|href)=\"([^"]+)\"/g);
-      var relativeUrl, relativeUrlPrefixPattern, absoluteUrl, changedCaptchaHtml = originCaptchaHtml;
-      for (var i = 0; i < relativeUrls.length; i++) {
-        relativeUrl = relativeUrls[i].slice(0, -1).replace(/src=\"|href=\"/, '');
-        relativeUrlPrefixPattern = new RegExp(".*" + captchaEndpointHandler);
-        absoluteUrl = relativeUrl.replace(relativeUrlPrefixPattern, backendUrl + captchaEndpointHandler);
-        changedCaptchaHtml = changedCaptchaHtml.replace(relativeUrl, absoluteUrl);
+      button i {
+        display: inline-block;
+        height: 18px;
+        width: 18px;
+        margin-right: 15px;
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position: center;
       }
-      return changedCaptchaHtml;
-    }
-    // Set the error message
-    function setError(error) {
-      document.querySelector('.alert-error').innerText = error;
-    }
-    // Submits the captcha and redirects
-    function onSubmit(element) {
-      // Check if welcome requires captcha
-      if (window.captchaRequired) {
-        // Get captcha code and id from form
-        var captchaCode = document.querySelector('#userCaptchaInput').value;
-        var captchaId = document.querySelector('#BDC_VCID_' + window.captchaStyleName).value;
-        // Check if the user entered some code
-        if (captchaCode) {
-          // Request to our Captcha server if entered code is valid
-          fetch('https://cometa.amvara.consulting/php/captcha.php', {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              userEnteredCaptchaCode: captchaCode,
-              captchaId: captchaId
-            })
-          })
-          .then(response => response.json())
-          .then(json => {
-            if (json.success) {
-              // If code is valid, redirect to cometa
-              redirectToCometa(element);
-            } else {
-              // Show error if invalid
-              setError('Bad captcha code');
-            }
-          })
+      @media (min-width: 600px) {
+        .content .welcome {
+          font-size: 5rem;
         }
-      } else {
-        redirectToCometa(element);
+        .content .cometa {
+          font-size: 8rem;
+        }
+        .sentence {
+          font-size: 1.6rem;
+        }
       }
-      return false;
-    }
-
-    function redirectToCometa(element) {
-      window.location.href = `/callback?iss=${element.getAttribute('issuer')}&` + window.location.search.substr(1);
-    }
-  </script>
-  <script>
-    /**
-     * Loads a sentence and inserts into the DOM
-     */
-    function loadSentence() {
-      // From: https://www.success.com/17-motivational-quotes-to-inspire-you-to-be-successful/
-      var sentences = [
-        "Your limitation it’s only your imagination.",
-        "Great things never come from comfort zones.",
-        "Dream it. Wish it. Do it.",
-        "Success doesn’t just find you. You have to go out and get it.",
-        "The harder you work for something, the greater you’ll feel when you achieve it.",
-        "Dream bigger. Do bigger.",
-        "Don’t stop when you’re tired. Stop when you’re done.",
-        "Wake up with determination. Go to bed with satisfaction.",
-        "Do something today that your future self will thank you for.",
-        "Little things make big days.",
-        "Don’t wait for opportunity. Create it.",
-        "The key to success is to focus on goals, not obstacles.",
-        "Dream it. Believe it. Build it."
-      ]
-
-      var total = sentences.length - 1;
-      var randIndex = Math.floor( Math.random() * ( total + 1 ) );
-      var sentence = sentences[randIndex];
-      document.querySelector('.sentence').innerText = '"' + sentence + '"';
-    }
-
-    loadSentence();
-    // Load new sentence every 10s
-    setInterval(loadSentence, 10000);
-
-    /**
-     * Loads the Captcha plugin and server info
-     * and inserts the captcha box into the DOM form
-     */
-    function loadCaptcha() {
-      var captchaEndpoint = 'https://cometa.amvara.consulting/simple-botdetect.php';
-      window.captchaStyleName = 'welcomeCaptcha';
-      // Get BotDetect box from backend
-      fetch(captchaEndpoint + '?get=html&c=' + window.captchaStyleName)
-        .then(response => response.text())
-        .then(data => {
-          data = changeRelativeToAbsoluteUrls(data, captchaEndpoint);
-          document.querySelector('.captcha-box').innerHTML = data;
-          var captchaId = document.querySelector('#BDC_VCID_' + window.captchaStyleName).value;
-          var scriptIncludeUrl = captchaEndpoint + '?get=script-include&c=' + window.captchaStyleName + '&t=' + captchaId + '&cs=201';
-          // Get BotDetect script from backend
-          fetch(scriptIncludeUrl)
-            .then(response => response.text())
-            .then(scriptString => {
-              var f = new Function(scriptString);
-              f();
-              setInterval(focusInput, 500);
-            })
+      .BDC_CaptchaDiv {
+        margin: 0 auto !important;
+      }
+      .BDC_ReloadLink {
+        display: inline !important;
+      }
+      input {
+        background-color: transparent;
+        border: 2px solid #e5b355;
+        border-radius: 5px;
+        padding: 15px;
+        font-size: 1rem;
+        box-sizing: border-box;
+        color: #e5b355;
+        caret-color: #e5b355;
+        outline: 0;
+        text-align: center;
+      }
+      .captcha-box > div {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+      button {
+        margin: 0 auto;
+        display: block;
+        background-color: #1565c0;
+        color: white;
+        border: 0;
+        padding: 15px;
+        box-sizing: border-box;
+        border-radius: 10px;
+        font-size: 1rem;
+        outline: 0;
+        margin-top: 20px;
+        cursor: pointer;
+        width: 200px;
+      }
+    </style>
+    <meta name="theme-color" content="#1976d2" />
+  </head>
+  <body>
+    <div class="host">
+      <!-- Relative content wrapper -->
+      <div class="content">
+        <!-- Headers -->
+        <div class="welcome">Welcome to</div>
+        <div class="cometa"><span>co.</span>meta</div>
+        <div class="sentence"></div>
+        <div class="author">— Anonymous —</div>
+        <form novalidate style="display: block; opacity: 0">
+          <div class="alert alert-error"></div>
+          <!-- Captcha Plugin Component -->
+          <div class="captcha-box"></div>
+          <!-- Captcha Input -->
+          <div aria-label="CaptchaInputBox">
+            <legend>Repeat Captcha here</legend>
+            <input
+              type="text"
+              onkeydown="return event.key != 'Enter';"
+              autofocus
+              required
+              id="userCaptchaInput" />
+          </div>
+          <br />
+        </form>
+        <div class="provider_buttons"></div>
+      </div>
+    </div>
+    <noscript
+      >Please enable JavaScript to continue using this application.</noscript
+    >
+    <script>
+      function focusInput() {
+        // Focus captcha input
+        document.querySelector('#userCaptchaInput').focus();
+      }
+      // fetch all providers
+      fetch('/backend/api/authproviders/')
+        .then(response => response.json())
+        .then(json => {
+          // get all the results
+          var results = json.results;
+          // get element of where to insert provider buttons
+          var provider_buttons = document.querySelector('.provider_buttons');
+          // loop over results
+          results.forEach(provider => {
+            // create a button element
+            var button = document.createElement('button');
+            button.style.backgroundColor = provider.background_color;
+            button.style.backgroundImage = button.addEventListener(
+              'click',
+              () => onSubmit(button)
+            );
+            button.setAttribute('issuer', provider.issuer);
+            button.type = 'button';
+            var i = document.createElement('i');
+            i.style.backgroundImage = `url(${provider.icon})`;
+            button.appendChild(i);
+            button.innerHTML += `Login with ${provider.name}`;
+            provider_buttons.appendChild(button);
+          });
+          window.captchaRequired = results.some(res => res.useCaptcha);
+          console.log('Show captcha: '.captchaRequired);
+          // if captchaRequired == false then hide the form
+          if (window.captchaRequired) {
+            loadCaptcha();
+            document.querySelector('form').style.opacity = 1;
+          }
+        })
+        .catch(err => {
+          console.log(err);
         });
-    }
-  </script>
-</body>
+
+      /**
+       * angular-captcha plugin internal stuff
+       */
+      function getCaptchaEndpointHandler(captchaEndpoint) {
+        var splited = captchaEndpoint.split('/');
+        return splited[splited.length - 1];
+      }
+      function getBackendBaseUrl(captchaEndpoint, captchaEndpointHandler) {
+        var lastIndex = captchaEndpoint.lastIndexOf(captchaEndpointHandler);
+        return captchaEndpoint.substring(0, lastIndex);
+      }
+      function changeRelativeToAbsoluteUrls(
+        originCaptchaHtml,
+        captchaEndpoint
+      ) {
+        var captchaEndpointHandler =
+          this.getCaptchaEndpointHandler(captchaEndpoint);
+        var backendUrl = this.getBackendBaseUrl(
+          captchaEndpoint,
+          captchaEndpointHandler
+        );
+        originCaptchaHtml = originCaptchaHtml.replace(
+          /<script.*<\/script>/g,
+          ''
+        );
+        var relativeUrls = originCaptchaHtml.match(/(src|href)=\"([^"]+)\"/g);
+        var relativeUrl,
+          relativeUrlPrefixPattern,
+          absoluteUrl,
+          changedCaptchaHtml = originCaptchaHtml;
+        for (var i = 0; i < relativeUrls.length; i++) {
+          relativeUrl = relativeUrls[i]
+            .slice(0, -1)
+            .replace(/src=\"|href=\"/, '');
+          relativeUrlPrefixPattern = new RegExp('.*' + captchaEndpointHandler);
+          absoluteUrl = relativeUrl.replace(
+            relativeUrlPrefixPattern,
+            backendUrl + captchaEndpointHandler
+          );
+          changedCaptchaHtml = changedCaptchaHtml.replace(
+            relativeUrl,
+            absoluteUrl
+          );
+        }
+        return changedCaptchaHtml;
+      }
+      // Set the error message
+      function setError(error) {
+        document.querySelector('.alert-error').innerText = error;
+      }
+      // Submits the captcha and redirects
+      function onSubmit(element) {
+        // Check if welcome requires captcha
+        if (window.captchaRequired) {
+          // Get captcha code and id from form
+          var captchaCode = document.querySelector('#userCaptchaInput').value;
+          var captchaId = document.querySelector(
+            '#BDC_VCID_' + window.captchaStyleName
+          ).value;
+          // Check if the user entered some code
+          if (captchaCode) {
+            // Request to our Captcha server if entered code is valid
+            fetch('https://cometa.amvara.consulting/php/captcha.php', {
+              method: 'POST',
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userEnteredCaptchaCode: captchaCode,
+                captchaId: captchaId,
+              }),
+            })
+              .then(response => response.json())
+              .then(json => {
+                if (json.success) {
+                  // If code is valid, redirect to cometa
+                  redirectToCometa(element);
+                } else {
+                  // Show error if invalid
+                  setError('Bad captcha code');
+                }
+              });
+          }
+        } else {
+          redirectToCometa(element);
+        }
+        return false;
+      }
+
+      function redirectToCometa(element) {
+        window.location.href =
+          `/callback?iss=${element.getAttribute('issuer')}&` +
+          window.location.search.substr(1);
+      }
+    </script>
+    <script>
+      /**
+       * Loads a sentence and inserts into the DOM
+       */
+      function loadSentence() {
+        // From: https://www.success.com/17-motivational-quotes-to-inspire-you-to-be-successful/
+        var sentences = [
+          'Your limitation it’s only your imagination.',
+          'Great things never come from comfort zones.',
+          'Dream it. Wish it. Do it.',
+          'Success doesn’t just find you. You have to go out and get it.',
+          'The harder you work for something, the greater you’ll feel when you achieve it.',
+          'Dream bigger. Do bigger.',
+          'Don’t stop when you’re tired. Stop when you’re done.',
+          'Wake up with determination. Go to bed with satisfaction.',
+          'Do something today that your future self will thank you for.',
+          'Little things make big days.',
+          'Don’t wait for opportunity. Create it.',
+          'The key to success is to focus on goals, not obstacles.',
+          'Dream it. Believe it. Build it.',
+        ];
+
+        var total = sentences.length - 1;
+        var randIndex = Math.floor(Math.random() * (total + 1));
+        var sentence = sentences[randIndex];
+        document.querySelector('.sentence').innerText = '"' + sentence + '"';
+      }
+
+      loadSentence();
+      // Load new sentence every 10s
+      setInterval(loadSentence, 10000);
+
+      /**
+       * Loads the Captcha plugin and server info
+       * and inserts the captcha box into the DOM form
+       */
+      function loadCaptcha() {
+        var captchaEndpoint =
+          'https://cometa.amvara.consulting/simple-botdetect.php';
+        window.captchaStyleName = 'welcomeCaptcha';
+        // Get BotDetect box from backend
+        fetch(captchaEndpoint + '?get=html&c=' + window.captchaStyleName)
+          .then(response => response.text())
+          .then(data => {
+            data = changeRelativeToAbsoluteUrls(data, captchaEndpoint);
+            document.querySelector('.captcha-box').innerHTML = data;
+            var captchaId = document.querySelector(
+              '#BDC_VCID_' + window.captchaStyleName
+            ).value;
+            var scriptIncludeUrl =
+              captchaEndpoint +
+              '?get=script-include&c=' +
+              window.captchaStyleName +
+              '&t=' +
+              captchaId +
+              '&cs=201';
+            // Get BotDetect script from backend
+            fetch(scriptIncludeUrl)
+              .then(response => response.text())
+              .then(scriptString => {
+                var f = new Function(scriptString);
+                f();
+                setInterval(focusInput, 500);
+              });
+          });
+      }
+    </script>
+  </body>
 </html>

@@ -1,3 +1,14 @@
 <h2>Manage applications</h2>
-<application [app]="app" *ngFor="let app of applications$ | async | sortBy:'app_name'; trackBy: trackByFn"></application>
-<button *ngIf="canCreateApplication$ | async" class="add-item" (click)="newApp()" mat-stroked-button><mat-icon>add</mat-icon>Add application</button>
+<application
+  [app]="app"
+  *ngFor="
+    let app of applications$ | async | sortBy: 'app_name';
+    trackBy: trackByFn
+  "></application>
+<button
+  *ngIf="canCreateApplication$ | async"
+  class="add-item"
+  (click)="newApp()"
+  mat-stroked-button>
+  <mat-icon>add</mat-icon>Add application
+</button>

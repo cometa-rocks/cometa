@@ -128,17 +128,17 @@ services:
     image: "httpd:2.4.48"
     container_name: cometa_front
     volumes:
-      - ./front/:/code
+      - ./:/code
       - ./front/apache-conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
       - ./front/apache-conf/openidc.conf_local:/usr/local/apache2/conf/openidc.conf
       - ./front/apache-conf/paths.conf:/usr/local/apache2/conf/paths.conf
       - ./front/apache-conf/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
       - /data/cometa/screenshots:/screenshots
-    working_dir: /code
+    working_dir: /code/front
     ports:
       - "443:443"
       - "4200:4200"
-    command: bash /code/start.sh openidc basic angular compile
+    command: bash /code/front/start.sh openidc basic angular compile
     # command: bash /code/start.sh compile 
     networks:
       - testing

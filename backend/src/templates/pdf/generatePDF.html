@@ -148,14 +148,14 @@
             </div>
         <div>
             <table>
-             <th> STEP </th>
-             <th> RESULT </th>
-             <th> TIME </th>
-             <th> REL. TIME </th>
-             <th> PIXEL DIFF. </th>
-            
+                <tr>
+                    <th> STEP </th>
+                    <th> RESULT </th>
+                    <th> TIME </th>
+                    <th> REL. TIME </th>
+                    <th> PIXEL DIFF. </th>
+                </tr>
              {% for step in stepsarray %}
-
                 <tr>
                     <td width="55%" class="firsttd">
                         {{forloop.counter}}. {{ step.step_name }}
@@ -246,6 +246,27 @@
                 <!-- Add next page after each step, except for last -->
                 {% endif %}
             {% endfor %}
+
+            <div>
+                <pdf:nextpage />
+            </div>
+            <h2 style="width: 100%; border:0px; text-align: left">Additional Information</h2>
+            <p style="width: 100%; border:0px; text-align: left">
+                The table below contains information about the symbols or short forms used in this report.
+            </p>
+            <table>
+                <tr>
+                    <th width="5%"> No. </th>
+                    <th width="15%"> NAME </th>
+                    <th> DISCRIPTION </th>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>REL. TIME </td>
+                    <td><b>REL. TIME</b>, or Relative Time of the step, represents the total time taken by all preceding steps until the execution of the step mentioned in that row.<br>
+                        This is very useful when trying to pinpoint the moment a step fails in a test, allowing us to track in the video exactly when the failure occurred. This helps streamline the debugging process.</td>
+                </tr>
+            </table>
         </div>
     </div>
     </body>

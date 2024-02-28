@@ -1,3 +1,14 @@
 <h2>Manage environments</h2>
-<environment [environment]="env" *ngFor="let env of environments$ | async | sortBy:'environment_name';  trackBy: trackByFn"></environment>
-<button *ngIf="canCreateEnvironment$ | async" class="add-item" (click)="new()" mat-stroked-button><mat-icon>add</mat-icon>Add environment</button>
+<environment
+  [environment]="env"
+  *ngFor="
+    let env of environments$ | async | sortBy: 'environment_name';
+    trackBy: trackByFn
+  "></environment>
+<button
+  *ngIf="canCreateEnvironment$ | async"
+  class="add-item"
+  (click)="new()"
+  mat-stroked-button>
+  <mat-icon>add</mat-icon>Add environment
+</button>

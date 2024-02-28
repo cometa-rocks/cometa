@@ -55,7 +55,8 @@ from django.db.models import Q
 from django.db.models import Avg, Sum  # needed for CometaUsage calcs
 from django.db import connection
 import secrets
-
+from openpyxl import Workbook
+import base64
 # just to import secrets
 sys.path.append("/code")
 import secret_variables
@@ -2715,6 +2716,7 @@ def render_to_pdf(template_src, context_dict={}):
 class DatasetViewset(viewsets.ModelViewSet):
     queryset = Dataset.objects.none()
     renderer_classes = (JSONRenderer,)
+    
 
     def create(self, request, *args, **kwargs):
         data = json.loads(request.body)
@@ -2743,10 +2745,41 @@ class DatasetViewset(viewsets.ModelViewSet):
         })
 
     def list(self, request, *args, **kwargs):
-        return JsonResponse({
-            'success': True,
-            'message': 'Nothing to do here!'
-        })
+         # Fetch data from your Dataset model
+        data_sets = Dataset.objects.all()
+        logger.debug(f"Found dataset with size : {len(data_sets)}")
+        # Create a new Workbook
+        wb = Workbook()
+        ws = wb.active
+
+        # Add Excel headers
+        ws.append(['Se.No.','Feature ID','Success','Target', 'Context'])
+        logger.debug("Added Header in dataset")
+        # Write data rows
+        for i, record in enumerate(data_sets):
+            data = record.data
+
+            decoded_context = 'Error'
+            try:
+                # Decode the base64 string
+                decoded_bytes = base64.b64decode(data['context'])
+                # Convert bytes to string
+                decoded_context = decoded_bytes.decode('utf-8')
+            except base64.binascii.Error as e:
+                logger.error(f"Error decoding context in record {record.id}:", e)
+                
+            ws.append([i+1, record.feature_result.feature_id.feature_id, data['success'], data['target'],decoded_context])  # Adjust fields as per your model
+
+        logger.info("Added dataset to workbook")
+        logger.info("Getting time for file name")
+        file_name_date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename=Dataset_{file_name_date}.xlsx'
+        # Attach workbook to reponse
+        wb.save(response)
+        logger.info("Workbook data attched to response")
+        return response
+    
 
 class FolderViewset(viewsets.ModelViewSet):
     queryset = Folder.objects.all()

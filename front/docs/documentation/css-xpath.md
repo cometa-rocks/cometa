@@ -1,6 +1,7 @@
 <img src="img/cometa.png" width="600px"/>
 
 # Co.meta actions table of contents
+
 1. [QueryStudio actions](#QUERYSTUDIO_AC)
 2. [Browser actions](#BROWSER_AC)
 3. [CSS selectors actions](#CSS_AC)
@@ -11,29 +12,30 @@
 8. [Other actions](#OTHER_AC)
 
 # Selectors table of contents
+
 1. [How is an HTML page structured?](#HTML_SE)
 2. [What are CSS selectors?](#CSS_SE)
 3. [What is XPath](#XPATH_SE)
 4. [Using XPath](#USEXP_SE)
-    1. [Descendant selectors](#DES_XP)
-    2. [Attribute selectors](#ATT_XP)
-    3. [Order selectors](#ORD_XP)
-    4. [Siblings](#SIB_XP)
-    5. [Jquery selectors](#JQU_XP)
-    6. [Other selectors](#OTH_XP)
-    7. [Steps and axes](#STAX_XP)
-    8. [Prefixes](#PRF_XP)
-    9. [Predicates](#PRD_XP)
-    10. [Operators](#OPE_XP)
-    11. [Using nodes](#NOD_XP)
-    12. [Indexing](#IND_XP)
-    13. [Chaining order](#COR_XP)
-    14. [Node functions](#NFC_XP)
-    15. [Boolean functions](#BFC_XP)
-    16. [Type conversion](#TFC_XP)
-    17. [String functions](#SFC_XP)
-    18. [Axes](#AXE_XP)
-    19. [Unions](#UNI_XP)
+   1. [Descendant selectors](#DES_XP)
+   2. [Attribute selectors](#ATT_XP)
+   3. [Order selectors](#ORD_XP)
+   4. [Siblings](#SIB_XP)
+   5. [Jquery selectors](#JQU_XP)
+   6. [Other selectors](#OTH_XP)
+   7. [Steps and axes](#STAX_XP)
+   8. [Prefixes](#PRF_XP)
+   9. [Predicates](#PRD_XP)
+   10. [Operators](#OPE_XP)
+   11. [Using nodes](#NOD_XP)
+   12. [Indexing](#IND_XP)
+   13. [Chaining order](#COR_XP)
+   14. [Node functions](#NFC_XP)
+   15. [Boolean functions](#BFC_XP)
+   16. [Type conversion](#TFC_XP)
+   17. [String functions](#SFC_XP)
+   18. [Axes](#AXE_XP)
+   19. [Unions](#UNI_XP)
 5. [Support](#SUPPORT_SE)
 
 <br/>
@@ -1000,7 +1002,6 @@ Example:
 
 <img src="img/Ex10.png">
 
-
 ### Boolean functions<a name="BFC_XP"></a>
 
 <table>
@@ -1116,4 +1117,5 @@ Example:
 As you can see, aside from the already existing CSS selectors XPath offers a greater amount of selection options vastly expanding the querying posibilities. Furthermore, as XPath can be used in many different programming languages, it can become a very useful, flexible and powerful tool in software developing and testing.
 
 ### 5. Support<a name="SUPPORT_SE"></a>
+
 For further questions or issues, please contact us at our email <tec_dev@cometa.rocks> or via Discord https://discord.gg/e3uBKHhKW5
