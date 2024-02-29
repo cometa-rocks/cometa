@@ -3768,16 +3768,14 @@ def step_imp(context, css_selector, variable_names, prefix, suffix):
 def step_imp(context, error_message):
     # get next step index
     next_step = context.counters['index'] + 1
-    # get all the steps from the environment
-    steps = json.loads(os.environ['STEPS'])
     # check that there is another step after the current step
-    if len(steps) > next_step:
+    logger.debug("Checking that there is another step")
+    if len(context.steps) > next_step:
         # update the step definition
-        steps[next_step].update({
+        context.steps[next_step].update({
             "custom_error": logger.mask_values(error_message)
         })
-        os.environ['STEPS'] = json.dumps(steps)
-        logger.info(f"Custom error message set for step: {steps[next_step]['step_content']}")
+        logger.info(f"Custom error message set for step: {context.steps[next_step]['step_content']}")
     else:
         logger.warn(f"This is the last step, cannot assign custom error message to next step.")
 
