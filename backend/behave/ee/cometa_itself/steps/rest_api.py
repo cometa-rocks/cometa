@@ -93,11 +93,21 @@ def api_call(context, method, endpoint, parameters, headers):
     logger.debug(context.browser.get_cookies())
     session = requests.Session()
     session.cookies.update(cookies)
+    # need to add proxies - #4545
+    proxies = None
+
+    if context.PROXY and len(context.PROXY) > 0:
+        proxies = {
+            'http' : context.PROXY,
+            'https' : context.PROXY
+        }
+        logger.debug(f"Making API request using proxy : {proxies}")
     response = session.request(
         method=method,
         url=endpoint,
         params=parse_parameters(parameters),
         headers=parse_parameters(headers),
+        proxies=proxies 
     )
 
     api_call = build_rest_api_object(session, response)
