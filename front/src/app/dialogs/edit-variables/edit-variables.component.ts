@@ -48,6 +48,7 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { NgIf, NgFor } from '@angular/common';
 
+
 interface PassedData {
   environment_id: number;
   department_id: number;
@@ -158,6 +159,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
       // apply current searchTerm
       this.applyFilter();
     });
+    this.restoreSortState();
   }
 
   ngOnDestroy(): void {
@@ -331,7 +333,17 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
 
   // is fired when, sorting of any column on table is changed
   announceSortChange(sortState: Sort) {
+    localStorage.setItem('Variable_Sort_State', JSON.stringify(sortState));
     this.dataSource.sort = this.sort;
+  }
+  
+  restoreSortState() {
+    const sortState = JSON.parse(localStorage.getItem('Variable_Sort_State'));
+    if (sortState && this.sort) {
+      this.sort.active = sortState.active;
+      this.sort.direction = sortState.direction;
+      this.dataSource.sort = this.sort;
+    }
   }
 
   // Receives string from search input and adds it to dataSource as filterTerm.
@@ -481,6 +493,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
       complete: () => {
         this.isEditing = false;
         this._cdr.detectChanges();
+        this.restoreSortState();
       },
     };
   }
