@@ -11,17 +11,16 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { Observable } from 'rxjs';
 
 @Pipe({
-  name: 'featureRunning'
+  name: 'featureRunning',
+  standalone: true,
 })
 export class FeatureRunningPipe implements PipeTransform {
-
-  constructor(
-    private _store: Store
-  ) { }
+  constructor(private _store: Store) {}
 
   // Returns the status of the selected feature and show if it is running
-  transform(featureId: number): Observable<boolean>  {
-    return this._store.select(CustomSelectors.GetFeatureRunningStatus(featureId))
+  transform(featureId: number): Observable<boolean> {
+    return this._store.select(
+      CustomSelectors.GetFeatureRunningStatus(featureId)
+    );
   }
-
 }

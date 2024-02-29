@@ -1,51 +1,50 @@
-
 @import 'color';
 @import 'breakpoints';
 
 :host {
-    display: block;
+  display: block;
 }
 
 :host::ng-deep .mat-progress-spinner {
-    margin: 0 auto;
+  margin: 0 auto;
 }
 
 :host::ng-deep .mat-checkbox.mat-checkbox-disabled {
-    opacity: .3;
+  opacity: 0.3;
 }
 
 .duplicate-step-sign,
 .invalid-sign {
-    display: inline-block;
-    background-image: url(^assets/icons/warn.svg);
-    background-repeat: no-repeat;
-    background-size: 20px;
-    background-position: center;
-    width: 40px;
-    // height: 100%;
-    opacity: .7;
-    &:hover {
-        opacity: 1;
-    }
-    will-change: transform;
-    animation: scaleIn .25s cubic-bezier(0.205, -0.305, 0.340, 1.650);
+  display: inline-block;
+  background-image: url(^assets/icons/warn.svg);
+  background-repeat: no-repeat;
+  background-size: 20px;
+  background-position: center;
+  width: 40px;
+  // height: 100%;
+  opacity: 0.7;
+  &:hover {
+    opacity: 1;
+  }
+  will-change: transform;
+  animation: scaleIn 0.25s cubic-bezier(0.205, -0.305, 0.34, 1.65);
 }
 
 @keyframes scaleIn {
-    from {
-        transform: scale(0);
-    }
-    to {
-        transform: scale(1);
-    }
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
 }
 
 ::ng-deep .step-options-menu .mat-menu-item {
-    height: 38px !important;
-    line-height: 38px !important;
-    font-weight: bold !important;
-    color: rgba(0, 0, 0, 0.6) !important;
-    /*
+  height: 38px !important;
+  line-height: 38px !important;
+  font-weight: bold !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  /*
     .mat-icon {
         margin-right: 10px !important;
     }
@@ -56,255 +55,259 @@
 }
 
 .step-row {
+  display: flex;
+  width: 100%;
+  // align-items: center;
+  position: relative;
+  min-height: 45px;
+  // height: 50px; /* setting height to have correct size in FF browser - RRO  */
+  // flex-direction: column; //  Removed RRO because multi-line
+  background-color: white;
+  backface-visibility: hidden;
+  transition: opacity 0.3s ease-in-out;
+  @include for-tablet-portrait-up {
+    flex-direction: row;
+  }
+  &.disabled {
+    opacity: 0.5;
+  }
+  .step-extras {
     display: flex;
-    width: 100%;
-    // align-items: center;
-    position: relative;
-    min-height: 45px;
-    // height: 50px; /* setting height to have correct size in FF browser - RRO  */
-    // flex-direction: column; //  Removed RRO because multi-line 
-    background-color: white;
-    backface-visibility: hidden;
-	transition: opacity .3s ease-in-out;
     @include for-tablet-portrait-up {
-        flex-direction: row;
+      flex: 0 360px;
     }
-	&.disabled {
-		opacity: 0.5;
-	}
-    .step-extras {
-        display: flex;
-        @include for-tablet-portrait-up {
-            flex: 0 360px;
+  }
+  ::ng-deep mat-checkbox {
+    flex: 0 0 50px;
+    text-align: center;
+    padding: 0 15px;
+    position: relative;
+    padding-top: 10px;
+    &.enable {
+      flex: 0 0 30px;
+    }
+  }
+  .prefix {
+    flex: 0 70px;
+    margin-left: 10px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &::ng-deep .mat-select-value {
+      font-size: 1rem;
+    }
+  }
+  &:hover .move-row {
+    opacity: 0.54;
+    visibility: visible;
+  }
+  &:hover .step_remove {
+    visibility: visible;
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+  &:nth-child(2n + 1) {
+    background-color: #f3f7fc;
+  }
+  &:nth-child(2n + 2) {
+    background-color: white;
+  }
+  .index {
+    flex: 0 0 40px;
+    line-height: 45px;
+    text-align: center;
+    color: $blue;
+    font-weight: bold;
+  }
+  .move-row {
+    flex: 0 0 30px;
+    background-image: url(^assets/move-row.svg);
+    background-size: 25px;
+    background-repeat: no-repeat;
+    background-position-x: 5px;
+    opacity: 0.54;
+    cursor: move;
+    background-position-y: 10px;
+    @include for-tablet-portrait-up {
+      visibility: hidden;
+    }
+  }
+  .step_content {
+    padding: 12px 10px;
+    flex: 1;
+    display: flex;
+    position: relative;
+
+    .var_name_autoComplete {
+      position: absolute;
+      background-color: white;
+      box-shadow:
+        0px 2px 4px -1px rgba(0, 0, 0, 0.2),
+        0px 4px 5px 0px rgba(0, 0, 0, 0.14),
+        0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+      max-height: 120px;
+      width: 100%;
+      overflow: auto;
+      border-bottom-left-radius: 4px;
+      border-bottom-right-radius: 4px;
+      z-index: 1;
+
+      .mat-list-item {
+        height: 30px;
+
+        &.selected {
+          background: rgba(0, 0, 0, 0.04);
         }
-    }
-    ::ng-deep mat-checkbox {
-        flex: 0 0 50px;
-        text-align: center;
-        padding: 0 15px;
-        position: relative;
-        padding-top: 10px;
-        &.enable {
-            flex: 0 0 30px;
+        &:focus {
+          outline: none;
+          background: rgba(0, 0, 0, 0.04);
         }
-    }
-    .prefix {
-        flex: 0 70px;
-        margin-left: 10px;
-        height: 50px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        &::ng-deep .mat-select-value {
-            font-size: 1rem;
+
+        .variable-wrapper {
+          height: 100%;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          overflow: hidden;
+
+          // hover on variable name or value in flyout will show pointer cursor
+          span.var_name,
+          span.var_value {
+            cursor: pointer;
+          }
+
+          span.no-variable {
+            user-select: none;
+            color: $bad;
+          }
         }
-    }
-    &:hover .move-row {
-        opacity: .54;
-        visibility: visible;
-    }
-    &:hover .step_remove {
-        visibility: visible;
+
         &:hover {
-            opacity: .9;
+          background: rgba(0, 0, 0, 0.04);
         }
+      }
     }
-    &:nth-child(2n+1) {
-        background-color: #F3F7FC;
-    }
-    &:nth-child(2n+2) {
-        background-color: white;
-    }
-    .index {
-        flex: 0 0 40px;
-        line-height: 45px;
-        text-align: center;
-        color: $blue;
-        font-weight: bold;
-    }
-    .move-row {
-        flex: 0 0 30px;
-        background-image: url(^assets/move-row.svg);
-        background-size: 25px;
-        background-repeat: no-repeat;
-        background-position-x: 5px;
-        opacity: .54;
-        cursor: move;
-        background-position-y: 10px;
-        @include for-tablet-portrait-up {
-            visibility: hidden;
-        }
-    }
-    .step_content {
-        padding: 12px 10px;
+
+    .code {
+      $lineHeight: 25px;
+      flex: 1;
+      margin-bottom: 15px;
+      line-height: $lineHeight;
+      max-height: $lineHeight * 5;
+      @include for-tablet-portrait-up {
         flex: 1;
-        display: flex;
-        position: relative;
-
-        .var_name_autoComplete {
-            position: absolute;
-            background-color: white;
-            box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
-            max-height: 120px;
-            width: 100%;
-            overflow: auto;
-            border-bottom-left-radius: 4px;
-            border-bottom-right-radius: 4px;
-            z-index: 1;
-
-            .mat-list-item {
-                height: 30px;
-
-                &.selected {
-                    background: rgba(0, 0, 0, 0.04);
-                }
-                &:focus {
-                    outline: none;
-                    background: rgba(0, 0, 0, 0.04);
-                }
-
-                .variable-wrapper {
-                    height: 100%;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                    overflow: hidden;
-
-                    // hover on variable name or value in flyout will show pointer cursor
-                    span.var_name,
-                    span.var_value {
-                        cursor: pointer;
-                    }
-
-                    span.no-variable {
-                        user-select: none;
-                        color: $bad;
-                    }
-                }
-
-                &:hover {
-                    background: rgba(0, 0, 0, 0.04);
-                }
-            }
-        }
-
-        .code {
-            $lineHeight: 25px;
-            flex: 1;
-            margin-bottom: 15px;
-            line-height: $lineHeight;
-            max-height: $lineHeight * 5;
-            @include for-tablet-portrait-up {
-                flex: 1;
-                margin-bottom: 0;
-            }
-            box-sizing: border-box;
-            border: 0;
-            outline: 0;
-            background-color: transparent;
-            font-size: 1rem;
-            font-family: "Segoe UI", "CorpoS";
-        }
+        margin-bottom: 0;
+      }
+      box-sizing: border-box;
+      border: 0;
+      outline: 0;
+      background-color: transparent;
+      font-size: 1rem;
+      font-family: 'Segoe UI', 'CorpoS';
     }
+  }
 }
 
 :host::ng-deep .step_remove * {
-    color: $remove !important;
+  color: $remove !important;
 }
 
 .step_remove {
-    visibility: hidden;
-    opacity: .5;
-    height: 100%;
-    display: none;
-    transition: opacity .1s ease-in-out;
-    @include for-tablet-portrait-up {
-        display: block;
-    }
+  visibility: hidden;
+  opacity: 0.5;
+  height: 100%;
+  display: none;
+  transition: opacity 0.1s ease-in-out;
+  @include for-tablet-portrait-up {
+    display: block;
+  }
 }
 
 :host::ng-deep .mat-progress-spinner circle {
-    stroke: $blue !important;
+  stroke: $blue !important;
 }
 
 .headers {
-    display: flex;
-    width: 100%;
-    color: $blue;
-    line-height: 40px;
-    .index {
-        flex: 0 0 40px;
-        text-align: center;
-        font-weight: bold;
+  display: flex;
+  width: 100%;
+  color: $blue;
+  line-height: 40px;
+  .index {
+    flex: 0 0 40px;
+    text-align: center;
+    font-weight: bold;
+  }
+  .move-row {
+    flex: 0 0 30px;
+  }
+  .enable,
+  .screenshot,
+  .compare {
+    flex: 0 0 80px;
+    text-align: center;
+    font-weight: bold;
+  }
+  .enable {
+    flex: 0 0 60px;
+  }
+  .step {
+    flex: 1;
+    text-align: left;
+    display: none;
+    font-weight: bold;
+    padding-left: 10px;
+    @include for-tablet-portrait-up {
+      display: block;
     }
-    .move-row {
-        flex: 0 0 30px;
-    }
-    .enable, .screenshot, .compare {
-        flex: 0 0 80px;
-        text-align: center;
-        font-weight: bold;
-    }
-    .enable {
-        flex: 0 0 60px;
-    }
-    .step {
-        flex: 1;
-        text-align: left;
-        display: none;
-        font-weight: bold;
-        padding-left: 10px;
-        @include for-tablet-portrait-up {
-            display: block;
-        }
-    }
-    .options {
-        flex: 0 0 40px;
-    }
+  }
+  .options {
+    flex: 0 0 40px;
+  }
 }
 
-
 :host::ng-deep .options .mat-icon {
-    position: relative;
-    top: 0;
-    color: $blue;
-    font-size: 21px !important;
+  position: relative;
+  top: 0;
+  color: $blue;
+  font-size: 21px !important;
 }
 
 ::ng-deep .step_up[disabled] .mat-icon {
-    color: rgba(0,0,0,.24) !important;
+  color: rgba(0, 0, 0, 0.24) !important;
 }
 
 ::ng-deep .step_down[disabled] .mat-icon {
-    color: rgba(0,0,0,.24) !important;
+  color: rgba(0, 0, 0, 0.24) !important;
 }
 
 .button-actions {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-between;
-    button {
-        font-weight: bold;
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  button {
+    font-weight: bold;
+  }
+  .left {
+    display: none;
+    @include for-tablet-portrait-up {
+      display: block;
     }
-    .left {
-        display: none;
-        @include for-tablet-portrait-up {
-            display: block;
-        }
+  }
+  .left,
+  .right {
+    button:not(:first-child) {
+      margin-left: 20px;
     }
-    .left,
-    .right {
-        button:not(:first-child) {
-            margin-left: 20px;
-        }
-    }
+  }
 }
 
 .custom-timeout input {
-    width: 50px;
-    margin: 0 5px;
-    background-color: transparent;
-    border: 1px solid rgba(black, .2);
-    border-radius: 3px;
-    padding: 5px;
-    outline: 0;
+  width: 50px;
+  margin: 0 5px;
+  background-color: transparent;
+  border: 1px solid rgba(black, 0.2);
+  border-radius: 3px;
+  padding: 5px;
+  outline: 0;
 }

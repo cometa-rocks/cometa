@@ -9,8 +9,18 @@
  * @author: dph000
  */
 
-import { ChangeDetectionStrategy, Component, HostListener, Input, OnInit } from '@angular/core';
-import { UntypedFormControl } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  Input,
+  OnInit,
+} from '@angular/core';
+import {
+  UntypedFormControl,
+  ReactiveFormsModule,
+  FormsModule,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { Select, Store } from '@ngxs/store';
@@ -21,35 +31,62 @@ import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { FilterTextPipe } from '@pipes/filter-text.pipe';
+import { StoreSelectorPipe } from '../../pipes/store-selector.pipe';
+import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
+import { MatLegacyInputModule } from '@angular/material/legacy-input';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { NgFor, NgIf, AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 
 @UntilDestroy()
 @Component({
   selector: 'cometa-l1-filter',
   templateUrl: './l1-filter.component.html',
   styleUrls: ['./l1-filter.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    MatLegacyTooltipModule,
+    MatIconModule,
+    NgFor,
+    MatLegacyFormFieldModule,
+    MatLegacyInputModule,
+    ReactiveFormsModule,
+    DisableAutocompleteDirective,
+    FormsModule,
+    NgIf,
+    StoreSelectorPipe,
+    FilterTextPipe,
+    AsyncPipe,
+  ],
 })
 export class L1FilterComponent implements OnInit {
-
   constructor(
     public _sharedActions: SharedActionsService,
     private _store: Store,
     private _router: Router,
     private log: LogService
-  ) { }
+  ) {}
 
   /**
    * Declaration of variables used in the class
    */
-  @Select(FeaturesState.GetNewSelectionFolders) currentRoute$: Observable<ReturnType<typeof FeaturesState.GetNewSelectionFolders>>;
-  @Select(CustomSelectors.GetConfigProperty('openedSearch')) openedSearch$: Observable<boolean>;
+  @Select(FeaturesState.GetNewSelectionFolders) currentRoute$: Observable<
+    ReturnType<typeof FeaturesState.GetNewSelectionFolders>
+  >;
+  @Select(CustomSelectors.GetConfigProperty('openedSearch'))
+  openedSearch$: Observable<boolean>;
   @Input() filters$; // Filter list
 
   /**
    * Global variables
    */
   moreOrLessSteps = new UntypedFormControl('is');
-  finder = this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSearch'));
+  finder = this._store.selectSnapshot<boolean>(
+    CustomSelectors.GetConfigProperty('openedSearch')
+  );
   searchInput: string;
   dialogs = {
     dept: new BehaviorSubject<boolean>(false),
@@ -63,20 +100,20 @@ export class L1FilterComponent implements OnInit {
     skipped: new BehaviorSubject<boolean>(false),
     department: new BehaviorSubject<boolean>(false),
     execution_time: new BehaviorSubject<boolean>(false),
-    pixel_diff: new BehaviorSubject<boolean>(false)
+    pixel_diff: new BehaviorSubject<boolean>(false),
   };
 
   /**
    * Once the file loads, subscribes to the specified variables and updates them on change
    */
   ngOnInit() {
-    this.log.msg("1","Inicializing component...","filter");
-    this.moreOrLessSteps.valueChanges.pipe(
-      untilDestroyed(this)
-    ).subscribe(value => {
-      this._store.dispatch(new Features.SetMoreOrLessSteps(value));
-    });
-    this.openedSearch$.subscribe(value => this.finder = value);
+    this.log.msg('1', 'Inicializing component...', 'filter');
+    this.moreOrLessSteps.valueChanges
+      .pipe(untilDestroyed(this))
+      .subscribe(value => {
+        this._store.dispatch(new Features.SetMoreOrLessSteps(value));
+      });
+    this.openedSearch$.subscribe(value => (this.finder = value));
   }
 
   /**
@@ -86,7 +123,7 @@ export class L1FilterComponent implements OnInit {
    * @returns parent_id of the current folder
    */
   returnParent() {
-    this.log.msg("1","Returning to parent folder...","filter");
+    this.log.msg('1', 'Returning to parent folder...', 'filter');
     return this._store.dispatch(new Features.ReturnToParentRoute());
   }
 
@@ -96,7 +133,7 @@ export class L1FilterComponent implements OnInit {
    * @returns root folder
    */
   returnToRoot() {
-    this.log.msg("1","Returning to root directory...","filter");
+    this.log.msg('1', 'Returning to root directory...', 'filter');
     this._router.navigate(['/']);
     this.toggleListType('list');
     return this._store.dispatch(new Features.ReturnToFolderRoute(0));
@@ -109,7 +146,7 @@ export class L1FilterComponent implements OnInit {
    * @returns id of the clicked folder
    */
   returnFolder(folder: Partial<Folder>) {
-    this.log.msg("1","Changing current route path...","filter");
+    this.log.msg('1', 'Changing current route path...', 'filter');
     // dispach folder path change
     this._store.dispatch(new Features.ReturnToFolderRoute(folder.folder_id));
 
@@ -117,7 +154,11 @@ export class L1FilterComponent implements OnInit {
     // path to currently displayed folder
     const currentRoute = this._store.snapshot().features.currentRouteNew;
 
-    this.log.msg("1","Setting url params, adding current folder's id...","filter");
+    this.log.msg(
+      '1',
+      "Setting url params, adding current folder's id...",
+      'filter'
+    );
     // change browser url, add folder id as params
     this._sharedActions.set_url_folder_params(currentRoute);
     // #3414 ---------------------------------------------------end
@@ -133,8 +174,10 @@ export class L1FilterComponent implements OnInit {
   toggleSidenav() {
     // get current state of side navbar after clicking toggle arrow icon
     let newSidebarState = this.getSidebarState() ? false : true;
-    this.log.msg("1","Toggling sidenav...","filter");
-    return this._store.dispatch(new Configuration.SetProperty('openedSidenav', newSidebarState));
+    this.log.msg('1', 'Toggling sidenav...', 'filter');
+    return this._store.dispatch(
+      new Configuration.SetProperty('openedSidenav', newSidebarState)
+    );
   }
 
   /**
@@ -143,9 +186,11 @@ export class L1FilterComponent implements OnInit {
    * @return sets the current status of the search bar
    */
   toggleSearch() {
-    this.log.msg("1","Toggling searchbar...","filter");
+    this.log.msg('1', 'Toggling searchbar...', 'filter');
     this.finder = !this.finder;
-    return this._store.dispatch(new Configuration.SetProperty('openedSearch', this.finder));
+    return this._store.dispatch(
+      new Configuration.SetProperty('openedSearch', this.finder)
+    );
   }
 
   /**
@@ -155,7 +200,7 @@ export class L1FilterComponent implements OnInit {
    * @return removes a filter
    */
   removeFilter(filter: Filter) {
-    this.log.msg("1","Removing searchbar filter term...","filter");
+    this.log.msg('1', 'Removing searchbar filter term...', 'filter');
     return this._store.dispatch(new Features.RemoveFilter(filter));
   }
 
@@ -166,13 +211,15 @@ export class L1FilterComponent implements OnInit {
    * @return removes a filter
    */
   removeSearchFilter() {
-    this.log.msg("1","Clearing searchbar filter terms...","filter");
+    this.log.msg('1', 'Clearing searchbar filter terms...', 'filter');
     return this._store.dispatch(new Features.RemoveSearchFilter());
   }
 
   // Checks which filter to add and if it's ok then add it
   addFilterOK(id: string, value?: any, value2?: any) {
-    const filters = this._store.selectSnapshot(CustomSelectors.GetConfigProperty('filters'));
+    const filters = this._store.selectSnapshot(
+      CustomSelectors.GetConfigProperty('filters')
+    );
     let customFilter = { ...filters.find(filter => filter.id === id) };
     switch (id) {
       case 'date':
@@ -199,19 +246,23 @@ export class L1FilterComponent implements OnInit {
 
   // Adds a filter
   addFilter(filter: Filter) {
-    this.log.msg("1","Adding searchbar filter terms...","filter");
+    this.log.msg('1', 'Adding searchbar filter terms...', 'filter');
     // Check if filter requires a value
     if (filter.hasOwnProperty('value')) {
       this.dialogs[filter.id].next(true);
       setTimeout(() => {
         if (filter.id === 'test') {
           try {
-            (document.querySelector('.dialog input[type=text]') as HTMLInputElement).focus();
-          } catch (err) { }
+            (
+              document.querySelector(
+                '.dialog input[type=text]'
+              ) as HTMLInputElement
+            ).focus();
+          } catch (err) {}
         }
-      })
+      });
     } else {
-      this.addFilterOK('help')
+      this.addFilterOK('help');
     }
   }
 
@@ -221,11 +272,11 @@ export class L1FilterComponent implements OnInit {
    */
   searchFeature() {
     if (this.searchInput) {
-      this.log.msg("1","Searching feature...","filter", this.searchInput);
+      this.log.msg('1', 'Searching feature...', 'filter', this.searchInput);
 
       this.toggleListType('list');
       this.addFilterOK('test', this.searchInput);
-      this.searchInput = "";
+      this.searchInput = '';
 
       // close search bar after click on search icon ---- #3461
       this.close_search();
@@ -238,8 +289,10 @@ export class L1FilterComponent implements OnInit {
 
   // returns sidebar state boolean  true/false = open/closed
   getSidebarState() {
-    this.log.msg("1","Getting sidebar state...","filter");
-    return this._store.selectSnapshot<boolean>(CustomSelectors.GetConfigProperty('openedSidenav'));
+    this.log.msg('1', 'Getting sidebar state...', 'filter');
+    return this._store.selectSnapshot<boolean>(
+      CustomSelectors.GetConfigProperty('openedSidenav')
+    );
   }
 
   /**
@@ -254,8 +307,9 @@ export class L1FilterComponent implements OnInit {
    * If the search bar is open, closes it and empties the search input
    */
   close_search() {
-    (document.querySelector('.search-input-box') as HTMLInputElement).value = "";
-    this.searchInput = "";
+    (document.querySelector('.search-input-box') as HTMLInputElement).value =
+      '';
+    this.searchInput = '';
     if (this.finder) {
       this.toggleSearch();
     }
@@ -269,7 +323,9 @@ export class L1FilterComponent implements OnInit {
    * @lastModification 11-10-21
    */
   toggleListType(listType: string) {
-    return this._store.dispatch(new Configuration.SetProperty('co_active_list', listType, true));
+    return this._store.dispatch(
+      new Configuration.SetProperty('co_active_list', listType, true)
+    );
   }
 
   /**
@@ -280,12 +336,11 @@ export class L1FilterComponent implements OnInit {
   // Hotkey Shift-Alt-f ... opens the finder
   @HostListener('document:keydown.Shift.Alt.f', ['$event'])
   hotkey_shift_alt_f(event: KeyboardEvent) {
-
     // rewrite browser shortcut
     event.preventDefault();
 
     // set searchterm to empty ---- #3461
-    if(this.searchInput) this.searchInput = "";
+    if (this.searchInput) this.searchInput = '';
 
     // remove filter term if exists
     if (this.filters$.length > 0) {

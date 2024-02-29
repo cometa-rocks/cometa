@@ -1,14 +1,17 @@
 {
   "name": "cometa",
   "version": "0.1.0",
-  "license": "MIT",
+  "license": "AGPLv3",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build -c production",
     "test": "snyk test && ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "format": "prettier . --write",
+    "format-staged": "prettier --write",
+    "prepare": "bash .hooks/prepare.sh"
   },
   "private": true,
   "dependencies": {
@@ -34,6 +37,7 @@
     "@ngxs/storage-plugin": "^3.7.6",
     "@ngxs/store": "^3.8.0",
     "@perfectmemory/ngx-contextmenu": "^15.1.1",
+    "@types/body-parser": "^1.19.5",
     "@types/c3": "^0.7.8",
     "ajv-keywords": "^3.5.2",
     "angular-svg-round-progressbar": "^10.0.0",
@@ -55,6 +59,7 @@
     "ngx-json-viewer": "^3.2.1",
     "ngx-network-error": "^0.6.35-c",
     "npm": "^9.6.7",
+    "prettier": "^3.2.5",
     "socket.io": "^4.6.1",
     "socket.io-client": "^4.5.3",
     "tslib": "^2.3.0",

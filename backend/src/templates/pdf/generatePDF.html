@@ -148,14 +148,14 @@
             </div>
         <div>
             <table>
-             <th> STEP </th>
-             <th> RESULT </th>
-             <th> TIME </th>
-             <th> REL. TIME </th>
-             <th> PIXEL DIFF. </th>
-            
+                <tr>
+                    <th> STEP </th>
+                    <th> RESULT </th>
+                    <th> TIME </th>
+                    <th> REL. TIME </th>
+                    <th> PIXEL DIFF. </th>
+                </tr>
              {% for step in stepsarray %}
-
                 <tr>
                     <td width="55%" class="firsttd">
                         {{forloop.counter}}. {{ step.step_name }}
@@ -246,6 +246,24 @@
                 <!-- Add next page after each step, except for last -->
                 {% endif %}
             {% endfor %}
+
+            <div>
+                <pdf:nextpage />
+            </div>
+            <h2 style="width: 100%; border:0px; text-align: left">Additional Information</h2>
+            <p style="width: 100%; border:0px; text-align: left">
+                The table below contains information about the symbols or short forms used in this report.
+            </p>
+            <table>
+                <tr>
+                    <th width="15%"> NAME </th>
+                    <th> DESCRIPTION </th>
+                </tr>
+                <tr>
+                    <td>REL. TIME </td>
+                    <td style="text-align: left;"><b>Relative Time (REL. TIME)</b> acts as a timeline for each step in a test. It illustrates the time elapsed from the start of the test to the execution of the current step. This proves invaluable when troubleshooting test failures, allowing you to pinpoint the exact moment of an issue in the video</td>
+                </tr>
+            </table>
         </div>
     </div>
     </body>

@@ -5,5 +5,5 @@
 
 export const environment = {
   sentryDSN: '',
-  production: false
+  production: false,
 };

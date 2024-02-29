@@ -1,4 +1,9 @@
-import { Component, HostListener, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  ChangeDetectionStrategy,
+  OnInit,
+} from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ApiService } from '@services/api.service';
 import { Select, Store } from '@ngxs/store';
@@ -12,15 +17,27 @@ import { CookiesExpiredDialog } from '@dialogs/cookies-expired/cookies-expired.c
 import { SelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { TourService } from '@services/tour.service';
 import { WhatsNewService } from '@services/whats-new.service';
+import { AsyncPipe } from '@angular/common';
+import { FooterComponent } from './components/footer/footer.component';
+import { ToursComponent } from './components/tours/tours.component';
+import { RouterOutlet } from '@angular/router';
+import { HeaderComponent } from './components/header/header.component';
 
 @Component({
   selector: 'cometa',
   templateUrl: './cometa.component.html',
   styleUrls: ['./cometa.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    HeaderComponent,
+    RouterOutlet,
+    ToursComponent,
+    FooterComponent,
+    AsyncPipe,
+  ],
 })
 export class CometaComponent implements OnInit {
-
   @Select(ConfigState) config$: Observable<Config>;
   @SelectSnapshot(ConfigState) config: Config;
 
@@ -31,7 +48,6 @@ export class CometaComponent implements OnInit {
 
   heartbeat: Subscription;
 
-
   // Initialize translator service
   constructor(
     private translate: TranslateService,
@@ -41,29 +57,38 @@ export class CometaComponent implements OnInit {
     private _http: HttpClient,
     private _dialog: MatDialog,
     private _tourService: TourService,
-    private _whatsNew: WhatsNewService,
+    private _whatsNew: WhatsNewService
   ) {
     this._socket.Init();
     this.translate.setDefaultLang('en');
-    let lang = localStorage.getItem('lang') || navigator.language || navigator['userLanguage'];
+    let lang =
+      localStorage.getItem('lang') ||
+      navigator.language ||
+      navigator['userLanguage'];
     // Check selected language exists in our possibilities
-    const languagePossibilities = Object.keys(this.config.languageCodes)
+    const languagePossibilities = Object.keys(this.config.languageCodes);
     if (!languagePossibilities.includes(lang)) {
       lang = 'en';
     }
     const userLang = lang.length > 2 ? lang.substring(0, 2) : lang;
     this.translate.use(userLang);
     // Heartbeat
-    this.heartbeat = interval(this.config.heartbeat).pipe(
-      switchMap(_ => this._http.get(`https://${location.hostname}/callback?info=json`, { responseType: 'text' }).pipe(
-        retry(3)
-      )),
-      catchError(err => {
-        this._dialog.open(CookiesExpiredDialog);
-        this.heartbeat.unsubscribe();
-        return err;
-      })
-    ).subscribe()
+    this.heartbeat = interval(this.config.heartbeat)
+      .pipe(
+        switchMap(_ =>
+          this._http
+            .get(`https://${location.hostname}/callback?info=json`, {
+              responseType: 'text',
+            })
+            .pipe(retry(3))
+        ),
+        catchError(err => {
+          this._dialog.open(CookiesExpiredDialog);
+          this.heartbeat.unsubscribe();
+          return err;
+        })
+      )
+      .subscribe();
 
     // Open What's New dialog automatically
     // All logic is handled in service
@@ -78,8 +103,8 @@ export class CometaComponent implements OnInit {
       'font-weight: bold',
       'color: #E5B355',
       'font-size:30px',
-      'text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000'
-    ]
-    console.log('%c co.meta loves developers', styles.join(';'))
+      'text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000',
+    ];
+    console.log('%c co.meta loves developers', styles.join(';'));
   }
 }

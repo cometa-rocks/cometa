@@ -1,10 +1,10 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'totalNok'
+  name: 'totalNok',
+  standalone: true,
 })
 export class TotalNokPipe implements PipeTransform {
-
   transform(results: FeatureResult[]): number {
     return results.reduce((r, result) => {
       if (result.fails > 0) {
@@ -13,5 +13,4 @@ export class TotalNokPipe implements PipeTransform {
       return r;
     }, 0);
   }
-
 }
