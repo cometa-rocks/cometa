@@ -144,6 +144,8 @@ def before_all(context):
     X_SERVER = os.environ['X_SERVER']
     # user who requested the feature execution
     context.PROXY_USER = json.loads(os.environ['PROXY_USER'])
+    # proxy used from secret_variables
+    context.PROXY = PROXY
     # department where the feature belongs
     context.department = json.loads(os.environ['department'])
     # environment variables for the testcase
