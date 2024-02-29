@@ -144,6 +144,8 @@ def before_all(context):
     X_SERVER = os.environ['X_SERVER']
     # user who requested the feature execution
     context.PROXY_USER = json.loads(os.environ['PROXY_USER'])
+    # proxy used from secret_variables
+    context.PROXY = PROXY
     # department where the feature belongs
     context.department = json.loads(os.environ['department'])
     # environment variables for the testcase
@@ -358,11 +360,16 @@ def before_all(context):
     # get all the steps from django
     response = requests.get('http://cometa_django:8000/steps/%s/?subSteps=True' % context.feature_id,
                             headers={"Host": "cometa.local"})
-    # save the steps to environment variable
-    os.environ['STEPS'] = json.dumps(response.json()['results'])
+    # save the steps to environment variable ... this will overload ENV variables in bash size. Must use context, not env.
+    # os.environ['STEPS'] = json.dumps(response.json()['results'])
+
+    # Store all steps of this feature into the context for using it later
+    context.steps = response.json()['results']
+    logger.debug(f"Total steps found: {len(context.steps)}")
 
     # update counters total
     context.counters['total'] = len(response.json()['results'])
+    
     os.environ['total_steps'] = str(context.counters['total'])
 
     # send a websocket request about that feature has been started
@@ -594,10 +601,14 @@ def before_step(context, step):
     # complete step name to let front know about the step that will be executed next
     step_name = "%s %s" % (step.keyword, step.name)
     logger.info(f"-> {step_name}")
-    # step index
+    # step index - 
     index = context.counters['index']
     # pass all the data about the step to the step_data in context, step_data has name, screenshot, compare, enabled and type
-    context.step_data = json.loads(os.environ['STEPS'])[index]
+    logger.debug(f"Current Step {index}")
+    logger.debug(f"Steps length {len(context.steps)}")
+    context.step_data = context.steps[index]                # putting this steps in step_data
+    logger.debug(f"Step Details: {context.step_data}")
+
 
     # in video show as a message which step is being executed
     # only works in local video and not in browserstack

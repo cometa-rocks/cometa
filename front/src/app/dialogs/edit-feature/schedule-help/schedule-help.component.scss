@@ -1,41 +1,41 @@
-
-h1, .blue {
-    color: #0171BC;
+h1,
+.blue {
+  color: #0171bc;
 }
 
 .blue {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 .margin {
-    margin-left: 10px;
-    list-style-type: none;
-    line-height: 20px;
-    & > li:before {
-        content: "• ";
-        color: #0171BC;
-    }
+  margin-left: 10px;
+  list-style-type: none;
+  line-height: 20px;
+  & > li:before {
+    content: '• ';
+    color: #0171bc;
+  }
 }
 
 .pointer {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 li {
-    line-height: 30px;
+  line-height: 30px;
 }
 
 ul > li > ul {
-    margin-left: 30px;
-    & > li {
-        list-style-type: none;
-    }
+  margin-left: 30px;
+  & > li {
+    list-style-type: none;
+  }
 }
 
 a {
-    color: #0171BC;
-    text-decoration: none;
-    &:hover {
-        text-decoration: underline;
-    }
+  color: #0171bc;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
 }

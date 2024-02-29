@@ -1,26 +1,26 @@
 h2 {
-    margin: 50px 0 40px;
-    font-size: 12pt;
-    text-transform: uppercase;
+  margin: 50px 0 40px;
+  font-size: 12pt;
+  text-transform: uppercase;
 }
 
 :host {
-    display: block;
-    margin-bottom: 50px;
+  display: block;
+  margin-bottom: 50px;
 }
 
 ::ng-deep button.add-item {
-    font-size: 16px !important;
-    font-weight: bold !important;
-    margin-top: 20px !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  margin-top: 20px !important;
 }
 
 ::ng-deep .mat-icon {
-    font-size: 21px !important;
-    margin-right: 5px;
+  font-size: 21px !important;
+  margin-right: 5px;
 }
 
 department:nth-child(2n + 2) {
-    background-color: rgba(0,0,0,.05);
-    border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 5px;
 }

@@ -1,10 +1,12 @@
 # -*- coding: UTF-8 -*-
 # -------------------------------------------------------
 # This archive contains all the steps available in Cometa Front for execution.
-# Steps not included are Enterprise Licenced Steps
+# Steps not included are Enterprise Licensed Steps
+# Any change in this file are automatically reflected in Cometa on next execution of a feature.
 #
 # Changelog
-# 2022-07-11 RRO Added some sleeps of 100ms to copy and saving of downloaded and edited excel files, as received IO timeouts on DAI-prod
+# 2024-03-01 RRO Added delimiter sniffing to reading CSV files
+# 2022-07-11 RRO Added some sleeps of 100ms to copy and saving of downloaded and edited excel files, as received IO timeouts
 # 2022-07-08 RRO added last_downloaded_file.suffix to handle generated generic filenames where the suffix is maintained
 # 2022-03-04 RRO added new step "Search for "{something}" in IBM Cognos and click on first result"
 # 2022-03-01 RRO added step to hit ok on alert, confirm or prompt window
@@ -2901,16 +2903,19 @@ def updateCsv(excelFilePath, cell, value, savePath):
     # importing the pandas library
     import pandas as pd
 
-    # reading the csv file
-    df = pd.read_csv(excelFilePath)
+    # reading the csv file, options automatically detect delimiter and lineending
+    logger.debug(f"Reading CSV: {excelFilePath}")
+    df = pd.read_csv(excelFilePath, sep=None, engine='python')
 
     # get excel equivalent to CSV index
     indexes = index_transform(cell)
 
     # updating the column value/data
+    logger.debug(f"Updateing file in cell {cell}")
     df.iloc[indexes[0], indexes[1]] = value
 
     # writing into the file
+    logger.debug("Saveing updated file")
     df.to_csv(savePath, index=False)
 
 # edit excel or csv file and set a value to a given cell. The file is saved on the same path.
@@ -3028,7 +3033,7 @@ def CSVtoExcel(context, filePath):
         NEWFILE="%s.xlsx" % filePath
         send_step_details(context, 'Converting CSV file to Excel file.')
         import pandas as pd
-        df = pd.read_csv(filePath) # or other encodings
+        df = pd.read_csv(filePath,sep=None, engine='python')
         df.to_excel(NEWFILE, index=None)
         ISCSV=True
     send_step_details(context, '')
@@ -3768,16 +3773,14 @@ def step_imp(context, css_selector, variable_names, prefix, suffix):
 def step_imp(context, error_message):
     # get next step index
     next_step = context.counters['index'] + 1
-    # get all the steps from the environment
-    steps = json.loads(os.environ['STEPS'])
     # check that there is another step after the current step
-    if len(steps) > next_step:
+    logger.debug("Checking that there is another step")
+    if len(context.steps) > next_step:
         # update the step definition
-        steps[next_step].update({
+        context.steps[next_step].update({
             "custom_error": logger.mask_values(error_message)
         })
-        os.environ['STEPS'] = json.dumps(steps)
-        logger.info(f"Custom error message set for step: {steps[next_step]['step_content']}")
+        logger.info(f"Custom error message set for step: {context.steps[next_step]['step_content']}")
     else:
         logger.warn(f"This is the last step, cannot assign custom error message to next step.")
 
@@ -3898,22 +3901,22 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
 
     # By default page reload in between is false
     page_reload = ''
+    fail_option = ''
 
-    # When 2 option are provided in combination of 'reload page after appearing' and 'do not fail if not visible'/'fail if never visible'
-    if len(options)>1:
-        # then first option is related to 'reload page after appearing/reload page while waiting to disappear'
-        page_reload = options[0].strip()
-        fail_option = options[1]
-    else: 
-        fail_option = options[0]
+    # Read the options into static variables
+    for option in options:
+        option = option.strip()
+        logger.debug(f"Found option: {option} - will evaluate if it is a valid option")
+        if option in assert_options:
+            fail_option = option
+        elif option in reload_options :
+            page_reload = option
+        else:
+            raise CustomError("Unknown option, options can be one of these options: %s." % ", ".join(reload_options+assert_options))
 
-    # Removing any spaces in the front and last
-    fail_option = fail_option.strip()
+
+    # Make timeout a float
     timeout = float(timeout)
-    
-    # check if match type is one of next options
-    if fail_option not in assert_options:
-        raise CustomError("Unknown option, 'fail/do not fail' can be one of these options: %s." % ", ".join(assert_options))
 
     # check if match type is one of reload_options
     if page_reload !='' and page_reload not in reload_options:
@@ -3921,12 +3924,12 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
 
     # Try ... except to handel option
     try:
-        logger.debug(f"Waiting for selector to appear")
+        logger.debug("Waiting for selector to appear")
         send_step_details(context, 'Waiting for selector to appear')
         # Get the maximum wait timeout 
         max_time = time.time() + timeout
         selector_element = waitSelector(context, "css", selector, timeout)
-        logger.debug(f"Got selector")
+        logger.debug("Got selector")
 
         # If element was loaded in dom but hidden, wait for it to display with max timeout
         while time.time()<max_time and len(selector_element)>0 and not selector_element[0].is_displayed():
@@ -3934,22 +3937,22 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
 
         if len(selector_element)>0 and selector_element[0].is_displayed():
             send_step_details(context, 'Selector appeared, Wait for it to disappear')
-            logger.debug(f"Waiting for selector to disappeared")
+            logger.debug("Waiting for selector to disappear")
 
             # Check if "reload page after appearing" options is set
-            logger.debug(f"Checking for 'reload page after appearing'")
+            logger.debug("Checking for 'reload page after appearing'")
             # if option is set then sleep (0.5) and reload page
             if page_reload=='reload page after appearing':
                 time.sleep(0.5)
                 send_step_details(context, 'Reloading page after appearing')
                 context.browser.refresh()
-                logger.debug("Page reloading")
+                logger.debug(f"Page reloaded - now waiting {timeout}s for selector to be visible")
                 # This is required because when the page reloads, the selector_element does not remain valid.
                 # It will throw a StaleElementReferenceException even if the element exists, try to get a new instance of the element.                        
                 selector_element = waitSelector(context, "css", selector, timeout)
 
             # If in case object disappears and gets removed from DOM it self the while checking is_displayed() it will throw error
-            # Considerting error as element was disappeard
+            # Considering error as element was disappeard
             try:
                 # continue loop if element is displayed for wait time is less then 60 seconds
                 while selector_element[0].is_displayed():
@@ -3961,30 +3964,35 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
                         # If set - reload page and sleep 1 minute
                         send_step_details(context, 'Waiting for 1 minute after the page reloads')
                         logger.debug("Waiting for 1 minute after the page reloads")
-                        time.sleep(10)
+                        time.sleep(60)
                         # This is required because when the page reloads, the selector_element does not remain valid.
-                        # It will throw a StaleElementReferenceException even if the element exists, try to get a new instance of the element.                        
-                        selector_element = waitSelector(context, "css", selector, timeout)
+                        # It will throw a StaleElementReferenceException even if the element exists, try to get a new instance of the element.
+                        logger.debug(f"Now waiting 2s for selector to be visible")
+                        # This throws CometaMaxTimeoutReachedException when selector does not appear in 2 seconds
+                        selector_element = waitSelector(context, "css", selector, 2)
                     else:
                         time.sleep(0.5)
                 # In case element disappeard but present in the DOM
                 if not selector_element[0].is_displayed(): 
                     send_step_details(context, 'Selector disappeared successfully')
-            except StaleElementReferenceException as e:
+            except (StaleElementReferenceException, CometaMaxTimeoutReachedException) as e:
+                # CometaMaxTimeoutReachedException exception handled here  
                 # The only syntax that can throw error is is_displayed() method. which means element diappeared
                 # In case element disappeard and not present in the DOM notify
                 send_step_details(context, 'Selector disappeared completely')
-                logger.debug("Element was disappeared due to exception")
+                logger.debug("Element has disappeared due to exception")
 
         # if element was not found or displayed then check if option selected to fail, if yes then raise exception
         elif fail_option == 'fail if never visible':
-            logger.debug(f"raising error : Selector to appeared")
+            logger.debug("raising error: Selector to appeared")
             raise CustomError("Selector not displayed")
 
     except (StaleElementReferenceException, CometaMaxTimeoutReachedException) as exception:
+        logger.error("Found error - StaleException or TimeoutReached")
         traceback.print_exc()
         # if got execption while checking to appear or disappear then check if option selected to fail, if yes then raise exception
         if fail_option == 'fail if never visible':
+            logger.error("Raising error: fail if never visible")
             raise exception
 
 # Scroll to the end of the page/table depending on the xpath with maximum scrolls and time of life.

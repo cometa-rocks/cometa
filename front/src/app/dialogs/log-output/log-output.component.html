@@ -1,10 +1,10 @@
 <h2 mat-dialog-title>Feature Log Output</h2>
 <mat-dialog-content *ngIf="log$ | async as log; else loading">
-    <textarea class="logOutput" readonly>{{ log }}</textarea>
-    </mat-dialog-content>
+  <textarea class="logOutput" readonly>{{ log }}</textarea>
+</mat-dialog-content>
 <mat-dialog-actions>
-    <button mat-stroked-button color="primary"  mat-dialog-close>Close</button>
+  <button mat-stroked-button color="primary" mat-dialog-close>Close</button>
 </mat-dialog-actions>
 <ng-template #loading>
-    <mat-spinner color="primary" diameter="25"></mat-spinner>
+  <mat-spinner color="primary" diameter="25"></mat-spinner>
 </ng-template>

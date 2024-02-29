@@ -1,116 +1,108 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <title>LAZY LOADING TESTING</title>
-        <base href="/">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            * {
-                font-family: 'Courier New';
-            }
-            body {
-                margin: 50px;
-            }
-            .step {
-                margin: 30px 0 20px;
-            }
-            .rectangle {
-                display: block;
-                height: 30px;
-                width: 30px;
-            }
-            h1 {
-                color: green;
-            }
-            .red {
-                background-color: red;
-            }
-            .scrollable {
-                height: 150px;
-                overflow-x: hidden;
-                width: 400px;
-            }
-            .scrollable > * {
-                height: 30px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-        </style>
-    </head>
-    <body>
-        <section id="lazy_loading">
-            <h2>Scroll through a lazy loading table</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Otro Dato</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                </tbody>
-            </table>
-        </section>
-    </body>
+  <head>
+    <meta charset="utf-8" />
+    <title>LAZY LOADING TESTING</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      * {
+        font-family: 'Courier New';
+      }
+      body {
+        margin: 50px;
+      }
+      .step {
+        margin: 30px 0 20px;
+      }
+      .rectangle {
+        display: block;
+        height: 30px;
+        width: 30px;
+      }
+      h1 {
+        color: green;
+      }
+      .red {
+        background-color: red;
+      }
+      .scrollable {
+        height: 150px;
+        overflow-x: hidden;
+        width: 400px;
+      }
+      .scrollable > * {
+        height: 30px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    </style>
+  </head>
+  <body>
+    <section id="lazy_loading">
+      <h2>Scroll through a lazy loading table</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Otro Dato</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </section>
+  </body>
 
-    <script>
+  <script>
+    // JS LOGIC FOR LAZY LOADING TABLE
+    let ultimoIdCargado = 0;
+    const cantidadPorCarga = 50;
+    const totalDatos = 1000;
 
-
-// JS LOGIC FOR LAZY LOADING TABLE
-let ultimoIdCargado = 0;
-const cantidadPorCarga = 50;
-const totalDatos = 1000;
-
-function cargarDatos() {
-    const tbody = document.getElementById('table-body');
-    for (let i = ultimoIdCargado; i < ultimoIdCargado + cantidadPorCarga && i < totalDatos; i++) {
+    function cargarDatos() {
+      const tbody = document.getElementById('table-body');
+      for (
+        let i = ultimoIdCargado;
+        i < ultimoIdCargado + cantidadPorCarga && i < totalDatos;
+        i++
+      ) {
         tbody.innerHTML += `<tr>
                                 <td>${i}</td>
                                 <td>Elemento ${i}</td>
                                 <td>Dato ${i}</td>
                             </tr>`;
+      }
+      ultimoIdCargado += cantidadPorCarga;
     }
-    ultimoIdCargado += cantidadPorCarga;
-}
 
-// Evento de scroll para cargar más datos
-window.addEventListener('scroll', () => {
-    if (window.innerHeight + window.pageYOffset >= document.body.offsetHeight) {
+    // Evento de scroll para cargar más datos
+    window.addEventListener('scroll', () => {
+      if (
+        window.innerHeight + window.pageYOffset >=
+        document.body.offsetHeight
+      ) {
         cargarDatos();
-    }
-});
+      }
+    });
 
-// Cargar los primeros datos
-cargarDatos();
+    // Cargar los primeros datos
+    cargarDatos();
 
-
-// JS LOGIC TO COMPLETELY LOAD TABLE BEFORE DISPLAY
-// function cargarTodosLosDatos() {
-//     const totalDatos = 1000;
-//     const tbody = document.getElementById('table-body');
-//     for (let i = 0; i < totalDatos; i++) {
-//         tbody.innerHTML += `<tr>
-//                                 <td>${i}</td>
-//                                 <td>Elemento ${i}</td>
-//                                 <td>Dato ${i}</td>
-//                             </tr>`;
-//     }
-// }
-// // Cargar todos los datos al cargar la página
-// cargarTodosLosDatos();
-
-
-
-
-
-
-
-
-
-
-
-    </script>
+    // JS LOGIC TO COMPLETELY LOAD TABLE BEFORE DISPLAY
+    // function cargarTodosLosDatos() {
+    //     const totalDatos = 1000;
+    //     const tbody = document.getElementById('table-body');
+    //     for (let i = 0; i < totalDatos; i++) {
+    //         tbody.innerHTML += `<tr>
+    //                                 <td>${i}</td>
+    //                                 <td>Elemento ${i}</td>
+    //                                 <td>Dato ${i}</td>
+    //                             </tr>`;
+    //     }
+    // }
+    // // Cargar todos los datos al cargar la página
+    // cargarTodosLosDatos();
+  </script>
 </html>

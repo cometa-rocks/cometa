@@ -1,7 +1,10 @@
-<h2>Accounts inside {{data.department_name}}</h2>
-<hr>
+<h2>Accounts inside {{ data.department_name }}</h2>
+<hr />
 <mat-dialog-content>
-    <account *ngFor="let user of data.users" [account]="user" [origin]="'accounts-dialog'"></account>
+  <account
+    *ngFor="let user of data.users"
+    [account]="user"
+    [origin]="'accounts-dialog'"></account>
 </mat-dialog-content>
 
 <!--

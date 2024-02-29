@@ -6,7 +6,10 @@ Author: dph000
 
 -->
 <!-- This is a hamburger menu that opens and closes the folder sturcture -->
-<div class="backdrop" [class.opened]="showFolders$ | async" (click)="hideSidenav()"></div>
+<div
+  class="backdrop"
+  [class.opened]="showFolders$ | async"
+  (click)="hideSidenav()"></div>
 <div class="container">
   <!--
 
@@ -19,19 +22,36 @@ Author: dph000
     <!-- Buttons to either create a feature or a folder -->
     <div class="add-from-sidenav" #addFromSidenav>
       <!-- Div used to hide the buttons when clicked elsewhere but them (only mobile) -->
-      <div (click)="openedAdd = false" [class.desktop_backdrop]="openedAdd"></div>
+      <div
+        (click)="openedAdd = false"
+        [class.desktop_backdrop]="openedAdd"></div>
       <!-- Button to display / hide the other 2 buttons -->
-      <button class="addIcon" mat-raised-button aria-label="Add button" (click)="openedAdd = !openedAdd">
+      <button
+        class="addIcon"
+        mat-raised-button
+        aria-label="Add button"
+        (click)="openedAdd = !openedAdd">
         <mat-icon>add</mat-icon>
         Add
       </button>
       <!-- Add folder button -->
-      <button class="addFolderIcon" mat-raised-button aria-label="Create folder button" (click)="createFolder()" [class.hideAdd]="!openedAdd">
+      <button
+        class="addFolderIcon"
+        mat-raised-button
+        aria-label="Create folder button"
+        (click)="createFolder()"
+        [class.hideAdd]="!openedAdd">
         <mat-icon>folder_open</mat-icon>
         Create folder
       </button>
       <!-- Add feature button -->
-      <button *ngIf="canCreateFeature && hasSubscription" class="addFeatureIcon" mat-raised-button aria-label="Create feature button" (click)="SAopenCreateFeature()" [class.hideAdd]="!openedAdd">
+      <button
+        *ngIf="canCreateFeature && hasSubscription"
+        class="addFeatureIcon"
+        mat-raised-button
+        aria-label="Create feature button"
+        (click)="SAopenCreateFeature()"
+        [class.hideAdd]="!openedAdd">
         <div class="icon">
           <i class="feature-icon"></i>
         </div>
@@ -53,36 +73,70 @@ Author: dph000
     </div>
   </div>
   <!-- Main div, containing the filter and the different lists -->
-  <div *ngLet="(data$ | async) as table" class="viewer">
+  <div *ngLet="data$ | async as table" class="viewer">
     <!-- Feature list view container -->
     <ng-container *ngIf="(aciveList$ | async) == 'list'">
       <!-- Featurre list filter -->
-      <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-l1-filter
+        class="filter-bar"
+        [filters$]="filters$ | async"></cometa-l1-filter>
       <!-- Feature list options and the list itself -->
       <div class="feature-list" [class.hide-features]="openedSearch$ | async">
         <ng-container>
           <div style="height: calc(100% - 50px)">
             <div class="features-header">
               <!-- How many features and folders were found -->
-              <div *ngIf="table?.rows?.length > 0" class="features_folders_count">
-                Found <span *ngIf='table.featureCount > 0'><span class="blue">{{ table.featureCount }}</span> features </span> <span *ngIf='table.folderCount > 0 && table.featureCount > 0'>and </span><span *ngIf='table.folderCount > 0'><span class="blue">{{ table.folderCount }}</span> folders</span>
+              <div
+                *ngIf="table?.rows?.length > 0"
+                class="features_folders_count">
+                Found
+                <span *ngIf="table.featureCount > 0"
+                  ><span class="blue">{{ table.featureCount }}</span> features
+                </span>
+                <span *ngIf="table.folderCount > 0 && table.featureCount > 0"
+                  >and </span
+                ><span *ngIf="table.folderCount > 0"
+                  ><span class="blue">{{ table.folderCount }}</span>
+                  folders</span
+                >
               </div>
               <!-- Feature list view selector -->
               <div class="view-selector">
-                <div matRipple (click)="setView('with', 'tree')" matTooltip="Tree view" [class.selected]="itemsViewWith === 'tree'" class="tree view"></div>
-                <div matRipple (click)="setView('with', 'tiles')" matTooltip="Tiles view" [class.selected]="itemsViewWith === 'tiles'" class="tiles view"></div>
-                <div matRipple (click)="setView('with', 'list')" matTooltip="List view" [class.selected]="itemsViewWith === 'list'" class="list view"></div>
+                <div
+                  matRipple
+                  (click)="setView('with', 'tree')"
+                  matTooltip="Tree view"
+                  [class.selected]="itemsViewWith === 'tree'"
+                  class="tree view"></div>
+                <div
+                  matRipple
+                  (click)="setView('with', 'tiles')"
+                  matTooltip="Tiles view"
+                  [class.selected]="itemsViewWith === 'tiles'"
+                  class="tiles view"></div>
+                <div
+                  matRipple
+                  (click)="setView('with', 'list')"
+                  matTooltip="List view"
+                  [class.selected]="itemsViewWith === 'list'"
+                  class="list view"></div>
               </div>
             </div>
             <ng-container *ngIf="table?.rows?.length > 0; else noFeaturesFound">
               <!-- Feature list with item view -->
               <ng-container *ngIf="itemsViewWith === 'tiles'; else listView">
-                <cometa-l1-feature-item-list [item]="item" class="feature-item" [feature_id]="item.id" *ngFor="let item of table.rows"></cometa-l1-feature-item-list>
+                <cometa-l1-feature-item-list
+                  [item]="item"
+                  class="feature-item"
+                  [feature_id]="item.id"
+                  *ngFor="let item of table.rows"></cometa-l1-feature-item-list>
               </ng-container>
               <!-- Feature list with list view -->
               <ng-template #listView>
                 <ng-container *ngIf="itemsViewWith === 'list'; else treeView">
-                  <cometa-l1-feature-list (closeAdd)="closeAdd()" [data$]='table'></cometa-l1-feature-list>
+                  <cometa-l1-feature-list
+                    (closeAdd)="closeAdd()"
+                    [data$]="table"></cometa-l1-feature-list>
                 </ng-container>
               </ng-template>
               <!-- Feature list with tree view -->
@@ -95,18 +149,43 @@ Author: dph000
             <!-- Template to show when there is nothing inside of a folder -->
             <ng-template #noFeaturesFound>
               <ng-container>
-                <p class='noFeaturesFound'>This folder is empty. <span *ngIf="canCreateFeature && hasSubscription">Would you like to <span class="new-feature-text" (click)="SAopenCreateFeature()">create a new feature</span>?</span></p>
+                <p class="noFeaturesFound">
+                  This folder is empty.
+                  <span *ngIf="canCreateFeature && hasSubscription"
+                    >Would you like to
+                    <span
+                      class="new-feature-text"
+                      (click)="SAopenCreateFeature()"
+                      >create a new feature</span
+                    >?</span
+                  >
+                </p>
               </ng-container>
             </ng-template>
           </div>
         </ng-container>
         <!-- Div used to hide the buttons when clicked elsewhere but them (only mobile) -->
-        <div (click)="openedAdd = false" [class.mobile_backdrop]="openedAdd"></div>
+        <div
+          (click)="openedAdd = false"
+          [class.mobile_backdrop]="openedAdd"></div>
         <!-- Button to create a feature (only mobile) -->
-        <div *ngIf="canCreateFeature && hasSubscription" class="add-feature-container" [class.hide-add]="!openedAdd" #addFeatureContainer>
-          <div class="add-feature-tooltip" [class.mat-elevation-z2]="openedAdd" [class.hide-add]="!openedAdd">Add feature</div>
+        <div
+          *ngIf="canCreateFeature && hasSubscription"
+          class="add-feature-container"
+          [class.hide-add]="!openedAdd"
+          #addFeatureContainer>
+          <div
+            class="add-feature-tooltip"
+            [class.mat-elevation-z2]="openedAdd"
+            [class.hide-add]="!openedAdd">
+            Add feature
+          </div>
           <div class="add-feature" [class.hide-add]="!openedAdd">
-            <button class="addIcon" mat-fab aria-label="Create feature button" (click)="SAopenCreateFeature()">
+            <button
+              class="addIcon"
+              mat-fab
+              aria-label="Create feature button"
+              (click)="SAopenCreateFeature()">
               <div class="icon">
                 <i class="feature-icon"></i>
               </div>
@@ -114,10 +193,22 @@ Author: dph000
           </div>
         </div>
         <!-- Button to create a folder (only mobile) -->
-        <div class="add-folder-container" [class.hide-add]="!openedAdd" #addFolderContainer>
-          <div class="add-folder-tooltip" [class.mat-elevation-z2]="openedAdd" [class.hide-add]="!openedAdd">Add folder</div>
+        <div
+          class="add-folder-container"
+          [class.hide-add]="!openedAdd"
+          #addFolderContainer>
+          <div
+            class="add-folder-tooltip"
+            [class.mat-elevation-z2]="openedAdd"
+            [class.hide-add]="!openedAdd">
+            Add folder
+          </div>
           <div class="add-folder" [class.hide-add]="!openedAdd">
-            <button class="addIcon" mat-fab aria-label="Create folder button" (click)="createFolder()">
+            <button
+              class="addIcon"
+              mat-fab
+              aria-label="Create folder button"
+              (click)="createFolder()">
               <mat-icon>folder_open</mat-icon>
             </button>
           </div>
@@ -125,61 +216,85 @@ Author: dph000
         <!-- Button to show the other 2 buttons (only mobile) -->
         <div class="add-button-container" #addContainer #addButtonContainer>
           <div class="add-button">
-              <button class="addIcon" mat-fab aria-label="Open folder / feature creation" (click)="openedAdd = !openedAdd" #addIcon>
-                  <mat-icon #addButtonIcon>add</mat-icon>
-              </button>
+            <button
+              class="addIcon"
+              mat-fab
+              aria-label="Open folder / feature creation"
+              (click)="openedAdd = !openedAdd"
+              #addIcon>
+              <mat-icon #addButtonIcon>add</mat-icon>
+            </button>
           </div>
         </div>
       </div>
     </ng-container>
 
-
     <!-- Cometa welcome page-->
     <!-- home -->
     <ng-container *ngIf="(aciveList$ | async) == 'home'">
-      <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-l1-filter
+        class="filter-bar"
+        [filters$]="filters$ | async"></cometa-l1-filter>
       <cometa-welcome> </cometa-welcome>
     </ng-container>
 
     <!-- List of the DataDriven Runs -->
     <ng-container *ngIf="(aciveList$ | async) == 'data-driven'">
-      <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-l1-filter
+        class="filter-bar"
+        [filters$]="filters$ | async"></cometa-l1-filter>
       <cometa-data-driven-runs></cometa-data-driven-runs>
     </ng-container>
 
     <!-- List of the Department variables -->
     <!-- DEPARTMENT VARIABLES -->
     <ng-container *ngIf="(aciveList$ | async) == 'variables'">
-      <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-l1-filter
+        class="filter-bar"
+        [filters$]="filters$ | async"></cometa-l1-filter>
       <edit-variables></edit-variables>
     </ng-container>
 
     <!-- List of the features within team drives -->
     <!-- TEAM DRIVE -->
     <ng-container *ngIf="(aciveList$ | async) == 'team'">
-      <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
-      <cometa-l1-feature-team-list [data$]='table'></cometa-l1-feature-team-list>
+      <cometa-l1-filter
+        class="filter-bar"
+        [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-l1-feature-team-list
+        [data$]="table"></cometa-l1-feature-team-list>
     </ng-container>
 
     <!-- List of the recently modified features -->
     <!-- RECENT -->
     <ng-container *ngIf="(aciveList$ | async) == 'recent'">
-      <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
-      <cometa-l1-feature-recent-list class="feature-list" (closeAdd)="closeAdd()" [data$]='table'></cometa-l1-feature-recent-list>
+      <cometa-l1-filter
+        class="filter-bar"
+        [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-l1-feature-recent-list
+        class="feature-list"
+        (closeAdd)="closeAdd()"
+        [data$]="table"></cometa-l1-feature-recent-list>
     </ng-container>
 
     <!-- List of the starred features -->
     <!-- STARRED -->
     <ng-container *ngIf="(aciveList$ | async) == 'starred'">
-      <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
-      <cometa-l1-feature-starred-list [data$]='table'></cometa-l1-feature-starred-list>
+      <cometa-l1-filter
+        class="filter-bar"
+        [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-l1-feature-starred-list
+        [data$]="table"></cometa-l1-feature-starred-list>
     </ng-container>
 
     <!-- List of the features in the trash bin -->
     <!-- TRASH BIN -->
     <ng-container *ngIf="(aciveList$ | async) == 'trashbin'">
-      <cometa-l1-filter class="filter-bar" [filters$]="filters$ | async"></cometa-l1-filter>
-      <cometa-l1-feature-trashbin-list [data$]='table'></cometa-l1-feature-trashbin-list>
+      <cometa-l1-filter
+        class="filter-bar"
+        [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-l1-feature-trashbin-list
+        [data$]="table"></cometa-l1-feature-trashbin-list>
     </ng-container>
   </div>
 </div>

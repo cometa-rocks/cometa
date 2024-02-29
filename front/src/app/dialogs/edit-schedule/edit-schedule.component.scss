@@ -1,56 +1,54 @@
-
 @import 'color';
 
 .grid-schedule {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-    margin-bottom: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+  margin-bottom: 10px;
 }
 
 .grid-schedule-layout-2 {
-    margin-bottom: 10px;
-    .inputcontainer {
-        margin-bottom: 25px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
+  margin-bottom: 10px;
+  .inputcontainer {
+    margin-bottom: 25px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .helpContainer {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
 }
 
-
 :host::ng-deep .grid-schedule .mat-form-field-label-wrapper {
-    text-align: center
+  text-align: center;
 }
 
 :host::ng-deep .info .mat-icon {
-    position: relative;
-    top: 3px;
-    margin-right: 5px;
+  position: relative;
+  top: 3px;
+  margin-right: 5px;
 }
 
 :host::ng-deep .grid-schedule .mat-form-field-infix {
-    width: auto !important;
+  width: auto !important;
 }
 
 input {
-    text-align: center;
+  text-align: center;
 }
 
 .info {
-    color: $blue;
-    cursor: pointer;
-    &:hover {
-        text-decoration: underline;
-    }
+  color: $blue;
+  cursor: pointer;
+  &:hover {
+    text-decoration: underline;
+  }
 }
 .next_run {
-	line-height: 1.2rem;
-	li {
-		margin-left: 10px;
-		list-style: "\2192  ";
-	}
+  line-height: 1.2rem;
+  li {
+    margin-left: 10px;
+    list-style: '\2192  ';
+  }
 }

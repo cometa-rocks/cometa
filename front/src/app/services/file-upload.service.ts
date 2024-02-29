@@ -7,8 +7,7 @@
  * To observe how to files are updated, check 'department.state.ts > updateFileStatus()'
  * Each file will be avaliable for download, once websocket communication for this certain file has been finished
  * File will not be uploaded if backend side detects that it already exists or is malicious
-**/
-
+ **/
 
 import { Injectable } from '@angular/core';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
@@ -17,11 +16,14 @@ import { Departments } from '@store/actions/departments.actions';
 import { ApiService } from './api.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-
-export class FileUploadService {  
-  constructor(private _store: Store, private _api: ApiService, private _snack: MatSnackBar) { }
+export class FileUploadService {
+  constructor(
+    private _store: Store,
+    private _api: ApiService,
+    private _snack: MatSnackBar
+  ) {}
 
   startUpload(files: File[], formData: FormData, department: Department, user) {
     this.setTempFiles([...files], department, user);
@@ -33,14 +35,13 @@ export class FileUploadService {
   // temporarilty inserts uploaded files into department state, temporary files contain information received from file input event
   private setTempFiles(files: File[], department: Department, user) {
     const payload = {
-      files: [
-        ...this.getTempFilesInfo(files, user),
-        ...department.files
-      ]
+      files: [...this.getTempFilesInfo(files, user), ...department.files],
     } as any;
 
     // dispatches temporary files into department state
-    this._store.dispatch( new Departments.UpdateDepartment(department.department_id, payload) );
+    this._store.dispatch(
+      new Departments.UpdateDepartment(department.department_id, payload)
+    );
   }
 
   // gets information of file input for each file
@@ -50,25 +51,25 @@ export class FileUploadService {
     files.forEach(file => {
       // for each file, generates object and pushed it into array
       uploadedFiles.push(this.getTempFileObject(file, user));
-    })
+    });
 
     return uploadedFiles;
   }
 
   // sets up temporary file object
   private getTempFileObject(file: File, user) {
-    const uploadedFile = <UploadedFile> {};
+    const uploadedFile = <UploadedFile>{};
     const { name, size, type } = file;
 
-      uploadedFile.name = name;
-      uploadedFile.size = size;
-      uploadedFile.mime = type;
-      uploadedFile.is_removed = false;
-      uploadedFile.uploaded_by = {
-        name: user.name
-      }
-      uploadedFile.created_on = new Date().toJSON();
-      uploadedFile.status = 'Unknown';
+    uploadedFile.name = name;
+    uploadedFile.size = size;
+    uploadedFile.mime = type;
+    uploadedFile.is_removed = false;
+    uploadedFile.uploaded_by = {
+      name: user.name,
+    };
+    uploadedFile.created_on = new Date().toJSON();
+    uploadedFile.status = 'Unknown';
 
     return uploadedFile;
   }
@@ -84,45 +85,46 @@ export class FileUploadService {
 
   // Opens informative snackbar when file user intends to upload but file can't be uploaded because of duplication or potential virus
   private informAndRemoveFile(file: UploadedFile, department: Department) {
-    let snack = this._snack.open(file.error.description, 'OK', { duration: 10000 });
+    let snack = this._snack.open(file.error.description, 'OK', {
+      duration: 10000,
+    });
 
     // removes invalid file from department state if snackbar is dissmissed because of timeout or click event on another component of the body
     snack.afterDismissed().subscribe(() => {
-      this.removeFile(file, department)
+      this.removeFile(file, department);
     });
-    
+
     // removes invalid file from department state if snackbar is dissmised because of action click event
     snack.onAction().subscribe(() => {
-      this.removeFile(file, department)
+      this.removeFile(file, department);
     });
   }
 
   // removes recieved file from recieved department's files array and actualises the department state
   removeFile(file: UploadedFile, department: Department) {
-    const files = department.files.filter((f: UploadedFile) => f.id != null)
+    const files = department.files.filter((f: UploadedFile) => f.id != null);
     const payload = {
-      files: [
-        ...files
-      ]
+      files: [...files],
     } as any;
 
     // dispatches new files array that does not contain invalid file into department state
-    this._store.dispatch( new Departments.UpdateDepartment(department.department_id, payload) );
+    this._store.dispatch(
+      new Departments.UpdateDepartment(department.department_id, payload)
+    );
   }
 
   updateFileState(file: UploadedFile, department: Department) {
-    const files = department.files.filter((f: UploadedFile) => f.id != file.id)
+    const files = department.files.filter((f: UploadedFile) => f.id != file.id);
 
     const updatedfile = { ...file, is_removed: !file.is_removed };
 
     const payload = {
-      files: [
-        ...files,
-        updatedfile
-      ]
+      files: [...files, updatedfile],
     } as any;
 
-    this._store.dispatch( new Departments.UpdateDepartment(department.department_id, payload) );
+    this._store.dispatch(
+      new Departments.UpdateDepartment(department.department_id, payload)
+    );
   }
 
   downloadFileBlob(blob: Blob, file: UploadedFile) {
@@ -133,7 +135,6 @@ export class FileUploadService {
     link.download = file.name;
     link.click();
   }
-
 
   deleteFile(file_id: number) {
     return this._api.deleteFile(file_id);

@@ -1,221 +1,220 @@
-
 @import 'color';
 @import 'breakpoints';
 
 :host {
-    display: flex;
-    width: 100%;
-    height: 40px;
-    align-items: center;
-    margin-bottom: 10px;
-    padding-left: 15px;
-    box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  height: 40px;
+  align-items: center;
+  margin-bottom: 10px;
+  padding-left: 15px;
+  box-sizing: border-box;
 }
 
 div.icon {
-    flex: 0 0 40px;
-    padding: 0 10px;
-    box-sizing: border-box;
-    position: relative;
-    &:after {
-        content: "";
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: auto;
-        height: 25px;
-        opacity: .7;
-        width: 25px;
-        background-image: url(^assets/test.svg);
-        background-size: contain;
-        background-repeat: no-repeat;
-    }
+  flex: 0 0 40px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  position: relative;
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    height: 25px;
+    opacity: 0.7;
+    width: 25px;
+    background-image: url(^assets/test.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
 }
 
 .name {
-    flex: 0 300px;
-    padding: 0 10px;
+  flex: 0 300px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  input {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    line-height: 40px;
+    border: 2px solid transparent;
+    border-radius: 3px;
+    padding: 0 15px;
     box-sizing: border-box;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    input {
-        display: block;
-        width: 100%;
-        height: 100%;
-        background: transparent;
-        border: 0;
-        outline: 0;
-        line-height: 40px;
-        border: 2px solid  transparent;
-        border-radius: 3px;
-        padding: 0 15px;
-        box-sizing: border-box;
-        // transition: border-color .2s ease-in-out;
-        &:not(:disabled) {
-            border-color: rgba(0,0,0,.3);
-        }
-        font-size: 16px;
-        color: rgba($color: $primary-color, $alpha: 1);
+    // transition: border-color .2s ease-in-out;
+    &:not(:disabled) {
+      border-color: rgba(0, 0, 0, 0.3);
     }
+    font-size: 16px;
+    color: rgba($color: $primary-color, $alpha: 1);
+  }
 }
 
 .specs {
-    flex: 1;
-    display: flex;
+  flex: 1;
+  display: flex;
 }
 
 i.icon {
-    display: inline-block;
-    vertical-align: middle;
-    height: 40px;
-    width: 20px;
-    margin-right: 10px;
-    opacity: .5;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
+  display: inline-block;
+  vertical-align: middle;
+  height: 40px;
+  width: 20px;
+  margin-right: 10px;
+  opacity: 0.5;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
 
 .browsers {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    flex: 0 50px;
-    i {
-        background-image: url(^assets/app.svg);
-    }
-    span {
-        display: inline-block;
-        vertical-align: middle;
-        font-weight: bold;
-    }
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  flex: 0 50px;
+  i {
+    background-image: url(^assets/app.svg);
+  }
+  span {
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: bold;
+  }
 }
 
 .application {
-    flex: 0 120px;
-    margin-left: 30px;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    i {
-        background-image: url(^assets/tire.svg);
-    }
-    span {
-        display: inline-block;
-        vertical-align: middle;
-        font-weight: bold;
-    }
+  flex: 0 120px;
+  margin-left: 30px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  i {
+    background-image: url(^assets/tire.svg);
+  }
+  span {
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: bold;
+  }
 }
 
 .department {
-    flex: 0 120px;
-    margin-left: 30px;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    i {
-        background-image: url(^assets/department.svg);
-    }
-    span {
-        display: inline-block;
-        vertical-align: middle;
-        font-weight: bold;
-    }
+  flex: 0 120px;
+  margin-left: 30px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  i {
+    background-image: url(^assets/department.svg);
+  }
+  span {
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: bold;
+  }
 }
 
 .environment {
-    flex: 0 120px;
-    margin-left: 30px;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    i {
-        background-image: url(^assets/formula.svg);
-    }
-    span {
-        display: inline-block;
-        vertical-align: middle;
-        font-weight: bold;
-    }
+  flex: 0 120px;
+  margin-left: 30px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  i {
+    background-image: url(^assets/formula.svg);
+  }
+  span {
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: bold;
+  }
 }
 
 .modify {
-    flex: 0 0 40px;
-    padding: 0 10px;
-    box-sizing: border-box;
-    position: relative;
-    cursor: pointer;
-    display: none;
-    @include for-tablet-portrait-up {
-        display: block;
-    }
-    &:hover:after {
-        transform: scale(1.2);
-    }
-    &:after {
-        content: "";
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: auto;
-        height: 15px;
-        width: 15px;
-        opacity: .8;
-        transition: transform .2s ease-in-out;
-        transform: scale(1);
-        background-image: url(^assets/edit.svg);
-        background-size: contain;
-        background-repeat: no-repeat;
-    }
-    &.validate:after {
-        background-image: url(^assets/validate.svg)
-    }
+  flex: 0 0 40px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+  display: none;
+  @include for-tablet-portrait-up {
+    display: block;
+  }
+  &:hover:after {
+    transform: scale(1.2);
+  }
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    height: 15px;
+    width: 15px;
+    opacity: 0.8;
+    transition: transform 0.2s ease-in-out;
+    transform: scale(1);
+    background-image: url(^assets/edit.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+  &.validate:after {
+    background-image: url(^assets/validate.svg);
+  }
 }
 
 .remove {
-    flex: 0 0 40px;   
-    padding: 0 10px;
-    box-sizing: border-box;
-    position: relative;
-    cursor: pointer;
-    &:hover:after {
-        transform: scale(1.2);
-    }
-    &:after {
-        content: "";
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        margin: auto;
-        height: 15px;
-        width: 15px;
-        opacity: .5;
-        transition: transform .2s ease-in-out;
-        transform: scale(1);
-        background-image: url(^assets/delete.svg);
-        background-size: contain;
-        background-repeat: no-repeat;
-    }
+  flex: 0 0 40px;
+  padding: 0 10px;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+  &:hover:after {
+    transform: scale(1.2);
+  }
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    height: 15px;
+    width: 15px;
+    opacity: 0.5;
+    transition: transform 0.2s ease-in-out;
+    transform: scale(1);
+    background-image: url(^assets/delete.svg);
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
 }
 
 .specs {
-    display: none;
-    @include for-tablet-portrait-up {
-        display: flex;
-    }
+  display: none;
+  @include for-tablet-portrait-up {
+    display: flex;
+  }
 }
 .application,
 .department,
 .environment {
-    display: none;
-    @include for-tablet-portrait-up {
-        display: block;
-    }
+  display: none;
+  @include for-tablet-portrait-up {
+    display: block;
+  }
 }

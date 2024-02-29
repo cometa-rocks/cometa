@@ -1,92 +1,91 @@
-
 @import 'color';
 
 :host {
-    display: block;
-    position: relative;
+  display: block;
+  position: relative;
 }
 
 .folder-item {
-    height: 30px;
-    line-height: 30px;
-    padding-right: 10px;
-    box-sizing: border-box;
-    cursor: pointer;
-    // Allow the user to select text
-    * {
-        // user-select: none;
-    }
-    &:hover .folder-options {
-        opacity: 1;
-    }
-    &.selected {
-        background-color: rgba($blue, .9);
-        span {
-            color: white;
-        }
-        .crumb {
-            background-image: url(^assets/icons/next.white.svg);
-        }
-        .folder-options .mat-icon {
-            color: white;
-        }
-    }
-    &.showCrumb .crumb {
-        opacity: .5;
+  height: 30px;
+  line-height: 30px;
+  padding-right: 10px;
+  box-sizing: border-box;
+  cursor: pointer;
+  // Allow the user to select text
+  * {
+    // user-select: none;
+  }
+  &:hover .folder-options {
+    opacity: 1;
+  }
+  &.selected {
+    background-color: rgba($blue, 0.9);
+    span {
+      color: white;
     }
     .crumb {
-        content: "";
-        display: inline-block;
-        vertical-align: middle;
-        height: 30px;
-        width: 12px;
-        opacity: 0;
-        margin-left: 13px;
-        margin-right: 5px;
-        background-image: url(^assets/icons/next.svg);
-        background-repeat: no-repeat;
-        background-size: 12px;
-        background-position: center 8px;
-        transition: transform .15s ease-in-out;
+      background-image: url(^assets/icons/next.white.svg);
     }
-    &.extended .crumb {
-        transform: rotate(90deg);
+    .folder-options .mat-icon {
+      color: white;
     }
-    i {
-        height: 30px;
-        width: 30px;
-        background-image: url(^assets/icons/folder.svg);
-        background-repeat: no-repeat;
-        background-size: 20px;
-        background-position: center 4px;
-        margin-right: 7px;
-        display: inline-block;
-        vertical-align: middle;
-    }
-    span {
-        display: inline-block;
-        vertical-align: middle;
-        font-weight: bold;
-        color: rgba(black, .6);
-    }
+  }
+  &.showCrumb .crumb {
+    opacity: 0.5;
+  }
+  .crumb {
+    content: '';
+    display: inline-block;
+    vertical-align: middle;
+    height: 30px;
+    width: 12px;
+    opacity: 0;
+    margin-left: 13px;
+    margin-right: 5px;
+    background-image: url(^assets/icons/next.svg);
+    background-repeat: no-repeat;
+    background-size: 12px;
+    background-position: center 8px;
+    transition: transform 0.15s ease-in-out;
+  }
+  &.extended .crumb {
+    transform: rotate(90deg);
+  }
+  i {
+    height: 30px;
+    width: 30px;
+    background-image: url(^assets/icons/folder.svg);
+    background-repeat: no-repeat;
+    background-size: 20px;
+    background-position: center 4px;
+    margin-right: 7px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+  span {
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: bold;
+    color: rgba(black, 0.6);
+  }
 }
 
 .folders-inside {
-    .folder-item {
-        padding-left: 20px;
-        box-sizing: border-box;
-    }
+  .folder-item {
+    padding-left: 20px;
+    box-sizing: border-box;
+  }
 }
 
 .folder-options {
-    position: absolute;
-    right: 0;
-    top: 0;
-    height: 30px;
-    width: 30px;
-    opacity: 0;
-    .mat-icon {
-        line-height: 15px;
-        color: grey;
-    }
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 30px;
+  width: 30px;
+  opacity: 0;
+  .mat-icon {
+    line-height: 15px;
+    color: grey;
+  }
 }

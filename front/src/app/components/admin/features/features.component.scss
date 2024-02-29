@@ -1,48 +1,48 @@
 h2 {
-    margin: 50px 0 40px;
-    font-size: 12pt;
-    text-transform: uppercase;
+  margin: 50px 0 40px;
+  font-size: 12pt;
+  text-transform: uppercase;
 }
 
 :host {
-    display: block;
-    margin-bottom: 50px;
+  display: block;
+  margin-bottom: 50px;
 }
 
 ::ng-deep button.add-item {
-    font-size: 16px !important;
-    font-weight: bold !important;
-    margin-top: 20px !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  margin-top: 20px !important;
 }
 
 .export-features {
-    font-size: 16px !important;
-    font-weight: bold !important;
-    margin-left: 20px;
-    height: 36px;
-    width: 160px;
-    text-align: center;
-    display: inline-flex;
-    justify-content: center;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  margin-left: 20px;
+  height: 36px;
+  width: 160px;
+  text-align: center;
+  display: inline-flex;
+  justify-content: center;
 }
 
 .select-all {
-    font-size: 16px !important;
-    font-weight: bold !important;
-    margin-left: 20px;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  margin-left: 20px;
 }
 
 ::ng-deep .mat-icon {
-    font-size: 21px !important;
-    margin-right: 5px;
+  font-size: 21px !important;
+  margin-right: 5px;
 }
 
 feature:nth-child(2n + 2) {
-    background-color: rgba(0,0,0,.05);
-    border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 5px;
 }
 
 .mat-spinner {
-    display: block;
-    margin: 0 auto;
+  display: block;
+  margin: 0 auto;
 }

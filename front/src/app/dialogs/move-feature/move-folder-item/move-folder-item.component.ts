@@ -1,4 +1,9 @@
-import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  Input,
+  forwardRef,
+} from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { Store } from '@ngxs/store';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
@@ -9,25 +14,44 @@ import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack
 import { ConfigService } from '@services/config.service';
 import { Features } from '@store/actions/features.actions';
 import { AddFolderComponent } from '@dialogs/add-folder/add-folder.component';
+import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { StopPropagationDirective } from '../../../directives/stop-propagation.directive';
 
 @Component({
   selector: 'cometa-move-folder-item',
   templateUrl: './move-folder-item.component.html',
   styleUrls: ['./move-folder-item.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    StopPropagationDirective,
+    MatLegacyButtonModule,
+    MatLegacyMenuModule,
+    MatIconModule,
+    NgIf,
+    NgFor,
+    forwardRef(() => MoveFolderItemComponent),
+    AsyncPipe,
+  ],
 })
 export class MoveFolderItemComponent {
-
   constructor(
     public _config: ConfigService,
     private _api: ApiService,
     private _store: Store,
     private _dialog: MatDialog,
     private _snackBar: MatSnackBar
-  ) { }
+  ) {}
 
   extended$ = this._config.openedFolders.pipe(
-    map(folders => folders.includes(this.folder.folder_id) || this.folder.folder_id === null)
+    map(
+      folders =>
+        folders.includes(this.folder.folder_id) ||
+        this.folder.folder_id === null
+    )
   );
 
   @Input() child: number;
@@ -40,12 +64,17 @@ export class MoveFolderItemComponent {
     if (!openedFolders.includes(this.folder.folder_id)) {
       // Add it to the opened folders, expanding it
       openedFolders.push(this.folder.folder_id);
-    // Save the expansion status
+      // Save the expansion status
       this._config.openedFolders.next(openedFolders);
     }
     // Select the clicked folder if it isn't the home folder
     if (this.folder.type != 'home') {
-      this._config.selectedFolderId.next({type: this.folder.type, id: this.folder.folder_id, name: this.folder.name, department: this.folder.department});
+      this._config.selectedFolderId.next({
+        type: this.folder.type,
+        id: this.folder.folder_id,
+        name: this.folder.name,
+        department: this.folder.department,
+      });
     }
   }
 
@@ -60,7 +89,9 @@ export class MoveFolderItemComponent {
     // Check if the folder is expanded
     if (openedFolders.includes(this.folder.folder_id)) {
       // Remove it from the opened folders, closing it
-      openedFolders = openedFolders.filter(folder_id => folder_id !== this.folder.folder_id);
+      openedFolders = openedFolders.filter(
+        folder_id => folder_id !== this.folder.folder_id
+      );
     } else {
       // Add it to the opened folders, expanding it
       openedFolders.push(this.folder.folder_id);
@@ -71,55 +102,59 @@ export class MoveFolderItemComponent {
 
   @Subscribe()
   createFolder() {
-    return this._dialog.open(EnterValueComponent, {
-      autoFocus: true,
-      data: {
-        word: 'Folder'
-      }
-    })
-    .afterClosed()
-    .pipe(
-      switchMap(res => this._api.createFolder(res.value, this.folder.folder_id).pipe(
-        map(() => res)
-      )),
-      switchMap(res => this._store.dispatch( new Features.GetFolders ).pipe(
-        map(() => res)
-      )),
-      tap(folder => {
-        const openedFolders = this._config.openedFolders.getValue();
-        openedFolders.push(this.folder.folder_id);
-        this._config.openedFolders.next(openedFolders);
-        this._snackBar.open(`Folder ${folder.value} created`, 'OK');
+    return this._dialog
+      .open(EnterValueComponent, {
+        autoFocus: true,
+        data: {
+          word: 'Folder',
+        },
       })
-    );
+      .afterClosed()
+      .pipe(
+        switchMap(res =>
+          this._api
+            .createFolder(res.value, this.folder.folder_id)
+            .pipe(map(() => res))
+        ),
+        switchMap(res =>
+          this._store.dispatch(new Features.GetFolders()).pipe(map(() => res))
+        ),
+        tap(folder => {
+          const openedFolders = this._config.openedFolders.getValue();
+          openedFolders.push(this.folder.folder_id);
+          this._config.openedFolders.next(openedFolders);
+          this._snackBar.open(`Folder ${folder.value} created`, 'OK');
+        })
+      );
   }
 
   modifyFolder() {
-    return this._dialog.open(AddFolderComponent, {
-      autoFocus: true,
-      data: {
-        mode: 'edit',
-        folder: this.folder
-      } as IEditFolder
-    })
-    .afterClosed()
-    .pipe(
-      filter((res: boolean) => !!res),
-      switchMap(_ => this._store.dispatch( new Features.GetFolders )),
-    ).subscribe(_ => {
-      const openedFolders = this._config.openedFolders.getValue();
-      openedFolders.push(this.folder.folder_id);
-      this._config.openedFolders.next(openedFolders);
-      this._snackBar.open(`Folder modified successfully`, 'OK');
-    })
+    return this._dialog
+      .open(AddFolderComponent, {
+        autoFocus: true,
+        data: {
+          mode: 'edit',
+          folder: this.folder,
+        } as IEditFolder,
+      })
+      .afterClosed()
+      .pipe(
+        filter((res: boolean) => !!res),
+        switchMap(_ => this._store.dispatch(new Features.GetFolders()))
+      )
+      .subscribe(_ => {
+        const openedFolders = this._config.openedFolders.getValue();
+        openedFolders.push(this.folder.folder_id);
+        this._config.openedFolders.next(openedFolders);
+        this._snackBar.open(`Folder modified successfully`, 'OK');
+      });
   }
 
   @Subscribe()
   deleteFolder() {
     return this._api.removeFolder(this.folder.folder_id).pipe(
-      switchMap(_ => this._store.dispatch( new Features.GetFolders )),
+      switchMap(_ => this._store.dispatch(new Features.GetFolders())),
       tap(_ => this._snackBar.open(`Folder ${this.folder.name} removed`, 'OK'))
     );
   }
-
 }

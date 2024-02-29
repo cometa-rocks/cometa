@@ -1,16 +1,15 @@
-
 :host::ng-deep {
-    display: flex;
-    align-items: center;
-    .mat-spinner {
-        margin-right: 15px;
-        circle {
-            stroke: rgba(white, .75) !important;
-        }
+  display: flex;
+  align-items: center;
+  .mat-spinner {
+    margin-right: 15px;
+    circle {
+      stroke: rgba(white, 0.75) !important;
     }
+  }
 }
 
 ::ng-deep .loading-snack-panel {
-    min-width: auto !important;
-    margin-bottom: 80px !important;
+  min-width: auto !important;
+  margin-bottom: 80px !important;
 }

@@ -1,139 +1,142 @@
-
 @import 'color';
 @import 'breakpoints';
 
 :host {
-    width: 100%;
-    height: 0;
-    padding: 25px 20px 0 20px;
-    box-sizing: border-box;
+  width: 100%;
+  height: 0;
+  padding: 25px 20px 0 20px;
+  box-sizing: border-box;
 }
 
 .blue {
-    color: $blue;
-    font-weight: bold;
+  color: $blue;
+  font-weight: bold;
 }
 
 :host ::ng-deep .mtx-grid {
-    padding-bottom: 25px;
-    .mtx-grid-toolbar {
-        padding: 0;
+  padding-bottom: 25px;
+  .mtx-grid-toolbar {
+    padding: 0;
+  }
+  .mtx-grid-toolbar-content {
+    flex-grow: 1;
+    .custom_toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-right: 5px;
     }
-    .mtx-grid-toolbar-content {
-        flex-grow: 1;
-        .custom_toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-right: 5px;
-        }
-        button {
-            mat-icon {
-                font-size: 1.125rem;
-                width: 1.125rem;
-                height: 1.125rem;
-                margin-left: -4px;
-                margin-right: 8px;
-                display: inline-block;
-            }
-        }
+    button {
+      mat-icon {
+        font-size: 1.125rem;
+        width: 1.125rem;
+        height: 1.125rem;
+        margin-left: -4px;
+        margin-right: 8px;
+        display: inline-block;
+      }
     }
-    table {
-        border-radius: 5px;
-        background-color: $table-background-opaque;
-        border-spacing: 0;
-        box-shadow: 0 3px 1px -2px $table-low-shadow, 0 2px 2px 0 $table-medium-shadow, 0 1px 5px 0 $table-high-shadow;
-        thead tr {
-            height: 55px;
-            z-index: 10;
-            th {
-                white-space: nowrap;
-                font-size: 15px;
-                font-weight: bold;
-                color: $column-header-dark;
-                z-index: 4 !important;
-                &:not(:first-child):not(:last-child):hover {
-                    background-color: $high-black-opaque;
-                    cursor: pointer;
-                }
-                &.name {
-                    border-right: none !important;
-                }
-                mat-icon {
-                    display: none;
-                }
-                &:nth-child(3) {
-                    z-index: 5 !important;
-                }
-            }
+  }
+  table {
+    border-radius: 5px;
+    background-color: $table-background-opaque;
+    border-spacing: 0;
+    box-shadow:
+      0 3px 1px -2px $table-low-shadow,
+      0 2px 2px 0 $table-medium-shadow,
+      0 1px 5px 0 $table-high-shadow;
+    thead tr {
+      height: 55px;
+      z-index: 10;
+      th {
+        white-space: nowrap;
+        font-size: 15px;
+        font-weight: bold;
+        color: $column-header-dark;
+        z-index: 4 !important;
+        &:not(:first-child):not(:last-child):hover {
+          background-color: $high-black-opaque;
+          cursor: pointer;
         }
-        tbody tr {
-            height: 45px;
-            cursor: pointer;
-            &:nth-child(2n + 2) {
-                background-color: $low-black-opaque;
-            }
-            &:hover {
-                background-color: $high-black-opaque;
-            }
-            &.selected {
-                background-color: $selected-black-opaque;
-                td {
-                    &.name {
-                        color: $blue;
-                    }
-                }
-            }
+        &.name {
+          border-right: none !important;
         }
-        
+        mat-icon {
+          display: none;
+        }
+        &:nth-child(3) {
+          z-index: 5 !important;
+        }
+      }
+    }
+    tbody tr {
+      height: 45px;
+      cursor: pointer;
+      &:nth-child(2n + 2) {
+        background-color: $low-black-opaque;
+      }
+      &:hover {
+        background-color: $high-black-opaque;
+      }
+      &.selected {
+        background-color: $selected-black-opaque;
         td {
-            font-weight: bold;
-            color: $dark;
-            /* text-align: center; */
-            &.name {
-                text-align: left;
-                border-right: none !important;
-                & > div {
-                    display: flex;
-                    align-items: center;
-                    .mat-icon {
-                        margin-right: 5px;
-                        font-size: 22px;
-                        line-height: 22px;
-                        height: 22px;
-                        width: 22px;
-                    }
-                }
-            }
-            .time {
-                color: $text-pink;
-            }
+          &.name {
+            color: $blue;
+          }
         }
-        th, td {
-            padding: 0 5px;
-            border-bottom-width: 1px;
-            border-bottom-style: solid;
-            border-bottom-color: $table-low-shadow;
-        }
-        th:first-of-type,
-        td:first-of-type {
-            padding-left: 5px;
-            &.running {
-                width: 40px;
-                &.disabled {
-                    width: 5px;
-                }
-            }
-            .mat-icon {
-                width: 30px;
-                height: 30px;
-                font-size: 25px;
-                line-height: 30px;
-            }
-        }
-        th:last-of-type,
-        td:last-of-type {
-            padding-right: 5px;
-        }
+      }
     }
+
+    td {
+      font-weight: bold;
+      color: $dark;
+      /* text-align: center; */
+      &.name {
+        text-align: left;
+        border-right: none !important;
+        & > div {
+          display: flex;
+          align-items: center;
+          .mat-icon {
+            margin-right: 5px;
+            font-size: 22px;
+            line-height: 22px;
+            height: 22px;
+            width: 22px;
+          }
+        }
+      }
+      .time {
+        color: $text-pink;
+      }
+    }
+    th,
+    td {
+      padding: 0 5px;
+      border-bottom-width: 1px;
+      border-bottom-style: solid;
+      border-bottom-color: $table-low-shadow;
+    }
+    th:first-of-type,
+    td:first-of-type {
+      padding-left: 5px;
+      &.running {
+        width: 40px;
+        &.disabled {
+          width: 5px;
+        }
+      }
+      .mat-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 25px;
+        line-height: 30px;
+      }
+    }
+    th:last-of-type,
+    td:last-of-type {
+      padding-right: 5px;
+    }
+  }
 }

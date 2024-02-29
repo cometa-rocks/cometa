@@ -1,144 +1,212 @@
-    <mat-expansion-panel [expanded]="!config$.toggles.hideInformation">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <span>Information</span>
-        </mat-panel-title>
-        <mat-panel-description>Data Driven Test Information</mat-panel-description>
-      </mat-expansion-panel-header>
-      <ng-template matExpansionPanelContent>
-        <div class="edit-data-driven-test">
-          <mat-form-field appearance="fill" class="edit-dep">
-            <mat-label>Department</mat-label>
-            <mat-select [(ngModel)]="department">
-              <mat-option *ngFor="let dep of departments$ | sortBy:'department_name'" [value]="dep">
-                {{ dep.department_name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-          <mat-form-field appearance="fill" class="edit-app">
-            <mat-label>Application</mat-label>
-            <mat-select [(ngModel)]="application">
-              <mat-option *ngFor="let app of applications$ | sortBy:'app_name'" [value]="app">
-                {{ app.app_name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-          <mat-form-field appearance="fill" class="edit-env">
-            <mat-label>Environment</mat-label>
-            <mat-select [(ngModel)]="environment">
-              <mat-option *ngFor="let env of environments$ | sortBy:'environment_name'" [value]="env">
-                {{ env.environment_name }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-          <mat-form-field appearance="fill" class="edit-name">
-            <mat-label>Name</mat-label>
-            <input matInput spellcheck="false">
-          </mat-form-field>
-          <mat-form-field appearance="fill" class="edit-description">
-            <mat-label>Description</mat-label>
-            <textarea spellcheck="false" matInput rows="1"></textarea>
-          </mat-form-field>
-        </div>
-        <div *ngIf="department.department_name === 'Default' && departments$.length > 1" class="department-warning">
-          <mat-icon>warning</mat-icon>
-          <span>Selecting <strong>Default</strong> department will make this feature visible to everyone, use it with caution!</span>
-        </div>
-        <div class="depends">
-          <ng-container *ngIf="(environment.environment_name && department.department_name)">
-            <span class="edit-variables">
-              <button color="primary" (click)="editVariables()" mat-stroked-button>Edit Variables</button>
-            </span>
-          </ng-container>
-        </div>
-      </ng-template>
-    </mat-expansion-panel>
+<mat-expansion-panel [expanded]="!config$.toggles.hideInformation">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <span>Information</span>
+    </mat-panel-title>
+    <mat-panel-description>Data Driven Test Information</mat-panel-description>
+  </mat-expansion-panel-header>
+  <ng-template matExpansionPanelContent>
+    <div class="edit-data-driven-test">
+      <mat-form-field appearance="fill" class="edit-dep">
+        <mat-label>Department</mat-label>
+        <mat-select [(ngModel)]="department">
+          <mat-option
+            *ngFor="let dep of departments$ | sortBy: 'department_name'"
+            [value]="dep">
+            {{ dep.department_name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="edit-app">
+        <mat-label>Application</mat-label>
+        <mat-select [(ngModel)]="application">
+          <mat-option
+            *ngFor="let app of applications$ | sortBy: 'app_name'"
+            [value]="app">
+            {{ app.app_name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="edit-env">
+        <mat-label>Environment</mat-label>
+        <mat-select [(ngModel)]="environment">
+          <mat-option
+            *ngFor="let env of environments$ | sortBy: 'environment_name'"
+            [value]="env">
+            {{ env.environment_name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="edit-name">
+        <mat-label>Name</mat-label>
+        <input matInput spellcheck="false" />
+      </mat-form-field>
+      <mat-form-field appearance="fill" class="edit-description">
+        <mat-label>Description</mat-label>
+        <textarea spellcheck="false" matInput rows="1"></textarea>
+      </mat-form-field>
+    </div>
+    <div
+      *ngIf="
+        department.department_name === 'Default' && departments$.length > 1
+      "
+      class="department-warning">
+      <mat-icon>warning</mat-icon>
+      <span
+        >Selecting <strong>Default</strong> department will make this feature
+        visible to everyone, use it with caution!</span
+      >
+    </div>
+    <div class="depends">
+      <ng-container
+        *ngIf="environment.environment_name && department.department_name">
+        <span class="edit-variables">
+          <button color="primary" (click)="editVariables()" mat-stroked-button>
+            Edit Variables
+          </button>
+        </span>
+      </ng-container>
+    </div>
+  </ng-template>
+</mat-expansion-panel>
 
-    <mat-expansion-panel #uploadPanel [expanded]="!config$.toggles?.hideUploadedFiles">
-        <mat-expansion-panel-header>
-            <mat-panel-title>
-                <span>Files</span>
-                <span class="upload-file">
-                    <button color="primary" (click)="file.click();" mat-stroked-button>Upload</button>
-                </span>
-                <input type="file" multiple="true" (change)="onUploadFile($event)" #file style="display:none">
-            </mat-panel-title>
-            <mat-panel-description>Upload/Download department files</mat-panel-description>
-        </mat-expansion-panel-header>
-        <ng-container *ngIf="department?.files.length > 0; else noFiles">
-            <div class="table-container">
-                <table mat-table [dataSource]="department?.files" class="mat-elevation-z8">
-                    <ng-container matColumnDef="name">
-                        <th mat-header-cell *matHeaderCellDef> File name </th>
-                        <td mat-cell *matCellDef="let element">
-                            <div class="name-wrapper">
-                                <mat-spinner *ngIf="element.status != 'Done'" [matTooltip]="element.status"
-                                    matTooltipPosition="above" color="primary" diameter="15"></mat-spinner>
-                                <span [class.canDownload]="element.status == 'Done'"
-                                    (click)="onDownloadFile(element)">{{element.name}}</span>
-                            </div>
-                        </td>
-                    </ng-container>
-        
-                    <ng-container matColumnDef="mime">
-                        <th mat-header-cell *matHeaderCellDef> File type </th>
-                        <td mat-cell *matCellDef="let element"> {{element.type}} </td>
-                    </ng-container>
-        
-                    <ng-container matColumnDef="size">
-                        <th mat-header-cell *matHeaderCellDef> File size </th>
-                        <td mat-cell *matCellDef="let element"> {{element.size | humanizeBytes}} </td>
-                    </ng-container>
-        
-                    <ng-container matColumnDef="uploaded_by.name">
-                        <th mat-header-cell *matHeaderCellDef> Uploaded By </th>
-                        <td mat-cell *matCellDef="let element"> {{element.uploaded_by.name}} </td>
-                    </ng-container>
-        
-                    <ng-container matColumnDef="created_on">
-                        <th mat-header-cell *matHeaderCellDef> Upload date </th>
-                        <td mat-cell *matCellDef="let element"> {{ element.created_on | amParse | amDateFormat:'MMMM d yyyy,
-                            HH:mm a'}} </td>
-                    </ng-container>
-        
-                    <ng-container matColumnDef="actions">
-                        <th mat-header-cell *matHeaderCellDef> Actions </th>
-                        <td mat-cell *matCellDef="let element">
-                            <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="file upload">
-                                <mat-icon>more_vert</mat-icon>
-                            </button>
-                            <mat-menu #menu="matMenu">
-                                <button mat-menu-item [cdkCopyToClipboard]="element.uploadPath"
-                                    (cdkCopyToClipboardCopied)="onFilePathCopy($event)"
-                                    [disabled]="element.status != 'Done' || element.is_removed">
-                                    <mat-icon>content_copy</mat-icon>
-                                    <span>Copy upload path</span>
-                                </button>
-                                <button mat-menu-item (click)="onDownloadFile(element)"
-                                    [disabled]="element.status != 'Done' || element.is_removed">
-                                    <mat-icon>cloud_download</mat-icon>
-                                    <span>Download</span>
-                                </button>
-                                <button mat-menu-item
-                                    (click)="!element.is_removed ? onDeleteFile(element) : onRestoreFile(element)"
-                                    [disabled]="element.status != 'Done'">
-                                    <mat-icon>{{!element.is_removed ? 'delete' : 'restore'}} </mat-icon>
-                                    <span> {{!element.is_removed ? 'Delete' : 'Restore'}} </span>
-                                </button>
-                            </mat-menu>
-                        </td>
-                    </ng-container>
-                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                    <tr mat-row *matRowDef="let row; columns: displayedColumns;" [class.removed]="row.is_removed"></tr>
-                </table>
+<mat-expansion-panel
+  #uploadPanel
+  [expanded]="!config$.toggles?.hideUploadedFiles">
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <span>Files</span>
+      <span class="upload-file">
+        <button color="primary" (click)="file.click()" mat-stroked-button>
+          Upload
+        </button>
+      </span>
+      <input
+        type="file"
+        multiple="true"
+        (change)="onUploadFile($event)"
+        #file
+        style="display: none" />
+    </mat-panel-title>
+    <mat-panel-description
+      >Upload/Download department files</mat-panel-description
+    >
+  </mat-expansion-panel-header>
+  <ng-container *ngIf="department?.files.length > 0; else noFiles">
+    <div class="table-container">
+      <table
+        mat-table
+        [dataSource]="department?.files"
+        class="mat-elevation-z8">
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>File name</th>
+          <td mat-cell *matCellDef="let element">
+            <div class="name-wrapper">
+              <mat-spinner
+                *ngIf="element.status != 'Done'"
+                [matTooltip]="element.status"
+                matTooltipPosition="above"
+                color="primary"
+                diameter="15"></mat-spinner>
+              <span
+                [class.canDownload]="element.status == 'Done'"
+                (click)="onDownloadFile(element)"
+                >{{ element.name }}</span
+              >
             </div>
+          </td>
         </ng-container>
-        <ng-template #noFiles>
-            <div class="no-files">
-                <p>Currently this department has no files, upload one by clicking upload button.</p>
-            </div>
-        </ng-template>
-    </mat-expansion-panel>
+
+        <ng-container matColumnDef="mime">
+          <th mat-header-cell *matHeaderCellDef>File type</th>
+          <td mat-cell *matCellDef="let element">{{ element.type }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="size">
+          <th mat-header-cell *matHeaderCellDef>File size</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.size | humanizeBytes }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="uploaded_by.name">
+          <th mat-header-cell *matHeaderCellDef>Uploaded By</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.uploaded_by.name }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="created_on">
+          <th mat-header-cell *matHeaderCellDef>Upload date</th>
+          <td mat-cell *matCellDef="let element">
+            {{
+              element.created_on
+                | amParse
+                | amDateFormat
+                  : 'MMMM d yyyy,
+                            HH:mm a'
+            }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let element">
+            <button
+              mat-icon-button
+              [matMenuTriggerFor]="menu"
+              aria-label="file upload">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #menu="matMenu">
+              <button
+                mat-menu-item
+                [cdkCopyToClipboard]="element.uploadPath"
+                (cdkCopyToClipboardCopied)="onFilePathCopy($event)"
+                [disabled]="element.status != 'Done' || element.is_removed">
+                <mat-icon>content_copy</mat-icon>
+                <span>Copy upload path</span>
+              </button>
+              <button
+                mat-menu-item
+                (click)="onDownloadFile(element)"
+                [disabled]="element.status != 'Done' || element.is_removed">
+                <mat-icon>cloud_download</mat-icon>
+                <span>Download</span>
+              </button>
+              <button
+                mat-menu-item
+                (click)="
+                  !element.is_removed
+                    ? onDeleteFile(element)
+                    : onRestoreFile(element)
+                "
+                [disabled]="element.status != 'Done'">
+                <mat-icon
+                  >{{ !element.is_removed ? 'delete' : 'restore' }}
+                </mat-icon>
+                <span> {{ !element.is_removed ? 'Delete' : 'Restore' }} </span>
+              </button>
+            </mat-menu>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          [class.removed]="row.is_removed"></tr>
+      </table>
+    </div>
+  </ng-container>
+  <ng-template #noFiles>
+    <div class="no-files">
+      <p>
+        Currently this department has no files, upload one by clicking upload
+        button.
+      </p>
+    </div>
+  </ng-template>
+</mat-expansion-panel>
 <!-- <div *ngIf="(features$ | async) as features" class="feature-list">
 <cometa-feature-list [dependsOnOther]="true"
     [features]="feats | featureSort:sorting.value | async | pagination:page.pageIndex:page.pageSize"></cometa-feature-list>

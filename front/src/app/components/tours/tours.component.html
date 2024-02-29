@@ -1,15 +1,14 @@
 <!-- Joyride steps -->
 <ng-container *ngIf="_tourService.tourMode$ | async">
-    <!-- Iterate over each step of CreateFeature -->
-    <ng-container *ngFor="let step of _tourService.runningTour$ | async">
-      <div
-        [joyrideStep]="step.name"
-        [attachTo]="step.attachTo"
-        [stepPosition]="step.position"
-        [title]="step.title"
-        [text]="step.description"
-        (prev)="_tourService.handlePrevious(step)"
-        (next)="_tourService.handleNext(step)">
-      </div>
-    </ng-container>
+  <!-- Iterate over each step of CreateFeature -->
+  <ng-container *ngFor="let step of _tourService.runningTour$ | async">
+    <div
+      [joyrideStep]="step.name"
+      [attachTo]="step.attachTo"
+      [stepPosition]="step.position"
+      [title]="step.title"
+      [text]="step.description"
+      (prev)="_tourService.handlePrevious(step)"
+      (next)="_tourService.handleNext(step)"></div>
   </ng-container>
+</ng-container>

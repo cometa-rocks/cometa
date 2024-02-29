@@ -1,35 +1,66 @@
 <h1 mat-dialog-title>How to format a cron schedule</h1>
 <div mat-dialog-content>
-    <p>A cron calendar is made up of 5 fields:</p>
-    <ul class="margin">
-        <li><span class="blue">Minute:</span> It can be a specific minute or every few minutes. <span class="blue pointer" (click)="usages.minute = !usages.minute">Show usage</span>
-            <ul *ngIf="usages.minute">
-                <li><span class="code">*</span> Any value</li>
-                <li><span class="code">,</span> Multiple values</li>
-                <li><span class="code">-</span> Range of values</li>
-                <li><span class="code">/</span> Step values (every certain amount)</li>
-            </ul>
+  <p>A cron calendar is made up of 5 fields:</p>
+  <ul class="margin">
+    <li>
+      <span class="blue">Minute:</span> It can be a specific minute or every few
+      minutes.
+      <span class="blue pointer" (click)="usages.minute = !usages.minute"
+        >Show usage</span
+      >
+      <ul *ngIf="usages.minute">
+        <li><span class="code">*</span> Any value</li>
+        <li><span class="code">,</span> Multiple values</li>
+        <li><span class="code">-</span> Range of values</li>
+        <li><span class="code">/</span> Step values (every certain amount)</li>
+      </ul>
+    </li>
+    <li>
+      <span class="blue">Hour:</span> It can be a specific hour or every few
+      hours.
+      <span class="blue pointer" (click)="usages.hour = !usages.hour"
+        >Show usage</span
+      >
+      <ul *ngIf="usages.hour">
+        <li><span class="code">*</span> Any value</li>
+        <li><span class="code">,</span> Multiple values</li>
+        <li><span class="code">-</span> Range of values</li>
+        <li><span class="code">/</span> Step values (every certain amount)</li>
+      </ul>
+    </li>
+    <li>
+      <span class="blue">Day (month):</span> It can be a specific day number or
+      a range with a hyphen.
+    </li>
+    <li>
+      <span class="blue">Month:</span> It can be a specific month number, a
+      range or a comma separated number list.
+    </li>
+    <li>
+      <span class="blue">Day (week):</span> It only can be a shorthand for day
+      name
+    </li>
+    <li>
+      <span class="blue">Examples:</span>
+      <ul>
+        <li>
+          <span class="blue"><span class="code">*/5 * * * *</span></span> Run
+          every 5 minutes
         </li>
-        <li><span class="blue">Hour:</span> It can be a specific hour or every few hours. <span class="blue pointer" (click)="usages.hour = !usages.hour">Show usage</span>
-            <ul *ngIf="usages.hour">
-                <li><span class="code">*</span> Any value</li>
-                <li><span class="code">,</span> Multiple values</li>
-                <li><span class="code">-</span> Range of values</li>
-                <li><span class="code">/</span> Step values (every certain amount)</li>
-            </ul>
+        <li>
+          <span class="blue"><span class="code">5 1 * * Sun</span></span> Run
+          every Sunday at 1:05 AM
         </li>
-        <li><span class="blue">Day (month):</span> It can be a specific day number or a range with a hyphen.</li>
-        <li><span class="blue">Month:</span> It can be a specific month number, a range or a comma separated number list.</li>
-        <li><span class="blue">Day (week):</span> It only can be a shorthand for day name</li>
-        <li><span class="blue">Examples:</span>
-            <ul>
-                <li><span class="blue"><span class="code">*/5 * * * *</span></span> Run every 5 minutes</li>
-                <li><span class="blue"><span class="code">5 1 * * Sun</span></span> Run every Sunday at 1:05 AM</li>
-            </ul>
-        </li>
-        <li>To test your cron schedules, get more examples and/or learn more visit <a href="https://crontab.guru" target="_blank">this page</a></li>
-    </ul>
+      </ul>
+    </li>
+    <li>
+      To test your cron schedules, get more examples and/or learn more visit
+      <a href="https://crontab.guru" target="_blank">this page</a>
+    </li>
+  </ul>
 </div>
 <div mat-dialog-actions>
-  <button mat-stroked-button color="primary" (click)="onNoClick()">Understood</button>
+  <button mat-stroked-button color="primary" (click)="onNoClick()">
+    Understood
+  </button>
 </div>

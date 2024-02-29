@@ -8,158 +8,162 @@
 @import 'breakpoints';
 
 :host {
-    display: block;
-    padding: 0 10px;
-    margin-top: -20px;
-    margin-bottom: 20px;
+  display: block;
+  padding: 0 10px;
+  margin-top: -20px;
+  margin-bottom: 20px;
 }
 
 .table_container {
-    overflow: auto;
-    width: 100%;
-    padding-top: 20px;
+  overflow: auto;
+  width: 100%;
+  padding-top: 20px;
 }
 
 :host ::ng-deep .mtx-grid table {
-    border-radius: 5px;
-    background-color: $table-background-opaque;
-    border-spacing: 0;
-    box-shadow: 0 3px 1px -2px $table-low-shadow, 0 2px 2px 0 $table-medium-shadow, 0 1px 5px 0 $table-high-shadow;
-    thead tr {
-        height: 55px;
-        z-index: 10;
-        th {
-            white-space: nowrap;
-            font-size: 15px;
-            font-weight: bold;
-            color: $column-header-dark;
-            z-index: 4 !important;
-            &:not(:first-child):not(:last-child):hover {
-                background-color: $high-black-opaque;
-                cursor: pointer;
-            }
-            &.name {
-                border-right: none !important;
-            }
-            mat-icon {
-                display: none;
-            }
-            &:nth-child(3) {
-                z-index: 5 !important;
-            }
-        }
-    }
-    tbody tr {
-        height: 45px;
+  border-radius: 5px;
+  background-color: $table-background-opaque;
+  border-spacing: 0;
+  box-shadow:
+    0 3px 1px -2px $table-low-shadow,
+    0 2px 2px 0 $table-medium-shadow,
+    0 1px 5px 0 $table-high-shadow;
+  thead tr {
+    height: 55px;
+    z-index: 10;
+    th {
+      white-space: nowrap;
+      font-size: 15px;
+      font-weight: bold;
+      color: $column-header-dark;
+      z-index: 4 !important;
+      &:not(:first-child):not(:last-child):hover {
+        background-color: $high-black-opaque;
         cursor: pointer;
-        &:nth-child(2n + 2) {
-            background-color: $low-black-opaque;
-        }
-        &:hover {
-            background-color: $high-black-opaque;
-        }
-        &.selected {
-            background-color: $selected-black-opaque;
-            td {
-                &.name {
-                    color: $blue;
-                }
-            }
-        }
+      }
+      &.name {
+        border-right: none !important;
+      }
+      mat-icon {
+        display: none;
+      }
+      &:nth-child(3) {
+        z-index: 5 !important;
+      }
     }
-    
-    td {
-        font-weight: bold;
-        color: $dark;
-        /* text-align: center; */
+  }
+  tbody tr {
+    height: 45px;
+    cursor: pointer;
+    &:nth-child(2n + 2) {
+      background-color: $low-black-opaque;
+    }
+    &:hover {
+      background-color: $high-black-opaque;
+    }
+    &.selected {
+      background-color: $selected-black-opaque;
+      td {
         &.name {
-            text-align: left;
-            border-right: none !important;
-            & > div {
-                display: flex;
-                align-items: center;
-                .mat-icon {
-                    margin-right: 5px;
-                    font-size: 22px;
-                    line-height: 22px;
-                    height: 22px;
-                    width: 22px;
-                }
-            }
+          color: $blue;
         }
-        .time {
-            color: $text-pink;
-        }
+      }
     }
-    th, td {
-        padding: 0 5px;
-        border-bottom-width: 1px;
-        border-bottom-style: solid;
-        border-bottom-color: $table-low-shadow;
-    }
-    th:first-of-type,
-    td:first-of-type {
-        padding-left: 5px;
-        &.running {
-            width: 40px;
-            &.disabled {
-                width: 5px;
-            }
-        }
+  }
+
+  td {
+    font-weight: bold;
+    color: $dark;
+    /* text-align: center; */
+    &.name {
+      text-align: left;
+      border-right: none !important;
+      & > div {
+        display: flex;
+        align-items: center;
         .mat-icon {
-            width: 30px;
-            height: 30px;
-            font-size: 25px;
-            line-height: 30px;
+          margin-right: 5px;
+          font-size: 22px;
+          line-height: 22px;
+          height: 22px;
+          width: 22px;
         }
+      }
     }
-    th:last-of-type,
-    td:last-of-type {
-        padding-right: 5px;
+    .time {
+      color: $text-pink;
     }
+  }
+  th,
+  td {
+    padding: 0 5px;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    border-bottom-color: $table-low-shadow;
+  }
+  th:first-of-type,
+  td:first-of-type {
+    padding-left: 5px;
+    &.running {
+      width: 40px;
+      &.disabled {
+        width: 5px;
+      }
+    }
+    .mat-icon {
+      width: 30px;
+      height: 30px;
+      font-size: 25px;
+      line-height: 30px;
+    }
+  }
+  th:last-of-type,
+  td:last-of-type {
+    padding-right: 5px;
+  }
 }
 
 .folderIcon {
-    height: 18px;
-    min-width: 18px;
-    flex: 0 18px;
-    background-image: url(^assets/icons/folder.svg);
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-    display: block;
+  height: 18px;
+  min-width: 18px;
+  flex: 0 18px;
+  background-image: url(^assets/icons/folder.svg);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  display: block;
 }
 
 .state {
-    display: flex;
-    align-items: center;
-    /* justify-content: center; */
-    .mat-icon {
-        margin-right: 5px;
-    }
-    &::ng-deep .mat-progress-spinner {
-        margin-right: 10px;
-    }
-    &.success {
-        color: $good;
-    }
-    &.running {
-        color: $blue;
-    }
-    &.failed {
-        color: $remove;
-    }
-    span {
-        display: inline-block;
-        width: 60px;
-        text-align: left;
-    }
+  display: flex;
+  align-items: center;
+  /* justify-content: center; */
+  .mat-icon {
+    margin-right: 5px;
+  }
+  &::ng-deep .mat-progress-spinner {
+    margin-right: 10px;
+  }
+  &.success {
+    color: $good;
+  }
+  &.running {
+    color: $blue;
+  }
+  &.failed {
+    color: $remove;
+  }
+  span {
+    display: inline-block;
+    width: 60px;
+    text-align: left;
+  }
 }
 
 ::ng-deep .mat-checkbox-checked .mat-checkbox-background {
-    background-color: $blue !important;
+  background-color: $blue !important;
 }
 
 :host::ng-deep .exec-feature-loading {
-    margin: 0 auto;
+  margin: 0 auto;
 }

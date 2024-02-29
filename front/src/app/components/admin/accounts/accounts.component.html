@@ -1,18 +1,17 @@
 <h2>Manage accounts</h2>
 <mat-form-field appearance="fill">
-    <mat-label>Search user</mat-label>
-    <input type="search" disableAutocomplete [formControl]="search" matInput>
+  <mat-label>Search user</mat-label>
+  <input type="search" disableAutocomplete [formControl]="search" matInput />
 </mat-form-field>
-<div class="data">
-  <network-paginated-list
-      listId="admin_accounts"
-      [endpointUrl]="accountsUrl$ | async"
-      [noItemsTemplate]="noItemsFound"
-      [injectIndex]="true"
-      [itemTemplate]="listItem">
-      <ng-template #listItem let-item>
-          <account [account]="item"></account>
-      </ng-template>
-      <ng-template #noItemsFound>No accounts found with this term.</ng-template>
-  </network-paginated-list>
-</div>
+<network-paginated-list
+  listId="admin_accounts"
+  [endpointUrl]="accountsUrl$ | async"
+  [noItemsTemplate]="noItemsFound"
+  [injectIndex]="true"
+  [itemTemplate]="listItem">
+  <ng-template #listItem let-item>
+    <account [account]="item"></account>
+  </ng-template>
+  <ng-template #noItemsFound>No accounts found with this term.</ng-template>
+</network-paginated-list>
+<br /><br /><br /><br />

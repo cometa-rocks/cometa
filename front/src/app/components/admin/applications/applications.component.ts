@@ -9,22 +9,37 @@ import { Subscribe } from 'app/custom-decorators';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { Applications } from '@store/actions/applications.actions';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { ApplicationComponent } from './application/application.component';
+import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'admin-applications',
   templateUrl: './applications.component.html',
   styleUrls: ['./applications.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: true,
+  imports: [
+    NgFor,
+    ApplicationComponent,
+    NgIf,
+    MatLegacyButtonModule,
+    MatIconModule,
+    SortByPipe,
+    AsyncPipe,
+  ],
 })
 export class ApplicationsComponent implements OnInit {
-
-  @Select(UserState.GetPermission('create_application')) canCreateApplication$: Observable<boolean>;
+  @Select(UserState.GetPermission('create_application'))
+  canCreateApplication$: Observable<boolean>;
 
   constructor(
     private _api: ApiService,
     private _dialog: MatDialog,
     private _store: Store
-  ) { }
+  ) {}
 
   @Select(ApplicationsState) applications$: Observable<Application[]>;
 
@@ -38,21 +53,26 @@ export class ApplicationsComponent implements OnInit {
 
   @Subscribe()
   newApp() {
-    return this._dialog.open(EnterValueComponent, {
-      autoFocus: true,
-      data: {
-        word: 'Application'
-      }
-    }).afterClosed().pipe(
-      map(res => res.value),
-      filter(value => !!value),
-      switchMap(value => this._api.createApplication(value)),
-      switchMap(response => this._store.dispatch( new Applications.AddApplication({
-          app_id: response.app_id,
-          app_name: response.app_name
-        })
-      ))
-    );
+    return this._dialog
+      .open(EnterValueComponent, {
+        autoFocus: true,
+        data: {
+          word: 'Application',
+        },
+      })
+      .afterClosed()
+      .pipe(
+        map(res => res.value),
+        filter(value => !!value),
+        switchMap(value => this._api.createApplication(value)),
+        switchMap(response =>
+          this._store.dispatch(
+            new Applications.AddApplication({
+              app_id: response.app_id,
+              app_name: response.app_name,
+            })
+          )
+        )
+      );
   }
-
 }

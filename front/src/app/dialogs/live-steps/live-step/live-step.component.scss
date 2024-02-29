@@ -1,110 +1,109 @@
-
 @import 'color';
 
 :host {
-    display: block;
+  display: block;
+  width: 100%;
+  margin-bottom: 5px;
+  .info-row {
+    display: flex;
     width: 100%;
-    margin-bottom: 5px;
-    .info-row {
-        display: flex;
-        width: 100%;
-        line-height: 20px;
-        align-items: center;
-        min-height: 40px;
-        & > div {
-            &:first-child {
-                margin-right: 5px;
-            }
-            &:last-child {
-                margin-left: 5px;
-            }
-            &:not(:first-child):not(:last-child) {
-                margin: 0 5px;
-            }
-            flex: initial;
-        }
-        .index {
-            font-weight: bold;
-            color: $blue;
-            text-align: center;
-            flex: 0 25px;
-        }
-        .text {
-            line-height: 20px;
-            flex: 1;
-            word-break: break-all;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            .step-detail {
-                color: $blue;
-                font-weight: bold;
-                opacity: .9;
-            }
-        }
-        .icon-status {
-            flex: 0 20px;
-            height: 40px;
-            background-repeat: no-repeat;
-            background-size: contain;
-            background-position: center 8px;
-            &.waiting {
-                background-image: url(^assets/hourglass.svg);
-            }
-            &.success {
-                background-image: url(^assets/check.svg);
-            }
-            &.failed {
-                background-image: url(^assets/warning.svg);
-            }
-            &.running {
-                background-image: url(^assets/Google-loader.gif);
-                background-image: url(^assets/Google-loader.svg);
-            }
-        }
-        .screen-image {
-            display: block;
-            height: 40px;
-            background-repeat: no-repeat;
-            background-size: 22px;
-            background-position: center 8px;
-            &.waiting {
-                background-image: url(^assets/hourglass.svg);
-            }
-            &.success {
-                background-image: url(^assets/check.svg);
-            }
-            &.failed {
-                background-image: url(^assets/warning.svg);
-            }
-            &.running {
-                background-image: url(^assets/Google-loader.gif);
-                background-image: url(^assets/Google-loader.svg);
-            }
-        }
-        .screenshot {
-            flex: 0 75px !important;
-            text-align: center;
-        }
-        .screen-preview {
-            display: block;
-            height: 40px;
-            width: 100%;
-            background-repeat: no-repeat;
-            background-size: contain;
-            background-position: center;
-            cursor: pointer;
-        }
-
-        .api_call {
-            height: 40px;
-            width: 100%;
-            cursor: pointer;
-        }
+    line-height: 20px;
+    align-items: center;
+    min-height: 40px;
+    & > div {
+      &:first-child {
+        margin-right: 5px;
+      }
+      &:last-child {
+        margin-left: 5px;
+      }
+      &:not(:first-child):not(:last-child) {
+        margin: 0 5px;
+      }
+      flex: initial;
     }
-    .error-row {
-        color: #D32F2F;
+    .index {
+      font-weight: bold;
+      color: $blue;
+      text-align: center;
+      flex: 0 25px;
+    }
+    .text {
+      line-height: 20px;
+      flex: 1;
+      word-break: break-all;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      .step-detail {
+        color: $blue;
         font-weight: bold;
-        text-rendering: optimizeLegibility;
+        opacity: 0.9;
+      }
     }
+    .icon-status {
+      flex: 0 20px;
+      height: 40px;
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center 8px;
+      &.waiting {
+        background-image: url(^assets/hourglass.svg);
+      }
+      &.success {
+        background-image: url(^assets/check.svg);
+      }
+      &.failed {
+        background-image: url(^assets/warning.svg);
+      }
+      &.running {
+        background-image: url(^assets/Google-loader.gif);
+        background-image: url(^assets/Google-loader.svg);
+      }
+    }
+    .screen-image {
+      display: block;
+      height: 40px;
+      background-repeat: no-repeat;
+      background-size: 22px;
+      background-position: center 8px;
+      &.waiting {
+        background-image: url(^assets/hourglass.svg);
+      }
+      &.success {
+        background-image: url(^assets/check.svg);
+      }
+      &.failed {
+        background-image: url(^assets/warning.svg);
+      }
+      &.running {
+        background-image: url(^assets/Google-loader.gif);
+        background-image: url(^assets/Google-loader.svg);
+      }
+    }
+    .screenshot {
+      flex: 0 75px !important;
+      text-align: center;
+    }
+    .screen-preview {
+      display: block;
+      height: 40px;
+      width: 100%;
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+      cursor: pointer;
+    }
+
+    .api_call {
+      height: 40px;
+      width: 100%;
+      cursor: pointer;
+    }
+  }
+  .error-row {
+    color: #d32f2f;
+    font-weight: bold;
+    text-rendering: optimizeLegibility;
+  }
 }

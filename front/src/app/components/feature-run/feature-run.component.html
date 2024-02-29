@@ -1,105 +1,138 @@
-<div class="row run" *ngLet="test | featureResultPassed as passed" (click)="changeShow()"
-    [class.showed]="show$ | async">
-    <div class="status-bar" [ngClass]="passed ? 'success' : 'failed'"></div>
-    <!-- Iterate over each enabled header -->
-    <div class="cell status">
-        <!-- Status box -->
-        <div class="status-box passed" stopPropagation [matMenuTriggerFor]="runStatus" *ngIf="passed; else failed">
-            Passed</div>
-        <ng-template #failed>
-            <div class="status-box failed" stopPropagation [matMenuTriggerFor]="runStatus">Failed</div>
-        </ng-template>
-        <!-- Override feature result status -->
-        <mat-menu #runStatus="matMenu">
-            <div class="menu-header">Override run status:</div>
-            <button (click)="setResultStatus(test, 'Success')" mat-menu-item>
-                <div class="status-option passed">Passed</div>
-            </button>
-            <button (click)="setResultStatus(test, 'Failed')" mat-menu-item>
-                <div class="status-option failed">Failed</div>
-            </button>
-            <mat-divider></mat-divider>
-            <button (click)="setResultStatus(test, '')" mat-menu-item>
-                <div class="status-option default">Default</div>
-            </button>
-        </mat-menu>
+<div
+  class="row run"
+  *ngLet="test | featureResultPassed as passed"
+  (click)="changeShow()"
+  [class.showed]="show$ | async">
+  <div class="status-bar" [ngClass]="passed ? 'success' : 'failed'"></div>
+  <!-- Iterate over each enabled header -->
+  <div class="cell status">
+    <!-- Status box -->
+    <div
+      class="status-box passed"
+      stopPropagation
+      [matMenuTriggerFor]="runStatus"
+      *ngIf="passed; else failed">
+      Passed
     </div>
-    <div class="cell run date_time">
-        <i></i>
-        {{ test.result_date | amParse | amDateFormat:'MMMM d yyyy, HH:mm' }}
-    </div>
-    <div class="cell total run number">
-        {{ test.total }}
-    </div>
-    <ng-container *ngLet="percentMode$ | async as percent">
-        <!-- OK field -->
-        <div class="cell ok run number">
-            <ng-container
-                *ngTemplateOutlet="percent ? percentNumber : simpleNumber; context: { $implicit: test.ok }"></ng-container>
-        </div>
-        <!-- NOK field -->
-        <div class="cell nok run number">
-            <ng-container
-                *ngTemplateOutlet="percent ? percentNumber : simpleNumber; context: { $implicit: test.fails }"></ng-container>
-        </div>
-        <!-- Skipped field -->
-        <div class="cell skipped run number">
-            <ng-container
-                *ngTemplateOutlet="percent ? percentNumber : simpleNumber; context: { $implicit: test.skipped }"></ng-container>
-        </div>
-        <!-- Template for percents -->
-        <ng-template #percentNumber let-number>
-            {{ number | percentageField:test.total }}
-        </ng-template>
-        <!-- Template for simple values -->
-        <ng-template #simpleNumber let-number>
-            {{ number }}
-        </ng-template>
-    </ng-container>
-    <div class="cell run execution_time number">
-        {{ test.execution_time | secondsToHumanReadable }}
-    </div>
-    <div class="cell run browser">
-        <i class="browser-icon" matTooltipPosition="above" [matTooltip]="test.browser.browser | titlecase"
-            [style.backgroundImage]="test.browser.browser | browserIcon"></i>
-    </div>
-    <div class="cell run pixel">
-        {{ test.pixel_diff | pixelDifference }}
-    </div>
-    <ng-template #noVideo>
-        <div class="video"></div>
+    <ng-template #failed>
+      <div
+        class="status-box failed"
+        stopPropagation
+        [matMenuTriggerFor]="runStatus">
+        Failed
+      </div>
     </ng-template>
-    <div class="options">
-        <button stopPropagation [matMenuTriggerFor]="featureResultMenu" mat-icon-button>
-            <mat-icon>more_vert</mat-icon>
-        </button>
-    </div>
-    <mat-menu #featureResultMenu="matMenu">
-        <button mat-menu-item *ngIf="test?.video_url" (click)="openVideo(test)">
-            <span>
-                <mat-icon>videocam</mat-icon>View video
-            </span>
-        </button>
-<a mat-menu-item target="_blank" [href]="test.feature_result_id | pdfLink" stopPropagation
-    matTooltip="Download complete Feature Report as PDF">
-    <span><mat-icon>picture_as_pdf</mat-icon>Report</span>
-    </a>
-        <button (click)="archive(test)" mat-menu-item>
-            <ng-container *ngIf="test.archived; else archivedRun">               
-                <span [matTooltip]="'unsave' | translate"
-                    matTooltipPosition="before"><mat-icon>unarchive</mat-icon>Unsave run</span>
-            </ng-container>
-            <ng-template #archivedRun>
-                <span [matTooltip]="'save' | translate" matTooltipPosition="before"><mat-icon>archive</mat-icon>Save
-                    run</span>
-            </ng-template>
-        </button>
-        <button *ngIf="!test.archived" (click)="deleteFeatureResult(test)" mat-menu-item>
-            <span>
-                <mat-icon>delete</mat-icon>Delete
-            </span>
-        </button>
+    <!-- Override feature result status -->
+    <mat-menu #runStatus="matMenu">
+      <div class="menu-header">Override run status:</div>
+      <button (click)="setResultStatus(test, 'Success')" mat-menu-item>
+        <div class="status-option passed">Passed</div>
+      </button>
+      <button (click)="setResultStatus(test, 'Failed')" mat-menu-item>
+        <div class="status-option failed">Failed</div>
+      </button>
+      <mat-divider></mat-divider>
+      <button (click)="setResultStatus(test, '')" mat-menu-item>
+        <div class="status-option default">Default</div>
+      </button>
     </mat-menu>
+  </div>
+  <div class="cell run date_time">
+    <i></i>
+    {{ test.result_date | amParse | amDateFormat: 'MMMM d yyyy, HH:mm' }}
+  </div>
+  <div class="cell total run number">
+    {{ test.total }}
+  </div>
+  <ng-container *ngLet="percentMode$ | async as percent">
+    <!-- OK field -->
+    <div class="cell ok run number">
+      <ng-container
+        *ngTemplateOutlet="
+          percent ? percentNumber : simpleNumber;
+          context: { $implicit: test.ok }
+        "></ng-container>
+    </div>
+    <!-- NOK field -->
+    <div class="cell nok run number">
+      <ng-container
+        *ngTemplateOutlet="
+          percent ? percentNumber : simpleNumber;
+          context: { $implicit: test.fails }
+        "></ng-container>
+    </div>
+    <!-- Skipped field -->
+    <div class="cell skipped run number">
+      <ng-container
+        *ngTemplateOutlet="
+          percent ? percentNumber : simpleNumber;
+          context: { $implicit: test.skipped }
+        "></ng-container>
+    </div>
+    <!-- Template for percents -->
+    <ng-template #percentNumber let-number>
+      {{ number | percentageField: test.total }}
+    </ng-template>
+    <!-- Template for simple values -->
+    <ng-template #simpleNumber let-number>
+      {{ number }}
+    </ng-template>
+  </ng-container>
+  <div class="cell run execution_time number">
+    {{ test.execution_time | secondsToHumanReadable }}
+  </div>
+  <div class="cell run browser">
+    <i
+      class="browser-icon"
+      matTooltipPosition="above"
+      [matTooltip]="test.browser.browser | titlecase"
+      [style.backgroundImage]="test.browser.browser | browserIcon"></i>
+  </div>
+  <div class="cell run pixel">
+    {{ test.pixel_diff | pixelDifference }}
+  </div>
+  <ng-template #noVideo>
+    <div class="video"></div>
+  </ng-template>
+  <div class="options">
+    <button
+      stopPropagation
+      [matMenuTriggerFor]="featureResultMenu"
+      mat-icon-button>
+      <mat-icon>more_vert</mat-icon>
+    </button>
+  </div>
+  <mat-menu #featureResultMenu="matMenu">
+    <button mat-menu-item *ngIf="test?.video_url" (click)="openVideo(test)">
+      <span> <mat-icon>videocam</mat-icon>View video </span>
+    </button>
+    <a
+      mat-menu-item
+      target="_blank"
+      [href]="test.feature_result_id | pdfLink"
+      stopPropagation
+      matTooltip="Download complete Feature Report as PDF">
+      <span><mat-icon>picture_as_pdf</mat-icon>Report</span>
+    </a>
+    <button (click)="archive(test)" mat-menu-item>
+      <ng-container *ngIf="test.archived; else archivedRun">
+        <span [matTooltip]="'unsave' | translate" matTooltipPosition="before"
+          ><mat-icon>unarchive</mat-icon>Unsave run</span
+        >
+      </ng-container>
+      <ng-template #archivedRun>
+        <span [matTooltip]="'save' | translate" matTooltipPosition="before"
+          ><mat-icon>archive</mat-icon>Save run</span
+        >
+      </ng-template>
+    </button>
+    <button
+      *ngIf="!test.archived"
+      (click)="deleteFeatureResult(test)"
+      mat-menu-item>
+      <span> <mat-icon>delete</mat-icon>Delete </span>
+    </button>
+  </mat-menu>
 </div>
 <!-- <ng-container *ngIf="show$ | async">
         <div class="row test" *ngLet="run | featureResultPassed as passed" [ngClass]="{'executing': run.running}" (click)="stepView(run)">

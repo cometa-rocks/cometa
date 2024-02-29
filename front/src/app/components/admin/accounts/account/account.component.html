@@ -1,23 +1,47 @@
 <div class="container">
   <div class="icon"></div>
   <div class="name">
-    <input spellcheck="false" disableAutocomplete disabled [(value)]="account.name">
+    <input
+      spellcheck="false"
+      disableAutocomplete
+      disabled
+      [(value)]="account.name" />
   </div>
   <div class="email">
-    <input spellcheck="false" disableAutocomplete disabled [(value)]="account.email">
+    <input
+      spellcheck="false"
+      disableAutocomplete
+      disabled
+      [(value)]="account.email" />
   </div>
   <div class="permission_name">
-    <input spellcheck="false" disableAutocomplete disabled [(value)]="account.permission_name">
+    <input
+      spellcheck="false"
+      disableAutocomplete
+      disabled
+      [(value)]="account.permission_name" />
   </div>
-  <div *ngIf="canEditAccount$ | async" matTooltip="Edit user" matTooltipPosition="above" class="modify" (click)="edit()"></div>
-  <div *ngIf="(canDeleteAccount$ | async) && origin != 'accounts-dialog'" matTooltip="Delete user" matTooltipPosition="above" (click)="removeIt()" class="remove"></div>
+  <div
+    *ngIf="canEditAccount$ | async"
+    matTooltip="Edit user"
+    matTooltipPosition="above"
+    class="modify"
+    (click)="edit()"></div>
+  <div
+    *ngIf="(canDeleteAccount$ | async) && origin != 'accounts-dialog'"
+    matTooltip="Delete user"
+    matTooltipPosition="above"
+    (click)="removeIt()"
+    class="remove"></div>
 </div>
 <div class="extra-info">
   <span class="date">
-    <strong>Created on: </strong>{{ account?.created_on | amParse | amDateFormat:"yyyy-MM-dd HH:mm a" }}
+    <strong>Created on: </strong
+    >{{ account?.created_on | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}
   </span>
   <span class="separator">|</span>
   <span class="date">
-    <strong>Last login: </strong>{{ account?.last_login | amParse | amDateFormat:'yyyy-MM-dd HH:mm a' }}
+    <strong>Last login: </strong
+    >{{ account?.last_login | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}
   </span>
 </div>

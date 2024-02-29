@@ -2,10 +2,23 @@
 <mat-dialog-content>
   <mat-form-field floatLabel="always">
     <mat-label>JSON Code</mat-label>
-    <textarea spellcheck="false" autocomplete="off" [(ngModel)]="json" matInput placeholder="Paste here"></textarea>
+    <textarea
+      spellcheck="false"
+      autocomplete="off"
+      [(ngModel)]="json"
+      matInput
+      placeholder="Paste here"></textarea>
   </mat-form-field>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button mat-stroked-button color="warn" [mat-dialog-close]="false">Cancel</button>
-  <button mat-stroked-button color="primary" [disabled]="!isValid(json)" [mat-dialog-close]="true">Import</button>
+  <button mat-stroked-button color="warn" [mat-dialog-close]="false">
+    Cancel
+  </button>
+  <button
+    mat-stroked-button
+    color="primary"
+    [disabled]="!isValid(json)"
+    [mat-dialog-close]="true">
+    Import
+  </button>
 </mat-dialog-actions>

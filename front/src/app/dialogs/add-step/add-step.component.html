@@ -1,22 +1,49 @@
 <h2 mat-dialog-title>Add {{ data.templates ? 'template' : 'step' }}</h2>
 <mat-dialog-content>
   <mat-form-field appearance="outline" class="step">
-    <input onmouseover="this.setSelectionRange(0, this.value.length)" onmouseout="this.setSelectionRange(0,0)" [@fontSize]="fontSize | async" [value]="step_protected" readonly matInput [placeholder]="data.templates ? 'Template' : 'Step'">
+    <input
+      onmouseover="this.setSelectionRange(0, this.value.length)"
+      onmouseout="this.setSelectionRange(0,0)"
+      [@fontSize]="fontSize | async"
+      [value]="step_protected"
+      readonly
+      matInput
+      [placeholder]="data.templates ? 'Template' : 'Step'" />
   </mat-form-field>
   <mat-form-field appearance="legacy" class="search-step">
     <mat-label>Search</mat-label>
-    <input [(ngModel)]="search" matInput [placeholder]="data.templates ? 'Template' : 'Step'" cdkFocusInitial>
-    <button mat-button *ngIf="search" matSuffix mat-icon-button aria-label="Clear" (click)="search=''">
+    <input
+      [(ngModel)]="search"
+      matInput
+      [placeholder]="data.templates ? 'Template' : 'Step'"
+      cdkFocusInitial />
+    <button
+      mat-button
+      *ngIf="search"
+      matSuffix
+      mat-icon-button
+      aria-label="Clear"
+      (click)="search = ''">
       <mat-icon>close</mat-icon>
     </button>
   </mat-form-field>
-  <h4>Available {{ data.templates ? 'templates' : 'steps'}}:</h4>
+  <h4>Available {{ data.templates ? 'templates' : 'steps' }}:</h4>
   <div class="actions-container">
-    <ng-container *ngIf="(actions$ | async | filterStep:search:data.templates) as actions">
-      <div class="action-row" [matTooltip]="action.description" matTooltipPosition="before" (click)="getStep(action)" *ngFor="let action of actions">
+    <ng-container
+      *ngIf="actions$ | async | filterStep: search : data.templates as actions">
+      <div
+        class="action-row"
+        [matTooltip]="action.description"
+        matTooltipPosition="before"
+        (click)="getStep(action)"
+        *ngFor="let action of actions">
         {{ action.action_name }}
       </div>
-      <div *ngIf="!actions.length">No {{ data.templates ? 'templates' : 'steps'}} were found with "{{ search }}".</div>
+      <div *ngIf="!actions.length">
+        No {{ data.templates ? 'templates' : 'steps' }} were found with "{{
+          search
+        }}".
+      </div>
     </ng-container>
   </div>
   <ng-container *ngIf="!data.templates">
@@ -25,22 +52,40 @@
       <div class="header">
         <div class="screenshot">Take Screenshot</div>
         <div class="compare">Compare Images</div>
-        <div style="clear:both;"></div>
+        <div style="clear: both"></div>
       </div>
       <div class="wrapper">
         <div class="screenshot">
-          <mat-checkbox class="checkbox-blue" color="primary" (ngModelChange)="screenshotChange($event); triggerCheckboxes();" [(ngModel)]="screenshot"></mat-checkbox>
+          <mat-checkbox
+            class="checkbox-blue"
+            color="primary"
+            (ngModelChange)="screenshotChange($event); triggerCheckboxes()"
+            [(ngModel)]="screenshot"></mat-checkbox>
         </div>
         <div class="compare">
-          <mat-checkbox class="checkbox-blue" color="primary" (ngModelChange)="triggerCheckboxes();" [(ngModel)]="compare" [disabled]="!screenshot"></mat-checkbox>
+          <mat-checkbox
+            class="checkbox-blue"
+            color="primary"
+            (ngModelChange)="triggerCheckboxes()"
+            [(ngModel)]="compare"
+            [disabled]="!screenshot"></mat-checkbox>
         </div>
-        <div style="clear:both;"></div>
+        <div style="clear: both"></div>
       </div>
     </div>
     <div class="fix">.</div>
   </ng-container>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button mat-stroked-button color="warn" [mat-dialog-close]="false">Cancel</button>
-  <button mat-stroked-button color="primary" [disabled]="!step.length" class="submit" [mat-dialog-close]="returnResponse()">Add</button>
+  <button mat-stroked-button color="warn" [mat-dialog-close]="false">
+    Cancel
+  </button>
+  <button
+    mat-stroked-button
+    color="primary"
+    [disabled]="!step.length"
+    class="submit"
+    [mat-dialog-close]="returnResponse()">
+    Add
+  </button>
 </mat-dialog-actions>

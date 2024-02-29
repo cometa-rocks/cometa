@@ -45,7 +45,7 @@ RewriteRule ^(.+)/@@BRANCH@@/(.+)$ https://%{HTTP_HOST}/$1/dev/$2 [R=301,L]
 LoadModule auth_openidc_module modules/mod_auth_openidc.so
 
 # provide multiple providers data
-OIDCMetadataDir /code/apache-conf/metadata
+OIDCMetadataDir /code/front/apache-conf/metadata
 OIDCDiscoverURL /welcome.html
 
 OIDCXForwardedHeaders X-Forwarded-Proto

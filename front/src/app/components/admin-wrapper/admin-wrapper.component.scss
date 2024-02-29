@@ -1,30 +1,31 @@
-
 @import 'color';
 @import 'breakpoints';
 
 :host {
-    background-color: $secondary-color;
-    display: block;
-    width: 100%;
-    min-height: calc(100vh - 60px);
-    padding: 45px 20px 60px;
-    box-sizing: border-box;
-    @include for-tablet-portrait-up {
-        padding: 45px 50px 60px;
-    }
-    overflow-x: hidden;
-    max-height: calc(100vh - var(--header-height));
-    height: calc(100vh - var(--header-height));
+  background-color: $secondary-color;
+  display: block;
+  width: 100%;
+  min-height: calc(100vh - 60px);
+  padding: 45px 20px 60px;
+  box-sizing: border-box;
+  @include for-tablet-portrait-up {
+    padding: 45px 50px 60px;
+  }
+  overflow-x: hidden;
+  max-height: calc(100vh - var(--header-height));
+  height: calc(100vh - var(--header-height));
 }
 
 :host::ng-deep .mat-tab-link {
-    text-transform: capitalize;
+  text-transform: capitalize;
 }
 
-::ng-deep .mat-tab-nav-bar.mat-primary .mat-tab-link:not(.mat-tab-disabled):focus {
-    background-color: rgba(0,0,0,.02)
+::ng-deep
+  .mat-tab-nav-bar.mat-primary
+  .mat-tab-link:not(.mat-tab-disabled):focus {
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 ::ng-deep .mat-tab-nav-bar.mat-primary .mat-ink-bar {
-    background-color: rgba(0,0,0,.6)
+  background-color: rgba(0, 0, 0, 0.6);
 }

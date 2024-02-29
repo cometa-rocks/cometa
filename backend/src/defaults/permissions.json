@@ -37,6 +37,7 @@
             "view_environments_panel": true,
             "view_features_panel": true,
             "view_accounts_panel": true,
+            "view_others_panel": true,
             "create_variable": true,
             "edit_variable": true,
             "delete_variable": true

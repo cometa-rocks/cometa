@@ -23,7 +23,7 @@ ErrorDocument 504 /50x.html
 LoadModule auth_openidc_module modules/mod_auth_openidc.so
 
 # provide multiple providers data
-OIDCMetadataDir /code/apache-conf/metadata
+OIDCMetadataDir /code/front/apache-conf/metadata
 OIDCDiscoverURL /welcome.html
 
 OIDCXForwardedHeaders X-Forwarded-Proto

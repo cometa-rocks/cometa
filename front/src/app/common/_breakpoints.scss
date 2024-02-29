@@ -1,139 +1,168 @@
-
 /* Defines breakpoints for mobile and desktop */
 
 @mixin breakpoint($point) {
-    @if $point == desktop {
-        @media (min-width: 70em) {
-            @content;
-        }
+  @if $point == desktop {
+    @media (min-width: 70em) {
+      @content;
     }
-    @else if $point == tablet {
-        @media (min-width: 50em) {
-            @content;
-        }
+  } @else if $point == tablet {
+    @media (min-width: 50em) {
+      @content;
     }
-    @else if $point == mobile {
-        @media (max-width: 37.5em)  {
-            @content;
-        }
+  } @else if $point == mobile {
+    @media (max-width: 37.5em) {
+      @content;
     }
+  }
 }
 
 @mixin maxWidth($point) {
-    @media (max-width: $point) {
-        @content;
-    }
+  @media (max-width: $point) {
+    @content;
+  }
 }
 
 @mixin minWidth($point) {
   @media (min-width: $point) {
-      @content;
+    @content;
   }
 }
 
 @mixin maxHeight($point) {
-    @media (max-height: $point) {
-        @content;
-    }
+  @media (max-height: $point) {
+    @content;
+  }
 }
 
 @mixin minHeight($point) {
   @media (min-height: $point) {
-      @content;
+    @content;
   }
 }
 
 @mixin pagination-mobile {
-  @media (max-width: 440px) { @content; }
+  @media (max-width: 440px) {
+    @content;
+  }
 }
 
 @mixin for-phone-only {
-    @media (max-width: 599px) { @content; }
+  @media (max-width: 599px) {
+    @content;
   }
-  @mixin for-phone-landscape-only {
-    @media (max-height: 500px) and (orientation: landscape) {
+}
+@mixin for-phone-landscape-only {
+  @media (max-height: 500px) and (orientation: landscape) {
+    @content;
+  }
+}
+@mixin for-phone-landscape-up {
+  @media (min-width: 500px) {
+    @content;
+  }
+}
+@mixin for-tablet-portrait-up {
+  @media (min-width: 600px) {
+    @content;
+  }
+}
+
+@mixin for-tablet-portrait-up-plus30 {
+  @media (min-width: 630px) {
+    @content;
+  }
+}
+
+@mixin for-super-large-desktop {
+  @media (min-width: 3300px) {
+    @content;
+  }
+}
+
+@mixin for-tablet-portrait-only {
+  @media (min-width: 600px) and (max-width: 899px) {
+    @content;
+  }
+}
+@mixin for-tablet-only {
+  @media (min-width: 900px) and (max-width: 1199px) {
+    @content;
+  }
+  @media (min-width: 600px) and (max-width: 899px) {
+    @content;
+  }
+}
+@mixin for-phone-and-tablet-only {
+  @media (min-width: 900px) and (max-width: 1199px) {
+    @content;
+  }
+  @media (min-width: 600px) and (max-width: 899px) {
+    @content;
+  }
+  @media (max-width: 599px) {
+    @content;
+  }
+}
+@mixin for-tablet-landscape-up {
+  @media (min-width: 900px) {
+    @content;
+  }
+}
+@mixin for-tablet-landscape-only {
+  @media (min-width: 900px) and (max-width: 1199px) {
+    @content;
+  }
+}
+@mixin for-desktop-up {
+  @media (min-width: 1200px) {
+    @content;
+  }
+}
+@mixin for-desktop-detail-up {
+  .container:not(.mobile) {
+    @content;
+  }
+}
+@mixin for-desktop-only {
+  @media (min-width: 1200px) and (max-width: 1799px) {
+    @content;
+  }
+}
+@mixin for-big-desktop-up {
+  @media (min-width: 1800px) {
+    @content;
+  }
+}
+
+@mixin for-ipad-pro {
+  @media only screen and (min-width: 1024px) and (max-height: 1366px) and (-webkit-min-device-pixel-ratio: 1.5) {
+    @content;
+  }
+}
+
+@mixin for-iphone7 {
+  @media only screen and (min-device-width: 375px) and (max-device-width: 667px) {
+    @supports (-webkit-overflow-scrolling: touch) {
       @content;
-   }
+    }
   }
-  @mixin for-phone-landscape-up {
-    @media (min-width: 500px) {
-      @content;
-   }
-  }
-  @mixin for-tablet-portrait-up {
-    @media (min-width: 600px) { @content; }
-  }
-
-  @mixin for-tablet-portrait-up-plus30 {
-    @media (min-width: 630px) { @content; }
-  }
-
-  @mixin for-super-large-desktop {
-    @media (min-width: 3300px) { @content; }
-  }
-
-  @mixin for-tablet-portrait-only {
-    @media (min-width: 600px) and (max-width: 899px) { @content; }
-  }
-  @mixin for-tablet-only {
-    @media (min-width: 900px) and (max-width: 1199px) { @content; }
-    @media (min-width: 600px) and (max-width: 899px) { @content; }
-  }
-  @mixin for-phone-and-tablet-only {
-    @media (min-width: 900px) and (max-width: 1199px) { @content; }
-    @media (min-width: 600px) and (max-width: 899px) { @content; }
-    @media (max-width: 599px) { @content; }
-  }
-  @mixin for-tablet-landscape-up {
-    @media (min-width: 900px) { @content; }
-  }
-  @mixin for-tablet-landscape-only {
-    @media (min-width: 900px) and (max-width: 1199px) { @content; }
-  }
-  @mixin for-desktop-up {
-    @media (min-width: 1200px) { @content; }
-  }
-  @mixin for-desktop-detail-up {
-    .container:not(.mobile) {
+  @media only screen and (min-device-width: 414px) and (max-device-width: 736px) {
+    @supports (-webkit-overflow-scrolling: touch) {
       @content;
     }
   }
-  @mixin for-desktop-only {
-    @media (min-width: 1200px) and (max-width: 1799px) { @content; }
-  }
-  @mixin for-big-desktop-up {
-    @media (min-width: 1800px) { @content; }
-  }
+}
 
-  @mixin for-ipad-pro {
-    @media only screen and (min-width: 1024px) and (max-height: 1366px) and (-webkit-min-device-pixel-ratio: 1.5) {
+@mixin for-iphone5 {
+  @media only screen and (min-device-width: 320px) and (max-device-width: 568px) {
+    @supports (-webkit-overflow-scrolling: touch) {
       @content;
     }
   }
+}
 
-  @mixin for-iphone7 {
-    @media only screen  and (min-device-width : 375px) and (max-device-width : 667px) {
-      @supports (-webkit-overflow-scrolling: touch) {
-        @content;
-      }
-    }
-    @media only screen and (min-device-width : 414px) and (max-device-width : 736px) {
-      @supports (-webkit-overflow-scrolling: touch) {
-        @content;
-      }
-    }
+@mixin portrait {
+  @media only screen and (orientation: portrait) {
+    @content;
   }
-
-  @mixin for-iphone5 {
-    @media only screen and (min-device-width : 320px) and (max-device-width : 568px) {
-      @supports (-webkit-overflow-scrolling: touch) {
-        @content;
-      }
-    }
-  }
-
-  @mixin portrait {
-    @media only screen and (orientation: portrait) {
-      @content;
-    }
-  }
+}

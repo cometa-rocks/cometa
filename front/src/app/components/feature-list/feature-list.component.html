@@ -1,135 +1,244 @@
 <!-- List of features -->
 <table>
-    <!-- Table headers -->
-    <thead role="rowgroup">
-        <tr>
-          <th [class.disabled]="dependsOnOther" class="running"></th>
-          <th [ngClass]="header.name | lowercase" *ngFor="let header of displayedColumns ; let i = index">
-            {{ header.name }}
-          </th>
-          <th class="options"></th>
-        </tr>
-    </thead>
-    <!-- Table rows -->
-    <tbody role="rowgroup">
-        <!-- Iterate over each feature item -->
-        <ng-container *ngFor="let feature of features | fillFeatureInfo; trackBy: trackId">
-            <!-- Map feature info -->
-            <ng-container *ngLet="feature.info | async as info">
-                <!-- Map feature running -->
-                <ng-container *ngLet="feature.running | async as running">
-                  <tr (click)="_sharedActions.goToFeature(feature.id)">
-                    <!-- Fields -->
-                    <td class="running" [class.disabled]="dependsOnOther" stopPropagation [matTooltip]="'tooltips.run_feature' | translate" matTooltipPosition="below">
-                      <mat-spinner class="exec-feature-loading" diameter="20" color="primary" *ngIf="info.feature_id | loading | async; else runButtons"></mat-spinner>
-                      <ng-template #runButtons>
-                        <button *ngIf="!info.depends_on_others" (click)="_sharedActions.run(info.feature_id)" mat-icon-button>
-                            <mat-icon color="primary">
-                                <ng-container *ngIf="running; else runIcon">remove_red_eye</ng-container>
-                                <ng-template #runIcon>play_circle_filled</ng-template>
-                            </mat-icon>
-                        </button>
-                      </ng-template>
-                    </td>
-                    <!-- Feature ID -->
-                    <td class="id">{{ feature.id }}</td>
-                    <!-- Feature Name -->
-                    <td class="name">
-                      <div>
-                        <mat-icon *ngIf="info.need_help" [matTooltip]="'need_help.tooltip' | translate" matTooltipPosition="above">help</mat-icon>
-                        {{ info.feature_name }}
-                      </div>
-                    </td>
-                    <!-- Feature Status -->
-                    <td class="status">
-                      <ng-container *ngIf="running; else showState">
-                        <div [matTooltip]="feature.status | async" class="state running">
-                          <mat-spinner class="item-loader" diameter="20"></mat-spinner>
-                          <span>Running</span>
-                        </div>
-                      </ng-container>
-                      <ng-template #showState>
-                        <div
-                          *ngIf="info.info"
-                          class="state"
-                          [ngClass]="!running && (info.info?.status | lowercase)">
-                            <ng-container [ngSwitch]="info.info?.status | lowercase">
-                              <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon>
-                              <mat-icon class="state-icon" *ngSwitchCase="'canceled'">remove_circle</mat-icon>
-                              <mat-icon class="state-icon" *ngSwitchCase="'failed'">close</mat-icon>
-                              <span style="text-align: right;" *ngSwitchDefault>-</span>
-                            </ng-container>
-                            <span style="vertical-align:middle;">{{ info?.info.status }}</span>
-                        </div>
-                      </ng-template>
-                    </td>
-                    <!-- Feature last date -->
-                    <td class="date">
-                        <ng-container *ngIf="info.info?.result_date as date; else emptyField">
-                            {{ date | amParse | amDateFormat:'dd.MM.yyyy HH:mm'}}
-                        </ng-container>
-                    </td>
-                    <!-- Feature execution time -->
-                    <td class="execution-time">
-                        <ng-container *ngIf="info.info?.execution_time as time; else emptyField">{{ time | secondsToHumanReadable }}</ng-container>
-                    </td>
-                    <!-- Feature steps -->
-                    <td class="steps">
-                        <ng-container *ngIf="info.info?.total as total; else emptyField">{{ total }}</ng-container>
-                    </td>
-                    <!-- Feature department -->
-                    <td class="department">{{ info.department_name }}</td>
-                    <!-- Feature application -->
-                    <td class="application">{{ info.app_name }}</td>
-                    <!-- Feature environment -->
-                    <td class="environment">{{ info.environment_name }}</td>
-                    <!-- Feature browsers -->
-                    <td class="browsers">
-                        <div class="browsers">
-                            <i class="my-icons" [matTooltip]="browser | browserComboText" *ngFor="let browser of info.browsers; trackBy: trackBrowser" [style.backgroundImage]="browser.browser | browserIcon"></i>
-                        </div>
-                    </td>
-                    <!-- Feature schedule -->
-                    <td class="cursorPointer schedule" stopPropagation (click)="_sharedActions.editSchedule(info.feature_id)" [matTooltip]="'tooltips.edit_schedule' | translate" matTooltipPosition="below">
-                        <mat-checkbox class="noPointerEvents" [checked]="info.schedule?.length > 0" color="primary"></mat-checkbox>
-                    </td>
-                    <!-- Feature settings icon with dropdown -->
-                    <td matTooltip="Options" class="settings">
-                        <button stopPropagation [matMenuTriggerFor]="featureOptions" mat-icon-button>
-                            <mat-icon>more_vert</mat-icon>
-                        </button>
-                    </td>
-                    <!-- Empty field template with hyphen -->
-                    <ng-template #emptyField>-</ng-template>
-                    <mat-menu class="feature-options" #featureOptions="matMenu" xPosition="after">
-                      <button *ngIf="info.feature_id | hasPermission:'edit_feature' | async" (click)="_sharedActions.openEditFeature(info.feature_id, 'edit')" matTooltip="Edit {{info.feature_name}} steps" matTooltipPosition="before" class="modify-feature" mat-menu-item>
-                        <mat-icon>edit</mat-icon>
-                        <span>Modify</span>
-                      </button>
-                      <button *ngIf="info.feature_id | hasPermission:'create_feature' | async" (click)="_sharedActions.openEditFeature(info.feature_id, 'clone')" matTooltip="Clone {{info.feature_name}}" matTooltipPosition="before" class="modify-feature" mat-menu-item>
-                        <mat-icon>content_copy</mat-icon>
-                        <span>Clone</span>
-                      </button>
-                      <button (click)="_sharedActions.moveFeature(info)" matTooltip="Move {{info.feature_name}}" matTooltipPosition="before" class="move-feature" mat-menu-item>
-                        <mat-icon>folder</mat-icon>
-                        <span>Move</span>
-                      </button>
-                      <mat-divider></mat-divider>
-                      <!-- Ask for Help option -->
-                      <button stopPropagation mat-menu-item *ngIf="info.feature_id | hasPermission:'create_feature' | async">
-                        <mat-checkbox [checked]="info?.need_help" (change)="_sharedActions.handleSetting(info.feature_id, 'need_help', $event)" color="primary" [matTooltip]="'need_help.explanation' | translate" matTooltipPosition="after">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
-                      </button>
-                      <!-- <button mat-menu-item [matMenuTriggerFor]="integrations">
+  <!-- Table headers -->
+  <thead role="rowgroup">
+    <tr>
+      <th [class.disabled]="dependsOnOther" class="running"></th>
+      <th
+        [ngClass]="header.name | lowercase"
+        *ngFor="let header of displayedColumns; let i = index">
+        {{ header.name }}
+      </th>
+      <th class="options"></th>
+    </tr>
+  </thead>
+  <!-- Table rows -->
+  <tbody role="rowgroup">
+    <!-- Iterate over each feature item -->
+    <ng-container
+      *ngFor="let feature of features | fillFeatureInfo; trackBy: trackId">
+      <!-- Map feature info -->
+      <ng-container *ngLet="feature.info | async as info">
+        <!-- Map feature running -->
+        <ng-container *ngLet="feature.running | async as running">
+          <tr (click)="_sharedActions.goToFeature(feature.id)">
+            <!-- Fields -->
+            <td
+              class="running"
+              [class.disabled]="dependsOnOther"
+              stopPropagation
+              [matTooltip]="'tooltips.run_feature' | translate"
+              matTooltipPosition="below">
+              <mat-spinner
+                class="exec-feature-loading"
+                diameter="20"
+                color="primary"
+                *ngIf="
+                  info.feature_id | loading | async;
+                  else runButtons
+                "></mat-spinner>
+              <ng-template #runButtons>
+                <button
+                  *ngIf="!info.depends_on_others"
+                  (click)="_sharedActions.run(info.feature_id)"
+                  mat-icon-button>
+                  <mat-icon color="primary">
+                    <ng-container *ngIf="running; else runIcon"
+                      >remove_red_eye</ng-container
+                    >
+                    <ng-template #runIcon>play_circle_filled</ng-template>
+                  </mat-icon>
+                </button>
+              </ng-template>
+            </td>
+            <!-- Feature ID -->
+            <td class="id">{{ feature.id }}</td>
+            <!-- Feature Name -->
+            <td class="name">
+              <div>
+                <mat-icon
+                  *ngIf="info.need_help"
+                  [matTooltip]="'need_help.tooltip' | translate"
+                  matTooltipPosition="above"
+                  >help</mat-icon
+                >
+                {{ info.feature_name }}
+              </div>
+            </td>
+            <!-- Feature Status -->
+            <td class="status">
+              <ng-container *ngIf="running; else showState">
+                <div
+                  [matTooltip]="feature.status | async"
+                  class="state running">
+                  <mat-spinner class="item-loader" diameter="20"></mat-spinner>
+                  <span>Running</span>
+                </div>
+              </ng-container>
+              <ng-template #showState>
+                <div
+                  *ngIf="info.info"
+                  class="state"
+                  [ngClass]="!running && (info.info?.status | lowercase)">
+                  <ng-container [ngSwitch]="info.info?.status | lowercase">
+                    <mat-icon class="state-icon" *ngSwitchCase="'success'"
+                      >done</mat-icon
+                    >
+                    <mat-icon class="state-icon" *ngSwitchCase="'canceled'"
+                      >remove_circle</mat-icon
+                    >
+                    <mat-icon class="state-icon" *ngSwitchCase="'failed'"
+                      >close</mat-icon
+                    >
+                    <span style="text-align: right" *ngSwitchDefault>-</span>
+                  </ng-container>
+                  <span style="vertical-align: middle">{{
+                    info?.info.status
+                  }}</span>
+                </div>
+              </ng-template>
+            </td>
+            <!-- Feature last date -->
+            <td class="date">
+              <ng-container
+                *ngIf="info.info?.result_date as date; else emptyField">
+                {{ date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm' }}
+              </ng-container>
+            </td>
+            <!-- Feature execution time -->
+            <td class="execution-time">
+              <ng-container
+                *ngIf="info.info?.execution_time as time; else emptyField"
+                >{{ time | secondsToHumanReadable }}</ng-container
+              >
+            </td>
+            <!-- Feature steps -->
+            <td class="steps">
+              <ng-container
+                *ngIf="info.info?.total as total; else emptyField"
+                >{{ total }}</ng-container
+              >
+            </td>
+            <!-- Feature department -->
+            <td class="department">{{ info.department_name }}</td>
+            <!-- Feature application -->
+            <td class="application">{{ info.app_name }}</td>
+            <!-- Feature environment -->
+            <td class="environment">{{ info.environment_name }}</td>
+            <!-- Feature browsers -->
+            <td class="browsers">
+              <div class="browsers">
+                <i
+                  class="my-icons"
+                  [matTooltip]="browser | browserComboText"
+                  *ngFor="let browser of info.browsers; trackBy: trackBrowser"
+                  [style.backgroundImage]="browser.browser | browserIcon"></i>
+              </div>
+            </td>
+            <!-- Feature schedule -->
+            <td
+              class="cursorPointer schedule"
+              stopPropagation
+              (click)="_sharedActions.editSchedule(info.feature_id)"
+              [matTooltip]="'tooltips.edit_schedule' | translate"
+              matTooltipPosition="below">
+              <mat-checkbox
+                class="noPointerEvents"
+                [checked]="info.schedule?.length > 0"
+                color="primary"></mat-checkbox>
+            </td>
+            <!-- Feature settings icon with dropdown -->
+            <td matTooltip="Options" class="settings">
+              <button
+                stopPropagation
+                [matMenuTriggerFor]="featureOptions"
+                mat-icon-button>
+                <mat-icon>more_vert</mat-icon>
+              </button>
+            </td>
+            <!-- Empty field template with hyphen -->
+            <ng-template #emptyField>-</ng-template>
+            <mat-menu
+              class="feature-options"
+              #featureOptions="matMenu"
+              xPosition="after">
+              <button
+                *ngIf="info.feature_id | hasPermission: 'edit_feature' | async"
+                (click)="
+                  _sharedActions.openEditFeature(info.feature_id, 'edit')
+                "
+                matTooltip="Edit {{ info.feature_name }} steps"
+                matTooltipPosition="before"
+                class="modify-feature"
+                mat-menu-item>
+                <mat-icon>edit</mat-icon>
+                <span>Modify</span>
+              </button>
+              <button
+                *ngIf="
+                  info.feature_id | hasPermission: 'create_feature' | async
+                "
+                (click)="
+                  _sharedActions.openEditFeature(info.feature_id, 'clone')
+                "
+                matTooltip="Clone {{ info.feature_name }}"
+                matTooltipPosition="before"
+                class="modify-feature"
+                mat-menu-item>
+                <mat-icon>content_copy</mat-icon>
+                <span>Clone</span>
+              </button>
+              <button
+                (click)="_sharedActions.moveFeature(info)"
+                matTooltip="Move {{ info.feature_name }}"
+                matTooltipPosition="before"
+                class="move-feature"
+                mat-menu-item>
+                <mat-icon>folder</mat-icon>
+                <span>Move</span>
+              </button>
+              <mat-divider></mat-divider>
+              <!-- Ask for Help option -->
+              <button
+                stopPropagation
+                mat-menu-item
+                *ngIf="
+                  info.feature_id | hasPermission: 'create_feature' | async
+                ">
+                <mat-checkbox
+                  [checked]="info?.need_help"
+                  (change)="
+                    _sharedActions.handleSetting(
+                      info.feature_id,
+                      'need_help',
+                      $event
+                    )
+                  "
+                  color="primary"
+                  [matTooltip]="'need_help.explanation' | translate"
+                  matTooltipPosition="after"
+                  >{{ 'need_help.ask_for' | translate }}</mat-checkbox
+                >
+              </button>
+              <!-- <button mat-menu-item [matMenuTriggerFor]="integrations">
                         <mat-icon>notifications_active</mat-icon>
                         <span>Integrate with</span>
                       </button> -->
-                      <mat-divider></mat-divider>
-                      <button *ngIf="info.feature_id | hasPermission:'delete_feature' | async" (click)="_sharedActions.deleteFeature(info.feature_id)" matTooltip="Delete feature {{info.feature_name}}" matTooltipPosition="before" class="delete-feature" mat-menu-item>
-                        <mat-icon>delete</mat-icon>
-                        <span>Delete</span>
-                      </button>
-                    </mat-menu>
-                    <!-- <mat-menu #integrations="matMenu" xPosition="after">
+              <mat-divider></mat-divider>
+              <button
+                *ngIf="
+                  info.feature_id | hasPermission: 'delete_feature' | async
+                "
+                (click)="_sharedActions.deleteFeature(info.feature_id)"
+                matTooltip="Delete feature {{ info.feature_name }}"
+                matTooltipPosition="before"
+                class="delete-feature"
+                mat-menu-item>
+                <mat-icon>delete</mat-icon>
+                <span>Delete</span>
+              </button>
+            </mat-menu>
+            <!-- <mat-menu #integrations="matMenu" xPosition="after">
                       <button stopPropagation mat-menu-item>
                         <mat-checkbox color="primary">Discord</mat-checkbox>
                       </button>
@@ -137,9 +246,9 @@
                         <mat-checkbox color="primary">Slack</mat-checkbox>
                       </button>
                     </mat-menu> -->
-                  </tr>
-                </ng-container>
-            </ng-container>
+          </tr>
         </ng-container>
-    </tbody>
+      </ng-container>
+    </ng-container>
+  </tbody>
 </table>

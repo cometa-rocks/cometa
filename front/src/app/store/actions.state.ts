@@ -10,23 +10,24 @@ import { Actions } from './actions/actions.actions';
  */
 @State<Action[]>({
   name: 'actions',
-  defaults: []
+  defaults: [],
 })
 @Injectable()
 export class ActionsState {
+  constructor(private _api: ApiService) {}
 
-  constructor( private _api: ApiService ) { }
+  @Action(Actions.GetActions)
+  getActions({ setState }: StateContext<Action[]>) {
+    return this._api
+      .getAvailableActions()
+      .pipe(tap(actions => setState(actions)));
+  }
 
-    @Action(Actions.GetActions)
-    getActions({ setState }: StateContext<Action[]>) {
-        return this._api.getAvailableActions().pipe(
-            tap(actions => setState(actions))
-        );
-    }
-
-    @Action(Actions.SetActions)
-    setActions({ setState }: StateContext<Action[]>, { actions }: Actions.SetActions) {
-        setState(actions);
-    }
-
+  @Action(Actions.SetActions)
+  setActions(
+    { setState }: StateContext<Action[]>,
+    { actions }: Actions.SetActions
+  ) {
+    setState(actions);
+  }
 }

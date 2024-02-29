@@ -244,13 +244,6 @@ function get_cometa_up_and_running() {
     updateCrontab "0 0 * * * cd $CURRENT_PATH/backend/scripts && ./housekeeping.sh" "housekeeping.sh"
     updateCrontab "0 0 * * * bash -c \"docker exec cometa_django fuser -k -HUP 8000/tcp\"" "gunicorn"
 
-    #
-    # Touch browsers.json
-    #
-    if [ ! -f backend/selenoid/browsers.json ] || [ $(cat backend/selenoid/browsers.json | grep . | wc -l) -eq 0 ]; then
-        RUNSELENOIDSCRIPT=true
-        echo "{}" > backend/selenoid/browsers.json && info "Created browsers.json file"
-    fi
 
     #
     # Replace <server> in docker-compose.yml with "local"
@@ -281,6 +274,13 @@ function get_cometa_up_and_running() {
         info "The default string in accounts.google.com.client was replaced with something else - hopefully your google oAuth client credentials";
     fi
 
+    #
+    # Touch browsers.json
+    #
+    if [ ! -f backend/selenoid/browsers.json ] || [ $(cat backend/selenoid/browsers.json | grep . | wc -l) -eq 0 ]; then
+        RUNSELENOIDSCRIPT=true
+        echo "{}" > backend/selenoid/browsers.json && info "Created browsers.json file"
+    fi
 
     #
     # Bring up the system

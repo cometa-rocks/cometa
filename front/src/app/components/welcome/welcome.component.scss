@@ -1,122 +1,123 @@
-
 @import 'color';
 @import 'breakpoints';
 
 :host {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 // First level container
 .container {
+  width: 100%;
+  height: 100%;
+  // Main container for the welcome page
+  .welcome {
+    display: flex;
+    flex-direction: column;
     width: 100%;
     height: 100%;
-    // Main container for the welcome page
-    .welcome {
+    align-items: center;
+    @include for-phone-landscape-up {
+      flex-wrap: nowrap;
+    }
+    // Container for the text the user sees beneath the welcome message
+    .welcome_message {
+      text-align: center;
+      margin: 20px 0;
+      width: 90%;
+      // Golden color for 'co.' in co.meta
+      span {
+        color: $secondary-color;
+      }
+      p {
+        margin-top: 10px;
+      }
+    }
+    // Container for the welcome buttons and new testcase
+    .welcome_buttons,
+    .create_testcase {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      @include for-phone-landscape-up {
+        justify-content: space-evenly;
+        flex-direction: row;
+        flex-wrap: nowrap;
+      }
+      // Each div the button description
+      div {
         display: flex;
         flex-direction: column;
-        width: 100%;
-        height: 100%;
-        align-items: center;
-        @include for-phone-landscape-up {
-            flex-wrap: nowrap;
-        }
-        // Container for the text the user sees beneath the welcome message
-        .welcome_message {
-            text-align: center;
-            margin: 20px 0;
-            width: 90%;
-            // Golden color for 'co.' in co.meta
-            span {
-                color: $secondary-color;
-            }
-            p {
-                margin-top: 10px;
-            }
-        }
-        // Container for the welcome buttons and new testcase
-        .welcome_buttons, .create_testcase {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
+        border-radius: 3px;
+        border: 1px solid $low-dark;
+        padding: 10px;
+        box-sizing: border-box;
+        margin: 10px 0;
+        width: 90%;
+        background-color: $pure-white;
+        color: $primary-color;
+        align-self: center;
+        // Container for the upper image of the button
+        div {
+          align-items: center;
+          border: none;
+          // Image itself
+          i {
+            width: 100px;
+            height: 100px;
+            background-image: url(^assets/internal/COM_WELCOME_LOGO.svg);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
             @include for-phone-landscape-up {
-                justify-content: space-evenly;
-                flex-direction: row;
-                flex-wrap: nowrap;
+              width: 100px;
+              height: 100px;
             }
-            // Each div the button description
-            div {
-                display: flex;
-                flex-direction: column;
-                border-radius: 3px;
-                border: 1px solid $low-dark;
-                padding: 10px;
-                box-sizing: border-box;
-                margin: 10px 0;
-                width: 90%;
-                background-color: $pure-white;
-                color: $primary-color;
-                align-self: center;
-                // Container for the upper image of the button
-                div {
-                    align-items: center;
-                    border: none;
-                    // Image itself
-                    i {
-                        width: 100px;
-                        height: 100px;
-                        background-image: url(^assets/internal/COM_WELCOME_LOGO.svg);
-                        background-repeat: no-repeat;
-                        background-position: center;
-                        background-size: contain;
-                        @include for-phone-landscape-up {
-                            width: 100px;
-                            height: 100px;
-                        }
-                    }
-                }
-                // Header and footer text of the button
-                a {
-                    text-decoration: none;
-                    display: inline-block;
-                    margin: 10px 0;
-                    h2, h3 {
-                        cursor: pointer;
-                        color: $blue;
-                        font-weight: normal;
-                    }
-                }
-                @include for-phone-landscape-up {
-                    width: 30%;
-                }
-            }
+          }
         }
-        // Container with the buttons to manage testcase creation and tutorial
-        .create_testcase {
-            // Each button
-            div {
-                cursor: pointer;
-            }
+        // Header and footer text of the button
+        a {
+          text-decoration: none;
+          display: inline-block;
+          margin: 10px 0;
+          h2,
+          h3 {
+            cursor: pointer;
+            color: $blue;
+            font-weight: normal;
+          }
         }
-        // Upper image with cometa's log container
-        .welcome_logo {
-            width: 60%;
-            display: flex;
-            justify-content: center;
-            margin-top: 30px;
-            // Logo itself
-            i {
-                width: 60vw;
-                height: 40vw;
-                background-image: url(^assets/internal/COM_WELCOME_LOGO.svg);
-                background-repeat: no-repeat;
-                background-position: center;
-                background-size: contain;
-                @include for-phone-landscape-up {
-                    width: 60vw;
-                    height: 20vw;
-                }
-            }
+        @include for-phone-landscape-up {
+          width: 30%;
         }
+      }
     }
+    // Container with the buttons to manage testcase creation and tutorial
+    .create_testcase {
+      // Each button
+      div {
+        cursor: pointer;
+      }
+    }
+    // Upper image with cometa's log container
+    .welcome_logo {
+      width: 60%;
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+      // Logo itself
+      i {
+        width: 60vw;
+        height: 40vw;
+        background-image: url(^assets/internal/COM_WELCOME_LOGO.svg);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        @include for-phone-landscape-up {
+          width: 60vw;
+          height: 20vw;
+        }
+      }
+    }
+  }
 }

@@ -3,7 +3,13 @@
   <span>{{ data.description }}</span>
 </mat-dialog-content>
 <mat-dialog-actions>
-  <button mat-stroked-button color="warn" [mat-dialog-close]="false">Skip</button>
-  <button mat-stroked-button color="accent" [mat-dialog-close]="'later'">See later</button>
-  <button mat-stroked-button color="primary" [mat-dialog-close]="true">Continue with {{ data.name }}</button>
+  <button mat-stroked-button color="warn" [mat-dialog-close]="false">
+    Skip
+  </button>
+  <button mat-stroked-button color="accent" [mat-dialog-close]="'later'">
+    See later
+  </button>
+  <button mat-stroked-button color="primary" [mat-dialog-close]="true">
+    Continue with {{ data.name }}
+  </button>
 </mat-dialog-actions>

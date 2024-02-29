@@ -13,30 +13,47 @@ Author: dph000
       Old rowClick:
          (rowClick)="closeAddButtons($event.rowData)"
     -->
-    <mtx-grid [data]="table.rows"
-            [columns]="columns"
-            [showToolbar]="true"
-            [sortOnFront]="true"
-            [sortDisableClear]="true"
-            [sortDisabled]="false"
-            [pageSize]="featuresPagination$ | async"
-            [sortActive]="getSavedSort('active')"
-            [sortDirection]="getSavedSort('direction')"
-            [multiSelectable]="multiSelectable"
-            [rowSelectable]="rowSelectable"
-            [columnHideable]="columnHideable"
-            [columnHideableChecked]="columnHideableChecked"
-            [hideRowSelectionCheckbox]="hideRowSelectionCheckbox"
-            [columnMovable]="columnMovable"
-            [showColumnMenuHeader]="true"
-            [columnMenuHeaderText]="'Columns Settings'"
-            (columnChange)="saveColumnSettings($event)"
-            sortStart="asc"
-            (rowClick)="openContent($event.rowData)"
-            (page)="storePagination($event)"
-            (sortChange)="saveSort($event)"
-            [cellTemplate]="{orderType: runningTpl, id: idTpl, name: nameTpl, status: statusTpl, date: dateTpl, time: timeTpl, total: totalTpl, ok: okTpl, fails: failsTpl, department: departmentTpl, app: applicationTpl, environment: environmentTpl, browsers: browsersTpl, schedule: scheduleTpl, reference: optionsTpl}" 
-            [pageSizeOptions]="[10, 25, 50, 100, 200]">
+    <mtx-grid
+      [data]="table.rows"
+      [columns]="columns"
+      [showToolbar]="true"
+      [sortOnFront]="true"
+      [sortDisableClear]="true"
+      [sortDisabled]="false"
+      [pageSize]="featuresPagination$ | async"
+      [sortActive]="getSavedSort('active')"
+      [sortDirection]="getSavedSort('direction')"
+      [multiSelectable]="multiSelectable"
+      [rowSelectable]="rowSelectable"
+      [columnHideable]="columnHideable"
+      [columnHideableChecked]="columnHideableChecked"
+      [hideRowSelectionCheckbox]="hideRowSelectionCheckbox"
+      [columnMovable]="columnMovable"
+      [showColumnMenuHeader]="true"
+      [columnMenuHeaderText]="'Columns Settings'"
+      (columnChange)="saveColumnSettings($event)"
+      sortStart="asc"
+      (rowClick)="openContent($event.rowData)"
+      (page)="storePagination($event)"
+      (sortChange)="saveSort($event)"
+      [cellTemplate]="{
+        orderType: runningTpl,
+        id: idTpl,
+        name: nameTpl,
+        status: statusTpl,
+        date: dateTpl,
+        time: timeTpl,
+        total: totalTpl,
+        ok: okTpl,
+        fails: failsTpl,
+        department: departmentTpl,
+        app: applicationTpl,
+        environment: environmentTpl,
+        browsers: browsersTpl,
+        schedule: scheduleTpl,
+        reference: optionsTpl
+      }"
+      [pageSizeOptions]="[10, 25, 50, 100, 200]">
     </mtx-grid>
   </div>
 </ng-container>
@@ -46,14 +63,24 @@ Author: dph000
 <!-- Feature execution status / folder icon -->
 <ng-template #runningTpl let-row let-index="index" let-col="colDef">
   <ng-container *ngIf="row.type === 'feature'; else folderIcon">
-    <mat-spinner class="exec-feature-loading" diameter="20" color="primary" *ngIf="row.id | loading | async; else runButtons"></mat-spinner>
+    <mat-spinner
+      class="exec-feature-loading"
+      diameter="20"
+      color="primary"
+      *ngIf="row.id | loading | async; else runButtons"></mat-spinner>
     <ng-template #runButtons>
       <div *ngLet="row.id | featureRunning | async as running">
-        <button stopPropagation *ngIf="!row.depends_on_others" (click)="SArunFeature(row.id)" mat-icon-button>
-            <mat-icon color="primary">
-                <ng-container *ngIf="running; else runIcon">remove_red_eye</ng-container>
-                <ng-template #runIcon>play_circle_filled</ng-template>
-            </mat-icon>
+        <button
+          stopPropagation
+          *ngIf="!row.depends_on_others"
+          (click)="SArunFeature(row.id)"
+          mat-icon-button>
+          <mat-icon color="primary">
+            <ng-container *ngIf="running; else runIcon"
+              >remove_red_eye</ng-container
+            >
+            <ng-template #runIcon>play_circle_filled</ng-template>
+          </mat-icon>
         </button>
       </div>
     </ng-template>
@@ -77,7 +104,12 @@ Author: dph000
 <ng-template #nameTpl let-row let-index="index" let-col="colDef">
   <ng-container>
     <div (click)="openContent(row)">
-      <mat-icon *ngIf="row.help" [matTooltip]="'need_help.tooltip' | translate" matTooltipPosition="above">help</mat-icon>
+      <mat-icon
+        *ngIf="row.help"
+        [matTooltip]="'need_help.tooltip' | translate"
+        matTooltipPosition="above"
+        >help</mat-icon
+      >
       {{ row.name }}
     </div>
   </ng-container>
@@ -86,7 +118,7 @@ Author: dph000
 <!-- Feature status -->
 <ng-template #statusTpl let-row let-index="index" let-col="colDef">
   <div *ngLet="row.id | featureRunning | async as running">
-    <ng-container *ngIf="row.orderType == 2 && running; else showState"> 
+    <ng-container *ngIf="row.orderType == 2 && running; else showState">
       <!--
         OrderType = 1 # Folder
         OrderType = 2 # Feature that can be executed
@@ -102,13 +134,15 @@ Author: dph000
         *ngIf="row.status"
         class="state"
         [ngClass]="!running && (row.status | lowercase)">
-          <ng-container [ngSwitch]="row.status | lowercase">
-            <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon>
-            <mat-icon class="state-icon" *ngSwitchCase="'canceled'">remove_circle</mat-icon>
-            <mat-icon class="state-icon" *ngSwitchCase="'failed'">close</mat-icon>
-            <span style="text-align: right;" *ngSwitchDefault>-</span>
-          </ng-container>
-          <span style="vertical-align:middle;">{{ row.status }}</span>
+        <ng-container [ngSwitch]="row.status | lowercase">
+          <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon>
+          <mat-icon class="state-icon" *ngSwitchCase="'canceled'"
+            >remove_circle</mat-icon
+          >
+          <mat-icon class="state-icon" *ngSwitchCase="'failed'">close</mat-icon>
+          <span style="text-align: right" *ngSwitchDefault>-</span>
+        </ng-container>
+        <span style="vertical-align: middle">{{ row.status }}</span>
       </div>
     </ng-template>
   </div>
@@ -118,7 +152,7 @@ Author: dph000
 <ng-template #dateTpl let-row let-index="index" let-col="colDef">
   <ng-container *ngIf="row.date as date; else emptyField">
     <div>
-      {{ date | amParse | amDateFormat:'dd.MM.yyyy HH:mm'}}
+      {{ date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm' }}
     </div>
   </ng-container>
 </ng-template>
@@ -200,48 +234,99 @@ Author: dph000
 <!-- Browsers of the feature -->
 <ng-template #browsersTpl let-row let-index="index" let-col="colDef">
   <div class="browsers">
-    <i class="my-icons" [matTooltip]="browser | browserComboText" *ngFor="let browser of row.browsers; trackBy: trackBrowser" [style.backgroundImage]="browser.browser | browserIcon"></i>
+    <i
+      class="my-icons"
+      [matTooltip]="browser | browserComboText"
+      *ngFor="let browser of row.browsers; trackBy: trackBrowser"
+      [style.backgroundImage]="browser.browser | browserIcon"></i>
   </div>
 </ng-template>
 
 <!-- Schedule of the features -->
-<ng-template #scheduleTpl let-row let-index="index" let-col="colDef" >
-  <div class="cursorPointer schedule" stopPropagation (click)="SAeditSchedule(row.id)" [matTooltip]="'tooltips.edit_schedule' | translate" matTooltipPosition="below">
-    <mat-checkbox *ngIf="row.schedule" class="noPointerEvents" [checked]="row.schedule.length > 0" color="primary"></mat-checkbox>
+<ng-template #scheduleTpl let-row let-index="index" let-col="colDef">
+  <div
+    class="cursorPointer schedule"
+    stopPropagation
+    (click)="SAeditSchedule(row.id)"
+    [matTooltip]="'tooltips.edit_schedule' | translate"
+    matTooltipPosition="below">
+    <mat-checkbox
+      *ngIf="row.schedule"
+      class="noPointerEvents"
+      [checked]="row.schedule.length > 0"
+      color="primary"></mat-checkbox>
   </div>
 </ng-template>
 
 <!-- Options button for the feature -->
 <ng-template #optionsTpl let-row let-index="index" let-col="colDef">
   <!-- Button to open folder / feature manage menu -->
-  <button stopPropagation [matMenuTriggerFor]="row.type === 'feature' ? featureOptions : folderOptions" mat-icon-button>
+  <button
+    stopPropagation
+    [matMenuTriggerFor]="
+      row.type === 'feature' ? featureOptions : folderOptions
+    "
+    mat-icon-button>
     <mat-icon>more_vert</mat-icon>
   </button>
   <!-- Menu to manage feature -->
   <mat-menu class="feature-options" #featureOptions="matMenu" xPosition="after">
     <!-- Edit feature -->
-    <button *ngIf="row.id | hasPermission:'edit_feature' | async" (click)="SAopenEditFeature(row.id, 'edit')" matTooltip="Edit {{row.name}} steps" matTooltipPosition="before" class="modify-feature" mat-menu-item>
+    <button
+      *ngIf="row.id | hasPermission: 'edit_feature' | async"
+      (click)="SAopenEditFeature(row.id, 'edit')"
+      matTooltip="Edit {{ row.name }} steps"
+      matTooltipPosition="before"
+      class="modify-feature"
+      mat-menu-item>
       <mat-icon>edit</mat-icon>
       <span>Modify</span>
     </button>
     <!-- Clone feature -->
-    <button *ngIf="row.id | hasPermission:'create_feature' | async" (click)="SAopenEditFeature(row.id, 'clone')" matTooltip="Clone {{row.name}}" matTooltipPosition="before" class="modify-feature" mat-menu-item>
+    <button
+      *ngIf="row.id | hasPermission: 'create_feature' | async"
+      (click)="SAopenEditFeature(row.id, 'clone')"
+      matTooltip="Clone {{ row.name }}"
+      matTooltipPosition="before"
+      class="modify-feature"
+      mat-menu-item>
       <mat-icon>content_copy</mat-icon>
       <span>Clone</span>
     </button>
     <!-- Move feature -->
-    <button (click)="SAmoveFeature(row.reference)" matTooltip="Move {{row.name}}" matTooltipPosition="before" class="move-feature" mat-menu-item>
+    <button
+      (click)="SAmoveFeature(row.reference)"
+      matTooltip="Move {{ row.name }}"
+      matTooltipPosition="before"
+      class="move-feature"
+      mat-menu-item>
       <mat-icon>folder</mat-icon>
       <span>Move</span>
     </button>
     <mat-divider></mat-divider>
     <!-- Ask for help checkbox -->
-    <button stopPropagation mat-menu-item *ngIf="row.id | hasPermission:'create_feature' | async">
-      <mat-checkbox [checked]="row.help" (change)="SAhandleSetting(row.id, 'need_help', $event)" color="primary" [matTooltip]="'need_help.explanation' | translate" matTooltipPosition="after">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
+    <button
+      stopPropagation
+      mat-menu-item
+      *ngIf="row.id | hasPermission: 'create_feature' | async">
+      <mat-checkbox
+        [checked]="row.help"
+        (change)="SAhandleSetting(row.id, 'need_help', $event)"
+        color="primary"
+        [matTooltip]="'need_help.explanation' | translate"
+        matTooltipPosition="after"
+        >{{ 'need_help.ask_for' | translate }}</mat-checkbox
+      >
     </button>
     <mat-divider></mat-divider>
     <!-- Delete feature -->
-    <button *ngIf="row.id | hasPermission:'delete_feature' | async" (click)="SAdeleteFeature(row.id)" matTooltip="Delete feature {{row.name}}" matTooltipPosition="before" class="delete-feature" mat-menu-item>
+    <button
+      *ngIf="row.id | hasPermission: 'delete_feature' | async"
+      (click)="SAdeleteFeature(row.id)"
+      matTooltip="Delete feature {{ row.name }}"
+      matTooltipPosition="before"
+      class="delete-feature"
+      mat-menu-item>
       <mat-icon>delete</mat-icon>
       <span>Delete</span>
     </button>
@@ -250,23 +335,23 @@ Author: dph000
   <mat-menu class="folderOptionsMenu" #folderOptions="matMenu">
     <!-- Open the folder -->
     <button (click)="goFolder(row.reference, row.route)" mat-menu-item>
-        <mat-icon>folder_open</mat-icon>
-        <span>Open</span>
+      <mat-icon>folder_open</mat-icon>
+      <span>Open</span>
     </button>
     <!-- Edit folder -->
     <button (click)="modify(row.reference)" mat-menu-item>
-        <mat-icon>edit</mat-icon>
-        <span>Modify</span>
+      <mat-icon>edit</mat-icon>
+      <span>Modify</span>
     </button>
     <!-- Move folder -->
     <button (click)="SAmoveFolder(row.reference)" mat-menu-item>
-        <mat-icon>folder</mat-icon>
-        <span>Move</span>
+      <mat-icon>folder</mat-icon>
+      <span>Move</span>
     </button>
     <!-- Delete folder -->
     <button (click)="delete(row.reference)" class="remove" mat-menu-item>
-        <mat-icon>delete</mat-icon>
-        <span>Delete</span>
+      <mat-icon>delete</mat-icon>
+      <span>Delete</span>
     </button>
   </mat-menu>
 </ng-template>
