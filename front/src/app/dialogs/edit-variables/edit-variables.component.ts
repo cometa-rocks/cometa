@@ -339,7 +339,6 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   
   restoreSortState() {
     const sortState = JSON.parse(localStorage.getItem('Variable_Sort_State'));
-    console.log(sortState)
     if (sortState && this.sort) {
       this.sort.active = sortState.active;
       this.sort.direction = sortState.direction;
