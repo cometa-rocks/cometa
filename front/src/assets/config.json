@@ -1,5 +1,5 @@
 {
-  "version": "2.8.333",
+  "version": "2.8.334",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,13 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.334",
+      "date": "2024-03-01",
+      "bugfixes": [
+        "#4553 - Updated Additional Information section in pdf page with better description"
+      ]
+    },
     {
       "version": "2.8.333",
       "date": "2024-02-29",

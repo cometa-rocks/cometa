@@ -1,10 +1,12 @@
 # -*- coding: UTF-8 -*-
 # -------------------------------------------------------
 # This archive contains all the steps available in Cometa Front for execution.
-# Steps not included are Enterprise Licenced Steps
+# Steps not included are Enterprise Licensed Steps
+# Any change in this file are automatically reflected in Cometa on next execution of a feature.
 #
 # Changelog
-# 2022-07-11 RRO Added some sleeps of 100ms to copy and saving of downloaded and edited excel files, as received IO timeouts on DAI-prod
+# 2024-03-01 RRO Added delimiter sniffing to reading CSV files
+# 2022-07-11 RRO Added some sleeps of 100ms to copy and saving of downloaded and edited excel files, as received IO timeouts
 # 2022-07-08 RRO added last_downloaded_file.suffix to handle generated generic filenames where the suffix is maintained
 # 2022-03-04 RRO added new step "Search for "{something}" in IBM Cognos and click on first result"
 # 2022-03-01 RRO added step to hit ok on alert, confirm or prompt window
@@ -2901,16 +2903,19 @@ def updateCsv(excelFilePath, cell, value, savePath):
     # importing the pandas library
     import pandas as pd
 
-    # reading the csv file
-    df = pd.read_csv(excelFilePath)
+    # reading the csv file, options automatically detect delimiter and lineending
+    logger.debug(f"Reading CSV: {excelFilePath}")
+    df = pd.read_csv(excelFilePath, sep=None, engine='python')
 
     # get excel equivalent to CSV index
     indexes = index_transform(cell)
 
     # updating the column value/data
+    logger.debug(f"Updateing file in cell {cell}")
     df.iloc[indexes[0], indexes[1]] = value
 
     # writing into the file
+    logger.debug("Saveing updated file")
     df.to_csv(savePath, index=False)
 
 # edit excel or csv file and set a value to a given cell. The file is saved on the same path.
@@ -3028,7 +3033,7 @@ def CSVtoExcel(context, filePath):
         NEWFILE="%s.xlsx" % filePath
         send_step_details(context, 'Converting CSV file to Excel file.')
         import pandas as pd
-        df = pd.read_csv(filePath) # or other encodings
+        df = pd.read_csv(filePath,sep=None, engine='python')
         df.to_excel(NEWFILE, index=None)
         ISCSV=True
     send_step_details(context, '')
