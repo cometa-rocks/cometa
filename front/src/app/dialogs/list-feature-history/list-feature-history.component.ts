@@ -39,6 +39,7 @@ import { LogService } from "@services/log.service";
   selector: "list-feature-history",
   templateUrl: "./list-feature-history.component.html",
   styleUrls: ["./list-feature-history.component.scss"],
+  standalone:true,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListFeatureHistoryComponent implements  OnDestroy {

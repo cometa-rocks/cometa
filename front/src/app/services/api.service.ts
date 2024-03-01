@@ -544,6 +544,13 @@ export class ApiService {
     );
   }
 
+  modifyFeatureEnvironmentInDepartment(values) {
+    return this._http.patch<Success>(
+      `${this.api}department_bulk_edit/`,
+      values
+    );
+  }
+
   deleteAccount(UserID: number) {
     return this._http.delete<Success>(`${this.api}accounts/${UserID}/`);
   }

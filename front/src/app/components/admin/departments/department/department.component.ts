@@ -19,6 +19,7 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 import { NgIf, NgClass, AsyncPipe } from '@angular/common';
 import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
+import { ModifyFeatureInDepartmentComponent } from '@dialogs/modify-feature-in-department/modify-feature-in-department';
 
 @Component({
   selector: 'department',
@@ -57,6 +58,13 @@ export class DepartmentComponent {
     this._dialog.open(ModifyDepartmentComponent, {
       data: this.department.department_id,
       panelClass: 'modify-department-panel',
+    });
+  }
+
+  changeFeatureInDepartment() {
+    this._dialog.open(ModifyFeatureInDepartmentComponent, {
+      data: this.department,
+      panelClass: 'modify-feature-in-department',
     });
   }
 

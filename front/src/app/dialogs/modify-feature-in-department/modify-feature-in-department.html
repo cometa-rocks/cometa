@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>Change all feature Environment in {{ department.department_name }} </h2>
+<form [formGroup]="rForm" (ngSubmit)="changeEnvironment(rForm.value)">
+  <mat-dialog-content>
+    
+    <mat-form-field class="move-right" appearance="outline">
+      <mat-label>Select Environment</mat-label>
+      <mat-select formControlName="selected_environment">
+        <mat-option
+          *ngFor="
+            let environment of environments$ | async | sortBy: 'environment_id'
+          "
+          [value]="environment.environment_id"
+          >{{ environment.environment_name }}</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
+    <button
+      mat-stroked-button
+      color="primary"
+      [disabled]="!rForm.valid"
+      class="submit">
+      Modify
+    </button>
+  </mat-dialog-actions>
+</form>
