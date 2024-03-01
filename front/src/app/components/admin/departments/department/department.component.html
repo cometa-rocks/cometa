@@ -18,7 +18,14 @@
   *ngIf="canEditDepartment$ | async"
   class="modify"
   [ngClass]="{ validate: (modify | async) }"
-  (click)="saveOrEdit()"></div>
+  (click)="saveOrEdit()">
+</div>
+<div
+  *ngIf="canEditDepartment$ | async"
+  class="modify"
+  [ngClass]="{ validate: (modify | async) }"
+  (click)="changeFeatureInDepartment()">
+</div>
 
 <!-- Icon which opens modify department timeout dialog on click -->
 <div

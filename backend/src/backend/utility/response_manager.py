@@ -101,6 +101,16 @@ class ResponseManager:
         else:
             return JsonResponse(list_data, status=status.HTTP_200_OK)
 
+    def unauthorized_response(self, message:str, data=None):
+            response = {
+                "error": message,
+                "success": False, 
+            }
+            if data:
+                response["data"] = data
+
+            return JsonResponse(response, status=status.HTTP_400_BAD_REQUEST)
+
     def server_error_response(self, exception: Exception = None):
 
         if isinstance(exception, ValidationError):

@@ -233,13 +233,13 @@ def checkLoop(step):
 # @param featureFileName: string - Contains file of the feature
 # @param steps: Array - Array of the steps definition
 # @param feature_id: Feature - Info of the feature
-def create_feature_file(feature, steps, featureFileName):
+def create_feature_file(feature, steps, featureFileName, update_steps=True):
     with open(featureFileName+'.feature', 'w+') as featureFile:
         featureFile.write('Feature: '+feature.feature_name+'\n\n')
 
         # save the steps to save to database before removing old steps
         stepsToAdd = []
-
+        logger.debug("Start step filter")
         featureFile.write('\tScenario: First')
         for step in steps:
             # check if for some reason substeps are sent us from front and ignore them
@@ -281,14 +281,20 @@ def create_feature_file(feature, steps, featureFileName):
                 else:
                     # if enabled and not a sub feature execution add to the file
                     add_step_to_feature_file(step, featureFile)
+        logger.debug("Step filter end")
         featureFile.write('\n')
-
+        logger.debug("File written")
     # delete all the steps from the database 
-    Step.objects.filter(feature_id=feature.feature_id).delete()
+    if update_steps: 
+        Step.objects.filter(feature_id=feature.feature_id).delete()
+    
     # gather all the variables found during the save steps
     variables_used = []
 
+    logger.debug("Starting to step add in the feature file")
     # save all the steps found in stepsToAdd to the database
+    
+    # Start transaction store in memory
     for step in stepsToAdd:
         if step.get("step_type", None) == None:
             step['step_type'] = "subfeature" if re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content']) else "normal"
@@ -310,18 +316,25 @@ def create_feature_file(feature, steps, featureFileName):
             except ValueError:
                 # default timeout will be set later on
                 pass
-        Step.objects.create(
-            feature_id = feature.feature_id,
-            step_keyword = step['step_keyword'],
-            step_content = step['step_content'].replace('\\xa0', ' '),
-            enabled = step['enabled'],
-            step_type = step['step_type'],
-            screenshot = step['screenshot'],
-            compare = step['compare'],
-            continue_on_failure = step.get('continue_on_failure', False) or False, # just incase front sends continue_on_failure = null
-            belongs_to = step.get('belongs_to', feature.feature_id),
-            timeout = step.get('timeout', 60)
-        )
+        
+        if update_steps:
+            Step.objects.create(
+                feature_id = feature.feature_id,
+                step_keyword = step['step_keyword'],
+                step_content = step['step_content'].replace('\\xa0', ' '),
+                enabled = step['enabled'],
+                step_type = step['step_type'],
+                screenshot = step['screenshot'],
+                compare = step['compare'],
+                continue_on_failure = step.get('continue_on_failure', False) or False, # just incase front sends continue_on_failure = null
+                belongs_to = step.get('belongs_to', feature.feature_id),
+                timeout = step.get('timeout', 60)
+            )
+        else:
+            logger.debug(f"Update steps set to {update_steps}. Skipping step save")
+
+    # Close transaction
+    logger.debug("Step saved in the feature file")
 
     # update all the variables
     # get all the variable with this name and from same department as the current feature
@@ -698,7 +711,8 @@ class StepHistory(models.Model):
     belongs_to = models.IntegerField(null=True)
     timeout = models.IntegerField(default=60)
     continue_on_failure = models.BooleanField(default=False)
-    action = models.CharField(choices=HISTORY_TYPE, max_length=10, default="")  
+    # FIXME change null=True to required validation 
+    action = models.CharField(choices=HISTORY_TYPE, max_length=10, default="update", null=True)  
 
     def __str__( self ):
         return u"Step_name = %s" % self.step_content
@@ -762,28 +776,43 @@ class Feature(models.Model):
             # Create step history before updating
             logger.debug("Creating step history created")
             steps = Step.objects.filter(feature_id=self.feature_id).order_by('id')
-            for step in steps:
-                step_history = StepHistory()
-                copy_attributes(step,step_history)
-                step_history.action = kwargs.get('action_type')
-                step_history.feature_history_id = kwargs.get('feature_history_id')
-                step_history.save()
-            logger.debug("Step history created")
+            logger.debug("Steps found")
+
+            # FIXME XXX  relate to step history
+            # for step in steps:
+            #     logger.debug("started")
+            #     step_history = StepHistory()
+            #     logger.debug("Copy attribute")
+            #     copy_attributes(step,step_history)
+            #     logger.debug("Copy attribute done")
+            #     step_history.action = kwargs.get('action_type')
+            #     step_history.feature_history_id = kwargs.get('feature_history_id')
+            #     logger.debug("Started Saving")
+            #     # step_history.save()
+            #     logger.debug("Saved")
+
+            # logger.debug("Step history created")
 
             # Create / Update .feature and jsons whenever feature info is updated / created
             steps = kwargs.get('steps', list(Step.objects.filter(feature_id=self.feature_id).order_by('id').values()))
                 
-            logger.debug(f"Saving steps received from Front: {steps}")
+            # logger.debug(f"Saving steps received from Front: {steps}") Uncomment me
             # Create .feature
-            response = create_feature_file(self, steps, featureFileName)
+            logger.debug("Creating feature file")
+            update_steps = True if "update_steps" in kwargs.keys() and kwargs.get("update_steps") else False 
+
+            logger.debug(f"Update steps value {update_steps}")
+            response = create_feature_file(self, steps, featureFileName, update_steps=update_steps)
             # check if infinite loop was found
             if not response['success']:
                 return response # {"success": False, "error": "infinite loop found"}
             # Create .json
+            logger.debug("Creating json file")
             create_json_file(self, steps, featureFileName)
             # Create _meta.json
+            logger.debug("Creating meta file")
             create_meta_file(self, featureFileName)
-
+            logger.debug("meta file created")
         return {"success": True}
     
     def delete(self, *args, **kwargs):
@@ -850,7 +879,8 @@ class FeatureHistory(models.Model):
     need_help = models.BooleanField(default=False)
     info = models.ForeignKey('Feature_Runs', on_delete=models.SET_NULL, null=True, default=None, related_name='history_info')
     readonly_fields=('feature_id',)
-    action = models.CharField(choices=HISTORY_TYPE, max_length=10, default="")  # 'create', 'update', or 'delete'
+    # FIXME change null=True to required validation
+    action = models.CharField(choices=HISTORY_TYPE, max_length=10, default="update", null=True)  # 'create', 'update', or 'delete'
 
     def __str__( self ):
         return f"{self.id} {self.feature_name} ({self.feature_id})"

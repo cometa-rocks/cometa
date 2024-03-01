@@ -20,6 +20,7 @@ import { ModifyUserComponent } from '@dialogs/modify-user/modify-user.component'
 import { ModifyPasswordComponent } from '@dialogs/modify-password/modify-password.component';
 import { PermissionGuard } from '@guards/permission.guard';
 import { ModifyDepartmentComponent } from '@dialogs/modify-department/modify-department.component';
+import { ModifyFeatureInDepartmentComponent } from '@dialogs/modify-feature-in-department/modify-feature-in-department';
 import { ModifyDepartmentTimeoutComponent } from '@dialogs/modify-department-timeout/modify-department-timeout.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { AccountsDialog } from '@dialogs/accounts-dialog/accounts-dialog.component';
@@ -116,6 +117,7 @@ const routes: Routes = [
     ModifyUserComponent,
     ModifyPasswordComponent,
     ModifyDepartmentComponent,
+    ModifyFeatureInDepartmentComponent,
     ModifyDepartmentTimeoutComponent,
     DepartmentComponent,
     ApplicationComponent,

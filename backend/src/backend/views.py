@@ -2450,6 +2450,75 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         return JsonResponse({"success": True}, status=200)
 
 
+class DepartmentBulkEditViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows users to be viewed or edited.
+    """
+    queryset = Feature.objects.all()
+    serializer_class = FeatureSerializer
+    renderer_classes = (JSONRenderer,)
+    response_manager = ResponseManager('Department')
+
+    @require_permissions("edit_department")
+    def patch(self, request, *args, **kwargs):
+        try:
+            body = json.loads(request.body)
+            logger.debug(f"Received data {body}")
+            environment_id = body["selected_environment"]
+            department_id = body["department"]
+            superuser = request.session['user']['user_permissions']['permission_name'] == "SUPERUSER"
+
+            # If user is not super user check for user permissions
+            if not superuser:
+                logger.debug(f"User is not a super user")
+                departments = [x['department_id'] for x in request.session['user']['departments']]
+                if department_id not in departments:
+                    # if provide department id dose not belong to user then return message 
+                    self.response_manager.id_not_found_error_response(app_name="Department", id=department_id)
+            
+            environment = None
+            try:
+                # Check if environment ID exists   
+                environment = Environment.objects.get(environment_id=environment_id)
+                logger.debug(f"Environment found")
+            except Environment.DoesNotExist as e:
+                return self.response_manager.id_not_found_error_response(app_name="Environment",id=environment_id)
+
+            # Get all features with in department
+            feature_querysets = Feature.objects.filter(department_id=department_id)
+            logger.debug(f"{len(feature_querysets)} Features to be updated")
+
+            future_view_set = FeatureViewSet() 
+
+            for feature in feature_querysets:
+                # Prepare data object as needed 
+                # Not need to worry about Scheduling, As we are just updating information
+
+                data = {
+                    "feature_id":feature.feature_id,
+                    "environment_id":environment.environment_id,
+                    "environment_name":environment.environment_name
+                }
+                logger.debug(f"Data prepared {data}")
+                request.body = json.dumps(data)
+                logger.debug(f"Request body updated {request.body}")
+
+                # Send message to websocket connection to send the information about migration of feature start
+                future_view_set.patch(request)
+                # Send message to websocket connection the information about migration of feature end
+                logger.debug(f"Feature updated with ID {feature.feature_id}")
+
+                # need to user id request.session['user']['user_id']
+                # call function patch viewset
+                # Not a good approach we need to fix this in the future 
+                # This needs better versioning, instead of updating we need insert a new record and invalidate the old record + house keeping
+                
+            return self.response_manager.updated_response({'feature':len(feature_querysets)})
+        except Exception as e:
+            logger.exception(e)
+            return self.response_manager.server_error_response()
+
+
 class FeatureViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
@@ -2544,6 +2613,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
         # the feature id and a partial object definition of Feature
         # Get JSON payload
         data = json.loads(request.body)
+        logger.debug(request.body)
         # Get feature id from body
         featureId = data.get('feature_id', 0)
         # Create feature history before updating
@@ -2603,15 +2673,18 @@ class FeatureViewSet(viewsets.ModelViewSet):
         """
         Save submitted feature steps
         """
+        
         # Save feature into database
         if 'steps' in data and 'steps_content' in data.get('steps', {}):
             # Save with steps
             steps = data['steps']['steps_content'] or []
             feature.steps = len([x for x in steps if x['enabled'] == True])
-            result = feature.save(steps=steps, action_type='update', feature_history_id=feature_history.id )
+            logger.debug("Starting feature save")
+            result = feature.save(steps=steps, action_type='update', feature_history_id=feature_history.id, update_steps=True)
+            logger.debug("Feature saved")
         else:
             # Save without steps
-            result = feature.save()
+            result = feature.save(update_steps=False)
 
         """
         Process schedule if requested
@@ -2786,7 +2859,6 @@ class FeatureHistoryViewSet(viewsets.ModelViewSet):
             return self.response_manager.deleted_response_with_count(1)
         except FeatureHistory.DoesNotExist as e:
             return self.response_manager.id_not_found_error_response(feature_history_id)
-
 
 
 class StepViewSet(viewsets.ModelViewSet):
