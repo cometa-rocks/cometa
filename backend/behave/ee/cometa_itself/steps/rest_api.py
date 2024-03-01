@@ -97,9 +97,10 @@ def api_call(context, method, endpoint, parameters, headers):
     proxies = None
 
     if context.PROXY and len(context.PROXY) > 0:
+        # need to use "http://" in front of IP for bug seen here: https://github.com/psf/requests/issues/5297
         proxies = {
-            'http' : context.PROXY,
-            'https' : context.PROXY
+            'http' : 'http://'+context.PROXY,
+            'https' : 'http://'+context.PROXY
         }
         logger.debug(f"Making API request using proxy : {proxies}")
     response = session.request(
