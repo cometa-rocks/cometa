@@ -1,4 +1,9 @@
-import { Component, Inject, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import {
+  Component,
+  Inject,
+  ChangeDetectionStrategy,
+  OnInit,
+} from '@angular/core';
 import { ApiService } from '@services/api.service';
 import {
   UntypedFormBuilder,
@@ -28,7 +33,7 @@ import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { EnvironmentsState } from '@store/environments.state';
 import { Environments } from '@store/actions/environments.actions';
-import { SelectSnapshot } from '@ngxs-labs/select-snapshot';
+import { MessageDialog } from '@dialogs/message/message.dialog';
 
 @Component({
   selector: 'modify-feature-in-department',
@@ -58,7 +63,6 @@ export class ModifyFeatureInDepartmentComponent implements OnInit {
 
   rForm: UntypedFormGroup;
   department: Department;
-  
   constructor(
     private dialogRef: MatDialogRef<ModifyFeatureInDepartmentComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -67,11 +71,10 @@ export class ModifyFeatureInDepartmentComponent implements OnInit {
     private snack: MatSnackBar,
     private _store: Store
   ) {
-    this.department = data;
-    console.log(data);
+    this.department = data.department;
     this.rForm = this.fb.group({
       selected_environment: ['', Validators.required],
-      department: data.department_id,
+      department: data.department.department_id,
     });
   }
 
@@ -84,14 +87,16 @@ export class ModifyFeatureInDepartmentComponent implements OnInit {
       res => {
         if (res.success) {
           this.dialogRef.close(values);
-          let responseBody:any = res
-          console.log(res)
+          let responseBody: any = res;
           let updateCount = responseBody.department;
-          let message = `Environment modified successfully!
-          ${updateCount.feature} Feature, 
-          ${updateCount.feature_history} Feature History
-          `
-          this.snack.open(message, 'OK');
+          let message = `${updateCount.feature} Feature${(updateCount.feature as number) > 1 ? 's' : ''} environment modified successfully!`;
+          this.data.dialog.open(MessageDialog, {
+            id: 'message',
+            data: {
+              success: true,
+              message: message,
+            },
+          });
         } else {
           this.snack.open('An error ocurred', 'OK');
         }

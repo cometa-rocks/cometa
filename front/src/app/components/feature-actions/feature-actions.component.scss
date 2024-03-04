@@ -48,33 +48,6 @@
     }
 }
 
-.history{
-    height: 32px;
-    width: 32px;
-    background: url(^assets/icons/history.svg) no-repeat;
-    background-size: contain;
-    transform: scale(1) rotate(0deg);
-    opacity: 0.8;
-    transition: transform .2s ease-in-out;
-    &:hover {
-        transform: scale(1.1) rotate(10deg);
-    }
-}
-
-.history{
-    height: 32px;
-    width: 32px;
-    background: url(^assets/icons/history.svg) no-repeat;
-    background-size: contain;
-    transform: scale(1) rotate(0deg);
-    opacity: 0.8;
-    transition: transform .2s ease-in-out;
-    &:hover {
-        transform: scale(1.1) rotate(10deg);
-    }
-}
-
-
 
 .log {
   background: transparent;
