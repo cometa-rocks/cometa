@@ -2493,7 +2493,6 @@ class DepartmentBulkEditViewSet(viewsets.ModelViewSet):
             for feature in feature_querysets:
                 # Prepare data object as needed 
                 # Not need to worry about Scheduling, As we are just updating information
-
                 data = {
                     "feature_id":feature.feature_id,
                     "environment_id":environment.environment_id,
@@ -2502,17 +2501,12 @@ class DepartmentBulkEditViewSet(viewsets.ModelViewSet):
                 logger.debug(f"Data prepared {data}")
                 request.body = json.dumps(data)
                 logger.debug(f"Request body updated {request.body}")
-
-                # Send message to websocket connection to send the information about migration of feature start
+                # call function patch view set
+                # FIXME Not a good approach we need to fix this in the future 
+                # This needs better versioning, instead of updating we need insert a new record and invalidate the old record + house keeping
                 future_view_set.patch(request)
-                # Send message to websocket connection the information about migration of feature end
                 logger.debug(f"Feature updated with ID {feature.feature_id}")
 
-                # need to user id request.session['user']['user_id']
-                # call function patch viewset
-                # Not a good approach we need to fix this in the future 
-                # This needs better versioning, instead of updating we need insert a new record and invalidate the old record + house keeping
-                
             return self.response_manager.updated_response({'feature':len(feature_querysets)})
         except Exception as e:
             logger.exception(e)

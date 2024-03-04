@@ -775,7 +775,7 @@ class Feature(models.Model):
             featureFileName = get_feature_path(self)['fullPath']
 
             # Create step history before updating
-            logger.debug("Creating step history created")
+            # logger.debug("Creating step history")
             steps = Step.objects.filter(feature_id=self.feature_id).order_by('id')
             logger.debug("Steps found")
 
@@ -802,7 +802,7 @@ class Feature(models.Model):
             logger.debug("Creating feature file")
             update_steps = True if "update_steps" in kwargs.keys() and kwargs.get("update_steps") else False 
 
-            logger.debug(f"Update steps value {update_steps}")
+            logger.debug(f"update_steps value is set to {update_steps}")
             response = create_feature_file(self, steps, featureFileName, update_steps=update_steps)
             # check if infinite loop was found
             if not response['success']:
@@ -813,7 +813,7 @@ class Feature(models.Model):
             # Create _meta.json
             logger.debug("Creating meta file")
             create_meta_file(self, featureFileName)
-            logger.debug("meta file created")
+            logger.debug("Meta file created")
         return {"success": True}
     
     def delete(self, *args, **kwargs):
@@ -845,6 +845,7 @@ class Feature(models.Model):
         ordering = ['last_edited_date']
         verbose_name_plural = "Features"
 
+# FIXME it needs be removed. remove and preserve feature history in the same table
 class FeatureHistory(models.Model):
     id =  models.AutoField(primary_key=True)
     feature_id = models.IntegerField()

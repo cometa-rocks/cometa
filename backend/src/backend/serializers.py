@@ -296,6 +296,7 @@ class FeatureSerializer(serializers.ModelSerializer, FeatureMixin):
     def create(self, validated_data):
         return Feature.objects.create(**validated_data)
 
+# FIXME remove it as FeatureHistory will be removed
 class FeatureHistorySerializer(serializers.ModelSerializer, FeatureMixin):
 
      # get info about the latest feature result
