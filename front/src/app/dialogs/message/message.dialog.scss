@@ -1,0 +1,48 @@
+@import 'color';
+
+.mat-dialog-actions {
+  justify-content: flex-end;
+}
+
+i {
+  display: block;
+  margin: 20px auto;
+  width: 100px;
+  height: 100px;
+  background-image: url(^assets/error.svg);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+.mat-dialog-content {
+  padding: 0 25px;
+  box-sizing: border-box;
+}
+
+h2 {
+  text-align: center;
+}
+
+h2,
+h4 {
+  margin-bottom: 20px;
+  color: $blue;
+}
+
+p {
+  margin-bottom: 15px;
+}
+
+ul {
+  padding-left: 20px;
+  box-sizing: border-box;
+}
+
+li {
+  overflow-wrap: break-word;
+  line-height: 30px;
+  b {
+    color: $blue;
+  }
+}

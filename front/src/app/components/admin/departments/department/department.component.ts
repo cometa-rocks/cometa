@@ -63,7 +63,7 @@ export class DepartmentComponent {
 
   changeFeatureInDepartment() {
     this._dialog.open(ModifyFeatureInDepartmentComponent, {
-      data: this.department,
+      data: { department: this.department, dialog: this._dialog },
       panelClass: 'modify-feature-in-department',
     });
   }

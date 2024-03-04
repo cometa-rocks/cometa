@@ -1,6 +1,6 @@
 from django.db import models
 from slugify import slugify
-import datetime
+import datetime 
 from django.contrib.postgres.fields import ArrayField
 from django.forms.models import model_to_dict
 from pathlib import Path
@@ -285,6 +285,7 @@ def create_feature_file(feature, steps, featureFileName, update_steps=True):
         featureFile.write('\n')
         logger.debug("File written")
     # delete all the steps from the database 
+    # When migrating the feature environment, the 'update_steps' will be set to False.
     if update_steps: 
         Step.objects.filter(feature_id=feature.feature_id).delete()
     
@@ -316,7 +317,7 @@ def create_feature_file(feature, steps, featureFileName, update_steps=True):
             except ValueError:
                 # default timeout will be set later on
                 pass
-        
+        # When migrating the feature environment, the 'update_steps' will be set to False.
         if update_steps:
             Step.objects.create(
                 feature_id = feature.feature_id,
@@ -331,7 +332,7 @@ def create_feature_file(feature, steps, featureFileName, update_steps=True):
                 timeout = step.get('timeout', 60)
             )
         else:
-            logger.debug(f"Update steps set to {update_steps}. Skipping step save")
+            logger.debug(f"Update steps set to {update_steps}. Skipping step create")
 
     # Close transaction
     logger.debug("Step saved in the feature file")

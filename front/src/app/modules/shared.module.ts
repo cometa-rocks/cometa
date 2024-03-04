@@ -31,6 +31,7 @@ import { PlatformSortPipe } from '@pipes/platform-sort.pipe';
 import { OfferTourComponent } from '@dialogs/offer-tour/offer-tour.component';
 import { EditVariablesComponent } from '@dialogs/edit-variables/edit-variables.component';
 import { ErrorDialog } from '@dialogs/error/error.dialog';
+import { MessageDialog } from '@dialogs/message/message.dialog';
 import { MAT_LEGACY_SNACK_BAR_DEFAULT_OPTIONS as MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/legacy-snack-bar';
 import { MAT_LEGACY_DIALOG_DEFAULT_OPTIONS as MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/legacy-dialog';
 import { NetworkPaginatedListComponent } from '@components/network-paginated-list/network-paginated-list.component';
@@ -211,6 +212,7 @@ const pipes = [
 
 const dialogs = [
   ErrorDialog,
+  MessageDialog,
   EmailTemplateHelp,
   HtmlDiffDialog,
   AreYouSureDialog,

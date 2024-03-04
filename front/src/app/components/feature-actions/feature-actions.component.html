@@ -17,6 +17,7 @@
     matTooltip="Edit Feature (E)"
     (click)="_sharedActions.openEditFeature(feature.feature_id, 'edit')"
     class="edit"></div>
+    <!-- Change Icon of this button -->
   <div
     *ngIf="canEditFeature$ | async"
     matTooltip="Show feature changes history"

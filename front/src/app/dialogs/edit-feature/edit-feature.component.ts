@@ -863,7 +863,7 @@ export class EditFeature implements OnInit, OnDestroy {
     // ... create dialog asks if you want to run it now
     // ... data.mode can be 'new', 'clone', 'edit'
     // -------------------------------------------------
-    // Special code for when editing or clonning feature
+    // Special code for when editing or cloning feature
     // -------------------------------------------------
     dataToSend.feature_id = this.data.feature.feature_id;
     dataToSend.cloud = this.feature.getValue().cloud;
