@@ -18,11 +18,13 @@
     (click)="_sharedActions.openEditFeature(feature.feature_id, 'edit')"
     class="edit"></div>
     <!-- Change Icon of this button -->
-  <div
+  <!-- <div
+  Commented, As it is not implemented properly
     *ngIf="canEditFeature$ | async"
     matTooltip="Show feature changes history"
     (click)="_sharedActions.showEditFeatureHistory(feature.feature_id)"
-    class="history"></div>
+    class="history"></div> 
+  -->
   <ng-container *ngIf="!feature.depends_on_others">
     <div matTooltip="Show Log Output (L)" (click)="viewLog()" class="log">
       LOG
