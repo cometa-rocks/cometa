@@ -219,6 +219,17 @@
                   >
                 </button>
               </div>
+              <div class="option view-rest-api" *ngIf="item?.step_variables_data!='{}'">
+                <button
+                  (click)="loadVariableDataViewer(item.step_variables_data, item.step_name)"
+                  matTooltip="See the feature variable values created in this step."
+                  matTooltipPosition="before"
+                  stopPropagation
+                  mat-icon-button>
+                  <mat-icon>code</mat-icon
+                  >
+                </button>
+              </div>
               <!-- View HTML Difference -->
               <div class="option view-html-diff" *ngIf="item?.diff">
                 <button

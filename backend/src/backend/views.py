@@ -2052,8 +2052,10 @@ class StepResultViewSet(viewsets.ModelViewSet):
             data['relative_execution_time'] = last_step.relative_execution_time + data['execution_time']
         else:
             # This will execute if it is a first step report of the execution
-            logger.debug("Relative time Initated")
+            logger.debug("Relative time Initiated")
             data['relative_execution_time'] = data['execution_time']
+
+        logger.debug(f"Saving step result with data {data}")
 
         step_result = Step_result.objects.create(**data)
         return JsonResponse(StepResultSerializer(step_result, many=False).data)
@@ -2064,10 +2066,11 @@ class StepResultViewSet(viewsets.ModelViewSet):
         # Check StepResult parameter
         if step_result_id:
             data = request.data
-            # Perform update of StepResult in database dynamicly with data passed from Front
+            # Perform update of StepResult in database dynamically with data passed from Front
             step_result = Step_result.objects.filter(step_result_id=step_result_id)
             if not step_result.exists():
                 return JsonResponse({'success': False, 'error': 'Invalid step result id or not found'}, status=404)
+            logger.debug(f"Updating step result with data {data}")
             step_result.update(**data)
             # --------------------------
             # #3001 - Update parent featureResult status if there is at least 1 failed step in the step results array
@@ -2077,7 +2080,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
             feature_result_id = step_result[0].feature_result_id
             # Get all step results in current feature result
             step_results = Step_result.objects.filter(feature_result_id=feature_result_id)
-            # Filter successed steps
+            # Filter succeeded steps
             failed_steps = [step for step in step_results if
                             (step.status and step.status == 'Failed') or (not step.status and not step.success)]
             success = len(failed_steps) == 0

@@ -33,6 +33,7 @@ import logging
 import traceback
 import urllib.parse
 import random
+import jq
 
 # import PIL
 from subprocess import call, run
@@ -47,6 +48,8 @@ from functools import wraps
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver import ActionChains
+from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 from selenium.webdriver.remote.file_detector import LocalFileDetector
 # just to import secrets
 sys.path.append("/code")
@@ -339,6 +342,16 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
     compares = os.environ['COMPARES'].split('.')
     feature_id = context.feature_id
     feature_result_id = os.environ['feature_result_id']
+
+    # Prepare step variable data
+    step_variables_data = {}
+    if context.step_variable_info:
+        # Saving data with type will help in the frontend to show in content type with view
+           step_variables_data["type"] = context.step_variable_info["type"],
+           step_variables_data["data"] = {context.step_variable_info["variable_name"]: context.step_variable_info["data"]}
+    
+    logger.debug(f"Step variable data : {step_variables_data}")
+
     data = {
         'feature_result_id': feature_result_id,
         'step_name': step_name,
@@ -348,7 +361,8 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         'status': "Success" if success else "Failed",
         'belongs_to': context.step_data['belongs_to'],
         'rest_api_id': context.step_data.get('rest_api', None),
-        'notes': context.step_data.get('notes', {})
+        'notes': context.step_data.get('notes', {}),
+        'step_variables_data': json.dumps(step_variables_data)
     }
     # add custom error if exists
     if 'custom_error' in context.step_data:
@@ -3874,6 +3888,156 @@ def find_element_in_lazy_loaded_element(context, selector, scrollable_element_se
 
     if not found:
         raise CustomError('Element not found in lazy-loaded table... please try a different selector.')
+
+
+# Common fucntion that is used in two different steps, So kept it in a sperate place
+def common_for_ag_grid_column(context, column_name, ag_grid_selector):
+    send_step_details(context, 'Waiting for AG grid to appear')
+    ag_table_element = waitSelector(context, 'css', ag_grid_selector)
+
+    # ag_table_element = waitSelector(context, 'css', ag_grid_selector, max_timeout=5)
+    if len(ag_table_element) > 0:
+        ag_table_element = ag_table_element[0]
+    else:
+        raise CustomError("Unable to find AG grid table.")
+    
+    # get the width of the scrollable element add 400 to cover the last element. 
+    total_scrollable_width = ag_table_element.rect['width'] + 400
+    logger.debug(f"found width of AG grid : {total_scrollable_width}")
+    
+    logger.debug(f"Need to scroll horizeltally {total_scrollable_width}px")
+    initial_scrollable_width = 200
+
+    send_step_details(context, 'Waiting for column to appear, scrolling the view')
+    required_column = None
+    # This loop will scroll the screen
+    while not required_column and initial_scrollable_width <= total_scrollable_width:
+        # Replace with waitSelector timeout 3
+        # Path is related to AG Grid so used static xpath
+        scrollable_columns = waitSelector(context, "xpath", "//div[contains(@class,'ag-header-cell-sortable')]//span[@class='ag-header-cell-text']")
+
+        logger.debug("Checking on columns")
+        # This loop will check for headings for headings in the 
+        for i in range(len(scrollable_columns)):
+            logger.debug(f"Checking on index {i}")
+            # Check if current column is the expected column
+            if column_name in scrollable_columns[i].text:
+                # Path is related to AG Grid so used static xpath
+                required_column = waitSelector(context, "xpath", "//div[contains(@class,'ag-header-cell-sortable')]")[i]
+                logger.debug(f"Found {column_name} ")
+                # Since column was found then break the loop
+                break
+        # if required column was visible then break'
+        if required_column and required_column.is_displayed():
+            send_step_details(context, f'Column "{column_name}" Appeard')
+            return required_column
+        else:
+            logger.debug("Did not appear in this screen scrolling by 200px")
+            # If column was not appeared in the current view then scroll by 
+            scroll_origin = ScrollOrigin.from_element(ag_table_element)
+            ActionChains(context.browser).scroll_from_origin(scroll_origin, initial_scrollable_width, 0).perform()
+            # increment initial_scrollable_width by 200
+            initial_scrollable_width += 200
+            time.sleep(1)
+
+    # Raise execption if column did not appear
+    if not required_column:
+        raise CustomError(f"Column {column_name} did not appear")
+
+    # This step will be used by other step so return if column appears
+    return required_column
+
+
+#  FIXME update the comment
+# Scroll to element in lazy-loaded table, specially useful when working with AG Grid
+@step(u'Scroll to AG Grid column "{column_name}" in the "{ag_grid_selector}"')
+@done(u'Scroll to AG Grid column "{column_name}" in the "{ag_grid_selector}"')
+def scroll_to_ag_grid_column(context, column_name, ag_grid_selector):
+
+    # get the scrollable element
+    common_for_ag_grid_column(context, column_name, ag_grid_selector)
+
+# FIXME update the comment
+# Scroll to element in lazy-loaded table, specially useful when working with AG Grid
+@step(u'Get list of filters of AG Grid column "{column_name}" in the "{ag_grid_selector}" store in the feature variable "{variable_name}"')
+@done(u'Get list of filters of AG Grid column "{column_name}" in the "{ag_grid_selector}" store in the feature variable "{variable_name}"')
+def get_options_from_header_filter(context, column_name, ag_grid_selector, variable_name):
+    logger.debug("Starting step execution")
+    column = common_for_ag_grid_column(context, column_name, ag_grid_selector)
+    index = column.get_attribute("aria-colindex")
+    logger.debug("Filters appeared")
+    send_step_details(context, f'Wating "{column_name}" filter to appear')
+    if column:
+        filter_button  = waitSelector(context, "xpath", f"//div[contains(@class,'ag-header-row-column-filter')]/div[@aria-colindex='{index}']//button")
+        # ag_table_element = waitSelector(context, 'css', ag_grid_selector, max_timeout=5)
+        if len(filter_button) > 0:
+            filter_button = filter_button[0]
+        else:
+            raise CustomError("Unable to find AG grid table.")
+        filter_button.click()
+        
+        send_step_details(context, f'Filter opened, Looking for all values')
+
+        context.browser.set_script_timeout(150)
+        filter_options = context.browser.execute_script('''
+                const height = document.querySelector(".ag-set-filter-list").offsetHeight
+                var count = 0
+                var results = {};
+                var old_length = 0
+                do {
+                    old_length = Object.keys(results).length
+                    await new Promise(r => setTimeout(r, 1000));
+                    const filters = document.querySelectorAll(".ag-filter-virtual-list-viewport [role=option]")
+                    for(i=0; i<filters.length; i++){
+                        if (filters[i] && filters[i]!=null){
+                            results[filters[i].innerText]=filters[i].querySelector("input").checked
+                        }
+                    }
+                    await new Promise(r => setTimeout(r, 1000));
+                    document.querySelector(".ag-set-filter-list > .ag-virtual-list-viewport").scrollBy(0,height)
+                    console.log("iteration "+ count++)
+                    console.log(results)
+                    console.log(Object.keys(results).length)
+                    console.log(old_length)
+                }
+                while(old_length<Object.keys(results).length);
+
+        return results;
+        ''',)
+        send_step_details(context, f'Found filter values are {filter_options}')
+        context.data[variable_name] = json.dumps(filter_options)
+        context.step_variable_info = {"type": "JSON", "variable_name": variable_name, "data": filter_options}
+        # logger.debug(f"Saving data in the DB {context.data[variable_name]}")
+        # logger.debug(f"Data information is {context.step_variable_info}")
+
+
+# @step(u'Assert value of feature variable "{variable_name}" using \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
+@step(u'Assert value of feature variable "{variable_name}" using "{jq_pattern}" to "{condition}" "{value}"')
+@done(u'Assert value of feature variable "{variable_name}" using "{jq_pattern}" to "{condition}" "{value}"')
+def assert_imp(context, variable_name, jq_pattern, condition, value):
+    available_variables = context.data.keys()
+    logger.debug(f"Available variables : {available_variables}")
+    if variable_name not in available_variables:
+        raise CustomError(f"Feature variable {variable_name} not found. Avaiable variables are {available_variables}")
+
+    try:
+        parsed_value = jq.compile(jq_pattern).input(context.data[variable_name]).text()
+    except Exception as err:
+        logger.error("Invalid JQ pattern")
+        logger.exception(err)
+        parsed_value = ""
+    print(parsed_value)
+    assert_failed_error = f"{parsed_value} ({jq_pattern}) does not { condition } {value}, found matching value \"{parsed_value}\""
+    assert_failed_error = logger.mask_values(assert_failed_error)
+
+    if condition == "match":
+        assert parsed_value == value, assert_failed_error
+    else:
+        assert value in parsed_value, assert_failed_error
+
+
+
+
 
 if __name__ != 'actions':
     sys.path.append('/code/behave/')

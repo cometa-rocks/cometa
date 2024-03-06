@@ -317,7 +317,8 @@ def before_all(context):
     context.tempfiles = [
         execution_data_file
     ]
-
+    # this variable will be used to store runtime data that needs to be shared between variables.
+    context.data = {}
     context.network_responses = []
 
     # call update task to create a task with pid.
@@ -609,6 +610,9 @@ def before_step(context, step):
     context.step_data = context.steps[index]                # putting this steps in step_data
     logger.debug(f"Step Details: {context.step_data}")
 
+    # Store the value of step variables
+    # Once step_variable_info is saved  in the database or new step started, make it None so do not effect following step
+    context.step_variable_info = None
 
     # in video show as a message which step is being executed
     # only works in local video and not in browserstack
@@ -736,6 +740,8 @@ def after_step(context, step):
         step_error = context.step_data['custom_error']
     elif hasattr(context, 'step_error'):
         step_error = context.step_error
+
+
     # send websocket to front to let front know about the step
     requests.post('http://cometa_socket:3001/feature/%s/stepFinished' % context.feature_id, json={
         "user_id": context.PROXY_USER['user_id'],
@@ -752,8 +758,9 @@ def after_step(context, step):
         'screenshots': json.dumps(screenshots),  # load screenshots object
         'vulnerable_headers_count': vulnerable_headers_count
     })
+    
 
-    # update countes
+    # update counts
     if context.jumpLoopIndex == 0:
         context.counters['index'] += 1
     else:

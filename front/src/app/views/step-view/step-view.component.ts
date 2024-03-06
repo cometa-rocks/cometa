@@ -319,6 +319,22 @@ export class StepViewComponent implements OnInit {
       data: {
         responses: networkResponses,
         stepName: stepName,
+        message: "Step Network Responses"
+      },
+      width: '100vw',
+      maxHeight: '90vh',
+      maxWidth: '85vw',
+      panelClass: 'rest-api-panel',
+    });
+  }
+
+  loadVariableDataViewer(networkResponses, stepName) {
+    console.log(networkResponses);
+    this._dialog.open(JsonViewerComponent, {
+      data: {
+        responses: JSON.parse(networkResponses).data,
+        stepName: stepName,
+        message: "See variable values of step"
       },
       width: '100vw',
       maxHeight: '90vh',

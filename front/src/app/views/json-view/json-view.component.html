@@ -1,8 +1,8 @@
 <h3 class="title" *ngIf="data.call">
   API Call - <b>{{ data.call.request.method }} {{ data.call.request.url }}</b>
 </h3>
-<h3 class="title" *ngIf="data.stepName != undefined">
-  Step Network Responses - <b>{{ data.stepName }}</b>
+<h3 class="title" *ngIf="data.message != undefined">
+  {{data.message}} - <b>{{ data.stepName }}</b>
 </h3>
 <hr />
 <div id="jq-form-container">

@@ -881,6 +881,7 @@ class Step_result(models.Model):
     belongs_to = models.IntegerField(null=True) # feature that step belongs to
     rest_api = models.ForeignKey("REST_API", on_delete=models.CASCADE, null=True, default=None)
     notes = models.JSONField(default=dict)
+    step_variables_data = models.JSONField(default=dict, null=True)
     error = models.TextField(null=True, blank=True)
 
     class Meta:
