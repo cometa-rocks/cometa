@@ -1,5 +1,5 @@
 {
-  "version": "2.8.335",
+  "version": "2.8.336",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,13 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.336",
+      "date": "2024-03-06",
+      "bugfixes": [
+        "#4529 - Rename step to \"Scroll to element with \"{selector}\" in AG Grid table \"{scrollable_element_selector}\""
+      ]
+    },
     {
       "version": "2.8.335",
       "date": "2024-03-04",

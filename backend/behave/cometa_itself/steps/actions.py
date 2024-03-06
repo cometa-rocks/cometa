@@ -3828,8 +3828,8 @@ def fetch_page_source(context):
     }
 
 # Scroll to element in lazy-loaded table, specially useful when working with AG Grid
-@step(u'Scroll to element with "{selector}" in lazy loaded table "{scrollable_element_selector}"')
-@done(u'Scroll to element with "{selector}" in lazy loaded table "{scrollable_element_selector}"')
+@step(u'Scroll to element with "{selector}" in AG Grid table "{scrollable_element_selector}"')
+@done(u'Scroll to element with "{selector}" in AG Grid table "{scrollable_element_selector}"')
 def find_element_in_lazy_loaded_element(context, selector, scrollable_element_selector):
 
     # get the scrollable element
