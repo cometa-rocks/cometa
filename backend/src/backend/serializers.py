@@ -413,6 +413,7 @@ class StepResultRegularSerializer(serializers.Serializer):
     screenshot_style = serializers.CharField()
     screenshot_difference = serializers.CharField()
     screenshot_template = serializers.CharField()
+    step_variables_data = serializers.JSONField(default={})
 
 
 #################################
