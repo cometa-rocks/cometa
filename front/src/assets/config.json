@@ -1,5 +1,5 @@
 {
-  "version": "2.8.336",
+  "version": "2.8.337",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,10 +233,13 @@
   ],
   "changelog": [
     {
-      "version": "2.8.336",
-      "date": "2024-03-06",
-      "bugfixes": [
-        "#4529 - Rename step to \"Scroll to element with \"{selector}\" in AG Grid table \"{scrollable_element_selector}\""
+      "version": "2.8.337",
+      "date": "2024-03-07",
+      "features": [
+        {
+          "title": "#4562 Manipulation of AG Grid.",
+          "description": "Implemented four steps for AG grid manipulation: 1. Scroll to column, 2. Open filter, 3. Retrieve list of filters with status, 4. Check or uncheck selected filters."
+        }
       ]
     },
     {
