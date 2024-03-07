@@ -3894,50 +3894,44 @@ def find_element_in_lazy_loaded_element(context, selector, scrollable_element_se
 def common_for_ag_grid_column(context, column_name, ag_grid_selector):
     send_step_details(context, 'Waiting for AG grid to appear')
     ag_table_element = waitSelector(context, 'css', ag_grid_selector)
-
-    # ag_table_element = waitSelector(context, 'css', ag_grid_selector, max_timeout=5)
     if len(ag_table_element) > 0:
         ag_table_element = ag_table_element[0]
     else:
         raise CustomError("Unable to find AG grid table.")
     
-    # get the width of the scrollable element add 400 to cover the last element. 
+    # Get the width of the scrollable element. Adding 400 to cover the last column. 
     total_scrollable_width = ag_table_element.rect['width'] + 400
-    logger.debug(f"found width of AG grid : {total_scrollable_width}")
-    
-    logger.debug(f"Need to scroll horizeltally {total_scrollable_width}px")
-    initial_scrollable_width = 200
-
+    scroll_view_width = 200
     send_step_details(context, 'Waiting for column to appear, scrolling the view')
     required_column = None
-    # This loop will scroll the screen
-    while not required_column and initial_scrollable_width <= total_scrollable_width:
+    # This loop will scroll the screen horizentally
+    while not required_column and scroll_view_width <= total_scrollable_width:
         # Replace with waitSelector timeout 3
-        # Path is related to AG Grid so used static xpath
+        # Path is related to AG Grid so used static xpath which will work with AG grid
         scrollable_columns = waitSelector(context, "xpath", "//div[contains(@class,'ag-header-cell-sortable')]//span[@class='ag-header-cell-text']")
 
         logger.debug("Checking on columns")
         # This loop will check for headings for headings in the 
         for i in range(len(scrollable_columns)):
-            logger.debug(f"Checking on index {i}")
+            # logger.debug(f"Checking on index {i}")
             # Check if current column is the expected column
             if column_name in scrollable_columns[i].text:
                 # Path is related to AG Grid so used static xpath
                 required_column = waitSelector(context, "xpath", "//div[contains(@class,'ag-header-cell-sortable')]")[i]
-                logger.debug(f"Found {column_name} ")
+                # logger.debug(f"Found {column_name} ")
                 # Since column was found then break the loop
                 break
-        # if required column was visible then break'
+        # if required column was visible then break the view scrollable loop'
         if required_column and required_column.is_displayed():
             send_step_details(context, f'Column "{column_name}" Appeard')
             return required_column
         else:
             logger.debug("Did not appear in this screen scrolling by 200px")
-            # If column was not appeared in the current view then scroll by 
+            # If column was not appeared in the current view then scroll by
             scroll_origin = ScrollOrigin.from_element(ag_table_element)
-            ActionChains(context.browser).scroll_from_origin(scroll_origin, initial_scrollable_width, 0).perform()
+            ActionChains(context.browser).scroll_from_origin(scroll_origin, scroll_view_width, 0).perform()
             # increment initial_scrollable_width by 200
-            initial_scrollable_width += 200
+            scroll_view_width += 200
             time.sleep(1)
 
     # Raise execption if column did not appear
@@ -3947,96 +3941,160 @@ def common_for_ag_grid_column(context, column_name, ag_grid_selector):
     # This step will be used by other step so return if column appears
     return required_column
 
+# Use this step to scroll to columns in the AG grid that are currently hidden due to grid width. 
+# Provide the {column_name} and {ag_grid_header_selector}, and this step will scroll to display the specified column.
+@step(u'Scroll to AG Grid column "{column_name}" in the "{ag_grid_header_selector}"')
+@done(u'Scroll to AG Grid column "{column_name}" in the "{ag_grid_header_selector}"')
+def scroll_to_ag_grid_column(context, column_name, ag_grid_header_selector):
 
-#  FIXME update the comment
-# Scroll to element in lazy-loaded table, specially useful when working with AG Grid
-@step(u'Scroll to AG Grid column "{column_name}" in the "{ag_grid_selector}"')
-@done(u'Scroll to AG Grid column "{column_name}" in the "{ag_grid_selector}"')
-def scroll_to_ag_grid_column(context, column_name, ag_grid_selector):
+    # Get the scrollable element 
+    # Loggic was implemented in the common function which is used in other steps
+    common_for_ag_grid_column(context, column_name, ag_grid_header_selector)
 
-    # get the scrollable element
-    common_for_ag_grid_column(context, column_name, ag_grid_selector)
 
-# FIXME update the comment
-# Scroll to element in lazy-loaded table, specially useful when working with AG Grid
-@step(u'Get list of filters of AG Grid column "{column_name}" in the "{ag_grid_selector}" store in the feature variable "{variable_name}"')
-@done(u'Get list of filters of AG Grid column "{column_name}" in the "{ag_grid_selector}" store in the feature variable "{variable_name}"')
-def get_options_from_header_filter(context, column_name, ag_grid_selector, variable_name):
-    logger.debug("Starting step execution")
-    column = common_for_ag_grid_column(context, column_name, ag_grid_selector)
+# Use this step to scroll to columns in the AG grid that are currently hidden due to grid width and open the column filters.
+# Provide the {column_name} and {ag_grid_header_selector}, and this step will scroll to display the specified column.
+@step(u'Open filter of AG Grid column "{column_name}" in the "{ag_grid_header_selector}"')
+@done(u'Open filter of AG Grid column "{column_name}" in the "{ag_grid_header_selector}"')
+def get_options_from_header_filter(context, column_name, ag_grid_header_selector):
+    # This function throws error when column does not appear
+    column = common_for_ag_grid_column(context, column_name, ag_grid_header_selector)
     index = column.get_attribute("aria-colindex")
-    logger.debug("Filters appeared")
     send_step_details(context, f'Wating "{column_name}" filter to appear')
-    if column:
-        filter_button  = waitSelector(context, "xpath", f"//div[contains(@class,'ag-header-row-column-filter')]/div[@aria-colindex='{index}']//button")
-        # ag_table_element = waitSelector(context, 'css', ag_grid_selector, max_timeout=5)
-        if len(filter_button) > 0:
-            filter_button = filter_button[0]
-        else:
-            raise CustomError("Unable to find AG grid table.")
-        filter_button.click()
-        
-        send_step_details(context, f'Filter opened, Looking for all values')
+    # column_name will be used to validate next step, if column was opened 
+    context.data[column_name] = True
+    # Action is related to AG grid so using AG grid css selectors
+    filter_button  = waitSelector(context, "xpath", f"//div[contains(@class,'ag-header-row-column-filter')]/div[@aria-colindex='{index}']//button")
+    if len(filter_button) > 0:
+        filter_button = filter_button[0]
+    else:
+        raise CustomError("Unable to find AG grid table.")
+    filter_button.click()
+    send_step_details(context, f'"{column_name}" filters appeared')
 
-        context.browser.set_script_timeout(150)
-        filter_options = context.browser.execute_script('''
-                const height = document.querySelector(".ag-set-filter-list").offsetHeight
-                var count = 0
-                var results = {};
-                var old_length = 0
-                do {
-                    old_length = Object.keys(results).length
-                    await new Promise(r => setTimeout(r, 1000));
-                    const filters = document.querySelectorAll(".ag-filter-virtual-list-viewport [role=option]")
-                    for(i=0; i<filters.length; i++){
-                        if (filters[i] && filters[i]!=null){
-                            results[filters[i].innerText]=filters[i].querySelector("input").checked
-                        }
+
+# Use this step to scroll within the column filters of AG Grid and retrieve the list of available filters along with their status (checked/unchecked), represented as (true/false).
+# Please specify the {column_name} and {variable_name} where you would like to store the filters. You can then use them later for assertion purposes. 
+# Note: {variable_name} represents a feature variable whose value can be viewed in the reports. When accessing the variable, use the same name provided without the $ symbol. 
+# Note: Before using this option, ensure to open the column filter by executing the step 'Open filter of AG Grid column "{column_name}" in the "{ag_grid_header_selector}"'. 
+@step(u'Get list of filters of AG Grid column "{column_name}" store in the feature variable "{variable_name}"')
+@done(u'Get list of filters of AG Grid column "{column_name}" store in the feature variable "{variable_name}"')
+def get_options_from_header_filter(context, column_name, variable_name):
+    logger.debug(f"Starting step execution : {context.data.get(column_name)}")
+    if not context.data.get(column_name):
+        raise CustomError('Filter is not open. Use this step to open AG grid column first \"Open filter of AG Grid column "{column_name}" in the "{ag_grid_header_selector}"\"')
+
+    logger.debug("Starting step execution")
+    # Action is related to AG grid so using AG grid css selectors
+    context.browser.set_script_timeout(context.step_data['timeout'])
+    logger.debug("Executing read filters script")
+    filter_options = context.browser.execute_script('''
+            const height = document.querySelector(".ag-set-filter-list").offsetHeight
+            var count = 0
+            var results = {};
+            var old_length = 0
+            do {
+                old_length = Object.keys(results).length
+                await new Promise(r => setTimeout(r, 1000));
+                const filters = document.querySelectorAll(".ag-filter-virtual-list-viewport [role=option]")
+                for(i=0; i<filters.length; i++){
+                    if (filters[i] && filters[i]!=null){
+                        results[filters[i].innerText]=filters[i].querySelector("input").checked
                     }
-                    await new Promise(r => setTimeout(r, 1000));
-                    document.querySelector(".ag-set-filter-list > .ag-virtual-list-viewport").scrollBy(0,height)
-                    console.log("iteration "+ count++)
-                    console.log(results)
-                    console.log(Object.keys(results).length)
-                    console.log(old_length)
                 }
-                while(old_length<Object.keys(results).length);
+                await new Promise(r => setTimeout(r, 1000));
+                document.querySelector(".ag-set-filter-list > .ag-virtual-list-viewport").scrollBy(0,height)
+            }
+            while(old_length<Object.keys(results).length);
 
-        return results;
-        ''',)
-        send_step_details(context, f'Found filter values are {filter_options}')
-        context.data[variable_name] = json.dumps(filter_options)
-        context.step_variable_info = {"type": "JSON", "variable_name": variable_name, "data": filter_options}
-        # logger.debug(f"Saving data in the DB {context.data[variable_name]}")
-        # logger.debug(f"Data information is {context.step_variable_info}")
+    return results;
+    ''',)
+    send_step_details(context, f'Found filter values')
+    logger.debug("Saving filters in variable {variable_name}")
+    # Save filter values in the context.data to that is can be used later
+    context.data[variable_name] = json.dumps(filter_options)
+    # step_variable_info valud get saved within step report show that user can refer later 
+    context.step_variable_info = {"type": "JSON", "variable_name": variable_name, "data": filter_options}
+    # logger.debug(f"Saving data in the DB {context.data[variable_name]}")
+    # logger.debug(f"Data information is {context.step_variable_info}")
+
+# Use this step to either Check or Uncheck {option=Check|Uncheck} the column filter option in the AG Grid.
+# If filters are hidden, it will scroll to those filters and perform a check or uncheck operation.
+# Note: Before using this option, ensure to open the column filter by executing the step 'Open filter of AG Grid column "{column_name}" in the "{ag_grid_header_selector}"'.
+@step(u'"{option}" AG Grid column "{column_name}" filter "{filter_name}"')
+@done(u'"{option}" AG Grid column "{column_name}" filter "{filter_name}"')
+def check_uncheck_ag_grid_filters(context, option, column_name, filter_name):
+    logger.debug(f"Starting step execution : {context.data.get(column_name)}")
+    if not context.data.get(column_name):
+        raise CustomError('Filter is not open. Use this step to open AG grid column first \"Open filter of AG Grid column "{column_name}" in the "{ag_grid_header_selector}"\"')
+
+    options = ['Check', 'Uncheck']
+    if option.strip() not in options:
+        raise CustomError(f'Invalid option {option}, Available options are {options}')
+
+    send_step_details(context, f'Find and {option} the {filter_name} filter')
+    # Action is related to AG grid so using AG grid css selectors
+    context.browser.set_script_timeout(context.step_data['timeout'])
+    found = context.browser.execute_script('''const height = document.querySelector(".ag-set-filter-list").offsetHeight
+        const filters_value = new Set();
+        var old_length = 0
+        var found = false;
+        do {
+            old_length = filters_value.size
+            await new Promise(r => setTimeout(r, 1000));
+            const filters = document.querySelectorAll(".ag-filter-virtual-list-viewport [role=option]");
+            for(i=0; i<filters.length; i++){
+                if (filters[i] && filters[i]!=null) {
+                    filters_value.add(filters[i].innerText);
+                    if (filters[i].innerText.trim()==="%s") {
+                        var isChecked = filters[i].querySelector("input").checked 
+                        if (!isChecked && "%s"=="Check" ){
+                            filters[i].querySelector("input").click()
+                        }
+                        else if (isChecked && "%s"=="Uncheck" ){
+                            filters[i].querySelector("input").click()
+                        }
+                        found=true;
+                        break;
+                    }
+                }
+            }
+            if (found){
+                break;
+            }
+            await new Promise(r => setTimeout(r, 1000));
+            document.querySelector(".ag-set-filter-list > .ag-virtual-list-viewport").scrollBy(0,height)
+        }
+        while(old_length<filters_value.size);
+
+        return found;
+    '''% (filter_name, option, option))
+
+    if not found:
+        raise CustomError(f'Did not found filter "{filter_name}"')
 
 
-# @step(u'Assert value of feature variable "{variable_name}" using \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
+# Use this step to perform assertion using the JQ pattern on the values stored as feature variables.
 @step(u'Assert value of feature variable "{variable_name}" using "{jq_pattern}" to "{condition}" "{value}"')
 @done(u'Assert value of feature variable "{variable_name}" using "{jq_pattern}" to "{condition}" "{value}"')
 def assert_imp(context, variable_name, jq_pattern, condition, value):
     available_variables = context.data.keys()
-    logger.debug(f"Available variables : {available_variables}")
+    # logger.debug(f"Available variables : {available_variables}")
     if variable_name not in available_variables:
-        raise CustomError(f"Feature variable {variable_name} not found. Avaiable variables are {available_variables}")
-
+        raise CustomError(f"Feature variable {variable_name} not found. Avaiable feature variables are {available_variables}")
+    
     try:
         parsed_value = jq.compile(jq_pattern).input(context.data[variable_name]).text()
     except Exception as err:
         logger.error("Invalid JQ pattern")
         logger.exception(err)
         parsed_value = ""
-    print(parsed_value)
-    assert_failed_error = f"{parsed_value} ({jq_pattern}) does not { condition } {value}, found matching value \"{parsed_value}\""
+    assert_failed_error = f"{parsed_value} ({jq_pattern}) does not { condition } {value}"
     assert_failed_error = logger.mask_values(assert_failed_error)
-
     if condition == "match":
         assert parsed_value == value, assert_failed_error
     else:
         assert value in parsed_value, assert_failed_error
-
-
-
 
 
 if __name__ != 'actions':
