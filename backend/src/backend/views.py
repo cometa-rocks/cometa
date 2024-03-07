@@ -2055,8 +2055,6 @@ class StepResultViewSet(viewsets.ModelViewSet):
             logger.debug("Relative time Initiated")
             data['relative_execution_time'] = data['execution_time']
 
-        logger.debug(f"Saving step result with data {data}")
-
         step_result = Step_result.objects.create(**data)
         return JsonResponse(StepResultSerializer(step_result, many=False).data)
 

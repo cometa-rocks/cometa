@@ -153,7 +153,7 @@ interface StepResult {
   screenshot_template: string;
   error: null | string;
   rest_api: number;
-  step_variables_data: any;
+  step_variables_data?: any;
 }
 
 interface BelongsTo {

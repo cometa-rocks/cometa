@@ -178,7 +178,7 @@ def before_all(context):
 
     # Prepare folders and paths for screenshots and templates
     # Screenshot images are saved in /<screenshots_dir>/<feature_id>/<feature_run>/<feature_result_id>/<rand_hash>/<step_result_id>/AMVARA_<current|style|difference>.png
-    # Templates images are saved in /<screeshots_dir>/templates/<feature_id>/<browser_key>/AMVARA_template_<step_index>.png
+    # Templates images are saved in /<screenshots_dir>/templates/<feature_id>/<browser_key>/AMVARA_template_<step_index>.png
     run_id = os.environ['feature_run']
     # Retrieve run hash
     context.RUN_HASH = os.environ['RUN_HASH']
@@ -610,8 +610,7 @@ def before_step(context, step):
     context.step_data = context.steps[index]                # putting this steps in step_data
     logger.debug(f"Step Details: {context.step_data}")
 
-    # Store the value of step variables
-    # Once step_variable_info is saved  in the database or new step started, make it None so do not effect following step
+    # Store the value of step variables once step_variable_info is saved in the database or new step started, make it None so do not effect following step
     context.step_variable_info = None
 
     # in video show as a message which step is being executed
@@ -673,7 +672,7 @@ def find_vulnerable_headers(context, step_index) -> int:
                 # Get response details from the network response object  
                 response = information['params']['response']
                 # check and filter for vur vulnerability_headers
-                # logger.debug(f"Processing respose headers ")
+                # logger.debug(f"Processing response headers ")
                 vulnerable_headers = filter_vulnerability_headers(response['headers'])
                 # check if request has some vulnerable_headers then add that to responses_and_vulnerable_header
                 # logger.debug(f"Found vulnerable headers ")
@@ -694,13 +693,13 @@ def find_vulnerable_headers(context, step_index) -> int:
                 "vulnerability_headers_count": vulnerability_headers_count
             })
         else:
-            # if it does not have attribute vulnerability_headers then initilze list add vulnerability headers
+            # if it does not have attribute vulnerability_headers then initialize list add vulnerability headers
             context.network_responses = [{
                 "step_id": step_index,
                 "responses_and_vulnerable_header": responses_and_vulnerable_header,
                 "vulnerability_headers_count": vulnerability_headers_count
             }]
-        # Return number of vernability headers 
+        # Return number of vulnerability headers 
         logger.debug(f"Return header info : {len(context.network_responses)}")
         return vulnerability_headers_count
     except Exception as e:
@@ -715,7 +714,7 @@ def after_step(context, step):
     index = context.counters['index']
     # step result this contains the execution time, success and name
     step_result = context.step_result if hasattr(context, 'step_result') else None
-    # create screenshots dictionary to dinamically assign available images
+    # create screenshots dictionary to dynamically assign available images
     screenshots = {}
     # check current image of running browser
     if hasattr(context, 'DB_CURRENT_SCREENSHOT'):
