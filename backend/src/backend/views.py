@@ -2753,22 +2753,25 @@ class DatasetViewset(viewsets.ModelViewSet):
         ws = wb.active
 
         # Add Excel headers
-        ws.append(['Se.No.','Feature ID','Success','Target', 'Context'])
+        ws.append(['Se.No.','Feature ID','Success','Target','Target_Source', 'Context'])
         logger.debug("Added Header in dataset")
         # Write data rows
         for i, record in enumerate(data_sets):
             data = record.data
 
-            decoded_context = 'Error'
+            decoded_html_page_context = 'Error'
+            selected_element_source = 'Error'
             try:
                 # Decode the base64 string
                 decoded_bytes = base64.b64decode(data['context'])
+                selected_element_source = base64.b64decode(data.get('Target_Source',''))
                 # Convert bytes to string
-                decoded_context = decoded_bytes.decode('utf-8')
+                decoded_html_page_context = decoded_bytes.decode('utf-8')
+                selected_element_source = selected_element_source.decode('utf-8')
             except base64.binascii.Error as e:
                 logger.error(f"Error decoding context in record {record.id}:", e)
                 
-            ws.append([i+1, record.feature_result.feature_id.feature_id, data['success'], data['target'],decoded_context])  # Adjust fields as per your model
+            ws.append([i+1, record.feature_result.feature_id.feature_id, data['success'],data['target'], selected_element_source, decoded_html_page_context])  # Adjust fields as per your model
 
         logger.info("Added dataset to workbook")
         logger.info("Getting time for file name")
