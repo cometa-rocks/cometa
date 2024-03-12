@@ -237,6 +237,10 @@
       "date": "2024-03-12",
       "features": [
         {
+          "title": "#4428(note-33) Added column to store selected element ",
+          "description": "Selected element source will be stored in the column 'Target_Source' when preparing the dataset. This new column is added to enhance the dataset for AI feature"
+        },
+        {
           "title": "#4567 Set timezone of feature execution environment/Selenoid Browsers",
           "description": "Select a timezone that matches your testing requirements to simulate different timezones during your tests."
         }
