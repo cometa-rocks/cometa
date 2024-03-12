@@ -662,6 +662,7 @@ interface BrowserstackBrowser {
   mobile_user_agent?: string;
   cloud?: string;
   concurrency?: number;
+  selectedTimeZone?: string;
 }
 
 interface BrowserstackBrowsersResponse {
