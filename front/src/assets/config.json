@@ -1,5 +1,5 @@
 {
-  "version": "2.8.336",
+  "version": "2.8.339",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.339",
+      "date": "2024-03-12",
+      "features": [
+        {
+          "title": "#4567 Set timezone of feature execution environment/Selenoid Browsers",
+          "description": "Select a timezone that matches your testing requirements to simulate different timezones during your tests."
+        }
+      ]
+    },
     {
       "version": "2.8.336",
       "date": "2024-03-06",
