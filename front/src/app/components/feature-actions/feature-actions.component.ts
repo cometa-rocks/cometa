@@ -169,9 +169,13 @@ export class FeatureActionsComponent implements OnInit {
   viewLog() {
     // Get feature result id from URL params
     let featureResultId = +this._ac.snapshot.paramMap.get('feature_result_id');
-    if (!featureResultId && this.latestFeatureResultId != 0) {
-      // Or get id from last run object
+
+    // Or get id from last run object
+    if (featureResultId == 0) {
       featureResultId = this.latestFeatureResultId;
+    }
+
+    if (featureResultId != 0) {
       this._dialog
         .open(LogOutputComponent, {
           disableClose: true,
