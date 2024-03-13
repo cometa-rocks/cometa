@@ -1448,7 +1448,7 @@ def post_file_delete(instance, sender, using, **kwargs):
     if os.path.exists(instance.path):
         os.unlink(instance.path)
 
-# Choise for the dataset types
+# Choices for the dataset types
 dataset_types = (
     ('selector', 'Selector',),
 )
@@ -1456,9 +1456,8 @@ dataset_types = (
 class Dataset(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=10, choices=dataset_types, default="selector")
-    data = models.JSONField(default=dict)
+    data = models.JSONField(default="", null=True)
     feature_result = models.ForeignKey(Feature_result, on_delete=models.SET_NULL, null=True, related_name="feature_result_dataset")
-
     class Meta:
         verbose_name_plural = "Datasets"
 
