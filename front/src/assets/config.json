@@ -1,5 +1,5 @@
 {
-  "version": "2.8.339",
+  "version": "2.8.341",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,9 +233,27 @@
   ],
   "changelog": [
     {
+      "version": "2.8.341",
+      "date": "2024-03-14",
+      "bugfixes": [
+        "#4567 fixed timezone strip error"
+      ]
+    },
+    {
+        "version": "2.8.340",
+        "date": "2024-03-13",
+        "bugfixes": [
+            "#4575 - Fixed Error \"Multi level loop are not allowed.\""
+        ]
+    },
+    {
       "version": "2.8.339",
       "date": "2024-03-12",
       "features": [
+        {
+          "title": "#4428(note-33) Added column to store selected element ",
+          "description": "Selected element source will be stored in the column 'Target_Source' when preparing the dataset. This new column is added to enhance the dataset for AI feature"
+        },
         {
           "title": "#4567 Set timezone of feature execution environment/Selenoid Browsers",
           "description": "Select a timezone that matches your testing requirements to simulate different timezones during your tests."
