@@ -228,14 +228,20 @@ def checkLoop(step):
 # @param steps: Array - Array of the steps definition
 # @param feature_id: Feature - Info of the feature
 def create_feature_file(feature, steps, featureFileName):
+    logger.debug(f"Creating feature file {featureFileName}")
     with open(featureFileName+'.feature', 'w+') as featureFile:
         featureFile.write('Feature: '+feature.feature_name+'\n\n')
-
+        logger.debug("Feature name added to file")
         # save the steps to save to database before removing old steps
         stepsToAdd = []
 
         featureFile.write('\tScenario: First')
+        logger.debug(f"Checking steps : Steps Length {len(steps)}")
+        count = 1
         for step in steps:
+            # Comment this debugging
+            logger.debug(f"{count} Checking Step {step}")
+            count+=1
             # check if for some reason substeps are sent us from front and ignore them
             if "step_type" in step and step['step_type'] == "substep":
                 continue
@@ -276,14 +282,21 @@ def create_feature_file(feature, steps, featureFileName):
                     # if enabled and not a sub feature execution add to the file
                     add_step_to_feature_file(step, featureFile)
         featureFile.write('\n')
-
+        
+        logger.debug("Step checks completed")
+    
     # delete all the steps from the database 
     Step.objects.filter(feature_id=feature.feature_id).delete()
     # gather all the variables found during the save steps
     variables_used = []
 
     # save all the steps found in stepsToAdd to the database
+    logger.debug(f"Preparing steps to add | Steps Length {len(steps)}")
+    count = 1
     for step in stepsToAdd:
+        # Comment this debugging
+        logger.debug(f"{count} Processing Step {step}")
+        count+=1
         if step.get("step_type", None) == None:
             step['step_type'] = "subfeature" if re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content']) else "normal"
             # check if step contains a variable
@@ -317,10 +330,12 @@ def create_feature_file(feature, steps, featureFileName):
             timeout = step.get('timeout', 60)
         )
 
+    logger.debug("Finding Variables")
     # update all the variables
     # get all the variable with this name and from same department as the current feature
     vars = Variable.objects.filter(department_id=feature.department_id, variable_name__in=variables_used)
     # reset variables used in the feature
+    logger.debug("Setting used variable in feature")
     feature.variable_in_use.set(vars)
     # return success true
     return {"success": True}
@@ -731,14 +746,19 @@ class Feature(models.Model):
             logger.debug(f"Saving steps received from Front: {steps}")
             # Create .feature
             response = create_feature_file(self, steps, featureFileName)
+            logger.debug("Feature file created")
             # check if infinite loop was found
             if not response['success']:
+                logger.debug("Creation of feature was not success. Abort")
                 return response # {"success": False, "error": "infinite loop found"}
+            
             # Create .json
+            logger.debug("Creating Json file")
             create_json_file(self, steps, featureFileName)
             # Create _meta.json
+            logger.debug("Creating meta file")
             create_meta_file(self, featureFileName)
-
+            logger.debug("Created meta file")
         return {"success": True}
     
     def delete(self, *args, **kwargs):
