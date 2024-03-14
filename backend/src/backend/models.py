@@ -135,6 +135,7 @@ def recursiveSubSteps(steps, feature_trace, parent_department_id=None):
         if subFeatureExecution:
             featureNameOrId = subFeatureExecution.group(1)
             # get subfeature
+            logger.debug(f"Processing Feature {featureNameOrId} recursively")
             subFeature = Feature.objects.filter(feature_id=featureNameOrId, department_id=parent_department_id) if featureNameOrId.isnumeric() else Feature.objects.filter(feature_name=featureNameOrId, department_id=parent_department_id)
             if subFeature.exists():
                 subFeature = subFeature[0]
@@ -156,6 +157,7 @@ def recursiveSubSteps(steps, feature_trace, parent_department_id=None):
                         for idx, val in enumerate(subFeatureSteps):
                             subFeatureSteps[idx]['continue_on_failure'] = True
                     # check if substeps contain other subfeatures
+                    logger.debug(f"Processing recursive steps for feature -> {featureNameOrId}")
                     subSteps = recursiveSubSteps(subFeatureSteps, feature_trace, subFeature.department_id)
                     # check if subSteps returned False
                     if isinstance(subSteps, bool) and not subSteps:
