@@ -260,7 +260,11 @@ def before_all(context):
     options.browser_version = context.browser_info['browser_version']
     options.accept_insecure_certs = True
     # Get the chrome container timezone from browser_info  
-    selenoid_time_zone = context.browser_info.get("selectedTimeZone") if context.browser_info.get("selectedTimeZone").strip()!="" else 'Etc/UTC'
+    selenoid_time_zone = context.browser_info.get("selectedTimeZone","")
+
+    if not selenoid_time_zone or selenoid_time_zone.strip()=="":
+        selenoid_time_zone = 'Etc/UTC'
+
     logger.debug(f"Browser container timezone is : {selenoid_time_zone}")
     # selenoid specific capabilities
     # more options can be found at:
