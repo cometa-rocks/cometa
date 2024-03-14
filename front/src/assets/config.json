@@ -1,5 +1,5 @@
 {
-  "version": "2.8.339",
+  "version": "2.8.340",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,13 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.340",
+      "date": "2024-03-14",
+      "bugfixes": [
+        "#4567 fixed timezone strip error"
+      ]
+    },
     {
       "version": "2.8.339",
       "date": "2024-03-12",
