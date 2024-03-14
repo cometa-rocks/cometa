@@ -1,5 +1,5 @@
 {
-  "version": "2.8.340",
+  "version": "2.8.341",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,11 +233,18 @@
   ],
   "changelog": [
     {
-      "version": "2.8.340",
-      "date": "2024-03-13",
+      "version": "2.8.341",
+      "date": "2024-03-14",
       "bugfixes": [
-        "#4575 - Fixed Error \"Multi level loop are not allowed.\""
+        "#4567 fixed timezone strip error"
       ]
+    },
+    {
+        "version": "2.8.340",
+        "date": "2024-03-13",
+        "bugfixes": [
+            "#4575 - Fixed Error \"Multi level loop are not allowed.\""
+        ]
     },
     {
       "version": "2.8.339",
