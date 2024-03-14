@@ -209,7 +209,8 @@ def checkLoop(step):
     # check if step is a loop if so set loop value to true
     loop = re.search(r'^.*Loop "(.*)" times starting at "(.*)" and do', step['step_content'])
     if loop and insideLoop:
-        # throw error
+        # throw error and 
+        insideLoop = False #When it throws error insideLoop = False, insideLoop is global variable effect other feature save  
         return {"success": False, "error": "Multi level loop are not allowed."}
     if loop:
         insideLoop = True
