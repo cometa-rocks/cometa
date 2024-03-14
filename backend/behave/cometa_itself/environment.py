@@ -259,8 +259,12 @@ def before_all(context):
     options.set_capability('browserName', context.browser_info['browser'])
     options.browser_version = context.browser_info['browser_version']
     options.accept_insecure_certs = True
-    # Get the chrome container timezone from browser_info  
-    selenoid_time_zone = context.browser_info.get("selectedTimeZone") if context.browser_info.get("selectedTimeZone").strip()!="" else 'Etc/UTC'
+    # Get the chrome container timezone from browser_info
+    selenoid_time_zone = context.browser_info.get("selectedTimeZone","")
+
+    if not selenoid_time_zone or selenoid_time_zone.strip()=="":
+        selenoid_time_zone = 'Etc/UTC'
+
     logger.debug(f"Browser container timezone is : {selenoid_time_zone}")
     # selenoid specific capabilities
     # more options can be found at:
@@ -341,8 +345,14 @@ def before_all(context):
     logger.debug('Driver Capabilities: {}'.format(options.to_capabilities()))
     logger.info(f"Trying to get a browser context {connection_url}")
 
+    # context.browser = webdriver.Remote(
+    #     command_executor=connection_url,
+    #     options=options
+    # )
+    # Change related to healenium
+    logger.debug(options)
     context.browser = webdriver.Remote(
-        command_executor=connection_url,
+        command_executor="http://hlm-proxy:8085",
         options=options
     )
 
@@ -401,10 +411,11 @@ def after_all(context):
     del os.environ['total_steps']
     # check if any alertboxes are open before quiting the browser
     try:
-        while (context.browser.switch_to.alert):
-            logger.debug("Found an open alert before shutting down the browser...")
-            alert = context.browser.switch_to.alert
-            alert.dismiss()
+        pass
+        # while (context.browser.switch_to.alert):
+        #     logger.debug("Found an open alert before shutting down the browser...")
+        #     alert = context.browser.switch_to.alert
+        #     alert.dismiss()
     except:
         logger.debug("No alerts found ... before shutting down the browser...")
 

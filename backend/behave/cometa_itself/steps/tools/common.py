@@ -94,7 +94,7 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
         # Join values to string
         selectorWords[0] = orig
         selector = selectorWords.join(' ')
-    counter = 0
+    counter = 0 
     # Switch selector type
     types = {
         "css": "context.browser.find_elements(By.CSS_SELECTOR, selector)",
@@ -118,6 +118,7 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
         for selec_type in list(types_new.keys()):
             try:
                 elements = eval(types_new.get(selec_type, "css"))
+                time.sleep(2)
                 # Check if it returned at least 1 element
                 if isinstance(elements, WebElement) or len(elements) > 0:
                     return elements
