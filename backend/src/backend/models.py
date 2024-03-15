@@ -126,7 +126,7 @@ def backup_feature_info(feature):
     else:
         print('backup_feature_info: Feature file %s not found.' % orig_file)
 
-def recursiveSubSteps(steps, feature_trace, parent_department_id=None):
+def recursiveSubSteps(steps, feature_trace, parent_department_id=None, recursive_step_level=0):
     updatedSteps = steps.copy()
     index = 0
     for step in steps:
@@ -135,7 +135,8 @@ def recursiveSubSteps(steps, feature_trace, parent_department_id=None):
         if subFeatureExecution:
             featureNameOrId = subFeatureExecution.group(1)
             # get subfeature
-            logger.debug(f"Processing Feature {featureNameOrId} recursively")
+            logger.debug(f"LEVEL {recursive_step_level} Processing Feature {featureNameOrId} recursively")
+            # FIXME is should not use filter if we need only one feature
             subFeature = Feature.objects.filter(feature_id=featureNameOrId, department_id=parent_department_id) if featureNameOrId.isnumeric() else Feature.objects.filter(feature_name=featureNameOrId, department_id=parent_department_id)
             if subFeature.exists():
                 subFeature = subFeature[0]
@@ -149,6 +150,7 @@ def recursiveSubSteps(steps, feature_trace, parent_department_id=None):
                     for subStep in subFeatureSteps:
                         if subStep.belongs_to == None or not subStep.belongs_to:
                             subStep.belongs_to = subFeature.feature_id
+                            logger.debug("LEVEL {recursive_step_level} Saving the step")
                             subStep.save()
                     # get values from substeps and convert it to list
                     subFeatureSteps = list(subFeatureSteps.values())
@@ -157,8 +159,8 @@ def recursiveSubSteps(steps, feature_trace, parent_department_id=None):
                         for idx, val in enumerate(subFeatureSteps):
                             subFeatureSteps[idx]['continue_on_failure'] = True
                     # check if substeps contain other subfeatures
-                    logger.debug(f"Processing recursive steps for feature -> {featureNameOrId}")
-                    subSteps = recursiveSubSteps(subFeatureSteps, feature_trace, subFeature.department_id)
+                    logger.debug(f"LEVEL {recursive_step_level} Processing recursive steps for feature -> {featureNameOrId}")
+                    subSteps = recursiveSubSteps(subFeatureSteps, feature_trace, subFeature.department_id, recursive_step_level+1)
                     # check if subSteps returned False
                     if isinstance(subSteps, bool) and not subSteps:
                         return False
@@ -242,7 +244,7 @@ def create_feature_file(feature, steps, featureFileName):
         count = 1
         for step in steps:
             # Comment this debugging
-            logger.debug(f"{count} Checking Step {step}")
+            # logger.debug(f"{count} Checking Step {step}")
             count+=1
             # check if for some reason substeps are sent us from front and ignore them
             if "step_type" in step and step['step_type'] == "substep":
@@ -263,8 +265,9 @@ def create_feature_file(feature, steps, featureFileName):
                     return result
                 if subFeature:
                     try:
+                        recursive_step_level = 0
                         # get recursive steps from the sub feature
-                        subSteps = recursiveSubSteps([step], [feature.feature_id], feature.department_id)
+                        subSteps = recursiveSubSteps([step], [feature.feature_id], feature.department_id, recursive_step_level)
                     except Exception as error:
                         return {"success": False, "error": str(error)}
                     # otherwise loop over substeps
@@ -297,7 +300,7 @@ def create_feature_file(feature, steps, featureFileName):
     count = 1
     for step in stepsToAdd:
         # Comment this debugging
-        logger.debug(f"{count} Processing Step {step}")
+        # logger.debug(f"{count} Processing Step {step}")
         count+=1
         if step.get("step_type", None) == None:
             step['step_type'] = "subfeature" if re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content']) else "normal"
