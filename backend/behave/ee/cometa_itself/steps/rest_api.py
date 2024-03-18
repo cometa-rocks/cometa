@@ -75,6 +75,7 @@ def parse_parameters(parameters):
         return parameters_dict
     return None
 
+
 # Create API step using this action where, the method is HTTP method (GET, POST, PUT or DELETE, etc), the endpoint is your API to be called
 # Optionally: you can set query parameters and headers using the format Key=Value, with semicolons ; used to separate key-value pairs (e.g., Key1=value1;Key2=value2)
 # Optionally: you can pass body parameter with JSON format i.e. "body:{"key":"value"}"
@@ -143,6 +144,7 @@ def api_call(context, method, endpoint, parameters, headers, body):
     context.step_data['rest_api'] = json_res['id']
     context.api_call = api_call
 
+
 # Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
 # jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
 @step(u'Assert last API Call property \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
@@ -167,6 +169,7 @@ def assert_imp(context, jq_pattern, condition, value):
         assert value in parsed_value, assert_failed_error
 
 use_step_matcher("parse")
+
 
 # The last API request and response data can be saved into an environment variable using this action, which can then be used as a value for other steps or for performing assertions when required
 @step(u'Save last API Call property "{jq_pattern}" to "{environment_variable}"')
