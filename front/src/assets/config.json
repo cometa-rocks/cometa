@@ -275,8 +275,21 @@
           "title": "#3927 Implemented POST method adding BODY",
           "description": "Implemented POST method with body. Body can be provided as JSON format with API step."
         }
+      ],
+      "bugfixes": [
+        "#4565 - Comment are not available for step containing regex in the name"
       ]
     }, 
+    {   
+      "version": "2.8.337",
+      "date": "2024-03-07",
+      "features": [
+        {
+          "title": "Documentation updated for required disk space",
+          "description": "#4388 The documentation has been updated to include information on required disk space, along with commands for checking and updating disk space and ulimit settings."
+        }
+      ]
+    },
     {
       "version": "2.8.336",
       "date": "2024-03-06",
