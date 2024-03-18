@@ -126,7 +126,7 @@ def backup_feature_info(feature):
     else:
         logger.debug('Feature file %s not found.' % orig_file)
 
-def recursiveSubSteps(steps, feature_trace, parent_department_id=None, recursive_step_level=0):
+def recursiveSubSteps(steps, feature_trace, analyzed_features =[], parent_department_id=None, recursive_step_level=0):
     updatedSteps = steps.copy()
     index = 0
     for step in steps:
@@ -137,21 +137,39 @@ def recursiveSubSteps(steps, feature_trace, parent_department_id=None, recursive
             # get subfeature
             logger.debug(f"LEVEL {recursive_step_level} Processing Feature {featureNameOrId} recursively")
             # FIXME this should change to use [limit 1] to reduce the query time
-            subFeature = Feature.objects.filter(feature_id=featureNameOrId, department_id=parent_department_id) if featureNameOrId.isnumeric() else Feature.objects.filter(feature_name=featureNameOrId, department_id=parent_department_id)
+            feature_found = False
+            subFeature = None
+            subFeatureSteps = None
+            for feature_and_steps in analyzed_features:
+                feature = feature_and_steps.get("feature")
+                if feature.feature_id==featureNameOrId or feature.feature_name==featureNameOrId:
+                    feature_found = True
+                    subFeature = feature
+                    subFeatureSteps = feature_and_steps.get("steps")
+                    break
+            # When feature is not found in analyzed_features
+            if not feature_found:
+                logger.debug("Feature is not analyzed. Searching feature in the DB")
+                subFeature = Feature.objects.filter(feature_id=featureNameOrId, department_id=parent_department_id) if featureNameOrId.isnumeric() else Feature.objects.filter(feature_name=featureNameOrId, department_id=parent_department_id)                
             if subFeature.exists():
                 subFeature = subFeature[0]
                 # check if we would get caught in infinite loop
                 if subFeature.feature_id not in feature_trace:
                     # add the current feature id to the trace
                     feature_trace.append(subFeature.feature_id)
-                    # get all the steps from the feature, only those enabled steps
-                    subFeatureSteps = Step.objects.filter(feature_id=subFeature.feature_id).filter(models.Q(step_type='normal') | models.Q(step_type="subfeature")).filter(enabled=True)
-                    # loop over all substeps and set the belongs_to if not set
-                    for subStep in subFeatureSteps:
-                        if subStep.belongs_to == None or not subStep.belongs_to:
-                            subStep.belongs_to = subFeature.feature_id
-                            logger.debug("LEVEL {recursive_step_level} Saving the step")
-                            subStep.save()
+                    if not feature_found:
+                        # get all the steps from the feature, only those enabled steps
+                        subFeatureSteps = Step.objects.filter(feature_id=subFeature.feature_id).filter(models.Q(step_type='normal') | models.Q(step_type="subfeature")).filter(enabled=True)
+                    # loop over all substeps and set the belongs_to if not set 
+                    # do only if feature was not found. If found it means if was dose earlier 
+                    if not feature_found: 
+                        logger.debug("Feature is not analyzed. Searching step in the DB")
+
+                        for subStep in subFeatureSteps:
+                            if subStep.belongs_to == None or not subStep.belongs_to:
+                                subStep.belongs_to = subFeature.feature_id
+                                logger.debug("LEVEL {recursive_step_level} Saving the step")
+                                subStep.save()
                     # get values from substeps and convert it to list
                     subFeatureSteps = list(subFeatureSteps.values())
                     # check and modify continue_on_failure on sub steps if is set in the "Run feature" parent step or in the feature
@@ -160,7 +178,9 @@ def recursiveSubSteps(steps, feature_trace, parent_department_id=None, recursive
                             subFeatureSteps[idx]['continue_on_failure'] = True
                     # check if substeps contain other subfeatures
                     logger.debug(f"LEVEL {recursive_step_level} Processing recursive steps for feature -> {featureNameOrId}")
-                    subSteps = recursiveSubSteps(subFeatureSteps, feature_trace, subFeature.department_id, recursive_step_level+1)
+                    # Add current feature and step analyzed_features to reduce the query for same feature in recursion
+                    analyzed_features.append({'feature': subFeature, 'steps': subFeatureSteps})
+                    subSteps = recursiveSubSteps(subFeatureSteps, feature_trace,analyzed_features, subFeature.department_id, recursive_step_level+1)
                     # check if subSteps returned False
                     if isinstance(subSteps, bool) and not subSteps:
                         return False
@@ -266,8 +286,9 @@ def create_feature_file(feature, steps, featureFileName):
                 if subFeature:
                     try:
                         recursive_step_level = 0
+                        analyzed_features = [{'feature':feature, 'steps':steps}]
                         # get recursive steps from the sub feature
-                        subSteps = recursiveSubSteps([step], [feature.feature_id], feature.department_id, recursive_step_level)
+                        subSteps = recursiveSubSteps([step], [feature.feature_id], analyzed_features, feature.department_id, recursive_step_level)
                     except Exception as error:
                         return {"success": False, "error": str(error)}
                     # otherwise loop over substeps
