@@ -143,6 +143,7 @@ def recursiveSubSteps(steps, feature_trace, analyzed_features =[], parent_depart
             for feature_and_steps in analyzed_features:
                 feature = feature_and_steps.get("feature")
                 if feature.feature_id==featureNameOrId or feature.feature_name==featureNameOrId:
+                    logger.debug("Feature is not analyzed. Searching feature in the DB")
                     feature_found = True
                     subFeature = feature
                     subFeatureSteps = feature_and_steps.get("steps")
