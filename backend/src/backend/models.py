@@ -100,9 +100,9 @@ def backup_feature_steps(feature):
     dest_file = backupsFolder + file + '_' + time + '_steps.json'
     if os.path.exists(orig_file):
         shutil.copyfile(orig_file, dest_file)
-        print('backup_feature_steps: Created feature backup in %s' % dest_file)
+        logger.debug('Created feature backup in %s' % dest_file)
     else:
-        print('backup_feature_steps: Feature file %s not found.' % orig_file)
+        logger.debug('Feature file %s not found.' % orig_file)
 
 def backup_feature_info(feature):
     """
@@ -122,9 +122,9 @@ def backup_feature_info(feature):
     dest_file = backupsFolder + file + '_' + time + '_meta.json'
     if os.path.exists(orig_file):
         shutil.copyfile(orig_file, dest_file)
-        print('backup_feature_info: Created feature backup in %s' % dest_file)
+        logger.debug('Created feature backup in %s' % dest_file)
     else:
-        print('backup_feature_info: Feature file %s not found.' % orig_file)
+        logger.debug('Feature file %s not found.' % orig_file)
 
 def recursiveSubSteps(steps, feature_trace, parent_department_id=None, recursive_step_level=0):
     updatedSteps = steps.copy()
@@ -136,7 +136,7 @@ def recursiveSubSteps(steps, feature_trace, parent_department_id=None, recursive
             featureNameOrId = subFeatureExecution.group(1)
             # get subfeature
             logger.debug(f"LEVEL {recursive_step_level} Processing Feature {featureNameOrId} recursively")
-            # FIXME is should not use filter if we need only one feature
+            # FIXME this should change to use [limit 1] to reduce the query time
             subFeature = Feature.objects.filter(feature_id=featureNameOrId, department_id=parent_department_id) if featureNameOrId.isnumeric() else Feature.objects.filter(feature_name=featureNameOrId, department_id=parent_department_id)
             if subFeature.exists():
                 subFeature = subFeature[0]
@@ -296,7 +296,7 @@ def create_feature_file(feature, steps, featureFileName):
     variables_used = []
 
     # save all the steps found in stepsToAdd to the database
-    logger.debug(f"Preparing steps to add | Steps Length {len(steps)}")
+    logger.debug(f"Preparing steps to add | Steps Length {len(stepsToAdd)}")
     count = 1
     for step in stepsToAdd:
         # Comment this debugging
