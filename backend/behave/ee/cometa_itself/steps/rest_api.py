@@ -6,7 +6,7 @@ from behave import (
     step,
     use_step_matcher
 )
-import sys, requests, re
+import sys, requests, re, json
 sys.path.append('/code/behave/cometa_itself/steps')
 from actions import (
     done,
@@ -57,6 +57,9 @@ def build_rest_api_object(session: requests.Session, response: requests.Response
             "content": parse_content(response)
         }
     }
+    # If request contain body then add it to rest_api_object
+    if response.request.body: 
+        rest_api_object["request"]["data"] = response.request.body.decode()
 
     return rest_api_object
 
@@ -72,9 +75,12 @@ def parse_parameters(parameters):
         return parameters_dict
     return None
 
-@step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?))\")*')
-@done(u'Make an API call with "{method}" to "{endpoint}" with "params:{parameters}" and "headers:{headers}"')
-def api_call(context, method, endpoint, parameters, headers):
+# Create API step using this action where, the method is HTTP method (GET, POST, PUT or DELETE, etc), the endpoint is your API to be called
+# Optionally: you can set query parameters and headers using the format Key=Value, with semicolons ; used to separate key-value pairs (e.g., Key1=value1;Key2=value2)
+# Optionally: you can pass body parameter with JSON format i.e. "body:{"key":"value"}"
+@step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?)|body:(?P<body>.*?))\")*')
+@done(u'Make an API call with "{method}" to "{endpoint}" with "params:{parameters}" and "headers:{headers}" and "body:{body}"')
+def api_call(context, method, endpoint, parameters, headers, body):
 
     logger.debug({
         "method": method,
@@ -90,6 +96,10 @@ def api_call(context, method, endpoint, parameters, headers):
         # TODO: Match Cookie Domain with the Endpoint Domain.
     }
 
+    if body:
+        body = json.loads(body)
+        logger.debug(f"Request will be sent with body : {body}")
+    
     logger.debug(context.browser.get_cookies())
     session = requests.Session()
     session.cookies.update(cookies)
@@ -97,13 +107,15 @@ def api_call(context, method, endpoint, parameters, headers):
     proxies = None
 
     if context.PROXY and len(context.PROXY) > 0:
+        # need to use "http://" in front of IP for bug seen here: https://github.com/psf/requests/issues/5297
         proxies = {
-            'http' : context.PROXY,
-            'https' : context.PROXY
+            'http' : 'http://'+context.PROXY,
+            'https' : 'http://'+context.PROXY
         }
         logger.debug(f"Making API request using proxy : {proxies}")
     response = session.request(
         method=method,
+        json=body,
         url=endpoint,
         params=parse_parameters(parameters),
         headers=parse_parameters(headers),
@@ -131,6 +143,8 @@ def api_call(context, method, endpoint, parameters, headers):
     context.step_data['rest_api'] = json_res['id']
     context.api_call = api_call
 
+# Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
+# jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
 @step(u'Assert last API Call property \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert last API Call property "{jq_pattern}" to "{condition}" "{value}"')
 def assert_imp(context, jq_pattern, condition, value):
@@ -143,10 +157,10 @@ def assert_imp(context, jq_pattern, condition, value):
         logger.error("Invalid JQ pattern")
         logger.exception(err)
         parsed_value = ""
-    print(parsed_value)
+    
     assert_failed_error = f"{parsed_value} ({jq_pattern}) does not { condition } {value}"
     assert_failed_error = logger.mask_values(assert_failed_error)
-
+    
     if condition == "match":
         assert parsed_value == value, assert_failed_error
     else:
@@ -154,6 +168,7 @@ def assert_imp(context, jq_pattern, condition, value):
 
 use_step_matcher("parse")
 
+# The last API request and response data can be saved into an environment variable using this action, which can then be used as a value for other steps or for performing assertions when required
 @step(u'Save last API Call property "{jq_pattern}" to "{environment_variable}"')
 @done(u'Save last API Call property "{jq_pattern}" to "{environment_variable}"')
 def assert_imp(context, jq_pattern, environment_variable):
