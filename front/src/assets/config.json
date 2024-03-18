@@ -261,6 +261,16 @@
       ]
     },
     {
+      "version": "2.8.338",
+      "date": "2024-03-08",
+      "features": [
+        {
+          "title": "#3927 Implemented POST method adding BODY",
+          "description": "Implemented POST method with body. Body can be provided as JSON format with API step."
+        }
+      ]
+    }, 
+    {
       "version": "2.8.336",
       "date": "2024-03-06",
       "bugfixes": [
