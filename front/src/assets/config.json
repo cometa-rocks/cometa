@@ -275,6 +275,9 @@
           "title": "#3927 Implemented POST method adding BODY",
           "description": "Implemented POST method with body. Body can be provided as JSON format with API step."
         }
+      ],
+      "bugfixes": [
+        "#4565 - Comment are not available for step containing regex in the name"
       ]
     }, 
     {   
