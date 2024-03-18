@@ -95,11 +95,24 @@ Here is what you need to be able to run Cometa.
 
 * **ulimit -n 8192**
 
-    Normally a `ulimit -n` of 1024 is sufficient. When using cntlm to divert internal and external traffic in a corporate environment, the ulimit should be set to 8192.
+    Normally a `ulimit -n` of 1024 is sufficient. When using cntlm to divert internal and external traffic in a corporate environment, the ulimit should be set to 8192. Use below command to update ulimit.
+
+	Update ulimit using command
+	```ulimit -n 8192```
+
+* **Required disk space**
+
+    Cometa requires approximately ```28GB``` of disk space. Please ensure that your system has a minimum of 28GB of available disk space before installing Cometa. If necessary, consider freeing up space or upgrading your storage capacity.
+
+	To check the available disk space, use the following command
+	```df -h . | awk 'NR==2 { print $4 }'```
+
+	To obtain more details on disk space, use the following command
+	```df -h .```
 
 * **Server time**
 
-	Your server must be in sync with the global time - consider using [NTP](https://en.wikipedia.org/wiki/Network_Time_Protocol) to keep your local server time syncronised. Time deviation of more than 10 minutes is not supported.
+	Your server must be in sync with the global time - consider using [NTP](https://en.wikipedia.org/wiki/Network_Time_Protocol) to keep your local server time synchronized. Time deviation of more than 10 minutes is not supported.
 
 	Why is this important? Because Co.Meta supports Single Sign On Providers like oAuth from Gitlab, Github, Azure, Google, Facebook, Ping or others. And the cookie timestamp must be accurate.
 
@@ -196,7 +209,7 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 
 	This step will take some time as all the default browser images are being pulled.
 
-	Once Co.Meta is up and running, you can parse the new browser images avaible into Co.Meta by calling `https://localhost/backend/parseBrowsers/`
+	Once Co.Meta is up and running, you can parse the new browser images available into Co.Meta by calling `https://localhost/backend/parseBrowsers/`
 
 7. See Co.Meta in your browser
 
