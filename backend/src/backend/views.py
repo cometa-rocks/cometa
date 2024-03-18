@@ -978,11 +978,26 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
 
     # update feature info
     feature.info = fRun
-
-    # Make sure feature files exists
-    steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
-    feature.save(steps=list(steps))
-    json_path = get_feature_path(feature)['fullPath'] + '_meta.json'
+    json_path = None
+    # When feature is saved then feature file is created, Adding condition to revoke recreation
+    try:
+        feature_file_details = get_feature_path(feature)
+        logger.debug(f"Feature file details {feature_file_details}")
+        fullPath = feature_file_details.get("fullPath","")+".feature"
+        if fullPath=="" or not os.path.isfile(fullPath):
+            # If exception found it means feature file does not exists
+            logger.debug("Feature file not found. Creating feature file")
+            steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
+            feature.save(steps=list(steps))
+        else:
+            logger.debug("Feature file found. Will start execution")
+        json_path = feature_file_details.get("fullPath") + '_meta.json'
+    except Exception:
+        # If exception found, it means feature file does not exists
+        logger.debug("Feature file not found. Creating feature file")
+        steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
+        feature.save(steps=list(steps))
+        json_path = get_feature_path(feature)['fullPath'] + '_meta.json'
 
     executions = []
     frs = []
@@ -2753,22 +2768,25 @@ class DatasetViewset(viewsets.ModelViewSet):
         ws = wb.active
 
         # Add Excel headers
-        ws.append(['Se.No.','Feature ID','Success','Target', 'Context'])
+        ws.append(['Se.No.','Feature ID','Success','Target','Target_Source', 'Context'])
         logger.debug("Added Header in dataset")
         # Write data rows
         for i, record in enumerate(data_sets):
             data = record.data
 
-            decoded_context = 'Error'
+            decoded_html_page_context = 'Error'
+            selected_element_source = 'Error'
             try:
                 # Decode the base64 string
                 decoded_bytes = base64.b64decode(data['context'])
+                selected_element_source = base64.b64decode(data.get('Target_Source',''))
                 # Convert bytes to string
-                decoded_context = decoded_bytes.decode('utf-8')
+                decoded_html_page_context = decoded_bytes.decode('utf-8')
+                selected_element_source = selected_element_source.decode('utf-8')
             except base64.binascii.Error as e:
                 logger.error(f"Error decoding context in record {record.id}:", e)
                 
-            ws.append([i+1, record.feature_result.feature_id.feature_id, data['success'], data['target'],decoded_context])  # Adjust fields as per your model
+            ws.append([i+1, record.feature_result.feature_id.feature_id, data['success'],data['target'], selected_element_source, decoded_html_page_context])  # Adjust fields as per your model
 
         logger.info("Added dataset to workbook")
         logger.info("Getting time for file name")

@@ -295,11 +295,11 @@ body::-webkit-scrollbar-corner {
 h3 {
   font-weight: normal;
 }
-
-mat-option {
-  line-height: 35px !important;
-  height: 35px !important;
-}
+// Commented because of this select option auto focus was not working 
+// mat-option {
+//   line-height: 35px !important;
+//   height: 35px !important;
+// }
 
 .mat-select-content {
   max-height: 150px;
