@@ -752,6 +752,7 @@ def step_impl(context,css_selector):
     logger.debug(f"Generate Dataset: {str(generate_dataset)}")
     payload = {
         'context': base64.b64encode(clear_html_page_source(context.browser.page_source).encode()).decode(),
+        'Target_Source': base64.b64encode(clear_html_page_source(elem[0].get_attribute('outerHTML')).encode()).decode(),
         'target': css_selector,
         'success': False,
         'feature_result_id': os.environ['feature_result_id']
@@ -759,7 +760,6 @@ def step_impl(context,css_selector):
     send_step_details(context, 'Clicking')
     try:
         ActionChains(context.browser).move_to_element(elem[0]).click().perform()
-        
         if generate_dataset:
             payload['success'] = True
             requests.post('http://cometa_django:8000/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
