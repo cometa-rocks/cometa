@@ -978,11 +978,26 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
 
     # update feature info
     feature.info = fRun
-
-    # Make sure feature files exists
-    steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
-    feature.save(steps=list(steps))
-    json_path = get_feature_path(feature)['fullPath'] + '_meta.json'
+    json_path = None
+    # When feature is saved then feature file is created, Adding condition to revoke recreation
+    try:
+        feature_file_details = get_feature_path(feature)
+        logger.debug(f"Feature file details {feature_file_details}")
+        fullPath = feature_file_details.get("fullPath","")+".feature"
+        if fullPath=="" or not os.path.isfile(fullPath):
+            # If exception found it means feature file does not exists
+            logger.debug("Feature file not found. Creating feature file")
+            steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
+            feature.save(steps=list(steps))
+        else:
+            logger.debug("Feature file found. Will start execution")
+        json_path = feature_file_details.get("fullPath") + '_meta.json'
+    except Exception:
+        # If exception found, it means feature file does not exists
+        logger.debug("Feature file not found. Creating feature file")
+        steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
+        feature.save(steps=list(steps))
+        json_path = get_feature_path(feature)['fullPath'] + '_meta.json'
 
     executions = []
     frs = []
@@ -1431,7 +1446,7 @@ def parseActions(request):
             # parse action will use action_comments, if found to be action otherwise make it empty
             parseAction(action)
 
-        # This condition rarely executes
+        # This condition rarely executes when @step contains regular expression
         # If action started with @step then it never start with @done and in case above condition is false then any how this will be executed
         # not need of two if conditions
         elif action.startswith('@done') and '(?P<' in previousLine:
@@ -1439,18 +1454,21 @@ def parseActions(request):
             parseAction(action)
 
         # when any comment related to action written, that line will not have any spaces considering that line
-        # If there is Muti line comments, keep on adding in the list 
+        # If there is Multi line comments, keep on adding in the list 
         elif action.startswith('# '):
             # Action Comments to be written in with out line gaps
-            action_comments.append(
-                action[2:])  # [2:] to remove # and single space from the front of the comment
+            # [2:] to remove # and single space from the front of the comment
+            action_comments.append(action[2:])
+            # logger.debug(f"Found actions comment {action_comments}")
         else:
-            action_comments = []  # if other then comments found remove empty the list
+            if not action.startswith("@step"):
+                action_comments = []  # if other then comments found remove empty the list
+                logger.debug(f"Removed action comments {action}")
 
         previousLine = action
 
     logger.debug(f"Ending Action Parse")
-    # send a request to websockets about the actions update
+    # send a request to web sockets about the actions update
     requests.post('http://cometa_socket:3001/sendAction', json={
         'type': '[Actions] Get All'
     })
