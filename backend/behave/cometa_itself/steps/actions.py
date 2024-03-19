@@ -280,6 +280,7 @@ def done( *_args, **_kwargs ):
                     step_timeout = MAX_STEP_TIMEOUT
 
                 # start the timeout
+                logger.debug(f"Setting timeout on step to: {step_timeout}")
                 signal.signal(signal.SIGALRM, lambda signum, frame, timeout=step_timeout: timeoutError(signum, frame, timeout))
                 signal.alarm(step_timeout)
                 # set page load timeout
