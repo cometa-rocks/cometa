@@ -162,12 +162,18 @@ def recursiveSubSteps(steps, feature_trace, analyzed_features, parent_department
             # When feature is not found in analyzed_features
             if not is_feature_analyzed:
                 # logger.debug("Feature is not analyzed. Searching feature in the DB")
-                # FIXME this should change to use [limit 1] to reduce the query time
-                subFeature = Feature.objects.filter(feature_id=featureNameOrId, department_id=parent_department_id) if featureNameOrId.isnumeric() else Feature.objects.filter(feature_name=featureNameOrId, department_id=parent_department_id)                
-            if is_feature_analyzed or subFeature.exists():
+                try:
+                    if featureNameOrId.isnumeric():
+                        subFeature = Feature.objects.get(feature_id=featureNameOrId, department_id=parent_department_id) 
+                    else:
+                        subFeature = Feature.objects.get(feature_name=featureNameOrId, department_id=parent_department_id)
+                except Feature.DoesNotExist as exception:
+                    raise Exception('Unable to find feature with specified name or id: %s' % str(featureNameOrId))
+
+            if is_feature_analyzed or subFeature:
                 # If feature not found in the "analyzed_features" and then take it from DB feature
-                if not is_feature_analyzed:
-                    subFeature = subFeature[0]
+                # if not is_feature_analyzed:
+                #     subFeature = subFeature[0]
                 # check if we would get caught in infinite loop
                 if subFeature.feature_id not in feature_trace:
                     # add the current feature id to the trace
@@ -175,16 +181,16 @@ def recursiveSubSteps(steps, feature_trace, analyzed_features, parent_department
                     # get all the steps from the feature, only those enabled steps
 
                     if not is_feature_analyzed:
-                        # logger.debug("Feature is not analyzed. Searching related step in the DB")
-                        # get all the steps from the feature, only those enabled steps
+                        # logger.debug("Feature steps are not analyzed. Searching related step in the DB")
+                        # Get all the steps from the feature, only those enabled steps
                         subFeatureSteps = Step.objects.filter(feature_id=subFeature.feature_id).filter(models.Q(step_type='normal') | models.Q(step_type="subfeature")).filter(enabled=True)
                         # loop over all substeps and set the belongs_to if not set 
-                        # do only if feature was not found. If found it means it was done earlier 
+                        # do only if feature step was not found in the analyzed_features, If found it means it was done earlier 
                         # logger.debug("Updating step belongs_to")
                         for subStep in subFeatureSteps:
                             if subStep.belongs_to == None or not subStep.belongs_to:
                                 subStep.belongs_to = subFeature.feature_id
-                                logger.debug("LEVEL {recursive_step_level} Saving the step")
+                                logger.debug(f"LEVEL {recursive_step_level} Saving the step to update the belongs_to in recursiveSubSteps")
                                 subStep.save()
                         analyzed_features.append({'feature': subFeature, 'steps': subFeatureSteps })
 
@@ -206,7 +212,7 @@ def recursiveSubSteps(steps, feature_trace, analyzed_features, parent_department
                         return False
                     # else delete the current index
                     del updatedSteps[index]
-                    # add substeps at postition of the current index
+                    # add substeps at position of the current index
                     updatedSteps[index:0] = subSteps
                     # set the number by what amount the index should get updated by
                     updateIndex = len(subSteps)
@@ -383,7 +389,7 @@ def create_feature_file(feature, steps, featureFileName):
                 )
 
     except IntegrityError as e:
-        logger.debug("Exception while saving steps with transactions")
+        logger.debug(f"Exception while saving steps with transactions | Feature ID : {feature.feature_id}")
         logger.exception(e)
 
     logger.debug("Finding Variables")
@@ -730,7 +736,7 @@ class Department(models.Model):
 
 class Step(models.Model):
     id = models.AutoField(primary_key=True)
-    feature_id = models.IntegerField()
+    feature_id = models.IntegerField(db_index=True)
     step_keyword = models.CharField(max_length=10, choices=step_keywords, default="Given")
     step_content = models.TextField()
     enabled = models.BooleanField(default=True)
@@ -845,6 +851,9 @@ class Feature(models.Model):
     class Meta:
         ordering = ['last_edited_date']
         verbose_name_plural = "Features"
+        indexes = [
+            models.Index(fields=['feature_name']),   
+        ]
 
 class Feature_result(SoftDeletableModel):
     feature_result_id = models.AutoField(primary_key=True)
@@ -1533,7 +1542,7 @@ dataset_types = (
 class Dataset(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=10, choices=dataset_types, default="selector")
-    data = models.JSONField(default="", null=True)
+    data = models.JSONField(default=dict, null=True)
     feature_result = models.ForeignKey(Feature_result, on_delete=models.SET_NULL, null=True, related_name="feature_result_dataset")
     class Meta:
         verbose_name_plural = "Datasets"
