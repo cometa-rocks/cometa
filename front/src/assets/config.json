@@ -1,5 +1,5 @@
 {
-  "version": "2.8.342",
+  "version": "2.8.343",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,13 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.343",
+      "date": "2024-03-19",
+      "bugfixes": [
+        "#4583 (Fixed) Sub Feature change will take place. Change to store the list of analyzed features in memory will help reduce save time."
+      ]
+    },
     {
       "version": "2.8.342",
       "date": "2024-03-18",
