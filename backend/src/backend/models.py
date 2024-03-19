@@ -800,12 +800,12 @@ class Feature(models.Model):
                 return response # {"success": False, "error": "infinite loop found"}
             
             # Create .json
-            logger.debug("Creating Json file")
+            logger.debug(f"Creating Json file : {featureFileName}")
             create_json_file(self, steps, featureFileName)
             # Create _meta.json
-            logger.debug("Creating meta file")
+            logger.debug(f"Creating meta file : {featureFileName}")
             create_meta_file(self, featureFileName)
-            logger.debug("Created meta file")
+            logger.debug(f"meta file Created")
         return {"success": True}
     
     def delete(self, *args, **kwargs):
