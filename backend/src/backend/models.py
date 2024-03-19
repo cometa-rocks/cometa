@@ -120,11 +120,20 @@ def backup_feature_info(feature):
     Path(backupsFolder).mkdir(parents=True, exist_ok=True)
     orig_file = path + file + '_meta.json'
     dest_file = backupsFolder + file + '_' + time + '_meta.json'
+    # creating backup of meta file of feature
     if os.path.exists(orig_file):
         shutil.copyfile(orig_file, dest_file)
-        logger.debug('Created feature backup in %s' % dest_file)
+        logger.debug('Created meta file feature backup in %s' % dest_file)
     else:
-        logger.debug('Feature file %s not found.' % orig_file)
+        logger.debug('Feature meta file %s not found.' % orig_file)
+    # backup the JSON file with the step content
+    orig_file = path + file + '.json'
+    dest_file = backupsFolder + file + '_' + time + '.json'
+    if os.path.exists(orig_file):
+        shutil.copyfile(orig_file, dest_file)
+        logger.debug('Created json feature backup containing steps in %s' % dest_file)
+    else:
+        logger.debug('Feature json file %s not found.' % orig_file)
 
 def recursiveSubSteps(steps, feature_trace, analyzed_features, parent_department_id=None, recursive_step_level=0):
     # logger.debug(f"Analyzed feature length  {len(analyzed_features)} feature Trace > {feature_trace}")
