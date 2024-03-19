@@ -978,26 +978,11 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
 
     # update feature info
     feature.info = fRun
-    json_path = None
-    # When feature is saved then feature file is created, Adding condition to revoke recreation
-    try:
-        feature_file_details = get_feature_path(feature)
-        logger.debug(f"Feature file details {feature_file_details}")
-        fullPath = feature_file_details.get("fullPath","")+".feature"
-        if fullPath=="" or not os.path.isfile(fullPath):
-            # If exception found it means feature file does not exists
-            logger.debug("Feature file not found. Creating feature file")
-            steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
-            feature.save(steps=list(steps))
-        else:
-            logger.debug("Feature file found. Will start execution")
-        json_path = feature_file_details.get("fullPath") + '_meta.json'
-    except Exception:
-        # If exception found, it means feature file does not exists
-        logger.debug("Feature file not found. Creating feature file")
-        steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
-        feature.save(steps=list(steps))
-        json_path = get_feature_path(feature)['fullPath'] + '_meta.json'
+
+    # Make sure feature files exists
+    steps = Step.objects.filter(feature_id=feature_id).order_by('id').values()
+    feature.save(steps=list(steps))
+    json_path = get_feature_path(feature)['fullPath'] + '_meta.json'
 
     executions = []
     frs = []
