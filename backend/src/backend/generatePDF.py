@@ -274,8 +274,9 @@ class GeneratePDF(View):
             step.count = count
             count = count + 1
             # Trim the step name to get a maximum of 60 characters
-            if len(step.step_name) > 57:
-                step.step_name = step.step_name[:57] + '...'
+            # 
+            # if len(step.step_name) > 57:
+            #     step.step_name = step.step_name[:57] + '...'
             # Iterate over each screenshot
             fields = ['current', 'style', 'difference']
             for field in fields:
