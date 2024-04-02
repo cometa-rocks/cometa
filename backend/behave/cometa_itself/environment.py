@@ -305,7 +305,7 @@ def before_all(context):
         options.set_capability('proxy', {
             "httpProxy": PROXY,
             "sslProxy": PROXY,
-            "noProxy": None,
+            "noProxy": NO_PROXY,
             "proxyType": "manual",  # case sensitive
             "class": "org.openqa.selenium.Proxy",
             "autodetect": False
