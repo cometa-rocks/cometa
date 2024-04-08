@@ -141,13 +141,18 @@ WSGI_APPLICATION = 'cometa_pj.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
+DATABASE_PORT = os.getenv("DATABASE_PORT",5432)
+# This is added because when passing PORT from k8 yaml file value need be passes as string format
+if type(DATABASE_PORT)=="<class 'str'>":
+    DATABASE_PORT = int(DATABASE_PORT)
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': "postgres",
         'USER': 'postgres',
-        'HOST': 'db',
-        'PORT': 5432
+        'HOST': os.getenv("DATABASE_SERVER","db"),
+        'PORT': DATABASE_PORT
     }
 }
 

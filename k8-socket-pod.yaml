@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cometa-socket-pod
+  labels:
+    app: cometa-socket-pod
+spec:
+  containers:
+    - name: cometa-socket-container
+      image: node:14
+      workingDir: /home/node/app
+      ports:
+      - containerPort: 3001
+      env:
+      - name: NODE_ENV
+        value: "production"
+      - name: NPM_CONFIG_LOGLEVEL
+        value: "info"
+      command: ["npm", "run-script", "start"]
+      
+      volumeMounts:
+        - name: cometa-volume
+          mountPath: /home/node/app
+          subPath: ./backend/ws-server
+
+      resources:
+        limits:
+          cpu: "0.5"
+          memory: "1Gi"
+        requests:
+          cpu: "0.25"
+          memory: "512Mi"
+
+  volumes:
+    - name: cometa-volume
+      hostPath:
+        path: "/cometa"
