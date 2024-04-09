@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+ 
+  apache:
+    image: "cometa-apache:0.1"
+    container_name: cometa_front
+    volumes:
+      - ./front/:/code/front
+      - ./front/apache-conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./front/apache-conf/openidc.conf_local:/usr/local/apache2/conf/openidc.conf
+      - ./front/apache-conf/paths.conf:/usr/local/apache2/conf/paths.conf
+      - ./front/apache-conf/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
+      - /data/cometa/screenshots:/screenshots
+    working_dir: /code/front
+    privileged: true
+    ports:
+      - "80:80"
+      - "443:443"
+      - "4200:4200"
+    command: bash /code/front/start.sh compile
+    networks:
+      - testing
+    restart: always
+
+networks:
+  testing:
+    driver: "bridge"
+
+volumes:
+  redis_data:

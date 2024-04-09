@@ -16,12 +16,17 @@ spec:
         value: "production"
       - name: NPM_CONFIG_LOGLEVEL
         value: "info"
-      command: ["npm", "run-script", "start"]
-      
-      volumeMounts:
-        - name: cometa-volume
-          mountPath: /home/node/app
-          subPath: ./backend/ws-server
+      # command: ["npm", "run-script", "start"]
+      command: ["sleep"]
+      args: ["infinity"]
+
+      # volumeMounts:
+      #   - name: cometa-volume
+      #     mountPath: /home/node/app
+      #     subPath: ./cometa/backend/ws-server 
+      #   - name: cometa-volume
+      #     mountPath: /cometa
+      #     subPath: ./cometa
 
       resources:
         limits:
@@ -33,5 +38,5 @@ spec:
 
   volumes:
     - name: cometa-volume
-      hostPath:
-        path: "/cometa"
+      persistentVolumeClaim:
+        claimName: cometa-volume-claim

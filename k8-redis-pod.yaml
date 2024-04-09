@@ -13,6 +13,7 @@ spec:
     volumeMounts:
       - name: cometa-volume 
         mountPath: /data
+        subPath: ./data
         
     resources:
       limits:
@@ -28,7 +29,7 @@ spec:
 
   volumes:
     - name: cometa-volume
-      hostPath:
-        path: "/cometa"
+      persistentVolumeClaim:
+        claimName: cometa-volume-claim
         
   restartPolicy: Always

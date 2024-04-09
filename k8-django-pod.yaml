@@ -8,7 +8,7 @@ spec:
   containers:
     - name: cometa-django
       image: cometa-python:0.1
-      command: ["bash", "start.sh","-dev"]
+      command: ["bash", "start.sh", "-dev"]
       workingDir: /opt/code
       env:
       - name: PYTHONUNBUFFERED
