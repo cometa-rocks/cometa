@@ -6,13 +6,4 @@
 
 * cometa-apache image is build locally, Upload image to docker-hub to use docker file to build image ```/front/Dockerfile-Dependency-Build```
 
-cometa-django pod starting
-cometa-behave pod starting
-cometa-postgres pod started
-
-* fix cometa_postgres volume connection 
-* fix - cometa_front restarts after compilation
-* Correct cometa front pod restart error
-* fix cometa socket restart restart error
-* fix cometa behave connection with redis
-*  
+## Note when using NFS volume and mouting with pods use docker internel IP to avoid the firewal issue

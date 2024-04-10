@@ -10,3 +10,24 @@ spec:
     image: postgres:12.1
     ports:
     - containerPort: 5432
+
+    volumeMounts:
+        - name: cometa-volume
+          mountPath: /code
+          subPath: ./backend
+        - name: cometa-volume
+          mountPath: /var/lib/postgresql/data
+          subPath: ./backend/db_data
+
+    resources:
+      limits:
+        cpu: "1"
+        memory: "1Gi"
+      requests:
+        cpu: "0.5"
+        memory: "512Mi"
+
+  volumes:
+    - name: cometa-volume
+      persistentVolumeClaim:
+        claimName: cometa-volume-claim

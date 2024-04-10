@@ -4,10 +4,8 @@ metadata:
   name: cometa-django-service
 spec:
   selector:
-    app: cometa-pod
-  type: NodePort
+    app: cometa-django-pod
   ports:
     - protocol: TCP
       port: 8000
       targetPort: 8000
-      nodePort: 30007 # Optionally, specify a nodePort in the range (30000-32767)

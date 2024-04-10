@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-novnc
+  labels:
+    app: cometa-novnc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cometa-novnc
+  template:
+    metadata:
+      labels:
+        app: cometa-novnc
+    spec:
+      containers:
+      - name: novnc
+        image: cometa/novnc:1.0
+        ports:
+        - containerPort: 8080 # Assuming novnc listens on 8080, adjust if needed
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-novnc
+spec:
+  selector:
+    app: cometa-novnc
+  ports:
+    - protocol: TCP
+      port: 80 # External port
+      targetPort: 8080 # Container port
+  type: LoadBalancer

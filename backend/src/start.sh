@@ -95,7 +95,7 @@ EOF
 }
 
 # Make sure log folder exists
-# mkdir -p /opt/code/logs || true
+mkdir -p /opt/code/logs || true
 # Install requirements
 # apt update && apt install -y rsyslog jq nano vim clamav-daemon
 service rsyslog start

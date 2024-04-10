@@ -17,8 +17,12 @@ spec:
         
     resources:
       limits:
-        memory: "512Mi"
         cpu: "0.5"
+        memory: "512Mi"
+      requests:
+        cpu: "0.5"
+        memory: "256Mi"
+
     # readinessProbe:
     #   exec:
     #     command:

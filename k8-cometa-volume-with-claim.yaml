@@ -10,8 +10,8 @@ spec:
     - ReadWriteMany # or another access mode
   persistentVolumeReclaimPolicy: Retain # or another reclaim policy
   nfs:
-    path: /srv/nfs/share/ # The NFS share path
-    server: 192.168.1.10 # The NFS server address
+    path: /cometa # The NFS share path
+    server: 172.22.225.83 # The NFS server address
 
 ---
 

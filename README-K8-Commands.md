@@ -38,3 +38,7 @@ kubectl port-forward --address localhost cometa-django-pod 8000:8000
 Ensure that the NFS share is correctly exported to the Kubernetes nodes. On the NFS server, check the exports list by running:
 
 > sudo exportfs -v
+
+
+# get port information
+ ss -tulpn

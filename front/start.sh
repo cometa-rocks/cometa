@@ -64,9 +64,9 @@ EOF
 # @params:
 # #########
 function install_angular(){
-	# echo -e "\e[37mInstalling @angular/cli...\e[0m"
-	# npm install -g @angular/cli >> output.log 2>&1
-	# echo -e "\e[32mOK\e[0m"
+	echo -e "\e[37mInstalling @angular/cli...\e[0m"
+	npm install -g @angular/cli@15.2.9 >> output.log 2>&1
+	echo -e "\e[32mOK\e[0m"
 	npm config set unsafe-perm true
 	echo -e "\e[37mInstalling npm packages...\e[0m"
 	npm ci >> output.log 2>&1
@@ -127,9 +127,9 @@ function check_ssl_certificate() {
 # #########
 # This function builds angular project
 # and copies the content to the apache
-# folder.
+# folder.  
 # needed on hot deployment
-# @params:
+# @params: 
 # #########
 function build_project(){
 	# replace baseHref inside index.html before serving

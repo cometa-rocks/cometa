@@ -7,7 +7,7 @@ metadata:
 spec:
   containers:
   - name: cometa-front-container
-    image: httpd:2.4.48
+    image: cometa-apache:0.1
     volumeMounts:
     - name: cometa-volume
       mountPath: /code/front
@@ -17,7 +17,7 @@ spec:
       subPath: ./front/apache-conf/httpd.conf
     - name: cometa-volume
       mountPath: /usr/local/apache2/conf/openidc.conf
-      subPath: ./front/apache-conf/openidc.conf_<server>
+      subPath: ./front/apache-conf/openidc.conf_local
     - name: cometa-volume
       mountPath: /usr/local/apache2/conf/paths.conf
       subPath: ./front/apache-conf/paths.conf
@@ -27,24 +27,26 @@ spec:
     - name: cometa-volume
       mountPath: /screenshots
       subPath: ./data/cometa/screenshots
+      
     workingDir: /code/front
     ports:
     - containerPort: 80
     - containerPort: 443
     - containerPort: 4200
-    command: ["/bin/bash", "/code/front/start.sh", "openidc", "basic", "angular", "compile"]
+    # command: ["/bin/bash", "/code/front/start.sh", "openidc", "basic", "angular", "compile"]
+    command: ["/bin/bash", "/code/front/start.sh","angular", "compile"]
     securityContext:
       privileged: true
-    resources:
-      limits:
-        cpu: "2"
-        memory: "2Gi"
-      requests:
-        cpu: "1"
-        memory: "1Gi"
+    # resources:
+    #   limits:
+    #     cpu: "2"
+    #     memory: "2Gi"
+    #   requests:
+    #     cpu: "1"
+    #     memory: "1Gi"
 
   volumes:
-  - name: cometa-volume
-    hostPath:
-      path: /cometa
+    - name: cometa-volume
+      persistentVolumeClaim:
+        claimName: cometa-volume-claim
   # restartPolicy: Always
