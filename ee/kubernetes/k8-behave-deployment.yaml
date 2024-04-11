@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-behave-deployment
+  labels:
+    app: cometa-behave-pod
+spec:
+  replicas: 1 # Number of replicas you want to run
+  selector:
+    matchLabels:
+      app: cometa-behave-pod
+  template:
+    metadata:
+      labels:
+        app: cometa-behave-pod
+    spec:
+      containers:
+      - name: cometa-behave-container
+        image: python:3.9
+        ports:
+        - containerPort: 8001
+        volumeMounts:
+        - name: cometa-volume
+          mountPath: /opt/code/screenshots
+          subPath: ./data/cometa/screenshots
+        - name: cometa-volume
+          mountPath: /opt/code/videos
+          subPath: ./data/cometa/videos
+        - name: cometa-volume
+          mountPath: /code/behave/pdf
+          subPath: ./data/cometa/pdf
+        - name: cometa-volume
+          mountPath: /code/behave/downloads
+          subPath: ./data/cometa/downloads
+        - name: cometa-volume
+          mountPath: /opt/code
+          subPath: ./backend/behave
+        - name: cometa-volume
+          mountPath: /code
+          subPath: ./backend
+        - name: cometa-volume
+          mountPath: /etc/cron.d/crontab
+          subPath: ./backend/behave/schedules/crontab
+        workingDir: /opt/code/behave_django
+        command: ["/bin/sh", "-c", "/code/docker/build/behave/entry.sh"]
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: REDIS_SERVER
+          value: "cometa-redis-service"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: CRONTAB_SERVER_URL
+          value: "cometa-crontab-service"
+        - name: CRONTAB_SERVER_PORT
+          value: "8080"
+        - name: SOCKET_SERVER_URL
+          value: "cometa-socket-service"
+        - name: SOCKET_SERVER_PORT
+          value: "3001"
+        - name: DJANGO_SERVER_URL
+          value: "cometa-django-service"      
+        - name: DJANGO_SERVER_PORT
+          value: "8000"
+        # Uncomment and adjust the resources as needed
+        resources:
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+      volumes:
+      - name: cometa-volume
+        persistentVolumeClaim:
+          claimName: cometa-volume-claim
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-behave-service
+spec:
+  selector:
+    app: cometa-behave-pod
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001

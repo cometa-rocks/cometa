@@ -17,7 +17,7 @@ from django.db.models.signals import post_delete, pre_delete
 from django.dispatch import receiver
 from django_cryptography.fields import encrypt
 from crontab import CronSlices
-
+from backend.utility.config_handler import *
 # GLOBAL VARIABLES
 
 # check if we are inside a loop
@@ -1346,14 +1346,14 @@ class Schedule(models.Model):
         super(Schedule, self).save(*args, **kwargs)
 
         # make the request to crontab
-        requests.get('http://crontab:8080/')
+        requests.get(f'{get_cometa_crontab_url()}/')
         return True
 
     def delete(self, *args, **kwargs):
         # delete the object and send request to crontab to update
         super(Schedule, self).delete()
         # make the request to crontab
-        requests.get('http://crontab:8080/')
+        requests.get(f'{get_cometa_crontab_url()}/')
         return True
 
 IntegrationApplications = (

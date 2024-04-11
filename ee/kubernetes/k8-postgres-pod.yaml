@@ -31,3 +31,17 @@ spec:
     - name: cometa-volume
       persistentVolumeClaim:
         claimName: cometa-volume-claim
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+spec:
+  selector:
+    app: cometa-postgres-pod
+  ports:
+  - port: 5432
+    targetPort: 5432

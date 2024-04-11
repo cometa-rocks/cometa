@@ -12,6 +12,8 @@ from tempfile import NamedTemporaryFile
 sys.path.append("/code")
 from secret_variables import *
 from src.backend.common import *
+from src.backend.utility.config_handler import *
+
 
 # setup logging
 logger = logging.getLogger(__name__)
@@ -36,9 +38,13 @@ def run_browser(json_path, env, **kwargs):
         pickle.dump({
             'VARIABLES': variables
         }, file)
-    
+
+    # Combine environment value related to cometa and feature data 
+    # this is required because in new bash session env information will be lost related to cometa servers
+    all_env = {**get_all_cometa_environments(), **env}
+
     # Start running feature with current browser
-    with subprocess.Popen(["bash", settings.RUNTEST_COMMAND_PATH, json_path], env=env, stdout=subprocess.PIPE) as process:
+    with subprocess.Popen(["bash", settings.RUNTEST_COMMAND_PATH, json_path], env=all_env, stdout=subprocess.PIPE) as process:
         try:
             logger.debug(f"Process id: {process.pid}")
             # wait for the process to finish
@@ -66,7 +72,7 @@ def run_browser(json_path, env, **kwargs):
         except Exception as e:
             logger.error("run_browser threw an exception:")
             logger.exception(e)
-            requests.post('http://cometa_socket:3001/feature/%s/error' % kwargs.get('feature_id', None), data={
+            requests.post(f'{get_cometa_socket_url()}/feature/%s/error' % kwargs.get('feature_id', None), data={
                 "browser_info": kwargs.get('browser', None),
                 "feature_result_id": kwargs.get('feature_result_id', None),
                 "run_id": kwargs.get('feature_run', None),
@@ -79,7 +85,7 @@ def run_browser(json_path, env, **kwargs):
 def run_finished(feature_run, feature_id, user_data):
     logger.debug('All browsers of current run completed!')
     # Send completed websocket to Front
-    requests.post('http://cometa_socket:3001/feature/%d/runCompleted' % int(feature_id), json={
+    requests.post(f'{get_cometa_socket_url()}/feature/%d/runCompleted' % int(feature_id), json={
         'type': '[WebSockets] Completed Feature Run',
         'run_id': int(feature_run),
         'datetime': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),

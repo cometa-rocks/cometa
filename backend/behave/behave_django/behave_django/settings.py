@@ -15,6 +15,8 @@ import os, sys
 sys.path.append("/code")
 import secret_variables
 from src.backend.common import *
+from src.backend.utility.config_handler import *
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

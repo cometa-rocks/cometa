@@ -42,16 +42,42 @@ spec:
       value: "cometa-redis-service"
     - name: REDIS_PORT
       value: "6379"
+    - name: CRONTAB_SERVER_URL
+      value: "cometa-crontab-service"
+    - name: CRONTAB_SERVER_PORT
+      value: "8080"
+    - name: SOCKET_SERVER_URL
+      value: "cometa-socket-service"
+    - name: SOCKET_SERVER_PORT
+      value: "3001"
+    - name: DJANGO_SERVER_URL
+      value: "cometa-django-service"      
+    - name: DJANGO_SERVER_PORT
+      value: "8000"
       
-    resources:
-      limits:
-        cpu: "1"
-        memory: "1Gi"
-      requests:
-        cpu: "1"
-        memory: "1Gi"
+    # resources:
+    #   limits:
+    #     cpu: "1"
+    #     memory: "1Gi"
+    #   requests:
+    #     cpu: "1"
+    #     memory: "1Gi"
     
   volumes:
     - name: cometa-volume
-      hostPath:
-        path: "/cometa"
+      persistentVolumeClaim:
+        claimName: cometa-volume-claim
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-behave-service
+spec:
+  selector:
+    app: cometa-behave-pod
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001

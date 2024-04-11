@@ -14,11 +14,11 @@ from slugify import slugify
 import hashlib
 import os, pickle
 from selenium.common.exceptions import InvalidCookieDomainException
-
 # just to import secrets
 sys.path.append("/code")
 from src.backend.utility.functions import *
 from src.backend.utility.cometa_logger import CometaLogger
+from src.backend.utility.config_handler import *
 import secret_variables
 from src.backend.common import *
 
@@ -68,12 +68,12 @@ def error_handling(*_args, **_kwargs):
                     # remove the feature_result if it was created
                     if "feature_result_id" in os.environ:
                         response = requests.delete(
-                            'http://cometa_django:8000/api/feature_results/%s' % os.environ['feature_result_id'],
+                            f'{get_cometa_backend_url()}/api/feature_results/%s' % os.environ['feature_result_id'],
                             headers={'Host': 'cometa.local'})
 
                     # let the front user know that the feature has been failed
                     logger.debug("Sending a error websocket....")
-                    request = requests.post('http://cometa_socket:3001/feature/%s/error' % args[0].feature_id, data={
+                    request = requests.post(f'{get_cometa_socket_url()}/feature/%s/error' % args[0].feature_id, data={
                         "browser_info": json.dumps(args[0].browser_info),
                         "feature_result_id": os.environ['feature_result_id'],
                         "run_id": os.environ['feature_run'],
@@ -215,7 +215,7 @@ def before_all(context):
         "run_id": os.environ['feature_run'],
         "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     }
-    request = requests.get('http://cometa_socket:3001/feature/%s/initializing' % str(context.feature_id), data=payload)
+    request = requests.get(f'{get_cometa_socket_url()}/feature/%s/initializing' % str(context.feature_id), data=payload)
 
     # browser data
     context.cloud = context.browser_info.get("cloud",
@@ -289,7 +289,7 @@ def before_all(context):
     if context.browser_info['browser'] == 'chrome' and context.network_logging_enabled :
         options.set_capability('goog:loggingPrefs', {'browser': 'ALL', 'performance': 'ALL'})
         # If network logging enabled then fetch vulnerability headers info from server
-        response =  requests.get('http://cometa_django:8000/security/vulnerable_headers/', headers={'Host': 'cometa.local'})
+        response =  requests.get(f'{get_cometa_backend_url()}/security/vulnerable_headers/', headers={'Host': 'cometa.local'})
         logger.info("vulnerable headers info received")
         context.vulnerability_headers_info = response.json()["results"]
         logger.info("stored in the context")
@@ -334,7 +334,7 @@ def before_all(context):
         'pid': str(os.getpid()),
         'feature_result_id': os.environ['feature_result_id'],
     }
-    response = requests.post('http://cometa_django:8000/updateTask/', headers={'Host': 'cometa.local'},
+    response = requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
                              data=json.dumps(task))
 
     logger.info('\33[92mRunning feature...\33[0m')
@@ -361,10 +361,10 @@ def before_all(context):
         'description': feature_description
     }
     # update feature_result with session_id
-    requests.patch('http://cometa_django:8000/api/feature_results/', json=data, headers=headers)
+    requests.patch(f'{get_cometa_backend_url()}/api/feature_results/', json=data, headers=headers)
 
     # get all the steps from django
-    response = requests.get('http://cometa_django:8000/steps/%s/?subSteps=True' % context.feature_id,
+    response = requests.get(f'{get_cometa_backend_url()}/steps/%s/?subSteps=True' % context.feature_id,
                             headers={"Host": "cometa.local"})
     # save the steps to environment variable ... this will overload ENV variables in bash size. Must use context, not env.
     # os.environ['STEPS'] = json.dumps(response.json()['results'])
@@ -379,7 +379,7 @@ def before_all(context):
     os.environ['total_steps'] = str(context.counters['total'])
 
     # send a websocket request about that feature has been started
-    request = requests.get('http://cometa_socket:3001/feature/%s/started' % context.feature_id, data={
+    request = requests.get(f'{get_cometa_socket_url()}/feature/%s/started' % context.feature_id, data={
         "user_id": context.PROXY_USER['user_id'],
         "browser_info": json.dumps(context.browser_info),
         "feature_result_id": os.environ['feature_result_id'],
@@ -424,7 +424,7 @@ def after_all(context):
         logger.debug(str(err))
 
     # testcase has finished, send websocket about processing data
-    request = requests.get('http://cometa_socket:3001/feature/%s/processing' % context.feature_id, data={
+    request = requests.get(f'{get_cometa_socket_url()}/feature/%s/processing' % context.feature_id, data={
         "user_id": context.PROXY_USER['user_id'],
         "browser_info": json.dumps(context.browser_info),
         "feature_result_id": os.environ['feature_result_id'],
@@ -525,14 +525,14 @@ def after_all(context):
     # set the headers for the request
     headers = {'Content-type': 'application/json', 'Host': 'cometa.local'}
     # send the patch request
-    requests.patch('http://cometa_django:8000/api/feature_results/', json=data, headers=headers)
+    requests.patch(f'{get_cometa_backend_url()}/api/feature_results/', json=data, headers=headers)
 
     logger.debug('\33[92m' + 'FeatureResult ran successfully!' + '\33[0m')
 
     # get the final result for the feature_result
-    request_info = requests.get("http://cometa_django:8000/api/feature_results/%s" % os.environ['feature_result_id'],
+    request_info = requests.get(f"{get_cometa_backend_url()}/api/feature_results/%s" % os.environ['feature_result_id'],
                                 headers=headers)
-    requests.post('http://cometa_socket:3001/feature/%s/finished' % context.feature_id, data={
+    requests.post(f'{get_cometa_socket_url()}/feature/%s/finished' % context.feature_id, data={
         "user_id": context.PROXY_USER['user_id'],
         "browser_info": json.dumps(context.browser_info),
         "feature_result_id": os.environ['feature_result_id'],
@@ -557,7 +557,7 @@ def after_all(context):
 
         logger.info("Sending vulnerability_headers")
         # request to save vulnerable network headers
-        response = requests.post("http://cometa_django:8000/security/network_headers/", headers=headers,
+        response = requests.post(f"{get_cometa_backend_url()}/security/network_headers/", headers=headers,
                                  data=json.dumps({
                                      "result_id": os.environ['feature_result_id'],
                                      "responses": context.network_responses,
@@ -570,7 +570,7 @@ def after_all(context):
             # logger.debug(f"Error while saving Vulnerability Headers : {json.dumps(response.json())}")
             logger.debug(f"Error while saving Vulnerability Headers : {response}")
     # send mail
-    sendemail = requests.get('http://cometa_django:8000/pdf/?feature_result_id=%s' % os.environ['feature_result_id'],
+    sendemail = requests.get(f'{get_cometa_backend_url()}/pdf/?feature_result_id=%s' % os.environ['feature_result_id'],
                              headers={'Host': 'cometa.local'})
     logger.debug('SendEmail status: ' + str(sendemail.status_code))
 
@@ -597,7 +597,7 @@ def after_all(context):
         'feature_id': context.feature_id,
         'pid': str(os.getpid())
     }
-    response = requests.post('http://cometa_django:8000/updateTask/', headers={'Host': 'cometa.local'},
+    response = requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
                              data=json.dumps(task))
 
 
@@ -632,7 +632,7 @@ def before_step(context, step):
     #         pass # just incase if no url has been searched at the time
 
     # send websocket to front to let front know about the step
-    requests.post('http://cometa_socket:3001/feature/%s/stepBegin' % context.feature_id, data={
+    requests.post(f'{get_cometa_socket_url()}/feature/%s/stepBegin' % context.feature_id, data={
         "user_id": context.PROXY_USER['user_id'],
         'feature_result_id': os.environ['feature_result_id'],
         'browser_info': json.dumps(context.browser_info),
@@ -743,7 +743,7 @@ def after_step(context, step):
     elif hasattr(context, 'step_error'):
         step_error = context.step_error
     # send websocket to front to let front know about the step
-    requests.post('http://cometa_socket:3001/feature/%s/stepFinished' % context.feature_id, json={
+    requests.post(f'{get_cometa_socket_url()}/feature/%s/stepFinished' % context.feature_id, json={
         "user_id": context.PROXY_USER['user_id'],
         'feature_result_id': os.environ['feature_result_id'],
         'browser_info': json.dumps(context.browser_info),

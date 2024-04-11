@@ -8,7 +8,7 @@ from backend.utility.functions import getLogger
 from pprint import pprint
 from django.shortcuts import redirect
 import urllib3
-
+from backend.utility.config_handler import get_config
 logger = getLogger()
 
 DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
@@ -41,10 +41,12 @@ class AuthenticationMiddleware:
             try:
                 # get the host from request
                 HTTP_HOST = request.META.get('HTTP_HOST', DOMAIN)
+                logger.debug(HTTP_HOST)
                 if HTTP_HOST == 'cometa.local':
                     raise Exception("User session none existent from behave.")
                 if not re.match(r'^(cometa.*\.amvara\..*)|(.*\.cometa\.rocks)$', HTTP_HOST):
-                    HTTP_HOST = 'cometa_front'
+                    HTTP_HOST = get_config("FRONT_SERVER_HOST", "cometa_front")
+
                 # make a request to cometa_front to get info about the logged in user
                 response = requests.get('https://%s/callback?info=json' % HTTP_HOST, verify=False, cookies={
                     'mod_auth_openidc_session': request.COOKIES.get('mod_auth_openidc_session', '')
