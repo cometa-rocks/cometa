@@ -64,9 +64,9 @@ EOF
 # @params:
 # #########
 function install_angular(){
-	echo -e "\e[37mInstalling @angular/cli...\e[0m"
-	npm install -g @angular/cli@15.2.9 >> output.log 2>&1
-	echo -e "\e[32mOK\e[0m"
+	# echo -e "\e[37mInstalling @angular/cli...\e[0m"
+	# npm install -g @angular/cli@15.2.9 >> output.log 2>&1
+	# echo -e "\e[32mOK\e[0m"
 	npm config set unsafe-perm true
 	echo -e "\e[37mInstalling npm packages...\e[0m"
 	npm ci >> output.log 2>&1

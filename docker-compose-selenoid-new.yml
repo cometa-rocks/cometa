@@ -12,8 +12,11 @@ services:
       - 4444:4444
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./backend/selenoid/:/etc/selenoid/:ro
-      - ./data/cometa/videos:/opt/selenoid/video
+      - /data/selenoid/:/etc/selenoid/:ro
+      - /data/videos:/opt/selenoid/video
+    environment:
+      TZ: Europe/Berlin
+      OVERRIDE_VIDEO_OUTPUT_DIR: ${PWD}/data/cometa/videos
     networks:
       - testing
     restart: always
@@ -25,7 +28,7 @@ services:
       -log-output-dir /opt/selenoid/logs \
       -container-network cometa_testing \
       -limit $$LIMIT"
-
+    
 networks:
   testing:
     driver: "bridge"

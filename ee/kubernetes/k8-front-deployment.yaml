@@ -20,6 +20,25 @@ spec:
         - containerPort: 80
         - containerPort: 443
         - containerPort: 4200
+
+        env:
+        - name: DJANGO_SERVER_URL
+          value: "cometa-django-service"
+        - name: DJANGO_SERVER_PORT
+          value: "8000"
+        - name: SOCKET_SERVER_URL
+          value: "cometa-socket-service"
+        - name: SOCKET_SERVER_PORT
+          value: "3001"
+        - name: SELENOID_SERVER_URL
+          value: "172.22.225.83"
+        - name: SELENOID_SERVER_PORT
+          value: "4444"
+        - name: NOVNC_SERVER_URL
+          value: "cometa-novnc-service"
+        - name: NOVNC_SERVER_PORT
+          value: "80"
+
         volumeMounts:
         - name: cometa-volume
           mountPath: /code/front

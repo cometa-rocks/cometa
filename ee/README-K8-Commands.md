@@ -24,9 +24,9 @@ kubectl port-forward --address localhost cometa-django-pod 8000:8000
 > https://chat.openai.com/share/31429731-6676-4b7b-ba73-a9b63e3e89e1
 
 * Issue in running front pod in 443 port
-> copy /home/user/.kube to /root/.kube, run port forword command with root
+> copy /home/user/.kube to /root/.kube, run port forward command with root
 
-> sudo kubectl port-forward --address localhost cometa-front-pod 443:443
+> sudo kubectl port-forward --address localhost service/cometa-front-service 443:443
 
 
 
