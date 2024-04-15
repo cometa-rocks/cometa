@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-front-deployment
+  namespace: cometa  # Set the namespace to 'cometa'
+spec:
+  replicas: 1  # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: cometa-front-pod  # Ensure this matches the label used in the template
+  template:
+    metadata:
+      labels:
+        app: cometa-front-pod
+    spec:
+      containers:
+      - name: cometa-front-container
+        image: cometa/cometa-apache:1.0
+        ports:
+        - containerPort: 80
+        - containerPort: 443
+        - containerPort: 4200
+        volumeMounts:
+        - name: cometa-volume
+          mountPath: /code/front
+          subPath: ./front/
+        - name: cometa-volume
+          mountPath: /usr/local/apache2/conf/httpd.conf
+          subPath: ./front/apache-conf/httpd.conf
+        - name: cometa-volume
+          mountPath: /usr/local/apache2/conf/openidc.conf
+          subPath: ./front/apache-conf/openidc.conf_local
+        - name: cometa-volume
+          mountPath: /usr/local/apache2/conf/paths.conf
+          subPath: ./front/apache-conf/paths.conf
+        - name: cometa-volume
+          mountPath: /usr/local/apache2/modules/mod_auth_openidc.so
+          subPath: ./front/apache-conf/mod_auth_openidc.so
+        - name: cometa-volume
+          mountPath: /screenshots
+          subPath: ./data/cometa/screenshots
+        workingDir: /code/front
+        command: ["/bin/bash", "/code/front/start.sh", "angular", "compile"]
+        securityContext:
+          privileged: true
+        # resources:
+        #   limits:
+        #     cpu: "2"
+        #     memory: "2Gi"
+        #   requests:
+        #     cpu: "1"
+        #     memory: "1Gi"
+      volumes:
+      - name: cometa-volume
+        persistentVolumeClaim:
+          claimName: cometa-volume-claim
+      # restartPolicy: Always (uncomment if needed, default is Always for Deployment)
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-front-service
+  namespace: cometa  # Set the namespace to 'cometa'
+spec:
+  selector:
+    app: cometa-front-pod
+  type: ClusterIP
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 443
+    - name: dev-mod
+      protocol: TCP
+      port: 4200
+      targetPort: 4200

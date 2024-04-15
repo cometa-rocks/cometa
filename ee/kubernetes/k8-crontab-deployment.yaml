@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-crontab-deployment
+  namespace: cometa  # Specify the namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cometa-crontab-pod
+  template:
+    metadata:
+      labels:
+        app: cometa-crontab-pod
+    spec:
+      containers:
+      - name: cometa-crontab-container
+        image: cometa/crontab:1.1
+        env:
+        - name: DJANGO_SERVER_URL
+          value: "cometa-django-service"
+        - name: DJANGO_SERVER_PORT
+          value: "8000"
+      restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-crontab-service
+  namespace: cometa  # Specify the namespace
+spec:
+  selector:
+    app: cometa-crontab-pod
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-crontab
+  namespace: cometa  # Ensure this is applied within the 'cometa' namespace
+spec:
+  podSelector:
+    matchLabels:
+      app: cometa-crontab-pod  # Targeting pods related to the crontab service
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+    ports:
+    - protocol: TCP
+      port: 8080  # Restrict to traffic on TCP port 8080

@@ -166,3 +166,10 @@ if [ "$ENVIRONMENT" != "dev" ]; then
         --access-logfile=- \
         --access-logformat='%(t)s %({proxy-user}i)s %({x-forwarded-for}i)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
 fi
+
+echo "###################################################"
+echo "# Parsing Actions.....                            #"
+echo "###################################################"
+
+curl --fail http://localhost:8000/parseActions/
+echo "Devmode was requested ... starting python manage.py runserver"

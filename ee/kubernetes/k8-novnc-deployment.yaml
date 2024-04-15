@@ -1,15 +1,23 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: cometa-novnc-pod
-  labels:
-    app: cometa-novnc-pod
+  name: cometa-novnc-deployment
+  namespace: cometa  # Set the namespace to 'cometa'
 spec:
-  containers:
-  - name: novnc
-    image: cometa/novnc:1.0
-    ports:
-    - containerPort: 80 # Assuming novnc listens on 8080, adjust if needed
+  replicas: 1  # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: cometa-novnc-pod  # Ensure this matches the label used in the template
+  template:
+    metadata:
+      labels:
+        app: cometa-novnc-pod
+    spec:
+      containers:
+      - name: novnc
+        image: cometa/novnc:1.0
+        ports:
+        - containerPort: 80  # Assuming noVNC listens on port 80
 
 ---
 
@@ -17,11 +25,12 @@ apiVersion: v1
 kind: Service
 metadata:
   name: cometa-novnc-service
+  namespace: cometa  # Set the namespace to 'cometa'
 spec:
   selector:
     app: cometa-novnc-pod
   ports:
     - protocol: TCP
-      port: 80 # External port
-      targetPort: 80 # Container port
+      port: 80  # External port
+      targetPort: 80  # Container port
   type: ClusterIP

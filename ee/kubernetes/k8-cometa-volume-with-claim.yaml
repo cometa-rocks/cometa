@@ -2,6 +2,7 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: cometa-volume
+  namespace: cometa  # Add namespace here
 spec:
   storageClassName: "standard"
   capacity:
@@ -19,6 +20,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: cometa-volume-claim
+  namespace: cometa  # Add namespace here
 spec:
   accessModes:
     - ReadWriteMany # Make sure this matches the PV's access mode
