@@ -46,6 +46,10 @@ install_cron() {
 }
 
 create_secret_variables() {
+    if [ -f "/share/secret_variables.py" ]; then
+        cp /share/secret_variables.py /code/secret_variables.py 
+        echo "Copied file secret_variables.py from /share/secret_variables.py to /code/secret_variables.py"
+    fi
     # make sure secret_variables.py file exists
     if [ ! -f "/code/secret_variables.py" ]; then
         echo "Unable to find secret_variables.py will make one..."
@@ -89,6 +93,8 @@ COMETA_S3_ENABLED=False
 COMETA_S3_ENDPOINT=''
 COMETA_S3_BUCKETNAME=''
 EOF
+    # Make a copy to to be stored in the volumes, /opt/share is shared with volumes
+    cp /code/secret_variables.py /share/secret_variables.py
     else
         echo "secret_variables.py file exists."
     fi
@@ -97,34 +103,36 @@ EOF
 # Make sure log folder exists
 mkdir -p /opt/code/logs || true
 # Install requirements
-apt update && apt install -y rsyslog jq nano vim clamav-daemon
+# apt update && apt install -y rsyslog jq nano vim clamav-daemon
 service rsyslog start
 # Install cron
 install_cron
 # check and create secret_variables.py
 create_secret_variables
-# Install poetry package manager
-curl -sSL https://install.python-poetry.org | python3 -
-# Create symbolic link to Poetry so it's available as command everywhere
-ln -s /root/.local/bin/poetry /usr/local/bin/poetry
-# Disable creation of virtual env
-poetry config virtualenvs.create false
-# Install project dependencies
-poetry install --no-interaction --no-ansi
-# Upgrade PIP
-pip install -U pip
-# Run Django migrations
+
+
+crontab /etc/cron.d/crontab
+
+cron
+service rsyslog start
+
 python manage.py makemigrations backend
 python manage.py makemigrations security
 python manage.py migrate
+
+if [ -f "/share/.initiated" ]; then
+    cp /share/.initiated /code/.initiated 
+    echo "Copied file .initiated from /share/.initiated to /code/.initiated"
+fi
 
 # if this is the first time initializing co.meta
 # import basic data
 if [ ! -f "/code/.initiated" ]; then
     find defaults -name "*.json" | sort | xargs -I{} python manage.py loaddata {}
     touch /code/.initiated
+    cp /code/.initiated /share/.initiated
+    echo "Copied file .initiated from /code/.initiated to /share/.initiated "
 fi
-
 
 
 # update clamav database and start clamav in daemon mode
@@ -166,3 +174,10 @@ if [ "$ENVIRONMENT" != "dev" ]; then
         --access-logfile=- \
         --access-logformat='%(t)s %({proxy-user}i)s %({x-forwarded-for}i)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
 fi
+
+echo "###################################################"
+echo "# Parsing Actions.....                            #"
+echo "###################################################"
+
+curl --fail http://localhost:8000/parseActions/
+echo "Devmode was requested ... starting python manage.py runserver"

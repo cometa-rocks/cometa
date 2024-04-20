@@ -1,0 +1,33 @@
+# Start from a base image of Alpine
+FROM alpine:3.15.0
+
+# Install basic packages needed
+RUN apk update && apk add curl jq
+
+# Create a non-root user 'cometa' with UID 472 and GID 472
+RUN addgroup -g 472 cometa && \
+    adduser -D -u 472 -G cometa cometa
+
+# Set the workdir for the project
+WORKDIR /home/cometa/crontab/
+
+# Copy basic configuration files inside the container
+COPY --chown=cometa:cometa ./persistent_crontab_configuration .
+COPY --chown=cometa:cometa ./update_crontab.sh .
+COPY --chown=cometa:cometa ./entrypoint.sh .
+COPY --chown=cometa:cometa ./.curlrc /home/cometa/.
+
+RUN chmod +x ./update_crontab.sh ./entrypoint.sh
+
+# Set ownership of all files to the non-root user and group
+RUN chown -R cometa:cometa /home/cometa
+
+# Copy and adjust permissions for the crontab file
+RUN cp persistent_crontab_configuration /var/spool/cron/crontabs/cometa 
+RUN chmod 0644 /var/spool/cron/crontabs/cometa
+
+# Start crond in the foreground with logging to stderr
+ENTRYPOINT ["crond", "-f", "-d", "8"]
+
+# Run everything below as the non-root user 'cometa'
+USER cometa

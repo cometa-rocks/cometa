@@ -13,10 +13,28 @@ screen -r 1643
 # Useful Minikube Docker commands
 ## Get minikube docker access 
 > eval $(minikube -p minikube docker-env)
+
 ## build docker images django
 > docker build . -t cometa-python:0.1
 ## build docker images front
 > docker build . -f Dockerfile-Dependency-Build -t cometa-apache:0.1
+
+## build docker images behave
+> docker build . -t cometa/behave:0.1
+
+## build docker images redis
+> docker build . -t cometa/redis:0.1
+
+## Forword port of cometa-backend to outside
+kubectl port-forward --address localhost cometa-django-pod 8000:8000
+
+## build docker images django
+> docker build . -t cometa/socket:0.1
+
+## build docker images front
+> docker build . -f Dockerfile-Dependency-Build -t cometa-apache:0.1
+
+
 ## Forword port of cometa-backend to outside
 kubectl port-forward --address localhost cometa-django-pod 8000:8000
 

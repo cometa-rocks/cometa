@@ -1,10 +1,10 @@
 #!/bin/sh
 
 function getSchedules() {
-    DJANGO_SERVER_URL=${SERVER_URL:-django}
-    DJANGO_SERVER_PORT=${SERVER_URL:-8000}
+    SERVER_URL=${DJANGO_SERVER_URL:-django}
+    SERVER_PORT=${DJANGO_SERVER_PORT:-8000}
     TMPFILE=$(mktemp)
-    STATUS_CODE=$(curl  --silent --output ${TMPFILE} --write-out "%{http_code}" http://${DJANGO_SERVER_URL}:${DJANGO_SERVER_PORT}/api/schedule/)
+    STATUS_CODE=$(curl  --silent --output ${TMPFILE} --write-out "%{http_code}" http://${SERVER_URL}:${SERVER_PORT}/api/schedule/)
     if [[ ${STATUS_CODE} != 200 ]]; then
         >&2 cat ${TMPFILE}
         return 10
