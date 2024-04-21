@@ -33,10 +33,13 @@ spec:
           runAsUser: 472
           seccompProfile:
             type: RuntimeDefault
+        env:
+          - name: PGDATA
+            value: "/var/lib/postgresql/data/pgdata"
         volumeMounts:
           - name: cometa-volume
-            mountPath: /var/lib/postgresql
-            subPath: ./data
+            mountPath: /var/lib/postgresql/data/
+            subPath: ./db_data
         resources:
           limits:
             cpu: "1"

@@ -20,7 +20,7 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-front-container
-        image: cometa/front-new:0.1
+        image: cometa/front:0.1
         ports:
         - containerPort: 80
         - containerPort: 443
@@ -47,6 +47,10 @@ spec:
         - name: cometa-volume
           mountPath: /screenshots
           subPath: ./data/cometa/screenshots
+        - name: cometa-volume
+          # mountPath: /share
+          mountPath: /code/front/apache-conf/metadata
+          subPath: ./share/metadata
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

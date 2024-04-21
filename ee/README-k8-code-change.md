@@ -32,3 +32,16 @@ URL paths are modified  front/apache-conf/paths.conf
 
     DJANGO_SERVER_URL
     DJANGO_SERVER_PORT
+    
+## Front container - environment variables
+    SOCKET_SERVER_URL
+    SOCKET_SERVER_PORT
+
+    DJANGO_SERVER_URL
+    DJANGO_SERVER_PORT
+
+    SELENOID_SERVER_URL
+    SELENOID_SERVER_PORT
+    
+    NOVNC_SERVER_URL
+    NOVNC_SERVER_PORT

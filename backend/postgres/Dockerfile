@@ -9,12 +9,12 @@ RUN groupadd -g 472 cometa && \
 # Change ownership of the PostgreSQL data directory
 # This directory and its permissions are managed by the base PostgreSQL image,
 # but we need to ensure it's owned by our custom user if we're changing from the default
-RUN chown -R cometa:cometa /var/lib/postgresql/data && \
-    chown -R cometa:cometa /var/run/postgresql
+RUN chown -R cometa:cometa /var/run/postgresql
+RUN chown -R cometa:cometa /var/lib/postgresql/data
 
 # Make sure all other necessary directories are accessible by the 'cometa' user
-RUN chmod -R 755 /var/lib/postgresql && \
-    chmod -R 755 /var/run/postgresql
+RUN chmod -R 755 /var/lib/postgresql/data
+RUN chmod -R 755 /var/run/postgresql
 
 # Run the server as the non-root user 'cometa'
 USER cometa

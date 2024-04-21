@@ -22,7 +22,6 @@ spec:
       containers:
         - name: cometa-socket-container
           image: cometa/socket:0.1
-          # workingDir: /home/node/app
           ports:
           - containerPort: 3001
           env:
@@ -41,15 +40,6 @@ spec:
             runAsUser: 472
             seccompProfile:
               type: RuntimeDefault
-          # command: ["npm", "run-script", "start"]
-          # command: ["sleep"]
-          # args: ["infinity"]
-          # volumeMounts:
-          #   - name: cometa-volume
-          #     mountPath: /home/node/app
-          #     subPath: ./backend/ws-server
-          #   - name: cometa-volume
-          #     mountPath: /cometa
           resources:
             limits:
               cpu: "0.5"
@@ -57,11 +47,6 @@ spec:
             requests:
               cpu: "0.25"
               memory: "512Mi"
-      # volumes:
-      #   - name: cometa-volume
-      #     persistentVolumeClaim:
-      #       claimName: cometa-volume-claim
-
 ---
 apiVersion: v1
 kind: Service
