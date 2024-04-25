@@ -7,7 +7,7 @@ else
     echo -e "\e[1;31msecret_variables.py not found at /share/secret_variables.py; either the Django pod was not started, or /share is not mounted. \e[0m"
 fi
 
-rsyslogd -n
+# rsyslogd -n
 # Run Django migrations
 python manage.py makemigrations
 python manage.py migrate
@@ -30,10 +30,11 @@ stdout_logfile=/proc/1/fd/1
 stdout_logfile_maxbytes=0
 stderr_logfile=/proc/1/fd/1
 stderr_logfile_maxbytes=0
+
 EOF
 
 # start supervisord to spin django-rq workers.
-supervisord -c /etc/supervisor/supervisord.conf
+supervisord -u cometa -c /etc/supervisor/supervisord.conf
 
 # ${THREADS} values should come from environment variable
 # spin up gunicorn

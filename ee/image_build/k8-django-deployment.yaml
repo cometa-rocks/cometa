@@ -57,9 +57,6 @@ spec:
         - containerPort: 8000
         volumeMounts:
         - name: cometa-volume
-          mountPath: /code/behave/
-          subPath: ./data/cometa/
-        - name: cometa-volume
           mountPath: /code/behave/videos
           subPath: ./data/cometa/videos
         - name: cometa-volume
@@ -69,20 +66,20 @@ spec:
           mountPath: /code/behave/downloads
           subPath: ./data/cometa/downloads
         - name: cometa-volume
-          mountPath: /code/department_data
-          subPath: ./data/cometa/department_data
+          mountPath: /code/behave/department_data
+          subPath: ./data/department_data
           # This mount is required to share .initiated and secret_variables.py
         - name: cometa-volume
           mountPath: /share
           subPath: ./share
 
-        resources:
-          limits:
-            cpu: "2"
-            memory: "2Gi"
-          requests:
-            cpu: "1"
-            memory: "1Gi"
+        # resources:
+        #   limits:
+        #     cpu: "2"
+        #     memory: "2Gi"
+        #   requests:
+        #     cpu: "1"
+        #     memory: "1Gi"
 
       volumes:
       - name: cometa-volume

@@ -22,7 +22,7 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-behave-container
-        image: python:3.9
+        image: cometa/behave:0.1
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -35,6 +35,7 @@ spec:
             type: RuntimeDefault
         ports:
         - containerPort: 8001
+        command: ["./entry.sh"]
         volumeMounts:
         - name: cometa-volume
           mountPath: /opt/code/screenshots
@@ -49,6 +50,12 @@ spec:
           mountPath: /code/behave/downloads
           subPath: ./data/cometa/downloads
         - name: cometa-volume
+          mountPath: /code/behave/department_data
+          subPath: ./data/department_data
+        - name: cometa-volume
+          mountPath: /opt/code/department_data
+          subPath: ./data/department_data
+        - name: cometa-volume
           mountPath: /share
           subPath: ./share
         env:
@@ -57,7 +64,11 @@ spec:
         - name: REDIS_SERVER
           value: "cometa-redis-service"
         - name: REDIS_PORT
-          value: "6379"
+          value: "6379" 
+        - name: REDIS_WORKERS
+          value: "10"
+        - name: THREADS
+          value: "10"
         - name: CRONTAB_SERVER_URL
           value: "cometa-crontab-service"
         - name: CRONTAB_SERVER_PORT
@@ -67,16 +78,16 @@ spec:
         - name: SOCKET_SERVER_PORT
           value: "3001"
         - name: DJANGO_SERVER_URL
-          value: "cometa-django-service"      
+          value: "cometa-django-service"
         - name: DJANGO_SERVER_PORT
           value: "8000"
-        resources:
-          limits:
-            cpu: "2"
-            memory: "2Gi"
-          requests:
-            cpu: "1"
-            memory: "1Gi"
+        # resources:
+        #   limits:
+        #     cpu: "2"
+        #     memory: "2Gi"
+        #   requests:
+        #     cpu: "1"
+        #     memory: "1Gi"
       volumes:
       - name: cometa-volume
         persistentVolumeClaim:

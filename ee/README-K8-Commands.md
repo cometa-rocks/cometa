@@ -47,6 +47,10 @@ kubectl port-forward --address localhost cometa-django-pod 8000:8000
 > sudo kubectl port-forward --address localhost service/cometa-front-service 443:443
 
 
+> kubectl port-forward --address localhost service/selenium-video-service 4444:4444 5900:5900 7900:7900 -n cometa
+
+
+
 
 
 
@@ -73,3 +77,10 @@ Create SSH tunnel
 Mouse host folder to minikube cluster path
     ```minikube mount .:/cometa```
 
+
+# Selenium Grid
+
+> sudo kubectl port-forward --address localhost service/selenium-hub 4444:4444 -n cometa
+> sudo kubectl port-forward --address localhost service/selenium-video-service 4444:4444 5900:5900 -n cometa
+
+kubectl port-forward --address localhost service/selenium-video-service 4444:4444 5900:5900 -n cometa

@@ -14,3 +14,6 @@
 * Before running front deployment uncomment line:52 and comment line:51 
 * run the deployment 
     ```kubectl apply -f k8-front-deployment.yaml```
+
+
+## Update Parse actions once the front is up and running 
