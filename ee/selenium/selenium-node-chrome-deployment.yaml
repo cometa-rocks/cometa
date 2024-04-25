@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenium-node-chrome
+  namespace: cometa
+  labels:
+    app: selenium-node-chrome
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: selenium-node-chrome
+  template:
+    metadata:
+      labels:
+        app: selenium-node-chrome
+    spec:
+      volumes:
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
+      containers:
+      - name: selenium-node-chrome
+        image: selenium/node-chrome:123.0
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 472
+          runAsUser: 472
+          seccompProfile:
+            type: RuntimeDefault
+        ports:
+          - containerPort: 5555
+        volumeMounts:
+          - mountPath: /dev/shm
+            name: dshm
+        env:
+          - name: SE_EVENT_BUS_HOST
+            value: "selenium-hub"
+          - name: SE_EVENT_BUS_SUBSCRIBE_PORT
+            value: "4443"
+          - name: SE_EVENT_BUS_PUBLISH_PORT
+            value: "4442"
+        resources:
+          limits:
+            memory: "1000Mi"
+            cpu: ".5"

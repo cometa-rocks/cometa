@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: selenium-video-pod
+  namespace: cometa  # Specify the namespace "cometa"
+  labels:
+    app: selenium-video-deployment
+spec:
+  terminationGracePeriodSeconds: 10
+  containers:
+  - name: selenium
+    image: cometa/chrome-standalone:0.1
+    # workingDir: /video
+    # command: ["bash", "entry.sh"]
+    ports:
+    - containerPort: 4444
+    - containerPort: 5900
+    - containerPort: 7900
+    env:
+    - name: VIDEO_NAME
+      value: "chrome_video_123.mkv"
+    - name: SE_SCREEN_WIDTH
+      value: "1920" 
+    - name: SE_SCREEN_HEIGHT
+      value: "1080"
+    - name: SE_SCREEN_DEPTH
+      value: "24"
+    resources:
+      limits:
+        memory: "1Gi"
+        cpu: "1"
+    volumeMounts:
+    - name: cometa-volume
+      mountPath: /dev/shm
+      subPath: ./browsers
+    - name: cometa-volume
+      mountPath: /video
+      subPath: ./video
+
+  volumes:
+  - name: cometa-volume
+    persistentVolumeClaim:
+      claimName: cometa-volume-claim  # Make sure the PVC exists
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: selenium-video-service
+  namespace: cometa  # Specify the namespace "cometa"
+spec:
+  selector:
+    app: selenium-video-deployment
+  ports:
+  - protocol: TCP
+    name: grid
+    port: 4444
+    targetPort: 4444
+  - protocol: TCP
+    name: vnc-client
+    port: 5900
+    targetPort: 5900
+  - protocol: TCP
+    name: vnc-browser
+    port: 7900
+    targetPort: 7900
