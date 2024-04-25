@@ -22,6 +22,14 @@ from src.backend.utility.config_handler import *
 import secret_variables
 from src.backend.common import *
 
+
+import time
+import uuid
+
+import kubernetes
+from kubernetes import client, config
+
+
 LOGGER_FORMAT = '\33[96m[%(asctime)s][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s'
 # setup logging
 logging.setLoggerClass(CometaLogger)
@@ -44,6 +52,212 @@ NO_PROXY = getattr(secret_variables, 'COMETA_NO_PROXY', '')
 DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
 S3ENABLED = getattr(secret_variables, 'COMETA_S3_ENABLED', False)
 ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
+
+
+
+class KubernetesHandler:
+
+    def __init__(self, HOST):
+        self.service_create_response = None
+        self.pod_create_api_response = None
+        self.configuration = client.Configuration()
+        # Set the Kubernetes API server address
+        self.configuration.host = HOST
+        self.configuration.verify_ssl = False
+        self.namespace = 'cometa'
+        client.Configuration.set_default(self.configuration)
+
+        self.api_instance = client.CoreV1Api()
+
+    def create_pod(self, IMAGE, VIDEO_NAME, SESSION_ID):
+        pod_manifest = {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "name": f"cometa-selenium-pod-{SESSION_ID}",
+                "namespace": "cometa",
+                "labels": {
+                    "app": SESSION_ID
+                }
+            },
+            "spec": {
+                "terminationGracePeriodSeconds": 10,
+                "containers": [
+                    {
+                        "name": "selenium",
+                        "image": IMAGE,
+                        "ports": [
+                            {
+                                "containerPort": 4444
+                            },
+                            {
+                                "containerPort": 5900
+                            },
+                            {
+                                "containerPort": 7900
+                            }
+                        ],
+                        "env": [
+                            {
+                                "name": "VIDEO_NAME",
+                                "value": VIDEO_NAME
+                            },
+                            {
+                                "name": "SE_SCREEN_WIDTH",
+                                "value": "1920"
+                            },
+                            {
+                                "name": "SE_SCREEN_HEIGHT",
+                                "value": "1080"
+                            },
+                            {
+                                "name": "SE_SCREEN_DEPTH",
+                                "value": "24"
+                            }
+                        ],
+                        # "resources": {
+                        #     "limits": {
+                        #         "memory": "1Gi",
+                        #         "cpu": "1"
+                        #     }
+                        # },
+                        "volumeMounts": [
+                            {
+                                "name": "cometa-volume",
+                                "mountPath": "/dev/shm",
+                                "subPath": "./browsers"
+                            },
+                            {
+                                "name": "cometa-volume",
+                                "mountPath": "/video",
+                                "subPath": "./video"
+                            }
+                        ]
+                    }
+                ],
+                "volumes": [
+                    {
+                        "name": "cometa-volume",
+                        "persistentVolumeClaim": {
+                            "claimName": "cometa-volume-claim"
+                        }
+                    }
+                ]
+            }
+        }
+        # Create the pod in the default namespace
+        # Call the API to create the pod
+        self.pod_create_api_response = self.api_instance.create_namespaced_pod(
+            body=pod_manifest,
+            namespace=self.namespace
+        )
+
+        logger.debug(f"Pod '{self.pod_create_api_response.metadata.name}' created successfully in namespace '{self.namespace}'")
+
+    def create_service(self, SESSION_ID):
+
+        service_manifest = {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "name": f"selenium-video-service-{SESSION_ID}",
+                "namespace": self.namespace
+            },
+            "spec": {
+                "selector": {
+                    "app": SESSION_ID
+                },
+                "ports": [
+                    {
+                        "protocol": "TCP",
+                        "name": "grid",
+                        "port": 4444,
+                        "targetPort": 4444
+                    },
+                    {
+                        "protocol": "TCP",
+                        "name": "vnc-client",
+                        "port": 5900,
+                        "targetPort": 5900
+                    },
+                    {
+                        "protocol": "TCP",
+                        "name": "vnc-browser",
+                        "port": 7900,
+                        "targetPort": 7900
+                    }
+                ]
+            }
+        }
+
+        self.service_create_response = self.api_instance.create_namespaced_service(
+            body=service_manifest,
+            namespace=self.namespace
+        )
+
+        logger.debug(f"Service '{self.service_create_response.metadata.name}' created successfully in namespace '{self.namespace}'")
+    
+    
+
+
+    def get_service_name(self):
+        return self.service_create_response.metadata.name
+    
+    def wait_to_spinup(self):
+
+
+        # URL to monitor of local pods
+        url = f'http://{self.get_service_name()}:4444/status'
+
+        # Define a wait time between retries (in seconds)
+        wait_time = 1  # For example, wait 5 seconds between each request
+
+        # Set a flag to track whether the URL is accessible
+        url_accessible = False
+
+        # Loop until the URL returns a status code of 200
+        while not url_accessible:
+            try:
+                # Make an HTTP GET request to the URL
+                response = requests.get(url)
+
+                # Check the status code of the response
+                if response.status_code == 200:
+                    # If the status code is 200, the URL is accessible
+                    logger.debug(f'Success! URL {url} is accessible.')
+                    url_accessible = True
+                else:
+                    # If the status code is not 200, print the status code and wait
+                    logger.debug(f'URL {url} returned status code {response.status_code}. Retrying in {wait_time} seconds...')
+                    time.sleep(wait_time)
+
+            except requests.RequestException as e:
+                # Handle request exceptions (e.g., connection error)
+                logger.debug(f'Browser nov ready Retrying in {wait_time} seconds...')
+                time.sleep(wait_time)
+
+        # The loop will exit when the status code 200 is received
+
+
+
+    def delete_pod(self):
+        self.api_instance.delete_namespaced_pod(
+            name=self.pod_create_api_response.metadata.name,
+            namespace=self.namespace,
+            body=client.V1DeleteOptions()
+        )
+        logger.debug(f"Pod '{self.pod_create_api_response.metadata.name}' deleted successfully in namespace '{self.namespace}'")
+
+    def delete_service(self):
+        time.sleep(30)
+
+        self.api_instance.delete_namespaced_service(
+            name=self.service_create_response.metadata.name,
+            namespace=self.namespace,
+            body=client.V1DeleteOptions()
+        )
+
+        logger.debug(f"Service '{self.service_create_response.metadata.name}' deleted successfully in namespace '{self.namespace}'")
 
 
 # handle SIGTERM when user stops the testcase
@@ -157,7 +371,10 @@ def before_all(context):
     # get the connection URL for the browser
     context.network_logging_enabled = os.environ.get('NETWORK_LOGGING')=="Yes"
     # get the connection URL for the browser
+    
+    context.IS_KUBERNETES_DEPLOYMENT = getattr(secret_variables, 'IS_KUBERNETES_DEPLOYMENT', False)=='True'
     connection_url = os.environ['CONNECTION_URL']
+
     # set loop settings
     context.insideLoop = False  # meaning we are inside a loop
     context.jumpLoopIndex = 0  # meaning how many indexes we need to jump after loop is finished
@@ -286,7 +503,12 @@ def before_all(context):
     # add cloud/provider capabilities to the
     # browser capabilities
     options.set_capability('selenoid:options', selenoid_capabilities)
-    if context.browser_info['browser'] == 'chrome' and context.network_logging_enabled :
+
+    if context.IS_KUBERNETES_DEPLOYMENT:
+        options.set_capability('se:screenResolution', "1920x1080")
+        options.set_capability('se:timeZone', selenoid_time_zone)
+
+    if context.browser_info['browser'] == 'chrome' and context.network_logging_enabled:
         options.set_capability('goog:loggingPrefs', {'browser': 'ALL', 'performance': 'ALL'})
         # If network logging enabled then fetch vulnerability headers info from server
         response =  requests.get(f'{get_cometa_backend_url()}/security/vulnerable_headers/', headers={'Host': 'cometa.local'})
@@ -343,6 +565,20 @@ def before_all(context):
     logger.info("Checking environment to run on: {}".format(context.cloud))
 
     logger.debug('Driver Capabilities: {}'.format(options.to_capabilities()))
+
+    if context.IS_KUBERNETES_DEPLOYMENT:
+        SESSION_ID = str(uuid.uuid4())
+        IMAGE = f"cometa/{context.browser_info['browser']}-standalone:{context.browser_info['browser_version']}"
+        VIDEO_NAME = f"{SESSION_ID}.mkv"
+
+        KUBERNETES_HOST= getattr(secret_variables, 'KUBERNETES_HOST', False)
+        context.kubernetes_handler = KubernetesHandler(KUBERNETES_HOST)
+        context.kubernetes_handler.create_pod(IMAGE, VIDEO_NAME, SESSION_ID)
+        context.kubernetes_handler.create_service(SESSION_ID)
+        context.kubernetes_handler.wait_to_spinup()        
+        connection_url = f'http://{context.kubernetes_handler.get_service_name()}:4444'
+        logger.debug("Connection created")
+
     logger.info(f"Trying to get a browser context {connection_url}")
 
     context.browser = webdriver.Remote(
@@ -411,7 +647,7 @@ def after_all(context):
             alert.dismiss()
     except:
         logger.debug("No alerts found ... before shutting down the browser...")
-
+    
     try:
         # for some reasons this throws error when running on browserstack with safari
         if context.cloud == "local":
@@ -419,6 +655,11 @@ def after_all(context):
             context.browser.delete_all_cookies()
         # quit the browser since at this point feature has been executed
         context.browser.quit()
+        # If this deployment is kubernetes then delete the browser pod and service
+        if context.IS_KUBERNETES_DEPLOYMENT:         
+            context.kubernetes_handler.delete_pod()
+            context.kubernetes_handler.delete_service()
+
     except Exception as err:
         logger.debug("Unable to delete cookies or quit the browser. See error below.")
         logger.debug(str(err))
@@ -588,6 +829,7 @@ def after_all(context):
         except Exception as err:
             logger.error(f"Something went wrong while trying to delete temp file: {tempfile}")
             logger.exception(err)
+
 
     # call update task to delete a task with pid.
     task = {

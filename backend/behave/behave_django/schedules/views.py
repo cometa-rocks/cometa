@@ -6,8 +6,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import subprocess, datetime, requests
 import os.path
-from schedules.forms import RunTestValidationForm
-from schedules.forms import SetScheduleValidationForm
 from crontab import CronTab, CronSlices
 import os, logging, sys
 from django.conf import settings
@@ -135,7 +133,7 @@ def run_test(request):
             environment_variables, 
             browser=browser, 
             feature_id=feature_id, 
-            feature_result_id=feature_result_id, 
+            feature_result_id=feature_result_id,  
             user_data=user_data,
             feature_run=feature_run,
             job_timeout=7500)
@@ -156,100 +154,112 @@ def kill_task(request, pid):
 @require_http_methods(["POST"])
 @csrf_exempt
 @xframe_options_exempt
-def set_test_schedule(request):
+def add_execution_details(request, pid):
+    data = request.POST
+    logger.debug("Adding new execution details")
+    settings.EXECUTIONS[data["task_id"]] = data
+    subprocess.call("kill -15 %d" % int(pid), shell=True)   
+    return JsonResponse({"success": True, "killed": pid})
 
-    # crontab object
-    # /etc/cron.d/crontab must be a file, if logs throws error '/etc/cron.d/crontab is a directory'
-    # please create the file behave/schedules/crontab and recreate behave docker
-    my_cron = CronTab(user=True, tabfile='/etc/cron.d/crontab')
-    # check if request contains jobId if so that mean there is more data than just feature_id and schedule
-    if not request.POST.__contains__("jobId"):
-        # crontab schedule string
-        schedule = request.POST['schedule']
-        # crontab feature id that will be executed
-        feature_id = request.POST["feature_id"]
-        try:
-            feature_id = int(feature_id)
-        except:
-            logger.error('Unable to convert feature_id to int')
-        # crontab user id to execute feature
-        user_id = request.POST['user_id']
-        try:
-            user_id = int(user_id)
-        except:
-            logger.error('Unable to convert user_id to int')
-        curl_post_data = json.dumps({
-            'feature_id': feature_id
-        })
-        curl_headers = {
-            'Content-Type': 'application/json',
-            'COMETA-ORIGIN': 'CRONTAB',
-            'COMETA-USER': str(user_id)
-        }
-        curl_headers = ' '.join(['-H "%s: %s"' % (key, value) for key, value in curl_headers.items()])
-        # Now only the feature_id is required to run feature from behave -> django -> behave
-        command = 'root curl --data \'%s\' %s -X POST %s/exectest/' % (curl_post_data, curl_headers, get_cometa_backend_url())
-        logger.debug("command find -> " + command)
-        found = False
-        for job in my_cron:
-            logger.debug("crontab command -> " + job.command)
-            if curl_post_data in job.command:
-                logger.debug("command found")
-                if schedule:
-                    # Check schedule is valid
-                    if not CronSlices.is_valid(schedule):
-                        return JsonResponse({ 'error': 'Invalid schedule format.' }, status = 400)
-                    job.setall(schedule)
-                    job.set_command(command)
-                else:
-                    my_cron.remove(job)
-                    my_cron.write()
-                    return JsonResponse({'message':'Schedule is removed!'})
-                found = True
 
-        if not schedule:
-            return JsonResponse({ 'message': 'Not found but nothing to do' }, status = 200)
 
-        if found == False:
-            logger.debug("Create crontab line")
-            logger.debug("Command:", str(command))
-            job = my_cron.new(command=command)
-            logger.debug("Schedule:", str(schedule))
-            job.setall(schedule)
-            my_cron.write()
+# @require_http_methods(["POST"])
+# @csrf_exempt
+# @xframe_options_exempt
+# def set_test_schedule(request):
 
-        if job.is_valid() == False:
-            return JsonResponse({ 'error': 'Job is not valid' }, status = 404)
-        else:
-            my_cron.write()
-            #my_cron.write()
-            return JsonResponse({ 'message': 'schedule is updated!' })
-    else: # cronjob has jobid
-        # save request data to variables
-        jobId = request.POST.__getitem__('jobId')
-        schedule = request.POST.__getitem__('schedule')
-        command = request.POST.__getitem__('command').replace("<jobId>", jobId)
-        comment = request.POST.__getitem__('comment').replace("<jobId>", jobId)
+#     # crontab object
+#     # /etc/cron.d/crontab must be a file, if logs throws error '/etc/cron.d/crontab is a directory'
+#     # please create the file behave/schedules/crontab and recreate behave docker
+#     my_cron = CronTab(user=True, tabfile='/etc/cron.d/crontab')
+#     # check if request contains jobId if so that mean there is more data than just feature_id and schedule
+#     if not request.POST.__contains__("jobId"):
+#         # crontab schedule string
+#         schedule = request.POST['schedule']
+#         # crontab feature id that will be executed
+#         feature_id = request.POST["feature_id"]
+#         try:
+#             feature_id = int(feature_id)
+#         except:
+#             logger.error('Unable to convert feature_id to int')
+#         # crontab user id to execute feature
+#         user_id = request.POST['user_id']
+#         try:
+#             user_id = int(user_id)
+#         except:
+#             logger.error('Unable to convert user_id to int')
+#         curl_post_data = json.dumps({
+#             'feature_id': feature_id
+#         })
+#         curl_headers = {
+#             'Content-Type': 'application/json',
+#             'COMETA-ORIGIN': 'CRONTAB',
+#             'COMETA-USER': str(user_id)
+#         }
+#         curl_headers = ' '.join(['-H "%s: %s"' % (key, value) for key, value in curl_headers.items()])
+#         # Now only the feature_id is required to run feature from behave -> django -> behave
+#         command = 'root curl --data \'%s\' %s -X POST %s/exectest/' % (curl_post_data, curl_headers, get_cometa_backend_url())
+#         logger.debug("command find -> " + command)
+#         found = False
+#         for job in my_cron:
+#             logger.debug("crontab command -> " + job.command)
+#             if curl_post_data in job.command:
+#                 logger.debug("command found")
+#                 if schedule:
+#                     # Check schedule is valid
+#                     if not CronSlices.is_valid(schedule):
+#                         return JsonResponse({ 'error': 'Invalid schedule format.' }, status = 400)
+#                     job.setall(schedule)
+#                     job.set_command(command)
+#                 else:
+#                     my_cron.remove(job)
+#                     my_cron.write()
+#                     return JsonResponse({'message':'Schedule is removed!'})
+#                 found = True
 
-        # join command and comment together
-        command = "%s %s" % (command, comment)
+#         if not schedule:
+#             return JsonResponse({ 'message': 'Not found but nothing to do' }, status = 200)
 
-        # create a job with new command
-        job = my_cron.new(command=command)
-        # set jobs schedule
-        job.setall(schedule)
-        # check if job is valid
-        if job.is_valid() == False:
-            return JsonResponse({'error':'Job is not valid'}, status = 404)
-        # finally write to the crontab
-        my_cron.write()
-        return JsonResponse({'message':'schedule is updated!'})
+#         if found == False:
+#             logger.debug("Create crontab line")
+#             logger.debug("Command:", str(command))
+#             job = my_cron.new(command=command)
+#             logger.debug("Schedule:", str(schedule))
+#             job.setall(schedule)
+#             my_cron.write()
+
+#         if job.is_valid() == False:
+#             return JsonResponse({ 'error': 'Job is not valid' }, status = 404)
+#         else:
+#             my_cron.write()
+#             #my_cron.write()
+#             return JsonResponse({ 'message': 'schedule is updated!' })
+#     else: # cronjob has jobid
+#         # save request data to variables
+#         jobId = request.POST.__getitem__('jobId')
+#         schedule = request.POST.__getitem__('schedule')
+#         command = request.POST.__getitem__('command').replace("<jobId>", jobId)
+#         comment = request.POST.__getitem__('comment').replace("<jobId>", jobId)
+
+#         # join command and comment together
+#         command = "%s %s" % (command, comment)
+
+#         # create a job with new command
+#         job = my_cron.new(command=command)
+#         # set jobs schedule
+#         job.setall(schedule)
+#         # check if job is valid
+#         if job.is_valid() == False:
+#             return JsonResponse({'error':'Job is not valid'}, status = 404)
+#         # finally write to the crontab
+#         my_cron.write()
+#         return JsonResponse({'message':'schedule is updated!'})
 
         
-@require_http_methods(["POST"])
-@csrf_exempt
-@xframe_options_exempt
-def remove_test_schedule(request):
+# @require_http_methods(["POST"])
+# @csrf_exempt
+# @xframe_options_exempt
+# def remove_test_schedule(request):
     if not request.POST.__contains__("jobId"):
         return JsonResponse({'success': False, 'error':'No jobId found'}, status=404)
     # get job id

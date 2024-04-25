@@ -155,3 +155,5 @@ RQ_QUEUES = {
         "DEFAULT_TIMEOUT": 7500
     }
 }
+
+EXECUTIONS = {}
