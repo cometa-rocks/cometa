@@ -14,12 +14,15 @@ RUN useradd -u 472 -g cometa -d /home/cometa -s /bin/bash cometa
 # Create necessary directories with appropriate ownership and permissions
 RUN mkdir /code 
 RUN mkdir -p /code/front
+RUN mkdir -p /screenshots
 RUN mkdir -p /usr/local/apache2/conf 
 RUN mkdir -p /usr/local/apache2/htdocs
 RUN mkdir -p /usr/local/apache2/htdocs/infra 
 
 RUN chown -R cometa:cometa /code
 RUN chmod -R 755 /code
+RUN chown -R cometa:cometa /screenshots
+RUN chmod -R 755 /screenshots
 RUN chown -R cometa:cometa /code/front
 RUN chmod -R 755 /code/front
 RUN chown -R cometa:cometa /usr/local/apache2 
