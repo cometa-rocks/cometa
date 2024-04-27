@@ -37,14 +37,6 @@ do
 done
 
 
-install_cron() {
-    apt install -y cron
-    touch /etc/cron.d/crontab
-    chmod 0744 /etc/cron.d/crontab
-    crontab /etc/cron.d/crontab
-    cron
-}
-
 create_secret_variables() {
     if [ -f "/share/secret_variables.py" ]; then
         cp /share/secret_variables.py /code/secret_variables.py 
@@ -102,19 +94,14 @@ EOF
 
 # Make sure log folder exists
 mkdir -p /opt/code/logs || true
-# Install requirements
-# apt update && apt install -y rsyslog jq nano vim clamav-daemon
-service rsyslog start
-# Install cron
-install_cron
 # check and create secret_variables.py
 create_secret_variables
 
-
 crontab /etc/cron.d/crontab
-
 cron
 service rsyslog start
+freshclam
+service clamav-daemon start 
 
 python manage.py makemigrations backend
 python manage.py makemigrations security
@@ -131,7 +118,7 @@ if [ ! -f "/code/.initiated" ]; then
     find defaults -name "*.json" | sort | xargs -I{} python manage.py loaddata {}
     touch /code/.initiated
     cp /code/.initiated /share/.initiated
-    echo "Copied file .initiated from /code/.initiated to /share/.initiated "
+    echo "Copied file .initiated from /code/.initiated to /share/.initiated"
 fi
 
 

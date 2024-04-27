@@ -35,7 +35,7 @@ spec:
         - name: SOCKET_SERVER_PORT
           value: "3001"
         - name: SELENOID_SERVER_URL
-          value: "172.22.225.83"
+          value: "selenium-grid-selenium-hub"
         - name: SELENOID_SERVER_PORT
           value: "4444"
         - name: NOVNC_SERVER_URL
@@ -47,6 +47,9 @@ spec:
         - name: cometa-volume
           mountPath: /screenshots
           subPath: ./data/cometa/screenshots
+        - name: cometa-volume
+          mountPath: /videos
+          subPath: ./data/cometa/videos
         - name: cometa-volume
           # mountPath: /share
           mountPath: /code/front/apache-conf/metadata
