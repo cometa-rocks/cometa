@@ -1,7 +1,7 @@
 # Cometa Front
 URL paths are modified  front/apache-conf/paths.conf 
 
-## Code improvement to pass information when creating containers
+# Environment Variables need pass when creating containers
 
 ## Django container - environment variables 
 

@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: cometa-volume
+  namespace: cometa  # Add namespace here
+spec:
+  storageClassName: "standard"
+  capacity:
+    storage: 20Gi # Adjust the size according to your needs
+  accessModes:
+    - ReadWriteMany # or another access mode
+  persistentVolumeReclaimPolicy: Retain # or another reclaim policy
+  nfs:
+    path: /data # The NFS share path
+    server: 172.22.225.83 # The NFS server address
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cometa-volume-claim
+  namespace: cometa  # Add namespace here
+spec:
+  accessModes:
+    - ReadWriteMany # Make sure this matches the PV's access mode
+  resources:
+    requests:
+      storage: 20Gi # Request a size that matches or is smaller than the PV's size
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: cometa-volume-log
+  namespace: cometa  # Add namespace here
+spec:
+  storageClassName: "standard"
+  capacity:
+    storage: 5Gi # Adjust the size according to your needs
+  accessModes:
+    - ReadWriteMany # or another access mode
+  persistentVolumeReclaimPolicy: Retain # or another reclaim policy
+  nfs:
+    path: /logs # The NFS share path
+    server: 172.22.225.83 # The NFS server address
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cometa-volume-log-claim
+  namespace: cometa  # Add namespace here
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteMany # Make sure this matches the PV's access mode
+  resources:
+    requests:
+      storage: 5Gi # Request a size that matches or is smaller than the PV's size
+

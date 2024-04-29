@@ -13,15 +13,31 @@ spec:
       labels:
         app: cometa-redis-pod
     spec:
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
       containers:
       - name: redis
-        image: redis:7.2.0-alpine
+        image: cometa/redis:latest
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 472
+          runAsUser: 472
+          seccompProfile:
+            type: RuntimeDefault
         ports:
-        - containerPort: 6379
+          - containerPort: 6379
         volumeMounts:
-        - name: cometa-volume
-          mountPath: /data
-          subPath: ./data
+          - name: cometa-volume 
+            mountPath: /data
+            subPath: ./data
+            
         resources:
           limits:
             cpu: "0.5"
@@ -29,6 +45,7 @@ spec:
           requests:
             cpu: "0.5"
             memory: "256Mi"
+
         # readinessProbe:
         #   exec:
         #     command:
@@ -36,18 +53,21 @@ spec:
         #     - ping
         #   initialDelaySeconds: 5
         #   timeoutSeconds: 1
+
       volumes:
-      - name: cometa-volume
-        persistentVolumeClaim:
-          claimName: cometa-volume-claim
+        - name: cometa-volume
+          persistentVolumeClaim:
+            claimName: cometa-volume-claim
+            
       restartPolicy: Always
 
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: cometa-redis-service
-  namespace: cometa  # Namespace added
+  namespace: cometa
 spec:
   selector:
     app: cometa-redis-pod
@@ -55,8 +75,6 @@ spec:
     - protocol: TCP
       port: 6379
       targetPort: 6379
-  type: ClusterIP
-
 ---
 
 apiVersion: networking.k8s.io/v1

@@ -1,5 +1,5 @@
-global:
-  K8S_PUBLIC_IP: "88.198.116.6"
+# global:
+#   K8S_PUBLIC_IP: "88.198.116.6"
 
 ingress:
   enabled: false
@@ -29,8 +29,8 @@ hub:
   #     drop:
   #     - ALL
   #   runAsNonRoot: true
-  #   runAsGroup: 472
-  #   runAsUser: 472
+  #   runAsGroup: 1201
+  #   runAsUser: 1200
   #   seccompProfile:
   #     type: RuntimeDefault
 
@@ -53,8 +53,8 @@ chromeNode:
   #     drop:
   #     - ALL
   #   runAsNonRoot: true
-  #   runAsGroup: 472
-  #   runAsUser: 472
+  #   runAsGroup: 1201
+  #   runAsUser: 1200
   #   seccompProfile:
   #     type: RuntimeDefault
   
@@ -80,8 +80,8 @@ firefoxNode:
   #     drop:
   #     - ALL
   #   runAsNonRoot: true
-  #   runAsGroup: 472
-  #   runAsUser: 472
+  #   runAsGroup: 1201
+  #   runAsUser: 1200
   #   seccompProfile:
   #     type: RuntimeDefault
   
@@ -104,8 +104,8 @@ edgeNode:
   #     drop:
   #     - ALL
   #   runAsNonRoot: true
-  #   runAsGroup: 472
-  #   runAsUser: 472
+  #   runAsGroup: 1201
+  #   runAsUser: 1200
   #   seccompProfile:
   #     type: RuntimeDefault
   
@@ -129,14 +129,14 @@ videoRecorder:
   #     drop:
   #     - ALL
   #   runAsNonRoot: true
-  #   runAsGroup: 472
-  #   runAsUser: 472
+  #   runAsGroup: 1201
+  #   runAsUser: 1200
   #   seccompProfile:
   #     type: RuntimeDefault
 
   extraVolumeMounts:
   - name: cometa-volume-recorder
-    mountPath: /videos
+    mountPath: /new
     subPath: ./data/cometa/videos
   # - name: cometa-volume-log
   #   mountPath: /var/log/supervisor
@@ -146,3 +146,6 @@ videoRecorder:
   - name: cometa-volume-recorder
     persistentVolumeClaim:
       claimName: cometa-volume-claim
+  - name: cometa-volume-log
+    persistentVolumeClaim:
+      claimName: cometa-volume-log-claim

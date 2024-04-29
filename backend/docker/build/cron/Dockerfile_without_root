@@ -17,17 +17,22 @@ COPY --chown=cometa:cometa ./update_crontab.sh .
 COPY --chown=cometa:cometa ./entrypoint.sh .
 COPY --chown=cometa:cometa ./.curlrc /home/cometa/.
 
+RUN chown -R cometa:cometa /usr/bin
 RUN chmod +x ./update_crontab.sh ./entrypoint.sh
+RUN chmod -R 755 /home/cometa/crontab/ 
+RUN chmod -R 755 /usr/bin 
 
 # Set ownership of all files to the non-root user and group
 RUN chown -R cometa:cometa /home/cometa
+
+RUN echo "cometa" | tee -a /etc/cron.allow
+RUN chown -R cometa:cometa /etc/cron.allow
 
 # Copy and adjust permissions for the crontab file
 RUN cp persistent_crontab_configuration /var/spool/cron/crontabs/cometa 
 RUN chmod 0644 /var/spool/cron/crontabs/cometa
 
-# Start crond in the foreground with logging to stderr
-ENTRYPOINT ["crond", "-f", "-d", "8"]
-
 # Run everything below as the non-root user 'cometa'
 USER cometa
+# Start crond in the foreground with logging to stderr
+ENTRYPOINT ["crond", "-f", "-d", "8"]

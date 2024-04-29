@@ -13,18 +13,33 @@ spec:
       labels:
         app: cometa-postgres-pod
     spec:
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
       containers:
       - name: postgres
-        image: postgres:12.1
+        image: cometa/postgres:latest
         ports:
         - containerPort: 5432
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 472
+          runAsUser: 472
+          seccompProfile:
+            type: RuntimeDefault
+        env:
+          - name: PGDATA
+            value: "/var/lib/postgresql/data/pgdata"
         volumeMounts:
           - name: cometa-volume
-            mountPath: /code
-            subPath: ./backend
-          - name: cometa-volume
-            mountPath: /var/lib/postgresql/data
-            subPath: ./backend/db_data
+            mountPath: /var/lib/postgresql/data/
+            subPath: ./db_data
         resources:
           limits:
             cpu: "1"
@@ -32,6 +47,7 @@ spec:
           requests:
             cpu: "0.5"
             memory: "512Mi"
+
       volumes:
         - name: cometa-volume
           persistentVolumeClaim:
@@ -50,7 +66,6 @@ spec:
   ports:
   - port: 5432
     targetPort: 5432
-
 ---
 
 apiVersion: networking.k8s.io/v1

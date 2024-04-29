@@ -13,9 +13,24 @@ spec:
       labels:
         app: cometa-crontab-pod
     spec:
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
       containers:
       - name: cometa-crontab-container
         image: cometa/crontab:1.1
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 472
+          runAsUser: 472
+          seccompProfile:
+            type: RuntimeDefault
         env:
         - name: DJANGO_SERVER_URL
           value: "cometa-django-service"

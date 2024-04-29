@@ -13,11 +13,25 @@ spec:
       labels:
         app: cometa-django-pod
     spec:
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
       containers:
       - name: cometa-django
-        image: cometa/cometa-python:1.0
-        command: ["bash", "start.sh", "-dev"]
-        workingDir: /opt/code
+        image: cometa/django:latest
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 472
+          runAsUser: 472
+          seccompProfile:
+            type: RuntimeDefault
+ 
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -43,9 +57,6 @@ spec:
         - containerPort: 8000
         volumeMounts:
         - name: cometa-volume
-          mountPath: /code/behave/screenshots
-          subPath: ./data/cometa/screenshots
-        - name: cometa-volume
           mountPath: /code/behave/videos
           subPath: ./data/cometa/videos
         - name: cometa-volume
@@ -55,14 +66,21 @@ spec:
           mountPath: /code/behave/downloads
           subPath: ./data/cometa/downloads
         - name: cometa-volume
-          mountPath: /code
-          subPath: ./backend
+          mountPath: /code/behave/department_data
+          subPath: ./data/department_data
+          # This mount is required to share .initiated and secret_variables.py
         - name: cometa-volume
-          mountPath: /opt/code
-          subPath: ./backend/src
-        - name: cometa-volume
-          mountPath: /etc/cron.d/crontab
-          subPath: ./backend/crontabs/cometa_django_crontab
+          mountPath: /share
+          subPath: ./share
+
+        # resources:
+        #   limits:
+        #     cpu: "2"
+        #     memory: "2Gi"
+        #   requests:
+        #     cpu: "1"
+        #     memory: "1Gi"
+
       volumes:
       - name: cometa-volume
         persistentVolumeClaim:

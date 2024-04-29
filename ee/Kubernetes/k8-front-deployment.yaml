@@ -13,13 +13,17 @@ spec:
       labels:
         app: cometa-front-pod
     spec:
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
       containers:
       - name: cometa-front-container
-        image: cometa/cometa-apache:1.0
+        image: cometa/front:latest
         ports:
         - containerPort: 80
         - containerPort: 443
-        - containerPort: 4200
 
         env:
         - name: DJANGO_SERVER_URL
@@ -31,7 +35,7 @@ spec:
         - name: SOCKET_SERVER_PORT
           value: "3001"
         - name: SELENOID_SERVER_URL
-          value: "172.22.225.83"
+          value: "selenium-grid-selenium-hub"
         - name: SELENOID_SERVER_PORT
           value: "4444"
         - name: NOVNC_SERVER_URL
@@ -41,34 +45,32 @@ spec:
 
         volumeMounts:
         - name: cometa-volume
-          mountPath: /code/front
-          subPath: ./front/
-        - name: cometa-volume
-          mountPath: /usr/local/apache2/conf/httpd.conf
-          subPath: ./front/apache-conf/httpd.conf
-        - name: cometa-volume
-          mountPath: /usr/local/apache2/conf/openidc.conf
-          subPath: ./front/apache-conf/openidc.conf_local
-        - name: cometa-volume
-          mountPath: /usr/local/apache2/conf/paths.conf
-          subPath: ./front/apache-conf/paths.conf
-        - name: cometa-volume
-          mountPath: /usr/local/apache2/modules/mod_auth_openidc.so
-          subPath: ./front/apache-conf/mod_auth_openidc.so
-        - name: cometa-volume
           mountPath: /screenshots
           subPath: ./data/cometa/screenshots
-        workingDir: /code/front
-        command: ["/bin/bash", "/code/front/start.sh", "angular", "compile"]
+        - name: cometa-volume
+          mountPath: /videos
+          subPath: ./data/cometa/videos
+        - name: cometa-volume
+          # mountPath: /share
+          mountPath: /code/front/apache-conf/metadata
+          subPath: ./share/metadata
         securityContext:
-          privileged: true
-        # resources:
-        #   limits:
-        #     cpu: "2"
-        #     memory: "2Gi"
-        #   requests:
-        #     cpu: "1"
-        #     memory: "1Gi"
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 472
+          runAsUser: 472
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+          requests:
+            cpu: "1"
+            memory: "1Gi"
       volumes:
       - name: cometa-volume
         persistentVolumeClaim:
