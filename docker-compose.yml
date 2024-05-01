@@ -98,7 +98,7 @@ services:
       - /data/cometa/videos:/opt/selenoid/video
     environment:
       TZ: Europe/Berlin
-      OVERRIDE_VIDEO_OUTPUT_DIR: ${PWD}/data/cometa/videos
+      OVERRIDE_VIDEO_OUTPUT_DIR: /data/cometa/videos
     networks:
       - testing
     restart: always

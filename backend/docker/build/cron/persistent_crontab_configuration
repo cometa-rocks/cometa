@@ -20,7 +20,7 @@
 # DO NOT REMOVE THESE LINES
 # OR ELSE CRONJOBS MAY NOT UPDATE
 ################################################
-*/5 * * * * /home/amvara/crontab/update_crontab.sh
+* * * * * /home/cometa/crontab/update_crontab.sh
 
 ################################################
 # DYNAMIC SCHEDULES

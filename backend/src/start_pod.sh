@@ -100,8 +100,11 @@ create_secret_variables
 crontab /etc/cron.d/crontab
 cron
 service rsyslog start
-freshclam
-service clamav-daemon start 
+# freshclam
+# FIXME clmave service
+# service clamav-daemon start 
+
+echo "clamav started."
 
 python manage.py makemigrations backend
 python manage.py makemigrations security
@@ -123,7 +126,7 @@ fi
 
 
 # update clamav database and start clamav in daemon mode
-echo "0" > /tmp/clam_started && freshclam && service clamav-daemon start && echo "1" > /tmp/clam_started
+# echo "0" > /tmp/clam_started && freshclam && service clamav-daemon start && echo "1" > /tmp/clam_started
 
 #
 # in DEVMODE Start Django server

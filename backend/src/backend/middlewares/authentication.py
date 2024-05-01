@@ -112,6 +112,7 @@ class AuthenticationMiddleware:
         if REMOTE_USER == None:
             HTTP_HOST = request.META.get('HTTP_HOST', '')
             REMOTE_ADDR = request.META.get('REMOTE_ADDR', '')
+            logger.debug(request.META)
             HTTP_COMETA_ORIGIN = request.META.get("HTTP_COMETA_ORIGIN", '')
             HTTP_COMETA_USER = request.META.get("HTTP_COMETA_USER", None) # Used to know which user scheduled a feature
             SERVER_PORT = request.META.get('SERVER_PORT', '443')
@@ -119,7 +120,7 @@ class AuthenticationMiddleware:
 
             # get the superuser permissions
             superuser = Permissions.objects.filter(permission_name="SUPERUSER")[0]
-            if REMOTE_ADDR.startswith('172'):
+            if REMOTE_ADDR.startswith('172') or  REMOTE_ADDR.startswith('10.'):
                 # save the user as Scheduler
                 if HTTP_COMETA_ORIGIN == 'CRONTAB':
                     # Try to get HTTP_COMETA_USER from behave cron, we will fallback to dummy user

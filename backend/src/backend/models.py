@@ -1328,7 +1328,8 @@ class Schedule(models.Model):
             self.delete_on = self.created_on + datetime.timedelta(days=self.delete_after_days)
         # create the command
         if self.command is None:
-            self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST http://django:8000/exectest/""" % (self.feature.feature_id, self.owner.user_id)
+            # self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST %s/exectest/""" % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
+            self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST %s/exectest/""" % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
         # create the comment
         if self.comment is None:
             self.comment = "# added by cometa JobID: <jobId> on %s, to be deleted on %s" % (self.created_on.strftime("%Y-%m-%d"), self.delete_on.strftime("%Y-%m-%d") if self.delete_on is not None else "***never*** (disable it in feature)")

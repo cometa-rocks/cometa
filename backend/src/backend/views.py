@@ -915,7 +915,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     # check if user belong to the department
     userDepartments = GetUserDepartments(request)
     if feature.department_id not in userDepartments:
-        return {'success': False, 'error': 'Provided Feature ID does not exist.'}
+        return {'success': False, 'error': 'Provided Feature ID does not exist..'}
 
     if len(feature.browsers) == 0:
         return JsonResponse({
@@ -1122,8 +1122,8 @@ def runTest(request, *args, **kwargs):
         data = json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Unable to parse request body.'})
-
-    return JsonResponse(runFeature(request, data.get('feature_id', None), data))
+    response = runFeature(request, data.get('feature_id', None), data)
+    return JsonResponse(response, status=200 if response.get("success") else 400)
 
 
 @csrf_exempt

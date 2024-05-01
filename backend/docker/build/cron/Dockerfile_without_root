@@ -1,38 +1,37 @@
 # Start from a base image of Alpine
 FROM alpine:3.15.0
 
-# Install basic packages needed
-RUN apk update && apk add curl jq
+# Install necessary packages
+RUN apk update
+RUN apk add curl 
+RUN apk add jq
+RUN apk add libcap
 
-# Create a non-root user 'cometa' with UID 472 and GID 472
-RUN addgroup -g 472 cometa && \
-    adduser -D -u 472 -G cometa cometa
+# Create non-root user and group
+RUN addgroup -g 1201 cometa && \
+    adduser -D -u 1200 -G cometa cometa
 
-# Set the workdir for the project
+# Set the working directory
 WORKDIR /home/cometa/crontab/
 
-# Copy basic configuration files inside the container
-COPY --chown=cometa:cometa ./persistent_crontab_configuration .
+# Copy files and set ownership and permissions
+COPY --chown=cometa:cometa ./persistent_crontab_configuration /home/cometa/crontab/
 COPY --chown=cometa:cometa ./update_crontab.sh .
 COPY --chown=cometa:cometa ./entrypoint.sh .
-COPY --chown=cometa:cometa ./.curlrc /home/cometa/.
+COPY --chown=cometa:cometa ./.curlrc /home/cometa/
 
-RUN chown -R cometa:cometa /usr/bin
 RUN chmod +x ./update_crontab.sh ./entrypoint.sh
-RUN chmod -R 755 /home/cometa/crontab/ 
-RUN chmod -R 755 /usr/bin 
+# Allow the root crontabs to avoid the issue
+RUN rm /etc/crontabs/root
 
-# Set ownership of all files to the non-root user and group
-RUN chown -R cometa:cometa /home/cometa
+# create a starting cometa user crontab
+RUN cp persistent_crontab_configuration /var/spool/cron/crontabs/cometa
 
-RUN echo "cometa" | tee -a /etc/cron.allow
-RUN chown -R cometa:cometa /etc/cron.allow
+# add the capabilities to the crond command
+# RUN setcap cap_setgid=ep /bin/busybox
 
-# Copy and adjust permissions for the crontab file
-RUN cp persistent_crontab_configuration /var/spool/cron/crontabs/cometa 
-RUN chmod 0644 /var/spool/cron/crontabs/cometa
-
-# Run everything below as the non-root user 'cometa'
+# Switch to non-root user
 USER cometa
-# Start crond in the foreground with logging to stderr
-ENTRYPOINT ["crond", "-f", "-d", "8"]
+
+# Entry point running crond in the foreground with logging to stderr
+ENTRYPOINT ["/home/cometa/crontab/entrypoint.sh"]
