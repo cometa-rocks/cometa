@@ -1,34 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cometa-crontab-deployment
+  name: cometa-scheduler-deployment
   namespace: cometa  # Specify the namespace
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cometa-crontab-pod
+      app: cometa-scheduler-pod
   template:
     metadata:
       labels:
-        app: cometa-crontab-pod
+        app: cometa-scheduler-pod
     spec:
       securityContext:
-        fsGroup: 472
-        runAsGroup: 472
+        fsGroup: 1201
+        runAsGroup: 1201
         runAsNonRoot: true
-        runAsUser: 472
+        runAsUser: 1200
       containers:
-      - name: cometa-crontab-container
-        image: cometa/crontab:1.1
+      - name: cometa-scheduler-container
+        image: cometa/scheduler:latest
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
           runAsNonRoot: true
-          runAsGroup: 472
-          runAsUser: 472
+          runAsGroup: 1201
+          runAsUser: 1200
           seccompProfile:
             type: RuntimeDefault
         env:
@@ -43,11 +43,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: cometa-crontab-service
+  name: cometa-scheduler-service
   namespace: cometa  # Specify the namespace
 spec:
   selector:
-    app: cometa-crontab-pod
+    app: cometa-scheduler-pod
   ports:
     - protocol: TCP
       port: 8080
@@ -58,12 +58,12 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-ingress-crontab
+  name: allow-ingress-scheduler
   namespace: cometa  # Ensure this is applied within the 'cometa' namespace
 spec:
   podSelector:
     matchLabels:
-      app: cometa-crontab-pod  # Targeting pods related to the crontab service
+      app: cometa-scheduler-pod  # Targeting pods related to the scheduler service
   policyTypes:
   - Ingress
   ingress:

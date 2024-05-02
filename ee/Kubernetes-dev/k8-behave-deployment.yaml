@@ -81,13 +81,15 @@ spec:
           value: "cometa-django-service"
         - name: DJANGO_SERVER_PORT
           value: "8000"
-        # resources:
-        #   limits:
-        #     cpu: "2"
-        #     memory: "2Gi"
-        #   requests:
-        #     cpu: "1"
-        #     memory: "1Gi"
+        - name: VIDEO_EXTENSION
+          value: "mkv"
+        resources:
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+          requests:
+            cpu: "1"
+            memory: "1Gi"
       volumes:
       - name: cometa-volume
         persistentVolumeClaim:

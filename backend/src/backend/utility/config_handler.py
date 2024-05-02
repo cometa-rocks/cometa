@@ -27,5 +27,6 @@ def get_all_cometa_environments():
         "BEHAVE_SERVER_URL":get_config("BEHAVE_SERVER_URL","behave"),
         "BEHAVE_SERVER_PORT":get_config("BEHAVE_SERVER_PORT","8001"),
         "DJANGO_SERVER_URL":get_config("DJANGO_SERVER_URL","django"),
-        "DJANGO_SERVER_PORT": get_config("DJANGO_SERVER_PORT","8000")
+        "DJANGO_SERVER_PORT": get_config("DJANGO_SERVER_PORT","8000"),
+        "VIDEO_EXTENSION": get_config("VIDEO_EXTENSION","mp4")
     }

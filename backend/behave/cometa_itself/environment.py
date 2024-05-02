@@ -44,6 +44,8 @@ NO_PROXY = getattr(secret_variables, 'COMETA_NO_PROXY', '')
 DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
 S3ENABLED = getattr(secret_variables, 'COMETA_S3_ENABLED', False)
 ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
+# FIXME This is used to decide the video extension 
+KUBERNETES_DEPLOYMENT = getattr(secret_variables, 'KUBERNETES_DEPLOYMENT', 'False')=='True'
 
 
 # handle SIGTERM when user stops the testcase
@@ -296,7 +298,7 @@ def before_all(context):
 
     options.add_argument('--enable-logging')
     options.add_argument('--log-level=0')
-
+    options.add_argument("--window-size=1920,1080")
     # proxy configuration
     if PROXY_ENABLED and PROXY:
         logger.debug("Proxy is enabled for this feature ... will use \"%s\" as proxy configuration." % PROXY)
@@ -458,7 +460,11 @@ def after_all(context):
                     logger.error(
                         "S3 is enabled but COMETA_S3_ENDPOINT and COMETA_S3_BUCKETNAME seems to be empty ... please check.")
             else:
-                bsVideoURL = "/videos/%s.mp4" % context.browser.session_id
+                # FIXME As a temporary fix video extension decided based on KUBERNETES deployment
+                # Because video recorded by selenium/video container with extension .mp4 gets corrupted
+                video_extension = os.getenv("VIDEO_EXTENSION", "mp4")
+                bsVideoURL = f"/videos/{context.browser.session_id}.{video_extension}"
+                logger.debug(f"Video path {bsVideoURL}" )
     # load feature into data
     data = json.loads(os.environ['FEATURE_DATA'])
     # junit file path for the executed testcase

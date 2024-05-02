@@ -42,7 +42,7 @@ spec:
         - name: FRONT_SERVER_HOST
           value: "cometa-front-service"
         - name: CRONTAB_SERVER_URL
-          value: "cometa-crontab-service"
+          value: "cometa-scheduler-service"
         - name: CRONTAB_SERVER_PORT
           value: "8080"
         - name: SOCKET_SERVER_URL
@@ -53,6 +53,10 @@ spec:
           value: "cometa-behave-service"
         - name: BEHAVE_SERVER_PORT
           value: "8001"
+        - name: DJANGO_SERVER_URL
+          value: "cometa-django-service"
+        - name: DJANGO_SERVER_PORT
+          value: "8000"
         ports:
         - containerPort: 8000
         volumeMounts:
@@ -110,21 +114,28 @@ metadata:
 spec:
   podSelector: 
     matchLabels:
-      app: cometa-postgres-pod # This matches all pods in the namespace
+      app: cometa-django-pod # This matches all pods in the namespace
   policyTypes:
     - Ingress
   ingress:
     - from:
         - podSelector:
             matchLabels:
-              app: cometa-behave-service
+              app: cometa-behave-pod
           namespaceSelector:
             matchLabels:
               name: cometa  # Restrict ingress to pods in the 'cometa' namespace
 
         - podSelector:
             matchLabels:
-              app: cometa-front-service
+              app: cometa-front-pod
+          namespaceSelector:
+            matchLabels:
+              name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+
+        - podSelector:
+            matchLabels:
+              app: cometa-scheduler-pod
           namespaceSelector:
             matchLabels:
               name: cometa  # Restrict ingress to pods in the 'cometa' namespace

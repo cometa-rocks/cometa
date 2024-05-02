@@ -18,6 +18,9 @@ URL paths are modified  front/apache-conf/paths.conf
     DATABASE_SERVER_PORT
 
     FRONT_SERVER_HOST
+    
+    DJANGO_SERVER_URL
+    DJANGO_SERVER_PORT
 
 ## Crontab container - environment variables 
     CRONTAB_SERVER_URL
@@ -32,6 +35,9 @@ URL paths are modified  front/apache-conf/paths.conf
 
     DJANGO_SERVER_URL
     DJANGO_SERVER_PORT
+
+    Optional
+    VIDEO_EXTENSION: mkv or mp4 (mkv preferred)
     
 ## Front container - environment variables
     SOCKET_SERVER_URL
@@ -45,3 +51,7 @@ URL paths are modified  front/apache-conf/paths.conf
     
     NOVNC_SERVER_URL
     NOVNC_SERVER_PORT
+
+## Selenium Grid with helm
+    refer Kubernetes/values-selenium-grid-helm.yaml to set
+    VIDEO_EXTENSION: mkv or mp4 (mkv preferred)

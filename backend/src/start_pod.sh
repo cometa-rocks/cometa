@@ -84,6 +84,7 @@ COMETA_PROXY=''
 COMETA_S3_ENABLED=False
 COMETA_S3_ENDPOINT=''
 COMETA_S3_BUCKETNAME=''
+KUBERNETES_DEPLOYMENT='True'
 EOF
     # Make a copy to to be stored in the volumes, /opt/share is shared with volumes
     cp /code/secret_variables.py /share/secret_variables.py

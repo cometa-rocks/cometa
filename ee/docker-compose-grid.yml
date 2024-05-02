@@ -12,6 +12,9 @@ services:
       - SE_EVENT_BUS_HOST=selenium-hub
       - SE_EVENT_BUS_PUBLISH_PORT=4442
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_SCREEN_WIDTH=1920
+      - SE_SCREEN_HEIGHT=1080
+      - SE_SCREEN_DEPTH=24
 
   edge:
     image: selenium/node-edge:4.20.0-20240425
@@ -22,7 +25,9 @@ services:
       - SE_EVENT_BUS_HOST=selenium-hub
       - SE_EVENT_BUS_PUBLISH_PORT=4442
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
-
+      - SE_SCREEN_WIDTH=1920
+      - SE_SCREEN_HEIGHT=1080
+      - SE_SCREEN_DEPTH=24
   firefox:
     image: selenium/node-firefox:4.20.0-20240425
     shm_size: 2gb
@@ -32,36 +37,42 @@ services:
       - SE_EVENT_BUS_HOST=selenium-hub
       - SE_EVENT_BUS_PUBLISH_PORT=4442
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
+      - SE_SCREEN_WIDTH=1920
+      - SE_SCREEN_HEIGHT=1080
+      - SE_SCREEN_DEPTH=24
 
   chrome_video:
-    image: selenium/video:latest
+    image: selenium/video:0.1
     volumes:
-      - /tmp/videos:/videos
+      - /home/ubuntu/kubernetes/tanzu/cometa_code_data/data/data/cometa/videos/:/videos
     depends_on:
       - chrome
     environment:
       - DISPLAY_CONTAINER_NAME=chrome
       - SE_VIDEO_FILE_NAME=auto
+      - VIDEO_EXTENSION=mkv
 
   edge_video:
-    image: selenium/video:latest
+    image: selenium/video:0.1
     volumes:
-      - /tmp/videos:/videos
+      - /home/ubuntu/kubernetes/tanzu/cometa_code_data/data/data/cometa/videos/:/videos
     depends_on:
       - edge
     environment:
       - DISPLAY_CONTAINER_NAME=edge
       - SE_VIDEO_FILE_NAME=auto
+      - VIDEO_EXTENSION=mkv
 
   firefox_video:
-    image: selenium/video:latest
+    image: selenium/video:0.1
     volumes:
-      - /tmp/videos:/videos
+      - /home/ubuntu/kubernetes/tanzu/cometa_code_data/data/data/cometa/videos/:/videos
     depends_on:
       - firefox
     environment:
       - DISPLAY_CONTAINER_NAME=firefox
       - SE_VIDEO_FILE_NAME=auto
+      - VIDEO_EXTENSION=mkv
 
   selenium-hub:
     image: selenium/hub:4.20.0-20240425
