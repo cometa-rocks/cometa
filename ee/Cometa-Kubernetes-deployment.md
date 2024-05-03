@@ -202,4 +202,4 @@ Django is used as the API server within Cometa, and it utilizes the  **cometa-vo
 <br>
 <br>
 
-**Note:** If this works, we can consider the PV Step resolved and proceed with the further installation.
+**Note:** If this works, we can consider the PV step is resolved and proceed with the further installation.
