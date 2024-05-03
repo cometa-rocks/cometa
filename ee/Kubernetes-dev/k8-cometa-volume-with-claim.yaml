@@ -22,6 +22,7 @@ metadata:
   name: cometa-volume-claim
   namespace: cometa  # Add namespace here
 spec:
+  storageClassName: "standard"
   accessModes:
     - ReadWriteMany # Make sure this matches the PV's access mode
   resources:
