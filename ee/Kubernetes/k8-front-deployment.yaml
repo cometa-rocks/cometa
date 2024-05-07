@@ -20,10 +20,11 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-front-container
-        image: cometa/front:latest
+        # image: cometa/front:latest
+        image: cometa/front:0.1.6
         ports:
-        - containerPort: 80
-        - containerPort: 443
+        - containerPort: 8080
+        - containerPort: 8443
 
         env:
         - name: DJANGO_SERVER_URL
@@ -41,7 +42,7 @@ spec:
         - name: NOVNC_SERVER_URL
           value: "cometa-novnc-service"
         - name: NOVNC_SERVER_PORT
-          value: "80"
+          value: "8080"
 
         volumeMounts:
         - name: cometa-volume
@@ -91,11 +92,11 @@ spec:
     - name: http
       protocol: TCP
       port: 80
-      targetPort: 80
+      targetPort: 8080
     - name: https
       protocol: TCP
       port: 443
-      targetPort: 443
+      targetPort: 8443
     - name: dev-mod
       protocol: TCP
       port: 4200

@@ -25,12 +25,12 @@ COPY ./requirements.txt /app/requirements.txt
 COPY ./Server.py /app/Server.py
 
 # Create job file to store jobs list
-RUN touch /app/jobs
+RUN touch /app/.jobs
 
 # Change the ownership of the copied directory to 'cometa'
 RUN chown -R cometa:cometa /app
-RUN chown -R cometa:cometa /app/jobs
-RUN chmod -R 755 /app/jobs
+RUN chown -R cometa:cometa /app/.jobs
+RUN chmod -R 766 /app/.jobs
 
 # Switch to 'cometa' user
 USER cometa

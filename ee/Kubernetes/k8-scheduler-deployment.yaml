@@ -20,7 +20,7 @@ spec:
         runAsUser: 1200
       containers:
       - name: cometa-scheduler-container
-        image: cometa/scheduler:latest
+        image: cometa/scheduler:1.0
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

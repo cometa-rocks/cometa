@@ -21,8 +21,9 @@ spec:
       containers:
       - name: novnc
         image: cometa/novnc:1.0
+        command: ["/code/utils/novnc_proxy", "--listen", "8080"]
         ports:
-        - containerPort: 80  # Assuming noVNC listens on port 80
+        - containerPort: 8080  # Assuming noVNC listens on port 80
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -46,6 +47,6 @@ spec:
     app: cometa-novnc-pod
   ports:
     - protocol: TCP
-      port: 80  # External port
-      targetPort: 80  # Container port
+      port: 8080  # External port
+      targetPort: 8080  # Container port
   type: ClusterIP

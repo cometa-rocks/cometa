@@ -47,7 +47,7 @@ RUN ./start_pod.sh openidc basic angular no-restart
 
 COPY --chown=cometa:cometa . /code/front
 COPY --chown=cometa:cometa apache-conf/httpd.conf /usr/local/apache2/conf/httpd.conf
-COPY --chown=cometa:cometa apache-conf/openidc.conf_local /usr/local/apache2/conf/openidc.conf
+COPY --chown=cometa:cometa apache-conf/openidc.conf_kubernetes /usr/local/apache2/conf/openidc.conf
 COPY --chown=cometa:cometa apache-conf/paths.conf /usr/local/apache2/conf/paths.conf
 COPY --chown=cometa:cometa apache-conf/mod_auth_openidc.so /usr/local/apache2/modules/mod_auth_openidc.so
 

@@ -8,6 +8,8 @@
     kubectl config view
 
     kubectl config get-contexts
+    
+    kubectl config set-context
 
 # connect local tanzu env to Lence
 
