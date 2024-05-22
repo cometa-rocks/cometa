@@ -31,7 +31,8 @@
   <div
     class="menu_backdrop"
     [class.opened]="openedMenu"
-    (click)="closeMenu()"></div>
+    (click)="closeMenu()">
+  </div>
   <div class="menu" [@opened]="openedMenu">
     <i (click)="closeMenu()" class="close"></i>
     <ul>
