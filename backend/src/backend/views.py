@@ -2481,7 +2481,8 @@ class FeatureViewSet(viewsets.ModelViewSet):
             "results": FeatureSerializer(FeatureSerializer.fast_loader(queryset), many=True).data
         }
         return Response(data)
-
+    
+    # This method is not use when creating feature
     @require_permissions("create_feature")
     def create(self, request, *args, **kwargs):
         """
