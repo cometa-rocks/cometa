@@ -229,6 +229,22 @@
               >On error</mat-radio-button
             >
           </mat-radio-group>
+          <mat-checkbox
+            formControlName="do_not_use_default_template"
+            aria-label="Screenshot"
+            style="margin-left: 5%;"
+            color="primary"
+            class="screenshot checkbox-blue"
+            > Do not use default template </mat-checkbox>
+          
+          <mat-checkbox
+            formControlName="attach_pdf_report_to_email"
+            aria-label="Screenshot"
+            style="margin-left: 2%;"
+            color="primary"
+            class="screenshot checkbox-blue"
+           > Attach PDF Report to email </mat-checkbox>
+
           <button
             (click)="openEmailHelp()"
             stopPropagation
