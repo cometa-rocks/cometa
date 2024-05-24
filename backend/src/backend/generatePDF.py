@@ -417,7 +417,7 @@ class GeneratePDF(View):
         # get all the steps in the feature results
         step_results_screenshots = Step_result.objects.values_list('screenshot_current').filter(feature_result_id=self.feature_result_id).order_by("step_result_id")
         # Define the regex pattern
-        pattern = r'\$SCREENSHOT\[(\d+)\]'
+        pattern = r'\$screenshot\[(\d+)\]'
         
         # Find all matches and their positions
         matches = list(re.finditer(pattern, self.feature_template.email_body))
@@ -425,7 +425,7 @@ class GeneratePDF(View):
         # Print the matches with their positions
         invalid_screenshot_names = []
         for match in matches:
-            # Get the screenshot name i.e. $SCREENSHOT[n]
+            # Get the screenshot name i.e. $screenshot[n]
             screenshot_name =  match.group(0)
             # Get the screenshot index 'n'
             screen_shot_index = int(match.group(1))
@@ -434,7 +434,7 @@ class GeneratePDF(View):
             # This is to check if number of screenshot available in the step report are less or equal to screenshot index requested in the email 
             logger.debug(f'{screen_shot_index}  {len(step_results_screenshots)}')
             if screen_shot_index>0 and len(step_results_screenshots)>=screen_shot_index:
-                # Create dictionary with $SCREENSHOT[n] = path/to/screenshot
+                # Create dictionary with $screenshot[n] = path/to/screenshot
                 # logger.debug("Attaching screenshots")
                 logger.debug(step_results_screenshots[screen_shot_index-1])
                 screen_shot = step_results_screenshots[screen_shot_index-1][0]
