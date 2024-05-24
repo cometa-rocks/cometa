@@ -158,10 +158,10 @@
              {% for step in stepsarray %}
                 <tr>
                     <td width="55%" class="firsttd">
-                        {{forloop.counter}}. {{ step.step_name }}
+                        <b>{{forloop.counter}}</b>. {{ step.step_name }}
                         {% if step.success == False and step.error is not None %}
                             <div class="align-left customErrorMessage">
-                                <span>&rightarrow;</span> &nbsp; </span><span style="color: #d4145a">{{ step.error }}</span>
+                                <span>&rightarrow;</span> &nbsp; <span style="color: #d4145a">{{ step.error }}</span>
                             </div>
                         {% endif %}
                         
@@ -256,15 +256,12 @@
             </p>
             <table>
                 <tr>
-                    <th width="5%"> No. </th>
                     <th width="15%"> NAME </th>
-                    <th> DISCRIPTION </th>
+                    <th> DESCRIPTION </th>
                 </tr>
                 <tr>
-                    <td>1</td>
                     <td>REL. TIME </td>
-                    <td><b>REL. TIME</b>, or Relative Time of the step, represents the total time taken by all preceding steps until the execution of the step mentioned in that row.<br>
-                        This is very useful when trying to pinpoint the moment a step fails in a test, allowing us to track in the video exactly when the failure occurred. This helps streamline the debugging process.</td>
+                    <td style="text-align: left;"><b>Relative Time (REL. TIME)</b> acts as a timeline for each step in a test. It illustrates the time elapsed from the start of the test to the execution of the current step. This proves invaluable when troubleshooting test failures, allowing you to pinpoint the exact moment of an issue in the video</td>
                 </tr>
             </table>
         </div>

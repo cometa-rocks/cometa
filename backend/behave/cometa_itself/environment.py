@@ -144,6 +144,8 @@ def before_all(context):
     X_SERVER = os.environ['X_SERVER']
     # user who requested the feature execution
     context.PROXY_USER = json.loads(os.environ['PROXY_USER'])
+    # proxy used from secret_variables
+    context.PROXY = PROXY
     # department where the feature belongs
     context.department = json.loads(os.environ['department'])
     # environment variables for the testcase
@@ -257,7 +259,13 @@ def before_all(context):
     options.set_capability('browserName', context.browser_info['browser'])
     options.browser_version = context.browser_info['browser_version']
     options.accept_insecure_certs = True
+    # Get the chrome container timezone from browser_info  
+    selenoid_time_zone = context.browser_info.get("selectedTimeZone","")
 
+    if not selenoid_time_zone or selenoid_time_zone.strip()=="":
+        selenoid_time_zone = 'Etc/UTC'
+
+    logger.debug(f"Browser container timezone is : {selenoid_time_zone}")
     # selenoid specific capabilities
     # more options can be found at:
     # https://aerokube.com/selenoid/latest/#_special_capabilities
@@ -267,7 +275,7 @@ def before_all(context):
         'screenResolution': '1920x1080x24',
         'enableVideo': context.record_video,
         'sessionTimeout': '30m',
-        'timeZone': 'Etc/UTC',  # based on the user settings maybe it can be updated/changed
+        'timeZone': selenoid_time_zone,  # based on the user selected timezone 
         'labels': {
             'by': 'COMETA ROCKS'
         },
