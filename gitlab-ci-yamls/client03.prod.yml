@@ -7,7 +7,7 @@
     #########################################################
     # BACKEND
     #########################################################
-    DEPLOY_BACKEND_FOLDER: "/opt/cometa"
+    DEPLOY_BACKEND_FOLDER: "/opt/IBM/cometa"
     COMETA_DOMAIN: "$CLIENT_03_DOMAIN"
     COMETA_DEBUG: "False"
     COMETA_EMAIL_HOST: '$COMETA_CLIENT01_EMAIL_HOST'
