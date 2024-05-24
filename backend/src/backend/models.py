@@ -100,9 +100,9 @@ def backup_feature_steps(feature):
     dest_file = backupsFolder + file + '_' + time + '_steps.json'
     if os.path.exists(orig_file):
         shutil.copyfile(orig_file, dest_file)
-        print('backup_feature_steps: Created feature backup in %s' % dest_file)
+        logger.debug('Created feature backup in %s' % dest_file)
     else:
-        print('backup_feature_steps: Feature file %s not found.' % orig_file)
+        logger.debug('Feature file %s not found.' % orig_file)
 
 def backup_feature_info(feature):
     """
@@ -120,13 +120,23 @@ def backup_feature_info(feature):
     Path(backupsFolder).mkdir(parents=True, exist_ok=True)
     orig_file = path + file + '_meta.json'
     dest_file = backupsFolder + file + '_' + time + '_meta.json'
+    # creating backup of meta file of feature
     if os.path.exists(orig_file):
         shutil.copyfile(orig_file, dest_file)
-        print('backup_feature_info: Created feature backup in %s' % dest_file)
+        logger.debug('Created meta file feature backup in %s' % dest_file)
     else:
-        print('backup_feature_info: Feature file %s not found.' % orig_file)
+        logger.debug('Feature meta file %s not found.' % orig_file)
+    # backup the JSON file with the step content
+    orig_file = path + file + '.json'
+    dest_file = backupsFolder + file + '_' + time + '.json'
+    if os.path.exists(orig_file):
+        shutil.copyfile(orig_file, dest_file)
+        logger.debug('Created json feature backup containing steps in %s' % dest_file)
+    else:
+        logger.debug('Feature json file %s not found.' % orig_file)
 
-def recursiveSubSteps(steps, feature_trace, parent_department_id=None):
+def recursiveSubSteps(steps, feature_trace, analyzed_features, parent_department_id=None, recursive_step_level=0):
+    # logger.debug(f"Analyzed feature length  {len(analyzed_features)} feature Trace > {feature_trace}")
     updatedSteps = steps.copy()
     index = 0
     for step in steps:
@@ -135,34 +145,74 @@ def recursiveSubSteps(steps, feature_trace, parent_department_id=None):
         if subFeatureExecution:
             featureNameOrId = subFeatureExecution.group(1)
             # get subfeature
-            subFeature = Feature.objects.filter(feature_id=featureNameOrId, department_id=parent_department_id) if featureNameOrId.isnumeric() else Feature.objects.filter(feature_name=featureNameOrId, department_id=parent_department_id)
-            if subFeature.exists():
-                subFeature = subFeature[0]
+            # logger.debug(f"LEVEL {recursive_step_level} Processing Feature {featureNameOrId} recursively")
+            is_feature_analyzed = False
+            subFeature = None
+            subFeatureSteps = None
+            # logger.debug("Checking analyzed_features")
+            for feature_and_steps in analyzed_features:
+                feature = feature_and_steps.get("feature")
+                # logger.debug(f"Checking {featureNameOrId}, Current feature is {feature.feature_id} name {feature.feature_name}")
+                if str(feature.feature_id)==featureNameOrId or feature.feature_name==featureNameOrId:
+                    # logger.debug("Feature found in the 'analyzed_features', Will skip the DB ")
+                    is_feature_analyzed = True
+                    subFeature = feature
+                    subFeatureSteps = feature_and_steps.get("steps")
+                    break
+            # When feature is not found in analyzed_features
+            if not is_feature_analyzed:
+                # logger.debug("Feature is not analyzed. Searching feature in the DB")
+                try:
+                    if featureNameOrId.isnumeric():
+                        subFeature = Feature.objects.get(feature_id=featureNameOrId, department_id=parent_department_id) 
+                    else:
+                        subFeature = Feature.objects.get(feature_name=featureNameOrId, department_id=parent_department_id)
+                except Feature.DoesNotExist as exception:
+                    raise Exception('Unable to find feature with specified name or id: %s' % str(featureNameOrId))
+
+            if is_feature_analyzed or subFeature:
+                # If feature not found in the "analyzed_features" and then take it from DB feature
+                # if not is_feature_analyzed:
+                #     subFeature = subFeature[0]
                 # check if we would get caught in infinite loop
                 if subFeature.feature_id not in feature_trace:
                     # add the current feature id to the trace
                     feature_trace.append(subFeature.feature_id)
                     # get all the steps from the feature, only those enabled steps
-                    subFeatureSteps = Step.objects.filter(feature_id=subFeature.feature_id).filter(models.Q(step_type='normal') | models.Q(step_type="subfeature")).filter(enabled=True)
-                    # loop over all substeps and set the belongs_to if not set
-                    for subStep in subFeatureSteps:
-                        if subStep.belongs_to == None or not subStep.belongs_to:
-                            subStep.belongs_to = subFeature.feature_id
-                            subStep.save()
+
+                    if not is_feature_analyzed:
+                        # logger.debug("Feature steps are not analyzed. Searching related step in the DB")
+                        # Get all the steps from the feature, only those enabled steps
+                        subFeatureSteps = Step.objects.filter(feature_id=subFeature.feature_id).filter(models.Q(step_type='normal') | models.Q(step_type="subfeature")).filter(enabled=True)
+                        # loop over all substeps and set the belongs_to if not set 
+                        # do only if feature step was not found in the analyzed_features, If found it means it was done earlier 
+                        # logger.debug("Updating step belongs_to")
+                        for subStep in subFeatureSteps:
+                            if subStep.belongs_to == None or not subStep.belongs_to:
+                                subStep.belongs_to = subFeature.feature_id
+                                logger.debug(f"LEVEL {recursive_step_level} Saving the step to update the belongs_to in recursiveSubSteps")
+                                subStep.save()
+                        analyzed_features.append({'feature': subFeature, 'steps': subFeatureSteps })
+
                     # get values from substeps and convert it to list
                     subFeatureSteps = list(subFeatureSteps.values())
                     # check and modify continue_on_failure on sub steps if is set in the "Run feature" parent step or in the feature
+                    # logger.debug("Analyzing continue on failure")
                     if step['continue_on_failure'] or subFeature.continue_on_failure:
+                        logger.debug("Setting continue_on_failure to True")
                         for idx, val in enumerate(subFeatureSteps):
                             subFeatureSteps[idx]['continue_on_failure'] = True
                     # check if substeps contain other subfeatures
-                    subSteps = recursiveSubSteps(subFeatureSteps, feature_trace, subFeature.department_id)
+                    # logger.debug(f"LEVEL {recursive_step_level} Processing recursive steps for feature -> {featureNameOrId}")
+                    # Add current feature and step analyzed_features to reduce the query for same feature in recursion                        
+                    # logger.debug(f"Sending to recursion analyzed feature length  {len(analyzed_features)} ")
+                    subSteps, analyzed_features = recursiveSubSteps(subFeatureSteps, feature_trace, analyzed_features, subFeature.department_id, recursive_step_level+1)
                     # check if subSteps returned False
                     if isinstance(subSteps, bool) and not subSteps:
                         return False
                     # else delete the current index
                     del updatedSteps[index]
-                    # add substeps at postition of the current index
+                    # add substeps at position of the current index
                     updatedSteps[index:0] = subSteps
                     # set the number by what amount the index should get updated by
                     updateIndex = len(subSteps)
@@ -179,7 +229,8 @@ def recursiveSubSteps(steps, feature_trace, parent_department_id=None):
                 # del updatedSteps[index]
         # updated the index
         index += updateIndex
-    return updatedSteps
+        # logger.debug(f"Return analyzed feature length  {len(analyzed_features)} ")
+    return updatedSteps, analyzed_features
 
 # adds step to the featureFile
 def add_step_to_feature_file(step, featureFile):
@@ -209,7 +260,8 @@ def checkLoop(step):
     # check if step is a loop if so set loop value to true
     loop = re.search(r'^.*Loop "(.*)" times starting at "(.*)" and do', step['step_content'])
     if loop and insideLoop:
-        # throw error
+        # throw error and 
+        insideLoop = False #When it throws error insideLoop = False, insideLoop is global variable effect other feature save  
         return {"success": False, "error": "Multi level loop are not allowed."}
     if loop:
         insideLoop = True
@@ -227,14 +279,21 @@ def checkLoop(step):
 # @param steps: Array - Array of the steps definition
 # @param feature_id: Feature - Info of the feature
 def create_feature_file(feature, steps, featureFileName):
+    logger.debug(f"Creating feature file {featureFileName}")
     with open(featureFileName+'.feature', 'w+') as featureFile:
         featureFile.write('Feature: '+feature.feature_name+'\n\n')
-
+        logger.debug("Feature name added to file")
         # save the steps to save to database before removing old steps
         stepsToAdd = []
 
         featureFile.write('\tScenario: First')
+        logger.debug(f"Checking steps : Steps Length {len(steps)}")
+        count = 1
+        analyzed_features = []
         for step in steps:
+            # Comment this debugging
+            # logger.debug(f"{count} Checking Step {step}")
+            count+=1
             # check if for some reason substeps are sent us from front and ignore them
             if "step_type" in step and step['step_type'] == "substep":
                 continue
@@ -254,8 +313,11 @@ def create_feature_file(feature, steps, featureFileName):
                     return result
                 if subFeature:
                     try:
+                        recursive_step_level = 0
+                        logger.debug(f"Sending feature length  {len(analyzed_features)} ")
                         # get recursive steps from the sub feature
-                        subSteps = recursiveSubSteps([step], [feature.feature_id], feature.department_id)
+                        subSteps, analyzed_features = recursiveSubSteps([step], [feature.feature_id], analyzed_features, feature.department_id, recursive_step_level)
+                        logger.debug(f"Analyzed feature length  {len(analyzed_features)} ")
                     except Exception as error:
                         return {"success": False, "error": str(error)}
                     # otherwise loop over substeps
@@ -275,51 +337,67 @@ def create_feature_file(feature, steps, featureFileName):
                     # if enabled and not a sub feature execution add to the file
                     add_step_to_feature_file(step, featureFile)
         featureFile.write('\n')
+        
+        logger.debug("Step checks completed")
+    
+    from django.db import IntegrityError, transaction
+    try:
+        with transaction.atomic():
+            # delete all the steps from the database 
+            Step.objects.filter(feature_id=feature.feature_id).delete()
+            # gather all the variables found during the save steps
+            variables_used = []
 
-    # delete all the steps from the database 
-    Step.objects.filter(feature_id=feature.feature_id).delete()
-    # gather all the variables found during the save steps
-    variables_used = []
+            # save all the steps found in stepsToAdd to the database
+            logger.debug(f"Preparing steps to add | Steps Length {len(stepsToAdd)}")
+            count = 1
+            for step in stepsToAdd:
+                # Comment this debugging
+                # logger.debug(f"{count} Processing Step {step}")
+                count+=1
+                if step.get("step_type", None) == None:
+                    step['step_type'] = "subfeature" if re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content']) else "normal"
+                    # check if step contains a variable
+                    regexPattern = r'\$(?P<var_name_one>.+?\b)|variable "(?P<var_name_two>.+?\b)|save .+?to "(?P<var_name_three>.+?\b)'
+                    matches = re.findall(regexPattern, step['step_content'].replace('\\xa0', ' '))
+                    if matches: 
+                        for match in matches:
+                            # get the variable var_name
+                            variable_name = match[0] or match[1] or match[2]
+                            if variable_name:
+                                variables_used.append(variable_name)
 
-    # save all the steps found in stepsToAdd to the database
-    for step in stepsToAdd:
-        if step.get("step_type", None) == None:
-            step['step_type'] = "subfeature" if re.search(r'^.*Run feature with (?:name|id) "(.*)"', step['step_content']) else "normal"
-            # check if step contains a variable
-            regexPattern = r'\$(?P<var_name_one>.+?\b)|variable "(?P<var_name_two>.+?\b)|save .+?to "(?P<var_name_three>.+?\b)'
-            matches = re.findall(regexPattern, step['step_content'].replace('\\xa0', ' '))
-            if matches: 
-                for match in matches:
-                    # get the variable var_name
-                    variable_name = match[0] or match[1] or match[2]
-                    if variable_name:
-                        variables_used.append(variable_name)
+                # change sleep step timeout
+                sleep_match = re.findall(r'I (?:can )?sleep "(.*?)".*', step['step_content'].replace('\\xa0', ' '))
+                if sleep_match:
+                    try:
+                        step['timeout'] = int(sleep_match[0]) + 5
+                    except ValueError:
+                        # default timeout will be set later on
+                        pass
+                Step.objects.create(
+                    feature_id = feature.feature_id,
+                    step_keyword = step['step_keyword'],
+                    step_content = step['step_content'].replace('\\xa0', ' '),
+                    enabled = step['enabled'],
+                    step_type = step['step_type'],
+                    screenshot = step['screenshot'],
+                    compare = step['compare'],
+                    continue_on_failure = step.get('continue_on_failure', False) or False, # just incase front sends continue_on_failure = null
+                    belongs_to = step.get('belongs_to', feature.feature_id),
+                    timeout = step.get('timeout', 60)
+                )
 
-        # change sleep step timeout
-        sleep_match = re.findall(r'I (?:can )?sleep "(.*?)".*', step['step_content'].replace('\\xa0', ' '))
-        if sleep_match:
-            try:
-                step['timeout'] = int(sleep_match[0]) + 5
-            except ValueError:
-                # default timeout will be set later on
-                pass
-        Step.objects.create(
-            feature_id = feature.feature_id,
-            step_keyword = step['step_keyword'],
-            step_content = step['step_content'].replace('\\xa0', ' '),
-            enabled = step['enabled'],
-            step_type = step['step_type'],
-            screenshot = step['screenshot'],
-            compare = step['compare'],
-            continue_on_failure = step.get('continue_on_failure', False) or False, # just incase front sends continue_on_failure = null
-            belongs_to = step.get('belongs_to', feature.feature_id),
-            timeout = step.get('timeout', 60)
-        )
+    except IntegrityError as e:
+        logger.debug(f"Exception while saving steps with transactions | Feature ID : {feature.feature_id}")
+        logger.exception(e)
 
+    logger.debug("Finding Variables")
     # update all the variables
     # get all the variable with this name and from same department as the current feature
     vars = Variable.objects.filter(department_id=feature.department_id, variable_name__in=variables_used)
     # reset variables used in the feature
+    logger.debug("Setting used variable in feature")
     feature.variable_in_use.set(vars)
     # return success true
     return {"success": True}
@@ -658,7 +736,7 @@ class Department(models.Model):
 
 class Step(models.Model):
     id = models.AutoField(primary_key=True)
-    feature_id = models.IntegerField()
+    feature_id = models.IntegerField(db_index=True)
     step_keyword = models.CharField(max_length=10, choices=step_keywords, default="Given")
     step_content = models.TextField()
     enabled = models.BooleanField(default=True)
@@ -730,14 +808,19 @@ class Feature(models.Model):
             logger.debug(f"Saving steps received from Front: {steps}")
             # Create .feature
             response = create_feature_file(self, steps, featureFileName)
+            logger.debug("Feature file created")
             # check if infinite loop was found
             if not response['success']:
+                logger.debug("Creation of feature was not success. Abort")
                 return response # {"success": False, "error": "infinite loop found"}
+            
             # Create .json
+            logger.debug(f"Creating Json file : {featureFileName}")
             create_json_file(self, steps, featureFileName)
             # Create _meta.json
+            logger.debug(f"Creating meta file : {featureFileName}")
             create_meta_file(self, featureFileName)
-
+            logger.debug(f"meta file Created")
         return {"success": True}
     
     def delete(self, *args, **kwargs):
@@ -768,6 +851,9 @@ class Feature(models.Model):
     class Meta:
         ordering = ['last_edited_date']
         verbose_name_plural = "Features"
+        indexes = [
+            models.Index(fields=['feature_name']),   
+        ]
 
 class Feature_result(SoftDeletableModel):
     feature_result_id = models.AutoField(primary_key=True)
@@ -1448,7 +1534,7 @@ def post_file_delete(instance, sender, using, **kwargs):
     if os.path.exists(instance.path):
         os.unlink(instance.path)
 
-# Choise for the dataset types
+# Choices for the dataset types
 dataset_types = (
     ('selector', 'Selector',),
 )
@@ -1456,9 +1542,8 @@ dataset_types = (
 class Dataset(models.Model):
     id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=10, choices=dataset_types, default="selector")
-    data = models.JSONField(default=dict)
+    data = models.JSONField(default=dict, null=True)
     feature_result = models.ForeignKey(Feature_result, on_delete=models.SET_NULL, null=True, related_name="feature_result_dataset")
-
     class Meta:
         verbose_name_plural = "Datasets"
 

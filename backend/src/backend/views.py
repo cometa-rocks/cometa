@@ -1431,7 +1431,7 @@ def parseActions(request):
             # parse action will use action_comments, if found to be action otherwise make it empty
             parseAction(action)
 
-        # This condition rarely executes
+        # This condition rarely executes when @step contains regular expression
         # If action started with @step then it never start with @done and in case above condition is false then any how this will be executed
         # not need of two if conditions
         elif action.startswith('@done') and '(?P<' in previousLine:
@@ -1439,18 +1439,21 @@ def parseActions(request):
             parseAction(action)
 
         # when any comment related to action written, that line will not have any spaces considering that line
-        # If there is Muti line comments, keep on adding in the list 
+        # If there is Multi line comments, keep on adding in the list 
         elif action.startswith('# '):
             # Action Comments to be written in with out line gaps
-            action_comments.append(
-                action[2:])  # [2:] to remove # and single space from the front of the comment
+            # [2:] to remove # and single space from the front of the comment
+            action_comments.append(action[2:])
+            # logger.debug(f"Found actions comment {action_comments}")
         else:
-            action_comments = []  # if other then comments found remove empty the list
+            if not action.startswith("@step"):
+                action_comments = []  # if other then comments found remove empty the list
+                logger.debug(f"Removed action comments {action}")
 
         previousLine = action
 
     logger.debug(f"Ending Action Parse")
-    # send a request to websockets about the actions update
+    # send a request to web sockets about the actions update
     requests.post('http://cometa_socket:3001/sendAction', json={
         'type': '[Actions] Get All'
     })
@@ -2753,22 +2756,25 @@ class DatasetViewset(viewsets.ModelViewSet):
         ws = wb.active
 
         # Add Excel headers
-        ws.append(['Se.No.','Feature ID','Success','Target', 'Context'])
+        ws.append(['Se.No.','Feature ID','Success','Target','Target_Source', 'Context'])
         logger.debug("Added Header in dataset")
         # Write data rows
         for i, record in enumerate(data_sets):
             data = record.data
 
-            decoded_context = 'Error'
+            decoded_html_page_context = 'Error'
+            selected_element_source = 'Error'
             try:
                 # Decode the base64 string
                 decoded_bytes = base64.b64decode(data['context'])
+                selected_element_source = base64.b64decode(data.get('Target_Source',''))
                 # Convert bytes to string
-                decoded_context = decoded_bytes.decode('utf-8')
+                decoded_html_page_context = decoded_bytes.decode('utf-8')
+                selected_element_source = selected_element_source.decode('utf-8')
             except base64.binascii.Error as e:
                 logger.error(f"Error decoding context in record {record.id}:", e)
                 
-            ws.append([i+1, record.feature_result.feature_id.feature_id, data['success'], data['target'],decoded_context])  # Adjust fields as per your model
+            ws.append([i+1, record.feature_result.feature_id.feature_id, data['success'],data['target'], selected_element_source, decoded_html_page_context])  # Adjust fields as per your model
 
         logger.info("Added dataset to workbook")
         logger.info("Getting time for file name")
