@@ -117,8 +117,24 @@
         </div>
         <!-- Add favourites hint-->
         <ng-template #favouritesHint>
-          <div class="hint">Click on the star icon to add a favourite.</div>
+          <div class="hint">Click on the star icon to add a favorite.</div>
         </ng-template>
+      </div>
+      <!-- Select timezone -->
+      <div class="selected-browsers">
+        <br>
+        <h4>Select Browsers Timezone</h4>
+        <div class="browsers-box">
+          <mat-form-field appearance="fill" >
+            <mat-label>Available Timezones</mat-label>
+            <mat-select [formControl]="testing_timezone" [(ngModel)]="selectedTimeZone" #selectElement>
+              <!-- Available Timezones -->
+              <mat-option
+                *ngFor="let timezone of listOfTimeZones" 
+                [value]="timezone">{{ timezone }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
       </div>
     </div>
     <!-- Browser selection section -->

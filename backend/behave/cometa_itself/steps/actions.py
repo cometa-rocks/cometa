@@ -1,10 +1,12 @@
 # -*- coding: UTF-8 -*-
 # -------------------------------------------------------
 # This archive contains all the steps available in Cometa Front for execution.
-# Steps not included are Enterprise Licenced Steps
+# Steps not included are Enterprise Licensed Steps
+# Any change in this file are automatically reflected in Cometa on next execution of a feature.
 #
 # Changelog
-# 2022-07-11 RRO Added some sleeps of 100ms to copy and saving of downloaded and edited excel files, as received IO timeouts on DAI-prod
+# 2024-03-01 RRO Added delimiter sniffing to reading CSV files
+# 2022-07-11 RRO Added some sleeps of 100ms to copy and saving of downloaded and edited excel files, as received IO timeouts
 # 2022-07-08 RRO added last_downloaded_file.suffix to handle generated generic filenames where the suffix is maintained
 # 2022-03-04 RRO added new step "Search for "{something}" in IBM Cognos and click on first result"
 # 2022-03-01 RRO added step to hit ok on alert, confirm or prompt window
@@ -278,6 +280,7 @@ def done( *_args, **_kwargs ):
                     step_timeout = MAX_STEP_TIMEOUT
 
                 # start the timeout
+                logger.debug(f"Setting timeout on step to: {step_timeout}")
                 signal.signal(signal.SIGALRM, lambda signum, frame, timeout=step_timeout: timeoutError(signum, frame, timeout))
                 signal.alarm(step_timeout)
                 # set page load timeout
@@ -750,6 +753,7 @@ def step_impl(context,css_selector):
     logger.debug(f"Generate Dataset: {str(generate_dataset)}")
     payload = {
         'context': base64.b64encode(clear_html_page_source(context.browser.page_source).encode()).decode(),
+        'Target_Source': base64.b64encode(clear_html_page_source(elem[0].get_attribute('outerHTML')).encode()).decode(),
         'target': css_selector,
         'success': False,
         'feature_result_id': os.environ['feature_result_id']
@@ -757,7 +761,6 @@ def step_impl(context,css_selector):
     send_step_details(context, 'Clicking')
     try:
         ActionChains(context.browser).move_to_element(elem[0]).click().perform()
-        
         if generate_dataset:
             payload['success'] = True
             requests.post('http://cometa_django:8000/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
@@ -2901,16 +2904,19 @@ def updateCsv(excelFilePath, cell, value, savePath):
     # importing the pandas library
     import pandas as pd
 
-    # reading the csv file
-    df = pd.read_csv(excelFilePath)
+    # reading the csv file, options automatically detect delimiter and lineending
+    logger.debug(f"Reading CSV: {excelFilePath}")
+    df = pd.read_csv(excelFilePath, sep=None, engine='python')
 
     # get excel equivalent to CSV index
     indexes = index_transform(cell)
 
     # updating the column value/data
+    logger.debug(f"Updateing file in cell {cell}")
     df.iloc[indexes[0], indexes[1]] = value
 
     # writing into the file
+    logger.debug("Saveing updated file")
     df.to_csv(savePath, index=False)
 
 # edit excel or csv file and set a value to a given cell. The file is saved on the same path.
@@ -3028,7 +3034,7 @@ def CSVtoExcel(context, filePath):
         NEWFILE="%s.xlsx" % filePath
         send_step_details(context, 'Converting CSV file to Excel file.')
         import pandas as pd
-        df = pd.read_csv(filePath) # or other encodings
+        df = pd.read_csv(filePath,sep=None, engine='python')
         df.to_excel(NEWFILE, index=None)
         ISCSV=True
     send_step_details(context, '')
@@ -3823,8 +3829,8 @@ def fetch_page_source(context):
     }
 
 # Scroll to element in lazy-loaded table, specially useful when working with AG Grid
-@step(u'Scroll to element with "{selector}" in lazy loaded table "{scrollable_element_selector}"')
-@done(u'Scroll to element with "{selector}" in lazy loaded table "{scrollable_element_selector}"')
+@step(u'Scroll to element with "{selector}" in AG Grid table "{scrollable_element_selector}"')
+@done(u'Scroll to element with "{selector}" in AG Grid table "{scrollable_element_selector}"')
 def find_element_in_lazy_loaded_element(context, selector, scrollable_element_selector):
 
     # get the scrollable element
