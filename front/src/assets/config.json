@@ -1,5 +1,5 @@
 {
-  "version": "2.8.333",
+  "version": "2.8.345",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,14 +233,111 @@
   ],
   "changelog": [
     {
-      "version": "2.8.334",
+      "version": "2.8.345",
+      "date": "2024-03-24",
+      "bugfixes": [ "Update vulnerable dependencies in bahave django and front." ]
+    },
+    {
+      "version": "2.8.344",
+      "date": "2024-03-22",
+      "bugfixes": [
+        "#4598 Fixed PDF report step, Now it will show full step name in the PDF report."
+      ]
+    },
+    {
+      "version": "2.8.343",
       "date": "2024-03-19",
-      "bugfixes": "Update vulnerable dependencies in bahave django and front."
+      "bugfixes": [
+        "#4583 Fixed Sub Feature change will take place. Change to store the list of analyzed features in memory will help reduce save time."
+      ]
+    },
+    {
+      "version": "2.8.342",
+      "date": "2024-03-18",
+      "bugfixes": [
+        "#4583 Feature execution timeout issue fixed"
+      ]
+    },
+    {
+      "version": "2.8.341",
+      "date": "2024-03-14",
+      "bugfixes": [
+        "#4567 Fixed timezone strip error"
+      ]
+    },
+    {
+        "version": "2.8.340",
+        "date": "2024-03-13",
+        "bugfixes": [
+            "#4575 - Fixed Error \"Multi level loop are not allowed.\""
+        ]
+    },
+    {
+      "version": "2.8.339",
+      "date": "2024-03-12",
+      "features": [
+        {
+          "title": "#4428(note-33) Added column to store selected element ",
+          "description": "Selected element source will be stored in the column 'Target_Source' when preparing the dataset. This new column is added to enhance the dataset for AI feature"
+        },
+        {
+          "title": "#4567 Set timezone of feature execution environment/Selenoid Browsers",
+          "description": "Select a timezone that matches your testing requirements to simulate different timezones during your tests."
+        }
+      ]
+    },
+    {
+      "version": "2.8.338",
+      "date": "2024-03-08",
+      "features": [
+        {
+          "title": "#3927 Implemented POST method adding BODY",
+          "description": "Implemented POST method with body. Body can be provided as JSON format with API step."
+        }
+      ],
+      "bugfixes": [
+        "#4565 - Comment are not available for step containing regex in the name"
+      ]
+    }, 
+    {   
+      "version": "2.8.337",
+      "date": "2024-03-07",
+      "features": [
+        {
+          "title": "Documentation updated for required disk space",
+          "description": "#4388 The documentation has been updated to include information on required disk space, along with commands for checking and updating disk space and ulimit settings."
+        }
+      ]
+    },
+    {
+      "version": "2.8.336",
+      "date": "2024-03-06",
+      "bugfixes": [
+        "#4529 - Rename step to \"Scroll to element with \"{selector}\" in AG Grid table \"{scrollable_element_selector}\""
+      ]
+    },
+    {
+      "version": "2.8.335",
+      "date": "2024-03-04",
+      "bugfixes": [
+        "#4557 - The issue of unavailable logs has been fixed on the feature report screen."
+      ]
+    }, 
+    {
+      "version": "2.8.334",
+      "date": "2024-03-01",
+      "bugfixes": [
+        "#4553 - Updated Additional Information section in pdf page with better description"
+      ]
     },
     {
       "version": "2.8.333",
       "date": "2024-02-29",
-      "bugfixes": ["#4537 - Fixed Bash Error \"too many arguments\""]
+      "bugfixes": [
+        "#4548 - Fixed: Selected sorting will not be lost when variables are modified",
+        "#4545 - Fixed: Now, API calls will use the proxy settings if a proxy is configured in Cometa",
+        "#4537 - Fixed: Bash Error \"too many arguments\""
+      ]
     },
     {
       "version": "2.8.332",
