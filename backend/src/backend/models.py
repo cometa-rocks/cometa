@@ -776,6 +776,8 @@ class Feature(models.Model):
     created_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None, related_name="created_by")
     send_mail = models.BooleanField(default=False)
     send_mail_on_error = models.BooleanField(default=False)
+    attach_pdf_report_to_email = models.BooleanField(verbose_name="Enable or disable the option to attach PDFs to emails.", help_text="If true, a test result PDF will be attached to the email; otherwise, the email will be sent without the PDF. This is useful when sending emails with a customized template.", default=True)
+    do_not_use_default_template = models.BooleanField(verbose_name="Do not use Default e-Mail Template", help_text="If true, then the alternative template will be used, which can be used for creating customized e-Mails, e.g. only containing screenshot", default=False)
     email_address = ArrayField(models.CharField(max_length=250), null=True, blank=True, default=list)
     email_subject = models.CharField(max_length=250, null=True, blank=True)
     email_body = models.TextField(null=True, blank=True)

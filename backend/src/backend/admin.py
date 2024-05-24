@@ -54,13 +54,15 @@ class AdminAccount_role(admin.ModelAdmin):
 
 class AdminStep(admin.ModelAdmin):
     model = Step
-    list_display = ('step_content', 'enabled')
-    list_filter = ('enabled',)
+    list_display = ('feature_id','id','step_content', 'enabled')
+    list_filter = ('feature_id','enabled',)
+    search_fields = ('feature_id','id','step_content')
+
 
 class AdminStep_result(admin.ModelAdmin):
     model = Step_result
     list_display = ('step_name', 'execution_time', 'success')
-    list_filter = ('success',)
+    list_filter = ('success','feature_result_id')
 
 class AdminFeature(admin.ModelAdmin):
     model = Feature
