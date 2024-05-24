@@ -39,6 +39,7 @@ export class EmailTemplateHelp {
     ['Feature Execution Result','log', 'Log output of the result'],
     ['Basic Information','archived', 'Whether or not the result is archived'],
     ['Feature Execution Result','executed_by', 'User ID of who executed the result'],
+    ['Feature Execution Result','screenshot[n]', 'Attach screenshot from feature steps']
   ];
 
   sortVariables(){
