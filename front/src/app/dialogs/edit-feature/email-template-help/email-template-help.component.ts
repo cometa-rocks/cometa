@@ -30,5 +30,6 @@ export class EmailTemplateHelp {
     ['log', 'Log output of the result'],
     ['archived', 'Whether or not the result is archived'],
     ['executed_by', 'User ID of who executed the result'],
+    ['screenshot[n]', 'Attach screenshot from feature steps']
   ];
 }
