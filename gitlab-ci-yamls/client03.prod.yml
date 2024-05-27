@@ -24,6 +24,8 @@
     #########################################################
     # FRONTEND
     #########################################################
+    # Remove standard ports for this client, as it conflicts with other running software
+    - sed -i '/443:443/d; /4200:4200/d' docker-compose.yml
     # make infra folder
     - docker exec cometa_front bash -c "mkdir -p /usr/local/apache2/htdocs/infra"
     # make a lbtest1.html file with some status info
