@@ -32,6 +32,8 @@ import logging
 import logging.handlers
 import datetime
 from email.mime.image import MIMEImage
+from PIL import Image
+
 
 # logger information
 logger = getLogger()
@@ -435,21 +437,33 @@ class GeneratePDF(View):
             # logger.debug("Found match ")
             # logger.debug(f"Match: {match.group(0)}, Number: {match.group(1)}, Start: {match.start()}, End: {match.end()}")
             # This is to check if number of screenshot available in the step report are less or equal to screenshot index requested in the email 
-            logger.debug(f'{screen_shot_index}  {len(step_results_screenshots)}')
+            # logger.debug(f'{screen_shot_index}  {len(step_results_screenshots)}')
             if screen_shot_index>0 and len(step_results_screenshots)>=screen_shot_index:
                 # Create dictionary with $screenshot[n] = path/to/screenshot
                 # logger.debug("Attaching screenshots")
                 logger.debug(step_results_screenshots[screen_shot_index-1])
                 screen_shot = step_results_screenshots[screen_shot_index-1][0]
                 # Add image tag to show image in with mail
-                new_email_body = new_email_body.replace(screenshot_name, f'<img src="cid:{screenshot_name}">')
+                image_path = os.path.join(settings.SCREENSHOTS_ROOT, screen_shot)
+                image_name = image_path.split("/")
+                logger.debug(image_name)
+                if len(image_name)>0:
+                    image_name = image_name[-1].split(".")[-2]
+    
+                image_name+='.png'
+                logger.debug(image_name)
+                new_email_body = new_email_body.replace(screenshot_name, f'<img src="cid:{screenshot_name}" alt={image_name} >')
                 # logger.debug(name)
                 # logger.debug(new_email_body)
                 # logger.debug(f"Attaching Screenshot {screen_shot}")
-                image_path = os.path.join(settings.SCREENSHOTS_ROOT, screen_shot)
-                with open(image_path, 'rb') as img:
-                    mime_image = MIMEImage(img.read(), _subtype="png")
+                with Image.open(image_path) as img:
+                    with BytesIO() as output:
+                        img.save(output, format='PNG')
+                        png_data = output.getvalue()                    
+                    mime_image = MIMEImage(png_data, _subtype="png")
                     mime_image.add_header('Content-ID', f'<{screenshot_name}>')
+                    mime_image.add_header('X-Attachment-Id', f'{screenshot_name}')
+                    mime_image.add_header('Content-Disposition', 'inline', filename=image_name)
                     email_multi_alternatives.attach(mime_image)
             else:
                 invalid_screenshot_names.append(screenshot_name)
