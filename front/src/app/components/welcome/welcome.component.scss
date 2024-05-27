@@ -15,12 +15,12 @@
   align-items: center; 
 
   @include for-phone-only {
-    height: 170vh;
+    height: 180vh;
     margin-bottom: 0;
   }
 
   @include for-tablet-portrait-only {
-    height: 1350px;
+    height: 120vh;
   }
 
   // Main container for the welcome page
@@ -120,7 +120,11 @@
         justify-content: space-between; 
         text-align: left;
         padding-left: 20px;
-        margin-top: 20px;
+        margin: 20px 0 20px 10px;
+        @include for-tablet-portrait-only {
+          
+          
+        }
       }
 
       .welcome_container_info div {
@@ -160,7 +164,6 @@
         }
         .welcome_container_i {
           align-items: center;
-          justify-content: center;
         }
         // Header and footer text of the button
         a {
@@ -171,21 +174,6 @@
             cursor: pointer;
             color: $blue;
             font-weight: normal;
-          }
-          button{
-            width: 50px;
-            height: 100%;
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            border-radius: 150px;
-            text-decoration: none;
-            color: #333333;
-            background-color: #add8e6; 
-            transition: background-color 0.3s ease;
-    
-            &:hover {
-              background-color: #87cefa; 
-            }
           }
         }
         @include for-phone-landscape-up {
@@ -202,18 +190,21 @@
       margin-top: 30px;
       align-self: center;
       justify-content: space-between; 
+      color: #1a1a1a;
       // Each button
       div {
         display: flex;
         align-items: center; 
         justify-content: center;
         cursor: pointer;
+        color: $blue;
+        font-weight: normal;
         background-color: $pure-white;
+        font-size: 18px;
         border-top-right-radius: 8px;  
         height: 40px;
-        width: 40%;
+        width: 45%;
         box-shadow: 0 1px 3px 0 #e5b355;
-
         @include for-phone-only  {
           width: 100%;
           margin-bottom: 30px;
@@ -227,7 +218,6 @@
       @include for-tablet-portrait-only {
         flex-direction: row;
         margin-top: 60px;
-  
       }
       
     }
