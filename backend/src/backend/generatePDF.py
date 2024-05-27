@@ -415,7 +415,10 @@ class GeneratePDF(View):
     def process_custom_body_for_screenshots(self,email_multi_alternatives) -> dict:
         logger.debug("Processing custom body")
         # get all the steps in the feature results
-        step_results_screenshots = Step_result.objects.values_list('screenshot_current').filter(feature_result_id=self.feature_result_id).order_by("step_result_id")
+        step_results_screenshots = Step_result.objects.values_list('screenshot_current') \
+        .filter(feature_result_id=self.feature_result_id) \
+        .exclude(screenshot_current__exact='') \
+        .order_by("step_result_id")
         # Define the regex pattern
         pattern = r'\$screenshot\[(\d+)\]'
         
@@ -452,6 +455,9 @@ class GeneratePDF(View):
                 invalid_screenshot_names.append(screenshot_name)
         if invalid_screenshot_names:
             new_email_body += f"<b>Invalid Screenshot names: <b> {','.join(invalid_screenshot_names)}"
+        
+        new_email_body = self.replaceFeatureVariables(new_email_body)
+
         return new_email_body, email_multi_alternatives
 
     def BuildEmailBody(self):
