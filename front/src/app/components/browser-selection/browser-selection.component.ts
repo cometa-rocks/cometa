@@ -317,14 +317,15 @@ export class BrowserSelectionComponent implements OnInit {
       const selectedBrowsers = this.browsersSelected.getValue();
       const index = selectedBrowsers.findIndex(
         br =>
-          this.toJson(br, ['concurrency']) ===
-          this.toJson(browser, ['concurrency'])
+          this.toJson(br, ['concurrency','selectedTimeZone']) ===
+          this.toJson(browser, ['concurrency', 'selectedTimeZone'])
       );
       selectedBrowsers.splice(index, 1);
       this.browsersSelected.next(selectedBrowsers);
     }
     this.selectionChange.emit(this.browsersSelected.getValue());
   }
+  
 
   handleConcurrencyChange(browser, element) {
     const selectedBrowsers = this.browsersSelected.getValue();
