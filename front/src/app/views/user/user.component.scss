@@ -16,6 +16,31 @@
   max-height: calc(100vh - var(--header-height));
 }
 
+.general{
+  margin: 0 auto;
+  max-width: 60vw;
+  @include for-phone-only {
+    max-width: 90%;
+  }
+}
+
+.extra-info, .global-settings, .feature-settings, .badge-container, .tour-container, .integration-container{
+  padding: 0 20px 0 20px;
+}
+
+.reload-lenguage .reload-translations {
+  font-weight: bold;
+  line-height: 30px;
+  border: 1px solid rgba(black, 0.5);
+  @include for-phone-only {
+    width: 100%;
+  }
+}
+
+.edit-feature-toggles {
+  margin-top: 15px;
+}
+
 .stripe:hover {
   background-color: #635bff;
   color: white;
@@ -49,6 +74,7 @@
   border-radius: 10px;
   font-weight: bold;
   margin-bottom: 20px;
+  
   i.icon {
     height: 30px;
     width: 30px;
@@ -61,14 +87,19 @@
 }
 
 .user-options {
+  padding: 0 20px 0 20px;
   margin-top: 20px;
 }
 
 .see-again {
+  @include for-phone-only {
+    width: 100%;
+  }
   border: 1px solid rgba(black, 0.5);
   padding: 0 10px;
   line-height: 30px;
   font-weight: bold;
+  width: 151.17px;
 }
 
 .tour {
@@ -79,6 +110,10 @@
   cursor: pointer;
   border-radius: 5px;
   margin: 0 10px 15px 0;
+  @include for-phone-only {
+    width: 90%;
+    text-align: center;
+  }
 }
 
 h3 {
@@ -98,53 +133,174 @@ h4 {
   margin-bottom: 15px;
 }
 
-.user-info {
-  display: block;
-  width: 100%;
-  height: 40px;
+/* Contenedor principal */
+.user-container {
+  margin: 0 auto;
+  padding: 0 20px 0 20px;
   line-height: 40px;
-  margin: 20px auto;
+  width: 100%;
+  height: 100%;
   font-size: 13pt;
   font-weight: bold;
   color: $primary-color;
-  .name {
+  box-sizing: border-box;
+
+  &:before {
+    content: '';
+    display: block;
+    position: relative;
+    top: 90px;
+    height: 20px;
+    width: 20px;
+    opacity: 0.75;
+    background: url(^assets/internal/COM_User_Icon.black.svg) no-repeat;
+    background-size: contain;
     float: left;
-    margin-left: 0;
-    @include for-tablet-portrait-up {
-      margin-left: 40px;
-    }
-    span {
-      display: none;
-      margin-left: 5px;
-      @include for-tablet-portrait-up {
-        display: inline-block;
-      }
-    }
-    &:before {
-      content: '';
-      display: block;
-      position: relative;
-      top: 10px;
-      height: 20px;
-      width: 20px;
-      opacity: 0.75;
-      background: url(^assets/internal/COM_User_Icon.black.svg) no-repeat;
-      background-size: contain;
-      float: left;
-      margin-right: 20px;
-    }
-  }
-  .type {
-    float: right;
-    margin-right: 0;
-    @include for-tablet-portrait-up {
-      margin-right: 40px;
+    margin-right: 20px;
+    @include for-phone-only {
+      margin-left: 30px;
     }
   }
 }
 
-ul {
+thead {
+  display: none;
+}
+
+
+/* Tabla de usuario */
+.user-table {
+  text-align: center;
+  width: 100%;
+  border-collapse: collapse; /* Colapsa los bordes de la tabla */
+}
+
+/* Cabeceras de la tabla */
+.user-table th {
+  text-align: center;
+  font-weight: bold;
+  padding: 8px;
+  // border-bottom: 1px solid #000; /* Línea inferior para separar cabeceras del contenido */
+}
+
+/* Celdas de la tabla */
+.user-table td {
+  padding: 8px;
+  vertical-align: top;
+}
+
+/* Información adicional */
+.extra-info {
+  padding-top: 10px;
+}
+
+/* Opciones de usuario */
+.user-options {
+  padding-top: 10px;
+  display: flex;
+  justify-content: flex-start; /* Alinea el botón a la izquierda */
+}
+
+.see-again {
   margin-top: 10px;
+}
+
+/* Responsive Design */
+@include for-phone-only {
+
+  thead {
+    display: none;
+  }
+
+  .user-table, .user-table tbody, .user-table tr, .user-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .user-table tr {
+    margin-bottom: 15px;
+  }
+
+  .user-table td {
+    display: flex;
+    padding: 0px;
+    justify-content: space-between;
+  }
+
+  .user-table tr td:last-child {
+    border-bottom: none;
+  }
+
+  .user-table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .extra-info, .user-options {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .extra-info, .user-options {
+    border-bottom: none;
+  }
+
+  .extra-info::before, .user-options::before {
+    content: attr(data-label);
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+}
+
+
+
+// .user-info {
+//   display: flex;
+//   flex-direction: column;
+//   .name {
+//     float: left;
+//     margin-left: 0;
+//     @include for-tablet-portrait-up {
+//       margin-left: 0;
+//     }
+//     span {
+//       display: none;
+//       margin-left: 5px;
+//       @include for-tablet-portrait-up {
+//         display: inline-block;
+//       }
+//     }
+//     &:before {
+//       content: '';
+//       display: block;
+//       position: relative;
+//       top: 10px;
+//       height: 20px;
+//       width: 20px;
+//       opacity: 0.75;
+//       background: url(^assets/internal/COM_User_Icon.black.svg) no-repeat;
+//       background-size: contain;
+//       float: left;
+//       margin-right: 20px;
+//       @include for-phone-only {
+//         margin-left: 30px;
+//       }
+//     }
+//   }
+//   .type {
+//     float: right;
+//     margin-right: 0;
+//     @include for-tablet-portrait-up {
+//       margin-right: 40px;
+//     }
+//   }
+// }
+
+ul {
+  margin-top: 15px;
   li {
     list-style-type: none;
     line-height: 30px;
@@ -152,7 +308,7 @@ ul {
 }
 
 p {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .int-dept {
