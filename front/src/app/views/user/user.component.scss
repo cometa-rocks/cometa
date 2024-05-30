@@ -20,15 +20,15 @@
   margin: 0 auto;
   max-width: 60vw;
   @include for-phone-only {
-    max-width: 90%;
+    max-width: 100%;
   }
 }
 
-.extra-info, .global-settings, .feature-settings, .badge-container, .tour-container, .integration-container{
+.global-settings, .feature-settings, .badge-container, .tour-container, .integration-container{
   padding: 0 20px 0 20px;
 }
 
-.reload-lenguage .reload-translations {
+.reload-language .reload-translations {
   font-weight: bold;
   line-height: 30px;
   border: 1px solid rgba(black, 0.5);
@@ -73,8 +73,6 @@
   background-color: rgba(black, 0.1);
   border-radius: 10px;
   font-weight: bold;
-  margin-bottom: 20px;
-  
   i.icon {
     height: 30px;
     width: 30px;
@@ -87,7 +85,6 @@
 }
 
 .user-options {
-  padding: 0 20px 0 20px;
   margin-top: 20px;
 }
 
@@ -108,8 +105,9 @@
   background-color: rgba(black, 0.1);
   font-weight: bold;
   cursor: pointer;
+  width: 121px;
+  text-align: center;
   border-radius: 5px;
-  margin: 0 10px 15px 0;
   @include for-phone-only {
     width: 90%;
     text-align: center;
@@ -133,10 +131,16 @@ h4 {
   margin-bottom: 15px;
 }
 
+.custom-label {
+  color: #1e1e1e; 
+  font-weight: bold; 
+  font-size: 0.9em; 
+  letter-spacing: 0.07em;
+}
+
 /* Contenedor principal */
 .user-container {
-  margin: 0 auto;
-  padding: 0 20px 0 20px;
+  padding: 0 20px;
   line-height: 40px;
   width: 100%;
   height: 100%;
@@ -144,108 +148,47 @@ h4 {
   font-weight: bold;
   color: $primary-color;
   box-sizing: border-box;
-
-  &:before {
-    content: '';
-    display: block;
-    position: relative;
-    top: 90px;
-    height: 20px;
-    width: 20px;
-    opacity: 0.75;
-    background: url(^assets/internal/COM_User_Icon.black.svg) no-repeat;
-    background-size: contain;
-    float: left;
-    margin-right: 20px;
-    @include for-phone-only {
-      margin-left: 30px;
-    }
-  }
+  max-width: 500px;
+  text-align: left;
 }
 
-thead {
-  display: none;
+.user-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
 }
 
-
-/* Tabla de usuario */
-.user-table {
-  text-align: center;
-  width: 100%;
-  border-collapse: collapse; /* Colapsa los bordes de la tabla */
+.user-row div {
+  margin: 0;
 }
 
-/* Cabeceras de la tabla */
-.user-table th {
-  text-align: center;
-  font-weight: bold;
-  padding: 8px;
-  // border-bottom: 1px solid #000; /* Línea inferior para separar cabeceras del contenido */
-}
-
-/* Celdas de la tabla */
-.user-table td {
-  padding: 8px;
-  vertical-align: top;
-}
-
-/* Información adicional */
-.extra-info {
-  padding-top: 10px;
-}
-
-/* Opciones de usuario */
 .user-options {
   padding-top: 10px;
   display: flex;
-  justify-content: flex-start; /* Alinea el botón a la izquierda */
+  justify-content: flex-start;
 }
 
-.see-again {
-  margin-top: 10px;
+.name, .email, .type, .extra-info {
+  color: $profile-user-color;
 }
 
 /* Responsive Design */
 @include for-phone-only {
 
-  thead {
-    display: none;
+  .user-row {
+    flex-direction: column;
+    align-items: flex-start;
+    box-shadow: 0 2px 2px -2px rgba(0, 0, 0, 0.5);
   }
 
-  .user-table, .user-table tbody, .user-table tr, .user-table td {
-    display: block;
-    width: 100%;
-  }
-
-  .user-table tr {
-    margin-bottom: 15px;
-  }
-
-  .user-table td {
-    display: flex;
-    padding: 0px;
-    justify-content: space-between;
-  }
-
-  .user-table tr td:last-child {
-    border-bottom: none;
-  }
-
-  .user-table td::before {
-    content: attr(data-label);
-    font-weight: bold;
-    text-transform: uppercase;
+  .user-row div {
+    padding: 4px 0;
   }
 
   .extra-info, .user-options {
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
-    border-bottom: 1px solid #ccc;
-  }
-
-  .extra-info, .user-options {
-    border-bottom: none;
   }
 
   .extra-info::before, .user-options::before {
@@ -254,50 +197,6 @@ thead {
     text-transform: uppercase;
   }
 }
-
-
-
-// .user-info {
-//   display: flex;
-//   flex-direction: column;
-//   .name {
-//     float: left;
-//     margin-left: 0;
-//     @include for-tablet-portrait-up {
-//       margin-left: 0;
-//     }
-//     span {
-//       display: none;
-//       margin-left: 5px;
-//       @include for-tablet-portrait-up {
-//         display: inline-block;
-//       }
-//     }
-//     &:before {
-//       content: '';
-//       display: block;
-//       position: relative;
-//       top: 10px;
-//       height: 20px;
-//       width: 20px;
-//       opacity: 0.75;
-//       background: url(^assets/internal/COM_User_Icon.black.svg) no-repeat;
-//       background-size: contain;
-//       float: left;
-//       margin-right: 20px;
-//       @include for-phone-only {
-//         margin-left: 30px;
-//       }
-//     }
-//   }
-//   .type {
-//     float: right;
-//     margin-right: 0;
-//     @include for-tablet-portrait-up {
-//       margin-right: 40px;
-//     }
-//   }
-// }
 
 ul {
   margin-top: 15px;
@@ -309,6 +208,14 @@ ul {
 
 p {
   margin-bottom: 10px;
+}
+
+@include for-phone-only {
+  p mat-form-field, li mat-form-field{
+    width: 100%;
+  }
+
+
 }
 
 .int-dept {
