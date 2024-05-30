@@ -2,36 +2,26 @@
   <ng-container *ngLet="details$ | async as details">
     <ng-container *ngLet="account$ | async as account">
       <h3>USER</h3>
-      <div class="">
       <!-- Bloque de información del usuario -->
-        <div class="user-container">
-          <table class="user-table">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Created on</th>
-                <th>Last login</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <span>User: </span><td class="name">{{ account.name }}</td>
-                <span>Email: </span><td class="email" *ngIf="account.email">{{ account.email }}</td>
-                <span>Role: </span><td class="type">{{ account.user_permissions.permission_name }}</td>
-                <span>Created on: </span><td class="extra-info">{{ account.created_on | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}</td>
-                <span>Last login: </span><td class="extra-info">{{ account.last_login | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}</td>
-              </tr>
-              <tr>
-                <td colspan="3" class="user-options">
-                  <button (click)="inviteUser()" class="see-again" mat-stroked-button>Invite to my team</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="user-container">
+        <div class="user-row">
+          <div>User: </div><div class="name">{{ account.name }}</div>
         </div>
-          
+        <div class="user-row">
+          <div>Email: </div><div class="email" *ngIf="account.email">{{ account.email }}</div>
+        </div>
+        <div class="user-row">
+          <div>User Role: </div><div class="type">{{ account.user_permissions.permission_name }}</div>
+        </div>
+        <div class="user-row">
+          <div>Created on: </div><div class="extra-info">{{ account.created_on | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}</div>
+        </div>
+        <div class="user-row">
+          <div>Last login: </div><div class="extra-info">{{ account.last_login | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}</div>
+        </div>
+        <div class="user-options">
+          <button (click)="inviteUser()" class="see-again" mat-stroked-button>Invite to my team</button>
+        </div>
         <ng-container *ngIf="account.stripe_customer_id">
           <h3>PAYMENTS</h3>
           <button (click)="goCustomerPortal()" class="see-again stripe" mat-button>
@@ -153,7 +143,7 @@
             </mat-select>
           </mat-form-field>
         </p>
-        <div class="reload-lenguage">
+        <div class="reload-language">
           <button
             (click)="reloadLang()"
             class="reload-translations"
@@ -204,6 +194,19 @@
               Log WebSockets into Console
             </mat-slide-toggle>
           </li>
+          <li>
+            <mat-slide-toggle
+              color="primary"
+              labelPosition="after"
+              [checked]="
+                account.settings?.hasOwnProperty('recordVideos')
+                  ? account.settings?.recordVideo
+                  : true
+              "
+              (change)="handleToggle($event, 'recordVideo')"
+              >Record Video</mat-slide-toggle
+            >
+          </li>
         </ul>
         <div class="edit-feature-toggles">
           <p>
@@ -214,7 +217,7 @@
             <li>
               <!-- Department pre-selection options -->
               <mat-form-field>
-                <mat-label>Preselect Department</mat-label>
+                <mat-label class="custom-label">Preselect Department</mat-label>
                 <mat-select [value]="account.settings?.preselectDepartment">
                   <mat-option
                     (click)="
@@ -230,7 +233,7 @@
             <li>
               <!-- Application pre-selection options -->
               <mat-form-field>
-                <mat-label>Preselect Application</mat-label>
+                <mat-label class="custom-label">Preselect Application</mat-label>
                 <mat-select [value]="account.settings?.preselectApplication">
                   <mat-option
                     (click)="
@@ -246,7 +249,7 @@
             <li>
               <!-- Environment pre-selection options -->
               <mat-form-field>
-                <mat-label>Preselect Environment</mat-label>
+                <mat-label class="custom-label">Preselect Environment</mat-label>
                 <mat-select [value]="account.settings?.preselectEnvironment">
                   <mat-option
                     (click)="
@@ -261,19 +264,6 @@
                   >
                 </mat-select>
               </mat-form-field>
-            </li>
-            <li>
-              <mat-slide-toggle
-                color="primary"
-                labelPosition="after"
-                [checked]="
-                  account.settings?.hasOwnProperty('recordVideos')
-                    ? account.settings?.recordVideo
-                    : true
-                "
-                (change)="handleToggle($event, 'recordVideo')"
-                >Record Video</mat-slide-toggle
-              >
             </li>
           </ul>
         </div>
