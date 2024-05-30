@@ -10,16 +10,42 @@
 .container {
   width: 100%;
   height: 100%;
+  display: flex;
+  justify-content: center; 
+  align-items: center; 
+
+  @include for-phone-only {
+    height: 180vh;
+    margin-bottom: 0;
+  }
+
+  @include for-tablet-portrait-only {
+    height: 120vh;
+  }
+
   // Main container for the welcome page
   .welcome {
     display: flex;
     flex-direction: column;
+    justify-content: center; 
     width: 100%;
-    height: 100%;
+    max-width: 70vw;
     align-items: center;
-    @include for-phone-landscape-up {
+
+    @include for-phone-only {
+      justify-content: space-evenly;
       flex-wrap: nowrap;
     }
+
+
+    @include for-tablet-portrait-only {
+      width: 100%;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      margin-top: 0;
+      height: 100%;
+    }
+
     // Container for the text the user sees beneath the welcome message
     .welcome_message {
       text-align: center;
@@ -34,33 +60,94 @@
       }
     }
     // Container for the welcome buttons and new testcase
-    .welcome_buttons,
-    .create_testcase {
+    .welcome_buttons {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       width: 100%;
-      @include for-phone-landscape-up {
-        justify-content: space-evenly;
-        flex-direction: row;
-        flex-wrap: nowrap;
+      height: 100%;
+      margin-top: 30px;
+      max-width: 75vw;
+      column-gap: 20px;
+
+      @include for-phone-only {
+        flex-direction: column;
       }
+
+      @include for-tablet-portrait-only {
+        flex-direction: column;
+      }
+      
+      
+      .welcome_container {
+        flex-direction: column;
+        position: relative;
+        box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+        padding: 15px;
+        border-top-left-radius: 7px;
+        border-top-right-radius: 7px;
+        width: 100%;
+
+        @include for-phone-only {
+          margin-top: 30px;
+        }
+  
+        @include for-tablet-portrait-only {
+          margin: 40px 0 0 0;
+        }
+
+        @include for-desktop-up {
+          margin: 10px 0 0 0;
+          height: 300px;
+        }
+
+      }
+
+      .welcome_container_header {
+        position: absolute;
+        align-items: center;
+        justify-content: center;
+        align-self: center;
+        max-width: 140px;
+        height: 30px; 
+        transform: translateY(-100%);
+        border-top-left-radius: 7px;
+        border-top-right-radius: 7px;   
+      }
+
+
+      .welcome_container_info {
+        flex-direction: row;
+        justify-content: space-between; 
+        text-align: left;
+        padding-left: 20px;
+        margin: 20px 0 20px 10px;
+        @include for-tablet-portrait-only {
+          
+          
+        }
+      }
+
+      .welcome_container_info div {
+        align-items: left;
+        text-align: left;
+      }
+
+      .welcome_container_info div a h3 {
+        margin-left: 30px;
+      }
+
       // Each div the button description
       div {
         display: flex;
         flex-direction: column;
-        border-radius: 3px;
-        border: 1px solid $low-dark;
-        padding: 10px;
         box-sizing: border-box;
-        margin: 10px 0;
         width: 90%;
+        height: 100%;
         background-color: $pure-white;
         color: $primary-color;
-        align-self: center;
         // Container for the upper image of the button
         div {
-          align-items: center;
-          border: none;
+          width: 100%;
           // Image itself
           i {
             width: 100px;
@@ -75,11 +162,13 @@
             }
           }
         }
+        .welcome_container_i {
+          align-items: center;
+        }
         // Header and footer text of the button
         a {
           text-decoration: none;
           display: inline-block;
-          margin: 10px 0;
           h2,
           h3 {
             cursor: pointer;
@@ -94,28 +183,65 @@
     }
     // Container with the buttons to manage testcase creation and tutorial
     .create_testcase {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      height: 100%;
+      margin-top: 30px;
+      align-self: center;
+      justify-content: space-between; 
+      color: #1a1a1a;
       // Each button
       div {
+        display: flex;
+        align-items: center; 
+        justify-content: center;
         cursor: pointer;
+        color: $blue;
+        font-weight: normal;
+        background-color: $pure-white;
+        font-size: 18px;
+        border-top-right-radius: 8px;  
+        height: 40px;
+        width: 45%;
+        box-shadow: 0 1px 3px 0 #e5b355;
+        @include for-phone-only  {
+          width: 100%;
+          margin-bottom: 30px;
+        }
       }
+
+      @include for-phone-only  {
+        flex-direction: column;
+      }
+
+      @include for-tablet-portrait-only {
+        flex-direction: row;
+        margin-top: 60px;
+      }
+      
     }
     // Upper image with cometa's log container
     .welcome_logo {
       width: 60%;
       display: flex;
       justify-content: center;
-      margin-top: 30px;
+      margin-bottom: 30px;
       // Logo itself
       i {
         width: 60vw;
-        height: 40vw;
+        height: 40vh;
         background-image: url(^assets/internal/COM_WELCOME_LOGO.svg);
         background-repeat: no-repeat;
         background-position: center;
         background-size: contain;
-        @include for-phone-landscape-up {
+        @include for-phone-only  {
           width: 60vw;
-          height: 20vw;
+          height: 25vh;
+        }
+        @include for-phone-landscape-up {
+          width: 30vw;
+          height: 15vh;
         }
       }
     }
