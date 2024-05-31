@@ -229,6 +229,24 @@
               >On error</mat-radio-button
             >
           </mat-radio-group>
+          <mat-checkbox
+            formControlName="do_not_use_default_template"
+            aria-label="Screenshot"
+            style="margin-left: 5%;"
+            color="primary"
+            matTooltip="If Checked, then please provide your custom email template, which can be used for creating customized e-Mails, e.g. only containing screenshot. The default is false - to not change the actual behavior customers are using"
+            class="screenshot checkbox-blue"
+            > Do not use default template </mat-checkbox>
+          
+          <mat-checkbox
+            formControlName="attach_pdf_report_to_email"
+            aria-label="Screenshot"
+            style="margin-left: 2%;"
+            color="primary"
+            matTooltip="If Checked, PDF test result will be attached within the email, Other wise email without PDF will be sent. Useful when sending email with customized template"
+            class="screenshot checkbox-blue"
+           > Attach PDF report to email </mat-checkbox>
+
           <button
             (click)="openEmailHelp()"
             stopPropagation

@@ -238,6 +238,26 @@
       "bugfixes": [ "Update vulnerable dependencies in bahave django and front." ]
     },
     {
+      "version": "2.8.346",
+      "date": "2024-05-27",
+      "features": [
+        {
+          "title": "#4707 Changes made in the PDF to support outlook email client when sending image.",
+          "description": "Outlook was not showing sent image properly, fixed code to support outlook email client."
+        }
+      ]
+    },
+    {
+      "version": "2.8.345",
+      "date": "2024-05-24",
+      "features": [
+        {
+          "title": "#4707 Send image only via email, enable and disable email with default template and PDF report",
+          "description": "While creating a feature in the Email section, options are added to: 1. Add a screenshot from steps, 2. Enable/disable the default template, and 3. Enable/disable attaching PDF report to the email."
+        }
+      ]
+    },
+    {
       "version": "2.8.344",
       "date": "2024-03-22",
       "bugfixes": [
