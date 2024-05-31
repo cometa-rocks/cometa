@@ -1,5 +1,5 @@
 {
-  "version": "2.8.347",
+  "version": "2.8.348",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,11 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.348",
+      "date": "2024-03-31",
+      "bugfixes": [ "Update vulnerable dependencies in bahave django and front." ]
+    },
     {
       "version": "2.8.347",
       "date": "2024-05-31",
