@@ -233,6 +233,16 @@
   ],
   "changelog": [
     {
+      "version": "2.8.347",
+      "date": "2024-05-31",
+      "features": [
+        {
+          "title": "#4694 Profile Page Redesign and New Section Implementation",
+          "description": "Redesigned the profile page layout for better user experience (mobile, tablet, desktop) and implemented a new section 'Feature Settings'"
+        }
+      ]
+    },
+    {
       "version": "2.8.346",
       "date": "2024-05-27",
       "features": [
