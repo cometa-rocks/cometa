@@ -226,6 +226,8 @@ export class EditFeature implements OnInit, OnDestroy {
       generate_dataset: [false],
       need_help: [false],
       send_mail_on_error: [false],
+      attach_pdf_report_to_email: [true],
+      do_not_use_default_template: [false],
       continue_on_failure: [false],
       uploaded_files: [[]],
       video: [true],
@@ -508,6 +510,8 @@ export class EditFeature implements OnInit, OnDestroy {
           'email_subject',
           'email_body',
           'send_mail_on_error',
+          'attach_pdf_report_to_email',
+          'do_not_use_default_template',
         ];
       }
       // Add fields mandatory for Schedule

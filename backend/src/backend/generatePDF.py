@@ -31,6 +31,9 @@ import pytz
 import logging
 import logging.handlers
 import datetime
+from email.mime.image import MIMEImage
+from PIL import Image
+
 
 # logger information
 logger = getLogger()
@@ -411,11 +414,96 @@ class GeneratePDF(View):
         Creating the body of the e-mail. If there is no body, there will be one by default. A sign is added in the end of the email.
         We send it back to the main function.
     """
+    def process_custom_body_for_screenshots(self,email_multi_alternatives) -> dict:
+        logger.debug("Processing custom body")
+        # get all the steps in the feature results
+        step_results_screenshots = Step_result.objects.values_list('screenshot_current') \
+        .filter(feature_result_id=self.feature_result_id) \
+        .exclude(screenshot_current__exact='') \
+        .order_by("step_result_id")
+        # Define the regex pattern
+        pattern = r'\$screenshot\[(\d+)\]'
+        
+        # Find all matches and their positions
+        matches = list(re.finditer(pattern, self.feature_template.email_body))
+        new_email_body =  "<strong>Custom message:</strong><br><br>"+self.feature_template.email_body+"<br><br>"
+        # Print the matches with their positions
+        invalid_screenshot_names = []
+        for match in matches:
+            # Get the screenshot name i.e. $screenshot[n]
+            screenshot_name =  match.group(0)
+            # Get the screenshot index 'n'
+            screen_shot_index = int(match.group(1))
+            # logger.debug("Found match ")
+            # logger.debug(f"Match: {match.group(0)}, Number: {match.group(1)}, Start: {match.start()}, End: {match.end()}")
+            # This is to check if number of screenshot available in the step report are less or equal to screenshot index requested in the email 
+            # logger.debug(f'{screen_shot_index}  {len(step_results_screenshots)}')
+            if screen_shot_index>0 and len(step_results_screenshots)>=screen_shot_index:
+                # Create dictionary with $screenshot[n] = path/to/screenshot
+                # logger.debug("Attaching screenshots")
+                logger.debug(step_results_screenshots[screen_shot_index-1])
+                screen_shot = step_results_screenshots[screen_shot_index-1][0]
+                # Add image tag to show image in with mail
+                image_path = os.path.join(settings.SCREENSHOTS_ROOT, screen_shot)
+                image_name = image_path.split("/")
+                logger.debug(image_name)
+                if len(image_name)>0:
+                    image_name = image_name[-1].split(".")[-2]
+    
+                image_name+='.png'
+                logger.debug(image_name)
+                new_email_body = new_email_body.replace(screenshot_name, f'<img src="cid:{screenshot_name}" alt={image_name} >')
+                # logger.debug(name)
+                # logger.debug(new_email_body)
+                # logger.debug(f"Attaching Screenshot {screen_shot}")
+                with Image.open(image_path) as img:
+                    with BytesIO() as output:
+                        img.save(output, format='PNG')
+                        png_data = output.getvalue()                    
+                    mime_image = MIMEImage(png_data, _subtype="png")
+                    mime_image.add_header('Content-ID', f'<{screenshot_name}>')
+                    mime_image.add_header('X-Attachment-Id', f'{screenshot_name}')
+                    mime_image.add_header('Content-Disposition', 'inline', filename=image_name)
+                    email_multi_alternatives.attach(mime_image)
+            else:
+                invalid_screenshot_names.append(screenshot_name)
+        if invalid_screenshot_names:
+            new_email_body += f"<b>Invalid Screenshot names: <b> {','.join(invalid_screenshot_names)}"
+        
+        new_email_body = self.replaceFeatureVariables(new_email_body)
+
+        return new_email_body, email_multi_alternatives
+
     def BuildEmailBody(self):
         date_time = self.feature.result_date.replace(tzinfo=ZoneInfo('UTC'))
         utc_date =  date_time.astimezone(pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')
         cet_date =  date_time.astimezone(pytz.timezone('Europe/Berlin')).strftime('%Y-%m-%d %H:%M:%S %Z')
         ist_date =  date_time.astimezone(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S %Z')
+
+        pdf_email_part = ""
+
+        if len(self.pdf.content) >= pdfFileSizeLimit and self.feature.attach_pdf_report_to_email:
+           pdf_email_part = """
+            PDF file size (%.2fMB) is over the threshold (%.2fMB) and will not be attached to the email, choose from options below to either download of view the pdf:
+            <ul>
+                <li><strong><a href="%s">Download PDF</a></strong></li>
+                <li><strong><a href="%s">View PDF</a></strong></li>
+            </ul><br>
+            Attachment file size allowed is a system wide property in common.py. If you would like to change it, please contact the system administrator of your mail server or the cometa installation.
+            <br><br>
+            """ % (
+                bytesToMegaBytes(len(self.pdf.content)),
+                bytesToMegaBytes(pdfFileSizeLimit),
+                "%s&download=true" % self.pdfURL,
+                "%s&download=false" % self.pdfURL
+            )
+        
+        if self.feature_template.email_body is not None:
+            custom_message_part = """
+                <strong>Custom message:</strong><br>
+                %s<br><br>
+                """ % str(self.feature_template.email_body)
+            
 
         email_body = """
             Dear user!<br><br>
@@ -439,7 +527,7 @@ class GeneratePDF(View):
                 </tr>
                 <tr><td><strong>Pixel Difference:</strong></td><td>%s</td></tr>
             </table>
-            %s
+            $[[[CUSTOM_EMAIL_DATA]]]
             %s
             Thanks you for using co.meta<br><br>
             Best regards<br><br>
@@ -456,24 +544,7 @@ class GeneratePDF(View):
             cet_date,
             ist_date,
             str(self.feature.pixel_diff),
-            "" if self.feature_template.email_body == None else """
-            <strong>Custom message:</strong><br>
-            %s<br><br>
-            """ % str(self.feature_template.email_body),
-            "" if len(self.pdf.content) < pdfFileSizeLimit else """
-            PDF file size (%.2fMB) is over the threshold (%.2fMB) and will not be attached to the email, choose from options below to either download of view the pdf:
-            <ul>
-                <li><strong><a href="%s">Download PDF</a></strong></li>
-                <li><strong><a href="%s">View PDF</a></strong></li>
-            </ul><br>
-            Attachment file size allowed is a system wide property in common.py. If you would like to change it, please contact the system administrator of your mail server or the cometa installation.
-            <br><br>
-            """ % (
-                bytesToMegaBytes(len(self.pdf.content)),
-                bytesToMegaBytes(pdfFileSizeLimit),
-                "%s&download=true" % self.pdfURL,
-                "%s&download=false" % self.pdfURL
-            )
+            pdf_email_part
         )
         # Replace variables of feature
         email_body = self.replaceFeatureVariables(email_body)
@@ -493,8 +564,21 @@ class GeneratePDF(View):
             to=self.feature_template.email_address,
             headers={'X-COMETA': 'proudly_generated_by_amvara_cometa', 'X-COMETA-SERVER': 'AMVARA', 'X-COMETA-VERSION': str(version), 'X-COMETA-FEATURE': self.feature.feature_name, 'X-COMETA-DEPARTMENT':self.feature.department_name}
         )
+        # self.feature
+        if self.feature_template.email_body:
+            # $[[[CUSTOM_EMAIL_DATA]]]
+            custom_email_body, email = self.process_custom_body_for_screenshots(email)
+            if self.feature_template.do_not_use_default_template:
+                self.emailbody = custom_email_body    
+            else:
+                # Attach custom_email_body with default template
+                self.emailbody = self.emailbody.replace("$[[[CUSTOM_EMAIL_DATA]]]", custom_email_body)
+        else:
+            # If custom_email_body not found, then remove [[[CUSTOM_EMAIL_DATA]]] from default template
+            self.emailbody = self.emailbody.replace("$[[[CUSTOM_EMAIL_DATA]]]", "")
+
         email.attach_alternative(self.emailbody, "text/html")
-        if len(self.pdf.content) < pdfFileSizeLimit:
+        if len(self.pdf.content) < pdfFileSizeLimit and self.feature_template.attach_pdf_report_to_email:
             # Attach the PDF generated PDF to the email. We give it a custom name before.
             email.attach(str(self.feature.feature_name)+'-'+str(self.feature.result_date)+'.pdf', self.pdf.content, 'application/pdf')
         # Send mail using the SMTP backend, and email settings set in settings.py.
