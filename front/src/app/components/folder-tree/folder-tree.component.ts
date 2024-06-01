@@ -26,7 +26,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   styleUrls: ['./folder-tree.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatIconModule, NgFor, FolderItemTreeComponent, AsyncPipe],
+  imports: [MatTooltipModule, MatIconModule, NgFor, FolderItemTreeComponent, AsyncPipe],
 })
 export class FolderTreeComponent implements OnInit {
   constructor(
