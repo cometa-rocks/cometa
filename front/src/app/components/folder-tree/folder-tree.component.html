@@ -6,47 +6,39 @@ Author: dph000
 
 -->
 <!-- Home button -->
-<div (click)="toggleList('home')" [class.selected]="(route$ | async).length == 0 && (activeList$ | async) === 'home'">
-  <div (click)="toggleList('home')" [class.selected]="(route$ | async).length == 0 && (activeList$ | async) === 'home'" [matTooltip]="'sidenav_page.home' | translate" matTooltipPosition="right">
-    <mat-icon>home</mat-icon>
-    Home
-  </div>
-  <!-- The department boolean is used to know wheter the sent object is a department or not -->
-  <cometa-folder-item-tree [department]="true" [folder]="folder" [parent]="[folder]" [level]="0" *ngFor="let folder of folders$ | async"></cometa-folder-item-tree>
-  <!-- Data Driven Runs List button -->
-  <div (click)="toggleList('data-driven')" [class.selected]="(activeList$ | async) === 'data-driven'">
-  <div (click)="toggleList('data-driven')" [class.selected]="(activeList$ | async) === 'data-driven'" [matTooltip]="'sidenav_page.data_driven_sidenav' | translate" matTooltipPosition="right">
-    <mat-icon>format_indent_increase</mat-icon>
-    Data Driven
-  </div>
-  <!-- Variables list button -->
-  <div (click)="toggleList('variables')" [class.selected]="(activeList$ | async) === 'variables'">
-  <div (click)="toggleList('variables')" [class.selected]="(activeList$ | async) === 'variables'" [matTooltip]="'sidenav_page.variables_sidenav' | translate" matTooltipPosition="right">
-    <mat-icon>settings_input_component</mat-icon>
-    Variables
-  </div>
-  <!-- Team shared features and foldes list button -->
-  <div (click)="toggleList('team')" [class.selected]="(activeList$ | async) === 'team'">
-  <div (click)="toggleList('team')" [class.selected]="(activeList$ | async) === 'team'" [matTooltip]="'sidenav_page.team_drives' | translate" matTooltipPosition="right">
-    <mat-icon>people</mat-icon>
-    Team drives
-  </div>
-  <!-- Recently modified features list button -->
-  <div (click)="toggleList('recent')" [class.selected]="(activeList$ | async) === 'recent'">
-  <div (click)="toggleList('recent')" [class.selected]="(activeList$ | async) === 'recent'" [matTooltip]="'sidenav_page.recent' | translate" matTooltipPosition="right">
-    <mat-icon>restore</mat-icon>
-    Recent
-  </div>
-  <!-- Starred features list button -->
-  <div (click)="toggleList('starred')" [class.selected]="(activeList$ | async) === 'starred'">
-  <div (click)="toggleList('starred')" [class.selected]="(activeList$ | async) === 'starred'" [matTooltip]="'sidenav_page.starred' | translate" matTooltipPosition="right">
-    <mat-icon>star_border</mat-icon>
-    Starred
-  </div>
-  <!-- Trash bin list button -->
-  <div (click)="toggleList('trashbin')" [class.selected]="(activeList$ | async) === 'trashbin'">
-  <div (click)="toggleList('trashbin')" [class.selected]="(activeList$ | async) === 'trashbin'" [matTooltip]="'sidenav_page.trash_bin' | translate" matTooltipPosition="right">
-    <mat-icon>delete</mat-icon>
-    Trash bin
-  </div>
-  
+<div (click)="toggleList('home')" [class.selected]="(route$ | async).length == 0 && (activeList$ | async) === 'home'" [matTooltip]="'sidenav_page.home' | translate" matTooltipPosition="right">
+  <mat-icon>home</mat-icon>
+  Home
+</div>
+<!-- The department boolean is used to know wheter the sent object is a department or not -->
+<cometa-folder-item-tree [department]="true" [folder]="folder" [parent]="[folder]" [level]="0" *ngFor="let folder of folders$ | async"></cometa-folder-item-tree>
+<!-- Data Driven Runs List button -->
+<div (click)="toggleList('data-driven')" [class.selected]="(activeList$ | async) === 'data-driven'" [matTooltip]="'sidenav_page.data_driven_sidenav' | translate" matTooltipPosition="right">
+  <mat-icon>format_indent_increase</mat-icon>
+  Data Driven
+</div>
+<!-- Variables list button -->
+<div (click)="toggleList('variables')" [class.selected]="(activeList$ | async) === 'variables'" [matTooltip]="'sidenav_page.variables_sidenav' | translate" matTooltipPosition="right">
+  <mat-icon>settings_input_component</mat-icon>
+  Variables
+</div>
+<!-- Team shared features and foldes list button -->
+<div (click)="toggleList('team')" [class.selected]="(activeList$ | async) === 'team'" [matTooltip]="'sidenav_page.team_drives' | translate" matTooltipPosition="right">
+  <mat-icon>people</mat-icon>
+  Team drives
+</div>
+<!-- Recently modified features list button -->
+<div (click)="toggleList('recent')" [class.selected]="(activeList$ | async) === 'recent'" [matTooltip]="'sidenav_page.recent' | translate" matTooltipPosition="right">
+  <mat-icon>restore</mat-icon>
+  Recent
+</div>
+<!-- Starred features list button -->
+<div (click)="toggleList('starred')" [class.selected]="(activeList$ | async) === 'starred'" [matTooltip]="'sidenav_page.starred' | translate" matTooltipPosition="right">
+  <mat-icon>star_border</mat-icon>
+  Starred
+</div>
+<!-- Trash bin list button -->
+<div (click)="toggleList('trashbin')" [class.selected]="(activeList$ | async) === 'trashbin'" [matTooltip]="'sidenav_page.trash_bin' | translate" matTooltipPosition="right">
+  <mat-icon>delete</mat-icon>
+  Trash bin
+</div>
