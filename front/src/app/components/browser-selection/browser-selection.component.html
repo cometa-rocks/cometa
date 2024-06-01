@@ -211,7 +211,7 @@
           <!-- Button to load more versions for a given browser -->
           <button 
             color="primary" 
-            *ngIf="browser.value.length > 1" mat-stroked-button class="load-more" 
+            *ngIf="browser.value.length > 6" mat-stroked-button class="load-more" 
             (click)="showAll(browser.key)">SHOW {{ (browserExpandStatus && browserExpandStatus[browser.key]) ? 'LESS' : 'ALL' }}
           </button>
         </div>
