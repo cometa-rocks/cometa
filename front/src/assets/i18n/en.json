@@ -10,6 +10,19 @@
   "MAIN_VIEW": {
     "DATE": "DATE"
   },
+  "sidenav_page": {
+    "add": "Button with options to create a folder or feature.",
+    "home": "We have on this section the co.meta tutorial, help and documentation.",
+    "data_driven_sidenav": "Execution of tests based on the variables provided by the excel sheet",
+    "variables_sidenav": "In this section, we can add or edit variables among other functionalities",
+    "team_drives": "Upcoming feature",
+    "recent": "The last tests you have run",
+    "starred": "Upcoming feature",
+    "trash_bin": "Upcoming feature"
+  },
+  "data_driven": {
+    "data_driven_button": "Execution of tests based on the variables provided by the excel sheet"
+  },
   "headers": {
     "status": "Status",
     "date": "Date",
@@ -67,6 +80,7 @@
     "allocation": "Allocation"
   },
   "about": {
+    "shortcut": "Shortcuts",
     "config": "Config",
     "sponsor": "Sponsor",
     "credits": "Credits",
