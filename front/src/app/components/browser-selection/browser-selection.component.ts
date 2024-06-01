@@ -233,11 +233,14 @@ export class BrowserSelectionComponent implements OnInit {
     }
   }
 
+  browserExpandStatus = {};
+
   showAll(browserKey: string) {
     // Show all versions for a given browser
-    document
-      .querySelector(`.versions.${browserKey}`)
-      .classList.toggle('show_all');
+    document.querySelector(`.versions.${browserKey}`).classList.toggle('show_all');
+    console.log("Antes: " + this.browserExpandStatus[browserKey]);
+    this.browserExpandStatus[browserKey] = !this.browserExpandStatus[browserKey];
+    console.log("Despues: " + this.browserExpandStatus[browserKey]);
   }
 
   toggleFavourite(browser: BrowserstackBrowser) {
