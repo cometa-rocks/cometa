@@ -1,5 +1,5 @@
 {
-  "version": "2.8.349",
+  "version": "2.8.350",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.350",
+      "date": "2024-06-1",
+      "features": [
+        {
+          "title": "#4694 Changes made in feature, toggle(show-more/less)",
+          "description": "Solved the toggle feature button show more/less browsers."
+        }
+      ]
+    },
     {
       "version": "2.8.349",
       "date": "2024-06-1",
