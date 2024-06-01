@@ -2,6 +2,19 @@
   "MAIN_VIEW": {
     "DATE": "Datum"
   },
+  "sidenav_page": {
+    "add": "Schaltfläche mit Optionen zum Erstellen eines Ordners oder einer Funktion.",
+    "home": "In diesem Abschnitt haben wir das co.meta-Tutorial, Hilfe und Dokumentation.",
+    "data_driven_sidenav": "Ausführung von Tests basierend auf den in der Excel-Tabelle angegebenen Variablen",
+    "variables_sidenav": "In diesem Abschnitt können wir Variablen hinzufügen oder bearbeiten, unter anderem Funktionen",
+    "team_drives": "Kommende Funktion",
+    "recent": "Die letzten Tests, die Sie ausgeführt haben",
+    "starred": "Kommende Funktion",
+    "trash_bin": "Kommende Funktion"
+  },
+  "data_driven": {
+    "data_driven_button": "Ausführung von Tests basierend auf den in der Excel-Tabelle angegebenen Variablen"
+  },
   "need_help": {
     "filter": "Asking for help",
     "poster": "Needs help",
@@ -50,6 +63,7 @@
   "save": "Markiert das aktuelle Element als gespeichert.",
   "unsave": "Hebt die Markierung des aktuellen Elements als gespeichert auf.",
   "about": {
+    "shortcut": "Verknüpfungen",
     "config": "Config",
     "sponsor": "Sponsor",
     "credits": "Credits",
