@@ -67,7 +67,10 @@
               <input
                 matInput
                 spellcheck="false"
-                formControlName="feature_name" />
+                formControlName="feature_name" 
+                (focus)="onInputFocus()" 
+                (blur)="onInputBlur()"
+                />
             </mat-form-field>
             <mat-form-field appearance="fill" class="edit-description">
               <mat-label>Description</mat-label>
@@ -75,7 +78,10 @@
                 spellcheck="false"
                 formControlName="description"
                 matInput
-                rows="1"></textarea>
+                rows="1"
+                (focus)="onInputFocus()" 
+                (blur)="onInputBlur()"
+                ></textarea>
             </mat-form-field>
           </div>
           <div
@@ -88,29 +94,24 @@
             >
           </div>
           <div class="depends">
-            <mat-checkbox
-              color="primary"
-              formControlName="depends_on_others"
-              matTooltip="Enable this option if you wish to execute this feature with other features"
-              matTooltipPosition="above"
-              >Depends on other feature</mat-checkbox
-            >
-            <mat-checkbox
-              color="primary"
-              *ngIf="!featureForm.value.depends_on_others"
-              formControlName="send_mail"
-              matTooltip="Enable this option to receive a report email upon completion of the execution"
-              matTooltipPosition="above"
-              >Send mail on finish</mat-checkbox
-            >
-            <mat-checkbox
-              color="primary"
-              *ngIf="!featureForm.value.depends_on_others"
-              formControlName="video"
-              matTooltip="Enable video recording of feature execution"
-              matTooltipPosition="above"
-              >Record video</mat-checkbox
-            >
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+              <mat-checkbox color="primary" formControlName="depends_on_others" [matTooltip]="'edit_feature.depends_on_other_feature' | translate" matTooltipPosition="above">
+                Depends on other feature
+              </mat-checkbox>
+              <div class="hover-box">(D)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
+              <mat-checkbox color="primary" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">
+                Send email on finish
+              </mat-checkbox>
+              <div class="hover-box">(M)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
+              <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="'edit_feature.record_video' | translate" matTooltipPosition="above">
+                Record video
+              </mat-checkbox>
+              <div class="hover-box">(R)</div>
+            </div>
             <mat-checkbox
               color="primary"
               *ngIf="!featureForm.value.depends_on_others"
@@ -127,45 +128,33 @@
               matTooltipPosition="above"
               >Generate Dataset</mat-checkbox
             >
-            <ng-container
-              *ngLet="
-                (departmentSettings$ | async)?.continue_on_failure ||
-                user.settings?.continue_on_failure as disabled
-              ">
-              <mat-checkbox
-                color="primary"
-                [disabled]="disabled"
-                formControlName="continue_on_failure"
-                matTooltip="Enable this option to proceed with test execution regardless of any failures encountered"
-                matTooltipPosition="above"
-                >Continue on failure</mat-checkbox
-              >
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">  
+              <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
+                <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">
+                  Continue on failure
+                </mat-checkbox>
+                <div class="hover-box">(F)</div>
+              </ng-container>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()"> 
+              <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
+              <div class="hover-box">(H)</div>
+            </div>
+            <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
+              <div class="checkbox-container move-right"> 
+                <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+                  <button color="primary" 
+                  [disabled]="disableVariables" 
+                  (click)="editVariables()" 
+                  mat-stroked-button 
+                  [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="left">
+                    Edit Variables
+                  </button>
+                </span>
+                <div class="hover-box-Vshortcut">(V)</div>
+              </div>
             </ng-container>
-            <mat-checkbox
-              formControlName="need_help"
-              color="primary"
-              [matTooltip]="'need_help.explanation' | translate"
-              matTooltipPosition="above"
-              >{{ 'need_help.ask_for' | translate }}</mat-checkbox
-            >
-            <ng-container
-              *ngLet="
-                !featureForm.value.environment_name ||
-                !featureForm.value.department_name as disableVariables
-              ">
-              <span
-                class="edit-variables"
-                matTooltip="Add/Modify environment and secret variables."
-                matTooltipPosition="above">
-                <button
-                  color="primary"
-                  [disabled]="disableVariables"
-                  (click)="editVariables()"
-                  mat-stroked-button>
-                  Edit Variables
-                </button>
-              </span>
-            </ng-container>
+
           </div>
         </ng-template>
       </mat-expansion-panel>
@@ -198,7 +187,9 @@
                 [matChipInputFor]="chipList"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 [matChipInputAddOnBlur]="true"
-                (matChipInputTokenEnd)="addAddress($event)" />
+                (matChipInputTokenEnd)="addAddress($event)"
+                (focus)="onInputFocus()" 
+                (blur)="onInputBlur()" />
             </mat-chip-list>
           </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
@@ -208,7 +199,10 @@
             <input
               matInput
               spellcheck="false"
-              formControlName="email_subject" />
+              formControlName="email_subject"
+              (focus)="onInputFocus()" 
+              (blur)="onInputBlur()"
+              />
           </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
             <mat-label
@@ -218,7 +212,10 @@
             <textarea
               matInput
               spellcheck="false"
-              formControlName="email_body"></textarea>
+              formControlName="email_body"
+              (focus)="onInputFocus()" 
+              (blur)="onInputBlur()"
+              ></textarea>
           </mat-form-field>
           <mat-radio-group formControlName="send_mail_on_error">
             When to send email:
