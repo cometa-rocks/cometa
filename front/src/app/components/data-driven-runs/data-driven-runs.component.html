@@ -82,13 +82,19 @@
   <div class="custom_toolbar">
     <div>
       Found
-      <span
-        ><span class="blue">{{ total }}</span> Data Driven Runs</span
-      >
+      <span>
+        <span class="blue">{{ total }}</span> Data Driven Runs
+      </span>
     </div>
-    <button mat-flat-button color="primary" (click)="openNewDataDrivenRun()">
-      <span class="mdc-button__label">Data Driven Test</span>
-    </button>
+    <div class="button-container" [matTooltip]="'data_driven.data_driven_button' | translate" matTooltipPosition="above">
+      <button 
+        mat-flat-button color="primary" (click)="openNewDataDrivenRun()" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+        <span class="mdc-button__label">
+          Data Driven Test
+        </span>
+      </button>
+      <div class="hover-box">(T)</div>
+    </div>
   </div>
 </ng-template>
 
