@@ -44,9 +44,39 @@
   <!-- Hotkeys -->
   <div class="help-title">Hotkeys</div>
   <div class="hotkeys">
-    <div class="hotkey" *ngFor="let hotkey of hotkeys | sortBy: 'text'">
+    <!-- <div class="hotkey" *ngFor="let hotkey of hotkeys | sortBy: 'text'">
       <div class="combination">{{ hotkey.hotkey }}</div>
       <div class="description">{{ hotkey.text }}</div>
+    </div> -->
+    <div class="shortcuts-tables">
+      <div class="shortcuts-h2">
+        <h2 class="shortcuts-table">Main page</h2>
+        <mtx-grid [data]="listMainPage"
+                  [columns]="columns"
+                  [trackBy]="trackByName">
+        </mtx-grid>
+      </div>
+      <div class="shortcuts-h2">
+        <h2 class="shortcuts-table">Main View Feature</h2>
+        <mtx-grid [data]="listMainViewFeature"
+                  [columns]="columns"
+                  [trackBy]="trackByName">
+        </mtx-grid>
+      </div>
+      <div class="shortcuts-table">
+        <h2 class="shortcuts-h2">Data Driven</h2>
+        <mtx-grid [data]="listDataDriven"
+                  [columns]="columns"
+                  [trackBy]="trackByName">
+        </mtx-grid>
+      </div>
+      <div class="shortcuts-table">
+        <h2 class="shortcuts-h2">Create/Edit Feature</h2>
+        <mtx-grid [data]="listCreateEditFeature"
+                  [columns]="columns"
+                  [trackBy]="trackByName">
+        </mtx-grid>
+      </div>
     </div>
   </div>
   <!-- Actions explanation -->
