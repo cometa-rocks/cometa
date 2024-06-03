@@ -38,6 +38,7 @@
     }
   }
   table {
+    margin-top: 30px;
     border-radius: 5px;
     background-color: $table-background-opaque;
     border-spacing: 0;
@@ -139,4 +140,21 @@
       padding-right: 5px;
     }
   }
+}
+
+// Button shortcut Data driven
+.button-container {
+  display: flex;
+  position: relative;
+}
+
+.hover-box {
+  display: none;
+  position: absolute;
+  top: 110%;
+  padding-left: 45%;
+}
+
+.button-container:hover .hover-box {
+  display: block;
 }
