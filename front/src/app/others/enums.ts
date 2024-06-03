@@ -9,4 +9,5 @@ export enum KEY_CODES {
   R = 82,
   N = 78,
   V = 86,
+  T = 84,
 }
