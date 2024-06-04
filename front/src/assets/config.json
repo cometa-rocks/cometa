@@ -1,5 +1,5 @@
 {
-  "version": "2.8.353",
+  "version": "2.8.352",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,16 +232,6 @@
     "{Code is Poetry}"
   ],
   "changelog": [
-    {
-      "version": "2.8.353",
-      "date": "2024-06-4",
-      "features": [
-        {
-          "title": "#4694 Feature: Shortcuts on Feature, added matttoltips. About: Changed max-width. Profile: Changed response on button 'invite to my team'",
-          "description": "Added shortcuts on feature, changed mattooltips, changed maxwidth on about, some other little issues was fixed."
-        }
-      ]
-    },
     {
       "version": "2.8.352",
       "date": "2024-06-3",
