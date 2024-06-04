@@ -89,7 +89,7 @@ export class InviteUserDialog implements OnInit {
       )
       .subscribe(res => {
         if (res.success) {
-          this._snackBar.open('Invites sended', 'OK');
+          this._snackBar.open('Invite has been sent', 'OK');
           this.dialogRef.close();
         } else if (res.handled) {
           this.dialogRef.close();
