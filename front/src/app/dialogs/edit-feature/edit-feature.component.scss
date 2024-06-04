@@ -29,8 +29,8 @@
 .hover-box-Vshortcut{
   display: none;
   position: absolute;
-  top: 50px;
-  left: 96%;
+  top: 130%;
+  left: 60%;
   transform: translate(-50%, -50%);
 }
 
@@ -38,6 +38,8 @@
 .checkbox-container:hover .hover-box,
 .checkbox-container:hover .hover-box-Vshortcut {
   display: block;
+  color: $blue;
+  font-weight: bold;
 }
 
 .default_template {
