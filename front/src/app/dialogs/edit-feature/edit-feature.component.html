@@ -112,24 +112,26 @@
               </mat-checkbox>
               <div class="hover-box">(R)</div>
             </div>
-            <mat-checkbox
-              color="primary"
-              *ngIf="!featureForm.value.depends_on_others"
-              formControlName="network_logging"
-              [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above"
-              matTooltip="Enable this option to record network responses, including analysis of vulnerable headers"
-              matTooltipPosition="above"
-              >Network Logging</mat-checkbox
-            >
-            <mat-checkbox
-              color="primary"
-              *ngIf="!featureForm.value.depends_on_others"
-              formControlName="generate_dataset"
-              [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above"
-              matTooltip="Create a dataset from your web application"
-              matTooltipPosition="above"
-              >Generate Dataset</mat-checkbox
-            >
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
+              <mat-checkbox
+                color="primary"
+                *ngIf="!featureForm.value.depends_on_others"
+                formControlName="network_logging"
+                [matTooltip]="'edit_feature.network_logging' | translate" matTooltipPosition="above">
+                Network Logging
+              </mat-checkbox>
+              <div class="hover-box">(N)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()"> 
+              <mat-checkbox
+                color="primary"
+                *ngIf="!featureForm.value.depends_on_others"
+                formControlName="generate_dataset"
+                [matTooltip]="'edit_feature.generate_dataset' | translate" matTooltipPosition="above">
+                Generate Dataset
+              </mat-checkbox>
+              <div class="hover-box">(G)</div>
+            </div>
             <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">  
               <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
                 <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">
@@ -231,7 +233,7 @@
             formControlName="do_not_use_default_template"
             aria-label="Screenshot"
             color="primary"
-            [matTooltip]="'email_template.default_template' | translate" matTooltipPosition="above"
+            [matTooltip]="'edit_feature.default_template' | translate" matTooltipPosition="above"
             class="screenshot checkbox-blue default_template"
             > Do not use default template </mat-checkbox>
           
@@ -239,7 +241,7 @@
             formControlName="attach_pdf_report_to_email"
             aria-label="Screenshot"
             color="primary"
-            [matTooltip]="'email_template.attach_pdf' | translate" matTooltipPosition="above"
+            [matTooltip]="'edit_feature.attach_pdf' | translate" matTooltipPosition="above"
             class="screenshot checkbox-blue report_to_email"
             > Attach PDF report to email </mat-checkbox>
 
