@@ -2,6 +2,8 @@ import {
   Component,
   Inject,
   ViewEncapsulation,
+  Output, 
+  EventEmitter,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import {
@@ -12,6 +14,7 @@ import {
   animate,
 } from '@angular/animations';
 import { EnterValueComponent } from '@dialogs/enter-value/enter-value.component';
+import { EditFeature } from '@dialogs/edit-feature/edit-feature.component';
 import {
   MatLegacyDialogRef as MatDialogRef,
   MatLegacyDialog as MatDialog,
@@ -46,6 +49,7 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
   ],
   standalone: true,
   imports: [
+    EditFeature,
     MatLegacyDialogModule,
     MatLegacyFormFieldModule,
     MatLegacyInputModule,
@@ -63,6 +67,7 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 })
 export class AddStepComponent {
   @Select(ActionsState) actions$: Observable<Action[]>;
+  @Output() textareaFocusToParent = new EventEmitter<boolean>();
 
   constructor(
     public dialogRef: MatDialogRef<AddStepComponent>,
@@ -80,6 +85,12 @@ export class AddStepComponent {
     description: '',
     values: 0,
   };
+
+  // Shortcut emitter to parent component
+  public sendTextareaFocusToParent(isFocused: boolean) {
+    this.textareaFocusToParent.emit(isFocused);
+    console.log("Aqui esto" + isFocused);
+  }
 
   getStep(action: Action) {
     const values = [];
@@ -178,4 +189,6 @@ export class AddStepComponent {
     this.currentStep.text = this.step;
     return { ...this.currentStep };
   }
+
+
 }
