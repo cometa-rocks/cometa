@@ -32,6 +32,7 @@ import {
 } from '@angular/material/legacy-checkbox';
 import { StepEditorComponent } from '@components/step-editor/step-editor.component';
 import { BrowserSelectionComponent } from '@components/browser-selection/browser-selection.component';
+import { AddStepComponent } from '@dialogs/add-step/add-step.component';
 import {
   MatLegacyChipListChange as MatChipListChange,
   MatLegacyChipsModule,
@@ -45,6 +46,7 @@ import { EditVariablesComponent } from '@dialogs/edit-variables/edit-variables.c
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
+import { EmailTemplateHelp } from './email-template-help/email-template-help.component';
 import { KEY_CODES } from '@others/enums';
 import { CustomSelectors } from '@others/custom-selectors';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
@@ -53,7 +55,6 @@ import { StepDefinitions } from '@store/actions/step_definitions.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
 import { finalize, switchMap } from 'rxjs/operators';
-import { EmailTemplateHelp } from './email-template-help/email-template-help.component';
 import {
   AreYouSureData,
   AreYouSureDialog,
@@ -153,6 +154,7 @@ export class EditFeature implements OnInit, OnDestroy {
   hasSubscription: boolean;
   @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
   @Select(VariablesState) variableState$: Observable<VariablePair[]>;
+  
 
   saving$ = new BehaviorSubject<boolean>(false);
 
@@ -184,6 +186,7 @@ export class EditFeature implements OnInit, OnDestroy {
 
   @ViewChild(StepEditorComponent, { static: false })
   stepEditor: StepEditorComponent;
+  @ViewChild('Step-editor-component') StepEditorComponent!: StepEditorComponent;
 
   // COTEMP -- Used to check the state data status
   @Select(FeaturesState.GetStateDAta) state$: Observable<
@@ -401,12 +404,16 @@ export class EditFeature implements OnInit, OnDestroy {
     this.browserstackBrowsers.next(browsers);
   }
 
+  inputFocus: boolean = false;
+
   // Handle keyboard keys
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
     // only execute switch case if child dialog is closed
     if (this.variable_dialog_isActive) return;
+    let KeyPressed = event.keyCode;
+
     switch (event.keyCode) {
       case KEY_CODES.ESCAPE:
         // Check if form has been modified before closing
@@ -428,10 +435,115 @@ export class EditFeature implements OnInit, OnDestroy {
         }
         break;
       case KEY_CODES.V:
-        if (event.ctrlKey && event.altKey) this.editVariables();
+        // Edit variables
+        if (!this.inputFocus) this.editVariables();
+        break;
+      case KEY_CODES.D:
+        if (!this.inputFocus) {
+          // Depends on other featre
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.M:
+        if (!this.inputFocus) {
+          // Send email
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.R:
+        if (!this.inputFocus) {
+          // Record video
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.F:
+        if (!this.inputFocus) {
+          // Continue on failure
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.H:
+        if (!this.inputFocus) {
+          // Need help
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.N:
+        if (!this.inputFocus) {
+          // Network logging
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.G:
+        if (!this.inputFocus) {
+          // Generate dataset
+          this.toggleDependsOnOthers(KeyPressed);
+        }
         break;
     }
   }
+
+  // Shortcut emitter to parent component
+  receiveDataFromChild(isFocused: boolean) {
+    this.inputFocus = isFocused;
+  }
+
+  // Check if focused on input or textarea on email template
+  onInputFocus() {
+    this.inputFocus = true;
+  }
+
+  onInputBlur() {
+    this.inputFocus = false;
+  }
+
+  toggleDependsOnOthers(KeyPressed) {
+    let checkboxValue = this.featureForm.get('send_mail').value;
+    let dependsOnOthers = this.featureForm.get('depends_on_others').value;
+    if(KeyPressed === KEY_CODES.D) {
+      dependsOnOthers = this.featureForm.get('depends_on_others').value;
+      this.featureForm.get('depends_on_others').setValue(!dependsOnOthers);
+    }
+    else if (KeyPressed === KEY_CODES.F) {
+      checkboxValue = this.featureForm.get('continue_on_failure').value;
+      this.featureForm.get('continue_on_failure').setValue(!checkboxValue);
+    }
+    else if (KeyPressed === KEY_CODES.H) {
+      checkboxValue = this.featureForm.get('need_help').value;
+      this.featureForm.get('need_help').setValue(!checkboxValue);
+    }
+    if(dependsOnOthers === false){
+      if(KeyPressed === KEY_CODES.M) {
+        checkboxValue = this.featureForm.get('send_mail').value;
+        this.featureForm.get('send_mail').setValue(!checkboxValue);
+      }
+      else if (KeyPressed === KEY_CODES.R) {
+        checkboxValue = this.featureForm.get('video').value;
+        this.featureForm.get('video').setValue(!checkboxValue);
+      }
+      else if (KeyPressed === KEY_CODES.N) {
+        console.log("Estoy dentro de n toggle");
+        checkboxValue = this.featureForm.get('network_logging').value;
+        this.featureForm.get('network_logging').setValue(!checkboxValue);
+      }
+      else if (KeyPressed === KEY_CODES.G) {
+        checkboxValue = this.featureForm.get('generate_dataset').value;
+        this.featureForm.get('generate_dataset').setValue(!checkboxValue);
+      }
+    }
+  }
+
+  // Check if mouse is over the dialog (puede ser step definition?)
+  isHovered = false;
+
+  onMouseOver() {
+    this.isHovered = true;
+  }
+
+  onMouseOut() {
+    this.isHovered = false;
+  }
+
 
   // Deeply check if two arrays are equal, in length and values
   arraysEqual(a: any[], b: any[]): boolean {
