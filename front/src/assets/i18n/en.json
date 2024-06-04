@@ -23,6 +23,10 @@
   "data_driven": {
     "data_driven_button": "Execution of tests based on the variables provided by the excel sheet"
   },
+  "email_template": {
+    "default_template": "If Checked, then please provide your custom email template, which can be used for creating customized e-Mails, e.g. only containing screenshot. The default is false - to not change the actual behavior customers are using",
+    "attach_pdf": "If Checked, PDF test result will be attached within the email, Other wise email without PDF will be sent. Useful when sending email with customized template"
+  },
   "headers": {
     "status": "Status",
     "date": "Date",
