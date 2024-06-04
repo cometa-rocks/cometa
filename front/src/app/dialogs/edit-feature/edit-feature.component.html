@@ -67,7 +67,10 @@
               <input
                 matInput
                 spellcheck="false"
-                formControlName="feature_name" />
+                formControlName="feature_name" 
+                (focus)="onInputFocus()" 
+                (blur)="onInputBlur()"
+                />
             </mat-form-field>
             <mat-form-field appearance="fill" class="edit-description">
               <mat-label>Description</mat-label>
@@ -75,7 +78,10 @@
                 spellcheck="false"
                 formControlName="description"
                 matInput
-                rows="1"></textarea>
+                rows="1"
+                (focus)="onInputFocus()" 
+                (blur)="onInputBlur()"
+                ></textarea>
             </mat-form-field>
           </div>
           <div
@@ -88,83 +94,69 @@
             >
           </div>
           <div class="depends">
-            <mat-checkbox
-              color="primary"
-              formControlName="depends_on_others"
-              matTooltip="Enable this option if you wish to execute this feature with other features"
-              matTooltipPosition="above"
-              >Depends on other feature</mat-checkbox
-            >
-            <mat-checkbox
-              color="primary"
-              *ngIf="!featureForm.value.depends_on_others"
-              formControlName="send_mail"
-              matTooltip="Enable this option to receive a report email upon completion of the execution"
-              matTooltipPosition="above"
-              >Send mail on finish</mat-checkbox
-            >
-            <mat-checkbox
-              color="primary"
-              *ngIf="!featureForm.value.depends_on_others"
-              formControlName="video"
-              matTooltip="Enable video recording of feature execution"
-              matTooltipPosition="above"
-              >Record video</mat-checkbox
-            >
-            <mat-checkbox
-              color="primary"
-              *ngIf="!featureForm.value.depends_on_others"
-              formControlName="network_logging"
-              matTooltip="Enable this option to record network responses, including analysis of vulnerable headers"
-              matTooltipPosition="above"
-              >Network Logging</mat-checkbox
-            >
-            <mat-checkbox
-              color="primary"
-              *ngIf="!featureForm.value.depends_on_others"
-              formControlName="generate_dataset"
-              matTooltip="Create a dataset from your web application"
-              matTooltipPosition="above"
-              >Generate Dataset</mat-checkbox
-            >
-            <ng-container
-              *ngLet="
-                (departmentSettings$ | async)?.continue_on_failure ||
-                user.settings?.continue_on_failure as disabled
-              ">
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+              <mat-checkbox color="primary" formControlName="depends_on_others" [matTooltip]="'edit_feature.depends_on_other_feature' | translate" matTooltipPosition="above">
+                Depends on other feature
+              </mat-checkbox>
+              <div class="hover-box">(D)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
+              <mat-checkbox color="primary" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">
+                Send email on finish
+              </mat-checkbox>
+              <div class="hover-box">(M)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
+              <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="'edit_feature.record_video' | translate" matTooltipPosition="above">
+                Record video
+              </mat-checkbox>
+              <div class="hover-box">(R)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
               <mat-checkbox
                 color="primary"
-                [disabled]="disabled"
-                formControlName="continue_on_failure"
-                matTooltip="Enable this option to proceed with test execution regardless of any failures encountered"
-                matTooltipPosition="above"
-                >Continue on failure</mat-checkbox
-              >
-            </ng-container>
-            <mat-checkbox
-              formControlName="need_help"
-              color="primary"
-              [matTooltip]="'need_help.explanation' | translate"
-              matTooltipPosition="above"
-              >{{ 'need_help.ask_for' | translate }}</mat-checkbox
-            >
-            <ng-container
-              *ngLet="
-                !featureForm.value.environment_name ||
-                !featureForm.value.department_name as disableVariables
-              ">
-              <span
-                class="edit-variables"
-                matTooltip="Add/Modify environment and secret variables."
-                matTooltipPosition="above">
-                <button
-                  color="primary"
-                  [disabled]="disableVariables"
-                  (click)="editVariables()"
-                  mat-stroked-button>
-                  Edit Variables
-                </button>
-              </span>
+                *ngIf="!featureForm.value.depends_on_others"
+                formControlName="network_logging"
+                [matTooltip]="'edit_feature.network_logging' | translate" matTooltipPosition="above">
+                Network Logging
+              </mat-checkbox>
+              <div class="hover-box">(N)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()"> 
+              <mat-checkbox
+                color="primary"
+                *ngIf="!featureForm.value.depends_on_others"
+                formControlName="generate_dataset"
+                [matTooltip]="'edit_feature.generate_dataset' | translate" matTooltipPosition="above">
+                Generate Dataset
+              </mat-checkbox>
+              <div class="hover-box">(G)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">  
+              <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
+                <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">
+                  Continue on failure
+                </mat-checkbox>
+                <div class="hover-box">(F)</div>
+              </ng-container>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()"> 
+              <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
+              <div class="hover-box">(H)</div>
+            </div>
+            <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
+              <div class="checkbox-container move-right"> 
+                <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+                  <button color="primary" 
+                  [disabled]="disableVariables" 
+                  (click)="editVariables()" 
+                  mat-stroked-button 
+                  [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="above">
+                    Edit Variables
+                  </button>
+                </span>
+                <div class="hover-box-Vshortcut">(V)</div>
+              </div>
             </ng-container>
           </div>
         </ng-template>
@@ -198,7 +190,9 @@
                 [matChipInputFor]="chipList"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 [matChipInputAddOnBlur]="true"
-                (matChipInputTokenEnd)="addAddress($event)" />
+                (matChipInputTokenEnd)="addAddress($event)"
+                (focus)="onInputFocus()" 
+                (blur)="onInputBlur()" />
             </mat-chip-list>
           </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
@@ -208,7 +202,10 @@
             <input
               matInput
               spellcheck="false"
-              formControlName="email_subject" />
+              formControlName="email_subject"
+              (focus)="onInputFocus()" 
+              (blur)="onInputBlur()"
+              />
           </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
             <mat-label
@@ -218,7 +215,10 @@
             <textarea
               matInput
               spellcheck="false"
-              formControlName="email_body"></textarea>
+              formControlName="email_body"
+              (focus)="onInputFocus()" 
+              (blur)="onInputBlur()"
+              ></textarea>
           </mat-form-field>
           <mat-radio-group formControlName="send_mail_on_error">
             When to send email:
@@ -232,20 +232,18 @@
           <mat-checkbox
             formControlName="do_not_use_default_template"
             aria-label="Screenshot"
-            style="margin-left: 5%;"
             color="primary"
-            matTooltip="If Checked, then please provide your custom email template, which can be used for creating customized e-Mails, e.g. only containing screenshot. The default is false - to not change the actual behavior customers are using"
-            class="screenshot checkbox-blue"
+            [matTooltip]="'edit_feature.default_template' | translate" matTooltipPosition="above"
+            class="screenshot checkbox-blue default_template"
             > Do not use default template </mat-checkbox>
           
           <mat-checkbox
             formControlName="attach_pdf_report_to_email"
             aria-label="Screenshot"
-            style="margin-left: 2%;"
             color="primary"
-            matTooltip="If Checked, PDF test result will be attached within the email, Other wise email without PDF will be sent. Useful when sending email with customized template"
-            class="screenshot checkbox-blue"
-           > Attach PDF report to email </mat-checkbox>
+            [matTooltip]="'edit_feature.attach_pdf' | translate" matTooltipPosition="above"
+            class="screenshot checkbox-blue report_to_email"
+            > Attach PDF report to email </mat-checkbox>
 
           <button
             (click)="openEmailHelp()"
@@ -279,9 +277,9 @@
               #file
               style="display: none" />
           </mat-panel-title>
-          <mat-panel-description
-            >Upload/Download department files</mat-panel-description
-          >
+          <mat-panel-description>
+            Upload/Download department files
+          </mat-panel-description>
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
           <ng-container *ngIf="department?.files.length > 0; else noFiles">
@@ -450,13 +448,23 @@
           >
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
-          <cometa-step-editor
+          <!-- <cometa-step-editor
             *ngIf="feature | async as feat"
             [mode]="data.mode"
             [department]="department"
             [feature]="feat"
             [variables]="variables"
-            [name]="featureForm.get('feature_name').value"></cometa-step-editor>
+            [name]="featureForm.get('feature_name').value">
+          </cometa-step-editor> -->
+          <cometa-step-editor 
+            (textareaFocusToParent)="receiveDataFromChild($event)" 
+            *ngIf="feature | async as feat" 
+            [mode]="data.mode" 
+            [department]="department" 
+            [feature]="feat" 
+            [variables]="variables" 
+            [name]="featureForm.get('feature_name').value">
+          </cometa-step-editor>
         </ng-template>
       </mat-expansion-panel>
       <mat-expansion-panel [expanded]="!config$.toggles.hideSchedule">
