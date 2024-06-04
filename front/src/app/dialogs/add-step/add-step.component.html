@@ -16,7 +16,9 @@
       [(ngModel)]="search"
       matInput
       [placeholder]="data.templates ? 'Template' : 'Step'"
-      cdkFocusInitial />
+      cdkFocusInitial 
+      (focus)="sendTextareaFocusToParent(true)" 
+      (blur)="sendTextareaFocusToParent(false)"/>
     <button
       mat-button
       *ngIf="search"
