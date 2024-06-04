@@ -11,6 +11,8 @@ import {
   ViewChildren,
   QueryList,
   Renderer2,
+  Output, 
+  EventEmitter,
 } from '@angular/core';
 import {
   CdkDragDrop,
@@ -119,6 +121,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   @ViewSelectSnapshot(ActionsState) actions: Action[];
   @ViewSelectSnapshot(UserState) user!: UserInfo;
+  @Output() textareaFocusToParent = new EventEmitter<boolean>();
 
   @Input() feature: Feature;
   @Input() name: string;
@@ -151,6 +154,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   ) {
     super();
     this.stepsForm = this._fb.array([]);
+  }
+
+  // Shortcut emitter to parent component
+  public sendTextareaFocusToParent(isFocused: boolean) {
+    this.textareaFocusToParent.emit(isFocused);
+    console.log(this.textareaFocusToParent);
   }
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
