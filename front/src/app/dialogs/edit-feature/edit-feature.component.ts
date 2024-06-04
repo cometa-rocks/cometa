@@ -188,6 +188,11 @@ export class EditFeature implements OnInit, OnDestroy {
   stepEditor: StepEditorComponent;
   @ViewChild('Step-editor-component') StepEditorComponent!: StepEditorComponent;
 
+  @ViewChild(AddStepComponent, { static: false })
+  addStep: AddStepComponent;
+  @ViewChild('Add-Step-component') AddStepComponent!: AddStepComponent;
+
+
   // COTEMP -- Used to check the state data status
   @Select(FeaturesState.GetStateDAta) state$: Observable<
     ReturnType<typeof FeaturesState.GetStateDAta>
@@ -488,7 +493,7 @@ export class EditFeature implements OnInit, OnDestroy {
     this.inputFocus = isFocused;
   }
 
-  // Check if focused on input or textarea on email template
+  // Check if focused on input or textarea
   onInputFocus() {
     this.inputFocus = true;
   }
@@ -522,7 +527,6 @@ export class EditFeature implements OnInit, OnDestroy {
         this.featureForm.get('video').setValue(!checkboxValue);
       }
       else if (KeyPressed === KEY_CODES.N) {
-        console.log("Estoy dentro de n toggle");
         checkboxValue = this.featureForm.get('network_logging').value;
         this.featureForm.get('network_logging').setValue(!checkboxValue);
       }
@@ -1013,7 +1017,7 @@ export class EditFeature implements OnInit, OnDestroy {
           this.manageFeatureDialogData(res, dataToSend);
         } else {
           // If XHR was ok
-          this._snackBar.open('An error ocurred.', 'OK');
+          this._snackBar.open('An error occurred.', 'OK');
         }
       });
   }
