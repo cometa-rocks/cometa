@@ -94,7 +94,7 @@ export class InviteUserDialog implements OnInit {
         } else if (res.handled) {
           this.dialogRef.close();
         } else {
-          this._snackBar.open('An error ocurred', 'OK');
+          this._snackBar.open('An error occurred', 'OK');
         }
       });
   }
