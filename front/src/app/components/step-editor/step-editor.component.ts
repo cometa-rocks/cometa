@@ -21,6 +21,7 @@ import {
   CdkDragHandle,
 } from '@angular/cdk/drag-drop';
 import { AddStepComponent } from '@dialogs/add-step/add-step.component';
+import { InputFocusService } from './input-focus.service';
 import {
   MatLegacyDialog as MatDialog,
   MatLegacyDialogRef as MatDialogRef,
@@ -156,10 +157,20 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepsForm = this._fb.array([]);
   }
 
+  @ViewChild(AddStepComponent, { static: false })
+  addStep: AddStepComponent;
+
   // Shortcut emitter to parent component
-  public sendTextareaFocusToParent(isFocused: boolean) {
+  sendTextareaFocusToParent(isFocused: boolean) {
     this.textareaFocusToParent.emit(isFocused);
     console.log("Aqui esto" + this.textareaFocusToParent);
+  }
+
+  eventOpen(){
+    console.log("Esta entrando?");
+    this.addStep.textareaFocus.subscribe((isFocused: boolean) => {
+      this.inputFocus = isFocused;
+    });
   }
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
