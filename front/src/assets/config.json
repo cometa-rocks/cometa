@@ -237,8 +237,8 @@
       "date": "2024-06-5",
       "features": [
         {
-          "title": "#4694 ",
-          "description": ""
+          "title": "#4694 Shortcuts conditions on add step button",
+          "description": "Added the conditions of shortcuts on the dialog add step button."
         }
       ]
     },
