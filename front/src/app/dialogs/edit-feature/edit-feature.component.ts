@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
+import { InputFocusService } from '../../services/inputFocus.service';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { API_URL } from 'app/tokens';
 import {
@@ -43,7 +44,7 @@ import { EnvironmentsState } from '@store/environments.state';
 import { ConfigState } from '@store/config.state';
 import { UserState } from '@store/user.state';
 import { EditVariablesComponent } from '@dialogs/edit-variables/edit-variables.component';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
 import { EmailTemplateHelp } from './email-template-help/email-template-help.component';
@@ -70,6 +71,7 @@ import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
 import { StepEditorComponent as StepEditorComponent_1 } from '../../components/step-editor/step-editor.component';
+import { EditSchedule } from '@dialogs/edit-schedule/edit-schedule.component';
 import { RouterLink } from '@angular/router';
 import { BrowserSelectionComponent as BrowserSelectionComponent_1 } from '../../components/browser-selection/browser-selection.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -187,26 +189,12 @@ export class EditFeature implements OnInit, OnDestroy {
   @ViewChild(StepEditorComponent, { static: false })
   stepEditor: StepEditorComponent;
 
+  @ViewChild(EditSchedule, { static: false })
+  EditSch: EditSchedule;
+
   inputFocus: boolean = false;
 
-  // ngAfterViewInit() {
-  //   console.log("Esta entrando?");
-  //   this.addStep.textareaFocus.subscribe((isFocused: boolean) => {
-  //     this.inputFocus = isFocused;
-  //   });
-  // }
-
-  openAddStepDialog() {
-    const dialogRef = this._dialog.open(AddStepComponent);
-
-    dialogRef.afterOpened().subscribe(() => {
-      const addStepInstance = dialogRef.componentInstance;
-      addStepInstance.textareaFocus.subscribe((isFocused: boolean) => {
-        this.inputFocus = isFocused;
-        console.log("inputFocus updated: " + this.inputFocus);  // Verifica que este mensaje se muestra en la consola
-      });
-    });
-  }
+  private inputFocusSubscription: Subscription;
 
   // COTEMP -- Used to check the state data status
   @Select(FeaturesState.GetStateDAta) state$: Observable<
@@ -225,8 +213,16 @@ export class EditFeature implements OnInit, OnDestroy {
     private _fb: UntypedFormBuilder,
     private cdr: ChangeDetectorRef,
     private fileUpload: FileUploadService,
-    @Inject(API_URL) public api_url: string
+    @Inject(API_URL) public api_url: string,
+    private inputFocusService: InputFocusService
   ) {
+
+    this.inputFocusService.inputFocus$.subscribe(isFocused => {
+      this.inputFocus = isFocused;
+      console.log("inputFocus state in ParentComponent: " + isFocused);
+      // Puedes manejar el cambio de enfoque aquí si es necesario
+    });
+
     // Create the fields within FeatureForm
     this.featureForm = this._fb.group({
       app_name: ['', Validators.required],
@@ -314,6 +310,7 @@ export class EditFeature implements OnInit, OnDestroy {
   ngOnDestroy() {
     // When Edit Feature Dialog is closed, clear temporal steps
     return this._store.dispatch(new StepDefinitions.ClearNewFeature());
+    this.inputFocusSubscription.unsubscribe();
   }
 
   parseSchedule(expression) {
@@ -391,7 +388,6 @@ export class EditFeature implements OnInit, OnDestroy {
     ).department_id;
     const feature = this.feature.getValue();
 
-    this.variable_dialog_isActive = true;
     this._dialog
       .open(EditVariablesComponent, {
         data: {
@@ -406,7 +402,7 @@ export class EditFeature implements OnInit, OnDestroy {
       })
       .afterClosed()
       .subscribe(res => {
-        this.variable_dialog_isActive = false;
+        
       });
   }
 
@@ -428,11 +424,8 @@ export class EditFeature implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
-    console.log("variable_dialog_isActive: " + this.variable_dialog_isActive);
-    console.log("inputFocus: " + this.inputFocus);  // Verifica el estado de inputFocus
-
-    // only execute switch case if child dialog is closed
-    if (this.variable_dialog_isActive || this.inputFocus) return;
+    // If true... return | only execute switch case if input focus is false
+    if (this.inputFocus) return;
     let KeyPressed = event.keyCode;
 
     switch (event.keyCode) {
@@ -720,6 +713,11 @@ export class EditFeature implements OnInit, OnDestroy {
   _browserSelection: BrowserSelectionComponent;
 
   ngOnInit() {
+    // Connection with the service who is connected with Step-editor
+    this.inputFocusSubscription = this.inputFocusService.inputFocus$.subscribe(isFocused => {
+      this.inputFocus = isFocused;
+    });
+
     this.featureForm.valueChanges.subscribe(() => {
       this.variableState$.subscribe(data => {
         this.variables = this.getFilteredVariables(data);
