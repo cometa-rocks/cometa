@@ -4,6 +4,8 @@
     <input
       onmouseover="this.setSelectionRange(0, this.value.length)"
       onmouseout="this.setSelectionRange(0,0)"
+      (focus)="sendTextareaFocus(true)" 
+      (blur)="sendTextareaFocus(false)"
       [@fontSize]="fontSize | async"
       [value]="step_protected"
       readonly
@@ -17,8 +19,8 @@
       matInput
       [placeholder]="data.templates ? 'Template' : 'Step'"
       cdkFocusInitial 
-      (focus)="sendTextareaFocusToParent(true)" 
-      (blur)="sendTextareaFocusToParent(false)"/>
+      (focus)="sendTextareaFocus(true)" 
+      (blur)="sendTextareaFocus(false)"/>
     <button
       mat-button
       *ngIf="search"
