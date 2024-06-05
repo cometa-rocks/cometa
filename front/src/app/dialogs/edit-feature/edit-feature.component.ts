@@ -186,12 +186,27 @@ export class EditFeature implements OnInit, OnDestroy {
 
   @ViewChild(StepEditorComponent, { static: false })
   stepEditor: StepEditorComponent;
-  @ViewChild('Step-editor-component') StepEditorComponent!: StepEditorComponent;
 
-  @ViewChild(AddStepComponent, { static: false })
-  addStep: AddStepComponent;
-  @ViewChild('Add-Step-component') AddStepComponent!: AddStepComponent;
+  inputFocus: boolean = false;
 
+  // ngAfterViewInit() {
+  //   console.log("Esta entrando?");
+  //   this.addStep.textareaFocus.subscribe((isFocused: boolean) => {
+  //     this.inputFocus = isFocused;
+  //   });
+  // }
+
+  openAddStepDialog() {
+    const dialogRef = this._dialog.open(AddStepComponent);
+
+    dialogRef.afterOpened().subscribe(() => {
+      const addStepInstance = dialogRef.componentInstance;
+      addStepInstance.textareaFocus.subscribe((isFocused: boolean) => {
+        this.inputFocus = isFocused;
+        console.log("inputFocus updated: " + this.inputFocus);  // Verifica que este mensaje se muestra en la consola
+      });
+    });
+  }
 
   // COTEMP -- Used to check the state data status
   @Select(FeaturesState.GetStateDAta) state$: Observable<
@@ -409,14 +424,15 @@ export class EditFeature implements OnInit, OnDestroy {
     this.browserstackBrowsers.next(browsers);
   }
 
-  inputFocus: boolean = false;
-
   // Handle keyboard keys
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
+    console.log("variable_dialog_isActive: " + this.variable_dialog_isActive);
+    console.log("inputFocus: " + this.inputFocus);  // Verifica el estado de inputFocus
+
     // only execute switch case if child dialog is closed
-    if (this.variable_dialog_isActive) return;
+    if (this.variable_dialog_isActive || this.inputFocus) return;
     let KeyPressed = event.keyCode;
 
     switch (event.keyCode) {
