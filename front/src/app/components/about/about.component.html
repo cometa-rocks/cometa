@@ -1,97 +1,99 @@
-<span class="title">ABOUT</span>
+<div class="about-container">
+  <span class="title">ABOUT</span>
 
-<div class="about-header">{{ 'about.sponsor' | translate }}</div>
+  <div class="about-header">{{ 'about.sponsor' | translate }}</div>
 
-<ul>
-  <li>AMVARA CONSULTING S.L.</li>
-</ul>
-
-<!-- <div class="about-header">{{ 'about.credits' | translate }}</div>
   <ul>
-    <li> AMVARA CONSULTING S.L. </li>
-  </ul> -->
-
-<div class="about-header">{{ 'about.thanks' | translate }}</div>
-
-<p>
-  We would like to thank Google for their UX Material design, which brings a new
-  modern design and adaptable to any need.
-  <a href="https://material.io/" target="_blank"
-    >See Google Material Guidelines</a
-  >
-</p>
-<p>
-  We also would like to thank the opensource community, for the development of
-  Linux / UNIX and all other open-source tools.
-</p>
-<p>Co.meta runs entirely using opensource software.</p>
-
-<div class="about-header">{{ 'about.software' | translate }}</div>
-
-<!-- <p>This mobile report has been developed by <a href="https://amvara.de/" target="_blank">AMVARA CONSULTING</a> using <span>IBM Cognos Analytics</span> and <a href="https://angular.io/" target="_blank">Angular</a><br />
-The data queries were provided by the respective business department itself.
-</p> -->
-
-<p>
-  co.meta uses Ubuntu and Suse Linux as it's operating system, and runs in
-  docker containers serving postgres, django, nginx, selenoid and selenium.
-</p>
-<p>Image processing is done by imagick.</p>
-
-<div class="about-header">{{ 'about.licenses' | translate }}</div>
-
-<div class="software">
-  <ul>
-    <li *ngFor="let lic of licenses | sortBy: 0">
-      {{ lic[0] }}:
-      <a [href]="lic[1] | safeUrl" target="_blank">{{ lic[2] }}</a>
-    </li>
+    <li>AMVARA CONSULTING S.L.</li>
   </ul>
-</div>
-<div class="flaticon">
-  <br />
-  <b>Flaticon Icons:</b>
-  <ul>
-    <li *ngFor="let icon of config$.flaticon | sortBy: 'name'">
-      Icon {{ icon.name }} created by
-      <a [href]="icon.link" target="_black">{{ icon.author }}</a> on
-      www.flaticon.com
-    </li>
-  </ul>
-</div>
 
-<div class="about-header">{{ 'about.technical_information' | translate }}</div>
-<ng-container *ngLet="_socketService.connectionStatus$ | async as status">
-  <div class="websocket" [class.connected]="status">
-    <div class="intro">WebSocket Server:</div>
-    <i class="status"></i>
-    <div class="status-text">
-      <ng-container *ngIf="status; else disconnected"> Connected </ng-container>
-      <ng-template #disconnected> Connecting... </ng-template>
-    </div>
+  <!-- <div class="about-header">{{ 'about.credits' | translate }}</div>
+    <ul>
+      <li> AMVARA CONSULTING S.L. </li>
+    </ul> -->
+
+  <div class="about-header">{{ 'about.thanks' | translate }}</div>
+
+  <p>
+    We would like to thank Google for their UX Material design, which brings a new
+    modern design and adaptable to any need.
+    <a href="https://material.io/" target="_blank"
+      >See Google Material Guidelines</a
+    >
+  </p>
+  <p>
+    We also would like to thank the opensource community, for the development of
+    Linux / UNIX and all other open-source tools.
+  </p>
+  <p>Co.meta runs entirely using opensource software.</p>
+
+  <div class="about-header">{{ 'about.software' | translate }}</div>
+
+  <!-- <p>This mobile report has been developed by <a href="https://amvara.de/" target="_blank">AMVARA CONSULTING</a> using <span>IBM Cognos Analytics</span> and <a href="https://angular.io/" target="_blank">Angular</a><br />
+  The data queries were provided by the respective business department itself.
+  </p> -->
+
+  <p>
+    co.meta uses Ubuntu and Suse Linux as it's operating system, and runs in
+    docker containers serving postgres, django, nginx, selenoid and selenium.
+  </p>
+  <p>Image processing is done by imagick.</p>
+
+  <div class="about-header">{{ 'about.licenses' | translate }}</div>
+
+  <div class="software">
+    <ul>
+      <li *ngFor="let lic of licenses | sortBy: 0">
+        {{ lic[0] }}:
+        <a [href]="lic[1] | safeUrl" target="_blank">{{ lic[2] }}</a>
+      </li>
+    </ul>
   </div>
-</ng-container>
-<p>
-  Front: {{ config$.version }}<br />
-  Backend: {{ serverVersion$ | async }}<br />
-</p>
+  <div class="flaticon">
+    <br />
+    <b>Flaticon Icons:</b>
+    <ul>
+      <li *ngFor="let icon of config$.flaticon | sortBy: 'name'">
+        Icon {{ icon.name }} created by
+        <a [href]="icon.link" target="_black">{{ icon.author }}</a> on
+        www.flaticon.com
+      </li>
+    </ul>
+  </div>
 
-<div class="about-header">{{ 'about.changelog' | translate }}</div>
-<div class="changelog">
-  <ul>
-    <li *ngFor="let change of config$.changelog">
-      <span class="change-title">{{ change.version }}</span>
-      <ul *ngIf="change.text && change.text.length > 0">
-        <li *ngFor="let desc of change.text">{{ desc }}</li>
-      </ul>
-      <ul *ngIf="change.features && change.features.length > 0">
-        <li *ngFor="let desc of change.features">
-          <b>{{ desc.title }}:</b> {{ desc.description || desc.text }}
-        </li>
-      </ul>
-      <ul *ngIf="change.bugfixes && change.bugfixes.length > 0">
-        <li *ngFor="let desc of change.bugfixes">{{ desc }}</li>
-      </ul>
-    </li>
-  </ul>
+  <div class="about-header">{{ 'about.technical_information' | translate }}</div>
+  <ng-container *ngLet="_socketService.connectionStatus$ | async as status">
+    <div class="websocket" [class.connected]="status">
+      <div class="intro">WebSocket Server:</div>
+      <i class="status"></i>
+      <div class="status-text">
+        <ng-container *ngIf="status; else disconnected"> Connected </ng-container>
+        <ng-template #disconnected> Connecting... </ng-template>
+      </div>
+    </div>
+  </ng-container>
+  <p>
+    Front: {{ config$.version }}<br />
+    Backend: {{ serverVersion$ | async }}<br />
+  </p>
+
+  <div class="about-header">{{ 'about.changelog' | translate }}</div>
+  <div class="changelog">
+    <ul>
+      <li *ngFor="let change of config$.changelog">
+        <span class="change-title">{{ change.version }}</span>
+        <ul *ngIf="change.text && change.text.length > 0">
+          <li *ngFor="let desc of change.text">{{ desc }}</li>
+        </ul>
+        <ul *ngIf="change.features && change.features.length > 0">
+          <li *ngFor="let desc of change.features">
+            <b>{{ desc.title }}:</b> {{ desc.description || desc.text }}
+          </li>
+        </ul>
+        <ul *ngIf="change.bugfixes && change.bugfixes.length > 0">
+          <li *ngFor="let desc of change.bugfixes">{{ desc }}</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
 </div>

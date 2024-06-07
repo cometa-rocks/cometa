@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
+import { InputFocusService } from '../../services/inputFocus.service';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { API_URL } from 'app/tokens';
 import {
@@ -32,6 +33,7 @@ import {
 } from '@angular/material/legacy-checkbox';
 import { StepEditorComponent } from '@components/step-editor/step-editor.component';
 import { BrowserSelectionComponent } from '@components/browser-selection/browser-selection.component';
+import { AddStepComponent } from '@dialogs/add-step/add-step.component';
 import {
   MatLegacyChipListChange as MatChipListChange,
   MatLegacyChipsModule,
@@ -42,9 +44,10 @@ import { EnvironmentsState } from '@store/environments.state';
 import { ConfigState } from '@store/config.state';
 import { UserState } from '@store/user.state';
 import { EditVariablesComponent } from '@dialogs/edit-variables/edit-variables.component';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
+import { EmailTemplateHelp } from './email-template-help/email-template-help.component';
 import { KEY_CODES } from '@others/enums';
 import { CustomSelectors } from '@others/custom-selectors';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
@@ -53,7 +56,6 @@ import { StepDefinitions } from '@store/actions/step_definitions.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
 import { finalize, switchMap } from 'rxjs/operators';
-import { EmailTemplateHelp } from './email-template-help/email-template-help.component';
 import {
   AreYouSureData,
   AreYouSureDialog,
@@ -69,6 +71,7 @@ import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
 import { StepEditorComponent as StepEditorComponent_1 } from '../../components/step-editor/step-editor.component';
+import { EditSchedule } from '@dialogs/edit-schedule/edit-schedule.component';
 import { RouterLink } from '@angular/router';
 import { BrowserSelectionComponent as BrowserSelectionComponent_1 } from '../../components/browser-selection/browser-selection.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -153,6 +156,7 @@ export class EditFeature implements OnInit, OnDestroy {
   hasSubscription: boolean;
   @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
   @Select(VariablesState) variableState$: Observable<VariablePair[]>;
+  
 
   saving$ = new BehaviorSubject<boolean>(false);
 
@@ -185,6 +189,13 @@ export class EditFeature implements OnInit, OnDestroy {
   @ViewChild(StepEditorComponent, { static: false })
   stepEditor: StepEditorComponent;
 
+  @ViewChild(EditSchedule, { static: false })
+  EditSch: EditSchedule;
+
+  inputFocus: boolean = false;
+
+  private inputFocusSubscription: Subscription;
+
   // COTEMP -- Used to check the state data status
   @Select(FeaturesState.GetStateDAta) state$: Observable<
     ReturnType<typeof FeaturesState.GetStateDAta>
@@ -202,8 +213,16 @@ export class EditFeature implements OnInit, OnDestroy {
     private _fb: UntypedFormBuilder,
     private cdr: ChangeDetectorRef,
     private fileUpload: FileUploadService,
-    @Inject(API_URL) public api_url: string
+    @Inject(API_URL) public api_url: string,
+    private inputFocusService: InputFocusService
   ) {
+
+    this.inputFocusService.inputFocus$.subscribe(isFocused => {
+      this.inputFocus = isFocused;
+      console.log("inputFocus state in ParentComponent: " + isFocused);
+      // Puedes manejar el cambio de enfoque aquí si es necesario
+    });
+
     // Create the fields within FeatureForm
     this.featureForm = this._fb.group({
       app_name: ['', Validators.required],
@@ -291,6 +310,7 @@ export class EditFeature implements OnInit, OnDestroy {
   ngOnDestroy() {
     // When Edit Feature Dialog is closed, clear temporal steps
     return this._store.dispatch(new StepDefinitions.ClearNewFeature());
+    this.inputFocusSubscription.unsubscribe();
   }
 
   parseSchedule(expression) {
@@ -368,7 +388,6 @@ export class EditFeature implements OnInit, OnDestroy {
     ).department_id;
     const feature = this.feature.getValue();
 
-    this.variable_dialog_isActive = true;
     this._dialog
       .open(EditVariablesComponent, {
         data: {
@@ -383,7 +402,7 @@ export class EditFeature implements OnInit, OnDestroy {
       })
       .afterClosed()
       .subscribe(res => {
-        this.variable_dialog_isActive = false;
+        
       });
   }
 
@@ -405,8 +424,10 @@ export class EditFeature implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
-    // only execute switch case if child dialog is closed
-    if (this.variable_dialog_isActive) return;
+    // If true... return | only execute switch case if input focus is false
+    if (this.inputFocus) return;
+    let KeyPressed = event.keyCode;
+
     switch (event.keyCode) {
       case KEY_CODES.ESCAPE:
         // Check if form has been modified before closing
@@ -428,10 +449,114 @@ export class EditFeature implements OnInit, OnDestroy {
         }
         break;
       case KEY_CODES.V:
-        if (event.ctrlKey && event.altKey) this.editVariables();
+        // Edit variables
+        if (!this.inputFocus) this.editVariables();
+        break;
+      case KEY_CODES.D:
+        if (!this.inputFocus) {
+          // Depends on other featre
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.M:
+        if (!this.inputFocus) {
+          // Send email
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.R:
+        if (!this.inputFocus) {
+          // Record video
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.F:
+        if (!this.inputFocus) {
+          // Continue on failure
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.H:
+        if (!this.inputFocus) {
+          // Need help
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.N:
+        if (!this.inputFocus) {
+          // Network logging
+          this.toggleDependsOnOthers(KeyPressed);
+        }
+        break;
+      case KEY_CODES.G:
+        if (!this.inputFocus) {
+          // Generate dataset
+          this.toggleDependsOnOthers(KeyPressed);
+        }
         break;
     }
   }
+
+  // Shortcut emitter to parent component
+  receiveDataFromChild(isFocused: boolean) {
+    this.inputFocus = isFocused;
+  }
+
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocus = true;
+  }
+
+  onInputBlur() {
+    this.inputFocus = false;
+  }
+
+  toggleDependsOnOthers(KeyPressed) {
+    let checkboxValue = this.featureForm.get('send_mail').value;
+    let dependsOnOthers = this.featureForm.get('depends_on_others').value;
+    if(KeyPressed === KEY_CODES.D) {
+      dependsOnOthers = this.featureForm.get('depends_on_others').value;
+      this.featureForm.get('depends_on_others').setValue(!dependsOnOthers);
+    }
+    else if (KeyPressed === KEY_CODES.F) {
+      checkboxValue = this.featureForm.get('continue_on_failure').value;
+      this.featureForm.get('continue_on_failure').setValue(!checkboxValue);
+    }
+    else if (KeyPressed === KEY_CODES.H) {
+      checkboxValue = this.featureForm.get('need_help').value;
+      this.featureForm.get('need_help').setValue(!checkboxValue);
+    }
+    if(dependsOnOthers === false){
+      if(KeyPressed === KEY_CODES.M) {
+        checkboxValue = this.featureForm.get('send_mail').value;
+        this.featureForm.get('send_mail').setValue(!checkboxValue);
+      }
+      else if (KeyPressed === KEY_CODES.R) {
+        checkboxValue = this.featureForm.get('video').value;
+        this.featureForm.get('video').setValue(!checkboxValue);
+      }
+      else if (KeyPressed === KEY_CODES.N) {
+        checkboxValue = this.featureForm.get('network_logging').value;
+        this.featureForm.get('network_logging').setValue(!checkboxValue);
+      }
+      else if (KeyPressed === KEY_CODES.G) {
+        checkboxValue = this.featureForm.get('generate_dataset').value;
+        this.featureForm.get('generate_dataset').setValue(!checkboxValue);
+      }
+    }
+  }
+
+  // Check if mouse is over the dialog (puede ser step definition?)
+  isHovered = false;
+
+  onMouseOver() {
+    this.isHovered = true;
+  }
+
+  onMouseOut() {
+    this.isHovered = false;
+  }
+
 
   // Deeply check if two arrays are equal, in length and values
   arraysEqual(a: any[], b: any[]): boolean {
@@ -588,6 +713,11 @@ export class EditFeature implements OnInit, OnDestroy {
   _browserSelection: BrowserSelectionComponent;
 
   ngOnInit() {
+    // Connection with the service who is connected with Step-editor
+    this.inputFocusSubscription = this.inputFocusService.inputFocus$.subscribe(isFocused => {
+      this.inputFocus = isFocused;
+    });
+
     this.featureForm.valueChanges.subscribe(() => {
       this.variableState$.subscribe(data => {
         this.variables = this.getFilteredVariables(data);
@@ -901,7 +1031,7 @@ export class EditFeature implements OnInit, OnDestroy {
           this.manageFeatureDialogData(res, dataToSend);
         } else {
           // If XHR was ok
-          this._snackBar.open('An error ocurred.', 'OK');
+          this._snackBar.open('An error occurred.', 'OK');
         }
       });
   }

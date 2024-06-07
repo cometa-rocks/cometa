@@ -18,6 +18,25 @@
   line-height: 25px;
 }
 
+// Hotley shortcuts scss
+.shortcuts-tables{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+
+.shortcuts-table{
+  margin-bottom: 5%;
+}
+
+.shortcuts-h2{
+  margin-bottom: 2%;
+}
+
+
 .contact-info {
   display: -webkit-box;
   display: -ms-flexbox;

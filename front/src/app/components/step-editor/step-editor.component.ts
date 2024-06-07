@@ -11,6 +11,8 @@ import {
   ViewChildren,
   QueryList,
   Renderer2,
+  Output, 
+  EventEmitter,
 } from '@angular/core';
 import {
   CdkDragDrop,
@@ -19,6 +21,7 @@ import {
   CdkDragHandle,
 } from '@angular/cdk/drag-drop';
 import { AddStepComponent } from '@dialogs/add-step/add-step.component';
+import { InputFocusService } from '../../services/inputFocus.service';
 import {
   MatLegacyDialog as MatDialog,
   MatLegacyDialogRef as MatDialogRef,
@@ -119,6 +122,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   @ViewSelectSnapshot(ActionsState) actions: Action[];
   @ViewSelectSnapshot(UserState) user!: UserInfo;
+  @Output() textareaFocusToParent = new EventEmitter<boolean>();
 
   @Input() feature: Feature;
   @Input() name: string;
@@ -147,10 +151,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     private _ngZone: NgZone,
     public dialogRef: MatDialogRef<EditFeature>,
     @Host() public readonly _editFeature: EditFeature,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private inputFocusService: InputFocusService
   ) {
     super();
     this.stepsForm = this._fb.array([]);
+  }
+
+  // Shortcut emitter to parent component
+  sendTextareaFocusToParent(isFocused: boolean) {
+    this.textareaFocusToParent.emit(isFocused);
   }
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
@@ -524,46 +534,55 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   add() {
-    this._dialog
-      .open(AddStepComponent, {
-        panelClass: 'add-step-panel',
-        autoFocus: true,
-        disableClose: true,
-        data: {
-          templates: false,
-        },
-      })
-      .afterClosed()
-      .subscribe((res: Action) => {
-        if (res) {
-          this.stepsForm.push(
-            this._fb.group({
-              enabled: true,
-              screenshot: res.screenshot,
-              step_keyword: 'Given',
-              compare: res.compare,
-              step_content: [
-                res.interpreted,
-                CustomValidators.StepAction.bind(this),
-              ],
-              continue_on_failure: false,
-              timeout:
-                this.department.settings?.step_timeout ||
-                this._fb.control(
-                  60,
-                  Validators.compose([
-                    Validators.min(1),
-                    Validators.max(7205),
-                    Validators.maxLength(4),
-                  ])
-                ),
-            })
-          );
-          this._cdr.detectChanges();
-          this.focusStep(this.stepsForm.length - 1);
-        }
-      });
+    const dialogRef = this._dialog.open(AddStepComponent, {
+      panelClass: 'add-step-panel',
+      autoFocus: true,
+      disableClose: true,
+      data: {
+        templates: false,
+      },
+    });
+  
+    dialogRef.afterOpened().subscribe(() => {
+      const addStepInstance = dialogRef.componentInstance;
+      if (addStepInstance) {
+        addStepInstance.textareaFocus.subscribe((isFocused: boolean) => {
+          this.inputFocusService.setInputFocus(isFocused);
+
+        });
+      }
+    });
+  
+    dialogRef.afterClosed().subscribe((res: Action) => {
+      if (res) {
+        this.stepsForm.push(
+          this._fb.group({
+            enabled: true,
+            screenshot: res.screenshot,
+            step_keyword: 'Given',
+            compare: res.compare,
+            step_content: [
+              res.interpreted,
+              CustomValidators.StepAction.bind(this),
+            ],
+            continue_on_failure: false,
+            timeout: this.department.settings?.step_timeout ||
+              this._fb.control(
+                60,
+                Validators.compose([
+                  Validators.min(1),
+                  Validators.max(7205),
+                  Validators.maxLength(4),
+                ])
+              ),
+          })
+        );
+        this._cdr.detectChanges();
+        this.focusStep(this.stepsForm.length - 1);
+      }
+    });
   }
+  
 
   addEmpty(index: number = null) {
     const template = this._fb.group({

@@ -3,11 +3,16 @@
 :host {
   display: block;
   width: 100%;
-  padding: 45px 30px 60px;
+  padding: 45px 0 60px;
   box-sizing: border-box;
   line-height: 25px;
   overflow-x: hidden;
   max-height: calc(100vh - var(--header-height));
+}
+
+.about-container {
+  margin: 0 auto;
+  max-width: 53%;
 }
 
 a {
