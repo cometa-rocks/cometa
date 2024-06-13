@@ -1,5 +1,5 @@
 {
-  "version": "2.8.354",
+  "version": "2.8.355",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,13 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.355",
+      "date": "2024-06-07",
+      "bugfixes": [
+        "#4728 Vulnerability analysis completed for secrets"
+      ]
+    },
     {
       "version": "2.8.354",
       "date": "2024-06-5",
