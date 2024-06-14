@@ -1,7 +1,9 @@
 <ng-container *ngIf="loaded | async; else loading">
   <div class="platforms">
     <mat-form-field appearance="fill">
-      <mat-label>Cloud</mat-label>
+      <mat-label>
+        {{ "feature.browser_cloud" | translate }}
+      </mat-label>
       <mat-select [formControl]="testing_cloud">
         <!-- Available Clouds -->
         <mat-option
@@ -13,7 +15,9 @@
     </mat-form-field>
     <!-- Platform selector only for mobiles -->
     <mat-form-field class="platform-selector-mobile" appearance="fill">
-      <mat-label>Platforms</mat-label>
+      <mat-label>
+        {{ "feature.browser_platforms" | translate }}
+      </mat-label>
       <select [formControl]="browser" matNativeControl>
         <optgroup
           *ngFor="let category of categories | async | keyvalue"
@@ -27,7 +31,9 @@
       </select>
     </mat-form-field>
     <!-- Available Platforms -->
-    <h4>Platforms</h4>
+    <h4>
+      {{ "feature.browser_platforms" | translate }}
+    </h4>
     <ul>
       <li
         (click)="clickOnCategory(category.key, $event)"
@@ -51,7 +57,9 @@
   <div class="devices">
     <div class="selected-and-favs">
       <div class="selected-browsers">
-        <h4>Selected browsers</h4>
+        <h4>
+          {{ "feature.browser_selecteds" | translate }}
+        </h4>
         <div class="browsers-box">
           <div
             (click)="handleCheckbox(browser, false)"
@@ -71,7 +79,9 @@
       </div>
       <!-- Favourites -->
       <div class="my-favs">
-        <h4>Favourites</h4>
+        <h4>
+          {{ "feature.browser_favourites" | translate }}
+        </h4>
         <div class="favourites-box">
           <ng-container *ngIf="favourites$.length > 0; else favouritesHint">
             <div
@@ -110,23 +120,31 @@
             <ng-template contextMenuItem let-item>
               <div (click)="deleteFavourite(item)">
                 <mat-icon class="delete">delete</mat-icon>
-                <span>Delete</span>
+                <span>
+                  Delete
+                </span>
               </div>
             </ng-template>
           </context-menu>
         </div>
         <!-- Add favourites hint-->
         <ng-template #favouritesHint>
-          <div class="hint">Click on the star icon to add a favorite.</div>
+          <div class="hint">
+            {{ "feature.browser_favourites_hint" | translate }}
+          </div>
         </ng-template>
       </div>
       <!-- Select timezone -->
       <div class="selected-browsers">
         <br>
-        <h4>Select Browsers Timezone</h4>
+        <h4>
+          {{ "feature.browser_timezone" | translate }}
+        </h4>
         <div class="browsers-box">
           <mat-form-field appearance="fill" >
-            <mat-label>Available Timezones</mat-label>
+            <mat-label>
+              {{ "feature.browser_available_timezone" | translate }}
+            </mat-label>
             <mat-select [formControl]="testing_timezone" [(ngModel)]="selectedTimeZone" #selectElement>
               <!-- Available Timezones -->
               <mat-option
@@ -141,7 +159,9 @@
     <div
       class="browser-selector-box"
       *ngLet="getSelectedCloud() as selected_cloud">
-      <h4>Browsers</h4>
+      <h4>
+        {{ "feature.browser_browsers" | translate }}
+      </h4>
       <div class="browsers">
         <div
           class="browser"
@@ -211,13 +231,15 @@
           <!-- Button to load more versions for a given browser -->
           <button 
             color="primary" 
-            *ngIf="browser.value.length > 6" mat-stroked-button class="load-more" 
-            (click)="showAll(browser.key)">SHOW {{ (browserExpandStatus && browserExpandStatus[browser.key]) ? 'LESS' : 'ALL' }}
+            *ngIf="browser.value.length > 1" mat-stroked-button class="load-more" 
+            (click)="showAll(browser.key)">
+            {{ "feature.browser_show" | translate }}
+            {{ (browserExpandStatus && browserExpandStatus[browser.key]) ? ('feature.browser_show_less' | translate ) : ('feature.browser_show_more' | translate ) }}
           </button>
         </div>
       </div>
       <div class="swipe-hint">
-        Swipe left or right to view more browsers (if available)
+        {{ "feature.browser_swipe_hint" | translate }}
       </div>
     </div>
   </div>

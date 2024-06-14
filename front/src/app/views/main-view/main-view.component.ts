@@ -44,6 +44,7 @@ import { BehaveChartTestComponent } from '../../components/behave-charts/behave-
 import { NgClass, NgIf, AsyncPipe, TitleCasePipe } from '@angular/common';
 import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
 import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
+import { TranslateService } from '@ngx-translate/core';
 
 @UntilDestroy()
 @Component({
@@ -84,17 +85,18 @@ export class MainViewComponent implements OnInit {
 
   columns: MtxGridColumn[] = [
     {
-      header: 'Status',
+      header: this._TranslateService.instant('main_view.status'),
       field: 'status',
       sortable: true,
       class: 'aligned-center',
     },
     {
-      header: 'Execution Date',
+      header: this._TranslateService.instant('main_view.execution_date'),
       field: 'result_date',
       sortable: true,
       width: '230px',
       sortProp: { start: 'desc', id: 'result_date' },
+      class: 'aligned-center',
     },
     {
       header: 'Total',
@@ -104,41 +106,46 @@ export class MainViewComponent implements OnInit {
     },
     { header: 'OK', field: 'ok', sortable: true, class: 'aligned-center' },
     { header: 'NOK', field: 'fails', sortable: true, class: 'aligned-center' },
-    { header: 'Skipped', field: 'skipped', class: 'aligned-center' },
-    { header: 'Browser', field: 'browser', class: 'aligned-center' },
+    { header: this._TranslateService.instant('main_view.skipped'), field: 'skipped', class: 'aligned-center' },
+    { header: this._TranslateService.instant('main_view.browser'), field: 'browser', class: 'aligned-center' },
     {
-      header: 'Browser Version',
+      header: this._TranslateService.instant('main_view.browser_version'),
       field: 'browser.browser_version',
       hide: true,
+      sortable: true,
+      class: 'aligned-browser',
+    },
+    {
+      header: this._TranslateService.instant('main_view.duration'),
+      field: 'execution_time',
+      sortable: true,
+      class: 'aligned-center',
+    },
+    { header: 'Description', 
+      field: 'description', 
+      width: '250px', 
+      class: 'aligned-center',
+    },
+    {
+      header: this._TranslateService.instant('main_view.pixel_diff'),
+      field: 'pixel_diff',
       sortable: true,
       class: 'aligned-center',
     },
     {
-      header: 'Duration',
-      field: 'execution_time',
-      sortable: true,
-      class: 'aligned-right',
-    },
-    { header: 'Description', field: 'description', width: '250px' },
-    {
-      header: 'Pixel Difference',
-      field: 'pixel_diff',
-      sortable: true,
-      class: 'aligned-right',
-    },
-    {
-      header: 'Options',
+      header: this._TranslateService.instant('main_view.options'),
       field: 'options',
       width: '290px',
       // pinned: 'right',
       right: '0px',
       type: 'button',
+      class: 'aligned-center',
       buttons: [
         {
           type: 'icon',
           text: 'replay',
           icon: 'videocam',
-          tooltip: 'View results replay',
+          tooltip: this._TranslateService.instant('main_view.options_video_tooltip'),
           color: 'primary',
           iif: (result: FeatureResult) => (result.video_url ? true : false),
           click: (result: FeatureResult) => this.openVideo(result),
@@ -147,7 +154,7 @@ export class MainViewComponent implements OnInit {
           type: 'icon',
           text: 'pdf',
           icon: 'picture_as_pdf',
-          tooltip: 'Download result PDF',
+          tooltip: this._TranslateService.instant('main_view.options_pdf_tooltip'),
           color: 'primary',
           click: (result: FeatureResult) => {
             const pdfLink = this._pdfLinkPipe.transform(
@@ -176,7 +183,7 @@ export class MainViewComponent implements OnInit {
           type: 'icon',
           text: 'Network Responses',
           icon: 'sync',
-          tooltip: 'You can see network responses',
+          tooltip: this._TranslateService.instant('main_view.options_net_tooltip'),
           color: 'accent',
           iif: (result: FeatureResult) =>
             result.network_response_count > 0 &&
@@ -186,8 +193,7 @@ export class MainViewComponent implements OnInit {
           type: 'icon',
           text: 'Vulnerable Network Responses',
           icon: 'sync_problem',
-          tooltip:
-            'Refer to the step reports to view vulnerable headers in the network responses.',
+          tooltip: this._TranslateService.instant('main_view.options_vuln_net_tooltip'),
           color: 'warn',
           iif: (result: FeatureResult) =>
             result.network_response_count > 0 &&
@@ -197,7 +203,7 @@ export class MainViewComponent implements OnInit {
           type: 'icon',
           text: 'archive',
           icon: 'archive',
-          tooltip: 'Archive result',
+          tooltip: this._TranslateService.instant('main_view.options_archive_tooltip'),
           color: 'accent',
           click: (result: FeatureResult) => {
             this._sharedActions
@@ -210,7 +216,7 @@ export class MainViewComponent implements OnInit {
           type: 'icon',
           text: 'unarchive',
           icon: 'unarchive',
-          tooltip: 'Unarchive result',
+          tooltip: this._TranslateService.instant('main_view.options_unarchive_tooltip'),
           color: 'accent',
           click: (result: FeatureResult) => {
             this._sharedActions
@@ -223,7 +229,7 @@ export class MainViewComponent implements OnInit {
           type: 'icon',
           text: 'delete',
           icon: 'delete',
-          tooltip: 'Delete result',
+          tooltip: this._TranslateService.instant('main_view.options_delete_tooltip'),
           color: 'warn',
           click: (result: FeatureResult) => {
             this._sharedActions
@@ -264,7 +270,8 @@ export class MainViewComponent implements OnInit {
     private _snack: MatSnackBar,
     private _api: ApiService,
     private _pdfLinkPipe: PdfLinkPipe,
-    private _downloadService: DownloadService
+    private _downloadService: DownloadService,
+    private _TranslateService: TranslateService
   ) {}
 
   featureId$: Observable<number>;

@@ -8,7 +8,9 @@
   <div class="return">
     <div (click)="returnToMain()" class="return-item">
       <i></i>
-      <div class="return-text">Main</div>
+      <div class="return-text">
+        {{ "main_view.return" | translate }}
+      </div>
     </div>
   </div>
   <ng-container>
@@ -24,17 +26,20 @@
     <!-- will be shown if the test has not been performed 10 times-->
     <div *ngIf="total < 10" class="no-chart">
       <img src="assets/img/poster_2.svg" alt="shown when there is no charts" />
-      <p>
-        This screen shows the results of your testruns. <br /><br />
-        Once you have more then 10 results, co.meta will show you a beautiful
-        linechart with execution times and more.
+      <p [innerHTML]='"main_view.explanation" | translate'>
       </p>
     </div>
     <!-- Mobile Header -->
     <div class="mobile-info header">
-      <div class="steps">Steps #</div>
-      <div class="browser">Browsers</div>
-      <div class="last_test">Last test</div>
+      <div class="steps">
+        {{ "main_view.mobile_steps" | translate }}
+      </div>
+      <div class="browser">
+        {{ "main_view.mobile_browsers" | translate }}
+      </div>
+      <div class="last_test">
+        {{ "main_view.mobile_last_test" | translate }}
+      </div>
     </div>
     <!-- Mobile Stats -->
     <div class="mobile-info" *ngIf="results[0] as lastRun">
@@ -92,28 +97,36 @@
       stopPropagation
       [matMenuTriggerFor]="runStatus"
       *ngIf="passed; else failed">
-      Passed
+      {{ "main_view.passed" | translate }}
     </div>
     <ng-template #failed>
       <div
         class="status-box failed"
         stopPropagation
         [matMenuTriggerFor]="runStatus">
-        Failed
+        {{ "main_view.failed" | translate }}
       </div>
     </ng-template>
     <!-- Override feature result status -->
     <mat-menu #runStatus="matMenu">
-      <div class="menu-header">Override run status:</div>
+      <div class="menu-header">
+        {{ "main_view.override_runs" | translate }}
+      </div>
       <button (click)="setResultStatus(row, 'Success')" mat-menu-item>
-        <div class="status-option passed">Passed</div>
+        <div class="status-option passed">
+          {{ "main_view.passed" | translate }}
+        </div>
       </button>
       <button (click)="setResultStatus(row, 'Failed')" mat-menu-item>
-        <div class="status-option failed">Failed</div>
+        <div class="status-option failed">
+          {{ "main_view.failed" | translate }}
+        </div>
       </button>
       <mat-divider></mat-divider>
       <button (click)="setResultStatus(row, '')" mat-menu-item>
-        <div class="status-option default">Default</div>
+        <div class="status-option default">
+          {{ "main_view.default" | translate }}
+        </div>
       </button>
     </mat-menu>
   </div>
@@ -134,9 +147,7 @@
     *ngIf="row.description; else hyphen"
     [matTooltip]="row.description"
     class="feature_description"
-    >{{ row.description }}</span
-  >
-
+    >{{ row.description }}</span>
   <ng-template #hyphen>-</ng-template>
 </ng-template>
 
@@ -160,27 +171,36 @@
       color="primary"
       [checked]="archived$ | async"
       (change)="handleArchived($event)"
-      >Show archived items</mat-checkbox
-    >
+      >
+      {{ "main_view.clear_show_archived_returns" | translate }}
+    </mat-checkbox>
     <button mat-stroked-button [matMenuTriggerFor]="clearRunsTemplate">
       <mat-icon>delete</mat-icon>
-      <span class="mdc-button__label">Clear Feature Results</span>
+      <span class="mdc-button__label">
+        {{ "main_view.clear_feature_results" | translate }}
+      </span>
     </button>
   </div>
 
   <!-- CLEAR Feature Results MENU -->
   <mat-menu #clearRunsTemplate>
-    <div stopPropagation class="mat-menu-panel-category">Clear results</div>
+    <div stopPropagation class="mat-menu-panel-category">
+      {{ "main_view.clear_results" | translate }}
+    </div>
     <!-- All 4 options to delete runs -->
-    <button mat-menu-item (click)="clearRuns('all')">Clear all</button>
+    <button mat-menu-item (click)="clearRuns('all')">
+      {{ "main_view.clear_all" | translate }}
+    </button>
     <button mat-menu-item (click)="clearRuns('all_failed')">
-      Clear all failed
+      {{ "main_view.clear_all_failed" | translate }}
     </button>
     <button mat-menu-item (click)="clearRuns('all_except_last')">
-      Clear all except last run
+      {{ "main_view.clear_all_except" | translate }}
     </button>
     <mat-divider></mat-divider>
-    <div stopPropagation class="mat-menu-panel-category">Options</div>
+    <div stopPropagation class="mat-menu-panel-category">
+      {{ "main_view.clear_all_options" | translate }}
+    </div>
     <!-- Handle checkbox, if the user also wants to delete the associated template images -->
     <button stopPropagation mat-menu-item>
       <mat-checkbox
@@ -189,7 +209,7 @@
         [checked]="deleteTemplateWithResults$ | async"
         (change)="handleDeleteTemplateWithResults($event)"
         color="primary">
-        Also delete templates
+        {{ "main_view.clear_all_delete" | translate }}
       </mat-checkbox>
     </button>
   </mat-menu>
@@ -197,14 +217,6 @@
 
 <!-- NO RESULTS TEMPLATE -->
 <ng-template #noResultTpl>
-  <div class="no-tests">
-    <p>Please execute your first feature clicking the blue run-button.</p>
-    <br />
-    <p class="greyed">
-      If you just added a feature and it's executing now you will have to wait
-      until it's finished.
-    </p>
-    <br />
-    <p class="greyed">These results are reloaded automatically.</p>
-  </div>
+  <div class="no-tests" [innerHTML]="'main_view.results_template' | translate">
+  </div> 
 </ng-template>

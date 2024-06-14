@@ -1,12 +1,14 @@
 <ng-container *ngIf="feature$ | async as feature">
-  <span *ngIf="feature.department_name as dep"
-    ><b>Department</b>: {{ dep }}</span
-  >
-  <span *ngIf="feature.app_name as app"> | <b>Application</b>: {{ app }}</span>
+  <span *ngIf="feature.department_name as dep">
+    <b>{{ "main_view.department" | translate }}</b>: {{ dep }}
+  </span>
+  <span *ngIf="feature.app_name as app"> 
+    | <b>{{ "main_view.application" | translate }}</b>: {{ app }}
+  </span>
   <span *ngIf="feature.environment_name as env">
-    | <b>Environment</b>: {{ env }}</span
-  >
+    | <b>{{ "main_view.environment" | translate }}</b>: {{ env }}
+  </span>
   <span *ngIf="feature.feature_name as name" [matTooltip]="feature.description">
-    | <b>Test</b>: {{ name }}</span
-  >
+    | <b> {{ "main_view.test" | translate }}</b>: {{ name }}
+  </span>
 </ng-container>

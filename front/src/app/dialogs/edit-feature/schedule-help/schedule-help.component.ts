@@ -5,16 +5,19 @@ import {
 } from '@angular/material/legacy-dialog';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { NgIf } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'schedule-help',
   templateUrl: 'schedule-help.component.html',
   styleUrls: ['schedule-help.component.scss'],
   standalone: true,
-  imports: [MatLegacyDialogModule, NgIf, MatLegacyButtonModule],
+  imports: [MatLegacyDialogModule, NgIf, MatLegacyButtonModule, TranslateModule ],
 })
 export class ScheduleHelp {
-  constructor(public dialogRef: MatDialogRef<ScheduleHelp>) {}
+  constructor(
+    public dialogRef: MatDialogRef<ScheduleHelp>,
+  ) {}
 
   usages = {
     minute: false,

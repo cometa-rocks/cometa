@@ -6,6 +6,7 @@ import { CustomSelectors } from '@others/custom-selectors';
 import { map, switchMap } from 'rxjs/operators';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { NgIf, AsyncPipe } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'cometa-feature-titles',
@@ -13,7 +14,7 @@ import { NgIf, AsyncPipe } from '@angular/common';
   styleUrls: ['./feature-titles.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [NgIf, MatLegacyTooltipModule, AsyncPipe],
+  imports: [NgIf, MatLegacyTooltipModule, AsyncPipe, TranslateModule],
 })
 export class FeatureTitlesComponent implements OnInit {
   feature$: Observable<Feature>;

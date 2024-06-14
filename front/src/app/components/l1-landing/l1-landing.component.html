@@ -32,7 +32,7 @@ Author: dph000
         aria-label="Add button"
         (click)="openedAdd = !openedAdd">
         <mat-icon>add</mat-icon>
-        Add
+        {{ "l1_landing.add_button" | translate }}
       </button>
       <!-- Add folder button -->
       <button
@@ -42,7 +42,7 @@ Author: dph000
         (click)="createFolder()"
         [class.hideAdd]="!openedAdd">
         <mat-icon>folder_open</mat-icon>
-        Create folder
+        {{ "l1_landing.create_folder_button" | translate }}
       </button>
       <!-- Add feature button -->
       <button
@@ -55,7 +55,7 @@ Author: dph000
         <div class="icon">
           <i class="feature-icon"></i>
         </div>
-        Create feature
+        {{ "l1_landing.create_feature_button" | translate }}
       </button>
       <!--
         <button *ngIf="canCreateFeature && hasSubscription" class="addDataDrivenIcon" mat-raised-button

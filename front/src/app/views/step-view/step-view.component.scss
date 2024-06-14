@@ -179,7 +179,6 @@
   }
   .total-pixel-title {
     flex: 0 33.33333%;
-    padding: 0 15px;
     box-sizing: border-box;
     font-size: 18pt;
     @include for-tablet-portrait-up {
@@ -241,19 +240,28 @@
     flex: 1 100%;
     display: flex;
     align-items: center;
-    text-align: center;
+    // text-align: center;
     background-color: #474747;
     color: white;
     text-transform: uppercase;
-    padding: 12px 0;
+    // padding: 12px 0;
     box-sizing: border-box;
-    padding-right: 10px;
+    // padding-right: 10px;
 
     // commented because breaks syncronization between table header and table rows, column names do not coincide with their corresponding values
     // @include for-tablet-portrait-up {
     //     padding-right: 85px;
     // }
   }
+
+  div {
+    text-align: center;
+  }
+
+  div button{
+    margin: 0 auto;
+  }
+
   .name {
     // commented because breaks syncronization between table header and table rows, column names do not coincide with their corresponding values
     // flex: 0 60%;
@@ -265,23 +273,23 @@
   }
 
   .time{
-    flex: 0 20%;
-    max-width: 20%;
-    text-align: center;
+    flex: 0 10%;
+    max-width: 10%;
+    
   }
 
   .difference {
-    flex: 0 10%;
-    max-width: 10%;
-    text-align: center;
+    flex: 0 15%;
+    max-width: 15%;
   }
 
   .status
   {
     flex: 0 12%;
     max-width: 20%;
-    text-align: center;
+    
   }
+
   .difference-desktop {
     flex: 0 15%;
     max-width: 15%;
@@ -291,9 +299,10 @@
       display: initial;
     }
   }
+
   .difference-mobile {
-    flex: 0 10%;
-    max-width: 10%;
+    flex: 0 15%;
+    max-width: 15%;
     // @include for-tablet-portrait-up-plus30 {
     //     display: none;
     // }
@@ -398,7 +407,7 @@
       flex: 0 10%;
       max-width: 10%;
       display: flex;
-      justify-content: flex-end;
+      justify-content: center;
       .option {
         flex: 0 40px;
       }

@@ -62,6 +62,7 @@ import {
 } from '@angular/common';
 import { MtxGridModule } from '@ng-matero/extensions/grid';
 import { LetDirective } from '../../directives/ng-let.directive';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'cometa-l1-feature-list',
@@ -107,7 +108,8 @@ export class L1FeatureListComponent implements OnInit {
     private _dialog: MatDialog,
     private _api: ApiService,
     private _snackBar: MatSnackBar,
-    private log: LogService
+    private log: LogService,
+    private translate: TranslateService
   ) {}
 
   @Input() data$: any; // Contains the new structure of the features / folders
@@ -134,19 +136,19 @@ export class L1FeatureListComponent implements OnInit {
    * The format is due to mtx-grid. To see more go to https://ng-matero.github.io/extensions/components/data-grid/overview
    */
   columns = [
-    { header: 'Type / Run', field: 'orderType', sortable: true },
+    { header:  this.translate.instant('feature_item_list.table_ordertype'), field: 'orderType', sortable: true },
     { header: 'ID', field: 'id', sortable: true },
     {
-      header: 'Name',
+      header:  this.translate.instant('feature_item_list.table_name'),
       field: 'name',
       sortable: true,
       pinned: 'left',
       class: 'name',
     },
-    { header: 'Status', field: 'status', sortable: true },
-    { header: 'Last run', field: 'date', sortable: true },
-    { header: 'Last duration', field: 'time', sortable: true },
-    { header: 'Last steps', field: 'total', sortable: true },
+    { header: this.translate.instant('feature_item_list.table_status'), field: 'status', sortable: true },
+    { header: this.translate.instant('feature_item_list.table_last_run'), field: 'date', sortable: true },
+    { header: this.translate.instant('feature_item_list.table_last_duration'), field: 'time', sortable: true },
+    { header: this.translate.instant('feature_item_list.table_last_steps'), field: 'total', sortable: true },
 
     // #3427 -------------------------------------------------------- start
     // hide department, application, environment and show successfull and files steps cuantity
@@ -156,14 +158,14 @@ export class L1FeatureListComponent implements OnInit {
 
     // #3427 -------------------------------------------------------- start
     // by default these columns will not be shown
-    { header: 'Department', field: 'department', sortable: true, hide: true },
-    { header: 'Application', field: 'app', sortable: true, hide: true },
-    { header: 'Environment', field: 'environment', sortable: true, hide: true },
+    { header: this.translate.instant('feature_item_list.table_department'), field: 'department', sortable: true, hide: true },
+    { header: this.translate.instant('feature_item_list.table_application'), field: 'app', sortable: true, hide: true },
+    { header: this.translate.instant('feature_item_list.table_environment'), field: 'environment', sortable: true, hide: true },
     // #3427 -------------------------------------------------------- start
 
-    { header: 'Browsers', field: 'browsers', sortable: true },
-    { header: 'Schedule', field: 'schedule', sortable: true },
-    { header: 'Options', field: 'reference' },
+    { header: this.translate.instant('feature_item_list.table_browsers'), field: 'browsers', sortable: true },
+    { header: this.translate.instant('feature_item_list.table_schedule'), field: 'schedule', sortable: true },
+    { header: this.translate.instant('feature_item_list.table_options'), field: 'reference' },
   ];
 
   // Mtx-grid row selection checkbox options

@@ -1,9 +1,8 @@
-<h2 mat-dialog-title>Feature successfully created!</h2>
+<h2 mat-dialog-title>
+  {{'feature.created_dialog_tittle' | translate }}
+</h2>
 <mat-dialog-content>
-  <p>
-    The feature {{ data.feature_name }} has been created successfully. Do you
-    want to view it now?
-  </p>
+  <p [innerHTML]="'feature.created_dialog_content' | translate: { 'data.feature_name': data.feature_name }">
   <br />
 </mat-dialog-content>
 <mat-dialog-actions>

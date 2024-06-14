@@ -53,6 +53,7 @@ import { FolderTreeComponent } from '../folder-tree/folder-tree.component';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { TranslateModule } from '@ngx-translate/core';
 
 @UntilDestroy()
 @Component({
@@ -115,6 +116,7 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
     L1FeatureStarredListComponent,
     L1FeatureTrashbinListComponent,
     AsyncPipe,
+    TranslateModule
   ],
 })
 export class L1LandingComponent implements OnInit {

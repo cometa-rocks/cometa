@@ -1,66 +1,80 @@
-<h1 mat-dialog-title>How to format a cron schedule</h1>
+<h1 mat-dialog-title>
+  {{ "feature.schedule_div_help_tittle" | translate }}
+</h1>
 <div mat-dialog-content>
-  <p>A cron calendar is made up of 5 fields:</p>
+  <p>
+    {{ "feature.schedule_div_help_fields" | translate }}
+  </p>
   <ul class="margin">
     <li>
-      <span class="blue">Minute:</span> It can be a specific minute or every few
-      minutes.
-      <span class="blue pointer" (click)="usages.minute = !usages.minute"
-        >Show usage</span
-      >
-      <ul *ngIf="usages.minute">
-        <li><span class="code">*</span> Any value</li>
-        <li><span class="code">,</span> Multiple values</li>
-        <li><span class="code">-</span> Range of values</li>
-        <li><span class="code">/</span> Step values (every certain amount)</li>
+      <span class="blue">
+        {{ 'feature.schedule_div_help_five_minute_label' | translate }}
+      </span>
+      <span [innerHTML]="'feature.schedule_div_help_five_minute_content' | translate">
+      </span>
+      <span class="blue pointer" (click)="usages.minute = !usages.minute">
+        {{ "feature.schedule_div_help_five_minute_examples" | translate }}
+      </span>
+      <ul *ngIf="usages.minute" [innerHTML]="'feature.schedule_div_help_five_values' | translate" >
+      </ul> 
+    </li>
+    <li>
+      <span class="blue">
+        {{ 'feature.schedule_div_help_five_hour_label' | translate }}
+      </span> 
+      <span [innerHTML]="'feature.schedule_div_help_five_hour_content' | translate"></span>
+      <span class="blue pointer" (click)="usages.hour = !usages.hour">
+        {{ "feature.schedule_div_help_five_hour_examples" | translate }}
+      </span>
+      <ul *ngIf="usages.hour" [innerHTML]="'feature.schedule_div_help_five_values' | translate">
       </ul>
     </li>
     <li>
-      <span class="blue">Hour:</span> It can be a specific hour or every few
-      hours.
-      <span class="blue pointer" (click)="usages.hour = !usages.hour"
-        >Show usage</span
-      >
-      <ul *ngIf="usages.hour">
-        <li><span class="code">*</span> Any value</li>
-        <li><span class="code">,</span> Multiple values</li>
-        <li><span class="code">-</span> Range of values</li>
-        <li><span class="code">/</span> Step values (every certain amount)</li>
-      </ul>
+      <span class="blue">
+        {{ 'feature.schedule_div_help_five_daymonth_label' | translate }}
+      </span> 
+      <span [innerHTML]="'feature.schedule_div_help_five_daymonth_content' | translate">
+      </span>
     </li>
     <li>
-      <span class="blue">Day (month):</span> It can be a specific day number or
-      a range with a hyphen.
+      <span class="blue">
+        {{ 'feature.schedule_div_help_five_month_label' | translate }}
+      </span> 
+      <span [innerHTML]="'feature.schedule_div_help_five_month_content' | translate">
+      </span>
     </li>
     <li>
-      <span class="blue">Month:</span> It can be a specific month number, a
-      range or a comma separated number list.
+      <span class="blue">
+        {{ 'feature.schedule_div_help_five_dayweek_label' | translate }}
+      </span>
+      <span [innerHTML]="'feature.schedule_div_help_five_dayweek_content' | translate">
+      </span>
     </li>
     <li>
-      <span class="blue">Day (week):</span> It only can be a shorthand for day
-      name
-    </li>
-    <li>
-      <span class="blue">Examples:</span>
+      <span class="blue">
+        {{ 'feature.schedule_div_help_five_examples' | translate }}
+      </span>
       <ul>
         <li>
-          <span class="blue"><span class="code">*/5 * * * *</span></span> Run
-          every 5 minutes
+          <span class="blue"><span class="code">*/5 * * * *</span></span> 
+          {{ 'feature.schedule_div_help_five_examples_1' | translate }}
         </li>
         <li>
-          <span class="blue"><span class="code">5 1 * * Sun</span></span> Run
-          every Sunday at 1:05 AM
+          <span class="blue"><span class="code">5 1 * * Sun</span></span> 
+          {{ 'feature.schedule_div_help_five_examples_2' | translate }}
         </li>
       </ul>
     </li>
     <li>
-      To test your cron schedules, get more examples and/or learn more visit
-      <a href="https://crontab.guru" target="_blank">this page</a>
+      {{ 'feature.schedule_div_help_visit_page' | translate }}
+      <a href="https://crontab.guru" target="_blank">
+        {{ 'feature.schedule_div_help_visit_page_link' | translate }}
+      </a>
     </li>
   </ul>
 </div>
 <div mat-dialog-actions>
   <button mat-stroked-button color="primary" (click)="onNoClick()">
-    Understood
+    {{ 'feature.schedule_div_help_understood' | translate }}
   </button>
 </div>

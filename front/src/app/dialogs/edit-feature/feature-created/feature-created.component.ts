@@ -6,6 +6,7 @@ import {
   MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'feature-created',
@@ -13,7 +14,7 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
   styleUrls: ['feature-created.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyDialogModule, MatLegacyButtonModule],
+  imports: [MatLegacyDialogModule, MatLegacyButtonModule, TranslateModule],
 })
 export class FeatureCreated {
   constructor(

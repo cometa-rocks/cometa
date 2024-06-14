@@ -65,7 +65,15 @@ Author: dph000
                 >error</mat-icon
               >
             </ng-container>
-            <span style="vertical-align: middle">{{ item.status }}</span>
+            <span style="vertical-align: middle" *ngIf="item.status === 'Success'">
+              {{'feature_item_list.success' | translate }}
+            </span>
+            <span style="vertical-align: middle" *ngIf="item.status === 'Failed'">
+              {{'feature_item_list.failed' | translate }}
+            </span>
+            <span style="vertical-align: middle" *ngIf="item.status === 'Canceled'">
+              {{'feature_item_list.canceled' | translate }}
+            </span>
           </ng-template>
         </div>
         <div class="run" stopPropagation (click)="_sharedActions.run(item.id)">
@@ -78,7 +86,9 @@ Author: dph000
               >play_arrow</mat-icon
             >
           </ng-container>
-          <span style="vertical-align: middle">Run</span>
+          <span style="vertical-align: middle">
+            {{ 'feature_item_list.run' | translate }}
+          </span>
         </div>
       </div>
       <!-- Feature name -->
@@ -89,7 +99,7 @@ Author: dph000
         <!-- Feature total amount of steps, execution time and date of execution -->
         <i class="my-icons clipboard"></i>
         <span class="exec_time"
-          >{{ item.total }} steps | {{ item.time | secondsToHumanReadable }} |
+          >{{ item.total }} {{ 'feature_item_list.steps' | translate }} | {{ item.time | secondsToHumanReadable }} |
           <ng-container *ngIf="item.date as date">{{
             item.date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm'
           }}</ng-container></span
@@ -125,7 +135,9 @@ Author: dph000
             matTooltipPosition="after"
             mat-menu-item>
             <mat-icon>play_circle_filled</mat-icon>
-            <span>Run</span>
+            <span>
+              {{'feature_item_list.run' | translate }}
+            </span>
           </button>
           <mat-divider></mat-divider>
         </ng-container>
@@ -138,7 +150,9 @@ Author: dph000
           class="modify-feature"
           mat-menu-item>
           <mat-icon>edit</mat-icon>
-          <span>Modify</span>
+          <span>
+            {{'feature_item_list.modify' | translate }}
+          </span>
         </button>
         <!-- Clone feature -->
         <button
@@ -149,7 +163,9 @@ Author: dph000
           class="modify-feature"
           mat-menu-item>
           <mat-icon>content_copy</mat-icon>
-          <span>Clone</span>
+          <span>
+            {{'feature_item_list.clone' | translate }}
+          </span>
         </button>
         <!-- Move feature -->
         <button
@@ -159,12 +175,16 @@ Author: dph000
           class="move-feature"
           mat-menu-item>
           <mat-icon>folder</mat-icon>
-          <span>Move</span>
+          <span>
+            {{'feature_item_list.move' | translate }}
+          </span>
         </button>
         <mat-divider></mat-divider>
         <button mat-menu-item [matMenuTriggerFor]="otherOptions">
           <mat-icon>settings</mat-icon>
-          <span>Settings</span>
+          <span>
+            {{'feature_item_list.settings' | translate }}
+          </span>
         </button>
         <mat-divider></mat-divider>
         <!-- Delete feature -->
@@ -176,7 +196,9 @@ Author: dph000
           class="delete-feature"
           mat-menu-item>
           <mat-icon>delete</mat-icon>
-          <span>Delete</span>
+          <span>
+            {{'feature_item_list.delete' | translate }}
+          </span>
         </button>
       </mat-menu>
       <!-- Settings Menu -->
@@ -226,22 +248,30 @@ Author: dph000
         <!-- Open folder -->
         <button (click)="goFolder(item.route)" mat-menu-item>
           <mat-icon>folder_open</mat-icon>
-          <span>Open</span>
+          <span>
+            {{'feature_item_list.open' | translate }}
+          </span>
         </button>
         <!-- Modify folder -->
         <button (click)="modify(item.reference)" mat-menu-item>
           <mat-icon>edit</mat-icon>
-          <span>Modify</span>
+          <span>
+            {{'feature_item_list.modify' | translate }}
+          </span>
         </button>
         <!-- Move folder -->
         <button (click)="SAmoveFolder(item.reference)" mat-menu-item>
           <mat-icon>folder</mat-icon>
-          <span>Move</span>
+          <span>
+            {{'feature_item_list.move' | translate }}
+          </span>
         </button>
         <!-- Delete folder -->
         <button (click)="delete(item.reference)" class="remove" mat-menu-item>
           <mat-icon>delete</mat-icon>
-          <span>Delete</span>
+          <span>
+            {{'feature_item_list.delete' | translate }}
+          </span>
         </button>
       </mat-menu>
     </div>
