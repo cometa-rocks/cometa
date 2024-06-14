@@ -47,6 +47,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { NgIf, NgFor } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 
 interface PassedData {
@@ -85,23 +86,25 @@ interface PassedData {
     MatLegacyTooltipModule,
     AmParsePipe,
     AmDateFormatPipe,
+    TranslateModule
   ],
 })
 export class EditVariablesComponent implements OnInit, OnDestroy {
   allColumns: VariableColumns[] = [
-    { name: 'Name', activated: true, value: 'variable_name' },
-    { name: 'Value', activated: true, value: 'variable_value' },
-    { name: 'Encrypted', activated: true, value: 'encrypted' },
-    { name: 'Based on', activated: true, value: 'based' },
-    { name: 'Department', activated: true, value: 'department_name' },
-    { name: 'Environment', activated: true, value: 'environment_name' },
-    { name: 'Feature', activated: true, value: 'feature_name' },
-    { name: 'Created by', activated: false, value: 'created_by_name' },
-    { name: 'Last updated by', activated: false, value: 'updated_by_name' },
-    { name: 'Created on', activated: false, value: 'created_on' },
-    { name: 'Last updated on', activated: false, value: 'updated_on' },
-    { name: 'Actions', activated: true, value: 'actions' },
+    { name: this._TranslateService.instant('edit_variables.columns.name'), activated: true, value: 'variable_name' },
+    { name: this._TranslateService.instant('edit_variables.columns.value'), activated: true, value: 'variable_value' },
+    { name: this._TranslateService.instant('edit_variables.columns.encrypted'), activated: true, value: 'encrypted' },
+    { name: this._TranslateService.instant('edit_variables.columns.based_on'), activated: true, value: 'based' },
+    { name: this._TranslateService.instant('edit_variables.columns.department'), activated: true, value: 'department_name' },
+    { name: this._TranslateService.instant('edit_variables.columns.environment'), activated: true, value: 'environment_name' },
+    { name: this._TranslateService.instant('edit_variables.columns.feature'), activated: true, value: 'feature_name' },
+    { name: this._TranslateService.instant('edit_variables.columns.created_by'), activated: false, value: 'created_by_name' },
+    { name: this._TranslateService.instant('edit_variables.columns.last_updated_by'), activated: false, value: 'updated_by_name' },
+    { name: this._TranslateService.instant('edit_variables.columns.created_on'), activated: false, value: 'created_on' },
+    { name: this._TranslateService.instant('edit_variables.columns.last_updated_on'), activated: false, value: 'updated_on' },
+    { name: this._TranslateService.instant('edit_variables.columns.actions'), activated: true, value: 'actions' },
   ];
+  
 
   displayedColumns: string[] = [];
   bases: string[] = ['feature', 'environment', 'department'];
@@ -130,7 +133,8 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     private _snack: MatSnackBar,
     private _api: ApiService,
     private _cdr: ChangeDetectorRef,
-    private _dialog: MatDialog
+    private _dialog: MatDialog,
+    private _TranslateService: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -205,7 +209,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     // this snack feedback message will only be provided if user tries to edit variable with double click mouse event, while another variable is being edited.
     if (this.isEditing && variable.disabled) {
       this._snack.open(
-        'Please save changes in order to edit another variable.',
+        this._TranslateService.instant('edit_variables.snackbar_change_order_variable'),
         'OK'
       );
       return;
@@ -483,7 +487,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
                 )
               )
             : this._store.dispatch(new Variables.DeleteVariable(variable.id));
-          this._snack.open('Action has been completed successfully!', 'OK');
+          this._snack.open(this._TranslateService.instant('edit_variables.action_succesfully'), 'OK');
         }
       },
       error: err => {

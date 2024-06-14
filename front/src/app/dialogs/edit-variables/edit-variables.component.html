@@ -4,19 +4,25 @@
     cdkDrag
     cdkDragRootElement=".cdk-overlay-pane"
     cdkDragHandle>
-    Edit variables
+    {{ 'edit_variables.edit_var_h2' | translate }}
   </h2>
 </div>
 <ng-template #notDialog>
-  <h2 mat-dialog-title>Edit variables</h2>
+  <h2 mat-dialog-title>
+    {{ 'edit_variables.edit_var_h2' | translate }}
+  </h2>
 </ng-template>
 <div *ngIf="isDialog" class="env-info">
   <div class="env-item">
-    <span class="env-title">Environment:</span>
+    <span class="env-title">
+      {{ 'edit_variables.environment_title' | translate }}
+    </span>
     <span class="env-value">{{ data.environment_name }}</span>
   </div>
   <div class="env-item">
-    <span class="env-title">Department:</span>
+    <span class="env-title">
+      {{ 'edit_variables.department_title' | translate }}
+    </span>
     <span class="env-value">{{ data.department_name }}</span>
   </div>
 </div>
@@ -24,7 +30,9 @@
 <mat-dialog-content>
   <ng-container *ngIf="variables.length > 0; else text">
     <mat-form-field appearance="fill" class="search-wrapper">
-      <mat-label>Search</mat-label>
+      <mat-label>
+        {{ 'edit_variables.search' | translate }}
+      </mat-label>
       <mat-icon matPrefix>search</mat-icon>
       <input
         matInput
@@ -34,7 +42,7 @@
     </mat-form-field>
     <div class="columns-button-wrapper">
       <button mat-stroked-button [matMenuTriggerFor]="selectedColumns">
-        Columns Shown
+        {{ 'edit_variables.columns_shown' | translate }}
       </button>
       <mat-menu #selectedColumns="matMenu" class="variable-columns-menu">
         <div
@@ -62,7 +70,9 @@
         (matSortChange)="announceSortChange($event)"
         class="mat-elevation-z8">
         <ng-container matColumnDef="variable_name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ 'edit_variables.columns.name' | translate }}
+          </th>
           <td mat-cell *matCellDef="let element">
             <input
               #variable_name="ngModel"
@@ -79,17 +89,21 @@
             <small
               class="validation-error"
               *ngIf="variable_name.errors?.['required']"
-              >Variable name is required.</small
-            >
+              >
+              {{ 'edit_variables.columns.name_required' | translate }}
+            </small>
             <small
               class="validation-error"
               *ngIf="variable_name.errors?.['pattern']"
-              >Special characters and space are not allowed.</small
-            >
+              >
+              {{ 'edit_variables.columns.name_special_characters' | translate }}
+            </small>
           </td>
         </ng-container>
         <ng-container matColumnDef="variable_value">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Value</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ 'edit_variables.columns.value' | translate }}
+          </th>
           <td mat-cell *matCellDef="let element">
             <input
               #variable_value="ngModel"
@@ -105,12 +119,15 @@
             <small
               class="validation-error"
               *ngIf="variable_value.errors?.['required']"
-              >Variable value is required.</small
-            >
+              >
+              {{ 'edit_variables.columns.value_required' | translate }}
+            </small>
           </td>
         </ng-container>
         <ng-container matColumnDef="encrypted">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Encrypted</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ 'edit_variables.columns.encrypted' | translate }}
+          </th>
           <td mat-cell *matCellDef="let element">
             <mat-checkbox
               [disabled]="element.disabled"
@@ -123,7 +140,9 @@
           </td>
         </ng-container>
         <ng-container matColumnDef="based">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Based on</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ 'edit_variables.columns.based_on' | translate }}
+          </th>
           <td mat-cell *matCellDef="let element">
             <mat-select
               [(value)]="element.based"
@@ -139,31 +158,41 @@
           </td>
         </ng-container>
         <ng-container matColumnDef="environment_name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Environment</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ 'edit_variables.columns.environment' | translate }}
+          </th>
           <td mat-cell *matCellDef="let element">
             <p disabled>{{ element?.environment_name }}</p>
           </td>
         </ng-container>
         <ng-container matColumnDef="feature_name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Feature</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ 'edit_variables.columns.feature' | translate }}
+          </th>
           <td mat-cell *matCellDef="let element">
             <p disabled>{{ element?.feature_name }}</p>
           </td>
         </ng-container>
         <ng-container matColumnDef="department_name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Department</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ 'edit_variables.columns.department' | translate }}
+          </th>
           <td mat-cell *matCellDef="let element">
             <p disabled>{{ element.department_name }}</p>
           </td>
         </ng-container>
         <ng-container matColumnDef="created_by_name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Created by</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ 'edit_variables.columns.created_by' | translate }}
+          </th>
           <td mat-cell *matCellDef="let element">
             <p disabled>{{ element?.created_by_name }}</p>
           </td>
         </ng-container>
         <ng-container matColumnDef="created_on">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Created on</th>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ 'edit_variables.columns.created_on' | translate }}
+          </th>
           <td mat-cell *matCellDef="let element">
             <p disabled>
               {{
@@ -178,7 +207,7 @@
         </ng-container>
         <ng-container matColumnDef="updated_by_name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>
-            Last updated by
+            {{ 'edit_variables.columns.last_updated_by' | translate }}
           </th>
           <td mat-cell *matCellDef="let element">
             <p disabled>{{ element?.updated_by_name }}</p>
@@ -186,7 +215,7 @@
         </ng-container>
         <ng-container matColumnDef="updated_on">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>
-            Last updated on
+            {{ 'edit_variables.columns.last_updated_on' | translate }}
           </th>
           <td mat-cell *matCellDef="let element">
             <p disabled>
@@ -201,7 +230,9 @@
           </td>
         </ng-container>
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef></th>
+          <th mat-header-cell *matHeaderCellDef>
+            {{ 'edit_variables.columns.actions' | translate }}
+          </th>
           <td mat-cell *matCellDef="let element">
             <div class="actions-wrapper">
               <div
@@ -289,7 +320,9 @@
     </div>
   </ng-container>
   <ng-template #text>
-    <div>This environment has no variables yet.</div>
+    <div>
+      {{ 'edit_variables.environment_no_variables' | translate }}
+    </div>
   </ng-template>
 </mat-dialog-content>
 <mat-dialog-actions *ngIf="data?.department_id">
@@ -308,8 +341,10 @@
       class="add"
       [disabled]="isEditing"
       mat-stroked-button>
-      Add variable
+      {{ 'edit_variables.add_variable' | translate }}
     </button>
   </div>
-  <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
+  <button mat-stroked-button color="warn" mat-dialog-close>
+    {{ 'edit_variables.close' | translate }}
+  </button>
 </mat-dialog-actions>

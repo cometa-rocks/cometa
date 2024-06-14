@@ -36,28 +36,42 @@
     *ngLet="row.status == 'Success' || row.status == 'Passed' as passed">
     <!-- Status box -->
     <div class="status-box passed" stopPropagation *ngIf="passed; else failed">
-      Passed
+      {{ 'data_driven_runs.table_passed' | translate }}
+      <!-- Passed -->
     </div>
     <ng-template #failed>
       <div
         class="status-box failed"
         stopPropagation
         [matMenuTriggerFor]="runStatus">
-        Failed
+        {{ 'data_driven_runs.table_failed' | translate }}
+        <!-- Failed -->
       </div>
     </ng-template>
     <!-- Override feature result status -->
     <mat-menu #runStatus="matMenu">
-      <div class="menu-header">Override run status:</div>
+      <div class="menu-header">
+        {{ 'data_driven_runs.table_execution_date' | translate }}
+        <!-- Override run status: -->
+      </div>
       <button (click)="setResultStatus(row, 'Success')" mat-menu-item>
-        <div class="status-option passed">Passed</div>
+        <div class="status-option passed">
+          {{ 'data_driven_runs.table_passed' | translate }}
+          <!-- Passed -->
+        </div>
       </button>
       <button (click)="setResultStatus(row, 'Failed')" mat-menu-item>
-        <div class="status-option failed">Failed</div>
+        <div class="status-option failed">
+          {{ 'data_driven_runs.table_failed' | translate }}
+          <!-- Failed -->
+        </div>
       </button>
       <mat-divider></mat-divider>
       <button (click)="setResultStatus(row, '')" mat-menu-item>
-        <div class="status-option default">Default</div>
+        <div class="status-option default">
+          {{ 'data_driven_runs.table_default' | translate }}
+          <!-- Default -->
+        </div>
       </button>
     </mat-menu>
   </div>
@@ -81,16 +95,16 @@
 <ng-template #toolbarTpl>
   <div class="custom_toolbar">
     <div>
-      Found
       <span>
-        <span class="blue">{{ total }}</span> Data Driven Runs
+        {{ 'data_driven_runs.found' | translate }} <span class="blue">{{ total }}</span> 
+        {{ 'data_driven_runs.driven_runs' | translate }}
       </span>
     </div>
     <div class="button-container" [matTooltip]="'data_driven.data_driven_button' | translate" matTooltipPosition="above">
       <button 
         mat-flat-button color="primary" (click)="openNewDataDrivenRun()" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
         <span class="mdc-button__label">
-          Data Driven Test
+          {{ 'data_driven_runs.test_button' | translate }}
         </span>
       </button>
       <div class="hover-box">(T)</div>
@@ -100,6 +114,5 @@
 
 <!-- NO RESULTS TEMPLATE -->
 <ng-template #noResultTpl>
-  There are no Data Driven Tests as of now, please create a new Data Driven
-  test.
+  {{ 'data_driven_runs.no_tests' | translate }}
 </ng-template>

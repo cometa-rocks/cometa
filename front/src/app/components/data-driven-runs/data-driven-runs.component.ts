@@ -27,7 +27,7 @@ import { LetDirective } from '../../directives/ng-let.directive';
 import { ElementRef, HostListener } from '@angular/core';
 import { KEY_CODES } from '@others/enums';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 
 @Component({
@@ -61,14 +61,15 @@ export class DataDrivenRunsComponent implements OnInit {
     private _http: HttpClient,
     public _dialog: MatDialog,
     private _api: ApiService,
-    private buttonDataDrivenTest: ElementRef
+    private buttonDataDrivenTest: ElementRef,
+    private _TranslateService: TranslateService
   ) {}
 
   columns: MtxGridColumn[] = [
-    { header: 'Status', field: 'status', sortable: true },
-    { header: 'File Name', field: 'file.name', sortable: true, class: 'name' },
+    { header: this._TranslateService.instant('data_driven_runs.table_status'), field: 'status', sortable: true },
+    { header: this._TranslateService.instant('data_driven_runs.table_name'), field: 'file.name', sortable: true, class: 'name' },
     {
-      header: 'Execution Date',
+      header: this._TranslateService.instant('data_driven_runs.table_execution_date'),
       field: 'date_time',
       sortable: true,
       width: '190px',
@@ -77,11 +78,11 @@ export class DataDrivenRunsComponent implements OnInit {
     { header: 'Total', field: 'total', sortable: true },
     { header: 'OK', field: 'ok', sortable: true },
     { header: 'NOK', field: 'fails', sortable: true },
-    { header: 'Skipped', field: 'skipped' },
-    { header: 'Duration', field: 'execution_time', sortable: true },
-    { header: 'Pixel Diff', field: 'pixel_diff', sortable: true },
+    { header: this._TranslateService.instant('data_driven_runs.table_skipped'), field: 'skipped' },
+    { header: this._TranslateService.instant('data_driven_runs.table_duration'), field: 'execution_time', sortable: true },
+    { header: this._TranslateService.instant('data_driven_runs.table_pix_diff'), field: 'pixel_diff', sortable: true },
     {
-      header: 'Options',
+      header: this._TranslateService.instant('data_driven_runs.table_options'),
       field: 'options',
       // pinned: 'right',
       right: '0px',
@@ -92,7 +93,7 @@ export class DataDrivenRunsComponent implements OnInit {
           type: 'icon',
           text: 'Stop',
           icon: 'stop',
-          tooltip: 'Stop Execution',
+          tooltip: this._TranslateService.instant('data_driven_runs.tooltip_stop'),
           color: 'warn',
           click: (result: DataDrivenRun) => {
             this.stop_data_driven(result, this);
@@ -104,7 +105,7 @@ export class DataDrivenRunsComponent implements OnInit {
           type: 'icon',
           text: 'delete',
           icon: 'delete',
-          tooltip: 'Delete result',
+          tooltip: this._TranslateService.instant('data_driven_runs.tooltip_delete'),
           color: 'warn',
           click: (result: DataDrivenRun) => {
             this._api.deleteDataDrivenTest(result.run_id).subscribe({
@@ -213,7 +214,7 @@ export class DataDrivenRunsComponent implements OnInit {
         if (err.status >= 400 && err.status < 500) {
           const error = JSON.parse(err.error);
           parent._snackBar.open(
-            `Error: ${error.error}. Please try again.`,
+            `Error: ${error.error}.` + this._TranslateService.instant('data_driven_runs.snackbar_error'),
             'OK',
             {
               duration: 30000,

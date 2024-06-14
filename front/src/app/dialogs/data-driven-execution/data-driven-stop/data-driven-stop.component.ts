@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'data-driven-stop',
@@ -10,7 +11,7 @@ import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
   styleUrls: ['data-driven-stop.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatLegacyDialogModule, MatLegacyButtonModule],
+  imports: [MatLegacyDialogModule, MatLegacyButtonModule, TranslateModule],
 })
 export class DataDrivenTestStop {
   constructor(

@@ -3,3 +3,13 @@
 h2 {
   color: $good;
 }
+
+mat-dialog-content p{
+  margin: 20px 0 20px 0;
+}
+
+mat-dialog-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}

@@ -1,21 +1,27 @@
 <ng-container>
-  <h2 mat-dialog-title>Overview of Data Driven Tests</h2>
+  <h2 mat-dialog-title>
+    {{ 'data_driven_execution.title' | translate }}
+  </h2>
 </ng-container>
 <mat-dialog-content>
   <mat-accordion multi>
     <mat-expansion-panel [expanded]="!config$.toggles.hideInformation">
       <mat-expansion-panel-header>
         <mat-panel-title>
-          <span>Information</span>
+          <span>
+            {{ 'data_driven_execution.information' | translate }}
+          </span>
         </mat-panel-title>
-        <mat-panel-description
-          >Data Driven Test Information</mat-panel-description
-        >
+        <mat-panel-description>
+          {{ 'data_driven_execution.data_driven_information' | translate }}
+        </mat-panel-description>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
         <div class="edit-data-driven-test">
           <mat-form-field appearance="fill" class="edit-dep">
-            <mat-label>Department</mat-label>
+            <mat-label>
+              {{ 'data_driven_execution.department' | translate }}
+            </mat-label>
             <mat-select
               [(ngModel)]="department_id"
               (selectionChange)="changeDepartment()">
@@ -34,10 +40,8 @@
           "
           class="department-warning">
           <mat-icon>warning</mat-icon>
-          <span
-            >Selecting <strong>Default</strong> department will make all the
-            files you upload visible to everyone, use it with caution!</span
-          >
+          <span [innerHTML]="'data_driven_execution.warning' | translate">
+          </span>
         </div>
       </ng-template>
     </mat-expansion-panel>
@@ -48,11 +52,13 @@
       [expanded]="!config$.toggles?.hideUploadedFiles">
       <mat-expansion-panel-header>
         <mat-panel-title>
-          <span>Files</span>
+          <span>
+            {{ 'data_driven_execution.files' | translate }}
+          </span>
         </mat-panel-title>
-        <mat-panel-description
-          >Upload/Download department files</mat-panel-description
-        >
+        <mat-panel-description>
+          {{ 'data_driven_execution.upload_download' | translate }}
+        </mat-panel-description>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
         <ng-container>
@@ -94,7 +100,7 @@
 <mat-dialog-actions>
   <div class="right">
     <button color="warn" mat-stroked-button (click)="closeDialog()">
-      CANCEL
+      {{ 'data_driven_execution.cancel' | translate }}
     </button>
   </div>
 </mat-dialog-actions>
@@ -122,7 +128,9 @@
       stopPropagation
       (click)="file.click()">
       <mat-icon>add_box</mat-icon>
-      <span class="mdc-button__label">Upload File</span>
+      <span class="mdc-button__label">
+        {{ 'data_driven_execution.upload_file' | translate }}
+      </span>
     </button>
   </div>
 </ng-template>
@@ -148,12 +156,13 @@
 </ng-template>
 
 <!-- NO RESULTS TEMPLATE -->
-<ng-template #noFileDataTpl> No Data Found. </ng-template>
+<ng-template #noFileDataTpl> 
+  {{ 'data_driven_execution.no_data' | translate }}
+</ng-template>
 
 <!-- No Results template for the execution popup! -->
 <ng-template #noFilesTpl>
   <p>
-    Currently this department has no files, upload one by clicking upload
-    button.
+    {{ 'data_driven_execution.no_files' | translate }}
   </p>
 </ng-template>

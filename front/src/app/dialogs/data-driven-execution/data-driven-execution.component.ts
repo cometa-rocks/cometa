@@ -34,6 +34,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'data-driven-execution',
@@ -59,12 +60,13 @@ import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
     SortByPipe,
     HumanizeBytesPipe,
     AvailableFilesPipe,
+    TranslateModule
   ],
 })
 export class DataDrivenExecution implements OnInit {
   columns: MtxGridColumn[] = [
     {
-      header: 'Status',
+      header: this._TranslateService.instant('data_driven_execution.table_status'),
       field: 'status',
       showExpand: true,
       class: (row: UploadedFile, col: MtxGridColumn) => {
@@ -72,14 +74,13 @@ export class DataDrivenExecution implements OnInit {
         else return 'no-expand';
       },
     },
-    { header: 'File Name', field: 'name', sortable: true, class: 'name' },
-    { header: 'Size', field: 'size', sortable: true },
-    { header: 'Uploaded By', field: 'uploaded_by.name', sortable: true },
-    { header: 'Uploaded On', field: 'created_on', sortable: true },
+    { header: this._TranslateService.instant('data_driven_execution.table_file_name'), field: 'name', sortable: true, class: 'name' },
+    { header: this._TranslateService.instant('data_driven_execution.table_size'), field: 'size', sortable: true },
+    { header: this._TranslateService.instant('data_driven_execution.table_uploaded_by'), field: 'uploaded_by.name', sortable: true },
+    { header: this._TranslateService.instant('data_driven_execution.table_uploaded_on'), field: 'created_on', sortable: true },
     {
-      header: 'Options',
+      header: this._TranslateService.instant('data_driven_execution.table_options'),
       field: 'options',
-      // pinned: 'right',
       right: '0px',
       type: 'button',
       buttons: [
@@ -87,7 +88,7 @@ export class DataDrivenExecution implements OnInit {
           type: 'icon',
           text: 'play_circle_fill',
           icon: 'play_circle_fill',
-          tooltip: 'Execute this file',
+          tooltip: this._TranslateService.instant('data_driven_execution.table_execute_this_file'),
           color: 'primary',
           click: (result: UploadedFile) => {
             this.execute_data_driven(result, this);
@@ -99,7 +100,7 @@ export class DataDrivenExecution implements OnInit {
           type: 'icon',
           text: 'delete',
           icon: 'delete',
-          tooltip: 'Delete result',
+          tooltip: this._TranslateService.instant('data_driven_execution.table_delete_result'),
           color: 'warn',
           click: (result: UploadedFile) => {
             this.onDeleteFile(result);
@@ -130,7 +131,8 @@ export class DataDrivenExecution implements OnInit {
     private cdRef: ChangeDetectorRef,
     private _store: Store,
     private _dialog: MatDialog,
-    public dialogRef: MatDialogRef<DataDrivenExecution>
+    public dialogRef: MatDialogRef<DataDrivenExecution>,
+    public _TranslateService: TranslateService
   ) {}
 
   ngOnInit() {
@@ -173,7 +175,7 @@ export class DataDrivenExecution implements OnInit {
     }
 
     const downloading = this._snackBar.open(
-      'Generating file to download, please be patient.',
+      this._TranslateService.instant('data_driven_execution.generating_file'),
       'OK',
       { duration: 10000 }
     );
@@ -326,7 +328,7 @@ export class DataDrivenExecution implements OnInit {
           if (err.status >= 400 && err.status < 500) {
             const error = JSON.parse(err.error);
             parent._snackBar.open(
-              `Error: ${error.error}. Please review the data and try again.`,
+              `Error: ${error.error}. ` + this._TranslateService.instant('data_driven_execution.snackbar_error'),
               'OK',
               {
                 duration: 30000,
@@ -372,8 +374,32 @@ export class DataDrivenExecution implements OnInit {
 
             row.columns = [];
             keys.forEach(key => {
+              console.log(key)
+              let header = key;
+              if (key === 'passed'){
+                header = this._TranslateService.instant('data_driven_execution.columns.passed');
+              }
+              else if (key === 'step_name') {
+                header = this._TranslateService.instant('data_driven_execution.columns.step_name');
+              } else if (key === 'department') {
+                header = this._TranslateService.instant('data_driven_execution.columns.department');
+              } else if (key === 'application') {
+                header = this._TranslateService.instant('data_driven_execution.columns.application');
+              } else if (key === 'environment') {
+                header = this._TranslateService.instant('data_driven_execution.columns.environment');
+              } else if (key === 'feature_name') {
+                header = this._TranslateService.instant('data_driven_execution.columns.feature_name');
+              } else if (key === 'feature_result') {
+                header = this._TranslateService.instant('data_driven_execution.columns.feature_result');
+              } else if (key === 'result_date_(utc)') {
+                header = this._TranslateService.instant('data_driven_execution.columns.result_date_(utc)');
+              } else if (key === 'execution_time_(ms)') {
+                header = this._TranslateService.instant('data_driven_execution.columns.execution_time_(ms)');
+              } else if (key === 'feature_result_id_+_step_result_id') {
+                header = this._TranslateService.instant('data_driven_execution.columns.id_feature');
+              }
               row.columns.push({
-                header: key,
+                header: header,
                 field: key,
               });
             });
@@ -385,8 +411,10 @@ export class DataDrivenExecution implements OnInit {
             row.file_data = [{ status: err.status, error: error }];
             row.total = 1;
             row.columns = [
-              { header: 'Status Code', field: 'status' },
-              { header: 'Error', field: 'error.error' },
+              { header: this._TranslateService.instant('data_driven_execution.status_code'), 
+                field: 'status' },
+              { header: this._TranslateService.instant('data_driven_execution.error'), 
+                field: 'error.error' },
             ];
             row.showPagination = false;
           }
