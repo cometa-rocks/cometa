@@ -346,6 +346,24 @@
     "snackbar_change_order_variable": "Please save changes in order to edit another variable.",
     "action_succesfully": "Action has been completed successfully!"
   },
+  "recent_list": {
+    "component": {
+      "run": "Run",
+      "id": "ID",
+      "name": "Name",
+      "status": "Status",
+      "last_run": "Last run",
+      "last_duration": "Last duration",
+      "last_steps": "Last steps", 
+      "last_modification": "Last modification",
+      "department": "Department",
+      "application": "Application",
+      "environment": "Environment",
+      "browsers": "Browsers",
+      "schedule": "Schedule", 
+      "options": "Options"
+    }
+  },
   "edit_feature":{
     "depends_on_other_feature": "If enabled, only a third feature can run this feature",
     "send_mail": "If enabled, a new section will be displayed for sending the results to the desired email address.",

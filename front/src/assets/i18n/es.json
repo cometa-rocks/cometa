@@ -342,6 +342,24 @@
     "snackbar_change_order_variable": "Por favor, guarda los cambios para editar otra variable.",
     "action_succesfully": "¡La acción se ha completado con éxito!"
   },
+  "recent_list": {
+    "component": {
+      "run": "Ejecutar",
+      "id": "ID",
+      "name": "Nombre",
+      "status": "Estatus",
+      "last_run": "Última ejecución",
+      "last_duration": "Tiempo final",
+      "last_steps": "Últimos pasos", 
+      "last_modification": "Últimas modificaciones",
+      "department": "Departamento",
+      "application": "Aplicación",
+      "environment": "Entorno",
+      "browsers": "Navegadores",
+      "schedule": "Programador", 
+      "options": "Opciones"
+    }
+  },
   "headers": {
     "status": "Estado",
     "date": "Fecha",

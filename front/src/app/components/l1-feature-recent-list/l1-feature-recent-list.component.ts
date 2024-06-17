@@ -44,7 +44,7 @@ import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
 import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
 import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
@@ -112,7 +112,8 @@ export class L1FeatureRecentListComponent {
     private _dialog: MatDialog,
     private _api: ApiService,
     private _snackBar: MatSnackBar,
-    private log: LogService
+    private log: LogService,
+    private _TranslateService: TranslateService
   ) {}
 
   // Contains the new structure of the features / folders
@@ -142,26 +143,34 @@ export class L1FeatureRecentListComponent {
    * The format is due to mtx-grid. To see more go to https://ng-matero.github.io/extensions/components/data-grid/overview
    */
   columns = [
-    { header: 'Run', field: 'type' },
-    { header: 'ID', field: 'id', sortable: true },
+    { header: this._TranslateService.instant('recent_list.component.run'), field: 'type' },
+    { header: this._TranslateService.instant('recent_list.component.id'), field: 'id', sortable: true },
     {
-      header: 'Name',
+      header: this._TranslateService.instant('recent_list.component.name'),
       field: 'name',
       pinned: 'left',
       class: 'name',
       sortable: true,
     },
-    { header: 'Status', field: 'status', sortable: true },
-    { header: 'Last run', field: 'date', sortable: true },
-    { header: 'Last duration', field: 'time', sortable: true },
-    { header: 'Last steps', field: 'total', sortable: true },
-    { header: 'Last modification', field: 'modification', sortable: true },
-    { header: 'Department', field: 'department', sortable: true },
-    { header: 'Application', field: 'app', sortable: true },
-    { header: 'Environment', field: 'environment', sortable: true },
-    { header: 'Browsers', field: 'browsers', sortable: true },
-    { header: 'Schedule', field: 'schedule', sortable: true },
-    { header: 'Options', field: 'reference' },
+    { header: this._TranslateService.instant('recent_list.component.status'), 
+      field: 'status', 
+      sortable: true },
+    { header: this._TranslateService.instant('recent_list.component.last_run'), 
+      field: 'date', 
+      sortable: true },
+    { header: this._TranslateService.instant('recent_list.component.last_duration'), 
+      field: 'time', 
+      sortable: true },
+    { header: this._TranslateService.instant('recent_list.component.last_steps'), 
+      field: 'total', 
+      sortable: true },
+    { header: this._TranslateService.instant('recent_list.component.last_modification'), field: 'modification', sortable: true },
+    { header: this._TranslateService.instant('recent_list.component.department'), field: 'department', sortable: true },
+    { header: this._TranslateService.instant('recent_list.component.application'), field: 'app', sortable: true },
+    { header: this._TranslateService.instant('recent_list.component.environment'), field: 'environment', sortable: true },
+    { header: this._TranslateService.instant('recent_list.component.browsers'), field: 'browsers', sortable: true },
+    { header: this._TranslateService.instant('recent_list.component.schedule'), field: 'schedule', sortable: true },
+    { header: this._TranslateService.instant('recent_list.component.options'), field: 'reference' },
   ];
   // Mtx-grid row selection checkbox options
   multiSelectable = true;

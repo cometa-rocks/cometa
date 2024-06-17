@@ -35,6 +35,7 @@
       font-weight: bold;
       color: $column-header-dark;
       z-index: 4 !important;
+      text-align: right;
       &:not(:first-child):not(:last-child):hover {
         background-color: $high-black-opaque;
       }

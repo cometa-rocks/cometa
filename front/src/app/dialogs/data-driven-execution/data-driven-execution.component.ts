@@ -374,7 +374,6 @@ export class DataDrivenExecution implements OnInit {
 
             row.columns = [];
             keys.forEach(key => {
-              console.log(key)
               let header = key;
               if (key === 'passed'){
                 header = this._TranslateService.instant('data_driven_execution.columns.passed');
