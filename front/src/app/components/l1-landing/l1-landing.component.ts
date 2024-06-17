@@ -180,8 +180,22 @@ export class L1LandingComponent implements OnInit {
   openedAdd: boolean = false; // Checks if the add buttons are opened
   search: string;
   sidenavClosed = false;
+  rows: any[];
 
   ngOnInit() {
+
+    // Suscribirse al observable para recibir los datos
+    this.data$.subscribe(
+      (data) => {
+        console.log('Emntero:', data);
+        console.log('Datos recibidos:', data.rows);
+      },
+      (error) => {
+        console.error('Error al obtener datos:', error);
+      }
+    );
+
+    
     this.log.msg('1', 'Inicializing component...', 'landing');
     // #3414 -------------------------------------------------start
     // check if there are folder ids in url params, if so redirect to that folder
@@ -197,6 +211,7 @@ export class L1LandingComponent implements OnInit {
     this.aciveList$.pipe(untilDestroyed(this)).subscribe(value => {
       localStorage.setItem('co_active_list', value); // Initialize the recentList_active variable in the local storage
     });
+
   }
 
   /**
