@@ -122,6 +122,36 @@ export class L1FeatureItemListComponent implements OnInit {
     this.canDeleteFeature$ = this._store.select(
       CustomSelectors.HasPermission('delete_feature', this.feature_id)
     );
+
+    console.log('Item antes de ordenar:', this.item);
+
+    if (typeof this.item === 'object' && !Array.isArray(this.item)) {
+      this.item = this.ordenarObjetoPorName(this.item);
+      console.log('Item después de ordenar:', this.item);
+    } else {
+      console.error('Item no es un objeto válido:', this.item);
+    }
+  }
+
+  ordenarObjetoPorName(objeto: any): any {
+      // Obtener las claves del objeto y ordenarlas
+    const keysSorted = Object.keys(objeto).sort((keyA, keyB) => {
+      const nameA = objeto[keyA]?.name || ''; // Obtener el nombre del objeto A o cadena vacía si no tiene 'name'
+      const nameB = objeto[keyB]?.name || ''; // Obtener el nombre del objeto B o cadena vacía si no tiene 'name'
+
+      // Comparar los nombres ignorando mayúsculas y minúsculas
+      return nameA.localeCompare(nameB);
+    });
+
+  // Crear un nuevo objeto ordenado
+  const objetoOrdenado: any = {};
+  keysSorted.forEach(key => {
+    objetoOrdenado[key] = objeto[key];
+  });
+
+  console.log("Aqui: ",  objetoOrdenado);
+
+  return objetoOrdenado;
   }
 
   async goLastRun() {
