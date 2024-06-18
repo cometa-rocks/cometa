@@ -180,22 +180,33 @@ export class L1LandingComponent implements OnInit {
   openedAdd: boolean = false; // Checks if the add buttons are opened
   search: string;
   sidenavClosed = false;
-  rows: any[];
+  table_of_items: any;
 
-  ngOnInit() {
+  ngOnInit() {    
 
-    // Suscribirse al observable para recibir los datos
     this.data$.subscribe(
       (data) => {
-        console.log('Emntero:', data);
-        console.log('Datos recibidos:', data.rows);
+        if (data && data.rows) {
+          this.table_of_items = data.rows;
+          this.table_of_items.sort((itemA, itemB) => {
+            const nameA = itemA.name.toLowerCase();
+            const nameB = itemB.name.toLowerCase();
+            // if feature types are the same, sort
+            if(itemA.type === itemB.type){
+              return nameA.localeCompare(nameB); 
+            }
+            else{
+              // When all is sorted, we sort first features f'e'.. first f'o'..second
+              return itemA.type === "feature" ? -1 : 1;
+            }
+          });
+        }
       },
       (error) => {
-        console.error('Error al obtener datos:', error);
+        console.error('Error fetching data:', error);
       }
     );
 
-    
     this.log.msg('1', 'Inicializing component...', 'landing');
     // #3414 -------------------------------------------------start
     // check if there are folder ids in url params, if so redirect to that folder

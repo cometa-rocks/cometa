@@ -88,7 +88,6 @@ export class L1FeatureItemListComponent implements OnInit {
 
   // Receives the item from the parent component
   @Input() item: any;
-  @Input() rows: any[];
   @ViewSelectSnapshot(UserState.GetPermission('create_feature'))
   canCreateFeature: boolean;
   @Input() feature_id: number;
@@ -123,17 +122,6 @@ export class L1FeatureItemListComponent implements OnInit {
     this.canDeleteFeature$ = this._store.select(
       CustomSelectors.HasPermission('delete_feature', this.feature_id)
     );
-
-    console.log(this.rows);
- 
-    // console.log('Item antes de ordenar:', this.table.rows);
-
-    // if (typeof this.item === 'object' && !Array.isArray(this.item)) {
-    //   this.item = this.ordenarObjetoPorName(this.item);
-    //   console.log('Item después de ordenar:', this.item);
-    // } else {
-    //   console.error('Item no es un objeto válido:', this.item);
-    // }
   }
 
   ordenarObjetoPorName(objeto: any): any {
