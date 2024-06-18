@@ -16,6 +16,7 @@ import { Store } from '@ngxs/store';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { NgIf } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'header',
@@ -40,7 +41,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     ]),
   ],
   standalone: true,
-  imports: [RouterLink, NgIf, MatLegacyTooltipModule, RouterLinkActive],
+  imports: [RouterLink, NgIf, MatLegacyTooltipModule, RouterLinkActive, TranslateModule],
 })
 export class HeaderComponent {
   @ViewSelectSnapshot(UserState.GetPermission('view_admin_panel'))

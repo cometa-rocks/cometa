@@ -11,13 +11,14 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'cometa-l1-feature-team-list',
   templateUrl: './l1-feature-team-list.component.html',
   styleUrls: ['./l1-feature-team-list.component.scss'],
   standalone: true,
-  imports: [MatIconModule],
+  imports: [MatIconModule, TranslateModule],
 })
 export class L1FeatureTeamListComponent implements OnInit {
   constructor() {}

@@ -1,53 +1,67 @@
 <div class="general">
   <ng-container *ngLet="details$ | async as details">
     <ng-container *ngLet="account$ | async as account">
-      <h3>USER</h3>
+      <h3>
+        {{ 'profile.h3_user' | translate }}
+      </h3>
       <!-- Bloque de información del usuario -->
       <div class="user-container">
         <div class="user-row">
-          <div>User: </div><div class="name">{{ account.name }}</div>
+          <div>
+            {{ 'profile.div_user' | translate }}
+          </div>
+          <div class="name">
+            {{ account.name }}
+          </div>
         </div>
         <div class="user-row">
-          <div>Email: </div><div class="email" *ngIf="account.email">{{ account.email }}</div>
+          <div>
+            {{ 'profile.email' | translate }}
+          </div>
+          <div class="email" *ngIf="account.email">
+            {{ account.email }}
+          </div>
         </div>
         <div class="user-row">
-          <div>User Role: </div><div class="type">{{ account.user_permissions.permission_name }}</div>
+          <div>
+            {{ 'profile.user_role' | translate }}
+          </div><div class="type">{{ account.user_permissions.permission_name }}</div>
         </div>
         <div class="user-row">
-          <div>Created on: </div><div class="extra-info">{{ account.created_on | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}</div>
+          <div>
+            {{ 'profile.created_on' | translate }}
+          </div><div class="extra-info">{{ account.created_on | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}</div>
         </div>
         <div class="user-row">
-          <div>Last login: </div><div class="extra-info">{{ account.last_login | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}</div>
+          <div>
+            {{ 'profile.last_login' | translate }}
+          </div><div class="extra-info">{{ account.last_login | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}</div>
         </div>
         <div class="user-options">
-          <button (click)="inviteUser()" class="see-again" mat-stroked-button>Invite to my team</button>
+          <button (click)="inviteUser()" class="see-again" mat-stroked-button>
+            {{ 'profile.invite_to_my_team' | translate }}
+          </button>
         </div>
         <ng-container *ngIf="account.stripe_customer_id">
-          <h3>PAYMENTS</h3>
+          <h3>
+            {{ 'profile.h3_payment' | translate }}
+          </h3>
           <button (click)="goCustomerPortal()" class="see-again stripe" mat-button>
-            Stripe Customer Portal
+            {{ 'profile.button_stripe' | translate }}
           </button>
           <br />
           <br />
           <p>
-            The above button will redirect you to your custom portal in Stripe,
-            there you will be able to manage your subscriptions, payment methods and
-            invoices.
+            {{ 'profile.p_stripe' | translate }}
           </p>
-          <h3>USAGE INVOICES</h3>
+          <h3>
+            {{ 'profile.h3_usage_invoices' | translate }}
+          </h3>
           <ng-container *ngIf="invoices$ | async as invoices">
             <ng-container *ngIf="invoices.length > 0; else noInvoices">
               <table class="invoices">
                 <thead>
-                  <tr>
-                    <th>Period start</th>
-                    <th>Period end</th>
-                    <th>Usage</th>
-                    <th>Cloud</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>View invoice</th>
-                  </tr>
+                  {{ 'profile.table_invoices' | translate }}
                 </thead>
                 <tbody>
                   <tr *ngFor="let invoice of invoices">
@@ -61,13 +75,17 @@
                         invoice.period_end | amParse | amDateFormat: 'dd.MM.yyyy'
                       }}
                     </td>
-                    <td>{{ invoice.hours }} hours</td>
+                    <td>
+                      {{ invoice.hours }} {{ 'profile.td_hours' | translate }}
+                    </td>
                     <td>{{ invoice.cloud | titlecase }}</td>
                     <td>
                       <ng-container *ngIf="invoice.total > 0; else free">
                         {{ invoice.total }}
                       </ng-container>
-                      <ng-template #free>Free</ng-template>
+                      <ng-template #free>
+                        {{ invoice.hours }} {{ 'profile.free' | translate }}
+                      </ng-template>
                     </td>
                     <td>{{ invoice.status | titlecase }}</td>
                     <td>
@@ -79,28 +97,34 @@
                 </tbody>
               </table>
             </ng-container>
-            <ng-template #noInvoices> No invoices found. </ng-template>
+            <ng-template #noInvoices> 
+              {{ 'profile.no_invoices' | translate }}
+            </ng-template>
           </ng-container>
-          <h3>BUDGETS</h3>
+          <h3>
+            {{ 'profile.h3_budgets' | translate }}
+          </h3>
           <p *ngIf="details?.usage_money">
-            Current usage: {{ details.usage_money }} €
+            {{ 'profile.budgets_current_usage' | translate }} {{ details.usage_money }} €
           </p>
           <p>
-            You can select a maximum amount of money you want to spend on running
-            features.
+            {{ 'profile.budgets_p' | translate }}
           </p>
           <div class="description-option">
             <mat-slide-toggle
               color="primary"
               [checked]="account.settings?.enable_budget"
               (change)="handleAccountSetting($event, 'enable_budget')"
-              >Enable maximum budget</mat-slide-toggle
-            >
+              >
+              {{ 'profile.budget_mat-slide' | translate }}
+            </mat-slide-toggle>
             <mat-form-field
               appearance="outline"
               class="budget-digit expand-on-show"
               [class.show]="account.settings?.enable_budget">
-              <mat-label>Select budget</mat-label>
+              <mat-label>
+                {{ 'profile.select_budget' | translate }}
+              </mat-label>
               <input
                 matInput
                 [value]="account.settings?.budget || 0"
@@ -111,24 +135,30 @@
           </div>
           <ng-container *ngIf="account.settings?.enable_budget">
             <br />
-            <p>Behavior on scheduled features:</p>
+            <p>
+              {{ 'profile.select_budget' | translate }}
+            </p>
             <mat-radio-group
               [value]="account.settings?.budget_schedule_behavior || 'prevent'"
               (change)="handleAccountSetting($event, 'budget_schedule_behavior')">
               <mat-radio-button color="primary" value="prevent">
-                Prevent feature from running </mat-radio-button
+                {{ 'profile.behaviour_prevent_button' | translate }}
+              </mat-radio-button
               ><br /><br />
               <mat-radio-button color="primary" value="continue">
-                Ignore budget and run feature </mat-radio-button
+                {{ 'profile.behaviour_ignore_button' | translate }}
+              </mat-radio-button
               ><br />
             </mat-radio-group>
           </ng-container>
         </ng-container>
       </div>
-      <h3>Global Settings</h3>
+      <h3>
+        {{ 'profile.h3_global_settings' | translate }}
+      </h3>
       <div class="global-settings">
         <p>
-          Language:
+          {{ 'profile.h3_p_global_settings' | translate }}
           <!-- Language selection options -->
           <mat-form-field>
             <mat-select [value]="config$.language">
@@ -148,7 +178,7 @@
             (click)="reloadLang()"
             class="reload-translations"
             mat-stroked-button>
-            Reload language files
+            {{ 'profile.reload_lenguage' | translate }}
           </button>
         </div>
         <ul>
@@ -157,7 +187,9 @@
               color="primary"
               [checked]="account.settings?.disableAnimations"
               (change)="handleDisableAnimations($event)"
-              >Disable Animations</mat-slide-toggle
+              >
+              {{ 'profile.mat-slide_animations' | translate }}
+              </mat-slide-toggle
             >
           </li>
           <li>
@@ -165,8 +197,9 @@
               color="primary"
               [checked]="account.settings?.percentMode"
               (change)="handlePercentMode($event)"
-              >Show percent values in details</mat-slide-toggle
-            >
+              >
+              {{ 'profile.mat-slide_percent' | translate }}
+              </mat-slide-toggle>
           </li>
           <li>
             <!-- <mat-slide-toggle color="primary" labelPosition="after" [checked]="account.settings?.useNewDashboard" (change)="toggleNewDashboard($event)">Use new dashboard by default</mat-slide-toggle>
@@ -181,8 +214,9 @@
                 [matTooltip]="'need_help.can_help' | translate"
                 [checked]="account.settings?.can_help"
                 (change)="handleAccountSetting($event, 'can_help')"
-                >I can help</mat-slide-toggle
-              >
+                >
+                {{ 'profile.mat-slide_help' | translate }}
+                </mat-slide-toggle>
             </ng-container>
           </li>
           <li>
@@ -191,7 +225,7 @@
               labelPosition="after"
               [checked]="account.settings?.logWebsockets"
               (change)="toggleLogWebsockets($event)">
-              Log WebSockets into Console
+              {{ 'profile.mat-slide_sockets' | translate }}
             </mat-slide-toggle>
           </li>
           <li>
@@ -204,20 +238,23 @@
                   : true
               "
               (change)="handleToggle($event, 'recordVideo')"
-              >Record Video</mat-slide-toggle
-            >
+              >
+              {{ 'profile.mat-slide_record' | translate }}
+              </mat-slide-toggle>
           </li>
         </ul>
         <div class="edit-feature-toggles">
           <p>
-            Pre-select default options for department, application, environment and
-            record video when creating a new feature.
+            {{ 'profile.p_pre-select' | translate }}
           </p>
           <ul>
             <li>
               <!-- Department pre-selection options -->
               <mat-form-field>
-                <mat-label class="custom-label">Preselect Department</mat-label>
+                <mat-label class="custom-label">
+                  {{ 'profile.mat-label_pres_dep' | translate }}
+                  <!-- Preselect Department -->
+                </mat-label>
                 <mat-select [value]="account.settings?.preselectDepartment">
                   <mat-option
                     (click)="
@@ -233,7 +270,10 @@
             <li>
               <!-- Application pre-selection options -->
               <mat-form-field>
-                <mat-label class="custom-label">Preselect Application</mat-label>
+                <mat-label class="custom-label">
+                  {{ 'profile.mat-label_pres_apl' | translate }}
+                  <!-- Preselect Application -->
+                </mat-label>
                 <mat-select [value]="account.settings?.preselectApplication">
                   <mat-option
                     (click)="
@@ -249,7 +289,10 @@
             <li>
               <!-- Environment pre-selection options -->
               <mat-form-field>
-                <mat-label class="custom-label">Preselect Environment</mat-label>
+                <mat-label class="custom-label">
+                  {{ 'profile.mat-label_pres_env' | translate }}
+                  <!-- Preselect Environment -->
+                </mat-label>
                 <mat-select [value]="account.settings?.preselectEnvironment">
                   <mat-option
                     (click)="
@@ -268,10 +311,14 @@
           </ul>
         </div>
       </div>  
-      <h3>Feature Settings</h3>
+      <h3>
+        {{ 'profile.h3_feat_settings' | translate }}
+        <!-- Feature Settings -->
+      </h3>
       <div class="feature-settings">
         <p>
-          Select which sections of Add/Edit feature are closed by default.
+          {{ 'profile.h3_p_add_edit' | translate }}
+          <!-- Select which sections of Add/Edit feature are closed by default. -->
         </p>
         <ul>
           <li>
@@ -280,8 +327,10 @@
               labelPosition="after"
               [checked]="account.settings?.hideInformation"
               (change)="handleToggle($event, 'hideInformation')"
-              >Information</mat-slide-toggle
-            >
+              >
+              {{ 'profile.mat-slide_info' | translate }}
+              <!-- Information -->
+            </mat-slide-toggle>
           </li>
           <li>
             <mat-slide-toggle
@@ -289,8 +338,10 @@
               labelPosition="after"
               [checked]="account.settings?.hideSendMail"
               (change)="handleToggle($event, 'hideSendMail')"
-              >Email</mat-slide-toggle
-            >
+              >
+              {{ 'profile.mat-slide_email' | translate }}
+              <!-- Email -->
+            </mat-slide-toggle>
           </li>
           <li>
             <mat-slide-toggle
@@ -298,8 +349,10 @@
               labelPosition="after"
               [checked]="account.settings?.hideBrowsers"
               (change)="handleToggle($event, 'hideBrowsers')"
-              >Browser selection</mat-slide-toggle
-            >
+              >
+              {{ 'profile.mat-slide_browser' | translate }}
+              <!-- Browser selection -->
+              </mat-slide-toggle>
           </li>
           <li>
             <mat-slide-toggle
@@ -307,8 +360,10 @@
               labelPosition="after"
               [checked]="account.settings?.hideUploadedFiles"
               (change)="handleToggle($event, 'hideUploadedFiles')"
-              >Uploaded files</mat-slide-toggle
-            >
+              >
+              {{ 'profile.mat-slide_uploaded' | translate }}
+              <!-- Uploaded files -->
+              </mat-slide-toggle>
           </li>
           <li>
             <mat-slide-toggle
@@ -316,8 +371,10 @@
               labelPosition="after"
               [checked]="account.settings?.hideSteps"
               (change)="handleToggle($event, 'hideSteps')"
-              >Steps definition</mat-slide-toggle
-            >
+              >
+              {{ 'profile.mat-slide_steps' | translate }}
+              <!-- Steps definition -->
+              </mat-slide-toggle>
           </li>
           <li>
             <mat-slide-toggle
@@ -325,8 +382,10 @@
               labelPosition="after"
               [checked]="account.settings?.hideSchedule"
               (change)="handleToggle($event, 'hideSchedule')"
-              >Schedule</mat-slide-toggle
-            >
+              >
+              {{ 'profile.mat-slide_schedule' | translate }}
+              <!-- Schedule -->
+              </mat-slide-toggle>
           </li>
           <li>
             <mat-slide-toggle
@@ -334,12 +393,18 @@
             labelPosition="after"
             [checked]="account.settings?.continue_on_failure"
             (change)="handleAccountSetting($event, 'continue_on_failure')"
-            >Continue on failure</mat-slide-toggle>
+            >
+            {{ 'profile.mat-slide_continue' | translate }}
+            <!-- Continue on failure -->
+            </mat-slide-toggle>
           </li>
         </ul>
       </div>
       <ng-container *ngLet="tours$ | async as tours">
-        <h3>BADGES</h3>
+        <h3>
+          {{ 'profile.h3_badges' | translate }}
+          <!-- BADGES -->
+        </h3>
         <div class="badge-container">
           <ng-container
             *ngLet="tours | filterByProperty: 'completed' : true as toursCompleted">
@@ -349,18 +414,25 @@
                 class="badge"
                 *ngFor="let tour of toursCompleted">
                 <i class="icon"></i>
-                <div class="text">
-                  You have completed the <i>{{ tour.name }}</i> tour
+                <div class="text" [innerHTML]="'profile.div_badges' | translate:{'tour.name': tour.name}">
+                  <!-- You have completed the <i>{{ tour.name }}</i> tour -->
                 </div>
                 <button (click)="startTour(tour)" class="see-again" mat-button>
-                  See again
+                  {{ 'profile.button_badges' | translate }}
+                  <!-- See again -->
                 </button>
               </div>
             </ng-container>
-            <ng-template #noBadges>No badges found.</ng-template>
+            <ng-template #noBadges>
+              {{ 'profile.template_no_badges' | translate }}
+              <!-- No badges found. -->
+            </ng-template>
           </ng-container>
         </div>
-        <h3>TOURS</h3>
+        <h3>
+          {{ 'profile.h3_tours' | translate }}
+          <!-- TOURS -->
+        </h3>
         <div class="tour-container">
           <p>{{ 'user.tour_description' | translate }}</p>
           <div
@@ -375,16 +447,20 @@
         <div class="integration-container">
           <p>{{ 'user.webhooks_desc' | translate }}</p>
           <div class="int-dept" *ngFor="let dept of integrationsDept | keyvalue">
-            <div class="dept-name">Department {{ dept.key }}:</div>
+            <div class="dept-name">
+              {{ 'profile.integrations_department' | translate }} {{ dept.key }}:
+            </div>
             <div
               class="integration"
               *ngFor="let integration of dept.value; let i = index">
               <div class="icon" [ngClass]="integration.application"></div>
               <div class="details">
                 <div class="description" *ngIf="integration.description as desc">
-                  Description: {{ desc }}
+                  {{ 'profile.intergations_description' | translate }} {{ desc }}
                 </div>
-                <div class="hook">Webhook URL: {{ integration.hook }}</div>
+                <div class="hook">
+                  {{ 'profile.integrations_webhooks' | translate }} {{ integration.hook }}
+                </div>
                 <div class="send">
                   {{ 'integrations.send_on' | translate }}:
                   {{ integration.send_on | sendOn }}

@@ -7,6 +7,15 @@
     "about": "About",
     "help": "Help"
   },
+  "help": {
+    "main": "MAIN",
+    "main_old": "OLD MAIN",
+    "pricing": "pricing",
+    "about": "ABOUT",
+    "help": "HELP",
+    "admin": "ADMIN",
+    "logout": "LOGOUT"
+  },
   "MAIN_VIEW": {
     "DATE": "DATE"
   },
@@ -346,6 +355,9 @@
     "snackbar_change_order_variable": "Please save changes in order to edit another variable.",
     "action_succesfully": "Action has been completed successfully!"
   },
+  "upcoming_feature": {
+    "general": "Upcoming feature! Please, come again later."
+  },
   "recent_list": {
     "component": {
       "run": "Run",
@@ -362,7 +374,66 @@
       "browsers": "Browsers",
       "schedule": "Schedule", 
       "options": "Options"
-    }
+    },
+    "modify": "Modify", 
+    "clone": "Clone",
+    "move": "Move",
+    "delete": "Delete",
+    "open": "Open"
+  },
+  "profile": {
+    "h3_user": "USER",
+    "div_user": "User: ",
+    "email": "Email: ",
+    "user_role": "User Role: ",
+    "created_on": "Created on: ", 
+    "last_login": "Last login: ",
+    "invite_to_my_team": "Invite to my team",
+    "h3_payment": "PAYMENTS",
+    "button_stripe": "Stripe Customer Portal",
+    "p_stripe": "The above button will redirect you to your custom portal in Stripe, there you will be able to manage your subscriptions, payment methods and invoices.",
+    "h3_usage_invoices": "USAGE INVOICES",
+    "table_invoices": "<tr><th>Period start</th><th>Period end</th><th>Usage</th><th>Cloud</th><th>Total</th><th>Status</th><th>View invoice</th></tr>",
+    "td_hours": " hours",
+    "free": "Free",
+    "no_invoices": "No invoices found.",
+    "h3_budgets": "BUDGETS",
+    "budgets_current_usage": "Current usage: ",
+    "budgets_p": "You can select a maximum amount of money you want to spend on running features.",
+    "budget_mat-slide": "Enable maximum budget",
+    "select_budget": "Select budget",
+    "behaviour_p": "Behavior on scheduled features: ",
+    "behaviour_prevent_button": "Prevent feature from running",
+    "behaviour_ignore_button": "Ignore budget and run feature",
+    "h3_global_settings": "Global Settings",
+    "h3_p_global_settings": "Language: ",
+    "reload_lenguage": "Reload language files",
+    "mat-slide_animations": "Disable Animations",
+    "mat-slide_percent": "Show percent values in details",
+    "mat-slide_help": "I can help",
+    "mat-slide_sockets": "Log WebSockets into Console",
+    "mat-slide_record": "Record Video",
+    "p_pre-select": "Pre-select default options for department, application, environment and record video when creating a new feature.",
+    "mat-label_pres_dep": "Preselect Department",
+    "mat-label_pres_apl": "Preselect Application",
+    "mat-label_pres_env": "Preselect Environment",
+    "h3_feat_settings": "Feature Settings",
+    "h3_p_add_edit": "Select which sections of Add/Edit feature are closed by default.",
+    "mat-slide_info": "Information",
+    "mat-slide_email": "Email", 
+    "mat-slide_browser": "Browser selection", 
+    "mat-slide_uploaded": "Uploaded files", 
+    "mat-slide_steps": "Steps definition", 
+    "mat-slide_schedule": "Schedule", 
+    "mat-slide_continue": "Continue on failure",
+    "h3_badges": "BADGES",
+    "div_badges": "You have completed the <i>{{ tour.name }}</i> tour",
+    "button_badges": "See again",
+    "template_no_badges": "No badges found.",
+    "h3_tours": "TOURS",
+    "integrations_department": "Department: ",
+    "intergations_description": "Description: ",
+    "integrations_webhooks": "Webhook URL: "
   },
   "edit_feature":{
     "depends_on_other_feature": "If enabled, only a third feature can run this feature",
