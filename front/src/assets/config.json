@@ -233,6 +233,16 @@
   ],
   "changelog": [
     {
+      "version": "2.8.357",
+      "date": "2024-06-18",
+      "features": [
+        {
+          "title": "#4694 Sort features and folders ",
+          "description": "Sort features and folders in landing page (Tree view, Tiles view, List view)"
+        }
+      ]
+    },
+    {
       "version": "2.8.355",
       "date": "2024-06-07",
       "bugfixes": [
@@ -241,7 +251,7 @@
     },
     {
       "version": "2.8.354",
-      "date": "2024-06-5",
+      "date": "2024-06-05",
       "features": [
         {
           "title": "#4694 Shortcuts conditions on add step button",
@@ -251,7 +261,7 @@
     },
     {
       "version": "2.8.353",
-      "date": "2024-06-4",
+      "date": "2024-06-04",
       "features": [
         {
           "title": "#4694 Feature: Shortcuts on Feature, added matttoltips. About: Changed max-width. Profile: Changed response on button 'invite to my team'",
@@ -261,7 +271,7 @@
     },
     {
       "version": "2.8.352",
-      "date": "2024-06-3",
+      "date": "2024-06-03",
       "features": [
         {
           "title": "#4694 Shortcuts Data driven",
@@ -271,7 +281,7 @@
     },
     {
       "version": "2.8.351",
-      "date": "2024-06-3",
+      "date": "2024-06-03",
       "features": [
         {
           "title": "#4694 Changed hotkeys section, put tables",
@@ -281,7 +291,7 @@
     },
     {
       "version": "2.8.350",
-      "date": "2024-06-1",
+      "date": "2024-06-01",
       "features": [
         {
           "title": "#4694 Changes made in feature, toggle(show-more/less)",
@@ -291,7 +301,7 @@
     },
     {
       "version": "2.8.349",
-      "date": "2024-06-1",
+      "date": "2024-06-01",
       "features": [
         {
           "title": "#4694 Sidebar tooltip - folder tree",
