@@ -3,6 +3,7 @@ export enum KEY_CODES {
   LEFT_ARROW = 37,
   SPACE = 32,
   ESCAPE = 27,
+  PLUS = 187,
   E = 69,
   L = 76,
   S = 83,
