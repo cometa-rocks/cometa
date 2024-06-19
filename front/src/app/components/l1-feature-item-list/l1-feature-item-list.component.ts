@@ -124,6 +124,24 @@ export class L1FeatureItemListComponent implements OnInit {
     );
   }
 
+  async goLastRun() {
+    const feature = await observableLast<Feature>(this.feature$);
+    this._router.navigate(
+      [
+        `/${feature.info.app_name}`,
+        feature.info.environment_name,
+        feature.info.feature_id,
+        'step',
+        feature.info.feature_result_id,
+      ],
+      {
+        queryParams: {
+          runNow: 1,
+        },
+      }
+    );
+  }
+
   /**
    * Folder control functions
    */
