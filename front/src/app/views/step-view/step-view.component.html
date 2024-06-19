@@ -74,6 +74,10 @@
           </div>
           <div class="title">FAIL</div>
         </div>
+        <div class="circular-progress" *ngIf="test">
+          <img [responsive]="true" src="assets/icons/{{ test.browser.browser.toLowerCase() }}.svg" alt="Browser url not found">
+          <div class="title">{{test.browser.browser_version}}</div>
+        </div>
       </div>
       <div class="total_pixel" [@info]="test">
         <div class="red">
