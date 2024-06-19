@@ -124,45 +124,6 @@ export class L1FeatureItemListComponent implements OnInit {
     );
   }
 
-  ordenarObjetoPorName(objeto: any): any {
-      // Obtener las claves del objeto y ordenarlas
-    const keysSorted = Object.keys(objeto).sort((keyA, keyB) => {
-      const nameA = objeto[keyA]?.name || ''; // Obtener el nombre del objeto A o cadena vacía si no tiene 'name'
-      const nameB = objeto[keyB]?.name || ''; // Obtener el nombre del objeto B o cadena vacía si no tiene 'name'
-
-      // Comparar los nombres ignorando mayúsculas y minúsculas
-      return nameA.localeCompare(nameB);
-    });
-
-  // Crear un nuevo objeto ordenado
-  const objetoOrdenado: any = {};
-  keysSorted.forEach(key => {
-    objetoOrdenado[key] = objeto[key];
-  });
-
-  console.log("Aqui: ",  objetoOrdenado);
-
-  return objetoOrdenado;
-  }
-
-  async goLastRun() {
-    const feature = await observableLast<Feature>(this.feature$);
-    this._router.navigate(
-      [
-        `/${feature.info.app_name}`,
-        feature.info.environment_name,
-        feature.info.feature_id,
-        'step',
-        feature.info.feature_result_id,
-      ],
-      {
-        queryParams: {
-          runNow: 1,
-        },
-      }
-    );
-  }
-
   /**
    * Folder control functions
    */
