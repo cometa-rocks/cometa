@@ -1,5 +1,5 @@
 {
-  "version": "2.8.356",
+  "version": "2.8.357",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.357",
+      "date": "2024-06-18",
+      "features": [
+        {
+          "title": "#4694 Sort features and folders ",
+          "description": "Sort features and folders in landing page (Tree view, Tiles view, List view)"
+        }
+      ]
+    },
     {
       "version": "2.8.356",
       "date": "2024-06-17",
