@@ -142,7 +142,10 @@ export class FeatureActionsComponent implements OnInit {
       let hotkeyFound = true;
       switch (event.keyCode) {
         case KEY_CODES.SPACE:
-          this.runNow();
+          const videoInView = document.querySelector("video-player");
+          if(videoInView == null){
+            this.runNow();
+          }
           break;
         case KEY_CODES.E:
           this._sharedActions.dialogActive = true;
