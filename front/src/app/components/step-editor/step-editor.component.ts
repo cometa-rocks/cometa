@@ -739,8 +739,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   importClipboard() {
+    this.sendTextareaFocusToParent(true);
     const ref = this._dialog.open(ImportJSONComponent);
     ref.afterClosed().subscribe(success => {
+      this.sendTextareaFocusToParent(false);
       if (success) {
         let stepsA: any[];
         try {

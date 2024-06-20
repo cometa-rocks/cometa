@@ -1,5 +1,5 @@
 {
-  "version": "2.8.359",
+  "version": "2.8.360",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.360",
+      "date": "2024-06-20",
+      "features": [
+        {
+          "title": "#4694 Conflict shortcut with import Json",
+          "description": "Solved the conflict with the dialog clipboard with the shortcut of edit variable."
+        }
+      ]
+    },
     {
       "version": "2.8.359",
       "date": "2024-06-20",
