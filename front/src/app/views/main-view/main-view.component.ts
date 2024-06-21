@@ -44,6 +44,7 @@ import { BehaveChartTestComponent } from '../../components/behave-charts/behave-
 import { NgClass, NgIf, AsyncPipe, TitleCasePipe } from '@angular/common';
 import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
 import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
+import { ElementRef } from '@angular/core';
 
 @UntilDestroy()
 @Component({
@@ -142,6 +143,7 @@ export class MainViewComponent implements OnInit {
           color: 'primary',
           iif: (result: FeatureResult) => (result.video_url ? true : false),
           click: (result: FeatureResult) => this.openVideo(result),
+          class: 'replay-button',
         },
         {
           type: 'icon',
@@ -264,7 +266,8 @@ export class MainViewComponent implements OnInit {
     private _snack: MatSnackBar,
     private _api: ApiService,
     private _pdfLinkPipe: PdfLinkPipe,
-    private _downloadService: DownloadService
+    private _downloadService: DownloadService,
+    private elementRef: ElementRef
   ) {}
 
   featureId$: Observable<number>;
@@ -339,6 +342,7 @@ export class MainViewComponent implements OnInit {
   }
 
   openVideo(result: FeatureResult) {
+
     this._sharedActions
       .loadingObservable(
         this._sharedActions.checkVideo(result.video_url),
@@ -346,15 +350,25 @@ export class MainViewComponent implements OnInit {
       )
       .subscribe({
         next: _ => {
-          this._dialog.open(VideoComponent, {
+          const dialogRef = this._dialog.open(VideoComponent, {
             backdropClass: 'video-player-backdrop',
             panelClass: 'video-player-panel',
             data: result,
+          });
+
+          dialogRef.afterClosed().subscribe(() => {
+            
+            const targetElement = this.elementRef.nativeElement.ownerDocument.querySelector('.replay-button');
+            if (targetElement) {
+              (targetElement as HTMLElement).blur();
+            }
+
           });
         },
         error: err => this._snack.open('An error ocurred', 'OK'),
       });
   }
+  
 
   /**
    * Clears runs depending on the type of clearing passed
