@@ -18,6 +18,7 @@ RUN mkdir -p /screenshots
 RUN mkdir -p /usr/local/apache2/conf 
 RUN mkdir -p /usr/local/apache2/htdocs
 RUN mkdir -p /usr/local/apache2/htdocs/infra 
+RUN mkdir -p /share/apache2/conf
 
 RUN chown -R cometa:cometa /code
 RUN chmod -R 755 /code
@@ -27,6 +28,8 @@ RUN chown -R cometa:cometa /code/front
 RUN chmod -R 755 /code/front
 RUN chown -R cometa:cometa /usr/local/apache2 
 RUN chmod -R 755 /usr/local/apache2
+RUN chown -R cometa:cometa /share/apache2/conf
+RUN chmod -R 755 /share/apache2/conf
 
 # Set correct permissions for other directories used by the script
 RUN chown -R cometa:cometa /usr/local/apache2/htdocs
@@ -74,8 +77,5 @@ USER cometa
 EXPOSE 80
 EXPOSE 443
 
-# Generate self-signed certificate
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt -subj "/C=US/ST=CA/L=SF/O=CometaRocks/OU=IT/CN=example.com"
-
 # Run Apache in the foreground
-CMD ["/code/front/start_pod.sh"]
+ENTRYPOINT ["/code/front/start_pod.sh","copy-apache-files"]

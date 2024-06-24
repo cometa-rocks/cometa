@@ -8,6 +8,6 @@ services:
     environment:
       - SHARED_DIRECTORY=/data
     volumes:
-      - /home/ubuntu/kubernetes/tanzu/cometa_code_data:/data
+      - /home/ubuntu/kubernetes/nfs_cometa_share:/data
     ports:
       - 2049:2049

@@ -12,7 +12,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain # or another reclaim policy
   nfs:
     path: /data # The NFS share path
-    server: 172.22.225.83 # The NFS server address
+    server: 172.23.255.149 # The NFS server address
 
 ---
 
@@ -44,7 +44,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain # or another reclaim policy
   nfs:
     path: /logs # The NFS share path
-    server: 172.22.225.83 # The NFS server address
+    server: 172.23.255.149 # The NFS server address
 
 ---
 

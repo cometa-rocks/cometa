@@ -29,8 +29,8 @@ RUN touch /app/.jobs
 
 # Change the ownership of the copied directory to 'cometa'
 RUN chown -R cometa:cometa /app
-RUN chown -R cometa:cometa /app/.jobs
-RUN chmod -R 766 /app/.jobs
+RUN chown -R cometa:cometa /app/tmp/.jobs
+RUN chmod -R 766 /app/tmp/.jobs
 
 # Switch to 'cometa' user
 USER cometa

@@ -31,4 +31,4 @@ def get_django_server_url():
 BASE_PATH = os.path.join(Path(__file__).parent.parent)
 logger.debug(f"BASE_PATH {BASE_PATH}")
 # job list file to see how many jobs are scheduled
-JOB_LIST_FILE_PATH = os.path.join(BASE_PATH, ".jobs")
+JOB_LIST_FILE_PATH = os.path.join(BASE_PATH,"tmp", ".jobs")

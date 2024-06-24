@@ -42,8 +42,8 @@ spec:
             subPath: ./db_data
         resources:
           limits:
-            cpu: "1"
-            memory: "1Gi"
+            cpu: "2"
+            memory: "4Gi"
           requests:
             cpu: "0.5"
             memory: "512Mi"

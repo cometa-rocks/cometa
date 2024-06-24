@@ -21,7 +21,7 @@ spec:
       containers:
       - name: cometa-front-container
         # image: cometa/front:latest
-        image: cometa/front:0.1.6
+        image: cometa/front:latest
         ports:
         - containerPort: 8080
         - containerPort: 8443
@@ -52,9 +52,9 @@ spec:
           mountPath: /videos
           subPath: ./data/cometa/videos
         - name: cometa-volume
-          # mountPath: /share
-          mountPath: /code/front/apache-conf/metadata
-          subPath: ./share/metadata
+          mountPath: /share
+          # mountPath: /code/front/apache-conf
+          subPath: ./share/front
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -68,7 +68,7 @@ spec:
         resources:
           limits:
             cpu: "2"
-            memory: "2Gi"
+            memory: "4Gi"
           requests:
             cpu: "1"
             memory: "1Gi"

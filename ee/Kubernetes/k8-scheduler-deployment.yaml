@@ -20,7 +20,7 @@ spec:
         runAsUser: 1200
       containers:
       - name: cometa-scheduler-container
-        image: cometa/scheduler:1.0
+        image: cometa/scheduler:1.1
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -36,7 +36,17 @@ spec:
           value: "cometa-django-service"
         - name: DJANGO_SERVER_PORT
           value: "8000"
+
+        volumeMounts:
+        - name: cometa-volume
+          mountPath: /app/tmp
+          subPath: ./data/scheduler
       restartPolicy: Always
+
+      volumes:
+      - name: cometa-volume
+        persistentVolumeClaim:
+          claimName: cometa-volume-claim
 
 ---
 
