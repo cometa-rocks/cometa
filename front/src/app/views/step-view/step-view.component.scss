@@ -112,6 +112,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 2px;
     @include for-tablet-portrait-up {
       flex: 0 500px;
     }
@@ -121,17 +122,19 @@
   }
 }
 
+
+
 .circular-progress {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 110px;
+  width: 80px;
   .value {
     position: absolute;
     height: 25px;
     width: 100%;
-    top: 35px;
-    font-size: 20pt;
+    top: 30px;
+    font-size: 12pt;
     font-weight: 500;
     margin: auto;
     text-align: center;
@@ -139,15 +142,35 @@
     &::after {
       content: attr(data-value);
       display: block;
-      font-size: 12pt;
+      font-size: 10pt;
       font-weight: 100;
     }
   }
   .title {
-    margin-top: 20px;
+    margin-top: 10px;
     font-weight: bold;
     color: rgba(0, 0, 0, 0.6);
     text-align: center;
+  }
+}
+
+/* Estilos para pantallas más grandes */
+@media (min-width: 600px) {
+  .circular-progress {
+    width: 110px;
+    
+    .value {
+      top: 35px;
+      font-size: 20pt;
+      
+      &::after {
+        font-size: 12pt;
+      }
+    }
+    
+    .title {
+      margin-top: 20px;
+    }
   }
 }
 
@@ -259,29 +282,47 @@
     // flex: 0 60%;
     // max-width: 60%;
     // @include for-tablet-portrait-up {
-    flex: 0 40%;
-    max-width: 40%;
+    flex: 0 30%;
+    max-width: 30%;
+    font-size: 12px;
     // }
+    @include for-phone-landscape-up {
+      flex: 0 40%;
+      max-width: 40%;
+      font-size: 16px;
+    }
   }
 
   .time{
-    flex: 0 20%;
-    max-width: 20%;
+    flex: 0 15%;
+    max-width: 15%;
+    font-size: 12px;
     text-align: center;
+    @include for-phone-landscape-up {
+      flex: 0 15%;
+      max-width: 15%;
+      font-size: 16px;
+    }
   }
 
   .difference {
-    flex: 0 10%;
-    max-width: 10%;
+    flex: 0 15%;
+    max-width: 15%;
+    font-size: 12px;
+    text-align: center;
+    @include for-phone-landscape-up {
+      flex: 0 10%;
+      max-width: 10%;
+      font-size: 16px;
+    }
+  }
+
+  .status {
+    flex: 0 15%;
+    max-width: 15%;
     text-align: center;
   }
 
-  .status
-  {
-    flex: 0 12%;
-    max-width: 20%;
-    text-align: center;
-  }
   .difference-desktop {
     flex: 0 15%;
     max-width: 15%;
@@ -291,17 +332,27 @@
       display: initial;
     }
   }
+
   .difference-mobile {
-    flex: 0 10%;
-    max-width: 10%;
-    // @include for-tablet-portrait-up-plus30 {
-    //     display: none;
-    // }
+    flex: 0 20%;
+    max-width: 20%;
+    font-size: 12px;
+    @include for-phone-landscape-up {
+      flex: 0 10%;
+      max-width: 10%;
+      font-size: 16px;
+    }
   }
 
   .options{
-    flex: 0 10% !important;
-    width: 10% !important;
+    flex: 0 20% !important;
+    width: 20% !important;
+    font-size: 12px;
+    @include for-phone-landscape-up {
+      flex: 0 10%;
+      max-width: 10%;
+      font-size: 16px;
+    }
   }
 
   .step-row {
@@ -313,8 +364,11 @@
     cursor: pointer;
     padding-right: 10px;
     @include for-tablet-portrait-up {
-      padding-right: 0;
+      padding-right: 18px;
     }
+    // &:last-child {
+    //   padding-right: 0;
+    // }
     &:nth-child(odd) {
       background-color: #e6e6e6;
       border-bottom: 2px solid rgba(black, 0.05);
@@ -341,11 +395,13 @@
       }
     }
     .name {
-      padding-left: 10px;
+      flex: 0 46%;
+      max-width: 46%;
+      // padding-left: 10px;
       box-sizing: border-box;
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      // justify-content: flex-start;
       font-size: 0.9rem;
       @include for-tablet-portrait-up {
         padding-left: 20px;
@@ -395,18 +451,20 @@
     .item-options {
       // margin-right: 10px;
       // width: 80px;
-      flex: 0 10%;
-      max-width: 10%;
+      flex: 0 20%;
+      max-width: 20%;
       display: flex;
-      justify-content: flex-end;
+      justify-content: center;
       .option {
-        flex: 0 40px;
+        // flex: 0 40px;
       }
     }
     .status {
       display: none;
       @include for-tablet-portrait-up {
         display: initial;
+        flex: 0 15%;
+        max-width: 15%;
       }
       &.ok {
         color: $good;
@@ -419,7 +477,7 @@
       color: $bad;
     }
     .item-options {
-      display: none;
+      display: flex;
       @include for-tablet-portrait-up {
         display: flex;
       }
