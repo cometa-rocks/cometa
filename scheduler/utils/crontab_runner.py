@@ -8,14 +8,18 @@ from requests.exceptions import ConnectionError
 
 def get_schedules():
     """Fetches scheduled tasks from a Django API and updates them in the scheduler."""
-    url = f"{get_django_server_url()}/api/schedule/"
-    response = requests.get(url)
+    try:
+        url = f"{get_django_server_url()}/api/schedule/"
+        response = requests.get(url)
 
-    if response.status_code == 200:
-        schedules = response.json().get('schedules', [])
-        return schedules
-    else:
-        print("Failed to fetch schedules:", response.text)
+        if response.status_code == 200:
+            schedules = response.json().get('schedules', [])
+            return schedules
+        else:
+            logger.debug("Failed to fetch schedules:", response.text)
+            return []
+    except:
+        logger.error(f"Exception while connecting to server {get_django_server_url()}, will retry..")
         return []
 
 

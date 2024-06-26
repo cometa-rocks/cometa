@@ -25,7 +25,8 @@ COPY ./requirements.txt /app/requirements.txt
 COPY ./Server.py /app/Server.py
 
 # Create job file to store jobs list
-RUN touch /app/.jobs
+RUN mkdir -p /app/tmp
+RUN touch /app/tmp/.jobs
 
 # Change the ownership of the copied directory to 'cometa'
 RUN chown -R cometa:cometa /app

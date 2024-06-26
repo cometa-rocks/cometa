@@ -41,7 +41,6 @@ class AuthenticationMiddleware:
             try:
                 # get the host from request
                 HTTP_HOST = request.META.get('HTTP_HOST', DOMAIN)
-                logger.debug(HTTP_HOST)
                 if HTTP_HOST == 'cometa.local':
                     raise Exception("User session none existent from behave.")
                 if not re.match(r'^(cometa.*\.amvara\..*)|(.*\.cometa\.rocks)$', HTTP_HOST):
@@ -112,7 +111,6 @@ class AuthenticationMiddleware:
         if REMOTE_USER == None:
             HTTP_HOST = request.META.get('HTTP_HOST', '')
             REMOTE_ADDR = request.META.get('REMOTE_ADDR', '')
-            logger.debug(request.META)
             HTTP_COMETA_ORIGIN = request.META.get("HTTP_COMETA_ORIGIN", '')
             HTTP_COMETA_USER = request.META.get("HTTP_COMETA_USER", None) # Used to know which user scheduled a feature
             SERVER_PORT = request.META.get('SERVER_PORT', '443')

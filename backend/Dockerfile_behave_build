@@ -96,4 +96,4 @@ RUN chmod +x /opt/code/run_remote_from_django.sh
 WORKDIR /opt/code/behave_django
 
 # Finish setup, execute the entrypoint script
-CMD ["./entry.sh"]
+ENTRYPOINT ["./entry.sh"]

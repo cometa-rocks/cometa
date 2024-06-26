@@ -4,7 +4,7 @@ if [ -f "/share/secret_variables.py" ]; then
     cp /share/secret_variables.py /code/secret_variables.py 
     echo "Copied file secret_variables.py from /share/secret_variables.py to /code/secret_variables.py"
 else
-    echo -e "\e[1;31msecret_variables.py not found at /share/secret_variables.py; either the Django pod was not started, or /share is not mounted. \e[0m"
+    echo -e "Is this docker installation, If not please check \e[1;31msecret_variables.py not found at /share/secret_variables.py; either the Django pod was not started, or /share is not mounted. \e[0m"
 fi
 
 # rsyslogd -n

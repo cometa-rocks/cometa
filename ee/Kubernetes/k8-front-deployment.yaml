@@ -43,6 +43,9 @@ spec:
           value: "cometa-novnc-service"
         - name: NOVNC_SERVER_PORT
           value: "8080"
+        # This is used to tell apache it is a Kubernetes installation, Used in paths.conf file
+        - name: IS_KUBERNETES_INSTALLATION
+          value: "true" # true/false
 
         volumeMounts:
         - name: cometa-volume

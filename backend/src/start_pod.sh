@@ -171,4 +171,3 @@ echo "# Parsing Actions.....                            #"
 echo "###################################################"
 
 curl --fail http://localhost:8000/parseActions/
-echo "Devmode was requested ... starting python manage.py runserver"

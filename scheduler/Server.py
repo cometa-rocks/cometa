@@ -11,7 +11,7 @@ from utils.crontab_runner import get_schedules, update_jobs
 class RequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
-        """Handle GET requests by updating scheduled tasks."""
+        # """Handle GET requests by updating scheduled tasks."""
         logger.info("Processing get request..")
         self.send_response(200)
         self.end_headers()
@@ -20,7 +20,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(b"Updated crontab\n")
 
 def run_server():
-    """Runs an HTTP server that listens for requests to update tasks."""
+    # """Runs an HTTP server that listens for requests to update tasks."""
     server_address = (os.getenv("SCHEDULER_HOST",''), int(os.getenv("SCHEDULER_PORT",'8080')))
     httpd = HTTPServer(server_address, RequestHandler)
     logger.info(f"Server running on {httpd.server_address}...")
