@@ -1,0 +1,19 @@
+# Use Python 3.9 base image from the Docker Hub
+FROM cometa/behave:0.1
+
+# Set the working directory
+WORKDIR /code/behave
+
+COPY --chown=cometa:cometa ./behave /opt/code
+COPY --chown=cometa:cometa . /code
+
+
+WORKDIR /opt/code/
+# Switch to non-root user before installing packages
+
+USER cometa
+RUN chmod -R 755 /opt/code
+WORKDIR /opt/code/behave_django
+
+# Finish setup, execute the entrypoint script
+CMD ["./entry.sh"]

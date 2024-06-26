@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-scheduler-deployment
+  namespace: cometa  # Specify the namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cometa-scheduler-pod
+  template:
+    metadata:
+      labels:
+        app: cometa-scheduler-pod
+    spec:
+      securityContext:
+        fsGroup: 1201
+        runAsGroup: 1201
+        runAsNonRoot: true
+        runAsUser: 1200
+      containers:
+      - name: cometa-scheduler-container
+        image: cometa/scheduler:0.1
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 1201
+          runAsUser: 1200
+          seccompProfile:
+            type: RuntimeDefault
+        env:
+        - name: DJANGO_SERVER_URL
+          value: "cometa-django-service"
+        - name: DJANGO_SERVER_PORT
+          value: "8000"
+      restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-scheduler-service
+  namespace: cometa  # Specify the namespace
+spec:
+  selector:
+    app: cometa-scheduler-pod
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-scheduler
+  namespace: cometa  # Ensure this is applied within the 'cometa' namespace
+spec:
+  podSelector:
+    matchLabels:
+      app: cometa-scheduler-pod  # Targeting pods related to the scheduler service
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+    ports:
+    - protocol: TCP
+      port: 8080  # Restrict to traffic on TCP port 8080

@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-django-deployment
+  namespace: cometa  # Added namespace
+spec:
+  replicas: 1  # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: cometa-django-pod  # Ensure this matches the label used in the template
+  template:
+    metadata:
+      labels:
+        app: cometa-django-pod
+    spec:
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
+      containers:
+      - name: cometa-django
+        image: cometa/django:latest
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 472
+          runAsUser: 472
+          seccompProfile:
+            type: RuntimeDefault
+ 
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: DATABASE_SERVER
+          value: "postgres-service"
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: FRONT_SERVER_HOST
+          value: "cometa-front-service"
+        - name: CRONTAB_SERVER_URL
+          value: "cometa-scheduler-service"
+        - name: CRONTAB_SERVER_PORT
+          value: "8080"
+        - name: SOCKET_SERVER_URL
+          value: "cometa-socket-service"
+        - name: SOCKET_SERVER_PORT
+          value: "3001"
+        - name: BEHAVE_SERVER_URL
+          value: "cometa-behave-service"
+        - name: BEHAVE_SERVER_PORT
+          value: "8001"
+        - name: DJANGO_SERVER_URL
+          value: "cometa-django-service"
+        - name: DJANGO_SERVER_PORT
+          value: "8000"
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: cometa-volume
+          mountPath: /code/behave/videos
+          subPath: ./data/cometa/videos
+        - name: cometa-volume
+          mountPath: /code/behave/pdf
+          subPath: ./data/cometa/pdf
+        - name: cometa-volume
+          mountPath: /code/behave/downloads
+          subPath: ./data/cometa/downloads
+        - name: cometa-volume
+          mountPath: /code/behave/department_data
+          subPath: ./data/department_data
+          # This mount is required to share .initiated and secret_variables.py
+        - name: cometa-volume
+          mountPath: /share
+          subPath: ./share
+
+        # resources:
+        #   limits:
+        #     cpu: "2"
+        #     memory: "2Gi"
+        #   requests:
+        #     cpu: "1"
+        #     memory: "1Gi"
+
+      volumes:
+      - name: cometa-volume
+        persistentVolumeClaim:
+          claimName: cometa-volume-claim
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-django-service
+  namespace: cometa  # Added namespace
+spec:
+  selector:
+    app: cometa-django-pod
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cometa-django-network-policy
+  namespace: cometa
+spec:
+  podSelector: 
+    matchLabels:
+      app: cometa-django-pod # This matches all pods in the namespace
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: cometa-behave-pod
+          namespaceSelector:
+            matchLabels:
+              name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+
+        - podSelector:
+            matchLabels:
+              app: cometa-front-pod
+          namespaceSelector:
+            matchLabels:
+              name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+
+        - podSelector:
+            matchLabels:
+              app: cometa-scheduler-pod
+          namespaceSelector:
+            matchLabels:
+              name: cometa  # Restrict ingress to pods in the 'cometa' namespace

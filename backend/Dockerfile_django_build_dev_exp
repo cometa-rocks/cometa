@@ -1,0 +1,15 @@
+# Use the specified Python base image
+FROM cometa/django:0.1
+
+COPY --chown=cometa:cometa ./src/start_pod.sh start_pod.sh
+
+COPY --chown=cometa:cometa . /code
+COPY --chown=cometa:cometa ./src /opt/code
+# Copy the entry script and ensure it's executable
+RUN chmod +x ./start_pod.sh
+
+# Expose the port Django will run on
+EXPOSE 8000
+
+# Command to run the entry script which starts Django or Gunicorn based on the environment
+CMD ["./start_pod.sh"]

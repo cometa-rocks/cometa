@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-novnc-deployment
+  namespace: cometa  # Set the namespace to 'cometa'
+spec:
+  replicas: 1  # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: cometa-novnc-pod  # Ensure this matches the label used in the template
+  template:
+    metadata:
+      labels:
+        app: cometa-novnc-pod
+    spec:
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
+      containers:
+      - name: novnc
+        image: cometa/novnc:1.0
+        command: ["/code/utils/novnc_proxy", "--listen", "8080"]
+        ports:
+        - containerPort: 8080  # Assuming noVNC listens on port 80
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 472
+          runAsUser: 472
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-novnc-service
+  namespace: cometa  # Set the namespace to 'cometa'
+spec:
+  selector:
+    app: cometa-novnc-pod
+  ports:
+    - protocol: TCP
+      port: 8080  # External port
+      targetPort: 8080  # Container port
+  type: ClusterIP

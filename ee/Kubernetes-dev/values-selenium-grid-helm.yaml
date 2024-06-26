@@ -1,0 +1,163 @@
+# global:
+#   K8S_PUBLIC_IP: "88.198.116.6"
+
+ingress:
+  enabled: false
+
+basicAuth:
+  # Enable or disable basic auth
+  enabled: true
+  # Username for basic auth
+  username: admin
+  # Password for basic auth
+  password: admin
+
+secrets:
+  create: true
+  # nameOverride:
+  env:
+    SE_VNC_NO_PASSWORD: "1"
+    SE_VNC_PASSWORD: ""
+  annotations: {}
+
+
+hub:
+  serviceType: ClusterIP
+  securityContext:        
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    runAsNonRoot: true
+    runAsGroup: 1201
+    runAsUser: 1200
+    seccompProfile:
+      type: RuntimeDefault
+
+  # extraVolumeMounts: 
+  # - name: cometa-volume-log
+  #   mountPath: /var/log/supervisor/
+  #   subPath: ./hub/supervisor
+
+  # extraVolumes:
+  # - name: cometa-volume-log
+  #   persistentVolumeClaim:
+  #     claimName: cometa-volume-log-claim
+
+
+chromeNode:
+  replicas: 1
+  securityContext:        
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    runAsNonRoot: true
+    runAsGroup: 1201
+    runAsUser: 1200
+    seccompProfile:
+      type: RuntimeDefault
+  extraEnvironmentVariables:
+    - name: "SE_SCREEN_WIDTH"
+      value: "1920"
+    - name: "SE_SCREEN_HEIGHT"
+      value: "1080"
+    - name: "SE_SCREEN_DEPTH"
+      value: "24"
+  extraVolumeMounts: 
+  # - name: cometa-volume-log
+  #   mountPath: /var/log/supervisor/supervisord.log
+  #   subPath: ./chromeNode/supervisor/supervisord.log
+  # - name: cometa-volume-log
+  #   mountPath: /opt/selenium/config.toml
+  #   subPath: ./chromeNode/selenium/config.toml
+
+  extraVolumes:
+  - name: cometa-volume-log
+    persistentVolumeClaim:
+      claimName: cometa-volume-log-claim
+
+
+firefoxNode:
+  replicas: 0
+  securityContext:        
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    runAsNonRoot: true
+    runAsGroup: 1201
+    runAsUser: 1200
+    seccompProfile:
+      type: RuntimeDefault
+  
+  extraVolumeMounts: 
+  - name: cometa-volume-log
+    mountPath: /var/log/supervisor/
+    subPath: ./firefoxNode/supervisor
+
+  extraVolumes:
+  - name: cometa-volume-log
+    persistentVolumeClaim:
+      claimName: cometa-volume-log-claim
+
+
+edgeNode:
+  replicas: 0
+  securityContext:        
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    runAsNonRoot: true
+    runAsGroup: 1201
+    runAsUser: 1200
+    seccompProfile:
+      type: RuntimeDefault
+  
+  extraVolumeMounts: 
+  - name: cometa-volume-log
+    mountPath: /var/log/supervisor/
+    subPath: ./edgeNode/supervisor
+
+  extraVolumes:
+  - name: cometa-volume-log
+    persistentVolumeClaim:
+      claimName: cometa-volume-log-claim
+
+
+videoRecorder:
+  enabled: true
+  imageRegistry: docker.io
+  imageName: cometa/selenium-video
+# Image of video recorder
+  imageTag: latest
+  securityContext:        
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    runAsNonRoot: true
+    runAsGroup: 1201
+    runAsUser: 1200
+    seccompProfile:
+      type: RuntimeDefault
+  extraEnvironmentVariables:
+  - name: VIDEO_EXTENSION
+    value: mkv
+
+  extraVolumeMounts:
+  - name: cometa-volume-recorder
+    mountPath: /videos
+    subPath: ./data/cometa/videos
+  # - name: cometa-volume-log
+  #   mountPath: /var/log/supervisor
+  #   subPath: ./recorder/supervisor
+
+  extraVolumes:
+  - name: cometa-volume-recorder
+    persistentVolumeClaim:
+      claimName: cometa-volume-claim
+  # - name: cometa-volume-log
+  #   persistentVolumeClaim:
+  #     claimName: cometa-volume-log-claim

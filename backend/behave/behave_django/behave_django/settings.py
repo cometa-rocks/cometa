@@ -15,6 +15,8 @@ import os, sys
 sys.path.append("/code")
 import secret_variables
 from src.backend.common import *
+from src.backend.utility.config_handler import *
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -139,11 +141,16 @@ STATIC_URL = '/static/'
 
 RUNTEST_COMMAND_PATH = '/opt/code/run_remote_from_django.sh'
 
+REDIS_PORT = os.getenv("REDIS_PORT",6379)
+# This is added because when passing PORT from k8 yaml file value need be passes as string format
+if type(REDIS_PORT)=="<class 'str'>":
+    REDIS_PORT = int(REDIS_PORT)
+
 # Django RQ Configuration
 RQ_QUEUES = {
     "default": {
-        "HOST": "redis",
-        "PORT": 6379,
+        "HOST": os.getenv("REDIS_SERVER","redis"),
+        "PORT": REDIS_PORT,
         "DB": 0,
         "DEFAULT_TIMEOUT": 7500
     }

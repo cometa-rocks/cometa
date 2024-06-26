@@ -14,6 +14,7 @@ from actions import (
     addVariable
 )
 from tools.exceptions import CustomError
+from src.backend.utility.config_handler import *
 
 use_step_matcher("re")
 
@@ -126,7 +127,7 @@ def api_call(context, method, endpoint, parameters, headers, body):
     api_call = build_rest_api_object(session, response)
 
     # save the api call
-    response = requests.post("http://cometa_django:8000/api/rest_api/", json={
+    response = requests.post(f"{get_cometa_backend_url()}/api/rest_api/", json={
         "call": api_call,
         "department_id": int(context.feature_info['department_id'])
     }, headers={"Host": "cometa.local"})

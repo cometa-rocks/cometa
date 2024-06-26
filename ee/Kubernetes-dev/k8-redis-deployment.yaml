@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-redis-deployment
+  namespace: cometa  # Namespace added
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cometa-redis-pod
+  template:
+    metadata:
+      labels:
+        app: cometa-redis-pod
+    spec:
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
+      containers:
+      - name: redis
+        image: cometa/redis:0.1
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 472
+          runAsUser: 472
+          seccompProfile:
+            type: RuntimeDefault
+        ports:
+          - containerPort: 6379
+        volumeMounts:
+          - name: cometa-volume 
+            mountPath: /data
+            subPath: ./data
+            
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "512Mi"
+          requests:
+            cpu: "0.5"
+            memory: "256Mi"
+
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #     - redis-cli
+        #     - ping
+        #   initialDelaySeconds: 5
+        #   timeoutSeconds: 1
+
+      volumes:
+        - name: cometa-volume
+          persistentVolumeClaim:
+            claimName: cometa-volume-claim
+            
+      restartPolicy: Always
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-redis-service
+  namespace: cometa
+spec:
+  selector:
+    app: cometa-redis-pod
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-network-policy
+  namespace: cometa  # Policy applied within the 'cometa' namespace
+spec:
+  podSelector:
+    matchLabels:
+      app: cometa-redis-pod  # This selects the Redis pods
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: cometa  # Allow ingress from pods within the 'cometa' namespace
+    ports:
+    - protocol: TCP
+      port: 6379  # Only allow TCP traffic on port 6379

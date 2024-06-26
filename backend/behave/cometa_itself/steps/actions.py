@@ -74,6 +74,7 @@ from pathlib import Path
 from pprint import pprint
 from django.conf import settings
 from tools import expected_conditions as CEC
+from src.backend.utility.config_handler import *
 
 SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
 ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
@@ -366,7 +367,7 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
     log_file.write(str(data))
     log_file.write('\n')
     try:
-        response = requests.post('http://cometa_django:8000/api/feature_results/'+str(feature_id)+'/step_results/'+str(feature_result_id) + '/', headers={"Host": "cometa.local"}, json=data)
+        response = requests.post(f'{get_cometa_backend_url()}/api/feature_results/'+str(feature_id)+'/step_results/'+str(feature_result_id) + '/', headers={"Host": "cometa.local"}, json=data)
         context.step_result = json.dumps(response.json())
         step_id = response.json()['step_result_id']
         log_file.write("Response Content: "+str(response.content))
@@ -431,7 +432,7 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
             # Save Pixel Difference for calculating Total in after_all
             context.counters['pixel_diff'] += int(float(pixel_diff))
             logger.debug("Saveing pixel difference %s to database" % str(pixel_diff))
-            requests.post('http://cometa_django:8000/steps/'+str(step_id)+'/update/', json=data, headers={"Host": "cometa.local"})
+            requests.post(f'{get_cometa_backend_url()}/steps/'+str(step_id)+'/update/', json=data, headers={"Host": "cometa.local"})
 
             # --------------------
             # Compare HTML
@@ -473,7 +474,7 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
             "screenshot_template": context.DB_TEMPLATE
         }
         logger.debug("Writing data %s to database" % json.dumps(data))
-        requests.post('http://cometa_django:8000/setScreenshots/%s/' % str(step_id), json=data, headers={"Host": "cometa.local"})
+        requests.post(f'{get_cometa_backend_url()}/setScreenshots/%s/' % str(step_id), json=data, headers={"Host": "cometa.local"})
         # add timestamps to the current image
         if context.DB_CURRENT_SCREENSHOT:
             addTimestampToImage(context.DB_CURRENT_SCREENSHOT, path=context.SCREENSHOTS_ROOT)
@@ -588,7 +589,7 @@ def compareHTML(params):
         logger.debug('HTML Compare took: %dms' % ((end - start).total_seconds() * 1000)) # Min 200ms
         # Return if there was a difference or not
         different = TEMPLATE_HTML_CONTENT != params['SOURCE_HTML']
-        requests.post('http://cometa_django:8000/steps/'+str(params['step_id'])+'/update/', json={ 'different_html': different }, headers={"Host": "cometa.local"})
+        requests.post(f'{get_cometa_backend_url()}/steps/'+str(params['step_id'])+'/update/', json={ 'different_html': different }, headers={"Host": "cometa.local"})
     except Exception as err:
         logger.info('Something went wrong while comparing HTML snapshots.')
         logger.error(str(err))
@@ -763,7 +764,7 @@ def step_impl(context,css_selector):
         ActionChains(context.browser).move_to_element(elem[0]).click().perform()
         if generate_dataset:
             payload['success'] = True
-            requests.post('http://cometa_django:8000/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
+            requests.post(f'{get_cometa_backend_url()}/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
     except Exception as err:
         if isCommandNotSupported(err):
             # I move mouse is not supported in the current device, falling back to "click element with css"
@@ -772,7 +773,7 @@ def step_impl(context,css_selector):
 
             if generate_dataset:
                 payload['success'] = False
-                requests.post('http://cometa_django:8000/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
+                requests.post(f'{get_cometa_backend_url()}/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
         else:
             raise err
 
@@ -2527,7 +2528,7 @@ def addVariable(context, variable_name, result, encrypted=False):
             logger.info("Will not send request to update the variable in co.meta since we are in 'data-driven' scope.")
         else:
             # make the request to cometa_django and add the environment variable
-            response = requests.patch('http://cometa_django:8000/api/variables/' + str(env_variables[index]['id']) + '/', headers={"Host": "cometa.local"}, json=env_variables[index])
+            response = requests.patch(f'{get_cometa_backend_url()}/api/variables/' + str(env_variables[index]['id']) + '/', headers={"Host": "cometa.local"}, json=env_variables[index])
             if response.status_code == 200:
                 env_variables[index] = response.json()['data']
     else: # create new variable
@@ -2545,13 +2546,13 @@ def addVariable(context, variable_name, result, encrypted=False):
             "updated_by": context.PROXY_USER['user_id']
         }
         # make the request to cometa_django and add the environment variable
-        response = requests.post('http://cometa_django:8000/api/variables/', headers={"Host": "cometa.local"}, json=update_data)
+        response = requests.post(f'{get_cometa_backend_url()}/api/variables/', headers={"Host": "cometa.local"}, json=update_data)
 
         if response.status_code == 201:
             env_variables.append(response.json()['data'])
 
     # send a request to websockets about the environment variables update
-    requests.post('http://cometa_socket:3001/sendAction', json={
+    requests.post(f'{get_cometa_socket_url()}/sendAction', json={
         'type': '[Variables] Get All',
         'departmentId': int(context.feature_info['department_id'])
     })
@@ -2838,7 +2839,7 @@ def step_imp(context, feature_name, parameters, schedule):
     }
 
     # make the request to save the object
-    response = requests.post("http://cometa_django:8000/api/schedule/", headers={"Host": "cometa.local"}, json=payload)
+    response = requests.post(f"{get_cometa_backend_url()}/api/schedule/", headers={"Host": "cometa.local"}, json=payload)
 
     # if response returns a 404 throw an error
     if response.status_code != 200:
@@ -2861,7 +2862,7 @@ def step_imp(context):
             'id': jobId
         }
         # make request to remove schedule
-        response = requests.delete("http://cometa_django:8000/api/schedule/", headers={"Host": "cometa.local"}, json=payload)
+        response = requests.delete(f"{get_cometa_backend_url()}/api/schedule/", headers={"Host": "cometa.local"}, json=payload)
 
         # check the response if not 200 raise exception
         if response.status_code != 200:
