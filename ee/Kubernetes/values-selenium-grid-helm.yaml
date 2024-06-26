@@ -79,7 +79,7 @@ chromeNode:
 
 
 firefoxNode:
-  replicas: 1
+  replicas: 0
   securityContext:        
     allowPrivilegeEscalation: false
     capabilities:
@@ -103,7 +103,7 @@ firefoxNode:
 
 
 edgeNode:
-  replicas: 1
+  replicas: 0
   securityContext:        
     allowPrivilegeEscalation: false
     capabilities:

@@ -119,7 +119,7 @@ See https://chat.openai.com/share/42936418-983e-408d-9e52-aadc072fc508
     helm upgrade --install selenium-grid docker-selenium/selenium-grid -n cometa --values ~/lyrid/cometa/segrid.yml
 
     helm upgrade --install selenium-grid docker-selenium/selenium-grid -n cometa --values helm-selenium.yaml
-
+kubec
     For testing purpose - use below command
     kubectl port-forward --address 88.198.116.6 service/selenium-grid-selenium-hub 4444:4444 -n cometa
 
