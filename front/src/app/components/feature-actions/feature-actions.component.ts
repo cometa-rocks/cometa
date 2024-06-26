@@ -103,9 +103,6 @@ export class FeatureActionsComponent implements OnInit {
           : null
       )
     );
-    // this.featureResultId$.subscribe(resultId => {
-    //   console.log('Feature Result ID:', resultId);
-    // });
     // Show CSV download link in Feature Actions toolbar
     this.csvLink$ = this.featureId$.pipe(
       map(featureId =>
