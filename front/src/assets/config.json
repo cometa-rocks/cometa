@@ -233,6 +233,36 @@
   ],
   "changelog": [
     {
+      "version": "2.8.361",
+      "date": "2024-06-25",
+      "features": [
+        {
+          "title": "#4694 - Update shortcuts table",
+          "description": "Revised the shortcuts table, incorporating PDF and CSV shortcut entries."
+        }
+      ]
+    },
+    {
+      "version": "2.8.360",
+      "date": "2024-06-20",
+      "features": [
+        {
+          "title": "#4694 Conflict shortcut with import Json",
+          "description": "Solved the conflict with the dialog clipboard with the shortcut of edit variable."
+        }
+      ]
+    },
+    {
+      "version": "2.8.359",
+      "date": "2024-06-20",
+      "features": [
+        {
+          "title": "#4694 Conflict Space shortcut with Run button",
+          "description": "Solved space shortcut makes conflict with run button on cometa feature page."
+         }
+      ]
+    },
+    {
       "version": "2.8.358",
       "date": "2024-06-19",
       "features": [
