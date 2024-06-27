@@ -32,14 +32,17 @@ export class HelpComponent {
   ShortMainViewFeature: Shortcut[] = [
     { position: 1, key: 'ESC', description: 'Quit the window' },
     { position: 2, key: 'SPACE', description: 'Run Feature' },
+    { position: 6, key: 'C', description: 'Download excel file' },
     { position: 3, key: 'E', description: 'Edit Feature' },
     { position: 4, key: 'L', description: 'Show Log Output' },
     { position: 5, key: 'N', description: 'Enable/Disable notifications' },
+    { position: 6, key: 'P', description: 'Download pdf file' },
     { position: 6, key: 'S', description: 'Edit Schedule' },
+    
   ];
 
   ShortMainPage: Shortcut[] = [
-    { position: 1, key: 'A', description: '[+ Add] button: Add from side nav' },
+    { position: 1, key: '+', description: '[+ Add] button: Add from side nav' },
     { position: 2, key: 'B', description: '[B] button: Create folder' },
     { position: 1, key: 'F', description: '[F] button: Create feature' },
     { position: 7, key: 'Shift + Alt + F', description: 'Open search'},
@@ -48,16 +51,19 @@ export class HelpComponent {
   ];
 
   ShortDataDriven: Shortcut[] = [
-    { position: 1, key: 'T', description: '[Data Driven Test] button: Execution of tests based on the variables proivided by the excel sheet' },
+    { position: 1, key: 'S', description: "[Columns Shown] button: Show table header's checkboxes" },
+    { position: 2, key: 'T', description: '[Data Driven Test] button: Execution of tests based on the variables proivided by the excel sheet' },
   ];
 
   ShortCreateEditFeature: Shortcut[] = [
     { position: 1, key: 'D', description: 'Checkbox: Depends on other feature' },
     { position: 2, key: 'F', description: 'Checkbox: Continue on failure' },
-    { position: 3, key: 'H', description: 'Checkbox: Ask for help' },
-    { position: 2, key: 'M', description: 'Checkbox: Send mail on finish' },
-    { position: 3, key: 'R', description: 'Checkbox: Record video' },
-    { position: 5, key: 'V', description: 'Button: Edit Variables' },
+    { position: 3, key: 'G', description: 'Checkbox: Generate dataset' },
+    { position: 4, key: 'H', description: 'Checkbox: Ask for help' },
+    { position: 5, key: 'M', description: 'Checkbox: Send mail on finish' },
+    { position: 6, key: 'N', description: 'Checkbox: Network logging' },
+    { position: 7, key: 'R', description: 'Checkbox: Record video' },
+    { position: 8, key: 'V', description: 'Button: Edit Variables' },
   ];
 
   columns: MtxGridColumn[] = [

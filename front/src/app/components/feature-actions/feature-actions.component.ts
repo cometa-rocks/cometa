@@ -19,6 +19,8 @@ import {
   map,
   shareReplay,
   switchMap,
+  tap,
+  catchError,
 } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { FeaturesState } from '@store/features.state';
@@ -147,6 +149,9 @@ export class FeatureActionsComponent implements OnInit {
             this.runNow();
           }
           break;
+        case KEY_CODES.C:
+          this.downloadCSV();
+          break;
         case KEY_CODES.E:
           this._sharedActions.dialogActive = true;
           this._sharedActions.openEditFeature(this.getFeatureId(), 'edit');
@@ -154,6 +159,9 @@ export class FeatureActionsComponent implements OnInit {
         case KEY_CODES.L:
           this._sharedActions.dialogActive = true;
           this.viewLog();
+          break;
+        case KEY_CODES.P:
+          this.downloadPDF();
           break;
         case KEY_CODES.S:
           this._sharedActions.dialogActive = true;
@@ -167,6 +175,46 @@ export class FeatureActionsComponent implements OnInit {
       }
       if (hotkeyFound) event.preventDefault();
     }
+  }
+
+  downloadCSV() {
+    this.csvLink$.pipe(
+      // tap allows you to execute functions or actions every time a value is output to the data stream
+      tap(link => {
+        if (!link) {
+           this._snack.open('CSV link is not available');
+        }
+      }),
+      catchError(error => {
+        this._snack.open('An error occurred while downloading CSV', 'OK');
+        // Return an empty observable or array to continue the stream with no emissions
+        return [];
+      })
+    ).subscribe(link => {
+      const linkElement = document.getElementById('csvLink') as HTMLAnchorElement;
+      if (linkElement) {
+        linkElement.click();
+      }
+    });
+  }
+
+  downloadPDF() {
+    this.pdfLink$.pipe(
+      tap(link => {
+        if (!link) {
+           this._snack.open('PDF link is not available');
+        }
+      }),
+      catchError(error => {
+        this._snack.open('An error occurred while downloading PDF', 'OK');
+        return [];
+      })
+    ).subscribe(link => {
+      const linkElement = document.getElementById('pdfLink') as HTMLAnchorElement;
+      if (linkElement) {
+        linkElement.click();
+      }
+    });
   }
 
   viewLog() {
