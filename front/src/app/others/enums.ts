@@ -4,6 +4,7 @@ export enum KEY_CODES {
   SPACE = 32,
   ESCAPE = 27,
   C = 67,
+  PLUS = 187,
   E = 69,
   L = 76,
   P = 80,
