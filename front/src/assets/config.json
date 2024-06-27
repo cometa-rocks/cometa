@@ -1,5 +1,5 @@
 {
-  "version": "2.8.357",
+  "version": "2.8.358",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.358",
+      "date": "2024-06-19",
+      "features": [
+        {
+          "title": "#4694 Shortcuts sidenav landing page",
+          "description": "Add shortcuts for the sidenav landing page."
+        }
+      ]
+    },
     {
       "version": "2.8.357",
       "date": "2024-06-18",

@@ -84,6 +84,36 @@ edit-variables {
     width: 0%;
   }
 
+  // Shortcut
+.checkbox-container {
+  display: flex;
+  position: relative;
+}
+
+.hover-box,
+.hover-box-children {
+  display: none;
+  position: absolute;
+  top: 3%;  
+  left: 100px;
+  color: $blue;
+  font-weight: bold;
+}
+
+.hover-box,
+.hover-box-children {
+  left: 105px;
+}
+
+.hover-box-children {
+  left: 180px;
+}
+
+.add-from-sidenav:hover .hover-box,
+.add-from-sidenav:hover .hover-box-children {
+  display: block;
+}
+
   // width: 15vw;
   // flex: 0 var(--sidenav-width);
   // transition: transform 2.5s;
@@ -158,9 +188,17 @@ edit-variables {
     // align-items: center;
     // justify-content: flex-start;
     // box-sizing: border-box;
-    .addIcon,
     .addFeatureIcon,
-    .addFolderIcon,
+    .addFolderIcon {
+      width: 170px;
+      height: 40px;
+      background: $blue;
+      padding: 0 10px;
+      mat-icon, i{
+        margin-right: 3px;
+      }
+    }
+    .addIcon,
     .addDataDrivenIcon {
       width: auto;
       height: 40px;
@@ -193,7 +231,8 @@ edit-variables {
             background: url(^assets/internal/COM_Add_Icon2.svg) no-repeat;
             background-size: contain;
             stroke-width: 3;
-            height: 21px;
+            height: 17px;
+            margin-left: 3px;
           }
         }
       }
