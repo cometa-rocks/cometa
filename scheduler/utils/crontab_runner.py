@@ -14,6 +14,7 @@ def get_schedules():
 
         if response.status_code == 200:
             schedules = response.json().get('schedules', [])
+            logger.debug(schedules)
             return schedules
         else:
             logger.debug("Failed to fetch schedules:", response.text)
@@ -29,7 +30,6 @@ def run_command(command: str):
 
         if command.strip().startswith("curl"):
             parsed_info = parse_curl_command(command)
-            #
             logger.debug(f"HTTP Method: {parsed_info.get('method')}")
             logger.debug(f"URL: {parsed_info.get('url')}")
             logger.debug(f"Data Payload: {parsed_info.get('data')}")
@@ -55,7 +55,7 @@ def run_command(command: str):
         logger.exception(f"Exception when running command {command}", exc_info=e)
 
 
-def update_jobs(scheduler, jobs, called_by="Scheduler"):
+def update_jobs(scheduler, jobs: list, called_by="Scheduler"):
     """Updates the scheduler with new jobs from fetched schedules."""
     # Clear existing jobs
     scheduler.remove_all_jobs()
@@ -65,6 +65,8 @@ def update_jobs(scheduler, jobs, called_by="Scheduler"):
     job_file = open(JOB_LIST_FILE_PATH, "w")
     for job_info in jobs:
         job_file.writelines(job_info+"\n")
+        # * 1 * * * curl --silent --data '{"feature_id":1, "jobId":2}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: 1" -X POST http://django:8000/exectest/ # added by cometa JobID: 2 on 2024-06-27, to be deleted on ***never*** (disable it in feature)
+        # [* 1 * * *] and  [curl --silent --data '{"feature_id":1, "jobId":2}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: 1" -X POST http://django:8000/exectest/ # added by cometa JobID: 2 on 2024-06-27, to be deleted on ***never*** (disable it in feature)]
         schedule_time_and_command = job_info.split("curl")
         if len(schedule_time_and_command) > 1:
             # Since command is in string format take the * * * * * and command into different variables
@@ -72,7 +74,6 @@ def update_jobs(scheduler, jobs, called_by="Scheduler"):
             job_command = f'curl {schedule_time_and_command[1]}'
             scheduler.add_job(run_command, CronTrigger.from_crontab(cron_schedule), args=[job_command],
                               max_instances=100)
-
+    job_file.close()
     # Add auto update job to the scheduler
     scheduler.add_job(lambda: update_jobs(scheduler, get_schedules()), 'interval', minutes=1)
-    job_file.close()

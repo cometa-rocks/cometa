@@ -1,4 +1,34 @@
-version: '3.8'
+x-common-vars: &common-vars
+  ENVIRONMENT: "dev"
+  # Front
+  FRONT_SERVER_HOST: "front"
+  SOCKET_SERVER_URL: "ws"
+  SOCKET_SERVER_PORT: "3001"
+  # Backend
+  DJANGO_SERVER_URL: "django"
+  DJANGO_SERVER_PORT: "8000"
+  DATABASE_SERVER: "db"
+  DATABASE_PORT: "5432"
+  # Behave
+  BEHAVE_SERVER_URL: "behave"
+  BEHAVE_SERVER_PORT: "8001"
+  # REDIS_WORKERS: "10"
+  # THREADS: "10" 
+  # Redis
+  REDIS_SERVER: "redis"
+  REDIS_PORT: "6379"
+  # Selenoid
+  SELENOID_SERVER_URL: "selenoid"
+  SELENOID_SERVER_PORT: 4444
+  VIDEO_EXTENSION: "mp4"
+  # NoVNC
+  NOVNC_SERVER_URL: "novnc"
+  NOVNC_SERVER_PORT: 8080
+  # Crontab/Scheduler
+  CRONTAB_SERVER_URL: "scheduler"
+  CRONTAB_SERVER_PORT: "8080"
+  # Etc
+  IS_KUBERNETES_INSTALLATION: false
 
 services:
   db:
@@ -27,8 +57,9 @@ services:
       - "./backend/crontabs/cometa_django_crontab:/etc/cron.d/crontab"
     working_dir: /opt/code
     environment:
-      - PYTHONUNBUFFERED=1
-      - ENVIRONMENT=dev
+      <<: *common-vars
+      PYTHONUNBUFFERED: "1"
+      ENVIRONMENT: dev
     ports:
       - "8000:8000"
     depends_on:
@@ -58,6 +89,7 @@ services:
     command: "/code/docker/build/behave/entry.sh"
     working_dir: /opt/code/behave_django
     environment:
+      <<: *common-vars
       PYTHONUNBUFFERED: 1
     networks:
      - testing
@@ -70,8 +102,8 @@ services:
     logging:
       driver: json-file
     environment:
-      - NODE_ENV=development
-      - NPM_CONFIG_LOGLEVEL=info
+      NODE_ENV: development
+      NPM_CONFIG_LOGLEVEL: info
     volumes:
       - ./backend/ws-server:/home/node/app:rw
     ports:
@@ -115,11 +147,13 @@ services:
       - testing
     restart: always
 
-  crontab:
-    build:
-      context: backend/docker/build/cron
-      dockerfile: Dockerfile
-    container_name: cometa_crontab
+  scheduler:
+    image: cometa/scheduler:latest
+    container_name: cometa_scheduler
+    environment:
+      <<: *common-vars
+    volumes:
+      - ./scheduler:/app:rw
     networks:
       - testing
     restart: always
@@ -135,6 +169,8 @@ services:
       - ./front/apache-conf/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
       - ./data/cometa/screenshots:/screenshots
     working_dir: /code/front
+    environment:
+      <<: *common-vars
     ports:
       - "443:443"
       - "4200:4200"
@@ -143,6 +179,7 @@ services:
     networks:
       - testing
     restart: always
+
   redis:
     image: redis:7.2.0-alpine
     container_name: cometa_redis

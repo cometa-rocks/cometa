@@ -118,7 +118,10 @@ class AuthenticationMiddleware:
 
             # get the superuser permissions
             superuser = Permissions.objects.filter(permission_name="SUPERUSER")[0]
-            if REMOTE_ADDR.startswith('172') or  REMOTE_ADDR.startswith('10.'):
+            # logger.debug(f"REMOTE_ADDR {REMOTE_ADDR} " )
+            # logger.debug(f"HTTP_HOST {HTTP_HOST}" )
+            # logger.debug(f"request.META {request.META}" )
+            if REMOTE_ADDR.startswith('172') or REMOTE_ADDR.startswith('10') or REMOTE_ADDR.startswith('192'):
                 # save the user as Scheduler
                 if HTTP_COMETA_ORIGIN == 'CRONTAB':
                     # Try to get HTTP_COMETA_USER from behave cron, we will fallback to dummy user

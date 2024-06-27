@@ -1,8 +1,10 @@
-version: '3.8'
+# To start cometa for development, set ENVIRONMENT=-dev in your terminal
+# Then run "docker-compose -f ./docker-compose-v2.yml up"
+# or directly run ./start_cometa_dev_env.sh 
+# ENVIRONMENT: "-dev"
 
 x-common-vars: &common-vars
-  # Start dev
-  DEV: "-dev"
+  ENVIRONMENT: "-dev"
   # Front
   FRONT_SERVER_HOST: "cometa_front"
   SOCKET_SERVER_URL: "cometa_socket"
@@ -51,12 +53,6 @@ services:
     image: cometa/django:0.1
     logging:
       driver: json-file
-    user: "0:0"  # Run as root user
-    cap_add:
-      - NET_ADMIN
-      - SYS_PTRACE
-    privileged: true
-    entrypoint: sh -c './start_pod.sh ${DEV}'
     environment:
       <<: *common-vars
       PYTHONUNBUFFERED: "1"
@@ -69,6 +65,7 @@ services:
       - ./backend/src:/opt/code:rw
       - "./backend/crontabs/cometa_django_crontab:/etc/cron.d/crontab"
     working_dir: /opt/code
+    entrypoint: ./start_pod.sh ${ENVIRONMENT}
     ports:
       - "8000:8000"
     depends_on:
@@ -167,12 +164,8 @@ services:
     restart: always
 
   apache:
-    image: "cometa/front:latest"
+    image: "httpd:2.4.48"
     container_name: cometa_front
-    user: "0:0"  # Run as root user
-    cap_add:
-      - NET_ADMIN
-      - SYS_PTRACE
     environment:
       <<: *common-vars
     volumes:
@@ -183,11 +176,10 @@ services:
       - ./front/apache-conf/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
       - ./data/cometa/screenshots:/screenshots
     working_dir: /code/front
-    privileged: true
     ports:
       - "80:80"
       - "443:443"
-    entrypoint: sh -c '/code/front/start.sh compile ${DEV}'
+    entrypoint: ./start.sh openidc basic angular compile
     networks:
       - testing
     restart: always
@@ -196,7 +188,7 @@ services:
     image: cometa/redis:latest
     container_name: cometa_redis
     volumes:
-      - redis_data:/data
+      - ./data/redis_data:/data
     networks:
       - testing
     healthcheck:
