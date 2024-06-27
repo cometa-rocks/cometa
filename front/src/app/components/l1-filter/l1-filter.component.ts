@@ -30,7 +30,7 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { Configuration } from '@store/actions/config.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { FilterTextPipe } from '@pipes/filter-text.pipe';
 import { StoreSelectorPipe } from '../../pipes/store-selector.pipe';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
@@ -39,6 +39,7 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { InputFocusService } from '@services/inputFocus.service'; 
 
 @UntilDestroy()
 @Component({
@@ -67,7 +68,8 @@ export class L1FilterComponent implements OnInit {
     public _sharedActions: SharedActionsService,
     private _store: Store,
     private _router: Router,
-    private log: LogService
+    private log: LogService,
+    private inputFocusService: InputFocusService
   ) {}
 
   /**
@@ -79,6 +81,14 @@ export class L1FilterComponent implements OnInit {
   @Select(CustomSelectors.GetConfigProperty('openedSearch'))
   openedSearch$: Observable<boolean>;
   @Input() filters$; // Filter list
+  private InputFocusService = new Subject<boolean>();
+
+  inputFocus$ = this.InputFocusService.asObservable();
+
+
+  sendInputFocusToParent(inputFocus: boolean): void {
+    this.inputFocusService.setInputFocus(inputFocus);
+  }
 
   /**
    * Global variables

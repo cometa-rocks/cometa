@@ -31,7 +31,7 @@ import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { Configuration } from '@store/actions/config.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { LogService } from '@services/log.service';
 import { User } from '@store/actions/user.actions';
@@ -53,6 +53,9 @@ import { FolderTreeComponent } from '../folder-tree/folder-tree.component';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
+import { KEY_CODES } from '@others/enums';
+import { ElementRef, HostListener } from '@angular/core';
+import { InputFocusService } from '@services/inputFocus.service';
 
 @UntilDestroy()
 @Component({
@@ -124,7 +127,9 @@ export class L1LandingComponent implements OnInit {
     private _store: Store,
     public _sharedActions: SharedActionsService,
     private activatedRoute: ActivatedRoute,
-    private log: LogService
+    private log: LogService,
+    private buttonAddFolderFeature: ElementRef,
+    private inputFocusService: InputFocusService
   ) {
     const filtersStorage = localStorage.getItem('filters');
     if (!!filtersStorage) {
@@ -144,6 +149,11 @@ export class L1LandingComponent implements OnInit {
 
     // forces the components content to reload when url parameters are changed manually
     this._router.routeReuseStrategy.shouldReuseRoute = () => false;
+
+    this.focusSubscription = this.inputFocusService.inputFocus$.subscribe((inputFocused) => {
+      this.inputFocus = inputFocused;
+    });
+
   }
 
   // Contains all the features and folders data
@@ -181,6 +191,9 @@ export class L1LandingComponent implements OnInit {
   search: string;
   sidenavClosed = false;
   table_of_items: any;
+  inputFocus = false;
+  focusSubscription: Subscription;
+  keyboardEventActive = false;
 
   ngOnInit() {    
 
@@ -392,4 +405,40 @@ export class L1LandingComponent implements OnInit {
     );
   }
   // #3414 ------------------------------------------------------------------------------------------end
+
+  // Keyboard event shortcuts
+  @HostListener('document:keydown', ['$event']) 
+  handleKeyboardEvent(event: KeyboardEvent) {
+
+    const folderShow = document.querySelector("add-folder");
+
+    const featureShow = document.querySelector("edit-feature");
+
+    // If exist the searchs don't enter
+    if(folderShow || featureShow){
+      return;
+    }
+    if (!this.inputFocus){
+      switch (event.keyCode) {
+        case KEY_CODES.PLUS:
+          // Clic on add button
+          this.buttonAddFolderFeature.nativeElement.querySelector('.addIcon').click();
+          break;
+          case KEY_CODES.B:
+            if(this.openedAdd) {
+              this.createFolder();
+              // Input empty 
+              const inputElement = document.querySelector('#mat-input-5');
+              inputElement.innerHTML = '';
+            }
+          break;
+          case KEY_CODES.F:
+            if(this.openedAdd) {
+              this.SAopenCreateFeature();
+            }
+          break;
+      }
+    }
+  }
+
 }
