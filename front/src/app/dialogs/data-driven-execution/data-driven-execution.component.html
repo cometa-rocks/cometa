@@ -129,6 +129,7 @@
 
 <ng-template #expansionTpl let-row>
   <mtx-grid
+    class="custom-table"
     [data]="file_data[row.id].file_data"
     [columns]="file_data[row.id].columns"
     [sortOnFront]="true"

@@ -88,6 +88,10 @@ a {
   }
 }
 
+::ng-deep .mat-mdc-dialog-surface::before {
+  background-color: #f7f7f7;
+}
+
 :host::ng-deep .mat-expansion-panel-body {
   padding: 0 15px 16px;
   @include for-tablet-portrait-up {
@@ -248,14 +252,20 @@ button {
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      margin-right: 5px;
-
+      margin-right: 25px;
       button {
         font-weight: 100;
+        mat-icon {
+          margin-right: 5px;
+        }
       }
     }
   }
   .no-expand .mtx-grid-row-expand-button {
     visibility: hidden;
   }
+}
+
+:host::ng-deep .custom-table thead tr th {
+  background-color: rgba(0, 0, 0, 0.04);
 }

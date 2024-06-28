@@ -112,6 +112,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 2px;
     @include for-tablet-portrait-up {
       flex: 0 500px;
     }
@@ -121,17 +122,19 @@
   }
 }
 
+
+
 .circular-progress {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 110px;
+  width: 80px;
   .value {
     position: absolute;
     height: 25px;
     width: 100%;
-    top: 35px;
-    font-size: 20pt;
+    top: 30px;
+    font-size: 12pt;
     font-weight: 500;
     margin: auto;
     text-align: center;
@@ -139,15 +142,35 @@
     &::after {
       content: attr(data-value);
       display: block;
-      font-size: 12pt;
+      font-size: 10pt;
       font-weight: 100;
     }
   }
   .title {
-    margin-top: 20px;
+    margin-top: 10px;
     font-weight: bold;
     color: rgba(0, 0, 0, 0.6);
     text-align: center;
+  }
+}
+
+/* Estilos para pantallas más grandes */
+@media (min-width: 600px) {
+  .circular-progress {
+    width: 110px;
+    
+    .value {
+      top: 35px;
+      font-size: 20pt;
+      
+      &::after {
+        font-size: 12pt;
+      }
+    }
+    
+    .title {
+      margin-top: 20px;
+    }
   }
 }
 
@@ -238,83 +261,112 @@
 
 :host::ng-deep network-paginated-list {
   .header {
-    flex: 1 100%;
     display: flex;
+    flex: 1 1 auto;
+    max-width: 100%;
     align-items: center;
     text-align: center;
     background-color: #474747;
-    color: white;
+    color: #fff;
     text-transform: uppercase;
-    padding: 12px 0;
+    // padding: 12px 0;
     box-sizing: border-box;
     padding-right: 10px;
+    height: 56px;
+
 
     // commented because breaks syncronization between table header and table rows, column names do not coincide with their corresponding values
     // @include for-tablet-portrait-up {
     //     padding-right: 85px;
     // }
   }
-  .name {
-    // commented because breaks syncronization between table header and table rows, column names do not coincide with their corresponding values
-    // flex: 0 60%;
-    // max-width: 60%;
-    // @include for-tablet-portrait-up {
-    flex: 0 40%;
-    max-width: 40%;
-    // }
+
+  .table-row {
+    display: flex;
+    width: 100%;
   }
 
-  .time{
-    flex: 0 20%;
-    max-width: 20%;
-    text-align: center;
+  th {
+    align-items: center;
+    justify-content: center;
+    font-weight: 400;
   }
 
-  .difference {
-    flex: 0 10%;
-    max-width: 10%;
-    text-align: center;
+  th, td {
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    box-sizing: border-box;
   }
 
-  .status
-  {
-    flex: 0 12%;
-    max-width: 20%;
-    text-align: center;
-  }
-  .difference-desktop {
-    flex: 0 15%;
-    max-width: 15%;
-    text-align: center;
-    display: none;
+  th.name {
+    flex: 45%;
+    max-width: 45%;
+    font-size: 12px;
     @include for-tablet-portrait-up {
-      display: initial;
+      flex: 39%;
+      max-width: 39%;
+      font-size: 16px;
     }
   }
-  .difference-mobile {
+
+  th.status {
     flex: 0 10%;
     max-width: 10%;
-    // @include for-tablet-portrait-up-plus30 {
-    //     display: none;
-    // }
+    font-size: 12px;
+    @include for-tablet-portrait-up {
+      font-size: 16px;
+    }
   }
 
-  .options{
-    flex: 0 10% !important;
-    width: 10% !important;
+  th.time, 
+  th.reltime {
+    flex: 0 13%;
+    max-width: 13%;
+    font-size: 12px;
+    @include for-tablet-portrait-up {
+      flex: 0 15%;
+      max-width: 15%;
+      font-size: 16px;
+    }
+  }
+
+  th.difference-mobile {
+    flex: 0 15%;
+    max-width: 15%;
+    font-size: 12px;
+    @include for-tablet-portrait-up {
+      font-size: 16px;
+    }
+  }
+
+  th.options {
+    flex: 0 15%;
+    max-width: 15%;
+    justify-content: center;
+    font-size: 12px;
+    @include for-tablet-portrait-up {
+      flex: 0 10%;
+      max-width: 10%;
+      font-size: 16px;
+    }
   }
 
   .step-row {
     display: flex;
     align-items: center;
+    // text-align: center;
     min-height: 53px;
     box-sizing: border-box;
     font-weight: bold;
     cursor: pointer;
-    padding-right: 10px;
+    // padding-right: 10px;
     @include for-tablet-portrait-up {
-      padding-right: 0;
+      // padding-right: 18px;
     }
+    // &:last-child {
+    //   padding-right: 0;
+    // }
     &:nth-child(odd) {
       background-color: #e6e6e6;
       border-bottom: 2px solid rgba(black, 0.05);
@@ -327,8 +379,8 @@
       color: $blue;
     }
     .status-bar {
-      flex: 0 5px;
-      max-width: 5px;
+      // flex: 0 20%;
+      // max-width: 20%;
       height: 100%;
       &.success {
         background-color: $good;
@@ -338,17 +390,22 @@
       }
       @include for-tablet-portrait-up {
         display: none;
+        flex: 0 20%;
+        max-width: 20%;
       }
     }
     .name {
-      padding-left: 10px;
       box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: flex-start;
-      font-size: 0.9rem;
+      flex: 45%;
+      max-width: 45%;
+      font-size: 0.8rem;
       @include for-tablet-portrait-up {
-        padding-left: 20px;
+        flex: 0 37%;
+        max-width: 37%;
+        // padding-left: 20px;
         font-size: 1rem;
       }
       .step-index {
@@ -395,18 +452,22 @@
     .item-options {
       // margin-right: 10px;
       // width: 80px;
-      flex: 0 10%;
-      max-width: 10%;
       display: flex;
-      justify-content: flex-end;
+      justify-content: center;
       .option {
-        flex: 0 40px;
+        // flex: 0 40px;
       }
     }
     .status {
       display: none;
+      flex: 0 18.5%;
+      max-width: 18.5%;
       @include for-tablet-portrait-up {
         display: initial;
+        flex: 0 10.5%;
+        max-width: 10.5%;
+        text-align: center;
+        // padding-left: 55px;
       }
       &.ok {
         color: $good;
@@ -416,16 +477,42 @@
       }
     }
     .time {
+      flex: 0 10.5%;
+      max-width: 10.5%;
       color: $bad;
-    }
-    .item-options {
-      display: none;
+      justify-content: center;
+      font-size: 0.8rem;
       @include for-tablet-portrait-up {
-        display: flex;
+        flex: 0 13.5%;
+        max-width: 13.5%;
+        font-size: 1rem;
       }
     }
-   
-
+    .reltime {
+      flex: 0 13%;
+      max-width: 13%;
+      justify-content: center;
+      color: $bad;
+      font-size: 0.8rem;
+      @include for-tablet-portrait-up {
+        flex: 0 14.5%;
+        max-width: 14.5%;
+        font-size: 1rem;
+      }
+    }
+    .item-options {
+      display: flex;
+      @include for-tablet-portrait-up {
+        display: flex;
+        flex: 0 10%;
+        max-width: 10%;
+      }
+    }
+    .difference-mobile {
+      flex: 0 15%;
+      max-width: 15%;
+      justify-content: center;
+    }
     .screenshots-wrapper {
       width: 24px;
       height: 24px;
