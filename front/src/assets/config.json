@@ -238,7 +238,7 @@
       "features": [
         {
           "title": "#4694 - Schedule enable returns disabled",
-          "description": "When an interface is activated its schedule and modified its steps the schedule becomes deactivated."
+          "description": "When an interface is activated its schedule and modified its steps the schedule becomes desactivated."
         }
       ]
     },
