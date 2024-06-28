@@ -11,6 +11,7 @@
   // justify-content: space-between;
   // @include for-tablet-portrait-up {
   flex: initial;
+  justify-content: center;
   // }
   & > div:not(:last-child) {
     margin-right: 30px;
