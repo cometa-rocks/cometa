@@ -131,7 +131,7 @@ videoRecorder:
   imageRegistry: docker.io
   imageName: cometa/selenium-video
 # Image of video recorder
-  imageTag: latest
+  imageTag: 1.0
   securityContext:        
     allowPrivilegeEscalation: false
     capabilities:

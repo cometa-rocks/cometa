@@ -66,7 +66,7 @@ Access the Cometa url https://localhost/ or https://your_cometa_url in the brows
 
     helm repo update
 
-    helm upgrade --install selenium-grid docker-selenium/selenium-grid -n cometa --values helm-selenium.yaml
+    helm upgrade --install selenium-grid docker-selenium/selenium-grid -n cometa --values values-selenium-grid-helm.yaml
 
     For testing purpose - use below command
     kubectl port-forward --address 88.198.116.6 service/selenium-grid-selenium-hub 4444:4444 -n cometa
