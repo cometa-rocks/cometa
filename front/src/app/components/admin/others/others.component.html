@@ -1,7 +1,21 @@
-<h2>Manage Others</h2>
+<h2>Other Useful links</h2>
 
 <div class="data">
-  <a class="export-features" href="/backend/api/dataset" mat-stroked-button
-    >Click to download Dataset</a
-  >
+  <div class="button-row" >
+    <a class="export-features" href="/backend/api/dataset" mat-stroked-button>
+      <mat-icon>cloud_download</mat-icon>Click to download Dataset</a>
+  </div>
+  <h2>Update Step Actions and Selenoid Browser information</h2>
+  <div class="button-row">
+    <button class="add-item" mat-stroked-button (click)="updateActions()">
+      <mat-icon>sync</mat-icon>Update Step Actions
+    </button>
+  </div>
+  
+  <div class="button-row">
+    <!-- <h3>Update selenoid browsers</h3> -->
+    <button class="add-item" mat-stroked-button (click)="updateBrowsers()" >
+      <mat-icon>sync</mat-icon>Update Browsers
+    </button>
+  </div>
 </div>
