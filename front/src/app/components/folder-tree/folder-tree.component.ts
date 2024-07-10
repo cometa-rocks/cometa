@@ -18,6 +18,8 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { FolderItemTreeComponent } from '../folder-item-tree/folder-item-tree.component';
 import { NgFor, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'cometa-folder-tree',
@@ -25,7 +27,7 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrls: ['./folder-tree.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatIconModule, NgFor, FolderItemTreeComponent, AsyncPipe],
+  imports: [MatTooltipModule, MatIconModule, NgFor, FolderItemTreeComponent, AsyncPipe, TranslateModule],
 })
 export class FolderTreeComponent implements OnInit {
   constructor(

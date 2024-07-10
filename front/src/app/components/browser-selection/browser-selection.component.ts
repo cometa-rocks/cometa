@@ -233,11 +233,12 @@ export class BrowserSelectionComponent implements OnInit {
     }
   }
 
+  browserExpandStatus = {};
+
   showAll(browserKey: string) {
     // Show all versions for a given browser
-    document
-      .querySelector(`.versions.${browserKey}`)
-      .classList.toggle('show_all');
+    document.querySelector(`.versions.${browserKey}`).classList.toggle('show_all');
+    this.browserExpandStatus[browserKey] = !this.browserExpandStatus[browserKey];
   }
 
   toggleFavourite(browser: BrowserstackBrowser) {
@@ -317,14 +318,15 @@ export class BrowserSelectionComponent implements OnInit {
       const selectedBrowsers = this.browsersSelected.getValue();
       const index = selectedBrowsers.findIndex(
         br =>
-          this.toJson(br, ['concurrency']) ===
-          this.toJson(browser, ['concurrency'])
+          this.toJson(br, ['concurrency','selectedTimeZone']) ===
+          this.toJson(browser, ['concurrency', 'selectedTimeZone'])
       );
       selectedBrowsers.splice(index, 1);
       this.browsersSelected.next(selectedBrowsers);
     }
     this.selectionChange.emit(this.browsersSelected.getValue());
   }
+  
 
   handleConcurrencyChange(browser, element) {
     const selectedBrowsers = this.browsersSelected.getValue();

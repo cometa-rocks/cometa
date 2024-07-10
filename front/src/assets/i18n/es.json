@@ -7,6 +7,19 @@
     "about": "About",
     "help": "Help"
   },
+  "sidenav_page": {
+    "add": "Botón con opciones para crear una carpeta o funcionalidad.",
+    "home": "En esta sección tenemos el tutorial de co.meta, ayuda y documentación.",
+    "data_driven_sidenav": "Ejecución de pruebas basadas en las variables proporcionadas por la hoja de Excel",
+    "variables_sidenav": "En esta sección, podemos agregar o editar variables entre otras funcionalidades",
+    "team_drives": "Funcionalidad próxima",
+    "recent": "Las últimas pruebas que has ejecutado",
+    "starred": "Funcionalidad próxima",
+    "trash_bin": "Funcionalidad próxima"
+  },
+  "data_driven": {
+    "data_driven_button": "Ejecución de pruebas basadas en las variables proporcionadas por la hoja de Excel"
+  },
   "headers": {
     "status": "Estado",
     "date": "Fecha",
@@ -67,6 +80,7 @@
     "allocation": "Allocation"
   },
   "about": {
+    "shortcut": "Atajo de teclado",
     "config": "Configuración",
     "sponsor": "Sponsors",
     "credits": "Créditos",
