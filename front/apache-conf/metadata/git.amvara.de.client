@@ -1,0 +1,5 @@
+{
+    "client_id" : "@@GITCLIENTID@@",
+    "client_secret" : "@@GITCLIENTSECRET@@",
+    "response_type" : "id_token"
+}
