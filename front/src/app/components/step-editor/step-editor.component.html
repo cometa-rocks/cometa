@@ -116,7 +116,10 @@
             autocomplete="off"
             formControlName="step_content"
             [matAutocomplete]="stepHelp"
-            placeholder="Step Code"></textarea>
+            placeholder="Step Code"
+            (focus)="sendTextareaFocusToParent(true)" 
+            (blur)="sendTextareaFocusToParent(false)">
+          </textarea>
           <mat-list
             class="var_name_autoComplete"
             [ngStyle]="{

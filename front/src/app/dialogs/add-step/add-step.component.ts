@@ -2,6 +2,8 @@ import {
   Component,
   Inject,
   ViewEncapsulation,
+  Output, 
+  EventEmitter,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import {
@@ -63,6 +65,7 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 })
 export class AddStepComponent {
   @Select(ActionsState) actions$: Observable<Action[]>;
+  @Output() textareaFocus = new EventEmitter<boolean>();
 
   constructor(
     public dialogRef: MatDialogRef<AddStepComponent>,
@@ -80,6 +83,12 @@ export class AddStepComponent {
     description: '',
     values: 0,
   };
+
+  // Shortcut emitter to parent component
+  public sendTextareaFocus(isFocused: boolean) {
+    this.textareaFocus.emit(isFocused);
+    console.log("Aqui esto" + isFocused);
+  }
 
   getStep(action: Action) {
     const values = [];
@@ -178,4 +187,6 @@ export class AddStepComponent {
     this.currentStep.text = this.step;
     return { ...this.currentStep };
   }
+
+
 }

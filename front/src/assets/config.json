@@ -1,5 +1,5 @@
 {
-  "version": "2.8.346",
+  "version": "2.8.361",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,148 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.361",
+      "date": "2024-06-25",
+      "features": [
+        {
+          "title": "#4694 - Update shortcuts table",
+          "description": "Revised the shortcuts table, incorporating PDF and CSV shortcut entries."
+        }
+      ]
+    },
+    {
+      "version": "2.8.360",
+      "date": "2024-06-20",
+      "features": [
+        {
+          "title": "#4694 Conflict shortcut with import Json",
+          "description": "Solved the conflict with the dialog clipboard with the shortcut of edit variable."
+        }
+      ]
+    },
+    {
+      "version": "2.8.359",
+      "date": "2024-06-20",
+      "features": [
+        {
+          "title": "#4694 Conflict Space shortcut with Run button",
+          "description": "Solved space shortcut makes conflict with run button on cometa feature page."
+         }
+      ]
+    },
+    {
+      "version": "2.8.358",
+      "date": "2024-06-19",
+      "features": [
+        {
+          "title": "#4694 Shortcuts sidenav landing page",
+          "description": "Add shortcuts for the sidenav landing page."
+        }
+      ]
+    },
+    {
+      "version": "2.8.357",
+      "date": "2024-06-18",
+      "features": [
+        {
+          "title": "#4694 Sort features and folders ",
+          "description": "Sort features and folders in landing page (Tree view, Tiles view, List view)."
+        }
+      ]
+    },
+    {
+      "version": "2.8.356",
+      "date": "2024-06-17",
+      "features": [
+        {
+          "title": "#4694 Add browser",
+          "description": "Added image of the browser along with its version for a better user experience."
+        }
+      ]
+    },
+    {
+      "version": "2.8.355",
+      "date": "2024-06-07",
+      "bugfixes": [
+        "#4728 Vulnerability analysis completed for secrets"
+      ]
+    },
+    {
+      "version": "2.8.354",
+      "date": "2024-06-05",
+      "features": [
+        {
+          "title": "#4694 Shortcuts conditions on add step button",
+          "description": "Added the conditions of shortcuts on the dialog add step button."
+        }
+      ]
+    },
+    {
+      "version": "2.8.353",
+      "date": "2024-06-04",
+      "features": [
+        {
+          "title": "#4694 Feature: Shortcuts on Feature, added matttoltips. About: Changed max-width. Profile: Changed response on button 'invite to my team'",
+          "description": "Added shortcuts on feature, changed mattooltips, changed maxwidth on about, some other little issues was fixed."
+        }
+      ]
+    },
+    {
+      "version": "2.8.352",
+      "date": "2024-06-03",
+      "features": [
+        {
+          "title": "#4694 Shortcuts Data driven",
+          "description": "Shortcuts on datadriven test button (t) and columns shown button (s)."
+        }
+      ]
+    },
+    {
+      "version": "2.8.351",
+      "date": "2024-06-03",
+      "features": [
+        {
+          "title": "#4694 Changed hotkeys section, put tables",
+          "description": "Changed the hotkeys section (shortcuts) on browser (component) help."
+        }
+      ]
+    },
+    {
+      "version": "2.8.350",
+      "date": "2024-06-01",
+      "features": [
+        {
+          "title": "#4694 Changes made in feature, toggle(show-more/less)",
+          "description": "Solved the toggle feature button show more/less browsers."
+        }
+      ]
+    },
+    {
+      "version": "2.8.349",
+      "date": "2024-06-01",
+      "features": [
+        {
+          "title": "#4694 Sidebar tooltip - folder tree",
+          "description": "Added explanatory tooltips in the sidebar using matTooltip."
+        }
+      ]
+    },
+    {
+      "version": "2.8.348",
+      "date": "2024-03-31",
+      "bugfixes": [ "Update vulnerable dependencies in bahave django and front." ]
+    },
+    {
+      "version": "2.8.347",
+      "date": "2024-05-31",
+      "features": [
+        {
+          "title": "#4694 Profile Page Redesign and New Section Implementation",
+          "description": "Redesigned the profile page layout for better user experience (mobile, tablet, desktop) and implemented a new section 'Feature Settings'"
+        }
+      ]
+    },
     {
       "version": "2.8.346",
       "date": "2024-05-27",
