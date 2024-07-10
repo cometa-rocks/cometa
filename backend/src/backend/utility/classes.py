@@ -1,9 +1,13 @@
 
 # Provides a class for logging into console
 class LogCommand():
+    def __init__(self):
+        __logs = []
+        pass
     # Log custom messages
     def log(self, text, **kwargs):
         log_type = kwargs.get('type', 'normal')
+        self.__logs.append({"type":log_type,"value":text})
         if log_type == 'error':
             print(self.style.ERROR(text))
             self.stdout.write(self.style.ERROR(text))
@@ -17,5 +21,8 @@ class LogCommand():
             print(text)
             self.stdout.write(text)
 
+    
+    def get_logs(self):
+        return self.__logs
         # print() is used to save logs into Database Logging
         # self.stdout.write() is used to write into console when executing manually
