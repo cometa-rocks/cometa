@@ -1,0 +1,12 @@
+db_data
+ws-server
+redis
+postgres
+__*
+.initiated
+secret_variables.py
+README.md
+Dockerfile_behave_build
+Dockerfile_django_build
+Dockerfile_behave_build_dev_exp
+Dockerfile_django_build_dev_exp
