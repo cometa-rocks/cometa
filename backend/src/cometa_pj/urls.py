@@ -14,7 +14,7 @@ from django.views.static import serve
 import re
 from django.urls import re_path
 router = routers.DefaultRouter()
-
+from housekeeping.views import HouseKeeping 
 
 # import EE Modules
 import backend.ee.modules.data_driven.urls as DataDrivenEndpoints
@@ -67,6 +67,7 @@ router.register(r'subscriptions', views.SubscriptionsViewSet)
 router.register(r'uploads/(?P<file_id>[0-9]+)', views.UploadViewSet)
 router.register(r'uploads', views.UploadViewSet)
 router.register(r'dataset', views.DatasetViewset)
+router.register(r'housekeeping', HouseKeeping)
 # provides numbers of system usage
 router.register(r'cometausage', views.CometaUsageViewSet)
 
