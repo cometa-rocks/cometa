@@ -112,6 +112,7 @@ import { NumeralPipe } from '@pipes/numeral.pipe';
 import { RoundProgressModule } from 'angular-svg-round-progressbar';
 import { ScreenshotBgPipe } from '@pipes/screenshot-bg.pipe';
 import { AvailableFilesPipe } from '@pipes/available-files.pipe';
+import { DraggableWindowComponent } from '@dialogs/draggable-window/draggable-window.component'
 
 const components = [
   EnterValueComponent,
@@ -128,6 +129,7 @@ const components = [
   NewFolderComponent,
   MoveFolderItemComponent,
   BehaveChartTestComponent,
+
 ];
 
 const materialModules = [
@@ -224,6 +226,7 @@ const directives = [StopPropagationDirective, AttachToDirective, LetDirective];
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
+    DragDropModule,
     ...materialModules,
     TranslateModule.forChild({
       loader: {
@@ -265,7 +268,12 @@ const directives = [StopPropagationDirective, AttachToDirective, LetDirective];
     ...dialogs,
     ...snacks,
     TranslateModule,
+    DraggableWindowComponent,
+    DragDropModule,
   ],
+  declarations: [
+    DraggableWindowComponent,
+  ]
 })
 export class SharedModule {
   static forRoot(): ModuleWithProviders<SharedModule> {

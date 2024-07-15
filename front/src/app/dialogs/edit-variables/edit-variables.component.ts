@@ -47,7 +47,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { NgIf, NgFor } from '@angular/common';
-
+// import { SharedModule } from '@modules/shared.module';
 
 interface PassedData {
   environment_id: number;
@@ -85,6 +85,7 @@ interface PassedData {
     MatLegacyTooltipModule,
     AmParsePipe,
     AmDateFormatPipe,
+    // SharedModule,
   ],
 })
 export class EditVariablesComponent implements OnInit, OnDestroy {
