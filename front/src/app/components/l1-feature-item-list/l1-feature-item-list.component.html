@@ -95,6 +95,24 @@ Author: dph000
           }}</ng-container></span
         >
       </div>
+      <div class="schedule-container">
+        <div class="schedule-title">
+          <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
+          <span>
+            Schedule: 
+          </span>
+        </div>
+        <div class="schedule-data">
+          <p class="" *ngIf="item.schedule; else noSchedule">
+            {{ item.schedule}}
+          </p>
+          <ng-template #noSchedule>
+            <p>
+              Inactive schedule
+            </p>
+          </ng-template>
+        </div>
+      </div>
       <!-- Feature ID -->
       <div class="feature-id">ID: {{ item.id }}</div>
       <!-- Feature browser -->
