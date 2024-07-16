@@ -90,7 +90,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
-import { SharedModule } from '@modules/shared.module';
+import { DraggableWindowModule } from '@modules/draggable-window.module'
 
 
 @Component({
@@ -131,7 +131,7 @@ import { SharedModule } from '@modules/shared.module';
     SortByPipe,
     HumanizeBytesPipe,
     TranslateModule,
-    SharedModule
+    DraggableWindowModule
   ],
 })
 export class EditFeature implements OnInit, OnDestroy {
