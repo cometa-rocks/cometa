@@ -19,7 +19,9 @@
 <!-- Right click menu -->
 <context-menu menuClass="step-contect-menu" #basicMenu>
   <ng-template contextMenuItem let-item>
-    <div (click)="addEmpty(item)">
+    <div 
+      #insertNewStepAbove 
+      (click)="addEmpty(item)">
       <mat-icon>unarchive</mat-icon>
       <span>Insert new step above</span>
     </div>
@@ -94,12 +96,14 @@
           </div>
         </div>
         <div
+          
           class="step_content"
           tabindex="0"
           (focusout)="onStepFocusOut($event)"
           (keydown.esc)="onStepEscape($event)"
           (keydown.Tab)="onTextareaTab(i)">
           <textarea
+            #stepContentTextarea
             (input)="onStepChange($event, i)"
             (blur)="fixStep($event, i)"
             (click)="
