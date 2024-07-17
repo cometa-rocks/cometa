@@ -990,7 +990,7 @@ input[type='number'] {
 .schedule-image {
   height: 18px;
   margin-right: 5px;
-  fill: red;
+  filter: invert(47%) sepia(11%) saturate(267%) hue-rotate(177deg) brightness(91%) contrast(86%);
 }
 
 .schedule-title{
