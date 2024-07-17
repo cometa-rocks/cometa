@@ -13,6 +13,7 @@ import {
   Renderer2,
   Output, 
   EventEmitter,
+  HostListener,
 } from '@angular/core';
 import {
   CdkDragDrop,
@@ -82,6 +83,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { NgFor, NgClass, NgIf, NgStyle, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { ContextMenuModule } from '@perfectmemory/ngx-contextmenu';
+import { KEY_CODES } from '@others/enums';
 
 @Component({
   selector: 'cometa-step-editor',
@@ -215,6 +217,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (this.feature.feature_id === 0) {
       this.insertDefaultStep();
     }
+
+    this.varlistItems.changes.subscribe(items => {
+      // Aquí puedes acceder a varlistItems actualizados después de que Angular los haya detectado
+      console.log('Items:', items);
+      console.log('Updated varlistItems:', this.varlistItems.toArray());
+    });
   }
 
   /**
@@ -585,6 +593,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   
 
   addEmpty(index: number = null) {
+    console.log('Item clicked:', index);
     const template = this._fb.group({
       compare: false,
       screenshot: false,
@@ -805,5 +814,28 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           ),
       })
     );
+  }
+
+  @ViewChild('stepContentTextarea') stepContentTextarea: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('insertNewStepAbove') insertNewStepAbove: ElementRef;
+
+  @HostListener('document:keydown.Control.ArrowUp', ['$event'])
+  hotkeyCtrlArrowUp(event: KeyboardEvent) {
+    
+    if(!this.inputFocusService) return;
+    event.preventDefault(); 
+
+    console.log(this.stepContentTextarea.nativeElement);
+    console.log(document.activeElement);
+    
+  }
+
+  @HostListener('document:keydown.Control.ArrowDown', ['$event'])
+  hotkeyCtrlArrowDown(event: KeyboardEvent) {
+    
+    if(!this.inputFocusService) return;
+    event.preventDefault(); 
+    console.log('Test arrowdown');
+ 
   }
 }
