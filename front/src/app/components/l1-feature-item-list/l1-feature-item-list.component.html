@@ -103,11 +103,11 @@ Author: dph000
           </span>
         </div>
         <div class="schedule-data">
-          <p class="" *ngIf="item.schedule; else noSchedule">
+          <p class="schedule-active" *ngIf="item.schedule; else noSchedule">
             {{ item.schedule}}
           </p>
           <ng-template #noSchedule>
-            <p>
+            <p class="schedule-inactive">
               Inactive schedule
             </p>
           </ng-template>
