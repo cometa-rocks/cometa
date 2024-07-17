@@ -974,3 +974,46 @@ input[type='number'] {
   -moz-appearance: textfield;
 }
 /***************************************************************/
+
+
+.feature-item{
+  margin-bottom: 50px;
+}
+
+.schedule-container{
+  display: flex; 
+  flex-direction: row;
+  vertical-align: middle;
+  margin-top: 10px;
+}
+
+.schedule-image {
+  height: 18px;
+  margin-right: 5px;
+  fill: red;
+}
+
+.schedule-title{
+  width: 136px;
+  height: 26px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  span{
+    color: #5D6D7E;
+  }
+}
+
+.schedule-data {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.schedule-active{
+  color: #00a99d;
+}
+
+.schedule-inactive{
+  color: #d4145a;
+}
