@@ -217,12 +217,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (this.feature.feature_id === 0) {
       this.insertDefaultStep();
     }
-
-    this.varlistItems.changes.subscribe(items => {
-      // Aquí puedes acceder a varlistItems actualizados después de que Angular los haya detectado
-      console.log('Items:', items);
-      console.log('Updated varlistItems:', this.varlistItems.toArray());
-    });
   }
 
   /**
@@ -593,7 +587,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   
 
   addEmpty(index: number = null) {
-    console.log('Item clicked:', index);
     const template = this._fb.group({
       compare: false,
       screenshot: false,
@@ -816,26 +809,23 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     );
   }
 
-  @ViewChild('stepContentTextarea') stepContentTextarea: ElementRef<HTMLTextAreaElement>;
-  @ViewChild('insertNewStepAbove') insertNewStepAbove: ElementRef;
-
-  @HostListener('document:keydown.Control.ArrowUp', ['$event'])
-  hotkeyCtrlArrowUp(event: KeyboardEvent) {
-    
-    if(!this.inputFocusService) return;
+  insertStep(event: KeyboardEvent, i: number){
     event.preventDefault(); 
-
-    console.log(this.stepContentTextarea.nativeElement);
-    console.log(document.activeElement);
-    
+    if(event.key == 'ArrowDown'){
+      this.addEmpty(i+1);
+    }
+    else if (event.key == 'ArrowUp'){
+      this.addEmpty(i);
+    }
   }
 
-  @HostListener('document:keydown.Control.ArrowDown', ['$event'])
-  hotkeyCtrlArrowDown(event: KeyboardEvent) {
-    
-    if(!this.inputFocusService) return;
+  copyStep(event: KeyboardEvent, i: number){
     event.preventDefault(); 
-    console.log('Test arrowdown');
- 
+    if(event.key == 'ArrowDown'){
+      this.copyItem(i+1, 'down');
+    }
+    else if (event.key == 'ArrowUp'){
+      this.copyItem(i, 'up');
+    }
   }
 }
