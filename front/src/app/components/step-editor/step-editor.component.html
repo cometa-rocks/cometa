@@ -1,6 +1,10 @@
 <!-- Editor row headers -->
 <div class="headers">
   <div class="move-row"></div>
+  <div class="more-vert">
+    <span class="desktop"></span>
+    <span class="mobile"><i></i></span>
+  </div>
   <div class="index">#</div>
   <div class="enable">
     <span class="desktop">Enable</span>
@@ -64,8 +68,12 @@
         [contextMenu]="basicMenu"
         [contextMenuValue]="i"
         [ngClass]="'step-id-' + i">
+        <div class="move-row" cdkDragHandle></div>
+        <button mat-icon-button [matMenuTriggerFor]="stepOptions">
+          <mat-icon>more_vert</mat-icon>
+        </button>
         <div class="step-extras">
-          <div class="move-row" cdkDragHandle></div>
+          
           <div class="index">{{ i + 1 }}</div>
           <mat-checkbox
             formControlName="enabled"
@@ -178,9 +186,7 @@
             matTooltip="This step definition has been found inside an import"
             matTooltipPosition="above"></i>
         </ng-container>
-        <button mat-icon-button [matMenuTriggerFor]="stepOptions">
-          <mat-icon>more_vert</mat-icon>
-        </button>
+       
         <!-- Step Options Menu -->
         <mat-menu class="step-options-menu" #stepOptions="matMenu">
           <button mat-menu-item stopPropagation>
