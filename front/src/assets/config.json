@@ -1,5 +1,5 @@
 {
-  "version": "2.8.366",
+  "version": "2.8.367",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.367",
+      "date": "2024-07-19",
+      "features": [
+        {
+          "title": "#4694 - Improved Mobile Responsiveness",
+          "description": "Enhanced responsiveness for better mobile user experience."
+        }
+      ]
+    },    
     {
       "version": "2.8.366",
       "date": "2024-07-18",
