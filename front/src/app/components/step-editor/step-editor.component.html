@@ -68,103 +68,109 @@
         [contextMenu]="basicMenu"
         [contextMenuValue]="i"
         [ngClass]="'step-id-' + i">
-        <div class="move-row" cdkDragHandle></div>
-        <button mat-icon-button [matMenuTriggerFor]="stepOptions">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-        <div class="step-extras">
-          
-          <div class="index">{{ i + 1 }}</div>
-          <mat-checkbox
-            formControlName="enabled"
-            aria-label="Enable"
-            color="primary"
-            class="enable checkbox-blue"></mat-checkbox>
-          <mat-checkbox
-            formControlName="screenshot"
-            aria-label="Screenshot"
-            color="primary"
-            class="screenshot checkbox-blue"
-            (change)="screenshotChange($event, i)"></mat-checkbox>
-          <mat-checkbox
-            formControlName="compare"
-            aria-label="Compare"
-            color="primary"
-            class="compare checkbox-blue"
-            [disabled]="!step.get('screenshot').value"></mat-checkbox>
-          <div class="prefix">
-            <mat-select formControlName="step_keyword">
-              <mat-option
-                *ngFor="let prefix of user.step_keywords"
-                [value]="prefix"
-                >{{ prefix }}</mat-option
-              >
-            </mat-select>
+        <div class="father-block">
+          <div class="first-block">
+            <div class="move-row" cdkDragHandle></div>
+            <button class="more-vert-step" mat-icon-button [matMenuTriggerFor]="stepOptions">
+              <mat-icon>more_vert</mat-icon>
+            </button>
+            <div class="step-extras">
+              
+              <div class="index">{{ i + 1 }}</div>
+              <mat-checkbox
+                formControlName="enabled"
+                aria-label="Enable"
+                color="primary"
+                class="enable checkbox-blue"></mat-checkbox>
+              <mat-checkbox
+                formControlName="screenshot"
+                aria-label="Screenshot"
+                color="primary"
+                class="screenshot checkbox-blue"
+                (change)="screenshotChange($event, i)"></mat-checkbox>
+              <mat-checkbox
+                formControlName="compare"
+                aria-label="Compare"
+                color="primary"
+                class="compare checkbox-blue"
+                [disabled]="!step.get('screenshot').value"></mat-checkbox>
+            </div>
+            <div class="prefix">
+              <mat-select formControlName="step_keyword">
+                <mat-option
+                  *ngFor="let prefix of user.step_keywords"
+                  [value]="prefix"
+                  >{{ prefix }}</mat-option
+                >
+              </mat-select>
+            </div>
           </div>
-        </div>
-        <div
-          class="step_content"
-          tabindex="0"
-          (focusout)="onStepFocusOut($event)"
-          (keydown.esc)="onStepEscape($event)"
-          (keydown.Tab)="onTextareaTab(i)">
-          <textarea
-            #stepContentTextarea
-            (input)="onStepChange($event, i)"
-            (blur)="fixStep($event, i)"
-            (click)="
-              stepVariableData['currentStepIndex'] === i
-                ? (stepVariableData.currentStepIndex = i)
-                : (stepVariableData.currentStepIndex = null)
-            "
-            (keydown.arrowdown)="onTextareaArrowKey($event, 'down')"
-            (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
-            (keydown.enter)="onTextareaEnter($event, i)"
-            (keydown.control.arrowup)="insertStep($event, i)"
-            (keydown.control.arrowdown)="insertStep($event, i)"
-            (keydown.alt.control.arrowup)="copyStep($event, i)"
-            (keydown.alt.control.arrowdown)="copyStep($event, i)"
-            class="code"
-            spellcheck="false"
-            cdkTextareaAutosize
-            autocomplete="off"
-            formControlName="step_content"
-            [matAutocomplete]="stepHelp"
-            placeholder="Step Code"
-            (focus)="sendTextareaFocusToParent(true)" 
-            (blur)="sendTextareaFocusToParent(false)">
-          </textarea>
-          <mat-list
-            class="var_name_autoComplete"
-            [ngStyle]="{
-              'bottom.px':
-                displayedVariables.length > 4
-                  ? -118
-                  : -displayedVariables.length * 30 + 2
-            }"
-            *ngIf="
-              stepVariableData.currentStepIndex == i &&
-              displayedVariables.length > 0
-            "
-            role="list">
-            <mat-list-item
-              id="{{ variable.id }}"
+          <div class="second-block">
+            <div
+              class="step_content"
               tabindex="0"
-              *ngFor="let variable of displayedVariables"
-              (click)="onClickVariable(variable.variable_name, i)">
-              <div
-                class="variable-wrapper"
-                *ngIf="variable.variable_name; else noVariable">
-                <span class="var_name">${{ variable.variable_name }}</span>
-                <span class="var_value">={{ variable.variable_value }}</span>
-              </div>
-              <ng-template #noVariable>
-                <div class="variable-wrapper">
-                  <span class="no-variable">No variable with this name</span>
-                </div>
-              </ng-template>
-            </mat-list-item>
-          </mat-list>
+              (focusout)="onStepFocusOut($event)"
+              (keydown.esc)="onStepEscape($event)"
+              (keydown.Tab)="onTextareaTab(i)">
+              <textarea
+                #stepContentTextarea
+                (input)="onStepChange($event, i)"
+                (blur)="fixStep($event, i)"
+                (click)="
+                  stepVariableData['currentStepIndex'] === i
+                    ? (stepVariableData.currentStepIndex = i)
+                    : (stepVariableData.currentStepIndex = null)
+                "
+                (keydown.arrowdown)="onTextareaArrowKey($event, 'down')"
+                (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
+                (keydown.enter)="onTextareaEnter($event, i)"
+                (keydown.control.arrowup)="insertStep($event, i)"
+                (keydown.control.arrowdown)="insertStep($event, i)"
+                (keydown.alt.control.arrowup)="copyStep($event, i)"
+                (keydown.alt.control.arrowdown)="copyStep($event, i)"
+                class="code"
+                spellcheck="false"
+                cdkTextareaAutosize
+                autocomplete="off"
+                formControlName="step_content"
+                [matAutocomplete]="stepHelp"
+                placeholder="Step Code"
+                (focus)="sendTextareaFocusToParent(true)" 
+                (blur)="sendTextareaFocusToParent(false)">
+              </textarea>
+              <mat-list
+                class="var_name_autoComplete"
+                [ngStyle]="{
+                  'bottom.px':
+                    displayedVariables.length > 4
+                      ? -118
+                      : -displayedVariables.length * 30 + 2
+                }"
+                *ngIf="
+                  stepVariableData.currentStepIndex == i &&
+                  displayedVariables.length > 0
+                "
+                role="list">
+                <mat-list-item
+                  id="{{ variable.id }}"
+                  tabindex="0"
+                  *ngFor="let variable of displayedVariables"
+                  (click)="onClickVariable(variable.variable_name, i)">
+                  <div
+                    class="variable-wrapper"
+                    *ngIf="variable.variable_name; else noVariable">
+                    <span class="var_name">${{ variable.variable_name }}</span>
+                    <span class="var_value">={{ variable.variable_value }}</span>
+                  </div>
+                  <ng-template #noVariable>
+                    <div class="variable-wrapper">
+                      <span class="no-variable">No variable with this name</span>
+                    </div>
+                  </ng-template>
+                </mat-list-item>
+              </mat-list>
+            </div>
+          </div>
         </div>
         <i
           *ngIf="step.get('step_content').errors?.invalidStep"
