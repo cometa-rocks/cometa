@@ -20,7 +20,6 @@
 <context-menu menuClass="step-contect-menu" #basicMenu>
   <ng-template contextMenuItem let-item>
     <div 
-      #insertNewStepAbove 
       (click)="addEmpty(item)">
       <mat-icon>unarchive</mat-icon>
       <span>Insert new step above</span>
@@ -96,7 +95,6 @@
           </div>
         </div>
         <div
-          
           class="step_content"
           tabindex="0"
           (focusout)="onStepFocusOut($event)"
@@ -114,6 +112,10 @@
             (keydown.arrowdown)="onTextareaArrowKey($event, 'down')"
             (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
             (keydown.enter)="onTextareaEnter($event, i)"
+            (keydown.control.arrowup)="insertStep($event, i)"
+            (keydown.control.arrowdown)="insertStep($event, i)"
+            (keydown.alt.control.arrowup)="copyStep($event, i)"
+            (keydown.alt.control.arrowdown)="copyStep($event, i)"
             class="code"
             spellcheck="false"
             cdkTextareaAutosize
