@@ -250,7 +250,7 @@ Author: dph000
     (click)="SAeditSchedule(row.id)"
     [matTooltip]="'tooltips.edit_schedule' | translate"
     matTooltipPosition="below"
-    *ngIf="row.schedule; else noSchedule"
+    *ngIf="row.schedule"
     >
     {{ row.schedule}}
     <!-- Old code checkbox -->
@@ -260,11 +260,6 @@ Author: dph000
       [checked]="row.schedule.length > 0"
       color="primary"></mat-checkbox> -->
   </div>
-  <ng-template #noSchedule>
-    <p class="schedule-inactive" *ngIf="row.type == 'feature'">
-      Inactive schedule
-    </p>
-  </ng-template>
 </ng-template>
 
 <!-- Options button for the feature -->

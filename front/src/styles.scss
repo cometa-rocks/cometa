@@ -977,7 +977,7 @@ input[type='number'] {
 
 
 .feature-item{
-  margin-bottom: 50px;
+  margin-bottom: 40px;
 }
 
 .schedule-container{
@@ -985,35 +985,32 @@ input[type='number'] {
   flex-direction: row;
   vertical-align: middle;
   margin-top: 10px;
+  margin-left: 1px;
 }
 
 .schedule-image {
   height: 18px;
   margin-right: 5px;
+  font-size: 16px;
   filter: invert(47%) sepia(11%) saturate(267%) hue-rotate(177deg) brightness(91%) contrast(86%);
 }
 
 .schedule-title{
   width: 136px;
   height: 26px;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  span{
-    color: #5D6D7E;
-  }
+
 }
 
 .schedule-data {
   display: flex;
   align-items: center;
-  width: 100%;
+  width: 250px;
+  span{
+    color: #5D6D7E;
+  }
 }
 
 .schedule-active{
   color: #00a99d;
-}
-
-.schedule-inactive{
-  color: #d4145a;
+  display: flex;
 }
