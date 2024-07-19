@@ -174,16 +174,12 @@ class HouseKeepingThread(LogCommand, Thread):
                         pass
 
                     self.log(f"Deleted {len(step_results)} screenshots", spacing=3)
-                    # feature_result.house_keeping_done = True
+                    feature_result.house_keeping_done = True
                     feature_result.save()
 
-                # delete_file_logs_for_this_department['']
 
             except Exception as exception:
                 self.log(exception)
-
-        # print("\n" * 10)
-        # print(self.get_logs())
 
     def run(self):
         logger.debug("Started selecting files for cleanup ")
