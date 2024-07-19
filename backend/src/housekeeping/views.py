@@ -28,7 +28,6 @@ class HouseKeepingViewSet(
 
     queryset = HouseKeepingLogs.objects.all()
     serializer_class = HouseKeepingLogsSerializer
-    # permission_classes = [IsAdminUser]
     renderer_classes = (JSONRenderer,)
     response_manager = ResponseManager("HouseKeepingLog")
 
