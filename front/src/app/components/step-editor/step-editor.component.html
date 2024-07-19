@@ -113,7 +113,6 @@
               (keydown.esc)="onStepEscape($event)"
               (keydown.Tab)="onTextareaTab(i)">
               <textarea
-                #stepContentTextarea
                 (input)="onStepChange($event, i)"
                 (blur)="fixStep($event, i)"
                 (click)="

@@ -57,6 +57,7 @@
 .father-block {
   display: flex;
   flex-direction: column;
+  width: 100%;
   @include for-tablet-portrait-up {
     flex-direction: row;
   }
@@ -70,6 +71,7 @@
 .second-block {
   display: flex;
   flex-direction: row;
+  width: 100%;
 }
 
 .step-row {
@@ -83,6 +85,7 @@
   background-color: white;
   backface-visibility: hidden;
   transition: opacity 0.3s ease-in-out;
+  overflow-x: auto;
   @include for-tablet-portrait-up {
     flex-direction: row;
   }
@@ -110,8 +113,8 @@
   }
   .prefix {
     @include for-tablet-portrait-up {
-      flex: 0 70px;
-      margin-left: 10px;
+      margin-left: 125px;
+      margin-right: 25px;
     }
     flex: 0 0 50px;
     margin-left: 60px;
@@ -230,6 +233,10 @@
       @include for-tablet-portrait-up {
         flex: 1;
         margin-bottom: 0;
+        max-width: 100%;
+      }
+      @include for-tablet-portrait-only {
+        max-width: 130px;
       }
       box-sizing: border-box;
       border: 0;
