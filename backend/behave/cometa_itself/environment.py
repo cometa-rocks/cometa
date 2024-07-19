@@ -465,14 +465,14 @@ def after_all(context):
     # load feature into data
     data = json.loads(os.environ['FEATURE_DATA'])
     # junit file path for the executed testcase
-        
-    files_path = f'{DEPARTMENT_DATA_PATH}/{slugify(data['department_name'])}/{slugify(data['app_name'])}/{data['environment_name']}/'
-    file_name = f'{context.feature_id}_{slugify(data['feature_name'])}'
+    logger.debug(data)
+    files_path = f"{DEPARTMENT_DATA_PATH}/{slugify(data['department_name'])}/{slugify(data['app_name'])}/{data['environment_name']}"
+    file_name = f"{context.feature_id}_{slugify(data['feature_name'])}"
     
     meta_file_path =  f'{files_path}/features/{file_name}_meta.json'
     feature_file_path =  f'{files_path}/features/{file_name}.feature'
     feature_json_file_path =  f'{files_path}/features/{file_name}.json'
-    xmlFilePath =  f'{files_path}/junit_reports/TESTS-features.{file_name}.json'
+    xmlFilePath =  f'{files_path}/junit_reports/TESTS-features.{file_name}.xml'
     
     logger.debug("Adding path to temp files for housekeeping")    
     context.tempfiles.append(meta_file_path)

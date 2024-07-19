@@ -1314,7 +1314,7 @@ class Schedule(models.Model):
     schedule = models.CharField(max_length=255)
     command = models.CharField(max_length=255, blank=True, null=True)
     comment = models.CharField(max_length=255, blank=True, null=True)
-    owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, related_name="schedule_owner")
+    owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True,blank=True, related_name="schedule_owner")
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     delete_after_days = models.IntegerField(default=1)
     delete_on = models.DateTimeField(null=True, blank=True)

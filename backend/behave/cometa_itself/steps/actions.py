@@ -361,6 +361,7 @@ def saveToDatabase(step_name='', execution_time=0, pixel_diff=0, success=False, 
         data['files'] = json.dumps(context.downloadedFiles[context.counters['index']])
     except:
         data['files'] = json.dumps([])
+        
     log_file = open('output.txt', 'w')
     log_file.write('Data -> ')
     log_file.write(str(data))

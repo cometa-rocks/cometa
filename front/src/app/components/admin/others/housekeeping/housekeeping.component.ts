@@ -28,7 +28,7 @@ import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 })
 export class HouseKeepingComponent {
   
-  @Input() houseKeepingLog: HouseKeepingLog;
+  @Input() houseKeepingLog: HouseKeepingLogs;
   @Input() headings: any;
 
   constructor( private _dialog: MatDialog,) {}
