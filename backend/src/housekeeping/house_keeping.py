@@ -7,7 +7,8 @@ from .models import HouseKeepingLogs
 import os, json
 import traceback
 from backend.utility.functions import getLogger
-
+from django.utils import timezone
+from dateutil.relativedelta import relativedelta
 logger = getLogger()
 
 # This class is responsible to select all files which should be delete based on it's department day's policy
@@ -22,7 +23,7 @@ class HouseKeepingThread(LogCommand, Thread):
         
         self.house_keeping_logs = house_keeping_logs
         
-
+    # This method will check for video and delete the file if exists
     def __delete_video_file_if_exists(self, result: Feature_result):
         try:
             # Delete video
@@ -42,7 +43,7 @@ class HouseKeepingThread(LogCommand, Thread):
                     spacing=3,
                 )
                 self.log(
-                    f"Complete Video file path {videoPath}",
+                    f"Complete video file path {videoPath}",
                     type="warning",
                     spacing=3,
                 )
@@ -92,23 +93,20 @@ class HouseKeepingThread(LogCommand, Thread):
             )
             return False
         
-
+    # This method will check for screenshots and delete the file they exists
     def __delete_screenshot_file_if_exists(self, step_result: Step_result):
-        # dirPath = '/code/behave/screenshots/%d/%d/%d/' % (featureId, featureRunId, featureResultId)
         try:
-            # screenshot = os.path.join(self.screenshot_file_path,featureId, featureRunId, featureResultId)
             current_screenshot = os.path.join(
                 self.screenshot_file_path, step_result.screenshot_current
             )
 
             if step_result.screenshot_current and os.path.isfile(current_screenshot):
-                # self.log(f'{current_screenshot} file exists', spacing=3)
                 os.remove(current_screenshot)
                 self.log(f"{current_screenshot} file deleted", spacing=3)
                 return True
             else:
                 self.log(
-                    f"Video path {step_result.screenshot_current} is defined but file doesn't exist",
+                    f"Screenshot path {step_result.screenshot_current} is defined but file doesn't exist",
                     type="warning",
                     spacing=3,
                 )
@@ -123,24 +121,25 @@ class HouseKeepingThread(LogCommand, Thread):
 
     def filter_and_delete_files(self):
         housekeeping_enabled_departments = []
+        # Get the list of department ID's
         housekeeping_enabled_departments = Department.objects.filter(
             settings__result_expire_days__gt=0
         )
-        # Get the list of department ID's
-        # departments_housekeeping_enabled_ids = [department.department_id for department in housekeeping_enabled_departments]
+        
         self.log("============================================")
         self.log(
             f"{len(housekeeping_enabled_departments)} departments with expire days configured"
         )
         self.log("============================================")
         for department in housekeeping_enabled_departments:
-            # Handle any error that comes while deleting files
             self.log(
                 f"Cleaning files in department [ID:{department.department_id}] [NAME:{department.department_name}]",
                 spacing=1,
             )
             # Calculate the date and time n days ago
-            date_time_department_days_ago = datetime.now() - timedelta(days=1)
+            date_time_department_days_ago = datetime.now() - timedelta(days=department.settings['result_expire_days'])
+
+            # Handle any error that comes while deleting files
             try:
                 feature_results_with_in_department = Feature_result.objects.filter(
                     department_id=department.department_id,
@@ -149,7 +148,7 @@ class HouseKeepingThread(LogCommand, Thread):
                     archived=False,
                 ).order_by("result_date")
                 self.log(
-                    f"Found {len(feature_results_with_in_department)} Feature_Result video in department to clean",
+                    f"Found {len(feature_results_with_in_department)} Feature_Result to clean",
                     spacing=1,
                 )
                 for feature_result in feature_results_with_in_department:
@@ -168,12 +167,12 @@ class HouseKeepingThread(LogCommand, Thread):
                         spacing=2,
                     )
 
-                    self.log("Deleting Step_results", spacing=3)
+                    self.log("Cleaning Step_results", spacing=3)
                     for step_result in step_results:
                         self.__delete_screenshot_file_if_exists(step_result)
                         pass
 
-                    self.log(f"Deleted {len(step_results)} screenshots", spacing=3)
+                    self.log(f"Cleaned {len(step_results)} screenshots", spacing=3)
                     feature_result.house_keeping_done = True
                     feature_result.save()
 
@@ -183,14 +182,27 @@ class HouseKeepingThread(LogCommand, Thread):
 
     def run(self):
         logger.debug("Started selecting files for cleanup ")
+        count_six_month_previous_logs = 0
         try:
             self.filter_and_delete_files()
             self.house_keeping_logs.success = True
+            
+            # Delete the Housekeeping logs itself when its 6 month older
+            six_months_ago = datetime.now() - timedelta(days=30.5*6)
+            six_month_old_records = HouseKeepingLogs.objects.filter(created_on__lt=six_months_ago)
+            count_six_month_previous_logs  = len(six_month_old_records)
+            six_month_old_records.delete()
         except Exception as e:
             self.house_keeping_logs.success = False
             self.log(f"Exception while doing housekeeping {str(e)}")
         # Saving logs in database for future references, can be seen in the django admin
+           
+       
+        
+        self.log(f"Deleted {count_six_month_previous_logs} Housekeeping logs from DB")
         self.house_keeping_logs.house_keeping_logs = self.get_logs()
         self.house_keeping_logs.save()
+        
         logger.debug("housekeeping logs saved")
+    
         
