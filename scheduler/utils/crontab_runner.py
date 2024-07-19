@@ -6,6 +6,9 @@ from utils.curl_processor import parse_curl_command
 import requests
 from requests.exceptions import ConnectionError
 
+from urllib.parse import urlparse
+
+
 def get_schedules():
     """Fetches scheduled tasks from a Django API and updates them in the scheduler."""
     try:
@@ -35,11 +38,15 @@ def run_command(command: str):
             logger.debug(f"Data Payload: {parsed_info.get('data')}")
             logger.debug(f"Headers: {parsed_info.get('headers')}")
 
+            # Parse the URL
+            parsed_url = urlparse(parsed_info.get('url'))
+
             try:
-                response = requests.request(method=parsed_info.get("method"), data=parsed_info["data"], url=f'{get_django_server_url()}/exectest/',
+                url=f'{get_django_server_url()}{parsed_url.path}' 
+                response = requests.request(method=parsed_info.get("method"), data=parsed_info["data"], url=url,
                                             headers=parsed_info["headers"])
                 logger.info(
-                    f"Sent HTTP request to {parsed_info['url']}, Response status : {response.status_code}, Response body : {response.text}")
+                    f"Sent HTTP request to {url}, Response status : {response.status_code}, Response body : {response.text}")
             except ConnectionError as e:
                 logger.exception("Exception while making http request to Django server",e)
 

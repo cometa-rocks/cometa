@@ -147,7 +147,18 @@ services:
       - testing
     restart: always
 
-  scheduler:
+  # scheduler:
+  #   image: cometa/scheduler:latest
+  #   container_name: cometa_scheduler
+  #   environment:
+  #     <<: *common-vars
+  #   volumes:
+  #     - ./scheduler:/app:rw
+  #   networks:
+  #     - testing
+  #   restart: always
+
+  crontab:
     image: cometa/scheduler:latest
     container_name: cometa_scheduler
     environment:
