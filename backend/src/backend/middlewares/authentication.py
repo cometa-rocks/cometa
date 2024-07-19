@@ -37,7 +37,8 @@ class AuthenticationMiddleware:
         # check if user_info is already saved in session
         user_info = request.session.get('user_info', None)
         # if not in session make a request to callback and get userinfo from openidc.
-        if user_info == None:
+        
+        if user_info == None:      
             try:
                 # get the host from request
                 HTTP_HOST = request.META.get('HTTP_HOST', DOMAIN)

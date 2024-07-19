@@ -146,6 +146,7 @@ class GeneratePDF(View):
 
         # Saving pdf file name in FeatureResults it will help to do housekeeping
         self.feature_result.pdf_result_file_path = self.pdf_file_name
+        self.feature_result.house_keeping_done = False
         self.feature_result.save()
         
         # Validate the emails. If emailsend is set to false or all emails are bad, we get out of execution.

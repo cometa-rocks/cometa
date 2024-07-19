@@ -12,9 +12,13 @@ from .house_keeping import HouseKeepingThread
 from backend.utility.response_manager import ResponseManager
 from backend.utility.functions import getLogger
 from backend.utility.decorators import require_permissions
-
 logger = getLogger()
 
+    
+import os
+import time
+from datetime import datetime, timedelta
+    
 
 class HouseKeepingViewSet(
     mixins.RetrieveModelMixin,
@@ -63,3 +67,43 @@ class HouseKeepingViewSet(
             logger.debug(f'Housekeeping ended with error "{str(exception)}"')
             response = JsonResponse({"success": False, "exception":str(exception)}, status=500)
         return response
+
+
+
+    # @require_permissions("manage_house_keeping_logs")
+    # def patch(self, request, *args, **kwargs):
+        
+    #     try:
+    #     # Example usage
+    #         directory = "/code/behave/department_data"
+    #         days = 0.1  # Files older than 30 days will be deleted
+    #         # Calculate the threshold time
+    #         threshold_time = time.time() - (days * 86400)  # 86400 seconds in a day
+    #         logger.debug(os.walk(directory))
+    #         for root, dirs, files in os.walk(directory):
+    #             logger.debug(root)
+    #             logger.debug(dirs)
+    #             logger.debug(files)
+    #             for file in files:
+    #                 file_path = os.path.join(root, file)
+                 
+    #                 # Get the file's creation time
+    #                 if os.path.exists(file_path):
+                     
+    #                     creation_time = os.path.getctime(file_path)
+    #                     dt_object = datetime.fromtimestamp(creation_time)
+    #                     logger.debug(f"CT : {dt_object} Checking for file path {file_path}")
+    #                     # Compare the file's creation time with the threshold time
+    #                     if creation_time < threshold_time:
+    #                         try:
+    #                             # os.remove(file_path)
+    #                             print(f"Deleted {file_path}")
+    #                         except Exception as e:
+    #                             print(f"Error deleting {file_path}: {e}")
+                            
+    #         response = JsonResponse({"success": True}, status=200)
+            
+    #     except Exception as exception:
+    #         logger.debug(f'Housekeeping ended with error "{str(exception)}"')
+    #         response = JsonResponse({"success": False, "exception":str(exception)}, status=500)
+    #     return response
