@@ -32,7 +32,7 @@ class HouseKeepingThread(LogCommand, Thread):
             videoPath = f"{self.video_directory_path}{result.video_url}"
             if os.path.isfile(videoPath):
                 self.log(f"{videoPath} file exists", spacing=3)
-                # os.remove(videoPath)
+                os.remove(videoPath)
                 self.log(f"{videoPath} file deleted", spacing=3)
                 return True
             else:
@@ -68,7 +68,7 @@ class HouseKeepingThread(LogCommand, Thread):
             pdf_file_path = f"{self.pdf_report_file_path}/{result.pdf_result_file_path}"
             if os.path.isfile(pdf_file_path):
                 self.log(f"{pdf_file_path} file exists", spacing=3)
-                # os.remove(videoPath)
+                os.remove(pdf_file_path)
                 self.log(f"{pdf_file_path} file deleted", spacing=3)
                 return True
             else:
@@ -103,7 +103,7 @@ class HouseKeepingThread(LogCommand, Thread):
 
             if step_result.screenshot_current and os.path.isfile(current_screenshot):
                 # self.log(f'{current_screenshot} file exists', spacing=3)
-                # os.remove(current_screenshot)
+                os.remove(current_screenshot)
                 self.log(f"{current_screenshot} file deleted", spacing=3)
                 return True
             else:

@@ -778,6 +778,7 @@ export class ApiService {
     });
   }
 
+
   getHouseKeepingLogs(): Observable<HouseKeepingLogs[]> {
     return this._http
       .get<{ housekeepinglogs: HouseKeepingLogs[] }>(`${this.api}housekeeping/`)
@@ -785,6 +786,6 @@ export class ApiService {
   }
 
   getHouseKeepingLog(id:Number) {
-    return this._http .get<HouseKeepingLog>(`${this.api}housekeeping/${id}`);
+    return this._http .get<HouseKeepingLogs>(`${this.api}housekeeping/${id}`);
   }
 }

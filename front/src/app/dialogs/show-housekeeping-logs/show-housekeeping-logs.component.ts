@@ -53,7 +53,7 @@ import { CommonModule } from '@angular/common';
   ],
 })
 export class ShowHousekeepingLogDialog implements OnInit {
-  houseKeepingLog!: HouseKeepingLog;
+  houseKeepingLog!: HouseKeepingLogs;
   logs:string = ""
   constructor(
     private dialogRef: MatDialogRef<ShowHousekeepingLogDialog>,
