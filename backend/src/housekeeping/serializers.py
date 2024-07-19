@@ -1,18 +1,11 @@
 from .models import HouseKeepingLogs
+from rest_framework import serializers
 
-class HouseKeepingLogsSerializer:
+class HouseKeepingLogsSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = HouseKeepingLogs
-        fields = [
-            'created_on',
-            'id',
-            'success',
-            'execution_time',
-            'list_files_to_clean',
-            'house_keeping_logs',
-            'approved_by'
-        ]
+        fields = '__all__'
         extra_kwargs = {
             'list_files_to_clean': {'required': False},
             'house_keeping_logs': {'required': False},
