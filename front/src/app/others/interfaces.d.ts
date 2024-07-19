@@ -1032,11 +1032,11 @@ interface HouseKeepingLogs {
   created_on: string;
   success: boolean;
   list_files_to_clean?: any[];
-  house_keeping_logs?: HouseKeepingLog[];
+  house_keeping_logs?: Log[];
   approved_by?: any;
 }
 
-interface HouseKeepingLog {
+interface Log {
   type: string;
   value: string;
   spacing: number;

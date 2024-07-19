@@ -31,7 +31,7 @@ import { HouseKeepingComponent } from './housekeeping/housekeeping.component';
   standalone: true,
 })
 export class AdminOthersComponent implements OnInit {
-  houseKeepingLogs: HouseKeepingLog[];
+  houseKeepingLogs: HouseKeepingLogs[];
   private subscription: Subscription;
  
   constructor(
