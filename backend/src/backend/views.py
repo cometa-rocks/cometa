@@ -1889,7 +1889,7 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
     API endpoint that allows users to be viewed or edited.
     """
     queryset = Feature_result.available_objects.all()
-    serializer_class = FeatureResultSerializer
+    serializer_class = FeatureResultSerializer 
     renderer_classes = (JSONRenderer,)
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ('result_date',)
