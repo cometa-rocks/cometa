@@ -152,7 +152,7 @@ export class ModifyDepartmentComponent {
           this._store.dispatch(
             new Departments.UpdateDepartment(this.department_id, payload)
           );
-          // this.dialogRef.close();
+          this.dialogRef.close();
           this.snack.open('Department modified successfully!', 'OK');
         } else {
           this.snack.open('An error ocurred', 'OK');
