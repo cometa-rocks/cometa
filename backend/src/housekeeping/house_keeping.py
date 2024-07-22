@@ -60,26 +60,30 @@ class HouseKeepingThread(LogCommand, Thread):
         
     # PDF file name is stored with Feature_results 
     # This change is introduced on 16-07-2024
-    def __delete_pdf_file_if_exists(self, result: Feature_result):
+    def __delete_pdf_file_if_exists(self, result: Feature_result, ):
         try:
+            pdf_result_file_path = ""
             # Delete pdf file
             if result.pdf_result_file_path is None or result.pdf_result_file_path.strip()=="":
-                return False
+                pdf_result_file_path = f"{result.feature_id.feature_name}-{result.feature_result_id}.pdf"                
+                # return False
+            else:
+                pdf_result_file_path = result.pdf_result_file_path
 
-            pdf_file_path = f"{self.pdf_report_file_path}/{result.pdf_result_file_path}"
-            if os.path.isfile(pdf_file_path):
-                self.log(f"{pdf_file_path} file exists", spacing=3)
-                os.remove(pdf_file_path)
-                self.log(f"{pdf_file_path} file deleted", spacing=3)
+            pdf_file_full_path = f"{self.pdf_report_file_path}/{pdf_result_file_path}"
+            if os.path.isfile(pdf_file_full_path):
+                self.log(f"{pdf_file_full_path} file exists", spacing=3)
+                os.remove(pdf_file_full_path)
+                self.log(f"{pdf_file_full_path} file deleted", spacing=3)
                 return True
             else:
                 self.log(
-                    f"PDF report file path {result.video_url} is defined but file doesn't exist",
-                    type="warning",
-                    spacing=3,
-                )
+                        f"PDF report file doesn't exist",
+                        type="warning",
+                        spacing=3,
+                    )
                 self.log(
-                    f"Complete PDF report file path {pdf_file_path}",
+                    f"Complete PDF report file path {pdf_file_full_path}",
                     type="warning",
                     spacing=3,
                 )
@@ -133,7 +137,7 @@ class HouseKeepingThread(LogCommand, Thread):
         self.log("============================================")
         for department in housekeeping_enabled_departments:
             self.log(
-                f"Cleaning files in department [ID:{department.department_id}] [NAME:{department.department_name}]",
+                f"Cleaning files in department [ID: {department.department_id}] [NAME: {department.department_name}]",
                 spacing=1,
             )
             # Calculate the date and time n days ago
@@ -153,7 +157,7 @@ class HouseKeepingThread(LogCommand, Thread):
                 )
                 for feature_result in feature_results_with_in_department:
                     self.log(
-                        f"Cleaning Feature_Result [ID:{feature_result.feature_result_id}] [FeatureID:{feature_result.feature_id}]",
+                        f"Cleaning Feature_Result [ID: {feature_result.feature_result_id}] [FeatureID: {feature_result.feature_id}]",
                         spacing=2,
                     )
                     self.__delete_video_file_if_exists(feature_result)
@@ -163,7 +167,7 @@ class HouseKeepingThread(LogCommand, Thread):
                         feature_result_id=feature_result.feature_result_id
                     ).exclude(screenshot_current="")
                     self.log(
-                        f"Found {len(step_results)} Step_result screenshots in Feature_Result [ID:{feature_result.feature_result_id}] to clean",
+                        f"Found {len(step_results)} Step_result screenshots in Feature_Result [ID: {feature_result.feature_result_id}] to clean",
                         spacing=2,
                     )
 
