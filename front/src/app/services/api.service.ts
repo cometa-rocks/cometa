@@ -777,4 +777,15 @@ export class ApiService {
       observe: 'response',
     });
   }
+
+
+  getHouseKeepingLogs(): Observable<HouseKeepingLogs[]> {
+    return this._http
+      .get<{ housekeepinglogs: HouseKeepingLogs[] }>(`${this.api}housekeeping/`)
+      .pipe(map(response => response.housekeepinglogs));
+  }
+
+  getHouseKeepingLog(id:Number) {
+    return this._http .get<HouseKeepingLogs>(`${this.api}housekeeping/${id}`);
+  }
 }
