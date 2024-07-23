@@ -30,7 +30,9 @@
         matInput
         (keyup)="applyFilter()"
         [(ngModel)]="searchTerm"
-        placeholder="Type a search term" />
+        placeholder="Type a search term" 
+        (focus)="sendInputFocusToParent(true)" 
+        (blur)="sendInputFocusToParent(false)"/>
     </mat-form-field>
     <div class="columns-button-wrapper">
       <button mat-stroked-button [matMenuTriggerFor]="selectedColumns">
@@ -75,7 +77,9 @@
               pattern="^[\w.-]+$"
               aria-label="var_name"
               [class.edit]="!element.disabled"
-              required />
+              required 
+              (focus)="sendInputFocusToParent(true)" 
+              (blur)="sendInputFocusToParent(false)"/>
             <small
               class="validation-error"
               *ngIf="variable_name.errors?.['required']"
@@ -101,7 +105,9 @@
               (input)="setInputStatus(variable_value?.errors, 'value')"
               aria-label="var_value"
               [class.edit]="!element.disabled"
-              required />
+              required
+              (focus)="sendInputFocusToParent(true)" 
+              (blur)="sendInputFocusToParent(false)"/>
             <small
               class="validation-error"
               *ngIf="variable_value.errors?.['required']"

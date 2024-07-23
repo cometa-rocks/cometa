@@ -1,4 +1,9 @@
 {
+  "header": {
+    "profile": "Your profile (P)",
+    "upload": "Create a new feature (F)",
+    "menu": "Menu (M)"
+  },
   "menu": {
     "order_intake": "Order Intake",
     "production_program": "Production Program",
