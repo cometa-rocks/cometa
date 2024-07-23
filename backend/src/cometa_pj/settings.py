@@ -69,7 +69,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'backend.templatetags.humanize',
     'command_log.apps.ManagementCommandLogConfig',
-    'backend.ee.modules.security'
+    'backend.ee.modules.security',
+    'housekeeping'
 ]
 
 MIDDLEWARE = [
