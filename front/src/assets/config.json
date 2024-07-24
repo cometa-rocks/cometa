@@ -235,11 +235,8 @@
     {
       "version": "2.8.370",
       "date": "2024-07-24",
-      "features": [
-        {
-          "title": "#4814 - The feature is created even if there is an error",
-          "description": "Solved the problem where the feature is created even though an error was thrown in relation to the 'run feature with name' and 'run feature with id' steps."
-        }
+      "bugfixes": [
+        "#4728 - Solved the problem where the feature is created even though an error was thrown in relation to the 'run feature with name' and 'run feature with id' steps."
       ]
     }, 
     {
