@@ -48,7 +48,7 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { NgIf, NgFor } from '@angular/common';
 import { InputFocusService } from '@services/inputFocus.service'; 
-
+import { DraggableWindowModule } from '@modules/draggable-window.module';
 
 interface PassedData {
   environment_id: number;
@@ -86,6 +86,7 @@ interface PassedData {
     MatLegacyTooltipModule,
     AmParsePipe,
     AmDateFormatPipe,
+    DraggableWindowModule
   ],
 })
 export class EditVariablesComponent implements OnInit, OnDestroy {
