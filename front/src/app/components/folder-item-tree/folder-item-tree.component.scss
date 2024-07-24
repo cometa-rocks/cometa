@@ -64,3 +64,58 @@
 .hidden {
   visibility: hidden;
 }
+
+.feature-run-text {
+  font-size: 1px;
+  font-weight: 100;
+  color: #ffffff;
+  position: absolute;
+  top: -8px;
+  left: 15.5px;
+  z-index: 9999;
+}
+
+.feature-run {
+  height: 3px;
+  width: 7px;
+  background-color: #1565c0;
+  position: absolute;
+  top: 5px;
+  left: 12.4px;
+}
+
+.feature-sheet {
+  height: 3px;
+  width: 15px;
+  background-color: #e8e8e8;
+  position: absolute;
+  top: 8px;
+  left: 4.4px;
+  border-top-right-radius: 5%;
+  border-top-left-radius: 5%;
+}
+
+.feature-sheet-line {
+  height: 1px;
+  width: 7px;
+  background-color: #636363;
+  position: absolute;
+  top: 9px;
+  left: 6px;
+}
+
+.folder-line {
+  height: 1px;
+  width: 21px;
+  background-color: #bab9b9;
+  position: absolute;
+  top: 11.5px;
+  left: 2px;
+  border-top-right-radius: 5%;
+  border-top-left-radius: 5%;
+}
+
+.icon-relative {
+  display: flex;
+  position: relative;
+}
