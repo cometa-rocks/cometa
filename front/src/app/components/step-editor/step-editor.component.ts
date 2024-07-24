@@ -13,6 +13,7 @@ import {
   Renderer2,
   Output, 
   EventEmitter,
+  HostListener,
 } from '@angular/core';
 import {
   CdkDragDrop,
@@ -82,6 +83,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { NgFor, NgClass, NgIf, NgStyle, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { ContextMenuModule } from '@perfectmemory/ngx-contextmenu';
+import { KEY_CODES } from '@others/enums';
 
 @Component({
   selector: 'cometa-step-editor',
@@ -805,5 +807,25 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           ),
       })
     );
+  }
+
+  insertStep(event: KeyboardEvent, i: number){
+    event.preventDefault(); 
+    if(event.key == 'ArrowDown'){
+      this.addEmpty(i+1);
+    }
+    else if (event.key == 'ArrowUp'){
+      this.addEmpty(i);
+    }
+  }
+
+  copyStep(event: KeyboardEvent, i: number){
+    event.preventDefault(); 
+    if(event.key == 'ArrowDown'){
+      this.copyItem(i+1, 'down');
+    }
+    else if (event.key == 'ArrowUp'){
+      this.copyItem(i, 'up');
+    }
   }
 }

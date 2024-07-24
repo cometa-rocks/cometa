@@ -16,7 +16,9 @@
     "DATE": "DATE"
   },
   "sidenav_page": {
-    "add": "Button with options to create a folder or feature.",
+    "add": "Button with options to create a folder or feature. (+)",
+    "folder": "Create a new folder to organize your features. (B)",
+    "feature": "Click to define a new feature for your application. (F)",
     "home": "We have on this section the co.meta tutorial, help and documentation.",
     "data_driven_sidenav": "Execution of tests based on the variables provided by the excel sheet",
     "variables_sidenav": "In this section, we can add or edit variables among other functionalities",
@@ -26,7 +28,7 @@
     "trash_bin": "Upcoming feature"
   },
   "data_driven": {
-    "data_driven_button": "Execution of tests based on the variables provided by the excel sheet"
+    "data_driven_button": "Execution of tests based on the variables provided by the excel sheet. (T)"
   },
   "edit_feature":{
     "depends_on_other_feature": "If enabled, only a third feature can run this feature",
