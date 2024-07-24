@@ -254,6 +254,26 @@
       ]
     },
     {
+      "version": "2.8.363",
+      "date": "2024-07-15",
+      "features": [
+        {
+          "title": "#4694 - Add tooltip",
+          "description": "Add description and shortcut on the buttons of create feature and create folder."
+        }
+      ]
+    },
+    {
+      "version": "2.8.362",
+      "date": "2024-06-28",
+      "features": [
+        {
+          "title": "#4694 - Schedule enable returns disabled",
+          "description": "When an interface is activated its schedule and modified its steps the schedule becomes desactivated."
+        }
+      ]
+    },
+    {
       "version": "2.8.361",
       "date": "2024-06-25",
       "features": [
