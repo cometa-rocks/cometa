@@ -1026,3 +1026,19 @@ interface UsageInvoice {
   modified_on: string;
   error: string;
 }
+
+interface HouseKeepingLogs {
+  id: number ;
+  created_on: string;
+  success: boolean;
+  list_files_to_clean?: any[];
+  house_keeping_logs?: Log[];
+  approved_by?: any;
+}
+
+interface Log {
+  type: string;
+  value: string;
+  spacing: number;
+  formatted_date: string;
+}
