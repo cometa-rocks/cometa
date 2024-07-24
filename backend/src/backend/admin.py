@@ -180,7 +180,7 @@ class AdminPermissions(admin.ModelAdmin):
         }),
         ('Feature Results', {
             'fields': (
-                ('remove_feature_result', 'download_result_files'),
+                ('remove_feature_result', 'download_result_files', 'manage_house_keeping_logs'),
                 )
         }),
         ('Feature Runs', {
