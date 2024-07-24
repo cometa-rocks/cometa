@@ -22,8 +22,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('run_test/', views.run_test),
     re_path('kill_task/(?P<pid>[0-9]+)/', views.kill_task),
-    path('set_test_schedule/', views.set_test_schedule),
-    path('remove_test_schedule/', views.remove_test_schedule),
+    # These path are removed
+    # path('set_test_schedule/', views.set_test_schedule),
+    # path('remove_test_schedule/', views.remove_test_schedule),
 
     # Django RQ URLS
     path("django-rq/", include("django_rq.urls"))

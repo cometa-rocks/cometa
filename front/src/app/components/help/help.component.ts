@@ -64,6 +64,8 @@ export class HelpComponent {
     { position: 6, key: 'N', description: 'Checkbox: Network logging' },
     { position: 7, key: 'R', description: 'Checkbox: Record video' },
     { position: 8, key: 'V', description: 'Button: Edit Variables' },
+    { position: 9, key: 'CTRL+UP/DOWN', description: 'Textarea: Insert new step above or below' },
+    { position: 10, key: 'CTRL+ALT+UP/DOWN', description: 'Textarea: Copy the step above or below of the reference step' },
   ];
 
   columns: MtxGridColumn[] = [
