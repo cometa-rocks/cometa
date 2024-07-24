@@ -27,7 +27,17 @@ Author: dph000
       <!-- Show different depending if the item is a folder or department -->
       <mat-icon *ngIf="department === true; else folderIcon">domain</mat-icon>
       <ng-template #folderIcon>
-        <mat-icon>folder</mat-icon>
+        <div *ngIf="folder.features.length > 0; else emptyTemplate" class="icon-relative">
+          <mat-icon>folder</mat-icon>
+          <span class="feature-run-text">Run</span>
+          <div class="feature-run"></div>
+          <div class="feature-sheet"></div>
+          <div class="feature-sheet-line"></div>
+          <div class="folder-line"></div>
+        </div>
+        <ng-template #emptyTemplate>
+          <mat-icon>folder </mat-icon>
+        </ng-template>
       </ng-template>
       <div class="folderName">{{ folder.name }}</div>
     </div>
