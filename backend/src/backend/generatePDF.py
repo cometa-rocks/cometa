@@ -81,12 +81,12 @@ class GeneratePDF(View):
         if not str(self.feature_result_id).isnumeric():
             raise ValueError("Invalid FeatureResultID passed")
         # Filter objects to get that result id
-        self.feature = self.GetFeature()
+        self.feature_result = self.GetFeatureResult()
 
         # save the pdf download path
         self.downloadPath = "/code/behave/pdf"
-        self.downloadFullPath = "%s/%s-%s.pdf" % (self.downloadPath, str(self.feature.feature_name), str(self.feature_result_id))
-
+        self.pdf_file_name = "%s-%s.pdf" % (str(self.feature_result.feature_name), str(self.feature_result_id))
+        self.downloadFullPath = "%s/%s" % (self.downloadPath, self.pdf_file_name)
 
         # check if download path exists
         if not exists(self.downloadPath):
@@ -95,14 +95,14 @@ class GeneratePDF(View):
 
         # check if lock file exists if so that mean the pdf file is being generate
         if exists(self.downloadFullPath + ".lock"):
-            return HttpResponse("PDF File for Feature: %s and Feature Result ID: %s is still being generated, please try again later." % (str(self.feature.feature_name), str(self.feature_result_id)))
+            return HttpResponse("PDF File for Feature: %s and Feature Result ID: %s is still being generated, please try again later." % (str(self.feature_result.feature_name), str(self.feature_result_id)))
 
         # generate pdf url
         self.pdfURL = "https://%s/backend/pdf/?feature_result_id=%s" % (DOMAIN, self.feature_result_id)
 
         # Assigning class variables to use in all the functions.
-        self.feature_template = self.feature.feature_id
-        self.feature_id = self.feature.feature_id_id
+        self.feature_template = self.feature_result.feature_id
+        self.feature_id = self.feature_result.feature_id_id
 
         # If the request GET parameter "download" is present, download the PDF instead of emailing it to it's recipient
         download = self.request.GET.get('download', None)
@@ -123,18 +123,17 @@ class GeneratePDF(View):
 
             # Calculate percentatge of OK steps and NOK steps
             try:
-                self.percentok = int((self.feature.ok * 100) / self.feature.total)
+                self.percentok = int((self.feature_result.ok * 100) / self.feature_result.total)
             except ZeroDivisionError:
                 self.percentok = 0
             try:
-                self.percentnok = int(((self.feature.fails + self.feature.skipped) * 100) / self.feature.total)
+                self.percentnok = int(((self.feature_result.fails + self.feature_result.skipped) * 100) / self.feature_result.total)
             except ZeroDivisionError:
                 self.percentnok = 0
-            self.totalnok = int(self.feature.fails) + int(self.feature.skipped)
+            self.totalnok = int(self.feature_result.fails) + int(self.feature_result.skipped)
 
             # Build the HTML and then render it into a PDF.
             self.pdf = self.BuildHtmlAndRenderPdf()
-
             
             # save the pdf to file
             with open(self.downloadFullPath, 'wb') as f:
@@ -145,7 +144,11 @@ class GeneratePDF(View):
                 self.my_logger.debug("Removing lock file for %s" % self.downloadFullPath)
                 os.remove(self.downloadFullPath + ".lock")
 
-  
+        # Saving pdf file name in FeatureResults it will help to do housekeeping
+        self.feature_result.pdf_result_file_path = self.pdf_file_name
+        self.feature_result.house_keeping_done = False
+        self.feature_result.save()
+        
         # Validate the emails. If emailsend is set to false or all emails are bad, we get out of execution.
         # We don't raise exception here to not cause issues when debugging, as having email set as false is not an error.
         # 2020-07-28 ABP Mark this "if" as an exception to download parameter, email send is not required to download directly the PDF file
@@ -161,13 +164,13 @@ class GeneratePDF(View):
         if download == 'true':
             # Download the PDF
             response = HttpResponse(PDFContent, content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="%s-%s.pdf"' % (str(self.feature.feature_name), str(self.feature.result_date))
+            response['Content-Disposition'] = 'attachment; filename="%s-%s.pdf"' % (str(self.feature_result.feature_name), str(self.feature_result.result_date))
             response['Content-Length'] = len(PDFContent)
             return response
         elif download == 'false':
             # Send response with PDF preview
             response = HttpResponse(PDFContent, content_type='application/pdf')
-            response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % (str(self.feature.feature_name), str(self.feature.result_date))
+            response['Content-Disposition'] = 'inline; filename="%s-%s.pdf"' % (str(self.feature_result.feature_name), str(self.feature_result.result_date))
             response['Content-Length'] = len(PDFContent)
             return response
         else:
@@ -207,17 +210,17 @@ class GeneratePDF(View):
     """
         Get the current feature result and check that it actually exists.
     """
-    def GetFeature(self):
+    def GetFeatureResult(self):
         try:
-            feature = Feature_result.objects.get(feature_result_id=self.feature_result_id)
+            feature_result = Feature_result.objects.get(feature_result_id=self.feature_result_id)
         except Feature_result.DoesNotExist:
             # If the feature is not found then we return error, if not get item
             self.my_logger.critical('[GeneratePDF] Error while retrieving feature info: Feature not found.')
             raise ValueError("503 Feature not found")
         
-        if isinstance(feature.browser, str):
-            feature.browser = json.loads(feature.browser)
-        return feature
+        if isinstance(feature_result.browser, str):
+            feature_result.browser = json.loads(feature_result.browser)
+        return feature_result
 
     """
      Email valiadation. We get all the emails, run them into django validator and remove the invalid ones.
@@ -227,34 +230,34 @@ class GeneratePDF(View):
         
         # If the email does not need to get sent, get out...
         if(self.feature_template.send_mail == False):
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature.feature_id)+" | Send email is set to False. No email sent.")
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Send email is set to False. No email sent.")
             return False
 
         # Check if the email is send on error only. If it is, check feature errors. If there is no errors, get out of execution and don't send email.
         if(self.feature_template.send_mail_on_error == True):
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature.feature_id)+" | Send email is set to Send On Error.")
-            if(self.feature.fails <= 0):
-                self.my_logger.debug("[GeneratePDF] "+str(self.feature.feature_id)+" | No errors. Email not sent.")
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Send email is set to Send On Error.")
+            if(self.feature_result.fails <= 0):
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | No errors. Email not sent.")
                 return False
             else:
-                self.my_logger.debug("[GeneratePDF] "+str(self.feature.feature_id)+" | Errors found. Will send email.")
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Errors found. Will send email.")
 
         # Bad e-mail checking. If an email is not valid, it will get deleted. This is done to protect user from sending emails to unwanted directions.
         bad_emails = []
         for email in self.feature_template.email_address or []:
             try:
                 validate_email(email)
-                self.my_logger.debug("[GeneratePDF] "+str(self.feature.feature_id)+" | Valid e-mail ("+email+")")
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Valid e-mail ("+email+")")
             except ValidationError as e:
                 bad_emails.append(email)
-                self.my_logger.debug("[GeneratePDF] "+str(self.feature.feature_id)+" | Invalid e-mail. Removed from list.")
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Invalid e-mail. Removed from list.")
             
         # We remove them here as it is a bad pactice to remove items for the list we are iterating on.
         for bad_email in bad_emails:
             self.feature_template.email_address.remove(bad_email)
         # If all emails are removed then dont proceed
         if len(self.feature_template.email_address) == 0:
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature.feature_id)+" | All e-mails were invalid and they were not sent. Exiting.")
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | All e-mails were invalid and they were not sent. Exiting.")
             return False 
 
         # All good
@@ -308,6 +311,7 @@ class GeneratePDF(View):
                             photo = base64.b64encode(file.read())
                             # Push it to list of photos
                             listphotos.append(photo)
+                    
             # Build the steps array. This array contains the images sorted, and all steps data to use for the images and screenshot generation
             screenshots_array[step.step_result_id] = []
             screenshots_array[step.step_result_id].append({'step_name': step.step_name})
@@ -325,6 +329,7 @@ class GeneratePDF(View):
                 photoindex = 'photo'+str(i+1)
                 update = { photoindex: listphotos[i]}
                 screenshots_array[step.step_result_id][index].update(update)
+                
         return screenshots_array
 
     """
@@ -336,21 +341,21 @@ class GeneratePDF(View):
         # Get template base / html.
         template = get_template('generatePDF.html')
         # Get the browser name and version
-        browserinfo = self.feature.browser['browser']+" "+str(self.feature.browser['browser_version'])
+        browserinfo = self.feature_result.browser['browser']+" "+str(self.feature_result.browser['browser_version'])
         domain = 'https://%s' % DOMAIN
         # Send the context to the template. The context in this case is a dictionary containing variables with value to use in the template.
-        date_time = self.feature.result_date.replace(tzinfo=ZoneInfo('UTC'))
+        date_time = self.feature_result.result_date.replace(tzinfo=ZoneInfo('UTC'))
         utc_date =  date_time.astimezone(pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')
         cet_date =  date_time.astimezone(pytz.timezone('Europe/Berlin')).strftime('%Y-%m-%d %H:%M:%S %Z')
         ist_date =  date_time.astimezone(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S %Z')
         context = {
-            "invoice_id": self.feature.feature_name,
+            "invoice_id": self.feature_result.feature_name,
             "utc_date": utc_date,
             "cet_date": cet_date,
             "ist_date": ist_date,
             "stepsarray": self.steps,
             "domain": domain,
-            "featureinfo": self.feature,
+            "featureinfo": self.feature_result,
             "percentok": self.percentok,
             "percentnok": self.percentnok,
             "totalnok": self.totalnok,
@@ -360,12 +365,12 @@ class GeneratePDF(View):
         
         # Render template to HTML
         try:
-            # html = template.render(context)
+            html = template.render(context)
             # Render HTML to PDF
             pdf = render_to_pdf('generatePDF.html', context)
             return pdf
         except Exception as e:
-            self.my_logger.critical("[GeneratePDF] "+str(self.feature.feature_id)+" | Error while rendering the PDF. Error stack trace: ", e)
+            self.my_logger.critical("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Error while rendering the PDF. Error stack trace: ", e)
             raise ValueError("Error while rendering the PDF")
 
     """
@@ -373,7 +378,7 @@ class GeneratePDF(View):
     """
     def replaceFeatureVariables(self, text):
         # Transform feature object to dict
-        info = model_to_dict(self.feature)
+        info = model_to_dict(self.feature_result)
         # Provide some custom keys
         info['status'] = 'PASSED' if info['success'] else 'FAILED'
         # Iterate over each property
@@ -397,9 +402,9 @@ class GeneratePDF(View):
             # Create default remplate 
             subject = '[COMETA][%s] %s%s | %d OK | %d NOK' % (
                 str(self.feature_template.feature_id),
-                self.feature.feature_name[:emailSubjectFeatureNameLimit],
-                "..." if len(self.feature.feature_name) > emailSubjectFeatureNameLimit else '',
-                self.feature.ok,
+                self.feature_result.feature_name[:emailSubjectFeatureNameLimit],
+                "..." if len(self.feature_result.feature_name) > emailSubjectFeatureNameLimit else '',
+                self.feature_result.ok,
                 self.totalnok
             )
         else:
@@ -475,14 +480,14 @@ class GeneratePDF(View):
         return new_email_body, email_multi_alternatives
 
     def BuildEmailBody(self):
-        date_time = self.feature.result_date.replace(tzinfo=ZoneInfo('UTC'))
+        date_time = self.feature_result.result_date.replace(tzinfo=ZoneInfo('UTC'))
         utc_date =  date_time.astimezone(pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')
         cet_date =  date_time.astimezone(pytz.timezone('Europe/Berlin')).strftime('%Y-%m-%d %H:%M:%S %Z')
         ist_date =  date_time.astimezone(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S %Z')
 
         pdf_email_part = ""
 
-        if len(self.pdf.content) >= pdfFileSizeLimit and self.feature.attach_pdf_report_to_email:
+        if len(self.pdf.content) >= pdfFileSizeLimit and self.feature_result.attach_pdf_report_to_email:
            pdf_email_part = """
             PDF file size (%.2fMB) is over the threshold (%.2fMB) and will not be attached to the email, choose from options below to either download of view the pdf:
             <ul>
@@ -532,18 +537,18 @@ class GeneratePDF(View):
             Thanks you for using co.meta<br><br>
             Best regards<br><br>
         """ % (
-            self.feature.feature_id.feature_id,
-            self.feature.total,
-            self.feature.ok,
+            self.feature_result.feature_id.feature_id,
+            self.feature_result.total,
+            self.feature_result.ok,
             self.totalnok,
-            self.feature.department_name,
-            self.feature.app_name,
-            self.feature.environment_name,
-            self.feature.feature_name,
+            self.feature_result.department_name,
+            self.feature_result.app_name,
+            self.feature_result.environment_name,
+            self.feature_result.feature_name,
             utc_date,
             cet_date,
             ist_date,
-            str(self.feature.pixel_diff),
+            str(self.feature_result.pixel_diff),
             pdf_email_part
         )
         # Replace variables of feature
@@ -562,7 +567,7 @@ class GeneratePDF(View):
             '',
             settings.EMAIL_HOST_USER,
             to=self.feature_template.email_address,
-            headers={'X-COMETA': 'proudly_generated_by_amvara_cometa', 'X-COMETA-SERVER': 'AMVARA', 'X-COMETA-VERSION': str(version), 'X-COMETA-FEATURE': self.feature.feature_name, 'X-COMETA-DEPARTMENT':self.feature.department_name}
+            headers={'X-COMETA': 'proudly_generated_by_amvara_cometa', 'X-COMETA-SERVER': 'AMVARA', 'X-COMETA-VERSION': str(version), 'X-COMETA-FEATURE': self.feature_result.feature_name, 'X-COMETA-DEPARTMENT':self.feature_result.department_name}
         )
         # self.feature
         if self.feature_template.email_body:
@@ -580,16 +585,16 @@ class GeneratePDF(View):
         email.attach_alternative(self.emailbody, "text/html")
         if len(self.pdf.content) < pdfFileSizeLimit and self.feature_template.attach_pdf_report_to_email:
             # Attach the PDF generated PDF to the email. We give it a custom name before.
-            email.attach(str(self.feature.feature_name)+'-'+str(self.feature.result_date)+'.pdf', self.pdf.content, 'application/pdf')
+            email.attach(str(self.feature_result.feature_name)+'-'+str(self.feature_result.result_date)+'.pdf', self.pdf.content, 'application/pdf')
         # Send mail using the SMTP backend, and email settings set in settings.py.
         try:
             email.send()
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature.feature_id)+" | Email sent. Additional info:  ")
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature.feature_id)+" | Sent to (next line):  ")
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Email sent. Additional info:  ")
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to (next line):  ")
             self.my_logger.debug(self.feature_template.email_address)
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature.feature_id)+" | Subject: "+ str(self.subject))
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature.feature_id)+" | Sent by email account: "+ str(settings.EMAIL_HOST_USER))
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Subject: "+ str(self.subject))
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent by email account: "+ str(settings.EMAIL_HOST_USER))
             # return HttpResponse("200 OK")
         except Exception as e:
-            self.my_logger.critical("[GeneratePDF] "+str(self.feature.feature_id)+" | Error while sending the email. Error stack trace: ", e)
+            self.my_logger.critical("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Error while sending the email. Error stack trace: ", e)
             raise ValueError("Error while sending email")
