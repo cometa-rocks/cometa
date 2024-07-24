@@ -104,7 +104,7 @@ class AdminDataDriven_run(admin.ModelAdmin):
 class AdminFeature_result(admin.ModelAdmin):
     model = Feature_result
     search_fields = ['feature_name', 'app_name', 'environment_name', 'department_name']
-    list_display = ('feature_name', 'result_date', 'app_name', 'environment_name', 'department_name', 'total', 'fails', 'ok', 'skipped', 'execution_time', 'pixel_diff', 'success')
+    list_display = ('feature_result_id','feature_name', 'result_date', 'app_name', 'environment_name', 'department_name', 'total', 'fails', 'ok', 'skipped', 'execution_time', 'pixel_diff', 'success')
     list_filter = ('result_date', 'success')
     readonly_fields = ('browser_prettified', )
     exclude = ('browser', )
@@ -180,7 +180,7 @@ class AdminPermissions(admin.ModelAdmin):
         }),
         ('Feature Results', {
             'fields': (
-                ('remove_feature_result', 'download_result_files'),
+                ('remove_feature_result', 'download_result_files', 'manage_house_keeping_logs'),
                 )
         }),
         ('Feature Runs', {
