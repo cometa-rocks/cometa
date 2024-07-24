@@ -1,5 +1,5 @@
 {
-  "version": "2.8.367",
+  "version": "2.8.371",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,7 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
-    
+    {
+      "version": "2.8.371",
+      "date": "2024-07-25",
+      "features": [
+        {
+          "title": "#4814 - Folder item tree",
+          "description": "Improved user experience, you can now know if a folder is empty or not at a glance."
+        }
+      ]
+    }, 
     {
       "version": "2.8.367",
       "date": "2024-07-22",
