@@ -1,5 +1,5 @@
 {
-  "version": "2.8.364",
+  "version": "2.8.367",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,47 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    
+    {
+      "version": "2.8.367",
+      "date": "2024-07-22",
+      "features": [
+        {
+          "title": "#4814 - Housekeeping feature implemented",
+          "description": "Implemented feature to perform housekeeping based on the set dates for housekeeping in department."
+        }
+      ]
+    }, 
+    {
+      "version": "2.8.362",
+      "date": "2024-06-28",
+      "features": [
+        {
+          "title": "#4694 - Schedule enable returns disabled",
+          "description": "When an interface is activated its schedule and modified its steps the schedule becomes desactivated."
+        }
+      ]
+    },
+    {
+      "version": "2.8.363",
+      "date": "2024-07-15",
+      "features": [
+        {
+          "title": "#4694 - Add tooltip",
+          "description": "Add description and shortcut on the buttons of create feature and create folder."
+        }
+      ]
+    },
+    {
+      "version": "2.8.362",
+      "date": "2024-06-28",
+      "features": [
+        {
+          "title": "#4694 - Schedule enable returns disabled",
+          "description": "When an interface is activated its schedule and modified its steps the schedule becomes desactivated."
+        }
+      ]
+    },
     {
       "version": "2.8.364",
       "date": "2024-07-16",
