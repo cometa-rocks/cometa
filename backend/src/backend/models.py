@@ -618,6 +618,7 @@ class Permissions(models.Model):
     create_variable = models.BooleanField(default=False)
     edit_variable = models.BooleanField(default=False)
     delete_variable = models.BooleanField(default=False)
+    manage_house_keeping_logs = models.BooleanField(default=False)
     
     def __str__( self ):
         return u"%s" % self.permission_name
@@ -890,6 +891,8 @@ class Feature_result(SoftDeletableModel):
     run_hash = models.CharField(max_length=100, default='')
     session_id = models.CharField(max_length=255, null=True, default=None)
     network_logging_enabled = models.BooleanField(default=False) # If set to false it will not query in NetworkResponse, will reduce query time
+    house_keeping_done =  models.BooleanField(default=False) # If house keeping was done for this Feature result then do not process again
+    pdf_result_file_path =  models.CharField(max_length=200, default='', blank=True) # If house keeping was done for this Feature result then do not process again
     class Meta:
         ordering = ['result_date']
         verbose_name_plural = "Feature Results"
@@ -1306,12 +1309,12 @@ class Invite(models.Model):
 
 class Schedule(models.Model):
     id = models.AutoField(primary_key=True)
-    feature = models.ForeignKey(Feature, on_delete=models.CASCADE, related_name="schedules")
-    parameters = models.JSONField(default=dict)
+    feature = models.ForeignKey(Feature, on_delete=models.CASCADE, null=True, blank=True, related_name="schedules")
+    parameters = models.JSONField(default=dict,null=True, blank=True)
     schedule = models.CharField(max_length=255)
     command = models.CharField(max_length=255, blank=True, null=True)
     comment = models.CharField(max_length=255, blank=True, null=True)
-    owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, related_name="schedule_owner")
+    owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True,blank=True, related_name="schedule_owner")
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     delete_after_days = models.IntegerField(default=1)
     delete_on = models.DateTimeField(null=True, blank=True)

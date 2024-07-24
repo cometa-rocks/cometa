@@ -88,6 +88,7 @@ stages:
     # Detect & Install Django migration
     - docker exec cometa_django python manage.py makemigrations
     - docker exec cometa_django python manage.py makemigrations security
+    - docker exec cometa_django python manage.py makemigrations housekeeping
     - docker exec cometa_django python manage.py migrate
     # Update steps in database
     - echo -e "\e[0Ksection_start:`date +%s`:parse_actions\r\e[0KParsing actions to update database"
@@ -144,8 +145,8 @@ deploy:client01.prod:
 #   extends: .client02.prod
 
 # create a deploy job for client03 for branch prod
-deploy:client03.prod:
-  <<: *deployment_script
-  extends: .client03.prod
+# deploy:client03.prod:
+#   <<: *deployment_script
+#   extends: .client03.prod
 
 # DONE

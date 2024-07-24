@@ -14,7 +14,7 @@ from django.views.static import serve
 import re
 from django.urls import re_path
 router = routers.DefaultRouter()
-
+from housekeeping import views as house_keeping_view  
 
 # import EE Modules
 import backend.ee.modules.data_driven.urls as DataDrivenEndpoints
@@ -69,6 +69,8 @@ router.register(r'uploads', views.UploadViewSet)
 router.register(r'dataset', views.DatasetViewset)
 # provides numbers of system usage
 router.register(r'cometausage', views.CometaUsageViewSet)
+# router.register(r'housekeeping/(?P<log_id>[0-9]+)', house_keeping_view.HouseKeepingViewSet)
+router.register(r'housekeeping', house_keeping_view.HouseKeepingViewSet)
 
 # Full path of static admin resources 
 STATIC_ADMIN_FILES = os.path.dirname(admin.__file__) + '/static/'
@@ -129,6 +131,7 @@ urlpatterns = [
     url(r'^departments/(?P<department_id>[0-9]+)/updateStepTimeout/', views.UpdateStepTimeout),
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
+    
     # Security Feature
     path('security/',include('backend.ee.modules.security.urls'))
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) + [
