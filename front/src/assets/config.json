@@ -1,5 +1,5 @@
 {
-  "version": "2.8.367",
+  "version": "2.8.370",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,7 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
-    
+    {
+      "version": "2.8.370",
+      "date": "2024-07-24",
+      "features": [
+        {
+          "title": "#4814 - The feature is created even if there is an error",
+          "description": "Solved the problem where the feature is created even though an error was thrown in relation to the 'run feature with name' and 'run feature with id' steps."
+        }
+      ]
+    }, 
     {
       "version": "2.8.367",
       "date": "2024-07-22",
