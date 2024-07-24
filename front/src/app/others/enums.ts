@@ -19,5 +19,8 @@ export enum KEY_CODES {
   A = 65,
   T = 84,
   B = 66,
-  G = 71
+  G = 71,
+  CTRL = 17,       
+  ARROW_DOWN = 40,  
+  ARROW_UP = 38  
 }

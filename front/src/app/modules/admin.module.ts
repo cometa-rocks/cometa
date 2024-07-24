@@ -23,6 +23,8 @@ import { ModifyDepartmentComponent } from '@dialogs/modify-department/modify-dep
 import { ModifyDepartmentTimeoutComponent } from '@dialogs/modify-department-timeout/modify-department-timeout.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { AccountsDialog } from '@dialogs/accounts-dialog/accounts-dialog.component';
+import { HouseKeepingComponent } from '@components/admin/others/housekeeping/housekeeping.component';
+import { ShowHousekeepingLogDialog } from '@dialogs/show-housekeeping-logs/show-housekeeping-logs.component';
 
 const routes: Routes = [
   {
@@ -131,7 +133,9 @@ const routes: Routes = [
     FeaturesComponent,
     AccountsComponent,
     AdminOthersComponent,
+    HouseKeepingComponent,
     AccountsDialog,
+    ShowHousekeepingLogDialog
   ],
 })
 export class AdminModule {}
