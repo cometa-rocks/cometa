@@ -27,17 +27,53 @@ Author: dph000
       <!-- Show different depending if the item is a folder or department -->
       <mat-icon *ngIf="department === true; else folderIcon">domain</mat-icon>
       <ng-template #folderIcon>
-        <div *ngIf="folder.features.length > 0; else emptyTemplate" class="icon-relative">
-          <mat-icon>folder</mat-icon>
-          <span class="feature-run-text">Run</span>
-          <div class="feature-run"></div>
-          <div class="feature-sheet"></div>
-          <div class="feature-sheet-line"></div>
-          <div class="folder-line"></div>
+        <div class="icon-relative">
+          <ng-container *ngIf="folder.features.length > 0 && folder.folders.length === 0; else checkFolders">
+            <!-- Caso 1: Solo hay features -->
+            <mat-icon>folder</mat-icon>
+            <span class="feature-run-text">Run</span>
+            <div class="feature-run"></div>
+            <div class="feature-sheet"></div>
+            <div class="feature-sheet-line"></div>
+            <div class="feature-sheet-line-two"></div>
+            <div class="folder-line"></div>
+            <div class="folder-line-two"></div>
+          </ng-container>
+      
+          <ng-template #checkFolders>
+            <ng-container *ngIf="folder.folders.length > 0 && folder.features.length === 0; else checkFeatAndFold">
+              <!-- Caso 2: Solo hay folders -->
+              <mat-icon>folder</mat-icon>
+              <mat-icon class="little-folder">folder</mat-icon>
+              <mat-icon class="second-little-folder">folder</mat-icon>
+              <div class="sec-folder-title"></div>
+              <div class="sec-folder-line"></div>
+              <div class="sec-folder-line-two"></div>
+            </ng-container>
+          </ng-template>
+      
+          <ng-template #checkFeatAndFold>
+            <ng-container *ngIf="folder.folders.length > 0 && folder.features.length > 0; else emptyTemplate">
+              <!-- Caso 3: Hay tanto folders como features -->
+              <mat-icon>folder</mat-icon>
+              <span class="both-feature-run-text">Run</span>
+              <div class="both-feature-run"></div>
+              <div class="both-feature-sheet"></div>
+              <div class="both-feature-sheet-line"></div>
+              <div class="both-feature-sheet-line-two"></div>
+              <mat-icon class="both-little-folder">folder</mat-icon>
+              <mat-icon class="both-second-little-folder">folder</mat-icon>
+              <div class="both-sec-folder-title"></div>
+              <div class="both-sec-folder-line"></div>
+              <div class="both-sec-folder-line-two"></div>
+            </ng-container>
+          </ng-template>
+      
+          <ng-template #emptyTemplate>
+            <!-- Caso 4: No hay ni folders ni features -->
+            <mat-icon>folder</mat-icon>
+          </ng-template>
         </div>
-        <ng-template #emptyTemplate>
-          <mat-icon>folder </mat-icon>
-        </ng-template>
       </ng-template>
       <div class="folderName">{{ folder.name }}</div>
     </div>
