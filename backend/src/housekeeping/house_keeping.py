@@ -196,14 +196,14 @@ class HouseKeepingThread(LogCommand, Thread):
             six_month_old_records = HouseKeepingLogs.objects.filter(created_on__lt=six_months_ago)
             count_six_month_previous_logs  = len(six_month_old_records)
             six_month_old_records.delete()
+            self.log(f"Deleted {count_six_month_previous_logs} Housekeeping logs from DB")
         except Exception as e:
             self.house_keeping_logs.success = False
             self.log(f"Exception while doing housekeeping {str(e)}")
         # Saving logs in database for future references, can be seen in the django admin
            
-       
-        
-        self.log(f"Deleted {count_six_month_previous_logs} Housekeeping logs from DB")
+ 
+        self.log("Saving logs in the database")
         self.house_keeping_logs.house_keeping_logs = self.get_logs()
         self.house_keeping_logs.save()
         

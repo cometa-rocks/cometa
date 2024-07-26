@@ -1,6 +1,10 @@
 <!-- Editor row headers -->
 <div class="headers">
   <div class="move-row"></div>
+  <div class="more-vert">
+    <span class="desktop"></span>
+    <span class="mobile"><i></i></span>
+  </div>
   <div class="index">#</div>
   <div class="enable">
     <span class="desktop">Enable</span>
@@ -19,7 +23,8 @@
 <!-- Right click menu -->
 <context-menu menuClass="step-contect-menu" #basicMenu>
   <ng-template contextMenuItem let-item>
-    <div (click)="addEmpty(item)">
+    <div 
+      (click)="addEmpty(item)">
       <mat-icon>unarchive</mat-icon>
       <span>Insert new step above</span>
     </div>
@@ -63,8 +68,12 @@
         [contextMenu]="basicMenu"
         [contextMenuValue]="i"
         [ngClass]="'step-id-' + i">
+        <div class="move-row" cdkDragHandle></div>
+        <button mat-icon-button [matMenuTriggerFor]="stepOptions">
+          <mat-icon>more_vert</mat-icon>
+        </button>
         <div class="step-extras">
-          <div class="move-row" cdkDragHandle></div>
+          
           <div class="index">{{ i + 1 }}</div>
           <mat-checkbox
             formControlName="enabled"
@@ -100,6 +109,7 @@
           (keydown.esc)="onStepEscape($event)"
           (keydown.Tab)="onTextareaTab(i)">
           <textarea
+            #stepContentTextarea
             (input)="onStepChange($event, i)"
             (blur)="fixStep($event, i)"
             (click)="
@@ -110,6 +120,10 @@
             (keydown.arrowdown)="onTextareaArrowKey($event, 'down')"
             (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
             (keydown.enter)="onTextareaEnter($event, i)"
+            (keydown.control.arrowup)="insertStep($event, i)"
+            (keydown.control.arrowdown)="insertStep($event, i)"
+            (keydown.alt.control.arrowup)="copyStep($event, i)"
+            (keydown.alt.control.arrowdown)="copyStep($event, i)"
             class="code"
             spellcheck="false"
             cdkTextareaAutosize
@@ -172,9 +186,7 @@
             matTooltip="This step definition has been found inside an import"
             matTooltipPosition="above"></i>
         </ng-container>
-        <button mat-icon-button [matMenuTriggerFor]="stepOptions">
-          <mat-icon>more_vert</mat-icon>
-        </button>
+       
         <!-- Step Options Menu -->
         <mat-menu class="step-options-menu" #stepOptions="matMenu">
           <button mat-menu-item stopPropagation>
