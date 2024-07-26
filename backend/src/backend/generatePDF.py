@@ -251,18 +251,12 @@ class GeneratePDF(View):
                 self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Valid e-mail ("+email+")")
             except ValidationError as e:
                 bad_emails.append(email)
-                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Invalid e-mail. Removed from list.")
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+f" | Invalid e-mail {email}. Removed from list.")
             
         # We remove them here as it is a bad practice to remove items for the list we are iterating on.
         for bad_email in bad_emails:
             self.feature_template.email_address.remove(bad_email)
-            
-        # If all emails are removed then dont proceed
-        if len(self.feature_template.email_address) == 0:
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | All e-mails were invalid and they were not sent. Exiting.")
-            return False 
-        
-        
+
         # Bad e-mail checking. If an email is not valid, it will get deleted. 
         # This is done to protect user from sending emails to unwanted directions.
         bad_cc_emails = []
@@ -272,11 +266,11 @@ class GeneratePDF(View):
                 self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Valid e-mail ("+email+")")
             except ValidationError as e:
                 bad_cc_emails.append(email)
-                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Invalid CC e-mail. Removed from list.")
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+f" | Invalid CC e-mail {email}. Removed from list.")
             
         # We remove them here as it is a bad practice to remove items for the list we are iterating on.
         for bad_email in bad_cc_emails:
-            self.feature_template.email_bcc_address.remove(bad_email)
+            self.feature_template.email_cc_address.remove(bad_email)
        
        
        
@@ -289,12 +283,17 @@ class GeneratePDF(View):
                 self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Valid e-mail ("+email+")")
             except ValidationError as e:
                 bad_bcc_emails.append(email)
-                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Invalid CC e-mail. Removed from list.")
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+f" | Invalid BCC e-mail {email}. Removed from list.")
             
         # We remove them here as it is a bad parctice to remove items for the list we are iterating on.
         for bad_email in bad_bcc_emails:
             self.feature_template.email_cc_address.remove(bad_email)
-
+        
+                # If all emails are removed then dont proceed
+        if len(self.feature_template.email_address) + len(self.feature_template.email_cc_address) + len(self.feature_template.email_bcc_address) == 0:
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | All e-mails were invalid and they were not sent. Exiting.")
+            return False 
+                
         # All good
         return True
 
