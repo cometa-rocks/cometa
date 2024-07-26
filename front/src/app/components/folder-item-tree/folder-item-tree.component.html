@@ -29,7 +29,6 @@ Author: dph000
       <ng-template #folderIcon>
         <div class="icon-relative">
           <ng-container *ngIf="folder.features.length > 0 && folder.folders.length === 0; else checkFolders">
-            <!-- Caso 1: Solo hay features -->
             <mat-icon>folder</mat-icon>
             <span class="feature-run-text">Run</span>
             <div class="feature-run"></div>
@@ -42,7 +41,6 @@ Author: dph000
       
           <ng-template #checkFolders>
             <ng-container *ngIf="folder.folders.length > 0 && folder.features.length === 0; else checkFeatAndFold">
-              <!-- Caso 2: Solo hay folders -->
               <mat-icon>folder</mat-icon>
               <mat-icon class="little-folder">folder</mat-icon>
               <mat-icon class="second-little-folder">folder</mat-icon>
@@ -54,7 +52,6 @@ Author: dph000
       
           <ng-template #checkFeatAndFold>
             <ng-container *ngIf="folder.folders.length > 0 && folder.features.length > 0; else emptyTemplate">
-              <!-- Caso 3: Hay tanto folders como features -->
               <mat-icon>folder</mat-icon>
               <span class="both-feature-run-text">Run</span>
               <div class="both-feature-run"></div>
@@ -70,7 +67,6 @@ Author: dph000
           </ng-template>
       
           <ng-template #emptyTemplate>
-            <!-- Caso 4: No hay ni folders ni features -->
             <mat-icon>folder</mat-icon>
           </ng-template>
         </div>
