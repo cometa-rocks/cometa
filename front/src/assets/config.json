@@ -239,6 +239,10 @@
         {
           "title": "#4814 - Implemented CC and BCC fields",
           "description": "Added CC (Carbon Copy) and BCC (Blind Carbon Copy) fields to the email sending section."
+        },
+        {
+          "title": "#4814 - Improvement made to receive the mail with CC and BCC recipients",
+          "description": "DB fields are added to store CC and BCC emails, CC and BCC email logic is updated."
         }
       ]
     }, 
@@ -327,7 +331,7 @@
       "date": "2024-07-17",
       "features": [
         {
-          "title": "#4694 - Feature Schedule Display Added",
+          "title": "#4694 - Feature schedule display added",
           "description": "Users can now view the schedule directly within the feature details."
         }
       ]
@@ -387,7 +391,7 @@
       "date": "2024-06-20",
       "features": [
         {
-          "title": "#4694 Conflict Space shortcut with Run button",
+          "title": "#4694 Conflict space shortcut with run button",
           "description": "Solved space shortcut makes conflict with run button on cometa feature page."
          }
       ]
