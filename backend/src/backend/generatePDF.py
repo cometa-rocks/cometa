@@ -242,7 +242,8 @@ class GeneratePDF(View):
             else:
                 self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Errors found. Will send email.")
 
-        # Bad e-mail checking. If an email is not valid, it will get deleted. This is done to protect user from sending emails to unwanted directions.
+        # Bad e-mail checking. If an email is not valid, it will get deleted. 
+        # This is done to protect user from sending emails to unwanted directions.
         bad_emails = []
         for email in self.feature_template.email_address or []:
             try:
@@ -252,13 +253,47 @@ class GeneratePDF(View):
                 bad_emails.append(email)
                 self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Invalid e-mail. Removed from list.")
             
-        # We remove them here as it is a bad pactice to remove items for the list we are iterating on.
+        # We remove them here as it is a bad practice to remove items for the list we are iterating on.
         for bad_email in bad_emails:
             self.feature_template.email_address.remove(bad_email)
+            
         # If all emails are removed then dont proceed
         if len(self.feature_template.email_address) == 0:
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | All e-mails were invalid and they were not sent. Exiting.")
             return False 
+        
+        
+        # Bad e-mail checking. If an email is not valid, it will get deleted. 
+        # This is done to protect user from sending emails to unwanted directions.
+        bad_cc_emails = []
+        for email in self.feature_template.email_cc_address or []:
+            try:
+                validate_email(email)
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Valid e-mail ("+email+")")
+            except ValidationError as e:
+                bad_cc_emails.append(email)
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Invalid CC e-mail. Removed from list.")
+            
+        # We remove them here as it is a bad practice to remove items for the list we are iterating on.
+        for bad_email in bad_cc_emails:
+            self.feature_template.email_bcc_address.remove(bad_email)
+       
+       
+       
+        # Bad e-mail checking. If an email is not valid, it will get deleted. 
+        # This is done to protect user from sending emails to unwanted directions.
+        bad_bcc_emails = []
+        for email in self.feature_template.email_bcc_address or []:
+            try:
+                validate_email(email)
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Valid e-mail ("+email+")")
+            except ValidationError as e:
+                bad_bcc_emails.append(email)
+                self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Invalid CC e-mail. Removed from list.")
+            
+        # We remove them here as it is a bad parctice to remove items for the list we are iterating on.
+        for bad_email in bad_bcc_emails:
+            self.feature_template.email_cc_address.remove(bad_email)
 
         # All good
         return True
@@ -561,12 +596,15 @@ class GeneratePDF(View):
         Then, we send the email using the email backend server we configured on settings.py
     """
     def SendEmail(self):
+        
         # EmailMessage object creation. More info about this class on https://docs.djangoproject.com/en/3.0/topics/email/#emailmessage-objects
         email = EmailMultiAlternatives(
             self.subject,
             '',
-            settings.EMAIL_HOST_USER,
+            from_email=settings.EMAIL_HOST_USER,
             to=self.feature_template.email_address,
+            cc=self.feature_template.email_cc_address,
+            bcc=self.feature_template.email_bcc_address,
             headers={'X-COMETA': 'proudly_generated_by_amvara_cometa', 'X-COMETA-SERVER': 'AMVARA', 'X-COMETA-VERSION': str(version), 'X-COMETA-FEATURE': self.feature_result.feature_name, 'X-COMETA-DEPARTMENT':self.feature_result.department_name}
         )
         # self.feature
@@ -597,4 +635,4 @@ class GeneratePDF(View):
             # return HttpResponse("200 OK")
         except Exception as e:
             self.my_logger.critical("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Error while sending the email. Error stack trace: ", e)
-            raise ValueError("Error while sending email")
+            raise Exception("Error while sending email")

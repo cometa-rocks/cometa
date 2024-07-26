@@ -142,6 +142,17 @@ if [ "$ENVIRONMENT" = "dev" ]; then
     echo "Devmode was requested ... starting python manage.py runserver"
     python manage.py runserver 0.0.0.0:8000
 fi
+#
+#  Run in VSCode IDE debug mode 
+#
+if [ "$ENVIRONMENT" = "dev-debug" ]; then
+    echo "###################################################"
+    echo "# Running in DEV Debug mode                             #"
+    echo "###################################################"
+    echo "Dev-debug was requested ... You need to start django using python manage.py runserver"
+    echo "Refer backend/src/EADME.md > 'Refer this to run django in IDE debug mode' section"
+    sleep infinity
+fi
 
 #
 # In Production mode start gunicorn
