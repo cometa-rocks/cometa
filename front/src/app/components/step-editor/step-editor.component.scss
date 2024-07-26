@@ -83,7 +83,7 @@
     padding: 0 15px;
     position: relative;
     padding-top: 10px;
-    &.enable {
+    &.enable, &.more-vert {
       flex: 0 0 30px;
     }
   }
@@ -241,12 +241,16 @@
   .move-row {
     flex: 0 0 30px;
   }
+  .more-vert,
   .enable,
   .screenshot,
   .compare {
     flex: 0 0 80px;
     text-align: center;
     font-weight: bold;
+  }
+  .more-vert {
+    flex: 0 0 40px;
   }
   .enable {
     flex: 0 0 60px;
