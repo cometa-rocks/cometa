@@ -1,3 +1,4 @@
+<draggable-window></draggable-window>
 <div *ngIf="isDialog; else notDialog">
   <h2
     mat-dialog-title
@@ -293,6 +294,7 @@
   </ng-template>
 </mat-dialog-content>
 <mat-dialog-actions *ngIf="data?.department_id">
+  <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
   <div
     class="add-variable"
     *ngIf="canCreate"
@@ -311,5 +313,4 @@
       Add variable
     </button>
   </div>
-  <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
 </mat-dialog-actions>

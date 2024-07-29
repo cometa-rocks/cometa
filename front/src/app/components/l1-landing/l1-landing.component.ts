@@ -56,6 +56,7 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { KEY_CODES } from '@others/enums';
 import { ElementRef, HostListener } from '@angular/core';
 import { InputFocusService } from '@services/inputFocus.service';
+import { TranslateModule } from '@ngx-translate/core';
 
 @UntilDestroy()
 @Component({
@@ -118,6 +119,7 @@ import { InputFocusService } from '@services/inputFocus.service';
     L1FeatureStarredListComponent,
     L1FeatureTrashbinListComponent,
     AsyncPipe,
+    TranslateModule
   ],
 })
 export class L1LandingComponent implements OnInit {
