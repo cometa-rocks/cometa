@@ -18,7 +18,7 @@ services:
     image: python:3.9
     logging:
       driver: json-file
-    command: bash start.sh -dev
+    command: bash start.sh -d
     volumes:
       - ./data/cometa/screenshots:/code/behave/screenshots
       - ./data/cometa/videos:/code/behave/videos
@@ -114,6 +114,7 @@ services:
     networks:
       - testing
     restart: always
+    
   
   crontab:
     image: cometa/scheduler:latest

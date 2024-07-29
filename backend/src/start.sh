@@ -24,6 +24,7 @@ do
                 -d|--debug)
                         set -x
                         DEBUG=TRUE
+                        ENVIRONMENT="debug"
                         shift
                         ;;
                 -dev|--development)
@@ -116,6 +117,7 @@ pip install -U pip
 # Run Django migrations
 python manage.py makemigrations backend
 python manage.py makemigrations security
+python manage.py makemigrations housekeeping
 python manage.py migrate
 
 # if this is the first time initializing co.meta
@@ -140,6 +142,17 @@ if [ "$ENVIRONMENT" = "dev" ]; then
     echo "###################################################"
     echo "Devmode was requested ... starting python manage.py runserver"
     python manage.py runserver 0.0.0.0:8000
+fi
+#
+#  Run in VSCode IDE debug mode 
+#
+if [ "$ENVIRONMENT" = "debug" ]; then
+    echo "###################################################"
+    echo "# Running in Debug mode                             #"
+    echo "###################################################"
+    echo "debug mode was requested, you need to start django using \"python manage.py runserver\""
+    echo "Refer backend/src/README.md run django debug mode in VSCODE IDE"
+    sleep infinity
 fi
 
 #
