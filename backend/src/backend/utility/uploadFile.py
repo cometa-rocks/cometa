@@ -11,7 +11,7 @@ from backend.serializers import FileSerializer
 from backend.utility.functions import getLogger
 sys.path.append("/code")
 from secret_variables import COMETA_UPLOAD_ENCRYPTION_PASSPHRASE
-
+from.config_handler import *
 # logger information
 logger = getLogger()
 
@@ -329,7 +329,7 @@ class UploadFile():
             return False
     
     def sendWebsocket(self, payload):
-        response = requests.post('http://cometa_socket:3001/sendAction', json=payload)
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json=payload)
         return response
     
     def sanitize(self, filename: str):

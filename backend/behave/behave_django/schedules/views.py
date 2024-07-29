@@ -28,6 +28,7 @@ from requests.packages.urllib3.util.retry import Retry
 sys.path.append("/code")
 from secret_variables import *
 from src.backend.common import *
+from src.backend.utility.config_handler import *
 
 # setup logging
 logger = logging.getLogger(__name__)
@@ -113,7 +114,7 @@ def run_test(request):
         # dump the json as string
         browser = json.dumps(browser)
         # send websocket about the feature has been queued
-        request = requests.get('http://cometa_socket:3001/feature/%s/queued' % feature_id, data={
+        request = requests.get(f'{get_cometa_socket_url()}/feature/%s/queued' % feature_id, data={
             "user_id": user_data['user_id'],
             "browser_info": browser,
             "network_logging_enabled": network_logging_enabled,

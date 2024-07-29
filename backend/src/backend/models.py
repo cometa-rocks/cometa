@@ -17,7 +17,7 @@ from django.db.models.signals import post_delete, pre_delete
 from django.dispatch import receiver
 from django_cryptography.fields import encrypt
 from crontab import CronSlices
-
+from backend.utility.config_handler import *
 # GLOBAL VARIABLES
 
 # check if we are inside a loop
@@ -1335,7 +1335,8 @@ class Schedule(models.Model):
             self.delete_on = self.created_on + datetime.timedelta(days=self.delete_after_days)
         # create the command
         if self.command is None:
-            self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST http://django:8000/exectest/""" % (self.feature.feature_id, self.owner.user_id)
+            # self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST %s/exectest/""" % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
+            self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST %s/exectest/""" % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
         # create the comment
         if self.comment is None:
             self.comment = "# added by cometa JobID: <jobId> on %s, to be deleted on %s" % (self.created_on.strftime("%Y-%m-%d"), self.delete_on.strftime("%Y-%m-%d") if self.delete_on is not None else "***never*** (disable it in feature)")
@@ -1353,14 +1354,14 @@ class Schedule(models.Model):
         super(Schedule, self).save(*args, **kwargs)
 
         # make the request to crontab
-        requests.get('http://crontab:8080/')
+        requests.get(f'{get_cometa_crontab_url()}/')
         return True
 
     def delete(self, *args, **kwargs):
         # delete the object and send request to crontab to update
         super(Schedule, self).delete()
         # make the request to crontab
-        requests.get('http://crontab:8080/')
+        requests.get(f'{get_cometa_crontab_url()}/')
         return True
 
 IntegrationApplications = (

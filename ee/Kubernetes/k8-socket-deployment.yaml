@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-socket-deployment
+  namespace: cometa 
+spec:
+  
+  replicas: 1  # Adjust this number based on your requirements for high availability
+  selector:
+    matchLabels:
+      app: cometa-socket-pod
+  template:
+    metadata:
+      labels:
+        app: cometa-socket-pod
+    spec:
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
+      containers:
+        - name: cometa-socket-container
+          image: cometa/socket:latest
+          ports:
+          - containerPort: 3001
+          env:
+          - name: NODE_ENV
+            value: "production"
+          - name: NPM_CONFIG_LOGLEVEL
+            value: "info"
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            runAsNonRoot: true
+            runAsGroup: 472
+            runAsUser: 472
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            limits:
+              cpu: "0.5"
+              memory: "1Gi"
+            requests:
+              cpu: "0.25"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-socket-service
+  namespace: cometa 
+spec:
+  selector:
+    app: cometa-socket-pod
+  ports:
+    - protocol: TCP
+      port: 3001
+      targetPort: 3001
+  type: ClusterIP
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: socket-network-policy
+  namespace: cometa  # Ensure this is applied within the 'cometa' namespace
+spec:
+  podSelector:
+    matchLabels:
+      app: cometa-socket-pod  # Select the pods serving the socket service
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+    ports:
+    - protocol: TCP
+      port: 3001  # Specific port for the socket service

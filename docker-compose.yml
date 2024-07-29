@@ -1,4 +1,36 @@
-version: '3.8'
+x-common-vars: &common-vars
+  ENVIRONMENT: "dev"
+  # Front
+  FRONT_SERVER_HOST: "front"
+  SOCKET_SERVER_URL: "ws"
+  SOCKET_SERVER_PORT: "3001"
+  # Backend
+  DJANGO_SERVER_URL: "django"
+  DJANGO_SERVER_PORT: "8000"
+  DATABASE_SERVER: "db"
+  DATABASE_PORT: "5432"
+  # Behave
+  BEHAVE_SERVER_URL: "behave"
+  BEHAVE_SERVER_PORT: "8001"
+  # REDIS_WORKERS: "10"
+  # THREADS: "10"
+  # Redis
+  REDIS_SERVER: "redis"
+  REDIS_PORT: "6379"
+  # Selenoid
+  SELENOID_SERVER_URL: "selenoid"
+  SELENOID_SERVER_PORT: 4444
+  VIDEO_EXTENSION: "mp4"
+  # NoVNC
+  NOVNC_SERVER_URL: "novnc"
+  NOVNC_SERVER_PORT: 8080
+  # Crontab/Scheduler
+  # CRONTAB_SERVER_URL: "scheduler"
+  # CRONTAB_SERVER_PORT: "8080"
+  CRONTAB_SERVER_URL: "crontab"
+  CRONTAB_SERVER_PORT: "80"
+  # Etc
+  IS_KUBERNETES_INSTALLATION: false
 
 services:
   db:
@@ -29,9 +61,10 @@ services:
       - "./backend/crontabs/cometa_django_crontab:/etc/cron.d/crontab"
     working_dir: /opt/code
     environment:
-      - PYTHONUNBUFFERED=1
-    ports:
-      - "8000:8000"
+      PYTHONUNBUFFERED: "1"
+
+    expose:
+      - "8000"
     depends_on:
       - db
     links:
@@ -73,12 +106,12 @@ services:
     logging:
       driver: json-file
     environment:
-      - NODE_ENV=production
-      - NPM_CONFIG_LOGLEVEL=info
+      NODE_ENV: development
+      NPM_CONFIG_LOGLEVEL: info
     volumes:
       - ./backend/ws-server:/home/node/app:rw
-    ports:
-      - "3001:3001"
+    expose:
+      - "3001"
     command: "npm run-script start"
     networks:
      - testing
@@ -90,15 +123,15 @@ services:
     container_name: cometa_selenoid
     logging:
       driver: json-file
-    ports:
-      - 4444:4444
+    expose:
+      - "4444"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./backend/selenoid/:/etc/selenoid/:ro
       - /data/cometa/videos:/opt/selenoid/video
     environment:
       TZ: Europe/Berlin
-      OVERRIDE_VIDEO_OUTPUT_DIR: ${PWD}/data/cometa/videos
+      OVERRIDE_VIDEO_OUTPUT_DIR: /data/cometa/videos
     networks:
       - testing
     restart: always
@@ -149,6 +182,8 @@ services:
       - /data/cometa/screenshots:/screenshots
     working_dir: /code/front
     privileged: true
+    environment:
+      <<: *common-vars
     ports:
       - "<outside_port>:80"
       - "443:443"

@@ -97,7 +97,7 @@ def set_test_schedule(feature_id, schedule, user_id):
         'schedule': schedule,
         'user_id': user_id
     }
-    return requests.post('http://behave:8001/set_test_schedule/', data=post_data)
+    return requests.post(f'{get_cometa_behave_url()}/set_test_schedule/', data=post_data)
 
 # Calculates the total values of OK, NOK, Skipped, etc for the given run
 def calculate_run_totals(run):

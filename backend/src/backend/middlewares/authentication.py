@@ -8,7 +8,7 @@ from backend.utility.functions import getLogger
 from pprint import pprint
 from django.shortcuts import redirect
 import urllib3
-
+from backend.utility.config_handler import get_config
 logger = getLogger()
 
 DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
@@ -45,7 +45,8 @@ class AuthenticationMiddleware:
                 if HTTP_HOST == 'cometa.local':
                     raise Exception("User session none existent from behave.")
                 if not re.match(r'^(cometa.*\.amvara\..*)|(.*\.cometa\.rocks)$', HTTP_HOST):
-                    HTTP_HOST = 'cometa_front'
+                    HTTP_HOST = get_config("FRONT_SERVER_HOST", "cometa_front")
+
                 # make a request to cometa_front to get info about the logged in user
                 response = requests.get('https://%s/callback?info=json' % HTTP_HOST, verify=False, cookies={
                     'mod_auth_openidc_session': request.COOKIES.get('mod_auth_openidc_session', '')
@@ -118,6 +119,9 @@ class AuthenticationMiddleware:
 
             # get the superuser permissions
             superuser = Permissions.objects.filter(permission_name="SUPERUSER")[0]
+            # logger.debug(f"REMOTE_ADDR {REMOTE_ADDR} " )
+            # logger.debug(f"HTTP_HOST {HTTP_HOST}" )
+            # logger.debug(f"request.META {request.META}" )
             if REMOTE_ADDR.startswith('172') or REMOTE_ADDR.startswith('10') or REMOTE_ADDR.startswith('192'):
                 # save the user as Scheduler
                 if HTTP_COMETA_ORIGIN == 'CRONTAB':

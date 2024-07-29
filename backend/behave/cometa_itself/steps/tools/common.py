@@ -1,6 +1,8 @@
 import time
 import signal
 import logging
+
+from src.backend.utility.config_handler import *
 from .exceptions import *
 from .variables import *
 from functools import wraps
@@ -191,7 +193,7 @@ def load_parameters(parameters):
 
 def send_step_details(context, text):
     logger.debug('Sending websocket with detailed step ... [%s] ' % text)
-    requests.post('http://cometa_socket:3001/feature/%s/stepDetail' % context.feature_id, data={
+    requests.post(f'{get_cometa_socket_url()}/feature/%s/stepDetail' % context.feature_id, data={
         "user_id": context.PROXY_USER['user_id'],
         'browser_info': json.dumps(context.browser_info),
         "run_id": os.environ['feature_run'],
