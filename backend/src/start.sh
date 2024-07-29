@@ -24,6 +24,7 @@ do
                 -d|--debug)
                         set -x
                         DEBUG=TRUE
+                        ENVIRONMENT="debug"
                         shift
                         ;;
                 -dev|--development)
@@ -145,12 +146,12 @@ fi
 #
 #  Run in VSCode IDE debug mode 
 #
-if [ "$ENVIRONMENT" = "dev-debug" ]; then
+if [ "$ENVIRONMENT" = "debug" ]; then
     echo "###################################################"
-    echo "# Running in DEV Debug mode                             #"
+    echo "# Running in Debug mode                             #"
     echo "###################################################"
-    echo "Dev-debug was requested ... You need to start django using python manage.py runserver"
-    echo "Refer backend/src/EADME.md > 'Refer this to run django in IDE debug mode' section"
+    echo "debug mode was requested, you need to start django using \"python manage.py runserver\""
+    echo "Refer backend/src/README.md run django debug mode in VSCODE IDE"
     sleep infinity
 fi
 
