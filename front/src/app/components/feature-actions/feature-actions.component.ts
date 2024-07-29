@@ -153,8 +153,10 @@ export class FeatureActionsComponent implements OnInit {
           this.downloadCSV();
           break;
         case KEY_CODES.E:
-          this._sharedActions.dialogActive = true;
-          this._sharedActions.openEditFeature(this.getFeatureId(), 'edit');
+          // this._sharedActions.dialogActive = true;
+          if(!this._sharedActions.dialogActiveOther){
+            this._sharedActions.openEditFeature(this.getFeatureId(), 'edit');
+          }
           break;
         case KEY_CODES.L:
           this._sharedActions.dialogActive = true;

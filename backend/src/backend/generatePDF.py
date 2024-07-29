@@ -326,7 +326,7 @@ class GeneratePDF(View):
                 if isfile(path):
                     # Open image and convert to base64
                     with open(path, "rb") as file:
-                        photo = base64.b64encode(file.read())
+                        photo = base64.b64encode(file.read()).decode('utf-8')
                         # Push it to list of photos
                         listphotos.append(photo)
                 else:
@@ -342,7 +342,7 @@ class GeneratePDF(View):
                     if photo and isfile(photo):
                         # Open image and convert to base64
                         with open(path, "rb") as file:
-                            photo = base64.b64encode(file.read())
+                            photo = base64.b64encode(file.read()).decode('utf-8')
                             # Push it to list of photos
                             listphotos.append(photo)
                     
@@ -626,9 +626,8 @@ class GeneratePDF(View):
         # Send mail using the SMTP backend, and email settings set in settings.py.
         try:
             email.send()
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Email sent. Additional info:  ")
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to (next line):  ")
-            self.my_logger.debug(self.feature_template.email_address)
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Email sent. Additional info: ")
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to (next line): ")
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Subject: "+ str(self.subject))
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent by email account: "+ str(settings.EMAIL_HOST_USER))
             # return HttpResponse("200 OK")
