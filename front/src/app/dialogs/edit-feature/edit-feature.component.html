@@ -182,7 +182,7 @@
               <mat-chip
                 *ngFor="let addr of featureForm.get('email_address').value"
                 [removable]="true"
-                (removed)="removeAddress(addr)"
+                (removed)="removeAddress(addr, 'email_address')"
                 >{{ addr }}
                 <mat-icon matChipRemove>cancel</mat-icon>
               </mat-chip>
@@ -191,9 +191,55 @@
                 [matChipInputFor]="chipList"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 [matChipInputAddOnBlur]="true"
-                (matChipInputTokenEnd)="addAddress($event)"
+                (matChipInputTokenEnd)="addAddress($event, 'email_address')"
                 (focus)="onInputFocus()" 
                 (blur)="onInputBlur()" />
+            </mat-chip-list>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label
+              >CC (Carbon Copy): Enter email addresses, use tab to separate emails. 
+            </mat-label>
+            <mat-chip-list #ccChipList>
+              <mat-chip
+                *ngFor="let addr of featureForm.get('email_cc_address').value"
+                [removable]="true"
+                (removed)="removeAddress(addr, 'email_cc_address')"
+                >{{ addr }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            <input
+              formControlName="address_to_add"
+              [matChipInputFor]="ccChipList"
+              [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+              [matChipInputAddOnBlur]="true"
+              (matChipInputTokenEnd)="addAddress($event, 'email_cc_address')"
+              (focus)="onInputFocus()" 
+              (blur)="onInputBlur()"
+              />
+            </mat-chip-list>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label
+              >BCC (Blind Carbon Copy): Enter email addresses, use tab to separate emails.
+            </mat-label>
+            <mat-chip-list #bccChipList>
+              <mat-chip
+                *ngFor="let addr of featureForm.get('email_bcc_address').value"
+                [removable]="true"
+                (removed)="removeAddress(addr, 'email_bcc_address')"
+                >{{ addr }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            <input 
+              formControlName="address_to_add"
+              [matChipInputFor]="bccChipList"
+              [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+              [matChipInputAddOnBlur]="true"
+              (matChipInputTokenEnd)="addAddress($event, 'email_bcc_address')"
+              (focus)="onInputFocus()" 
+              (blur)="onInputBlur()"
+              />
             </mat-chip-list>
           </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
