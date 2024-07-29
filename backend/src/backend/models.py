@@ -618,6 +618,7 @@ class Permissions(models.Model):
     create_variable = models.BooleanField(default=False)
     edit_variable = models.BooleanField(default=False)
     delete_variable = models.BooleanField(default=False)
+    manage_house_keeping_logs = models.BooleanField(default=False)
     
     def __str__( self ):
         return u"%s" % self.permission_name
@@ -755,16 +756,16 @@ class Step(models.Model):
 class Feature(models.Model):
     feature_id = models.AutoField(primary_key=True)
     feature_name = models.CharField(max_length=255)
-    description = models.TextField(null=True)
+    description = models.TextField(null=True,blank=True)
     app_id = models.IntegerField()
     app_name = models.CharField(max_length=255)
     environment_id = models.IntegerField()
     environment_name = models.CharField(max_length=255)
     steps = models.IntegerField()
-    schedule = models.ForeignKey("Schedule", on_delete=models.SET_DEFAULT, null=True, default=None, related_name="scheduled")
+    schedule = models.ForeignKey("Schedule", on_delete=models.SET_DEFAULT, null=True, blank=True, default=None, related_name="scheduled")
     department_id = models.IntegerField()
     department_name = models.CharField(max_length=255)
-    screenshot = models.TextField(null=False)
+    screenshot = models.TextField(null=False, blank=True)
     compare = models.TextField(null=True, blank=True)
     slug = models.SlugField(default=None, null = True, blank=True, max_length=255)
     depends_on_others = models.BooleanField(default=False)
@@ -779,6 +780,8 @@ class Feature(models.Model):
     attach_pdf_report_to_email = models.BooleanField(verbose_name="Enable or disable the option to attach PDFs to emails.", help_text="If true, a test result PDF will be attached to the email; otherwise, the email will be sent without the PDF. This is useful when sending emails with a customized template.", default=True)
     do_not_use_default_template = models.BooleanField(verbose_name="Do not use Default e-Mail Template", help_text="If true, then the alternative template will be used, which can be used for creating customized e-Mails, e.g. only containing screenshot", default=False)
     email_address = ArrayField(models.CharField(max_length=250), null=True, blank=True, default=list)
+    email_cc_address = ArrayField(models.CharField(max_length=250), null=True, blank=True, default=list)
+    email_bcc_address = ArrayField(models.CharField(max_length=250), null=True, blank=True, default=list)
     email_subject = models.CharField(max_length=250, null=True, blank=True)
     email_body = models.TextField(null=True, blank=True)
     video = models.BooleanField(default=True)
@@ -890,6 +893,8 @@ class Feature_result(SoftDeletableModel):
     run_hash = models.CharField(max_length=100, default='')
     session_id = models.CharField(max_length=255, null=True, default=None)
     network_logging_enabled = models.BooleanField(default=False) # If set to false it will not query in NetworkResponse, will reduce query time
+    house_keeping_done =  models.BooleanField(default=False) # If house keeping was done for this Feature result then do not process again
+    pdf_result_file_path =  models.CharField(max_length=200, default='', blank=True) # If house keeping was done for this Feature result then do not process again
     class Meta:
         ordering = ['result_date']
         verbose_name_plural = "Feature Results"
@@ -1306,12 +1311,12 @@ class Invite(models.Model):
 
 class Schedule(models.Model):
     id = models.AutoField(primary_key=True)
-    feature = models.ForeignKey(Feature, on_delete=models.CASCADE, related_name="schedules")
-    parameters = models.JSONField(default=dict)
+    feature = models.ForeignKey(Feature, on_delete=models.CASCADE, null=True, blank=True, related_name="schedules")
+    parameters = models.JSONField(default=dict,null=True, blank=True)
     schedule = models.CharField(max_length=255)
     command = models.CharField(max_length=255, blank=True, null=True)
     comment = models.CharField(max_length=255, blank=True, null=True)
-    owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, related_name="schedule_owner")
+    owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True,blank=True, related_name="schedule_owner")
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     delete_after_days = models.IntegerField(default=1)
     delete_on = models.DateTimeField(null=True, blank=True)

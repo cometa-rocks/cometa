@@ -973,8 +973,6 @@ input::-webkit-inner-spin-button {
 input[type='number'] {
   -moz-appearance: textfield;
 }
-/***************************************************************/
-
 
 .feature-item{
   margin-bottom: 40px;
@@ -1014,3 +1012,12 @@ input[type='number'] {
   color: #00a99d;
   display: flex;
 }
+
+draggable-window{
+  display: none;
+}
+
+mat-dialog-container draggable-window{
+  display: block;
+}
+
