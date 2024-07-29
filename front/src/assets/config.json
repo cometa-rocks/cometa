@@ -327,16 +327,11 @@
       ]
     },
     {
->>>>>>> front/src/assets/config.json
       "version": "2.8.365",
       "date": "2024-07-17",
       "features": [
         {
-<<<<<<< front/src/assets/config.json
-          "title": "#4694 - Feature Schedule Display Added",
-=======
           "title": "#4694 - Feature schedule display added",
->>>>>>> front/src/assets/config.json
           "description": "Users can now view the schedule directly within the feature details."
         }
       ]
