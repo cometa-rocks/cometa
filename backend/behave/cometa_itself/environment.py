@@ -46,6 +46,8 @@ S3ENABLED = getattr(secret_variables, 'COMETA_S3_ENABLED', False)
 ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
 
 
+DEPARTMENT_DATA_PATH = "/opt/code/department_data"
+
 # handle SIGTERM when user stops the testcase
 def stopExecution(signum, frame, context):
     logger.warn("SIGTERM Found, will stop the session")
@@ -321,7 +323,8 @@ def before_all(context):
     context.downloadedFiles = {}
     # save tempfiles in context
     context.tempfiles = [
-        execution_data_file
+        execution_data_file,
+        
     ]
 
     context.network_responses = []
@@ -462,9 +465,26 @@ def after_all(context):
     # load feature into data
     data = json.loads(os.environ['FEATURE_DATA'])
     # junit file path for the executed testcase
-    xmlFilePath = '/opt/code/department_data/%s/%s/%s/junit_reports/TESTS-features.%s_%s.xml' % (
-        slugify(data['department_name']), slugify(data['app_name']), data['environment_name'], context.feature_id,
-        slugify(data['feature_name']))
+    logger.debug(data)
+    files_path = f"{DEPARTMENT_DATA_PATH}/{slugify(data['department_name'])}/{slugify(data['app_name'])}/{data['environment_name']}"
+    file_name = f"{context.feature_id}_{slugify(data['feature_name'])}"
+    
+    meta_file_path =  f'{files_path}/features/{file_name}_meta.json'
+    feature_file_path =  f'{files_path}/features/{file_name}.feature'
+    feature_json_file_path =  f'{files_path}/features/{file_name}.json'
+    xmlFilePath =  f'{files_path}/junit_reports/TESTS-features.{file_name}.xml'
+    
+    logger.debug("Adding path to temp files for housekeeping")    
+    context.tempfiles.append(meta_file_path)
+    context.tempfiles.append(feature_file_path)
+    context.tempfiles.append(feature_json_file_path)
+    context.tempfiles.append(xmlFilePath)
+    # xmlFilePath = junit_reports/TESTS-features.%s_%s.xml' % (
+    #     slugify(data['department_name']), slugify(data['app_name']), data['environment_name'], context.feature_id,
+    #     slugify(data['feature_name']))
+    
+    
+    
     logger.debug("xmlFilePath: %s" % xmlFilePath)
     # load the file using XML parser
     xmlFile = ET.parse(xmlFilePath).getroot()
