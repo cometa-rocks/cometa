@@ -236,6 +236,8 @@ export class EditFeature implements OnInit, OnDestroy {
       schedule: [''],
       email_address: [[]],
       email_subject: [''],
+      email_cc_address: [[]],
+      email_bcc_address: [[]],
       email_body: [''],
       address_to_add: [''], // Used only for adding new email addresses
       depends_on_others: [false],
@@ -348,7 +350,7 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Add address to the addresses array
-  addAddress(change: MatChipListChange) {
+  addAddress(change: MatChipListChange, fieldName: string) {
     // Check email value
     if (change.value) {
       // Accounts with only Default department, are limited, they can only use their own email
@@ -365,12 +367,12 @@ export class EditFeature implements OnInit, OnDestroy {
         return;
       }
       // Get current addresses
-      const addresses = this.featureForm.get('email_address').value.concat();
+      const addresses = this.featureForm.get(fieldName).value.concat();
       // Perform push only if address doesn't exist already
       if (!addresses.includes(change.value)) {
         addresses.push(change.value);
-        this.featureForm.get('email_address').setValue(addresses);
-        this.featureForm.get('email_address').markAsDirty();
+        this.featureForm.get(fieldName).setValue(addresses);
+        this.featureForm.get(fieldName).markAsDirty();
       }
       this.featureForm.get('address_to_add').setValue('');
     }
@@ -407,12 +409,12 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Remove given address from addresses array
-  removeAddress(email: string) {
+  removeAddress(email: string, fieldName: string) {
     if (email) {
-      let addresses = this.featureForm.get('email_address').value.concat();
+      let addresses = this.featureForm.get(fieldName).value.concat();
       addresses = addresses.filter(addr => addr !== email);
-      this.featureForm.get('email_address').setValue(addresses);
-      this.featureForm.get('email_address').markAsDirty();
+      this.featureForm.get(fieldName).setValue(addresses);
+      this.featureForm.get(fieldName).markAsDirty();
     }
   }
 
@@ -623,6 +625,8 @@ export class EditFeature implements OnInit, OnDestroy {
         fields = [
           ...fields,
           'email_address',
+          'email_cc_address',
+          'email_bcc_address',
           'email_subject',
           'email_body',
           'send_mail_on_error',
