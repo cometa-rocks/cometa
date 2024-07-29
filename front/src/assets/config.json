@@ -1,5 +1,5 @@
 {
-  "version": "2.8.369",
+  "version": "2.8.372",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -240,7 +240,7 @@
       ]
     }, 
     {
-      "version": "2.8.368",
+      "version": "2.8.370",
       "date": "2024-07-26",
       "features": [
         {
@@ -252,7 +252,17 @@
           "description": "DB fields are added to store CC and BCC emails, CC and BCC email logic is updated."
         }
       ]
-    },    
+    }, 
+    {
+      "version": "2.8.368",
+      "date": "2024-07-23",
+      "features": [
+        {
+          "title": "#4814 - Shortcuts (Profile, Upload, Menu)",
+          "description": "Implemented shortcut on profile, upload and menu in header icons."
+        }
+      ]
+    },   
     {
       "version": "2.8.367",
       "date": "2024-07-22",
