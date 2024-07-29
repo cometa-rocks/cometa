@@ -252,7 +252,7 @@
           "description": "DB fields are added to store CC and BCC emails, CC and BCC email logic is updated."
         }
       ]
-    }, 
+    },    
     {
       "version": "2.8.367",
       "date": "2024-07-22",
@@ -260,6 +260,10 @@
         {
           "title": "#4814 - Housekeeping feature implemented",
           "description": "Implemented feature to perform housekeeping based on the set dates for housekeeping in department."
+        },
+         {
+          "title": "#4694 - Edit feature button",
+          "description": "Avoid miss click on edit feature button."
         }
       ]
     }, 
