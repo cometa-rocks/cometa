@@ -90,6 +90,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { DraggableWindowModule } from '@modules/draggable-window.module'
 
 @Component({
   selector: 'edit-feature',
@@ -129,6 +130,7 @@ import { NgIf, NgFor, AsyncPipe } from '@angular/common';
     SortByPipe,
     HumanizeBytesPipe,
     TranslateModule,
+    DraggableWindowModule
   ],
 })
 export class EditFeature implements OnInit, OnDestroy {
@@ -234,6 +236,8 @@ export class EditFeature implements OnInit, OnDestroy {
       schedule: [''],
       email_address: [[]],
       email_subject: [''],
+      email_cc_address: [[]],
+      email_bcc_address: [[]],
       email_body: [''],
       address_to_add: [''], // Used only for adding new email addresses
       depends_on_others: [false],
@@ -346,7 +350,7 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Add address to the addresses array
-  addAddress(change: MatChipListChange) {
+  addAddress(change: MatChipListChange, fieldName: string) {
     // Check email value
     if (change.value) {
       // Accounts with only Default department, are limited, they can only use their own email
@@ -363,12 +367,12 @@ export class EditFeature implements OnInit, OnDestroy {
         return;
       }
       // Get current addresses
-      const addresses = this.featureForm.get('email_address').value.concat();
+      const addresses = this.featureForm.get(fieldName).value.concat();
       // Perform push only if address doesn't exist already
       if (!addresses.includes(change.value)) {
         addresses.push(change.value);
-        this.featureForm.get('email_address').setValue(addresses);
-        this.featureForm.get('email_address').markAsDirty();
+        this.featureForm.get(fieldName).setValue(addresses);
+        this.featureForm.get(fieldName).markAsDirty();
       }
       this.featureForm.get('address_to_add').setValue('');
     }
@@ -405,12 +409,12 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Remove given address from addresses array
-  removeAddress(email: string) {
+  removeAddress(email: string, fieldName: string) {
     if (email) {
-      let addresses = this.featureForm.get('email_address').value.concat();
+      let addresses = this.featureForm.get(fieldName).value.concat();
       addresses = addresses.filter(addr => addr !== email);
-      this.featureForm.get('email_address').setValue(addresses);
-      this.featureForm.get('email_address').markAsDirty();
+      this.featureForm.get(fieldName).setValue(addresses);
+      this.featureForm.get(fieldName).markAsDirty();
     }
   }
 
@@ -425,73 +429,64 @@ export class EditFeature implements OnInit, OnDestroy {
     // If true... return | only execute switch case if input focus is false
     if (this.inputFocus) return;
     let KeyPressed = event.keyCode;
+    const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
 
-    switch (event.keyCode) {
-      case KEY_CODES.ESCAPE:
-        // Check if form has been modified before closing
-        if (this.hasChanged()) {
-          this._dialog
-            .open(AreYouSureDialog, {
-              data: {
-                title: 'translate:you_sure.quit_title',
-                description: 'translate:you_sure.quit_desc',
-              } as AreYouSureData,
-            })
-            .afterClosed()
-            .subscribe(exit => {
-              // Close edit feature popup
-              if (exit) this.dialogRef.close();
-            });
-        } else {
-          this.dialogRef.close();
+    if(!this.inputFocus && editVarOpen == null){
+      switch (event.keyCode) {
+        case KEY_CODES.ESCAPE:
+          // Check if form has been modified before closing
+          if (this.hasChanged()) {
+            this._dialog
+              .open(AreYouSureDialog, {
+                data: {
+                  title: 'translate:you_sure.quit_title',
+                  description: 'translate:you_sure.quit_desc',
+                } as AreYouSureData,
+              })
+              .afterClosed()
+              .subscribe(exit => {
+                // Close edit feature popup
+                if (exit) this.dialogRef.close();
+              });
+          } else {
+            this.dialogRef.close();
+          }
+          break;
+        case KEY_CODES.V:
+          // Edit variables
+            this.editVariables();
+          break;
+        case KEY_CODES.D:
+            // Depends on other featre
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.M:
+            // Send email
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.R:
+            // Record video
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.F:
+            // Continue on failure
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.H:
+            // Need help
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.N:
+            // Network loggings
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.G:
+            // Generate dataset
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        default:
+          break;
         }
-        break;
-      case KEY_CODES.V:
-        // Edit variables
-        if (!this.inputFocus) this.editVariables();
-        break;
-      case KEY_CODES.D:
-        if (!this.inputFocus) {
-          // Depends on other featre
-          this.toggleDependsOnOthers(KeyPressed);
-        }
-        break;
-      case KEY_CODES.M:
-        if (!this.inputFocus) {
-          // Send email
-          this.toggleDependsOnOthers(KeyPressed);
-        }
-        break;
-      case KEY_CODES.R:
-        if (!this.inputFocus) {
-          // Record video
-          this.toggleDependsOnOthers(KeyPressed);
-        }
-        break;
-      case KEY_CODES.F:
-        if (!this.inputFocus) {
-          // Continue on failure
-          this.toggleDependsOnOthers(KeyPressed);
-        }
-        break;
-      case KEY_CODES.H:
-        if (!this.inputFocus) {
-          // Need help
-          this.toggleDependsOnOthers(KeyPressed);
-        }
-        break;
-      case KEY_CODES.N:
-        if (!this.inputFocus) {
-          // Network logging
-          this.toggleDependsOnOthers(KeyPressed);
-        }
-        break;
-      case KEY_CODES.G:
-        if (!this.inputFocus) {
-          // Generate dataset
-          this.toggleDependsOnOthers(KeyPressed);
-        }
-        break;
     }
   }
 
@@ -630,6 +625,8 @@ export class EditFeature implements OnInit, OnDestroy {
         fields = [
           ...fields,
           'email_address',
+          'email_cc_address',
+          'email_bcc_address',
           'email_subject',
           'email_body',
           'send_mail_on_error',
