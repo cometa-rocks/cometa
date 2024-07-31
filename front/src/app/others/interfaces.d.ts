@@ -210,6 +210,8 @@ interface Feature {
   send_mail: boolean;
   send_mail_on_error: boolean;
   email_address: string[];
+  email_cc_address?: string[]; 
+  email_bcc_address?: string[]; 
   email_subject: string;
   email_body: string;
   folder_id?: number;
@@ -336,6 +338,8 @@ interface SendFeature {
   depends_on_other: boolean;
   send_mail: boolean;
   email_address: string[];
+  email_cc_address?: string[]; 
+  email_bcc_address?: string[]; 
   email_subject: string;
   email_body: string;
   last_edited: number;
@@ -494,6 +498,8 @@ interface SendSaveFeature {
   browsers: BrowserstackBrowser[];
   send_mail: boolean;
   email_address: string[];
+  email_cc_address?: string[]; 
+  email_bcc_address?: string[]; 
   email_subject: string;
   email_body: string;
   send_mail_on_error: boolean;
