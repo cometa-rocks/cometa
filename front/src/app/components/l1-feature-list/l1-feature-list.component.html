@@ -245,16 +245,20 @@ Author: dph000
 <!-- Schedule of the features -->
 <ng-template #scheduleTpl let-row let-index="index" let-col="colDef">
   <div
-    class="cursorPointer schedule"
+    class="cursorPointer schedule schedule-active"
     stopPropagation
     (click)="SAeditSchedule(row.id)"
     [matTooltip]="'tooltips.edit_schedule' | translate"
-    matTooltipPosition="below">
-    <mat-checkbox
+    matTooltipPosition="below"
+    *ngIf="row.schedule"
+    >
+    {{ row.schedule}}
+    <!-- Old code checkbox -->
+    <!-- <mat-checkbox
       *ngIf="row.schedule"
       class="noPointerEvents"
       [checked]="row.schedule.length > 0"
-      color="primary"></mat-checkbox>
+      color="primary"></mat-checkbox> -->
   </div>
 </ng-template>
 

@@ -1,5 +1,5 @@
 import { HttpResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { ElementRef, Injectable, ViewChild } from '@angular/core';
 import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
@@ -42,6 +42,7 @@ import {
 } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { SocketService } from './socket.service';
+import { Console } from 'console';
 
 /**
  * This service is used to execute function which should be accessible from application and Tour definitions
@@ -49,6 +50,8 @@ import { SocketService } from './socket.service';
 @Injectable()
 export class SharedActionsService {
   headers$ = new BehaviorSubject<ResultHeader[]>([]);
+  dialogActive: boolean = false;
+  dialogActiveOther: boolean = false;
 
   constructor(
     public _dialog: MatDialog,
@@ -94,7 +97,6 @@ export class SharedActionsService {
   }
   // #3397 ------------------------------------end
 
-  dialogActive = false;
   goToFeature(featureId: number) {
     const feature = this._store.selectSnapshot<Feature>(
       CustomSelectors.GetFeatureInfo(featureId)
@@ -229,51 +231,55 @@ export class SharedActionsService {
     featureId: number = null,
     mode: 'edit' | 'clone' | 'new' = 'new'
   ) {
+    if (this.dialogActiveOther) {
+      return;
+    }
+
+    this.dialogActiveOther = true;
+
     if (mode === 'edit' || mode === 'clone') {
-      // Edit / Clone mode
       const feature = deepClone(
         this._store.selectSnapshot<Feature>(
           CustomSelectors.GetFeatureInfo(featureId)
         )
       ) as Feature;
-      // Get data of feature and steps
+
       this._api
         .getFeatureSteps(featureId, {
           loading: 'translate:tooltips.loading_feature',
         })
         .subscribe(steps => {
-          // Save steps into NGXS Store
           this._store.dispatch(
             new StepDefinitions.SetStepsForFeature(
               mode === 'clone' ? 0 : featureId,
               steps
             )
           );
-          // Open Edit Feature
-          this._dialog
-            .open(EditFeature, {
-              disableClose: true,
-              autoFocus: false,
-              panelClass: 'edit-feature-panel',
-              // @ts-ignore
-              data: {
-                mode: mode,
-                feature: {
-                  app: feature.app_name,
-                  environment: feature.environment_name,
-                  feature_id: feature.feature_id,
-                  description: feature.description,
-                },
-                info: feature,
-                steps: deepClone(steps),
-              } as IEditFeature,
-            })
-            .afterClosed()
-            .subscribe(_ => (this.dialogActive = false));
+
+          const dialogRef = this._dialog.open(EditFeature, {
+            disableClose: true,
+            autoFocus: false,
+            panelClass: 'edit-feature-panel',
+            // @ts-ignore
+            data: {
+              mode: mode,
+              feature: {
+                app: feature.app_name,
+                environment: feature.environment_name,
+                feature_id: feature.feature_id,
+                description: feature.description,
+              },
+              info: feature,
+              steps: deepClone(steps),
+            } as IEditFeature,
+          });
+
+          dialogRef.afterClosed().subscribe(_ => {
+            this.dialogActiveOther = false;
+          });
         });
     } else {
-      // New mode
-      this._dialog.open(EditFeature, {
+      const dialogRef = this._dialog.open(EditFeature, {
         disableClose: true,
         autoFocus: false,
         panelClass: 'edit-feature-panel',
@@ -285,8 +291,13 @@ export class SharedActionsService {
           },
         } as IEditFeature,
       });
+
+      dialogRef.afterClosed().subscribe(_ => {
+        this.dialogActiveOther = false;
+      });
     }
   }
+
 
   deleteFeature(featureId: number) {
     const feature = this._store.selectSnapshot<Feature>(
