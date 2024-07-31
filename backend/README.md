@@ -14,6 +14,36 @@ bash
 docker-compose up -d
 ```
 
+## (Optional) Refer this to run django in IDE debug mode, very useful for debugging
+
+Refer this documentation to run project in debug mode
+
+1. Install "Dev Container" and "Remote - SSH" extension by microsoft to vscode
+1. Go to Docker extension and attach Django container to vscode
+1. Install "Python" and "Python Debugger" extensions in container"
+1. Run Django with 'runserver 0.0.0.0:8000' arguments
+
+Use Launch.json configuration
+```
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File with Arguments",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": "runserver 0.0.0.0:8000",
+            "pythonPath": "/usr/local/bin/python3.9" 
+        }
+    ]
+}
+```
+
+
+
+
 ### 2. Migrate database data & models
 
 ```bash
