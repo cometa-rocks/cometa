@@ -1,5 +1,5 @@
 {
-  "version": "2.8.373",
+  "version": "2.8.374",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,15 +237,15 @@
       "date": "2024-07-01",
       "features": [
         {
-          "title": "#4814 - Menu Update: Added 'What's New'",
+          "title": "#4694 - Menu Update: Added 'What's New'",
           "description": "We have added a new menu item titled 'What's New'. This new menu option provides quick access to recent changes and enhancements."
         },
         {
-          "title": "#4814 - Main Old disabled",
+          "title": "#4694 - Main Old disabled",
           "description": "We disabled the 'Main old' in the Menu."
         },
         {
-          "title": "#4814 - Updated Help Menu Table",
+          "title": "#4694 - Updated Help Menu Table",
           "description": "The table in the Help section of the menu has been updated to provide more accurate and comprehensive information."
         }        
       ]
@@ -255,7 +255,7 @@
       "date": "2024-07-25",
       "features": [
         {
-          "title": "#4814 - Folder item tree",
+          "title": "#4694 - Folder item tree",
           "description": "Improved user experience, you can now know if a folder is empty or not at a glance."
         }
       ]
@@ -272,7 +272,7 @@
       "date": "2024-07-26",
       "features": [
         {
-          "title": "#4814 - Implemented CC and BCC fields",
+          "title": "#4694 - Implemented CC and BCC fields",
           "description": "Added CC (Carbon Copy) and BCC (Blind Carbon Copy) fields to the email sending section."
         },
         {
