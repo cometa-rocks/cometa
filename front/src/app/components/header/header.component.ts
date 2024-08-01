@@ -19,6 +19,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { KEY_CODES } from '@others/enums';
 import { InputFocusService } from '../../services/inputFocus.service';
 import { TranslateModule } from '@ngx-translate/core'; 
+import { WhatsNewService } from '@services/whats-new.service';
 @Component({
   selector: 'header',
   templateUrl: './header.component.html',
@@ -63,7 +64,8 @@ export class HeaderComponent {
   constructor(
     public _sharedActions: SharedActionsService,
     private _store: Store,
-    private inputFocusService: InputFocusService
+    private inputFocusService: InputFocusService,
+    private whatsNewService: WhatsNewService
   ) {
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
       this.inputFocus = isFocused;
@@ -79,6 +81,11 @@ export class HeaderComponent {
     this._store.dispatch(
       new Configuration.SetProperty('internal.openedMenu', true)
     );
+
+  openWhatsNewDialog(): void {
+    this.closeMenu();
+    this.whatsNewService.showAllWhatsNewDialog();
+  }
 
   logout = () => this._store.dispatch(new User.Logout());
 
