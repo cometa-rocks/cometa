@@ -24,25 +24,32 @@
 <context-menu menuClass="step-contect-menu" #basicMenu>
   <ng-template contextMenuItem let-item>
     <div 
-      (click)="addEmpty(item)">
+      (click)="addEmpty(item)" 
+      [matTooltip]="'step-definition.insert-new-above' | translate" matTooltipPosition="right">
       <mat-icon>unarchive</mat-icon>
       <span>Insert new step above</span>
     </div>
   </ng-template>
   <ng-template contextMenuItem let-item>
-    <div (click)="addEmpty(item + 1)">
+    <div 
+      (click)="addEmpty(item + 1)" 
+      [matTooltip]="'step-definition.insert-new-below' | translate" matTooltipPosition="right">
       <mat-icon>archive</mat-icon>
       <span>Insert new step below</span>
     </div>
   </ng-template>
   <ng-template contextMenuItem let-item>
-    <div (click)="copyItem(item, 'up')">
+    <div 
+      (click)="copyItem(item, 'up')"
+      [matTooltip]="'step-definition.copy-new-above' | translate" matTooltipPosition="right">
       <mat-icon>unarchive</mat-icon>
       <span>Copy step above</span>
     </div>
   </ng-template>
   <ng-template contextMenuItem let-item>
-    <div (click)="copyItem(item + 1, 'down')">
+    <div 
+      (click)="copyItem(item + 1, 'down')"
+      [matTooltip]="'step-definition.copy-new-below' | translate" matTooltipPosition="right">
       <mat-icon>archive</mat-icon>
       <span>Copy step below</span>
     </div>
@@ -113,6 +120,7 @@
               (keydown.esc)="onStepEscape($event)"
               (keydown.Tab)="onTextareaTab(i)">
               <textarea
+                #stepContentTextarea
                 (input)="onStepChange($event, i)"
                 (blur)="fixStep($event, i)"
                 (click)="
@@ -126,7 +134,7 @@
                 (keydown.control.arrowup)="insertStep($event, i)"
                 (keydown.control.arrowdown)="insertStep($event, i)"
                 (keydown.alt.control.arrowup)="copyStep($event, i)"
-                (keydown.alt.control.arrowdown)="copyStep($event, i)"
+                (keydown.alt.control.arrowdown)="copyStep($event, i)"    
                 class="code"
                 spellcheck="false"
                 cdkTextareaAutosize
