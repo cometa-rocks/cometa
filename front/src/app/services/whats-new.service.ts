@@ -122,40 +122,40 @@ export class WhatsNewService {
       });
   }
 
- /**
+  /**
    * Collects all changes from the changelog, return logchange
    */
- collectAllChanges(): LogChange[] {
-  const changelog = this.changelog;
-  let allChanges: LogChange[] = [];
+  collectAllChanges(): LogChange[] {
+    const changelog = this.changelog;
+    let allChanges: LogChange[] = [];
 
-  changelog.forEach(item => {
-    if (Array.isArray(item.text)) {
-      const textChanges: LogChange[] = item.text.map(text => ({
-        type: 'bugfix',
-        text
-      }));
-      allChanges = allChanges.concat(textChanges);
-    }
-    if (Array.isArray(item.bugfixes)) {
-      const bugfixChanges: LogChange[] = item.bugfixes.map(bugfix => ({
-        type: 'bugfix',
-        text: bugfix
-      }));
-      allChanges = allChanges.concat(bugfixChanges);
-    }
-    if (Array.isArray(item.features)) {
-      const featureChanges: LogChange[] = item.features.map(feature => ({
-        type: 'feature',
-        title: feature.title,
-        text: feature.description
-      }));
-      allChanges = allChanges.concat(featureChanges);
-    }
-  });
+    changelog.forEach(item => {
+      if (Array.isArray(item.text)) {
+        const textChanges: LogChange[] = item.text.map(text => ({
+          type: 'bugfix',
+          text
+        }));
+        allChanges = allChanges.concat(textChanges);
+      }
+      if (Array.isArray(item.bugfixes)) {
+        const bugfixChanges: LogChange[] = item.bugfixes.map(bugfix => ({
+          type: 'bugfix',
+          text: bugfix
+        }));
+        allChanges = allChanges.concat(bugfixChanges);
+      }
+      if (Array.isArray(item.features)) {
+        const featureChanges: LogChange[] = item.features.map(feature => ({
+          type: 'feature',
+          title: feature.title,
+          text: feature.description
+        }));
+        allChanges = allChanges.concat(featureChanges);
+      }
+    });
+    return allChanges;
+  }
 
-  return allChanges;
-}
   /**
    * Always shows the What's New dialog with all changes
    */

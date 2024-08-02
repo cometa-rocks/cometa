@@ -15,7 +15,9 @@
   </ng-template>
   <mat-dialog-content>
     <mat-accordion multi>
-      <mat-expansion-panel [expanded]="!config$.toggles.hideInformation">
+      <mat-expansion-panel 
+      [expanded]="isExpanded"
+      >
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Information</span>
@@ -166,14 +168,15 @@
         *ngIf="
           featureForm.value.send_mail && !featureForm.value.depends_on_others
         "
-        [expanded]="!config$.toggles.hideSendMail">
+        [expanded]="isExpanded"
+        >
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Email template</span>
           </mat-panel-title>
-          <mat-panel-description
-            >Edit email address, subject and body</mat-panel-description
-          >
+          <mat-panel-description>
+            Edit email address, subject and body
+          </mat-panel-description>
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
           <mat-form-field appearance="fill" class="full-width">
@@ -308,7 +311,7 @@
       <!-- FILE UPLOAD -->
       <mat-expansion-panel
         #uploadPanel
-        [expanded]="!config$.toggles?.hideUploadedFiles">
+        [expanded]="isExpanded">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Files</span>
@@ -452,7 +455,7 @@
       <!-- FILE UPLOAD -->
 
       <mat-expansion-panel
-        [expanded]="!config$.toggles.hideBrowsers"
+        [expanded]="isExpanded"
         *ngIf="!featureForm.value.depends_on_others">
         <mat-expansion-panel-header>
           <mat-panel-title>
@@ -483,7 +486,7 @@
           </ng-template>
         </ng-template>
       </mat-expansion-panel>
-      <mat-expansion-panel [expanded]="!config$.toggles.hideSteps">
+      <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Steps definition</span>
@@ -514,7 +517,7 @@
           </cometa-step-editor>
         </ng-template>
       </mat-expansion-panel>
-      <mat-expansion-panel [expanded]="!config$.toggles.hideSchedule">
+      <mat-expansion-panel [expanded]="isExpanded">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Schedule</span>
