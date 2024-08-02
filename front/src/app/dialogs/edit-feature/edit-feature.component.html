@@ -16,7 +16,7 @@
   <mat-dialog-content>
     <mat-accordion multi>
       <mat-expansion-panel 
-      [expanded]="isExpanded"
+      [expanded]="!config$.toggles.hideInformation"
       >
         <mat-expansion-panel-header>
           <mat-panel-title>
