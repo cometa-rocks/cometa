@@ -44,15 +44,17 @@ export class HelpComponent {
   ShortMainPage: Shortcut[] = [
     { position: 1, key: '+', description: '[+ Add] button: Add from side nav' },
     { position: 2, key: 'B', description: '[B] button: Create folder' },
-    { position: 1, key: 'F', description: '[F] button: Create feature' },
-    { position: 7, key: 'Shift + Alt + F', description: 'Open search'},
-    { position: 8, key: 'Shift + Alt + H', description: 'Return to home'},
-    { position: 9, key: 'Shift + Alt + X', description: 'Remove all the filters'},
+    { position: 3, key: 'F', description: '[F] button: Create feature' },
+    { position: 4, key: 'P', description: '[P] Header Icon: Profile' },
+    { position: 5, key: 'M', description: '[M] Header Icon: Menu' },
+    { position: 6, key: 'Shift + Alt + F', description: 'Open search'},
+    { position: 7, key: 'Shift + Alt + H', description: 'Return to home'},
+    { position: 8, key: 'Shift + Alt + X', description: 'Remove all the filters'},
   ];
 
   ShortDataDriven: Shortcut[] = [
     { position: 1, key: 'S', description: "[Columns Shown] button: Show table header's checkboxes" },
-    { position: 2, key: 'T', description: '[Data Driven Test] button: Execution of tests based on the variables proivided by the excel sheet' },
+    { position: 2, key: 'T', description: '[Data Driven Test] button: Execution of tests based on the variables provided by the excel sheet' },
   ];
 
   ShortCreateEditFeature: Shortcut[] = [
