@@ -3,7 +3,9 @@
     "DATE": "Datum"
   },
   "sidenav_page": {
-    "add": "Schaltfläche mit Optionen zum Erstellen eines Ordners oder einer Funktion.",
+    "add": "Schaltfläche mit Optionen zum Erstellen eines Ordners oder einer Funktion. (+)",
+    "folder": "Erstellen Sie einen neuen Ordner, um Ihre Funktionen zu organisieren. (B)",
+    "feature": "Klicken Sie hier, um eine neue Funktion für Ihre Anwendung zu definieren. (F)",
     "home": "In diesem Abschnitt haben wir das co.meta-Tutorial, Hilfe und Dokumentation.",
     "data_driven_sidenav": "Ausführung von Tests basierend auf den in der Excel-Tabelle angegebenen Variablen",
     "variables_sidenav": "In diesem Abschnitt können wir Variablen hinzufügen oder bearbeiten, unter anderem Funktionen",
@@ -13,7 +15,7 @@
     "trash_bin": "Kommende Funktion"
   },
   "data_driven": {
-    "data_driven_button": "Ausführung von Tests basierend auf den in der Excel-Tabelle angegebenen Variablen"
+    "data_driven_button": "Ausführung von Tests basierend auf den in der Excel-Tabelle angegebenen Variablen. (T)"
   },
   "need_help": {
     "filter": "Asking for help",

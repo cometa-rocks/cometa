@@ -102,6 +102,14 @@ Author: dph000
         <i class="my-icons" [ngClass]="browser.browser"></i>
         {{ browser | browserComboText }}
       </div>
+      <div class="schedule-container">
+        <div class="schedule-data">
+          <p class="schedule-active" *ngIf="item.schedule">
+            <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
+            <span>Schedule:&nbsp;</span> {{ item.schedule}}
+          </p>
+        </div>
+      </div>
       <!-- Feature options button -->
       <button
         matTooltip="Feature options"
