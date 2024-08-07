@@ -210,6 +210,8 @@ interface Feature {
   send_mail: boolean;
   send_mail_on_error: boolean;
   email_address: string[];
+  email_cc_address?: string[]; 
+  email_bcc_address?: string[]; 
   email_subject: string;
   email_body: string;
   folder_id?: number;
@@ -336,6 +338,8 @@ interface SendFeature {
   depends_on_other: boolean;
   send_mail: boolean;
   email_address: string[];
+  email_cc_address?: string[]; 
+  email_bcc_address?: string[]; 
   email_subject: string;
   email_body: string;
   last_edited: number;
@@ -494,6 +498,8 @@ interface SendSaveFeature {
   browsers: BrowserstackBrowser[];
   send_mail: boolean;
   email_address: string[];
+  email_cc_address?: string[]; 
+  email_bcc_address?: string[]; 
   email_subject: string;
   email_body: string;
   send_mail_on_error: boolean;
@@ -1025,4 +1031,20 @@ interface UsageInvoice {
   created_on: string;
   modified_on: string;
   error: string;
+}
+
+interface HouseKeepingLogs {
+  id: number ;
+  created_on: string;
+  success: boolean;
+  list_files_to_clean?: any[];
+  house_keeping_logs?: Log[];
+  approved_by?: any;
+}
+
+interface Log {
+  type: string;
+  value: string;
+  spacing: number;
+  formatted_date: string;
 }
