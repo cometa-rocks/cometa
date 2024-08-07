@@ -1,5 +1,5 @@
 {
-  "version": "2.8.361",
+  "version": "2.8.372",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,6 +233,101 @@
   ],
   "changelog": [
     {
+      "version": "2.8.372",
+      "date": "2024-07-29",
+      "bugfixes": [
+        "#4820 Issue fixed, PDF Report does not attach screenshots"
+      ]
+    }, 
+    {
+      "version": "2.8.370",
+      "date": "2024-07-26",
+      "features": [
+        {
+          "title": "#4814 - Implemented CC and BCC fields",
+          "description": "Added CC (Carbon Copy) and BCC (Blind Carbon Copy) fields to the email sending section."
+        },
+        {
+          "title": "#4814 - Improvement made to receive the mail with CC and BCC recipients",
+          "description": "DB fields are added to store CC and BCC emails, CC and BCC email logic is updated."
+        }
+      ]
+    }, 
+    {
+      "version": "2.8.368",
+      "date": "2024-07-23",
+      "features": [
+        {
+          "title": "#4814 - Shortcuts (Profile, Upload, Menu)",
+          "description": "Implemented shortcut on profile, upload and menu in header icons."
+        }
+      ]
+    },   
+    {
+      "version": "2.8.367",
+      "date": "2024-07-22",
+      "features": [
+        {
+          "title": "#4814 - Housekeeping feature implemented",
+          "description": "Implemented feature to perform housekeeping based on the set dates for housekeeping in department."
+        },
+         {
+          "title": "#4694 - Edit feature button",
+          "description": "Avoid miss click on edit feature button."
+        }
+      ]
+    }, 
+    {
+      "version": "2.8.366",
+      "date": "2024-07-18",
+      "features": [
+        {
+          "title": "#4694 - Step definition shortcuts",
+          "description": "Create shortcuts: CTRL+UP/DOWN to insert new step up or down the step reference, CTRL+ALT+UP/DOWN to copy the step up or down the step reference."
+        }
+      ]
+    },
+    {
+      "version": "2.8.365",
+      "date": "2024-07-17",
+      "features": [
+        {
+          "title": "#4694 - Feature schedule display added",
+          "description": "Users can now view the schedule directly within the feature details."
+        }
+      ]
+    },
+    {
+      "version": "2.8.364",
+      "date": "2024-07-16",
+      "features": [
+        {
+          "title": "#4694 - Draggable window",
+          "description": "Added a draggable window for editing features and variables."
+        }
+      ]
+    },
+    {
+      "version": "2.8.363",
+      "date": "2024-07-15",
+      "features": [
+        {
+          "title": "#4694 - Add tooltip",
+          "description": "Add description and shortcut on the buttons of create feature and create folder."
+        }
+      ]
+    },
+    {
+      "version": "2.8.362",
+      "date": "2024-06-28",
+      "features": [
+        {
+          "title": "#4694 - Schedule enable returns disabled",
+          "description": "When an interface is activated its schedule and modified its steps the schedule becomes desactivated."
+        }
+      ]
+    },
+    {
       "version": "2.8.361",
       "date": "2024-06-25",
       "features": [
@@ -257,7 +352,7 @@
       "date": "2024-06-20",
       "features": [
         {
-          "title": "#4694 Conflict Space shortcut with Run button",
+          "title": "#4694 Conflict space shortcut with run button",
           "description": "Solved space shortcut makes conflict with run button on cometa feature page."
          }
       ]

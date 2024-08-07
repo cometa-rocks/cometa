@@ -13,8 +13,7 @@
       class="icon"
       *ngIf="canCreateFeature && hasSubscription"
       (click)="_sharedActions.openEditFeature()"
-      matTooltip="Create a new feature"
-      matTooltipPosition="below"
+      [matTooltip]="'header.upload' | translate" matTooltipPosition="below"
       aria-label="Create feature">
       <i class="upload"></i>
     </div>
@@ -22,8 +21,7 @@
       class="icon"
       [routerLink]="['/my-account']"
       routerLinkActive="active"
-      matTooltip="Your profile"
-      matTooltipPosition="below"
+      [matTooltip]="'header.profile' | translate" matTooltipPosition="below"
       aria-label="Open profile">
       <i class="user"></i>
     </div>

@@ -1510,7 +1510,7 @@ def schedule_update(feature_id, schedule, user_id):
     features = Feature.objects.filter(pk=feature_id)
     feature = features[0]
     current_schedule = feature.schedule
-    schedule_model = None
+    schedule_model = current_schedule
     if current_schedule and current_schedule.schedule == schedule:
         logger.info("Same schedule found ... will not update.")
     else:
@@ -1524,9 +1524,9 @@ def schedule_update(feature_id, schedule, user_id):
             )
             schedule_model.save()
             features.update(schedule=schedule_model)
-
         else:
             features.update(schedule=None)
+            schedule_model = None
 
         if current_schedule:
             current_schedule.delete()
@@ -1889,7 +1889,7 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
     API endpoint that allows users to be viewed or edited.
     """
     queryset = Feature_result.available_objects.all()
-    serializer_class = FeatureResultSerializer
+    serializer_class = FeatureResultSerializer 
     renderer_classes = (JSONRenderer,)
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ('result_date',)
