@@ -247,7 +247,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     // Depending on if user is creating new variable or is patching existing one
     // next piece of code updates existing variable in state or replaces the removed variable(with id 0) with the one that is received from XHR
     let action =
-      variable.id === 0
+      variable.id === 0 
         ? this.createVariable(variable)
         : this.patchVariable(variable);
     action.subscribe(this.safeSubscriber('save'));
@@ -259,7 +259,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
 
     // opens confirmation dialog, to prevent accidental elimination
     const confirmDialog = this._dialog.open(AreYouSureDialog, {
-      data: {
+      data: { 
         title: 'translate:you_sure.delete_item_title',
         description: 'translate:you_sure.delete_item_desc',
       } as AreYouSureData,

@@ -2,7 +2,7 @@
 
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-from rest_framework import viewsets, filters, generics, status, mixins
+from rest_framework import viewsets, mixins
 
 # Django Imports
 from django.http import JsonResponse
