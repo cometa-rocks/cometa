@@ -744,6 +744,12 @@ interface VariableColumns {
   value: string;
 }
 
+interface Columns {
+  name: string;
+  activated: boolean;
+  value: string;
+}
+
 interface VariablePair {
   id: number;
   department: number;
@@ -1047,4 +1053,19 @@ interface Log {
   value: string;
   spacing: number;
   formatted_date: string;
+}
+
+interface Configuration {
+  id: number ;
+  configuration_name: string;
+  configuration_value: string;
+  default_value: string;
+  encrypted: boolean;
+  created_by: string;
+  updated_by: string;
+  created_on: string;
+  updated_on: string;
+  can_be_deleted: boolean;
+  can_be_edited: boolean;
+  disabled:boolean;
 }

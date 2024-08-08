@@ -70,7 +70,8 @@ INSTALLED_APPS = [
     'backend.templatetags.humanize',
     'command_log.apps.ManagementCommandLogConfig',
     'backend.ee.modules.security',
-    'housekeeping'
+    'modules.housekeeping',
+    'modules.configuration'
 ]
 
 MIDDLEWARE = [

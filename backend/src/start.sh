@@ -118,6 +118,7 @@ pip install -U pip
 python manage.py makemigrations backend
 python manage.py makemigrations security
 python manage.py makemigrations housekeeping
+python manage.py makemigrations configuration
 python manage.py migrate
 
 # if this is the first time initializing co.meta
