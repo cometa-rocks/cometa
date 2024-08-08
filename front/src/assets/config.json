@@ -248,7 +248,7 @@
           "description": "Added CC (Carbon Copy) and BCC (Blind Carbon Copy) fields to the email sending section."
         },
         {
-          "title": "#4814 - Improvement made to receive the mail with CC and BCC recipients",
+          "title": "#4814 - Improvement made to send the mail with CC and BCC recipients",
           "description": "DB fields are added to store CC and BCC emails, CC and BCC email logic is updated."
         }
       ]
@@ -323,7 +323,7 @@
       "features": [
         {
           "title": "#4694 - Schedule enable returns disabled",
-          "description": "When an interface is activated its schedule and modified its steps the schedule becomes desactivated."
+          "description": "When an interface is activated its schedule and modified its steps the schedule becomes deactivated."
         }
       ]
     },
@@ -457,7 +457,7 @@
     {
       "version": "2.8.348",
       "date": "2024-03-31",
-      "bugfixes": [ "Update vulnerable dependencies in bahave django and front." ]
+      "bugfixes": [ "Update vulnerable dependencies in behave, django and front." ]
     },
     {
       "version": "2.8.347",

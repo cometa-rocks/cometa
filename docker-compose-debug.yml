@@ -131,7 +131,6 @@ services:
       - testing
     restart: always
 
-
   apache:
     image: "httpd:2.4.48"
     container_name: cometa_front

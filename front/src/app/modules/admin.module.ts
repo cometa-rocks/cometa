@@ -25,6 +25,8 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AccountsDialog } from '@dialogs/accounts-dialog/accounts-dialog.component';
 import { HouseKeepingComponent } from '@components/admin/others/housekeeping/housekeeping.component';
 import { ShowHousekeepingLogDialog } from '@dialogs/show-housekeeping-logs/show-housekeeping-logs.component';
+import { AdministrationComponent } from '@components/admin/administration/administration.component';
+import { EditConfigurationComponent } from '@components/admin/administration/edit-configuration/edit-configuration.component';
 
 const routes: Routes = [
   {
@@ -102,6 +104,15 @@ const routes: Routes = [
         data: {
           require_permission: 'view_others_panel',
         },
+      }, 
+      {
+        path: 'administration',
+        component: AdministrationComponent,
+        title: 'Administration - Admin',
+        canActivate: [PermissionGuard],
+        data: {
+          require_permission: 'manage_configurations',
+        },
       },
     ],
   },
@@ -135,7 +146,9 @@ const routes: Routes = [
     AdminOthersComponent,
     HouseKeepingComponent,
     AccountsDialog,
-    ShowHousekeepingLogDialog
+    ShowHousekeepingLogDialog,
+    AdministrationComponent,
+    EditConfigurationComponent,
   ],
 })
 export class AdminModule {}
