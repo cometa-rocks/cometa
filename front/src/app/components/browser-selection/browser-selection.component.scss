@@ -366,3 +366,14 @@ h4 {
 .concurrency-icon {
   margin-left: 6px;
 }
+
+.number-browser-input {
+  width: 20px;
+  line-height: 45px;
+  max-width: 125px;
+  transition: width 0.3s ease;
+}
+
+.number-browser-input:focus {
+  width: 125px;
+}

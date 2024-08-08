@@ -1008,9 +1008,16 @@ input[type='number'] {
   }
 }
 
-.schedule-active{
-  color: #00a99d;
+.schedule-active {
   display: flex;
+}
+
+.schedule-grey {
+  color: #5D6D7E;
+}
+
+.schedule-green {
+  color: #00a99d;
 }
 
 draggable-window{

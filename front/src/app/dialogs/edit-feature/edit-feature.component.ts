@@ -7,6 +7,7 @@ import {
   HostListener,
   OnDestroy,
   ChangeDetectorRef,
+  Renderer2
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
@@ -218,7 +219,7 @@ export class EditFeature implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private fileUpload: FileUploadService,
     @Inject(API_URL) public api_url: string,
-    private inputFocusService: InputFocusService
+    private inputFocusService: InputFocusService,
   ) {
 
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
