@@ -12,4 +12,9 @@ if __name__ == "__main__":
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
+    
+    # This is Behave configuration reader, which read configuration values before django starts
+    from utility.configurations import load_configurations   
+    load_configurations()
+        
     execute_from_command_line(sys.argv)

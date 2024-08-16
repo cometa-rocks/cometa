@@ -6,7 +6,8 @@ services:
     image: postgres:12.1
     volumes:
       - ./backend:/code
-      - ./backend/db_data:/var/lib/postgresql/data
+      # - ./backend/db_data:/var/lib/postgresql/data
+      - ./backend/db_data_test_migration3:/var/lib/postgresql/data
     expose:
       - "5532"
     networks:
@@ -55,7 +56,8 @@ services:
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
       - "./backend/behave/schedules/crontab:/etc/cron.d/crontab"
-    command: "/code/docker/build/behave/entry.sh"
+    # command: "/opt/code/entry.sh -d"
+    command: "/opt/code/entry.sh"
     working_dir: /opt/code/behave_django
     environment:
       PYTHONUNBUFFERED: 1

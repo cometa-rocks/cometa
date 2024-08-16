@@ -70,7 +70,7 @@ class ResponseManager:
                 "message": f"{self.__app_name} with id '{id}' deleted"
             }, status=status.HTTP_200_OK)
     
-    def can_not_be_delete_response(self, id):
+    def can_not_be_deleted_response(self, id):
         return JsonResponse(
             {
                 "success": False,

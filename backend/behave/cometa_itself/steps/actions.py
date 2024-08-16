@@ -46,21 +46,15 @@ from selenium.webdriver.common.keys import Keys
 from functools import wraps
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
-from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.remote.file_detector import LocalFileDetector
-# just to import secrets
-sys.path.append("/code")
-import secret_variables
 # Import utilities
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from tools.cognos import *
 from tools.common import *
 from tools.exceptions import *
 from tools.variables import *
-from src.backend.utility.functions import *
 from slugify import slugify
 from html_diff import diff
-from threading import Thread
 from bs4 import BeautifulSoup
 
 # pycrypto imports
@@ -70,13 +64,16 @@ import base64
 base64.encodestring = base64.encodebytes
 from hashlib import md5
 from pathlib import Path
-
-from pprint import pprint
-from django.conf import settings
 from tools import expected_conditions as CEC
+# just to import secrets
+sys.path.append("/opt/code/behave_django")
 
-SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
-ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
+from utility.functions import *
+from utility.configurations import ConfigurationManager
+from utility.common import *
+
+SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
+ENCRYPTION_START = ConfigurationManager.get_configuration('COMETA_ENCRYPTION_START', '')
 
 # setup logging
 logger = logging.getLogger('FeatureExecution')
@@ -84,7 +81,7 @@ logger = logging.getLogger('FeatureExecution')
 DATETIMESTRING=time.strftime("%Y%m%d-%H%M%S")
 
 # encrypt and decrypt password encrypted in Angular using Crypto-JS
-ENCRYPTION_PASSPHRASE = getattr(secret_variables, 'COMETA_ENCRYPTION_PASSPHRASE', '').encode()
+ENCRYPTION_PASSPHRASE = ConfigurationManager.get_configuration('COMETA_ENCRYPTION_PASSPHRASE', '').encode()
 BLOCK_SIZE = 16
 
 def pad(data):
@@ -1135,7 +1132,7 @@ def test_folder(context, parameters = {}):
     if over_all_results_ok:
         logger.debug("Overall results ok - all reports finished well.")
     else:
-        logger.debug("Overall results failed - some reprots have errors.")
+        logger.debug("Overall results failed - some reports have errors.")
         raise CustomError('Execution of reports in folder finish with some errors')
 
 #

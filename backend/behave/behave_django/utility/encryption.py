@@ -5,9 +5,6 @@ from Crypto.Cipher import AES
 import base64, sys
 from hashlib import md5
 
-# just to import secrets
-sys.path.append("/code")
-
 # encrypt and decrypt password encrypted in Angular using Crypto-JS
 # This variable is updated by backend.utility.configurations.py, when configuration is loaded from DB
 ENCRYPTION_PASSPHRASE = None
@@ -24,11 +21,9 @@ def update_ENCRYPTION_START(encryption_start:str):
     ENCRYPTION_START = encryption_start
     
 def print_values(): 
-    print("ENCRYPTION_PASSPHRASE = "+ENCRYPTION_PASSPHRASE)
-    print("ENCRYPTION_START = "+ENCRYPTION_START)
-
+    print(f"ENCRYPTION_PASSPHRASE = {ENCRYPTION_PASSPHRASE}")
+    print(f"ENCRYPTION_START = {ENCRYPTION_START}")
     
-
 def pad(data):
     length = BLOCK_SIZE - (len(data) % BLOCK_SIZE)
     return data.encode() + (chr(length)*length).encode()

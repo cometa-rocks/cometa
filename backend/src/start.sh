@@ -103,7 +103,7 @@ service rsyslog start
 # Install cron
 install_cron
 # check and create secret_variables.py
-create_secret_variables
+# create_secret_variables
 # Install poetry package manager
 curl -sSL https://install.python-poetry.org | python3 -
 # Create symbolic link to Poetry so it's available as command everywhere

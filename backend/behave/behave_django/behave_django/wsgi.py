@@ -11,6 +11,10 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
+# This is Behave configuration reader, which read configuration values before django starts
+from utility.configurations import load_configurations   
+load_configurations()
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "behave_django.settings")
 
 application = get_wsgi_application()

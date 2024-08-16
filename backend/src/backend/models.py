@@ -1046,8 +1046,10 @@ class Action(models.Model):
     department = models.CharField(max_length=100, default=None, null = True, blank=True)
     application = models.CharField(max_length=100, default=None, null = True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, editable=False, null=False, blank=False)
+    
     def __str__( self ):
         return self.action_name
+    
     def save(self, *args, **kwargs):
         if self.department is None and self.application is None:
             actions = Action.objects.filter(department = None, application = None , action_name = self.action_name)
@@ -1055,6 +1057,7 @@ class Action(models.Model):
                 super(Action, self).save(*args, **kwargs)
         else:
             super(Action, self).save(*args, **kwargs)
+            
     class Meta:
         ordering = ['action_id']
         verbose_name_plural = "Actions"
