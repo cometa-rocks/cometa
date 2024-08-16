@@ -54,26 +54,24 @@ from slugify import slugify
 from django.db.models import Q
 from django.db.models import Avg, Sum  # needed for CometaUsage calcs
 from django.db import connection
-import secrets
+import secrets, traceback
 from openpyxl import Workbook
 import base64
 # just to import secrets
 sys.path.append("/code")
-import secret_variables
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 # import humanize for time conversion
 from backend.templatetags.humanize import *
 from sentry_sdk import capture_exception
 from backend.utility.uploadFile import UploadFile, decryptFile
-
 # from silk.profiling.profiler import silk_profile
 
-SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
-BROWSERSTACK_USERNAME = getattr(secret_variables, 'COMETA_BROWSERSTACK_USERNAME', '')
-BROWSERSTACK_PASSWORD = getattr(secret_variables, 'COMETA_BROWSERSTACK_PASSWORD', '')
-DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
-ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
+SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
+BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
+BROWSERSTACK_PASSWORD = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_PASSWORD', '')
+DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
+ENCRYPTION_START = ConfigurationManager.get_configuration('COMETA_ENCRYPTION_START', '')
 
 logger = getLogger()
 
@@ -1379,86 +1377,139 @@ def parseBrowsers(request):
     })
     return JsonResponse({'success': True})
 
+# FIXME need to delete this function if you see this after date 17-10-2024 
+# @csrf_exempt
+# def parseActions(request):
+#     # variable to contain action comment
+#     action_comments = []
 
+#     def parseAction(action):
+#         regex = r"\@(.*)\((u|)'(.*)'\)"
+#         matches = re.findall(regex, action)
+#         if matches[0][2] == "{step}":
+#             return
+#         logger.debug(f"Action matcher Found : {matches[0]}")
+#         logger.debug(f"Action Value : {matches[0][2]}")
+#         actionsParsed.append(matches[0][2])
+#         actionObject = Action(
+#             action_name=matches[0][2],
+#             department='DIF',
+#             application='amvara',
+#             values=matches[0][2].count("{"),
+#             description='<br>'.join(action_comments)
+#         )
+
+#         logger.debug(f"Adding action comments : {actionObject.description}")
+#         actionObject.save()
+
+#     actions = []
+#     # Add your new created action files here
+#     actions_files = [
+#         '/code/behave/cometa_itself/steps/actions.py',
+#         '/code/behave/ee/cometa_itself/steps/rest_api.py'
+#     ]
+
+#     # Iterate your action file as store in the lines in the files    
+#     for actions_file in actions_files:
+#         logger.debug(f"Reading Action from {actions_file}")
+#         with open(actions_file) as file:
+#             lines_in_file = file.readlines()
+#             logger.debug(f"Found {len(lines_in_file)} lines in the file : {actions_file}")
+#             actions = actions + lines_in_file
+
+#     actionsParsed = []
+#     Action.objects.all().delete()
+
+#     # variable to contain previous line
+#     previousLine = ''
+#     logger.debug(f"String Action Parse")
+#     for action in actions:
+#         if action.startswith("@step") and '(?P<' not in action:
+#             logger.debug(f"Parsing Step Action : {action}")
+#             # parse action will use action_comments, if found to be action otherwise make it empty
+#             parseAction(action)
+
+#         # This condition rarely executes when @step contains regular expression
+#         # If action started with @step then it never start with @done and in case above condition is false then any how this will be executed
+#         # not need of two if conditions
+#         elif action.startswith('@done') and '(?P<' in previousLine:
+#             logger.debug(f"Parsing Done Action : {action}")
+#             parseAction(action)
+
+#         # when any comment related to action written, that line will not have any spaces considering that line
+#         # If there is Multi line comments, keep on adding in the list 
+#         elif action.startswith('# '):
+#             # Action Comments to be written in with out line gaps
+#             # [2:] to remove # and single space from the front of the comment
+#             action_comments.append(action[2:])
+#             # logger.debug(f"Found actions comment {action_comments}")
+#         else:
+#             if not action.startswith("@step"):
+#                 action_comments = []  # if other then comments found remove empty the list
+#                 logger.debug(f"Removed action comments {action}")
+
+#         previousLine = action
+
+#     logger.debug(f"Ending Action Parse")
+#     # send a request to web sockets about the actions update
+#     requests.post('http://cometa_socket:3001/sendAction', json={
+#         'type': '[Actions] Get All'
+#     })
+
+#     return JsonResponse({'success': True, 'actions': actionsParsed})
+
+# This method is change so that behave code can be separated from django code 
+# This will help in scaling the application
 @csrf_exempt
 def parseActions(request):
-    # variable to contain action comment
-    action_comments = []
+    
+    logger.debug("Getting latest actions from behave")
+    response = requests.get("http://behave:8001/updated_step_actions", headers={"Content-Type": "application/json"})
+    
+    if response.status_code==500:
+        return JsonResponse(response.json())
+    elif response.status_code!=200:
+        # FIXME return this response with status_code=response.status_code
+        return JsonResponse(
+            {
+                'success': False, 
+                'message':'could not get action information from behave, seems behave is not accessible'
+            })
+        
+    try:
+        # Take backup actions before deleting 
+        backup_actions = Action.objects.all()
+        backup_actions = ActionSerializer(backup_actions, many=True)
+        
+        logger.debug(f"Deleting previous actions")
+        Action.objects.all().delete()
+        
+        actions = response.json()['actions']   
+        actions = ActionSerializer(data=actions, many=True)
+        if not actions.is_valid():
+            # Since new actions information was invalid restore actions from backup 
+            restore_action = ActionSerializer(backup_actions, many=True)
+            restore_action.is_valid()
+            restore_action.save()
+            logger.debug(actions.errors)
+            return JsonResponse({'success': False, 'message': "Actions are invalid, Please check the logs and action.py in the behave"})
+        
+        # All actions were valid save them
+        actions.save()
+        logger.debug(f"Ending Action Parse")
+        # send a request to web sockets about the actions update
+        requests.post('http://cometa_socket:3001/sendAction', json={
+            'type': '[Actions] Get All'
+        })
+        
+        # Get names of all actions 
+        action_names = [action["action_name"] for action in actions.data]
+        return JsonResponse({'success': True, 'count':len(action_names), 'actions': action_names})
 
-    def parseAction(action):
-        regex = r"\@(.*)\((u|)'(.*)'\)"
-        matches = re.findall(regex, action)
-        if matches[0][2] == "{step}":
-            return
-        logger.debug(f"Action matcher Found : {matches[0]}")
-        logger.debug(f"Action Value : {matches[0][2]}")
-        actionsParsed.append(matches[0][2])
-        actionObject = Action(
-            action_name=matches[0][2],
-            department='DIF',
-            application='amvara',
-            values=matches[0][2].count("{"),
-            description='<br>'.join(action_comments)
-        )
-
-        logger.debug(f"Adding action comments : {actionObject.description}")
-        actionObject.save()
-
-    actions = []
-    # Add your new created action files here
-    actions_files = [
-        '/code/behave/cometa_itself/steps/actions.py',
-        '/code/behave/ee/cometa_itself/steps/rest_api.py'
-    ]
-
-    # Iterate your action file as store in the lines in the files    
-    for actions_file in actions_files:
-        logger.debug(f"Reading Action from {actions_file}")
-        with open(actions_file) as file:
-            lines_in_file = file.readlines()
-            logger.debug(f"Found {len(lines_in_file)} lines in the file : {actions_file}")
-            actions = actions + lines_in_file
-
-    actionsParsed = []
-    Action.objects.all().delete()
-
-    # variable to contain previous line
-    previousLine = ''
-    logger.debug(f"String Action Parse")
-    for action in actions:
-        if action.startswith("@step") and '(?P<' not in action:
-            logger.debug(f"Parsing Step Action : {action}")
-            # parse action will use action_comments, if found to be action otherwise make it empty
-            parseAction(action)
-
-        # This condition rarely executes when @step contains regular expression
-        # If action started with @step then it never start with @done and in case above condition is false then any how this will be executed
-        # not need of two if conditions
-        elif action.startswith('@done') and '(?P<' in previousLine:
-            logger.debug(f"Parsing Done Action : {action}")
-            parseAction(action)
-
-        # when any comment related to action written, that line will not have any spaces considering that line
-        # If there is Multi line comments, keep on adding in the list 
-        elif action.startswith('# '):
-            # Action Comments to be written in with out line gaps
-            # [2:] to remove # and single space from the front of the comment
-            action_comments.append(action[2:])
-            # logger.debug(f"Found actions comment {action_comments}")
-        else:
-            if not action.startswith("@step"):
-                action_comments = []  # if other then comments found remove empty the list
-                logger.debug(f"Removed action comments {action}")
-
-        previousLine = action
-
-    logger.debug(f"Ending Action Parse")
-    # send a request to web sockets about the actions update
-    requests.post('http://cometa_socket:3001/sendAction', json={
-        'type': '[Actions] Get All'
-    })
-
-    return JsonResponse({'success': True, 'actions': actionsParsed})
+    except Exception as exception:
+        traceback.print_exc()
+        return JsonResponse({'success': True, 'message':str(exception)}, status=500)
+    
 
 
 @csrf_exempt

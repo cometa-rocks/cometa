@@ -8,17 +8,18 @@ from rest_framework.response import Response
 from rest_framework import viewsets, mixins
 
 # Django Imports
-from django.http import JsonResponse
 from .models import Configuration
 from .serializers import ConfigurationSerializer
 from backend.utility.response_manager import ResponseManager
 from backend.utility.functions import getLogger
 from backend.utility.decorators import require_permissions
+import os
+from cometa_pj.settings import CONFIGURATION_FILE_PATH
 
-
-from datetime import datetime, timedelta
+import traceback, json
 
 logger = getLogger()    
+ 
 
 class ConfigurationViewSet(viewsets.ModelViewSet):
 
@@ -43,7 +44,7 @@ class ConfigurationViewSet(viewsets.ModelViewSet):
                 configuration.delete()
                 return self.response_manager.deleted_response(kwargs.get("pk"))
             else:
-                return self.response_manager.can_not_be_delete_response(kwargs.get("pk"))             
+                return self.response_manager.can_not_be_deleted_response(kwargs.get("pk"))             
         except Exception:
             return self.response_manager.id_not_found_error_response(kwargs.get("pk"))
     

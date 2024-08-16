@@ -16,11 +16,11 @@ import os, pickle
 from selenium.common.exceptions import InvalidCookieDomainException
 
 # just to import secrets
-sys.path.append("/code")
-from src.backend.utility.functions import *
-from src.backend.utility.cometa_logger import CometaLogger
-import secret_variables
-from src.backend.common import *
+sys.path.append("/opt/code/behave_django")
+from utility.functions import *
+from utility.cometa_logger import CometaLogger
+from utility.common import *
+from utility.configurations import ConfigurationManager
 
 LOGGER_FORMAT = '\33[96m[%(asctime)s][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s'
 # setup logging
@@ -36,14 +36,14 @@ streamLogger.setFormatter(formatter)
 # add the stream handle to logger
 logger.addHandler(streamLogger)
 
-BROWSERSTACK_USERNAME = getattr(secret_variables, 'COMETA_BROWSERSTACK_USERNAME', False)
-BROWSERSTACK_PASSWORD = getattr(secret_variables, 'COMETA_BROWSERSTACK_PASSWORD', False)
-PROXY_ENABLED = getattr(secret_variables, 'COMETA_PROXY_ENABLED', False)
-PROXY = getattr(secret_variables, 'COMETA_PROXY', False)
-NO_PROXY = getattr(secret_variables, 'COMETA_NO_PROXY', '')
-DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
-S3ENABLED = getattr(secret_variables, 'COMETA_S3_ENABLED', False)
-ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
+BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', False)=="True"
+BROWSERSTACK_PASSWORD = ConfigurationManager.get_configuration( 'COMETA_BROWSERSTACK_PASSWORD', False)=="True"
+PROXY_ENABLED = ConfigurationManager.get_configuration('COMETA_PROXY_ENABLED', False)=="True"
+PROXY = ConfigurationManager.get_configuration('COMETA_PROXY', False)=="True"
+NO_PROXY = ConfigurationManager.get_configuration('COMETA_NO_PROXY', '')
+DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
+S3ENABLED = ConfigurationManager.get_configuration('COMETA_S3_ENABLED', False)=="True"
+ENCRYPTION_START = ConfigurationManager.get_configuration('COMETA_ENCRYPTION_START', '')
 
 
 DEPARTMENT_DATA_PATH = "/opt/code/department_data"
@@ -146,7 +146,7 @@ def before_all(context):
     X_SERVER = os.environ['X_SERVER']
     # user who requested the feature execution
     context.PROXY_USER = json.loads(os.environ['PROXY_USER'])
-    # proxy used from secret_variables
+    # proxy used from configuration.json, which is updated by django
     context.PROXY = PROXY
     # department where the feature belongs
     context.department = json.loads(os.environ['department'])
@@ -453,8 +453,8 @@ def after_all(context):
             pass
         else:
             if S3ENABLED:
-                S3ENDPOINT = getattr(secret_variables, 'COMETA_S3_ENDPOINT', False)
-                S3BUCKETNAME = getattr(secret_variables, 'COMETA_S3_BUCKETNAME', False)
+                S3ENDPOINT = ConfigurationManager.get_configuration('COMETA_S3_ENDPOINT', False)
+                S3BUCKETNAME = ConfigurationManager.get_configuration('COMETA_S3_BUCKETNAME', False)
                 if S3ENDPOINT and S3BUCKETNAME:
                     bsVideoURL = "%s/%s/%s/video.mp4" % (S3ENDPOINT, S3BUCKETNAME, context.browser.session_id)
                 else:

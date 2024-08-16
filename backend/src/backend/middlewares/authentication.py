@@ -3,15 +3,16 @@ from backend.serializers import OIDCAccountLoginSerializer
 from django.http import JsonResponse
 import uuid, datetime, re, requests
 from backend.common import *
-import secret_variables
 from backend.utility.functions import getLogger
 from pprint import pprint
 from django.shortcuts import redirect
+from backend.utility.configurations import ConfigurationManager
 import urllib3
+
 
 logger = getLogger()
 
-DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
+DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
 
 class AuthenticationMiddleware:
     def __init__(self, get_response):
@@ -154,7 +155,7 @@ class AuthenticationMiddleware:
                 This could mean that oAuth provider did not return user information.
                 
                 Try again later or please contact us @ %s
-                """ % secret_variables.COMETA_FEEDBACK_MAIL
+                """ % ConfigurationManager.get_configuration("COMETA_FEEDBACK_MAIL","")
             }, status=200)
 
         # get the user from the OIDCAccounts model
