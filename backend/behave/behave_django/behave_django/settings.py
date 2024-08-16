@@ -11,16 +11,16 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os, sys
-# just to import secrets
-sys.path.append("/code")
-import secret_variables
-from src.backend.common import *
+from utility.common import *
+from utility.configurations import ConfigurationManager
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BEHAVE_HOME_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-SENTRY_BEHAVE = getattr(secret_variables, 'COMETA_SENTRY_BEHAVE', False)
-DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
+SENTRY_BEHAVE = ConfigurationManager.get_configuration('COMETA_SENTRY_BEHAVE', False)
+DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
+COMETA_DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
 
 if SENTRY_BEHAVE:
     import sentry_sdk
@@ -42,7 +42,7 @@ if SENTRY_BEHAVE:
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = getattr(secret_variables, 'COMETA_BEHAVE_SECRETKEY', '')
+SECRET_KEY = ConfigurationManager.get_configuration('COMETA_BEHAVE_SECRETKEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

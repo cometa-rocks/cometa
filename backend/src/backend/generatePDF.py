@@ -25,7 +25,6 @@ from django.forms.models import model_to_dict
 import sys
 from os.path import isfile, exists
 sys.path.append("/code")
-import secret_variables
 import pytz
 # Python basics
 import logging
@@ -33,13 +32,13 @@ import logging.handlers
 import datetime
 from email.mime.image import MIMEImage
 from PIL import Image
-
+from backend.utility.configurations import ConfigurationManager
 
 # logger information
 logger = getLogger()
 
-DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
-SCREENSHOT_PREFIX = getattr(secret_variables, 'COMETA_SCREENSHOT_PREFIX', '')
+DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
+SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 
 
 class GeneratePDF(View):

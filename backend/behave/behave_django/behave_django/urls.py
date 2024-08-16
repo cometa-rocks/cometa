@@ -13,19 +13,23 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, re_path
-from schedules import views
+from schedules.views import (
+    run_test,
+    kill_task,
+    update_configuration_in_memory,
+    updated_step_actions,
+)
 from django.conf.urls import include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('run_test/', views.run_test),
-    re_path('kill_task/(?P<pid>[0-9]+)/', views.kill_task),
-    # These path are removed
-    # path('set_test_schedule/', views.set_test_schedule),
-    # path('remove_test_schedule/', views.remove_test_schedule),
-
+    path("admin/", admin.site.urls),
+    path("run_test/", run_test),
+    re_path("kill_task/(?P<pid>[0-9]+)/", kill_task),
+    path("update_configuration", update_configuration_in_memory),
+    path("updated_step_actions", updated_step_actions),
     # Django RQ URLS
-    path("django-rq/", include("django_rq.urls"))
+    path("django-rq/", include("django_rq.urls")),
 ]

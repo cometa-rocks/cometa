@@ -13,10 +13,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 import time, requests, json, os, datetime, sys, subprocess, re, shutil
-from src.backend.common import *
-from src.backend.utility.cometa_logger import CometaLogger
-sys.path.append("/code")
-from secret_variables import COMETA_UPLOAD_ENCRYPTION_PASSPHRASE
+
+sys.path.append("/opt/code/behave_django")
+from utility.common import *
+from utility.cometa_logger import CometaLogger
+from utility.configurations import ConfigurationManager
+
+COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = ConfigurationManager.get_configuration('COMETA_UPLOAD_ENCRYPTION_PASSPHRASE', '')
 
 # setup logging
 logging.setLoggerClass(CometaLogger)

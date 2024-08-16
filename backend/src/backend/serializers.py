@@ -4,13 +4,12 @@ import json, requests, logging, time, functools
 from .mixins import *
 from .common import *
 from django.http import JsonResponse
-import secret_variables
 from pprint import pprint
 from django.conf import settings
 from django.db.models import Sum
 from backend.payments import get_user_subscriptions, get_requires_payment
 from backend.utility.functions import getLogger
-
+from backend.utility.configurations import ConfigurationManager
 # logger information
 logger = getLogger()
 
@@ -71,7 +70,7 @@ class OIDCAccountLoginSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def get_feedback_mail(self, instance):
-        return getattr(secret_variables, 'COMETA_FEEDBACK_MAIL', '')
+        return ConfigurationManager.get_configuration('COMETA_FEEDBACK_MAIL', '')
 
     def get_integration_apps(self, instance):
         return [x[1] for x in IntegrationApplications]
@@ -101,7 +100,7 @@ class OIDCAccountLoginSerializer(serializers.ModelSerializer):
         # Expose AES Encryption prefix, Front needs some way to know a text is encrypted
         # Exposing the prefix is not a security problem as explained below
         # https://crypto.stackexchange.com/questions/18158/does-having-a-known-plaintext-prefix-weaken-aes256/18160
-        return getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
+        return ConfigurationManager.get_configuration('COMETA_ENCRYPTION_START', '')
 
 class BasicOIDCAccountLoginSerializer(serializers.ModelSerializer):
     class Meta:
@@ -517,10 +516,11 @@ class DepartmentWithUsersSerializer(serializers.ModelSerializer):
 # Action model serializers #
 ############################
 class ActionSerializer(serializers.ModelSerializer):
-    date_created = serializers.DateTimeField(format=datetimeTZFormat)
+    date_created = serializers.DateTimeField(format=datetimeTZFormat, required=False)
     class Meta:
         model = Action
         fields = '__all__'
+        
 
     def create(self, validated_data):
         return Action.objects.create(**validated_data)

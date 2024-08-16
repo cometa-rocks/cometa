@@ -11,19 +11,20 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os, sys
+import traceback
 # just to import secrets
 sys.path.append("/code")
-import secret_variables
 from backend.common import *
-
+from backend.utility.configurations import ConfigurationManager 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SCREENSHOTS_ROOT = '/code/behave/screenshots/'
 
-SENTRY_DJANGO = getattr(secret_variables, 'COMETA_SENTRY_DJANGO', False)
 
-DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
+SENTRY_DJANGO = ConfigurationManager.get_configuration('COMETA_SENTRY_DJANGO', False) 
+
+DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
 IS_DEV = DOMAIN == 'localhost'
 
 if SENTRY_DJANGO and not IS_DEV:
@@ -46,13 +47,27 @@ if SENTRY_DJANGO and not IS_DEV:
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = getattr(secret_variables, 'COMETA_DJANGO_SECRETKEY', '')
+SECRET_KEY = ConfigurationManager.get_configuration('COMETA_DJANGO_SECRETKEY', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-COMETA_DEBUG = getattr(secret_variables, 'COMETA_DEBUG', False)
+COMETA_DEBUG = ConfigurationManager.get_configuration('COMETA_DEBUG', False)
 DEBUG = COMETA_DEBUG == 'True' or COMETA_DEBUG == True
 
 ALLOWED_HOSTS = ['*']
+
+CONTAINER_SHARED_SPACE = os.path.join("/code/shared")
+if not os.path.exists(CONTAINER_SHARED_SPACE):
+    os.mkdir(CONTAINER_SHARED_SPACE)
+
+CONFIGURATION_FILE_PATH = os.path.join(CONTAINER_SHARED_SPACE,"configurations.json")
+# Make sure that there is no permission error when saving configuration file 
+if not os.path.exists(CONFIGURATION_FILE_PATH):
+    try:
+        with open(CONFIGURATION_FILE_PATH,"w") as file:
+            file.write("{}")
+    except Exception as exception:
+        traceback.print_exc()
+        raise Exception("Exception while creating configurations.json, file path : "+CONFIGURATION_FILE_PATH)
 
 
 # Application definition
@@ -184,15 +199,16 @@ USE_I18N = False
 USE_L10N = False
 USE_TZ = False
 
-if getattr(secret_variables, 'COMETA_EMAIL_ENABLED', 'False') == "True":
+
+if ConfigurationManager.get_configuration('COMETA_EMAIL_ENABLED', 'False') == "True":
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = getattr(secret_variables, 'COMETA_EMAIL_HOST', '')
-    EMAIL_PORT = int(getattr(secret_variables, 'COMETA_EMAIL_PORT', '25'))
-    EMAIL_HOST_USER = getattr(secret_variables, 'COMETA_EMAIL_USER', '')
-    COMETA_EMAIL_PASSWORD = getattr(secret_variables, 'COMETA_EMAIL_PASSWORD', '')
+    EMAIL_HOST = ConfigurationManager.get_configuration('COMETA_EMAIL_HOST', '')
+    EMAIL_PORT = int(ConfigurationManager.get_configuration('COMETA_EMAIL_PORT', '25'))
+    EMAIL_HOST_USER = ConfigurationManager.get_configuration('COMETA_EMAIL_USER', '')
+    COMETA_EMAIL_PASSWORD = ConfigurationManager.get_configuration('COMETA_EMAIL_PASSWORD', '')
     if COMETA_EMAIL_PASSWORD != '':
         EMAIL_HOST_PASSWORD = COMETA_EMAIL_PASSWORD
-    EMAIL_USE_TLS = getattr(secret_variables, 'COMETA_EMAIL_TLS', 'False') == "True"
+    EMAIL_USE_TLS = ConfigurationManager.get_configuration('COMETA_EMAIL_TLS', 'False') == "True"
 
 
 # Static files (CSS, JavaScript, Images)
