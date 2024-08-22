@@ -21,8 +21,10 @@
 }
 
 .columns-button-wrapper {
+  display: flex;
   text-align: end;
   padding-bottom: 20px;
+  justify-content: space-between;
 }
 
 .env-info {
@@ -136,3 +138,4 @@ p.inuse {
 mat-dialog-actions {
   gap: 8px;
 }
+
