@@ -20,10 +20,7 @@ class Configuration(models.Model):
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=False, null=False, blank=False)
     updated_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=False, null=False, blank=False)
     
-    def save(self, *args, **kwargs):
-        if not self.can_be_edited and self.id:
-            raise ValidationError(f'{self.configuration_name} configuration can not be edited')  
-            
+    def save(self, *args, **kwargs):            
         self.updated_on = datetime.datetime.utcnow()
         if self.encrypted:
             self.configuration_value = encrypt(self.configuration_value)
