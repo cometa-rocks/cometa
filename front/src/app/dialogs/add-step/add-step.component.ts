@@ -87,7 +87,6 @@ export class AddStepComponent {
   // Shortcut emitter to parent component
   public sendTextareaFocus(isFocused: boolean) {
     this.textareaFocus.emit(isFocused);
-    console.log("Aqui esto" + isFocused);
   }
 
   getStep(action: Action) {
