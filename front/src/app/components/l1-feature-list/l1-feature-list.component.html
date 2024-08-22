@@ -60,6 +60,104 @@ Author: dph000
 
 <!-- List of templates for each column used in mtx-grid -->
 
+<!-- Options button for the feature -->
+<ng-template #optionsTpl let-row let-index="index" let-col="colDef">
+  <!-- Button to open folder / feature manage menu -->
+  <button
+    stopPropagation
+    [matMenuTriggerFor]="
+      row.type === 'feature' ? featureOptions : folderOptions
+    "
+    mat-icon-button>
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  <!-- Menu to manage feature -->
+  <mat-menu class="feature-options" #featureOptions="matMenu" xPosition="after">
+    <!-- Edit feature -->
+    <button
+      *ngIf="row.id | hasPermission: 'edit_feature' | async"
+      (click)="SAopenEditFeature(row.id, 'edit')"
+      matTooltip="Edit {{ row.name }} steps"
+      matTooltipPosition="before"
+      class="modify-feature"
+      mat-menu-item>
+      <mat-icon>edit</mat-icon>
+      <span>Modify</span>
+    </button>
+    <!-- Clone feature -->
+    <button
+      *ngIf="row.id | hasPermission: 'create_feature' | async"
+      (click)="SAopenEditFeature(row.id, 'clone')"
+      matTooltip="Clone {{ row.name }}"
+      matTooltipPosition="before"
+      class="modify-feature"
+      mat-menu-item>
+      <mat-icon>content_copy</mat-icon>
+      <span>Clone</span>
+    </button>
+    <!-- Move feature -->
+    <button
+      (click)="SAmoveFeature(row.reference)"
+      matTooltip="Move {{ row.name }}"
+      matTooltipPosition="before"
+      class="move-feature"
+      mat-menu-item>
+      <mat-icon>folder</mat-icon>
+      <span>Move</span>
+    </button>
+    <mat-divider></mat-divider>
+    <!-- Ask for help checkbox -->
+    <button
+      stopPropagation
+      mat-menu-item
+      *ngIf="row.id | hasPermission: 'create_feature' | async">
+      <mat-checkbox
+        [checked]="row.help"
+        (change)="SAhandleSetting(row.id, 'need_help', $event)"
+        color="primary"
+        [matTooltip]="'need_help.explanation' | translate"
+        matTooltipPosition="after"
+        >{{ 'need_help.ask_for' | translate }}</mat-checkbox
+      >
+    </button>
+    <mat-divider></mat-divider>
+    <!-- Delete feature -->
+    <button
+      *ngIf="row.id | hasPermission: 'delete_feature' | async"
+      (click)="SAdeleteFeature(row.id)"
+      matTooltip="Delete feature {{ row.name }}"
+      matTooltipPosition="before"
+      class="delete-feature"
+      mat-menu-item>
+      <mat-icon>delete</mat-icon>
+      <span>Delete</span>
+    </button>
+  </mat-menu>
+  <!-- Menu to manage folder -->
+  <mat-menu class="folderOptionsMenu" #folderOptions="matMenu">
+    <!-- Open the folder -->
+    <button (click)="goFolder(row.reference, row.route)" mat-menu-item>
+      <mat-icon>folder_open</mat-icon>
+      <span>Open</span>
+    </button>
+    <!-- Edit folder -->
+    <button (click)="modify(row.reference)" mat-menu-item>
+      <mat-icon>edit</mat-icon>
+      <span>Modify</span>
+    </button>
+    <!-- Move folder -->
+    <button (click)="SAmoveFolder(row.reference)" mat-menu-item>
+      <mat-icon>folder</mat-icon>
+      <span>Move</span>
+    </button>
+    <!-- Delete folder -->
+    <button (click)="delete(row.reference)" class="remove" mat-menu-item>
+      <mat-icon>delete</mat-icon>
+      <span>Delete</span>
+    </button>
+  </mat-menu>
+</ng-template>
+
 <!-- Feature execution status / folder icon -->
 <ng-template #runningTpl let-row let-index="index" let-col="colDef">
   <ng-container *ngIf="row.type === 'feature'; else folderIcon">
@@ -86,10 +184,31 @@ Author: dph000
     </ng-template>
   </ng-container>
   <!-- Folder icon -->
-  <ng-template #folderIcon>
+  <ng-template #folderIcon class="items-container">
     <i class="folderIcon"></i>
+    <div
+      *ngIf="isAnyFeatureRunningMap.get(row.reference.folder_id) | async; else showRunAllButton"
+      class="folder-running"
+      [matTooltip]="'tooltips.runnning_all_features' | translate"
+      matTooltipPosition="after"
+      stopPropagation>
+      <mat-spinner
+        class="item-loader"
+        diameter="18">
+      </mat-spinner>
+    </div>
+    <ng-template #showRunAllButton>
+      <button
+      (click)="_sharedActions.runAllFeatures(row.reference)"
+      class="folder-running"
+      [matTooltip]="'tooltips.run_all_features' | translate"
+      matTooltipPosition="after">
+        <mat-icon class="mat-icon">play_circle_filled</mat-icon>
+      </button>
+    </ng-template>
   </ng-template>
 </ng-template>
+
 
 <!-- Folder / feature ID -->
 <ng-template #idTpl let-row let-index="index" let-col="colDef">
@@ -262,103 +381,6 @@ Author: dph000
   </div>
 </ng-template>
 
-<!-- Options button for the feature -->
-<ng-template #optionsTpl let-row let-index="index" let-col="colDef">
-  <!-- Button to open folder / feature manage menu -->
-  <button
-    stopPropagation
-    [matMenuTriggerFor]="
-      row.type === 'feature' ? featureOptions : folderOptions
-    "
-    mat-icon-button>
-    <mat-icon>more_vert</mat-icon>
-  </button>
-  <!-- Menu to manage feature -->
-  <mat-menu class="feature-options" #featureOptions="matMenu" xPosition="after">
-    <!-- Edit feature -->
-    <button
-      *ngIf="row.id | hasPermission: 'edit_feature' | async"
-      (click)="SAopenEditFeature(row.id, 'edit')"
-      matTooltip="Edit {{ row.name }} steps"
-      matTooltipPosition="before"
-      class="modify-feature"
-      mat-menu-item>
-      <mat-icon>edit</mat-icon>
-      <span>Modify</span>
-    </button>
-    <!-- Clone feature -->
-    <button
-      *ngIf="row.id | hasPermission: 'create_feature' | async"
-      (click)="SAopenEditFeature(row.id, 'clone')"
-      matTooltip="Clone {{ row.name }}"
-      matTooltipPosition="before"
-      class="modify-feature"
-      mat-menu-item>
-      <mat-icon>content_copy</mat-icon>
-      <span>Clone</span>
-    </button>
-    <!-- Move feature -->
-    <button
-      (click)="SAmoveFeature(row.reference)"
-      matTooltip="Move {{ row.name }}"
-      matTooltipPosition="before"
-      class="move-feature"
-      mat-menu-item>
-      <mat-icon>folder</mat-icon>
-      <span>Move</span>
-    </button>
-    <mat-divider></mat-divider>
-    <!-- Ask for help checkbox -->
-    <button
-      stopPropagation
-      mat-menu-item
-      *ngIf="row.id | hasPermission: 'create_feature' | async">
-      <mat-checkbox
-        [checked]="row.help"
-        (change)="SAhandleSetting(row.id, 'need_help', $event)"
-        color="primary"
-        [matTooltip]="'need_help.explanation' | translate"
-        matTooltipPosition="after"
-        >{{ 'need_help.ask_for' | translate }}</mat-checkbox
-      >
-    </button>
-    <mat-divider></mat-divider>
-    <!-- Delete feature -->
-    <button
-      *ngIf="row.id | hasPermission: 'delete_feature' | async"
-      (click)="SAdeleteFeature(row.id)"
-      matTooltip="Delete feature {{ row.name }}"
-      matTooltipPosition="before"
-      class="delete-feature"
-      mat-menu-item>
-      <mat-icon>delete</mat-icon>
-      <span>Delete</span>
-    </button>
-  </mat-menu>
-  <!-- Menu to manage folder -->
-  <mat-menu class="folderOptionsMenu" #folderOptions="matMenu">
-    <!-- Open the folder -->
-    <button (click)="goFolder(row.reference, row.route)" mat-menu-item>
-      <mat-icon>folder_open</mat-icon>
-      <span>Open</span>
-    </button>
-    <!-- Edit folder -->
-    <button (click)="modify(row.reference)" mat-menu-item>
-      <mat-icon>edit</mat-icon>
-      <span>Modify</span>
-    </button>
-    <!-- Move folder -->
-    <button (click)="SAmoveFolder(row.reference)" mat-menu-item>
-      <mat-icon>folder</mat-icon>
-      <span>Move</span>
-    </button>
-    <!-- Delete folder -->
-    <button (click)="delete(row.reference)" class="remove" mat-menu-item>
-      <mat-icon>delete</mat-icon>
-      <span>Delete</span>
-    </button>
-  </mat-menu>
-</ng-template>
 
 <!-- Template to use whenever the field value is null -->
 <ng-template #emptyField>-</ng-template>
