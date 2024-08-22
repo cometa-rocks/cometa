@@ -17,7 +17,9 @@
         disableAutocomplete
         spellcheck="false"
         type="text"
-        matInput />
+        matInput 
+        (focus)="sendInputFocusToParent(true)" 
+        (blur)="sendInputFocusToParent(false)"/>
     </mat-form-field>
     <mat-form-field *ngIf="rForm.contains('department')" appearance="outline">
       <mat-label>Department</mat-label>
