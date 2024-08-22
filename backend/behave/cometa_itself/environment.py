@@ -20,9 +20,12 @@ sys.path.append("/opt/code/behave_django")
 from utility.functions import *
 from utility.cometa_logger import CometaLogger
 from utility.common import *
-from utility.configurations import ConfigurationManager
+from utility.configurations import ConfigurationManager, load_configurations
 
 LOGGER_FORMAT = '\33[96m[%(asctime)s][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s'
+
+load_configurations()
+
 # setup logging
 logging.setLoggerClass(CometaLogger)
 logger = logging.getLogger('FeatureExecution')
@@ -36,8 +39,8 @@ streamLogger.setFormatter(formatter)
 # add the stream handle to logger
 logger.addHandler(streamLogger)
 
-BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', False)=="True"
-BROWSERSTACK_PASSWORD = ConfigurationManager.get_configuration( 'COMETA_BROWSERSTACK_PASSWORD', False)=="True"
+BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
+BROWSERSTACK_PASSWORD = ConfigurationManager.get_configuration( 'COMETA_BROWSERSTACK_PASSWORD', '')
 PROXY_ENABLED = ConfigurationManager.get_configuration('COMETA_PROXY_ENABLED', False)=="True"
 PROXY = ConfigurationManager.get_configuration('COMETA_PROXY', False)=="True"
 NO_PROXY = ConfigurationManager.get_configuration('COMETA_NO_PROXY', '')
