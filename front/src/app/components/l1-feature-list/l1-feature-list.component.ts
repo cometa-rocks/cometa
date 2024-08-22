@@ -62,6 +62,8 @@ import {
 } from '@angular/common';
 import { MtxGridModule } from '@ng-matero/extensions/grid';
 import { LetDirective } from '../../directives/ng-let.directive';
+import { map } from 'rxjs/operators';
+
 
 @Component({
   selector: 'cometa-l1-feature-list',
@@ -134,6 +136,7 @@ export class L1FeatureListComponent implements OnInit {
    * The format is due to mtx-grid. To see more go to https://ng-matero.github.io/extensions/components/data-grid/overview
    */
   columns = [
+    { header: 'Options', field: 'reference' },
     { header: 'Type / Run', field: 'orderType', sortable: true },
     { header: 'ID', field: 'id', sortable: true },
     {
@@ -163,7 +166,6 @@ export class L1FeatureListComponent implements OnInit {
 
     { header: 'Browsers', field: 'browsers', sortable: true },
     { header: 'Schedule', field: 'schedule', sortable: true },
-    { header: 'Options', field: 'reference' },
   ];
 
   // Mtx-grid row selection checkbox options
@@ -181,6 +183,10 @@ export class L1FeatureListComponent implements OnInit {
     new MatTableDataSource<any>([])
   );
 
+  isAnyFeatureRunning$: Observable<boolean>;
+  public isAnyFeatureRunningMap: Map<number, Observable<boolean>> = new Map();
+
+
   ngOnInit() {
     this.log.msg('1', 'Inicializing component...', 'feature-list');
 
@@ -192,6 +198,17 @@ export class L1FeatureListComponent implements OnInit {
 
     // load column settings
     this.getSavedColumnSettings();
+
+    this.data$.rows.forEach(row => {
+      const folderId = row.reference.folder_id;
+  
+      const isRunning$ = this._sharedActions.folderRunningStates.asObservable().pipe(
+        map(runningStates => runningStates.get(folderId) || false)
+      );
+  
+      this.isAnyFeatureRunningMap.set(folderId, isRunning$);
+    });
+
   }
 
   /**

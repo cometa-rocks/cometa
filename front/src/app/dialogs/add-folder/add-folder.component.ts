@@ -25,6 +25,8 @@ import { DisableAutocompleteDirective } from '../../directives/disable-autocompl
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { NgIf, NgFor } from '@angular/common';
+import { InputFocusService } from '@services/inputFocus.service';
+import { Subject } from 'rxjs';
 
 @Component({
   selector: 'add-folder',
@@ -66,7 +68,8 @@ export class AddFolderComponent {
     private fb: UntypedFormBuilder,
     private _api: ApiService,
     private _snackBar: MatSnackBar,
-    private _store: Store
+    private _store: Store,
+    private inputFocusService: InputFocusService
   ) {
     // Gets the currently active route
     this.currentRouteNew = this._store.selectSnapshot(
@@ -109,6 +112,13 @@ export class AddFolderComponent {
   }
 
   rForm: UntypedFormGroup;
+  private InputFocusService = new Subject<boolean>();
+
+  inputFocus$ = this.InputFocusService.asObservable();
+
+  sendInputFocusToParent(inputFocus: boolean): void {
+    this.inputFocusService.setInputFocus(inputFocus);
+  }
 
   submit(values) {
     if (this.data.mode === 'new') {

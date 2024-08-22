@@ -256,6 +256,38 @@ Author: dph000
       </button>
       <!-- Menu to manage folder -->
       <mat-menu class="folderOptionsMenu" #folderOptions="matMenu">
+        <div
+        *ngIf="isAnyFeatureRunning$ | async; else showRunAllButton"
+        class="folder-running"
+        [matTooltip]="'tooltips.run_feature' | translate"
+        matTooltipPosition="after"
+        stopPropagation>
+        <mat-spinner
+          class="item-loader"
+          diameter="18"></mat-spinner>
+        <span> Features running </span>
+      </div>
+      <ng-template #showRunAllButton>
+        <button
+          (click)="_sharedActions.runAllFeatures(item.reference)"
+          class="run-feature"
+          [matTooltip]="'tooltips.run_all_features' | translate"
+          matTooltipPosition="after"
+          mat-menu-item>
+          <mat-icon>play_circle_filled</mat-icon>
+          <span>Run all features</span>
+        </button>
+      </ng-template>
+      <mat-divider></mat-divider>
+      <!-- Next update 2.8.77 config.json -->
+        <!-- <button
+        (click)="_sharedActions.cancelAllFeatures(item.reference)"
+        class="cancel-feature"
+        [matTooltip]="'tooltips.run_feature' | translate"
+        <mat-icon>cancel</mat-icon>
+        <span>Cancel all features</span>
+        </button>
+        <mat-divider></mat-divider> -->
         <!-- Open folder -->
         <button (click)="goFolder(item.route)" mat-menu-item>
           <mat-icon>folder_open</mat-icon>

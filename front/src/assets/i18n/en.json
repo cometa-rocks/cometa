@@ -119,6 +119,8 @@
     "delete_templates_with_features": "If checked, the template images of each result will also be deleted",
     "variables_requires": "Please select a department and environment to edit variables",
     "run_feature": "Run feature",
+    "run_all_features": "Run all features",
+    "runnning_all_features": "Running all the features",
     "edit_schedule": "Edit schedule",
     "edit_feature": "Edit feature",
     "loading_feature": "Loading feature",

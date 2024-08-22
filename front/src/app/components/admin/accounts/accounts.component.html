@@ -1,7 +1,14 @@
 <h2>Manage accounts</h2>
 <mat-form-field appearance="fill">
   <mat-label>Search user</mat-label>
-  <input type="search" disableAutocomplete [formControl]="search" matInput />
+  <input 
+  type="search" 
+  disableAutocomplete 
+  [formControl]="search" 
+  matInput 
+  (focus)="sendInputFocusToParent(true)"
+  (blur)="sendInputFocusToParent(false)"
+  />
 </mat-form-field>
 <network-paginated-list
   listId="admin_accounts"
