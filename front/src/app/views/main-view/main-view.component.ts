@@ -243,6 +243,7 @@ export class MainViewComponent implements OnInit {
   isLoading = true;
   showPagination = true;
   latestFeatureResultId: number = 0;
+  archived: boolean = false;
 
   query = {
     page: 0,
@@ -415,10 +416,12 @@ export class MainViewComponent implements OnInit {
    * Enables or disables archived runs from checkbox
    * @param change MatCheckboxChange
    */
-  handleArchived = (change: MatCheckboxChange) =>
+  handleArchived = () => {
+    this.archived = !this.archived;
     this._store.dispatch(
-      new Configuration.SetProperty('internal.showArchived', change.checked)
+      new Configuration.SetProperty('internal.showArchived', this.archived)
     );
+  };
 
   ngOnInit() {
     this.featureId$ = this._route.paramMap.pipe(

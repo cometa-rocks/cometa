@@ -1,5 +1,5 @@
 {
-  "version": "2.8.372",
+  "version": "2.8.376",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,6 +233,74 @@
   ],
   "changelog": [
     {
+      "version": "2.8.376",
+      "date": "2024-08-06",
+      "features": [
+      {
+        "title": "#4694 - Fix dialog escape button behavior",
+        "description": "Resolved an issue where the dialog reappeared even after pressing the Escape key to close it."
+      },
+      {
+        "title": "#4694 - Add tooltip with description on feature name",
+        "description": "Added a tooltip to the feature name that displays the description when hovering over it with the mouse."
+      },      
+      {
+        "title": "#4694 - Add tooltip with date last run on schedule item feature",
+        "description": "Added a tooltip to the schedule section that displays the description in last run when hovering over it with the mouse."
+      }, 
+      {
+        "title": "#4694 - Changed 'Show Archived Items' from checkbox to button",
+        "description": "Replaced the 'Show Archived Items' checkbox with a button to improve user experience and streamline interaction. The new button enhances clarity and accessibility for users."
+      },
+      {
+        "title": "#4694 - Expanded Input Field for Browser Selection in Lyrid.io",
+        "description": "Increased the input field size for selecting browsers in the Lyrid.io section to improve usability and accommodate longer input values."
+      }   
+      ]
+    }, 
+    {
+      "version": "2.8.375",
+      "date": "2024-08-02",
+      "features": [
+        {
+          "title": "#4694 - Expansion Panel",
+          "description": "Now the expansion panel from edit feature is collapsed when you edit feature."
+        },
+        {
+          "title": "#4694 - Shortcut tooltip in step-definitions",
+          "description": "Added shortcut tooltip in step-definitions."
+        }   
+      ]
+    }, 
+    {
+      "version": "2.8.374",
+      "date": "2024-08-01",
+      "features": [
+        {
+          "title": "#4694 - Menu Update: Added 'What's New'",
+          "description": "We have added a new menu item titled 'What's New'. This new menu option provides quick access to recent changes and enhancements."
+        },
+        {
+          "title": "#4694 - Main Old disabled",
+          "description": "We disabled the 'Main old' in the Menu."
+        },
+        {
+          "title": "#4694 - Updated Help Menu Table",
+          "description": "The table in the Help section of the menu has been updated to provide more accurate and comprehensive information."
+        }        
+      ]
+    }, 
+    {
+      "version": "2.8.373",
+      "date": "2024-07-25",
+      "features": [
+        {
+          "title": "#4694 - Folder item tree",
+          "description": "Improved user experience, you can now know if a folder is empty or not at a glance."
+        }
+      ]
+    }, 
+    {
       "version": "2.8.372",
       "date": "2024-07-29",
       "bugfixes": [
@@ -244,7 +312,7 @@
       "date": "2024-07-26",
       "features": [
         {
-          "title": "#4814 - Implemented CC and BCC fields",
+          "title": "#4694 - Implemented CC and BCC fields",
           "description": "Added CC (Carbon Copy) and BCC (Blind Carbon Copy) fields to the email sending section."
         },
         {
@@ -252,14 +320,14 @@
           "description": "DB fields are added to store CC and BCC emails, CC and BCC email logic is updated."
         }
       ]
-    }, 
+    },
     {
       "version": "2.8.368",
       "date": "2024-07-23",
       "features": [
         {
-          "title": "#4814 - Shortcuts (Profile, Upload, Menu)",
-          "description": "Implemented shortcut on profile, upload and menu in header icons."
+          "title": "#4814 - New Shortcuts for Header Icons",
+          "description": "Added keyboard shortcuts for quick access to profile, feature, and menu functions. Users can now use 'P' for Profile, 'F' for Feature, and 'M' for Menu directly from the header icons."
         }
       ]
     },   
@@ -283,7 +351,7 @@
       "features": [
         {
           "title": "#4694 - Step definition shortcuts",
-          "description": "Create shortcuts: CTRL+UP/DOWN to insert new step up or down the step reference, CTRL+ALT+UP/DOWN to copy the step up or down the step reference."
+          "description": "Introduced new keyboard shortcuts for managing step definitions: Use 'CTRL+UP' or 'CTRL+DOWN' to move a step up or down in the reference step. Use 'CTRL+ALT+UP' or 'CTRL+ALT+DOWN' to duplicate a step and place the copy above or below the original step in the reference list."
         }
       ]
     },
