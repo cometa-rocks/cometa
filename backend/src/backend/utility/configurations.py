@@ -265,7 +265,7 @@ def load_configurations():
         try:
             # Load secret_variables as a module 
             global secret_variables 
-            secret_variables = load_module_from_file("secret_variables", "/code/asdsecret_variables.py") 
+            secret_variables = load_module_from_file("secret_variables", "/code/secret_variables.py") 
         except Exception as exception:
             logger.info("Did not find secret_variables.py, Not to worry this is only required for old Cometa setups")
         
