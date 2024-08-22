@@ -1,5 +1,5 @@
 {
-  "version": "2.8.374",
+  "version": "2.8.376",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,32 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.376",
+      "date": "2024-08-06",
+      "features": [
+      {
+        "title": "#4694 - Fix dialog escape button behavior",
+        "description": "Resolved an issue where the dialog reappeared even after pressing the Escape key to close it."
+      },
+      {
+        "title": "#4694 - Add tooltip with description on feature name",
+        "description": "Added a tooltip to the feature name that displays the description when hovering over it with the mouse."
+      },      
+      {
+        "title": "#4694 - Add tooltip with date last run on schedule item feature",
+        "description": "Added a tooltip to the schedule section that displays the description in last run when hovering over it with the mouse."
+      }, 
+      {
+        "title": "#4694 - Changed 'Show Archived Items' from checkbox to button",
+        "description": "Replaced the 'Show Archived Items' checkbox with a button to improve user experience and streamline interaction. The new button enhances clarity and accessibility for users."
+      },
+      {
+        "title": "#4694 - Expanded Input Field for Browser Selection in Lyrid.io",
+        "description": "Increased the input field size for selecting browsers in the Lyrid.io section to improve usability and accommodate longer input values."
+      }   
+      ]
+    }, 
     {
       "version": "2.8.375",
       "date": "2024-08-02",

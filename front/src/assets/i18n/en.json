@@ -168,5 +168,9 @@
   "send_on": {
     "after_test_execution": "Always",
     "after_test_execution_failed": "On error"
+  },
+  "schedule": {
+    "last-run": "Last run: ",
+    "no-last-run": "Last run: No runs have been made yet"
   }
 }
