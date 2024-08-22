@@ -50,11 +50,25 @@ class ConfigurationViewSet(viewsets.ModelViewSet):
     
     @require_permissions("manage_configurations")
     def patch(self, request, *args, **kwargs):
-        return super().patch(request, args, kwargs)
-    
+        try:
+            configuration = Configuration.objects.get(id=kwargs.get("pk"))
+            if configuration.can_be_edited:
+                return super().patch(request, args, kwargs)
+            else:
+                return self.response_manager.can_not_be_updated_response(kwargs.get("pk"))             
+        except Exception:
+            return self.response_manager.id_not_found_error_response(kwargs.get("pk"))
+
     @require_permissions("manage_configurations")
     def put(self, request, *args, **kwargs):
-        return super().put(request, args, kwargs)
+        try:
+            configuration = Configuration.objects.get(id=kwargs.get("pk"))
+            if configuration.can_be_edited:
+                return super().put(request, args, kwargs)
+            else:
+                return self.response_manager.can_not_be_updated_response(kwargs.get("pk"))             
+        except Exception:
+            return self.response_manager.id_not_found_error_response(kwargs.get("pk"))
 
     @require_permissions("manage_configurations")
     def create(self, request, *args, **kwargs):

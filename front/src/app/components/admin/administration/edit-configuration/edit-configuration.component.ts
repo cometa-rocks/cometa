@@ -383,6 +383,11 @@ export class EditConfigurationComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       });
     }
+    else if(!event.checked && configuration.id!=0 ){
+      configuration.configuration_value = '';
+      this.setInputStatus({ required: true }, 'value');
+      this.cdr.markForCheck();
+    }
   }
 
   onAddConfiguration() {
