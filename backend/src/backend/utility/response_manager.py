@@ -79,6 +79,15 @@ class ResponseManager:
             status=status.HTTP_200_OK
         )
 
+    def can_not_be_updated_response(self, id):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"{self.__app_name} with id '{id}' can not be updated"
+            },
+            status=status.HTTP_200_OK
+        )
+
     def deleted_response_with_count(self, count, app_name=None):
         return JsonResponse(
             {
