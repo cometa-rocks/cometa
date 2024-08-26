@@ -22,7 +22,7 @@ from backend.common import *
 from backend.utility.functions import getLogger
 from django.forms.models import model_to_dict
 # just to import secrets
-import sys
+import sys, traceback
 from os.path import isfile, exists
 sys.path.append("/code")
 import secret_variables
@@ -461,51 +461,68 @@ class GeneratePDF(View):
         .exclude(screenshot_current__exact='') \
         .order_by("step_result_id")
         # Define the regex pattern
-        pattern = r'\$screenshot\[(\d+)\]'
+        pattern = r'\$screenshot\[((-?\d+)|last)\]'
         
         # Find all matches and their positions
         matches = list(re.finditer(pattern, self.feature_template.email_body))
         new_email_body =  "<strong>Custom message:</strong><br><br>"+self.feature_template.email_body+"<br><br>"
         # Print the matches with their positions
         invalid_screenshot_names = []
+        number_of_screen_shot = len(step_results_screenshots)
         for match in matches:
-            # Get the screenshot name i.e. $screenshot[n]
-            screenshot_name =  match.group(0)
-            # Get the screenshot index 'n'
-            screen_shot_index = int(match.group(1))
-            # logger.debug("Found match ")
-            # logger.debug(f"Match: {match.group(0)}, Number: {match.group(1)}, Start: {match.start()}, End: {match.end()}")
-            # This is to check if number of screenshot available in the step report are less or equal to screenshot index requested in the email 
-            # logger.debug(f'{screen_shot_index}  {len(step_results_screenshots)}')
-            if screen_shot_index>0 and len(step_results_screenshots)>=screen_shot_index:
-                # Create dictionary with $screenshot[n] = path/to/screenshot
-                # logger.debug("Attaching screenshots")
-                logger.debug(step_results_screenshots[screen_shot_index-1])
-                screen_shot = step_results_screenshots[screen_shot_index-1][0]
-                # Add image tag to show image in with mail
-                image_path = os.path.join(settings.SCREENSHOTS_ROOT, screen_shot)
-                image_name = image_path.split("/")
-                logger.debug(image_name)
-                if len(image_name)>0:
-                    image_name = image_name[-1].split(".")[-2]
-    
-                image_name+='.png'
-                logger.debug(image_name)
-                new_email_body = new_email_body.replace(screenshot_name, f'<img src="cid:{screenshot_name}" alt={image_name} >')
-                # logger.debug(name)
-                # logger.debug(new_email_body)
-                # logger.debug(f"Attaching Screenshot {screen_shot}")
-                with Image.open(image_path) as img:
-                    with BytesIO() as output:
-                        img.save(output, format='PNG')
-                        png_data = output.getvalue()                    
-                    mime_image = MIMEImage(png_data, _subtype="png")
-                    mime_image.add_header('Content-ID', f'<{screenshot_name}>')
-                    mime_image.add_header('X-Attachment-Id', f'{screenshot_name}')
-                    mime_image.add_header('Content-Disposition', 'inline', filename=image_name)
-                    email_multi_alternatives.attach(mime_image)
-            else:
-                invalid_screenshot_names.append(screenshot_name)
+            try:
+                # Get the screenshot name i.e. $screenshot[n]
+                screenshot_name =  match.group(0)
+                # Get the screenshot index 'n'
+                screen_shot_index = match.group(1)
+                logger.debug(f'{screen_shot_index} {number_of_screen_shot}')                            
+
+                if screen_shot_index=='last':
+                    screen_shot_index=-1
+                else:
+                    screen_shot_index = int(screen_shot_index)
+                
+                # logger.debug("Found match ")
+                # logger.debug(f"Match: {match.group(0)}, Number: {match.group(1)}, Start: {match.start()}, End: {match.end()}")
+                # This is to check if number of screenshot available in the step report are less or equal to screenshot index requested in the email 
+                
+                if screen_shot_index<0:
+                    logger.debug(f"Processing negative SS index : {screen_shot_index}")   
+                    screen_shot_index = number_of_screen_shot - abs(screen_shot_index) + 1       
+                    logger.debug(f"Converted to : {screen_shot_index}")    
+                if screen_shot_index>0 and number_of_screen_shot>=screen_shot_index:
+                    # Create dictionary with $screenshot[n] = path/to/screenshot
+                    # logger.debug("Attaching screenshots")
+                    logger.debug(step_results_screenshots[screen_shot_index-1])
+                    screen_shot = step_results_screenshots[screen_shot_index-1][0]
+                    # Add image tag to show image in with mail
+                    image_path = os.path.join(settings.SCREENSHOTS_ROOT, screen_shot)
+                    image_name = image_path.split("/")
+                    logger.debug(image_name)
+                    if len(image_name)>0:
+                        image_name = image_name[-1].split(".")[-2]
+        
+                    image_name+='.png'
+                    logger.debug(image_name)
+                    new_email_body = new_email_body.replace(screenshot_name, f'<img src="cid:{screenshot_name}" alt={image_name} >')
+                    # logger.debug(name)
+                    # logger.debug(new_email_body)
+                    # logger.debug(f"Attaching Screenshot {screen_shot}")
+                    with Image.open(image_path) as img:
+                        with BytesIO() as output:
+                            img.save(output, format='PNG')
+                            png_data = output.getvalue()                    
+                        mime_image = MIMEImage(png_data, _subtype="png")
+                        mime_image.add_header('Content-ID', f'<{screenshot_name}>')
+                        mime_image.add_header('X-Attachment-Id', f'{screenshot_name}')
+                        mime_image.add_header('Content-Disposition', 'inline', filename=image_name)
+                        email_multi_alternatives.attach(mime_image)
+                else:
+                    invalid_screenshot_names.append(screenshot_name)
+            except:
+                logger.error(f"Exception while attaching $screenshot variable {screenshot_name}")
+                traceback.print_exc()
+                invalid_screenshot_names.append(screenshot_name)                
         if invalid_screenshot_names:
             new_email_body += f"<b>Invalid Screenshot names: <b> {','.join(invalid_screenshot_names)}"
         
@@ -568,7 +585,7 @@ class GeneratePDF(View):
             </table>
             $[[[CUSTOM_EMAIL_DATA]]]
             %s
-            Thanks you for using co.meta<br><br>
+            Thankyou for using co.meta<br><br>
             Best regards<br><br>
         """ % (
             self.feature_result.feature_id.feature_id,
