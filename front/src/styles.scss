@@ -281,6 +281,35 @@ body::-webkit-scrollbar-corner {
   }
 }
 
+.mat-menu-panel.folderOptionsMenu {
+  background: darken(white, 0.5) !important;
+  .mat-icon {
+    font-size: 21px !important;
+  }
+  .run-feature * {
+    color: $blue !important;
+  }
+  .folder-running{
+    display: flex;
+    flex-direction: row;
+    padding: 5px 16px 5px;
+    mat-spinner {
+      margin-right: 16px;
+    }
+    span {
+      text-align: left;
+    }
+  }
+  .cancel-feature * {
+    color: #607587 !important;
+  }
+  button.run-feature[disabled] {
+    color: #666666;
+    cursor: not-allowed;
+  }
+}
+
+
 .mat-menu-item {
   height: 30px !important;
   line-height: 30px !important;

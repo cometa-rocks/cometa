@@ -1,5 +1,5 @@
 {
-  "version": "2.8.376",
+  "version": "2.8.378",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,38 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+    "version": "2.8.378",
+    "date": "2024-08-26",
+    "features": [
+      {
+        "title": "#5027 - Added new email screenshot variable, $screenshot[last].",
+        "description": "Last screenshot in case of failure can we seen using $screenshot[last] variable"
+      }
+    ]
+  }, 
+  {
+    "version": "2.8.377",
+    "date": "2024-08-19",
+    "features": [
+      {
+        "title": "#4694 - Added run all features in tiles view and list view.",
+        "description": "The 'Run All' feature is now available in both tiles and list views."
+      },
+      {
+        "title": "#4694 - Fixed conflict between account search input and header shortcuts.",
+        "description": "Typing in the account search input no longer conflicts with header shortcuts."
+      },
+      {
+        "title": "#4694 - Fixed conflict between create folder input and page shortcuts.",
+        "description": "Typing in the 'Create Folder' input no longer conflicts with page shortcuts."
+      },
+      {
+        "title": "#4694 - Repositioned options column in list view table.",
+        "description": "The options column in the list view table has been repositioned for improved accessibility and layout."
+      }
+      ]
+    },
     {
       "version": "2.8.376",
       "date": "2024-08-06",
