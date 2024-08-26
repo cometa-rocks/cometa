@@ -39,6 +39,8 @@
             "view_accounts_panel": true,
             "view_others_panel": true,
             "create_variable": true,
+            "create_folder":true,
+            "delete_folder":true,
             "edit_variable": true,
             "delete_variable": true,            
             "manage_house_keeping_logs": true
