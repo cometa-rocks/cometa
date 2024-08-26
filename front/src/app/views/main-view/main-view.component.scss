@@ -17,12 +17,14 @@
       flex-grow: 1;
       .custom_toolbar {
         display: flex;
-        justify-content: space-between;
+        justify-content: right;
         align-items: center;
         margin-right: 5px;
       }
       button {
         color: #000;
+        margin-left: 5px;
+        width: 175px;
         mat-icon {
           font-size: 1.125rem;
           width: 1.125rem;
@@ -145,6 +147,7 @@
 
 .no-chart {
   max-height: 400px;
+  height: 320px;
   padding: 10px 5%;
   display: flex;
   justify-content: center;

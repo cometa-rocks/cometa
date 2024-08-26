@@ -155,12 +155,21 @@
 <!-- TOOLBAR TEMPLATE -->
 <ng-template #toolbarTpl>
   <div class="custom_toolbar">
-    <mat-checkbox
-      color="primary"
-      [checked]="archived$ | async"
-      (change)="handleArchived($event)"
-      >Show archived items</mat-checkbox
+    <button
+    mat-stroked-button
+    color="primary"
+    [checked]="archived$ | async"
+    (click)="handleArchived()"
     >
+    <ng-container *ngIf="archived; else showIcon">
+      <mat-icon>visibility_off</mat-icon>
+      Hide archived items
+    </ng-container>
+    <ng-template #showIcon>
+      <mat-icon>visibility</mat-icon>
+      Show archived items
+    </ng-template>
+    </button>
     <button mat-stroked-button [matMenuTriggerFor]="clearRunsTemplate">
       <mat-icon>delete</mat-icon>
       <span class="mdc-button__label">Clear Feature Results</span>

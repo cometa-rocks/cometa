@@ -42,6 +42,12 @@
     "default_template": "If Checked, then please provide your custom email template, which can be used for creating customized e-Mails, e.g. only containing screenshot. The default is false - to not change the actual behavior customers are using",
     "attach_pdf": "If Checked, PDF test result will be attached within the email, Other wise email without PDF will be sent. Useful when sending email with customized template"
   },
+  "step-definition": {
+    "insert-new-above": "CTRL + UP",
+    "insert-new-below": "CTRL + DOWN",
+    "copy-new-above": "CTRL + ALT + UP",
+    "copy-new-below": "CTRL + ALT + DOWN"
+  },
   "headers": {
     "status": "Status",
     "date": "Date",
@@ -113,6 +119,8 @@
     "delete_templates_with_features": "If checked, the template images of each result will also be deleted",
     "variables_requires": "Please select a department and environment to edit variables",
     "run_feature": "Run feature",
+    "run_all_features": "Run all features",
+    "runnning_all_features": "Running all the features",
     "edit_schedule": "Edit schedule",
     "edit_feature": "Edit feature",
     "loading_feature": "Loading feature",
@@ -162,5 +170,9 @@
   "send_on": {
     "after_test_execution": "Always",
     "after_test_execution_failed": "On error"
+  },
+  "schedule": {
+    "last-run": "Last run: ",
+    "no-last-run": "Last run: No runs have been made yet"
   }
 }
