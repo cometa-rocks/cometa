@@ -8,7 +8,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
-import { Observable, switchMap, tap } from 'rxjs';
+import { Observable, switchMap, tap, map } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { observableLast, Subscribe } from 'ngx-amvara-toolbox';
 import { NavigationService } from '@services/navigation.service';
@@ -100,6 +100,7 @@ export class L1FeatureItemListComponent implements OnInit {
   featureStatus$: Observable<string>;
   canEditFeature$: Observable<boolean>;
   canDeleteFeature$: Observable<boolean>;
+  isAnyFeatureRunning$: Observable<boolean>;
 
   // NgOnInit
   ngOnInit() {
@@ -121,6 +122,10 @@ export class L1FeatureItemListComponent implements OnInit {
     );
     this.canDeleteFeature$ = this._store.select(
       CustomSelectors.HasPermission('delete_feature', this.feature_id)
+    );
+
+    this.isAnyFeatureRunning$ = this._sharedActions.folderRunningStates.asObservable().pipe(
+      map(runningStates => runningStates.get(this.item.id) || false)
     );
   }
 
