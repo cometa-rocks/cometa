@@ -7,6 +7,7 @@ import {
   HostListener,
   OnDestroy,
   ChangeDetectorRef,
+  Renderer2
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
@@ -198,6 +199,8 @@ export class EditFeature implements OnInit, OnDestroy {
 
   private inputFocusSubscription: Subscription;
 
+  isExpanded: boolean = false;
+
   // COTEMP -- Used to check the state data status
   @Select(FeaturesState.GetStateDAta) state$: Observable<
     ReturnType<typeof FeaturesState.GetStateDAta>
@@ -216,7 +219,7 @@ export class EditFeature implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private fileUpload: FileUploadService,
     @Inject(API_URL) public api_url: string,
-    private inputFocusService: InputFocusService
+    private inputFocusService: InputFocusService,
   ) {
 
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
@@ -249,7 +252,7 @@ export class EditFeature implements OnInit, OnDestroy {
       send_mail_on_error: [false],
       attach_pdf_report_to_email: [true],
       do_not_use_default_template: [false],
-      continue_on_failure: [false],
+      continue_on_failure: [true],
       uploaded_files: [[]],
       video: [true],
       minute: [
@@ -712,6 +715,8 @@ export class EditFeature implements OnInit, OnDestroy {
     this.inputFocusSubscription = this.inputFocusService.inputFocus$.subscribe(isFocused => {
       this.inputFocus = isFocused;
     });
+
+    this.checkForCreateButton();
 
     this.featureForm.valueChanges.subscribe(() => {
       this.variableState$.subscribe(data => {
@@ -1243,5 +1248,14 @@ export class EditFeature implements OnInit, OnDestroy {
       []
     );
     return reduced;
+  }
+
+  checkForCreateButton() {
+    if (this.data.mode == 'new') {
+      this.isExpanded = true;
+    }
+    else if (this.data.mode === 'edit' || this.data.mode === 'clone'){
+      this.isExpanded = false;
+    }
   }
 }

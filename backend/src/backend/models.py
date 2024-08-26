@@ -794,12 +794,15 @@ class Feature(models.Model):
     def __str__( self ):
         return f"{self.feature_name} ({self.feature_id})"
     def save(self, *args, **kwargs):
+        new_feature = True
         self.slug = slugify(self.feature_name)
         
         # create backup only if feature is being modified
         if self.feature_id is not None:
+            new_feature = False
             # Backup feature info before saving
             backup_feature_info(self)
+            
 
         # save to get the feature_id in case it is a new feature
         super(Feature, self).save(*args)
@@ -816,7 +819,9 @@ class Feature(models.Model):
             logger.debug("Feature file created")
             # check if infinite loop was found
             if not response['success']:
-                logger.debug("Creation of feature was not success. Abort")
+                if new_feature:
+                    logger.debug("Creation of feature was not success. Abort")
+                    self.delete()
                 return response # {"success": False, "error": "infinite loop found"}
             
             # Create .json

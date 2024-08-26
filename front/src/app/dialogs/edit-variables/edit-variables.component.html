@@ -36,6 +36,14 @@
         (blur)="sendInputFocusToParent(false)"/>
     </mat-form-field>
     <div class="columns-button-wrapper">
+      <button
+      color="primary"
+      (click)="onAddVar()"
+      class="add"
+      [disabled]="isEditing"
+      mat-stroked-button>
+      Add variable
+      </button>
       <button mat-stroked-button [matMenuTriggerFor]="selectedColumns">
         Columns Shown
       </button>
@@ -310,13 +318,5 @@
         : 'Create new variable'
     "
     matTooltipPosition="above">
-    <button
-      color="primary"
-      (click)="onAddVar()"
-      class="add"
-      [disabled]="isEditing"
-      mat-stroked-button>
-      Add variable
-    </button>
   </div>
 </mat-dialog-actions>
