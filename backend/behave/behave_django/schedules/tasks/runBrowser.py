@@ -9,9 +9,9 @@ import django_rq, pickle
 from tempfile import NamedTemporaryFile
 
 # just to import secrets
-sys.path.append("/code")
-from secret_variables import *
-from src.backend.common import *
+sys.path.append("/opt/code/behave_django")
+
+from utility.common import *
 
 # setup logging
 logger = logging.getLogger(__name__)

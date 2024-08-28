@@ -788,4 +788,48 @@ export class ApiService {
   getHouseKeepingLog(id:Number) {
     return this._http .get<HouseKeepingLogs>(`${this.api}housekeeping/${id}`);
   }
+
+  getCometaConfigurations(): Observable<Configuration[]> {
+    return this._http
+      .get<{ results: Configuration[] }>(`${this.api}configuration/`)
+      .pipe(map(response => response.results));
+  }
+
+  updateConfigurations(body) {
+    return this._http.post<any>(`${this.api}configuration/`,body);
+  }
+
+
+  setConfigurations(configuration: Configuration): Observable<Configuration> {
+    return this._http.post<string>(`${this.api}configuration/`, configuration, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      }),
+    }).pipe(
+      map(response => JSON.parse(response) as Configuration)
+    );
+  }
+
+  patchConfigurations(configuration: Configuration): Observable<Configuration> {
+    return this._http.patch<string>(
+      `${this.api}configuration/${configuration.id}/`,
+      configuration,
+      {
+        params: new InterceptorParams({
+          skipInterceptor: true,
+        }),
+      }
+    ).pipe(
+      map(response => JSON.parse(response) as Configuration)
+    );
+  }
+
+  deleteConfigurations(id: number): Observable<Success> {
+    return this._http.delete<Success>(`${this.api}configuration/${id}/`, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
+    });
+  }
+
 }
