@@ -1,0 +1,41 @@
+h2 {
+  margin: 50px 0 20px;
+  font-size: 12pt;
+  text-transform: uppercase;
+}
+
+:host {
+  display: block;
+  margin-bottom: 50px;
+  height: calc(100% - 158px);
+}
+
+:host::ng-deep .mat-form-field {
+  width: 100%;
+}
+
+.button-row {
+  margin: 2%, 3%;
+}
+
+account:nth-child(2n + 2) {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 5px;
+}
+
+::ng-deep button.add-item {
+  font-size: 16px !important;
+  font-weight: bold !important;
+  margin-top: 20px !important;
+}
+
+::ng-deep .mat-icon {
+  font-size: 21px !important;
+  margin-right: 5px;
+}
+
+.Housekeeping-logs {
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 1% 3%;
+}

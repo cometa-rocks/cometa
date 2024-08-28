@@ -5,7 +5,6 @@ from django.core.exceptions import *
 from rest_framework import viewsets
 from rest_framework.renderers import JSONRenderer
 from django.http import JsonResponse, HttpResponse
-import secret_variables
 from rest_framework import serializers
 from django.db.models import Q
 from django.db.models import Sum
@@ -20,11 +19,11 @@ from django.views.decorators.http import require_http_methods
 from sentry_sdk import capture_exception
 from math import ceil
 from backend.utility.functions import get_model, get_nested_dict_property, getLogger
-
+from backend.utility.configurations import ConfigurationManager
 # logger information
 logger = getLogger()
 
-DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
+DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
 
 # Custom exception: When no payment is necessary
 class PaymentNotRequired(Exception):
@@ -66,7 +65,7 @@ def get_requires_payment():
         key = 'COMETA_STAGE_ENABLE_PAYMENT'
     else:
         key = 'COMETA_PROD_ENABLE_PAYMENT'
-    requires_payment = getattr(secret_variables, key, False)
+    requires_payment = ConfigurationManager.get_configuration(key, False)
     if requires_payment:
         return requires_payment == 'True'
     else:
@@ -78,7 +77,7 @@ def is_testing_mode():
 
 # Returns Stripe instance with Live Key injected
 def get_live_stripe():
-    KEY = getattr(secret_variables, 'COMETA_STRIPE_LIVE_KEY', False)
+    KEY = ConfigurationManager.get_configuration('COMETA_STRIPE_LIVE_KEY', False)
     if KEY:
         stripe.api_key = KEY
         return stripe
@@ -87,7 +86,7 @@ def get_live_stripe():
 
 # Returns Stripe instance with Test Key injected
 def get_test_stripe():
-    KEY = getattr(secret_variables, 'COMETA_STRIPE_TEST_KEY', False)
+    KEY = ConfigurationManager.get_configuration('COMETA_STRIPE_TEST_KEY', False)
     if KEY:
         stripe.api_key = KEY
         return stripe
@@ -95,25 +94,25 @@ def get_test_stripe():
         raise Exception('Stripe Test API Key not set.')
 
 def get_test_webhook_secret():
-    WEBHOOK_SECRET = getattr(secret_variables, 'COMETA_STRIPE_TEST_WEBHOOK_SECRET', False)
+    WEBHOOK_SECRET = ConfigurationManager.get_configuration('COMETA_STRIPE_TEST_WEBHOOK_SECRET', False)
     if WEBHOOK_SECRET:
         return WEBHOOK_SECRET
     else:
         raise Exception('Stripe Test Webhook Secret not set')
 
 def get_live_webhook_secret():
-    WEBHOOK_SECRET = getattr(secret_variables, 'COMETA_STRIPE_LIVE_WEBHOOK_SECRET', False)
+    WEBHOOK_SECRET = ConfigurationManager.get_configuration('COMETA_STRIPE_LIVE_WEBHOOK_SECRET', False)
     if WEBHOOK_SECRET:
         return WEBHOOK_SECRET
     else:
         raise Exception('Stripe Live Webhook Secret not set')
 
 def get_stripe_charge_automatically():
-    CHARGE_AUTOMATICALLY = getattr(secret_variables, 'COMETA_STRIPE_CHARGE_AUTOMATICALLY', False)
+    CHARGE_AUTOMATICALLY = ConfigurationManager.get_configuration('COMETA_STRIPE_CHARGE_AUTOMATICALLY', False)
     if CHARGE_AUTOMATICALLY:
         return CHARGE_AUTOMATICALLY
     else:
-        raise Exception('COMETA_STRIPE_CHARGE_AUTOMATICALLY not found in secret_variables')
+        raise Exception('COMETA_STRIPE_CHARGE_AUTOMATICALLY not found in then Configuration')
 
 def get_webhook_secret():
     return get_test_webhook_secret() if is_testing_mode() else get_live_webhook_secret()
