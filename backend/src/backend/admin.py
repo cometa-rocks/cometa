@@ -148,6 +148,9 @@ class AdminPermissions(admin.ModelAdmin):
             'fields': ('permission_name', 'permission_power'),
             'description': 'If any of the permissions are set to False, the user will be able to modfiy, delete, etc their objects like features, etc.'
         }),
+        ('Admin Access', {
+            'fields': (('manage_configurations',  'manage_house_keeping_logs'),)
+        }),
         ('OIDC Accounts', {
             'fields': (('create_account', 'edit_account', 'delete_account', 'view_accounts'),)
         }),
@@ -180,7 +183,7 @@ class AdminPermissions(admin.ModelAdmin):
         }),
         ('Feature Results', {
             'fields': (
-                ('remove_feature_result', 'download_result_files', 'manage_house_keeping_logs'),
+                ('remove_feature_result', 'download_result_files'),
                 )
         }),
         ('Feature Runs', {
