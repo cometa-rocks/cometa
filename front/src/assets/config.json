@@ -238,7 +238,7 @@
     "features": [
       {
         "title": "#5027 - Added new email screenshot variable, $screenshot[last].",
-        "description": "Last screenshot in case of failure can we seen using $screenshot[last] variable"
+        "description": "Last screenshot in case of failure can be seen using $screenshot[last] variable"
       }
     ]
   }, 
