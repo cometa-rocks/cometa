@@ -11,6 +11,9 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
+from backend.utility.configurations import load_configurations   
+load_configurations()
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cometa_pj.settings")
 
 application = get_wsgi_application()
