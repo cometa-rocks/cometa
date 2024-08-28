@@ -1,12 +1,26 @@
 #!/bin/bash
+ENVIRONMENT=${ENVIRONMENT:-prod}
 
-function install_cron() {
-    apt install -y cron
-    touch /etc/cron.d/crontab
-    chmod 0644 /etc/cron.d/crontab
-    crontab /etc/cron.d/crontab
-    cron
-}
+while [[ $# -gt 0 ]]
+do
+        key="$1"
+        case $key in
+                -d|--debug)
+                        set -x
+                        DEBUG=TRUE
+                        ENVIRONMENT="debug"
+                        shift
+                        ;;
+                -dev|--development)
+                        echo "###################################################"
+                        echo "==> Setting development option requested from cli  "
+                        echo "###################################################"
+                        ENVIRONMENT="dev"
+                        shift
+                        ;;
+        esac
+done
+
 
 # sh -c service rsyslog start; tail -f /dev/null # FIXME: This fails every time
 # Install requirements
@@ -72,8 +86,6 @@ EOF
 # start supervisord to spin django-rq workers.
 supervisord -c /etc/supervisor/supervisord.conf
 
-# spin up gunicorn
-gunicorn behave_django.wsgi:application --workers=2 --threads=${THREADS:-2} --worker-class=gthread --bind 0.0.0.0:8001 --preload
 
 # SEMFILE="stop_behave_semaphore.sem"
 
@@ -84,3 +96,34 @@ gunicorn behave_django.wsgi:application --workers=2 --threads=${THREADS:-2} --wo
 # done
 # rm -f ${SEMFILE}
 # logger "Behave exited."
+
+#
+# in DEVMODE Start Django server
+#
+echo "ENVIRONMENT: $ENVIRONMENT"
+if [ "$ENVIRONMENT" = "dev" ]; then
+    echo "###################################################"
+    echo "# Running in DEV mode                             #"
+    echo "###################################################"
+    echo "Devmode was requested ... starting python manage.py runserver"
+    python manage.py runserver 0.0.0.0:8001
+fi
+#
+#  Run in VSCode IDE debug mode 
+#
+if [ "$ENVIRONMENT" = "debug" ]; then
+    echo "###################################################"
+    echo "# Running in Debug mode                             #"
+    echo "###################################################"
+    echo "debug mode was requested, you need to start django using \"python manage.py runserver\""
+    echo "Refer backend/src/README.md run django debug mode in VSCODE IDE"
+    sleep infinity
+fi
+
+#
+# In Production mode start gunicorn
+#
+if [ "$ENVIRONMENT" != "dev" ]; then    
+    # spin up gunicorn
+    gunicorn behave_django.wsgi:application --workers=2 --threads=${THREADS:-2} --worker-class=gthread --bind 0.0.0.0:8001 --preload
+fi

@@ -62,5 +62,13 @@
     [active]="others.isActive"
     >Others</a
   >
+  <a
+    mat-tab-link
+    *ngIf="canViewOthers$ | async"
+    [routerLink]="['/admin/administration']"
+    routerLinkActive
+    #others="routerLinkActive"
+    [active]="others.isActive"
+    >Administration</a>
 </nav>
 <router-outlet></router-outlet>

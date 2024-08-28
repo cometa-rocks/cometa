@@ -6,40 +6,22 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import subprocess, datetime, requests
 import os.path
-from schedules.forms import RunTestValidationForm
-from schedules.forms import SetScheduleValidationForm
-from crontab import CronTab, CronSlices
-import os, logging, sys
+import os, re
 from django.conf import settings
 import json, time
-import secrets
-import urllib.parse
 from django.views.decorators.clickjacking import xframe_options_exempt
 import random
 import django_rq
-from pprint import pprint
-from sentry_sdk import capture_exception
 from schedules.tasks.runBrowser import run_browser, run_finished
 
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-# just to import secrets
-sys.path.append("/code")
-from secret_variables import *
-from src.backend.common import *
+from utility.common import *
+from utility.configurations import ConfigurationManager,load_configurations
+from behave_django.settings import BEHAVE_HOME_DIR 
 
-# setup logging
-logger = logging.getLogger(__name__)
-logger.setLevel(BEHAVE_DEBUG_LEVEL)
-# create a formatter for the logger
-formatter = logging.Formatter(LOGGER_FORMAT, LOGGER_DATE_FORMAT)
-# create a stream logger
-streamLogger = logging.StreamHandler()
-# set the format of streamLogger to formatter
-streamLogger.setFormatter(formatter)
-# add the stream handle to logger
-logger.addHandler(streamLogger)
+logger = get_logger()
 
 # Configure Retry which can be later used for requests
 retry_strategy = Retry(
@@ -151,3 +133,103 @@ def run_test(request):
 def kill_task(request, pid):
     subprocess.call("kill -15 %d" % int(pid), shell=True)   
     return JsonResponse({"success": True, "killed": pid})
+
+
+@require_http_methods(["GET"])
+@csrf_exempt
+@xframe_options_exempt
+def update_configuration_in_memory(request):
+    try:
+        logger.debug("Updating configuration from configuration.json, requested by server")
+        load_configurations()
+        logger.debug("Updating configuration updated")
+        return JsonResponse({"success": True, "message": "configuration updated"})
+    except Exception as exception:
+        return JsonResponse({"success": False, "message": str(exception)})
+
+
+@require_http_methods(["GET"])
+@csrf_exempt
+@xframe_options_exempt
+def updated_step_actions(request):
+    try:
+        # Add your new created action files here
+        actions_files = [
+            'cometa_itself/steps/actions.py',
+            'ee/cometa_itself/steps/rest_api.py'
+        ]
+        
+        # variable to contain action comment
+        action_comments = []
+        actionsParsed = []
+        
+        def parseAction(action):
+            regex = r"\@(.*)\((u|)'(.*)'\)"
+            matches = re.findall(regex, action)
+            if matches[0][2] == "{step}":
+                return
+            logger.debug(f"Action matcher Found : {matches[0]}")
+            logger.debug(f"Action Value : {matches[0][2]}")
+            
+            actionsParsed.append({
+                "action_name":matches[0][2],
+                "department":'DIF',
+                "application":'amvara',
+                "values":matches[0][2].count("{"),
+                "description":'<br>'.join(action_comments)
+            })
+
+
+        actions = []
+
+        # Iterate your action file as store in the lines in the files    
+        for actions_file in actions_files:
+            full_path = os.path.join(BEHAVE_HOME_DIR, actions_file)
+            logger.debug(f"Reading actions from file : {full_path}")
+            with open(full_path) as file:
+                lines_in_file = file.readlines()
+                logger.debug(f"Found {len(lines_in_file)} lines in the file : {actions_file}")
+                actions = actions + lines_in_file
+
+        # variable to contain previous line
+        previousLine = ''
+        logger.debug(f"String Action Parse")
+        for action in actions:
+            if action.startswith("@step") and '(?P<' not in action:
+                logger.debug(f"Parsing Step Action : {action}")
+                # parse action will use action_comments, if found to be action otherwise make it empty
+                parseAction(action)
+
+            # This condition rarely executes when @step contains regular expression
+            # If action started with @step then it never start with @done and in case above condition is false then any how this will be executed
+            # not need of two if conditions
+            elif action.startswith('@done') and '(?P<' in previousLine:
+                logger.debug(f"Parsing Done Action : {action}")
+                parseAction(action)
+
+            # when any comment related to action written, that line will not have any spaces considering that line
+            # If there is Multi line comments, keep on adding in the list 
+            elif action.startswith('# '):
+                # Action Comments to be written in with out line gaps
+                # [2:] to remove # and single space from the front of the comment
+                action_comments.append(action[2:])
+                # logger.debug(f"Found actions comment {action_comments}")
+            else:
+                if not action.startswith("@step"):
+                    action_comments = []  # if other then comments found remove empty the list
+                    logger.debug(f"Removed action comments {action}")
+
+            previousLine = action
+
+        logger.debug(f"Ending Action Parse")
+        # send a request to web sockets about the actions update
+        requests.post('http://cometa_socket:3001/sendAction', json={
+            'type': '[Actions] Get All'
+        })
+
+        return JsonResponse({'success': True, 'actions': actionsParsed})
+    
+    except Exception as exception:
+        return JsonResponse({'success': False, 'message': str(exception)}, status_code=500)
+
+
