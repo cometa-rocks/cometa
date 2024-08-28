@@ -43,7 +43,8 @@
             "delete_folder":true,
             "edit_variable": true,
             "delete_variable": true,            
-            "manage_house_keeping_logs": true
+            "manage_house_keeping_logs": true,
+            "manage_configurations": true
         }
     },
     {
