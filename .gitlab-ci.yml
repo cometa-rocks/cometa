@@ -39,12 +39,6 @@ stages:
     - sed -i 's/<outside_port>/'$DOCKER_HTTP_PORT'/g;s/<server>/'$DOCKER_OPENIDC_CONFIG_EXT'/g' docker-compose.yml
     # Replace secrets in openidc
     - sed -i 's/@@COMETA_CRYPTO_PASSPHRASE@@/'$COMETA_CRYPTO_PASSPHRASE'/g' front/apache-conf/openidc.conf_${DOCKER_OPENIDC_CONFIG_EXT}
-    # Replace google client information
-    - sed -i 's/@@COMETA_GOOGLE_CLIENTID@@/'$COMETA_GOOGLE_CLIENTID'/g' front/apache-conf/metadata/accounts.google.com.client
-    - sed -i 's/@@COMETA_GOOGLE_SECRETKEY@@/'$COMETA_GOOGLE_SECRETKEY'/g' front/apache-conf/metadata/accounts.google.com.client
-    # Replace git client secret for access to git.amvara.de
-    - sed -i 's/@@GITCLIENTID@@/'$GITCLIENTID'/g' front/apache-conf/metadata/git.amvara.de.client
-    - sed -i 's/@@GITCLIENTSECRET@@/'$GITCLIENTSECRET'/g' front/apache-conf/metadata/git.amvara.de.client
     # Replace Stripe client keys
     - sed -i 's/@@COMETA_STRIPE_PUBLIC_LIVE_KEY@@/'$COMETA_STRIPE_PUBLIC_LIVE_KEY/'g' front/src/app/deploy-tokens.ts
     - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
@@ -146,9 +140,9 @@ deploy:client01.prod:
 #   <<: *deployment_script
 #   extends: .client02.prod
 
-# create a deploy job for client03 for branch prod
-# deploy:client03.prod:
-#   <<: *deployment_script
-#   extends: .client03.prod
+# create a deploy job for client04 for branch prod
+deploy:client04.prod:
+  <<: *deployment_script
+  extends: .client04.prod
 
 # DONE
