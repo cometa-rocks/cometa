@@ -1,0 +1,59 @@
+# create a basic configuration script for
+# selected server change extension name to
+# match filename
+.client03.prod:
+  # set main variable for selected server
+  variables:
+    #########################################################
+    # BACKEND
+    #########################################################
+    DEPLOY_BACKEND_FOLDER: "/opt/cometa/cometa"
+    #########################################################
+    # FRONTEND
+    #########################################################
+    DOCKER_HTTP_PORT: 58080
+    DOCKER_OPENIDC_CONFIG_EXT: "client04_prod"
+  before_script:
+    #########################################################
+    # FRONTEND
+    #########################################################
+    # Replace oAuth information in openidc
+    - sed -i 's|@@COMETA_CLIENT01_INT_CLIENTID@@|'$COMETA_CLIENT04_PROD_CLIENTID'|g' front/apache-conf/metadata/client001.client
+    - sed -i 's|@@COMETA_CLIENT01_INT_SECRETKEY@@|'$COMETA_CLIENT04_PROD_SECRETKEY'|g' front/apache-conf/metadata/client001.client
+    # move the file to the correct filename needed by mod_oAuth as seen in https://github.com/zmartzone/mod_auth_openidc/wiki/Multiple-Providers
+    - mv front/apache-conf/metadata/client001.client front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.client
+    - mv front/apache-conf/metadata/client001.conf front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.conf
+
+    # Update OIDC provider information at the run time
+    - curl https://$COMETA_CLIENT04_PROD_OIDCHOST/.well-known/openid-configuration | jq . > front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.provider 
+    # Remove standard ports for this client, as it conflicts with other running software
+    - sed -i '/443:443/d;' docker-compose.yml
+    # Client uses port 58080, which is mapped to load balancer, make changes persistent for port 58080
+    # - sed -i 's#/data/cometa/#./data/cometa/#g' docker-compose.yml
+    - sed -i_template "s#- /data#- \./data#g" docker-compose.yml
+    
+  after_script:
+    #########################################################
+    # FRONTEND
+    #########################################################
+    
+    # make infra folder
+    - docker exec cometa_front bash -c "mkdir -p /usr/local/apache2/htdocs/infra"
+    # make a lbtest1.html file with some status info
+    - |
+      docker exec cometa_front bash -c "cat <<EOF > /usr/local/apache2/htdocs/infra/lb1test.html
+      <html>
+        <head>
+          <title>LB Test #1</title>
+        </head>
+        <body>
+          <p>Status: OK</p>
+        </body>
+      </html>
+      EOF
+      "
+  tags: # on what runners we'd like to run this job
+    - new-cmdip-app
+  only: # on what branch we'd like to run this job
+    refs:
+      - stage

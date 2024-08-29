@@ -42,7 +42,7 @@ logger.addHandler(streamLogger)
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
 BROWSERSTACK_PASSWORD = ConfigurationManager.get_configuration( 'COMETA_BROWSERSTACK_PASSWORD', '')
 PROXY_ENABLED = ConfigurationManager.get_configuration('COMETA_PROXY_ENABLED', False)=="True"
-PROXY = ConfigurationManager.get_configuration('COMETA_PROXY', False)=="True"
+PROXY = ConfigurationManager.get_configuration('COMETA_PROXY', "")
 NO_PROXY = ConfigurationManager.get_configuration('COMETA_NO_PROXY', '')
 DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
 S3ENABLED = ConfigurationManager.get_configuration('COMETA_S3_ENABLED', False)=="True"
