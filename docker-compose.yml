@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     container_name: cometa_postgres
@@ -30,8 +28,8 @@ services:
     working_dir: /opt/code
     environment:
       - PYTHONUNBUFFERED=1
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     depends_on:
       - db
     links:
@@ -77,8 +75,8 @@ services:
       - NPM_CONFIG_LOGLEVEL=info
     volumes:
       - ./backend/ws-server:/home/node/app:rw
-    ports:
-      - "3001:3001"
+    expose:
+      - "5532"
     command: "npm run-script start"
     networks:
      - testing
@@ -90,8 +88,8 @@ services:
     container_name: cometa_selenoid
     logging:
       driver: json-file
-    ports:
-      - 4444:4444
+    expose:
+      - "5532"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./backend/selenoid/:/etc/selenoid/:ro
@@ -146,7 +144,6 @@ services:
     ports:
       - "<outside_port>:80"
       - "443:443"
-      - "4200:4200"
     command: bash /code/front/start.sh openidc basic angular compile
     networks:
       - testing
