@@ -116,9 +116,9 @@ stages:
     - echo -e "\e[0Ksection_end:`date +%s`:reloading_gunicorn\r\e[0K"
 
 # create a deploy job for amvara2 for branch stage
-deploy:amvara2.stage:
-  <<: *deployment_script
-  extends: .amvara2.stage
+# deploy:amvara2.stage:
+#  <<: *deployment_script
+#  extends: .amvara2.stage
 
 # create a deploy job for amvara3 for branch prod
 deploy:amvara3.prod:
@@ -126,9 +126,9 @@ deploy:amvara3.prod:
   extends: .amvara3.prod
 
 # create a deploy job for client01 for branch prod
-deploy:client01.int:
-  <<: *deployment_script
-  extends: .client01.int
+# deploy:client01.int:
+#  <<: *deployment_script
+#  extends: .client01.int
 
 # create a deploy job for client01 for branch prod
 deploy:client01.prod:
