@@ -53,7 +53,7 @@
       EOF
       "
   tags: # on what runners we'd like to run this job
-    - new-cmdip-app
+    - swoealvpcog01
   only: # on what branch we'd like to run this job
     refs:
       - stage
