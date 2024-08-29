@@ -1,7 +1,7 @@
 # create a basic configuration script for
 # selected server change extension name to
 # match filename
-.client03.prod:
+.client04.prod:
   # set main variable for selected server
   variables:
     #########################################################
