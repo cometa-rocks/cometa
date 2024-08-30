@@ -25,6 +25,7 @@ variables:
 # set deploy order in which jobs
 # will be executed
 stages:
+  - build
   - deploy
 
 # main script anchor to avoid code
@@ -145,4 +146,18 @@ deploy:client04.prod:
   <<: *deployment_script
   extends: .client04.prod
 
-# DONE
+
+
+# create a deploy job for client04 for branch build
+build:amvara6.build:
+  stage: build
+  script:
+    #########################################################
+    # FRONTEND
+    #########################################################
+    - cd front
+    - docker build . -f Dockerfile_angular_build -t $COMETA_FRONT:$BUILD_VERSION
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin $DOCKER_REGISTRY
+    - docker push $COMETA_FRONT:$BUILD_VERSION
+    
+  extends: .amvara6.build
