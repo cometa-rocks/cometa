@@ -19,8 +19,8 @@
     # FRONTEND
     #########################################################
     # Replace oAuth information in openidc
-    - sed -i 's|@@COMETA_CLIENT01_INT_CLIENTID@@|'$COMETA_CLIENT04_PROD_CLIENTID'|g' front/apache-conf/metadata/client001.client
-    - sed -i 's|@@COMETA_CLIENT01_INT_SECRETKEY@@|'$COMETA_CLIENT04_PROD_SECRETKEY'|g' front/apache-conf/metadata/client001.client
+    - sed -i 's|@@GITCLIENTID@@|'$COMETA_CLIENT04_PROD_CLIENTID'|g' front/apache-conf/metadata/git.amvara.de.client
+    - sed -i 's|@@GITCLIENTSECRET@@|'$COMETA_CLIENT04_PROD_SECRETKEY'|g' front/apache-conf/metadata/git.amvara.de.client
     # move the file to the correct filename needed by mod_oAuth as seen in https://github.com/zmartzone/mod_auth_openidc/wiki/Multiple-Providers
     - mv front/apache-conf/metadata/client001.client front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.client
     - mv front/apache-conf/metadata/client001.conf front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.conf
@@ -38,6 +38,7 @@
     # FRONTEND
     #########################################################
     
+    - docker exec cometa_front chmod 755 -R /code/front/apache-conf
     # make infra folder
     - docker exec cometa_front bash -c "mkdir -p /usr/local/apache2/htdocs/infra"
     # make a lbtest1.html file with some status info
