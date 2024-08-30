@@ -26,7 +26,7 @@
     #########################################################
     # Get the version of build from front config.json
     - BUILD_VERSION=$(jq -r '.[] | .version' "$JSON_FILE") # Extract versions
-    - echo "Build Versions: $BUILD_VERSION"
+    - echo "Build Versions -> $BUILD_VERSION"
   
 
   # after_script:
