@@ -16,12 +16,27 @@ include:
 # pulling content accidentally and 
 # losing old changes
 variables:
+  #########################################################
+  # Build Images names
+  #########################################################
+  COMETA_FRONT: "cometa/front"
+
+  # This images are not build in this pipeline
+  # Need to add this to pipeline
+  COMETA_DJANGO: "cometa/djanog"
+  COMETA_BEHAVE: "cometa/behave"
+  COMETA_SOCKET: "cometa/socket"
+  COMETA_CRONTAB: "cometa/crontab"
+  COMETA_REDIS: "cometa/redis"
+  COMETA_NOVNC: "cometa/novnc"
+  
 #  CI_DEBUG_TRACE: "true" # show verbose information 
 #  GIT_STRATEGY: clone
   COMETA_EMAIL_ENABLED: 'True'
   COMETA_REPLACE_FAVICON_IN: "front/src/index.html front/src/manifest.json front/src/welcome.html"
   COMETA_TOTAL_BROWSER_VERSION: 10 # number of latest browser version that will be pulled.
 
+  CONFIG_FILE: "front/src/assets/config.json"
 # set deploy order in which jobs
 # will be executed
 stages:
@@ -50,9 +65,9 @@ stages:
     # Make gitlab-runner the owner of front directory
     # ... needed as later it will be owned by root
     #########################################################
-    - echo "Setting permissions to gitlab-runner on front directory"
-    - echo "$DEPLOY_BACKEND_FOLDER/front"
-    - sudo chown -R gitlab-runner $DEPLOY_BACKEND_FOLDER/front
+    # - echo "Setting permissions to gitlab-runner on front directory"
+    # - echo "$DEPLOY_BACKEND_FOLDER/front"
+    # - sudo chown -R gitlab-runner $DEPLOY_BACKEND_FOLDER/front
 
     #########################################################
     # COPY CODE TO DEPLOY_BACKEND_FOLDER
@@ -100,10 +115,22 @@ stages:
     # FRONTEND
     #########################################################
     # start container or if already started then compile else start from zero
-    - echo "Checking if cometa_front is already running else start it..."
-    - echo "If there are changes to docker-compose file it will recreate the container..."
-    - docker-compose up -d apache 2>&1 | grep -E "up-to-date|cometa_front.*?Running" && docker exec cometa_front bash -c "./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
- 
+    - OLD_FONT_IMAGE_TAG=$(docker inspect cometa_front | jq -r '.[0].Config.Image')
+    - echo "Old cometa_front image version is $OLD_FONT_IMAGE_TAG"
+    - echo "Fetching vew version from config.yaml file"
+    - BUILD_VERSION=$(jq -r '.version' "$CONFIG_FILE") # Extract versions
+    - echo "Pull the cometa_front with version-> $BUILD_VERSION"
+    - docker pull $COMETA_FRONT:$BUILD_VERSION
+    - echo "Replace 'cometa/front:latest' with $COMETA_FRONT:$BUILD_VERSION in the docker-compose.yal file"
+    - sed -i "s#cometa/front:latest#"$COMETA_FRONT":"$BUILD_VERSION"#" docker-compose.yml
+    - echo "Recrating cometa_front"
+    - docker-compose up --force-recreate apache 
+    - echo "Removing old cometa/front image from docker"
+    - docker rmi $COMETA_FRONT:$OLD_FONT_IMAGE_TAG 
+    # - echo "Checking if cometa_front is already running else start it..."
+    # - echo "If there are changes to docker-compose file it will recreate the container..."
+    # - docker-compose up -d apache 2>&1 | grep -E "up-to-date|cometa_front.*?Running" && docker exec cometa_front bash -c "./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
+
     #########################################################
     # RELOAD GUNICORNS
     #########################################################
@@ -176,6 +203,9 @@ build:amvara6.build:
         echo "$COMETA_FRONT:$BUILD_VERSION build successfully"
         docker push $COMETA_FRONT:$BUILD_VERSION
         echo "Pushing $COMETA_FRONT:$BUILD_VERSION image to Docker $DOCKER_REGISTRY"
+        echo "Converting $COMETA_FRONT:$BUILD_VERSION tag $COMETA_FRONT:latest"
+        docker tag $COMETA_FRONT:$BUILD_VERSION $COMETA_FRONT:latest
+        echo "Pushing $COMETA_FRONT:latest image to Docker $DOCKER_REGISTRY"        
         cd -
       fi
     
