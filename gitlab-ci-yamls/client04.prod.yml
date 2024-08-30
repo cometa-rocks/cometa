@@ -28,7 +28,7 @@
     # Update OIDC provider information at the run time
     - curl https://$COMETA_CLIENT04_PROD_OIDCHOST/.well-known/openid-configuration | jq . > front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.provider 
     # Remove standard ports for this client, as it conflicts with other running software
-    - sed -i '/443:443/d;' docker-compose.yml
+    # - sed -i '/443:443/d;' docker-compose.yml
     # Client uses port 58080, which is mapped to load balancer, make changes persistent for port 58080
     # - sed -i 's#/data/cometa/#./data/cometa/#g' docker-compose.yml
     - sed -i_template "s#- /data#- \./data#g" docker-compose.yml
