@@ -14,7 +14,6 @@ from backend.utility.response_manager import ResponseManager
 from backend.utility.functions import getLogger
 from backend.utility.decorators import require_permissions
 import os
-from cometa_pj.settings import CONFIGURATION_FILE_PATH
 
 import traceback, json
 
