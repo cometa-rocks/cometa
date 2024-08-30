@@ -147,9 +147,27 @@ deploy:client04.prod:
   extends: .client04.prod
 
 
+
+
+###############################################################################################################
+# Below code is related to build stage
+###############################################################################################################
+  
+# build main script anchor to avoid code
+# redundancy.
+.build_script: &build_script
+  stage: build
+  script:
+    #########################################################
+    # FRONTEND
+    #########################################################
+    - cd front
+    - docker build . -f Dockerfile_angular_build -t $COMETA_FRONT:$BUILD_VERSION
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin $DOCKER_REGISTRY
+    - docker push $COMETA_FRONT:$BUILD_VERSION
+
+
 # create a deploy job for client04 for branch build
 build:amvara6.build:
   <<: *build_script
   extends: .amvara6.build
-
-# DONE
