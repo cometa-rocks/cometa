@@ -131,7 +131,7 @@ services:
   # Since this a deployment file, build image is used to spinup cometa_front 
   # In the build pipeline 
   apache:
-    image: "cometa/front:2.8.378"
+    image: "cometa/front:latest"
     container_name: cometa_front
     volumes:
       - ./front/apache-conf/metadata:/code/front/apache-conf/metadata
