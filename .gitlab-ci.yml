@@ -147,17 +147,37 @@ deploy:client04.prod:
   extends: .client04.prod
 
 
-
 # create a deploy job for client04 for branch build
 build:amvara6.build:
   stage: build
   script:
     #########################################################
     # FRONTEND
-    #########################################################
-    - cd front
-    - docker build . -f Dockerfile_angular_build -t $COMETA_FRONT:$BUILD_VERSION
-    # - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin $DOCKER_REGISTRY
-    - docker push $COMETA_FRONT:$BUILD_VERSION
+    ########################################################
+    
+    - |
+      # Fetch the JSON response from Docker Hub
+      RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/cometa/front/tags/?page_size=1&ordering=last_updated")
+
+      # Extract the latest tag using jq
+      LATEST_TAG=$(echo "$RESPONSE" | jq -r '.results[0].name')
+
+      echo "Latest tag from Docker Hub is: $LATEST_TAG"
+
+      # Compare the latest tag with the build version
+       if [ "$LATEST_TAG" == "$BUILD_VERSION" ]; then
+        echo "The latest version is already $BUILD_VERSION. Skipping build and push."
+        # Set environment variable to skip build and push
+        echo "SKIP_BUILD=true" >> variables.env
+      else
+        cd front
+        docker build . -f Dockerfile_angular_build -t $COMETA_FRONT:$BUILD_VERSION
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin $DOCKER_REGISTRY
+        echo "$COMETA_FRONT:$BUILD_VERSION build successfully"
+        docker push $COMETA_FRONT:$BUILD_VERSION
+        echo "Pushing $COMETA_FRONT:$BUILD_VERSION image to Docker $DOCKER_REGISTRY"
+        cd -
+      fi
+    
     
   extends: .amvara6.build
