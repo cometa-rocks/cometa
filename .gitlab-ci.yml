@@ -157,7 +157,7 @@ build:amvara6.build:
     #########################################################
     - cd front
     - docker build . -f Dockerfile_angular_build -t $COMETA_FRONT:$BUILD_VERSION
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin $DOCKER_REGISTRY
+    # - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin $DOCKER_REGISTRY
     - docker push $COMETA_FRONT:$BUILD_VERSION
     
   extends: .amvara6.build
