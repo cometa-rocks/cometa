@@ -23,7 +23,7 @@ variables:
 
   # This images are not build in this pipeline
   # Need to add this to pipeline
-  COMETA_DJANGO: "cometa/djanog"
+  COMETA_DJANGO: "cometa/django"
   COMETA_BEHAVE: "cometa/behave"
   COMETA_SOCKET: "cometa/socket"
   COMETA_CRONTAB: "cometa/crontab"
