@@ -8,6 +8,7 @@
     # BACKEND
     #########################################################
     DEPLOY_BACKEND_FOLDER: "/opt/cometa/cometa"
+    COMETA_TOTAL_BROWSER_VERSION: 3
     #########################################################
     # FRONTEND
     #########################################################
@@ -16,18 +17,16 @@
   before_script:
     #########################################################
     # FRONTEND
-    #########################################################
+    # #########################################################
     # Replace oAuth information in openidc
-    - sed -i 's|@@COMETA_CLIENT01_INT_CLIENTID@@|'$COMETA_CLIENT04_PROD_CLIENTID'|g' front/apache-conf/metadata/client001.client
-    - sed -i 's|@@COMETA_CLIENT01_INT_SECRETKEY@@|'$COMETA_CLIENT04_PROD_SECRETKEY'|g' front/apache-conf/metadata/client001.client
     # move the file to the correct filename needed by mod_oAuth as seen in https://github.com/zmartzone/mod_auth_openidc/wiki/Multiple-Providers
-    - mv front/apache-conf/metadata/client001.client front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.client
-    - mv front/apache-conf/metadata/client001.conf front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.conf
+    - echo $COMETA_CLIENT_04_OIDC_SECRETS > front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.client
+    - echo $COMETA_CLIENT_04_OIDC_CONFIGURATION > front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.conf
 
     # Update OIDC provider information at the run time
     - curl https://$COMETA_CLIENT04_PROD_OIDCHOST/.well-known/openid-configuration | jq . > front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.provider 
     # Remove standard ports for this client, as it conflicts with other running software
-    - sed -i '/443:443/d;' docker-compose.yml
+    # - sed -i '/443:443/d;' docker-compose.yml
     # Client uses port 58080, which is mapped to load balancer, make changes persistent for port 58080
     # - sed -i 's#/data/cometa/#./data/cometa/#g' docker-compose.yml
     - sed -i_template "s#- /data#- \./data#g" docker-compose.yml
@@ -37,6 +36,7 @@
     # FRONTEND
     #########################################################
     
+    - docker exec cometa_front chmod 755 -R /code/front/apache-conf
     # make infra folder
     - docker exec cometa_front bash -c "mkdir -p /usr/local/apache2/htdocs/infra"
     # make a lbtest1.html file with some status info
@@ -56,4 +56,4 @@
     - swoealvpcog01
   only: # on what branch we'd like to run this job
     refs:
-      - stage
+      - master
