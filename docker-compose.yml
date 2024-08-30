@@ -129,7 +129,7 @@ services:
       - testing
     restart: always
   # Since this a deployment file, build image is used to spinup cometa_front 
-  # In the build pipeline 
+  # n the build pipeline 
   apache:
     image: "cometa/front:latest"
     container_name: cometa_front
@@ -145,7 +145,7 @@ services:
     ports:
       - "<outside_port>:80"
       - "443:443"
-    command: bash /code/front/start_server.sh
+    entrypoint: bash /code/front/start_server.sh
     networks:
       - testing
     restart: always
