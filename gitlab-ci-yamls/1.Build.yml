@@ -1,0 +1,47 @@
+# create a basic configuration script for
+# selected server change extension name to
+# match filename
+.amvara6.build:
+  # set main variable for selected server
+  variables:
+    #########################################################
+    # Build Images names
+    #########################################################
+    COMETA_FRONT: "cometa/front"
+
+    # This images are not build in this pipeline
+    # Need to add this to pipeline
+    COMETA_DJANGO: "cometa/djanog"
+    COMETA_BEHAVE: "cometa/behave"
+    COMETA_SOCKET: "cometa/socket"
+    COMETA_CRONTAB: "cometa/crontab"
+    COMETA_REDIS: "cometa/redis"
+    COMETA_NOVNC: "cometa/novnc"
+
+    JSON_FILE: "front/src/assets/config.json"
+
+  before_script:
+    #########################################################
+    # FRONTEND
+    #########################################################
+    # Get the version of build from front config.json
+    - BUILD_VERSION=$(jq -r '.[] | .version' "$JSON_FILE") # Extract versions
+    - echo "Build Versions -> $BUILD_VERSION"
+  
+
+  # after_script:
+  #   #########################################################
+  #   # FRONTEND
+  #   #########################################################
+    
+  #   # make infra folder
+  #   - docker exec cometa_front bash -c "mkdir -p /usr/local/apache2/htdocs/infra"
+  #   # make a lbtest1.html file with some status info
+  #   - docker exec cometa_front mv front/src/lb_test.html /usr/local/apache2/htdocs/infra/lb1test.html
+     
+    
+  tags: # on what runners we'd like to run this job
+    - build
+  only: # on what branch we'd like to run this job
+    refs:
+      - build
