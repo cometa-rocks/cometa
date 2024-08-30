@@ -131,11 +131,15 @@ stages:
         sed -i "s#cometa/front:latest#"$COMETA_FRONT":"$BUILD_VERSION"#" docker-compose.yml;
         echo "Recrating cometa_front";
         docker-compose up --force-recreate apache -d;
-        echo "Removing old $OLD_FRONT_IMAGE_TAG image from docker";
-        docker rmi $OLD_FRONT_IMAGE_TAG;
       else
         echo "Front container is up to date, will do new deployment";
       fi
+
+    - if [ "$OLD_FRONT_IMAGE_TAG" != "$COMETA_FRONT:$BUILD_VERSION" ]; then
+        echo "Removing old $OLD_FRONT_IMAGE_TAG image from docker";
+        docker rmi $OLD_FRONT_IMAGE_TAG;
+      fi
+
     # - echo "Checking if cometa_front is already running else start it..."
     # - echo "If there are changes to docker-compose file it will recreate the container..."
     # - docker-compose up -d apache 2>&1 | grep -E "up-to-date|cometa_front.*?Running" && docker exec cometa_front bash -c "./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
