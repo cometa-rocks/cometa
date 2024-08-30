@@ -158,8 +158,8 @@ stages:
 
 # create a deploy job for amvara2 for branch stage
 deploy:amvara2.stage:
- <<: *deployment_script
- extends: .amvara2.stage
+  <<: *deployment_script
+  extends: .amvara2.stage
 
 # create a deploy job for amvara3 for branch prod
 deploy:amvara3.prod:
@@ -167,9 +167,9 @@ deploy:amvara3.prod:
   extends: .amvara3.prod
 
 # create a deploy job for client01 for branch prod
-# deploy:client01.int:
-#  <<: *deployment_script
-#  extends: .client01.int
+deploy:client01.int:
+  <<: *deployment_script
+  extends: .client01.int
 
 # create a deploy job for client01 for branch prod
 deploy:client01.prod:
@@ -178,13 +178,13 @@ deploy:client01.prod:
 
 # create a deploy job for client02 for branch prod
 # deploy:client02.prod:
-#   <<: *deployment_script
-#   extends: .client02.prod
+#  <<: *deployment_script
+#  extends: .client02.prod
 
 # create a deploy job for client04 for branch prod
-deploy:client04.prod:
-  <<: *deployment_script
-  extends: .client04.prod
+#deploy:client04.prod:
+#  <<: *deployment_script
+#  extends: .client04.prod
 
 
 # create a deploy job for client04 for branch build
