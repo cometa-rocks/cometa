@@ -25,6 +25,7 @@ variables:
 # set deploy order in which jobs
 # will be executed
 stages:
+  - build
   - deploy
 
 # main script anchor to avoid code
@@ -144,5 +145,11 @@ deploy:client01.prod:
 deploy:client04.prod:
   <<: *deployment_script
   extends: .client04.prod
+
+
+# create a deploy job for client04 for branch build
+build:amvara6.build:
+  <<: *build_script
+  extends: .amvara6.build
 
 # DONE
