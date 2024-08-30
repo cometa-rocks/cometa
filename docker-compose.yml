@@ -128,12 +128,13 @@ services:
     networks:
       - testing
     restart: always
-
+  # Since this a deployment file, build image is used to spinup cometa_front 
+  # In the build pipeline 
   apache:
-    image: "httpd:2.4.48"
+    image: "cometa/front:2.8.378"
     container_name: cometa_front
     volumes:
-      - ./front/:/code/front
+      - ./front/apache-conf/metadata:/code/front/apache-conf/metadata
       - ./front/apache-conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
       - ./front/apache-conf/openidc.conf_<server>:/usr/local/apache2/conf/openidc.conf
       - ./front/apache-conf/paths.conf:/usr/local/apache2/conf/paths.conf
@@ -144,7 +145,7 @@ services:
     ports:
       - "<outside_port>:80"
       - "443:443"
-    command: bash /code/front/start.sh openidc basic angular compile
+    command: bash /code/front/start_server.sh
     networks:
       - testing
     restart: always
