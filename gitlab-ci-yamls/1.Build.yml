@@ -28,19 +28,6 @@
     - BUILD_VERSION=$(jq -r '.[] | .version' "$JSON_FILE") # Extract versions
     - echo "Build Versions: $BUILD_VERSION"
   
-  
-# build main script anchor to avoid code
-# redundancy.
-.build_script: &build_script
-  stage: build
-  script:
-    #########################################################
-    # FRONTEND
-    #########################################################
-    - cd front
-    - docker build . -f Dockerfile_angular_build -t $COMETA_FRONT:$BUILD_VERSION
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin $DOCKER_REGISTRY
-    - docker push $COMETA_FRONT:$BUILD_VERSION
 
   # after_script:
   #   #########################################################
