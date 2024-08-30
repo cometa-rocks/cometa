@@ -115,18 +115,26 @@ stages:
     # FRONTEND
     #########################################################
     # start container or if already started then compile else start from zero
-    - OLD_FONT_IMAGE_TAG=$(docker inspect cometa_front | jq -r '.[0].Config.Image')
+    - OLD_FRONT_IMAGE_TAG=$(docker inspect cometa_front | jq -r '.[0].Config.Image')
     - echo "Old cometa_front image version is $OLD_FONT_IMAGE_TAG"
-    - echo "Fetching vew version from config.yaml file"
+    - echo "Fetching new version from config.yaml file"
     - BUILD_VERSION=$(jq -r '.version' "$CONFIG_FILE") # Extract versions
     - echo "Pull the cometa_front with version-> $BUILD_VERSION"
-    - docker pull $COMETA_FRONT:$BUILD_VERSION
-    - echo "Replace 'cometa/front:latest' with $COMETA_FRONT:$BUILD_VERSION in the docker-compose.yml file"
-    - sed -i "s#cometa/front:latest#"$COMETA_FRONT":"$BUILD_VERSION"#" docker-compose.yml
-    - echo "Recrating cometa_front"
-    - docker-compose up --force-recreate apache -d
-    - echo "Removing old cometa/front image from docker"
-    - docker rmi $COMETA_FRONT:$OLD_FONT_IMAGE_TAG 
+
+    # Check if OLD_FRONT_IMAGE_TAG is not equal to BUILD_VERSION or if cometa_front container is not running
+    - FRONT_CONTAINER_STATUS=$(docker inspect -f '{{.State.Status}}' cometa_front)
+
+    - if [ "$OLD_FRONT_IMAGE_TAG" != "$COMETA_FRONT:$BUILD_VERSION" ] || [ "$FRONT_CONTAINER_STATUS" != "running" ]; then
+        docker pull $COMETA_FRONT:$BUILD_VERSION
+        echo "Replace 'cometa/front:latest' with $COMETA_FRONT:$BUILD_VERSION in the docker-compose.yml file"
+        sed -i "s#cometa/front:latest#"$COMETA_FRONT":"$BUILD_VERSION"#" docker-compose.yml
+        echo "Recrating cometa_front"
+        docker-compose up --force-recreate apache -d
+        echo "Removing old $COMETA_FRONT:$OLD_FRONT_IMAGE_TAG image from docker"
+        docker rmi $COMETA_FRONT:$OLD_FRONT_IMAGE_TAG 
+      else
+        echo "Front container is up to date, will do new deployment";
+      fi
     # - echo "Checking if cometa_front is already running else start it..."
     # - echo "If there are changes to docker-compose file it will recreate the container..."
     # - docker-compose up -d apache 2>&1 | grep -E "up-to-date|cometa_front.*?Running" && docker exec cometa_front bash -c "./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
