@@ -44,4 +44,4 @@ RUN chmod +x ./start_server.sh
 # Expose port 80
 EXPOSE 80
 # Start Nginx server
-CMD ["start_server.sh"]
+ENTRYPOINT ["start_server.sh"]
