@@ -125,13 +125,13 @@ stages:
     - FRONT_CONTAINER_STATUS=$(docker inspect -f '{{.State.Status}}' cometa_front)
 
     - if [ "$OLD_FRONT_IMAGE_TAG" != "$COMETA_FRONT:$BUILD_VERSION" ] || [ "$FRONT_CONTAINER_STATUS" != "running" ]; then
-        docker pull $COMETA_FRONT:$BUILD_VERSION
-        echo "Replace 'cometa/front:latest' with $COMETA_FRONT:$BUILD_VERSION in the docker-compose.yml file"
-        sed -i "s#cometa/front:latest#"$COMETA_FRONT":"$BUILD_VERSION"#" docker-compose.yml
-        echo "Recrating cometa_front"
-        docker-compose up --force-recreate apache -d
-        echo "Removing old $COMETA_FRONT:$OLD_FRONT_IMAGE_TAG image from docker"
-        docker rmi $COMETA_FRONT:$OLD_FRONT_IMAGE_TAG 
+        docker pull $COMETA_FRONT:$BUILD_VERSION;
+        echo "Replace 'cometa/front:latest' with $COMETA_FRONT:$BUILD_VERSION in the docker-compose.yml file";
+        sed -i "s#cometa/front:latest#"$COMETA_FRONT":"$BUILD_VERSION"#" docker-compose.yml;
+        echo "Recrating cometa_front";
+        docker-compose up --force-recreate apache -d;
+        echo "Removing old $COMETA_FRONT:$OLD_FRONT_IMAGE_TAG image from docker";
+        docker rmi $COMETA_FRONT:$OLD_FRONT_IMAGE_TAG;
       else
         echo "Front container is up to date, will do new deployment";
       fi
