@@ -199,15 +199,14 @@ build:amvara6.build:
       else
         cd front
         docker build . -f Dockerfile_angular_build -t $COMETA_FRONT:$BUILD_VERSION
-        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin $DOCKER_REGISTRY
         echo "$COMETA_FRONT:$BUILD_VERSION build successfully"
-        docker push $COMETA_FRONT:$BUILD_VERSION
         echo "Pushing $COMETA_FRONT:$BUILD_VERSION image to Docker $DOCKER_REGISTRY"
+        docker push $COMETA_FRONT:$BUILD_VERSION
+        echo "$COMETA_FRONT:$BUILD_VERSION image pushed"
         echo "Converting $COMETA_FRONT:$BUILD_VERSION tag $COMETA_FRONT:latest"
         docker tag $COMETA_FRONT:$BUILD_VERSION $COMETA_FRONT:latest
         echo "Pushing $COMETA_FRONT:latest image to Docker $DOCKER_REGISTRY"        
         cd -
       fi
-    
     
   extends: .amvara6.build
