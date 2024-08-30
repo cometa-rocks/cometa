@@ -59,19 +59,8 @@ CONTAINER_SHARED_SPACE = os.path.join("/code/shared")
 if not os.path.exists(CONTAINER_SHARED_SPACE):
     os.mkdir(CONTAINER_SHARED_SPACE)
 
-CONFIGURATION_FILE_PATH = os.path.join(CONTAINER_SHARED_SPACE,"configurations.json")
-# Make sure that there is no permission error when saving configuration file 
-if not os.path.exists(CONFIGURATION_FILE_PATH):
-    try:
-        with open(CONFIGURATION_FILE_PATH,"w") as file:
-            file.write("{}")
-    except Exception as exception:
-        traceback.print_exc()
-        raise Exception("Exception while creating configurations.json, file path : "+CONFIGURATION_FILE_PATH)
-
 
 # Application definition
-
 INSTALLED_APPS = [
     'backend.apps.BackendConfig',
     'django.contrib.admin',
