@@ -311,4 +311,117 @@ input {
       transform: rotate(720deg);
     }
   }
+
+  .parent-container {
+    display: block;
+  }
+  
+  .parent-container.hidden {
+    display: none;
+  }
+  
+  
+  .cont-fath-folder {
+    position: relative; 
+    width: 100%; 
+    transition: width 0.2s;
+  }
+  
+  .cont-son-folder {
+    position: absolute;
+    top: 40px; 
+    left: 103.1%; 
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    background-color: #636769b5;
+    border-radius: 150px;
+    height: 50px;
+    width: 50px;
+    clip-path: inset(0 50% 0 0);
+    transition: width 0.2s;
+    opacity: 1;
+  }
+  
+  .cont-son-folder:hover {
+    cursor: default;
+    width: 550px; 
+    transform: translateX(-50%);
+    .domainIcon-1 {
+      opacity: 0;
+    }
+    .domainIcon-2 {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16pt;
+      transition: font-size 0.3s ease;
+    }
+    .domainIcon-2:hover {
+      font-size: 17pt;
+    }
+    .folder-go-to:hover {
+      transform: scale(1.20);
+    }
+    .absolute-path {
+      opacity: 1;
+      margin-left: 10px;
+    }
+  }
+  
+  .absolute-path {
+    display: flex;
+    align-items: center;
+    margin-left: -20px;
+    opacity: 0;
+    span {
+      font: unset;
+      font-size: 15px;
+      max-width: 50px;
+      margin-left: 5px;
+      white-space: nowrap; 
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    span:nth-of-type(odd) {
+      cursor: pointer; 
+    }
+  }
+  
+  .circle-domainIcon-2 {
+    border-radius: 150px;
+    height: 35px;
+    width: 35px;
+    background-color: hsl(220, 4%, 71%);
+    opacity: 98%;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .chevron{
+    font-size: 16px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .folder-go-to {
+    height: 18pt;
+    transition: transform 0.3s ease;
+    min-width: 18px;
+    background-image: url(^assets/icons/folder.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    cursor: pointer;
+  }
+  
+  .domainIcon-1{
+    font-size: 21pt;
+  }
+  
 }

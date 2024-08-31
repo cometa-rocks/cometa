@@ -1008,45 +1008,39 @@ input[type='number'] {
 }
 
 .schedule-container{
-  display: flex; 
   flex-direction: row;
-  vertical-align: middle;
   margin-top: 10px;
   margin-left: 1px;
+}
+
+.schedule-data {
+  width: 250px;
+  span{
+    vertical-align: middle;
+    font-size: 16px;
+    color: #5d6d7e;
+  }
+  span:last-of-type{
+    color: #00a99d;
+  }
+}
+
+.schedule-data, .schedule-active {
+  display: flex;
+  align-items: center; 
 }
 
 .schedule-image {
   height: 18px;
   margin-right: 5px;
   font-size: 16px;
+  vertical-align: middle;
   filter: invert(47%) sepia(11%) saturate(267%) hue-rotate(177deg) brightness(91%) contrast(86%);
 }
 
 .schedule-title{
   width: 136px;
   height: 26px;
-
-}
-
-.schedule-data {
-  display: flex;
-  align-items: center;
-  width: 250px;
-  span{
-    color: #5D6D7E;
-  }
-}
-
-.schedule-active {
-  display: flex;
-}
-
-.schedule-grey {
-  color: #5D6D7E;
-}
-
-.schedule-green {
-  color: #00a99d;
 }
 
 draggable-window{
