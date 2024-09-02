@@ -1,5 +1,5 @@
 {
-  "version": "2.8.379",
+  "version": "2.8.380",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.380",
+      "date": "2024-08-31",
+      "features": [
+        {
+          "title": "#4694 - Add redirect functionality for features and folders",
+          "description": "Implement a feature that allows users to be redirected to the containing folder or department when searching for a feature or folder."
+        }
+      ]
+    }, 
     {
       "version": "2.8.379",
       "date": "2024-08-30",
