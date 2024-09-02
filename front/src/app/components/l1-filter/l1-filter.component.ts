@@ -90,6 +90,10 @@ export class L1FilterComponent implements OnInit {
     this.inputFocusService.setInputFocus(inputFocus);
   }
 
+  ngOnChanges() {
+    this._sharedActions.setFilterState(this.filters$.length > 0);
+  }
+
   /**
    * Global variables
    */
