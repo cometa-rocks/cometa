@@ -53,6 +53,8 @@ export class SharedActionsService {
   headers$ = new BehaviorSubject<ResultHeader[]>([]);
   dialogActive: boolean = false;
   dialogActiveOther: boolean = false;
+  private filterStateSubject = new BehaviorSubject<boolean>(false);
+  filterState$ = this.filterStateSubject.asObservable();
 
   public folderRunningStates = new BehaviorSubject<Map<number, boolean>>(new Map());
 
@@ -566,5 +568,9 @@ export class SharedActionsService {
   //     }
   //   }
   // }
+
+  setFilterState(isActive: boolean) {
+    this.filterStateSubject.next(isActive);
+  }
 
 }
