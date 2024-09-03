@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7.2.0-alpine
+    container_name: cometa_redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - testing
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+    restart: always
+
+  ollma:
+    build: ./cometa_ai/Dockerfile
+    ports: 
+      - "8002:8080"
+    volumes:
+      - ./cometa_ai:/app
+    environment:
+      NAME: ollma
+      REDIS_HOST: "redis"
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      REDIS_DEFAULT_TIMEOUT: 7500
+    networks:
+      - testing
+    restart: always
+
+  producer:
+    build: ./producer
+    volumes:
+      - ./producer:/app
+    depends_on:
+      - redis
+    environment:
+      # REDIS_HOST=redis
+      REDIS_HOST: "redis"
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      REDIS_DEFAULT_TIMEOUT: 7500
+    networks:
+      - testing
+    restart: always
+    
+
+
+networks:
+  testing:
+    driver: "bridge"
+
+volumes:
+  redis_data:
