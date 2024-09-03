@@ -238,7 +238,7 @@
       "features": [
         {
           "title": "#4694 - Improvement in Department Management",
-          "description": "Enhanced the functionality for modifying departments to ensure all fields, including `queue_name`, are correctly sent to the backend. Additionally, added a method to verify API requests through the browser console for easier debugging of PATCH requests."
+          "description": "Enhanced the functionality for modifying departments to ensure all fields, including `queue_name`, are correctly sent to the backend."
         }
       ]
     },
