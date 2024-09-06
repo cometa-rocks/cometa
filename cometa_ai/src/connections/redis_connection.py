@@ -1,6 +1,6 @@
 import os
 import redis
-from utility.common import get_logger
+from src.utility.common import get_logger
 import traceback
 logger = get_logger()
 
@@ -13,6 +13,7 @@ REDIS_DEFAULT_TIMEOUT = int(os.getenv('REDIS_DEFAULT_TIMEOUT', 7500)) / 1000  # 
 # This is kept speratly in case any client wants to have sperate ai container 
 # by sending jobs message to different queue it will spereate the processing load 
 REDIS_IMAGE_ANALYSYS_QUEUE_NAME = os.getenv('REDIS_IMAGE_ANALYSYS_QUEUE_NAME', 'image_analysis')  # converting to seconds
+NUMBER_OF_WORKERS = os.getenv('NUMBER_OF_WORKERS',2)  # converting to seconds
 
 REDIS_CONNECTION = None
 
