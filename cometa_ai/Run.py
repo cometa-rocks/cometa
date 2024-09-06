@@ -1,15 +1,29 @@
 from rq import Queue
 from rq import Worker, Queue, Connection
-from src.message_broker.redis_connection import connect_redis, REDIS_IMAGE_ANALYSYS_QUEUE_NAME
-from src.message_broker.workers.image_analyst import MODEL_NAME 
+from src.connections.redis_connection import connect_redis, REDIS_IMAGE_ANALYSYS_QUEUE_NAME, NUMBER_OF_WORKERS
 from src.utility.common import get_logger
+from multiprocessing import Process
 logger = get_logger()
 
-if __name__ == '__main__':
+def start_worker():
     REDIS_CONNECTION = connect_redis() 
-    logger.info("Starting Analysis Server...")    
     with Connection(REDIS_CONNECTION):
-        logger.info(f"Attaching a Queue with name {REDIS_IMAGE_ANALYSYS_QUEUE_NAME}")    
-        image_analysis_queue = Queue(REDIS_IMAGE_ANALYSYS_QUEUE_NAME, connection=REDIS_CONNECTION) # Specify the queue to listen to
-        worker = Worker([image_analysis_queue])
+        queue = Queue(REDIS_IMAGE_ANALYSYS_QUEUE_NAME, connection=REDIS_CONNECTION)
+        worker = Worker([queue])
         worker.work()
+
+
+if __name__ == "__main__":
+    
+    logger.info("Starting Analysis Server...")    
+    number_of_workers = NUMBER_OF_WORKERS  # Number of workers you want to start
+    
+    processes = []
+    
+    for _ in range(number_of_workers):
+        p = Process(target=start_worker)
+        processes.append(p)
+        p.start()
+    
+    for p in processes:
+        p.join()  # Optionally, wait for all worker processes to finish

@@ -56,7 +56,11 @@ default_cometa_configurations = {
     "COMETA_PROXY": "",
     "COMETA_S3_ENABLED": False,
     "COMETA_S3_ENDPOINT": "",
-    "COMETA_S3_BUCKETNAME": ""
+    "COMETA_S3_BUCKETNAME": "",
+    "COMETA_AI_ENABLED": False,
+    "REDIS_HOST": "redis",
+    "REDIS_PORT": 6379,
+    "REDIS_DB": 0
 }
 
 def generate_passphrase_and_secrets():
