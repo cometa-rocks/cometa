@@ -57,8 +57,10 @@ export class SharedActionsService {
   filterState$ = this.filterStateSubject.asObservable();
 
   public folderRunningStates = new BehaviorSubject<Map<number, boolean>>(new Map());
-
   public featuresRunning$ = this.folderRunningStates.asObservable();
+
+  private folderSubject = new BehaviorSubject<any>(null);
+  folder$ = this.folderSubject.asObservable();
 
   //  Next minor version 2.8.377
   // @ViewChild(LiveStepsComponent) liveStepsComponent!: LiveStepsComponent;
@@ -571,6 +573,10 @@ export class SharedActionsService {
 
   setFilterState(isActive: boolean) {
     this.filterStateSubject.next(isActive);
+  }
+
+  sendFolder(folder: any) {
+    this.folderSubject.next(folder);
   }
 
 }

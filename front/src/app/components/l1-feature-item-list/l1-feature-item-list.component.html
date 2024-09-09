@@ -263,7 +263,7 @@ Author: dph000
 </ng-container>
 <ng-template #folderItem>
   <!-- Folder item container -->
-  <div class="folder-container" (click)="goFolder(item.route)">
+  <div class="folder-container" (click)="goFolder(item.route); sendFold(item)">
     <div class="wrapper folder">
       <div 
         *ngIf="finder"

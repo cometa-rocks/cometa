@@ -138,6 +138,14 @@ export class L1FeatureItemListComponent implements OnInit {
     this._sharedActions.filterState$.subscribe(isActive => {
       this.finder = isActive;
     });
+
+    this.departmentFolders$.subscribe( dep => {
+      // console.log(dep);
+    })
+  }
+
+  sendFold(folder){
+    this._sharedActions.sendFolder(folder);
   }
 
   async goLastRun() {
@@ -224,6 +232,9 @@ export class L1FeatureItemListComponent implements OnInit {
     this.folderGoToFolder(this.item.id, false);
   }
 
+  urlToTree = '';
+
+
   folderGoToFolder(folder_id: number, folderNameBoolean: boolean){
     this.departmentFolders$.subscribe(
       alldepartments => {
@@ -233,6 +244,7 @@ export class L1FeatureItemListComponent implements OnInit {
           this.openFolderInLocalStorage(foldersToOpen);
           const url = `/new/${result}`;
           this._router.navigate([url]);
+          this.urlToTree = url;
         }
       },
       error => {

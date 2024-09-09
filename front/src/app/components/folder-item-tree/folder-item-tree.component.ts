@@ -68,6 +68,9 @@ export class FolderItemTreeComponent implements OnInit {
   >; // Get the last folder
   @Select(CustomSelectors.GetConfigProperty('openedSidenav'))
   showFolders$: Observable<boolean>; // Checks if the sidenav is opened
+  objectFolder: any;
+  departmentFolders$: Observable<Folder[]>;
+  departments: any;
 
   /**
    * Global variables
@@ -83,9 +86,63 @@ export class FolderItemTreeComponent implements OnInit {
     const isFolderInRoute = this._store.selectSnapshot(
       CustomSelectors.IsFolderInRoute(this.folder)
     );
+
     if (isFolderInRoute) {
       this.expanded$.next(true);
     }
+
+    this.departmentFolders$ = this._store.select(CustomSelectors.GetDepartmentFolders())
+
+    // this.departmentFolders$.subscribe( dep => {
+    //   this.departments = dep;
+    // })
+
+    // console.log("Dep: ", this.departments);
+
+    this._sharedActions.folder$.subscribe(folder => {
+      if (folder) {
+        this.objectFolder = folder;
+
+        console.log("Object: ", this.objectFolder);
+        console.log("State: ", this.folderState);
+
+        const folderNames = Object.keys(this.folderState);
+
+        const folderId = this.objectFolder.reference.parent_id;
+
+        // console.log("El folder_id: ", folderId);
+
+        if (folderId) {
+          const parentFolder = this.objectFolder.route.find(folder => folder.folder_id === folderId);
+
+
+          folderNames.forEach(name => {
+            if(parentFolder.name == name){
+              const folder = this.folderState[name];
+              if (folder && folder.open !== undefined) {
+                folder.open = true;
+                console.log("1");
+              }
+            }
+          });
+        }
+        else{
+          this.departmentFolders$.subscribe( departments => {
+            departments.forEach( department => {
+              if(department.folder_id == this.objectFolder.department) {
+                const folder = this.folderState[department.name];
+                // console.log("Fold: ", folder);
+                if (folder && folder.open !== undefined) {
+                  console.log("2");
+                  folder.open = true;
+                }
+              }
+            })
+          })
+        }
+      } 
+    });
+
   }
 
   /**
@@ -194,4 +251,5 @@ export class FolderItemTreeComponent implements OnInit {
         'This object stores the state of whole folder hierarchy in localstorage',
     };
   }
+
 }
