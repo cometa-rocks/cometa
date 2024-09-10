@@ -115,13 +115,23 @@ Author: dph000
       <div class="name">
         <ng-container *ngIf="item.reference.description; else noDescription">
           <span [matTooltip]="('Description: ' | translate) + '' + item.reference.description" matTooltipPosition="above">
-            <span>{{ item.name }}</span>
+            <ng-container *ngIf="starred; else noStarred">
+              <span>{{ item.name }} <mat-icon class="black">starred</mat-icon></span>
+            </ng-container>
+            <ng-template #noStarred>
+              <span>{{ item.name }}</span>
+            </ng-template>
           </span>
         </ng-container>
       
         <ng-template #noDescription>
           <span [matTooltip]="'Description: No description available'" matTooltipPosition="above">
-            <span>{{ item.name }}</span>
+            <ng-container *ngIf="starred; else noStarred">
+              <span>{{ item.name }} <mat-icon class="black">starred</mat-icon></span>
+            </ng-container>
+            <ng-template #noStarred>
+              <span>{{ item.name }}</span>
+            </ng-template>
           </span>
         </ng-template>
       </div>
@@ -223,6 +233,25 @@ Author: dph000
           mat-menu-item>
           <mat-icon>folder</mat-icon>
           <span>Move</span>
+        </button>
+        <button
+        (click)="_sharedActions.sendItemToStarred(item)"
+        matTooltip="Add to Favorites"
+        matTooltipPosition="before"
+        class="modify-feature"
+        mat-menu-item>
+        <ng-container *ngIf="starred; else noStarred">
+          <mat-icon class="star-half">star_half</mat-icon>
+          <mat-icon class="star-half-inverted">star_half</mat-icon>
+        </ng-container>
+        <ng-template #noStarred>
+          <mat-icon class="noStarred">
+            star_border
+          </mat-icon>
+          <!-- <mat-icon class="star-half">star_half</mat-icon>
+          <mat-icon class="star-half-inverted">star_half</mat-icon> -->
+        </ng-template>
+        <span>Add to Starred</span>
         </button>
         <mat-divider></mat-divider>
         <button mat-menu-item [matMenuTriggerFor]="otherOptions">
@@ -361,6 +390,22 @@ Author: dph000
           <mat-icon>folder</mat-icon>
           <span>Move</span>
         </button>
+        <button
+        *ngIf="canCreateFeature"
+        (click)="_sharedActions.sendstarredFolder(item)"
+        matTooltip="Add to Favorites"
+        matTooltipPosition="before"
+        class="modify-feature"
+        mat-menu-item>
+        <ng-container *ngIf="starred; else noStarred">
+          <mat-icon color="primary">star_border</mat-icon>
+        </ng-container>
+        <ng-template #noStarred>
+          <mat-icon color="primary">star_border</mat-icon>
+        </ng-template>
+        <span>Add to Starred</span>
+        </button>
+        <mat-divider></mat-divider>
         <!-- Delete folder -->
         <button (click)="delete(item.reference)" class="remove" mat-menu-item>
           <mat-icon>delete</mat-icon>

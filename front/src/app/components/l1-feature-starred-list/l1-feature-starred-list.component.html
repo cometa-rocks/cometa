@@ -2,12 +2,29 @@
 
 Component containing the list with the starred features
 
-Author: dph000
+Author: redouan
 
 -->
 <div class="container">
   <h2>
-    <mat-icon>format_paint</mat-icon>
-    Upcoming feature! Please, come again later.
+    Starred
   </h2>
+  <div class="dividing-line-container">
+    <ng-container *ngIf="starredItem == null; else loading">
+      <div class="departments-container">
+        <mat-icon>domain</mat-icon>
+        My departamento
+        <!-- {{ starredItem?.department }} -->
+      </div>
+      <mat-divider></mat-divider>
+      <div class="Features-container">
+        
+        My features
+        <!-- {{ starredItem?.department }} -->
+      </div>
+    </ng-container>
+    <ng-template #loading>
+      <p>No items starred</p>
+    </ng-template>
+  </div>
 </div>
