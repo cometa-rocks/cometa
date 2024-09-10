@@ -46,6 +46,8 @@ def analyze_image(messages):
         # If analysis_data data from user contains 'images' the use IMAGE_ANALYZER_MODEL_NAME other use LLAMA model which is used for text processing
         model = IMAGE_ANALYZER_MODEL_NAME if analysis_data.get('images',False) else LLAMA_MODEL_NAME   
         # Do a chat with ollama
+        # logger.debug(user_message['content'])
+        # logger.debug(f"Procced by {model}")
         llava_res = ollama.chat(
             model=model,
             messages=user_and_assistent_messages,
@@ -56,6 +58,7 @@ def analyze_image(messages):
         )
         # Add assistent response message in the user_and_assistent_messages to keep track of discssuion
         user_and_assistent_messages.append(llava_res["message"])
+        # logger.debug(llava_res["message"])
 
     # return last index value, which is a last response from the assistent
     return user_and_assistent_messages[-1]['content']

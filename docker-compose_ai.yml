@@ -10,12 +10,13 @@ services:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
     restart: always
 
-  ollma:
+  ollama:
     build: ./cometa_ai
     ports: 
-      - "8002:8080"
+      - "11434:11434"
     volumes:
       - ./cometa_ai:/app
+      - ./data/ollama:/root/.ollama/models
     deploy:
       resources:
         reservations:
@@ -26,6 +27,7 @@ services:
     
     runtime: nvidia  # Use NVIDIA's runtime
     environment:
+      OLLAMA_HOST: "0.0.0.0:11434"
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
       NAME: ollma
@@ -37,21 +39,21 @@ services:
       - testing
     restart: always
 
-  producer:
-    build: ./producer
-    volumes:
-      - ./producer:/app
-    depends_on:
-      - redis
-    environment:
-      # REDIS_HOST=redis
-      REDIS_HOST: "redis"
-      REDIS_PORT: 6379
-      REDIS_DB: 0
-      REDIS_DEFAULT_TIMEOUT: 7500
-    networks:
-      - testing
-    restart: always
+  # producer:
+  #   build: ./producer
+  #   volumes:
+  #     - ./producer:/app
+  #   depends_on:
+  #     - redis
+  #   environment:
+  #     # REDIS_HOST=redis
+  #     REDIS_HOST: "redis"
+  #     REDIS_PORT: 6379
+  #     REDIS_DB: 0
+  #     REDIS_DEFAULT_TIMEOUT: 7500
+  #   networks:
+  #     - testing
+  #   restart: always
     
 
 
