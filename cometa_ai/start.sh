@@ -1,7 +1,7 @@
 # /bin/bash
 
 # To pull models of ollama, ollama server has to be running in an terminal
-ollama serve
+nohup ollama serve &
 
 # Pull the models 7b by default
 ollama pull llava

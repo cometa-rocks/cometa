@@ -165,7 +165,7 @@ def get_list_of_visible_objects_in_the_screen(context, variable, options):
 # - variable: (String) The name of the variable where the AI analysis output will be stored.
 # - options: (String) (Optional) Modifies how the analysis result is processed. For example, if 'Output JSON' is provided,
 #     the result will be converted to a JSON format before being stored.
-@step(u'Get information based on "(?P<user_message_to_ai>[\s\S]*?)" and store in "(?P<variable>.*?)"(?: with "(?P<options>.*?)")?')
+@step(U'Get information based on "(?P<user_message_to_ai>[\s\S]*?)" and store in "(?P<variable>.*?)"(?: with "(?P<options>.*?)")?')
 @done(u'Get information based on "{user_message_to_ai}" and store in the "{variable}" with "{options}"')
 def get_list_of_visible_objects_in_the_screen(context, user_message_to_ai, variable, options):
     if not context.COMETA_AI_ENABLED:
@@ -174,12 +174,17 @@ def get_list_of_visible_objects_in_the_screen(context, user_message_to_ai, varia
     logger.debug(user_messages)
     user_messages = json.loads(user_messages)
     
+    
+    logger.debug(user_messages)
+    
     for message in user_messages:
         if 'images' in message.keys():
             # Ensure the number of image placeholders matches the number of screenshot variable names
             for i in range(len(message['images'])):
                 message['images'][i] = getVariable(context, message['images'][i])
-
+                # message['images'][i] = get_screenshot_bytes_from_screen(context)
+    
+    logger.debug(f"length : {len(user_messages)}")
     
     send_step_details(context, "Analyzing user message")
     response = context.ai.analyze_image(context, user_messages)
@@ -205,12 +210,12 @@ def get_screen_shot(context, variable_name):
     addTestRuntimeVariable(context, variable_name, screenshot_bytes)
     
     
-@step(u'Show me variable \"(?P<variable_name>.*?)\" value')
-@done(u'Show me variable "{variable_name}" value')
-def show_variable_value(context, variable_name):
+@step(u'Show me variable \"(?P<variable_name>.*?)\" value for \"(?P<seconds>.*?)\" seconds')
+@done(u'Show me variable "{variable_name}" value for "{seconds}" seconds')
+def show_variable_value(context, variable_name, seconds):
     variable_value = getVariable(context, variable_name) 
-    send_step_details(context, f"{variable_name} value is : {variable_value}")    
-
+    send_step_details(context, f"{variable_name} : {variable_value}")    
+    time.sleep(int(seconds))
 
 # Assert the variable's value by providing variable_name, jq_pattern, condition (match|contain), and value using JQ patterns. Refer to the JQ documentation: https://jqlang.github.io/jq/manual/
 # The jq_pattern is a JSON path that can be combined with conditions to perform assertions.
