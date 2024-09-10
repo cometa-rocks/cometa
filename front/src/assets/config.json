@@ -1,5 +1,5 @@
 {
-  "version": "2.8.379",
+  "version": "2.8.380",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,45 +233,69 @@
   ],
   "changelog": [
     {
+      "version": "2.8.381",
+      "date": "2024-09-03",
+      "features": [
+        {
+          "title": "#4694 - Improvement in Department Management",
+          "description": "Enhanced the functionality for modifying departments to ensure all fields, including `queue_name`, are correctly sent to the backend."
+        }
+      ]
+    },
+    {
+      "version": "2.8.380",
+      "date": "2024-08-31",
+      "features": [
+        {
+          "title": "#4694 - Add redirect functionality for features and folders",
+          "description": "Implement a feature that allows users to be redirected to the containing folder or department when searching for a feature or folder."
+        }
+      ]
+    }, 
+    {
       "version": "2.8.379",
       "date": "2024-08-30",
       "features": [
         {
           "title": "#5047 - Setup build stage in the Amvara6 Server.",
           "description": "Introduced build stage in the CICD pipeline to build and then deploy."
+        },
+        {
+          "title": "#4694 - Add variable button and empty li (logout).",
+          "description": "Put back in the same position Add variable button and reposition logout button."
         }
       ]
-    },
+    }, 
     {
-      "version": "2.8.378",
-      "date": "2024-08-26",
-      "features": [
-        {
-          "title": "#5027 - Added new email screenshot variable, $screenshot[last].",
-          "description": "Last screenshot in case of failure can be seen using $screenshot[last] variable."
-        }
+    "version": "2.8.378",
+    "date": "2024-08-26",
+    "features": [
+      {
+        "title": "#5027 - Added new email screenshot variable, $screenshot[last].",
+        "description": "Last screenshot in case of failure can be seen using $screenshot[last] variable"
+      }
       ]
-    },
+    }, 
     {
-      "version": "2.8.377",
-      "date": "2024-08-19",
-      "features": [
-        {
-          "title": "#4694 - Added run all features in tiles view and list view.",
-          "description": "The 'Run All' feature is now available in both tiles and list views."
-        },
-        {
-          "title": "#4694 - Fixed conflict between account search input and header shortcuts.",
-          "description": "Typing in the account search input no longer conflicts with header shortcuts."
-        },
-        {
-          "title": "#4694 - Fixed conflict between create folder input and page shortcuts.",
-          "description": "Typing in the 'Create Folder' input no longer conflicts with page shortcuts."
-        },
-        {
-          "title": "#4694 - Repositioned options column in list view table.",
-          "description": "The options column in the list view table has been repositioned for improved accessibility and layout."
-        }
+    "version": "2.8.377",
+    "date": "2024-08-19",
+    "features": [
+      {
+        "title": "#4694 - Added run all features in tiles view and list view.",
+        "description": "The 'Run All' feature is now available in both tiles and list views."
+      },
+      {
+        "title": "#4694 - Fixed conflict between account search input and header shortcuts.",
+        "description": "Typing in the account search input no longer conflicts with header shortcuts."
+      },
+      {
+        "title": "#4694 - Fixed conflict between create folder input and page shortcuts.",
+        "description": "Typing in the 'Create Folder' input no longer conflicts with page shortcuts."
+      },
+      {
+        "title": "#4694 - Repositioned options column in list view table.",
+        "description": "The options column in the list view table has been repositioned for improved accessibility and layout."
+      }
       ]
     },
     {
