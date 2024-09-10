@@ -36,14 +36,6 @@
         (blur)="sendInputFocusToParent(false)"/>
     </mat-form-field>
     <div class="columns-button-wrapper">
-      <button
-      color="primary"
-      (click)="onAddVar()"
-      class="add"
-      [disabled]="isEditing"
-      mat-stroked-button>
-      Add variable
-      </button>
       <button mat-stroked-button [matMenuTriggerFor]="selectedColumns">
         Columns Shown
       </button>
@@ -309,6 +301,14 @@
 </mat-dialog-content>
 <mat-dialog-actions *ngIf="data?.department_id">
   <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
+  <button
+    color="primary"
+    (click)="onAddVar()"
+    class="add"
+    [disabled]="isEditing"
+    mat-stroked-button>
+    Add variable
+  </button>
   <div
     class="add-variable"
     *ngIf="canCreate"
