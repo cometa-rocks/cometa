@@ -182,9 +182,9 @@ deploy:client01.prod:
 #  extends: .client02.prod
 
 # create a deploy job for client04 for branch prod
-#deploy:client04.prod:
-#  <<: *deployment_script
-#  extends: .client04.prod
+deploy:client04.prod:
+  <<: *deployment_script
+  extends: .client04.prod
 
 
 # create a deploy job for client04 for branch build
