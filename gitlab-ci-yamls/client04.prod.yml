@@ -56,4 +56,4 @@
     - swoealvpcog01
   only: # on what branch we'd like to run this job
     refs:
-      - master
+      - stage
