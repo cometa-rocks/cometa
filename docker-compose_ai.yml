@@ -12,11 +12,14 @@ services:
 
   ollama:
     build: ./cometa_ai
+    container_name: cometa_ollama
     ports: 
-      - "11434:11434"
+      - "8083:8083"
     volumes:
       - ./cometa_ai:/app
       - ./data/ollama:/root/.ollama/models
+    working_dir: /app 
+    command: bash /app/start.sh 
     deploy:
       resources:
         reservations:
@@ -27,7 +30,7 @@ services:
     
     runtime: nvidia  # Use NVIDIA's runtime
     environment:
-      OLLAMA_HOST: "0.0.0.0:11434"
+      OLLAMA_HOST: "0.0.0.0:8083"
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
       NAME: ollma
