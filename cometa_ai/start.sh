@@ -1,8 +1,6 @@
-# /bin/bash
+#!/bin/bash
 
-# To pull models of ollama, ollama server has to be running in an terminal
-
-# export OLLAMA_HOST=0.0.0.0:11434
+pip install -r requirements.txt
 
 ollama serve 
 
