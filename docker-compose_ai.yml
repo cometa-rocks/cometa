@@ -1,25 +1,32 @@
 services:
-  redis:
-    image: redis:7.2.0-alpine
-    container_name: cometa_redis
+  redis.ai:
+    image: redis:latest
+    container_name: cometa.redis.ai
     volumes:
-      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis/start.sh:/usr/local/bin/start.sh
+      - ./data/redis/data:/data
+      - ./data/redis/certs:/share/certs
+    ports:
+      - "6379:6379"
     networks:
       - testing
     healthcheck:
-      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      test: [ "CMD","redis-cli", "--tls", "--cacert", "/share/certs/ca-cert.pem", "--raw", "incr", "ping"]
     restart: always
+    command: sh /usr/local/bin/start.sh
 
-  ollama:
+  ollama.ai:
     build: ./cometa_ai
-    container_name: cometa_ollama
-    ports: 
-      - "8083:8083"
+    container_name: cometa.ollama.ai
+    expose:
+      - "8083"
     volumes:
       - ./cometa_ai:/app
-      - ./data/ollama:/root/.ollama/models
+      - ./data/ollama:/home/cometa/.ollama/models
+      - ./data/redis/certs:/share/certs
     working_dir: /app 
-    command: bash /app/start.sh 
+    # entrypoint: ./start.sh 
     deploy:
       resources:
         reservations:
@@ -29,36 +36,20 @@ services:
               capabilities: [gpu]
     
     runtime: nvidia  # Use NVIDIA's runtime
+    depends_on:
+      - redis.ai
     environment:
       OLLAMA_HOST: "0.0.0.0:8083"
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
-      NAME: ollma
-      REDIS_HOST: "redis"
+      NAME: ollama
+      REDIS_HOST: "cometa.redis.ai"
       REDIS_PORT: 6379
       REDIS_DB: 0
-      REDIS_DEFAULT_TIMEOUT: 7500
+      REDIS_DB_TSL_SSL_ENABLED: Yes
     networks:
       - testing
     restart: always
-
-  # producer:
-  #   build: ./producer
-  #   volumes:
-  #     - ./producer:/app
-  #   depends_on:
-  #     - redis
-  #   environment:
-  #     # REDIS_HOST=redis
-  #     REDIS_HOST: "redis"
-  #     REDIS_PORT: 6379
-  #     REDIS_DB: 0
-  #     REDIS_DEFAULT_TIMEOUT: 7500
-  #   networks:
-  #     - testing
-  #   restart: always
-    
-
 
 networks:
   testing:
