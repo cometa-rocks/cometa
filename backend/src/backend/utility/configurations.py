@@ -49,6 +49,8 @@ default_cometa_configurations = {
     "COMETA_SCREENSHOT_PREFIX": "AMVARA_",
     "COMETA_EMAIL_ENABLED": False,
     "COMETA_EMAIL_HOST": "",
+    "COMETA_EMAIL_PORT": "",
+    "COMETA_EMAIL_TLS": False,
     "COMETA_EMAIL_USER": "",
     "COMETA_EMAIL_PASSWORD": "",
     "COMETA_PROXY_ENABLED": False,

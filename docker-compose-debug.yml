@@ -4,8 +4,8 @@ services:
     image: postgres:12.1
     volumes:
       - ./backend:/code
-      # - ./backend/db_data:/var/lib/postgresql/data
-      - ./backend/db_data_test_migration3:/var/lib/postgresql/data
+      - ./backend/db_data:/var/lib/postgresql/data
+      # - ./backend/db_data_test_migration3:/var/lib/postgresql/data
     expose:
       - "5532"
     networks:
