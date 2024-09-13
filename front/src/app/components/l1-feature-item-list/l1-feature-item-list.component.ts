@@ -95,6 +95,7 @@ export class L1FeatureItemListComponent implements OnInit {
   private hasHandledMouseOver = false;
   private hasHandledMouseOverFolder = false;
   finder: boolean = false;
+  starred: boolean = false;
 
   /**
    * Global variables
@@ -348,5 +349,10 @@ export class L1FeatureItemListComponent implements OnInit {
     if (stateUpdated) {
       localStorage.setItem('co_folderState', JSON.stringify(storedState));
     }
+  }
+
+  clickStarred() {
+    this.starred = !this.starred; 
+    console.log('Starred toggled:', this.starred);
   }
 }

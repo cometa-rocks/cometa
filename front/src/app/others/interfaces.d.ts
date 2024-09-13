@@ -423,6 +423,7 @@ interface UserInfo {
   requires_payment?: boolean;
   subscriptions?: Subscription[];
   feedback_mail?: string;
+  favourite_features?: boolean;
 }
 
 type EditMode = 'new' | 'edit' | 'clone';

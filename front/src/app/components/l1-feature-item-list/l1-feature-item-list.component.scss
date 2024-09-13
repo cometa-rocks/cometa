@@ -427,8 +427,33 @@ input {
   
 }
 
-.star-half {
-  
+.plus-one-starred {
+  display: inline-block;
+  font-size: 16px;
+  vertical-align: middle;
+  position: absolute;
+  top: 124px;
+  right: 70px;
+  animation: shrinkAndFade 2s forwards;
+}
+
+@keyframes shrinkAndFade {
+  0% {
+    font-size: 16px;
+    opacity: 1;
+  }
+  100% {
+    font-size: 14px;
+    opacity: 0;
+  }
+}
+
+.star-black {
+  font-size: 16px;
+  vertical-align: middle;
+  position: absolute;
+  top: 124.4px;
+  right: 48px;
 }
 
 .star-half-inverted {
@@ -436,5 +461,4 @@ input {
   position: absolute;
   left: 12px;
   top: 4px;
-  
 }
