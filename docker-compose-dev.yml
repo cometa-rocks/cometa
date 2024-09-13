@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     container_name: cometa_postgres
@@ -55,7 +53,7 @@ services:
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
       - "./backend/behave/schedules/crontab:/etc/cron.d/crontab"
-    command: "/code/docker/build/behave/entry.sh"
+    command: /opt/code/entry.sh -dev
     working_dir: /opt/code/behave_django
     environment:
       PYTHONUNBUFFERED: 1
