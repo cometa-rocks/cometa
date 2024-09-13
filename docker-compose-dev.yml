@@ -52,6 +52,7 @@ services:
       - ./data/cometa/videos:/opt/code/videos
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
+      - ./data/redis/certs:/share/certs
       - "./backend/behave/schedules/crontab:/etc/cron.d/crontab"
     command: /opt/code/entry.sh -dev
     working_dir: /opt/code/behave_django
@@ -128,7 +129,6 @@ services:
       - testing
     restart: always
 
-
   apache:
     image: "httpd:2.4.48"
     container_name: cometa_front
@@ -148,6 +148,7 @@ services:
     networks:
       - testing
     restart: always
+
   redis:
     image: redis:7.2.0-alpine
     container_name: cometa_redis

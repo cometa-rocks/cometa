@@ -156,7 +156,8 @@ def updated_step_actions(request):
         # Add your new created action files here
         actions_files = [
             'cometa_itself/steps/actions.py',
-            'ee/cometa_itself/steps/rest_api.py'
+            'ee/cometa_itself/steps/rest_api.py',
+            'ee/cometa_itself/steps/ai_actions.py'
         ]
         
         # variable to contain action comment
