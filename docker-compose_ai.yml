@@ -1,0 +1,59 @@
+services:
+  redis.ai:
+    image: redis:latest
+    container_name: cometa.redis.ai
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis/start.sh:/usr/local/bin/start.sh
+      - ./data/redis/data:/data
+      - ./data/redis/certs:/share/certs
+    ports:
+      - "6379:6379"
+    networks:
+      - testing
+    healthcheck:
+      test: [ "CMD","redis-cli", "--tls", "--cacert", "/share/certs/ca-cert.pem", "--raw", "incr", "ping"]
+    restart: always
+    command: sh /usr/local/bin/start.sh
+
+  ollama.ai:
+    build: ./cometa_ai
+    container_name: cometa.ollama.ai
+    expose:
+      - "8083"
+    volumes:
+      - ./cometa_ai:/app
+      - ./data/ollama:/home/cometa/.ollama/models
+      - ./data/redis/certs:/share/certs
+    working_dir: /app 
+    # entrypoint: ./start.sh 
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all  # Or specify a number like 1 if you want to limit GPU usage to a single GPU
+              capabilities: [gpu]
+    
+    runtime: nvidia  # Use NVIDIA's runtime
+    depends_on:
+      - redis.ai
+    environment:
+      OLLAMA_HOST: "0.0.0.0:8083"
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      NAME: ollama
+      REDIS_HOST: "cometa.redis.ai"
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      REDIS_DB_TSL_SSL_ENABLED: Yes
+    networks:
+      - testing
+    restart: always
+
+networks:
+  testing:
+    driver: "bridge"
+
+volumes:
+  redis_data:

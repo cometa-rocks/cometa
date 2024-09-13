@@ -199,7 +199,7 @@ if ConfigurationManager.get_configuration('COMETA_EMAIL_ENABLED', 'False') == "T
         EMAIL_HOST_PASSWORD = COMETA_EMAIL_PASSWORD
     EMAIL_USE_TLS = ConfigurationManager.get_configuration('COMETA_EMAIL_TLS', 'False') == "True"
 
-
+    
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
