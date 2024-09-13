@@ -91,6 +91,10 @@ export class L1FeatureItemListComponent implements OnInit {
   @ViewSelectSnapshot(UserState.GetPermission('create_feature'))
   canCreateFeature: boolean;
   @Input() feature_id: number;
+  folderName: string | null = null;
+  private hasHandledMouseOver = false;
+  private hasHandledMouseOverFolder = false;
+  finder: boolean = false;
 
   /**
    * Global variables
@@ -101,6 +105,7 @@ export class L1FeatureItemListComponent implements OnInit {
   canEditFeature$: Observable<boolean>;
   canDeleteFeature$: Observable<boolean>;
   isAnyFeatureRunning$: Observable<boolean>;
+  departmentFolders$: Observable<Folder[]>;
 
   // NgOnInit
   ngOnInit() {
@@ -127,6 +132,12 @@ export class L1FeatureItemListComponent implements OnInit {
     this.isAnyFeatureRunning$ = this._sharedActions.folderRunningStates.asObservable().pipe(
       map(runningStates => runningStates.get(this.item.id) || false)
     );
+
+    this.departmentFolders$ = this._store.select(CustomSelectors.GetDepartmentFolders())
+
+    this._sharedActions.filterState$.subscribe(isActive => {
+      this.finder = isActive;
+    });
   }
 
   async goLastRun() {
@@ -195,5 +206,147 @@ export class L1FeatureItemListComponent implements OnInit {
   SAmoveFeature(feature: Feature) {
     this.log.msg('1', 'Moving feature...', 'feature-item-list', feature);
     this._sharedActions.moveFeature(feature);
+  }
+
+  handleMouseOver(event: MouseEvent): void {
+    if (this.hasHandledMouseOver) {
+      return;
+    }
+    this.hasHandledMouseOver = true;
+    this.featuresGoToFolder(this.item.id, '', false);
+  }
+
+  handleMouseOverFolder(event: MouseEvent): void {
+    if (this.hasHandledMouseOverFolder) {
+      return;
+    }
+    this.hasHandledMouseOverFolder = true;
+    this.folderGoToFolder(this.item.id, false);
+  }
+
+  folderGoToFolder(folder_id: number, folderNameBoolean: boolean){
+    this.departmentFolders$.subscribe(
+      alldepartments => {
+        const { result, folderName, foldersToOpen } = this.findFolderAndNavigate(alldepartments, folder_id, '', folderNameBoolean);
+        
+        if (result && folderNameBoolean) {
+          this.openFolderInLocalStorage(foldersToOpen);
+          const url = `/new/${result}`;
+          this._router.navigate([url]);
+        }
+      },
+      error => {
+        console.error("Error obtaining Departments:", error);
+       }
+    );
+  }
+
+  findFolderAndNavigate(departments: any[], folder_id: number, path: string, folderNameBoolean): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
+    for (const department of departments) {
+      for (const folder of department.folders) {
+
+        if (folder.folder_id === folder_id) {
+          const finalFolderName = folderNameBoolean ? folder.name : department.name;
+          if(!folderNameBoolean){
+            this.folderName = department.name;
+          }
+          return { result: `:${department.folder_id}`, folderName: finalFolderName,  foldersToOpen: [department.name, folder.name] };
+        }
+
+        const { result, folderName, foldersToOpen } = this.processFolder(folder, folder_id, path, folder.name, department.folder_id);
+        if (result) {
+          return { result, folderName, foldersToOpen: [this.item.department, ...foldersToOpen] };
+        }
+      }
+    }
+    return { result: null, folderName: null, foldersToOpen: [] };
+  }
+
+  processFolder(folder: any, folder_id: number, path: string, parentFolderName: string, department_id: number ): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
+
+    if (folder.folder_id === folder_id) {
+      this.folderName = parentFolderName;
+      return { result: `${path}:${folder.folder_id}`, folderName: parentFolderName,foldersToOpen: [folder.name]  };
+    }
+
+    for (const subfolder of folder.folders) {
+      const resultPath = `${path}:${folder.folder_id}`;
+      const { result, folderName, foldersToOpen } = this.processFolder(subfolder, folder_id, resultPath, folder.name, department_id); 
+      if (result) {
+        return { result, folderName, foldersToOpen: [folder.name, ...foldersToOpen] };
+      }
+    }
+    return { result: null, folderName: null, foldersToOpen: []  };
+  }
+  
+
+  goToDomain(department_id: number) {
+    department_id = this.item.reference.department_id;
+    const url = `/new/${department_id}`;
+    this._router.navigate([url]);
+  }
+
+
+  featuresGoToFolder(feature_id: number, path = '', folderNameBoolean: boolean): void {
+    const department_id = this.item.reference.department_id;
+    path += `:${department_id}`;
+
+    this.departmentFolders$.subscribe(
+      alldepartments => {
+        const { result, folderName, foldersToOpen } = this.findAndNavigate(alldepartments, feature_id, path);
+        if (result && folderNameBoolean) {
+          this.openFolderInLocalStorage(foldersToOpen);
+          const url = `/new/${result}`;
+          this._router.navigate([url]);
+        }
+      },
+      error => {
+        console.error("Error obtaining Departments:", error);
+      }
+    );
+  }
+
+  findAndNavigate(departments: any[], feature_id: number, path: string): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
+    for (const department of departments) {
+      for (const subfolder of department.folders) {
+        const { result, folderName, foldersToOpen } = this.processSubfolder(subfolder, feature_id, path, subfolder.name);
+        if (result) {
+          return { result, folderName, foldersToOpen: [this.item.department, ...foldersToOpen] };
+        }
+      }
+    }
+    return { result: null, folderName: null, foldersToOpen: [] };
+  }
+
+  processSubfolder(folder: any, feature_id: number, path: string, feature_directory: string): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
+
+    if (folder.features.includes(feature_id)) {
+      return { result: `${path}:${folder.folder_id}`, folderName: feature_directory,foldersToOpen: [folder.name] };
+    }
+
+    for (const subfolder of folder.folders) {
+      const { result, folderName, foldersToOpen } = this.processSubfolder(subfolder, feature_id, path + `:${folder.folder_id}`, subfolder.name);
+      if (result) {
+        this.folderName = folderName;
+        return { result, folderName, foldersToOpen: [folder.name, ...foldersToOpen] };
+      }
+    }
+    return { result: null, folderName: null, foldersToOpen: [] };
+  }
+
+  openFolderInLocalStorage(foldersToOpen: string[]): void {
+    const storedState = JSON.parse(localStorage.getItem('co_folderState')) || {};
+    let stateUpdated = false;
+
+    foldersToOpen.forEach(folder => {
+      if (!storedState[folder]?.open) {
+        storedState[folder] = { open: true };
+        stateUpdated = true;
+      }
+    });
+
+    if (stateUpdated) {
+      localStorage.setItem('co_folderState', JSON.stringify(storedState));
+    }
   }
 }
