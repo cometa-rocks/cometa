@@ -6,7 +6,7 @@ from backend.models import OIDCAccount
 from django.core.exceptions import ValidationError
 import datetime
 from backend.utility.encryption import encrypt
-
+from backend.utility.configurations import ConfigurationManager
 class Configuration(models.Model):
     id = models.AutoField(primary_key=True)
     configuration_name = models.CharField(max_length=100, default=None, blank=False, null=False, unique=True)
@@ -25,8 +25,17 @@ class Configuration(models.Model):
         if self.encrypted:
             self.configuration_value = encrypt(self.configuration_value)
         
-        return super(Configuration, self).save(*args, **kwargs)
+        return_data = super(Configuration, self).save(*args, **kwargs)
+        # Refresh configuration from memory
+        conf = ConfigurationManager()
+        conf.create_db_connection()
+        conf.load_configuration_from_db()
+        
+        return return_data
     
     class Meta:
         ordering = ['configuration_name']
         verbose_name_plural = "Configurations"
+
+    def __str__(self) -> str:
+        return self.configuration_name
