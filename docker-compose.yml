@@ -53,6 +53,7 @@ services:
       - /data/cometa/videos:/opt/code/videos
       - /data/cometa/pdf:/code/behave/pdf
       - /data/cometa/downloads:/code/behave/downloads
+      - /data/redis/certs:/share/certs
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
       - "./backend/behave/schedules/crontab:/etc/cron.d/crontab"
