@@ -1,6 +1,6 @@
 import os.path
 import traceback, requests
-import sys
+import sys, time
 from .encryption import decrypt, update_ENCRYPTION_PASSPHRASE, update_ENCRYPTION_START
 import json
 from .common import get_logger
@@ -20,21 +20,28 @@ class ConfigurationManager:
         pass
 
     def load_configurations(self):
-        response = requests.get(
-            f"{COMETA_DJANGO_URL}/api/configuration/",
-            headers={"Content-Type": "application/json"},
-        )
-        if response.status_code != 200:
-            raise Exception(
-                "Could not fetch configuration from django, Please make sure django is running and accessible from behave"
+        # logger.info("loading configuration")
+        try:
+            response = requests.get(
+                f"{COMETA_DJANGO_URL}/api/configuration/",
+                headers={"Content-Type": "application/json"},
             )
+            if response.status_code != 200:
+                raise Exception(
+                    "Could not fetch configuration from django, Please make sure django is running and accessible from behave"
+                )
 
-        configurations = response.json()["results"]
-        for configuration in configurations:
-            self.__COMETA_CONFIGURATIONS[configuration["configuration_name"]] = {
-                "configuration_value": configuration["configuration_value"],
-                "encrypted": configuration["encrypted"],
-            }
+            configurations = response.json()["results"]
+            for configuration in configurations:
+                self.__COMETA_CONFIGURATIONS[configuration["configuration_name"]] = {
+                    "configuration_value": configuration["configuration_value"],
+                    "encrypted": configuration["encrypted"],
+                }
+            # logger.info(self.__COMETA_CONFIGURATIONS)
+        except requests.exceptions.ConnectionError as exception:
+            logger.info(f"Waiting for {COMETA_DJANGO_URL} to come alive")
+            time.sleep(2)
+            self.load_configurations()
 
     @classmethod
     def get_configuration(cls, key: str, default=""):
