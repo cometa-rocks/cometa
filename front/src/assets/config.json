@@ -1,5 +1,5 @@
 {
-  "version": "2.8.381",
+  "version": "2.8.382",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,14 +232,20 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+       {
+      "version": "2.8.382",
+      "date": "2024-09-10",
+      "features": [
+        {
+          "title": "#4694 - Add functionality for selecting department and feature in variables section",
+        "description": "The functionality for selecting a department and a feature in the variables section has been implemented."
+        }
+      ]
+    },
     {
       "version": "2.8.381",
       "date": "2024-09-03",
       "features": [
-        {
-          "title": "#4694 - Add functionality for selecting department and feature in variables section",
-          "description": "The functionality for selecting a department and a feature in the variables section has been implemented."
-        },
         {
           "title": "#4694 - Improvement in Department Management",
           "description": "Enhanced the functionality for modifying departments to ensure all fields, including `queue_name`, are correctly sent to the backend."
