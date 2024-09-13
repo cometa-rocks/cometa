@@ -36,9 +36,46 @@
         (blur)="sendInputFocusToParent(false)"/>
     </mat-form-field>
     <div class="columns-button-wrapper">
-      <button mat-stroked-button [matMenuTriggerFor]="selectedColumns">
+      <button *ngIf="isDialog" mat-stroked-button [matMenuTriggerFor]="selectedColumns">
         Columns Shown
       </button>
+      <div class="container-father" *ngIf="!isDialog">
+        <button class="button-column" mat-stroked-button [matMenuTriggerFor]="selectedColumns">
+          Columns Shown
+        </button>
+        <ng-container>
+          <mat-form-field class="selectFormField">
+            <mat-label><mat-icon>domain</mat-icon> Select Department</mat-label>
+            <mat-select [(ngModel)]="selectedDepartment" (selectionChange)="onDepartmentSelect($event)"
+                        [disabled]="selectionsDisabled">
+              <mat-option *ngFor="let department of departments" [value]="{ id: department.folder_id, name: department.name }">
+                <mat-card>{{ department.name }}</mat-card>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ng-container>
+      
+        <ng-container>
+          <mat-form-field class="selectFormField">
+            <mat-label><img class="feature" src="assets/img/feature.svg" alt="Select Feature"> Select Feature</mat-label>
+            <mat-select [(ngModel)]="selectedFeature" (selectionChange)="onFeatureSelect($event)"
+                        [disabled]="!departmentChecked || selectionsDisabled">
+              <mat-option *ngFor="let feature of allFeatures" 
+                          [value]="{ id: feature.feature_id, name: feature.feature_name, id_enviornment: feature.environment_id, name_environment: feature.environment_name }">
+                <mat-card>{{ feature.feature_name }}</mat-card>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ng-container>
+        <button
+        color="primary"
+        (click)="startFunctions()"
+        class="add"
+        [disabled]="!depAndFeatChecked"
+        mat-stroked-button>
+        Add variable
+        </button>
+      </div>
       <mat-menu #selectedColumns="matMenu" class="variable-columns-menu">
         <div
         class="column-checkbox-wrapper"

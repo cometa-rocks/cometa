@@ -12,24 +12,30 @@ ENCRYPTION_PASSPHRASE = None
 ENCRYPTION_START = None
 BLOCK_SIZE = 16
 
-def update_ENCRYPTION_PASSPHRASE(encryption_passphrase:str):
+
+def update_ENCRYPTION_PASSPHRASE(encryption_passphrase: str):
     global ENCRYPTION_PASSPHRASE
     ENCRYPTION_PASSPHRASE = encryption_passphrase
-    
-def update_ENCRYPTION_START(encryption_start:str):
+
+
+def update_ENCRYPTION_START(encryption_start: str):
     global ENCRYPTION_START
     ENCRYPTION_START = encryption_start
-    
-def print_values(): 
+
+
+def print_values():
     print(f"ENCRYPTION_PASSPHRASE = {ENCRYPTION_PASSPHRASE}")
     print(f"ENCRYPTION_START = {ENCRYPTION_START}")
-    
+
+
 def pad(data):
     length = BLOCK_SIZE - (len(data) % BLOCK_SIZE)
-    return data.encode() + (chr(length)*length).encode()
+    return data.encode() + (chr(length) * length).encode()
+
 
 def unpad(data):
-    return data[:-(data[-1] if type(data[-1]) == int else ord(data[-1]))]
+    return data[: -(data[-1] if type(data[-1]) == int else ord(data[-1]))]
+
 
 def bytes_to_key(data, salt, output=48):
     # extended from https://gist.github.com/gsakkis/4546068
@@ -42,19 +48,27 @@ def bytes_to_key(data, salt, output=48):
         final_key += key
     return final_key[:output]
 
+
 def encrypt(message, passphrase=None):
     salt = Random.new().read(8)
-    key_iv = bytes_to_key(passphrase if passphrase else ENCRYPTION_PASSPHRASE, salt, 32+16)
+    key_iv = bytes_to_key(
+        passphrase if passphrase else ENCRYPTION_PASSPHRASE, salt, 32 + 16
+    )
     key = key_iv[:32]
     iv = key_iv[32:]
     aes = AES.new(key, AES.MODE_CBC, iv)
-    return base64.b64encode(b"Salted__" + salt + aes.encrypt(pad(message))).decode("utf-8")
+    return base64.b64encode(b"Salted__" + salt + aes.encrypt(pad(message))).decode(
+        "utf-8"
+    )
+
 
 def decrypt(encrypted, passphrase=None):
     encrypted = base64.b64decode(encrypted)
     assert encrypted[0:8] == b"Salted__"
     salt = encrypted[8:16]
-    key_iv = bytes_to_key(passphrase if passphrase else ENCRYPTION_PASSPHRASE, salt, 32+16)
+    key_iv = bytes_to_key(
+        passphrase if passphrase else ENCRYPTION_PASSPHRASE, salt, 32 + 16
+    )
     key = key_iv[:32]
     iv = key_iv[32:]
     aes = AES.new(key, AES.MODE_CBC, iv)
