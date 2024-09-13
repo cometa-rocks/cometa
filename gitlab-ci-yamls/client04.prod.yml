@@ -12,7 +12,7 @@
     #########################################################
     # FRONTEND
     #########################################################
-    DOCKER_HTTP_PORT: 58080
+    DOCKER_HTTP_PORT: 8880
     DOCKER_OPENIDC_CONFIG_EXT: "client04_prod"
   before_script:
     #########################################################
@@ -26,7 +26,7 @@
     # Update OIDC provider information at the run time
     - curl https://$COMETA_CLIENT04_PROD_OIDCHOST/.well-known/openid-configuration | jq . > front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.provider 
     # Remove standard ports for this client, as it conflicts with other running software
-    # - sed -i '/443:443/d;' docker-compose.yml
+    - sed -i '/443:443/d;' docker-compose.yml
     # Client uses port 58080, which is mapped to load balancer, make changes persistent for port 58080
     # - sed -i 's#/data/cometa/#./data/cometa/#g' docker-compose.yml
     - sed -i_template "s#- /data#- \./data#g" docker-compose.yml
@@ -56,4 +56,4 @@
     - swoealvpcog01
   only: # on what branch we'd like to run this job
     refs:
-      - master
+      - stage
