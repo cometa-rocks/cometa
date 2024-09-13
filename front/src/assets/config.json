@@ -1,5 +1,5 @@
 {
-  "version": "2.8.378",
+  "version": "2.8.381",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,16 +233,50 @@
   ],
   "changelog": [
     {
+      "version": "2.8.381",
+      "date": "2024-09-03",
+      "features": [
+        {
+          "title": "#4694 - Improvement in Department Management",
+          "description": "Enhanced the functionality for modifying departments to ensure all fields, including `queue_name`, are correctly sent to the backend."
+        }
+      ]
+    },
+    {
+      "version": "2.8.380",
+      "date": "2024-08-31",
+      "features": [
+        {
+          "title": "#4694 - Add redirect functionality for features and folders",
+          "description": "Implement a feature that allows users to be redirected to the containing folder or department when searching for a feature or folder."
+        }
+      ]
+    }, 
+    {
+      "version": "2.8.379",
+      "date": "2024-08-30",
+      "features": [
+        {
+          "title": "#5047 - Setup build stage in the Amvara6 Server.",
+          "description": "Introduced build stage in the CICD pipeline to build and then deploy."
+        },
+        {
+          "title": "#4694 - Add variable button and empty li (logout).",
+          "description": "Put back in the same position Add variable button and reposition logout button."
+        }
+      ]
+    }, 
+    {
     "version": "2.8.378",
     "date": "2024-08-26",
     "features": [
       {
         "title": "#5027 - Added new email screenshot variable, $screenshot[last].",
-        "description": "Last screenshot in case of failure can we seen using $screenshot[last] variable"
+        "description": "Last screenshot in case of failure can be seen using $screenshot[last] variable"
       }
-    ]
-  }, 
-  {
+      ]
+    }, 
+    {
     "version": "2.8.377",
     "date": "2024-08-19",
     "features": [
@@ -268,28 +302,28 @@
       "version": "2.8.376",
       "date": "2024-08-06",
       "features": [
-      {
-        "title": "#4694 - Fix dialog escape button behavior",
-        "description": "Resolved an issue where the dialog reappeared even after pressing the Escape key to close it."
-      },
-      {
-        "title": "#4694 - Add tooltip with description on feature name",
-        "description": "Added a tooltip to the feature name that displays the description when hovering over it with the mouse."
-      },      
-      {
-        "title": "#4694 - Add tooltip with date last run on schedule item feature",
-        "description": "Added a tooltip to the schedule section that displays the description in last run when hovering over it with the mouse."
-      }, 
-      {
-        "title": "#4694 - Changed 'Show Archived Items' from checkbox to button",
-        "description": "Replaced the 'Show Archived Items' checkbox with a button to improve user experience and streamline interaction. The new button enhances clarity and accessibility for users."
-      },
-      {
-        "title": "#4694 - Expanded Input Field for Browser Selection in Lyrid.io",
-        "description": "Increased the input field size for selecting browsers in the Lyrid.io section to improve usability and accommodate longer input values."
-      }   
+        {
+          "title": "#4694 - Fix dialog escape button behavior",
+          "description": "Resolved an issue where the dialog reappeared even after pressing the Escape key to close it."
+        },
+        {
+          "title": "#4694 - Add tooltip with description on feature name",
+          "description": "Added a tooltip to the feature name that displays the description when hovering over it with the mouse."
+        },
+        {
+          "title": "#4694 - Add tooltip with date last run on schedule item feature",
+          "description": "Added a tooltip to the schedule section that displays the description in last run when hovering over it with the mouse."
+        },
+        {
+          "title": "#4694 - Changed 'Show Archived Items' from checkbox to button",
+          "description": "Replaced the 'Show Archived Items' checkbox with a button to improve user experience and streamline interaction. The new button enhances clarity and accessibility for users."
+        },
+        {
+          "title": "#4694 - Expanded Input Field for Browser Selection in Lyrid.io",
+          "description": "Increased the input field size for selecting browsers in the Lyrid.io section to improve usability and accommodate longer input values."
+        }
       ]
-    }, 
+    },
     {
       "version": "2.8.375",
       "date": "2024-08-02",
@@ -301,9 +335,9 @@
         {
           "title": "#4694 - Shortcut tooltip in step-definitions",
           "description": "Added shortcut tooltip in step-definitions."
-        }   
+        }
       ]
-    }, 
+    },
     {
       "version": "2.8.374",
       "date": "2024-08-01",
@@ -319,9 +353,9 @@
         {
           "title": "#4694 - Updated Help Menu Table",
           "description": "The table in the Help section of the menu has been updated to provide more accurate and comprehensive information."
-        }        
+        }
       ]
-    }, 
+    },
     {
       "version": "2.8.373",
       "date": "2024-07-25",
@@ -331,14 +365,12 @@
           "description": "Improved user experience, you can now know if a folder is empty or not at a glance."
         }
       ]
-    }, 
+    },
     {
       "version": "2.8.372",
       "date": "2024-07-29",
-      "bugfixes": [
-        "#4820 Issue fixed, PDF Report does not attach screenshots"
-      ]
-    }, 
+      "bugfixes": ["#4820 Issue fixed, PDF Report does not attach screenshots"]
+    },
     {
       "version": "2.8.370",
       "date": "2024-07-26",
@@ -348,7 +380,7 @@
           "description": "Added CC (Carbon Copy) and BCC (Blind Carbon Copy) fields to the email sending section."
         },
         {
-          "title": "#4814 - Improvement made to receive the mail with CC and BCC recipients",
+          "title": "#4814 - Improvement made to send the mail with CC and BCC recipients",
           "description": "DB fields are added to store CC and BCC emails, CC and BCC email logic is updated."
         }
       ]
@@ -362,7 +394,7 @@
           "description": "Added keyboard shortcuts for quick access to profile, feature, and menu functions. Users can now use 'P' for Profile, 'F' for Feature, and 'M' for Menu directly from the header icons."
         }
       ]
-    },   
+    },
     {
       "version": "2.8.367",
       "date": "2024-07-22",
@@ -371,12 +403,12 @@
           "title": "#4814 - Housekeeping feature implemented",
           "description": "Implemented feature to perform housekeeping based on the set dates for housekeeping in department."
         },
-         {
+        {
           "title": "#4694 - Edit feature button",
           "description": "Avoid miss click on edit feature button."
         }
       ]
-    }, 
+    },
     {
       "version": "2.8.366",
       "date": "2024-07-18",
@@ -423,7 +455,7 @@
       "features": [
         {
           "title": "#4694 - Schedule enable returns disabled",
-          "description": "When an interface is activated its schedule and modified its steps the schedule becomes desactivated."
+          "description": "When an interface is activated its schedule and modified its steps the schedule becomes deactivated."
         }
       ]
     },
@@ -454,7 +486,7 @@
         {
           "title": "#4694 Conflict space shortcut with run button",
           "description": "Solved space shortcut makes conflict with run button on cometa feature page."
-         }
+        }
       ]
     },
     {
@@ -490,9 +522,7 @@
     {
       "version": "2.8.355",
       "date": "2024-06-07",
-      "bugfixes": [
-        "#4728 Vulnerability analysis completed for secrets"
-      ]
+      "bugfixes": ["#4728 Vulnerability analysis completed for secrets"]
     },
     {
       "version": "2.8.354",
@@ -557,7 +587,9 @@
     {
       "version": "2.8.348",
       "date": "2024-03-31",
-      "bugfixes": [ "Update vulnerable dependencies in bahave django and front." ]
+      "bugfixes": [
+        "Update vulnerable dependencies in behave, django and front."
+      ]
     },
     {
       "version": "2.8.347",
@@ -606,23 +638,17 @@
     {
       "version": "2.8.342",
       "date": "2024-03-18",
-      "bugfixes": [
-        "#4583 Feature execution timeout issue fixed"
-      ]
+      "bugfixes": ["#4583 Feature execution timeout issue fixed"]
     },
     {
       "version": "2.8.341",
       "date": "2024-03-14",
-      "bugfixes": [
-        "#4567 Fixed timezone strip error"
-      ]
+      "bugfixes": ["#4567 Fixed timezone strip error"]
     },
     {
-        "version": "2.8.340",
-        "date": "2024-03-13",
-        "bugfixes": [
-            "#4575 - Fixed Error \"Multi level loop are not allowed.\""
-        ]
+      "version": "2.8.340",
+      "date": "2024-03-13",
+      "bugfixes": ["#4575 - Fixed Error \"Multi level loop are not allowed.\""]
     },
     {
       "version": "2.8.339",
@@ -650,8 +676,8 @@
       "bugfixes": [
         "#4565 - Comment are not available for step containing regex in the name"
       ]
-    }, 
-    {   
+    },
+    {
       "version": "2.8.337",
       "date": "2024-03-07",
       "features": [
@@ -674,7 +700,7 @@
       "bugfixes": [
         "#4557 - The issue of unavailable logs has been fixed on the feature report screen."
       ]
-    }, 
+    },
     {
       "version": "2.8.334",
       "date": "2024-03-01",
@@ -694,7 +720,9 @@
     {
       "version": "2.8.332",
       "date": "2024-02-27",
-      "bugfixes": ["#4540 - Fixed scrollable screen in the Admin Manage Account section."]
+      "bugfixes": [
+        "#4540 - Fixed scrollable screen in the Admin Manage Account section."
+      ]
     },
     {
       "version": "2.8.331",

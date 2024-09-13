@@ -10,7 +10,9 @@ from backend.models import File, FileData
 from backend.serializers import FileSerializer
 from backend.utility.functions import getLogger
 sys.path.append("/code")
-from secret_variables import COMETA_UPLOAD_ENCRYPTION_PASSPHRASE
+from backend.utility.configurations import ConfigurationManager
+
+COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = ConfigurationManager.get_configuration('COMETA_UPLOAD_ENCRYPTION_PASSPHRASE','')
 
 # logger information
 logger = getLogger()
