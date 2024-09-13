@@ -5,7 +5,6 @@ services:
     volumes:
       - ./backend:/code
       - ./backend/db_data:/var/lib/postgresql/data
-      # - ./backend/db_data_test_migration3:/var/lib/postgresql/data
     expose:
       - "5532"
     networks:
@@ -53,6 +52,7 @@ services:
       - ./data/cometa/videos:/opt/code/videos
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
+      - ./data/redis/certs:/share/certs
       - "./backend/behave/schedules/crontab:/etc/cron.d/crontab"
     # command: "/opt/code/entry.sh -d"
     command: "/opt/code/entry.sh"
