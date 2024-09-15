@@ -38,9 +38,6 @@ def unpad(data):
 
 def bytes_to_key(data, salt, output=48):
     # extended from https://gist.github.com/gsakkis/4546068
-    if isinstance(data, str):
-        data = data.encode('utf-8')
-    
     assert len(salt) == 8, len(salt)
     data += salt
     key = md5(data).digest()
