@@ -67,7 +67,7 @@ def load_configurations():
         # Configuration can not be imported in the encryption.py due to circular import
         # logger.debug("Loading ENCRYPTION_PASSPHRASE and ENCRYPTION_START variables")
         update_ENCRYPTION_PASSPHRASE(
-            ConfigurationManager.get_configuration("COMETA_ENCRYPTION_PASSPHRASE", "")
+            ConfigurationManager.get_configuration("COMETA_ENCRYPTION_PASSPHRASE", "").encode()
         )
         update_ENCRYPTION_START(
             ConfigurationManager.get_configuration("COMETA_ENCRYPTION_START", "")
