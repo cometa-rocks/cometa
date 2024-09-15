@@ -11,7 +11,7 @@ ENCRYPTION_PASSPHRASE = None
 # This variable is updated by backend.utility.configurations.py, when configuration is loaded from DB
 ENCRYPTION_START = None
 BLOCK_SIZE = 16
-
+logger = None
 
 def update_ENCRYPTION_PASSPHRASE(encryption_passphrase: str):
     global ENCRYPTION_PASSPHRASE
@@ -22,6 +22,10 @@ def update_ENCRYPTION_START(encryption_start: str):
     global ENCRYPTION_START
     ENCRYPTION_START = encryption_start
 
+def set_logger(logger_object):
+    global logger
+    logger = logger_object
+    logger.debug("Logger object updated")
 
 def print_values():
     print(f"ENCRYPTION_PASSPHRASE = {ENCRYPTION_PASSPHRASE}")
