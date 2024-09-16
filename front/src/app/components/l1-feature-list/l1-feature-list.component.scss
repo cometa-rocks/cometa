@@ -122,8 +122,6 @@
     padding-right: 5px;
   }
   td:nth-of-type(2) {
-    display: flex;
-    flex-direction: row;
     &.running {
       width: 40px;
       &.disabled {
