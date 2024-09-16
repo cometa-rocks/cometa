@@ -237,7 +237,7 @@
       "date": "2024-09-16",
       "features": [
         {
-          "title": "#4694 -Visual bug fix and relocation of 'Run All Features'",
+          "title": "#4694 - Visual bug fix and relocation of 'Run All Features'",
           "description": "Fixed a minor visual bug and moved the 'Run All Features' option to the mat-menu context menu."
         }
       ]
