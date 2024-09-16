@@ -288,7 +288,6 @@ def decryptFile(source):
     )
 
     logger.debug(f"Decrypting source {source}")
-    logger.debug(f"Decrypting source key COMETA_UPLOAD_ENCRYPTION_PASSPHRASE \"{COMETA_UPLOAD_ENCRYPTION_PASSPHRASE}\"")
 
     try:
         result = subprocess.run(
@@ -319,7 +318,6 @@ def encryptFile(source, target):
     )
 
     logger.debug(f"Encrypting source {source} to {target}")
-    logger.debug(f"Encrypting source COMETA_UPLOAD_ENCRYPTION_PASSPHRASE \"{COMETA_UPLOAD_ENCRYPTION_PASSPHRASE}\"")
     try:
         result = subprocess.run(
             [
