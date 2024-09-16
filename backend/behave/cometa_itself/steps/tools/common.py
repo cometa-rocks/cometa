@@ -19,10 +19,6 @@ from utility.common import *
 from utility.cometa_logger import CometaLogger
 from utility.configurations import ConfigurationManager
 
-COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = ConfigurationManager.get_configuration(
-    "COMETA_UPLOAD_ENCRYPTION_PASSPHRASE", ""
-)
-
 # setup logging
 logging.setLoggerClass(CometaLogger)
 logger = logging.getLogger("FeatureExecution")
@@ -287,7 +283,12 @@ def decryptFile(source):
     # get target file for the source
     target = tempFile(source)
 
+    COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = ConfigurationManager.get_configuration(
+        "COMETA_UPLOAD_ENCRYPTION_PASSPHRASE", ""
+    )
+
     logger.debug(f"Decrypting source {source}")
+    logger.debug(f"Decrypting source key COMETA_UPLOAD_ENCRYPTION_PASSPHRASE \"{COMETA_UPLOAD_ENCRYPTION_PASSPHRASE}\"")
 
     try:
         result = subprocess.run(
@@ -312,8 +313,13 @@ def decryptFile(source):
 
 
 def encryptFile(source, target):
-    logger.debug(f"Encrypting source {source} to {target}")
+    
+    COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = ConfigurationManager.get_configuration(
+        "COMETA_UPLOAD_ENCRYPTION_PASSPHRASE", ""
+    )
 
+    logger.debug(f"Encrypting source {source} to {target}")
+    logger.debug(f"Encrypting source COMETA_UPLOAD_ENCRYPTION_PASSPHRASE \"{COMETA_UPLOAD_ENCRYPTION_PASSPHRASE}\"")
     try:
         result = subprocess.run(
             [
