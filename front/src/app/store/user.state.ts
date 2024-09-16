@@ -277,4 +277,20 @@ export class UserState {
   static RetrieveIntegrationApps(user: UserInfo) {
     return user.integration_apps;
   }
+
+  @Selector()
+  @ImmutableSelector()
+  static favouriteFeatures(state: UserInfo) {
+    return state.favourite_features;
+  }
+
+  // Aquí se ajusta la acción para alternar las características favoritas
+  // @Action(ToggleFavouriteFeature)
+  // toggleFavouriteFeature(ctx: StateContext<UserInfo>, action: ToggleFavouriteFeature) {
+  //   const state = ctx.getState();
+  //   const updatedFavourites = state.favourite_features.includes(action.feature)
+  //     ? state.favourite_features.filter(f => f !== action.feature)
+  //     : [...state.favourite_features, action.feature];
+  //   ctx.patchState({ favourite_features: updatedFavourites });
+  // }
 }

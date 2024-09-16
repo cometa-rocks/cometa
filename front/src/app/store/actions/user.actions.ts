@@ -71,4 +71,9 @@ export namespace User {
     static readonly type = '[User] Set Setting';
     constructor(public settings: SetSettingOptions) {}
   }
+
+  export class ToggleFavouriteFeature {
+    static readonly type = '[User] Toggle Favourite Feature';
+    constructor(public feature: string) {}
+  }
 }

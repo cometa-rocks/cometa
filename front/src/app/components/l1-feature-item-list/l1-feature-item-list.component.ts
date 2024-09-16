@@ -351,8 +351,10 @@ export class L1FeatureItemListComponent implements OnInit {
     }
   }
 
-  clickStarred() {
+  clickStarred(item: any) {
     this.starred = !this.starred; 
     console.log('Starred toggled:', this.starred);
+
+    this._sharedActions.sendItemToStarred(item, this.starred);
   }
 }

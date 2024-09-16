@@ -1,4 +1,4 @@
-import { HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { ElementRef, Injectable, ViewChild } from '@angular/core';
 import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
@@ -73,7 +73,8 @@ export class SharedActionsService {
     private _router: Router,
     private _location: Location,
     private _snack: MatSnackBar,
-    private _socket: SocketService
+    private _socket: SocketService,
+    private http: HttpClient
   ) {
     this._store
       .select(CustomSelectors.RetrieveResultHeaders(false))
@@ -574,8 +575,8 @@ export class SharedActionsService {
     this.filterStateSubject.next(isActive);
   }
 
-  sendItemToStarred(item: any) {
-    this.starredItemSubject.next(item);
+  sendItemToStarred(item: any, isStarred: boolean) {
+    
   }
 
 }

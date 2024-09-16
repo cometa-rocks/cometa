@@ -657,6 +657,7 @@ class OIDCAccount(models.Model):
     last_login = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     login_counter = models.IntegerField(default=0, help_text="+1 on each login.")
     favourite_browsers = models.JSONField(default=list, blank=True)
+    favourite_features = models.JSONField(default=list, blank=True)
     settings = models.JSONField(default=dict, blank=True)
     stripe_customer_id = models.CharField(max_length=255, blank=True)
 
