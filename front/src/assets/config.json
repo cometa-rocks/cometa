@@ -1,5 +1,5 @@
 {
-  "version": "2.8.383",
+  "version": "2.8.384",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.384",
+      "date": "2024-09-16",
+      "features": [
+        {
+          "title": "#4694 - Visual bug fix and relocation of 'Run All Features'",
+          "description": "Fixed a minor visual bug and moved the 'Run All Features' option to the mat-menu context menu."
+        }
+      ]
+    },
     {
       "version": "2.8.383",
       "date": "2024-09-15",
