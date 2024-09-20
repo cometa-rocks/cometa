@@ -56,10 +56,8 @@ stages:
     # Replace secrets in openidc
     - sed -i 's/@@COMETA_CRYPTO_PASSPHRASE@@/'$COMETA_CRYPTO_PASSPHRASE'/g' front/apache-conf/openidc.conf_${DOCKER_OPENIDC_CONFIG_EXT}
     # Replace Stripe client keys
-    - sed -i 's/@@COMETA_STRIPE_PUBLIC_LIVE_KEY@@/'$COMETA_STRIPE_PUBLIC_LIVE_KEY/'g' front/src/app/deploy-tokens.ts
-    - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
-    # Replace co.meta favicon depending on the branch
-    - for FILE in ${COMETA_REPLACE_FAVICON_IN}; do sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
+    # - sed -i 's/@@COMETA_STRIPE_PUBLIC_LIVE_KEY@@/'$COMETA_STRIPE_PUBLIC_LIVE_KEY/'g' front/src/app/deploy-tokens.ts
+    # - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
 
     #########################################################
     # Make gitlab-runner the owner of front directory
@@ -131,8 +129,9 @@ stages:
         sed -i "s#cometa/front:latest#"$COMETA_FRONT":"$BUILD_VERSION"#" docker-compose.yml;
         echo "Recrating cometa_front";
         docker-compose up --force-recreate apache -d;
+        for FILE in ${COMETA_REPLACE_FAVICON_IN}; do docker exec cometa_front sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
       else
-        echo "Front container is up to date, will do new deployment";
+        echo "Front container is up to date, will not do deployment";
       fi
 
     - if [ "$OLD_FRONT_IMAGE_TAG" != "$COMETA_FRONT:$BUILD_VERSION" ]; then
@@ -216,7 +215,9 @@ build:amvara6.build:
         echo "$COMETA_FRONT:$BUILD_VERSION image pushed"
         echo "Converting $COMETA_FRONT:$BUILD_VERSION tag $COMETA_FRONT:latest"
         docker tag $COMETA_FRONT:$BUILD_VERSION $COMETA_FRONT:latest
-        echo "Pushing $COMETA_FRONT:latest image to Docker $DOCKER_REGISTRY"        
+        echo "Pushing $COMETA_FRONT:latest image to Docker $DOCKER_REGISTRY"     
+        docker push $COMETA_FRONT:latest   
+        echo "$COMETA_FRONT:latest image pushed"
         cd -
       fi
     
