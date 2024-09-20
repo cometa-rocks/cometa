@@ -456,8 +456,10 @@ export class EditFeature implements OnInit, OnDestroy {
           }
           break;
         case KEY_CODES.V:
+          if(!event.ctrlKey){
           // Edit variables
             this.editVariables();
+          }
           break;
         case KEY_CODES.D:
             // Depends on other featre
@@ -489,7 +491,7 @@ export class EditFeature implements OnInit, OnDestroy {
           break;
         default:
           break;
-        }
+      } 
     }
   }
 
