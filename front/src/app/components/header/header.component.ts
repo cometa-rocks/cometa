@@ -95,7 +95,7 @@ export class HeaderComponent {
   ) {
     const editFeatOpen = document.querySelector('edit-feature') as HTMLElement;
     // If true... return | only execute switch case if input focus is false
-    if (this.inputFocus) return;
+    if (this.inputFocus || event.ctrlKey) return;
 
     switch (event.keyCode) {
       case KEY_CODES.P:
