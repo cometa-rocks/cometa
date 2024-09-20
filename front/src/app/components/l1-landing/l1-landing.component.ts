@@ -417,7 +417,7 @@ export class L1LandingComponent implements OnInit {
     const featureShow = document.querySelector("edit-feature");
 
     // If exist the searchs don't enter
-    if(folderShow || featureShow){
+    if(folderShow || featureShow || event.ctrlKey){
       return;
     }
     if (!this.inputFocus){
@@ -426,19 +426,19 @@ export class L1LandingComponent implements OnInit {
           // Clic on add button
           this.buttonAddFolderFeature.nativeElement.querySelector('.addIcon').click();
           break;
-          case KEY_CODES.B:
-            if(this.openedAdd) {
-              this.createFolder();
-              // Input empty 
-              const inputElement = document.querySelector('#mat-input-5');
-              inputElement.innerHTML = '';
-            }
-          break;
-          case KEY_CODES.F:
-            if(this.openedAdd) {
-              this.SAopenCreateFeature();
-            }
-          break;
+        case KEY_CODES.B:
+          if(this.openedAdd) {
+            this.createFolder();
+            // Input empty 
+            const inputElement = document.querySelector('#mat-input-5');
+            inputElement.innerHTML = '';
+          }
+        break;
+        case KEY_CODES.F:
+          if (this.openedAdd) {
+            this.SAopenCreateFeature();
+          }
+        break;
       }
     }
   }
