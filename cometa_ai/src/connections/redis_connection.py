@@ -23,7 +23,7 @@ REDIS_CA_CERTIFICATE_FILE = os.getenv(
 REDIS_IMAGE_ANALYSYS_QUEUE_NAME = os.getenv(
     "REDIS_IMAGE_ANALYSYS_QUEUE_NAME", "image_analysis"
 )
-REDIS_NUMBER_OF_WORKERS = os.getenv("REDIS_NUMBER_OF_WORKERS", 2)
+REDIS_NUMBER_OF_WORKERS = int(os.getenv("REDIS_NUMBER_OF_WORKERS", 1))
 
 logger.debug(f"Connecting to redis host {REDIS_HOST}:{REDIS_PORT}")
 REDIS_CONNECTION = None
