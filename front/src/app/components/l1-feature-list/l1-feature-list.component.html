@@ -135,6 +135,30 @@ Author: dph000
   </mat-menu>
   <!-- Menu to manage folder -->
   <mat-menu class="folderOptionsMenu" #folderOptions="matMenu">
+    <!-- Run all features -->
+    <div
+      *ngIf="isAnyFeatureRunningMap.get(row.reference.folder_id) | async; else showRunAllButton"
+      class="folder-running"
+      [matTooltip]="'tooltips.run_feature' | translate"
+      matTooltipPosition="after"
+      stopPropagation>
+      <mat-spinner
+        class="item-loader"
+        diameter="18"></mat-spinner>
+      <span> Features running </span>
+    </div>
+    <ng-template #showRunAllButton>
+      <button
+        (click)="_sharedActions.runAllFeatures(row.reference)"
+        class="run-feature"
+        [matTooltip]="'tooltips.run_all_features' | translate"
+        matTooltipPosition="after"
+        mat-menu-item>
+        <mat-icon>play_circle_filled</mat-icon>
+        <span>Run all features</span>
+      </button>
+    </ng-template>
+    <mat-divider></mat-divider>
     <!-- Open the folder -->
     <button (click)="goFolder(row.reference, row.route)" mat-menu-item>
       <mat-icon>folder_open</mat-icon>
@@ -186,26 +210,6 @@ Author: dph000
   <!-- Folder icon -->
   <ng-template #folderIcon class="items-container">
     <i class="folderIcon"></i>
-    <div
-      *ngIf="isAnyFeatureRunningMap.get(row.reference.folder_id) | async; else showRunAllButton"
-      class="folder-running"
-      [matTooltip]="'tooltips.runnning_all_features' | translate"
-      matTooltipPosition="after"
-      stopPropagation>
-      <mat-spinner
-        class="item-loader"
-        diameter="18">
-      </mat-spinner>
-    </div>
-    <ng-template #showRunAllButton>
-      <button
-      (click)="_sharedActions.runAllFeatures(row.reference)"
-      class="folder-running"
-      [matTooltip]="'tooltips.run_all_features' | translate"
-      matTooltipPosition="after">
-        <mat-icon class="mat-icon">play_circle_filled</mat-icon>
-      </button>
-    </ng-template>
   </ng-template>
 </ng-template>
 
