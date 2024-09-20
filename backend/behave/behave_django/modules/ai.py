@@ -58,7 +58,8 @@ class AI:
 
             elif worker_job.is_failed:
                 self.logger.debug(f"Task failed, reason: {worker_job.exc_info}")
-
+                return False, worker_job.exc_info.splitlines()[-1]
+        
         except Exception as exception:
             self.logger.debug(f"Exception {str(exception)}")
             return False, str(exception)

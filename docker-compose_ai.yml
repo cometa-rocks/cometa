@@ -16,9 +16,11 @@ services:
     restart: always
     command: sh /usr/local/bin/start.sh
 
+  # Use this command to have mutiple containers of ollama.ai
+  # docker-compose -f docker-compose_ai.yml up --scale ollama.ai=3
   ollama.ai:
     build: ./cometa_ai
-    container_name: cometa.ollama.ai
+    # container_name: cometa.ollama.ai
     expose:
       - "8083"
     volumes:
@@ -40,6 +42,7 @@ services:
       - redis.ai
     environment:
       OLLAMA_HOST: "0.0.0.0:8083"
+      # IMAGE_ANALYZER_MODEL_NAME: "llava:13b" #Not working
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
       NAME: ollama
@@ -47,6 +50,7 @@ services:
       REDIS_PORT: 6379
       REDIS_DB: 0
       REDIS_DB_TSL_SSL_ENABLED: Yes
+      REDIS_NUMBER_OF_WORKERS: 1
     networks:
       - testing
     restart: always
