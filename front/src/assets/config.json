@@ -1,5 +1,5 @@
 {
-  "version": "2.8.383",
+  "version": "3.0.0",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,40 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.0",
+      "date": "2024-09-21",
+      "features": [
+        {
+          "title": "#5053 Introducing AI in Cometa",
+          "description": "Cometa is enabled with AI features, capable of analyzing images, extracting information, and performing assertions."
+        }
+      ]
+    },
+    {
+      "version": "2.8.385",
+      "date": "2024-09-20",
+      "features": [
+        {
+          "title": "#5116 - Resolved issues with keyboard shortcuts",
+          "description": "Fixed the issue where pressing CTRL+V in the Edit Feature screen opened the 'Edit Variables' window. Additionally, pressing CTRL+F now correctly triggers the browser's search functionality without interfering with the 'Edit Feature' shortcut."
+        },
+        {
+          "title": "#4694 - Draggable window for live steps",
+          "description": "Added an icon to allow dragging the live steps window."
+        }
+      ]
+    },    
+    {
+      "version": "2.8.384",
+      "date": "2024-09-16",
+      "features": [
+        {
+          "title": "#4694 - Visual bug fix and relocation of 'Run All Features'",
+          "description": "Fixed a minor visual bug and moved the 'Run All Features' option to the mat-menu context menu."
+        }
+      ]
+    },
     {
       "version": "2.8.383",
       "date": "2024-09-15",
