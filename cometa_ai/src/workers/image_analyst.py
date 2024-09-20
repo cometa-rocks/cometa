@@ -1,4 +1,4 @@
-import ollama
+import ollama, os
 from src.utility.common import get_logger
 from src.utility.exception_handler import error_handling
 from src.utility.system import find_and_kill_proc_using_fd
@@ -6,7 +6,7 @@ from src.utility.functions import image_decoded
 
 logger = get_logger()
 
-IMAGE_ANALYZER_MODEL_NAME = "llava"
+IMAGE_ANALYZER_MODEL_NAME =  os.getenv("IMAGE_ANALYZER_MODEL_NAME", "llava")
 LLAMA_MODEL_NAME = "llama3.1"
 
 # image_analysis_data should contain information in the form of
@@ -59,14 +59,14 @@ def analyze_image(messages):
         # Do a chat with ollama
         # logger.debug(user_message['content'])
         # logger.debug(f"Procced by {model}")
-        llava_res = ollama.chat(
+        chat_response = ollama.chat(
             model=model,
             messages=user_and_assistent_messages,
             options={"seed": 101, "temperature": 0},
         )
         # Add assistent response message in the user_and_assistent_messages to keep track of discssuion
-        user_and_assistent_messages.append(llava_res["message"])
-        # logger.debug(llava_res["message"])
+        user_and_assistent_messages.append(chat_response["message"])
+        logger.debug(chat_response["message"])
 
     # return last index value, which is a last response from the assistent
     return user_and_assistent_messages[-1]["content"]
