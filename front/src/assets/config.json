@@ -1,5 +1,5 @@
 {
-  "version": "2.8.384",
+  "version": "2.8.385",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,20 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "2.8.385",
+      "date": "2024-09-20",
+      "features": [
+        {
+          "title": "#5116 - Resolved issues with keyboard shortcuts",
+          "description": "Fixed the issue where pressing CTRL+V in the Edit Feature screen opened the 'Edit Variables' window. Additionally, pressing CTRL+F now correctly triggers the browser's search functionality without interfering with the 'Edit Feature' shortcut."
+        },
+        {
+          "title": "#4694 - Draggable window for live steps",
+          "description": "Added an icon to allow dragging the live steps window."
+        }
+      ]
+    },    
     {
       "version": "2.8.384",
       "date": "2024-09-16",
