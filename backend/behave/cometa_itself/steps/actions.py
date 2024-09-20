@@ -1468,7 +1468,8 @@ def step_impl(context, function):
     except Exception as err:
         addParameter(context, "js_return", "")
         context.browser.set_script_timeout(30)
-        raise CustomError(err)
+        error = str(err).split("(Session info:")[0]
+        raise CustomError(error)
 
 # Click on element using an XPath Selector
 @step(u'click on element with xpath "{xpath}"')
@@ -3356,3 +3357,5 @@ if __name__ != 'actions':
 
     sys.path.append('/code/behave/cometa_itself')
     from steps import unimplemented_steps
+    
+    
