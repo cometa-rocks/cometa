@@ -55,6 +55,7 @@ import {
   AsyncPipe,
   KeyValuePipe,
 } from '@angular/common';
+import { DraggableWindowModule } from '@modules/draggable-window.module';
 
 @UntilDestroy()
 @Component({
@@ -88,6 +89,7 @@ import {
     BrowserComboTextPipe,
     TestDurationPipe,
     TranslateModule,
+    DraggableWindowModule
   ],
 })
 export class LiveStepsComponent implements OnInit, OnDestroy {
