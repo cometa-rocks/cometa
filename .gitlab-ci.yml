@@ -196,10 +196,10 @@ build:amvara6.build:
     
     - |
       # Fetch the JSON response from Docker Hub
-      RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/cometa/front/tags/?page_size=1&ordering=last_updated")
+      RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/cometa/front/tags/?page_size=2&ordering=last_updated")
 
       # Extract the latest tag using jq
-      LATEST_TAG=$(echo "$RESPONSE" | jq -r '.results[0].name')
+      LATEST_TAG=$(echo "$RESPONSE" | jq -r '.results[1].name')
 
       echo "Latest tag from Docker Hub is: $LATEST_TAG"
 
