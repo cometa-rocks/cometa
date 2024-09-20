@@ -33,7 +33,8 @@ variables:
 #  CI_DEBUG_TRACE: "true" # show verbose information 
 #  GIT_STRATEGY: clone
   COMETA_EMAIL_ENABLED: 'True'
-  COMETA_REPLACE_FAVICON_IN: "front/src/index.html front/src/manifest.json front/src/welcome.html"
+#  COMETA_REPLACE_FAVICON_IN: "front/src/index.html front/src/manifest.json front/src/welcome.html"
+  COMETA_REPLACE_FAVICON_IN: "/usr/local/apache2/htdocs/index.html /usr/local/apache2/htdocs/manifest.json /usr/local/apache2/htdocs/welcome.html"
   COMETA_TOTAL_BROWSER_VERSION: 10 # number of latest browser version that will be pulled.
 
   CONFIG_FILE: "front/src/assets/config.json"
