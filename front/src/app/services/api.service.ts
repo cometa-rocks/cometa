@@ -832,4 +832,22 @@ export class ApiService {
     });
   }
 
+  /**
+   * @description Save favourite features on the Backend for the current logged user
+   * @param user UserInfo - The user information
+   * @param favouriteFeatures Feature[] - The list of favourite features to save
+   * @returns Observable<boolean> - Returns an observable indicating success or failure
+   */
+  saveFavouriteFeatures(user: UserInfo, favouriteFeatures: Feature[]): Observable<boolean> {
+    return this._http.patch<any>(`${this.api}accounts/${user.user_id}/`, {
+      email: user.email,
+      permission_name: user.user_permissions.permission_name,
+      name: user.name,
+      favourite_features: JSON.stringify(favouriteFeatures),
+    }).pipe(
+      map(response => response.success)
+    );
+  }
+
+
 }

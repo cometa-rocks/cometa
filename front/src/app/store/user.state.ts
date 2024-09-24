@@ -284,13 +284,32 @@ export class UserState {
     return state.favourite_features;
   }
 
-  // Aquí se ajusta la acción para alternar las características favoritas
-  // @Action(ToggleFavouriteFeature)
-  // toggleFavouriteFeature(ctx: StateContext<UserInfo>, action: ToggleFavouriteFeature) {
-  //   const state = ctx.getState();
-  //   const updatedFavourites = state.favourite_features.includes(action.feature)
-  //     ? state.favourite_features.filter(f => f !== action.feature)
-  //     : [...state.favourite_features, action.feature];
-  //   ctx.patchState({ favourite_features: updatedFavourites });
-  // }
+  @Action(User.ToggleFavouriteFeature)
+  toggleFavouriteFeature(ctx: StateContext<UserInfo>, action: User.ToggleFavouriteFeature) {
+    const state = ctx.getState();
+    const favouriteFeatures = [...(state.favourite_features || [])];
+    
+    const featureIndex = favouriteFeatures.indexOf(action.feature);
+
+    if (featureIndex > -1) {
+      favouriteFeatures.splice(featureIndex, 1);
+    } else {
+      favouriteFeatures.push(action.feature);
+    }
+
+    ctx.patchState({
+      favourite_features: favouriteFeatures
+    });
+
+    return this._api.saveFavouriteFeatures(state, favouriteFeatures).pipe(
+      tap(success => {
+        if (!success) {
+          // Maneja el caso donde la llamada al backend falla
+          ctx.patchState({
+            favourite_features: state.favourite_features // Revertir al estado anterior si es necesario
+          });
+        }
+      })
+    ).subscribe(); 
+  }
 }
