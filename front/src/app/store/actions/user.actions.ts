@@ -74,6 +74,6 @@ export namespace User {
 
   export class ToggleFavouriteFeature {
     static readonly type = '[User] Toggle Favourite Feature';
-    constructor(public feature: string) {}
+    constructor(public feature: Feature) {}
   }
 }

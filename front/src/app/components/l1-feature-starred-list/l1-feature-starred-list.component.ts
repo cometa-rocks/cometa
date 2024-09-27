@@ -15,10 +15,12 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
-import { Store } from '@ngxs/store';
+import { Select, Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
 import { SocketService } from '@services/socket.service';
 import { SharedActionsService } from '@services/shared-actions.service';
+import { UserState } from '@store/user.state';
+import { Observable } from 'rxjs';
 
 
 
@@ -30,6 +32,7 @@ import { SharedActionsService } from '@services/shared-actions.service';
   imports: [MatIconModule, CommonModule],
 })
 export class L1FeatureStarredListComponent implements OnInit {
+  @Select(UserState.favouriteFeatures) favouriteFeatures$!: Observable<Feature[]>;
   constructor(
     public _dialog: MatDialog,
     private _store: Store,
@@ -44,10 +47,12 @@ export class L1FeatureStarredListComponent implements OnInit {
   starredItem: any;
 
   ngOnInit() {
-    this._sharedActions.starredItem$.subscribe(item => {
-      this.starredItem = item;
-      console.log('Starred item:', this.starredItem);
-      // Perform actions with the starred item
+    // Usamos el selector para obtener un observable que nos da las features favoritas
+    this.favouriteFeatures$ = this._store.select(UserState.favouriteFeatures);
+
+    // Si quieres ver las features en la consola
+    this.favouriteFeatures$.subscribe(features => {
+      console.log('Favourite Features:', features);
     });
   }
 }

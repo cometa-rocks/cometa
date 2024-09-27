@@ -44,6 +44,7 @@ import {
 import { ApiService } from './api.service';
 import { SocketService } from './socket.service';
 import { Console } from 'console';
+import { User } from '@store/actions/user.actions';
 
 /**
  * This service is used to execute function which should be accessible from application and Tour definitions
@@ -575,8 +576,8 @@ export class SharedActionsService {
     this.filterStateSubject.next(isActive);
   }
 
-  sendItemToStarred(item: any, isStarred: boolean) {
-    
+  sendItemToStarred(feature: Feature) {
+    this._store.dispatch(new User.ToggleFavouriteFeature(feature));
   }
 
 }

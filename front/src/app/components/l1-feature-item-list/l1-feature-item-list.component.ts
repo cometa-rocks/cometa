@@ -6,7 +6,7 @@
  * @author dph000
  */
 import { Component, OnInit, Input } from '@angular/core';
-import { Store } from '@ngxs/store';
+import { Select, Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { Observable, switchMap, tap, map } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -44,6 +44,7 @@ import {
   AsyncPipe,
   LowerCasePipe,
 } from '@angular/common';
+import { User } from '@store/actions/user.actions';
 
 @Component({
   selector: 'cometa-l1-feature-item-list',
@@ -139,6 +140,7 @@ export class L1FeatureItemListComponent implements OnInit {
     this._sharedActions.filterState$.subscribe(isActive => {
       this.finder = isActive;
     });
+
   }
 
   async goLastRun() {
@@ -351,10 +353,60 @@ export class L1FeatureItemListComponent implements OnInit {
     }
   }
 
-  clickStarred(item: any) {
-    this.starred = !this.starred; 
-    console.log('Starred toggled:', this.starred);
+  starredItems: { [key: string]: boolean } = {};
 
-    this._sharedActions.sendItemToStarred(item, this.starred);
+  // clickStarred(feature: Feature) {
+  //   this.starred = !this.starred;
+  //   console.log("Starred", this.starred);
+  //   console.log('Toggling favourite feature:', feature);
+
+  //   this._store.dispatch(new User.ToggleFavouriteFeature(feature));
+
+  //   // this._sharedActions.sendItemToStarred(feature);
+  // }
+
+  // clickStarred(feature: Feature) {
+  //   this.starred = !this.starred;
+  //   // console.log("Starred -> ", this.starredItems[feature.feature_id]);
+  //   // console.log('Toggling favourite feature:', feature);
+
+  //   // Actualiza localStorage
+  //   // localStorage.setItem('favourite_features', JSON.stringify(this.starredItems));
+
+  //   // console.log("Starred items", )
+
+  //   // Dispatch para guardar en el estado y en el backend
+  //   this._sharedActions.sendItemToStarred(feature);
+  // }
+
+  dispatchFeature(){
+    console.log("Este feature ->", this.item);
+    // Dispatch para guardar en el estado y en el backend
+    this._store.dispatch(new User.ToggleFavouriteFeature(this.item));
+  }
+  
+  clickStarred() {
+    this.starredItems[this.item.id] = !this.starredItems[this.item.id];
+    console.log("Feature ID:", this.item.id);
+    // console.log("Starred -> ", this.starredItems[feature.feature_id]);
+    // console.log('Toggling favourite feature:', feature);
+    
+    // Actualiza localStorage
+    localStorage.setItem('favourite_features', JSON.stringify(this.starredItems));
+
+     // Carga las features que están en `starred` desde `localStorage`
+     const savedStarredItems = localStorage.getItem('favourite_features');
+     if (savedStarredItems) {
+         this.starredItems = JSON.parse(savedStarredItems);
+        //  console.log("Loaded starredItems from localStorage:", this.starredItems);
+     } else {
+         this.starredItems = {};
+     }
+
+    console.log("Saved Starred Items:", savedStarredItems);
+    
+    // console.log("Starred items", this.starredItems);
+    // this.dispatchFeature();
+
   }
 }

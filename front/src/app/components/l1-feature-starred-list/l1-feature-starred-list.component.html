@@ -10,21 +10,26 @@ Author: redouan
     Starred
   </h2>
   <div class="dividing-line-container">
-    <ng-container *ngIf="starredItem == null; else loading">
+    <div *ngIf="favouriteFeatures$ | async as favouriteFeatures">
+      <div *ngFor="let feature of favouriteFeatures">
+        {{ feature.name }} 
+      </div>
+    </div>
+    <!-- <ng-container *ngIf="starredItem == null; else loading">
       <div class="departments-container">
         <mat-icon>domain</mat-icon>
         My departamento
         <!-- {{ starredItem?.department }} -->
-      </div>
+      <!-- </div>
       <mat-divider></mat-divider>
-      <div class="Features-container">
+      <div class="Features-container"> -->
         
-        My features
+        <!-- My features -->
         <!-- {{ starredItem?.department }} -->
-      </div>
+      <!-- </div>
     </ng-container>
     <ng-template #loading>
       <p>No items starred</p>
-    </ng-template>
+    </ng-template> -->
   </div>
 </div>

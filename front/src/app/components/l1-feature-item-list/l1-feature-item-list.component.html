@@ -231,28 +231,51 @@ Author: dph000
           <mat-icon>folder</mat-icon>
           <span>Move</span>
         </button>
+        <!-- <button
+          (click)="clickStarred(item)"
+          matTooltip="Add to Favorites"
+          matTooltipPosition="before"
+          class="modify-feature"
+          mat-menu-item>
+
+          <ng-container *ngIf="starred; else noStarred">
+            <div>
+              <mat-icon class="star-black-menu">starred</mat-icon>
+              <span>Remove from Starred</span>
+            </div>
+          </ng-container>
+
+          <ng-template #noStarred>
+            <div>
+              <mat-icon class="noStarred">star_border</mat-icon>
+              <span>Add to Starred</span>
+            </div>
+          </ng-template>
+        </button> -->
+
         <button
-        (click)="clickStarred(item)"
-        matTooltip="Add to Favorites"
-        matTooltipPosition="before"
-        class="modify-feature"
-        mat-menu-item>
+          (click)="clickStarred()"
+          matTooltip="Add to Favorites"
+          matTooltipPosition="before"
+          class="modify-feature"
+          mat-menu-item>
 
-        <ng-container *ngIf="starred; else noStarred">
-          <div>
-            <mat-icon class="star-black-menu">starred</mat-icon>
-            <span>Remove from Starred</span>
-          </div>
-        </ng-container>
+          <ng-container *ngIf="starredItems[item.feature_id]; else noStarred"> 
+            <div>
+              <mat-icon class="star-black-menu">starred</mat-icon>
+              <span>Remove from Starred</span>
+            </div>
+          </ng-container>
 
-        <ng-template #noStarred>
-          <div>
-            <mat-icon class="noStarred">star_border</mat-icon>
-            <span>Add to Starred</span>
-          </div>
-        </ng-template>
-
+          <ng-template #noStarred>
+            <div>
+              <mat-icon class="noStarred">star_border</mat-icon>
+              <span>Add to Starred</span>
+            </div>
+          </ng-template>
         </button>
+
+
         <mat-divider></mat-divider>
         <button mat-menu-item [matMenuTriggerFor]="otherOptions">
           <mat-icon>settings</mat-icon>

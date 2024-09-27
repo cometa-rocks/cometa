@@ -279,8 +279,7 @@ export class UserState {
   }
 
   @Selector()
-  @ImmutableSelector()
-  static favouriteFeatures(state: UserInfo) {
+  static favouriteFeatures(state: UserInfo): Feature[] {
     return state.favourite_features;
   }
 
@@ -288,28 +287,42 @@ export class UserState {
   toggleFavouriteFeature(ctx: StateContext<UserInfo>, action: User.ToggleFavouriteFeature) {
     const state = ctx.getState();
     const favouriteFeatures = [...(state.favourite_features || [])];
+  
+    console.log('Before toggling:', favouriteFeatures);
     
     const featureIndex = favouriteFeatures.indexOf(action.feature);
-
+  
     if (featureIndex > -1) {
       favouriteFeatures.splice(featureIndex, 1);
     } else {
       favouriteFeatures.push(action.feature);
     }
-
+  
+    console.log('After toggling:', favouriteFeatures);
+  
+    // Patch the state with the updated favourite features
     ctx.patchState({
       favourite_features: favouriteFeatures
     });
-
+  
+    // Save the updated favourite features to localStorage
+    localStorage.setItem('favourite_features', JSON.stringify(favouriteFeatures));
+  
+    // Save the updated favourite features to the backend
     return this._api.saveFavouriteFeatures(state, favouriteFeatures).pipe(
       tap(success => {
         if (!success) {
-          // Maneja el caso donde la llamada al backend falla
+          console.log('Failed to save favourite features');
+          // Revert state if saving fails
           ctx.patchState({
-            favourite_features: state.favourite_features // Revertir al estado anterior si es necesario
+            favourite_features: state.favourite_features
           });
+          localStorage.setItem('favourite_features', JSON.stringify(state.favourite_features));
+        } else {
+          console.log('Successfully saved favourite features:', favouriteFeatures);
         }
       })
     ).subscribe(); 
-  }
+  }  
+
 }
