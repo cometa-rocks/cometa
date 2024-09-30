@@ -162,6 +162,39 @@ services:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
     restart: always
 
+  ## FIXME
+  # Use this command to have mutiple containers of ollama.ai
+  # docker-compose -f docker-compose.yml up --scale cometa.emulator=3
+  emulator:
+    build:
+      context: ./backend/mobile/emulator
+      dockerfile: Dockerfile
+    container_name: cometa.mobile.emulator
+    ports:
+    - "4723:4723" #appium
+    - "6080:6080"
+    - "5900:5900"
+    working_dir: /app 
+    devices:
+      - "/dev/kvm:/dev/kvm"  # Pass KVM device for hardware acceleration
+    privileged: true  # Required for KVM and to access hardware features
+    environment:
+      - DISPLAY=:0
+
+    networks:
+      - testing
+    restart: always
+    
+  ## FIXME
+  mobile.novnc:
+    build: 
+      context: ./backend/mobile  # Build context, specifying the current directory
+      dockerfile: DockerfileNoVNC  # Reference to the Dockerfile
+    container_name: mobile.novnc
+    ports:
+    - "6081:6081"
+
+
 networks:
   testing:
     driver: "bridge"
