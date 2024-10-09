@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0",
+  "version": "3.0.2",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,26 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.2",
+      "date": "2024-10-09",
+      "features": [
+        {
+          "title": "#4694 - Updated Keyboard Shortcut",
+          "description": "The keyboard shortcut for the feature that was previously triggered by pressing 'D' is now updated to 'O'."
+        }
+      ]
+    },
+    {
+      "version": "3.0.1",
+      "date": "2024-09-26",
+      "features": [
+        {
+          "title": "#4694 Implemented 'What's New' Section and Profile Updates",
+          "description": "Added a 'What's New' section in the Home tab, updated Profile with new changes, corrected typos, and adjusted the draggable icon for alignment."
+        }
+      ]
+    },
     {
       "version": "3.0.0",
       "date": "2024-09-21",
