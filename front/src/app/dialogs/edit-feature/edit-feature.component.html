@@ -33,7 +33,9 @@
               <mat-select
                 [(ngModel)]="selected_department"
                 [disabled]="data.mode === 'edit'"
-                formControlName="department_name">
+                formControlName="department_name"
+                (focus)="onInputFocus()"
+                (blur)="onInputBlur()">
                 <mat-option
                   *ngFor="let dep of departments$ | sortBy: 'department_name'"
                   [value]="dep.department_name">
@@ -45,7 +47,9 @@
               <mat-label>Application</mat-label>
               <mat-select
                 [(ngModel)]="selected_application"
-                formControlName="app_name">
+                formControlName="app_name"
+                (focus)="onInputFocus()"
+                (blur)="onInputBlur()">
                 <mat-option
                   *ngFor="let app of applications$ | sortBy: 'app_name'"
                   [value]="app.app_name">
@@ -57,7 +61,9 @@
               <mat-label>Environment</mat-label>
               <mat-select
                 [(ngModel)]="selected_environment"
-                formControlName="environment_name">
+                formControlName="environment_name"
+                (focus)="onInputFocus()"
+                (blur)="onInputBlur()">
                 <mat-option
                   *ngFor="let env of environments$ | sortBy: 'environment_name'"
                   [value]="env.environment_name">
