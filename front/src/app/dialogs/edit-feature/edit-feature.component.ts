@@ -461,7 +461,7 @@ export class EditFeature implements OnInit, OnDestroy {
             this.editVariables();
           }
           break;
-        case KEY_CODES.O:
+        case KEY_CODES.D:
             // Depends on other feature
             this.toggleDependsOnOthers(KeyPressed);
           break;
@@ -512,7 +512,7 @@ export class EditFeature implements OnInit, OnDestroy {
   toggleDependsOnOthers(KeyPressed) {
     let checkboxValue = this.featureForm.get('send_mail').value;
     let dependsOnOthers = this.featureForm.get('depends_on_others').value;
-    if(KeyPressed === KEY_CODES.O) {
+    if(KeyPressed === KEY_CODES.D) {
       dependsOnOthers = this.featureForm.get('depends_on_others').value;
       this.featureForm.get('depends_on_others').setValue(!dependsOnOthers);
     }
