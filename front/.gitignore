@@ -9,6 +9,7 @@ dist/
 # dependencies
 node_modules/
 .angular/
+appium-inspector/
 
 # IDEs and editors
 /.idea
