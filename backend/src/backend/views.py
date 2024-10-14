@@ -57,8 +57,6 @@ from django.db import connection
 import secrets, traceback
 from openpyxl import Workbook
 import base64
-# just to import secrets
-sys.path.append("/code")
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 # import humanize for time conversion

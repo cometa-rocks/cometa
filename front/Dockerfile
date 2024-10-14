@@ -26,7 +26,7 @@ RUN apt install git
 WORKDIR /app
 
 # Clone git repository
-RUN git clone https://github.com/appium/appium-inspector.git
+RUN git clone https://github.com/AMVARA-CONSULTING/appium-inspector.git
 
 WORKDIR /app/appium-inspector
 
@@ -35,7 +35,9 @@ RUN npm i
 
 # Build the Angular application
 RUN npm run build:browser
-RUN ls -la /app/appium-inspector && sleep 11
+RUN ls -la /app/appium-inspector
+RUN ls -la /app/appium-inspector/dist-browser/
+RUN ls -la /app/appium-inspector/dist-browser/locales/
 RUN ls
 
 # Stage 2: Serve the application with Nginx

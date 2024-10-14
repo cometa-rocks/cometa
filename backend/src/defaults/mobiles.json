@@ -1,0 +1,16 @@
+[
+    {
+        "model": "mobile.Mobile",
+        "pk": 1,
+        "fields": {
+            "mobile_json": {
+                "image": "cometa/emulator_appium_api_31",
+                "android_version": "12",
+                "api_level": "31",
+                "deviceName": "emulator-5554",
+                "architecture ": "x86_64" 
+            },
+            "slug": "Default"
+        }
+    }
+]
