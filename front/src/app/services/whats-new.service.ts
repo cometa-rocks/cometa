@@ -109,7 +109,7 @@ export class WhatsNewService {
     // Open What's New Dialog
     this._dialog
       .open(WhatsNewDialog, {
-        data: changes,
+        data: changes || [],
         disableClose: true,
         autoFocus: false,
         closeOnNavigation: false,
