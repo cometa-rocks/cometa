@@ -1,5 +1,5 @@
 {
-  "version": "3.0.1",
+  "version": "3.0.2",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.2",
+      "date": "2024-10-09",
+      "features": [
+        {
+          "title": "#4694 - Updated Keyboard Shortcut",
+          "description": "The keyboard shortcut for the feature that was previously triggered by pressing 'D' is now updated to 'O'."
+        }
+      ]
+    },
     {
       "version": "3.0.1",
       "date": "2024-09-26",
