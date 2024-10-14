@@ -19,6 +19,7 @@ function install_appium_inspector(){
 	git clone https://github.com/AMVARA-CONSULTING/appium-inspector.git
     echo -e "\e[37mchanged directory to /app/appium-inspector...\e[0m"
 	cd /app/appium-inspector
+	rm .git -R
 	echo -e "\e[37mInstalling dependencies...\e[0m"
     npm i
 	echo -e "\e[37mbuiling the appium inspector...\e[0m"
