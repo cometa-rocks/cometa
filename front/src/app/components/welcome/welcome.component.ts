@@ -13,7 +13,7 @@
 import {
   Component,
   ChangeDetectionStrategy,
-  HostListener,
+  HostListener
 } from '@angular/core';
 import { Select } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -25,6 +25,11 @@ import { UserState } from '@store/user.state';
 import { map, Observable } from 'rxjs';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { NgIf, AsyncPipe } from '@angular/common';
+import { WhatsNewService } from '@services/whats-new.service';
+import { CommonModule } from '@angular/common';
+import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
+import { ConfigState } from '@store/config.state';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'cometa-welcome',
@@ -32,14 +37,15 @@ import { NgIf, AsyncPipe } from '@angular/common';
   styleUrls: ['./welcome.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [NgIf, LetDirective, AsyncPipe],
+  imports: [NgIf, LetDirective, AsyncPipe, CommonModule, MatDialogModule],
 })
 export class WelcomeComponent {
   constructor(
     private _tours: Tours,
     public _sharedActions: SharedActionsService,
     private _tourService: TourService,
-    private _joyRide: JoyrideService
+    private _joyRide: JoyrideService,
+    private whatsNewService: WhatsNewService
   ) {
     // Get the tours data from the current user
     this.tours$ = this.settings$.pipe(
@@ -66,6 +72,19 @@ export class WelcomeComponent {
         );
       })
     );
+  }
+
+  /** Get formatted date from last changelog item, can be null */
+  @ViewSelectSnapshot(ConfigState.getLastChangelogDate) date: string | null;
+
+  changes: LogChange[] = [];
+  features: LogChange[] = [];
+  bugfixes: LogChange[] = [];
+
+  ngOnInit(){
+    this.changes = this.whatsNewService.collectAllChanges();
+    this.features = this.changes.filter(change => change.type === 'feature');
+    this.bugfixes = this.changes.filter(change => change.type === 'bugfix');
   }
 
   // Gets the name of the current user
