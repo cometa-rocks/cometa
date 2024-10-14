@@ -462,7 +462,7 @@ export class EditFeature implements OnInit, OnDestroy {
           }
           break;
         case KEY_CODES.D:
-            // Depends on other featre
+            // Depends on other feature
             this.toggleDependsOnOthers(KeyPressed);
           break;
         case KEY_CODES.M:
