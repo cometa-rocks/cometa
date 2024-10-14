@@ -5,7 +5,7 @@ import time
 import subprocess
 import requests
 from PIL import Image
-from src.backend.common import *
+from backend.common import *
 from django.db.models import Sum, Value
 from django.db.models.functions import Coalesce
 import asyncio

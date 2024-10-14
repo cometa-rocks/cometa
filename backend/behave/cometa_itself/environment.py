@@ -371,7 +371,7 @@ def before_all(context):
         )
         # If network logging enabled then fetch vulnerability headers info from server
         response = requests.get(
-            "http://cometa_django:8000/security/vulnerable_headers/",
+            "http://cometa_django:8000/api/security/vulnerable_headers/",
             headers={"Host": "cometa.local"},
         )
         logger.info("vulnerable headers info received")
@@ -709,7 +709,7 @@ def after_all(context):
         logger.info("Sending vulnerability_headers")
         # request to save vulnerable network headers
         response = requests.post(
-            "http://cometa_django:8000/security/network_headers/",
+            "http://cometa_django:8000/api/security/network_headers/",
             headers=headers,
             data=json.dumps(
                 {

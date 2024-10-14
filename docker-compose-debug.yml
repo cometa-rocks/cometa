@@ -18,6 +18,7 @@ services:
       driver: json-file
     command: bash start.sh -d
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa/screenshots:/code/behave/screenshots
       - ./data/cometa/videos:/code/behave/videos
       - ./backend:/code
