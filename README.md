@@ -53,9 +53,7 @@ Here is what you need to be able to run Cometa.
 	| pypi.org                                   | The Cometa components `cometa_behave`, `cometa_django`, and `cometa_scheduler` rely on Python libraries and download dependencies from this URL.              |
 	| kubernetes-charts.storage.googleapis.com   | Proxy clearance for accessing Kubernetes charts.                                                                                                              |
 	| deb.debian.org  <br> security.debian.org (http and https) | Most of the containers running within cometa uses debian based container, so Debian official repositories are needed for downloading and updating dependencies. |
-	| deb.debian.org (http and https) 		        | Debian backports repository for newer packages available for stable releases.                                                                                  |
-	| deb-multimedia.org (http and https)                   | Debian multimedia repository for additional multimedia-related packages.                                                                                       |
-	| deb.debian.org  (http and https) 			| Debian "non-free" and "contrib" repositories for software outside of Debian's strict free software guidelines.                                                  |
+	| deb-multimedia.org (http and https)                   | Debian multimedia repository for additional multimedia-related packages.                                                    |
 
   <br><p>
 
