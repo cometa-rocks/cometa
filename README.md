@@ -39,22 +39,24 @@ Here is what you need to be able to run Cometa.
   Co.Meta needs to be able to fetch software from the internet. For example python libraries, pre-built containers with virtual browser.
 
   When installing Co.meta in a corporate environment, make sure to whitelist the following domains on the Secure Proxy:
+  
+* **List of FQDNs (Full Qualified Domain Names) to clear proxy**
+	| **Domain** | **Reason**                                                                                                                                                    |
+	|--------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+	| git.amvara.de                                                | Configure GitLab-runner to provide updates to Cometa. The server should have access to the Amvara GitLab.                                                      |
+	| d.amvara.de                                                  | Set up Discord notifications for monitoring Cometa servers (storage, errors, feature executions, etc.) and sending notifications to the Amvara team.           |
+	| github.com <br> raw.githubusercontent.com <br> media.githubusercontent.com <br> avatars.githubusercontent.com <br> gist.githubusercontent.com | Cometa downloads dependencies from GitHub repositories, as it is built on open-source libraries.                                                              |
+	| docs.docker.com <br> download.docker.com <br> store.docker.com | These URLs are used to download and update Docker and Docker Compose installers when updates are required.                                                     |
+	| hub.docker.com                             | Cometa runs on Docker containers and downloads necessary images from Docker Hub, such as Python, Apache, Node.js, etc.                                         |
+	| registry.npmjs.org <br> www.npmjs.com <br> deb.nodesource.com | Cometa runs a container called `cometa_socket`, which uses Node.js and npm.                                                                                    |
+	| repo.maven.apache.org                      | Cometa runs a container called `cometa_selenoid`, which downloads JAR libraries from Maven.                                                                    |
+	| pypi.org                                   | The Cometa components `cometa_behave`, `cometa_django`, and `cometa_scheduler` rely on Python libraries and download dependencies from this URL.              |
+	| kubernetes-charts.storage.googleapis.com   | Proxy clearance for accessing Kubernetes charts.                                                                                                              |
+	| deb.debian.org  <br> security.debian.org (http and https) | Most of the containers running within cometa uses debian based container, so Debian official repositories are needed for downloading and updating dependencies. |
+	| deb.debian.org (http and https) 		        | Debian backports repository for newer packages available for stable releases.                                                                                  |
+	| deb-multimedia.org (http and https)                   | Debian multimedia repository for additional multimedia-related packages.                                                                                       |
+	| deb.debian.org  (http and https) 			| Debian "non-free" and "contrib" repositories for software outside of Debian's strict free software guidelines.                                                  |
 
-  * https://*.amvara.de
-  * https://github.com
-  * https://*.githubusercontent.com
-  * https://*.docker.com
-  * https://*.docker.io
-  * https://registry.npmjs.org
-  * https://www.npmjs.com
-  * https://repo.maven.apache.org
-  * https://kubernetes-charts.storage.googleapis.com
-  * https://plugins.gradle.org:443
-  * https://registry.yarnpkg.com
-  * https://deb.nodesource.com
-  * https://mod-auth-openidc.org
-  * https://pypi.org
-  * http://*.debian.org and https://*.debian.org
   <br><p>
 
   For corporate environments using a Secure Proxy the Proxy usage needs to be configured:
