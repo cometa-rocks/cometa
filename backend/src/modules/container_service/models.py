@@ -1,7 +1,7 @@
 from django.db import models
 from backend.models import OIDCAccount
 from .service_manager import ServiceManager
-
+from backend.ee.modules.mobile.models import Mobile
 
 # File Status
 service_type = (
@@ -19,10 +19,10 @@ service_status = (
 # This models keeps track of containers created by user i.e. android emulators and any other container
 class ContainerService(models.Model):
     id = models.AutoField(primary_key=True)
-    container_image = models.CharField(max_length=250, blank=False)
+    image = models.ForeignKey(Mobile, blank=True, on_delete=models.DO_NOTHING, null=True, default=None) #mobile_id
     service_id = models.TextField(blank=False,unique=True)
-    service_status = models.CharField(choices=service_status, max_length=15, default="Exited", )
-    service_type = models.CharField(choices=service_type, max_length=15, default="Emulator", )
+    service_status = models.CharField(choices=service_status, max_length=15, default="Exited")
+    service_type = models.CharField(choices=service_type, max_length=15, default="Emulator")
     information = models.JSONField(default=dict, null=False, blank=False)
     user = models.ForeignKey(
         OIDCAccount,
@@ -41,10 +41,11 @@ class ContainerService(models.Model):
         
     def save(self, *args, **kwargs):
         
-        if not self.id:             
+        if not self.id: 
             # Perform delete and return true
+            image = self.image.mobile_json['image']
             service_manager = ServiceManager()
-            service_manager.prepare_emulator_service_configuration(image=self.container_image)
+            service_manager.prepare_emulator_service_configuration(image=image)
             service_details = service_manager.create_service()
             self.service_id = service_details["Id"]
             self.service_status = "Running"

@@ -5,14 +5,17 @@ class ContainerServiceSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ContainerService
-        fields = '__all__'
-        # fields = ['id','container_image', 'service_id', 'service_type']
+        # fields = '__all__'
+        fields = ['id', 'image', 'service_id', 'service_type']
         extra_kwargs = {
-            'container_image': {'required': False},
+            'image': {'required': True},
             'service_id': {'required': False},
-            'service_type': {'required': False},
+            'service_type': {'required': True},
             'information': {'required': False},
-            'user': {'required': False},
+            'user': {'required': True},
         }
 
-    
+    # def create(self, validated_data):
+    #     if 'container_image' not in validated_data or not validated_data['container_image']:
+    #         raise serializers.ValidationError({"container_image": "This field is required."})
+    #     return super().create(validated_data)

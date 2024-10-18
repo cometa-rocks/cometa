@@ -1,0 +1,77 @@
+@import 'color';
+@import 'breakpoints';
+
+:host {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  min-height: 200px;
+  background-color: rgba(0, 0, 0, 0.02);
+  position: relative;
+}
+
+h4 {
+  color: $blue;
+}
+
+@keyframes slideDown {
+  from {
+    max-height: 0;
+  }
+  to {
+    max-height: 500px;
+  }
+}
+
+.devices {
+  .mobile-selector-box {
+    .mobiles {
+      margin: 20px;
+      .mobile {
+        // background-image: url('assets/Mobile.png'); /* No quotes around url() */
+        padding: 5px 37px;
+        margin-bottom: 15px;
+        min-height: 200px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        position: relative;
+        display: flex;
+        align-items: center;
+
+        .mobile-icon {
+          width: 100px;
+          height: 200px;
+          background-size: 82px;
+          /* No quotes around pixel values */
+          background-position: left;
+          background-repeat: no-repeat;
+          position: relative;
+        }
+        .mobile-details {
+          // margin-left: 220px; /* Adjust to give space for background image */
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+
+          div {
+            margin-bottom: 10px;
+            font-size: 14px;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+.mat-dialog-actions {
+  padding: 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 52px;
+  align-items: center;
+  box-sizing: content-box;
+  margin-bottom: -15px;
+  width: 100%;
+}
