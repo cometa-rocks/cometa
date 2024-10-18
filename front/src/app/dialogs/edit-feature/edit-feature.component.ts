@@ -48,6 +48,7 @@ import { EditVariablesComponent } from '@dialogs/edit-variables/edit-variables.c
 import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
+import { MobileListComponent } from '@dialogs/mobile-list/mobile-list.component';
 import { EmailTemplateHelp } from './email-template-help/email-template-help.component';
 import { KEY_CODES } from '@others/enums';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -131,7 +132,8 @@ import { DraggableWindowModule } from '@modules/draggable-window.module'
     SortByPipe,
     HumanizeBytesPipe,
     TranslateModule,
-    DraggableWindowModule
+    DraggableWindowModule,
+    MobileListComponent
   ],
 })
 export class EditFeature implements OnInit, OnDestroy {
@@ -408,6 +410,17 @@ export class EditFeature implements OnInit, OnDestroy {
       .afterClosed()
       .subscribe(res => {
         
+      });
+  }
+
+  // Open variables popup, only if a environment is selected (see HTML)
+  openStartEmulatorScreen() {
+    this._dialog
+      .open(MobileListComponent, {
+        panelClass: 'edit-variable-panel',
+      })
+      .afterClosed()
+      .subscribe(res => {
       });
   }
 

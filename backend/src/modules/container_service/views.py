@@ -3,6 +3,7 @@
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework import viewsets, mixins
+from backend.ee.modules.mobile.models import Mobile
 
 # Django Imports
 from django.http import HttpResponse, JsonResponse
@@ -45,7 +46,15 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
 
     # @require_permissions("manage_house_keeping_logs")
     def create(self, request, *args, **kwargs):
-        print("asdf")
+        request.data['user_id'] = request.session['user']['user_id']
+        # request.data['image_id'] = mobile_id=request.data['image']
+        # request.data['user_id'] = request.session['user']['user_id']
+        # serializer = self.serializer_class(data=request.data)
+        # if serializer.is_valid():
+        #     serializer.save()
+        #     return self.response_manager.created_response(data=serializer.data)
+        # else:
+        #     return self.response_manager.validation_error_response(error_data=serializer.errors)            
         return super().create(request, args, kwargs)
     
     def delete(self, request, *args, **kwargs):

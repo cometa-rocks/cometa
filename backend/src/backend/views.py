@@ -1568,7 +1568,7 @@ def schedule_update(feature_id, schedule, user_id):
             schedule_model = Schedule.objects.create(
                 feature_id=feature.pk,
                 schedule=schedule,
-                owner_id=user_id,
+                owner_id=user_id, 
                 delete_after_days=0
             )
             schedule_model.save()

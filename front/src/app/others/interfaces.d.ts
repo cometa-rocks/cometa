@@ -1069,3 +1069,29 @@ interface Configuration {
   can_be_edited: boolean;
   disabled:boolean;
 }
+
+interface MobileJSON {
+  image: string;
+  android_version: string;
+  api_level: string;
+  deviceName: string;
+  architecture: boolean;
+  icon?: string
+}
+
+interface IMobile {
+  mobile_id: number;
+  mobile_json: MobileJSON;
+}
+
+
+interface Container {
+  id: number;
+  image: string;
+  service_id: string;
+  service_status: string;
+  service_type: string;
+  information?: string;
+  user?: OIDCUserInfo
+  created_on: string
+}

@@ -1,0 +1,43 @@
+<mat-dialog-content>
+  <ng-container>
+    <!-- Available Devices -->
+    <div class="devices">
+      <!-- mobile selection section -->
+      <div class="mobile-selector-box">
+        <h4>Mobiles</h4>
+        <div class="mobiles">
+          <!-- Iterate over mobiles list -->
+          <div class="mobile" *ngFor="let mobile of mobile_containers">
+            <div *ngLet="isThisMobileContainerRunning() as isRunning">
+              <button *ngIf="!isRunning" (click)="startMobile(mobile.mobile_id)">Start</button>
+              <button *ngIf="isRunning" (click)="stopMobile(container)">Stop</button>
+              <button *ngIf="isRunning" (click)="inspectMobile(container)">Inspect</button>
+            </div>
+
+            <i class="mobile-icon" [style.backgroundImage]="mobile | mobileIcon">
+                
+            </i><!-- Display Mobile JSON Data -->
+            <div class="mobile-details" >              
+              <div><strong>Image:</strong> {{ mobile.mobile_json.image }}</div>
+              <div><strong>API Level:</strong> {{ mobile.mobile_json.api_level }}</div>
+              <div><strong>Device Name:</strong> {{ mobile.mobile_json.deviceName }}</div>
+              <div><strong>Architecture:</strong> {{ mobile.mobile_json.architecture }}</div>
+              <div><strong>Android Version:</strong> {{ mobile.mobile_json.android_version }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+
+  <ng-template #loading>
+    <mat-spinner color="primary" diameter="30"></mat-spinner>
+  </ng-template>
+  <ng-template #text>
+    <div>This environment has no variables yet.</div>
+  </ng-template>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
+</mat-dialog-actions>
