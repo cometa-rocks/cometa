@@ -108,6 +108,9 @@ class ResponseManager:
             return JsonResponse(dict_data, status=status.HTTP_200_OK)
         else:
             return JsonResponse(list_data, status=status.HTTP_200_OK)
+        
+    def not_implemented_response(self):
+        return JsonResponse({"error":"Endpoint/Method not implemented"}, status=status.HTTP_200_OK)
 
     def server_error_response(self, exception: Exception = None):
 

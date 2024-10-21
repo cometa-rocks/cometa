@@ -1076,22 +1076,30 @@ interface MobileJSON {
   api_level: string;
   deviceName: string;
   architecture: boolean;
+  automationName: string;
   icon?: string
 }
 
 interface IMobile {
   mobile_id: number;
   mobile_json: MobileJSON;
+  capabilities: any;
+  // These 2 fields below are related only to the frontend, does not have be stored in the backend
+  isShared?: boolean;
+  selectedAPKFileID?: number;
 }
 
 
 interface Container {
   id: number;
-  image: string;
+  image: number | IMobile;
   service_id: string;
   service_status: string;
   service_type: string;
   information?: string;
   user?: OIDCUserInfo
-  created_on: string
+  created_on: string,
+  created_by?: number; 
+  apk_file?: number | File
+  shared: boolean
 }

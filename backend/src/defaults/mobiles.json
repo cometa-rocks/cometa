@@ -6,11 +6,18 @@
             "mobile_id":1,
             "mobile_json": {
                 "image": "cometa/emulator_appium_api_31",
-                "android_version": "12",
+                "android_version": "12.0",
                 "api_level": "31",
                 "deviceName": "emulator-5554",
+                "automationName": "UiAutomator2",
                 "architecture": "x86_64" 
-            }
+            },
+            "capabilities" : {
+                "platformName": "Android",
+                "appium:deviceName": "emulator-5554",
+                "appium:automationName": "UiAutomator2",
+                "appium:platformVersion": "12.0" 
+              }
         }
     }
 ]
