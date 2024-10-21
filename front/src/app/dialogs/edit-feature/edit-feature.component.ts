@@ -415,9 +415,18 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // Open variables popup, only if a environment is selected (see HTML)
   openStartEmulatorScreen() {
+    let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk'));
+    const departmentId = this.departments$.find(
+      dep =>
+        dep.department_name === this.featureForm.get('department_name').value
+    ).department_id;
     this._dialog
       .open(MobileListComponent, {
-        panelClass: 'edit-variable-panel',
+        data: {
+          department_id: departmentId,
+          uploadedAPKsList: uploadedAPKsList
+        },
+        panelClass: 'mobile-emulator-panel',
       })
       .afterClosed()
       .subscribe(res => {
