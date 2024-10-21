@@ -2,42 +2,137 @@
   <ng-container>
     <!-- Available Devices -->
     <div class="devices">
-      <!-- mobile selection section -->
+      <!-- Mobile selection section -->
       <div class="mobile-selector-box">
-        <h4>Mobiles</h4>
+        <h4>Mobile Devices</h4>
         <div class="mobiles">
-          <!-- Iterate over mobiles list -->
-          <div class="mobile" *ngFor="let mobile of mobile_containers">
-            <div *ngLet="isThisMobileContainerRunning() as isRunning">
-              <button *ngIf="!isRunning" (click)="startMobile(mobile.mobile_id)">Start</button>
-              <button *ngIf="isRunning" (click)="stopMobile(container)">Stop</button>
-              <button *ngIf="isRunning" (click)="inspectMobile(container)">Inspect</button>
-            </div>
+          <!-- Iterate over mobile containers list -->
+          <div class="mobile" *ngFor="let mobile of mobiles">
+            <div *ngLet="isThisMobileContainerRunning(mobile.mobile_id) as runningContainer">
+              <!-- Mobile details -->
+              <div class="mobile-details">
+                <div>
+                  <strong>API Level:</strong>
+                  {{ mobile.mobile_json.api_level }}
+                </div>
+                <div>
+                  <i class="material-icons">info</i>
+                  <strong>Device Name:</strong>
+                  {{ mobile.mobile_json.deviceName }}
+                </div>
+                <div>
+                  <i class="material-icons">memory</i>
+                  <strong>Architecture:</strong>
+                  {{ mobile.mobile_json.architecture }}
+                </div>
+                <div>
+                  <i class="material-icons">phone_android</i>
+                  <strong>Android Version:</strong>
+                  {{ mobile.mobile_json.android_version }}
+                </div>
+                <div>
+                  <i class="material-icons">phone_android</i>
+                  <strong>Status:</strong>
+                  {{ runningContainer?"Running":"Stop" }}
+                </div>
 
-            <i class="mobile-icon" [style.backgroundImage]="mobile | mobileIcon">
-                
-            </i><!-- Display Mobile JSON Data -->
-            <div class="mobile-details" >              
-              <div><strong>Image:</strong> {{ mobile.mobile_json.image }}</div>
-              <div><strong>API Level:</strong> {{ mobile.mobile_json.api_level }}</div>
-              <div><strong>Device Name:</strong> {{ mobile.mobile_json.deviceName }}</div>
-              <div><strong>Architecture:</strong> {{ mobile.mobile_json.architecture }}</div>
-              <div><strong>Android Version:</strong> {{ mobile.mobile_json.android_version }}</div>
+                <!-- Share emulator checkbox -->
+                <div>
+                  <input type="checkbox" id="isShared_{{ mobile.mobile_id }}" [checked]="mobile.isShared"
+                    (change)="updateSharedStatus($event, mobile, runningContainer)">
+                  <label for="isShared_{{ mobile.mobile_id }}">Share this emulator with others</label>
+                  
+                </div>
+                <div>
+                  <p>Upload apk files in the upload section of edit feature screen and select apk from here to install in the mobile </p>
+                  <select id="apkFileSelectBox_{{ mobile.mobile_id }}"
+                    (change)="updateAPKSelection($event, mobile, runningContainer)">
+                    <option value="None">Select App</option>
+                    <option *ngFor="let apk_files of this.data.uploadedAPKsList" value="{{apk_files.id}}">
+                      {{this.apk_files.name}}</option>
+                  </select>
+                  <button (click)="installAPK( mobile, runningContainer)">Install App</button>
+                </div>
+              </div>
+
+              <!-- Actions: Start, Stop, Inspect -->
+              <div>
+                <button *ngIf="!runningContainer" [disabled]="isLoading$ | async"
+                  (click)="startMobile(mobile.mobile_id)">
+                  Start
+                </button>
+                <button *ngIf="runningContainer" [disabled]="isLoading$ | async" (click)="stopMobile(mobile.mobile_id)">
+                  Stop
+                </button>
+                <button *ngIf="runningContainer" [disabled]="isLoading$ | async"
+                  (click)="inspectMobile(runningContainer, mobile)">
+                  Inspect
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+
+
+    <!-- Available Devices -->
+    <div class="devices">
+      <!-- Mobile selection section -->
+      <div class="mobile-selector-box">
+        <h4>Shared Mobile Devices</h4>
+        <div class="mobiles">
+          <!-- Iterate over mobile containers list -->
+          <div class="mobile" *ngFor="let container of sharedMobileContainers">
+
+            <!-- Mobile details -->
+            <div class="mobile-details">
+              <div>
+                <strong>API Level:</strong>
+                {{ container.image.mobile_json.api_level }}
+              </div>
+              <div>
+                <i class="material-icons">info</i>
+                <strong>Device Name:</strong>
+                {{ container.image.mobile_json.deviceName }}
+              </div>
+              <div>
+                <i class="material-icons">memory</i>
+                <strong>Architecture:</strong>
+                {{ container.image.mobile_json.architecture }}
+              </div>
+              <div>
+                <i class="material-icons">phone_android</i>
+                <strong>Android Version:</strong>
+                {{ container.image.mobile_json.android_version }}
+              </div>
+
+              <!-- Share emulator checkbox -->
+              <div *ngIf="container.apk_file">
+                <p>Uploaded and Installed apk file {{ container.apk_file.name}}</p>
+              </div>
+            </div>
+
+            <!-- Actions: Start, Stop, Inspect -->
+            <div>
+              <button [disabled]="isLoading$ | async" (click)="inspectMobile(container, container.image)">
+                Inspect
+              </button>
+            </div>
+          </div>
+          <p *ngIf="sharedMobileContainers.length==0">There are no shared mobiles available for you. You can ask
+            your teammates to share their mobile
+            emulators so you can collaborate on the same machine.</p>
+        </div>
+      </div>
+    </div>
+
   </ng-container>
 
 
-  <ng-template #loading>
-    <mat-spinner color="primary" diameter="30"></mat-spinner>
-  </ng-template>
-  <ng-template #text>
-    <div>This environment has no variables yet.</div>
-  </ng-template>
 </mat-dialog-content>
+
 <mat-dialog-actions>
   <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
 </mat-dialog-actions>

@@ -26,18 +26,21 @@ h4 {
 .devices {
   .mobile-selector-box {
     .mobiles {
+      display: flex;
+      gap: 50px;
       margin: 20px;
       .mobile {
         // background-image: url('assets/Mobile.png'); /* No quotes around url() */
-        padding: 5px 37px;
+        padding: 20px 20px;
         margin-bottom: 15px;
-        min-height: 200px;
+        min-height: 230px;
         border: 1px solid #ddd;
         border-radius: 10px;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         position: relative;
         display: flex;
         align-items: center;
+        flex-direction: column;
 
         .mobile-icon {
           width: 100px;
@@ -64,7 +67,6 @@ h4 {
   }
 }
 
-
 .mat-dialog-actions {
   padding: 8px 0;
   display: flex;
@@ -73,5 +75,21 @@ h4 {
   align-items: center;
   box-sizing: content-box;
   margin-bottom: -15px;
+  width: 50%;
+}
+
+mat-dialog-content {
   width: 100%;
+  height: 100%;
+
+}
+
+.mobiles {
+  display: flex;
+  flex-direction: row;
+}
+
+.disabled-div {
+  pointer-events: none;  /* Prevent any interaction */
+  opacity: 0.5;          /* Optional: make it look disabled */
 }

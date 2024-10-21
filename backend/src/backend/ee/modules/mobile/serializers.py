@@ -7,7 +7,8 @@ class MobileSerializer(serializers.ModelSerializer):
         model = Mobile
         fields = '__all__'
         extra_kwargs = {
-            'mobile_json': {'required': True}
+            'mobile_json': {'required': True},
+            'capabilities': {'required': True}
         }
 
     

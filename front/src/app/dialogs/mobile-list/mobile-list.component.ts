@@ -7,6 +7,7 @@ import {
   OnInit,
   Input,
   ViewChild,
+  Inject,
 } from '@angular/core';
 
 import {
@@ -14,31 +15,19 @@ import {
   MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
   MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
-import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserFavouritedPipe } from '@pipes/browser-favourited.pipe';
-import { BrowserstackState } from '@store/browserstack.state';
-import { UserState } from '@store/user.state';
 import { PlatformSortPipe } from '@pipes/platform-sort.pipe';
-import { map } from 'rxjs/operators';
-import { BrowsersState } from '@store/browsers.state';
-import { BehaviorSubject } from 'rxjs';
-import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
-import { classifyByProperty } from 'ngx-amvara-toolbox';
-import { User } from '@store/actions/user.actions';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { Store } from '@ngxs/store';
-import { LyridBrowsersState } from '@store/browserlyrid.state';
 import { TranslateModule } from '@ngx-translate/core';
 import { SortByPipe } from '@pipes/sort-by.pipe';
 import { MobileIconPipe } from '@pipes/mobile-icon.pipe';
-import { AddLatestPipe } from '../../pipes/add-latest.pipe';
 import { BrowserComboTextPipe } from '../../pipes/browser-combo-text.pipe';
 import { VersionSortPipe } from '@pipes/version-sort.pipe';
-import { FormatVersionPipe } from '@pipes/format-version.pipe';
 import { TranslateNamePipe } from '@pipes/translate-name.pipe';
 import { CheckBrowserExistsPipe } from '@pipes/check-browser-exists.pipe';
 import { CheckSelectedBrowserPipe } from '@pipes/check-selected-browser.pipe';
-import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
 import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { MatIconModule } from '@angular/material/icon';
@@ -59,9 +48,9 @@ import {
   TitleCasePipe,
   KeyValuePipe,
 } from '@angular/common';
-import { MatSelect } from '@angular/material/select';
 import { ApiService } from '@services/api.service';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
+import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
+import { UserState } from '@store/user.state';
 
 /**
  * MobileListComponent
@@ -108,87 +97,206 @@ import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
     BrowserComboTextPipe,
     SortByPipe,
     TranslateModule,
-    MatLegacyDialogModule
+    MatLegacyDialogModule,
   ],
 })
 export class MobileListComponent implements OnInit {
   constructor(
     private _api: ApiService,
     private _cdr: ChangeDetectorRef,
-  ) {}
+    @Inject(MAT_DIALOG_DATA) public data: any,
+  ) { }
+  @ViewSelectSnapshot(UserState) user!: UserInfo;
 
   // Declare the variable where the API result will be assigned
-  mobile_containers: IMobile[] = [];
-  running_mobile_containers : Container[] = []
-
+  mobiles: IMobile[] = [];
+  runningMobiles: Container[] = [];
+  isLoading$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  sharedMobileContainers: Container[] = [];
+  // userInformation = UserState.get
   ngOnInit(): void {
+
     // Call the API service on component initialization
     this._api.getMobileList().subscribe(
-      (data: IMobile[]) => {
+      (mobiles: IMobile[]) => {
         // Assign the received data to the `mobile` variable
-        this.mobile_containers = data;
-        console.log(this.mobile_containers);
+        this.mobiles = mobiles;
+
+        // Call the API service on component initialization
+        this._api.getContainersList().subscribe(
+          (containers: Container[]) => {
+            for (let container of containers) {
+              if (container.shared && this.user.user_id != container.created_by) {
+                container.image = this.mobiles.find(
+                  m => m.mobile_id === container.image
+                );
+                container.apk_file = this.data.uploadedAPKsList.find(
+                  m => m.mobile_id === container.apk_file
+                );
+                this.sharedMobileContainers.push(container);
+              } else {
+                this.runningMobiles.push(container);
+              }
+            }
+            console.log(this.runningMobiles);
+            this._cdr.detectChanges();
+          },
+          error => {
+            // Handle any errors
+            console.error(
+              'An error occurred while fetching the containers list',
+              error
+            );
+          }
+        );
         this._cdr.detectChanges();
       },
-      (error) => {
+      error => {
         // Handle any errors
-        console.error('An error occurred while fetching the mobile list', error);
+        console.error(
+          'An error occurred while fetching the mobile list',
+          error
+        );
+      }
+    );
+
+    this.isLoading$.subscribe(bool => {
+      console.log('Boolean: ', bool);
+    });
+  }
+
+  updateSharedStatus(event: any, mobile: IMobile, container): void {
+    console.log(this.runningMobiles);
+    mobile.isShared = event.target.checked;
+    let updateData = { shared: mobile.isShared };
+    console.log('Stopping container: ', container);
+    this.isLoading$.next(true);
+
+    this._api.updateMobile(container.id, updateData).subscribe(
+      (updated_container: Container) => {
+        container = updated_container;
+        console.log('Mobile container updated: ', container.id);
+        console.log(this.runningMobiles);
+        this.isLoading$.next(false);
+        this._cdr.detectChanges();
+      },
+      error => {
+        this.isLoading$.next(false);
+        // Handle any errors
+        console.error(
+          'An error occurred while fetching the mobile list',
+          error
+        );
       }
     );
   }
-  
-  // This method starts the mobile container
-  startMobile(mobile_id): void {
-    let body = {
-      "image" : mobile_id,
-      "service_type" : "Emulator"
-    }
-    // Call the API service on component initialization
-    this._api.startEmulator(body).subscribe(
-      (container: Container) => {
-        // Assign the received data to the `mobile` variable
-        this.running_mobile_containers.push(container);
-        console.log(this.running_mobile_containers);
+
+  updateAPKSelection(event: any, mobile: IMobile): void {
+    mobile.selectedAPKFileID = event.target.value;
+  }
+
+  installAPK(mobile: IMobile, container): void {
+    let updateData = { apk_file: mobile.selectedAPKFileID };
+    this.isLoading$.next(true);
+    this._api.updateMobile(container.id, updateData).subscribe(
+      (updated_container: Container) => {
+        container = updated_container;
+        this.isLoading$.next(false);
         this._cdr.detectChanges();
       },
-      (error) => {
+      error => {
+        this.isLoading$.next(false);
         // Handle any errors
-        console.error('An error occurred while fetching the mobile list', error);
+        console.error(
+          'An error occurred while fetching the mobile list',
+          error
+        );
+      }
+    );
+  }
+
+  // filterSharedMobiles(): void {
+  //   this.sharedMobileContainers = this.mobile_containers.filter(mobile => {
+  //     const isRunning = this.running_mobile_containers
+  //   });
+  // }
+
+  // This method starts the mobile container
+  startMobile(mobile_id): void {
+    const mobile = this.mobiles.find(m => m.mobile_id === mobile_id);
+    this.isLoading$.next(true);
+    let body = {
+      image: mobile_id,
+      service_type: 'Emulator',
+      department_id: this.data.department_id,
+      shared: mobile.isShared === true ? true : false,
+      selected_apk_file_id: mobile.selectedAPKFileID,
+    };
+    console.log(body);
+    // Call the API service on component initialization
+    this._api.startMobile(body).subscribe(
+      (container: Container) => {
+        // Assign the received data to the `mobile` variable
+        this.runningMobiles.push(container);
+        console.log(this.runningMobiles);
+        this.isLoading$.next(true);
+        this._cdr.detectChanges();
+      },
+      error => {
+        this.isLoading$.next(false);
+        // Handle any errors
+        console.error(
+          'An error occurred while fetching the mobile list',
+          error
+        );
       }
     );
   }
 
   // This method stops the mobile container using ID
-  stopMobile(container:Container): void {
+  stopMobile(container: Container): void {
+    console.log('Stopping container: ', container);
+    this.isLoading$.next(true);
     // Call the API service on component initialization
-    this._api.stopEmulator(container.id).subscribe(
+    this._api.stopMobile(container.id).subscribe(
       (container: Container) => {
         // Assign the received data to the `mobile` variable
-        this.running_mobile_containers.filter(container=>{
-          container != container
-        });
-        console.log(this.running_mobile_containers);
+        // this.running_mobile_containers.filter(container=>{
+        //   container != container
+        // });
+        this.runningMobiles = this.runningMobiles.filter(
+          runningContainer => runningContainer.id !== container.id
+        );
+        console.log('Mobile container stopped: ', container.id);
+        console.log(this.runningMobiles);
+        this.isLoading$.next(false);
         this._cdr.detectChanges();
       },
-      (error) => {
+      error => {
+        this.isLoading$.next(false);
         // Handle any errors
-        console.error('An error occurred while fetching the mobile list', error);
+        console.error(
+          'An error occurred while fetching the mobile list',
+          error
+        );
       }
     );
   }
 
-  inspectMobile(container): void {
-
+  inspectMobile(container: Container, mobile: IMobile): void {
+    let path = '/mobile/inspector'
+    let host = window.location.hostname;
+    let capabilities = encodeURIComponent(JSON.stringify(mobile.capabilities))
+    let complete_url = `https://${host}/${path}?host=${host}&port=443&path=/emulator/${container.id}/&ssl=true&autoStart=true&capabilities=${capabilities}`
+    window.open(complete_url, '_blank');
   }
 
-  isThisMobileContainerRunning(container_image): Container | undefined {
-    for (let container of this.running_mobile_containers){
-      if (container.image==container_image){
-        return container
+  isThisMobileContainerRunning(mobile_id): Container | undefined {
+    for (let container of this.runningMobiles) {
+      if (container.image == mobile_id) {
+        return container;
       }
     }
-    return undefined
+    return undefined;
   }
-
-
 }

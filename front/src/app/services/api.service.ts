@@ -843,20 +843,43 @@ export class ApiService {
     );
   }
   /**
+   * Get the mobile emulators list
+   * @returns Observable<IMobile>
+   */
+  getContainersList() {
+    return this._http.get<{ containerservices: Container[] }>(`${this.api}container_service/`).pipe(
+      map(response => response.containerservices) // Extract only the `results` field
+    );
+  }
+
+  /**
    * Start the mobile emulators the mobile available mobiles list
    * @returns Observable<IMobile>
    */
-  startEmulator(body) {
+  startMobile(body) {
     return this._http.post<Container>(`${this.api}container_service/`, body)
   }
+  
   /**
    * Allows to modify properties of a feature object
    * @param {number} featureId Feature ID
    * @param {Partial<Feature>} patches Partial object of Feature modified
    * @returns Observable<EditFeatureResponse>
    */
-  stopEmulator(container_id) {
-    return this._http.get<any>(`${this.api}container_service/${container_id}/`)
+  stopMobile(container_id) {
+    return this._http.delete<any>(`${this.api}container_service/${container_id}/`)
+  }
+
+  /**
+   * Allows to modify properties of a feature object
+   * @param {number} featureId Feature ID
+   * @param {Partial<Feature>} patches Partial object of Feature modified
+   * @returns Observable<EditFeatureResponse>
+   */
+  updateMobile(container_id, body) {
+    return this._http.put<{containerservice: Container}>(`${this.api}container_service/${container_id}/`, body).pipe(
+      map(response => response.containerservice) // Extract only the `results` field
+    );
   }
 
 
