@@ -25,6 +25,7 @@ from utility.common import *
 from utility.encryption import *
 from utility.configurations import ConfigurationManager, load_configurations
 from modules.ai import AI
+from tools.service_manager import ServiceManager
 
 LOGGER_FORMAT = "\33[96m[%(asctime)s][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s"
 
@@ -295,6 +296,19 @@ def before_all(context):
         data=payload,
     )
 
+    
+    # #################################
+    # keeps track of mobile devices driver, so that test can be performed in the multiple mobiles switched
+    context.mobiles = {}
+    # keep the reference of active mobile device
+    context.mobile = None
+    # Mobile common capabilities to  
+    context.mobile_capabilities = {}
+    # Keeps track of service/containers started during test, so that if can be kill/stopped after test 
+    context.container_services = []
+    
+    # #################################
+    
     # browser data
     context.cloud = context.browser_info.get(
         "cloud", "browserstack"
@@ -341,12 +355,13 @@ def before_all(context):
     options.browser_version = context.browser_info["browser_version"]
     options.accept_insecure_certs = True
     # Get the chrome container timezone from browser_info
-    selenoid_time_zone = context.browser_info.get("selectedTimeZone", "")
+    devices_time_zone = context.browser_info.get("selectedTimeZone", "")
 
-    if not selenoid_time_zone or selenoid_time_zone.strip() == "":
-        selenoid_time_zone = "Etc/UTC"
+    if not devices_time_zone or devices_time_zone.strip() == "":
+        devices_time_zone = "Etc/UTC"
 
-    logger.debug(f"Browser container timezone is : {selenoid_time_zone}")
+    context.mobile_capabilities['timezone'] = devices_time_zone
+    logger.debug(f"Test is running in the timezone : {devices_time_zone}")
     # selenoid specific capabilities
     # more options can be found at:
     # https://aerokube.com/selenoid/latest/#_special_capabilities
@@ -356,7 +371,7 @@ def before_all(context):
         "screenResolution": "1920x1080x24",
         "enableVideo": context.record_video,
         "sessionTimeout": "30m",
-        "timeZone": selenoid_time_zone,  # based on the user selected timezone
+        "timeZone": devices_time_zone,  # based on the user selected timezone
         "labels": {"by": "COMETA ROCKS"},
         "s3KeyPattern": "$sessionId/$fileType$fileExtension",
         # previously used for s3 which is not currently being used.
@@ -400,6 +415,13 @@ def before_all(context):
                 "autodetect": False,
             },
         )
+        # Appium does not support proxy settings
+        # https://github.com/appium/appium/issues/19316 
+        # context.mobile_capabilities['proxy'] = {
+        #     'proxyType': "manual",
+        #     'httpProxy': "your-proxy-server:port",
+        #     'sslProxy': "your-proxy-server:port"
+        # }
 
     # LOCAL only
     # download preferences for chrome
@@ -543,6 +565,15 @@ def after_all(context):
             "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
         },
     )
+    
+    # Delete all the services which were started during test
+    for service in context.container_services:
+        logger.debug(f"Deleting container service with ID : {service['Id']}")
+        service_manager = ServiceManager()
+        service_manager.delete_service(
+            service_name_or_id=service['Id']
+        )
+        
 
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None

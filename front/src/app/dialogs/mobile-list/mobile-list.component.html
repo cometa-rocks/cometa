@@ -4,14 +4,17 @@
     <div class="devices">
       <!-- Mobile selection section -->
       <div class="mobile-selector-box">
-        <h4>Mobile Devices</h4>
+        <h2 mat-dialog-title>Mobile Devices</h2>
         <div class="mobiles">
           <!-- Iterate over mobile containers list -->
           <div class="mobile" *ngFor="let mobile of mobiles">
             <div *ngLet="isThisMobileContainerRunning(mobile.mobile_id) as runningContainer">
               <!-- Mobile details -->
               <div class="mobile-details">
+                <h4>Information</h4>
+                <mat-divider></mat-divider>
                 <div>
+                  <i class="material-icons">code</i>
                   <strong>API Level:</strong>
                   {{ mobile.mobile_json.api_level }}
                 </div>
@@ -30,42 +33,90 @@
                   <strong>Android Version:</strong>
                   {{ mobile.mobile_json.android_version }}
                 </div>
-                <div>
+                <!-- <div>
                   <i class="material-icons">phone_android</i>
                   <strong>Status:</strong>
                   {{ runningContainer?"Running":"Stop" }}
-                </div>
-
+                </div> -->
+                <h4>Emulator Actions</h4>
+                <mat-divider></mat-divider>
                 <!-- Share emulator checkbox -->
                 <div>
-                  <input type="checkbox" id="isShared_{{ mobile.mobile_id }}" [checked]="mobile.isShared"
+                  <!-- <input type="checkbox" id="isShared_{{ mobile.mobile_id }}"  [checked]="mobile.isShared"
                     (change)="updateSharedStatus($event, mobile, runningContainer)">
-                  <label for="isShared_{{ mobile.mobile_id }}">Share this emulator with others</label>
-                  
+                  <label for="isShared_{{ mobile.mobile_id }}">Share this mobile with others</label>
+                  <mat-checkbox color="primary" formControlName="depends_on_others" [matTooltip]="'edit_feature.depends_on_other_feature' | translate" matTooltipPosition="above">
+                    Share this mobile with others
+                  </mat-checkbox> -->
+                  <br/>
+                  <mat-slide-toggle 
+                    class="mat-slider-toggle"
+                    id="isShared_{{ mobile.mobile_id }}"
+                    color="primary" 
+                    (change)="updateSharedStatus($event, mobile, runningContainer)">
+                    Share this mobile with others
+                  </mat-slide-toggle>
                 </div>
                 <div>
-                  <p>Upload apk files in the upload section of edit feature screen and select apk from here to install in the mobile </p>
-                  <select id="apkFileSelectBox_{{ mobile.mobile_id }}"
-                    (change)="updateAPKSelection($event, mobile, runningContainer)">
-                    <option value="None">Select App</option>
-                    <option *ngFor="let apk_files of this.data.uploadedAPKsList" value="{{apk_files.id}}">
-                      {{this.apk_files.name}}</option>
+                  <!-- <select id="apkFileSelectBox_{{ mobile.mobile_id }}"
+                  (change)="updateAPKSelection($event, mobile, runningContainer)">
+                  <option value="None">Select App</option>
+                  <option *ngFor="let apk_files of this.data.uploadedAPKsList" value="{{apk_files.id}}">
+                    {{this.apk_files.name}}</option>
                   </select>
-                  <button (click)="installAPK( mobile, runningContainer)">Install App</button>
+                  <button (click)="installAPK( mobile, runningContainer)">Install App</button> -->
+                </div>
+                <div class="apk-selection">
+                  <div class="row-content">
+                    <mat-icon [inline]="true">info</mat-icon>
+                    <p 
+                      [matTooltip]="'mobile_list.apk_file' | translate" matTooltipPosition="above">
+                        Upload apk files: 
+                    </p>
+                  </div>
+                  <mat-form-field 
+                    appearance="fill"
+                    class="select-app"
+                    [disabled]="runningContainer !== undefined">
+                    <mat-label>Select App</mat-label>
+                    <mat-select
+                      id="apkFileSelectBox_{{ mobile.mobile_id }}"
+                      (selectionChange)="updateAPKSelection($event, mobile, runningContainer)">
+                      <mat-option *ngFor="let apk_file of this.data.uploadedAPKsList" [value]="apk_file.id">
+                        {{ apk_file.name }}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <!-- <p>Running Container: {{ runningContainer }}</p>
+                  <p>Is Loading: {{ isLoading$ | async }}</p> -->
+                  <button 
+                    class="mobile-buttons-install"
+                    mat-raised-button color="primary"
+                    [disabled]="!mobile.selectedAPKFileID" 
+                    (click)="installAPK( mobile, runningContainer)">
+                    Install App
+                  </button>          
                 </div>
               </div>
 
               <!-- Actions: Start, Stop, Inspect -->
-              <div>
-                <button *ngIf="!runningContainer" [disabled]="isLoading$ | async"
-                  (click)="startMobile(mobile.mobile_id)">
+              <div class="mobile-buttons">
+                <button 
+                  *ngIf="!runningContainer" 
+                  (click)="startMobile(mobile.mobile_id)"
+                  mat-raised-button color="primary">
                   Start
                 </button>
-                <button *ngIf="runningContainer" [disabled]="isLoading$ | async" (click)="stopMobile(mobile.mobile_id)">
+                <button 
+                  *ngIf="runningContainer" 
+                  (click)="stopMobile(mobile, runningContainer)"
+                  mat-raised-button color="warn">
                   Stop
                 </button>
-                <button *ngIf="runningContainer" [disabled]="isLoading$ | async"
-                  (click)="inspectMobile(runningContainer, mobile)">
+                <button 
+                  *ngIf="runningContainer" 
+                  (click)="inspectMobile(runningContainer, mobile)"
+                  mat-raised-button color="basic">
                   Inspect
                 </button>
               </div>
@@ -74,8 +125,6 @@
         </div>
       </div>
     </div>
-
-
 
     <!-- Available Devices -->
     <div class="devices">

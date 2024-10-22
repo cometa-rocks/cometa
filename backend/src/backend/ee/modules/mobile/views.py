@@ -32,7 +32,12 @@ class MobileViewSet(viewsets.ModelViewSet):
 
     # @require_permissions("manage_house_keeping_logs")
     def list(self, request, *args, **kwargs):
-        return super().list(request, args, kwargs)
+        filters = {key: value[0] if isinstance(value, list) else value  for key, value in request.query_params.items()}
+        mobiles = Mobile.objects.filter(**filters)
+        return self.response_manager.get_response(
+            list_data=MobileSerializer(mobiles, many=True).data
+        )
+        # return super().list(request, args, kwargs)
 
     # @require_permissions("manage_house_keeping_logs")
     def update(self, request, *args, **kwargs):
@@ -57,4 +62,4 @@ class MobileViewSet(viewsets.ModelViewSet):
         except Exception as e:
             traceback.print_exc()
             logger.error("Exception while updating the")
-            return self.response_manager.server_error_response(data={"error":str(e)})
+            return self.response_manager.server_error_response(data={"error": str(e)})

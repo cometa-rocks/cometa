@@ -10,8 +10,16 @@
   position: relative;
 }
 
+h2 {
+  color: #1565c0;
+}
+
 h4 {
   color: $blue;
+}
+
+h4:nth-of-type(2) {
+  margin-top: 10px;
 }
 
 @keyframes slideDown {
@@ -39,8 +47,9 @@ h4 {
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         position: relative;
         display: flex;
-        align-items: center;
+        // align-items: center;
         flex-direction: column;
+        width: 300px;
 
         .mobile-icon {
           width: 100px;
@@ -90,6 +99,61 @@ mat-dialog-content {
 }
 
 .disabled-div {
-  pointer-events: none;  /* Prevent any interaction */
-  opacity: 0.5;          /* Optional: make it look disabled */
+  pointer-events: none; 
+  opacity: 0.5;          
+}
+
+.mobile-buttons-install {
+  height: 40px;
+}
+
+.mobile-buttons {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 20px;
+  button {
+    width: 30px;
+  }
+}
+
+.mobile-details {
+  div {
+    margin-left: 10px;
+    display: flex;
+    flex-direction: row;
+    strong {
+      align-items: center;
+      margin-left: 5px;
+      margin-right: 5px;
+    }
+    i {
+      font-size: 17px;
+    }
+    mat-icon {
+      font-size: 17px;
+      color: black;
+    }
+  }
+}
+
+.mat-slider-toggle {
+  transform: scale(0.8);
+  margin-left: -20px;
+}
+
+.apk-selection {
+  display: flex;
+  flex-direction: column !important;
+}
+
+.row-content {
+  display: flex;
+  flex-direction: row;
+  mat-icon {
+    margin-left: -10px;
+  }
+}
+
+mat-divider {
+  margin-bottom: 10px !important;
 }
