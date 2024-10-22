@@ -4,6 +4,7 @@
         "pk": 1,
         "fields": {
             "mobile_id":1,
+            "mobile_name":"Android_12.0_API31_x86_64",
             "mobile_json": {
                 "image": "cometa/emulator_appium_api_31",
                 "android_version": "12.0",
