@@ -51,6 +51,9 @@ import {
 import { ApiService } from '@services/api.service';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatDividerModule } from '@angular/material/divider';
+
 
 /**
  * MobileListComponent
@@ -98,6 +101,8 @@ import { UserState } from '@store/user.state';
     SortByPipe,
     TranslateModule,
     MatLegacyDialogModule,
+    MatSlideToggleModule,
+    MatDividerModule
   ],
 })
 export class MobileListComponent implements OnInit {
@@ -114,6 +119,7 @@ export class MobileListComponent implements OnInit {
   isLoading$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   sharedMobileContainers: Container[] = [];
   // userInformation = UserState.get
+
   ngOnInit(): void {
 
     // Call the API service on component initialization
@@ -121,6 +127,8 @@ export class MobileListComponent implements OnInit {
       (mobiles: IMobile[]) => {
         // Assign the received data to the `mobile` variable
         this.mobiles = mobiles;
+
+        console.log(this.runningMobiles);
 
         // Call the API service on component initialization
         this._api.getContainersList().subscribe(
@@ -160,18 +168,22 @@ export class MobileListComponent implements OnInit {
       }
     );
 
+    console.log(this.mobiles);
+
     this.isLoading$.subscribe(bool => {
       console.log('Boolean: ', bool);
     });
   }
 
-  updateSharedStatus(event: any, mobile: IMobile, container): void {
+  updateSharedStatus(isShared: boolean, mobile: IMobile, container): void {
     console.log(this.runningMobiles);
-    mobile.isShared = event.target.checked;
+    mobile.isShared = isShared;
+  
     let updateData = { shared: mobile.isShared };
     console.log('Stopping container: ', container);
+    
     this.isLoading$.next(true);
-
+  
     this._api.updateMobile(container.id, updateData).subscribe(
       (updated_container: Container) => {
         container = updated_container;
@@ -182,17 +194,14 @@ export class MobileListComponent implements OnInit {
       },
       error => {
         this.isLoading$.next(false);
-        // Handle any errors
-        console.error(
-          'An error occurred while fetching the mobile list',
-          error
-        );
+        console.error('An error occurred while fetching the mobile list', error);
       }
     );
   }
+  
 
   updateAPKSelection(event: any, mobile: IMobile): void {
-    mobile.selectedAPKFileID = event.target.value;
+    mobile.selectedAPKFileID = event.value;
   }
 
   installAPK(mobile: IMobile, container): void {
@@ -214,12 +223,6 @@ export class MobileListComponent implements OnInit {
       }
     );
   }
-
-  // filterSharedMobiles(): void {
-  //   this.sharedMobileContainers = this.mobile_containers.filter(mobile => {
-  //     const isRunning = this.running_mobile_containers
-  //   });
-  // }
 
   // This method starts the mobile container
   startMobile(mobile_id): void {
@@ -254,16 +257,12 @@ export class MobileListComponent implements OnInit {
   }
 
   // This method stops the mobile container using ID
-  stopMobile(container: Container): void {
+  stopMobile(mobile, container: Container): void {
     console.log('Stopping container: ', container);
     this.isLoading$.next(true);
     // Call the API service on component initialization
     this._api.stopMobile(container.id).subscribe(
       (container: Container) => {
-        // Assign the received data to the `mobile` variable
-        // this.running_mobile_containers.filter(container=>{
-        //   container != container
-        // });
         this.runningMobiles = this.runningMobiles.filter(
           runningContainer => runningContainer.id !== container.id
         );
@@ -284,7 +283,7 @@ export class MobileListComponent implements OnInit {
   }
 
   inspectMobile(container: Container, mobile: IMobile): void {
-    let path = '/mobile/inspector'
+    let path = 'mobile/inspector'
     let host = window.location.hostname;
     let capabilities = encodeURIComponent(JSON.stringify(mobile.capabilities))
     let complete_url = `https://${host}/${path}?host=${host}&port=443&path=/emulator/${container.id}/&ssl=true&autoStart=true&capabilities=${capabilities}`

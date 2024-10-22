@@ -95,16 +95,16 @@ class ContainerService(models.Model):
 
             elif kwargs.get("apk_file", "") != "":
                 file = File.objects.get(id=kwargs["apk_file"])
-                result = service_manager.upload_file(
+                file_name = service_manager.upload_file(
                     service_name_or_id=self.service_id, file_path=file.path
                 )
-                if not result:
+                if not file_name:
                     return
                 result, message = service_manager.install_apk(
-                    service_name_or_id=self.service_id, apk_file_path=file.name
+                    service_name_or_id=self.service_id, apk_file_name=file_name
                 )
                 if result:
-                    self.apk_files.add(kwargs["apk_file"])
+                    self.apk_file.add(kwargs["apk_file"])
                     return super(ContainerService, self).save()
 
     def delete(self, *args, **kwargs):

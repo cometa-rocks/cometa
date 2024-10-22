@@ -1,12 +1,18 @@
-import docker, os
-import time, traceback
-from backend.utility.functions import getLogger, create_tarball
-from backend.utility.configurations import ConfigurationManager
+import docker, os, sys, logging, time, traceback
 from docker.errors import NullResource, NotFound
-from backend.utility.uploadFile import decryptFile
 
-logger = getLogger()
 
+sys.path.append("/opt/code/behave_django")
+sys.path.append("/code/behave/cometa_itself/steps")
+
+from utility.functions import *
+from utility.cometa_logger import CometaLogger
+from utility.common import *
+from utility.encryption import *
+from utility.configurations import ConfigurationManager
+
+# setup logging
+logger = logging.getLogger("FeatureExecution")
 
 class KubernetesServiceManager:
     deployment_type = "kubernetes"
@@ -216,6 +222,7 @@ class ServiceManager(service_manager):
         return super().install_apk(service_name_or_id, apk_file_name, *args, **kwargs)
 
     def prepare_emulator_service_configuration(self, image):
+        logger.debug("Preparing service configuration")
         if super().deployment_type == "docker":
             self.__service_configuration = {
                 "image": image,  # Replace with your desired image name

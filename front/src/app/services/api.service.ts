@@ -838,8 +838,8 @@ export class ApiService {
    * @returns Observable<IMobile>
    */
   getMobileList() {
-    return this._http.get<{ results: IMobile[] }>(`${this.api}mobile/`).pipe(
-      map(response => response.results) // Extract only the `results` field
+    return this._http.get<{ mobiles: IMobile[] }>(`${this.api}mobile/`).pipe(
+      map(response => response.mobiles) // Extract only the `results` field
     );
   }
   /**

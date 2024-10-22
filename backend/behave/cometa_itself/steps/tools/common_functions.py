@@ -455,7 +455,7 @@ def done(*_args, **_kwargs):
                 # reset timeout incase of exception in function
                 signal.alarm(0)
                 # print stack trace
-                traceback.print_exc()
+                logger.exception(err, stack_info=True)
                 # set the error message to the step_error inside context so we can pass it through websockets!
                 args[0].step_error = logger.mask_values(str(err))
                 try:

@@ -4,18 +4,26 @@ from Crypto import Random
 from Crypto.Cipher import AES
 import base64, sys
 from hashlib import md5
+import tempfile
+import subprocess
+
 
 # encrypt and decrypt password encrypted in Angular using Crypto-JS
 # This variable is updated by backend.utility.configurations.py, when configuration is loaded from DB
 ENCRYPTION_PASSPHRASE = None
 # This variable is updated by backend.utility.configurations.py, when configuration is loaded from DB
 ENCRYPTION_START = None
+COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = None
 BLOCK_SIZE = 16
 logger = None
 
 def update_ENCRYPTION_PASSPHRASE(encryption_passphrase: str):
     global ENCRYPTION_PASSPHRASE
     ENCRYPTION_PASSPHRASE = encryption_passphrase
+
+def update_COMETA_UPLOAD_ENCRYPTION_PASSPHRASE(file_upload_encryption_passphrase: str):
+    global COMETA_UPLOAD_ENCRYPTION_PASSPHRASE
+    COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = file_upload_encryption_passphrase
 
 
 def update_ENCRYPTION_START(encryption_start: str):
@@ -77,3 +85,21 @@ def decrypt(encrypted, passphrase=None):
     iv = key_iv[32:]
     aes = AES.new(key, AES.MODE_CBC, iv)
     return unpad(aes.decrypt(encrypted[16:])).decode("utf-8")
+
+
+
+def decryptFile(source):
+    target = "/tmp/%s" % next(tempfile._get_candidate_names())
+
+    logger.debug(f"Decrypting source {source}")
+
+    try:
+        result = subprocess.run(["bash", "-c", f"gpg --output {target} --batch --passphrase {COMETA_UPLOAD_ENCRYPTION_PASSPHRASE} -d {source}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode > 0:
+            # get the error
+            errOutput = result.stderr.decode('utf-8')
+            logger.error(errOutput)
+            raise Exception('Failed to decrypt the file, please contact an administrator.')
+        return target
+    except Exception as err:
+        raise Exception(str(err))
