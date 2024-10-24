@@ -75,6 +75,7 @@ def takeScreenshot(context, step_id):
     start_time = time.time()  # prepare a screenshot name
     DATETIMESTRING = time.strftime("%Y%m%d-%H%M%S")  # LOOKS LIKE IS NOT USED
     context.SCREENSHOT_FILE = SCREENSHOT_PREFIX + "current.png"
+    context.MOBILE_SCREENSHOT_FILE = "Mobile_"+SCREENSHOT_PREFIX + "current.png"
     logger.debug("Screenshot filename: %s" % context.SCREENSHOT_FILE)
     final_screenshot_file = context.SCREENSHOTS_STEP_PATH + context.SCREENSHOT_FILE
     logger.debug("Final screenshot filename and path: %s" % final_screenshot_file)
@@ -89,7 +90,11 @@ def takeScreenshot(context, step_id):
         # create the screenshot
         logger.debug("Saving screenshot to file")
         try:
-            context.browser.save_screenshot(final_screenshot_file)
+            if context.STEP_TYPE=='MOBILE':
+                context.mobile['driver'].save_screenshot(final_screenshot_file)
+            else: 
+                context.browser.save_screenshot(final_screenshot_file)
+
         except Exception as err:
             logger.error("Unable to take screenshot ...")
             logger.exception(err)

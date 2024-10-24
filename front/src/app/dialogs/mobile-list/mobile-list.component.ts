@@ -15,6 +15,7 @@ import {
   MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
   MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserFavouritedPipe } from '@pipes/browser-favourited.pipe';
 import { PlatformSortPipe } from '@pipes/platform-sort.pipe';
@@ -53,7 +54,7 @@ import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDividerModule } from '@angular/material/divider';
-
+import { DraggableWindowModule } from '@modules/draggable-window.module'
 
 /**
  * MobileListComponent
@@ -102,7 +103,8 @@ import { MatDividerModule } from '@angular/material/divider';
     TranslateModule,
     MatLegacyDialogModule,
     MatSlideToggleModule,
-    MatDividerModule
+    MatDividerModule,
+    DraggableWindowModule
   ],
 })
 export class MobileListComponent implements OnInit {
@@ -110,43 +112,45 @@ export class MobileListComponent implements OnInit {
     private _api: ApiService,
     private _cdr: ChangeDetectorRef,
     @Inject(MAT_DIALOG_DATA) public data: any,
-  ) { }
+    private snack: MatSnackBar
+  ) {}
   @ViewSelectSnapshot(UserState) user!: UserInfo;
 
   // Declare the variable where the API result will be assigned
   mobiles: IMobile[] = [];
   runningMobiles: Container[] = [];
-  isLoading$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   sharedMobileContainers: Container[] = [];
-  // userInformation = UserState.get
+  isIconActive = false;
 
   ngOnInit(): void {
-
     // Call the API service on component initialization
     this._api.getMobileList().subscribe(
       (mobiles: IMobile[]) => {
         // Assign the received data to the `mobile` variable
         this.mobiles = mobiles;
 
-        console.log(this.runningMobiles);
-
         // Call the API service on component initialization
         this._api.getContainersList().subscribe(
           (containers: Container[]) => {
             for (let container of containers) {
-              if (container.shared && this.user.user_id != container.created_by) {
+              if (
+                container.shared &&
+                this.user.user_id != container.created_by
+              ) {
                 container.image = this.mobiles.find(
                   m => m.mobile_id === container.image
                 );
+
                 container.apk_file = this.data.uploadedAPKsList.find(
                   m => m.mobile_id === container.apk_file
                 );
+
                 this.sharedMobileContainers.push(container);
               } else {
                 this.runningMobiles.push(container);
               }
             }
-            console.log(this.runningMobiles);
+            console.log('Lods runnign desde init:', this.runningMobiles);
             this._cdr.detectChanges();
           },
           error => {
@@ -168,37 +172,56 @@ export class MobileListComponent implements OnInit {
       }
     );
 
-    console.log(this.mobiles);
-
-    this.isLoading$.subscribe(bool => {
-      console.log('Boolean: ', bool);
+    this.runningMobiles.forEach(mobile => {
+      console.log('Created by ', mobile.created_by);
+      console.log('User: ', mobile.user);
+      console.log('User general', UserState);
     });
   }
 
-  updateSharedStatus(isShared: boolean, mobile: IMobile, container): void {
-    console.log(this.runningMobiles);
-    mobile.isShared = isShared;
-  
+  updateSharedStatus(isShared: any, mobile: IMobile, container): void {
+    mobile.isShared = isShared.checked;
+
     let updateData = { shared: mobile.isShared };
-    console.log('Stopping container: ', container);
-    
-    this.isLoading$.next(true);
-  
+
     this._api.updateMobile(container.id, updateData).subscribe(
-      (updated_container: Container) => {
-        container = updated_container;
-        console.log('Mobile container updated: ', container.id);
-        console.log(this.runningMobiles);
-        this.isLoading$.next(false);
-        this._cdr.detectChanges();
+      (response: any) => {
+        if (response && response.containerservice) {
+          container = response.containerservice; // Update the container if `containerservice` is present
+          this.snack.open(
+            `Mobile ${mobile.isShared ? 'shared' : 'unshared'} with other users in this department`,
+            'OK'
+          );
+          this._cdr.detectChanges();
+        } else {
+          this.snack.open(response.message, 'OK');
+        }
       },
       error => {
-        this.isLoading$.next(false);
-        console.error('An error occurred while fetching the mobile list', error);
+        console.error(
+          'An error occurred while updating the mobile container:',
+          error
+        );
+        // Handle the error
       }
     );
   }
-  
+
+  // updateSharedStatus(isShared: boolean, mobile: IMobile, container): void {
+  //   mobile.isShared = isShared;
+
+  //   let updateData = { shared: mobile.isShared };
+
+  //   this._api.updateMobile(container.id, updateData).subscribe(
+  //     (updated_container: Container) => {
+  //       container = updated_container;
+  //       this._cdr.detectChanges();
+  //     },
+  //     error => {
+  //       console.error('An error occurred while fetching the mobile list', error);
+  //     }
+  //   );
+  // }
 
   updateAPKSelection(event: any, mobile: IMobile): void {
     mobile.selectedAPKFileID = event.value;
@@ -206,15 +229,22 @@ export class MobileListComponent implements OnInit {
 
   installAPK(mobile: IMobile, container): void {
     let updateData = { apk_file: mobile.selectedAPKFileID };
-    this.isLoading$.next(true);
+
     this._api.updateMobile(container.id, updateData).subscribe(
-      (updated_container: Container) => {
-        container = updated_container;
-        this.isLoading$.next(false);
-        this._cdr.detectChanges();
+
+      (response: any) => {
+        if (response && response.containerservice) {
+          container = response.containerservice;
+          this.snack.open(
+            `APK Installed in the mobile ${mobile.mobile_image_name}`,
+            'OK'
+          );
+          this._cdr.detectChanges();
+        } else {
+          this.snack.open(response.message, 'OK');
+        }
       },
       error => {
-        this.isLoading$.next(false);
         // Handle any errors
         console.error(
           'An error occurred while fetching the mobile list',
@@ -227,7 +257,6 @@ export class MobileListComponent implements OnInit {
   // This method starts the mobile container
   startMobile(mobile_id): void {
     const mobile = this.mobiles.find(m => m.mobile_id === mobile_id);
-    this.isLoading$.next(true);
     let body = {
       image: mobile_id,
       service_type: 'Emulator',
@@ -235,44 +264,51 @@ export class MobileListComponent implements OnInit {
       shared: mobile.isShared === true ? true : false,
       selected_apk_file_id: mobile.selectedAPKFileID,
     };
-    console.log(body);
+
     // Call the API service on component initialization
     this._api.startMobile(body).subscribe(
       (container: Container) => {
-        // Assign the received data to the `mobile` variable
+        // Add the container to the runningMobiles list
         this.runningMobiles.push(container);
-        console.log(this.runningMobiles);
-        this.isLoading$.next(true);
+        console.log('Mobile started successfully:', container);
+
+        // Show success snackbar
+        this.snack.open('Mobile started successfully', 'OK');
+
+        // Trigger change detection
         this._cdr.detectChanges();
       },
       error => {
-        this.isLoading$.next(false);
         // Handle any errors
-        console.error(
-          'An error occurred while fetching the mobile list',
-          error
-        );
+        console.error('An error occurred while starting the mobile', error);
+
+        // Show error snackbar
+        this.snack.open('Error while starting the mobile', 'OK');
       }
     );
   }
 
   // This method stops the mobile container using ID
-  stopMobile(mobile, container: Container): void {
-    console.log('Stopping container: ', container);
-    this.isLoading$.next(true);
+  stopMobile(container: Container): void {
+    console.log('Stopping container: ', container.id);
     // Call the API service on component initialization
     this._api.stopMobile(container.id).subscribe(
-      (container: Container) => {
-        this.runningMobiles = this.runningMobiles.filter(
-          runningContainer => runningContainer.id !== container.id
-        );
-        console.log('Mobile container stopped: ', container.id);
-        console.log(this.runningMobiles);
-        this.isLoading$.next(false);
-        this._cdr.detectChanges();
+      (response: any) => {
+        if (response.success) {
+          this.snack.open(`Mobile stopped successfully`, 'OK');
+          this.runningMobiles = this.runningMobiles.filter(
+            runningContainer => runningContainer.id !== container.id
+          );
+          this._cdr.detectChanges();
+        } else {
+          console.error(
+            'An error occurred while stopping the mobile',
+            response.message
+          );
+          this.snack.open(`Error while stopping the Mobile`, 'OK');
+        }
       },
       error => {
-        this.isLoading$.next(false);
         // Handle any errors
         console.error(
           'An error occurred while fetching the mobile list',
@@ -283,19 +319,41 @@ export class MobileListComponent implements OnInit {
   }
 
   inspectMobile(container: Container, mobile: IMobile): void {
-    let path = 'mobile/inspector'
     let host = window.location.hostname;
-    let capabilities = encodeURIComponent(JSON.stringify(mobile.capabilities))
-    let complete_url = `https://${host}/${path}?host=${host}&port=443&path=/emulator/${container.id}/&ssl=true&autoStart=true&capabilities=${capabilities}`
+    let capabilities = encodeURIComponent(JSON.stringify(mobile.capabilities));
+    let complete_url = `/mobile/inspector?host=${host}&port=443&path=/emulator/${container.id}/&ssl=true&autoStart=true&capabilities=${capabilities}`;
     window.open(complete_url, '_blank');
   }
 
-  isThisMobileContainerRunning(mobile_id): Container | undefined {
+  noVNCMobile(container: Container): void {
+    // FIXME this connection needs to be fixed, to improve security over emulators 
+    let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${container.service_id}`;
+    window.open(complete_url, '_blank');
+  }
+
+  isThisMobileContainerRunning(mobile_id): Container | null {
     for (let container of this.runningMobiles) {
       if (container.image == mobile_id) {
+        console.log(container);
         return container;
       }
     }
-    return undefined;
+    return null;
+  }
+
+  importClipboard(androidVersion: string) {
+    navigator.clipboard.writeText(androidVersion).then(() => {
+    console.log('Text copied to clipboard: ', androidVersion);
+    this.isIconActive = true;
+    this._cdr.detectChanges();
+    setTimeout(() => {
+      this.isIconActive = false;
+      this._cdr.detectChanges();
+    }, 2000);
+    this.snack.open('Text copied to clipboard', 'Close');
+    }).catch(err => {
+      console.error('Error copying: ', err);
+      this.snack.open('Error copying text', 'Close');
+    });
   }
 }

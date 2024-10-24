@@ -88,18 +88,18 @@ def decrypt(encrypted, passphrase=None):
 
 
 
-def decryptFile(source):
-    target = "/tmp/%s" % next(tempfile._get_candidate_names())
+# def decryptFile(source):
+#     target = "/tmp/%s" % next(tempfile._get_candidate_names())
 
-    logger.debug(f"Decrypting source {source}")
+#     logger.debug(f"Decrypting source {source}")
 
-    try:
-        result = subprocess.run(["bash", "-c", f"gpg --output {target} --batch --passphrase {COMETA_UPLOAD_ENCRYPTION_PASSPHRASE} -d {source}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if result.returncode > 0:
-            # get the error
-            errOutput = result.stderr.decode('utf-8')
-            logger.error(errOutput)
-            raise Exception('Failed to decrypt the file, please contact an administrator.')
-        return target
-    except Exception as err:
-        raise Exception(str(err))
+#     try:
+#         result = subprocess.run(["bash", "-c", f"gpg --output {target} --batch --passphrase {COMETA_UPLOAD_ENCRYPTION_PASSPHRASE} -d {source}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#         if result.returncode > 0:
+#             # get the error
+#             errOutput = result.stderr.decode('utf-8')
+#             logger.error(errOutput)
+#             raise Exception('Failed to decrypt the file, please contact an administrator.')
+#         return target
+#     except Exception as err:
+#         raise Exception(str(err))

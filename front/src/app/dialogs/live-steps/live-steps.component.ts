@@ -212,6 +212,12 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     window.open(url, '_blank').focus();
   }
 
+  noVNCMobile(mobile_service_id): void {
+    // FIXME this connection needs to be fixed, to improve security over emulators 
+    let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${mobile_service_id}`;
+    window.open(complete_url, '_blank');
+  }
+
   showLiveIcon(browser) {
     // get data from browser
     const data = browser.value;

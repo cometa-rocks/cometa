@@ -252,6 +252,7 @@ def before_all(context):
     run_id = os.environ["feature_run"]
     # Retrieve run hash
     context.RUN_HASH = os.environ["RUN_HASH"]
+    context.FEATURE_RESULT_ID = os.environ["feature_result_id"]
     # Set root folder of screenshots
     context.SCREENSHOTS_ROOT = "/opt/code/screenshots/"
     # Construct screenshots path for saving images
@@ -306,7 +307,9 @@ def before_all(context):
     context.mobile_capabilities = {}
     # Keeps track of service/containers started during test, so that if can be kill/stopped after test 
     context.container_services = []
-    
+    # Keeps track of step type, which types of step was executed 
+    # Currently supported values BROWSER, MOBILE and API
+    context.STEP_TYPE = 'BROWSER'
     # #################################
     
     # browser data
@@ -798,7 +801,7 @@ def after_all(context):
 
 @error_handling()
 def before_step(context, step):
-
+    context.STEP_TYPE = 'BROWSER'
     os.environ["current_step"] = str(context.counters["index"] + 1)
     # complete step name to let front know about the step that will be executed next
     step_name = "%s %s" % (step.keyword, step.name)
@@ -973,6 +976,7 @@ def after_step(context, step):
             "belongs_to": context.step_data["belongs_to"],
             "screenshots": json.dumps(screenshots),  # load screenshots object
             "vulnerable_headers_count": vulnerable_headers_count,
+            "step_type": context.STEP_TYPE,
         },
     )
 

@@ -111,13 +111,20 @@ services:
       -limit $$LIMIT"
 
   novnc:
-    image: cometa/novnc:1.0
     container_name: cometa_novnc
+    build: 
+      context: noVNC  # Build context, specifying the current directory
+      dockerfile: Dockerfile  # Reference to the Dockerfile
+    working_dir: /home/cometa/noVNC
+    command: ./utils/novnc_proxy --listen 80
+    expose:
+      - 80
+    volumes:
+      - ./noVNC:/home/cometa/noVNC
     networks:
       - testing
     restart: always
-    
-  
+
   crontab:
     image: cometa/scheduler:latest
     container_name: cometa_crontab

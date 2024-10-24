@@ -963,6 +963,12 @@ class Feature_result(SoftDeletableModel):
 
         return True
 
+step_type_choices = (
+    ('BROWSER','BROWSER'), 
+    ('MOBILE','MOBILE'), 
+    ('API','API')
+)
+
 class Step_result(models.Model):
     step_result_id = models.AutoField(primary_key=True)
     feature_result_id = models.IntegerField()
@@ -983,6 +989,7 @@ class Step_result(models.Model):
     rest_api = models.ForeignKey("REST_API", on_delete=models.CASCADE, null=True, default=None)
     notes = models.JSONField(default=dict)
     error = models.TextField(null=True, blank=True)
+    step_type = models.CharField(choices=step_type_choices, max_length=10, blank=False, default='BROWSER')
 
     class Meta:
         ordering = ['step_result_id']

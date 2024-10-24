@@ -867,7 +867,7 @@ export class ApiService {
    * @returns Observable<EditFeatureResponse>
    */
   stopMobile(container_id) {
-    return this._http.delete<any>(`${this.api}container_service/${container_id}/`)
+    return this._http.delete(`${this.api}container_service/${container_id}/`);
   }
 
   /**
@@ -876,11 +876,14 @@ export class ApiService {
    * @param {Partial<Feature>} patches Partial object of Feature modified
    * @returns Observable<EditFeatureResponse>
    */
+  // updateMobile(container_id, body) {
+  //   return this._http.put<{containerservice?: Container}>(`${this.api}container_service/${container_id}/`, body).pipe(
+  //     map(response => response.containerservice) // Extract only the `results` field
+  //   );
+  // }  
   updateMobile(container_id, body) {
-    return this._http.put<{containerservice: Container}>(`${this.api}container_service/${container_id}/`, body).pipe(
-      map(response => response.containerservice) // Extract only the `results` field
-    );
+    return this._http.put(`${this.api}container_service/${container_id}/`, body);
   }
-
+  
 
 }
