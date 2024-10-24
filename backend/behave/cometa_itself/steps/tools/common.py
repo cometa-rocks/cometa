@@ -403,13 +403,14 @@ def updateSourceFile(context, source, target):
 
 def call_backend(method, path, parameters=None, headers=None, body=None):
     
+    headers= {"Content-type": "application/json", "Host": "cometa.local"} if headers==None else headers.update({"Host": "cometa.local"}) 
     request_data = {
         'method': method,
         'url': f'http://django:8000{path}',
     }
     
     if body:
-        request_data['data'] = body
+        request_data['json'] = body
 
     if parameters:
         request_data['params'] = parameters
@@ -419,6 +420,5 @@ def call_backend(method, path, parameters=None, headers=None, body=None):
     logger.debug( f"Calling django request with request_data {request_data} ")
     response = requests.Session().request(**request_data)
     if not (response.status_code>=200 and response.status_code<=299):
-        logger.info(f"Can not update information in the backend, api request failed with STATUS_CODE : {response.status_code}")
+        raise CustomError(f"Can not update information in the backend, api request failed with STATUS_CODE : {response.status_code}")
     return response
-     

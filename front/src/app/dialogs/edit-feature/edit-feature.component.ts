@@ -485,6 +485,10 @@ export class EditFeature implements OnInit, OnDestroy {
             // Depends on other featre
             this.toggleDependsOnOthers(KeyPressed);
           break;
+        case KEY_CODES.E:
+            // Open Emulator mobile
+            this.openStartEmulatorScreen();
+          break;
         case KEY_CODES.M:
             // Send email
             this.toggleDependsOnOthers(KeyPressed);

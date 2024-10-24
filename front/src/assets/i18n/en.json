@@ -176,6 +176,7 @@
     "no-last-run": "Last run: No runs have been made yet"
   },
   "mobile_list": {
+    "emulator_mobile": "Emulator mobile",
     "apk_file": "Upload apk files in the upload section of edit feature screen and select apk from here to install in the mobile"
   }
 }

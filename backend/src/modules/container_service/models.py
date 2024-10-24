@@ -2,7 +2,8 @@ from django.db import models
 from backend.models import OIDCAccount, File
 from .service_manager import ServiceManager
 from backend.ee.modules.mobile.models import Mobile
-
+from django.core.exceptions import ValidationError
+from django.db.models import UniqueConstraint
 # File Status
 service_type = (
     (
@@ -42,6 +43,7 @@ class ContainerService(models.Model):
         choices=service_type, max_length=15, default="Emulator"
     )
     information = models.JSONField(default=dict, null=False, blank=False)
+    # Installed apk files
     apk_file = models.ManyToManyField(File, blank=True)
     shared = models.BooleanField(default=False)
     created_on = models.DateTimeField(
@@ -59,6 +61,10 @@ class ContainerService(models.Model):
     class Meta:
         ordering = ["created_on"]
         verbose_name_plural = "ContainerServices"
+        # unique_together = ('image', 'created_by')
+        constraints = [
+            UniqueConstraint(fields=['image', 'created_by'], name='unique_image_created_by')
+        ]
 
     def save(self, *args, **kwargs):
         service_manager = ServiceManager()
@@ -99,13 +105,16 @@ class ContainerService(models.Model):
                     service_name_or_id=self.service_id, file_path=file.path
                 )
                 if not file_name:
-                    return
+                    raise ValidationError(message)
                 result, message = service_manager.install_apk(
                     service_name_or_id=self.service_id, apk_file_name=file_name
                 )
                 if result:
                     self.apk_file.add(kwargs["apk_file"])
                     return super(ContainerService, self).save()
+                else:
+                    raise ValidationError(message)
+                    
 
     def delete(self, *args, **kwargs):
         service_manager = ServiceManager()

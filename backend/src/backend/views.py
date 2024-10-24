@@ -1949,6 +1949,7 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
         # Second option is from body Payload
         if 'feature_result_id' in request.data:
             feature_result_id = request.data['feature_result_id']
+            
         if feature_result_id:
             data = request.data
             self.queryset.filter(feature_result_id=feature_result_id).update(**data)
