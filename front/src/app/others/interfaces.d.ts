@@ -1082,6 +1082,7 @@ interface MobileJSON {
 
 interface IMobile {
   mobile_id: number;
+  mobile_image_name: string; 
   mobile_json: MobileJSON;
   capabilities: any;
   // These 2 fields below are related only to the frontend, does not have be stored in the backend
@@ -1100,6 +1101,8 @@ interface Container {
   user?: OIDCUserInfo
   created_on: string,
   created_by?: number; 
-  apk_file?: number | File
-  shared: boolean
+  created_by_name?: string; 
+  apk_file?: number | File;
+  shared: boolean;
+  hostname:string;
 }

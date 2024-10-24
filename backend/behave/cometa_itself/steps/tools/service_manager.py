@@ -10,6 +10,7 @@ from utility.cometa_logger import CometaLogger
 from utility.common import *
 from utility.encryption import *
 from utility.configurations import ConfigurationManager
+from tools.common import *
 
 # setup logging
 logger = logging.getLogger("FeatureExecution")
@@ -145,28 +146,36 @@ class DockerServiceManager:
             traceback.print_exc()
             return False
 
-    def upload_file(self, service_name_or_id, file_path):
+    def upload_file(self, service_name_or_id, file_path, decryptFile=True):
         container = self.docker_client.containers.get(service_name_or_id)
 
         # Destination path inside the container
         container_dest_path = "/tmp"  # Change as needed
         file_name = file_path.split("/")[-1]
-        decrypted_file_path = decryptFile(file_path)
+        if decryptFile:
+            file_path = decryptFile(file_path)
         # i.e decrypted_file /tmp/6oy2p464
         # Create the tar archive
-        tar_stream = create_tarball(decrypted_file_path)
-        
+        logger.debug("Creating a tar stream of file")
+        tar_stream = create_tarball(file_path)
+        logger.debug(f"Uploading the file to container from {file_path} to {container_dest_path}")
         # This will paste in the mobile container in the same location as decrypted_file_path 
         if container.put_archive(container_dest_path, tar_stream):
             logger.debug("APK File copied to the container")
-            command = f"mv \"{decrypted_file_path}\" \"/tmp/{file_name}\""
-
+            # File was not decrypted then file will be copied to container with correct name 
+            if not decryptFile:
+                return file_name
+            
+            command = f"mv \"{file_path}\" \"/tmp/{file_name}\""
             # Run the tar extraction command in the container
             exit_code, output = container.exec_run(command)
             if exit_code==0:
                 logger.debug(f"APK File moved from file {tar_stream} to the {file_name}")
                 return file_name
-        return
+            else:
+                raise CustomError(output)
+        else:
+            raise CustomError("Error while uploading apk file to server")
     
     def install_apk(self,service_name_or_id, apk_file_name):
         container = self.docker_client.containers.get(service_name_or_id)
@@ -176,9 +185,9 @@ class DockerServiceManager:
         # Run the tar extraction command in the container
         exit_code, output = container.exec_run(command)
         if exit_code == 0:
-            return True, f"App {apk_file_name} installed in the emulator container {service_name_or_id}"
+            return True, f"App {apk_file_name} installed in the mobile container {service_name_or_id}"
         else:
-            return False, f"Error while installing app in the emulator container {service_name_or_id}\n{output}"
+            return False, f"Error while installing app in the mobile container {service_name_or_id}\n{output}"
 
 
 service_manager = DockerServiceManager

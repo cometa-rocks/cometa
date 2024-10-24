@@ -29,7 +29,15 @@
                   (click)="live(feature_result_id)"
                   class="browser-icon live_preview"
                   matTooltipPosition="below"
-                  matTooltip="View your feature GO live!"
+                  matTooltip="View your browser execution, GO live!"
+                  *ngIf="showLiveIcon(browser)"
+                  >live_tv</mat-icon
+                >
+                <mat-icon
+                  (click)="noVNCMobile(feature_result_id)"
+                  class="browser-icon live_preview"
+                  matTooltipPosition="below"
+                  matTooltip="View your mobile execution, GO live!"
                   *ngIf="showLiveIcon(browser)"
                   >live_tv</mat-icon
                 >

@@ -1,12 +1,13 @@
 from .models import ContainerService
 from rest_framework import serializers
-
 class ContainerServiceSerializer(serializers.ModelSerializer):
+    created_by_name = serializers.CharField(source='created_by.name', read_only=True)
+    hostname = serializers.CharField(source='information.Config.Hostname', read_only=True)
     
     class Meta:
         model = ContainerService
         # fields = '__all__'
-        fields = ['id', 'image', 'service_id', 'service_type', 'shared','apk_file', 'created_by', 'department_id', ]
+        fields = ['id', 'image', 'service_id', 'service_type', 'shared','apk_file', 'created_by','hostname', 'department_id','created_by_name' ]
         extra_kwargs = {
             'image': {'required': True},
             'service_id': {'required': False},

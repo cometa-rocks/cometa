@@ -30,23 +30,35 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
 
     # @require_permissions("manage_house_keeping_logs")
     def retrieve(self, request, *args, **kwargs):
-        return self.response_manager.not_implemented_response()
-
+        # FIXME superuser permissions
+        try:
+            container_service  = ContainerService.objects.get(id=int(kwargs['pk']))
+            serializer = self.get_serializer(container_service)
+            response_data = serializer.data
+            response_data['hostname'] = container_service.information['Config']['Hostname']
+            return self.response_manager.get_response(dict_data=response_data)
+        except Exception:
+            return self.response_manager.id_not_found_error_response(kwargs['pk']) 
+        
     # @require_permissions("manage_house_keeping_logs")
     def list(self, request, *args, **kwargs):
         superuser = (
             request.session["user"]["user_permissions"]["permission_name"]
             == "SUPERUSER"
         )
+        filters = {key: value[0] if isinstance(value, list) else value  for key, value in request.query_params.items()}
+        
         if superuser:
-            queryset = ContainerService.objects.all()
+            queryset = ContainerService.objects.filter(**filters)
         else:
+            
             departments = [
                 x["department_id"] for x in request.session["user"]["departments"]
             ]
-            queryset = ContainerService.objects.filter(
-                department_id__in=departments, shared=True
-            )
+            # FIXME fix the logic of fetching the container service 
+            # if user creates the mobile container and does not share it will be visible to all
+            filters['department_id__in']=departments
+            queryset = ContainerService.objects.filter(**filters).select_related('created_by')
 
         serializer = self.get_serializer(queryset, many=True)
         return self.response_manager.get_response(list_data=serializer.data)
@@ -59,7 +71,7 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
         superuser = (request.session["user"]["user_permissions"]["permission_name"] == "SUPERUSER")
         try:
             filters = {
-                "id":kwargs["pk"],
+                "id":int(kwargs["pk"]),
             }
             if not superuser:
                 filters["department_id__in"] = [x['department_id'] for x in request.session["user"]["departments"]]
@@ -85,9 +97,13 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
         #     return self.response_manager.validation_error_response(error_data=serializer.errors)
         return super().create(request, args, kwargs)
 
-    def delete(self, request, *args, **kwargs):
-        return super().delete(request, args, kwargs)
-
+    def destroy(self, request, *args, **kwargs):
+        try:
+            ContainerService.objects.get(id=int(kwargs['pk'])).delete()
+            return self.response_manager.deleted_response(id=kwargs['pk'])
+        except Exception as e:
+            return self.response_manager.can_not_be_deleted_response(id=kwargs['pk'])
+            
 
 # #########
 # This view acts as a proxy to forward HTTP requests to an emulator service container.
