@@ -121,6 +121,7 @@ export class MobileListComponent implements OnInit {
   runningMobiles: Container[] = [];
   sharedMobileContainers: Container[] = [];
   isIconActive = false;
+  showDetails: { [key: string]: boolean} = {};
 
   ngOnInit(): void {
     // Call the API service on component initialization
@@ -289,16 +290,82 @@ export class MobileListComponent implements OnInit {
   }
 
   // This method stops the mobile container using ID
-  stopMobile(container: Container): void {
+  // rename Terminate Mo
+  terminateMobile(container: Container): void {
     console.log('Stopping container: ', container.id);
     // Call the API service on component initialization
-    this._api.stopMobile(container.id).subscribe(
+    this._api.terminateMobile(container.id).subscribe(
       (response: any) => {
         if (response.success) {
           this.snack.open(`Mobile stopped successfully`, 'OK');
           this.runningMobiles = this.runningMobiles.filter(
             runningContainer => runningContainer.id !== container.id
           );
+          this._cdr.detectChanges();
+        } else {
+          console.error(
+            'An error occurred while stopping the mobile',
+            response.message
+          );
+          this.snack.open(`Error while stopping the Mobile`, 'OK');
+        }
+      },
+      error => {
+        // Handle any errors
+        console.error(
+          'An error occurred while fetching the mobile list',
+          error
+        );
+      }
+    );
+  }
+
+  // This method stops the mobile container using ID
+  restartMobile(container: Container): void {
+    console.log('Container still here: ', this.runningMobiles);
+    let body = {
+      "action":"restart"    
+    }
+    // Call the API service on component initialization
+    this._api.updateMobile(container.id, body).subscribe(
+      (response: any) => {
+        if (response.success) {
+          container.isPaused = false;
+          this.snack.open(`Mobile restarted successfully`, 'OK');
+          container = response.containerservice
+          this._cdr.detectChanges();
+        } else {
+          console.error(
+            'An error occurred while stopping the mobile',
+            response.message
+          );
+          this.snack.open(`Error while stopping the Mobile`, 'OK');
+        }
+      },
+      error => {
+        // Handle any errors
+        console.error(
+          'An error occurred while fetching the mobile list',
+          error
+        );
+      }
+    );
+  }
+
+  // This method stops the mobile container using ID
+  pauseMobile(container: Container): void {
+    let body = {
+      "action":"stop"    
+    }
+    console.log('Stopping container: ', container.id);
+    console.log("Still running: ", this.runningMobiles);
+    // Call the API service on component initialization
+    this._api.updateMobile(container.id, body).subscribe(
+      (response: any) => {
+        if (response.success) {
+          container.isPaused = true;
+          this.snack.open(`Mobile paused successfully`, 'OK');
+          container = response.containerservice
           this._cdr.detectChanges();
         } else {
           console.error(
@@ -343,7 +410,6 @@ export class MobileListComponent implements OnInit {
 
   importClipboard(androidVersion: string) {
     navigator.clipboard.writeText(androidVersion).then(() => {
-    console.log('Text copied to clipboard: ', androidVersion);
     this.isIconActive = true;
     this._cdr.detectChanges();
     setTimeout(() => {
@@ -356,4 +422,13 @@ export class MobileListComponent implements OnInit {
       this.snack.open('Error copying text', 'Close');
     });
   }
+
+  toggleDetails(containerId) {
+    console.log("Running", containerId)
+    if(containerId){
+      console.log("Im inside");
+      this.showDetails[containerId] = !this.showDetails[containerId];
+    }
+  }
+
 }

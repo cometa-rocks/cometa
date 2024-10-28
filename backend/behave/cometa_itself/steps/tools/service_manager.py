@@ -190,6 +190,10 @@ class DockerServiceManager:
             return False, f"Error while installing app in the mobile container {service_name_or_id}\n{output}"
 
 
+    def inspect_service(self,service_name_or_id):
+        return self.docker_client.containers.get(service_name_or_id).attrs
+
+
 service_manager = DockerServiceManager
 if (
     ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker")
@@ -229,6 +233,9 @@ class ServiceManager(service_manager):
 
     def install_apk(self, service_name_or_id, apk_file_name, *args, **kwargs):
         return super().install_apk(service_name_or_id, apk_file_name, *args, **kwargs)
+
+    def inspect_service(self, service_name_or_id,  *args, **kwargs):
+        return super().inspect_service(service_name_or_id,  *args, **kwargs)
 
     def prepare_emulator_service_configuration(self, image):
         logger.debug("Preparing service configuration")

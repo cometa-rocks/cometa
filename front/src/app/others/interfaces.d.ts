@@ -889,6 +889,7 @@ interface IBrowserResult {
   error?: string;
   details?: LiveStepSubDetail;
   feature_result_id?: number;
+  mobiles_info?: any[];
 }
 
 interface LiveStepSubDetail {
@@ -910,6 +911,7 @@ interface StepStatus {
   info?: StepResult;
   screenshots: any;
   vulnerable_headers_count: number;
+  mobiles_info?: any[];
 }
 
 interface IRunsState {
@@ -1105,4 +1107,5 @@ interface Container {
   apk_file?: number | File;
   shared: boolean;
   hostname:string;
+  isPaused?: boolean;
 }
