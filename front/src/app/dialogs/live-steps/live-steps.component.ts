@@ -55,6 +55,7 @@ import {
   AsyncPipe,
   KeyValuePipe,
 } from '@angular/common';
+import { color } from 'highcharts';
 
 @UntilDestroy()
 @Component({
@@ -96,6 +97,11 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   status$: Observable<string>;
   feature$: Observable<Feature>;
   steps$: Observable<FeatureStep[]>;
+
+  mobiles = {}
+
+  // This keeps track of runing mobile or browsers
+  runningDevices: [] = []
 
   // Controls de auto scroll
   autoScroll = localStorage.getItem('live_steps_auto_scroll') === 'true';
@@ -215,7 +221,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   noVNCMobile(mobile_service_id): void {
     // FIXME this connection needs to be fixed, to improve security over emulators 
     let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${mobile_service_id}`;
-    window.open(complete_url, '_blank');
+    window.open(complete_url, '_blank').focus();;
   }
 
   showLiveIcon(browser) {
@@ -233,4 +239,11 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     this.autoScroll = checked;
     localStorage.setItem('live_steps_auto_scroll', checked.toString());
   }
+
+  updateMobile(data: any) {
+    this.mobiles[data.feature_run_id] = data.mobiles_info
+    console.log("Mobile value updated",this.mobiles )
+  }
+
+
 }

@@ -328,5 +328,6 @@ admin.site.register(StripeWebhook, AdminStripeWebhooks)
 admin.site.register(UserSubscription, AdminUserSubscription)
 admin.site.register(UsageInvoice, AdminUsageInvoice)
 admin.site.register(Dataset)
+admin.site.register(Feature_Task)
 
 # Register your models here.

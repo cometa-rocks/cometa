@@ -121,6 +121,8 @@ services:
       - 80
     volumes:
       - ./noVNC:/home/cometa/noVNC
+    ports:
+      - 4088:80
     networks:
       - testing
     restart: always

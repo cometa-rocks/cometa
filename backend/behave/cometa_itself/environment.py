@@ -221,6 +221,7 @@ def before_all(context):
     context.network_logging_enabled = os.environ.get("NETWORK_LOGGING") == "Yes"
     # get the connection URL for the browser
     connection_url = os.environ["CONNECTION_URL"]
+    context.connection_url = os.environ["CONNECTION_URL"]
     # set loop settings
     context.insideLoop = False  # meaning we are inside a loop
     context.jumpLoopIndex = (
@@ -553,6 +554,13 @@ def after_all(context):
             context.browser.delete_all_cookies()
         # quit the browser since at this point feature has been executed
         context.browser.quit()
+        
+        if context.cloud == "local":
+            url = f"http://cometa_selenoid:4444/sessions/{context.browser.session_id}"
+            logger.debug(f"Requesting to delete the {url}")
+            response = requests.delete(url)
+            logger.debug(response.json())
+            logger.debug(response.body)
     except Exception as err:
         logger.debug("Unable to delete cookies or quit the browser. See error below.")
         logger.debug(str(err))
@@ -960,6 +968,11 @@ def after_step(context, step):
     elif hasattr(context, "step_error"):
         step_error = context.step_error
     # send websocket to front to let front know about the step
+    logger.debug("Running Mobiles")
+    logger.debug(context.mobiles)
+    hostnames = [{'hostname':mobile['container_service_details']["Config"]["Hostname"]} for mobile in context.mobiles.values()]
+    logger.debug(hostnames)
+                 
     requests.post(
         "http://cometa_socket:3001/feature/%s/stepFinished" % context.feature_id,
         json={
@@ -977,6 +990,7 @@ def after_step(context, step):
             "screenshots": json.dumps(screenshots),  # load screenshots object
             "vulnerable_headers_count": vulnerable_headers_count,
             "step_type": context.STEP_TYPE,
+            "mobiles_info": hostnames
         },
     )
 
