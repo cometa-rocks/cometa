@@ -860,27 +860,21 @@ export class ApiService {
     return this._http.post<Container>(`${this.api}container_service/`, body)
   }
   
-  /**
-   * Allows to modify properties of a feature object
-   * @param {number} featureId Feature ID
-   * @param {Partial<Feature>} patches Partial object of Feature modified
-   * @returns Observable<EditFeatureResponse>
-   */
-  stopMobile(container_id) {
+ /**
+ * Terminates a running mobile emulator by its container ID.
+ * @param {string} container_id - The ID of the container to be terminated.
+ * @returns Observable<void> - An observable that completes when the delete request is successful.
+ */
+  terminateMobile(container_id) {
     return this._http.delete(`${this.api}container_service/${container_id}/`);
   }
 
   /**
-   * Allows to modify properties of a feature object
-   * @param {number} featureId Feature ID
-   * @param {Partial<Feature>} patches Partial object of Feature modified
-   * @returns Observable<EditFeatureResponse>
+   * Updates the properties of a mobile emulator identified by its container ID.
+   * @param {string} container_id - The ID of the container to be updated.
+   * @param {any} body - The request payload containing the updated properties for the mobile emulator.
+   * @returns Observable<EditFeatureResponse> - An observable containing the response from the update request.
    */
-  // updateMobile(container_id, body) {
-  //   return this._http.put<{containerservice?: Container}>(`${this.api}container_service/${container_id}/`, body).pipe(
-  //     map(response => response.containerservice) // Extract only the `results` field
-  //   );
-  // }  
   updateMobile(container_id, body) {
     return this._http.put(`${this.api}container_service/${container_id}/`, body);
   }

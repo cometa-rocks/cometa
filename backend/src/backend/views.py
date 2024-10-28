@@ -64,6 +64,7 @@ from backend.templatetags.humanize import *
 from sentry_sdk import capture_exception
 from backend.utility.uploadFile import UploadFile, decryptFile
 # from silk.profiling.profiler import silk_profile
+from modules.container_service.service_manager import ServiceManager
 
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
@@ -3349,10 +3350,20 @@ def UpdateTask(request):
     except Feature_result.DoesNotExist as exception:
         return JsonResponse({"success": True,'message':str(exception)})
 
+def remove_running_containers(feature_result):
+    for mobile in feature_result.mobile:
+        # While running mobile tests User have options to connect to already running mobile or start mobile during test
+        # If Mobile was started by the test then remove it after execution 
+        # If Mobile was started by the user and test only connected to it do not stop it
+        if mobile['is_started_by_test']:
+            ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
+
+
 @csrf_exempt
 def KillTask(request, feature_id):
-    tasks = Feature_Task.objects.filter(feature_id=feature_id)
+    tasks = Feature_Task.objects.filter(feature_id=feature_id).select_related('feature_result_id')
     for task in tasks:
+        remove_running_containers(task.feature_result_id)
         request = requests.get('http://behave:8001/kill_task/' + str(task.pid) + "/")
         Feature_Task.objects.filter(pid=task.pid).delete()
     if len(tasks) > 0:
@@ -3362,8 +3373,9 @@ def KillTask(request, feature_id):
 
 @csrf_exempt
 def KillTaskPID(request, pid):
-    tasks = Feature_Task.objects.filter(pid=pid)
-    for task in tasks:
+    tasks = Feature_Task.objects.filter(pid=pid).select_related('feature_result_id')
+    for task in tasks: 
+        remove_running_containers(task.feature_result_id)
         request = requests.get('http://behave:8001/kill_task/' + str(task.pid) + "/")
         Feature_Task.objects.filter(pid=task.pid).delete()
     return JsonResponse({"success": True, "tasks": len(tasks)}, status=200)

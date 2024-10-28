@@ -32,12 +32,11 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         # FIXME superuser permissions
         try:
-            container_service  = ContainerService.objects.get(id=int(kwargs['pk']))
+            container_service  = ContainerService.objects.select_related('created_by', 'image').get(id=int(kwargs['pk']))
             serializer = self.get_serializer(container_service)
-            response_data = serializer.data
-            response_data['hostname'] = container_service.information['Config']['Hostname']
-            return self.response_manager.get_response(dict_data=response_data)
-        except Exception:
+            return self.response_manager.get_response(dict_data=serializer.data)
+        except Exception as e:
+            traceback.print_exc()
             return self.response_manager.id_not_found_error_response(kwargs['pk']) 
         
     # @require_permissions("manage_house_keeping_logs")
@@ -58,7 +57,7 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
             # FIXME fix the logic of fetching the container service 
             # if user creates the mobile container and does not share it will be visible to all
             filters['department_id__in']=departments
-            queryset = ContainerService.objects.filter(**filters).select_related('created_by')
+            queryset = ContainerService.objects.filter(**filters).select_related('created_by', 'image')
 
         serializer = self.get_serializer(queryset, many=True)
         return self.response_manager.get_response(list_data=serializer.data)
