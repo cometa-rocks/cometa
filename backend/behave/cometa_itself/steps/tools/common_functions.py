@@ -92,6 +92,8 @@ def takeScreenshot(context, step_id):
         try:
             if context.STEP_TYPE=='MOBILE':
                 context.mobile['driver'].save_screenshot(final_screenshot_file)
+            elif (context.CURRENT_STEP.name.find("I sleep")>=0 or context.CURRENT_STEP.name.find("I can sleep")>=0) and context.PERVIOUS_STEP_TYPE=='MOBILE':
+                context.mobile['driver'].save_screenshot(final_screenshot_file)
             else: 
                 context.browser.save_screenshot(final_screenshot_file)
 
