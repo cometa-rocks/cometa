@@ -455,8 +455,9 @@ export class EditFeature implements OnInit, OnDestroy {
     if (this.inputFocus) return;
     let KeyPressed = event.keyCode;
     const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
+    const startEmulatorOpen = document.querySelector('mobile-list') as HTMLElement;
 
-    if(!this.inputFocus && editVarOpen == null){
+    if(!this.inputFocus && editVarOpen == null && startEmulatorOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
@@ -485,7 +486,7 @@ export class EditFeature implements OnInit, OnDestroy {
             // Depends on other featre
             this.toggleDependsOnOthers(KeyPressed);
           break;
-        case KEY_CODES.E:
+        case KEY_CODES.S:
             // Open Emulator mobile
             this.openStartEmulatorScreen();
           break;

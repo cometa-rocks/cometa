@@ -251,6 +251,15 @@ Author: dph000
       <cometa-data-driven-runs></cometa-data-driven-runs>
     </ng-container>
 
+    <!-- List of the Mobile Emulator Runs -->
+    <ng-container *ngIf="(aciveList$ | async) == 'mobile-emulator'">
+      <cometa-l1-filter
+        class="filter-bar"
+        [filters$]="filters$ | async">
+      </cometa-l1-filter>
+      <mobile-list></mobile-list>
+    </ng-container>
+
     <!-- List of the Department variables -->
     <!-- DEPARTMENT VARIABLES -->
     <ng-container *ngIf="(aciveList$ | async) == 'variables'">
