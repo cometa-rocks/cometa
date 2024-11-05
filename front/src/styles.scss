@@ -630,12 +630,12 @@ h3 {
 
 .mobile-emulator-panel {
   width: 80vw;
-  height: 80vh;
+  height: 81vh;
   display: flex;
   justify-content: center;
   align-items: center;
   .mat-dialog-container {
-    overflow: auto;
+    overflow: hidden;
   }
 }
 
