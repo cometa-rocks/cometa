@@ -161,6 +161,7 @@ services:
     networks:
       - testing
     restart: always
+    
   redis:
     image: redis:7.2.0-alpine
     container_name: cometa_redis

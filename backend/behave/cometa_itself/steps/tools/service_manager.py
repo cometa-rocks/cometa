@@ -238,11 +238,14 @@ class ServiceManager(service_manager):
         return super().inspect_service(service_name_or_id,  *args, **kwargs)
 
     def prepare_emulator_service_configuration(self, image):
-        logger.debug("Preparing service configuration")
+
         if super().deployment_type == "docker":
+            info = self.inspect_service("cometa_behave")
+            volume_mounts :list = info['HostConfig']['Binds']
+            video_volume = [volume for volume in volume_mounts if volume.find("/opt/code/videos") >= 0][0].split(":")[0]
+            logger.debug("Preparing service configuration")
             self.__service_configuration = {
                 "image": image,  # Replace with your desired image name
-                # "name": "emulator_appium_api_31",  # Replace with your desired container name
                 "detach": True,  # Run the container in the background
                 "working_dir": "/app",  # Set the working directory inside the container
                 "devices": [
@@ -250,10 +253,15 @@ class ServiceManager(service_manager):
                 ],  # Bind the KVM device for hardware acceleration
                 "privileged": True,  # Required to access hardware features and KVM
                 "environment": {
-                    "DISPLAY": ":0"
+                    "DISPLAY": ":0",
+                    "VIDEO_PATH": "/video",
+                    "AUTO_RECORD": "true"
                 },  # Set the DISPLAY environment variable
                 "network": "cometa_testing",  # Attach the container to the 'testing' network
                 "restart_policy": {"Name": "unless-stopped"},
+                "volumes":[
+                    f"{video_volume}:/video"
+                ]
             }
         else:
             # Create Configuration for kubernetes
