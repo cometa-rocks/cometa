@@ -45,6 +45,7 @@ import { WelcomeComponent } from '../welcome/welcome.component';
 import { L1TreeViewComponent } from '../l1-tree-view/l1-tree-view.component';
 import { L1FeatureListComponent } from '../l1-feature-list/l1-feature-list.component';
 import { L1FeatureItemListComponent } from '../l1-feature-item-list/l1-feature-item-list.component';
+import { MobileListComponent } from '../../dialogs/mobile-list/mobile-list.component';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { MatRippleModule } from '@angular/material/core';
 import { L1FilterComponent } from '../l1-filter/l1-filter.component';

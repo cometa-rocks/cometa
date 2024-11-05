@@ -139,10 +139,20 @@ export class MainViewComponent implements OnInit {
           type: 'icon',
           text: 'replay',
           icon: 'videocam',
-          tooltip: 'View results replay',
+          tooltip: 'View browser test result replay',
           color: 'primary',
           iif: (result: FeatureResult) => (result.video_url ? true : false),
-          click: (result: FeatureResult) => this.openVideo(result),
+          click: (result: FeatureResult) => this.openVideo(result, result.video_url),
+          class: 'replay-button',
+        },
+        {
+          type: 'icon',
+          text: 'replay',
+          icon: 'videocam',
+          tooltip: 'View mobile test result replay',
+          color: 'primary',
+          iif: (result: FeatureResult) => (result.mobile && result.mobile.length>0),
+          click: (result: FeatureResult) => this.openVideo(result, result.mobile[0].video_recording),
           class: 'replay-button',
         },
         {
@@ -342,11 +352,11 @@ export class MainViewComponent implements OnInit {
     });
   }
 
-  openVideo(result: FeatureResult) {
+  openVideo(result: FeatureResult, video_url:string) {
 
     this._sharedActions
       .loadingObservable(
-        this._sharedActions.checkVideo(result.video_url),
+        this._sharedActions.checkVideo(video_url),
         'Loading video'
       )
       .subscribe({
@@ -354,7 +364,10 @@ export class MainViewComponent implements OnInit {
           const dialogRef = this._dialog.open(VideoComponent, {
             backdropClass: 'video-player-backdrop',
             panelClass: 'video-player-panel',
-            data: result,
+            data: {
+              result: result,
+              video_url: video_url
+            },
           });
 
           dialogRef.afterClosed().subscribe(() => {

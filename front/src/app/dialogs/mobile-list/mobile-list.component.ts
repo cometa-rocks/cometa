@@ -55,6 +55,9 @@ import { UserState } from '@store/user.state';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDividerModule } from '@angular/material/divider';
 import { DraggableWindowModule } from '@modules/draggable-window.module'
+import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
+import { Store } from '@ngxs/store';
+// import { RunningMobilesActions } from '@store/actions/running-mobiles.actions';
 
 /**
  * MobileListComponent
@@ -104,15 +107,17 @@ import { DraggableWindowModule } from '@modules/draggable-window.module'
     MatLegacyDialogModule,
     MatSlideToggleModule,
     MatDividerModule,
-    DraggableWindowModule
+    DraggableWindowModule,
   ],
 })
 export class MobileListComponent implements OnInit {
   constructor(
+    private _dialog: MatDialog,
     private _api: ApiService,
     private _cdr: ChangeDetectorRef,
     @Inject(MAT_DIALOG_DATA) public data: any,
-    private snack: MatSnackBar
+    private snack: MatSnackBar,
+    private _store: Store
   ) {}
   @ViewSelectSnapshot(UserState) user!: UserInfo;
 
@@ -122,6 +127,9 @@ export class MobileListComponent implements OnInit {
   sharedMobileContainers: Container[] = [];
   isIconActive = false;
   showDetails: { [key: string]: boolean} = {};
+  sharedDetails: { [key: string]: boolean} = {};
+  isDialog: boolean = false;
+  selectedApps: { [mobileId: string]: string | null } = {};
 
   ngOnInit(): void {
     // Call the API service on component initialization
@@ -147,10 +155,13 @@ export class MobileListComponent implements OnInit {
                 );
 
                 this.sharedMobileContainers.push(container);
-              } else {
+              } else if (
+                this.user.user_id == container.created_by
+              ) {
                 this.runningMobiles.push(container);
               }
             }
+
             console.log('Lods runnign desde init:', this.runningMobiles);
             this._cdr.detectChanges();
           },
@@ -173,11 +184,10 @@ export class MobileListComponent implements OnInit {
       }
     );
 
-    this.runningMobiles.forEach(mobile => {
-      console.log('Created by ', mobile.created_by);
-      console.log('User: ', mobile.user);
-      console.log('User general', UserState);
-    });
+    // department_id is received only when component is opened as dialog
+    this.isDialog = this.data?.department_id ? true : false;
+
+    console.log("shared mobiles", this.sharedMobileContainers);
   }
 
   updateSharedStatus(isShared: any, mobile: IMobile, container): void {
@@ -292,32 +302,50 @@ export class MobileListComponent implements OnInit {
   // This method stops the mobile container using ID
   // rename Terminate Mo
   terminateMobile(container: Container): void {
-    console.log('Stopping container: ', container.id);
-    // Call the API service on component initialization
-    this._api.terminateMobile(container.id).subscribe(
-      (response: any) => {
-        if (response.success) {
-          this.snack.open(`Mobile stopped successfully`, 'OK');
-          this.runningMobiles = this.runningMobiles.filter(
-            runningContainer => runningContainer.id !== container.id
-          );
-          this._cdr.detectChanges();
-        } else {
-          console.error(
-            'An error occurred while stopping the mobile',
-            response.message
-          );
-          this.snack.open(`Error while stopping the Mobile`, 'OK');
-        }
-      },
-      error => {
-        // Handle any errors
-        console.error(
-          'An error occurred while fetching the mobile list',
-          error
+    this._dialog
+    .open(AreYouSureDialog, {
+      data: {
+        title: 'translate:you_sure.mobile_title',
+        description: 'translate:you_sure.mobile_description', 
+      } as AreYouSureData,
+    })
+    .afterClosed()
+    .subscribe((exit: boolean) => {
+      if (exit) {
+        console.log('Stopping container: ', container.id);
+        this._api.terminateMobile(container.id).subscribe(
+          (response: any) => {
+            if (response.success) {
+              this.snack.open(`Mobile stopped successfully`, 'OK');
+              this.runningMobiles = this.runningMobiles.filter(
+                runningContainer => runningContainer.id !== container.id
+              );
+
+              const mobile = this.mobiles.find(m => m.mobile_id === container.image);
+              if (mobile) {
+                mobile.selectedAPKFileID = null;
+              }
+
+              this.selectedApps[container.service_id] = null;
+
+              this._cdr.detectChanges();
+            } else {
+              console.error(
+                'An error occurred while stopping the mobile',
+                response.message
+              );
+              this.snack.open(`Error while stopping the Mobile`, 'OK');
+            }
+          },
+          error => {
+            console.error(
+              'An error occurred while fetching the mobile list',
+              error
+            );
+          }
         );
       }
-    );
+    });
   }
 
   // This method stops the mobile container using ID
@@ -424,10 +452,15 @@ export class MobileListComponent implements OnInit {
   }
 
   toggleDetails(containerId) {
-    console.log("Running", containerId)
     if(containerId){
-      console.log("Im inside");
       this.showDetails[containerId] = !this.showDetails[containerId];
+    }
+  }
+
+  toggleSharedDetails(containerId) {
+    console.log("containerId", containerId);
+    if(containerId){
+      this.sharedDetails[containerId] = !this.sharedDetails[containerId];
     }
   }
 
