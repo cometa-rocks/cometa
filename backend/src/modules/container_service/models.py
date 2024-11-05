@@ -66,6 +66,10 @@ class ContainerService(models.Model):
             UniqueConstraint(fields=['image', 'created_by'], name='unique_image_created_by')
         ]
 
+    
+    def __str__(self) -> str:
+        return f"{self.id} {self.created_by}"
+    
     def save(self, *args, **kwargs):
         service_manager = ServiceManager()
         if not self.id:
@@ -84,6 +88,7 @@ class ContainerService(models.Model):
                     service_name_or_id=self.service_id
                 )
                 if result:
+                    self.service_details = service_manager.inspect_service()
                     self.service_status = "Running"
                     return super(ContainerService, self).save()
 
@@ -92,14 +97,16 @@ class ContainerService(models.Model):
                     service_name_or_id=self.service_id
                 )
                 if result:
+                    self.service_details = service_manager.inspect_service()
                     self.service_status = "Stopped"
                     return super(ContainerService, self).save()
 
-            elif kwargs.get("shared", "") != "":
+            if kwargs.get("shared", "") != "":
+                print("Updating share")
                 self.shared = kwargs.get("shared")
                 return super(ContainerService, self).save()
 
-            elif kwargs.get("apk_file", "") != "":
+            if kwargs.get("apk_file", "") != "":
                 file = File.objects.get(id=kwargs["apk_file"])
                 file_name = service_manager.upload_file(
                     service_name_or_id=self.service_id, file_path=file.path
@@ -114,6 +121,8 @@ class ContainerService(models.Model):
                     return super(ContainerService, self).save()
                 else:
                     raise ValidationError(message)
+                
+            return super(ContainerService, self).save()
                     
 
     def delete(self, *args, **kwargs):

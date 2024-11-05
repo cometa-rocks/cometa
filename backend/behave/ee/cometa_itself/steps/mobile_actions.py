@@ -38,15 +38,9 @@ logger = logging.getLogger("FeatureExecution")
 use_step_matcher("re")
 
 
-@step(
-    'Launch mobile "(?P<mobile_name>.*?)"(?: use capabilities """(?P<capabilities>.*?)""")?(?: reference to "(?P<variable_name>.*?)")?'
-)
-@done(
-    'Launch mobile "{mobile_name}" use capabilities """{capabilities}""" reference to "{variable_name}"'
-)
-def start_mobile_and_application(
-    context, mobile_name, capabilities="{}", variable_name=None
-):
+@step('Start mobile "(?P<mobile_name>.*?)"(?: use capabilities """(?P<capabilities>.*?)""")?(?: reference to "(?P<variable_name>.*?)")?')
+@done('Start mobile "{mobile_name}" use capabilities """{capabilities}""" reference to "{variable_name}"')
+def start_mobile_and_application(context, mobile_name, capabilities="{}", variable_name=None):
     context.STEP_TYPE = "MOBILE"
     parameters = {"mobile_image_name": mobile_name}
 
@@ -100,6 +94,11 @@ def start_mobile_and_application(
         )
         mobile_configuration["capabilities"]["app"] = f"/tmp/{file_name}"
 
+    mobile_configuration["capabilities"]["is_test"] = True
+    
+    if context.record_video:
+        mobile_configuration["capabilities"]["record_video"] = True 
+    
     options = AppiumOptions()
     options.load_capabilities(mobile_configuration["capabilities"])
 
@@ -115,35 +114,37 @@ def start_mobile_and_application(
     mobile_info = {
         "driver": new_mobile,
         "container_service_details": service_details,
+        "mobile_configuration": mobile_configuration,
     }
+    if context.record_video:
+        logger.info("Video recordig enabled")
+        mobile_info['session_id'] = new_mobile.session_id[0].replace('-','')
+        
     # Save in the list of mobile
     context.mobiles[variable_name if variable_name else "default"] = mobile_info
     # Save in the list of mobile to use it without iterating
     context.mobile = mobile_info
-
+    
     data = {
         "feature_result_id": int(context.FEATURE_RESULT_ID),
         "mobile": [
-            {
+            {   
+                "name": key,
                 "is_started_by_test": True,
-                "container_service_details": service_details,
-                "mobile_configuration": mobile_configuration,
-            }
+                "container_service_details": mobile['container_service_details'],
+                "mobile_configuration": mobile['mobile_configuration'],
+                "session_id": mobile['session_id'] if context.record_video else "",
+                "video_recording": f"/videos/{mobile['session_id']}.mp4" if context.record_video else ""
+            } for key, mobile in context.mobiles
         ],
     }
 
     call_backend(method="PATCH", path="/api/feature_results/", body=data)
 
 
-@step(
-    'Connect to mobile "(?P<mobile_code>.*?)"(?: use capabilities """(?P<capabilities>.*?)""")?(?: reference to "(?P<variable_name>.*?)")?'
-)
-@done(
-    'Connect to mobile "{mobile_code}" use capabilities """{capabilities}""" reference to "{variable_name}"'
-)
-def connect_mobile_and_application(
-    context, mobile_code, capabilities={}, variable_name=None
-):
+@step('Connect to mobile "(?P<mobile_code>.*?)"(?: use capabilities """(?P<capabilities>.*?)""")?(?: reference to "(?P<variable_name>.*?)")?')
+@done('Connect to mobile "{mobile_code}" use capabilities """{capabilities}""" reference to "{variable_name}"')
+def connect_mobile_and_application(context, mobile_code, capabilities={}, variable_name=None):
     context.STEP_TYPE = "MOBILE"
     parameters = {"information__Config__Hostname": mobile_code}
 
@@ -188,7 +189,12 @@ def connect_mobile_and_application(
             mobile_configuration["capabilities"]["app"],
         )
         mobile_configuration["capabilities"]["app"] = f"/tmp/{file_name}"
+        
+    mobile_configuration["capabilities"]["is_test"] = True
 
+    if context.record_video:
+        mobile_configuration["capabilities"]["record_video"] = True
+    
     # Prepare the appium options
     options = AppiumOptions()
     options.load_capabilities(mobile_configuration["capabilities"])
@@ -202,26 +208,33 @@ def connect_mobile_and_application(
         strict_ssl=False,
         options=options,
     )
-
+    
     mobile_info = {
         "driver": new_mobile,
         "container_service_details": ServiceManager().inspect_service(
             container_service["service_id"]
         ),
+        "mobile_configuration": mobile_configuration,
     }
+    if context.record_video:
+        logger.info("Video recordig enabled")
+        mobile_info['session_id'] = new_mobile.session_id.replace('-','')
     # Save in the list of mobile
     context.mobiles[variable_name if variable_name else "default"] = mobile_info
     # Save in the list of mobile to use it without iterating
     context.mobile = mobile_info
-
+    
     data = {
         "feature_result_id": int(context.FEATURE_RESULT_ID),
         "mobile": [
             {
-                "is_started_by_test": False,
-                "container_service_details": container_service,
-                "mobile_configuration": mobile_configuration,
-            }
+                "name": key,
+                "is_started_by_test": True,
+                "container_service_details": mobile['container_service_details'],
+                "mobile_configuration": mobile['mobile_configuration'],
+                "session_id": mobile['session_id'] if context.record_video else "",
+                "video_recording": f"/videos/{mobile['session_id']}.mp4" if context.record_video else ""
+            } for key, mobile in context.mobiles.items()
         ],
     }
 
@@ -256,23 +269,6 @@ def install_app(context, apk_file_name):
 
 
 use_step_matcher("parse")
-
-IMPLICIT_WAIT_TIME = 10  # Adjust as needed
-EXPLICIT_WAIT_TIME = 30  # Adjust as needed
-
-
-# Helper function to return the correct locator strategy
-def get_locator(strategy, value):
-    strategies = {
-        "id": By.ID,
-        "xpath": By.XPATH,
-        "class_name": By.CLASS_NAME,
-        "accessibility_id": By.ACCESSIBILITY_ID,
-        "name": By.NAME,
-        # Add other strategies as needed
-    }
-    return strategies[strategy], value
-
 
 @step('Tap on element with "{selector_type}" "{selector_value}"')
 @done('Tap on element with "{selector_type}" "{selector_value}"')
@@ -459,30 +455,6 @@ def take_screenshot(context, filename):
     send_step_details(context, f"Screenshot saved at {screenshot_path}")
 
 
-@step('Check if element with "{selector_type}" "{selector_value}" is visible')
-@done('Check if element with "{selector_type}" "{selector_value}" is visible')
-def check_if_element_visible(context, selector_type, selector_value):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(
-        context,
-        f"Checking if element with {selector_type}: {selector_value} is visible",
-    )
-    logger.debug(
-        f"Checking if element with {selector_type}: {selector_value} is visible"
-    )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
-    )
-    if not element.is_displayed():
-        raise CustomError(
-            f"Element with {selector_type}: {selector_value} is not visible"
-        )
-    send_step_details(
-        context, f"Element with {selector_type}: {selector_value} is visible"
-    )
-    return True
-
-
 @step('Check if element with "{selector_type}" "{selector_value}" is not visible')
 @done('Check if element with "{selector_type}" "{selector_value}" is not visible')
 def check_if_element_not_visible(context, selector_type, selector_value):
@@ -558,12 +530,8 @@ def check_if_element_not_enabled(context, selector_type, selector_value):
     return True
 
 
-@step(
-    'Check if element with "{selector_type}" "{selector_value}" contains text "{text}"'
-)
-@done(
-    'Check if element with "{selector_type}" "{selector_value}" contains text "{text}"'
-)
+@step('Check if element with "{selector_type}" "{selector_value}" contains text "{text}"')
+@done('Check if element with "{selector_type}" "{selector_value}" contains text "{text}"')
 def check_if_element_contains_text(context, selector_type, selector_value, text):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -588,12 +556,8 @@ def check_if_element_contains_text(context, selector_type, selector_value, text)
     return True
 
 
-@step(
-    'Check if element with "{selector_type}" "{selector_value}" does not contain text "{text}"'
-)
-@done(
-    'Check if element with "{selector_type}" "{selector_value}" does not contain text "{text}"'
-)
+@step('Check if element with "{selector_type}" "{selector_value}" does not contain text "{text}"')
+@done('Check if element with "{selector_type}" "{selector_value}" does not contain text "{text}"')
 def check_if_element_not_contains_text(context, selector_type, selector_value, text):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -659,8 +623,8 @@ def open_url_in_mobile_browser(context, url):
         raise CustomError(f"Could not open URL {url}: {str(e)}")
 
 
-@step("Close the mobile application")
-@done("Close the mobile application")
+@step('Close the mobile application')
+@done('Close the mobile application')
 def close_mobile_application(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Closing the mobile application")
@@ -670,24 +634,7 @@ def close_mobile_application(context):
         send_step_details(context, "Mobile application closed successfully")
     except Exception as e:
         raise CustomError(f"Could not close the mobile application: {str(e)}")
-
-
-@step('Install app "{app_package}" on device "{device_name}"')
-@done('Install app "{app_package}" on device "{device_name}"')
-def install_app_on_device(context, app_package, device_name):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(context, f"Installing app {app_package} on device {device_name}")
-    logger.debug(f"Installing app {app_package} on device {device_name}")
-    try:
-        context.mobile["driver"].install_app(app_package)
-        send_step_details(
-            context, f"App {app_package} installed successfully on device {device_name}"
-        )
-    except Exception as e:
-        raise CustomError(
-            f"Could not install app {app_package} on device {device_name}: {str(e)}"
-        )
-
+    
 
 @step('Uninstall app "{app_package}" from device "{device_name}"')
 @done('Uninstall app "{app_package}" from device "{device_name}"')
@@ -774,8 +721,8 @@ def pinch_to_zoom_out(context, element_id):
         )
 
 
-@step("Rotate screen to landscape mode")
-@done("Rotate screen to landscape mode")
+@step('Rotate screen to landscape mode')
+@done('Rotate screen to landscape mode')
 def rotate_screen_to_landscape(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Rotating screen to landscape mode")
@@ -787,8 +734,8 @@ def rotate_screen_to_landscape(context):
         raise CustomError(f"Could not rotate screen to landscape mode: {str(e)}")
 
 
-@step("Rotate screen to portrait mode")
-@done("Rotate screen to portrait mode")
+@step('Rotate screen to portrait mode')
+@done('Rotate screen to portrait mode')
 def rotate_screen_to_portrait(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Rotating screen to portrait mode")
@@ -843,8 +790,8 @@ def check_if_app_running(context, app_package, device_name):
         )
 
 
-@step("Capture logs from mobile device")
-@done("Capture logs from mobile device")
+@step('Capture logs from mobile device')
+@done('Capture logs from mobile device')
 def capture_logs_from_mobile_device(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Capturing logs from mobile device")
@@ -857,8 +804,8 @@ def capture_logs_from_mobile_device(context):
         raise CustomError(f"Could not capture logs from mobile device: {str(e)}")
 
 
-@step("Get current device orientation")
-@done("Get current device orientation")
+@step('Get current device orientation')
+@done('Get current device orientation')
 def get_current_device_orientation(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Getting current device orientation")
@@ -886,8 +833,8 @@ def change_device_orientation(context, orientation):
         )
 
 
-@step("Lock the screen")
-@done("Lock the screen")
+@step('Lock the screen')
+@done('Lock the screen')
 def lock_screen(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Locking the screen")
@@ -899,8 +846,8 @@ def lock_screen(context):
         raise CustomError(f"Could not lock the screen: {str(e)}")
 
 
-@step("Unlock the screen")
-@done("Unlock the screen")
+@step('Unlock the screen')
+@done('Unlock the screen')
 def unlock_screen(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Unlocking the screen")
@@ -912,8 +859,8 @@ def unlock_screen(context):
         raise CustomError(f"Could not unlock the screen: {str(e)}")
 
 
-@step("Check network status of mobile device")
-@done("Check network status of mobile device")
+@step('Check network status of mobile device')
+@done('Check network status of mobile device')
 def check_network_status(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Checking network status of mobile device")
@@ -1099,8 +1046,8 @@ def validate_text_on_mobile_screen(context, text):
         )
 
 
-@step("Capture device performance metrics")
-@done("Capture device performance metrics")
+@step('Capture device performance metrics')
+@done('Capture device performance metrics')
 def capture_device_performance_metrics(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Capturing device performance metrics")
@@ -1189,152 +1136,4 @@ def check_if_element_visible(context, selector_type, selector_value):
     send_step_details(
         context, f"Element with {selector_type}: {selector_value} is visible"
     )
-    return True
-
-
-@step('Check if element with "{selector_type}" "{selector_value}" is not visible')
-@done('Check if element with "{selector_type}" "{selector_value}" is not visible')
-def check_if_element_not_visible(context, selector_type, selector_value):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(
-        context,
-        f"Checking if element with {selector_type}: {selector_value} is not visible",
-    )
-    logger.debug(
-        f"Checking if element with {selector_type}: {selector_value} is not visible"
-    )
-    try:
-        WebDriverWait(context.mobile["driver"], EXPLICIT_WAIT_TIME).until_not(
-            EC.visibility_of_element_located(
-                waitSelector(context, selector_type, selector_value)
-            )
-        )
-        send_step_details(
-            context, f"Element with {selector_type}: {selector_value} is not visible"
-        )
-        return True
-    except:
-        raise CustomError(
-            f"Element with {selector_type}: {selector_value} is still visible"
-        )
-
-
-@step('Check if element with "{selector_type}" "{selector_value}" is enabled')
-@done('Check if element with "{selector_type}" "{selector_value}" is enabled')
-def check_if_element_enabled(context, selector_type, selector_value):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(
-        context,
-        f"Checking if element with {selector_type}: {selector_value} is enabled",
-    )
-    logger.debug(
-        f"Checking if element with {selector_type}: {selector_value} is enabled"
-    )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
-    )
-    if not element.is_enabled():
-        raise CustomError(
-            f"Element with {selector_type}: {selector_value} is not enabled"
-        )
-    send_step_details(
-        context, f"Element with {selector_type}: {selector_value} is enabled"
-    )
-    return True
-
-
-@step('Check if element with "{selector_type}" "{selector_value}" is not enabled')
-@done('Check if element with "{selector_type}" "{selector_value}" is not enabled')
-def check_if_element_not_enabled(context, selector_type, selector_value):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(
-        context,
-        f"Checking if element with {selector_type}: {selector_value} is not enabled",
-    )
-    logger.debug(
-        f"Checking if element with {selector_type}: {selector_value} is not enabled"
-    )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector_value=selector_value
-    )
-    if element.is_enabled():
-        raise CustomError(
-            f"Element with {selector_type}: {selector_value} is still enabled"
-        )
-    send_step_details(
-        context, f"Element with {selector_type}: {selector_value} is not enabled"
-    )
-    return True
-
-
-@step(
-    'Check if element with "{selector_type}" "{selector_value}" contains text "{text}"'
-)
-@done(
-    'Check if element with "{selector_type}" "{selector_value}" contains text "{text}"'
-)
-def check_if_element_contains_text(context, selector_type, selector_value, text):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(
-        context,
-        f"Checking if element with {selector_type}: {selector_value} contains text: {text}",
-    )
-    logger.debug(
-        f"Checking if element with {selector_type}: {selector_value} contains text: {text}"
-    )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
-    )
-    element_text = element.text
-    if text not in element_text:
-        raise CustomError(
-            f"Element with {selector_type}: {selector_value} does not contain text '{text}'"
-        )
-    send_step_details(
-        context,
-        f"Element with {selector_type}: {selector_value} contains text '{text}'",
-    )
-    return True
-
-
-@step(
-    'Check if element with "{selector_type}" "{selector_value}" does not contain text "{text}"'
-)
-@done(
-    'Check if element with "{selector_type}" "{selector_value}" does not contain text "{text}"'
-)
-def check_if_element_not_contains_text(context, selector_type, selector_value, text):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(
-        context,
-        f"Checking if element with {selector_type}: {selector_value} does not contain text: {text}",
-    )
-    logger.debug(
-        f"Checking if element with {selector_type}: {selector_value} does not contain text: {text}"
-    )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
-    )
-    element_text = element.text
-    if text in element_text:
-        raise CustomError(
-            f"Element with {selector_type}: {selector_value} contains text '{text}'"
-        )
-    send_step_details(
-        context,
-        f"Element with {selector_type}: {selector_value} does not contain text '{text}'",
-    )
-    return True
-
-
-@step('Validate if current screen contains "{object_name}"')
-@done('Validate if current screen contains "{object_name}"')
-def validate_if_screen_contains_object(context, object_name):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(context, f"Validating if current screen contains '{object_name}'")
-    logger.debug(f"Validating if current screen contains '{object_name}'")
-    screen_text = context.mobile["driver"].page_source
-    if object_name not in screen_text:
-        raise CustomError(f"'{object_name}' did not appear on the screen")
-    send_step_details(context, f"Current screen contains '{object_name}'")
     return True

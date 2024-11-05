@@ -320,7 +320,7 @@ def before_all(context):
 
     # video recording on or off
     context.record_video = data["video"] if "video" in data else True
-
+    logger.debug(f"context.record_video {context.record_video }")
     # create the options based on the browser name
     if context.browser_info["browser"] == "firefox":
         options = FirefoxOptions()
@@ -564,6 +564,16 @@ def after_all(context):
     except Exception as err:
         logger.debug("Unable to delete cookies or quit the browser. See error below.")
         logger.debug(str(err))
+
+    # Close all Mobile sessions
+    for key, mobile in context.mobiles.items():
+        logger.debug(mobile['driver'])
+        try:
+            mobile['driver'].quit()
+            
+        except Exception as err:
+            logger.error(f"Unable to stop the mobile session, Mobile details : {mobile['driver']}")
+            logger.error(str(err))
 
     # testcase has finished, send websocket about processing data
     request = requests.get(
@@ -810,6 +820,7 @@ def after_all(context):
 @error_handling()
 def before_step(context, step):
     context.STEP_TYPE = 'BROWSER'
+    context.CURRENT_STEP = step
     os.environ["current_step"] = str(context.counters["index"] + 1)
     # complete step name to let front know about the step that will be executed next
     step_name = "%s %s" % (step.keyword, step.name)
@@ -928,6 +939,8 @@ def find_vulnerable_headers(context, step_index) -> int:
 
 @error_handling()
 def after_step(context, step):
+    # Save p
+    context.PERVIOUS_STEP_TYPE = context.STEP_TYPE
     # Capture the exception if it exists and print it
     if step.exception:
         logger.exception("", exc_info=step.exception, stack_info=True)
