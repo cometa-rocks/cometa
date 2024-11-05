@@ -47,9 +47,13 @@ h2 {
 }
 
 :host::ng-deep .mat-tab-label-content .live_preview {
-  margin-right: 0;
+  // margin-right: 0;
   margin-left: 10px;
-  line-height: 16px;
+  // line-height: 16px;
+  // display: flex;
+  // align-items: center;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 :host::ng-deep .mat-ripple.mat-tab-label-active {

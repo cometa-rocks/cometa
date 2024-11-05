@@ -62,6 +62,7 @@ interface FeatureRequirements {
   feature_result_id?: number;
 }
 
+
 interface FeatureResult {
   executing?: boolean;
   archived: boolean;
@@ -76,6 +77,7 @@ interface FeatureResult {
   environment_name: string;
   departament_name: string;
   browser: BrowserstackBrowser;
+  mobile: MobileTestResult[];
   total: number;
   fails: number;
   ok: number;
@@ -669,6 +671,16 @@ interface BrowserstackBrowser {
   cloud?: string;
   concurrency?: number;
   selectedTimeZone?: string;
+}
+
+// This interface only used to show mobile test execution results
+interface MobileTestResult {
+  name: string;
+  session_id: string;
+  video_recording: string;
+  mobile_configuration: any;
+  container_service_details: any
+  real_mobile?: boolean | null;
 }
 
 interface BrowserstackBrowsersResponse {

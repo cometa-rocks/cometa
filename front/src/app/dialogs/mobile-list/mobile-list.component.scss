@@ -6,7 +6,6 @@
   flex-wrap: wrap;
   width: 100%;
   min-height: 200px;
-  // background-color: rgba(0, 0, 0, 0.02);
   position: relative;
 }
 
@@ -17,7 +16,6 @@ h2 {
 
 h3, h4 {
   color: $blue;
-  margin-top: 10px;
   margin-left: 10px;
 }
 
@@ -33,13 +31,13 @@ h3, h4 {
 
 .devices {
   .mobile-selector-box {
-    // margin-left: 10px;
     .mobiles {
       display: flex;
       gap: 50px;
       margin: 20px 0 20px 10px;
+      flex-wrap: wrap;
+      overflow-x: hidden;
       .mobile {
-        // background-image: url('assets/Mobile.png'); /* No quotes around url() */
         padding: 20px 20px;
         margin-bottom: 15px;
         min-height: 230px;
@@ -48,10 +46,9 @@ h3, h4 {
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         position: relative;
         display: flex;
-        // align-items: center;
         flex-direction: column;
-        width: 320px;
-
+        width: 390px;
+        min-width: 390px;
         .mobile-icon {
           width: 100px;
           height: 200px;
@@ -75,8 +72,23 @@ h3, h4 {
 
           .moreOrLess {
             text-align: left;
-            padding: 0 0 0 5px;
+            padding: 0 0 0 10px;
+            margin-bottom: 5px;
+            background-color: transparent;
           }
+
+          // .moreOrLess:hover {
+          //   background-color: transparent;
+          // }
+
+          .moreOrLessNotRunning {
+            text-align: left;
+            padding: 0 0 0 10px;
+            margin-bottom: 5px;
+            background-color: transparent;
+          }
+
+          
 
           .moreInfo{
             display: flex;
@@ -90,8 +102,16 @@ h3, h4 {
   }
 }
 
+.not-running {
+  height: 20px;
+}
+
+.not-running-2 {
+  height: 25px;
+}
+
 .dialog-header {
-  padding: 15px 0px 15px 10px;
+  padding: 0px 0px 15px 10px;
   display: flex;
   flex-wrap: wrap;
   min-height: 52px;
@@ -132,18 +152,17 @@ mat-dialog-content {
   height: 40px;
 }
 
-.mobile-buttons {
+.mobile-buttons-shared {
   display: flex;
   flex-direction: row-reverse;
-  gap: 35px;
-  height: 55px;
-  align-items: center;
-  justify-content: center;
+  gap: 15px;
+
+  .inspect-shared {
+    margin-right: 10px;
+  }
 
   .start-stop-inpect-buttons {
-    height: 35px;
     font-weight: bold;
-    vertical-align: middle;
   }
 
   .start{
@@ -152,9 +171,9 @@ mat-dialog-content {
     font-weight: bold;
   }
 
-  .inspect {
-    // width: 25%;
-    // margin-bottom: 3px;
+  .restart {
+    background-color: #ffbf59;
+    color: black;
   }
 
   .icon-on-hover {
@@ -167,6 +186,48 @@ mat-dialog-content {
   
   button:hover .icon-on-hover {
     display: inline-block;
+    width: 41px;  
+  }
+  
+  .inspect-text {
+    display: inline-block;
+  }
+}
+
+.mobile-buttons {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 28px;
+  height: 55px;
+  align-items: center;
+  justify-content: center;
+
+  .start-stop-inpect-buttons {
+    font-weight: bold;
+  }
+
+  .start{
+    margin-left: auto;
+    margin-right: 10px;
+    font-weight: bold;
+  }
+
+  .restart {
+    background-color: #ffbf59;
+    color: black;
+  }
+
+  .icon-on-hover {
+    display: none;
+  }
+  
+  button:hover .inspect-text {
+    display: none;
+  }
+  
+  button:hover .icon-on-hover {
+    display: inline-block;
+    width: 41px;  
   }
   
   .inspect-text {
@@ -178,26 +239,28 @@ mat-dialog-content {
   display: flex;
   flex-direction: row-reverse;
   position: relative;
-  top: -20px;
-  right: -20px;
-  margin-bottom: -40px;
+  top: -5px;
+  right: 0px;
+  margin-bottom: -10px;
 }
 
 .clipped {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  clip-path: polygon(100% 0, 0 0, 100% 100%);
-  border-top-right-radius: 10px;
-  height: 60px;
-  width: 60px;
+  // clip-path: polygon(100% 0, 0 0, 100% 100%);
+  border-radius: 50%;
+  height: 30px !important;
+  width: 30px !important;
+  background-color: #ef5350;
 }
 
 .clipped mat-icon {
-  margin-left: 25px;
-  position: relative;
-  top: -10px;
-  right: 6px;
   font-size: 18px;
   transition: font-size 0.3s ease;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  align-content: center;
+  cursor: pointer;
 }
 
 .clipped:hover mat-icon {
@@ -221,6 +284,7 @@ mat-dialog-content {
     mat-icon {
       font-size: 17px;
       color: black;
+      margin-right: 5px;
     }
   }
 }
@@ -231,7 +295,7 @@ mat-dialog-content {
   margin-right: 10px;
   .mat-slider-toggle {
     transform: scale(0.8);
-    margin-left: -30px;
+    margin-left: -40px;
     margin-bottom: 10px;
   }
 }
@@ -245,12 +309,22 @@ mat-dialog-content {
 }
 
 mat-divider {
-  margin-bottom: 10px !important;
+  margin-bottom: 15px !important;
 }
 
 .status-container {
   display: flex;
   align-items: center;
+}
+
+.running-text {
+  font-weight: bold;
+  color: $success;
+}
+
+.stopped-text {
+  font-weight: bold;
+  color: $bad; 
 }
 
 .status-circle {
@@ -273,10 +347,17 @@ mat-divider {
   pointer-events: none; 
 }
 
-.created-by, .closeButton {
+.closeButton {
   margin-top: 10px;
   text-align: right;
 }
+
+.created-by {
+  text-align: right;
+  margin-top: 27px;
+  margin-right: 10px;
+}
+
 
 .emulator-info {
   .copyClipboardIcon {
@@ -332,4 +413,12 @@ mat-divider {
 
 .rotated {
   transform: rotate(90deg);
+}
+
+.handle {
+  top: -13px !important;
+}
+
+.inspect-hover, .novnc-hover {
+  font-weight: bold;
 }
