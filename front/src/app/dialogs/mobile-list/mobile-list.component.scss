@@ -1,22 +1,26 @@
 @import 'color';
 @import 'breakpoints';
 
-:host {
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-  min-height: 200px;
-  position: relative;
-}
+// :host {
+//   display: flex;
+//   flex-wrap: wrap;
+//   width: 100%;
+//   min-height: 200px;
+//   position: relative;
+// }
 
-h2 {
+h4 {
   color: #1565c0;
-  margin-bottom: 10px;
+  // margin-bottom: 10px;
 }
 
-h3, h4 {
+h3 {
   color: $blue;
   margin-left: 10px;
+}
+
+mat-dialog-container {
+  overflow: hidden;
 }
 
 
@@ -83,6 +87,7 @@ h3, h4 {
 
           .moreOrLessNotRunning {
             text-align: left;
+            margin-top: 35px;
             padding: 0 0 0 10px;
             margin-bottom: 5px;
             background-color: transparent;
@@ -111,10 +116,10 @@ h3, h4 {
 }
 
 .dialog-header {
-  padding: 0px 0px 15px 10px;
+  padding: 0px 0px 0px 10px;
   display: flex;
   flex-wrap: wrap;
-  min-height: 52px;
+  min-height: 30px;
   align-items: center;
   box-sizing: content-box;
   margin-bottom: 0px;
@@ -350,6 +355,7 @@ mat-divider {
 .closeButton {
   margin-top: 10px;
   text-align: right;
+  margin-right: 20px;
 }
 
 .created-by {
@@ -383,9 +389,20 @@ mat-divider {
 .scrollable-content {
   max-height: 60vh; 
   overflow-y: auto;
+  width: 100%;
 }
 
+.notDialog-landing {
+  padding: 25px 15px 15px 15px;
+}
+
+
 .dialog-title {
+  flex-grow: 1; 
+  margin: 15px 0 15px 0;
+}
+
+.not-dialog-title {
   flex-grow: 1; 
   margin: 0;
 }
