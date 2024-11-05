@@ -110,7 +110,7 @@ services:
       -limit $$LIMIT"
 
   novnc:
-    image: cometa/novnc:1.0
+    image: cometa/novnc:1.1
     container_name: cometa_novnc
     networks:
       - testing
