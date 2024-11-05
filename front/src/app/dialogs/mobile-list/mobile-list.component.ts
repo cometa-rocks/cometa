@@ -162,6 +162,14 @@ export class MobileListComponent implements OnInit {
               }
             }
 
+            // this.sharedMobileContainers.forEach(container => {
+            //   if (this.isIMobile(container.image)) {
+            //     console.log(container.image.mobile_image_name);
+            //   } else {
+            //     console.log("Image is not an IMobile object:", container.image);
+            //   }
+            // });
+
             console.log('Lods runnign desde init:', this.runningMobiles);
             this._cdr.detectChanges();
           },
@@ -187,8 +195,11 @@ export class MobileListComponent implements OnInit {
     // department_id is received only when component is opened as dialog
     this.isDialog = this.data?.department_id ? true : false;
 
-    console.log("shared mobiles", this.sharedMobileContainers);
   }
+
+  // isIMobile(image: any): image is IMobile {
+  //   return typeof image === 'object' && 'mobile_image_name' in image;
+  // }
 
   updateSharedStatus(isShared: any, mobile: IMobile, container): void {
     mobile.isShared = isShared.checked;
@@ -429,7 +440,7 @@ export class MobileListComponent implements OnInit {
   isThisMobileContainerRunning(mobile_id): Container | null {
     for (let container of this.runningMobiles) {
       if (container.image == mobile_id) {
-        console.log(container);
+        // console.log(container);
         return container;
       }
     }

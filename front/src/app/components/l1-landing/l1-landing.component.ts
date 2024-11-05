@@ -119,6 +119,7 @@ import { TranslateModule } from '@ngx-translate/core';
     L1FeatureRecentListComponent,
     L1FeatureStarredListComponent,
     L1FeatureTrashbinListComponent,
+    MobileListComponent,
     AsyncPipe,
     TranslateModule
   ],
