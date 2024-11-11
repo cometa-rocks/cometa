@@ -33,7 +33,7 @@ import logging
 import traceback
 import urllib.parse
 import random
-
+import copy
 # import PIL
 from subprocess import call, run
 from selenium.common.exceptions import WebDriverException, NoAlertPresentException, ElementNotInteractableException, TimeoutException, StaleElementReferenceException
@@ -1182,12 +1182,14 @@ def step_impl(context, username, password):
 @step(u'I sleep "{sleeptime}" seconds')
 @done(u'I sleep "{sleeptime}" seconds')
 def step_impl(context, sleeptime):
+    context.STEP_TYPE = copy.copy(context.PREVIOUS_STEP_TYPE)
     cometa_sleep(sleeptime)
 
 # Sleeps for X seconds
 @step(u'I can sleep "{sleeptime}" seconds')
 @done(u'I can sleep "{sleeptime}" seconds')
 def step_impl(context,sleeptime):
+    context.STEP_TYPE = copy.copy(context.PREVIOUS_STEP_TYPE)
     cometa_sleep(sleeptime)
 
 # Function to check if throwed error is of type not supported
