@@ -14,6 +14,7 @@ from slugify import slugify
 import hashlib
 import os, pickle
 from selenium.common.exceptions import InvalidCookieDomainException
+import copy
 
 
 sys.path.append("/opt/code/behave_django")
@@ -311,7 +312,9 @@ def before_all(context):
     # Keeps track of step type, which types of step was executed 
     # Currently supported values BROWSER, MOBILE and API
     context.STEP_TYPE = 'BROWSER'
+
     # #################################
+    context.PREVIOUS_STEP_TYPE = context.STEP_TYPE   
     
     # browser data
     context.cloud = context.browser_info.get(
@@ -819,8 +822,9 @@ def after_all(context):
 
 @error_handling()
 def before_step(context, step):
+    logger.debug(f"Starting Step : ################################ {step.name} ################################")
     context.STEP_TYPE = 'BROWSER'
-    context.CURRENT_STEP = step
+    context.CURRENT_STEP = step    
     os.environ["current_step"] = str(context.counters["index"] + 1)
     # complete step name to let front know about the step that will be executed next
     step_name = "%s %s" % (step.keyword, step.name)
@@ -940,7 +944,8 @@ def find_vulnerable_headers(context, step_index) -> int:
 @error_handling()
 def after_step(context, step):
     # Save p
-    context.PERVIOUS_STEP_TYPE = context.STEP_TYPE
+    context.PREVIOUS_STEP_TYPE = context.STEP_TYPE
+    logger.debug(f"context.PREVIOUS_STEP_TYPE : {context.PREVIOUS_STEP_TYPE}")
     # Capture the exception if it exists and print it
     if step.exception:
         logger.exception("", exc_info=step.exception, stack_info=True)
@@ -982,8 +987,7 @@ def after_step(context, step):
         step_error = context.step_error
     # send websocket to front to let front know about the step
     logger.debug("Running Mobiles")
-    logger.debug(context.mobiles)
-    hostnames = [{'hostname':mobile['container_service_details']["Config"]["Hostname"]} for mobile in context.mobiles.values()]
+    hostnames = [{'hostname':mobile['container_service_details']["Id"]} for mobile in context.mobiles.values()]
     logger.debug(hostnames)
                  
     requests.post(
@@ -1034,3 +1038,4 @@ def after_step(context, step):
         if hasattr(context, key):
             delattr(context, key)
 
+    logger.debug(f"Step Over : ################################ {step.name} ################################")

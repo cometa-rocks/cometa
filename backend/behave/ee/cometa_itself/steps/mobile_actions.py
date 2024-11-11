@@ -7,10 +7,14 @@ import sys, requests, re, json
 
 import jq
 from appium import webdriver as mobile_driver
-
+from selenium.webdriver.remote.webelement import WebElement
 from appium.options.android import UiAutomator2Options
 from appium.options.ios import XCUITestOptions
 from appium.options.common.base import AppiumOptions
+
+from appium.webdriver.common.appiumby import AppiumBy
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.actions.wheel_input import ScrollOrigin
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -26,19 +30,14 @@ from tools.exceptions import *
 from tools.common import send_step_details, decryptFile, waitSelector
 from tools.common_functions import *
 from tools.service_manager import ServiceManager
-from .mobile_actions_utils import upload_file_to_appium_container
-
-
-IMPLICIT_WAIT_TIME = 10  # Adjust as needed
-EXPLICIT_WAIT_TIME = 30  # Adjust as needed
+from .mobile_actions_utils import upload_file_to_appium_container, perform_swipe
 
 # setup logging
 logger = logging.getLogger("FeatureExecution")
 
 use_step_matcher("re")
 
-
-@step('Start mobile "(?P<mobile_name>.*?)"(?: use capabilities """(?P<capabilities>.*?)""")?(?: reference to "(?P<variable_name>.*?)")?')
+@step('Start mobile "(?P<mobile_name>.+?)"(?: use capabilities """(?P<capabilities>.*?)""")?(?: reference to "(?P<variable_name>.*?)")?')
 @done('Start mobile "{mobile_name}" use capabilities """{capabilities}""" reference to "{variable_name}"')
 def start_mobile_and_application(context, mobile_name, capabilities="{}", variable_name=None):
     context.STEP_TYPE = "MOBILE"
@@ -89,6 +88,7 @@ def start_mobile_and_application(context, mobile_name, capabilities="{}", variab
     mobile_configuration["capabilities"].update(user_provided_capabilities)
 
     if "app" in mobile_configuration["capabilities"].keys():
+        # Upload apk file in the emulator container 
         file_name = upload_file_to_appium_container(
             context, service_details["Id"], mobile_configuration["capabilities"]["app"]
         )
@@ -135,14 +135,14 @@ def start_mobile_and_application(context, mobile_name, capabilities="{}", variab
                 "mobile_configuration": mobile['mobile_configuration'],
                 "session_id": mobile['session_id'] if context.record_video else "",
                 "video_recording": f"/videos/{mobile['session_id']}.mp4" if context.record_video else ""
-            } for key, mobile in context.mobiles
+            } for key, mobile in context.mobiles.items()
         ],
     }
 
     call_backend(method="PATCH", path="/api/feature_results/", body=data)
 
 
-@step('Connect to mobile "(?P<mobile_code>.*?)"(?: use capabilities """(?P<capabilities>.*?)""")?(?: reference to "(?P<variable_name>.*?)")?')
+@step('Connect to mobile "(?P<mobile_code>.+?)"(?: use capabilities """(?P<capabilities>.*?)""")?(?: reference to "(?P<variable_name>.*?)")?')
 @done('Connect to mobile "{mobile_code}" use capabilities """{capabilities}""" reference to "{variable_name}"')
 def connect_mobile_and_application(context, mobile_code, capabilities={}, variable_name=None):
     context.STEP_TYPE = "MOBILE"
@@ -229,7 +229,7 @@ def connect_mobile_and_application(context, mobile_code, capabilities={}, variab
         "mobile": [
             {
                 "name": key,
-                "is_started_by_test": True,
+                "is_started_by_test": False,
                 "container_service_details": mobile['container_service_details'],
                 "mobile_configuration": mobile['mobile_configuration'],
                 "session_id": mobile['session_id'] if context.record_video else "",
@@ -241,7 +241,7 @@ def connect_mobile_and_application(context, mobile_code, capabilities={}, variab
     call_backend(method="PATCH", path="/api/feature_results/", body=data)
 
 
-@step('Switch mobile to "(?P<variable_name>.*?)"')
+@step('Switch mobile to "(?P<variable_name>.+?)"')
 @done('Switch mobile to "{variable_name}"')
 def switch_mobile(context, variable_name):
     context.STEP_TYPE = "MOBILE"
@@ -249,14 +249,14 @@ def switch_mobile(context, variable_name):
     context.mobile = context.mobiles[variable_name]
 
 
-@step('Install app "(?P<apk_file_name>.*?)"')
-@done('Install app "{apk_file_name}"')
-def install_app(context, apk_file_name):
+@step('Install app "(?P<apk_file_path>.+?)"')
+@done('Install app "{apk_file_path}"')
+def install_app(context, apk_file_path):
     context.STEP_TYPE = "MOBILE"
     # select the upload element to send the filenames to
     # get the target file or files
     service_id = context.mobile["container_service_details"]["Id"]
-    file_name = upload_file_to_appium_container(context, service_id, apk_file_name)
+    file_name = upload_file_to_appium_container(context, service_id, apk_file_path)
 
     logger.debug(f"Installing app")
     send_step_details(context, f"Installing app")
@@ -268,321 +268,316 @@ def install_app(context, apk_file_name):
         raise CustomError(message)
 
 
-use_step_matcher("parse")
 
-@step('Tap on element with "{selector_type}" "{selector_value}"')
-@done('Tap on element with "{selector_type}" "{selector_value}"')
-def tap_on_element(context, selector_type, selector_value):
+@step('Tap on element "(?P<selector>.+?)"')
+@done('Tap on element "{selector}"')
+def tap_on_element(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Initiating tap action on element with {selector_type}: {selector_value}",
+        f"Initiating tap action on element with {selector}",
     )
-    logger.debug(f"Attempting to tap on element with {selector_type}: {selector_value}")
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
-    )
+    logger.debug(f"Attempting to tap on element with {selector}")
+    elements = waitSelector(
+        context=context, selector_type="xpath", selector=selector
+    )    
+    # waitSelector method might also return the list of webelement
+    if not isinstance(elements, WebElement):
+        elements = elements[0]
+        
     actions = ActionChains(context.mobile["driver"])
-    actions.click(element).perform()
+    actions.click(elements).perform()
     send_step_details(
-        context, f"Tapped on element with {selector_type}: {selector_value}"
+        context, f"Tapped on element with {selector}"
     )
 
 
-@step('Long press element with "{selector_type}" "{selector_value}"')
-@done('Long press element with "{selector_type}" "{selector_value}"')
-def long_press_on_element(context, selector_type, selector_value):
+@step('Long press element "(?P<selector>.+?)"(?: for "(?P<px>.*?)")?')
+@done('Long press element "{selector}"')
+def long_press_on_element(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Initiating long press action on element with {selector_type}: {selector_value}",
+        f"Initiating long press action on element with {selector}",
     )
     logger.debug(
-        f"Attempting to long press on element with {selector_type}: {selector_value}"
+        f"Attempting to long press on element with {selector}"
     )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
+    elements = waitSelector(
+        context=context, selector_type="xpath", selector=selector
     )
+    # waitSelector method might also return the list of webelement
+    if not isinstance(elements, WebElement):
+        elements = elements[0]
+        
     actions = ActionChains(context.mobile["driver"])
-    actions.click_and_hold(element).pause(2).release().perform()
+    actions.click_and_hold(elements).pause(2).release().perform()
     send_step_details(
-        context, f"Long pressed on element with {selector_type}: {selector_value}"
+        context, f"Long pressed on element with {selector}"
     )
 
 
-@step('Double tap on element with "{selector_type}" "{selector_value}"')
-@done('Double tap on element with "{selector_type}" "{selector_value}"')
-def double_tap_on_element(context, selector_type, selector_value):
+@step('Double tap on element "{selector}"')
+@done('Double tap on element "{selector}"')
+def double_tap_on_element(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Initiating double tap action on element with {selector_type}: {selector_value}",
+        f"Initiating double tap action on element with {selector}",
     )
     logger.debug(
-        f"Attempting to double tap on element with {selector_type}: {selector_value}"
+        f"Attempting to double tap on element with {selector}"
     )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
+    elements = waitSelector(
+        context=context, selector_type="xpath", selector=selector
     )
+    # waitSelector method might also return the list of webelement
+    if not isinstance(elements, WebElement):
+        elements = elements[0]
+        
     actions = ActionChains(context.mobile["driver"])
-    actions.double_click(element).perform()
+    actions.double_click(elements).perform()
     send_step_details(
-        context, f"Double tapped on element with {selector_type}: {selector_value}"
+        context, f"Double tapped on element with {selector}"
     )
 
+@step(u'Swipe right on element "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
+@done(u'Swipe right on element "{selector}" by "{default_200}"px')
+def swipe_right_on_element(context, selector, default_200=200):
+    px = int(default_200) if default_200 else 200  # Set default swipe distance if `px` is not provided
+    perform_swipe(context, selector, x_offset=px, y_offset=0, direction="right")
 
-@step('Swipe left on element with "{selector_type}" "{selector_value}"')
-@done('Swipe left on element with "{selector_type}" "{selector_value}"')
-def swipe_left_on_element(context, selector_type, selector_value):
+@step(u'Swipe left on element "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
+@done(u'Swipe left on element "{selector}" by "{default_200}"px')
+def swipe_left_on_element(context, selector, default_200=200):
+    px = int(default_200) if default_200 else 200
+    perform_swipe(context, selector, x_offset=-px, y_offset=0, direction="left")
+
+@step(u'Swipe up on element "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
+@done(u'Swipe up on element "{selector}" by "{default_200}"px')
+def swipe_up_on_element(context, selector, default_200=200):
+    px = int(default_200) if default_200 else 200
+    perform_swipe(context, selector, x_offset=0, y_offset=-px, direction="up")
+
+@step(u'Swipe down on element "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
+@done(u'Swipe down on element "{selector}" by "{default_200}"px')
+def swipe_down_on_element(context, selector, default_200=200):
+    px = int(default_200) if default_200 else 200
+    perform_swipe(context, selector, x_offset=0, y_offset=px, direction="down")
+
+
+@step(u'Swipe from coordinate "(?P<start_x>.+?),(?P<start_y>.+?)" to "(?P<end_x>.+?),(?P<end_y>.+?)"')
+@done(u'Swipe from coordinate "{start_x},{start_y}" to "{end_x},{end_y}"')
+def swipe_using_coordinate(context, start_x,start_y, end_x, end_y):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Initiating swipe left action on element with {selector_type}: {selector_value}",
+        f"Swiping from coordinate '({start_x},{start_y})' to coordinate '({end_x},{end_y})'",
     )
     logger.debug(
-        f"Attempting to swipe left on element with {selector_type}: {selector_value}"
+        f"Swiping from coordinate '({start_x},{start_y})' to coordinate '({end_x},{end_y})'",
     )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
-    )
+    # Use W3C Actions API to perform the swipe
     actions = ActionChains(context.mobile["driver"])
-    actions.move_to_element(element).click_and_hold().move_by_offset(
-        -200, 0
-    ).release().perform()
+    actions.w3c_actions.pointer_action.move_to_location(start_x, start_y)
+    actions.w3c_actions.pointer_action.pointer_down()
+    actions.w3c_actions.pointer_action.move_to_location(end_x, end_y)
+    actions.w3c_actions.pointer_action.release()
+    actions.perform()
     send_step_details(
-        context, f"Swiped left on element with {selector_type}: {selector_value}"
+        context, f"Swiped from coordinate '({start_x},{start_y})' to coordinate '({end_x},{end_y})'",
     )
 
 
-@step('Swipe right on element with "{selector_type}" "{selector_value}"')
-@done('Swipe right on element with "{selector_type}" "{selector_value}"')
-def swipe_right_on_element(context, selector_type, selector_value):
+@step('Set value "(?P<text>.+?)" on the mobile element "(?P<selector>.+?)"')
+@done('Set value "{text}" on the mobile element "{selector}"')
+def set_value_on_element(context, text, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Initiating swipe right action on element with {selector_type}: {selector_value}",
+        f"Setting value '{text}' on element with {selector}",
     )
     logger.debug(
-        f"Attempting to swipe right on element with {selector_type}: {selector_value}"
+        f"Setting value '{text}' on element with {selector}"
     )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
+    elements = waitSelector(
+        context=context, selector_type="xpath", selector=selector
     )
-    actions = ActionChains(context.mobile["driver"])
-    actions.move_to_element(element).click_and_hold().move_by_offset(
-        200, 0
-    ).release().perform()
+    # waitSelector method might also return the list of webelement
+    if not isinstance(elements, WebElement):
+        elements = elements[0]
+    elements.send_keys(text)
     send_step_details(
-        context, f"Swiped right on element with {selector_type}: {selector_value}"
+        context, f"Value '{text}' set on element with {selector}"
     )
 
 
-@step('Swipe up on element with "{selector_type}" "{selector_value}"')
-@done('Swipe up on element with "{selector_type}" "{selector_value}"')
-def swipe_up_on_element(context, selector_type, selector_value):
+@step('Clear textbox "(?P<selector>.+?)"')
+@done('Clear textbox "{selector}"')
+def set_value_on_element(context, text, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Initiating swipe up action on element with {selector_type}: {selector_value}",
+        f"Clearing textbox with element with {selector}",
     )
     logger.debug(
-        f"Attempting to swipe up on element with {selector_type}: {selector_value}"
+         f"Clearing textbox with element with {selector}",
     )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
+    elements = waitSelector(
+        context=context, selector_type="xpath", selector=selector
     )
-    actions = ActionChains(context.mobile["driver"])
-    actions.move_to_element(element).click_and_hold().move_by_offset(
-        0, -200
-    ).release().perform()
+    # waitSelector method might also return the list of webelement
+    if not isinstance(elements, WebElement):
+        elements = elements[0]
+    elements.clear(text)
     send_step_details(
-        context, f"Swiped up on element with {selector_type}: {selector_value}"
+        context, f"Textbox cleared"
     )
 
 
-@step('Swipe down on element with "{selector_type}" "{selector_value}"')
-@done('Swipe down on element with "{selector_type}" "{selector_value}"')
-def swipe_down_on_element(context, selector_type, selector_value):
+@step('Check if element "(?P<selector>.+?)" is not visible')
+@done('Check if element "{selector}" is not visible')
+def check_if_element_not_visible(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Initiating swipe down action on element with {selector_type}: {selector_value}",
+        f"Checking if element with {selector} is not visible",
     )
     logger.debug(
-        f"Attempting to swipe down on element with {selector_type}: {selector_value}"
-    )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
-    )
-    actions = ActionChains(context.mobile["driver"])
-    actions.move_to_element(element).click_and_hold().move_by_offset(
-        0, 200
-    ).release().perform()
-    send_step_details(
-        context, f"Swiped down on element with {selector_type}: {selector_value}"
-    )
-
-
-@step('Set value "{text}" on element with "{selector_type}" "{selector_value}"')
-@done('Set value "{text}" on element with "{selector_type}" "{selector_value}"')
-def set_value_on_element(context, text, selector_type, selector_value):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(
-        context,
-        f"Setting value '{text}' on element with {selector_type}: {selector_value}",
-    )
-    logger.debug(
-        f"Setting value '{text}' on element with {selector_type}: {selector_value}"
-    )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
-    )
-    element.clear()
-    element.send_keys(text)
-    send_step_details(
-        context, f"Value '{text}' set on element with {selector_type}: {selector_value}"
-    )
-
-
-@step('Take screenshot and save as "{filename}"')
-@done('Take screenshot and save as "{filename}"')
-def take_screenshot(context, filename):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(context, f"Taking screenshot and saving as {filename}")
-    logger.debug(f"Taking screenshot and saving as {filename}")
-    screenshot_path = f"/path/to/save/{filename}"  # Replace with actual path
-    context.mobile["driver"].save_screenshot(screenshot_path)
-    send_step_details(context, f"Screenshot saved at {screenshot_path}")
-
-
-@step('Check if element with "{selector_type}" "{selector_value}" is not visible')
-@done('Check if element with "{selector_type}" "{selector_value}" is not visible')
-def check_if_element_not_visible(context, selector_type, selector_value):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(
-        context,
-        f"Checking if element with {selector_type}: {selector_value} is not visible",
-    )
-    logger.debug(
-        f"Checking if element with {selector_type}: {selector_value} is not visible"
+        f"Checking if element with {selector} is not visible"
     )
     try:
         WebDriverWait(context.mobile["driver"], EXPLICIT_WAIT_TIME).until_not(
             EC.visibility_of_element_located(
-                waitSelector(context, selector_type, selector_value)
+                waitSelector(context, selector)
             )
         )
         send_step_details(
-            context, f"Element with {selector_type}: {selector_value} is not visible"
+            context, f"Element with {selector} is not visible"
         )
         return True
     except:
         raise CustomError(
-            f"Element with {selector_type}: {selector_value} is still visible"
+            f"Element with {selector} is still visible"
         )
 
 
-@step('Check if element with "{selector_type}" "{selector_value}" is enabled')
-@done('Check if element with "{selector_type}" "{selector_value}" is enabled')
-def check_if_element_enabled(context, selector_type, selector_value):
+@step('Check if element "(?P<selector>.+?)" is enabled')
+@done('Check if element "{selector}" is enabled')
+def check_if_element_enabled(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Checking if element with {selector_type}: {selector_value} is enabled",
+        f"Checking if element with {selector} is enabled",
     )
     logger.debug(
-        f"Checking if element with {selector_type}: {selector_value} is enabled"
+        f"Checking if element with {selector} is enabled"
     )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
+    elements = waitSelector(
+        context=context, selector_type="xpath", selector=selector
     )
-    if not element.is_enabled():
+    # waitSelector method might also return the list of webelement
+    if not isinstance(elements, WebElement):
+        elements = elements[0]
+        
+    if not elements.is_enabled():
         raise CustomError(
-            f"Element with {selector_type}: {selector_value} is not enabled"
+            f"Element with {selector} is not enabled"
         )
     send_step_details(
-        context, f"Element with {selector_type}: {selector_value} is enabled"
+        context, f"Element with {selector} is enabled"
     )
     return True
 
 
-@step('Check if element with "{selector_type}" "{selector_value}" is not enabled')
-@done('Check if element with "{selector_type}" "{selector_value}" is not enabled')
-def check_if_element_not_enabled(context, selector_type, selector_value):
+@step('Check if element "(?P<selector>.+?)" is not enabled')
+@done('Check if element "{selector}" is not enabled')
+def check_if_element_not_enabled(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Checking if element with {selector_type}: {selector_value} is not enabled",
+        f"Checking if element with {selector} is not enabled",
     )
     logger.debug(
-        f"Checking if element with {selector_type}: {selector_value} is not enabled"
+        f"Checking if element with {selector} is not enabled"
     )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector_value=selector_value
+    elements = waitSelector(
+        context=context, selector_type="xpath", selector=selector
     )
-    if element.is_enabled():
+    # waitSelector method might also return the list of webelement
+    if not isinstance(elements, WebElement):
+        elements = elements[0]
+        
+    if elements.is_enabled():
         raise CustomError(
-            f"Element with {selector_type}: {selector_value} is still enabled"
+            f"Element with {selector} is still enabled"
         )
     send_step_details(
-        context, f"Element with {selector_type}: {selector_value} is not enabled"
+        context, f"Element with {selector} is not enabled"
     )
     return True
 
 
-@step('Check if element with "{selector_type}" "{selector_value}" contains text "{text}"')
-@done('Check if element with "{selector_type}" "{selector_value}" contains text "{text}"')
-def check_if_element_contains_text(context, selector_type, selector_value, text):
+@step('Check if element "(?P<selector>.+?)" contains text "(?P<text>.*?)"')
+@done('Check if element "{selector}" contains text "{text}"')
+def check_if_element_contains_text(context, selector, text):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Checking if element with {selector_type}: {selector_value} contains text: {text}",
+        f"Checking if element with {selector} contains text: {text}",
     )
     logger.debug(
-        f"Checking if element with {selector_type}: {selector_value} contains text: {text}"
+        f"Checking if element with {selector} contains text: {text}"
     )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
+    elements = waitSelector(
+        context=context, selector_type="xpath", selector=selector
     )
-    element_text = element.text
+    # waitSelector method might also return the list of webelement
+    if not isinstance(elements, WebElement):
+        elements = elements[0]
+        
+    element_text = elements.text
     if text not in element_text:
         raise CustomError(
-            f"Element with {selector_type}: {selector_value} does not contain text '{text}'"
+            f"Element with {selector} does not contain text '{text}'"
         )
     send_step_details(
         context,
-        f"Element with {selector_type}: {selector_value} contains text '{text}'",
+        f"Element with {selector} contains text '{text}'",
     )
     return True
 
 
-@step('Check if element with "{selector_type}" "{selector_value}" does not contain text "{text}"')
-@done('Check if element with "{selector_type}" "{selector_value}" does not contain text "{text}"')
-def check_if_element_not_contains_text(context, selector_type, selector_value, text):
+@step('Check if element "(?P<selector>.+?)" does not contain text "(?P<text>.*?)"')
+@done('Check if element "{selector}" does not contain text "{text}"')
+def check_if_element_not_contains_text(context, selector, text):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Checking if element with {selector_type}: {selector_value} does not contain text: {text}",
+        f"Checking if element with {selector} does not contain text: {text}",
     )
     logger.debug(
-        f"Checking if element with {selector_type}: {selector_value} does not contain text: {text}"
+        f"Checking if element with {selector} does not contain text: {text}"
     )
-    element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
+    elements = waitSelector(
+        context=context, selector_type="xpath", selector=selector
     )
-    element_text = element.text
+    # waitSelector method might also return the list of webelement
+    if not isinstance(elements, WebElement):
+        elements = elements[0]
+    element_text = elements.text
     if text in element_text:
         raise CustomError(
-            f"Element with {selector_type}: {selector_value} contains text '{text}'"
+            f"Element with {selector} contains text '{text}'"
         )
     send_step_details(
         context,
-        f"Element with {selector_type}: {selector_value} does not contain text '{text}'",
+        f"Element with {selector} does not contain text '{text}'",
     )
     return True
 
 
-@step('Validate if current screen contains "{object_name}"')
+@step('Validate if current screen contains "(?P<selector>.+?)"')
 @done('Validate if current screen contains "{object_name}"')
 def validate_if_screen_contains_object(context, object_name):
     context.STEP_TYPE = "MOBILE"
@@ -595,7 +590,7 @@ def validate_if_screen_contains_object(context, object_name):
     return True
 
 
-@step('Switch to frame with id "{frame_id}"')
+@step('Switch to frame with id "(?P<frame_id>.+?)"')
 @done('Switch to frame with id "{frame_id}"')
 def switch_to_frame_by_id(context, frame_id):
     context.STEP_TYPE = "MOBILE"
@@ -610,115 +605,157 @@ def switch_to_frame_by_id(context, frame_id):
         raise CustomError(f"Could not switch to frame with id {frame_id}: {str(e)}")
 
 
-@step('Open URL "{url}" in mobile browser')
-@done('Open URL "{url}" in mobile browser')
-def open_url_in_mobile_browser(context, url):
+# @step('Open URL "{url}" in mobile browser')
+# @done('Open URL "{url}" in mobile browser')
+# def open_url_in_mobile_browser(context, url):
+#     context.STEP_TYPE = "MOBILE"
+#     send_step_details(context, f"Opening URL {url} in mobile browser")
+#     logger.debug(f"Opening URL {url} in mobile browser")
+#     try:
+#         context.mobile["driver"].get(url)
+#         send_step_details(context, f"URL {url} opened successfully")
+#     except Exception as e:
+#         raise CustomError(f"Could not open URL {url}: {str(e)}")
+
+
+@step('Start the mobile app "(?P<app_package>.+?)" "(?P<app_activity>.+?)"')
+@done('Start the mobile app "{app_package}" "{app_activity}"')
+def start_mobile_app(context, app_package, app_activity):
     context.STEP_TYPE = "MOBILE"
-    send_step_details(context, f"Opening URL {url} in mobile browser")
-    logger.debug(f"Opening URL {url} in mobile browser")
+    send_step_details(context, "Starting the mobile app")
+    logger.debug("Starting the mobile app")
     try:
-        context.mobile["driver"].get(url)
-        send_step_details(context, f"URL {url} opened successfully")
+        try:
+            context.mobile["driver"].start_activity(app_package, app_activity)
+        except:
+            context.mobile["driver"].execute_script("mobile: shell", {
+                "command": "am start",
+                "args": ["-n", f"{app_package}/{app_activity}"],
+                "includeStderr": True,
+                "timeout": 5000
+            })
+        send_step_details(context, "Mobile app started successfully")
     except Exception as e:
-        raise CustomError(f"Could not open URL {url}: {str(e)}")
-
-
-@step('Close the mobile application')
-@done('Close the mobile application')
-def close_mobile_application(context):
+        raise CustomError(f"Could not start the mobile application: {str(e)}")
+    
+@step('Close the mobile app "(?P<app_package>.+?)"')
+@done('Close the mobile app "{app_package}"')
+def close_mobile_application(context, app_package):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Closing the mobile application")
     logger.debug("Closing the mobile application")
     try:
-        context.mobile["driver"].close_app()
+                # Try using close_app() if available
+        if hasattr(context.mobile["driver"], "close_app"):
+            context.mobile["driver"].close_app()
+        else:
+            # Fallback to terminate_app()
+            context.mobile["driver"].terminate_app(app_package)
         send_step_details(context, "Mobile application closed successfully")
     except Exception as e:
         raise CustomError(f"Could not close the mobile application: {str(e)}")
     
 
-@step('Uninstall app "{app_package}" from device "{device_name}"')
-@done('Uninstall app "{app_package}" from device "{device_name}"')
-def uninstall_app_from_device(context, app_package, device_name):
+@step('Uninstall app "(?P<app_package>.+?)"(?: with "(?P<option>.*?)")?')
+@done('Uninstall app "{app_package}" with {option}')
+def uninstall_app_from_device(context, app_package, option):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
-        context, f"Uninstalling app {app_package} from device {device_name}"
+        context, f"Uninstalling app {app_package}"
     )
-    logger.debug(f"Uninstalling app {app_package} from device {device_name}")
+    logger.debug(f"Uninstalling app {app_package}")
     try:
         context.mobile["driver"].remove_app(app_package)
         send_step_details(
             context,
-            f"App {app_package} uninstalled successfully from device {device_name}",
+            f"App {app_package} uninstalled successfully",
         )
     except Exception as e:
-        raise CustomError(
-            f"Could not uninstall app {app_package} from device {device_name}: {str(e)}"
-        )
+        if not option=="Do not fail":
+            raise CustomError(
+                f"Could not uninstall app {app_package}: {str(e)}"
+            )
 
 
-@step('Launch mobile browser and navigate to "{url}"')
-@done('Launch mobile browser and navigate to "{url}"')
-def launch_mobile_browser_and_navigate(context, url):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(context, f"Launching mobile browser and navigating to {url}")
-    logger.debug(f"Launching mobile browser and navigating to {url}")
-    try:
-        context.mobile["driver"].get(url)
-        send_step_details(context, f"Navigated to {url} successfully")
-    except Exception as e:
-        raise CustomError(f"Could not navigate to {url}: {str(e)}")
-
-
-@step('Tap on coordinates "{x}, {y}"')
-@done('Tap on coordinates "{x}, {y}"')
+@step(u'Tap on coordinates "(?P<x>.+?), (?P<y>.+?)"')
+@done(u'Tap on coordinates "{x}, {y}"')
 def tap_on_coordinates(context, x, y):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, f"Tapping on coordinates {x}, {y}")
     logger.debug(f"Tapping on coordinates {x}, {y}")
     try:
-        actions = TouchAction(context.mobile["driver"])
-        actions.tap(x=int(x), y=int(y)).perform()
+        actions = ActionChains(context.mobile["driver"])
+        actions.w3c_actions.pointer_action.move_to_location(int(x), int(y))
+        actions.w3c_actions.pointer_action.pointer_down()
+        actions.w3c_actions.pointer_action.pointer_up()
+        actions.perform()
         send_step_details(context, f"Tapped on coordinates {x}, {y} successfully")
     except Exception as e:
         raise CustomError(f"Could not tap on coordinates {x}, {y}: {str(e)}")
 
 
-@step('Pinch to zoom in on element with id "{element_id}"')
-@done('Pinch to zoom in on element with id "{element_id}"')
-def pinch_to_zoom_in(context, element_id):
+@step(u'Pinch to zoom in on element with "(?P<selector>.+?)"')
+@done(u'Pinch to zoom in on element with "{selector}"')
+def pinch_to_zoom_in(context, selector):
     context.STEP_TYPE = "MOBILE"
-    send_step_details(context, f"Pinching to zoom in on element with id {element_id}")
-    logger.debug(f"Pinching to zoom in on element with id {element_id}")
+    send_step_details(context, f"Pinch to zoom in on element with selector: {selector}")
+    logger.debug(f"Pinching to zoom in on element with selector: {selector}")
     try:
-        element = waitSelector(
-            context=context, selector_type="id", selector_value=element_id
-        )
-        actions = TouchAction(context.mobile["driver"])
-        actions.pinch(element).perform()
-        send_step_details(context, f"Zoomed in on element with id {element_id}")
+        element = waitSelector(context=context, selector_type="xpath", selector=selector)
+        
+        width = element.size['width']
+        height = element.size['height']
+        center_x = element.location['x'] + width / 2
+        center_y = element.location['y'] + height / 2
+
+        # Initial positions for pinch
+        actions = ActionChains(context.mobile["driver"])
+        actions.w3c_actions.pointer_action.move_to_location(center_x - 50, center_y - 50)
+        actions.w3c_actions.pointer_action.pointer_down()
+        actions.w3c_actions.pointer_action.move_to_location(center_x - 10, center_y - 10)
+        actions.w3c_actions.pointer_action.pointer_up()
+
+        actions.w3c_actions.pointer_action.move_to_location(center_x + 50, center_y + 50)
+        actions.w3c_actions.pointer_action.pointer_down()
+        actions.w3c_actions.pointer_action.move_to_location(center_x + 10, center_y + 10)
+        actions.w3c_actions.pointer_action.pointer_up()
+        actions.perform()
+
+        send_step_details(context, f"Zoomed in on element with selector {selector}")
     except Exception as e:
-        raise CustomError(
-            f"Could not zoom in on element with id {element_id}: {str(e)}"
-        )
+        raise CustomError(f"Could not zoom in on element with selector {selector}: {str(e)}")
 
 
-@step('Pinch to zoom out on element with id "{element_id}"')
-@done('Pinch to zoom out on element with id "{element_id}"')
-def pinch_to_zoom_out(context, element_id):
+@step(u'Pinch to zoom out on element with "(?P<selector>.+?)"')
+@done(u'Pinch to zoom out on element with "{selector}"')
+def pinch_to_zoom_out(context, selector):
     context.STEP_TYPE = "MOBILE"
-    send_step_details(context, f"Pinching to zoom out on element with id {element_id}")
-    logger.debug(f"Pinching to zoom out on element with id {element_id}")
+    send_step_details(context, f"Pinch to zoom out on element with selector: {selector}")
+    logger.debug(f"Pinching to zoom out on element with selector: {selector}")
     try:
-        element = waitSelector(
-            context=context, selector_type="id", selector_value=element_id
-        )
-        actions = TouchAction(context.mobile["driver"])
-        actions.zoom(element).perform()
-        send_step_details(context, f"Zoomed out on element with id {element_id}")
+        element = waitSelector(context=context, selector_type="xpath", selector=selector)
+
+        width = element.size['width']
+        height = element.size['height']
+        center_x = element.location['x'] + width / 2
+        center_y = element.location['y'] + height / 2
+
+        # Initial positions for zoom out
+        actions = ActionChains(context.mobile["driver"])
+        actions.w3c_actions.pointer_action.move_to_location(center_x - 10, center_y - 10)
+        actions.w3c_actions.pointer_action.pointer_down()
+        actions.w3c_actions.pointer_action.move_to_location(center_x - 50, center_y - 50)
+        actions.w3c_actions.pointer_action.pointer_up()
+
+        actions.w3c_actions.pointer_action.move_to_location(center_x + 10, center_y + 10)
+        actions.w3c_actions.pointer_action.pointer_down()
+        actions.w3c_actions.pointer_action.move_to_location(center_x + 50, center_y + 50)
+        actions.w3c_actions.pointer_action.pointer_up()
+        actions.perform()
+
+        send_step_details(context, f"Zoomed out on element with selector {selector}")
     except Exception as e:
-        raise CustomError(
-            f"Could not zoom out on element with id {element_id}: {str(e)}"
-        )
+        raise CustomError(f"Could not zoom out on element with selector {selector}: {str(e)}")
 
 
 @step('Rotate screen to landscape mode')
@@ -747,7 +784,7 @@ def rotate_screen_to_portrait(context):
         raise CustomError(f"Could not rotate screen to portrait mode: {str(e)}")
 
 
-@step('Check if app "{app_package}" is installed on device "{device_name}"')
+@step('Check if app "(?P<app_package>.+?)" is installed on device "(?P<device_name>.+?)"')
 @done('Check if app "{app_package}" is installed on device "{device_name}"')
 def check_if_app_installed(context, app_package, device_name):
     context.STEP_TYPE = "MOBILE"
@@ -770,7 +807,7 @@ def check_if_app_installed(context, app_package, device_name):
         )
 
 
-@step('Check if app "{app_package}" is running on device "{device_name}"')
+@step('Check if app "(?P<app_package>.+?)" is running on device "(?P<device_name>.+?)"')
 @done('Check if app "{app_package}" is running on device "{device_name}"')
 def check_if_app_running(context, app_package, device_name):
     context.STEP_TYPE = "MOBILE"
@@ -790,35 +827,37 @@ def check_if_app_running(context, app_package, device_name):
         )
 
 
-@step('Capture logs from mobile device')
-@done('Capture logs from mobile device')
-def capture_logs_from_mobile_device(context):
+@step('Capture logs from mobile device and store in the "(?P<variable>.+?)"')
+@done('Capture logs from mobile device and store in the "{variable}"')
+def capture_logs_from_mobile_device(context, variable):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Capturing logs from mobile device")
     logger.debug("Capturing logs from mobile device")
     try:
         logs = context.mobile["driver"].get_log("logcat")
-        send_step_details(context, f"Captured logs from mobile device: {logs}")
+        send_step_details(context, f"Captured logs from mobile device")
+        addTestRuntimeVariable(context, variable, logs)
         return logs
     except Exception as e:
         raise CustomError(f"Could not capture logs from mobile device: {str(e)}")
 
 
-@step('Get current device orientation')
-@done('Get current device orientation')
-def get_current_device_orientation(context):
+@step('Get current device orientation and store in the "(?P<variable>.+?)"')
+@done('Get current device orientation and store in the "{variable}"')
+def get_current_device_orientation(context, variable):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Getting current device orientation")
     logger.debug("Getting current device orientation")
     try:
         orientation = context.mobile["driver"].orientation
+        addTestRuntimeVariable(context, variable, orientation)
         send_step_details(context, f"Current device orientation is {orientation}")
         return orientation
     except Exception as e:
         raise CustomError(f"Could not get current device orientation: {str(e)}")
 
 
-@step('Change device orientation to "{orientation}"')
+@step('Change device orientation to "(?P<orientation>.+?)"')
 @done('Change device orientation to "{orientation}"')
 def change_device_orientation(context, orientation):
     context.STEP_TYPE = "MOBILE"
@@ -859,21 +898,22 @@ def unlock_screen(context):
         raise CustomError(f"Could not unlock the screen: {str(e)}")
 
 
-@step('Check network status of mobile device')
-@done('Check network status of mobile device')
-def check_network_status(context):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(context, "Checking network status of mobile device")
-    logger.debug("Checking network status of mobile device")
-    try:
-        network_status = context.mobile["driver"].get_network_connection()
-        send_step_details(context, f"Network status of mobile device: {network_status}")
-        return network_status
-    except Exception as e:
-        raise CustomError(f"Could not check network status of mobile device: {str(e)}")
+# @step('Check network status of mobile device store in the "(?P<variable>.+?)"')
+# @done('Check network status of mobile device store in the "{variable}"')
+# def check_network_status(context, variable):
+#     context.STEP_TYPE = "MOBILE"
+#     send_step_details(context, "Checking network status of mobile device")
+#     logger.debug("Checking network status of mobile device")
+#     try:
+#         network_status = context.mobile["driver"].get_network_connection()
+#         addTestRuntimeVariable(context, variable, network_status)
+#         send_step_details(context, f"Network status of mobile device: {network_status}")
+#         return network_status
+#     except Exception as e:
+#         raise CustomError(f"Could not check network status of mobile device: {str(e)}")
 
 
-@step('Switch to mobile app context "{context}"')
+@step('Switch to mobile app context "(?P<context>.+?)"')
 @done('Switch to mobile app context "{context}"')
 def switch_to_mobile_app_context(context, app_context):
     context.STEP_TYPE = "MOBILE"
@@ -890,7 +930,46 @@ def switch_to_mobile_app_context(context, app_context):
         )
 
 
-@step('Check if element with text "{text}" is visible')
+@step('Go back')
+@done('Go back')
+def go_back(context):
+    context.STEP_TYPE = "MOBILE"
+    send_step_details(context, "Going back")
+    logger.debug("Going back")
+    try:
+        context.mobile["driver"].back()  
+    except Exception as e:
+        raise CustomError(
+            f"Could not Go back : {str(e)}"
+        )
+
+@step('Go to Home')
+@done('Go to Home')
+def go_to_home(context):
+    context.STEP_TYPE = "MOBILE"
+    send_step_details(context, "Going back")
+    logger.debug("Going back")
+    try:
+        context.mobile["driver"].press_keycode(3)  # 3 is the keycode for the HOME button
+    except Exception as e:
+        raise CustomError(
+            f"Could not Go home page : {str(e)}"
+        )
+
+@step('Open recent apps')
+@done('Open recent apps')
+def go_to_home(context):
+    context.STEP_TYPE = "MOBILE"
+    send_step_details(context, "Going back")
+    logger.debug("Going back")
+    try:
+        context.mobile["driver"].press_keycode(187)  # 3 is the keycode for the HOME button
+    except Exception as e:
+        raise CustomError(
+            f"Could not Go home page : {str(e)}"
+        )
+
+@step('Check if element with text "(?P<text>.+?)" is visible')
 @done('Check if element with text "{text}" is visible')
 def check_if_element_with_text_is_visible(context, text):
     context.STEP_TYPE = "MOBILE"
@@ -900,7 +979,7 @@ def check_if_element_with_text_is_visible(context, text):
         element = waitSelector(
             context=context,
             selector_type="xpath",
-            selector_value=f"//*[contains(text(),'{text}')]",
+            selector=f"//*[contains(text(),'{text}')]",
         )
         if not element.is_displayed():
             raise CustomError(f"Element with text '{text}' is not visible")
@@ -911,7 +990,7 @@ def check_if_element_with_text_is_visible(context, text):
         )
 
 
-@step('Perform drag and drop from "{start_element}" to "{end_element}"')
+@step('Perform drag and drop from "(?P<start_element>.+?)" to "(?P<end_element>.+?)"')
 @done('Perform drag and drop from "{start_element}" to "{end_element}"')
 def perform_drag_and_drop(context, start_element, end_element):
     context.STEP_TYPE = "MOBILE"
@@ -921,10 +1000,10 @@ def perform_drag_and_drop(context, start_element, end_element):
     logger.debug(f"Performing drag and drop from '{start_element}' to '{end_element}'")
     try:
         start = waitSelector(
-            context=context, selector_type="id", selector_value=start_element
+            context=context, selector_type= "id", selector=start_element
         )
         end = waitSelector(
-            context=context, selector_type="id", selector_value=end_element
+            context=context, selector_type="id", selector=end_element
         )
         actions = TouchAction(context.mobile["driver"])
         actions.long_press(start).move_to(end).release().perform()
@@ -936,96 +1015,81 @@ def perform_drag_and_drop(context, start_element, end_element):
         raise CustomError(f"Could not perform drag and drop: {str(e)}")
 
 
-@step('Perform multi-touch on element with id "{element_id}"')
-@done('Perform multi-touch on element with id "{element_id}"')
-def perform_multi_touch_on_element(context, element_id):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(
-        context, f"Performing multi-touch on element with id '{element_id}'"
-    )
-    logger.debug(f"Performing multi-touch on element with id '{element_id}'")
-    try:
-        element = waitSelector(
-            context=context, selector_type="id", selector_value=element_id
-        )
-        action1 = TouchAction(context.mobile["driver"]).tap(element)
-        action2 = TouchAction(context.mobile["driver"]).tap(element)
-        multi_action = MultiAction(context.mobile["driver"])
-        multi_action.add(action1, action2)
-        multi_action.perform()
-        send_step_details(
-            context,
-            f"Multi-touch on element with id '{element_id}' performed successfully",
-        )
-    except Exception as e:
-        raise CustomError(
-            f"Could not perform multi-touch on element with id '{element_id}': {str(e)}"
-        )
+# @step('Perform multi-touch on element with "(?P<selector>.+?)"')
+# @done('Perform multi-touch on element with "{selector}"')
+# def perform_multi_touch_on_element(context, selector):
+#     context.STEP_TYPE = "MOBILE"
+#     send_step_details(
+#         context, f"Performing multi-touch on element with id '{selector}'"
+#     )
+#     logger.debug(f"Performing multi-touch on element with id '{selector}'")
+#     try:
+#         element = waitSelector(
+#             context=context, selector_type="id", selector=selector
+#         )
+#         action1 = TouchAction(context.mobile["driver"]).tap(element)
+#         action2 = TouchAction(context.mobile["driver"]).tap(element)
+#         multi_action = MultiAction(context.mobile["driver"])
+#         multi_action.add(action1, action2)
+#         multi_action.perform()
+#         send_step_details(
+#             context,
+#             f"Multi-touch on element with id '{element_id}' performed successfully",
+#         )
+#     except Exception as e:
+#         raise CustomError(
+#             f"Could not perform multi-touch on element with id '{element_id}': {str(e)}"
+#         )
 
 
-@step('Wait for element with "{selector_type}" "{selector_value}" to appear')
-@done('Wait for element with "{selector_type}" "{selector_value}" to appear')
-def wait_for_element_to_appear(context, selector_type, selector_value):
+@step('Wait for element "(?P<selector>.+?)" to appear')
+@done('Wait for element "{selector}" to appear')
+def wait_for_element_to_appear(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
-        context, f"Waiting for element with {selector_type}: {selector_value} to appear"
+        context, f"Waiting for element with {selector} to appear"
     )
     logger.debug(
-        f"Waiting for element with {selector_type}: {selector_value} to appear"
+        f"Waiting for element with {selector} to appear"
     )
     try:
         waitSelector(
-            context=context, selector_type=selector_type, selector_value=selector_value
+            context=context, selector_type="xpath", selector=selector
         )
         send_step_details(
-            context, f"Element with {selector_type}: {selector_value} appeared"
+            context, f"Element with {selector} appeared"
         )
     except Exception as e:
         raise CustomError(
-            f"Element with {selector_type}: {selector_value} did not appear: {str(e)}"
+            f"Element with {selector} did not appear: {str(e)}"
         )
 
 
-@step('Wait for element with "{selector_type}" "{selector_value}" to disappear')
-@done('Wait for element with "{selector_type}" "{selector_value}" to disappear')
-def wait_for_element_to_disappear(context, selector_type, selector_value):
+@step('Wait for element "(?P<selector>.+?)" to disappear')
+@done('Wait for element "{selector}" to disappear')
+def wait_for_element_to_disappear(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Waiting for element with {selector_type}: {selector_value} to disappear",
+        f"Waiting for element with {selector} to disappear",
     )
     logger.debug(
-        f"Waiting for element with {selector_type}: {selector_value} to disappear"
+        f"Waiting for element with {selector} to disappear"
     )
     try:
         WebDriverWait(context.mobile["driver"], EXPLICIT_WAIT_TIME).until_not(
-            EC.presence_of_element_located((selector_type, selector_value))
+            EC.presence_of_element_located((selector))
         )
         send_step_details(
-            context, f"Element with {selector_type}: {selector_value} disappeared"
+            context, f"Element with {selector} disappeared"
         )
     except Exception as e:
         raise CustomError(
-            f"Element with {selector_type}: {selector_value} did not disappear: {str(e)}"
+            f"Element with {selector} did not disappear: {str(e)}"
         )
 
 
-@step('Tap on "{element}"')
-@done('Tap on "{element}"')
-def tap_on_element(context, element):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(context, f"Tapping on element '{element}'")
-    logger.debug(f"Tapping on element '{element}'")
-    try:
-        elem = waitSelector(context=context, selector_type="id", selector_value=element)
-        actions = TouchAction(context.mobile["driver"])
-        actions.tap(elem).perform()
-        send_step_details(context, f"Tapped on element '{element}' successfully")
-    except Exception as e:
-        raise CustomError(f"Could not tap on element '{element}': {str(e)}")
-
-
-@step('Validate text "{text}" on mobile screen')
+@step('Validate text "(?P<text>.+?)" on mobile screen')
 @done('Validate text "{text}" on mobile screen')
 def validate_text_on_mobile_screen(context, text):
     context.STEP_TYPE = "MOBILE"
@@ -1035,7 +1099,7 @@ def validate_text_on_mobile_screen(context, text):
         element = waitSelector(
             context=context,
             selector_type="xpath",
-            selector_value=f"//*[contains(text(),'{text}')]",
+            selector=f"//*[contains(text(),'{text}')]",
         )
         if text not in element.text:
             raise CustomError(f"Text '{text}' not found on mobile screen")
@@ -1046,39 +1110,42 @@ def validate_text_on_mobile_screen(context, text):
         )
 
 
-@step('Capture device performance metrics')
-@done('Capture device performance metrics')
-def capture_device_performance_metrics(context):
-    context.STEP_TYPE = "MOBILE"
-    send_step_details(context, "Capturing device performance metrics")
-    logger.debug("Capturing device performance metrics")
-    try:
-        performance_metrics = context.mobile["driver"].get_performance_data(
-            "system", "cpuinfo", 5
-        )
-        send_step_details(
-            context, f"Device performance metrics captured: {performance_metrics}"
-        )
-        return performance_metrics
-    except Exception as e:
-        raise CustomError(f"Could not capture device performance metrics: {str(e)}")
+# @step('Capture device performance metrics and store in the "(?P<variable>.+?)"')
+# @done('Capture device performance metrics and store in the "{variable}"')
+# def capture_device_performance_metrics(context, variable):
+#     context.STEP_TYPE = "MOBILE"
+#     send_step_details(context, "Capturing device performance metrics")
+#     logger.debug("Capturing device performance metrics")
+#     try:
+#         performance_metrics = context.mobile["driver"].get_performance_data(
+#             "system", "cpuinfo", 5
+#         )
+#         send_step_details(
+#             context, f"Device performance metrics captured: {performance_metrics}"
+#         )
+#         addTestRuntimeVariable(context, variable, performance_metrics)
+#         return performance_metrics
+    
+#     except Exception as e:
+#         raise CustomError(f"Could not capture device performance metrics: {str(e)}")
 
 
-@step('Fetch mobile device details and store in the "{variable}"')
+@step('Fetch mobile device details and store in the "(?P<variable>.+?)"')
 @done('Fetch mobile device details and store in the "{variable}"')
-def fetch_mobile_device_details(context):
+def fetch_mobile_device_details(context, variable):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Fetching mobile device details")
     logger.debug("Fetching mobile device details")
     try:
         device_details = context.mobile["driver"].desired_capabilities
+        addTestRuntimeVariable(context, variable, device_details)
         send_step_details(context, f"Mobile device details: {device_details}")
         return device_details
     except Exception as e:
         raise CustomError(f"Could not fetch mobile device details: {str(e)}")
 
 
-@step('Set geolocation to "{latitude}, {longitude}"')
+@step('Set geolocation to "(?P<latitude>.+?), (?P<longitude>.+?)"')
 @done('Set geolocation to "{latitude}, {longitude}"')
 def set_geolocation(context, latitude, longitude):
     context.STEP_TYPE = "MOBILE"
@@ -1095,7 +1162,7 @@ def set_geolocation(context, latitude, longitude):
         )
 
 
-@step('Set mobile timezone to "{timezone}"')
+@step('Set mobile timezone to "(?P<timezone>.+?)"')
 @done('Set mobile timezone to "{timezone}"')
 def set_mobile_timezone(context, timezone):
     context.STEP_TYPE = "MOBILE"
@@ -1115,25 +1182,28 @@ def set_mobile_timezone(context, timezone):
         )
 
 
-@step('Check if element with "{selector_type}" "{selector_value}" is visible')
-@done('Check if element with "{selector_type}" "{selector_value}" is visible')
-def check_if_element_visible(context, selector_type, selector_value):
+@step('Check if element "(?P<selector>.+?)" is visible')
+@done('Check if element "{selector}" is visible')
+def check_if_element_visible(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
         context,
-        f"Checking if element with {selector_type}: {selector_value} is visible",
+        f"Checking if element with {selector} is visible",
     )
     logger.debug(
-        f"Checking if element with {selector_type}: {selector_value} is visible"
+        f"Checking if element with {selector} is visible"
     )
     element = waitSelector(
-        context=context, selector_type=selector_type, selector=selector_value
+        context=context, selector_type="xpath", selector=selector
     )
     if not element.is_displayed():
         raise CustomError(
-            f"Element with {selector_type}: {selector_value} is not visible"
+            f"Element with {selector} is not visible"
         )
     send_step_details(
-        context, f"Element with {selector_type}: {selector_value} is visible"
+        context, f"Element with {selector} is visible"
     )
     return True
+
+
+use_step_matcher("parse")
