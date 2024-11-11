@@ -129,6 +129,9 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
     
     if context.STEP_TYPE == 'MOBILE':     
         types["accessibility_id"] = f"context.mobile['driver'].find_element(By.ACCESSIBILITY_ID, selector)"
+        value = f'//*[contains(@text,"{selector}")]'
+        types["partial_text"] = f"context.mobile['driver'].find_element(By.XPATH, '{value}')"
+        logger.debug(f"partial_text Selector Value : {value}")
         
     # place selector_type on the top
     selector_type_value = types.pop(selector_type, "css")

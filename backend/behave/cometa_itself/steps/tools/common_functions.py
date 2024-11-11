@@ -91,9 +91,7 @@ def takeScreenshot(context, step_id):
         logger.debug("Saving screenshot to file")
         try:
             if context.STEP_TYPE=='MOBILE':
-                context.mobile['driver'].save_screenshot(final_screenshot_file)
-            elif (context.CURRENT_STEP.name.find("I sleep")>=0 or context.CURRENT_STEP.name.find("I can sleep")>=0) and context.PERVIOUS_STEP_TYPE=='MOBILE':
-                context.mobile['driver'].save_screenshot(final_screenshot_file)
+               context.mobile['driver'].save_screenshot(final_screenshot_file)
             else: 
                 context.browser.save_screenshot(final_screenshot_file)
 
@@ -121,9 +119,14 @@ def convert_image_to_decoded_bytes(image_path):
 
 
 def get_screenshot_bytes_from_screen(context):
+    logger.debug(f"context.PREVIOUS_STEP_TYPE : {context.PREVIOUS_STEP_TYPE}")
     try:
-        logger.debug("Taking screenshot")
-        screenshot_bytes = context.browser.get_screenshot_as_png()
+        if context.PREVIOUS_STEP_TYPE=='MOBILE':
+            logger.debug("Taking screenshot from mobile")
+            screenshot_bytes = context.mobile['driver'].get_screenshot_as_png()
+        else:
+            logger.debug("Taking screenshot from browser")
+            screenshot_bytes = context.browser.get_screenshot_as_png()
         logger.debug("Converting to bytes")
         return base64.b64encode(screenshot_bytes).decode("utf-8")
     except Exception as exception:
