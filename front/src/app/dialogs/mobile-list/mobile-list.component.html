@@ -30,7 +30,7 @@
                     mat-raised-button
                     class="clipped"
                     [matTooltip]="'mobile_list.close_emulator' | translate" matTooltipPosition="above">
-                  <mat-icon>close</mat-icon>
+                  <mat-icon class="close-icon">close</mat-icon>
                   </div>
                 </div>
 
@@ -364,13 +364,38 @@
 </div>
 <ng-template #notDialog>
 
+  
   <div class="notDialog-landing">
-    <mat-dialog-actions class="dialog-header">
-      <h3 class="not-dialog-title">Mobile Devices</h3>
-    </mat-dialog-actions>
+    
+    <p class="selectDepExplan">
+      Select a department to view both active and inactive containers, including shared containers, for mobile emulation.
+    </p>
+    
+    <div class="columns-button-wrapper">
+      <div class="container-father" *ngIf="!runningContainer; else notRunningContainer">
+        <ng-container>
+          <mat-form-field class="selectFormField">
+            <mat-label><mat-icon>domain</mat-icon> Select Department </mat-label>
+            <mat-select 
+              [(ngModel)]="selectedDepartment" 
+              (selectionChange)="onDepartmentSelect($event)"
+              [disabled]="selectionsDisabled">
+              <mat-option 
+                *ngFor="let department of departments" 
+                [value]="{ id: department.department_id, name: department.department_name}">
+                <mat-card>{{ department.department_name }}</mat-card>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ng-container>
+      </div>
+    </div>
 
-    <mat-dialog-content class="scrollable-content">
-      <ng-container>
+    <div class="dialog-header">
+      <h3 class="not-dialog-title">Mobile Devices</h3>
+    </div>
+
+    <div class="not-dialog-scrollable-content" *ngIf="selectedDepartment">
         <!-- <h2 mat-dialog-title>Mobile Devices</h2> -->
         <!-- Available Devices -->
         <div class="devices">
@@ -393,7 +418,7 @@
                       mat-raised-button
                       class="clipped"
                       [matTooltip]="'mobile_list.close_emulator' | translate" matTooltipPosition="above">
-                    <mat-icon>close</mat-icon>
+                    <mat-icon class="close-icon">close</mat-icon>
                     </div>
                   </div>
 
@@ -484,8 +509,12 @@
                       </div>
                     </div>
 
-                    <h4>Mobile Actions</h4>
+                    <h4 *ngIf="runningContainer else notRunning">Mobile Actions</h4>
+                    <ng-template #notRunning>
+                      <h4 id="mobile-actions">Mobile Actions</h4>
+                    </ng-template>
                     <mat-divider></mat-divider>
+                 
                     <div class="apk-selection">
                       <mat-slide-toggle
                         [disabled]="!runningContainer"
@@ -496,15 +525,19 @@
                         (change)="
                           updateSharedStatus($event, mobile, runningContainer)
                         ">
-                        Share this mobile with others
+                        <p>Share this mobile with others</p>
                       </mat-slide-toggle>
                       <div
                         [ngClass]="{ 'disabled-content': !runningContainer }"
                         class="row-content">
-                        <mat-icon [inline]="true">info</mat-icon>
-                        <p
-                          [matTooltip]="'mobile_list.apk_file' | translate"
+                          
+                        <mat-icon [inline]="true" class="get-app"
+                        [matTooltip]="'mobile_list.apk_file' | translate"
                           matTooltipPosition="above">
+                          file_download
+                        </mat-icon>
+                        <p [matTooltip]="'mobile_list.apk_file' | translate"
+                        matTooltipPosition="above">
                           Install Application
                         </p>
                       </div>
@@ -518,7 +551,7 @@
                             updateAPKSelection($event, mobile, runningContainer)
                           ">
                           <mat-option
-                            *ngFor="let apk_file of this.data.uploadedAPKsList"
+                            *ngFor="let apk_file of this.apkFiles"
                             [value]="apk_file.id">
                             {{ apk_file.name }}
                           </mat-option>
@@ -540,7 +573,7 @@
                     <button
                       *ngIf="!runningContainer"
                       (click)="startMobile(mobile.mobile_id)"
-                      [disabled]="true"
+                      [disabled]="!buttonEnabledState"
                       mat-raised-button
                       color="primary"
                       class="start-stop-inpect-buttons start">
@@ -550,17 +583,14 @@
                     <ng-container *ngIf="runningContainer">
                       <button
                         (click)="restartMobile(runningContainer)"
-
                         mat-raised-button
                         color="primary"
-                        [disabled]="true"
                         class="start-stop-inpect-buttons"
                         [matTooltip]="'mobile_list.restart_emulator' | translate" matTooltipPosition="above">
                         Restart
                       </button>
                       <button
                         (click)="pauseMobile(runningContainer)"
-                        [disabled]="true"
                         mat-raised-button
                         color="warn"
                         class="start-stop-inpect-buttons"
@@ -590,12 +620,6 @@
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-
-        <div class="devices">
-          <!-- Shared selection section -->
-          <div class="mobile-selector-box">
             <h3>Shared Mobile Devices</h3>
             <div class="mobiles">
               <!-- Iterate over shared containers list -->
@@ -718,8 +742,7 @@
             </div>
           </div>
         </div>
-      </ng-container>
-    </mat-dialog-content>
+    </div>
   </div>
 </ng-template>
 <!-- <div *ngIf="isDialog" class="env-info">

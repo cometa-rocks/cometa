@@ -23,6 +23,11 @@ mat-dialog-container {
   overflow: hidden;
 }
 
+::ng-deep .mobile-emulator-panel {
+  background-color: #f7f7f7;
+}
+
+
 
 @keyframes slideDown {
   from {
@@ -47,12 +52,14 @@ mat-dialog-container {
         min-height: 230px;
         border: 1px solid #ddd;
         border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        // box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
         position: relative;
         display: flex;
         flex-direction: column;
         width: 390px;
         min-width: 390px;
+        background-color: rgba(255, 255, 255, 0.4);
         .mobile-icon {
           width: 100px;
           height: 200px;
@@ -64,15 +71,9 @@ mat-dialog-container {
         }
 
         .mobile-details {
-          // margin-left: 220px; /* Adjust to give space for background image */
           display: flex;
           flex-direction: column;
           justify-content: center;
-
-          div {
-            margin-bottom: 10px;
-            font-size: 14px;
-          }
 
           .moreOrLess {
             text-align: left;
@@ -87,19 +88,16 @@ mat-dialog-container {
 
           .moreOrLessNotRunning {
             text-align: left;
-            margin-top: 35px;
+            // margin-top: 30px;
             padding: 0 0 0 10px;
-            margin-bottom: 5px;
             background-color: transparent;
           }
-
-          
 
           .moreInfo{
             display: flex;
             flex-direction: column;
-            // height: 100px;
-            margin-left: 0px;
+            margin-left: 10px;
+            margin-bottom: 15px;
           }
         }
       }
@@ -258,7 +256,7 @@ mat-dialog-content {
   background-color: #ef5350;
 }
 
-.clipped mat-icon {
+.clipped, .close-icon {
   font-size: 18px;
   transition: font-size 0.3s ease;
   text-align: center;
@@ -268,16 +266,16 @@ mat-dialog-content {
   cursor: pointer;
 }
 
-.clipped:hover mat-icon {
+.clipped:hover, .close-icon:hover {
   font-size: 20px;
 }
 
 
 .mobile-details {
   div {
-    margin-left: 10px;
     display: flex;
     flex-direction: row;
+    margin-bottom: 5px;
     strong {
       align-items: center;
       margin-left: 5px;
@@ -292,29 +290,13 @@ mat-dialog-content {
       margin-right: 5px;
     }
   }
-}
-
-.apk-selection {
-  display: flex;
-  flex-direction: column !important;
-  margin-right: 10px;
-  .mat-slider-toggle {
-    transform: scale(0.8);
-    margin-left: -40px;
-    margin-bottom: 10px;
+  .emulator-info {
+    margin-left: 10px;
   }
-}
-
-.row-content {
-  display: flex;
-  flex-direction: row;
-  mat-icon {
-    margin-left: -10px;
+  .status-container {
+    margin-left: 10px;
   }
-}
 
-mat-divider {
-  margin-bottom: 15px !important;
 }
 
 .status-container {
@@ -330,6 +312,31 @@ mat-divider {
 .stopped-text {
   font-weight: bold;
   color: $bad; 
+}
+
+
+.apk-selection {
+  display: flex;
+  flex-direction: column !important;
+  margin-right: 10px;
+  margin-left: 10px;
+  .mat-slider-toggle {
+    transform: scale(0.8);
+    margin-left: -40px;
+    margin-bottom: 10px;
+    p {
+      font-size: 20px;
+    }
+  }
+}
+
+.row-content {
+  display: flex;
+  flex-direction: row;
+}
+
+mat-divider {
+  margin-bottom: 15px !important;
 }
 
 .status-circle {
@@ -389,11 +396,26 @@ mat-divider {
 .scrollable-content {
   max-height: 60vh; 
   overflow-y: auto;
+  overflow-x: hidden;
   width: 100%;
+}
+
+.not-dialog-scrollable-content::-webkit-scrollbar {
+  display: none;
+}
+
+.not-dialog-scrollable-content {
+  // max-height: 60vh; 
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  // max-height: calc(100vh - var(--header-height) - var(--new-landing-filters-height));
 }
 
 .notDialog-landing {
   padding: 25px 15px 15px 15px;
+  height: calc(100% + 50px);
 }
 
 
@@ -439,3 +461,76 @@ mat-divider {
 .inspect-hover, .novnc-hover {
   font-weight: bold;
 }
+
+// ####################################
+// # NO DIALOG                        #
+// ####################################
+
+.container-father {
+  display: flex;
+  flex-direction: column !important;
+  margin-right: 10px;
+  width: 100%;
+}
+
+@include for-phone-only {
+  .container-father {
+    position: relative;
+    height: 15vh; 
+  }
+
+  .selectFormField {
+    width: 145px;
+  }
+
+  .container-father .selectFormField:nth-last-of-type(2) {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  
+  .container-father .selectFormField:nth-last-of-type(1) {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
+  button {
+    align-self: flex-end; 
+  }
+
+  .add, .button-column{
+    margin-bottom: 10px;
+    width: auto;
+  }
+}
+
+.feature {
+  height: 15px;
+  margin-right: 8px;
+}
+
+.columns-button-wrapper {
+  margin-left: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 300px;
+}
+
+.department-name {
+  display: flex;
+}
+
+#mobile-actions {
+  margin-top: 9px;
+}
+
+.get-app {
+  font-size: 20px !important;
+  color: rgba(0, 0, 0, 0.7) !important;
+}
+
+.selectDepExplan {
+  margin-left: 10px;
+}
+
