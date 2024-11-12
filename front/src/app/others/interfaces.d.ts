@@ -713,6 +713,7 @@ interface Folder {
   type?: 'department' | 'folder' | 'home';
   current_folder_id?: number;
   route: Folder[];
+  files?: [];
 }
 
 interface FoldersResponse {
