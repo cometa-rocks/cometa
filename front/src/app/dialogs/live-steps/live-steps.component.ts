@@ -100,9 +100,6 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
 
   mobiles = {}
 
-  // This keeps track of runing mobile or browsers
-  runningDevices: Container[] = [];
-
   // Controls de auto scroll
   autoScroll = localStorage.getItem('live_steps_auto_scroll') === 'true';
 
@@ -189,15 +186,6 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
         }
       });
 
-      this._api.getContainersList().subscribe(
-        (containers: Container[]) => {
-          this.runningDevices = containers.filter(container =>
-            container.service_status === 'Running');
-
-          console.log('Running Devices:', this.runningDevices);
-        },
-        error => console.error('Error fetching containers:', error)
-      );
   }
 
   @Subscribe()
@@ -230,7 +218,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
 
   noVNCMobile(mobile_service_id): void {
     console.log("Mobile service id", mobile_service_id);
-    // FIXME this connection needs to be fixed, to improve security over emulators 
+    // // FIXME this connection needs to be fixed, to improve security over emulators
     let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${mobile_service_id}`;
     window.open(complete_url, '_blank').focus();
   }
@@ -251,9 +239,10 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     localStorage.setItem('live_steps_auto_scroll', checked.toString());
   }
 
-  updateMobile(data: any) {
+  updateMobile(data: any, browser) {
     this.mobiles[data.feature_run_id] = data.mobiles_info
-    console.log("Mobile value updated",this.mobiles )
+    console.log("Mobile value updated",this.mobiles, this.mobiles[data.feature_run_id])
+    console.log("Data", data )
   }
 
 

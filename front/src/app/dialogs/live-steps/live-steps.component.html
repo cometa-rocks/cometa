@@ -25,26 +25,25 @@
                     browser.value.browser_info | browserIcon
                   "></i>
                 {{ browser.value.browser_info | browserComboText }}
-                <mat-icon 
+                <mat-icon
                   (click)="live(feature_result_id)"
                   class="browser-icon live_preview"
                   matTooltipPosition="below"
                   matTooltip="View your browser execution, GO live!"
                   *ngIf="showLiveIcon(browser)"
                   >live_tv</mat-icon>
-               
+
                 <div *ngFor="let mobile of this.mobiles[feature_result_id]">
-                  <mat-icon 
+                  <mat-icon
                   (click)="noVNCMobile(mobile.hostname)"
                   class="browser-icon live_preview"
                   matTooltipPosition="below"
                   matTooltip="View your mobile execution, GO live!">
-                  phonelink_ring
+                  phonelink_ring 
                   </mat-icon>
-                I'm here
                 </div>
               </ng-template>
-             
+
               <ng-container *ngIf="browser.value?.error; else browserContent">
                 <div>
                   <div class="live-status">
