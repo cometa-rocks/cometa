@@ -157,6 +157,7 @@
     "explanation": "Habilitar esta opción permite que otros usuarios te ayuden en esta característica",
     "edit_variable": "En esta sección, podemos agregar o editar variables entre otras funcionalidades",
     "default_template": "Si está marcado, proporcione su plantilla de correo electrónico personalizada, que se puede usar para crear correos electrónicos personalizados, por ejemplo, solo con capturas de pantalla. El valor predeterminado es falso: para no cambiar el comportamiento actual que usan los clientes.",
+    "maximum_notification_on_error":"Si está marcado, proporcione la cantidad de correos electrónicos de fallos consecutivos que desea recibir. Esta opción es útil para evitar notificaciones continuas de fallos, de modo que el usuario no sea bombardeado con correos electrónicos excesivos.",
     "attach_pdf": "Si está marcado, se adjuntará el resultado de la prueba en PDF en el correo electrónico. De lo contrario, se enviará el correo electrónico sin PDF. Útil cuando se envía correo electrónico con plantilla personalizada."
   },
   "step-definition": {
