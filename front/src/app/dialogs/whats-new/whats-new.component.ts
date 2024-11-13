@@ -45,13 +45,18 @@ export class WhatsNewDialog {
     @Inject(MAT_DIALOG_DATA) private data: LogChange[],
     private _sanitizer: DomSanitizer
   ) {
-    // Filter changes to show on dialog
-    this.changes = classifyByProperty(this.data, 'type');
+    if (Array.isArray(this.data)) {
+      this.changes = classifyByProperty(this.data, 'type');
+    } else {
+      console.error('Expected array, but got:', this.data);
+      this.changes = { feature: [], bugfix: [] };
+    }
+
     const randPoster = Math.floor(Math.random() * 3) + 1;
-    // Sanitize poster url
     this.poster = this._sanitizer.bypassSecurityTrustUrl(
       `assets/img/poster_${randPoster}.svg`
     );
+
   }
 
   poster: SafeUrl;
