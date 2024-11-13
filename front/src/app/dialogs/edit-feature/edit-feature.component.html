@@ -276,6 +276,20 @@
               (blur)="onInputBlur()"
               ></textarea>
           </mat-form-field>
+          <mat-form-field appearance="fill" class="" *ngIf="featureForm.value.check_maximum_notification_on_error" >
+            <mat-label
+              > Maximum notifications on errors 
+            </mat-label>
+            <input
+              type="number"
+              matInput
+              spellcheck="false"
+              formControlName="maximum_notification_on_error"
+              (focus)="onInputFocus()" 
+              (blur)="onInputBlur()"
+              />
+          </mat-form-field>
+          <br>
           <mat-radio-group formControlName="send_mail_on_error">
             When to send email:
             <mat-radio-button color="primary" [value]="false"
@@ -285,6 +299,14 @@
               >On error</mat-radio-button
             >
           </mat-radio-group>
+          
+          <mat-checkbox
+            formControlName="check_maximum_notification_on_error"
+            aria-label="Screenshot"
+            color="primary"
+            [matTooltip]="'edit_feature.maximum_notification_on_error' | translate" matTooltipPosition="above"
+            class="screenshot checkbox-blue maximum-notifications-check"
+            > Set maximum notifications on errors </mat-checkbox>
           <mat-checkbox
             formControlName="do_not_use_default_template"
             aria-label="Screenshot"
@@ -311,6 +333,7 @@
             mat-icon-button>
             <mat-icon>help_outline</mat-icon>
           </button>
+
         </ng-template>
       </mat-expansion-panel>
 

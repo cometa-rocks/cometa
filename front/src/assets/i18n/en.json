@@ -40,6 +40,7 @@
     "explanation": "Enabling this option allows other users to help you on this feature",
     "edit_variable": "In this section, we can add or edit variables among other functionalities",
     "default_template": "If Checked, then please provide your custom email template, which can be used for creating customized e-Mails, e.g. only containing screenshot. The default is false - to not change the actual behavior customers are using",
+    "maximum_notification_on_error": "If checked, please set the number of consecutive failure emails you want to receive. This option helps to avoid continuous failure notifications, so the user is not bombarded with excessive emails.",
     "attach_pdf": "If Checked, PDF test result will be attached within the email, Other wise email without PDF will be sent. Useful when sending email with customized template"
   },
   "step-definition": {
