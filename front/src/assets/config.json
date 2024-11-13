@@ -1,5 +1,5 @@
 {
-  "version": "3.0.2",
+  "version": "3.0.3",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.3",
+      "date": "2024-11-13",
+      "features": [
+        {
+          "title": "#4938 - Email report enhancement",
+          "description": "Email reporting enhanced to set the number of consecutive failure emails you want to receive. This option helps to avoid continuous failure notifications, so the user is not bombarded with excessive emails."
+        }
+      ]
+    },
     {
       "version": "3.0.2",
       "date": "2024-10-09",

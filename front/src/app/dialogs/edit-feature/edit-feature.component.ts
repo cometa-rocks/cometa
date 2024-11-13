@@ -250,6 +250,8 @@ export class EditFeature implements OnInit, OnDestroy {
       generate_dataset: [false],
       need_help: [false],
       send_mail_on_error: [false],
+      check_maximum_notification_on_error: [false],
+      maximum_notification_on_error: ['3'],
       attach_pdf_report_to_email: [true],
       do_not_use_default_template: [false],
       continue_on_failure: [true],
@@ -635,6 +637,8 @@ export class EditFeature implements OnInit, OnDestroy {
           'email_subject',
           'email_body',
           'send_mail_on_error',
+          'maximum_notification_on_error',
+          'check_maximum_notification_on_error',
           'attach_pdf_report_to_email',
           'do_not_use_default_template',
         ];
