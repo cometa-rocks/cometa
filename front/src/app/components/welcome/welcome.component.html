@@ -31,6 +31,45 @@
           </ng-template>
         </p>
       </div>
+      <!-- Header -->
+      <div class="whats-new-title">
+        <div class="title">What's New</div>
+        <div class="date" *ngIf="date">{{ date }}</div>
+      </div>
+      <!-- Content -->
+      <div class="what-new-content">
+        <!-- <img class="poster" [src]="poster" /> -->
+        <div class="body">
+          <!-- New Features -->
+          <ng-container *ngIf="features.length > 0">
+            <div class="header">
+              <div class="title"> NEW FEATURES </div>
+              <div class="bar"></div>
+            </div>
+            <ul>
+              <li *ngFor="let feature of features">
+                <strong [innerHTML]="feature.title"></strong>:&nbsp;
+                <span [innerHTML]="feature.text">{{ feature.text }}</span>
+              </li>
+            </ul>
+          </ng-container>
+          
+          <ng-container *ngIf="bugfixes.length > 0">
+            <div class="header">
+              <div class="title"> BUG FIXES </div>
+              <div class="bar"></div>
+            </div>
+            <ul>
+              <li *ngFor="let bugfix of bugfixes">
+                <span [innerHTML]="bugfix.text">{{ bugfix.text }}</span>
+              </li>
+            </ul>
+          </ng-container>
+        </div>
+      </div>
+      <div class="whats-new-title">
+        <div class="title">Explore More</div>
+      </div>
       <!-- Upper row of buttons with everything related to help -->
       <div class="welcome_buttons">
         <div class="welcome_container">

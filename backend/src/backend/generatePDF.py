@@ -173,17 +173,54 @@ class GeneratePDF(View):
             response['Content-Length'] = len(PDFContent)
             return response
         else:
+            self.send_mail()
+            
+        # Finish
+        return HttpResponse("200")
+
+    """
+        This function handles the logic of sending the mail
+    """
+    def send_mail(self):
+        feature = Feature.objects.get(feature_id=self.feature_id)
+        should_send_the_email = True
+        
+        # if feature is set to check for notification on error 
+        if feature.check_maximum_notification_on_error:
+            logger.debug("Checking for maximum emails on error")
+            # Check if current feature_result is failed
+            # Check if number of sent notifications are less then maximum number set to send the notification  
+            if self.feature_result.success and not feature.send_mail_on_error:
+                should_send_the_email = True
+                feature.number_notification_sent = 0
+                
+            elif self.feature_result.success:
+                should_send_the_email = False
+                feature.number_notification_sent = 0                
+                                
+            # Send email and increase number_notification_sent count by 1
+            elif feature.number_notification_sent < feature.maximum_notification_on_error:
+                feature.number_notification_sent = feature.number_notification_sent + 1 
+                should_send_the_email = True
+                
+            elif feature.number_notification_sent >= feature.maximum_notification_on_error:
+                should_send_the_email = False
+        # In check_maximum_notification_on_error set number_notification_sent to 0 so that user can get the notification when new error is there
+        else:
+            feature.number_notification_sent = 0 
+        
+        feature.save()
+            
+        if should_send_the_email:
             # Build the subject and the emailbody.
             self.subject = self.BuildEmailSubject()
             self.emailbody = self.BuildEmailBody()
 
             # Send the email.
             self.SendEmail()
-        
-        
-        # Finish
-        return HttpResponse("200")
 
+        else:
+            logger.info("Skip sending email ")
     """
         This function starts a logger to output information into syslog. It uses python default logger object.
     """
