@@ -60,7 +60,8 @@ import { Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Features } from '@store/actions/features.actions';
 import { LogService } from '@services/log.service';
-
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 /**
  * MobileListComponent
@@ -112,7 +113,8 @@ import { LogService } from '@services/log.service';
     MatDividerModule,
     DraggableWindowModule,
     FormsModule,
-    
+    MatMenuModule,
+    MatButtonToggleModule
   ],
 })
 export class MobileListComponent implements OnInit {
@@ -149,7 +151,6 @@ export class MobileListComponent implements OnInit {
   selectedDepartment: { id: number, name: string } = { 
     id: null, 
     name: '',
-    
   };
   selectedFeature: { id: number, name: string,  id_enviornment: number, name_environment: string  } = { 
     id: null, 
@@ -185,6 +186,21 @@ export class MobileListComponent implements OnInit {
             this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
           })
         });
+
+        this.logger.msg("1", "CO-depID:", "mobile-list", this.departments[0].department_id);
+
+        if (this.departments.length > 0) {
+          this.logger.msg("1", "CO-Departments:", "mobile-list", this.departments);
+          this.selectedDepartment = { 
+            id: this.departments[0].department_id, 
+            name: this.departments[0].department_name
+          };
+          // this.selectedDepartment = {
+          //   id: this.departments[0].department_id,
+          //   name: this.departments[0].department_name
+          // };
+          this.onDepartmentSelect({ value: this.selectedDepartment });
+        }
 
         this.logger.msg("1", "CO-Data:", "mobile-list", this.data);
         this.logger.msg("1", "CO-Dialog:", "mobile-list", this.isDialog);
@@ -529,35 +545,16 @@ export class MobileListComponent implements OnInit {
 
   onDepartmentSelect($event){
 
-     // If proxy object, use this Json stringify to avoid proxy objects
-     this._store.select(UserState.RetrieveUserDepartments).pipe(
-      map(departments => JSON.parse(JSON.stringify(departments)))
-    ).subscribe(departments => {
-      this.departments = departments;
-      this.departments.forEach(department => {
+    this.apkFiles = [];
+    this.departments.forEach(department => {
+      if(department.department_id == this.selectedDepartment.id) {
         const depData = JSON.parse(JSON.stringify(department)); 
         this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
-      })
-    });
-    
+      }
+    })
+
     this.departmentChecked[this.selectedDepartment.id] = true;
     this.buttonEnabledState = true;
   }
-
-  // onFeatureSelect($event, mobileId: string){
-  //   console.log("selectedFeature", this.selectedDepartment);
-  //   if(this.selectedDepartment != null){
-  //     this.featureChecked[this.selectedFeature.id_enviornment] = true;
-  //     this.buttonEnabledState = true;
-  //   }
-  //   console.log("featureChecked", this.featureChecked);
-  // }
-
-  // @HostListener('document:keydown', ['$event'])
-  // handleKeyboardEvent(event: KeyboardEvent) {
-  //   if(KEY_CODES.ESCAPE){
-  //     this.selectionsDisabled = false;
-  //   }
-  // }
 
 }

@@ -463,3 +463,41 @@
     }
   }
 }
+
+.mobile-container {
+  width: 120px;
+}
+
+.mobile-button-replay {
+  height: 30px;
+}
+
+.mobile-mat-icon-replay {
+  font-size: 18px;
+  // color: rgba(0, 0, 0, 0.7);
+}
+
+// .mobile-selector {
+//   width: 100%;
+//   font-size: 15px;
+// }
+
+::ng-deep td.options-buttons {
+  display: flex;
+  flex-direction: row;
+}
+
+.mobile-selector {
+  width: 80px; 
+}
+
+// .mobile-selector .mat-option {
+//   display: flex;
+//   align-items: center;
+//   padding: 8px 16px; /* Ajusta los márgenes internos */
+// }
+
+// .mobile-selector .mat-option mat-icon {
+//   margin-right: 8px;
+//   font-size: 18px;
+// }

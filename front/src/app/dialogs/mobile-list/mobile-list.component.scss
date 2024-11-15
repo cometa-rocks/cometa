@@ -11,6 +11,8 @@
 
 h4 {
   color: #1565c0;
+  // height: 30px;
+  // margin-top: 10px;
   // margin-bottom: 10px;
 }
 
@@ -74,6 +76,7 @@ mat-dialog-container {
           display: flex;
           flex-direction: column;
           justify-content: center;
+          margin-bottom: 10px;
 
           .moreOrLess {
             text-align: left;
@@ -241,10 +244,6 @@ mat-dialog-content {
 .button-container {
   display: flex;
   flex-direction: row-reverse;
-  position: relative;
-  top: -5px;
-  right: 0px;
-  margin-bottom: -10px;
 }
 
 .clipped {
@@ -292,9 +291,11 @@ mat-dialog-content {
   }
   .emulator-info {
     margin-left: 10px;
+    font-size: 14px;
   }
   .status-container {
     margin-left: 10px;
+    font-size: 14px;
   }
 
 }
@@ -311,7 +312,7 @@ mat-dialog-content {
 
 .stopped-text {
   font-weight: bold;
-  color: $bad; 
+  color: rgb(152, 145, 145); 
 }
 
 
@@ -321,13 +322,37 @@ mat-dialog-content {
   margin-right: 10px;
   margin-left: 10px;
   .mat-slider-toggle {
-    transform: scale(0.8);
-    margin-left: -40px;
+    transform: scale(0.7);
+    margin-left: -60px;
     margin-bottom: 10px;
-    p {
-      font-size: 20px;
-    }
   }
+}
+
+.pop-up-info {
+  display: flex;
+  flex-direction: column;
+  align-items: start; 
+  gap: 10px; 
+  font-size: 14px;
+  padding: 10px;
+  color: #000000b3;
+}
+
+.pop-up-info mat-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  gap: 8px; 
+}
+
+.pop-up-info i, 
+.pop-up-info mat-icon {
+  font-size: 18px;
+  margin-right: 8px; 
+}
+
+.pop-up-info strong {
+  flex-grow: 1; 
 }
 
 .row-content {
@@ -534,3 +559,21 @@ mat-divider {
   margin-left: 10px;
 }
 
+.options {
+  margin-bottom: -11px;
+  mat-icon {
+    color: black;
+    font-size: 19px;
+    margin-bottom: 0px;
+  }
+}
+
+.mat-form-field-wrapper {
+  font-size: 13px;
+}
+
+.mobile-information{
+  display: flex;
+  flex-direction: column !important;
+  margin-bottom: 20px;
+}
