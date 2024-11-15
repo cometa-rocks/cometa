@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   OnInit,
   OnDestroy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import {
   MatLegacyDialogRef as MatDialogRef,
@@ -56,6 +57,8 @@ import {
   KeyValuePipe,
 } from '@angular/common';
 import { color } from 'highcharts';
+import { LogService } from '@services/log.service';
+import { MatSelectModule } from '@angular/material/select';
 
 @UntilDestroy()
 @Component({
@@ -89,6 +92,7 @@ import { color } from 'highcharts';
     BrowserComboTextPipe,
     TestDurationPipe,
     TranslateModule,
+    MatSelectModule
   ],
 })
 export class LiveStepsComponent implements OnInit, OnDestroy {
@@ -98,18 +102,19 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   feature$: Observable<Feature>;
   steps$: Observable<FeatureStep[]>;
 
-  mobiles = {}
-
+  
   // Controls de auto scroll
   autoScroll = localStorage.getItem('live_steps_auto_scroll') === 'true';
-
+  
   constructor(
     private dialogRef: MatDialogRef<LiveStepsComponent>,
     @Inject(MAT_DIALOG_DATA) public feature_id: number,
     private _store: Store,
     private _actions$: Actions,
     private _api: ApiService,
-    private _snack: MatSnackBar
+    private _snack: MatSnackBar,
+    private logger: LogService,
+    private _cdr: ChangeDetectorRef 
   ) {
     this.status$ = this._store.select(
       CustomSelectors.GetFeatureStatus(this.feature_id)
@@ -124,20 +129,23 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
       this.feature_id
     );
   }
-
+  
   // Cleanup old or unused runs info on close
   ngOnDestroy = () =>
     this._store.dispatch(new WebSockets.CleanupFeatureResults(this.feature_id));
-
+  
   trackBrowserFn(index, item) {
     return item.key;
   }
-
+  
   trackStepFn(index, item) {
     return item.id;
   }
 
+  mobiles = {}
+  
   ngOnInit() {
+    
     // Grab the steps of the feature
     this.steps$ = this._store
       .select(
@@ -185,9 +193,10 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
           }
         }
       });
-
+      
   }
 
+  
   @Subscribe()
   stopTest() {
     return this._api.stopRunningTask(this.feature_id).pipe(
@@ -215,13 +224,15 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     const url = `/live-session/vnc.html?autoconnect=true&path=feature_result_id/${feature_result_id}`;
     window.open(url, '_blank').focus();
   }
+  
+  noVNCMobile(selectedMobile) {
+    this.logger.msg("1", "CO-Sel-Mobiles", "live-steps:", selectedMobile);
 
-  noVNCMobile(mobile_service_id): void {
-    console.log("Mobile service id", mobile_service_id);
-    // // FIXME this connection needs to be fixed, to improve security over emulators
-    let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${mobile_service_id}`;
+    // let selectedMobileHostname = this.selectedMobile;
+    let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${selectedMobile}`;
     window.open(complete_url, '_blank').focus();
   }
+
 
   showLiveIcon(browser) {
     // get data from browser
@@ -239,11 +250,15 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     localStorage.setItem('live_steps_auto_scroll', checked.toString());
   }
 
-  updateMobile(data: any, browser) {
+  updateMobile(data: any) {
     this.mobiles[data.feature_run_id] = data.mobiles_info
-    console.log("Mobile value updated",this.mobiles, this.mobiles[data.feature_run_id])
-    console.log("Data", data )
+
+    this.logger.msg("1", "CO-Mobiles", "live-steps:", this.mobiles);
   }
 
-
+  hasMultipleMobiles(featureResultId: string) {
+    this.logger.msg("1", "CO-Mobiles", "live-steps:", this.mobiles[featureResultId].length > 1);
+    // return Array.isArray(this.mobiles[featureResultId]) && this.mobiles[featureResultId].length > 1;
+  }
+  
 }

@@ -372,7 +372,7 @@
     </p>
     
     <div class="columns-button-wrapper">
-      <div class="container-father" *ngIf="!runningContainer; else notRunningContainer">
+      <div class="container-father">
         <ng-container>
           <mat-form-field class="selectFormField">
             <mat-label><mat-icon>domain</mat-icon> Select Department </mat-label>
@@ -429,53 +429,90 @@
 
                   <!-- Mobile details -->
                   <div class="mobile-details">
-                    <h4>Mobile Information</h4>
+                    <h4>
+                      Mobile Information 
+                      <button
+                      matTooltip="Show more information"
+                      matTooltipPosition="above"
+                      class="options"
+                      mat-icon-button
+                      [matMenuTriggerFor]="featureOptions">
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                    
+                    <mat-menu #featureOptions="matMenu">
+                      <mat-menu-item class="pop-up-info ">
+                        <ng-container *ngIf="runningContainer">
+                          <mat-menu-item>
+                            <i class="material-icons">adb</i>
+                            <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
+                            <mat-icon
+                              (click)="importClipboard(runningContainer.hostname); $event.stopPropagation();"
+                              [ngClass]="{ active: isIconActive }"
+                              class="copyClipboardIcon"
+                              [color]="isIconActive ? 'primary' : ''">
+                              content_copy
+                            </mat-icon>
+                          </mat-menu-item>
+                        </ng-container>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">info</i>
+                          <strong>Device Name:</strong> {{ mobile.mobile_json.deviceName }}
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">memory</i>
+                          <strong>Architecture:</strong> {{ mobile.mobile_json.architecture }}
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">phone_android</i>
+                          <strong>Android Version:</strong> {{ mobile.mobile_json.android_version }}
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">code</i>
+                          <strong>API Level:</strong> {{ mobile.mobile_json.api_level }}
+                        </mat-menu-item>
+                      </mat-menu-item>
+                    </mat-menu>
+                    </h4>
                     <mat-divider></mat-divider>
-                    <div class="emulator-info">
-                      <i class="material-icons">adb</i>
-                      <strong>Mobile Name:</strong>
-                      {{ mobile.mobile_image_name }}
-                      <mat-icon
-                        (click)="importClipboard(mobile.mobile_image_name)"
-                        [ngClass]="{ active: isIconActive }"
-                        class="copyClipboardIcon"
-                        [color]="isIconActive ? 'primary' : ''">
-                        content_copy
-                      </mat-icon>
-                    </div>
-                    <div class="emulator-info" *ngIf="runningContainer">
-                      <i class="material-icons">adb</i>
-                      <strong>Mobile Code:</strong>
-                      {{ runningContainer.hostname }}
-                      <mat-icon
-                        (click)="importClipboard(runningContainer.hostname)"
-                        [ngClass]="{ active: isIconActive }"
-                        class="copyClipboardIcon"
-                        [color]="isIconActive ? 'primary' : ''">
-                        content_copy
-                      </mat-icon>
-                    </div>
-                    <ng-container>
-                      <div class="status-container">
-                        <i class="material-icons">{{ runningContainer ? 'check_circle' : 'highlight_off' }}</i>
-                        <strong>Status:</strong>
-                        <span [ngClass]="{ 'running-text': runningContainer, 'stopped-text': !runningContainer }">
-                          {{ runningContainer? runningContainer?.service_status: "Not Started"}}
-                        </span>
-                        <!-- Corrected ngClass syntax -->
-                        <span [ngClass]="{ 'running': runningContainer, 'stopped': !runningContainer }" class="status-circle"></span>
+                    <div class="mobile-information">
+                      <div class="emulator-info">
+                        <i class="material-icons">adb</i>
+                        <strong>Mobile Name:</strong>
+                        {{ mobile.mobile_image_name }}
+                        <mat-icon
+                          (click)="importClipboard(mobile.mobile_image_name)"
+                          [ngClass]="{ active: isIconActive }"
+                          class="copyClipboardIcon"
+                          [color]="isIconActive ? 'primary' : ''">
+                          content_copy
+                        </mat-icon>
                       </div>
-                    </ng-container>
+                      <ng-container>
+                        <div class="status-container">
+                          <i class="material-icons">{{ runningContainer ? 'check_circle' : 'highlight_off' }}</i>
+                          <strong>Status:</strong>
+                          <span [ngClass]="{ 'running-text': runningContainer, 'stopped-text': !runningContainer }">
+                            {{ runningContainer? runningContainer?.service_status: "Not Started"}}
+                          </span>
+                          <!-- Corrected ngClass syntax -->
+                          <span [ngClass]="{ 'running': runningContainer, 'stopped': !runningContainer }" class="status-circle"></span>
+                        </div>
+                      </ng-container>
+                    </div>
 
-
+<!-- 
                     <button
                       mat-button
                       [ngClass]="{ 
                         'moreOrLess': runningContainer, 
                         'moreOrLessNotRunning': !runningContainer 
                       }"
-                      (click)="toggleDetails(mobile.mobile_id)"
-                      >
+                      (click)="toggleDetails(mobile.mobile_id)">
                       {{
                         showDetails[mobile.mobile_id] ? 'Show Less' : 'Show More'
                       }} Details
@@ -484,30 +521,9 @@
                         [ngClass]="{ rotated: showDetails[mobile.mobile_id] }">
                         chevron_right
                       </i>
-                    </button>
+                    </button> -->
 
-                    <div class="moreInfo" *ngIf="showDetails[mobile.mobile_id]">
-                      <div>
-                        <i class="material-icons">info</i>
-                        <strong>Device Name:</strong>
-                        {{ mobile.mobile_json.deviceName }}
-                      </div>
-                      <div>
-                        <i class="material-icons">memory</i>
-                        <strong>Architecture:</strong>
-                        {{ mobile.mobile_json.architecture }}
-                      </div>
-                      <div>
-                        <i class="material-icons">phone_android</i>
-                        <strong>Android Version:</strong>
-                        {{ mobile.mobile_json.android_version }}
-                      </div>
-                      <div>
-                        <i class="material-icons">code</i>
-                        <strong>API Level:</strong>
-                        {{ mobile.mobile_json.api_level }}
-                      </div>
-                    </div>
+                
 
                     <h4 *ngIf="runningContainer else notRunning">Mobile Actions</h4>
                     <ng-template #notRunning>
@@ -541,7 +557,7 @@
                           Install Application
                         </p>
                       </div>
-                      <mat-form-field appearance="fill" class="select-app">
+                      <mat-form-field  class="select-app">
                         <mat-label>Select App</mat-label>
                         <mat-select
                           [disabled]="!runningContainer"
