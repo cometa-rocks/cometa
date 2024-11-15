@@ -45,6 +45,9 @@ import { NgClass, NgIf, AsyncPipe, TitleCasePipe } from '@angular/common';
 import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
 import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
 import { ElementRef } from '@angular/core';
+import { LogService } from '@services/log.service';
+import { CommonModule } from '@angular/common';
+import { MatSelectModule } from '@angular/material/select';
 
 @UntilDestroy()
 @Component({
@@ -77,6 +80,8 @@ import { ElementRef } from '@angular/core';
     PixelDifferencePipe,
     AsyncPipe,
     TitleCasePipe,
+    CommonModule,
+    MatSelectModule
   ],
 })
 export class MainViewComponent implements OnInit {
@@ -134,6 +139,7 @@ export class MainViewComponent implements OnInit {
       // pinned: 'right',
       right: '0px',
       type: 'button',
+      class: 'options-buttons',
       buttons: [
         {
           type: 'icon',
@@ -153,7 +159,7 @@ export class MainViewComponent implements OnInit {
           color: 'primary',
           iif: (result: FeatureResult) => (result.mobile && result.mobile.length>0),
           click: (result: FeatureResult) => this.openVideo(result, result.mobile[0].video_recording),
-          class: 'replay-button',
+          class: 'replay-button-2',
         },
         {
           type: 'icon',
@@ -247,14 +253,16 @@ export class MainViewComponent implements OnInit {
       ],
     },
   ];
-
+  
   results = [];
   total = 0;
   isLoading = true;
   showPagination = true;
   latestFeatureResultId: number = 0;
   archived: boolean = false;
-
+  buttons: any[] = []; 
+  selectMobile: { [key: number]: any } = {};
+  
   query = {
     page: 0,
     size: 10,
@@ -278,12 +286,15 @@ export class MainViewComponent implements OnInit {
     private _api: ApiService,
     private _pdfLinkPipe: PdfLinkPipe,
     private _downloadService: DownloadService,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private logger: LogService
   ) {}
 
   featureId$: Observable<number>;
 
   openContent(feature_result: FeatureResult) {
+    this.logger.msg("1", "CO-featResult", "main-view", feature_result);
+
     this._router.navigate([
       this._route.snapshot.paramMap.get('app'),
       this._route.snapshot.paramMap.get('environment'),
@@ -327,6 +338,18 @@ export class MainViewComponent implements OnInit {
     );
   }
 
+  onMobileSelectionChange(event: any, row: FeatureResult): void {
+    // Event it's the selected mobile
+    const selectedMobile = event.value;
+    this.logger.msg("1", "CO-Sel-Event-value", "live-steps:", event.value);
+    this.logger.msg("1", "CO-Sel-Row", "live-steps:", row);
+
+
+    if (selectedMobile && selectedMobile.video_recording) {
+      this.openVideo(row, selectedMobile.video_recording);
+    }
+  }
+  
   updateData(e: PageEvent) {
     this.query.page = e.pageIndex;
     this.query.size = e.pageSize;
@@ -343,6 +366,7 @@ export class MainViewComponent implements OnInit {
           `${result.vulnerable_response_count} responses contain vulnerable headers`
       : message;
   }
+
   /**
    * Performs the overriding action through the Store
    */
@@ -436,6 +460,7 @@ export class MainViewComponent implements OnInit {
     );
   };
 
+
   ngOnInit() {
     this.featureId$ = this._route.paramMap.pipe(
       map(params => +params.get('feature'))
@@ -453,6 +478,15 @@ export class MainViewComponent implements OnInit {
       .subscribe(_ => {
         this.getResults();
       });
+      this.extractButtons();
+    }
+    
+  // Extract buttons from mtxgridCoumns
+  extractButtons() {
+    this.buttons = this.columns
+    .filter(col => col.buttons)
+    .map(col => col.buttons)   
+    .reduce((acc, val) => acc.concat(val), []);
   }
 
   // return to v2 dashboard
