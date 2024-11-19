@@ -22,6 +22,7 @@ services:
       - ./data/cometa/videos:/code/behave/videos
       - ./backend:/code
       - ./backend/src:/opt/code:rw
+      - ./data/cometa/config:/code/config:rw
       - "./backend/crontabs/cometa_django_crontab:/etc/cron.d/crontab"
     working_dir: /opt/code
     environment:
@@ -52,6 +53,7 @@ services:
       - ./data/cometa/videos:/opt/code/videos
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
+      - ./data/cometa/config:/code/config:rw
       - ./data/redis/certs:/share/certs
       - "./backend/behave/schedules/crontab:/etc/cron.d/crontab"
     # command: "/opt/code/entry.sh -d"
@@ -100,13 +102,14 @@ services:
       - testing
     restart: always
     # entrypoint with limit on browser executions to CPU-2 or Defaulting to 2 if number is less then 2
-    entrypoint: sh -c "LIMIT=$$(($$(nproc)-2))  && LIMIT=$$((LIMIT > 2 ? $$LIMIT:2)) && /usr/bin/selenoid \
-      -listen :4444 \
-      -conf /etc/selenoid/browsers.json \
-      -video-output-dir /opt/selenoid/video \
-      -log-output-dir /opt/selenoid/logs \
-      -container-network cometa_testing \
-      -limit $$LIMIT"
+    # entrypoint: sh -c "LIMIT=$$(($$(nproc)-2))  && LIMIT=$$((LIMIT > 2 ? $$LIMIT:2)) && /usr/bin/selenoid \
+    #   -listen :4444 \
+    #   -conf /etc/selenoid/browsers.json \
+    #   -video-output-dir /opt/selenoid/video \
+    #   -log-output-dir /opt/selenoid/logs \
+    #   -container-network cometa_testing \
+    #   -limit $$LIMIT"
+    entrypoint: sh /etc/selenoid/start.sh
 
   novnc:
     image: cometa/novnc:1.0
