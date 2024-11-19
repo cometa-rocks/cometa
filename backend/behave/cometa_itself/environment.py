@@ -987,7 +987,7 @@ def after_step(context, step):
         step_error = context.step_error
     # send websocket to front to let front know about the step
     logger.debug("Running Mobiles")
-    hostnames = [{'hostname':mobile['container_service_details']["Id"]} for mobile in context.mobiles.values()]
+    hostnames = [{'hostname':mobile['container_service_details']["Id"], 'name': mobile_name} for mobile_name, mobile in context.mobiles.items()]
     logger.debug(hostnames)
                  
     requests.post(
