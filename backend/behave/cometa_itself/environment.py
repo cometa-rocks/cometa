@@ -15,7 +15,6 @@ import hashlib
 import os, pickle
 from selenium.common.exceptions import InvalidCookieDomainException
 
-
 sys.path.append("/opt/code/behave_django")
 sys.path.append("/code/behave/cometa_itself/steps")
 
@@ -25,6 +24,8 @@ from utility.common import *
 from utility.encryption import *
 from utility.configurations import ConfigurationManager, load_configurations
 from modules.ai import AI
+from tools.models import Condition
+from tools.exceptions import SkipStep
 
 LOGGER_FORMAT = "\33[96m[%(asctime)s][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s"
 
@@ -417,8 +418,8 @@ def before_all(context):
     context.tempfiles = [
         execution_data_file,
     ]
-
     context.network_responses = []
+    context.test_conditions_list: list[Condition] = []
 
     # call update task to create a task with pid.
     task = {
@@ -767,7 +768,8 @@ def after_all(context):
 
 @error_handling()
 def before_step(context, step):
-
+    context.CURRENT_STEP = step
+    context.CURRENT_STEP_STATUS = "Failed"
     os.environ["current_step"] = str(context.counters["index"] + 1)
     # complete step name to let front know about the step that will be executed next
     step_name = "%s %s" % (step.keyword, step.name)
@@ -939,6 +941,7 @@ def after_step(context, step):
             "step_result_info": step_result,
             "step_time": step.duration,
             "error": step_error,
+            "status": context.CURRENT_STEP_STATUS,
             "belongs_to": context.step_data["belongs_to"],
             "screenshots": json.dumps(screenshots),  # load screenshots object
             "vulnerable_headers_count": vulnerable_headers_count,
