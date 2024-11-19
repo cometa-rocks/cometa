@@ -56,6 +56,7 @@ import sys
 
 from utility.functions import toWebP
 from utility.encryption import *
+from tools.models import check_if_step_should_execute
 
 # setup logging
 logger = logging.getLogger("FeatureExecution")
@@ -442,7 +443,17 @@ def done(*_args, **_kwargs):
                 # set page load timeout
                 args[0].browser.set_page_load_timeout(step_timeout)
                 # run the requested function
-                result = func(*args, **kwargs)
+                # Check if step should execute, It should not lies in the If else conditions    
+                should_execute_the_step = check_if_step_should_execute(args[0])     
+                result = None
+
+                if should_execute_the_step:
+                    result = func(*args, **kwargs)
+                    args[0].CURRENT_STEP_STATUS = "Success"
+                else:
+                    args[0].CURRENT_STEP_STATUS = "Skipped"
+                    logger.debug(f"######################### Skipping the step \" {args[0].CURRENT_STEP.name} \"#########################") 
+    
                 # if step executed without running into timeout cancel the timeout
                 signal.alarm(0)
                 # save the result to database
@@ -452,6 +463,7 @@ def done(*_args, **_kwargs):
                 # return True meaning everything went as expected
                 return result
             except Exception as err:
+                args[0].CURRENT_STEP_STATUS = "Failed"
                 # reset timeout incase of exception in function
                 signal.alarm(0)
                 # print stack trace
@@ -465,7 +477,7 @@ def done(*_args, **_kwargs):
                         (time.time() - start_time) * 1000,
                         0,
                         False,
-                        args[0],
+                        args[0]
                     )
                 except Exception as err:
                     logger.error(
@@ -516,6 +528,7 @@ def done(*_args, **_kwargs):
 def saveToDatabase(
     step_name="", execution_time=0, pixel_diff=0, success=False, context=None
 ):
+    status = context.CURRENT_STEP_STATUS 
     screenshots = os.environ["SCREENSHOTS"].split(".")
     compares = os.environ["COMPARES"].split(".")
     feature_id = context.feature_id
@@ -526,7 +539,7 @@ def saveToDatabase(
         "execution_time": int(execution_time),
         "pixel_diff": float(pixel_diff),
         "success": success,
-        "status": "Success" if success else "Failed",
+        "status": status,
         "belongs_to": context.step_data["belongs_to"],
         "rest_api_id": context.step_data.get("rest_api", None),
         "notes": context.step_data.get("notes", {}),
