@@ -35,93 +35,94 @@
                 </div>
 
                 <ng-template #notRunningTemplate>
-                  <div class="not-running">
+                  <div class="not-running-dialog">
                   </div>
                 </ng-template>
 
                 <!-- Mobile details -->
                 <div class="mobile-details">
-                  <h4>Mobile Information</h4>
+                  <h4>
+                    Mobile Information 
+                  </h4>
                   <mat-divider></mat-divider>
-                  <div class="emulator-info">
-                    <i class="material-icons">adb</i>
-                    <strong>Mobile Name:</strong>
-                    {{ mobile.mobile_image_name }}
-                    <mat-icon
-                      (click)="importClipboard(mobile.mobile_image_name)"
-                      [ngClass]="{ active: isIconActive }"
-                      class="copyClipboardIcon"
-                      [color]="isIconActive ? 'primary' : ''">
-                      content_copy
-                    </mat-icon>
-                  </div>
-                  <div class="emulator-info" *ngIf="runningContainer">
-                    <i class="material-icons">adb</i>
-                    <strong>Mobile Code:</strong>
-                    {{ runningContainer.hostname }}
-                    <mat-icon
-                      (click)="importClipboard(runningContainer.hostname)"
-                      [ngClass]="{ active: isIconActive }"
-                      class="copyClipboardIcon"
-                      [color]="isIconActive ? 'primary' : ''">
-                      content_copy
-                    </mat-icon>
-                  </div>
-                  <ng-container>
-                    <div class="status-container">
-                      <i class="material-icons">{{ runningContainer ? 'check_circle' : 'highlight_off' }}</i>
-                      <strong>Status:</strong>
-                      <span [ngClass]="{ 'running-text': runningContainer, 'stopped-text': !runningContainer }">
-                        {{ runningContainer? runningContainer?.service_status: "Not Started"}}
+                  <div class="mobile-information">
+                    <div class="emulator-info">
+                      <i class="material-icons">adb</i>
+                      <strong>Mobile Name:</strong>
+                      {{ mobile.mobile_image_name }}
+                      <mat-icon
+                        (click)="importClipboard(mobile.mobile_image_name)"
+                        [ngClass]="{ active: isIconActive }"
+                        class="copyClipboardIcon"
+                        [color]="isIconActive ? 'primary' : ''">
+                        content_copy
+                      </mat-icon>
+                    </div>
+                    <ng-container>
+                      <div class="status-container">
+                        <i class="material-icons">{{ runningContainer ? 'check_circle' : 'highlight_off' }}</i>
+                        <strong>Status:</strong>
+                        <span [ngClass]="{ 'running-text': runningContainer, 'stopped-text': !runningContainer }">
+                          {{ runningContainer? runningContainer?.service_status: "Not Started"}}
+                        </span>
+                        <!-- Corrected ngClass syntax -->
+                        <span [ngClass]="{ 'running': runningContainer, 'stopped': !runningContainer }" class="status-circle"></span>
+                      </div>
+                    <div class="options">
+                      <button
+                        matTooltip="Show more information"
+                        matTooltipPosition="above"
+                        mat-icon-button
+                        [matMenuTriggerFor]="featureOptions">
+                        <mat-icon>more_vert</mat-icon>
+                      </button>
+                      <span>
+                        More information
                       </span>
-                      <!-- Corrected ngClass syntax -->
-                      <span [ngClass]="{ 'running': runningContainer, 'stopped': !runningContainer }" class="status-circle"></span>
                     </div>
-                  </ng-container>
-
-
-                  <button
-                    mat-button
-                    [ngClass]="{ 
-                      'moreOrLess': runningContainer, 
-                      'moreOrLessNotRunning': !runningContainer 
-                    }"
-                    (click)="toggleDetails(mobile.mobile_id)"
-                    >
-                    {{
-                      showDetails[mobile.mobile_id] ? 'Show Less' : 'Show More'
-                    }} Details
-                    <i
-                      class="material-icons rotate-icon"
-                      [ngClass]="{ rotated: showDetails[mobile.mobile_id] }">
-                      chevron_right
-                    </i>
-                  </button>
-
-                  <div class="moreInfo" *ngIf="showDetails[mobile.mobile_id]">
-                    <div>
-                      <i class="material-icons">info</i>
-                      <strong>Device Name:</strong>
-                      {{ mobile.mobile_json.deviceName }}
-                    </div>
-                    <div>
-                      <i class="material-icons">memory</i>
-                      <strong>Architecture:</strong>
-                      {{ mobile.mobile_json.architecture }}
-                    </div>
-                    <div>
-                      <i class="material-icons">phone_android</i>
-                      <strong>Android Version:</strong>
-                      {{ mobile.mobile_json.android_version }}
-                    </div>
-                    <div>
-                      <i class="material-icons">code</i>
-                      <strong>API Level:</strong>
-                      {{ mobile.mobile_json.api_level }}
-                    </div>
+                    
+                    <mat-menu #featureOptions="matMenu">
+                      <mat-menu-item class="pop-up-info">
+                        <ng-container *ngIf="runningContainer">
+                          <mat-menu-item>
+                            <i class="material-icons">code</i>
+                            <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
+                            <mat-icon
+                              (click)="importClipboard(runningContainer.hostname); $event.stopPropagation();"
+                              [ngClass]="{ active: isIconActive }"
+                              class="copyClipboardIcon"
+                              [color]="isIconActive ? 'primary' : ''">
+                              content_copy
+                            </mat-icon>
+                          </mat-menu-item>
+                        </ng-container>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">info</i>
+                          <strong>Device Name:</strong> {{ mobile.mobile_json.deviceName }}
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">memory</i>
+                          <strong>Architecture:</strong> {{ mobile.mobile_json.architecture }}
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">phone_android</i>
+                          <strong>Android Version:</strong> {{ mobile.mobile_json.android_version }}
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">layers</i>
+                          <strong>API Level:</strong> {{ mobile.mobile_json.api_level }}
+                        </mat-menu-item>
+                      </mat-menu-item>
+                    </mat-menu>
+                    </ng-container>
                   </div>
 
-                  <h4>Mobile Actions</h4>
+
+                  <h4 id="mobile-actions">Mobile Actions</h4>
                   <mat-divider></mat-divider>
                   <div class="apk-selection">
                     <mat-slide-toggle
@@ -138,7 +139,11 @@
                     <div
                       [ngClass]="{ 'disabled-content': !runningContainer }"
                       class="row-content">
-                      <mat-icon [inline]="true">info</mat-icon>
+                      <mat-icon [inline]="true" class="get-app"
+                      [matTooltip]="'mobile_list.apk_file' | translate"
+                        matTooltipPosition="above">
+                        file_download
+                      </mat-icon>
                       <p
                         [matTooltip]="'mobile_list.apk_file' | translate"
                         matTooltipPosition="above">
@@ -186,7 +191,6 @@
                   <ng-container *ngIf="runningContainer">
                     <button
                       (click)="restartMobile(runningContainer)"
-
                       mat-raised-button
                       color="primary"
                       class="start-stop-inpect-buttons"
@@ -252,18 +256,6 @@
                       content_copy
                     </mat-icon>
                   </div>
-                  <div class="emulator-info" *ngIf="isRunning">
-                    <i class="material-icons">adb</i>
-                    <strong>Device Code:</strong>
-                    {{ container.hostname }}
-                    <mat-icon
-                      (click)="importClipboard(container.hostname)"
-                      [ngClass]="{ active: isIconActive }"
-                      class="copyClipboardIcon"
-                      [color]="isIconActive ? 'primary' : ''">
-                      content_copy
-                    </mat-icon>
-                  </div>
                   <ng-container>
                     <div class="status-container">
                       <i class="material-icons">{{ isRunning ? 'check_circle' : 'highlight_off' }}</i>
@@ -274,51 +266,73 @@
                       <span [ngClass]="{ 'running': isRunning, 'stopped': !isRunning }" class="status-circle"></span>
                     </div>
                   </ng-container>
-
-                  <button
-                    mat-button
-                    class="moreOrLess"
-                    (click)="toggleSharedDetails(container.id)">
-                    {{
-                      sharedDetails[container.id] ? 'Show Less' : 'Show More'
-                    }} Details
-                    <i
-                      class="material-icons rotate-icon"
-                      [ngClass]="{ rotated: sharedDetails[container.id] }">
-                      chevron_right
-                    </i>
-                  </button>
-
-                  <div class="not-running-2" *ngIf="!isRunning">
-                  </div>
-
-                  <div class="moreInfo" *ngIf="sharedDetails[container.id]">
-
-                    <div>
-                      <i class="material-icons">info</i>
-                      <strong>Device Name:</strong>
-                      {{ container.image.mobile_json.deviceName }}
+                  <ng-container>
+                    <div class="options">
+                      <button
+                        matTooltip="Show more information"
+                        matTooltipPosition="above"
+                        mat-icon-button
+                        [matMenuTriggerFor]="featureOptions">
+                        <mat-icon>more_vert</mat-icon>
+                      </button>
+                      <span>
+                        More information
+                      </span>
                     </div>
-                    <div>
-                      <i class="material-icons">memory</i>
-                      <strong>Architecture:</strong>
-                      {{ container.image.mobile_json.architecture }}
-                    </div>
-                    <div>
-                      <i class="material-icons">phone_android</i>
-                      <strong>Android Version:</strong>
-                      {{ container.image.mobile_json.android_version }}
-                    </div>
-                    <div>
-                      <i class="material-icons">code</i>
-                      <strong>API Level:</strong>
-                      {{ container.image.mobile_json.api_level }}
-                    </div>
-                  </div>
+                    
+                    <mat-menu #featureOptions="matMenu">
+                      <mat-menu-item class="pop-up-info">
+                        <ng-container *ngIf="runningContainer">
+                          <mat-menu-item>
+                            <i class="material-icons">code</i>
+                            <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
+                            <mat-icon
+                              (click)="importClipboard(runningContainer.hostname); $event.stopPropagation();"
+                              [ngClass]="{ active: isIconActive }"
+                              class="copyClipboardIcon"
+                              [color]="isIconActive ? 'primary' : ''">
+                              content_copy
+                            </mat-icon>
+                          </mat-menu-item>
+                        </ng-container>
+
+                        <mat-menu-item>
+                          <i class="material-icons">code</i>
+                          <strong>Device Code:</strong>
+                          {{ container.hostname }}
+                          <mat-icon
+                            (click)="importClipboard(container.hostname)"
+                            [ngClass]="{ active: isIconActive }"
+                            class="copyClipboardIcon"
+                            [color]="isIconActive ? 'primary' : ''">
+                            content_copy
+                          </mat-icon>
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">info</i>
+                          <strong>Device Name:</strong> {{ container.image.mobile_json.deviceName }}
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">memory</i>
+                          <strong>Architecture:</strong> {{ container.image.mobile_json.architecture }}
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">phone_android</i>
+                          <strong>Android Version:</strong> {{ container.image.mobile_json.android_version }}
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">layers</i>
+                          <strong>API Level:</strong> {{ container.image.mobile_json.api_level }}
+                        </mat-menu-item>
+                      </mat-menu-item>
+                    </mat-menu>
+                  </ng-container>
                 </div>
-              </div>
-
-
+              </div> 
 
               <!-- Actions: Start, Stop, Inspect -->
               <div class="mobile-buttons-shared">
@@ -431,52 +445,6 @@
                   <div class="mobile-details">
                     <h4>
                       Mobile Information 
-                      <button
-                      matTooltip="Show more information"
-                      matTooltipPosition="above"
-                      class="options"
-                      mat-icon-button
-                      [matMenuTriggerFor]="featureOptions">
-                      <mat-icon>more_vert</mat-icon>
-                    </button>
-                    
-                    <mat-menu #featureOptions="matMenu">
-                      <mat-menu-item class="pop-up-info ">
-                        <ng-container *ngIf="runningContainer">
-                          <mat-menu-item>
-                            <i class="material-icons">adb</i>
-                            <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
-                            <mat-icon
-                              (click)="importClipboard(runningContainer.hostname); $event.stopPropagation();"
-                              [ngClass]="{ active: isIconActive }"
-                              class="copyClipboardIcon"
-                              [color]="isIconActive ? 'primary' : ''">
-                              content_copy
-                            </mat-icon>
-                          </mat-menu-item>
-                        </ng-container>
-                      
-                        <mat-menu-item>
-                          <i class="material-icons">info</i>
-                          <strong>Device Name:</strong> {{ mobile.mobile_json.deviceName }}
-                        </mat-menu-item>
-                      
-                        <mat-menu-item>
-                          <i class="material-icons">memory</i>
-                          <strong>Architecture:</strong> {{ mobile.mobile_json.architecture }}
-                        </mat-menu-item>
-                      
-                        <mat-menu-item>
-                          <i class="material-icons">phone_android</i>
-                          <strong>Android Version:</strong> {{ mobile.mobile_json.android_version }}
-                        </mat-menu-item>
-                      
-                        <mat-menu-item>
-                          <i class="material-icons">code</i>
-                          <strong>API Level:</strong> {{ mobile.mobile_json.api_level }}
-                        </mat-menu-item>
-                      </mat-menu-item>
-                    </mat-menu>
                     </h4>
                     <mat-divider></mat-divider>
                     <div class="mobile-information">
@@ -502,29 +470,59 @@
                           <!-- Corrected ngClass syntax -->
                           <span [ngClass]="{ 'running': runningContainer, 'stopped': !runningContainer }" class="status-circle"></span>
                         </div>
+                        <div class="options">
+                          <button
+                            matTooltip="Show more information"
+                            matTooltipPosition="above"
+                            mat-icon-button
+                            [matMenuTriggerFor]="featureOptions">
+                            <mat-icon>more_vert</mat-icon>
+                          </button>
+                          <span>
+                            More information
+                          </span>
+                        </div>
+                        
+                        <mat-menu #featureOptions="matMenu">
+                          <mat-menu-item class="pop-up-info">
+                            <ng-container *ngIf="runningContainer">
+                              <mat-menu-item>
+                                <i class="material-icons">code</i>
+                                <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
+                                <mat-icon
+                                  (click)="importClipboard(runningContainer.hostname); $event.stopPropagation();"
+                                  [ngClass]="{ active: isIconActive }"
+                                  class="copyClipboardIcon"
+                                  [color]="isIconActive ? 'primary' : ''">
+                                  content_copy
+                                </mat-icon>
+                              </mat-menu-item>
+                            </ng-container>
+                          
+                            <mat-menu-item>
+                              <i class="material-icons">info</i>
+                              <strong>Device Name:</strong> {{ mobile.mobile_json.deviceName }}
+                            </mat-menu-item>
+                          
+                            <mat-menu-item>
+                              <i class="material-icons">memory</i>
+                              <strong>Architecture:</strong> {{ mobile.mobile_json.architecture }}
+                            </mat-menu-item>
+                          
+                            <mat-menu-item>
+                              <i class="material-icons">phone_android</i>
+                              <strong>Android Version:</strong> {{ mobile.mobile_json.android_version }}
+                            </mat-menu-item>
+                          
+                            <mat-menu-item>
+                              <i class="material-icons">layers</i>
+                              <strong>API Level:</strong> {{ mobile.mobile_json.api_level }}
+                            </mat-menu-item>
+                          </mat-menu-item>
+                        </mat-menu>
                       </ng-container>
                     </div>
-
-<!-- 
-                    <button
-                      mat-button
-                      [ngClass]="{ 
-                        'moreOrLess': runningContainer, 
-                        'moreOrLessNotRunning': !runningContainer 
-                      }"
-                      (click)="toggleDetails(mobile.mobile_id)">
-                      {{
-                        showDetails[mobile.mobile_id] ? 'Show Less' : 'Show More'
-                      }} Details
-                      <i
-                        class="material-icons rotate-icon"
-                        [ngClass]="{ rotated: showDetails[mobile.mobile_id] }">
-                        chevron_right
-                      </i>
-                    </button> -->
-
                 
-
                     <h4 *ngIf="runningContainer else notRunning">Mobile Actions</h4>
                     <ng-template #notRunning>
                       <h4 id="mobile-actions">Mobile Actions</h4>
@@ -589,7 +587,7 @@
                     <button
                       *ngIf="!runningContainer"
                       (click)="startMobile(mobile.mobile_id)"
-                      [disabled]="!buttonEnabledState"
+                      [disabled]="!selectedDepartment || !selectedDepartment.id"
                       mat-raised-button
                       color="primary"
                       class="start-stop-inpect-buttons start">
@@ -657,8 +655,8 @@
                         content_copy
                       </mat-icon>
                     </div>
-                    <div class="emulator-info" *ngIf="isRunning">
-                      <i class="material-icons">adb</i>
+                    <!-- <div class="emulator-info" *ngIf="isRunning">
+                      <i class="material-icons">code</i>
                       <strong>Device Code:</strong>
                       {{ container.hostname }}
                       <mat-icon
@@ -668,7 +666,7 @@
                         [color]="isIconActive ? 'primary' : ''">
                         content_copy
                       </mat-icon>
-                    </div>
+                    </div> -->
                     <ng-container>
                       <div class="status-container">
                         <i class="material-icons">{{ isRunning ? 'check_circle' : 'highlight_off' }}</i>
@@ -680,50 +678,71 @@
                       </div>
                     </ng-container>
 
-                    <button
-                      mat-button
-                      class="moreOrLess"
-                      (click)="toggleSharedDetails(container.id)">
-                      {{
-                        sharedDetails[container.id] ? 'Show Less' : 'Show More'
-                      }} Details
-                      <i
-                        class="material-icons rotate-icon"
-                        [ngClass]="{ rotated: sharedDetails[container.id] }">
-                        chevron_right
-                      </i>
-                    </button>
-
-                    <div class="not-running-2" *ngIf="!isRunning">
+                    <div class="options">
+                      <button
+                        matTooltip="Show more information"
+                        matTooltipPosition="above"
+                        mat-icon-button
+                        [matMenuTriggerFor]="featureOptions">
+                        <mat-icon>more_vert</mat-icon>
+                      </button>
+                      <span>
+                        More information
+                      </span>
                     </div>
+                    
+                    <mat-menu #featureOptions="matMenu">
+                      <mat-menu-item class="pop-up-info">
+                        <ng-container *ngIf="runningContainer">
+                          <mat-menu-item>
+                            <i class="material-icons">code</i>
+                            <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
+                            <mat-icon
+                              (click)="importClipboard(runningContainer.hostname); $event.stopPropagation();"
+                              [ngClass]="{ active: isIconActive }"
+                              class="copyClipboardIcon"
+                              [color]="isIconActive ? 'primary' : ''">
+                              content_copy
+                            </mat-icon>
+                          </mat-menu-item>
+                        </ng-container>
 
-                    <div class="moreInfo" *ngIf="sharedDetails[container.id]">
-
-                      <div>
-                        <i class="material-icons">info</i>
-                        <strong>Device Name:</strong>
-                        {{ container.image.mobile_json.deviceName }}
-                      </div>
-                      <div>
-                        <i class="material-icons">memory</i>
-                        <strong>Architecture:</strong>
-                        {{ container.image.mobile_json.architecture }}
-                      </div>
-                      <div>
-                        <i class="material-icons">phone_android</i>
-                        <strong>Android Version:</strong>
-                        {{ container.image.mobile_json.android_version }}
-                      </div>
-                      <div>
-                        <i class="material-icons">code</i>
-                        <strong>API Level:</strong>
-                        {{ container.image.mobile_json.api_level }}
-                      </div>
-                    </div>
+                        <mat-menu-item>
+                          <i class="material-icons">code</i>
+                          <strong>Device Code:</strong>
+                          {{ container.hostname }}
+                          <mat-icon
+                            (click)="importClipboard(container.hostname)"
+                            [ngClass]="{ active: isIconActive }"
+                            class="copyClipboardIcon"
+                            [color]="isIconActive ? 'primary' : ''">
+                            content_copy
+                          </mat-icon>
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">info</i>
+                          <strong>Device Name:</strong> {{ container.image.mobile_json.deviceName }}
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">memory</i>
+                          <strong>Architecture:</strong> {{ container.image.mobile_json.architecture }}
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">phone_android</i>
+                          <strong>Android Version:</strong> {{ container.image.mobile_json.android_version }}
+                        </mat-menu-item>
+                      
+                        <mat-menu-item>
+                          <i class="material-icons">layers</i>
+                          <strong>API Level:</strong> {{ container.image.mobile_json.api_level }}
+                        </mat-menu-item>
+                      </mat-menu-item>
+                    </mat-menu>
                   </div>
                 </div>
-
-
 
                 <!-- Actions: Start, Stop, Inspect -->
                 <div class="mobile-buttons-shared">

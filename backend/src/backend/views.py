@@ -1919,12 +1919,21 @@ class FeatureResultByFeatureIdViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(page, many=True)
             feature_results = serializer.data
             for result in feature_results:
+                new_mobile_results = []
+                # Remove container_service_details from the result object as it is not needed in the result page,
+                # holds container details with volume mounts information, for security reasons should be send in the frontend
+                for mobile in result["mobile"]:
+                    del mobile['container_service_details'] 
+                    new_mobile_results.append(mobile)
+                result["mobile"] = new_mobile_results
+                
                 try:
                     response_headers = ResponseHeaders.objects.values('network_response_count',
                                                                       'vulnerable_response_count').get(
                         result_id=result["feature_result_id"])
                     result["network_response_count"] = response_headers["network_response_count"]
                     result["vulnerable_response_count"] = response_headers["vulnerable_response_count"]
+      
                 except Exception as e:
                     pass
 
