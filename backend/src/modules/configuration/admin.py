@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import *
 
-
+@admin.register(Configuration)
 class ConfigurationAdmin(admin.ModelAdmin):
     model = Configuration
     search_fields = ['id','configuration_name']
@@ -9,4 +9,9 @@ class ConfigurationAdmin(admin.ModelAdmin):
     list_filter = ('encrypted',)
     readonly_fields = ('created_by', 'updated_by','created_on','updated_on')
 
-admin.site.register(Configuration, ConfigurationAdmin)
+
+@admin.register(ConfigurationFile)
+class ConfigurationFilesAdmin(admin.ModelAdmin):
+    list_display = ('name', 'path')  # Columns displayed in the admin list view
+    list_filter = ('name', 'path',)  # Enable filtering by the 'path' field
+    search_fields = ('name', 'path')  # Enable searching by 'name' and 'path'

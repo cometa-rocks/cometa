@@ -20,6 +20,7 @@ services:
     volumes:
       - ./data/cometa/screenshots:/code/behave/screenshots
       - ./data/cometa/videos:/code/behave/videos
+      - ./data/cometa/config:/code/config:rw
       - ./backend:/code
       - ./backend/src:/opt/code:rw
       - "./backend/crontabs/cometa_django_crontab:/etc/cron.d/crontab"
@@ -50,6 +51,7 @@ services:
     volumes:
       - ./data/cometa/screenshots:/opt/code/screenshots
       - ./data/cometa/videos:/opt/code/videos
+      - ./data/cometa/config:/code/config:rw
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
       - ./data/redis/certs:/share/certs
