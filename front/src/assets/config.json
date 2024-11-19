@@ -1,5 +1,5 @@
 {
-  "version": "3.0.3",
+  "version": "3.0.4",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.4",
+      "date": "2024-11-13",
+      "features": [
+        {
+          "title": "#5414 - Conditional statements ",
+          "description": "Implemented conditional steps (if...else...end if) with conditions such as equals, not equals, contains, not contains, and for numeric values (<=, >=, ==, !=). Also implemented steps to check visibility and presence of an element."
+        }
+      ]
+    },
     {
       "version": "3.0.3",
       "date": "2024-11-13",
