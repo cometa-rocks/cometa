@@ -136,13 +136,15 @@
       </div>
       
       <div *ngIf="button.class == 'replay-button-2'" class="mobile-container">
+        <div class="number-phones" *ngIf="row.mobile.length > 1">
+          {{ row.mobile.length || 0 }}
+        </div>
         <button
           class="mobile-button-replay"
           stopPropagation
           mat-icon-button
           *ngIf="!button.iif || button.iif(row)"
-          (click)="button.click && button.click(row)"
-          [ngClass]="button.class"
+          [ngClass]="{'replay-button-2': row.mobile && row.mobile.length > 1}"
           matTooltip="{{ button.tooltip }}"
           [matTooltipPosition]="'above'">
           <mat-icon class="mobile-mat-icon-replay">{{ button.icon }}</mat-icon>
@@ -150,11 +152,12 @@
             <mat-select
               stopPropagation
               class="mobile-selector"
-              placeholder="Select mobile device"
               (selectionChange)="onMobileSelectionChange($event, row)"
               [(value)]="selectMobile[row.feature_result_id]">
               <mat-option *ngFor="let mobile of row.mobile" [value]="mobile">
-                {{ mobile.name }}
+                <mat-label>
+                  {{ mobile.name }}
+                </mat-label>
               </mat-option>
             </mat-select>
           </ng-container>

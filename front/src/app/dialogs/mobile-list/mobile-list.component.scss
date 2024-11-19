@@ -341,8 +341,10 @@ mat-dialog-content {
 .pop-up-info mat-menu-item {
   display: flex;
   align-items: center;
-  justify-content: space-between; 
-  gap: 8px; 
+  gap: 8px;
+  strong {
+    margin-left: -10px;
+  } 
 }
 
 .pop-up-info i, 
@@ -487,6 +489,10 @@ mat-divider {
   font-weight: bold;
 }
 
+.not-running-dialog{
+  height: 30px;
+}
+
 // ####################################
 // # NO DIALOG                        #
 // ####################################
@@ -560,11 +566,22 @@ mat-divider {
 }
 
 .options {
-  margin-bottom: -11px;
+  display: flex;
+  align-items: center;
+  margin-left: 5px;
+  // margin-bottom: -11px;
+  button {
+    margin-left: -5px;
+  }
   mat-icon {
     color: black;
     font-size: 19px;
     margin-bottom: 0px;
+  }
+  span {
+    margin-left: -8px;
+    font-weight: bold;
+    font-size: 14px;
   }
 }
 

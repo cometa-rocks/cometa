@@ -152,12 +152,7 @@ export class MobileListComponent implements OnInit {
     id: null, 
     name: '',
   };
-  selectedFeature: { id: number, name: string,  id_enviornment: number, name_environment: string  } = { 
-    id: null, 
-    name: '',
-    id_enviornment: null, 
-    name_environment: '',
-  };
+
 
   departments$: Department[] = [];
   destroy$ = new Subject<void>();
@@ -544,6 +539,11 @@ export class MobileListComponent implements OnInit {
 
 
   onDepartmentSelect($event){
+
+    if (!this.selectedDepartment || !this.selectedDepartment.id) {
+      this.buttonEnabledState = false;
+      return;
+    }
 
     this.apkFiles = [];
     this.departments.forEach(department => {

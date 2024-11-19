@@ -465,39 +465,52 @@
 }
 
 .mobile-container {
-  width: 120px;
-}
-
-.mobile-button-replay {
-  height: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
 }
 
 .mobile-mat-icon-replay {
-  font-size: 18px;
-  // color: rgba(0, 0, 0, 0.7);
-}
-
-// .mobile-selector {
-//   width: 100%;
-//   font-size: 15px;
-// }
-
-::ng-deep td.options-buttons {
-  display: flex;
-  flex-direction: row;
+  font-size: 24px;
 }
 
 .mobile-selector {
   width: 80px; 
 }
 
-// .mobile-selector .mat-option {
-//   display: flex;
-//   align-items: center;
-//   padding: 8px 16px; /* Ajusta los márgenes internos */
-// }
+.number-phones {
+  display: flex;
+  color: white;
+  border-radius: 50%;
+  background-color: #ef5350;
+  height: 13px;
+  width: 13px;
+  font-size: 10px;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 8px;
+  left: 16px;
+  z-index: 9999;
+}
 
-// .mobile-selector .mat-option mat-icon {
-//   margin-right: 8px;
-//   font-size: 18px;
-// }
+::ng-deep .replay-button-2 {
+  margin-left: 6px !important;
+  margin-right: -7px !important;
+}
+
+
+::ng-deep td.options-buttons {
+  display: flex;
+  flex-direction: row;
+}
+
+::ng-deep .mat-mdc-select-arrow {
+  margin-right: 70px;
+}
+
+::ng-deep .mat-mdc-option {
+  width: 100%;
+}
+
