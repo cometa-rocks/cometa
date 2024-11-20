@@ -44,7 +44,7 @@ pwd=`pwd`
 if [ -f "$customBg" ]; then
     bgImage=$customBg
 else
-    bgImage="${pwd}/amvara.png"
+    bgImage="${pwd}/background.png"
 fi
 fluxboxPath=${pwd}/.fluxbox
 
