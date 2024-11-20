@@ -1,16 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 
-# Check if the file exists at the source location
-SOURCE_FILE="/code/config/images/fluxbox/aerokube.png"
-DESTINATION_FILE="/usr/share/images/fluxbox/aerokube.png"
+# Debugging: Check if the file exists
 
-if [ -f "$SOURCE_FILE" ]; then
-    echo "File exists at $SOURCE_FILE. Copying to $DESTINATION_FILE..."
-    cp "$SOURCE_FILE" "$DESTINATION_FILE"
-else
-    echo "File does not exist at $SOURCE_FILE. Skipping copy."
-fi
+/etc/selenoid/check_for_custom_background.sh
 
+# entrypoint with limit on browser executions to CPU-2 or Defaulting to 2 if number is less then 2
 # Calculate the limit based on the number of available processors
 LIMIT=$(( $(nproc) - 2 ))
 LIMIT=$(( LIMIT > 2 ? LIMIT : 2 ))
