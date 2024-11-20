@@ -62,9 +62,10 @@ def validate_file_size(file):
         raise ValidationError(f"File size cannot exceed {max_size_mb} MB.")
 
 class ConfigurationFile(models.Model):
-    name = models.CharField(max_length=255)  # Name field
+    name = models.CharField(max_length=100)  # Name field
+    file_name = models.CharField(max_length=50,blank=False, default="")  # Name field
     path = models.CharField(
-        max_length=255,
+        max_length=150,
         help_text="Specify the relative path under '/code/config/'.",
     )  # Path field
     file = models.FileField(upload_to="config", blank=True, null=True)  # Optional file field
@@ -85,11 +86,10 @@ class ConfigurationFile(models.Model):
             os.makedirs(sanitized_path, exist_ok=True)  # Ensure the directory exists
 
             # Save the file to the sanitized path
-            file_path = os.path.join(sanitized_path, self.file.name)
+            file_path = os.path.join(sanitized_path, self.file_name)
             with open(file_path, 'wb') as destination:
                 for chunk in self.file.chunks():
                     destination.write(chunk)
-            self.path = file_path
             # Update the file field with the new file path (relative to MEDIA_ROOT)
             self.file = None
 

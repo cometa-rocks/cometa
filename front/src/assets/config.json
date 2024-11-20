@@ -1,5 +1,5 @@
 {
-  "version": "3.0.4",
+  "version": "3.0.5",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,8 +233,18 @@
   ],
   "changelog": [
     {
+      "version": "3.0.5",
+      "date": "2024-11-21",
+      "features": [
+        {
+          "title": "#5414 Change background image of test environment ",
+          "description": "Backgroud images can be change for the test browser and mobile device using Cometa admin section"
+        }
+      ]
+    },
+    {
       "version": "3.0.4",
-      "date": "2024-11-13",
+      "date": "2024-11-20",
       "features": [
         {
           "title": "#5414 - Conditional statements ",
