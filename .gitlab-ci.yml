@@ -91,6 +91,7 @@ stages:
     # Build Selenoid browsers
     - echo -e "\e[0Ksection_start:`date +%s`:deploy_selenoid\r\e[0KRunning selenoid deployment script"
     - bash backend/selenoid/deploy_selenoid.sh
+    - docker exec -it cometa_selenoid sh /etc/selenoid/check_for_custom_background.sh
     - echo -e "\e[0Ksection_end:`date +%s`:deploy_selenoid\r\e[0K"
     # Install new python packages in django and behave container
     - docker exec cometa_django poetry install
