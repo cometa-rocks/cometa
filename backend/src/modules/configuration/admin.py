@@ -12,6 +12,6 @@ class ConfigurationAdmin(admin.ModelAdmin):
 
 @admin.register(ConfigurationFile)
 class ConfigurationFilesAdmin(admin.ModelAdmin):
-    list_display = ('name', 'path')  # Columns displayed in the admin list view
-    list_filter = ('name', 'path',)  # Enable filtering by the 'path' field
-    search_fields = ('name', 'path')  # Enable searching by 'name' and 'path'
+    list_display = ('name', 'file_name','path')  # Columns displayed in the admin list view
+    list_filter = ('path',)  # Enable filtering by the 'path' field
+    search_fields = ('name', 'file_name','path')  # Enable searching by 'name' and 'path'

@@ -25,7 +25,6 @@ from utility.encryption import *
 from utility.configurations import ConfigurationManager, load_configurations
 from modules.ai import AI
 from tools.models import Condition
-from tools.exceptions import SkipStep
 
 LOGGER_FORMAT = "\33[96m[%(asctime)s][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s"
 
