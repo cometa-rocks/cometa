@@ -57,8 +57,6 @@ from django.db import connection
 import secrets, traceback
 from openpyxl import Workbook
 import base64
-# just to import secrets
-sys.path.append("/code")
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 # import humanize for time conversion
@@ -66,6 +64,7 @@ from backend.templatetags.humanize import *
 from sentry_sdk import capture_exception
 from backend.utility.uploadFile import UploadFile, decryptFile
 # from silk.profiling.profiler import silk_profile
+from modules.container_service.service_manager import ServiceManager
 
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
@@ -1570,7 +1569,7 @@ def schedule_update(feature_id, schedule, user_id):
             schedule_model = Schedule.objects.create(
                 feature_id=feature.pk,
                 schedule=schedule,
-                owner_id=user_id,
+                owner_id=user_id, 
                 delete_after_days=0
             )
             schedule_model.save()
@@ -1920,12 +1919,21 @@ class FeatureResultByFeatureIdViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(page, many=True)
             feature_results = serializer.data
             for result in feature_results:
+                new_mobile_results = []
+                # Remove container_service_details from the result object as it is not needed in the result page,
+                # holds container details with volume mounts information, for security reasons should be send in the frontend
+                for mobile in result["mobile"]:
+                    del mobile['container_service_details'] 
+                    new_mobile_results.append(mobile)
+                result["mobile"] = new_mobile_results
+                
                 try:
                     response_headers = ResponseHeaders.objects.values('network_response_count',
                                                                       'vulnerable_response_count').get(
                         result_id=result["feature_result_id"])
                     result["network_response_count"] = response_headers["network_response_count"]
                     result["vulnerable_response_count"] = response_headers["vulnerable_response_count"]
+      
                 except Exception as e:
                     pass
 
@@ -1951,6 +1959,7 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
         # Second option is from body Payload
         if 'feature_result_id' in request.data:
             feature_result_id = request.data['feature_result_id']
+            
         if feature_result_id:
             data = request.data
             self.queryset.filter(feature_result_id=feature_result_id).update(**data)
@@ -3350,10 +3359,20 @@ def UpdateTask(request):
     except Feature_result.DoesNotExist as exception:
         return JsonResponse({"success": True,'message':str(exception)})
 
+def remove_running_containers(feature_result):
+    for mobile in feature_result.mobile:
+        # While running mobile tests User have options to connect to already running mobile or start mobile during test
+        # If Mobile was started by the test then remove it after execution 
+        # If Mobile was started by the user and test only connected to it do not stop it
+        if mobile['is_started_by_test']:
+            ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
+
+
 @csrf_exempt
 def KillTask(request, feature_id):
-    tasks = Feature_Task.objects.filter(feature_id=feature_id)
+    tasks = Feature_Task.objects.filter(feature_id=feature_id).select_related('feature_result_id')
     for task in tasks:
+        remove_running_containers(task.feature_result_id)
         request = requests.get('http://behave:8001/kill_task/' + str(task.pid) + "/")
         Feature_Task.objects.filter(pid=task.pid).delete()
     if len(tasks) > 0:
@@ -3363,8 +3382,9 @@ def KillTask(request, feature_id):
 
 @csrf_exempt
 def KillTaskPID(request, pid):
-    tasks = Feature_Task.objects.filter(pid=pid)
-    for task in tasks:
+    tasks = Feature_Task.objects.filter(pid=pid).select_related('feature_result_id')
+    for task in tasks: 
+        remove_running_containers(task.feature_result_id)
         request = requests.get('http://behave:8001/kill_task/' + str(task.pid) + "/")
         Feature_Task.objects.filter(pid=task.pid).delete()
     return JsonResponse({"success": True, "tasks": len(tasks)}, status=200)

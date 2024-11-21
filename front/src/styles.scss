@@ -628,6 +628,17 @@ h3 {
   }
 }
 
+.mobile-emulator-panel {
+  width: 80vw;
+  height: 81vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .mat-dialog-container {
+    overflow: hidden;
+  }
+}
+
 .mat-menu-item {
   span {
     font-weight: bold;
