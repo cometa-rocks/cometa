@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import subprocess, datetime, requests
 import os.path
-import os, re
+import os, re, traceback
 from django.conf import settings
 import json, time
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -159,27 +159,38 @@ def updated_step_actions(request):
             'cometa_itself/steps/validation_actions.py',
             'ee/cometa_itself/steps/rest_api.py',
             'ee/cometa_itself/steps/ai_actions.py',
-            'ee/cometa_itself/steps/conditional_actions.py'
+            'ee/cometa_itself/steps/conditional_actions.py',
+            'ee/cometa_itself/steps/mobile_actions.py'
         ]
         
         # variable to contain action comment
         action_comments = []
         actionsParsed = []
         
-        def parseAction(action):
+        def parseAction(action, step_type):
             regex = r"\@(.*)\((u|)'(.*)'\)"
             matches = re.findall(regex, action)
             if matches[0][2] == "{step}":
                 return
-            logger.debug(f"Action matcher Found : {matches[0]}")
-            logger.debug(f"Action Value : {matches[0][2]}")
-            
+            logger.debug(f"Action matcher found : {matches[0]}")
+            logger.debug(f"Action value : {matches[0][2]}")
+            logger.debug(f"Step type line : {step_type}")
+                        
+            if "API" in step_type:
+                step_type = "API"
+            elif "MOBILE" in step_type:
+                step_type = "MOBILE"
+            else:
+                step_type = "BROWSER"
+                
             actionsParsed.append({
                 "action_name":matches[0][2],
                 "department":'DIF',
                 "application":'amvara',
                 "values":matches[0][2].count("{"),
-                "description":'<br>'.join(action_comments)
+                "description":'<br>'.join(action_comments),
+                # "step_type": "BROWSER"
+                "step_type": step_type
             })
 
 
@@ -197,18 +208,19 @@ def updated_step_actions(request):
         # variable to contain previous line
         previousLine = ''
         logger.debug(f"String Action Parse")
-        for action in actions:
+        for index, action in enumerate(actions):
             if action.startswith("@step") and '(?P<' not in action:
                 logger.debug(f"Parsing Step Action : {action}")
                 # parse action will use action_comments, if found to be action otherwise make it empty
-                parseAction(action)
+                parseAction(action, actions[index+3])
+                
 
             # This condition rarely executes when @step contains regular expression
             # If action started with @step then it never start with @done and in case above condition is false then any how this will be executed
             # not need of two if conditions
             elif action.startswith('@done') and '(?P<' in previousLine:
                 logger.debug(f"Parsing Done Action : {action}")
-                parseAction(action)
+                parseAction(action, actions[index+2])
 
             # when any comment related to action written, that line will not have any spaces considering that line
             # If there is Multi line comments, keep on adding in the list 
@@ -220,7 +232,7 @@ def updated_step_actions(request):
             else:
                 if not action.startswith("@step"):
                     action_comments = []  # if other then comments found remove empty the list
-                    logger.debug(f"Removed action comments {action}")
+                    # logger.debug(f"Removed action comments {action}")
 
             previousLine = action
 
@@ -233,6 +245,7 @@ def updated_step_actions(request):
         return JsonResponse({'success': True, 'actions': actionsParsed})
     
     except Exception as exception:
-        return JsonResponse({'success': False, 'message': str(exception)}, status_code=500)
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'message': str(exception)})
 
 

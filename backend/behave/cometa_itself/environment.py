@@ -14,6 +14,7 @@ from slugify import slugify
 import hashlib
 import os, pickle
 from selenium.common.exceptions import InvalidCookieDomainException
+import copy
 
 sys.path.append("/opt/code/behave_django")
 sys.path.append("/code/behave/cometa_itself/steps")
@@ -25,6 +26,7 @@ from utility.encryption import *
 from utility.configurations import ConfigurationManager, load_configurations
 from modules.ai import AI
 from tools.models import Condition
+from tools.service_manager import ServiceManager
 
 LOGGER_FORMAT = "\33[96m[%(asctime)s][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s"
 
@@ -220,6 +222,7 @@ def before_all(context):
     context.network_logging_enabled = os.environ.get("NETWORK_LOGGING") == "Yes"
     # get the connection URL for the browser
     connection_url = os.environ["CONNECTION_URL"]
+    context.connection_url = os.environ["CONNECTION_URL"]
     # set loop settings
     context.insideLoop = False  # meaning we are inside a loop
     context.jumpLoopIndex = (
@@ -251,6 +254,7 @@ def before_all(context):
     run_id = os.environ["feature_run"]
     # Retrieve run hash
     context.RUN_HASH = os.environ["RUN_HASH"]
+    context.FEATURE_RESULT_ID = os.environ["feature_result_id"]
     # Set root folder of screenshots
     context.SCREENSHOTS_ROOT = "/opt/code/screenshots/"
     # Construct screenshots path for saving images
@@ -295,6 +299,23 @@ def before_all(context):
         data=payload,
     )
 
+    
+    # #################################
+    # keeps track of mobile devices driver, so that test can be performed in the multiple mobiles switched
+    context.mobiles = {}
+    # keep the reference of active mobile device
+    context.mobile = None
+    # Mobile common capabilities to  
+    context.mobile_capabilities = {}
+    # Keeps track of service/containers started during test, so that if can be kill/stopped after test 
+    context.container_services = []
+    # Keeps track of step type, which types of step was executed 
+    # Currently supported values BROWSER, MOBILE and API
+    context.STEP_TYPE = 'BROWSER'
+
+    # #################################
+    context.PREVIOUS_STEP_TYPE = context.STEP_TYPE   
+    
     # browser data
     context.cloud = context.browser_info.get(
         "cloud", "browserstack"
@@ -302,7 +323,7 @@ def before_all(context):
 
     # video recording on or off
     context.record_video = data["video"] if "video" in data else True
-
+    logger.debug(f"context.record_video {context.record_video }")
     # create the options based on the browser name
     if context.browser_info["browser"] == "firefox":
         options = FirefoxOptions()
@@ -341,12 +362,13 @@ def before_all(context):
     options.browser_version = context.browser_info["browser_version"]
     options.accept_insecure_certs = True
     # Get the chrome container timezone from browser_info
-    selenoid_time_zone = context.browser_info.get("selectedTimeZone", "")
+    devices_time_zone = context.browser_info.get("selectedTimeZone", "")
 
-    if not selenoid_time_zone or selenoid_time_zone.strip() == "":
-        selenoid_time_zone = "Etc/UTC"
+    if not devices_time_zone or devices_time_zone.strip() == "":
+        devices_time_zone = "Etc/UTC"
 
-    logger.debug(f"Browser container timezone is : {selenoid_time_zone}")
+    context.mobile_capabilities['timezone'] = devices_time_zone
+    logger.debug(f"Test is running in the timezone : {devices_time_zone}")
     # selenoid specific capabilities
     # more options can be found at:
     # https://aerokube.com/selenoid/latest/#_special_capabilities
@@ -356,7 +378,7 @@ def before_all(context):
         "screenResolution": "1920x1080x24",
         "enableVideo": context.record_video,
         "sessionTimeout": "30m",
-        "timeZone": selenoid_time_zone,  # based on the user selected timezone
+        "timeZone": devices_time_zone,  # based on the user selected timezone
         "labels": {"by": "COMETA ROCKS"},
         "s3KeyPattern": "$sessionId/$fileType$fileExtension",
         # previously used for s3 which is not currently being used.
@@ -371,7 +393,7 @@ def before_all(context):
         )
         # If network logging enabled then fetch vulnerability headers info from server
         response = requests.get(
-            "http://cometa_django:8000/security/vulnerable_headers/",
+            "http://cometa_django:8000/api/security/vulnerable_headers/",
             headers={"Host": "cometa.local"},
         )
         logger.info("vulnerable headers info received")
@@ -400,6 +422,13 @@ def before_all(context):
                 "autodetect": False,
             },
         )
+        # Appium does not support proxy settings
+        # https://github.com/appium/appium/issues/19316 
+        # context.mobile_capabilities['proxy'] = {
+        #     'proxyType': "manual",
+        #     'httpProxy': "your-proxy-server:port",
+        #     'sslProxy': "your-proxy-server:port"
+        # }
 
     # LOCAL only
     # download preferences for chrome
@@ -528,9 +557,26 @@ def after_all(context):
             context.browser.delete_all_cookies()
         # quit the browser since at this point feature has been executed
         context.browser.quit()
+        
+        if context.cloud == "local":
+            url = f"http://cometa_selenoid:4444/sessions/{context.browser.session_id}"
+            logger.debug(f"Requesting to delete the {url}")
+            response = requests.delete(url)
+            logger.debug(response.json())
+            logger.debug(response.body)
     except Exception as err:
         logger.debug("Unable to delete cookies or quit the browser. See error below.")
         logger.debug(str(err))
+
+    # Close all Mobile sessions
+    for key, mobile in context.mobiles.items():
+        logger.debug(mobile['driver'])
+        try:
+            mobile['driver'].quit()
+            
+        except Exception as err:
+            logger.error(f"Unable to stop the mobile session, Mobile details : {mobile['driver']}")
+            logger.error(str(err))
 
     # testcase has finished, send websocket about processing data
     request = requests.get(
@@ -543,6 +589,15 @@ def after_all(context):
             "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
         },
     )
+    
+    # Delete all the services which were started during test
+    for service in context.container_services:
+        logger.debug(f"Deleting container service with ID : {service['Id']}")
+        service_manager = ServiceManager()
+        service_manager.delete_service(
+            service_name_or_id=service['Id']
+        )
+        
 
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None
@@ -709,7 +764,7 @@ def after_all(context):
         logger.info("Sending vulnerability_headers")
         # request to save vulnerable network headers
         response = requests.post(
-            "http://cometa_django:8000/security/network_headers/",
+            "http://cometa_django:8000/api/security/network_headers/",
             headers=headers,
             data=json.dumps(
                 {
@@ -767,8 +822,11 @@ def after_all(context):
 
 @error_handling()
 def before_step(context, step):
+    logger.debug(f"Starting Step : ################################ {step.name} ################################")
     context.CURRENT_STEP = step
     context.CURRENT_STEP_STATUS = "Failed"
+    context.STEP_TYPE = 'BROWSER'
+
     os.environ["current_step"] = str(context.counters["index"] + 1)
     # complete step name to let front know about the step that will be executed next
     step_name = "%s %s" % (step.keyword, step.name)
@@ -887,6 +945,9 @@ def find_vulnerable_headers(context, step_index) -> int:
 
 @error_handling()
 def after_step(context, step):
+    # Save p
+    context.PREVIOUS_STEP_TYPE = context.STEP_TYPE
+    logger.debug(f"context.PREVIOUS_STEP_TYPE : {context.PREVIOUS_STEP_TYPE}")
     # Capture the exception if it exists and print it
     if step.exception:
         logger.exception("", exc_info=step.exception, stack_info=True)
@@ -927,6 +988,10 @@ def after_step(context, step):
     elif hasattr(context, "step_error"):
         step_error = context.step_error
     # send websocket to front to let front know about the step
+    logger.debug("Running Mobiles")
+    hostnames = [{'hostname':mobile['container_service_details']["Id"], 'name': mobile_name} for mobile_name, mobile in context.mobiles.items()]
+    logger.debug(hostnames)
+                 
     requests.post(
         "http://cometa_socket:3001/feature/%s/stepFinished" % context.feature_id,
         json={
@@ -944,6 +1009,8 @@ def after_step(context, step):
             "belongs_to": context.step_data["belongs_to"],
             "screenshots": json.dumps(screenshots),  # load screenshots object
             "vulnerable_headers_count": vulnerable_headers_count,
+            "step_type": context.STEP_TYPE,
+            "mobiles_info": hostnames
         },
     )
 
@@ -974,3 +1041,4 @@ def after_step(context, step):
         if hasattr(context, key):
             delattr(context, key)
 
+    logger.debug(f"Step Over : ################################ {step.name} ################################")

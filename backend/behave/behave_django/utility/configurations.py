@@ -1,7 +1,7 @@
 import os.path
 import traceback, requests
 import sys, time
-from .encryption import decrypt, update_ENCRYPTION_PASSPHRASE, update_ENCRYPTION_START
+from .encryption import decrypt, update_ENCRYPTION_PASSPHRASE, update_ENCRYPTION_START, update_COMETA_UPLOAD_ENCRYPTION_PASSPHRASE
 import json
 from .common import get_logger
 
@@ -71,4 +71,7 @@ def load_configurations():
         )
         update_ENCRYPTION_START(
             ConfigurationManager.get_configuration("COMETA_ENCRYPTION_START", "")
+        )
+        update_COMETA_UPLOAD_ENCRYPTION_PASSPHRASE(
+            ConfigurationManager.get_configuration("COMETA_UPLOAD_ENCRYPTION_PASSPHRASE", "")
         )

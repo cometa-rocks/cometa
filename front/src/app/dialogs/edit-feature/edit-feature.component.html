@@ -167,6 +167,20 @@
                 <div class="hover-box-Vshortcut">(V)</div>
               </div>
             </ng-container>
+            <ng-container>
+              <div class="checkbox-container move-right"> 
+                <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+                  <button color="primary" 
+                  [disabled]="disableVariables" 
+                  (click)="openStartEmulatorScreen()" 
+                  mat-stroked-button 
+                  [matTooltip]="'mobile_list.emulator_mobile' | translate" matTooltipPosition="above">
+                    Start Mobile
+                  </button>
+                </span>
+                <div class="hover-box-Vshortcut">(S)</div>
+              </div>
+            </ng-container>
           </div>
         </ng-template>
       </mat-expansion-panel>

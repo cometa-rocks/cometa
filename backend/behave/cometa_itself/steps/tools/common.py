@@ -7,11 +7,10 @@ from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-
 import time, requests, json, os, datetime, sys, subprocess, re, shutil
 
 sys.path.append("/opt/code/behave_django")
@@ -116,15 +115,24 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
         selector = selectorWords.join(" ")
     counter = 0
     # Switch selector type
+    device = 'mobile["driver"]' if context.STEP_TYPE == 'MOBILE' else 'browser'
+        
     types = {
-        "css": "context.browser.find_elements(By.CSS_SELECTOR, selector)",
-        "id": "context.browser.find_element(By.ID, selector)",
-        "link_text": "context.browser.find_elements(By.LINK_TEXT, selector)",
-        "xpath": "context.browser.find_elements(By.XPATH, selector)",
-        "name": "context.browser.find_element(By.NAME, selector)",
-        "tag_name": "context.browser.find_elements(By.TAG_NAME, selector)",
-        "class": "context.browser.find_elements(By.CLASS_NAME, selector)",
+        "css": f"context.{device}.find_elements(By.CSS_SELECTOR, selector)",
+        "id": f"context.{device}.find_element(By.ID, selector)",
+        "link_text": f"context.{device}.find_elements(By.LINK_TEXT, selector)",
+        "xpath": f"context.{device}.find_elements(By.XPATH, selector)",
+        "name": f"context.{device}.find_element(By.NAME, selector)",
+        "tag_name": f"context.{device}.find_elements(By.TAG_NAME, selector)",
+        "class": f"context.{device}.find_elements(By.CLASS_NAME, selector)",
     }
+    
+    if context.STEP_TYPE == 'MOBILE':     
+        types["accessibility_id"] = f"context.mobile['driver'].find_element(By.ACCESSIBILITY_ID, selector)"
+        value = f'//*[contains(@text,"{selector}")]'
+        types["partial_text"] = f"context.mobile['driver'].find_element(By.XPATH, '{value}')"
+        logger.debug(f"partial_text Selector Value : {value}")
+        
     # place selector_type on the top
     selector_type_value = types.pop(selector_type, "css")
     # new types variables
@@ -161,6 +169,10 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
             except NoSuchElementException as err:
                 logger.debug(
                     f"No Such Element Exception: Selector Type: {selec_type}, Selector: {selector}."
+                )
+            except WebDriverException as err:
+                logger.debug(
+                    f"WebDriverException for Selector Type: {selec_type}, Selector: {selector}."
                 )
             except KeyError:
                 raise
@@ -399,3 +411,26 @@ def updateSourceFile(context, source, target):
     elif "uploads" in target:
         # decrypt the file and get the target
         target = encryptFile(source, target)
+
+
+def call_backend(method, path, parameters=None, headers=None, body=None):
+    
+    headers= {"Content-type": "application/json", "Host": "cometa.local"} if headers==None else headers.update({"Host": "cometa.local"}) 
+    request_data = {
+        'method': method,
+        'url': f'http://django:8000{path}',
+    }
+    
+    if body:
+        request_data['json'] = body
+
+    if parameters:
+        request_data['params'] = parameters
+        
+    if headers:
+        request_data['headers'] = headers
+    # logger.debug( f"Calling django request with request_data {request_data} ")
+    response = requests.Session().request(**request_data)
+    if not (response.status_code>=200 and response.status_code<=299):
+        raise CustomError(f"Can not update information in the backend, api request failed with STATUS_CODE : {response.status_code}")
+    return response

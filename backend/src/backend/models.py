@@ -773,6 +773,7 @@ class Feature(models.Model):
     depends_on_others = models.BooleanField(default=False)
     cloud = models.TextField(max_length=100, null=False, blank=False, default="local")
     browsers = models.JSONField(default=list)
+    mobiles = models.JSONField(default=list)
     last_edited = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None, related_name="last_edited")
     last_edited_date = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
@@ -883,6 +884,9 @@ class Feature_result(SoftDeletableModel):
     department_name = models.CharField(max_length=100, blank=True)
     description = models.TextField(null=True, blank=True, default=None)
     browser = models.JSONField(default=dict)
+    # mobile is json fields which stores the browser configuration and 
+    # It contains the session ids which is used as a recording name 
+    mobile = models.JSONField(default=dict)
     total = models.IntegerField(default=0)
     fails = models.IntegerField(default=0)
     running = models.BooleanField(default=False)
@@ -896,7 +900,7 @@ class Feature_result(SoftDeletableModel):
     screen_actual = models.CharField(max_length=100, blank=True, default='')
     screen_diff = models.CharField(max_length=100, blank=True, default='')
     log=models.TextField(default='')
-    video_url = models.TextField(blank=True, null=True)
+    video_url = models.TextField(blank=True, null=True) # Browser video url
     files = models.JSONField(default=list)
     archived = models.BooleanField(default=False)
     executed_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None)
@@ -965,6 +969,12 @@ class Feature_result(SoftDeletableModel):
 
         return True
 
+step_type_choices = (
+    ('BROWSER','BROWSER'), 
+    ('MOBILE','MOBILE'), 
+    ('API','API')
+)
+
 class Step_result(models.Model):
     step_result_id = models.AutoField(primary_key=True)
     feature_result_id = models.IntegerField()
@@ -985,6 +995,7 @@ class Step_result(models.Model):
     rest_api = models.ForeignKey("REST_API", on_delete=models.CASCADE, null=True, default=None)
     notes = models.JSONField(default=dict)
     error = models.TextField(null=True, blank=True)
+    step_type = models.CharField(choices=step_type_choices, max_length=10, blank=False, default='BROWSER')
 
     class Meta:
         ordering = ['step_result_id']
@@ -1047,6 +1058,8 @@ class Account_role(models.Model):
         ordering = ['account_role_id']
         verbose_name_plural = "Account Roles"
 
+
+
 class Action(models.Model):
     action_id = models.AutoField(primary_key=True)
     action_name = models.CharField(max_length=255)
@@ -1055,7 +1068,7 @@ class Action(models.Model):
     department = models.CharField(max_length=100, default=None, null = True, blank=True)
     application = models.CharField(max_length=100, default=None, null = True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, editable=False, null=False, blank=False)
-    
+    step_type = models.CharField(choices=step_type_choices, max_length=10, default="BROWSER", null=True, blank=True)
     def __str__( self ):
         return self.action_name
     
