@@ -1,5 +1,5 @@
 {
-  "version": "3.0.0",
+  "version": "3.0.5",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,6 +233,56 @@
   ],
   "changelog": [
     {
+      "version": "3.0.5",
+      "date": "2024-11-21",
+      "features": [
+        {
+          "title": "#5414 Change background image of test environment ",
+          "description": "Backgroud images can be change for the test browser and mobile device using Cometa admin section"
+        }
+      ]
+    },
+    {
+      "version": "3.0.4",
+      "date": "2024-11-20",
+      "features": [
+        {
+          "title": "#5414 - Conditional statements ",
+          "description": "Implemented conditional steps (if...else...end if) with conditions such as equals, not equals, contains, not contains, and for numeric values (<=, >=, ==, !=). Also implemented steps to check visibility and presence of an element."
+        }
+      ]
+    },
+    {
+      "version": "3.0.3",
+      "date": "2024-11-13",
+      "features": [
+        {
+          "title": "#4938 - Email report enhancement",
+          "description": "Email reporting enhanced to set the number of consecutive failure emails you want to receive. This option helps to avoid continuous failure notifications, so the user is not bombarded with excessive emails."
+        }
+      ]
+    },
+    {
+      "version": "3.0.2",
+      "date": "2024-10-09",
+      "features": [
+        {
+          "title": "#4694 - Updated Keyboard Shortcut",
+          "description": "The keyboard shortcut for the feature that was previously triggered by pressing 'D' is now updated to 'O'."
+        }
+      ]
+    },
+    {
+      "version": "3.0.1",
+      "date": "2024-09-26",
+      "features": [
+        {
+          "title": "#4694 Implemented 'What's New' Section and Profile Updates",
+          "description": "Added a 'What's New' section in the Home tab, updated Profile with new changes, corrected typos, and adjusted the draggable icon for alignment."
+        }
+      ]
+    },
+    {
       "version": "3.0.0",
       "date": "2024-09-21",
       "features": [
@@ -243,12 +293,46 @@
       ]
     },
     {
+      "version": "2.8.385",
+      "date": "2024-09-20",
+      "features": [
+        {
+          "title": "#5116 - Resolved issues with keyboard shortcuts",
+          "description": "Fixed the issue where pressing CTRL+V in the Edit Feature screen opened the 'Edit Variables' window. Additionally, pressing CTRL+F now correctly triggers the browser's search functionality without interfering with the 'Edit Feature' shortcut."
+        },
+        {
+          "title": "#4694 - Draggable window for live steps",
+          "description": "Added an icon to allow dragging the live steps window."
+        }
+      ]
+    },    
+    {
+      "version": "2.8.384",
+      "date": "2024-09-16",
+      "features": [
+        {
+          "title": "#4694 - Visual bug fix and relocation of 'Run All Features'",
+          "description": "Fixed a minor visual bug and moved the 'Run All Features' option to the mat-menu context menu."
+        }
+      ]
+    },
+    {
       "version": "2.8.383",
       "date": "2024-09-15",
       "features": [
         {
           "title": "#4889 fixed issue with variable encryption",
           "description": "Added missing encode() mothod while setting the variable COMETA_ENCRYPTION_PASSPHRASE secret variable from database."
+        }
+      ]
+    },
+    {
+      "version": "2.8.382",
+      "date": "2024-09-10",
+      "features": [
+        {
+          "title": "#4694 - Add functionality for selecting department and feature in variables section",
+        "description": "The functionality for selecting a department and a feature in the variables section has been implemented."
         }
       ]
     },
