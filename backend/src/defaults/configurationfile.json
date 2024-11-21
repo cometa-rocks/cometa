@@ -1,0 +1,11 @@
+[
+    {
+        "model": "configuration.ConfigurationFile",
+        "pk": 1,
+        "fields": {
+            "name": "TEST_ENV_BACKGROUND_IMAGE",
+            "file_name": "background.png",
+            "path": "images/fluxbox"
+        }
+    }
+]

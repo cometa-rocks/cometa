@@ -56,6 +56,8 @@ import {
   AsyncPipe,
   KeyValuePipe,
 } from '@angular/common';
+
+import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { color } from 'highcharts';
 import { LogService } from '@services/log.service';
 import { MatSelectModule } from '@angular/material/select';
@@ -92,6 +94,7 @@ import { MatSelectModule } from '@angular/material/select';
     BrowserComboTextPipe,
     TestDurationPipe,
     TranslateModule,
+    DraggableWindowModule,
     MatSelectModule
   ],
 })

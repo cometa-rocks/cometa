@@ -171,7 +171,7 @@ def step_impl(context,selector):
 def step_impl(context,css_selector):
     send_step_details(context, 'Looking for selector')
     elem = waitSelector(context, "css", css_selector)
-    send_step_details(context, 'Clicking')
+    send_step_details(context, 'Moving Mouse')
     ActionChains(context.browser).move_to_element(elem[0]).perform()
 
 # Moves the mouse to the center of css selector
@@ -467,6 +467,7 @@ def test_folder(context, parameters = {}):
 
             # save to database
             save_message="I can test current IBM Cognos folder > Report: %s failed" % report_name
+            context.CURRENT_STEP_STATUS = "Failed"
             saveToDatabase(save_message, (time.time() - report_start_time) * 1000, 0, False, context )
 
             # switch content
@@ -497,6 +498,7 @@ def test_folder(context, parameters = {}):
         #
         logger.debug("Saveing report timing as step result to database")
         save_message="I can test current IBM Cognos folder > Report: %s tested" % report_name
+        context.CURRENT_STEP_STATUS = "Success"
         saveToDatabase(save_message, (time.time() - report_start_time) * 1000, 0, True, context )
 
         # close the ibm cognos view
@@ -606,11 +608,13 @@ def test_folder_aso(context, parameters = {}):
                 # promptPage failed somehow
                 logger.debug("Prompt Magic returned false - which means, we should fail this report [%s]." % report_name)
                 logger.info("You might want to look at the screenshot or video and adjust timeouts or fix a broken report.")
-                logger.debug("Saveing report timing as step result to database.")
+                logger.debug("Saving report timing as step result to database.")
+            
             over_all_results_ok=False
 
             # save to database
             save_message="I can test current IBM Cognos folder > Report: %s failed" % report_name
+            context.CURRENT_STEP_STATUS = "Failed"
             saveToDatabase(save_message, (time.time() - report_start_time) * 1000, 0, False, context )
 
             # switch content
@@ -641,6 +645,7 @@ def test_folder_aso(context, parameters = {}):
         #
         logger.debug("Saveing report timing as step result to database")
         save_message="I can test current IBM Cognos folder > Report: %s tested" % report_name
+        context.CURRENT_STEP_STATUS = "Success"
         saveToDatabase(save_message, (time.time() - report_start_time) * 1000, 0, True, context )
 
         # close the ibm cognos view
@@ -3355,10 +3360,11 @@ def scrollThroughLazyLoading(context, xpath, MaxScrolls, MaxTimeOfLife):
 if __name__ != 'actions':
     sys.path.append('/code/behave/')
     from ee.cometa_itself.steps import rest_api  
-    from ee.cometa_itself.steps import ai_actions  
+    from ee.cometa_itself.steps import ai_actions
+    from ee.cometa_itself.steps import conditional_actions
     from ee.cometa_itself.steps import mobile_actions  
-
-    sys.path.append('/code/behave/cometa_itself')
-    from steps import unimplemented_steps
     
+    sys.path.append('/code/behave/cometa_itself')
+    from steps import validation_actions
+    from steps import unimplemented_steps
     
