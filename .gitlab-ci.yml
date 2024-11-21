@@ -33,7 +33,8 @@ variables:
 #  CI_DEBUG_TRACE: "true" # show verbose information 
 #  GIT_STRATEGY: clone
   COMETA_EMAIL_ENABLED: 'True'
-  COMETA_REPLACE_FAVICON_IN: "front/src/index.html front/src/manifest.json front/src/welcome.html"
+#  COMETA_REPLACE_FAVICON_IN: "front/src/index.html front/src/manifest.json front/src/welcome.html"
+  COMETA_REPLACE_FAVICON_IN: "/usr/local/apache2/htdocs/index.html /usr/local/apache2/htdocs/manifest.json /usr/local/apache2/htdocs/welcome.html"
   COMETA_TOTAL_BROWSER_VERSION: 10 # number of latest browser version that will be pulled.
 
   CONFIG_FILE: "front/src/assets/config.json"
@@ -90,6 +91,7 @@ stages:
     # Build Selenoid browsers
     - echo -e "\e[0Ksection_start:`date +%s`:deploy_selenoid\r\e[0KRunning selenoid deployment script"
     - bash backend/selenoid/deploy_selenoid.sh
+    # - docker exec -it cometa_selenoid sh /etc/selenoid/check_for_custom_background.sh
     - echo -e "\e[0Ksection_end:`date +%s`:deploy_selenoid\r\e[0K"
     # Install new python packages in django and behave container
     - docker exec cometa_django poetry install
@@ -196,10 +198,10 @@ build:amvara6.build:
     
     - |
       # Fetch the JSON response from Docker Hub
-      RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/cometa/front/tags/?page_size=1&ordering=last_updated")
+      RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/cometa/front/tags/?page_size=2&ordering=last_updated")
 
       # Extract the latest tag using jq
-      LATEST_TAG=$(echo "$RESPONSE" | jq -r '.results[0].name')
+      LATEST_TAG=$(echo "$RESPONSE" | jq -r '.results[1].name')
 
       echo "Latest tag from Docker Hub is: $LATEST_TAG"
 
@@ -215,7 +217,9 @@ build:amvara6.build:
         echo "$COMETA_FRONT:$BUILD_VERSION image pushed"
         echo "Converting $COMETA_FRONT:$BUILD_VERSION tag $COMETA_FRONT:latest"
         docker tag $COMETA_FRONT:$BUILD_VERSION $COMETA_FRONT:latest
-        echo "Pushing $COMETA_FRONT:latest image to Docker $DOCKER_REGISTRY"        
+        echo "Pushing $COMETA_FRONT:latest image to Docker $DOCKER_REGISTRY"     
+        docker push $COMETA_FRONT:latest   
+        echo "$COMETA_FRONT:latest image pushed"
         cd -
       fi
     

@@ -156,8 +156,10 @@ def updated_step_actions(request):
         # Add your new created action files here
         actions_files = [
             'cometa_itself/steps/actions.py',
+            'cometa_itself/steps/validation_actions.py',
             'ee/cometa_itself/steps/rest_api.py',
-            'ee/cometa_itself/steps/ai_actions.py', 
+            'ee/cometa_itself/steps/ai_actions.py',
+            'ee/cometa_itself/steps/conditional_actions.py',
             'ee/cometa_itself/steps/mobile_actions.py'
         ]
         
