@@ -38,3 +38,7 @@ EXPOSE 3001
 
 # Command to run the application
 CMD ["npm", "run", "server-start"]
+
+
+# build image for arm and amd processors 
+# docker buildx build --platform linux/amd64,linux/arm64 -t cometa/socket:latest --push .

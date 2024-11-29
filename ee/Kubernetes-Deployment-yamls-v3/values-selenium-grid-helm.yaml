@@ -72,10 +72,10 @@ chromeNode:
   #   mountPath: /opt/selenium/config.toml
   #   subPath: ./chromeNode/selenium/config.toml
 
-  extraVolumes:
-  - name: cometa-volume-log
-    persistentVolumeClaim:
-      claimName: cometa-volume-log-claim
+  # extraVolumes:
+  # - name: cometa-volume-log
+  #   persistentVolumeClaim:
+  #     claimName: cometa-volume-log-claim
 
 
 firefoxNode:
@@ -91,15 +91,15 @@ firefoxNode:
     seccompProfile:
       type: RuntimeDefault
   
-  extraVolumeMounts: 
-  - name: cometa-volume-log
-    mountPath: /var/log/supervisor/
-    subPath: ./firefoxNode/supervisor
+  # extraVolumeMounts: 
+  # - name: cometa-volume-log
+  #   mountPath: /var/log/supervisor/
+  #   subPath: ./firefoxNode/supervisor
 
-  extraVolumes:
-  - name: cometa-volume-log
-    persistentVolumeClaim:
-      claimName: cometa-volume-log-claim
+  # extraVolumes:
+  # - name: cometa-volume-log
+  #   persistentVolumeClaim:
+  #     claimName: cometa-volume-log-claim
 
 
 edgeNode:
@@ -115,15 +115,15 @@ edgeNode:
     seccompProfile:
       type: RuntimeDefault
   
-  extraVolumeMounts: 
-  - name: cometa-volume-log
-    mountPath: /var/log/supervisor/
-    subPath: ./edgeNode/supervisor
+  # extraVolumeMounts: 
+  # - name: cometa-volume-log
+  #   mountPath: /var/log/supervisor/
+  #   subPath: ./edgeNode/supervisor
 
-  extraVolumes:
-  - name: cometa-volume-log
-    persistentVolumeClaim:
-      claimName: cometa-volume-log-claim
+  # extraVolumes:
+  # - name: cometa-volume-log
+  #   persistentVolumeClaim:
+  #     claimName: cometa-volume-log-claim
 
 
 videoRecorder:
@@ -157,7 +157,7 @@ videoRecorder:
   extraVolumes:
   - name: cometa-volume-recorder
     persistentVolumeClaim:
-      claimName: cometa-volume-claim
+      claimName: cometa-data-volume-claim
   # - name: cometa-volume-log
   #   persistentVolumeClaim:
   #     claimName: cometa-volume-log-claim

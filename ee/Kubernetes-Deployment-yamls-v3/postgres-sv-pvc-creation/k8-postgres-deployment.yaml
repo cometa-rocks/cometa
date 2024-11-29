@@ -14,44 +14,37 @@ spec:
         app: cometa-postgres-pod
     spec:
       securityContext:
-        fsGroup: 472
-        runAsGroup: 472
-        runAsNonRoot: true
-        runAsUser: 472
+        fsGroup: 999
+
       containers:
       - name: postgres
-        image: cometa/postgres:0.1
+        image: postgres:latest
         ports:
         - containerPort: 5432
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          runAsNonRoot: true
-          runAsGroup: 472
-          runAsUser: 472
-          seccompProfile:
-            type: RuntimeDefault
         env:
           - name: PGDATA
             value: "/var/lib/postgresql/data/pgdata"
+          - name: POSTGRES_PASSWORD
+            # Note: Please change the password before the deployment
+            value: password
+
         volumeMounts:
-          - name: cometa-volume
+          - name: cometa-db-volume
             mountPath: /var/lib/postgresql/data/
-            subPath: ./db_data
+            subPath: ./db_data2
+
         resources:
           limits:
-            cpu: "1"
-            memory: "1Gi"
+            cpu: "2"
+            memory: "4Gi"
           requests:
             cpu: "0.5"
             memory: "512Mi"
 
       volumes:
-        - name: cometa-volume
+        - name: cometa-db-volume
           persistentVolumeClaim:
-            claimName: cometa-volume-claim
+            claimName: cometa-db-volume-claim
 
 ---
 

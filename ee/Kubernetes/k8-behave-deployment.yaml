@@ -23,6 +23,7 @@ spec:
       containers:
       - name: cometa-behave-container
         image: cometa/behave:latest
+        imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

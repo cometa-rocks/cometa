@@ -20,8 +20,7 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-front-container
-        # image: cometa/front:latest
-        image: cometa/front:latest
+        image: cometa/front:0.1.1
         ports:
         - containerPort: 8080
         - containerPort: 8443
@@ -87,7 +86,7 @@ metadata:
 spec:
   selector:
     app: cometa-front-pod
-  type: ClusterIP
+  type: LoadBalancer
   ports:
     - name: http
       protocol: TCP
@@ -97,7 +96,3 @@ spec:
       protocol: TCP
       port: 443
       targetPort: 8443
-    - name: dev-mod
-      protocol: TCP
-      port: 4200
-      targetPort: 4200
