@@ -39,6 +39,8 @@ spec:
           value: "postgres-service"
         - name: DATABASE_PORT
           value: "5432"
+        - name: DATABASE_PASSWORD
+          value: "***REMOVED***"
         - name: FRONT_SERVER_HOST
           value: "cometa-front-service"
         - name: CRONTAB_SERVER_URL

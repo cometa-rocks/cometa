@@ -20,7 +20,7 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-django
-        image: cometa/django:0.1
+        image: cometa/django:latest
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -31,7 +31,13 @@ spec:
           runAsUser: 472
           seccompProfile:
             type: RuntimeDefault
- 
+        resources:
+          limits:
+            cpu: "4"
+            memory: "4Gi"
+          requests:
+            cpu: "2"
+            memory: "2Gi"
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -39,6 +45,9 @@ spec:
           value: "postgres-service"
         - name: DATABASE_PORT
           value: "5432"
+        - name: DATABASE_PASSWORD
+          # Note: Please change the password before the deployment
+          value: "password"
         - name: FRONT_SERVER_HOST
           value: "cometa-front-service"
         - name: CRONTAB_SERVER_URL
@@ -77,18 +86,10 @@ spec:
           mountPath: /share
           subPath: ./share
 
-        # resources:
-        #   limits:
-        #     cpu: "2"
-        #     memory: "2Gi"
-        #   requests:
-        #     cpu: "1"
-        #     memory: "1Gi"
-
       volumes:
       - name: cometa-volume
         persistentVolumeClaim:
-          claimName: cometa-volume-claim
+          claimName: cometa-data-volume-claim
 
 ---
 apiVersion: v1
