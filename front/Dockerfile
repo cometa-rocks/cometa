@@ -1,81 +1,55 @@
-# Use the specified Apache HTTPD image
+# Stage 1: Build the Angular application
+FROM node:14 AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+COPY . ./
+RUN npx ng build -c production 
+
+# Stage 2: Serve the application with Apache
 FROM httpd:2.4.48
 
-# Label the image
 LABEL AUTHOR="COMETA ROCKS S.L."
 
-# Set a default shell
 SHELL ["/bin/bash", "-c"]
 
-# Create a non-root user 'cometa' with specified UID and GID
-RUN groupadd -g 472 cometa 
-RUN useradd -u 472 -g cometa -d /home/cometa -s /bin/bash cometa  
+# Create a non-root user 'cometa'
+RUN groupadd -g 472 cometa \
+    && useradd -u 472 -g cometa -d /home/cometa -s /bin/bash cometa
 
-# Create necessary directories with appropriate ownership and permissions
-RUN mkdir /code 
-RUN mkdir -p /code/front
-RUN mkdir -p /screenshots
-RUN mkdir -p /usr/local/apache2/conf 
-RUN mkdir -p /usr/local/apache2/htdocs
-RUN mkdir -p /usr/local/apache2/htdocs/infra 
-RUN mkdir -p /share/apache2/conf
+# Create necessary directories and set ownership/permissions
+RUN mkdir -p /code /screenshots /code/front /usr/local/apache2/conf \
+    /usr/local/apache2/htdocs/infra /share/apache2/conf \
+    && chown -R cometa:cometa /code /screenshots /usr/local/apache2 /share/apache2/conf \
+    && chmod -R 755 /code /screenshots /usr/local/apache2 /share/apache2/conf
 
-RUN chown -R cometa:cometa /code
-RUN chmod -R 755 /code
-RUN chown -R cometa:cometa /screenshots
-RUN chmod -R 755 /screenshots
-RUN chown -R cometa:cometa /code/front
-RUN chmod -R 755 /code/front
-RUN chown -R cometa:cometa /usr/local/apache2 
-RUN chmod -R 755 /usr/local/apache2
-RUN chown -R cometa:cometa /share/apache2/conf
-RUN chmod -R 755 /share/apache2/conf
+# Copy build artifacts and configuration files
+COPY --from=build /app/dist/ /usr/local/apache2/htdocs
+COPY --chown=cometa:cometa apache-conf/ /usr/local/apache2/conf/
+COPY --chown=cometa:cometa apache-conf/mod_auth_openidc.so /usr/local/apache2/modules/
+COPY --chown=cometa:cometa start_server.sh /code/front/start_server.sh
 
-# Set correct permissions for other directories used by the script
-RUN chown -R cometa:cometa /usr/local/apache2/htdocs
-RUN chmod -R 755 /usr/local/apache2/htdocs 
-RUN chown -R cometa:cometa /usr/local/apache2/conf
-RUN chmod -R 755 /usr/local/apache2/conf
+# Install dependencies for Apache modules and clean up
+RUN apt-get update && apt-get install -y \
+    pkg-config make gcc libssl-dev libjansson-dev libcurl4-openssl-dev \
+    libpcre3-dev zlib1g-dev libcjose-dev libapache2-mod-security2 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy repository code and configuration files
-COPY --chown=cometa:cometa . /code/front
+# Set permissions and ownership for Apache logs
+RUN touch /usr/local/apache2/logs/error_log /usr/local/apache2/logs/access.log \
+    && chown -R www-data:www-data /usr/local/apache2/logs \
+    && chmod -R 755 /usr/local/apache2/logs
 
-# Set working directory to /code for compiling purposes
-WORKDIR /code/front
-
-USER root
-# # Ensure start.sh has execution permissions and run it
-RUN chmod +x ./start_pod.sh
-RUN ./start_pod.sh openidc basic angular no-restart
-
-COPY --chown=cometa:cometa . /code/front
-COPY --chown=cometa:cometa apache-conf/httpd.conf /usr/local/apache2/conf/httpd.conf
-COPY --chown=cometa:cometa apache-conf/openidc.conf_kubernetes /usr/local/apache2/conf/openidc.conf
-COPY --chown=cometa:cometa apache-conf/paths.conf /usr/local/apache2/conf/paths.conf
-COPY --chown=cometa:cometa apache-conf/mod_auth_openidc.so /usr/local/apache2/modules/mod_auth_openidc.so
-
-
-RUN ./start_pod.sh compile no-restart
-# Set working directory to Apache's default htdocs directory
-WORKDIR /usr/local/apache2/htdocs
-
-# Clean up the /code directory
-RUN chown -R cometa:cometa /etc/ssl
-RUN chmod -R 755 /usr/local/apache2/conf
-
-# Delete everything from /code dir
-RUN rm -r /code
-
-# Copy few required file
-COPY --chown=cometa:cometa ./apache-conf/metadata /code/front/apache-conf/metadata
-COPY --chown=cometa:cometa ./start_pod.sh /code/front/start_pod.sh
-RUN chmod +x /code/front/start_pod.sh 
+# Ensure the start script is executable
+RUN chmod +x /code/front/start_server.sh
 
 USER cometa
 
-# Expose necessary ports
-EXPOSE 80
-EXPOSE 443
+EXPOSE 80 443
 
-# Run Apache in the foreground
-ENTRYPOINT ["/code/front/start_pod.sh","copy-apache-files"]
+ENTRYPOINT ["/code/front/start_server.sh"]
+
+# Command for multi-architecture build:
+# docker buildx build --platform linux/amd64,linux/arm64 -t cometa/front:0.1.1 --push .

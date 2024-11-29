@@ -97,3 +97,8 @@ WORKDIR /opt/code/behave_django
 
 # Finish setup, execute the entrypoint script
 CMD ["./entry.sh"]
+
+
+
+# build image for arm and amd processors 
+# docker buildx build -f Dockerfile_behave_build --platform linux/amd64,linux/arm64 -t cometa/behave:latest --push .

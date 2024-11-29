@@ -191,33 +191,6 @@ function install_openidc(){
 
 
 
-# #########
-# This function handel apache configuration files 
-# It will copy Apache configuration files from /code/front/apache-conf to /share/apache-conf for first-time installation 
-# And create .initiated directory with /share dir
-# Second time, if it finds .initiated dir with /share, it will copy files from /share/apache-conf to /code/front/apache-conf
-# @params:
-# #########
-copy_apache_conf_file() {
-    # if this is the first time initializing co.meta
-    # import basic data
-    if [ ! -f "/share/.initiated" ]; then
-		echo "#### For the first time ####"
-        cp -r /code/front/apache-conf /share/apache-conf
-        echo "Copied files from /code/front/apache-conf to /share/apache-conf"
-		mkdir -p /share/apache2
-        cp -r /usr/local/apache2/conf /share/apache2/conf
-        echo "Copied files from /usr/local/apache2/conf to /share/apache2/conf"
-        touch /share/.initiated
-		echo "/share/.initiated file is created"
-    else
-        cp -r /share/apache-conf /code/front
-        echo "Copied files from /share/apache-conf to /code/front/apache-conf"
-        cp -r /share/apache2/conf /usr/local/apache2
-		echo "Copied files from /share/apache2/conf to /usr/local/apache2/conf"
-    fi
-}
-
 
 
 # #########

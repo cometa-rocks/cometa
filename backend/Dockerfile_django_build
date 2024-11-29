@@ -46,7 +46,8 @@ RUN chown -R cometa:cometa /share
 RUN chown -R cometa:cometa /var
 RUN chown -R cometa:cometa /run
 RUN chown -R cometa:cometa /usr/bin
-RUN chown -R cometa:cometa /dev/
+# Changing permission for /dev/ throws error sometime as it has some readonly file system
+RUN chown -R cometa:cometa /dev/ | echo ""
 RUN chown -R cometa:cometa /etc/cron.d
 RUN chown -R cometa:cometa /home/cometa
 RUN chown -R cometa:cometa /usr/local/
@@ -104,3 +105,7 @@ EXPOSE 8000
 
 # Command to run the entry script which starts Django or Gunicorn based on the environment
 CMD ["./start_pod.sh"]
+
+
+# build image for arm and amd processors 
+# docker buildx build -f Dockerfile_django_build --platform linux/amd64,linux/arm64 -t cometa/django:latest --push .

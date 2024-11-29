@@ -16,6 +16,7 @@ URL paths are modified  front/apache-conf/paths.conf
 
     DATABASE_SERVER_URL
     DATABASE_SERVER_PORT
+    DATABASE_PASSWORD
 
     FRONT_SERVER_HOST
     

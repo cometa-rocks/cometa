@@ -2,8 +2,8 @@
 Listen 8080
 Listen 8443
 SSLEngine on
-SSLCertificateFile /etc/ssl/certs/apache-self-signed.crt
-SSLCertificateKeyFile /etc/ssl/certs/apache-self-signed.key
+SSLCertificateFile /share/apache2/certs/apache-self-signed.crt
+SSLCertificateKeyFile /share/apache2/certs/apache-self-signed.key
 
 #error_page  404              /404.html;
 Header set Access-Control-Allow-Origin "*"
@@ -45,7 +45,7 @@ RewriteRule ^(.+)/@@BRANCH@@/(.+)$ https://%{HTTP_HOST}/$1/dev/$2 [R=301,L]
 LoadModule auth_openidc_module modules/mod_auth_openidc.so
 
 # provide multiple providers data
-OIDCMetadataDir /code/front/apache-conf/metadata
+OIDCMetadataDir /usr/local/apache2/conf/metadata
 OIDCDiscoverURL /welcome.html
 
 OIDCXForwardedHeaders X-Forwarded-Proto
@@ -78,8 +78,8 @@ RequestHeader set X-Server "Local"
 # LEAVE IT COMMENTED IF NOT USING
 # ###
 
-ProxyPassMatch "^/debug/(.*)" "http://localhost:4200/$1"
-ProxyPassReverse "^/debug/(.*)" "http://localhost:4200/$1"
+# ProxyPassMatch "^/debug/(.*)" "http://localhost:4200/$1"
+# ProxyPassReverse "^/debug/(.*)" "http://localhost:4200/$1"
 ProxyPassMatch "^/ws" "ws://localhost:4200"
 ProxyPassReverse "^/ws" "ws://localhost:4200"
 ProxyPassMatch "^/ng-cli-ws" "ws://localhost:4200"
