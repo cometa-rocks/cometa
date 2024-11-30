@@ -14,40 +14,24 @@ spec:
         app: cometa-postgres-pod
     spec:
       securityContext:
-          # runAsUser: 0
-          fsGroup: 999
-      #   fsGroup: 472
-      #   runAsGroup: 472
-      #   runAsNonRoot: true
-      #   runAsUser: 472
+        fsGroup: 999
+
       containers:
       - name: postgres
         image: postgres:latest
-        # image: cometa/postgres:1.0
         ports:
         - containerPort: 5432
-        # command: ["sh", "-c"]
-        # args: ["sleep infinity"]
-        securityContext:
-          allowPrivilegeEscalation: true
-          # capabilities:
-          #   drop:
-          #   - ALL
-          # runAsNonRoot: true
-
-          # runAsGroup: 0
-          # runAsUser: 0
-          # seccompProfile:
-          #   type: RuntimeDefault
         env:
           - name: PGDATA
             value: "/var/lib/postgresql/data/pgdata"
           - name: POSTGRES_PASSWORD
-            value: postgres
+            value: JrXQy46n8aS5DU2MniPS
+
         volumeMounts:
           - name: cometa-db-volume
             mountPath: /var/lib/postgresql/data/
-            subPath: ./db_data
+            subPath: ./db_data2
+
         resources:
           limits:
             cpu: "2"
