@@ -20,7 +20,7 @@ spec:
         runAsUser: 472
       containers:
       - name: redis
-        image: cometa/redis:latest
+        image: cometa/redis:1.0
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

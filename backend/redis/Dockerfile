@@ -20,3 +20,6 @@ WORKDIR /data
 
 # Start Redis server with the configuration to use the 'dumy.rdb' file in the /data directory
 CMD ["redis-server", "--dir", "/data", "--dbfilename", "dumy.rdb"]
+
+# build image for arm and amd processors 
+# docker buildx build --platform linux/amd64,linux/arm64 -t cometa/redis:latest --push .

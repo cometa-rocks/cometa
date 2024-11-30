@@ -18,9 +18,10 @@ spec:
         runAsGroup: 472
         runAsNonRoot: true
         runAsUser: 472
+      restartPolicy: Always
       containers:
       - name: redis
-        image: cometa/redis:0.1
+        image: cometa/redis:1.0
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -57,7 +58,7 @@ spec:
       volumes:
         - name: cometa-volume
           persistentVolumeClaim:
-            claimName: cometa-volume-claim
+            claimName: cometa-data-volume-claim
             
       restartPolicy: Always
 

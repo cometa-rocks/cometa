@@ -20,8 +20,9 @@ spec:
         runAsUser: 472
       containers:
       - name: novnc
-        image: cometa/novnc:1.0
-        command: ["/code/utils/novnc_proxy", "--listen", "8080"]
+        image: cometa/novnc:latest
+        workingDir: /home/cometa/noVNC
+        command: ["./utils/novnc_proxy", "--listen", "8080"]
         ports:
         - containerPort: 8080  # Assuming noVNC listens on port 80
         securityContext:
