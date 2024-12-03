@@ -48,6 +48,7 @@ import { ElementRef } from '@angular/core';
 import { LogService } from '@services/log.service';
 import { CommonModule } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
+import { MatBadgeModule } from '@angular/material/badge';
 
 @UntilDestroy()
 @Component({
@@ -81,7 +82,8 @@ import { MatSelectModule } from '@angular/material/select';
     AsyncPipe,
     TitleCasePipe,
     CommonModule,
-    MatSelectModule
+    MatSelectModule,
+    MatBadgeModule
   ],
 })
 export class MainViewComponent implements OnInit {

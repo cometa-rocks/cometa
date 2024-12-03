@@ -476,7 +476,7 @@
 }
 
 .mobile-selector {
-  width: 80px; 
+  width: 80px;
 }
 
 .number-phones {
@@ -506,11 +506,24 @@
   flex-direction: row;
 }
 
-::ng-deep .mat-mdc-select-arrow {
-  margin-right: 70px;
+.custom-context {
+  ::ng-deep .mat-mdc-select-arrow {
+    margin-right: 70px;
+  }
 }
+
 
 ::ng-deep .mat-mdc-option {
   width: 100%;
+}
+
+::ng-deep .mobile-selector mat-option {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.required {
+  font-weight: bold;
 }
 
