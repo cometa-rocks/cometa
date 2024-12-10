@@ -4,10 +4,13 @@ kind: Service
 metadata:
   name: cometa-front-service
   namespace: cometa  # Set the namespace to 'cometa'
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-resource-group: MC_Cometa-RG_prod-cometa_germanywestcentral    # Optional if IP is in a different resource group
 spec:
   selector:
     app: cometa-front-pod
   type: LoadBalancer
+  loadBalancerIP: 72.144.187.99
   ports:
     - name: http
       protocol: TCP
