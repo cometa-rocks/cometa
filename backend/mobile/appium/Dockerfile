@@ -18,13 +18,13 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean
 
-# # Install OpenJDK (Java)
-# RUN apt-get install -y openjdk-11-jre \
-#     && apt-get clean
+# Install OpenJDK (Java)
+RUN apt-get install -y openjdk-11-jre \
+    && apt-get clean
 
-# # Set environment variables for Java
-# ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
-# ENV PATH="$JAVA_HOME/bin:$PATH"
+# Set environment variables for Java
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # Verify installations
 RUN node -v && npm -v 
