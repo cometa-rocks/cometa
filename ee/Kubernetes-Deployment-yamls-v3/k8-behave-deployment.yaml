@@ -15,6 +15,12 @@ spec:
       labels:
         app: cometa-behave-pod
     spec:
+      tolerations:
+      - key: "architecture"
+        operator: "Equal"
+        value: "amd"
+        effect: "NoSchedule"
+        
       securityContext:
         fsGroup: 472
         runAsGroup: 472
@@ -22,7 +28,7 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-behave-container
-        image: cometa/behave:latest
+        image: cometa/behave:1.0
         imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
