@@ -14,12 +14,18 @@ spec:
       labels:
         app: cometa-socket-pod
     spec:
+      tolerations:
+      - key: "architecture"
+        operator: "Equal"
+        value: "amd"
+        effect: "NoSchedule"
       securityContext:
         fsGroup: 472
         runAsGroup: 472
         runAsNonRoot: true
         runAsUser: 472
       restartPolicy: Always
+
       containers:
         - name: cometa-socket-container
           image: cometa/socket:1.0

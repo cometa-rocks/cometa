@@ -13,6 +13,11 @@ spec:
       labels:
         app: cometa-front-pod
     spec:
+      tolerations:
+      - key: "architecture"
+        operator: "Equal"
+        value: "amd"
+        effect: "NoSchedule"
       securityContext:
         fsGroup: 472
         runAsGroup: 472
@@ -20,12 +25,13 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-front-container
-        image: cometa/front:0.1.3
+        image: cometa/front:0.1.2
         ports:
         - containerPort: 8080
         - containerPort: 8443
         command: ["/bin/bash","-c"]
         args: ['/share/apache2/start_server.sh']
+        # args: ['sleep infinity']
 
         env:
         - name: DJANGO_SERVER_URL
@@ -67,6 +73,9 @@ spec:
         - name: cometa-volume
           mountPath: /usr/local/apache2/logs
           subPath: ./share/front/apache2/logs
+        - name: cometa-volume
+          mountPath: /usr/local/apache2/htdocs/assets/icons/motherson.svg
+          subPath: ./share/front/apache2/icons/motherson.svg
            
         securityContext:
           allowPrivilegeEscalation: true
