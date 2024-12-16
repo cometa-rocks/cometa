@@ -109,7 +109,7 @@ export class WhatsNewService {
     // Open What's New Dialog
     this._dialog
       .open(WhatsNewDialog, {
-        data: changes,
+        data: changes || [],
         disableClose: true,
         autoFocus: false,
         closeOnNavigation: false,
@@ -120,5 +120,49 @@ export class WhatsNewService {
         // When the user has closed the What's New dialog, save current version in localStorage
         localStorage.setItem(this.storageKey, this.version);
       });
+  }
+
+  /**
+   * Collects all changes from the changelog, return logchange
+   */
+  collectAllChanges(): LogChange[] {
+    const changelog = this.changelog;
+    let allChanges: LogChange[] = [];
+
+    changelog.forEach(item => {
+      if (Array.isArray(item.text)) {
+        const textChanges: LogChange[] = item.text.map(text => ({
+          type: 'bugfix',
+          text
+        }));
+        allChanges = allChanges.concat(textChanges);
+      }
+      if (Array.isArray(item.bugfixes)) {
+        const bugfixChanges: LogChange[] = item.bugfixes.map(bugfix => ({
+          type: 'bugfix',
+          text: bugfix
+        }));
+        allChanges = allChanges.concat(bugfixChanges);
+      }
+      if (Array.isArray(item.features)) {
+        const featureChanges: LogChange[] = item.features.map(feature => ({
+          type: 'feature',
+          title: feature.title,
+          text: feature.description
+        }));
+        allChanges = allChanges.concat(featureChanges);
+      }
+    });
+    return allChanges;
+  }
+
+  /**
+   * Always shows the What's New dialog with all changes
+   */
+  showAllWhatsNewDialog() {
+    // Collect all changes
+    const changes = this.collectAllChanges(); 
+    // Open dialog with all changes
+    this.openChangelog(changes); 
   }
 }

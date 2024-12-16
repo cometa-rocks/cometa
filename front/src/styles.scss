@@ -281,6 +281,35 @@ body::-webkit-scrollbar-corner {
   }
 }
 
+.mat-menu-panel.folderOptionsMenu {
+  background: darken(white, 0.5) !important;
+  .mat-icon {
+    font-size: 21px !important;
+  }
+  .run-feature * {
+    color: $blue !important;
+  }
+  .folder-running{
+    display: flex;
+    flex-direction: row;
+    padding: 5px 16px 5px;
+    mat-spinner {
+      margin-right: 16px;
+    }
+    span {
+      text-align: left;
+    }
+  }
+  .cancel-feature * {
+    color: #607587 !important;
+  }
+  button.run-feature[disabled] {
+    color: #666666;
+    cursor: not-allowed;
+  }
+}
+
+
 .mat-menu-item {
   height: 30px !important;
   line-height: 30px !important;
@@ -451,8 +480,8 @@ h3 {
 .my-icons {
   display: inline-block;
   vertical-align: top;
-  height: 17px;
-  width: 17px;
+  height: 16px;
+  width: 16px;
   background-repeat: no-repeat;
   background-size: contain;
   &:not(:last-child) {
@@ -596,6 +625,17 @@ h3 {
   .mat-dialog-container {
     resize: both;
     overflow: auto;
+  }
+}
+
+.mobile-emulator-panel {
+  width: 80vw;
+  height: 81vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .mat-dialog-container {
+    overflow: hidden;
   }
 }
 
@@ -849,7 +889,7 @@ video-player .header {
     padding-bottom: 0;
   }
   .description {
-    margin-top: 5px;
+    margin: 5px 0 10px 0;
     font-size: 0.9rem;
     font-weight: bold;
     color: rgba(black, 0.5);
@@ -973,4 +1013,58 @@ input::-webkit-inner-spin-button {
 input[type='number'] {
   -moz-appearance: textfield;
 }
-/***************************************************************/
+
+.feature-item{
+  margin-bottom: 40px;
+}
+
+.schedule-container{
+  flex-direction: row;
+  margin-top: 10px;
+  margin-left: 1px;
+}
+
+.schedule-data {
+  width: 250px;
+  letter-spacing: 0.5px;
+  span:first-of-type{
+    font-size: 15px;
+    font-weight: 100;
+  }
+  span{
+    vertical-align: middle;
+    font-size: 12px;
+    color: #5d6d7e;
+  }
+  span:last-of-type{
+    color: #00a99d;
+    font-weight: bold;
+  }
+}
+
+.schedule-data, .schedule-active {
+  display: flex;
+  align-items: center; 
+}
+
+.schedule-image {
+  height: 18px;
+  margin-right: 5px;
+  font-size: 16px;
+  vertical-align: middle;
+  filter: invert(47%) sepia(11%) saturate(267%) hue-rotate(177deg) brightness(91%) contrast(86%);
+}
+
+.schedule-title{
+  width: 136px;
+  height: 26px;
+}
+
+draggable-window{
+  display: none;
+}
+
+mat-dialog-container draggable-window{
+  display: block;
+}
+

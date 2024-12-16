@@ -16,15 +16,32 @@ include:
 # pulling content accidentally and 
 # losing old changes
 variables:
+  #########################################################
+  # Build Images names
+  #########################################################
+  COMETA_FRONT: "cometa/front"
+
+  # This images are not build in this pipeline
+  # Need to add this to pipeline
+  COMETA_DJANGO: "cometa/django"
+  COMETA_BEHAVE: "cometa/behave"
+  COMETA_SOCKET: "cometa/socket"
+  COMETA_CRONTAB: "cometa/crontab"
+  COMETA_REDIS: "cometa/redis"
+  COMETA_NOVNC: "cometa/novnc"
+  
 #  CI_DEBUG_TRACE: "true" # show verbose information 
 #  GIT_STRATEGY: clone
   COMETA_EMAIL_ENABLED: 'True'
-  COMETA_REPLACE_FAVICON_IN: "front/src/index.html front/src/manifest.json front/src/welcome.html"
+#  COMETA_REPLACE_FAVICON_IN: "front/src/index.html front/src/manifest.json front/src/welcome.html"
+  COMETA_REPLACE_FAVICON_IN: "/usr/local/apache2/htdocs/index.html /usr/local/apache2/htdocs/manifest.json /usr/local/apache2/htdocs/welcome.html"
   COMETA_TOTAL_BROWSER_VERSION: 10 # number of latest browser version that will be pulled.
 
+  CONFIG_FILE: "front/src/assets/config.json"
 # set deploy order in which jobs
 # will be executed
 stages:
+  - build
   - deploy
 
 # main script anchor to avoid code
@@ -39,25 +56,17 @@ stages:
     - sed -i 's/<outside_port>/'$DOCKER_HTTP_PORT'/g;s/<server>/'$DOCKER_OPENIDC_CONFIG_EXT'/g' docker-compose.yml
     # Replace secrets in openidc
     - sed -i 's/@@COMETA_CRYPTO_PASSPHRASE@@/'$COMETA_CRYPTO_PASSPHRASE'/g' front/apache-conf/openidc.conf_${DOCKER_OPENIDC_CONFIG_EXT}
-    # Replace google client information
-    - sed -i 's/@@COMETA_GOOGLE_CLIENTID@@/'$COMETA_GOOGLE_CLIENTID'/g' front/apache-conf/metadata/accounts.google.com.client
-    - sed -i 's/@@COMETA_GOOGLE_SECRETKEY@@/'$COMETA_GOOGLE_SECRETKEY'/g' front/apache-conf/metadata/accounts.google.com.client
-    # Replace git client secret for access to git.amvara.de
-    - sed -i 's/@@GITCLIENTID@@/'$GITCLIENTID'/g' front/apache-conf/metadata/git.amvara.de.client
-    - sed -i 's/@@GITCLIENTSECRET@@/'$GITCLIENTSECRET'/g' front/apache-conf/metadata/git.amvara.de.client
     # Replace Stripe client keys
-    - sed -i 's/@@COMETA_STRIPE_PUBLIC_LIVE_KEY@@/'$COMETA_STRIPE_PUBLIC_LIVE_KEY/'g' front/src/app/deploy-tokens.ts
-    - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
-    # Replace co.meta favicon depending on the branch
-    - for FILE in ${COMETA_REPLACE_FAVICON_IN}; do sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
+    # - sed -i 's/@@COMETA_STRIPE_PUBLIC_LIVE_KEY@@/'$COMETA_STRIPE_PUBLIC_LIVE_KEY/'g' front/src/app/deploy-tokens.ts
+    # - sed -i 's/@@COMETA_STRIPE_PUBLIC_TEST_KEY@@/'$COMETA_STRIPE_PUBLIC_TEST_KEY'/g' front/src/app/deploy-tokens.ts
 
     #########################################################
     # Make gitlab-runner the owner of front directory
     # ... needed as later it will be owned by root
     #########################################################
-    - echo "Setting permissions to gitlab-runner on front directory"
-    - echo "$DEPLOY_BACKEND_FOLDER/front"
-    - sudo chown -R gitlab-runner $DEPLOY_BACKEND_FOLDER/front
+    # - echo "Setting permissions to gitlab-runner on front directory"
+    # - echo "$DEPLOY_BACKEND_FOLDER/front"
+    # - sudo chown -R gitlab-runner $DEPLOY_BACKEND_FOLDER/front
 
     #########################################################
     # COPY CODE TO DEPLOY_BACKEND_FOLDER
@@ -77,10 +86,12 @@ stages:
     # save all environment variables that start with COMETA_ to secret_variables.py
     # these variables come from CI/CD variables from gitlab and variables set inside
     # gitlab-ci yaml files.
-    - env | grep "^COMETA_" | sed -E "s/([A-Z_])=(.*)/\1='\2'/" > backend/secret_variables.py
+    # Commenting below line since from 22-08-2024 secret_variables will be stored in the database
+    # - env | grep "^COMETA_" | sed -E "s/([A-Z_])=(.*)/\1='\2'/" > backend/secret_variables.py
     # Build Selenoid browsers
     - echo -e "\e[0Ksection_start:`date +%s`:deploy_selenoid\r\e[0KRunning selenoid deployment script"
     - bash backend/selenoid/deploy_selenoid.sh
+    # - docker exec -it cometa_selenoid sh /etc/selenoid/check_for_custom_background.sh
     - echo -e "\e[0Ksection_end:`date +%s`:deploy_selenoid\r\e[0K"
     # Install new python packages in django and behave container
     - docker exec cometa_django poetry install
@@ -88,6 +99,8 @@ stages:
     # Detect & Install Django migration
     - docker exec cometa_django python manage.py makemigrations
     - docker exec cometa_django python manage.py makemigrations security
+    - docker exec cometa_django python manage.py makemigrations housekeeping
+    - docker exec cometa_django python manage.py makemigrations configuration
     - docker exec cometa_django python manage.py migrate
     # Update steps in database
     - echo -e "\e[0Ksection_start:`date +%s`:parse_actions\r\e[0KParsing actions to update database"
@@ -102,10 +115,36 @@ stages:
     # FRONTEND
     #########################################################
     # start container or if already started then compile else start from zero
-    - echo "Checking if cometa_front is already running else start it..."
-    - echo "If there are changes to docker-compose file it will recreate the container..."
-    - docker-compose up -d apache 2>&1 | grep -E "up-to-date|cometa_front.*?Running" && docker exec cometa_front bash -c "./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
- 
+    - OLD_FRONT_IMAGE_TAG=$(docker inspect cometa_front | jq -r '.[0].Config.Image')
+    - echo "Old cometa_front image version is $OLD_FONT_IMAGE_TAG"
+    - echo "Fetching new version from config.yaml file"
+    - BUILD_VERSION=$(jq -r '.version' "$CONFIG_FILE") # Extract versions
+    - echo "Pull the cometa_front with version-> $BUILD_VERSION"
+
+    # Check if OLD_FRONT_IMAGE_TAG is not equal to BUILD_VERSION or if cometa_front container is not running
+    - FRONT_CONTAINER_STATUS=$(docker inspect -f '{{.State.Status}}' cometa_front)
+    - echo "$OLD_FRONT_IMAGE_TAG container status is $FRONT_CONTAINER_STATUS"
+
+    - if [ "$OLD_FRONT_IMAGE_TAG" != "$COMETA_FRONT:$BUILD_VERSION" ] || [ "$FRONT_CONTAINER_STATUS" != "running" ]; then
+        docker pull $COMETA_FRONT:$BUILD_VERSION;
+        echo "Replace 'cometa/front:latest' with $COMETA_FRONT:$BUILD_VERSION in the docker-compose.yml file";
+        sed -i "s#cometa/front:latest#"$COMETA_FRONT":"$BUILD_VERSION"#" docker-compose.yml;
+        echo "Recrating cometa_front";
+        docker-compose up --force-recreate apache -d;
+        for FILE in ${COMETA_REPLACE_FAVICON_IN}; do docker exec cometa_front sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
+      else
+        echo "Front container is up to date, will not do deployment";
+      fi
+
+    - if [ "$OLD_FRONT_IMAGE_TAG" != "$COMETA_FRONT:$BUILD_VERSION" ]; then
+        echo "Removing old $OLD_FRONT_IMAGE_TAG image from docker";
+        docker rmi $OLD_FRONT_IMAGE_TAG;
+      fi
+
+    # - echo "Checking if cometa_front is already running else start it..."
+    # - echo "If there are changes to docker-compose file it will recreate the container..."
+    # - docker-compose up -d apache 2>&1 | grep -E "up-to-date|cometa_front.*?Running" && docker exec cometa_front bash -c "./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
+
     #########################################################
     # RELOAD GUNICORNS
     #########################################################
@@ -140,7 +179,48 @@ deploy:client01.prod:
 
 # create a deploy job for client02 for branch prod
 # deploy:client02.prod:
-#   <<: *deployment_script
-#   extends: .client02.prod
+#  <<: *deployment_script
+#  extends: .client02.prod
 
-# DONE
+# create a deploy job for client04 for branch prod
+deploy:client04.prod:
+  <<: *deployment_script
+  extends: .client04.prod
+
+
+# create a deploy job for client04 for branch build
+build:amvara6.build:
+  stage: build
+  script:
+    #########################################################
+    # FRONTEND
+    ########################################################
+    
+    - |
+      # Fetch the JSON response from Docker Hub
+      RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/cometa/front/tags/?page_size=2&ordering=last_updated")
+
+      # Extract the latest tag using jq
+      LATEST_TAG=$(echo "$RESPONSE" | jq -r '.results[1].name')
+
+      echo "Latest tag from Docker Hub is: $LATEST_TAG"
+
+      # Compare the latest tag with the build version
+       if [ "$LATEST_TAG" == "$BUILD_VERSION" ]; then
+        echo "The latest version is already $BUILD_VERSION. Skipping build and push."
+      else
+        cd front
+        docker build . -f Dockerfile_angular_build -t $COMETA_FRONT:$BUILD_VERSION
+        echo "$COMETA_FRONT:$BUILD_VERSION build successfully"
+        echo "Pushing $COMETA_FRONT:$BUILD_VERSION image to Docker $DOCKER_REGISTRY"
+        docker push $COMETA_FRONT:$BUILD_VERSION
+        echo "$COMETA_FRONT:$BUILD_VERSION image pushed"
+        echo "Converting $COMETA_FRONT:$BUILD_VERSION tag $COMETA_FRONT:latest"
+        docker tag $COMETA_FRONT:$BUILD_VERSION $COMETA_FRONT:latest
+        echo "Pushing $COMETA_FRONT:latest image to Docker $DOCKER_REGISTRY"     
+        docker push $COMETA_FRONT:latest   
+        echo "$COMETA_FRONT:latest image pushed"
+        cd -
+      fi
+    
+  extends: .amvara6.build

@@ -155,7 +155,8 @@ export namespace WebSockets {
       public step_time: number,
       public datetime: string,
       public screenshots: any,
-      public vulnerable_headers_count: number
+      public vulnerable_headers_count: number,
+      public mobiles_info: any[]
     ) {}
   }
 

@@ -1,0 +1,665 @@
+@import 'color';
+@import 'breakpoints';
+
+// :host {
+//   display: flex;
+//   flex-wrap: wrap;
+//   width: 100%;
+//   min-height: 200px;
+//   position: relative;
+// }
+
+h4 {
+  color: #1565c0;
+  // height: 30px;
+  // margin-top: 10px;
+  // margin-bottom: 10px;
+}
+
+h3 {
+  color: $blue;
+  margin-left: 10px;
+}
+
+mat-dialog-container {
+  overflow: hidden;
+}
+
+::ng-deep .mobile-emulator-panel {
+  background-color: #f7f7f7;
+}
+
+
+
+@keyframes slideDown {
+  from {
+    max-height: 0;
+  }
+  to {
+    max-height: 500px;
+  }
+}
+
+.devices {
+  .mobile-selector-box {
+    .mobiles {
+      display: flex;
+      gap: 50px;
+      margin: 20px 0 20px 10px;
+      flex-wrap: wrap;
+      overflow-x: hidden;
+      .mobile {
+        padding: 20px 20px;
+        margin-bottom: 15px;
+        min-height: 230px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        // box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: 390px;
+        min-width: 390px;
+        background-color: rgba(255, 255, 255, 0.4);
+        .mobile-icon {
+          width: 100px;
+          height: 200px;
+          background-size: 82px;
+          /* No quotes around pixel values */
+          background-position: left;
+          background-repeat: no-repeat;
+          position: relative;
+        }
+
+        .mobile-details {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          margin-bottom: 10px;
+
+          .moreOrLess {
+            text-align: left;
+            padding: 0 0 0 10px;
+            margin-bottom: 5px;
+            background-color: transparent;
+          }
+
+          // .moreOrLess:hover {
+          //   background-color: transparent;
+          // }
+
+          .moreOrLessNotRunning {
+            text-align: left;
+            // margin-top: 30px;
+            padding: 0 0 0 10px;
+            background-color: transparent;
+          }
+
+          .moreInfo{
+            display: flex;
+            flex-direction: column;
+            margin-left: 10px;
+            margin-bottom: 15px;
+          }
+        }
+      }
+    }
+  }
+}
+
+.not-running {
+  height: 30px;
+}
+
+.not-running-2 {
+  height: 25px;
+}
+
+.dialog-header {
+  padding: 0px 0px 0px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 30px;
+  align-items: center;
+  box-sizing: content-box;
+  margin-bottom: 0px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.dialog-footer {
+  padding: 29px 18px 0px;
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 52px;
+  align-items: center;
+  box-sizing: content-box;
+  margin-bottom: -15px;
+  width: 100%;
+}
+
+mat-dialog-content {
+  width: 100%;
+  height: 100%;
+}
+
+.mobiles {
+  display: flex;
+  flex-direction: row;
+}
+
+.disabled-div {
+  pointer-events: none; 
+  opacity: 0.5;          
+}
+
+.mobile-buttons-install {
+  height: 40px;
+}
+
+.mobile-buttons-shared {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 15px;
+
+  .inspect-shared {
+    margin-right: 10px;
+  }
+
+  .start-stop-inpect-buttons {
+    font-weight: bold;
+  }
+
+  .start{
+    margin-left: auto;
+    margin-right: 10px;
+    font-weight: bold;
+  }
+
+  .restart {
+    background-color: #ffbf59;
+    color: black;
+  }
+
+  .icon-on-hover {
+    display: none;
+  }
+  
+  button:hover .inspect-text {
+    display: none;
+  }
+  
+  button:hover .icon-on-hover {
+    display: inline-block;
+    width: 41px;  
+  }
+  
+  .inspect-text {
+    display: inline-block;
+  }
+}
+
+.mobile-buttons {
+  display: flex;
+  flex-direction: row-reverse;
+  gap: 28px;
+  height: 55px;
+  align-items: center;
+  justify-content: center;
+
+  .start-stop-inpect-buttons {
+    font-weight: bold;
+  }
+
+  .start{
+    margin-left: auto;
+    margin-right: 10px;
+    font-weight: bold;
+  }
+
+  .restart {
+    background-color: #ffbf59;
+    color: black;
+  }
+
+  .icon-on-hover {
+    display: none;
+  }
+  
+  button:hover .inspect-text {
+    display: none;
+  }
+  
+  button:hover .icon-on-hover {
+    display: inline-block;
+    width: 41px;  
+  }
+  
+  .inspect-text {
+    display: inline-block;
+  }
+}
+
+.button-container {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.clipped {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  // clip-path: polygon(100% 0, 0 0, 100% 100%);
+  border-radius: 50%;
+  height: 30px !important;
+  width: 30px !important;
+  background-color: #ef5350;
+}
+
+.clipped, .close-icon {
+  font-size: 18px;
+  transition: font-size 0.3s ease;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  align-content: center;
+  cursor: pointer;
+}
+
+.clipped:hover, .close-icon:hover {
+  font-size: 20px;
+}
+
+
+.mobile-details {
+  div {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 5px;
+    strong {
+      align-items: center;
+      margin-left: 5px;
+      margin-right: 5px;
+    }
+    i {
+      font-size: 17px;
+    }
+    mat-icon {
+      font-size: 17px;
+      color: black;
+      margin-right: 5px;
+    }
+  }
+  .emulator-info {
+    margin-left: 10px;
+    font-size: 14px;
+  }
+  .status-container {
+    margin-left: 10px;
+    font-size: 14px;
+  }
+
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+}
+
+.running-text {
+  font-weight: bold;
+  color: $success;
+}
+
+.stopped-text {
+  font-weight: bold;
+  color: rgb(152, 145, 145); 
+}
+
+
+.apk-selection {
+  display: flex;
+  flex-direction: column !important;
+  margin-right: 10px;
+  margin-left: 10px;
+  .mat-slider-toggle {
+    transform: scale(0.7);
+    margin-left: -60px;
+    margin-bottom: 10px;
+    p {
+      font-size: 20px;
+    }
+  }
+}
+
+.pop-up-info {
+  display: flex;
+  flex-direction: column;
+  align-items: start; 
+  gap: 10px; 
+  font-size: 14px;
+  padding: 10px;
+  color: #000000b3;
+}
+
+.pop-up-info mat-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  strong {
+    margin-left: -10px;
+  } 
+}
+
+.pop-up-info i, 
+.pop-up-info mat-icon {
+  font-size: 18px;
+  margin-right: 8px; 
+}
+
+.pop-up-info strong {
+  flex-grow: 1; 
+}
+
+.row-content {
+  display: flex;
+  flex-direction: row;
+}
+
+mat-divider {
+  margin-bottom: 15px !important;
+}
+
+.status-circle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-left: 5px;
+}
+
+.status-circle.running {
+  background-color: $success;
+}
+
+.status-circle.stopped {
+  background-color: $bad;
+}
+
+.disabled-content {
+  opacity: 0.5; 
+  pointer-events: none; 
+}
+
+.closeButton {
+  margin-top: 10px;
+  text-align: right;
+  margin-right: 20px;
+}
+
+.created-by {
+  text-align: right;
+  margin-top: 27px;
+  margin-right: 10px;
+}
+
+
+.emulator-info {
+  .copyClipboardIcon {
+    font-size: 15px;
+    margin-left: 10px;
+    cursor: pointer;
+
+    &.active {
+      animation: changeColor 3s forwards;
+    }
+  }
+}
+
+@keyframes changeColor {
+  0% {
+    color: $blue;
+  }
+  100% {
+    color: inherit;
+  }
+}
+
+.scrollable-content {
+  max-height: 60vh; 
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.not-dialog-scrollable-content::-webkit-scrollbar {
+  display: none;
+}
+
+.not-dialog-scrollable-content {
+  // max-height: 60vh; 
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  // max-height: calc(100vh - var(--header-height) - var(--new-landing-filters-height));
+}
+
+.notDialog-landing {
+  padding: 25px 15px 15px 15px;
+  height: calc(100% + 50px);
+}
+
+
+.dialog-title {
+  flex-grow: 1; 
+  margin: 15px 0 15px 0;
+}
+
+.not-dialog-title {
+  flex-grow: 1; 
+  margin: 0;
+}
+
+.toggle-button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  text-decoration: underline;
+}
+
+.toggle-button:hover {
+  text-decoration: none;
+}
+
+.rotate-icon {
+  transition: transform 0.3s ease;
+  margin-left: 4px;
+  margin-bottom: 3px;
+  font-size: 20px;
+}
+
+.rotated {
+  transform: rotate(90deg);
+}
+
+.handle {
+  top: -13px !important;
+}
+
+.inspect-hover, .novnc-hover {
+  font-weight: bold;
+}
+
+.not-running-dialog{
+  height: 30px;
+}
+
+// ####################################
+// # NO DIALOG                        #
+// ####################################
+
+.container-father {
+  display: flex;
+  // flex-direction: column !important;
+
+  margin-right: 10px;
+  width: 1000px;
+}
+
+.selectFormField {
+  width: 300px;
+}
+
+@include for-phone-only {
+  .container-father {
+    position: relative;
+    height: 15vh; 
+  }
+
+  .selectFormField {
+    width: 145px;
+  }
+
+  .container-father .selectFormField:nth-last-of-type(2) {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  
+  .container-father .selectFormField:nth-last-of-type(1) {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
+  button {
+    align-self: flex-end; 
+  }
+
+  .add, .button-column{
+    margin-bottom: 10px;
+    width: auto;
+  }
+}
+
+.feature {
+  height: 15px;
+  margin-right: 8px;
+}
+
+.columns-button-wrapper {
+  margin-left: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  width: 300px;
+}
+
+.department-name {
+  display: flex;
+}
+
+// #mobile-actions {
+//   margin-top: 9px;
+// }
+
+.get-app {
+  font-size: 20px !important;
+  color: rgba(0, 0, 0, 0.7) !important;
+}
+
+.selectDepExplan {
+  margin-left: 10px;
+}
+
+.options {
+  display: flex;
+  align-items: center;
+  margin-left: 5px;
+  // margin-bottom: -11px;
+  button {
+    margin-left: -5px;
+  }
+  mat-icon {
+    color: black;
+    font-size: 19px;
+    margin-bottom: 0px;
+  }
+  span {
+    margin-left: -8px;
+    font-weight: bold;
+    font-size: 14px;
+  }
+}
+
+.mat-form-field-wrapper {
+  font-size: 13px;
+}
+
+.mobile-information{
+  display: flex;
+  flex-direction: column !important;
+  margin-bottom: 20px;
+}
+
+.mobile-devices-header {
+  display: flex;
+  padding: 0 20px 0 10px;
+  justify-content: space-between;
+  align-items: center;
+  height: 40px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.5);
+  .mobile-results {
+    color: $blue;
+  }
+}
+
+.spinner-active {
+  background-color: #f97412;
+  cursor: default;
+  mat-spinner {
+
+  }
+}
+
+::ng-deep mat-spinner circle {
+  color: #4A4A4A;
+}
+
+.spinner {
+  position: absolute;
+  top: 27px;
+  right: 27px;
+}
+
+.department-warning {
+  display: inline-flex;
+  align-items: center;
+  color: $blue;
+  margin-bottom: 15px;
+  .mat-icon {
+    font-size: 19px;
+    margin-right: 5px;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.nonMobileShared {
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+mat-card {
+  mat-icon {
+    color: rgba(0, 0, 0, 0.5);
+  }
+}
+
+.mobile-options {
+  position: absolute;
+  top: 20px;
+}

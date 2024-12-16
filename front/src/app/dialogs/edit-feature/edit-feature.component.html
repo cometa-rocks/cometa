@@ -1,3 +1,4 @@
+<draggable-window></draggable-window>
 <form [formGroup]="featureForm">
   <ng-container *ngIf="data.mode === 'new'; else editTitle">
     <h2 mat-dialog-title>Create new feature</h2>
@@ -14,7 +15,9 @@
   </ng-template>
   <mat-dialog-content>
     <mat-accordion multi>
-      <mat-expansion-panel [expanded]="!config$.toggles.hideInformation">
+      <mat-expansion-panel 
+      [expanded]="!config$.toggles.hideInformation"
+      >
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Information</span>
@@ -30,7 +33,9 @@
               <mat-select
                 [(ngModel)]="selected_department"
                 [disabled]="data.mode === 'edit'"
-                formControlName="department_name">
+                formControlName="department_name"
+                (focus)="onInputFocus()"
+                (blur)="onInputBlur()">
                 <mat-option
                   *ngFor="let dep of departments$ | sortBy: 'department_name'"
                   [value]="dep.department_name">
@@ -42,7 +47,9 @@
               <mat-label>Application</mat-label>
               <mat-select
                 [(ngModel)]="selected_application"
-                formControlName="app_name">
+                formControlName="app_name"
+                (focus)="onInputFocus()"
+                (blur)="onInputBlur()">
                 <mat-option
                   *ngFor="let app of applications$ | sortBy: 'app_name'"
                   [value]="app.app_name">
@@ -54,7 +61,9 @@
               <mat-label>Environment</mat-label>
               <mat-select
                 [(ngModel)]="selected_environment"
-                formControlName="environment_name">
+                formControlName="environment_name"
+                (focus)="onInputFocus()"
+                (blur)="onInputBlur()">
                 <mat-option
                   *ngFor="let env of environments$ | sortBy: 'environment_name'"
                   [value]="env.environment_name">
@@ -67,7 +76,10 @@
               <input
                 matInput
                 spellcheck="false"
-                formControlName="feature_name" />
+                formControlName="feature_name" 
+                (focus)="onInputFocus()" 
+                (blur)="onInputBlur()"
+                />
             </mat-form-field>
             <mat-form-field appearance="fill" class="edit-description">
               <mat-label>Description</mat-label>
@@ -75,7 +87,10 @@
                 spellcheck="false"
                 formControlName="description"
                 matInput
-                rows="1"></textarea>
+                rows="1"
+                (focus)="onInputFocus()" 
+                (blur)="onInputBlur()"
+                ></textarea>
             </mat-form-field>
           </div>
           <div
@@ -88,83 +103,83 @@
             >
           </div>
           <div class="depends">
-            <mat-checkbox
-              color="primary"
-              formControlName="depends_on_others"
-              matTooltip="Enable this option if you wish to execute this feature with other features"
-              matTooltipPosition="above"
-              >Depends on other feature</mat-checkbox
-            >
-            <mat-checkbox
-              color="primary"
-              *ngIf="!featureForm.value.depends_on_others"
-              formControlName="send_mail"
-              matTooltip="Enable this option to receive a report email upon completion of the execution"
-              matTooltipPosition="above"
-              >Send mail on finish</mat-checkbox
-            >
-            <mat-checkbox
-              color="primary"
-              *ngIf="!featureForm.value.depends_on_others"
-              formControlName="video"
-              matTooltip="Enable video recording of feature execution"
-              matTooltipPosition="above"
-              >Record video</mat-checkbox
-            >
-            <mat-checkbox
-              color="primary"
-              *ngIf="!featureForm.value.depends_on_others"
-              formControlName="network_logging"
-              matTooltip="Enable this option to record network responses, including analysis of vulnerable headers"
-              matTooltipPosition="above"
-              >Network Logging</mat-checkbox
-            >
-            <mat-checkbox
-              color="primary"
-              *ngIf="!featureForm.value.depends_on_others"
-              formControlName="generate_dataset"
-              matTooltip="Create a dataset from your web application"
-              matTooltipPosition="above"
-              >Generate Dataset</mat-checkbox
-            >
-            <ng-container
-              *ngLet="
-                (departmentSettings$ | async)?.continue_on_failure ||
-                user.settings?.continue_on_failure as disabled
-              ">
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+              <mat-checkbox color="primary" formControlName="depends_on_others" [matTooltip]="'edit_feature.depends_on_other_feature' | translate" matTooltipPosition="above">
+                Depends on other feature
+              </mat-checkbox>
+              <div class="hover-box">(D)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
+              <mat-checkbox color="primary" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">
+                Send email on finish
+              </mat-checkbox>
+              <div class="hover-box">(M)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
+              <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="'edit_feature.record_video' | translate" matTooltipPosition="above">
+                Record video
+              </mat-checkbox>
+              <div class="hover-box">(R)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
               <mat-checkbox
                 color="primary"
-                [disabled]="disabled"
-                formControlName="continue_on_failure"
-                matTooltip="Enable this option to proceed with test execution regardless of any failures encountered"
-                matTooltipPosition="above"
-                >Continue on failure</mat-checkbox
-              >
+                *ngIf="!featureForm.value.depends_on_others"
+                formControlName="network_logging"
+                [matTooltip]="'edit_feature.network_logging' | translate" matTooltipPosition="above">
+                Network Logging
+              </mat-checkbox>
+              <div class="hover-box">(N)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()"> 
+              <mat-checkbox
+                color="primary"
+                *ngIf="!featureForm.value.depends_on_others"
+                formControlName="generate_dataset"
+                [matTooltip]="'edit_feature.generate_dataset' | translate" matTooltipPosition="above">
+                Generate Dataset
+              </mat-checkbox>
+              <div class="hover-box">(G)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">  
+              <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
+                <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">
+                  Continue on failure
+                </mat-checkbox>
+                <div class="hover-box">(F)</div>
+              </ng-container>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()"> 
+              <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
+              <div class="hover-box">(H)</div>
+            </div>
+            <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
+              <div class="checkbox-container move-right"> 
+                <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+                  <button color="primary" 
+                  [disabled]="disableVariables" 
+                  (click)="editVariables()" 
+                  mat-stroked-button 
+                  [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="above">
+                    Edit Variables
+                  </button>
+                </span>
+                <div class="hover-box-Vshortcut">(V)</div>
+              </div>
             </ng-container>
-            <mat-checkbox
-              formControlName="need_help"
-              color="primary"
-              [matTooltip]="'need_help.explanation' | translate"
-              matTooltipPosition="above"
-              >{{ 'need_help.ask_for' | translate }}</mat-checkbox
-            >
-            <ng-container
-              *ngLet="
-                !featureForm.value.environment_name ||
-                !featureForm.value.department_name as disableVariables
-              ">
-              <span
-                class="edit-variables"
-                matTooltip="Add/Modify environment and secret variables."
-                matTooltipPosition="above">
-                <button
-                  color="primary"
-                  [disabled]="disableVariables"
-                  (click)="editVariables()"
-                  mat-stroked-button>
-                  Edit Variables
-                </button>
-              </span>
+            <ng-container>
+              <div class="checkbox-container move-right"> 
+                <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+                  <button color="primary" 
+                  [disabled]="disableVariables" 
+                  (click)="openStartEmulatorScreen()" 
+                  mat-stroked-button 
+                  [matTooltip]="'mobile_list.emulator_mobile' | translate" matTooltipPosition="above">
+                    Start Mobile
+                  </button>
+                </span>
+                <div class="hover-box-Vshortcut">(S)</div>
+              </div>
             </ng-container>
           </div>
         </ng-template>
@@ -173,14 +188,15 @@
         *ngIf="
           featureForm.value.send_mail && !featureForm.value.depends_on_others
         "
-        [expanded]="!config$.toggles.hideSendMail">
+        [expanded]="isExpanded"
+        >
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Email template</span>
           </mat-panel-title>
-          <mat-panel-description
-            >Edit email address, subject and body</mat-panel-description
-          >
+          <mat-panel-description>
+            Edit email address, subject and body
+          </mat-panel-description>
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
           <mat-form-field appearance="fill" class="full-width">
@@ -189,7 +205,7 @@
               <mat-chip
                 *ngFor="let addr of featureForm.get('email_address').value"
                 [removable]="true"
-                (removed)="removeAddress(addr)"
+                (removed)="removeAddress(addr, 'email_address')"
                 >{{ addr }}
                 <mat-icon matChipRemove>cancel</mat-icon>
               </mat-chip>
@@ -198,7 +214,55 @@
                 [matChipInputFor]="chipList"
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 [matChipInputAddOnBlur]="true"
-                (matChipInputTokenEnd)="addAddress($event)" />
+                (matChipInputTokenEnd)="addAddress($event, 'email_address')"
+                (focus)="onInputFocus()" 
+                (blur)="onInputBlur()" />
+            </mat-chip-list>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label
+              >CC (Carbon Copy): Enter email addresses, use tab to separate emails. 
+            </mat-label>
+            <mat-chip-list #ccChipList>
+              <mat-chip
+                *ngFor="let addr of featureForm.get('email_cc_address').value"
+                [removable]="true"
+                (removed)="removeAddress(addr, 'email_cc_address')"
+                >{{ addr }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            <input
+              formControlName="address_to_add"
+              [matChipInputFor]="ccChipList"
+              [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+              [matChipInputAddOnBlur]="true"
+              (matChipInputTokenEnd)="addAddress($event, 'email_cc_address')"
+              (focus)="onInputFocus()" 
+              (blur)="onInputBlur()"
+              />
+            </mat-chip-list>
+          </mat-form-field>
+          <mat-form-field appearance="fill" class="full-width">
+            <mat-label
+              >BCC (Blind Carbon Copy): Enter email addresses, use tab to separate emails.
+            </mat-label>
+            <mat-chip-list #bccChipList>
+              <mat-chip
+                *ngFor="let addr of featureForm.get('email_bcc_address').value"
+                [removable]="true"
+                (removed)="removeAddress(addr, 'email_bcc_address')"
+                >{{ addr }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            <input 
+              formControlName="address_to_add"
+              [matChipInputFor]="bccChipList"
+              [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+              [matChipInputAddOnBlur]="true"
+              (matChipInputTokenEnd)="addAddress($event, 'email_bcc_address')"
+              (focus)="onInputFocus()" 
+              (blur)="onInputBlur()"
+              />
             </mat-chip-list>
           </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
@@ -208,7 +272,10 @@
             <input
               matInput
               spellcheck="false"
-              formControlName="email_subject" />
+              formControlName="email_subject"
+              (focus)="onInputFocus()" 
+              (blur)="onInputBlur()"
+              />
           </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
             <mat-label
@@ -218,8 +285,25 @@
             <textarea
               matInput
               spellcheck="false"
-              formControlName="email_body"></textarea>
+              formControlName="email_body"
+              (focus)="onInputFocus()" 
+              (blur)="onInputBlur()"
+              ></textarea>
           </mat-form-field>
+          <mat-form-field appearance="fill" class="" *ngIf="featureForm.value.check_maximum_notification_on_error" >
+            <mat-label
+              > Maximum notifications on errors 
+            </mat-label>
+            <input
+              type="number"
+              matInput
+              spellcheck="false"
+              formControlName="maximum_notification_on_error"
+              (focus)="onInputFocus()" 
+              (blur)="onInputBlur()"
+              />
+          </mat-form-field>
+          <br>
           <mat-radio-group formControlName="send_mail_on_error">
             When to send email:
             <mat-radio-button color="primary" [value]="false"
@@ -229,6 +313,30 @@
               >On error</mat-radio-button
             >
           </mat-radio-group>
+          
+          <mat-checkbox
+            formControlName="check_maximum_notification_on_error"
+            aria-label="Screenshot"
+            color="primary"
+            [matTooltip]="'edit_feature.maximum_notification_on_error' | translate" matTooltipPosition="above"
+            class="screenshot checkbox-blue maximum-notifications-check"
+            > Set maximum notifications on errors </mat-checkbox>
+          <mat-checkbox
+            formControlName="do_not_use_default_template"
+            aria-label="Screenshot"
+            color="primary"
+            [matTooltip]="'edit_feature.default_template' | translate" matTooltipPosition="above"
+            class="screenshot checkbox-blue default_template"
+            > Do not use default template </mat-checkbox>
+          
+          <mat-checkbox
+            formControlName="attach_pdf_report_to_email"
+            aria-label="Screenshot"
+            color="primary"
+            [matTooltip]="'edit_feature.attach_pdf' | translate" matTooltipPosition="above"
+            class="screenshot checkbox-blue report_to_email"
+            > Attach PDF report to email </mat-checkbox>
+
           <button
             (click)="openEmailHelp()"
             stopPropagation
@@ -239,13 +347,14 @@
             mat-icon-button>
             <mat-icon>help_outline</mat-icon>
           </button>
+
         </ng-template>
       </mat-expansion-panel>
 
       <!-- FILE UPLOAD -->
       <mat-expansion-panel
         #uploadPanel
-        [expanded]="!config$.toggles?.hideUploadedFiles">
+        [expanded]="isExpanded">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Files</span>
@@ -261,9 +370,9 @@
               #file
               style="display: none" />
           </mat-panel-title>
-          <mat-panel-description
-            >Upload/Download department files</mat-panel-description
-          >
+          <mat-panel-description>
+            Upload/Download department files
+          </mat-panel-description>
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
           <ng-container *ngIf="department?.files.length > 0; else noFiles">
@@ -272,54 +381,6 @@
                 mat-table
                 [dataSource]="department?.files"
                 class="mat-elevation-z8">
-                <ng-container matColumnDef="name">
-                  <th mat-header-cell *matHeaderCellDef>File name</th>
-                  <td mat-cell *matCellDef="let element">
-                    <div class="name-wrapper">
-                      <mat-spinner
-                        *ngIf="element.status != 'Done'"
-                        [matTooltip]="element.status"
-                        matTooltipPosition="above"
-                        color="primary"
-                        diameter="15"></mat-spinner>
-                      <span
-                        [class.canDownload]="element.status == 'Done'"
-                        (click)="onDownloadFile(element)"
-                        >{{ element.name }}</span
-                      >
-                    </div>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="mime">
-                  <th mat-header-cell *matHeaderCellDef>File type</th>
-                  <td mat-cell *matCellDef="let element">{{ element.mime }}</td>
-                </ng-container>
-
-                <ng-container matColumnDef="size">
-                  <th mat-header-cell *matHeaderCellDef>File size</th>
-                  <td mat-cell *matCellDef="let element">
-                    {{ element.size | humanizeBytes }}
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="uploaded_by.name">
-                  <th mat-header-cell *matHeaderCellDef>Uploaded By</th>
-                  <td mat-cell *matCellDef="let element">
-                    {{ element.uploaded_by.name }}
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="created_on">
-                  <th mat-header-cell *matHeaderCellDef>Upload date</th>
-                  <td mat-cell *matCellDef="let element">
-                    {{
-                      element.created_on
-                        | amParse
-                        | amDateFormat: 'MMMM d yyyy, HH:mm a'
-                    }}
-                  </td>
-                </ng-container>
 
                 <ng-container matColumnDef="actions">
                   <th mat-header-cell *matHeaderCellDef>Actions</th>
@@ -368,6 +429,56 @@
                     </mat-menu>
                   </td>
                 </ng-container>
+
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef>File name</th>
+                  <td mat-cell *matCellDef="let element">
+                    <div class="name-wrapper">
+                      <mat-spinner
+                        *ngIf="element.status != 'Done'"
+                        [matTooltip]="element.status"
+                        matTooltipPosition="above"
+                        color="primary"
+                        diameter="15"></mat-spinner>
+                      <span
+                        [class.canDownload]="element.status == 'Done'"
+                        (click)="onDownloadFile(element)"
+                        >{{ element.name }}</span
+                      >
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="mime">
+                  <th mat-header-cell *matHeaderCellDef>File type</th>
+                  <td mat-cell *matCellDef="let element">{{ element.mime }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="size">
+                  <th mat-header-cell *matHeaderCellDef>File size</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.size | humanizeBytes }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="uploaded_by.name">
+                  <th mat-header-cell *matHeaderCellDef>Uploaded By</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.uploaded_by.name }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="created_on">
+                  <th mat-header-cell *matHeaderCellDef>Upload date</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{
+                      element.created_on
+                        | amParse
+                        | amDateFormat: 'MMMM d yyyy, HH:mm a'
+                    }}
+                  </td>
+                </ng-container>
+                
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr
                   mat-row
@@ -389,7 +500,7 @@
       <!-- FILE UPLOAD -->
 
       <mat-expansion-panel
-        [expanded]="!config$.toggles.hideBrowsers"
+        [expanded]="isExpanded"
         *ngIf="!featureForm.value.depends_on_others">
         <mat-expansion-panel-header>
           <mat-panel-title>
@@ -420,7 +531,7 @@
           </ng-template>
         </ng-template>
       </mat-expansion-panel>
-      <mat-expansion-panel [expanded]="!config$.toggles.hideSteps">
+      <mat-expansion-panel [expanded]="true">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Steps definition</span>
@@ -432,16 +543,26 @@
           >
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
-          <cometa-step-editor
+          <!-- <cometa-step-editor
             *ngIf="feature | async as feat"
             [mode]="data.mode"
             [department]="department"
             [feature]="feat"
             [variables]="variables"
-            [name]="featureForm.get('feature_name').value"></cometa-step-editor>
+            [name]="featureForm.get('feature_name').value">
+          </cometa-step-editor> -->
+          <cometa-step-editor 
+            (textareaFocusToParent)="receiveDataFromChild($event)" 
+            *ngIf="feature | async as feat" 
+            [mode]="data.mode" 
+            [department]="department" 
+            [feature]="feat" 
+            [variables]="variables" 
+            [name]="featureForm.get('feature_name').value">
+          </cometa-step-editor>
         </ng-template>
       </mat-expansion-panel>
-      <mat-expansion-panel [expanded]="!config$.toggles.hideSchedule">
+      <mat-expansion-panel [expanded]="isExpanded">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Schedule</span>

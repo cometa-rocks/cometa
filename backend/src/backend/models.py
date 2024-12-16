@@ -17,7 +17,11 @@ from django.db.models.signals import post_delete, pre_delete
 from django.dispatch import receiver
 from django_cryptography.fields import encrypt
 from crontab import CronSlices
-from backend.utility.config_handler import *
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+
+from utility.config_handler import *
+
 # GLOBAL VARIABLES
 
 # check if we are inside a loop
@@ -618,6 +622,8 @@ class Permissions(models.Model):
     create_variable = models.BooleanField(default=False)
     edit_variable = models.BooleanField(default=False)
     delete_variable = models.BooleanField(default=False)
+    manage_house_keeping_logs = models.BooleanField(default=False)
+    manage_configurations = models.BooleanField(default=False)
     
     def __str__( self ):
         return u"%s" % self.permission_name
@@ -755,28 +761,36 @@ class Step(models.Model):
 class Feature(models.Model):
     feature_id = models.AutoField(primary_key=True)
     feature_name = models.CharField(max_length=255)
-    description = models.TextField(null=True)
+    description = models.TextField(null=True,blank=True)
     app_id = models.IntegerField()
     app_name = models.CharField(max_length=255)
     environment_id = models.IntegerField()
     environment_name = models.CharField(max_length=255)
     steps = models.IntegerField()
-    schedule = models.ForeignKey("Schedule", on_delete=models.SET_DEFAULT, null=True, default=None, related_name="scheduled")
+    schedule = models.ForeignKey("Schedule", on_delete=models.SET_DEFAULT, null=True, blank=True, default=None, related_name="scheduled")
     department_id = models.IntegerField()
     department_name = models.CharField(max_length=255)
-    screenshot = models.TextField(null=False)
+    screenshot = models.TextField(null=False, blank=True)
     compare = models.TextField(null=True, blank=True)
     slug = models.SlugField(default=None, null = True, blank=True, max_length=255)
     depends_on_others = models.BooleanField(default=False)
     cloud = models.TextField(max_length=100, null=False, blank=False, default="local")
     browsers = models.JSONField(default=list)
+    mobiles = models.JSONField(default=list)
     last_edited = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None, related_name="last_edited")
     last_edited_date = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     created_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None, related_name="created_by")
     send_mail = models.BooleanField(default=False)
     send_mail_on_error = models.BooleanField(default=False)
+    check_maximum_notification_on_error = models.BooleanField(default=False)
+    maximum_notification_on_error = models.IntegerField(default=0,validators=[MinValueValidator(0)])
+    number_notification_sent = models.IntegerField(default=0,validators=[MinValueValidator(0)])
+    attach_pdf_report_to_email = models.BooleanField(verbose_name="Enable or disable the option to attach PDFs to emails.", help_text="If true, a test result PDF will be attached to the email; otherwise, the email will be sent without the PDF. This is useful when sending emails with a customized template.", default=True)
+    do_not_use_default_template = models.BooleanField(verbose_name="Do not use Default e-Mail Template", help_text="If true, then the alternative template will be used, which can be used for creating customized e-Mails, e.g. only containing screenshot", default=False)
     email_address = ArrayField(models.CharField(max_length=250), null=True, blank=True, default=list)
+    email_cc_address = ArrayField(models.CharField(max_length=250), null=True, blank=True, default=list)
+    email_bcc_address = ArrayField(models.CharField(max_length=250), null=True, blank=True, default=list)
     email_subject = models.CharField(max_length=250, null=True, blank=True)
     email_body = models.TextField(null=True, blank=True)
     video = models.BooleanField(default=True)
@@ -789,12 +803,15 @@ class Feature(models.Model):
     def __str__( self ):
         return f"{self.feature_name} ({self.feature_id})"
     def save(self, *args, **kwargs):
+        new_feature = True
         self.slug = slugify(self.feature_name)
         
         # create backup only if feature is being modified
         if self.feature_id is not None:
+            new_feature = False
             # Backup feature info before saving
             backup_feature_info(self)
+            
 
         # save to get the feature_id in case it is a new feature
         super(Feature, self).save(*args)
@@ -811,7 +828,9 @@ class Feature(models.Model):
             logger.debug("Feature file created")
             # check if infinite loop was found
             if not response['success']:
-                logger.debug("Creation of feature was not success. Abort")
+                if new_feature:
+                    logger.debug("Creation of feature was not success. Abort")
+                    self.delete()
                 return response # {"success": False, "error": "infinite loop found"}
             
             # Create .json
@@ -868,6 +887,9 @@ class Feature_result(SoftDeletableModel):
     department_name = models.CharField(max_length=100, blank=True)
     description = models.TextField(null=True, blank=True, default=None)
     browser = models.JSONField(default=dict)
+    # mobile is json fields which stores the browser configuration and 
+    # It contains the session ids which is used as a recording name 
+    mobile = models.JSONField(default=dict)
     total = models.IntegerField(default=0)
     fails = models.IntegerField(default=0)
     running = models.BooleanField(default=False)
@@ -881,13 +903,15 @@ class Feature_result(SoftDeletableModel):
     screen_actual = models.CharField(max_length=100, blank=True, default='')
     screen_diff = models.CharField(max_length=100, blank=True, default='')
     log=models.TextField(default='')
-    video_url = models.TextField(blank=True, null=True)
+    video_url = models.TextField(blank=True, null=True) # Browser video url
     files = models.JSONField(default=list)
     archived = models.BooleanField(default=False)
     executed_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None)
     run_hash = models.CharField(max_length=100, default='')
     session_id = models.CharField(max_length=255, null=True, default=None)
     network_logging_enabled = models.BooleanField(default=False) # If set to false it will not query in NetworkResponse, will reduce query time
+    house_keeping_done =  models.BooleanField(default=False) # If house keeping was done for this Feature result then do not process again
+    pdf_result_file_path =  models.CharField(max_length=200, default='', blank=True) # If house keeping was done for this Feature result then do not process again
     class Meta:
         ordering = ['result_date']
         verbose_name_plural = "Feature Results"
@@ -948,6 +972,12 @@ class Feature_result(SoftDeletableModel):
 
         return True
 
+step_type_choices = (
+    ('BROWSER','BROWSER'), 
+    ('MOBILE','MOBILE'), 
+    ('API','API')
+)
+
 class Step_result(models.Model):
     step_result_id = models.AutoField(primary_key=True)
     feature_result_id = models.IntegerField()
@@ -968,6 +998,7 @@ class Step_result(models.Model):
     rest_api = models.ForeignKey("REST_API", on_delete=models.CASCADE, null=True, default=None)
     notes = models.JSONField(default=dict)
     error = models.TextField(null=True, blank=True)
+    step_type = models.CharField(choices=step_type_choices, max_length=10, blank=False, default='BROWSER')
 
     class Meta:
         ordering = ['step_result_id']
@@ -1030,6 +1061,8 @@ class Account_role(models.Model):
         ordering = ['account_role_id']
         verbose_name_plural = "Account Roles"
 
+
+
 class Action(models.Model):
     action_id = models.AutoField(primary_key=True)
     action_name = models.CharField(max_length=255)
@@ -1038,8 +1071,10 @@ class Action(models.Model):
     department = models.CharField(max_length=100, default=None, null = True, blank=True)
     application = models.CharField(max_length=100, default=None, null = True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, editable=False, null=False, blank=False)
+    step_type = models.CharField(choices=step_type_choices, max_length=10, default="BROWSER", null=True, blank=True)
     def __str__( self ):
         return self.action_name
+    
     def save(self, *args, **kwargs):
         if self.department is None and self.application is None:
             actions = Action.objects.filter(department = None, application = None , action_name = self.action_name)
@@ -1047,6 +1082,7 @@ class Action(models.Model):
                 super(Action, self).save(*args, **kwargs)
         else:
             super(Action, self).save(*args, **kwargs)
+            
     class Meta:
         ordering = ['action_id']
         verbose_name_plural = "Actions"
@@ -1304,12 +1340,12 @@ class Invite(models.Model):
 
 class Schedule(models.Model):
     id = models.AutoField(primary_key=True)
-    feature = models.ForeignKey(Feature, on_delete=models.CASCADE, related_name="schedules")
-    parameters = models.JSONField(default=dict)
+    feature = models.ForeignKey(Feature, on_delete=models.CASCADE, null=True, blank=True, related_name="schedules")
+    parameters = models.JSONField(default=dict,null=True, blank=True)
     schedule = models.CharField(max_length=255)
     command = models.CharField(max_length=255, blank=True, null=True)
     comment = models.CharField(max_length=255, blank=True, null=True)
-    owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, related_name="schedule_owner")
+    owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True,blank=True, related_name="schedule_owner")
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     delete_after_days = models.IntegerField(default=1)
     delete_on = models.DateTimeField(null=True, blank=True)

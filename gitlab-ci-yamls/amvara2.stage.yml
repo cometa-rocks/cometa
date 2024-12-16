@@ -8,21 +8,22 @@
     # BACKEND
     #########################################################
     DEPLOY_BACKEND_FOLDER: "/home/amvara/projects/cometa/cometa"
-    COMETA_DOMAIN: "stage.cometa.rocks"
-    COMETA_DEBUG: "False"
-    COMETA_EMAIL_HOST: 'mail.amvara.de'
-    COMETA_EMAIL_USER: 'tec_dev@amvara.de'
-    COMETA_EMAIL_PASSWORD: ${EMAIL_PASSWORD}
-    COMETA_EMAIL_PORT: 587
-    COMETA_EMAIL_TLS: 'True'
-    COMETA_PROXY_ENABLED: 'False'
-    COMETA_PROXY: ''
+    COMETA_TOTAL_BROWSER_VERSION: 3
+    
     #########################################################
     # FRONTEND
     #########################################################
     DOCKER_HTTP_PORT: 8082
     DOCKER_OPENIDC_CONFIG_EXT: "stage"
   before_script:
+    # These changes are client specific it should not run in the all deployments 
+    # Replace google client information
+    - sed -i 's/@@COMETA_GOOGLE_CLIENTID@@/'$COMETA_GOOGLE_CLIENTID'/g' front/apache-conf/metadata/accounts.google.com.client
+    - sed -i 's/@@COMETA_GOOGLE_SECRETKEY@@/'$COMETA_GOOGLE_SECRETKEY'/g' front/apache-conf/metadata/accounts.google.com.client
+    # Replace git client secret for access to git.amvara.de
+    - sed -i 's/@@GITCLIENTID@@/'$GITCLIENTID'/g' front/apache-conf/metadata/git.amvara.de.client
+    - sed -i 's/@@GITCLIENTSECRET@@/'$GITCLIENTSECRET'/g' front/apache-conf/metadata/git.amvara.de.client
+
     #########################################################
     # FRONTEND
     #########################################################

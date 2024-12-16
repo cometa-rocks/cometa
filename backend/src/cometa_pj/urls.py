@@ -13,13 +13,11 @@ import os
 from django.views.static import serve
 import re
 from django.urls import re_path
-router = routers.DefaultRouter()
-
-
+from modules.urls import register_modules_routers, register_modules_urlpatterns
+from backend.ee.modules.urls import register_ee_modules_routers, register_ee_modules_urlpatterns
 # import EE Modules
-import backend.ee.modules.data_driven.urls as DataDrivenEndpoints
-import backend.ee.modules.rest_api.urls as RestAPIEndpoints
 
+router = routers.DefaultRouter()
 #
 # router.register URLs are exposed as https://server:8000/api/[xyz]
 # ... Theses need to have a "class xyzViewSet" definition in views.py
@@ -27,6 +25,7 @@ import backend.ee.modules.rest_api.urls as RestAPIEndpoints
 #     are automatically build and determined
 #     Documentation: https://www.django-rest-framework.org/tutorial/6-viewsets-and-routers/
 #
+
 router.register(r'account_roles', views.AccountRoleViewSet)
 router.register(r'feature_results/(?P<feature_result_id>[0-9]+)', views.FeatureResultViewSet)
 router.register(r'feature_results', views.FeatureResultViewSet)
@@ -69,6 +68,10 @@ router.register(r'uploads', views.UploadViewSet)
 router.register(r'dataset', views.DatasetViewset)
 # provides numbers of system usage
 router.register(r'cometausage', views.CometaUsageViewSet)
+
+# register all the routers from module routers
+router = register_ee_modules_routers(router=router)
+router = register_modules_routers(router=router)
 
 # Full path of static admin resources 
 STATIC_ADMIN_FILES = os.path.dirname(admin.__file__) + '/static/'
@@ -129,10 +132,8 @@ urlpatterns = [
     url(r'^departments/(?P<department_id>[0-9]+)/updateStepTimeout/', views.UpdateStepTimeout),
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
-    # Security Feature
-    path('security/',include('backend.ee.modules.security.urls'))
-] + static('/static/', document_root=STATIC_ADMIN_FILES) + [
-    # EE static endpoints
-    *DataDrivenEndpoints.static_endpoints,
-    *RestAPIEndpoints.static_endpoints
-]
+    
+] + static('/static/', document_root=STATIC_ADMIN_FILES) 
+
+urlpatterns = register_ee_modules_urlpatterns(urlpatterns=urlpatterns)
+urlpatterns = register_modules_urlpatterns(urlpatterns=urlpatterns)

@@ -1,0 +1,41 @@
+{
+    "browsers": [
+      {
+        "name": "cometa/chrome:131.0",
+        "image": "selenium/standalone-chrome:131.0"
+      },      
+      {
+        "name": "cometa/chrome:130.0",
+        "image": "selenium/standalone-chrome:131.0"
+      },      
+      {
+        "name": "cometa/chrome:129.0",
+        "image": "selenium/standalone-chrome:131.0"
+      },
+      {
+        "name": "cometa/firefox:133.0",
+        "image": "selenium/standalone-firefox:133.0"
+      },      
+      {
+        "name": "cometa/firefox:132.0",
+        "image": "selenium/standalone-firefox:132.0"
+      },      
+      {
+        "name": "cometa/firefox:131.0",
+        "image": "selenium/standalone-firefox:131.0"
+      },
+      {
+        "name": "cometa/edge:131.0",
+        "image": "selenium/standalone-edge:131.0"
+      },      
+      {
+        "name": "cometa/edge:130.0",
+        "image": "selenium/standalone-edge:130.0"
+      },      
+      {
+        "name": "cometa/edge:129.0",
+        "image": "selenium/standalone-edge:129.0"
+      }
+    ]
+  }
+  
