@@ -61,6 +61,7 @@ import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { color } from 'highcharts';
 import { LogService } from '@services/log.service';
 import { MatSelectModule } from '@angular/material/select';
+import { MatBadgeModule } from '@angular/material/badge';
 
 @UntilDestroy()
 @Component({
@@ -95,7 +96,8 @@ import { MatSelectModule } from '@angular/material/select';
     TestDurationPipe,
     TranslateModule,
     DraggableWindowModule,
-    MatSelectModule
+    MatSelectModule,
+    MatBadgeModule
   ],
 })
 export class LiveStepsComponent implements OnInit, OnDestroy {
