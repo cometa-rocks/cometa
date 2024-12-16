@@ -3,12 +3,14 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.remote.webdriver import WebDriver
 
+
 class element_to_be_interactable(object):
     """
     An expectation for checking that an element is interactable.
     element - element in question that needs to become interactable.
     returns the boolean depending if it is interactable.
     """
+
     def __init__(self, element: WebElement):
         self.element: WebElement = element
 
@@ -18,11 +20,13 @@ class element_to_be_interactable(object):
             return True
         return False
 
+
 class text_to_be_present_in_element_value(object):
     """
     An expectation for checking if the given text is present in the element's
     locator, text
     """
+
     def __init__(self, element, text_):
         self.element = element
         self.text = text_
@@ -35,4 +39,4 @@ class text_to_be_present_in_element_value(object):
             else:
                 return False
         except StaleElementReferenceException:
-                return False
+            return False

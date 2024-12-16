@@ -20,17 +20,20 @@ Author: dph000
   <!-- <div class="searcher" [class.opened]="showFolders$ | async" [class.closed]="(showFolders$ | async) == false">  previous -->
   <div class="searcher" [class.closed]="showFolders$ | async">
     <!-- Buttons to either create a feature or a folder -->
-    <div class="add-from-sidenav" #addFromSidenav>
+    <div class="add-from-sidenav" #addFromSidenav
+    [matTooltip]="'sidenav_page.add' | translate" matTooltipPosition="right">
       <!-- Div used to hide the buttons when clicked elsewhere but them (only mobile) -->
       <div
         (click)="openedAdd = false"
-        [class.desktop_backdrop]="openedAdd"></div>
+        [class.desktop_backdrop]="openedAdd"
+        ></div>
       <!-- Button to display / hide the other 2 buttons -->
       <button
         class="addIcon"
         mat-raised-button
         aria-label="Add button"
-        (click)="openedAdd = !openedAdd">
+        (click)="openedAdd = !openedAdd"
+        >
         <mat-icon>add</mat-icon>
         Add
       </button>
@@ -40,7 +43,8 @@ Author: dph000
         mat-raised-button
         aria-label="Create folder button"
         (click)="createFolder()"
-        [class.hideAdd]="!openedAdd">
+        [class.hideAdd]="!openedAdd"
+        [matTooltip]="'sidenav_page.folder' | translate" matTooltipPosition="right">
         <mat-icon>folder_open</mat-icon>
         Create folder
       </button>
@@ -51,7 +55,8 @@ Author: dph000
         mat-raised-button
         aria-label="Create feature button"
         (click)="SAopenCreateFeature()"
-        [class.hideAdd]="!openedAdd">
+        [class.hideAdd]="!openedAdd"
+        [matTooltip]="'sidenav_page.feature' | translate" matTooltipPosition="right">
         <div class="icon">
           <i class="feature-icon"></i>
         </div>
@@ -244,6 +249,15 @@ Author: dph000
         class="filter-bar"
         [filters$]="filters$ | async"></cometa-l1-filter>
       <cometa-data-driven-runs></cometa-data-driven-runs>
+    </ng-container>
+
+    <!-- List of the Mobile Emulator Runs -->
+    <ng-container *ngIf="(aciveList$ | async) == 'mobile-emulator'">
+      <cometa-l1-filter
+        class="filter-bar"
+        [filters$]="filters$ | async">
+      </cometa-l1-filter>
+      <mobile-list></mobile-list>
     </ng-container>
 
     <!-- List of the Department variables -->

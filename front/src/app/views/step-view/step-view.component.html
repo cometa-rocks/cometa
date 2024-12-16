@@ -74,6 +74,10 @@
           </div>
           <div class="title">FAIL</div>
         </div>
+        <div class="circular-progress" *ngIf="test">
+          <img [responsive]="true" src="assets/icons/{{ test.browser.browser.toLowerCase() }}.svg" alt="Browser url not found">
+          <div class="title">{{test.browser.browser_version}}</div>
+        </div>
       </div>
       <div class="total_pixel" [@info]="test">
         <div class="red">
@@ -94,7 +98,7 @@
       <ng-template #listItem let-item>
         <ng-container
           *ngLet="
-            item.status === 'Success' ||
+            item.status === 'Success' || 
             (!item.status && item.success) as passed
           ">
           <div class="step-row" (click)="goToDetail(item.step_result_id)">
@@ -132,11 +136,11 @@
             <div class="status">
               <!-- Status Box -->
               <div
-                class="status-box"
+                class="status-box {{item.status.toLowerCase()}}"
                 stopPropagation
                 [matMenuTriggerFor]="resultStatus"
-                [ngClass]="passed ? 'passed' : 'failed'">
-                {{ passed ? 'Passed' : 'Failed' }}
+                >
+                {{ item.status=='Success'?'Passed':item.status }}
               </div>
               <!-- Override result status -->
               <mat-menu #resultStatus="matMenu">

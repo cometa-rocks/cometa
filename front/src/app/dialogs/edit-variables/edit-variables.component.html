@@ -1,3 +1,4 @@
+<draggable-window></draggable-window>
 <div *ngIf="isDialog; else notDialog">
   <h2
     mat-dialog-title
@@ -30,38 +31,77 @@
         matInput
         (keyup)="applyFilter()"
         [(ngModel)]="searchTerm"
-        placeholder="Type a search term" />
+        placeholder="Type a search term" 
+        (focus)="sendInputFocusToParent(true)" 
+        (blur)="sendInputFocusToParent(false)"/>
     </mat-form-field>
     <div class="columns-button-wrapper">
-      <button mat-stroked-button [matMenuTriggerFor]="selectedColumns">
+      <button *ngIf="isDialog" mat-stroked-button [matMenuTriggerFor]="selectedColumns">
         Columns Shown
       </button>
+      <div class="container-father" *ngIf="!isDialog">
+        <button class="button-column" mat-stroked-button [matMenuTriggerFor]="selectedColumns">
+          Columns Shown
+        </button>
+        <ng-container>
+          <mat-form-field class="selectFormField">
+            <mat-label><mat-icon>domain</mat-icon> Select Department</mat-label>
+            <mat-select [(ngModel)]="selectedDepartment" (selectionChange)="onDepartmentSelect($event)"
+                        [disabled]="selectionsDisabled">
+              <mat-option *ngFor="let department of departments" [value]="{ id: department.folder_id, name: department.name }">
+                <mat-card>{{ department.name }}</mat-card>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ng-container>
+      
+        <ng-container>
+          <mat-form-field class="selectFormField">
+            <mat-label><img class="feature" src="assets/img/feature.svg" alt="Select Feature"> Select Feature</mat-label>
+            <mat-select [(ngModel)]="selectedFeature" (selectionChange)="onFeatureSelect($event)"
+                        [disabled]="!departmentChecked || selectionsDisabled">
+              <mat-option *ngFor="let feature of allFeatures" 
+                          [value]="{ id: feature.feature_id, name: feature.feature_name, id_enviornment: feature.environment_id, name_environment: feature.environment_name }">
+                <mat-card>{{ feature.feature_name }}</mat-card>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ng-container>
+        <button
+        color="primary"
+        (click)="startFunctions()"
+        class="add"
+        [disabled]="!depAndFeatChecked"
+        mat-stroked-button>
+        Add variable
+        </button>
+      </div>
       <mat-menu #selectedColumns="matMenu" class="variable-columns-menu">
         <div
-          class="column-checkbox-wrapper"
-          (click)="$event.stopPropagation()"
-          *ngFor="let c of allColumns">
-          <mat-checkbox
-            [(ngModel)]="c.activated"
-            (change)="onColumnDisplayChange()"
-            color="primary">
+        class="column-checkbox-wrapper"
+        (click)="$event.stopPropagation()"
+        *ngFor="let c of allColumns">
+        <mat-checkbox
+        [(ngModel)]="c.activated"
+        (change)="onColumnDisplayChange()"
+        color="primary">
             {{ c.name }}
           </mat-checkbox>
         </div>
       </mat-menu>
     </div>
     <div
-      class="table-wrapper"
-      style="margin-bottom: 15px !important"
-      [class.component]="!isDialog"
-      #tableWrapper>
-      <table
-        mat-table
-        matSort
-        [dataSource]="dataSource"
-        (matSortChange)="announceSortChange($event)"
-        class="mat-elevation-z8">
-        <ng-container matColumnDef="variable_name">
+    class="table-wrapper"
+    style="margin-bottom: 15px !important"
+    [class.component]="!isDialog"
+    #tableWrapper>
+    <table
+    mat-table
+    matSort
+    [dataSource]="dataSource"
+    (matSortChange)="announceSortChange($event)"
+    class="mat-elevation-z8">
+    <ng-container matColumnDef="variable_name">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
           <td mat-cell *matCellDef="let element">
             <input
@@ -75,23 +115,25 @@
               pattern="^[\w.-]+$"
               aria-label="var_name"
               [class.edit]="!element.disabled"
-              required />
-            <small
+              required 
+              (focus)="sendInputFocusToParent(true)" 
+              (blur)="sendInputFocusToParent(false)"/>
+              <small
               class="validation-error"
               *ngIf="variable_name.errors?.['required']"
               >Variable name is required.</small
-            >
-            <small
+              >
+              <small
               class="validation-error"
               *ngIf="variable_name.errors?.['pattern']"
               >Special characters and space are not allowed.</small
-            >
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="variable_value">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Value</th>
-          <td mat-cell *matCellDef="let element">
-            <input
+              >
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="variable_value">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Value</th>
+            <td mat-cell *matCellDef="let element">
+              <input
               #variable_value="ngModel"
               id="value-{{ element.id }}"
               [disabled]="element.disabled"
@@ -101,18 +143,20 @@
               (input)="setInputStatus(variable_value?.errors, 'value')"
               aria-label="var_value"
               [class.edit]="!element.disabled"
-              required />
-            <small
+              required
+              (focus)="sendInputFocusToParent(true)" 
+              (blur)="sendInputFocusToParent(false)"/>
+              <small
               class="validation-error"
               *ngIf="variable_value.errors?.['required']"
               >Variable value is required.</small
-            >
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="encrypted">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Encrypted</th>
-          <td mat-cell *matCellDef="let element">
-            <mat-checkbox
+              >
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="encrypted">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Encrypted</th>
+            <td mat-cell *matCellDef="let element">
+              <mat-checkbox
               [disabled]="element.disabled"
               [(ngModel)]="element.encrypted"
               [checked]="element.encrypted"
@@ -126,20 +170,20 @@
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Based on</th>
           <td mat-cell *matCellDef="let element">
             <mat-select
-              [(value)]="element.based"
-              [disabled]="element.disabled"
-              aria-label="var_basedOn">
-              <mat-option
-                *ngFor="let base of bases"
-                [value]="base"
-                [disabled]="data?.feature_id === 0 && base === 'feature'">
-                {{ base }}
-              </mat-option>
-            </mat-select>
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="environment_name">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Environment</th>
+            [(value)]="element.based"
+            [disabled]="element.disabled"
+            aria-label="var_basedOn">
+            <mat-option
+            *ngFor="let base of bases"
+            [value]="base"
+            [disabled]="data?.feature_id === 0 && base === 'feature'">
+            {{ base }}
+          </mat-option>
+        </mat-select>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="environment_name">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Environment</th>
           <td mat-cell *matCellDef="let element">
             <p disabled>{{ element?.environment_name }}</p>
           </td>
@@ -168,10 +212,10 @@
             <p disabled>
               {{
                 element?.created_on
-                  ? (element?.created_on
-                    | amParse
-                    | amDateFormat: 'MMMM d yyyy, HH:mm a')
-                  : element?.created_on
+                ? (element?.created_on
+                | amParse
+                | amDateFormat: 'MMMM d yyyy, HH:mm a')
+                : element?.created_on
               }}
             </p>
           </td>
@@ -192,8 +236,8 @@
             <p disabled>
               {{
                 element?.updated_on
-                  ? (element?.updated_on
-                    | amParse
+                ? (element?.updated_on
+                | amParse
                     | amDateFormat: 'MMMM d yyyy, HH:mm a')
                   : element?.updated_on
               }}
@@ -205,58 +249,58 @@
           <td mat-cell *matCellDef="let element">
             <div class="actions-wrapper">
               <div
-                class="action-wrapper"
-                *ngIf="canEdit"
-                [matTooltip]="
-                  element.disabled && isEditing
+              class="action-wrapper"
+              *ngIf="canEdit"
+              [matTooltip]="
+              element.disabled && isEditing
                     ? 'Please save changes!'
                     : 'Edit variable'
-                "
-                matTooltipPosition="above">
-                <button
-                  mat-menu-item
-                  *ngIf="element.disabled; else save"
-                  [disabled]="isEditing"
-                  (click)="onEditVar(element)"
-                  aria-label="action_edit_var">
-                  <mat-icon>edit</mat-icon>
-                </button>
-              </div>
-              <div
+                    "
+                    matTooltipPosition="above">
+                    <button
+                    mat-menu-item
+                    *ngIf="element.disabled; else save"
+                    [disabled]="isEditing"
+                    (click)="onEditVar(element)"
+                    aria-label="action_edit_var">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                </div>
+                <div
                 class="action-wrapper"
                 *ngIf="canDelete"
                 [matTooltip]="
-                  element.in_use.length > 0
+                element.in_use.length > 0
                     ? 'Warning! This variable is being used'
                     : 'Delete variable'
-                "
-                matTooltipPosition="above">
-                <button
-                  mat-menu-item
-                  (click)="onDeleteVar(element)"
-                  [disabled]="
+                    "
+                    matTooltipPosition="above">
+                    <button
+                    mat-menu-item
+                    (click)="onDeleteVar(element)"
+                    [disabled]="
                     element.id == 0 || (isEditing && element.disabled)
-                  "
-                  aria-label="action_delete_var">
-                  <p *ngIf="element.in_use.length > 0" class="inuse">!</p>
-                  <mat-icon>delete</mat-icon>
-                </button>
+                    "
+                    aria-label="action_delete_var">
+                    <p *ngIf="element.in_use.length > 0" class="inuse">!</p>
+                    <mat-icon>delete</mat-icon>
+                  </button>
               </div>
               <ng-template #save>
                 <div
-                  class="action-wrapper"
-                  [matTooltip]="
-                    (errors.name || errors.value) && element.id === 0
-                      ? 'Please introduce correct data'
-                      : 'Save variable'
-                  "
-                  matTooltipPosition="above">
-                  <button
-                    mat-menu-item
-                    [disabled]="errors.name || errors.value"
-                    (click)="onSaveVar(element)"
-                    aria-label="action_save_var">
-                    <mat-icon>save</mat-icon>
+                class="action-wrapper"
+                [matTooltip]="
+                (errors.name || errors.value) && element.id === 0
+                ? 'Please introduce correct data'
+                : 'Save variable'
+                "
+                matTooltipPosition="above">
+                <button
+                mat-menu-item
+                [disabled]="errors.name || errors.value"
+                (click)="onSaveVar(element)"
+                aria-label="action_save_var">
+                <mat-icon>save</mat-icon>
                   </button>
                 </div>
               </ng-template>
@@ -277,14 +321,14 @@
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr
-          tabindex="{{ row.id }}"
-          mat-row
-          *matRowDef="let row; columns: displayedColumns"
-          (dblclick)="onEditVar(row)"
-          (keydown.enter)="onSaveVar(row)"
-          (keydown.esc)="onCancelVar(row, $event)"
-          class="var-row"
-          [class.edit]="!row.disabled"></tr>
+        tabindex="{{ row.id }}"
+        mat-row
+        *matRowDef="let row; columns: displayedColumns"
+        (dblclick)="onEditVar(row)"
+        (keydown.enter)="onSaveVar(row)"
+        (keydown.esc)="onCancelVar(row, $event)"
+        class="var-row"
+        [class.edit]="!row.disabled"></tr>
       </table>
     </div>
   </ng-container>
@@ -293,23 +337,23 @@
   </ng-template>
 </mat-dialog-content>
 <mat-dialog-actions *ngIf="data?.department_id">
-  <div
-    class="add-variable"
-    *ngIf="canCreate"
-    [matTooltip]="
-      isEditing
-        ? 'Please save changes before creating new variable'
-        : 'Create new variable'
-    "
-    matTooltipPosition="above">
-    <button
-      color="primary"
-      (click)="onAddVar()"
-      class="add"
-      [disabled]="isEditing"
-      mat-stroked-button>
-      Add variable
-    </button>
-  </div>
   <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
+  <div
+  class="add-variable"
+  *ngIf="canCreate"
+  [matTooltip]="
+  isEditing
+  ? 'Please save changes before creating new variable'
+  : 'Create new variable'
+  "
+  matTooltipPosition="above">
+  <button
+  color="primary"
+  (click)="onAddVar()"
+  class="add"
+  [disabled]="isEditing"
+  mat-stroked-button>
+  Add variable
+  </button>
+</div>
 </mat-dialog-actions>

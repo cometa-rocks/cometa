@@ -186,6 +186,38 @@ function install_openidc(){
 }
 
 # #########
+# This function installs Appium Inspector
+# to the Apache server.
+# Only needed for fresh installations.
+# @params: None
+# #########
+function install_appium_inspector() {
+    # Check if the Appium Inspector build exists in the specified path
+    if [ -f "/code/front/appium-inspector-build/appium-inspector/dist-browser/index.html" ]; then
+        echo "Appium Inspector build found, starting installation..."
+		
+		# Make sure folders are existed
+		mkdir -p /usr/local/apache2/htdocs/mobile/inspector/
+		mkdir -p /usr/local/apache2/htdocs/locales/
+		mkdir -p /usr/local/apache2/htdocs/assets/
+
+        # Copy necessary files to Apache's web root
+        cp -r /code/front/appium-inspector-build/appium-inspector/dist-browser/index.html /usr/local/apache2/htdocs/mobile/inspector/index.html 
+        cp -r /code/front/appium-inspector-build/appium-inspector/dist-browser/locales/* /usr/local/apache2/htdocs/locales/
+        cp -r /code/front/appium-inspector-build/appium-inspector/dist-browser/assets/* /usr/local/apache2/htdocs/assets/
+
+        echo "Appium Inspector files successfully copied to Apache server."
+
+        # Return to the previous directory
+        cd -
+    else
+        echo "Appium Inspector build not found, skipping appium-inspector installation."
+    fi
+}
+
+
+
+# #########
 # Outputs help on how to use the script.
 # @params:
 # #########
@@ -280,6 +312,7 @@ test "${SERVE:-FALSE}" == "TRUE" && serve_project
 
 echo -e "\e[32mSuccessful\e[0m"
 
+install_appium_inspector
 
 if [[ "${NORESTART:-FALSE}" == "FALSE" ]]; then
 	# #########################################

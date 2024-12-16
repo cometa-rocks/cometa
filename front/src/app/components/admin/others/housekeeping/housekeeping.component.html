@@ -1,0 +1,30 @@
+<div class="specs">
+  <div
+    class="text date"
+    matTooltip="Quantity of browsers"
+    matTooltipPosition="above">
+    <span>#{{ houseKeepingLog.id }}</span>
+  </div>
+  <div class="text date">
+    <span>{{
+      houseKeepingLog.created_on | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a'
+    }}</span>
+  </div>
+  <div class="text date">
+    <span>{{ houseKeepingLog.success ? 'Success' : 'Failed' }}</span>
+  </div>
+  <div class="text date" >
+    <span>
+      {{
+        houseKeepingLog.approved_by
+          ? 'Approved by ' + houseKeepingLog.approved_by
+          : ''
+      }}</span
+    >
+  </div>
+ 
+  <div
+    class="view date"
+    (click)="viewLogs(houseKeepingLog.id)">
+  </div>
+</div>

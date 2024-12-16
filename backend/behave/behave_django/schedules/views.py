@@ -6,41 +6,23 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 import subprocess, datetime, requests
 import os.path
-from schedules.forms import RunTestValidationForm
-from schedules.forms import SetScheduleValidationForm
-from crontab import CronTab, CronSlices
-import os, logging, sys
+import os, re, traceback
 from django.conf import settings
 import json, time
-import secrets
-import urllib.parse
 from django.views.decorators.clickjacking import xframe_options_exempt
 import random
 import django_rq
-from pprint import pprint
-from sentry_sdk import capture_exception
 from schedules.tasks.runBrowser import run_browser, run_finished
 
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-# just to import secrets
-sys.path.append("/code")
-from secret_variables import *
-from src.backend.common import *
-from src.backend.utility.config_handler import *
+from utility.common import *
+from utility.config_handler import *
+from utility.configurations import ConfigurationManager,load_configurations
+from behave_django.settings import BEHAVE_HOME_DIR 
 
-# setup logging
-logger = logging.getLogger(__name__)
-logger.setLevel(BEHAVE_DEBUG_LEVEL)
-# create a formatter for the logger
-formatter = logging.Formatter(LOGGER_FORMAT, LOGGER_DATE_FORMAT)
-# create a stream logger
-streamLogger = logging.StreamHandler()
-# set the format of streamLogger to formatter
-streamLogger.setFormatter(formatter)
-# add the stream handle to logger
-logger.addHandler(streamLogger)
+logger = get_logger()
 
 # Configure Retry which can be later used for requests
 retry_strategy = Retry(
@@ -153,117 +135,118 @@ def kill_task(request, pid):
     subprocess.call("kill -15 %d" % int(pid), shell=True)   
     return JsonResponse({"success": True, "killed": pid})
 
-@require_http_methods(["POST"])
+
+@require_http_methods(["GET"])
 @csrf_exempt
 @xframe_options_exempt
-def set_test_schedule(request):
+def update_configuration_in_memory(request):
+    try:
+        logger.debug("Updating configuration from configuration.json, requested by server")
+        load_configurations()
+        logger.debug("Updating configuration updated")
+        return JsonResponse({"success": True, "message": "configuration updated"})
+    except Exception as exception:
+        return JsonResponse({"success": False, "message": str(exception)})
 
-    # crontab object
-    # /etc/cron.d/crontab must be a file, if logs throws error '/etc/cron.d/crontab is a directory'
-    # please create the file behave/schedules/crontab and recreate behave docker
-    my_cron = CronTab(user=True, tabfile='/etc/cron.d/crontab')
-    # check if request contains jobId if so that mean there is more data than just feature_id and schedule
-    if not request.POST.__contains__("jobId"):
-        # crontab schedule string
-        schedule = request.POST['schedule']
-        # crontab feature id that will be executed
-        feature_id = request.POST["feature_id"]
-        try:
-            feature_id = int(feature_id)
-        except:
-            logger.error('Unable to convert feature_id to int')
-        # crontab user id to execute feature
-        user_id = request.POST['user_id']
-        try:
-            user_id = int(user_id)
-        except:
-            logger.error('Unable to convert user_id to int')
-        curl_post_data = json.dumps({
-            'feature_id': feature_id
-        })
-        curl_headers = {
-            'Content-Type': 'application/json',
-            'COMETA-ORIGIN': 'CRONTAB',
-            'COMETA-USER': str(user_id)
-        }
-        curl_headers = ' '.join(['-H "%s: %s"' % (key, value) for key, value in curl_headers.items()])
-        # Now only the feature_id is required to run feature from behave -> django -> behave
-        command = 'root curl --data \'%s\' %s -X POST %s/exectest/' % (curl_post_data, curl_headers, get_cometa_backend_url())
-        logger.debug("command find -> " + command)
-        found = False
-        for job in my_cron:
-            logger.debug("crontab command -> " + job.command)
-            if curl_post_data in job.command:
-                logger.debug("command found")
-                if schedule:
-                    # Check schedule is valid
-                    if not CronSlices.is_valid(schedule):
-                        return JsonResponse({ 'error': 'Invalid schedule format.' }, status = 400)
-                    job.setall(schedule)
-                    job.set_command(command)
-                else:
-                    my_cron.remove(job)
-                    my_cron.write()
-                    return JsonResponse({'message':'Schedule is removed!'})
-                found = True
 
-        if not schedule:
-            return JsonResponse({ 'message': 'Not found but nothing to do' }, status = 200)
-
-        if found == False:
-            logger.debug("Create crontab line")
-            logger.debug("Command:", str(command))
-            job = my_cron.new(command=command)
-            logger.debug("Schedule:", str(schedule))
-            job.setall(schedule)
-            my_cron.write()
-
-        if job.is_valid() == False:
-            return JsonResponse({ 'error': 'Job is not valid' }, status = 404)
-        else:
-            my_cron.write()
-            #my_cron.write()
-            return JsonResponse({ 'message': 'schedule is updated!' })
-    else: # cronjob has jobid
-        # save request data to variables
-        jobId = request.POST.__getitem__('jobId')
-        schedule = request.POST.__getitem__('schedule')
-        command = request.POST.__getitem__('command').replace("<jobId>", jobId)
-        comment = request.POST.__getitem__('comment').replace("<jobId>", jobId)
-
-        # join command and comment together
-        command = "%s %s" % (command, comment)
-
-        # create a job with new command
-        job = my_cron.new(command=command)
-        # set jobs schedule
-        job.setall(schedule)
-        # check if job is valid
-        if job.is_valid() == False:
-            return JsonResponse({'error':'Job is not valid'}, status = 404)
-        # finally write to the crontab
-        my_cron.write()
-        return JsonResponse({'message':'schedule is updated!'})
-
+@require_http_methods(["GET"])
+@csrf_exempt
+@xframe_options_exempt
+def updated_step_actions(request):
+    try:
+        # Add your new created action files here
+        actions_files = [
+            'cometa_itself/steps/actions.py',
+            'cometa_itself/steps/validation_actions.py',
+            'ee/cometa_itself/steps/rest_api.py',
+            'ee/cometa_itself/steps/ai_actions.py',
+            'ee/cometa_itself/steps/conditional_actions.py',
+            'ee/cometa_itself/steps/mobile_actions.py'
+        ]
         
-@require_http_methods(["POST"])
-@csrf_exempt
-@xframe_options_exempt
-def remove_test_schedule(request):
-    if not request.POST.__contains__("jobId"):
-        return JsonResponse({'success': False, 'error':'No jobId found'}, status=404)
-    # get job id
-    jobId = request.POST.__getitem__('jobId')
-    # crontab object
-    my_cron = CronTab(user=True, tabfile='/etc/cron.d/crontab')
-    # loop over all the jobs
-    for job in my_cron:
-        # job to look for
-        jobToLookFor = """"jobId":%d""" % int(jobId)
-        logger.debug(job.command)
-        logger.debug(jobToLookFor)
-        if jobToLookFor in job.command:
-            my_cron.remove(job)
-            my_cron.write()
-            return JsonResponse({'success': 'True'}, status=200)
-    return JsonResponse({'success': False, 'error': 'No jobId found in schedules.'}, status=404)
+        # variable to contain action comment
+        action_comments = []
+        actionsParsed = []
+        
+        def parseAction(action, step_type):
+            regex = r"\@(.*)\((u|)'(.*)'\)"
+            matches = re.findall(regex, action)
+            if matches[0][2] == "{step}":
+                return
+            logger.debug(f"Action matcher found : {matches[0]}")
+            logger.debug(f"Action value : {matches[0][2]}")
+            logger.debug(f"Step type line : {step_type}")
+                        
+            if "API" in step_type:
+                step_type = "API"
+            elif "MOBILE" in step_type:
+                step_type = "MOBILE"
+            else:
+                step_type = "BROWSER"
+                
+            actionsParsed.append({
+                "action_name":matches[0][2],
+                "department":'DIF',
+                "application":'amvara',
+                "values":matches[0][2].count("{"),
+                "description":'<br>'.join(action_comments),
+                # "step_type": "BROWSER"
+                "step_type": step_type
+            })
+
+
+        actions = []
+
+        # Iterate your action file as store in the lines in the files    
+        for actions_file in actions_files:
+            full_path = os.path.join(BEHAVE_HOME_DIR, actions_file)
+            logger.debug(f"Reading actions from file : {full_path}")
+            with open(full_path) as file:
+                lines_in_file = file.readlines()
+                logger.debug(f"Found {len(lines_in_file)} lines in the file : {actions_file}")
+                actions = actions + lines_in_file
+
+        # variable to contain previous line
+        previousLine = ''
+        logger.debug(f"String Action Parse")
+        for index, action in enumerate(actions):
+            if action.startswith("@step") and '(?P<' not in action:
+                logger.debug(f"Parsing Step Action : {action}")
+                # parse action will use action_comments, if found to be action otherwise make it empty
+                parseAction(action, actions[index+3])
+                
+
+            # This condition rarely executes when @step contains regular expression
+            # If action started with @step then it never start with @done and in case above condition is false then any how this will be executed
+            # not need of two if conditions
+            elif action.startswith('@done') and '(?P<' in previousLine:
+                logger.debug(f"Parsing Done Action : {action}")
+                parseAction(action, actions[index+2])
+
+            # when any comment related to action written, that line will not have any spaces considering that line
+            # If there is Multi line comments, keep on adding in the list 
+            elif action.startswith('# '):
+                # Action Comments to be written in with out line gaps
+                # [2:] to remove # and single space from the front of the comment
+                action_comments.append(action[2:])
+                # logger.debug(f"Found actions comment {action_comments}")
+            else:
+                if not action.startswith("@step"):
+                    action_comments = []  # if other then comments found remove empty the list
+                    # logger.debug(f"Removed action comments {action}")
+
+            previousLine = action
+
+        logger.debug(f"Ending Action Parse")
+        # send a request to web sockets about the actions update
+        requests.post('http://cometa_socket:3001/sendAction', json={
+            'type': '[Actions] Get All'
+        })
+
+        return JsonResponse({'success': True, 'actions': actionsParsed})
+    
+    except Exception as exception:
+        traceback.print_exc()
+        return JsonResponse({'success': False, 'message': str(exception)})
+
+

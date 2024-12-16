@@ -83,6 +83,7 @@ def parse_parameters(parameters):
 @step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?)|body:(?P<body>.*?))\")*')
 @done(u'Make an API call with "{method}" to "{endpoint}" with "params:{parameters}" and "headers:{headers}" and "body:{body}"')
 def api_call(context, method, endpoint, parameters, headers, body):
+    context.STEP_TYPE = "API"
 
     logger.debug({
         "method": method,
@@ -151,7 +152,8 @@ def api_call(context, method, endpoint, parameters, headers, body):
 @step(u'Assert last API Call property \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert last API Call property "{jq_pattern}" to "{condition}" "{value}"')
 def assert_imp(context, jq_pattern, condition, value):
-    
+    context.STEP_TYPE = "API"
+
     import jq
 
     try:
@@ -176,6 +178,7 @@ use_step_matcher("parse")
 @step(u'Save last API Call property "{jq_pattern}" to "{environment_variable}"')
 @done(u'Save last API Call property "{jq_pattern}" to "{environment_variable}"')
 def assert_imp(context, jq_pattern, environment_variable):
+    context.STEP_TYPE = "API"
 
     import jq
 

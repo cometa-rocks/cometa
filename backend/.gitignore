@@ -6,7 +6,7 @@
 *.pot
 *.feature
 *_meta.json
-db_data/
+db_data*/
 .tox/
 __pycache__
 .vscode

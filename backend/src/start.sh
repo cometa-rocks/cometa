@@ -24,6 +24,7 @@ do
                 -d|--debug)
                         set -x
                         DEBUG=TRUE
+                        ENVIRONMENT="debug"
                         shift
                         ;;
                 -dev|--development)
@@ -102,7 +103,7 @@ service rsyslog start
 # Install cron
 install_cron
 # check and create secret_variables.py
-create_secret_variables
+# create_secret_variables
 # Install poetry package manager
 curl -sSL https://install.python-poetry.org | python3 -
 # Create symbolic link to Poetry so it's available as command everywhere
@@ -116,13 +117,14 @@ pip install -U pip
 # Run Django migrations
 python manage.py makemigrations backend
 python manage.py makemigrations security
+python manage.py makemigrations housekeeping
+python manage.py makemigrations configuration
 python manage.py migrate
 
 # if this is the first time initializing co.meta
 # import basic data
 if [ ! -f "/code/.initiated" ]; then
-    find defaults -name "*.json" | sort | xargs -I{} python manage.py loaddata {}
-    touch /code/.initiated
+    find defaults -name "*.json" | sort | xargs -I{} python manage.py loaddata {} && touch /code/.initiated
 fi
 
 
@@ -140,6 +142,17 @@ if [ "$ENVIRONMENT" = "dev" ]; then
     echo "###################################################"
     echo "Devmode was requested ... starting python manage.py runserver"
     python manage.py runserver 0.0.0.0:8000
+fi
+#
+#  Run in VSCode IDE debug mode 
+#
+if [ "$ENVIRONMENT" = "debug" ]; then
+    echo "###################################################"
+    echo "# Running in Debug mode                             #"
+    echo "###################################################"
+    echo "debug mode was requested, you need to start django using \"python manage.py runserver\""
+    echo "Refer backend/src/README.md run django debug mode in VSCODE IDE"
+    sleep infinity
 fi
 
 #

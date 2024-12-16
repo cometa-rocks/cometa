@@ -28,3 +28,4 @@ class CometaLogger(logging.Logger):
         extra['current_step'] = os.environ.get('current_step', "?")
         extra['total_steps'] = os.environ.get('total_steps', "?")
         return super()._log(level, msg, args, exc_info, extra, stack_info, stacklevel)
+    

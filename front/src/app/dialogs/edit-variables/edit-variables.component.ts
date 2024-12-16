@@ -7,6 +7,7 @@ import {
   ViewChild,
   OnDestroy,
   ElementRef,
+  HostListener,
 } from '@angular/core';
 import {
   MatLegacyDialog as MatDialog,
@@ -17,7 +18,7 @@ import { Select, Store } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { UserState } from '@store/user.state';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { map,  Observable, Subject, takeUntil } from 'rxjs';
 import { VariablesState } from '@store/variables.state';
 import { Variables } from '@store/actions/variables.actions';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
@@ -47,7 +48,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { NgIf, NgFor } from '@angular/common';
-
+import { InputFocusService } from '@services/inputFocus.service'; 
+import { DraggableWindowModule } from '@modules/draggable-window.module';
+import { CustomSelectors } from '@others/custom-selectors';
+import { Features } from '@store/actions/features.actions';
+import { KEY_CODES } from '@others/enums';
 
 interface PassedData {
   environment_id: number;
@@ -85,6 +90,7 @@ interface PassedData {
     MatLegacyTooltipModule,
     AmParsePipe,
     AmDateFormatPipe,
+    DraggableWindowModule
   ],
 })
 export class EditVariablesComponent implements OnInit, OnDestroy {
@@ -113,6 +119,23 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   searchTerm: string = '';
   isDialog: boolean = false;
   dataSource;
+  departmentChecked = false;
+  featureChecked = false;
+  depAndFeatChecked: boolean = false;
+  features$: Observable<any[]>;
+  allFeatures: any[] = []
+  selectionsDisabled: boolean = false;
+  selectedDepartment: { id: number, name: string } = { 
+    id: null, 
+    name: '' 
+  };
+
+  selectedFeature: { id: number, name: string,  id_enviornment: number, name_environment: string  } = { 
+    id: null, 
+    name: '',
+    id_enviornment: null, 
+    name_environment: '',
+  };
 
   @ViewChild('tableWrapper') tableWrapper: ElementRef;
   @ViewChild(MatSort) sort: MatSort;
@@ -123,6 +146,8 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   canEdit: boolean;
   @ViewSelectSnapshot(UserState.GetPermission('delete_variable'))
   canDelete: boolean;
+  departments$: Observable<Folder[]>
+  departments: Folder[] = [];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: PassedData,
@@ -130,8 +155,13 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     private _snack: MatSnackBar,
     private _api: ApiService,
     private _cdr: ChangeDetectorRef,
-    private _dialog: MatDialog
+    private _dialog: MatDialog,
+    private inputFocusService: InputFocusService
   ) {}
+
+  sendInputFocusToParent(inputFocus: boolean): void {
+    this.inputFocusService.setInputFocus(inputFocus);
+  }
 
   ngOnInit(): void {
     // get displayed columns from localstorage
@@ -152,6 +182,12 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
         ? this.getFilteredVariables(data)
         : this.getAllVariables(data);
       this.dataSource = new MatTableDataSource(this.variables);
+
+      this.departments$ = this._store.select(CustomSelectors.GetDepartmentFolders())
+
+      this.departments$.pipe(takeUntil(this.destroy$)).subscribe(departments => {
+        this.departments = departments;
+      });
 
       // Inbuilt MatTableDataSource.filterPredicate determines which columns filter term must be applied to
       this.applyFilterPredicate();
@@ -240,7 +276,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     // Depending on if user is creating new variable or is patching existing one
     // next piece of code updates existing variable in state or replaces the removed variable(with id 0) with the one that is received from XHR
     let action =
-      variable.id === 0
+      variable.id === 0 
         ? this.createVariable(variable)
         : this.patchVariable(variable);
     action.subscribe(this.safeSubscriber('save'));
@@ -252,7 +288,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
 
     // opens confirmation dialog, to prevent accidental elimination
     const confirmDialog = this._dialog.open(AreYouSureDialog, {
-      data: {
+      data: { 
         title: 'translate:you_sure.delete_item_title',
         description: 'translate:you_sure.delete_item_desc',
       } as AreYouSureData,
@@ -315,6 +351,10 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
 
     // notify view that user is no longer editing any variable
     this.isEditing = false;
+
+    // Enable selectdepartment and selectfeature
+    this.selectionsDisabled = false;
+    this.departmentChecked = false;
   }
 
   // fired when user clicks on Add Variable button
@@ -484,6 +524,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
               )
             : this._store.dispatch(new Variables.DeleteVariable(variable.id));
           this._snack.open('Action has been completed successfully!', 'OK');
+          this.selectionsDisabled = false;
         }
       },
       error: err => {
@@ -496,5 +537,83 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
         this.restoreSortState();
       },
     };
+  }
+
+  onDepartmentSelect($event){
+    this._store.dispatch(new Features.GetFeatures()).subscribe(() => {
+      this.features$ = this._store.select(state => state.features.details);
+      this.features$.pipe(
+        map(features => {
+          const featuresArray = Object.values(features);
+          this.allFeatures = featuresArray.filter(feature => feature.department_id == this.selectedDepartment.id);
+        })
+      ).subscribe();
+    });
+    this.departmentChecked = true;
+  }
+
+  onFeatureSelect($event){
+    this.featureChecked = true;
+    this.checkDoubleSelect();
+  }
+
+  checkDoubleSelect() {
+    this.depAndFeatChecked = this.departmentChecked && this.featureChecked;
+  }
+
+  startFunctions() {
+    this.selectionsDisabled = true;
+    this.depAndFeatChecked = false;
+    
+    this.createNewVarInstanceBySelector();
+
+    this.getAllVariablesWithNew(this.variables);
+    this.isEditing = true;
+
+    this.applyValidators();
+    this.selectedDepartment = null;
+    this.selectedFeature = null;
+    
+    setTimeout(() => {
+        this.tableWrapper.nativeElement.scrollTo(0, 0);
+        document.getElementById('name-0')?.focus();
+    }, 0);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if(KEY_CODES.ESCAPE){
+      this.selectionsDisabled = false;
+    }
+  }
+
+  getAllVariablesWithNew(variables: VariablePair[]) {
+    const allVariables = variables.map((item: VariablePair) => {
+        return { ...item, disabled: item.id === 0 ? false : true };
+    });
+    this.dataSource.data = allVariables;
+
+    return allVariables;
+  }
+
+  createNewVarInstanceBySelector(){
+    const new_var = <VariablePair>{};
+
+    new_var.id = 0;
+    new_var.department = this.selectedDepartment.id;
+    new_var.environment = this.selectedFeature.id_enviornment;
+    new_var.department_name = this.selectedDepartment.name;
+    new_var.environment_name = this.selectedFeature.name_environment;
+    new_var.feature_name = this.selectedFeature.name;
+    new_var.feature = this.selectedFeature.id === 0 ? null : this.selectedFeature.id;
+    new_var.variable_name = '';
+    new_var.variable_value = '';
+    new_var.encrypted = false;
+    new_var.based = this.selectedFeature.id === 0 ? 'department' : 'feature';
+    new_var.in_use = [];
+    new_var.disabled = false;
+
+    this._store.dispatch(new Variables.UpdateOrCreateVariable(new_var));
+    this.isEditing = true;
   }
 }

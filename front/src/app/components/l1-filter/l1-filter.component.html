@@ -52,7 +52,10 @@ Author: dph000
         (keydown.enter)="searchFeature()"
         disableAutocomplete
         placeholder="Search in co.meta"
-        #addTest />
+        #addTest  
+        (focus)="sendInputFocusToParent(true)" 
+        (blur)="sendInputFocusToParent(false)">
+
     </mat-form-field>
   </div>
   <!-- Filters list, if there is any active -->

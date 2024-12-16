@@ -1,5 +1,5 @@
 import { HttpResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { ElementRef, Injectable, ViewChild } from '@angular/core';
 import { MatLegacyCheckboxChange as MatCheckboxChange } from '@angular/material/legacy-checkbox';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
@@ -28,7 +28,8 @@ import { StepDefinitions } from '@store/actions/step_definitions.actions';
 import { FeaturesState } from '@store/features.state';
 import { LoadingActions } from '@store/loadings.state';
 import { deepClone } from 'ngx-amvara-toolbox';
-import { from, Observable, of, BehaviorSubject } from 'rxjs';
+import { from, Observable, of, BehaviorSubject, combineLatest, Subject } from 'rxjs';
+
 import {
   concatMap,
   delay,
@@ -42,6 +43,7 @@ import {
 } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { SocketService } from './socket.service';
+import { Console } from 'console';
 
 /**
  * This service is used to execute function which should be accessible from application and Tour definitions
@@ -49,6 +51,18 @@ import { SocketService } from './socket.service';
 @Injectable()
 export class SharedActionsService {
   headers$ = new BehaviorSubject<ResultHeader[]>([]);
+  dialogActive: boolean = false;
+  dialogActiveOther: boolean = false;
+  private filterStateSubject = new BehaviorSubject<boolean>(false);
+  filterState$ = this.filterStateSubject.asObservable();
+
+  public folderRunningStates = new BehaviorSubject<Map<number, boolean>>(new Map());
+
+  public featuresRunning$ = this.folderRunningStates.asObservable();
+
+  //  Next minor version 2.8.377
+  // @ViewChild(LiveStepsComponent) liveStepsComponent!: LiveStepsComponent;
+
 
   constructor(
     public _dialog: MatDialog,
@@ -94,7 +108,6 @@ export class SharedActionsService {
   }
   // #3397 ------------------------------------end
 
-  dialogActive = false;
   goToFeature(featureId: number) {
     const feature = this._store.selectSnapshot<Feature>(
       CustomSelectors.GetFeatureInfo(featureId)
@@ -177,45 +190,48 @@ export class SharedActionsService {
     const feature = this._store.selectSnapshot<Feature>(
       CustomSelectors.GetFeatureInfo(featureId)
     );
-    if (isRunning) {
-      // Notify WebSocket Server to send me last websockets of feature
-      this.retrieveLastFeatureSockets(featureId);
-      this.openLiveSteps(featureId);
-    } else {
-      // Check if the feature has at least 1 browser selected, if not, show a warning
-      if (feature.browsers.length > 0) {
-        this._store.dispatch(new LoadingActions.SetLoading(featureId, true));
-        this._api
-          .runFeature(feature.feature_id, false)
-          .pipe(
-            filter(json => !!json.success),
-            switchMap(_ =>
-              this._store.dispatch(new WebSockets.FeatureTaskQueued(featureId))
-            ),
-            finalize(() =>
-              this._store.dispatch(
-                new LoadingActions.SetLoading(featureId, false)
+    
+    if(!feature.depends_on_others){
+      if (isRunning) {
+        // Notify WebSocket Server to send me last websockets of feature
+        this.retrieveLastFeatureSockets(featureId);
+        this.openLiveSteps(featureId);
+      } else {
+        // Check if the feature has at least 1 browser selected, if not, show a warning
+        if (feature.browsers.length > 0) {
+          this._store.dispatch(new LoadingActions.SetLoading(featureId, true));
+          this._api
+            .runFeature(feature.feature_id, false)
+            .pipe(
+              filter(json => !!json.success),
+              switchMap(_ =>
+                this._store.dispatch(new WebSockets.FeatureTaskQueued(featureId))
+              ),
+              finalize(() =>
+                this._store.dispatch(
+                  new LoadingActions.SetLoading(featureId, false)
+                )
               )
             )
-          )
-          .subscribe(
-            _ => {
-              this._snackBar.open(
-                `Feature ${feature.feature_name} is running...`,
-                'OK'
-              );
-              // Make view live steps popup optional
-              // this.openLiveSteps();
-            },
-            err => {
-              this._snackBar.open('An error ocurred', 'OK');
-            }
+            .subscribe(
+              _ => {
+                this._snackBar.open(
+                  `Feature ${feature.feature_name} is running...`,
+                  'OK'
+                );
+                // Make view live steps popup optional
+                // this.openLiveSteps();
+              },
+              err => {
+                this._snackBar.open('An error ocurred', 'OK');
+              }
+            );
+        } else {
+          this._snackBar.open(
+            "This feature doesn't have browsers selected.",
+            'OK'
           );
-      } else {
-        this._snackBar.open(
-          "This feature doesn't have browsers selected.",
-          'OK'
-        );
+        }
       }
     }
   }
@@ -229,51 +245,55 @@ export class SharedActionsService {
     featureId: number = null,
     mode: 'edit' | 'clone' | 'new' = 'new'
   ) {
+    if (this.dialogActiveOther) {
+      return;
+    }
+
+    this.dialogActiveOther = true;
+
     if (mode === 'edit' || mode === 'clone') {
-      // Edit / Clone mode
       const feature = deepClone(
         this._store.selectSnapshot<Feature>(
           CustomSelectors.GetFeatureInfo(featureId)
         )
       ) as Feature;
-      // Get data of feature and steps
+
       this._api
         .getFeatureSteps(featureId, {
           loading: 'translate:tooltips.loading_feature',
         })
         .subscribe(steps => {
-          // Save steps into NGXS Store
           this._store.dispatch(
             new StepDefinitions.SetStepsForFeature(
               mode === 'clone' ? 0 : featureId,
               steps
             )
           );
-          // Open Edit Feature
-          this._dialog
-            .open(EditFeature, {
-              disableClose: true,
-              autoFocus: false,
-              panelClass: 'edit-feature-panel',
-              // @ts-ignore
-              data: {
-                mode: mode,
-                feature: {
-                  app: feature.app_name,
-                  environment: feature.environment_name,
-                  feature_id: feature.feature_id,
-                  description: feature.description,
-                },
-                info: feature,
-                steps: deepClone(steps),
-              } as IEditFeature,
-            })
-            .afterClosed()
-            .subscribe(_ => (this.dialogActive = false));
+
+          const dialogRef = this._dialog.open(EditFeature, {
+            disableClose: true,
+            autoFocus: false,
+            panelClass: 'edit-feature-panel',
+            // @ts-ignore
+            data: {
+              mode: mode,
+              feature: {
+                app: feature.app_name,
+                environment: feature.environment_name,
+                feature_id: feature.feature_id,
+                description: feature.description,
+              },
+              info: feature,
+              steps: deepClone(steps),
+            } as IEditFeature,
+          });
+
+          dialogRef.afterClosed().subscribe(_ => {
+            this.dialogActiveOther = false;
+          });
         });
     } else {
-      // New mode
-      this._dialog.open(EditFeature, {
+      const dialogRef = this._dialog.open(EditFeature, {
         disableClose: true,
         autoFocus: false,
         panelClass: 'edit-feature-panel',
@@ -285,8 +305,13 @@ export class SharedActionsService {
           },
         } as IEditFeature,
       });
+
+      dialogRef.afterClosed().subscribe(_ => {
+        this.dialogActiveOther = false;
+      });
     }
   }
+
 
   deleteFeature(featureId: number) {
     const feature = this._store.selectSnapshot<Feature>(
@@ -490,4 +515,62 @@ export class SharedActionsService {
       })
     );
   }
+
+  async runAllFeatures(folder: Folder){
+    // Create an array of observables for the running status of each feature in the folder
+    const featureStatuses: Observable<boolean>[] = folder.features.map(feature => 
+      this._store.select(CustomSelectors.GetFeatureRunningStatus(feature))
+    );
+
+    // Create an observable that emits the combined status of all features in the folder
+    const combinedStatus$ = combineLatest(featureStatuses).pipe(
+      map(statuses => statuses.some(status => status))
+    );
+
+    // Update the running state for the folder
+    combinedStatus$.subscribe(isRunning => {
+      const currentStates = this.folderRunningStates.getValue();
+      currentStates.set(folder.folder_id, isRunning);
+      this.folderRunningStates.next(new Map(currentStates));
+    });
+
+    if (folder.features.length <= 0) {
+      this._snackBar.open(`No features available in this folder`, 'OK');
+    } else {
+      await Promise.all(folder.features.map(feature => this.run(feature)));
+       // Update the running state of the folder to false after all executions are finished
+      const currentStates = this.folderRunningStates.getValue();
+      currentStates.set(folder.folder_id, false);
+      this.folderRunningStates.next(new Map(currentStates));
+    }
+  }
+
+  // Next update 2.8.77 config.json
+  // async cancelAllFeatures(folder: Folder) {
+  //   if (folder.features.length <= 0) {
+  //     this._snack.open(`No features available in this folder`, 'OK');
+  //     this._snack.open('No features available in this folder', 'OK');
+  //   } else {
+  //     for (const feature of folder.features) {
+  //       LiveStepsComponent.stoptest();
+  //       const dialogRef = this._dialog.open(LiveStepsComponent, {
+  //         data: feature,
+  //         panelClass: 'hidden-dialog'
+  //       });
+  
+  //       dialogRef.afterOpened().subscribe(() => {
+  //         const dialogContainer = document.querySelector('.mat-dialog-container');
+  //         if (dialogContainer) {
+  //           dialogContainer.setAttribute('style', 'opacity: 0; height: 0; width: 0; overflow: hidden;');
+  //         }
+  //         dialogRef.componentInstance.stopTest();
+  //       });
+  //     }
+  //   }
+  // }
+
+  setFilterState(isActive: boolean) {
+    this.filterStateSubject.next(isActive);
+  }
+
 }

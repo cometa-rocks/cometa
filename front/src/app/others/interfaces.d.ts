@@ -62,6 +62,7 @@ interface FeatureRequirements {
   feature_result_id?: number;
 }
 
+
 interface FeatureResult {
   executing?: boolean;
   archived: boolean;
@@ -76,6 +77,7 @@ interface FeatureResult {
   environment_name: string;
   departament_name: string;
   browser: BrowserstackBrowser;
+  mobile: MobileTestResult[];
   total: number;
   fails: number;
   ok: number;
@@ -210,6 +212,8 @@ interface Feature {
   send_mail: boolean;
   send_mail_on_error: boolean;
   email_address: string[];
+  email_cc_address?: string[]; 
+  email_bcc_address?: string[]; 
   email_subject: string;
   email_body: string;
   folder_id?: number;
@@ -336,6 +340,8 @@ interface SendFeature {
   depends_on_other: boolean;
   send_mail: boolean;
   email_address: string[];
+  email_cc_address?: string[]; 
+  email_bcc_address?: string[]; 
   email_subject: string;
   email_body: string;
   last_edited: number;
@@ -494,6 +500,8 @@ interface SendSaveFeature {
   browsers: BrowserstackBrowser[];
   send_mail: boolean;
   email_address: string[];
+  email_cc_address?: string[]; 
+  email_bcc_address?: string[]; 
   email_subject: string;
   email_body: string;
   send_mail_on_error: boolean;
@@ -665,6 +673,16 @@ interface BrowserstackBrowser {
   selectedTimeZone?: string;
 }
 
+// This interface only used to show mobile test execution results
+interface MobileTestResult {
+  name: string;
+  session_id: string;
+  video_recording: string;
+  mobile_configuration: any;
+  container_service_details: any
+  real_mobile?: boolean | null;
+}
+
 interface BrowserstackBrowsersResponse {
   success: boolean;
   results: BrowserstackBrowser[];
@@ -695,6 +713,7 @@ interface Folder {
   type?: 'department' | 'folder' | 'home';
   current_folder_id?: number;
   route: Folder[];
+  files?: [];
 }
 
 interface FoldersResponse {
@@ -733,6 +752,12 @@ interface QuoteIndexes {
 }
 
 interface VariableColumns {
+  name: string;
+  activated: boolean;
+  value: string;
+}
+
+interface Columns {
   name: string;
   activated: boolean;
   value: string;
@@ -877,6 +902,7 @@ interface IBrowserResult {
   error?: string;
   details?: LiveStepSubDetail;
   feature_result_id?: number;
+  mobiles_info?: any[];
 }
 
 interface LiveStepSubDetail {
@@ -898,6 +924,7 @@ interface StepStatus {
   info?: StepResult;
   screenshots: any;
   vulnerable_headers_count: number;
+  mobiles_info?: any[];
 }
 
 interface IRunsState {
@@ -1025,4 +1052,74 @@ interface UsageInvoice {
   created_on: string;
   modified_on: string;
   error: string;
+}
+
+interface HouseKeepingLogs {
+  id: number ;
+  created_on: string;
+  success: boolean;
+  list_files_to_clean?: any[];
+  house_keeping_logs?: Log[];
+  approved_by?: any;
+}
+
+interface Log {
+  type: string;
+  value: string;
+  spacing: number;
+  formatted_date: string;
+}
+
+interface Configuration {
+  id: number ;
+  configuration_name: string;
+  configuration_value: string;
+  default_value: string;
+  encrypted: boolean;
+  created_by: string;
+  updated_by: string;
+  created_on: string;
+  updated_on: string;
+  can_be_deleted: boolean;
+  can_be_edited: boolean;
+  disabled:boolean;
+}
+
+interface MobileJSON {
+  image: string;
+  android_version: string;
+  api_level: string;
+  deviceName: string;
+  architecture: boolean;
+  automationName: string;
+  icon?: string
+}
+
+interface IMobile {
+  mobile_id: number;
+  mobile_image_name: string; 
+  mobile_json: MobileJSON;
+  capabilities: any;
+  // These 2 fields below are related only to the frontend, does not have be stored in the backend
+  isShared?: boolean;
+  selectedAPKFileID?: number;
+}
+
+
+interface Container {
+  id: number;
+  image: number | IMobile;
+  service_id: string;
+  service_status: string;
+  service_type: string;
+  information?: string;
+  user?: OIDCUserInfo
+  created_on: string,
+  created_by?: number; 
+  created_by_name?: string; 
+  apk_file?: number | File;
+  shared: boolean;
+  hostname:string;
+  isPaused?: boolean;
+  isTerminating?: boolean;
 }

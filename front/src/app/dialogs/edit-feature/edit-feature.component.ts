@@ -7,9 +7,11 @@ import {
   HostListener,
   OnDestroy,
   ChangeDetectorRef,
+  Renderer2
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
+import { InputFocusService } from '../../services/inputFocus.service';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { API_URL } from 'app/tokens';
 import {
@@ -32,6 +34,7 @@ import {
 } from '@angular/material/legacy-checkbox';
 import { StepEditorComponent } from '@components/step-editor/step-editor.component';
 import { BrowserSelectionComponent } from '@components/browser-selection/browser-selection.component';
+import { AddStepComponent } from '@dialogs/add-step/add-step.component';
 import {
   MatLegacyChipListChange as MatChipListChange,
   MatLegacyChipsModule,
@@ -42,9 +45,11 @@ import { EnvironmentsState } from '@store/environments.state';
 import { ConfigState } from '@store/config.state';
 import { UserState } from '@store/user.state';
 import { EditVariablesComponent } from '@dialogs/edit-variables/edit-variables.component';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
+import { MobileListComponent } from '@dialogs/mobile-list/mobile-list.component';
+import { EmailTemplateHelp } from './email-template-help/email-template-help.component';
 import { KEY_CODES } from '@others/enums';
 import { CustomSelectors } from '@others/custom-selectors';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
@@ -53,7 +58,6 @@ import { StepDefinitions } from '@store/actions/step_definitions.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
 import { finalize, switchMap } from 'rxjs/operators';
-import { EmailTemplateHelp } from './email-template-help/email-template-help.component';
 import {
   AreYouSureData,
   AreYouSureDialog,
@@ -69,6 +73,7 @@ import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
 import { StepEditorComponent as StepEditorComponent_1 } from '../../components/step-editor/step-editor.component';
+import { EditSchedule } from '@dialogs/edit-schedule/edit-schedule.component';
 import { RouterLink } from '@angular/router';
 import { BrowserSelectionComponent as BrowserSelectionComponent_1 } from '../../components/browser-selection/browser-selection.component';
 import { ClipboardModule } from '@angular/cdk/clipboard';
@@ -87,6 +92,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { DraggableWindowModule } from '@modules/draggable-window.module'
 
 @Component({
   selector: 'edit-feature',
@@ -126,6 +132,8 @@ import { NgIf, NgFor, AsyncPipe } from '@angular/common';
     SortByPipe,
     HumanizeBytesPipe,
     TranslateModule,
+    DraggableWindowModule,
+    MobileListComponent
   ],
 })
 export class EditFeature implements OnInit, OnDestroy {
@@ -153,6 +161,7 @@ export class EditFeature implements OnInit, OnDestroy {
   hasSubscription: boolean;
   @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
   @Select(VariablesState) variableState$: Observable<VariablePair[]>;
+  
 
   saving$ = new BehaviorSubject<boolean>(false);
 
@@ -185,6 +194,15 @@ export class EditFeature implements OnInit, OnDestroy {
   @ViewChild(StepEditorComponent, { static: false })
   stepEditor: StepEditorComponent;
 
+  @ViewChild(EditSchedule, { static: false })
+  EditSch: EditSchedule;
+
+  inputFocus: boolean = false;
+
+  private inputFocusSubscription: Subscription;
+
+  isExpanded: boolean = false;
+
   // COTEMP -- Used to check the state data status
   @Select(FeaturesState.GetStateDAta) state$: Observable<
     ReturnType<typeof FeaturesState.GetStateDAta>
@@ -202,8 +220,14 @@ export class EditFeature implements OnInit, OnDestroy {
     private _fb: UntypedFormBuilder,
     private cdr: ChangeDetectorRef,
     private fileUpload: FileUploadService,
-    @Inject(API_URL) public api_url: string
+    @Inject(API_URL) public api_url: string,
+    private inputFocusService: InputFocusService,
   ) {
+
+    this.inputFocusService.inputFocus$.subscribe(isFocused => {
+      this.inputFocus = isFocused;
+    });
+
     // Create the fields within FeatureForm
     this.featureForm = this._fb.group({
       app_name: ['', Validators.required],
@@ -217,6 +241,8 @@ export class EditFeature implements OnInit, OnDestroy {
       schedule: [''],
       email_address: [[]],
       email_subject: [''],
+      email_cc_address: [[]],
+      email_bcc_address: [[]],
       email_body: [''],
       address_to_add: [''], // Used only for adding new email addresses
       depends_on_others: [false],
@@ -226,7 +252,11 @@ export class EditFeature implements OnInit, OnDestroy {
       generate_dataset: [false],
       need_help: [false],
       send_mail_on_error: [false],
-      continue_on_failure: [false],
+      check_maximum_notification_on_error: [false],
+      maximum_notification_on_error: ['3'],
+      attach_pdf_report_to_email: [true],
+      do_not_use_default_template: [false],
+      continue_on_failure: [true],
       uploaded_files: [[]],
       video: [true],
       minute: [
@@ -289,6 +319,7 @@ export class EditFeature implements OnInit, OnDestroy {
   ngOnDestroy() {
     // When Edit Feature Dialog is closed, clear temporal steps
     return this._store.dispatch(new StepDefinitions.ClearNewFeature());
+    this.inputFocusSubscription.unsubscribe();
   }
 
   parseSchedule(expression) {
@@ -326,7 +357,7 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Add address to the addresses array
-  addAddress(change: MatChipListChange) {
+  addAddress(change: MatChipListChange, fieldName: string) {
     // Check email value
     if (change.value) {
       // Accounts with only Default department, are limited, they can only use their own email
@@ -343,12 +374,12 @@ export class EditFeature implements OnInit, OnDestroy {
         return;
       }
       // Get current addresses
-      const addresses = this.featureForm.get('email_address').value.concat();
+      const addresses = this.featureForm.get(fieldName).value.concat();
       // Perform push only if address doesn't exist already
       if (!addresses.includes(change.value)) {
         addresses.push(change.value);
-        this.featureForm.get('email_address').setValue(addresses);
-        this.featureForm.get('email_address').markAsDirty();
+        this.featureForm.get(fieldName).setValue(addresses);
+        this.featureForm.get(fieldName).markAsDirty();
       }
       this.featureForm.get('address_to_add').setValue('');
     }
@@ -366,7 +397,6 @@ export class EditFeature implements OnInit, OnDestroy {
     ).department_id;
     const feature = this.feature.getValue();
 
-    this.variable_dialog_isActive = true;
     this._dialog
       .open(EditVariablesComponent, {
         data: {
@@ -381,17 +411,37 @@ export class EditFeature implements OnInit, OnDestroy {
       })
       .afterClosed()
       .subscribe(res => {
-        this.variable_dialog_isActive = false;
+        
+      });
+  }
+
+  // Open variables popup, only if a environment is selected (see HTML)
+  openStartEmulatorScreen() {
+    let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk'));
+    const departmentId = this.departments$.find(
+      dep =>
+        dep.department_name === this.featureForm.get('department_name').value
+    ).department_id;
+    this._dialog
+      .open(MobileListComponent, {
+        data: {
+          department_id: departmentId,
+          uploadedAPKsList: uploadedAPKsList
+        },
+        panelClass: 'mobile-emulator-panel',
+      })
+      .afterClosed()
+      .subscribe(res => {
       });
   }
 
   // Remove given address from addresses array
-  removeAddress(email: string) {
+  removeAddress(email: string, fieldName: string) {
     if (email) {
-      let addresses = this.featureForm.get('email_address').value.concat();
+      let addresses = this.featureForm.get(fieldName).value.concat();
       addresses = addresses.filter(addr => addr !== email);
-      this.featureForm.get('email_address').setValue(addresses);
-      this.featureForm.get('email_address').markAsDirty();
+      this.featureForm.get(fieldName).setValue(addresses);
+      this.featureForm.get(fieldName).markAsDirty();
     }
   }
 
@@ -403,33 +453,137 @@ export class EditFeature implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
-    // only execute switch case if child dialog is closed
-    if (this.variable_dialog_isActive) return;
-    switch (event.keyCode) {
-      case KEY_CODES.ESCAPE:
-        // Check if form has been modified before closing
-        if (this.hasChanged()) {
-          this._dialog
-            .open(AreYouSureDialog, {
-              data: {
-                title: 'translate:you_sure.quit_title',
-                description: 'translate:you_sure.quit_desc',
-              } as AreYouSureData,
-            })
-            .afterClosed()
-            .subscribe(exit => {
-              // Close edit feature popup
-              if (exit) this.dialogRef.close();
-            });
-        } else {
-          this.dialogRef.close();
-        }
-        break;
-      case KEY_CODES.V:
-        if (event.ctrlKey && event.altKey) this.editVariables();
-        break;
+    // If true... return | only execute switch case if input focus is false
+    if (this.inputFocus) return;
+    let KeyPressed = event.keyCode;
+    const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
+    const startEmulatorOpen = document.querySelector('mobile-list') as HTMLElement;
+
+    if(!this.inputFocus && editVarOpen == null && startEmulatorOpen == null){
+      switch (event.keyCode) {
+        case KEY_CODES.ESCAPE:
+          // Check if form has been modified before closing
+          if (this.hasChanged()) {
+            this._dialog
+              .open(AreYouSureDialog, {
+                data: {
+                  title: 'translate:you_sure.quit_title',
+                  description: 'translate:you_sure.quit_desc',
+                } as AreYouSureData,
+              })
+              .afterClosed()
+              .subscribe(exit => {
+                // Close edit feature popup
+                if (exit) this.dialogRef.close();
+              });
+          } else {
+            this.dialogRef.close();
+          }
+          break;
+        case KEY_CODES.V:
+          if(!event.ctrlKey){
+          // Edit variables
+            this.editVariables();
+          }
+          break;
+        case KEY_CODES.D:
+            // Depends on other feature
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.S:
+            // Open Emulator mobile
+            this.openStartEmulatorScreen();
+          break;
+        case KEY_CODES.M:
+            // Send email
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.R:
+            // Record video
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.F:
+            // Continue on failure
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.H:
+            // Need help
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.N:
+            // Network loggings
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.G:
+            // Generate dataset
+            this.toggleDependsOnOthers(KeyPressed);
+          break;
+        default:
+          break;
+      } 
     }
   }
+
+  // Shortcut emitter to parent component
+  receiveDataFromChild(isFocused: boolean) {
+    this.inputFocus = isFocused;
+  }
+
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocus = true;
+  }
+
+  onInputBlur() {
+    this.inputFocus = false;
+  }
+
+  toggleDependsOnOthers(KeyPressed) {
+    let checkboxValue = this.featureForm.get('send_mail').value;
+    let dependsOnOthers = this.featureForm.get('depends_on_others').value;
+    if(KeyPressed === KEY_CODES.D) {
+      dependsOnOthers = this.featureForm.get('depends_on_others').value;
+      this.featureForm.get('depends_on_others').setValue(!dependsOnOthers);
+    }
+    else if (KeyPressed === KEY_CODES.F) {
+      checkboxValue = this.featureForm.get('continue_on_failure').value;
+      this.featureForm.get('continue_on_failure').setValue(!checkboxValue);
+    }
+    else if (KeyPressed === KEY_CODES.H) {
+      checkboxValue = this.featureForm.get('need_help').value;
+      this.featureForm.get('need_help').setValue(!checkboxValue);
+    }
+    if(dependsOnOthers === false){
+      if(KeyPressed === KEY_CODES.M) {
+        checkboxValue = this.featureForm.get('send_mail').value;
+        this.featureForm.get('send_mail').setValue(!checkboxValue);
+      }
+      else if (KeyPressed === KEY_CODES.R) {
+        checkboxValue = this.featureForm.get('video').value;
+        this.featureForm.get('video').setValue(!checkboxValue);
+      }
+      else if (KeyPressed === KEY_CODES.N) {
+        checkboxValue = this.featureForm.get('network_logging').value;
+        this.featureForm.get('network_logging').setValue(!checkboxValue);
+      }
+      else if (KeyPressed === KEY_CODES.G) {
+        checkboxValue = this.featureForm.get('generate_dataset').value;
+        this.featureForm.get('generate_dataset').setValue(!checkboxValue);
+      }
+    }
+  }
+
+  // Check if mouse is over the dialog (puede ser step definition?)
+  isHovered = false;
+
+  onMouseOver() {
+    this.isHovered = true;
+  }
+
+  onMouseOut() {
+    this.isHovered = false;
+  }
+
 
   // Deeply check if two arrays are equal, in length and values
   arraysEqual(a: any[], b: any[]): boolean {
@@ -505,9 +659,15 @@ export class EditFeature implements OnInit, OnDestroy {
         fields = [
           ...fields,
           'email_address',
+          'email_cc_address',
+          'email_bcc_address',
           'email_subject',
           'email_body',
           'send_mail_on_error',
+          'maximum_notification_on_error',
+          'check_maximum_notification_on_error',
+          'attach_pdf_report_to_email',
+          'do_not_use_default_template',
         ];
       }
       // Add fields mandatory for Schedule
@@ -584,6 +744,13 @@ export class EditFeature implements OnInit, OnDestroy {
   _browserSelection: BrowserSelectionComponent;
 
   ngOnInit() {
+    // Connection with the service who is connected with Step-editor
+    this.inputFocusSubscription = this.inputFocusService.inputFocus$.subscribe(isFocused => {
+      this.inputFocus = isFocused;
+    });
+
+    this.checkForCreateButton();
+
     this.featureForm.valueChanges.subscribe(() => {
       this.variableState$.subscribe(data => {
         this.variables = this.getFilteredVariables(data);
@@ -897,7 +1064,7 @@ export class EditFeature implements OnInit, OnDestroy {
           this.manageFeatureDialogData(res, dataToSend);
         } else {
           // If XHR was ok
-          this._snackBar.open('An error ocurred.', 'OK');
+          this._snackBar.open('An error occurred.', 'OK');
         }
       });
   }
@@ -1114,5 +1281,14 @@ export class EditFeature implements OnInit, OnDestroy {
       []
     );
     return reduced;
+  }
+
+  checkForCreateButton() {
+    if (this.data.mode == 'new') {
+      this.isExpanded = true;
+    }
+    else if (this.data.mode === 'edit' || this.data.mode === 'clone'){
+      this.isExpanded = false;
+    }
   }
 }

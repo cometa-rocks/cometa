@@ -1,15 +1,30 @@
 <h2 mat-dialog-title>Email template help</h2>
 <mat-dialog-content>
-  In this section you can customize how the email sended to the provided
-  addresses will look like.<br />
-  You can also use the following information variables in the subject or body:
+  Struggling to craft the perfect email notification? You can customize emails sent to your recipients, using variables.
+  <br />
+  Variables can be used in the subject or body:
+
+  <br><br>
+  <p>Basic Information</p>
   <ul>
-    <li *ngFor="let variable of variables">
+    <li *ngFor="let variable of sortedBasicVariables">
       <div>
-        <b>${{ variable[0] }}</b>
+        <b>${{ variable[1] }}</b>
       </div>
       <div>
-        {{ variable[1] }}
+        {{ variable[2] }}
+      </div>
+    </li>
+  </ul>
+  <br/>
+  <p>Feature Execution Result</p>
+  <ul>
+    <li *ngFor="let variable of sortedFeatureVariables">
+      <div>
+        <b>${{ variable[1] }}</b>
+      </div>
+      <div>
+        {{ variable[2] }}
       </div>
     </li>
   </ul>

@@ -1,0 +1,15 @@
+<div class="house-keeping-logs" *ngIf="houseKeepingLog">
+  <h2 mat-dialog-title>Housekeeping Logs of [{{ houseKeepingLog.created_on | amParse | amDateFormat: 'dd MMM yyyy HH:mm:ss'}}]</h2>
+  <mat-dialog-content class="house-keeping-logs-content">
+    <div [innerHTML]="logs">
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
+  </mat-dialog-actions>
+</div>
+<div *ngIf="!houseKeepingLog">
+  loading...
+</div>
+
+

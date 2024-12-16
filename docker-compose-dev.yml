@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     container_name: cometa_postgres
@@ -20,8 +18,10 @@ services:
       driver: json-file
     command: bash start.sh -dev
     volumes:
-      - /data/cometa/screenshots:/code/behave/screenshots
-      - /data/cometa/videos:/code/behave/videos
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/cometa/screenshots:/code/behave/screenshots
+      - ./data/cometa/videos:/code/behave/videos
+      - ./data/cometa/config:/code/config:rw
       - ./backend:/code
       - ./backend/src:/opt/code:rw
       - "./backend/crontabs/cometa_django_crontab:/etc/cron.d/crontab"
@@ -50,12 +50,15 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - /data/cometa/screenshots:/opt/code/screenshots
-      - /data/cometa/videos:/opt/code/videos
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/cometa/screenshots:/opt/code/screenshots
+      - ./data/cometa/videos:/opt/code/videos
+      - ./data/cometa/config:/code/config:rw
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
+      - ./data/redis/certs:/share/certs
       - "./backend/behave/schedules/crontab:/etc/cron.d/crontab"
-    command: "/code/docker/build/behave/entry.sh"
+    command: /opt/code/entry.sh -dev
     working_dir: /opt/code/behave_django
     environment:
       PYTHONUNBUFFERED: 1
@@ -91,38 +94,52 @@ services:
       - 4444:4444
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./backend/selenoid/:/etc/selenoid/:ro
-      - /data/cometa/videos:/opt/selenoid/video
+      - ./backend/selenoid/:/etc/selenoid/:rw
+      - ./data/cometa/config/images:/code/config/images:rw
+      - ./data/cometa/videos:/opt/selenoid/video
     environment:
       TZ: Europe/Berlin
       OVERRIDE_VIDEO_OUTPUT_DIR: ${PWD}/data/cometa/videos
     networks:
       - testing
     restart: always
-    # entrypoint with limit on browser executions to CPU-2 or Defaulting to 2 if number is less then 2
-    entrypoint: sh -c "LIMIT=$$(($$(nproc)-2))  && LIMIT=$$((LIMIT > 2 ? $$LIMIT:2)) && /usr/bin/selenoid \
-      -listen :4444 \
-      -conf /etc/selenoid/browsers.json \
-      -video-output-dir /opt/selenoid/video \
-      -log-output-dir /opt/selenoid/logs \
-      -container-network cometa_testing \
-      -limit $$LIMIT"
+    entrypoint: sh /etc/selenoid/start.sh
 
   novnc:
-    image: cometa/novnc:1.0
+    image: cometa/novnc:1.2
     container_name: cometa_novnc
     networks:
       - testing
     restart: always
-
+  
   crontab:
-    build:
-      context: backend/docker/build/cron
-      dockerfile: Dockerfile
+    image: cometa/scheduler:latest
     container_name: cometa_crontab
+    environment:
+      CRONTAB_SERVER_URL: "crontab"
+      CRONTAB_SERVER_PORT: "8080"
+      SCHEDULER_HOST: "crontab"
+      SCHEDULER_PORT: "8080"
+      DEBUG_LEVEL: 10
+    # volumes:
+    #   - ./scheduler:/app:rw
     networks:
       - testing
     restart: always
+
+  # This service is only used for build the appium_inspector dist files
+  # with image node:20, once build is done, copy the build files to front foler
+  # when apache image is using node:20 to build the angular project this can be done with in the apache container it self
+  # After that appium.inspector should be removed 
+  appium.inspector:
+    image: node:20
+    volumes:
+      - ./front/appium-inspector-build:/app
+      - ./front:/front
+    working_dir: /front/appium-inspector-build
+    command: bash appium_build.sh
+    networks:
+      - testing
 
   apache:
     image: "httpd:2.4.48"
@@ -133,7 +150,7 @@ services:
       - ./front/apache-conf/openidc.conf_local:/usr/local/apache2/conf/openidc.conf
       - ./front/apache-conf/paths.conf:/usr/local/apache2/conf/paths.conf
       - ./front/apache-conf/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
-      - /data/cometa/screenshots:/screenshots
+      - ./data/cometa/screenshots:/screenshots
     working_dir: /code/front
     ports:
       - "443:443"
@@ -143,6 +160,7 @@ services:
     networks:
       - testing
     restart: always
+
   redis:
     image: redis:7.2.0-alpine
     container_name: cometa_redis

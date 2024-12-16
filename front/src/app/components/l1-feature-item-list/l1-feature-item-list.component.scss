@@ -11,7 +11,7 @@
   padding: 10px;
   box-sizing: border-box;
   width: 100%;
-  height: 130px;
+  height: 170px;
   margin-bottom: 30px;
   margin-top: 20px;
   @include for-tablet-portrait-up {
@@ -19,6 +19,7 @@
   }
   @include for-tablet-landscape-up {
     width: 50%;
+    margin-bottom: 20px;
   }
   @include for-desktop-up {
     width: 33.333333%;
@@ -130,29 +131,37 @@
   }
   .options {
     position: absolute;
-    margin: auto;
+    margin-top: 7px;
     top: 0;
     right: 0;
   }
   .name {
     color: $blue;
-    font-size: 21pt;
+    font-size: 18pt;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     width: 100%;
     padding-right: 30px;
+    margin-top: 5px;
+    margin-left: 15px;
     box-sizing: border-box;
   }
   .steps {
     margin-top: 10px;
+    margin-left: 15px;
   }
   .exec_time {
     color: $bad;
+    font-size: 14px;
+    letter-spacing: 0.5px;
   }
   .browser {
     color: #546e7a;
     margin-top: 10px;
+    margin-left: 15px;
+    font-size: 14px;
+    letter-spacing: 0.5px;
   }
 }
 
@@ -177,7 +186,7 @@
   }
   // Rear part of the folder
   .folder-behind {
-    margin-top: -130px;
+    margin-top: -170px;
     background-color: $folder-back;
     box-shadow: none;
     height: calc(100% + 20px);
@@ -219,10 +228,11 @@ input {
 
 .feature-id {
   position: absolute;
-  bottom: 8px;
-  right: 10px;
   font-weight: bold;
+  bottom: 8px;
+  right: 15px;
   color: rgba(black, 0.35);
+  transition: all 0.3s ease-in-out;
 }
 
 .top-left-container {
@@ -310,4 +320,135 @@ input {
       transform: rotate(720deg);
     }
   }
+
+  .parent-container {
+    display: block;
+  }
+  
+  .parent-container.hidden {
+    display: none;
+  }
+  
+  
+  .cont-fath-folder {
+    position: relative; 
+    width: 100%; 
+    transition: width 0.2s;
+  }
+  
+  .cont-son-folder {
+    position: absolute;
+    top: 40px; 
+    left: 103.1%; 
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    background-color: #636769b5;
+    border-radius: 150px;
+    height: 50px;
+    width: 50px;
+    clip-path: inset(0 50% 0 0);
+    transition: width 0.2s;
+    opacity: 1;
+  }
+  
+  .cont-son-folder:hover {
+    cursor: default;
+    width: 550px; 
+    transform: translateX(-50%);
+    .domainIcon-1 {
+      opacity: 0;
+    }
+    .domainIcon-2 {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16pt;
+      transition: font-size 0.3s ease;
+    }
+    .domainIcon-2:hover {
+      font-size: 17pt;
+    }
+    .folder-go-to:hover {
+      transform: scale(1.20);
+    }
+    .absolute-path {
+      opacity: 1;
+      margin-left: 10px;
+    }
+  }
+  
+  .absolute-path {
+    display: flex;
+    align-items: center;
+    margin-left: -20px;
+    opacity: 0;
+    span {
+      font: unset;
+      font-size: 15px;
+      max-width: 50px;
+      margin-left: 5px;
+      white-space: nowrap; 
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    span:nth-of-type(odd) {
+      cursor: pointer; 
+    }
+  }
+  
+  .circle-domainIcon-2 {
+    border-radius: 150px;
+    height: 35px;
+    width: 35px;
+    background-color: hsl(220, 4%, 71%);
+    opacity: 98%;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  
+  .chevron{
+    font-size: 16px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .folder-go-to {
+    height: 18pt;
+    transition: transform 0.3s ease;
+    min-width: 18px;
+    background-image: url(^assets/icons/folder.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    cursor: pointer;
+  }
+  
+  .domainIcon-1{
+    font-size: 21pt;
+  }
+  
+}
+
+.schedule-container {
+  margin-left: 15px;
+}
+
+.clipboard-icon {
+  font-size: 16px;
+  color: #555;
+  opacity: 0.8;
+}
+
+.icon-container {
+  position: relative;
+  top: 10px;
+  right: -8px;
+  margin: 0;
+
 }

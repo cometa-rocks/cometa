@@ -9,9 +9,9 @@ from backend.common import UPLOADS_FOLDER
 from backend.models import File, FileData
 from backend.serializers import FileSerializer
 from backend.utility.functions import getLogger
-sys.path.append("/code")
-from secret_variables import COMETA_UPLOAD_ENCRYPTION_PASSPHRASE
-from.config_handler import *
+from .config_handler import *
+from backend.utility.configurations import ConfigurationManager
+
 # logger information
 logger = getLogger()
 
@@ -58,6 +58,7 @@ class TempFileUploadHandler(TemporaryFileUploadHandler):
         )
 
 def decryptFile(source):
+    COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = ConfigurationManager.get_configuration('COMETA_UPLOAD_ENCRYPTION_PASSPHRASE','')
     import tempfile
     target = "/tmp/%s" % next(tempfile._get_candidate_names())
 
@@ -265,6 +266,7 @@ class UploadFile():
         return f'{finalDir}/{self.filename}'
 
     def encrypt(self):
+        COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = ConfigurationManager.get_configuration('COMETA_UPLOAD_ENCRYPTION_PASSPHRASE','')
         self.file.status = "Encrypting"
         logger.debug(f"Encrypting {self.tempFile.name}...")
         # send a websocket about the processing being done.

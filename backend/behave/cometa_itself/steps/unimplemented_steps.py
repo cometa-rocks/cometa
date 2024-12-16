@@ -1,6 +1,5 @@
 from behave import step
 import sys
-sys.path.append('/code/behave/cometa_itself/steps')
 from actions import (
     done,
     logger

@@ -1,16 +1,19 @@
-
 """
 Python library with custom exceptions for Behave
 """
 
+
 class PromptReferenceNotFound(Exception):
     pass
+
 
 class PromptReferenceNameNotFound(Exception):
     pass
 
+
 class PromptValueEmpty(Exception):
     pass
+
 
 # ########################################################################## #
 # CustomError exception #################################################### #

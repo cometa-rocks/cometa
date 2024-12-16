@@ -101,7 +101,7 @@
   flex-wrap: wrap;
   flex-direction: column;
   width: 100%;
-  max-width: 600px;
+  max-width: 650px;
   @include for-tablet-portrait-up {
     flex-direction: row;
     flex-wrap: nowrap;
@@ -113,7 +113,7 @@
     justify-content: space-between;
     align-items: center;
     @include for-tablet-portrait-up {
-      flex: 0 400px;
+      flex: 0 500px;
     }
     .circular-progress {
       flex: initial;
@@ -330,11 +330,14 @@
       flex: 0 5px;
       max-width: 5px;
       height: 100%;
-      &.success {
+      &.success, &.Success {
         background-color: $good;
       }
-      &.failed {
+      &.failed, &.Failed {
         background-color: $bad;
+      }
+      &.skipped, &.Skipped {
+        background-color: rgb(204, 204, 129);
       }
       @include for-tablet-portrait-up {
         display: none;
@@ -445,4 +448,14 @@
     //     margin-top: 37px;
     // }
   }
+}
+
+.success {
+  background-color: $good;
+}
+.failed {
+  background-color: $bad;
+}
+.skipped {
+  background-color: rgb(182, 182, 101);
 }

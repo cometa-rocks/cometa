@@ -14,9 +14,8 @@ h2 {
   width: 100%;
 }
 
-.data {
-  height: 100%;
-  overflow: hidden;
+.button-row {
+  margin: 2%, 3%;
 }
 
 account:nth-child(2n + 2) {
@@ -38,4 +37,10 @@ account:nth-child(2n + 2) {
 .mat-spinner {
   display: block;
   margin: 0 auto;
+}
+
+.Housekeeping-logs {
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 1% 3%;
 }

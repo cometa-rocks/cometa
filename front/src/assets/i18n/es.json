@@ -1,4 +1,9 @@
 {
+  "header": {
+    "profile": "Tu perfil (P)",
+    "upload": "Crear nueva feature (F)",
+    "menu": "Menú (M)"
+  },
   "menu": {
     "order_intake": "Order Intake",
     "production_program": "Production Program",
@@ -6,6 +11,21 @@
     "plant_stock": "Plant Stock",
     "about": "About",
     "help": "Help"
+  },
+  "sidenav_page": {
+    "add": "Botón con opciones para crear una carpeta o funcionalidad. (+)",
+    "folder": "Crear una nueva carpeta para organizar tus funcionalidades. (B)",
+    "feature": "Haz clic para definir una nueva funcionalidad para tu aplicación. (F)",
+    "home": "En esta sección tenemos el tutorial de co.meta, ayuda y documentación.",
+    "data_driven_sidenav": "Ejecución de pruebas basadas en las variables proporcionadas por la hoja de Excel",
+    "variables_sidenav": "En esta sección, podemos agregar o editar variables entre otras funcionalidades",
+    "team_drives": "Funcionalidad próxima",
+    "recent": "Las últimas pruebas que has ejecutado",
+    "starred": "Funcionalidad próxima",
+    "trash_bin": "Funcionalidad próxima"
+  },
+  "data_driven": {
+    "data_driven_button": "Ejecución de pruebas basadas en las variables proporcionadas por la hoja de Excel. (T)"
   },
   "headers": {
     "status": "Estado",
@@ -67,6 +87,7 @@
     "allocation": "Allocation"
   },
   "about": {
+    "shortcut": "Atajo de teclado",
     "config": "Configuración",
     "sponsor": "Sponsors",
     "credits": "Créditos",
@@ -80,6 +101,8 @@
     "delete_templates_with_features": "Si se activa, las imágenes de la plantilla de cada resultado también se eliminarán.",
     "variables_requires": "Por favor seleccione un departamento y entorno para editar las variables",
     "run_feature": "Iniciar feature",
+    "run_all_features": "Ejecutar todas las características",
+    "runnning_all_features": "Ejecutando todas las características",
     "edit_schedule": "Editar programación",
     "edit_feature": "Modificar feature",
     "loading_feature": "Cargando feature",
@@ -123,5 +146,28 @@
   "send_on": {
     "after_test_execution": "Siempre",
     "after_test_execution_failed": "Fallido"
+  },
+  "edit_feature": {
+    "depends_on_other_feature": "Si está habilitado, solo una tercera característica puede ejecutar esta característica",
+    "send_mail": "Si está habilitado, se mostrará una nueva sección para enviar los resultados al correo electrónico deseado.",
+    "record_video": "Cada vez que se ejecuta la característica, se grabará un video",
+    "network_logging": "Habilite esta opción para registrar las respuestas de la red, incluido el análisis de encabezados vulnerables",
+    "generate_dataset": "Crear un conjunto de datos de su aplicación web",
+    "continue_on_failure_global": "Si está habilitado, los pasos de la característica continuarán incluso en presencia de errores; si está deshabilitado, prevalecerán los ajustes de pasos individuales",
+    "explanation": "Habilitar esta opción permite que otros usuarios te ayuden en esta característica",
+    "edit_variable": "En esta sección, podemos agregar o editar variables entre otras funcionalidades",
+    "default_template": "Si está marcado, proporcione su plantilla de correo electrónico personalizada, que se puede usar para crear correos electrónicos personalizados, por ejemplo, solo con capturas de pantalla. El valor predeterminado es falso: para no cambiar el comportamiento actual que usan los clientes.",
+    "maximum_notification_on_error":"Si está marcado, proporcione la cantidad de correos electrónicos de fallos consecutivos que desea recibir. Esta opción es útil para evitar notificaciones continuas de fallos, de modo que el usuario no sea bombardeado con correos electrónicos excesivos.",
+    "attach_pdf": "Si está marcado, se adjuntará el resultado de la prueba en PDF en el correo electrónico. De lo contrario, se enviará el correo electrónico sin PDF. Útil cuando se envía correo electrónico con plantilla personalizada."
+  },
+  "step-definition": {
+    "insert-new-above": "CTRL + ARRIBA",
+    "insert-new-below": "CTRL + ABAJO",
+    "copy-new-above": "CTRL + ALT + ARRIBA",
+    "copy-new-below": "CTRL + ALT + ABAJO"
+  },
+  "schedule": {
+    "last-run": "Última ejecución:",
+    "no-last-run": "Última ejecución: Aún no se ha realizado ninguna ejecución"
   }
 }

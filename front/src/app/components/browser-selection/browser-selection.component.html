@@ -13,7 +13,6 @@
     </mat-form-field>
     <!-- Platform selector only for mobiles -->
     <mat-form-field class="platform-selector-mobile" appearance="fill">
-      <mat-label>Platforms</mat-label>
       <select [formControl]="browser" matNativeControl>
         <optgroup
           *ngFor="let category of categories | async | keyvalue"
@@ -184,20 +183,22 @@
                   ">
                   <span>x</span>
                   <input
-                    *ngLet="getCurrentlySelectedBrowser(version) as selected"
-                    type="number"
-                    inputmode="numeric"
-                    matInput
-                    [min]="MIN_CONCURRENCY"
-                    [max]="selected_cloud.max_concurrency"
-                    [value]="
-                      selected.concurrency
-                        ? selected.concurrency
-                        : DEFAULT_CONCURRENCY
-                    "
-                    (change)="
-                      handleConcurrencyChange(version, $event.srcElement)
-                    " />
+                  *ngLet="getCurrentlySelectedBrowser(version) as selected"
+                  type="number"
+                  inputmode="numeric"
+                  matInput
+                  [min]="MIN_CONCURRENCY"
+                  [max]="selected_cloud.max_concurrency"
+                  [value]="
+                    selected.concurrency
+                      ? selected.concurrency
+                      : DEFAULT_CONCURRENCY
+                  "
+                  (change)="
+                    handleConcurrencyChange(version, $event.srcElement)
+                  "
+                  class="number-browser-input"
+                  />
                 </div>
               </div>
               <i
@@ -209,13 +210,10 @@
             </div>
           </div>
           <!-- Button to load more versions for a given browser -->
-          <button
-            color="primary"
-            *ngIf="browser.value.length > 6"
-            mat-stroked-button
-            class="load-more"
-            (click)="showAll(browser.key)">
-            SHOW ALL
+          <button 
+            color="primary" 
+            *ngIf="browser.value.length > 6" mat-stroked-button class="load-more" 
+            (click)="showAll(browser.key)">SHOW {{ (browserExpandStatus && browserExpandStatus[browser.key]) ? 'LESS' : 'ALL' }}
           </button>
         </div>
       </div>

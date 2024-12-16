@@ -3,15 +3,15 @@ from backend.serializers import OIDCAccountLoginSerializer
 from django.http import JsonResponse
 import uuid, datetime, re, requests
 from backend.common import *
-import secret_variables
 from backend.utility.functions import getLogger
 from pprint import pprint
 from django.shortcuts import redirect
+from backend.utility.configurations import ConfigurationManager
 import urllib3
-from backend.utility.config_handler import get_config
+from utility.config_handler import get_config
 logger = getLogger()
 
-DOMAIN = getattr(secret_variables, 'COMETA_DOMAIN', '')
+DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
 
 class AuthenticationMiddleware:
     def __init__(self, get_response):
@@ -37,7 +37,8 @@ class AuthenticationMiddleware:
         # check if user_info is already saved in session
         user_info = request.session.get('user_info', None)
         # if not in session make a request to callback and get userinfo from openidc.
-        if user_info == None:
+        
+        if user_info == None:      
             try:
                 # get the host from request
                 HTTP_HOST = request.META.get('HTTP_HOST', DOMAIN)
@@ -120,7 +121,7 @@ class AuthenticationMiddleware:
 
             # get the superuser permissions
             superuser = Permissions.objects.filter(permission_name="SUPERUSER")[0]
-            if REMOTE_ADDR.startswith('172') or  REMOTE_ADDR.startswith('10.'):
+            if REMOTE_ADDR.startswith('172') or REMOTE_ADDR.startswith('10') or REMOTE_ADDR.startswith('192'):
                 # save the user as Scheduler
                 if HTTP_COMETA_ORIGIN == 'CRONTAB':
                     # Try to get HTTP_COMETA_USER from behave cron, we will fallback to dummy user
@@ -156,7 +157,7 @@ class AuthenticationMiddleware:
                 This could mean that oAuth provider did not return user information.
                 
                 Try again later or please contact us @ %s
-                """ % secret_variables.COMETA_FEEDBACK_MAIL
+                """ % ConfigurationManager.get_configuration("COMETA_FEEDBACK_MAIL","")
             }, status=200)
 
         # get the user from the OIDCAccounts model

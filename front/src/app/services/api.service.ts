@@ -777,4 +777,107 @@ export class ApiService {
       observe: 'response',
     });
   }
+
+
+  getHouseKeepingLogs(): Observable<HouseKeepingLogs[]> {
+    return this._http
+      .get<{ housekeepinglogs: HouseKeepingLogs[] }>(`${this.api}housekeeping/`)
+      .pipe(map(response => response.housekeepinglogs));
+  }
+
+  getHouseKeepingLog(id:Number) {
+    return this._http .get<HouseKeepingLogs>(`${this.api}housekeeping/${id}`);
+  }
+
+  getCometaConfigurations(): Observable<Configuration[]> {
+    return this._http
+      .get<{ results: Configuration[] }>(`${this.api}configuration/`)
+      .pipe(map(response => response.results));
+  }
+
+  updateConfigurations(body) {
+    return this._http.post<any>(`${this.api}configuration/`,body);
+  }
+
+
+  setConfigurations(configuration: Configuration): Observable<Configuration> {
+    return this._http.post<string>(`${this.api}configuration/`, configuration, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      }),
+    }).pipe(
+      map(response => JSON.parse(response) as Configuration)
+    );
+  }
+
+  patchConfigurations(configuration: Configuration): Observable<Configuration> {
+    return this._http.patch<string>(
+      `${this.api}configuration/${configuration.id}/`,
+      configuration,
+      {
+        params: new InterceptorParams({
+          skipInterceptor: true,
+        }),
+      }
+    ).pipe(
+      map(response => JSON.parse(response) as Configuration)
+    );
+  }
+
+  deleteConfigurations(id: number): Observable<Success> {
+    return this._http.delete<Success>(`${this.api}configuration/${id}/`, {
+      params: new InterceptorParams({
+        skipInterceptor: true,
+      })
+    });
+  }
+
+  
+  /**
+   * Get the mobile emulators list
+   * @returns Observable<IMobile>
+   */
+  getMobileList() {
+    return this._http.get<{ mobiles: IMobile[] }>(`${this.api}mobile/`).pipe(
+      map(response => response.mobiles) // Extract only the `results` field
+    );
+  }
+  /**
+   * Get the mobile emulators list
+   * @returns Observable<IMobile>
+   */
+  getContainersList() {
+    return this._http.get<{ containerservices: Container[] }>(`${this.api}container_service/`).pipe(
+      map(response => response.containerservices) // Extract only the `results` field
+    );
+  }
+
+  /**
+   * Start the mobile emulators the mobile available mobiles list
+   * @returns Observable<IMobile>
+   */
+  startMobile(body) {
+    return this._http.post<Container>(`${this.api}container_service/`, body)
+  }
+  
+ /**
+ * Terminates a running mobile emulator by its container ID.
+ * @param {string} container_id - The ID of the container to be terminated.
+ * @returns Observable<void> - An observable that completes when the delete request is successful.
+ */
+  terminateMobile(container_id) {
+    return this._http.delete(`${this.api}container_service/${container_id}/`);
+  }
+
+  /**
+   * Updates the properties of a mobile emulator identified by its container ID.
+   * @param {string} container_id - The ID of the container to be updated.
+   * @param {any} body - The request payload containing the updated properties for the mobile emulator.
+   * @returns Observable<EditFeatureResponse> - An observable containing the response from the update request.
+   */
+  updateMobile(container_id, body) {
+    return this._http.put(`${this.api}container_service/${container_id}/`, body);
+  }
+  
+
 }

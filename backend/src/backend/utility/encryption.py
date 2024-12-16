@@ -7,12 +7,27 @@ from hashlib import md5
 
 # just to import secrets
 sys.path.append("/code")
-import secret_variables
 
 # encrypt and decrypt password encrypted in Angular using Crypto-JS
-ENCRYPTION_PASSPHRASE = getattr(secret_variables, 'COMETA_ENCRYPTION_PASSPHRASE', '').encode()
-ENCRYPTION_START = getattr(secret_variables, 'COMETA_ENCRYPTION_START', '')
+# This variable is updated by backend.utility.configurations.py, when configuration is loaded from DB
+ENCRYPTION_PASSPHRASE = None
+# This variable is updated by backend.utility.configurations.py, when configuration is loaded from DB
+ENCRYPTION_START = None
 BLOCK_SIZE = 16
+
+def update_ENCRYPTION_PASSPHRASE(encryption_passphrase:str):
+    global ENCRYPTION_PASSPHRASE
+    ENCRYPTION_PASSPHRASE = encryption_passphrase
+    
+def update_ENCRYPTION_START(encryption_start:str):
+    global ENCRYPTION_START
+    ENCRYPTION_START = encryption_start
+    
+def print_values(): 
+    print("ENCRYPTION_PASSPHRASE = "+ENCRYPTION_PASSPHRASE)
+    print("ENCRYPTION_START = "+ENCRYPTION_START)
+
+    
 
 def pad(data):
     length = BLOCK_SIZE - (len(data) % BLOCK_SIZE)
@@ -32,19 +47,19 @@ def bytes_to_key(data, salt, output=48):
         final_key += key
     return final_key[:output]
 
-def encrypt(message):
+def encrypt(message, passphrase=None):
     salt = Random.new().read(8)
-    key_iv = bytes_to_key(ENCRYPTION_PASSPHRASE, salt, 32+16)
+    key_iv = bytes_to_key(passphrase if passphrase else ENCRYPTION_PASSPHRASE, salt, 32+16)
     key = key_iv[:32]
     iv = key_iv[32:]
     aes = AES.new(key, AES.MODE_CBC, iv)
     return base64.b64encode(b"Salted__" + salt + aes.encrypt(pad(message))).decode("utf-8")
 
-def decrypt(encrypted):
+def decrypt(encrypted, passphrase=None):
     encrypted = base64.b64decode(encrypted)
     assert encrypted[0:8] == b"Salted__"
     salt = encrypted[8:16]
-    key_iv = bytes_to_key(ENCRYPTION_PASSPHRASE, salt, 32+16)
+    key_iv = bytes_to_key(passphrase if passphrase else ENCRYPTION_PASSPHRASE, salt, 32+16)
     key = key_iv[:32]
     iv = key_iv[32:]
     aes = AES.new(key, AES.MODE_CBC, iv)
