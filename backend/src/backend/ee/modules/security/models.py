@@ -37,3 +37,4 @@ class VulnerableHeader(models.Model):
 
     class Meta:
         verbose_name_plural = "VulnerableHeaders"
+        ordering = ['created_on']

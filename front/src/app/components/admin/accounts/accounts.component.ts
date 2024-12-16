@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { Observable, timer } from 'rxjs';
+import { Observable, timer, Subject } from 'rxjs';
 import { UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounce, map, startWith } from 'rxjs/operators';
 import { AsyncPipe } from '@angular/common';
@@ -8,6 +8,7 @@ import { NetworkPaginatedListComponent } from '../../network-paginated-list/netw
 import { DisableAutocompleteDirective } from '../../../directives/disable-autocomplete.directive';
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
   selector: 'admin-accounts',
@@ -26,9 +27,23 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
   ],
 })
 export class AccountsComponent implements OnInit {
+
+  constructor(
+    private inputFocusService: InputFocusService
+  ){}
+
   accountsUrl$: Observable<string>;
 
   search = new UntypedFormControl('');
+
+  private InputFocusService = new Subject<boolean>();
+
+  inputFocus$ = this.InputFocusService.asObservable();
+
+
+  sendInputFocusToParent(inputFocus: boolean): void {
+    this.inputFocusService.setInputFocus(inputFocus);
+  }
 
   ngOnInit() {
     this.accountsUrl$ = this.search.valueChanges.pipe(

@@ -5,6 +5,55 @@
   width: 130px;
 }
 
+#title {
+  color: rgba(0, 0, 0, 0.80);
+  text-decoration: solid;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  margin-right: 15px;
+  margin-bottom: 10px;
+}
+
+.hover-box {
+  display: none;
+  position: absolute;
+  top: 30px;
+  left: 60%;
+  transform: translate(-50%, -50%);
+}
+
+.hover-box-Vshortcut{
+  display: none;
+  position: absolute;
+  top: 130%;
+  left: 60%;
+  transform: translate(-50%, -50%);
+}
+
+
+.checkbox-container:hover .hover-box,
+.checkbox-container:hover .hover-box-Vshortcut {
+  display: block;
+  color: $blue;
+  font-weight: bold;
+}
+
+.default_template {
+  margin-left: 2%;
+}
+
+.maximum-notifications-check {
+  margin-left: 3%;
+}
+
+.report_to_email {
+  margin-left: 2%;
+}
+
 .edit-feature-info {
   @media (max-width: 600px) {
     flex-wrap: wrap;
@@ -79,6 +128,10 @@ a {
 
 .mat-expansion-panel {
   // overflow: unset;
+}
+
+:host::ng-deep .mat-expansion-panel-header {
+  padding: 0 27px 0 24px;
 }
 
 :host::ng-deep .mat-dialog-content {

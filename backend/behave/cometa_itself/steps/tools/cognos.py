@@ -1,11 +1,12 @@
 from .exceptions import *
 from .common import *
-from src.backend.utility.functions import *
+sys.path.append("/opt/code/behave_django")
+from utility.functions import *
+from utility.common import *
 import os
 import time
 import logging
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
-from src.backend.common import *
 from selenium.webdriver.common.by import By
 
 # setup logging

@@ -54,6 +54,26 @@
     */
 }
 
+.father-block {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  @include for-tablet-portrait-up {
+    flex-direction: row;
+  }
+}
+
+.first-block {
+  display: flex;
+  flex-direction: row;
+}
+
+.second-block {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
 .step-row {
   display: flex;
   width: 100%;
@@ -65,6 +85,7 @@
   background-color: white;
   backface-visibility: hidden;
   transition: opacity 0.3s ease-in-out;
+  overflow-x: auto;
   @include for-tablet-portrait-up {
     flex-direction: row;
   }
@@ -78,18 +99,25 @@
     }
   }
   ::ng-deep mat-checkbox {
-    flex: 0 0 50px;
+    @include for-tablet-portrait-up {
+      flex: 0 0 50px;
+    }
+    flex: 0 0 35px;
     text-align: center;
     padding: 0 15px;
     position: relative;
     padding-top: 10px;
-    &.enable {
+    &.enable, &.more-vert {
       flex: 0 0 30px;
     }
   }
   .prefix {
-    flex: 0 70px;
-    margin-left: 10px;
+    @include for-tablet-portrait-up {
+      margin-left: 125px;
+      margin-right: 25px;
+    }
+    flex: 0 0 50px;
+    margin-left: 60px;
     height: 50px;
     display: flex;
     align-items: center;
@@ -115,14 +143,20 @@
     background-color: white;
   }
   .index {
-    flex: 0 0 40px;
+    @include for-tablet-portrait-up {
+      flex: 0 0 40px;
+    }
+    flex: 0 0 20px;
     line-height: 45px;
     text-align: center;
     color: $blue;
     font-weight: bold;
   }
   .move-row {
-    flex: 0 0 30px;
+    @include for-tablet-portrait-up {
+      flex: 0 0 30px;
+    }
+    flex: 0 0 40px;
     background-image: url(^assets/move-row.svg);
     background-size: 25px;
     background-repeat: no-repeat;
@@ -190,6 +224,7 @@
     }
 
     .code {
+      display: flex;
       $lineHeight: 25px;
       flex: 1;
       margin-bottom: 15px;
@@ -198,6 +233,10 @@
       @include for-tablet-portrait-up {
         flex: 1;
         margin-bottom: 0;
+        max-width: 100%;
+      }
+      @include for-tablet-portrait-only {
+        max-width: 130px;
       }
       box-sizing: border-box;
       border: 0;
@@ -205,6 +244,7 @@
       background-color: transparent;
       font-size: 1rem;
       font-family: 'Segoe UI', 'CorpoS';
+      flex-direction: column;
     }
   }
 }
@@ -234,22 +274,41 @@
   color: $blue;
   line-height: 40px;
   .index {
-    flex: 0 0 40px;
+    @include for-tablet-portrait-up {
+      flex: 0 0 40px;
+    }
+    flex: 0 0 20px;
     text-align: center;
     font-weight: bold;
   }
-  .move-row {
+  .move-row, .more-vert-step{
+    @include for-tablet-portrait-up {
+      flex: 0 0 30px;
+    }
     flex: 0 0 30px;
   }
+  .more-vert,
   .enable,
   .screenshot,
   .compare {
-    flex: 0 0 80px;
+    @include for-tablet-portrait-up {
+      flex: 0 0 80px;
+    }
+    flex: 0 0 75px;
     text-align: center;
     font-weight: bold;
   }
+  .more-vert {
+    @include for-tablet-portrait-up {
+      flex: 0 0 40px;
+    }
+    flex: 0 0 50px;
+  }
   .enable {
-    flex: 0 0 60px;
+    @include for-tablet-portrait-up {
+      flex: 0 0 60px;
+    }
+    flex: 0 0 50px;
   }
   .step {
     flex: 1;

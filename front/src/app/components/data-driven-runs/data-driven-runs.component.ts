@@ -24,6 +24,13 @@ import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
 import { NgIf } from '@angular/common';
 import { LetDirective } from '../../directives/ng-let.directive';
+import { ElementRef, HostListener } from '@angular/core';
+import { KEY_CODES } from '@others/enums';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule } from '@ngx-translate/core';
+import { InputFocusService } from '@services/inputFocus.service';
+import { Subscription } from 'rxjs';
+
 
 @Component({
   selector: 'cometa-data-driven-runs',
@@ -43,17 +50,29 @@ import { LetDirective } from '../../directives/ng-let.directive';
     AmDateFormatPipe,
     SecondsToHumanReadablePipe,
     PixelDifferencePipe,
+    MatTooltipModule,
+    TranslateModule,
   ],
 })
 export class DataDrivenRunsComponent implements OnInit {
+  
   constructor(
     public _sharedActions: SharedActionsService,
     private cdRef: ChangeDetectorRef,
     private _router: Router,
     private _http: HttpClient,
     public _dialog: MatDialog,
-    private _api: ApiService
-  ) {}
+    private _api: ApiService,
+    private buttonDataDrivenTest: ElementRef,
+    private inputFocusService: InputFocusService
+  ) {
+
+    this.focusSubscription = this.inputFocusService.inputFocus$.subscribe((inputFocused) => {
+      this.inputFocus = inputFocused;
+    });
+    
+  }
+
 
   columns: MtxGridColumn[] = [
     { header: 'Status', field: 'status', sortable: true },
@@ -119,11 +138,15 @@ export class DataDrivenRunsComponent implements OnInit {
   isLoading = true;
   showPagination = true;
   latestFeatureResultId: number = 0;
+  inputFocus = false;
+  focusSubscription: Subscription;
+
 
   query = {
     page: 0,
     size: 10,
   };
+
   get params() {
     const p = { ...this.query };
     p.page += 1;
@@ -213,4 +236,33 @@ export class DataDrivenRunsComponent implements OnInit {
       },
     });
   }
+
+  // Shortcut (T, S) Data Driven Test button
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+
+    const columnsShow = document.querySelector(".mtx-grid-column-menu-body");
+
+    const overviewDiv = document.querySelector(".mat-mdc-dialog-surface");
+
+    if (!this.inputFocus){
+      switch (event.keyCode) {
+        case KEY_CODES.T:
+          // Observe if the class of div its available
+          if (overviewDiv == null) {
+            if(columnsShow != null){
+              this.buttonDataDrivenTest.nativeElement.querySelector('.mat-mdc-button-touch-target').click();
+            }
+            this.buttonDataDrivenTest.nativeElement.querySelector('.mdc-button__label').click();
+          }
+          break;
+        case KEY_CODES.S:
+          if(overviewDiv == null) {
+            this.buttonDataDrivenTest.nativeElement.querySelector('.mat-mdc-button-touch-target').click();
+          }
+          break;
+      }
+    }
+  }
+
 }

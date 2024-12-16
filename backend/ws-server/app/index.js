@@ -243,6 +243,8 @@ app.post('/feature/:feature_id/stepFinished', (req, res) => {
    *  - step_time: number --> How many milliseconds did the step took?
    *  - error: string --> Error produced by the test if existing, otherwise empty
    */
+  
+
   const payload = {
     type: '[WebSockets] Finished Step',
     feature_id: +req.params.feature_id,
@@ -255,10 +257,13 @@ app.post('/feature/:feature_id/stepFinished', (req, res) => {
     datetime: req.body.datetime,
     step_time: req.body.step_time,
     error: req.body.error,
+    status: req.body.status,
     user_id: +req.body.user_id,
     screenshots: req.body.screenshots ? JSON.parse(req.body.screenshots) : {},
-    vulnerable_headers_count:req.body.vulnerable_headers_count
+    vulnerable_headers_count:req.body.vulnerable_headers_count,
+    mobiles_info: req.body.mobiles_info? req.body.mobiles_info : [],
   }
+
   io.emit('message', payload)
   // Add message to history
   const messages = constructRun(+req.params.feature_id, +req.body.run_id)

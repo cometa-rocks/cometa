@@ -31,39 +31,116 @@
           </ng-template>
         </p>
       </div>
+      <!-- Header -->
+      <div class="whats-new-title">
+        <div class="title">What's New</div>
+        <div class="date" *ngIf="date">{{ date }}</div>
+      </div>
+      <!-- Content -->
+      <div class="what-new-content">
+        <!-- <img class="poster" [src]="poster" /> -->
+        <div class="body">
+          <!-- New Features -->
+          <ng-container *ngIf="features.length > 0">
+            <div class="header">
+              <div class="title"> NEW FEATURES </div>
+              <div class="bar"></div>
+            </div>
+            <ul>
+              <li *ngFor="let feature of features">
+                <strong [innerHTML]="feature.title"></strong>:&nbsp;
+                <span [innerHTML]="feature.text">{{ feature.text }}</span>
+              </li>
+            </ul>
+          </ng-container>
+          
+          <ng-container *ngIf="bugfixes.length > 0">
+            <div class="header">
+              <div class="title"> BUG FIXES </div>
+              <div class="bar"></div>
+            </div>
+            <ul>
+              <li *ngFor="let bugfix of bugfixes">
+                <span [innerHTML]="bugfix.text">{{ bugfix.text }}</span>
+              </li>
+            </ul>
+          </ng-container>
+        </div>
+      </div>
+      <div class="whats-new-title">
+        <div class="title">Explore More</div>
+      </div>
       <!-- Upper row of buttons with everything related to help -->
       <div class="welcome_buttons">
-        <div>
-          <div><i></i></div>
-          <a href="https://youtu.be/cuX7VJzWDYg" target="_blank"
-            ><h2>Co.meta tutorial</h2></a
-          >
-          <p>Watch a tutorial</p>
-          <a href="https://youtu.be/cuX7VJzWDYg" target="_blank"
-            ><h3>Learn more</h3></a
-          >
+        <div class="welcome_container">
+          <div class="welcome_container_header">
+              <p>Youtube</p>
+          </div>
+          <div class="welcome_container_i">
+            <i></i>
+          </div>
+          <div class="welcome_container_info">
+            <div>
+              <a href="https://youtu.be/cuX7VJzWDYg" target="_blank"
+                ><h2><span>Co.</span>meta tutorial</h2>
+              </a>
+              <p>Watch a tutorial</p>
+            </div>
+            <div>
+              <a href="https://youtu.be/cuX7VJzWDYg" target="_blank">
+                <h3>Learn more</h3>
+              </a>
+            </div>
+          </div>
         </div>
-        <div>
-          <div><i></i></div>
-          <a href="https://cometa.rocks/" target="_blank"><h2>Help</h2></a>
-          <p>Get help</p>
-          <a href="https://cometa.rocks/" target="_blank"
-            ><h3>Learn more</h3></a
-          >
+        <div class="welcome_container">
+          <div class="welcome_container_header">
+            <p>Co.meta</p>
+          </div>
+          <div class="welcome_container_i">
+            <i></i>
+          </div>
+          <div class="welcome_container_info">
+            <div>
+              <a href="https://cometa.rocks/" target="_blank">
+                <h2>Help</h2>
+              </a>
+              <p>Get help</p>
+            </div>
+            <div>
+              <a href="https://cometa.rocks/" target="_blank"
+                ><h3>Learn more</h3>
+              </a>
+            </div> 
+          </div>
         </div>
-        <div>
-          <div><i></i></div>
-          <a
-            href="https://github.com/cometa-rocks/cometa_documentation"
-            target="_blank"
-            ><h2>Documentation</h2></a
-          >
-          <p>See the documentation</p>
-          <a
-            href="https://github.com/cometa-rocks/cometa_documentation"
-            target="_blank"
-            ><h3>Learn more</h3></a
-          >
+        <div class="welcome_container">
+          <div class="welcome_container_header">
+            <p>Github</p>
+          </div>
+          <div class="welcome_container_i">
+            <i></i>
+          </div>
+          <div class="welcome_container_info">
+            <div>
+              <a
+                href="https://github.com/cometa-rocks/cometa_documentation"
+                target="_blank"
+                ><h2>Documentation</h2>
+              </a>
+              <p>See the documentation</p>
+            </div>
+            <div>
+              <a
+              href="https://github.com/cometa-rocks/cometa_documentation"
+              target="_blank"
+              >
+                <div>
+                  <h3>Learn more</h3>
+                </div>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
       <!-- Lower row of buttons with everything related to testcase creation -->
