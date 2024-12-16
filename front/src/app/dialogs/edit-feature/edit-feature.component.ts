@@ -57,6 +57,7 @@ import { noWhitespaceValidator, deepClone } from 'ngx-amvara-toolbox';
 import { StepDefinitions } from '@store/actions/step_definitions.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
+import { ActionsState } from '@store/actions.state';
 import { finalize, switchMap } from 'rxjs/operators';
 import {
   AreYouSureData,
@@ -162,7 +163,6 @@ export class EditFeature implements OnInit, OnDestroy {
   @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
   @Select(VariablesState) variableState$: Observable<VariablePair[]>;
   
-
   saving$ = new BehaviorSubject<boolean>(false);
 
   departmentSettings$: Observable<Department['settings']>;
@@ -207,6 +207,9 @@ export class EditFeature implements OnInit, OnDestroy {
   @Select(FeaturesState.GetStateDAta) state$: Observable<
     ReturnType<typeof FeaturesState.GetStateDAta>
   >;
+
+  // Step actions
+  @Select(ActionsState) actions$: Observable<Action[]>;
 
   featureForm: UntypedFormGroup;
 
