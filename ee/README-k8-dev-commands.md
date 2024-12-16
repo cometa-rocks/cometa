@@ -134,3 +134,4 @@ kubec
     kubectl port-forward --address localhost service/selenium-grid-selenium-hub 4444:4444 5900:5900 7900:7900 -n cometa
 
     kubectl port-forward --address 88.198.116.6 service/selenium-grid-selenium-hub 4444:4444 -n cometa
+    kubectl port-forward --address 88.198.116.6 service/selenium-grid-selenium-hub 4444:4444 -n cometa
