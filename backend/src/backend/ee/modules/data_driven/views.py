@@ -40,7 +40,7 @@ from .serializers import DataDrivenRunsSerializer
 import time, json
 from django.views.decorators.http import require_http_methods
 import requests
-
+from backend.utility.config_handler import *
 
 class DataDrivenResultsViewset(viewsets.ModelViewSet):
     queryset = DataDriven_Runs.objects.none()
@@ -269,7 +269,7 @@ def startDataDrivenRun(request, rows: list[FileData], ddr: DataDriven_Runs):
     ddr.status = 'Failed' if ddr.fails > 0 else 'Passed'
     ddr.save()
     # Update to cometa Socket
-    response = requests.post(f'http://cometa_socket:3001/dataDrivenStatus/{ddr.run_id}',{"running":False})
+    response = requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}',{"running":False})
     if response.status_code != 200 :
         raise Exception("Not able to connect cometa_socket")
 
@@ -307,7 +307,7 @@ def runDataDriven(request, *args, **kwargs):
     try:
         ddr = DataDriven_Runs(file_id=file_id, running=True, status="Running")
         ddr.save()
-        requests.post(f'http://cometa_socket:3001/dataDrivenStatus/{ddr.run_id}',{"running":True})
+        requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}',{"running":True})
         # Spawn thread to launch feature run
         t = Thread(target=startDataDrivenRun, args=(request, file_data, ddr))
         t.start()
@@ -349,14 +349,14 @@ def stop_data_driven_test(request, *args, **kwargs):
         for task in tasks:
             task.feature_result_id.running = False
             task.feature_result_id.save()
-            response = requests.get('http://behave:8001/kill_task/' + str(task.pid) + "/")
+            response = requests.get(f'{get_cometa_behave_url()}/kill_task/' + str(task.pid) + "/")
             logger.debug(f"Killing Task with id {task.task_id}")
             task.delete()
         
         
         if len(tasks) > 0:
             # Force state of stopped for current feature in WebSocket Server
-            response = requests.post(f'http://cometa_socket:3001/dataDrivenStatus/{run_id}',{"running":False})
+            response = requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{run_id}',{"running":False})
             if response.status_code != 200 :
                 raise Exception("Not able to connect cometa_socket")
 

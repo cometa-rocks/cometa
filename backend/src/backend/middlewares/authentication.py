@@ -8,8 +8,7 @@ from pprint import pprint
 from django.shortcuts import redirect
 from backend.utility.configurations import ConfigurationManager
 import urllib3
-
-
+from utility.config_handler import get_config
 logger = getLogger()
 
 DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
@@ -43,10 +42,12 @@ class AuthenticationMiddleware:
             try:
                 # get the host from request
                 HTTP_HOST = request.META.get('HTTP_HOST', DOMAIN)
+                logger.debug(HTTP_HOST)
                 if HTTP_HOST == 'cometa.local':
                     raise Exception("User session none existent from behave.")
                 if not re.match(r'^(cometa.*\.amvara\..*)|(.*\.cometa\.rocks)$', HTTP_HOST):
-                    HTTP_HOST = 'cometa_front'
+                    HTTP_HOST = get_config("FRONT_SERVER_HOST", "cometa_front")
+
                 # make a request to cometa_front to get info about the logged in user
                 response = requests.get('https://%s/callback?info=json' % HTTP_HOST, verify=False, cookies={
                     'mod_auth_openidc_session': request.COOKIES.get('mod_auth_openidc_session', '')
@@ -112,6 +113,7 @@ class AuthenticationMiddleware:
         if REMOTE_USER == None:
             HTTP_HOST = request.META.get('HTTP_HOST', '')
             REMOTE_ADDR = request.META.get('REMOTE_ADDR', '')
+            logger.debug(request.META)
             HTTP_COMETA_ORIGIN = request.META.get("HTTP_COMETA_ORIGIN", '')
             HTTP_COMETA_USER = request.META.get("HTTP_COMETA_USER", None) # Used to know which user scheduled a feature
             SERVER_PORT = request.META.get('SERVER_PORT', '443')
