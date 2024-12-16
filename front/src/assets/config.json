@@ -1,5 +1,5 @@
 {
-  "version": "2.8.344",
+  "version": "3.0.5",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,6 +233,499 @@
   ],
   "changelog": [
     {
+      "version": "3.0.5",
+      "date": "2024-11-21",
+      "features": [
+        {
+          "title": "#5414 Change background image of test environment ",
+          "description": "Backgroud images can be change for the test browser and mobile device using Cometa admin section"
+        }
+      ]
+    },
+    {
+      "version": "3.0.4",
+      "date": "2024-11-20",
+      "features": [
+        {
+          "title": "#5414 - Conditional statements ",
+          "description": "Implemented conditional steps (if...else...end if) with conditions such as equals, not equals, contains, not contains, and for numeric values (<=, >=, ==, !=). Also implemented steps to check visibility and presence of an element."
+        }
+      ]
+    },
+    {
+      "version": "3.0.3",
+      "date": "2024-11-13",
+      "features": [
+        {
+          "title": "#4938 - Email report enhancement",
+          "description": "Email reporting enhanced to set the number of consecutive failure emails you want to receive. This option helps to avoid continuous failure notifications, so the user is not bombarded with excessive emails."
+        }
+      ]
+    },
+    {
+      "version": "3.0.2",
+      "date": "2024-10-09",
+      "features": [
+        {
+          "title": "#4694 - Updated Keyboard Shortcut",
+          "description": "The keyboard shortcut for the feature that was previously triggered by pressing 'D' is now updated to 'O'."
+        }
+      ]
+    },
+    {
+      "version": "3.0.1",
+      "date": "2024-09-26",
+      "features": [
+        {
+          "title": "#4694 Implemented 'What's New' Section and Profile Updates",
+          "description": "Added a 'What's New' section in the Home tab, updated Profile with new changes, corrected typos, and adjusted the draggable icon for alignment."
+        }
+      ]
+    },
+    {
+      "version": "3.0.0",
+      "date": "2024-09-21",
+      "features": [
+        {
+          "title": "#5053 Introducing AI in Cometa",
+          "description": "Cometa is enabled with AI features, capable of analyzing images, extracting information, and performing assertions."
+        }
+      ]
+    },
+    {
+      "version": "2.8.385",
+      "date": "2024-09-20",
+      "features": [
+        {
+          "title": "#5116 - Resolved issues with keyboard shortcuts",
+          "description": "Fixed the issue where pressing CTRL+V in the Edit Feature screen opened the 'Edit Variables' window. Additionally, pressing CTRL+F now correctly triggers the browser's search functionality without interfering with the 'Edit Feature' shortcut."
+        },
+        {
+          "title": "#4694 - Draggable window for live steps",
+          "description": "Added an icon to allow dragging the live steps window."
+        }
+      ]
+    },    
+    {
+      "version": "2.8.384",
+      "date": "2024-09-16",
+      "features": [
+        {
+          "title": "#4694 - Visual bug fix and relocation of 'Run All Features'",
+          "description": "Fixed a minor visual bug and moved the 'Run All Features' option to the mat-menu context menu."
+        }
+      ]
+    },
+    {
+      "version": "2.8.383",
+      "date": "2024-09-15",
+      "features": [
+        {
+          "title": "#4889 fixed issue with variable encryption",
+          "description": "Added missing encode() mothod while setting the variable COMETA_ENCRYPTION_PASSPHRASE secret variable from database."
+        }
+      ]
+    },
+    {
+      "version": "2.8.382",
+      "date": "2024-09-10",
+      "features": [
+        {
+          "title": "#4694 - Add functionality for selecting department and feature in variables section",
+        "description": "The functionality for selecting a department and a feature in the variables section has been implemented."
+        }
+      ]
+    },
+    {
+      "version": "2.8.381",
+      "date": "2024-09-03",
+      "features": [
+        {
+          "title": "#4694 - Improvement in Department Management",
+          "description": "Enhanced the functionality for modifying departments to ensure all fields, including `queue_name`, are correctly sent to the backend."
+        }
+      ]
+    },
+    {
+      "version": "2.8.380",
+      "date": "2024-08-31",
+      "features": [
+        {
+          "title": "#4694 - Add redirect functionality for features and folders",
+          "description": "Implement a feature that allows users to be redirected to the containing folder or department when searching for a feature or folder."
+        }
+      ]
+    }, 
+    {
+      "version": "2.8.379",
+      "date": "2024-08-30",
+      "features": [
+        {
+          "title": "#5047 - Setup build stage in the Amvara6 Server.",
+          "description": "Introduced build stage in the CICD pipeline to build and then deploy."
+        },
+        {
+          "title": "#4694 - Add variable button and empty li (logout).",
+          "description": "Put back in the same position Add variable button and reposition logout button."
+        }
+      ]
+    }, 
+    {
+    "version": "2.8.378",
+    "date": "2024-08-26",
+    "features": [
+      {
+        "title": "#5027 - Added new email screenshot variable, $screenshot[last].",
+        "description": "Last screenshot in case of failure can be seen using $screenshot[last] variable"
+      }
+      ]
+    }, 
+    {
+    "version": "2.8.377",
+    "date": "2024-08-19",
+    "features": [
+      {
+        "title": "#4694 - Added run all features in tiles view and list view.",
+        "description": "The 'Run All' feature is now available in both tiles and list views."
+      },
+      {
+        "title": "#4694 - Fixed conflict between account search input and header shortcuts.",
+        "description": "Typing in the account search input no longer conflicts with header shortcuts."
+      },
+      {
+        "title": "#4694 - Fixed conflict between create folder input and page shortcuts.",
+        "description": "Typing in the 'Create Folder' input no longer conflicts with page shortcuts."
+      },
+      {
+        "title": "#4694 - Repositioned options column in list view table.",
+        "description": "The options column in the list view table has been repositioned for improved accessibility and layout."
+      }
+      ]
+    },
+    {
+      "version": "2.8.376",
+      "date": "2024-08-06",
+      "features": [
+        {
+          "title": "#4694 - Fix dialog escape button behavior",
+          "description": "Resolved an issue where the dialog reappeared even after pressing the Escape key to close it."
+        },
+        {
+          "title": "#4694 - Add tooltip with description on feature name",
+          "description": "Added a tooltip to the feature name that displays the description when hovering over it with the mouse."
+        },
+        {
+          "title": "#4694 - Add tooltip with date last run on schedule item feature",
+          "description": "Added a tooltip to the schedule section that displays the description in last run when hovering over it with the mouse."
+        },
+        {
+          "title": "#4694 - Changed 'Show Archived Items' from checkbox to button",
+          "description": "Replaced the 'Show Archived Items' checkbox with a button to improve user experience and streamline interaction. The new button enhances clarity and accessibility for users."
+        },
+        {
+          "title": "#4694 - Expanded Input Field for Browser Selection in Lyrid.io",
+          "description": "Increased the input field size for selecting browsers in the Lyrid.io section to improve usability and accommodate longer input values."
+        }
+      ]
+    },
+    {
+      "version": "2.8.375",
+      "date": "2024-08-02",
+      "features": [
+        {
+          "title": "#4694 - Expansion Panel",
+          "description": "Now the expansion panel from edit feature is collapsed when you edit feature."
+        },
+        {
+          "title": "#4694 - Shortcut tooltip in step-definitions",
+          "description": "Added shortcut tooltip in step-definitions."
+        }
+      ]
+    },
+    {
+      "version": "2.8.374",
+      "date": "2024-08-01",
+      "features": [
+        {
+          "title": "#4694 - Menu Update: Added 'What's New'",
+          "description": "We have added a new menu item titled 'What's New'. This new menu option provides quick access to recent changes and enhancements."
+        },
+        {
+          "title": "#4694 - Main Old disabled",
+          "description": "We disabled the 'Main old' in the Menu."
+        },
+        {
+          "title": "#4694 - Updated Help Menu Table",
+          "description": "The table in the Help section of the menu has been updated to provide more accurate and comprehensive information."
+        }
+      ]
+    },
+    {
+      "version": "2.8.373",
+      "date": "2024-07-25",
+      "features": [
+        {
+          "title": "#4694 - Folder item tree",
+          "description": "Improved user experience, you can now know if a folder is empty or not at a glance."
+        }
+      ]
+    },
+    {
+      "version": "2.8.372",
+      "date": "2024-07-29",
+      "bugfixes": ["#4820 Issue fixed, PDF Report does not attach screenshots"]
+    },
+    {
+      "version": "2.8.370",
+      "date": "2024-07-26",
+      "features": [
+        {
+          "title": "#4694 - Implemented CC and BCC fields",
+          "description": "Added CC (Carbon Copy) and BCC (Blind Carbon Copy) fields to the email sending section."
+        },
+        {
+          "title": "#4814 - Improvement made to send the mail with CC and BCC recipients",
+          "description": "DB fields are added to store CC and BCC emails, CC and BCC email logic is updated."
+        }
+      ]
+    },
+    {
+      "version": "2.8.368",
+      "date": "2024-07-23",
+      "features": [
+        {
+          "title": "#4814 - New Shortcuts for Header Icons",
+          "description": "Added keyboard shortcuts for quick access to profile, feature, and menu functions. Users can now use 'P' for Profile, 'F' for Feature, and 'M' for Menu directly from the header icons."
+        }
+      ]
+    },
+    {
+      "version": "2.8.367",
+      "date": "2024-07-22",
+      "features": [
+        {
+          "title": "#4814 - Housekeeping feature implemented",
+          "description": "Implemented feature to perform housekeeping based on the set dates for housekeeping in department."
+        },
+        {
+          "title": "#4694 - Edit feature button",
+          "description": "Avoid miss click on edit feature button."
+        }
+      ]
+    },
+    {
+      "version": "2.8.366",
+      "date": "2024-07-18",
+      "features": [
+        {
+          "title": "#4694 - Step definition shortcuts",
+          "description": "Introduced new keyboard shortcuts for managing step definitions: Use 'CTRL+UP' or 'CTRL+DOWN' to move a step up or down in the reference step. Use 'CTRL+ALT+UP' or 'CTRL+ALT+DOWN' to duplicate a step and place the copy above or below the original step in the reference list."
+        }
+      ]
+    },
+    {
+      "version": "2.8.365",
+      "date": "2024-07-17",
+      "features": [
+        {
+          "title": "#4694 - Feature schedule display added",
+          "description": "Users can now view the schedule directly within the feature details."
+        }
+      ]
+    },
+    {
+      "version": "2.8.364",
+      "date": "2024-07-16",
+      "features": [
+        {
+          "title": "#4694 - Draggable window",
+          "description": "Added a draggable window for editing features and variables."
+        }
+      ]
+    },
+    {
+      "version": "2.8.363",
+      "date": "2024-07-15",
+      "features": [
+        {
+          "title": "#4694 - Add tooltip",
+          "description": "Add description and shortcut on the buttons of create feature and create folder."
+        }
+      ]
+    },
+    {
+      "version": "2.8.362",
+      "date": "2024-06-28",
+      "features": [
+        {
+          "title": "#4694 - Schedule enable returns disabled",
+          "description": "When an interface is activated its schedule and modified its steps the schedule becomes deactivated."
+        }
+      ]
+    },
+    {
+      "version": "2.8.361",
+      "date": "2024-06-25",
+      "features": [
+        {
+          "title": "#4694 - Update shortcuts table",
+          "description": "Revised the shortcuts table, incorporating PDF and CSV shortcut entries."
+        }
+      ]
+    },
+    {
+      "version": "2.8.360",
+      "date": "2024-06-20",
+      "features": [
+        {
+          "title": "#4694 Conflict shortcut with import Json",
+          "description": "Solved the conflict with the dialog clipboard with the shortcut of edit variable."
+        }
+      ]
+    },
+    {
+      "version": "2.8.359",
+      "date": "2024-06-20",
+      "features": [
+        {
+          "title": "#4694 Conflict space shortcut with run button",
+          "description": "Solved space shortcut makes conflict with run button on cometa feature page."
+        }
+      ]
+    },
+    {
+      "version": "2.8.358",
+      "date": "2024-06-19",
+      "features": [
+        {
+          "title": "#4694 Shortcuts sidenav landing page",
+          "description": "Add shortcuts for the sidenav landing page."
+        }
+      ]
+    },
+    {
+      "version": "2.8.357",
+      "date": "2024-06-18",
+      "features": [
+        {
+          "title": "#4694 Sort features and folders ",
+          "description": "Sort features and folders in landing page (Tree view, Tiles view, List view)."
+        }
+      ]
+    },
+    {
+      "version": "2.8.356",
+      "date": "2024-06-17",
+      "features": [
+        {
+          "title": "#4694 Add browser",
+          "description": "Added image of the browser along with its version for a better user experience."
+        }
+      ]
+    },
+    {
+      "version": "2.8.355",
+      "date": "2024-06-07",
+      "bugfixes": ["#4728 Vulnerability analysis completed for secrets"]
+    },
+    {
+      "version": "2.8.354",
+      "date": "2024-06-05",
+      "features": [
+        {
+          "title": "#4694 Shortcuts conditions on add step button",
+          "description": "Added the conditions of shortcuts on the dialog add step button."
+        }
+      ]
+    },
+    {
+      "version": "2.8.353",
+      "date": "2024-06-04",
+      "features": [
+        {
+          "title": "#4694 Feature: Shortcuts on Feature, added matttoltips. About: Changed max-width. Profile: Changed response on button 'invite to my team'",
+          "description": "Added shortcuts on feature, changed mattooltips, changed maxwidth on about, some other little issues was fixed."
+        }
+      ]
+    },
+    {
+      "version": "2.8.352",
+      "date": "2024-06-03",
+      "features": [
+        {
+          "title": "#4694 Shortcuts Data driven",
+          "description": "Shortcuts on datadriven test button (t) and columns shown button (s)."
+        }
+      ]
+    },
+    {
+      "version": "2.8.351",
+      "date": "2024-06-03",
+      "features": [
+        {
+          "title": "#4694 Changed hotkeys section, put tables",
+          "description": "Changed the hotkeys section (shortcuts) on browser (component) help."
+        }
+      ]
+    },
+    {
+      "version": "2.8.350",
+      "date": "2024-06-01",
+      "features": [
+        {
+          "title": "#4694 Changes made in feature, toggle(show-more/less)",
+          "description": "Solved the toggle feature button show more/less browsers."
+        }
+      ]
+    },
+    {
+      "version": "2.8.349",
+      "date": "2024-06-01",
+      "features": [
+        {
+          "title": "#4694 Sidebar tooltip - folder tree",
+          "description": "Added explanatory tooltips in the sidebar using matTooltip."
+        }
+      ]
+    },
+    {
+      "version": "2.8.348",
+      "date": "2024-03-31",
+      "bugfixes": [
+        "Update vulnerable dependencies in behave, django and front."
+      ]
+    },
+    {
+      "version": "2.8.347",
+      "date": "2024-05-31",
+      "features": [
+        {
+          "title": "#4694 Profile Page Redesign and New Section Implementation",
+          "description": "Redesigned the profile page layout for better user experience (mobile, tablet, desktop) and implemented a new section 'Feature Settings'"
+        }
+      ]
+    },
+    {
+      "version": "2.8.346",
+      "date": "2024-05-27",
+      "features": [
+        {
+          "title": "#4707 Changes made in the PDF to support outlook email client when sending image.",
+          "description": "Outlook was not showing sent image properly, fixed code to support outlook email client."
+        }
+      ]
+    },
+    {
+      "version": "2.8.345",
+      "date": "2024-05-24",
+      "features": [
+        {
+          "title": "#4707 Send image only via email, enable and disable email with default template and PDF report",
+          "description": "While creating a feature in the Email section, options are added to: 1. Add a screenshot from steps, 2. Enable/disable the default template, and 3. Enable/disable attaching PDF report to the email."
+        }
+      ]
+    },
+    {
       "version": "2.8.344",
       "date": "2024-03-22",
       "bugfixes": [
@@ -249,23 +742,17 @@
     {
       "version": "2.8.342",
       "date": "2024-03-18",
-      "bugfixes": [
-        "#4583 Feature execution timeout issue fixed"
-      ]
+      "bugfixes": ["#4583 Feature execution timeout issue fixed"]
     },
     {
       "version": "2.8.341",
       "date": "2024-03-14",
-      "bugfixes": [
-        "#4567 Fixed timezone strip error"
-      ]
+      "bugfixes": ["#4567 Fixed timezone strip error"]
     },
     {
-        "version": "2.8.340",
-        "date": "2024-03-13",
-        "bugfixes": [
-            "#4575 - Fixed Error \"Multi level loop are not allowed.\""
-        ]
+      "version": "2.8.340",
+      "date": "2024-03-13",
+      "bugfixes": ["#4575 - Fixed Error \"Multi level loop are not allowed.\""]
     },
     {
       "version": "2.8.339",
@@ -293,8 +780,8 @@
       "bugfixes": [
         "#4565 - Comment are not available for step containing regex in the name"
       ]
-    }, 
-    {   
+    },
+    {
       "version": "2.8.337",
       "date": "2024-03-07",
       "features": [
@@ -317,7 +804,7 @@
       "bugfixes": [
         "#4557 - The issue of unavailable logs has been fixed on the feature report screen."
       ]
-    }, 
+    },
     {
       "version": "2.8.334",
       "date": "2024-03-01",
@@ -337,7 +824,9 @@
     {
       "version": "2.8.332",
       "date": "2024-02-27",
-      "bugfixes": ["#4540 - Fixed scrollable screen in the Admin Manage Account section."]
+      "bugfixes": [
+        "#4540 - Fixed scrollable screen in the Admin Manage Account section."
+      ]
     },
     {
       "version": "2.8.331",

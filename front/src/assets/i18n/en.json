@@ -1,4 +1,9 @@
 {
+  "header": {
+    "profile": "Your profile (P)",
+    "upload": "Create a new feature (F)",
+    "menu": "Menu (M)"
+  },
   "menu": {
     "order_intake": "Order Intake",
     "production_program": "Production Program",
@@ -9,6 +14,40 @@
   },
   "MAIN_VIEW": {
     "DATE": "DATE"
+  },
+  "sidenav_page": {
+    "add": "Button with options to create a folder or feature. (+)",
+    "folder": "Create a new folder to organize your features. (B)",
+    "feature": "Click to define a new feature for your application. (F)",
+    "home": "We have on this section the co.meta tutorial, help and documentation.",
+    "data_driven_sidenav": "Execution of tests based on the variables provided by the excel sheet",
+    "variables_sidenav": "In this section, we can add or edit variables among other functionalities",
+    "team_drives": "Upcoming feature",
+    "recent": "The last tests you have run",
+    "starred": "Upcoming feature",
+    "trash_bin": "Upcoming feature"
+  },
+  "data_driven": {
+    "data_driven_button": "Execution of tests based on the variables provided by the excel sheet. (T)"
+  },
+  "edit_feature":{
+    "depends_on_other_feature": "If enabled, only a third feature can run this feature",
+    "send_mail": "If enabled, a new section will be displayed for sending the results to the desired email address.",
+    "record_video": "Every time the feature is executed, a video will be recorded",
+    "network_logging": "Enable this option to record network responses, including analysis of vulnerable headers",
+    "generate_dataset": "Create a dataset from your web application",
+    "continue_on_failure_global": "If enabled, the feature's steps will continue even in the presence of errors; if disabled, individual step settings take precedence",
+    "explanation": "Enabling this option allows other users to help you on this feature",
+    "edit_variable": "In this section, we can add or edit variables among other functionalities",
+    "default_template": "If Checked, then please provide your custom email template, which can be used for creating customized e-Mails, e.g. only containing screenshot. The default is false - to not change the actual behavior customers are using",
+    "maximum_notification_on_error": "If checked, please set the number of consecutive failure emails you want to receive. This option helps to avoid continuous failure notifications, so the user is not bombarded with excessive emails.",
+    "attach_pdf": "If Checked, PDF test result will be attached within the email, Other wise email without PDF will be sent. Useful when sending email with customized template"
+  },
+  "step-definition": {
+    "insert-new-above": "CTRL + UP",
+    "insert-new-below": "CTRL + DOWN",
+    "copy-new-above": "CTRL + ALT + UP",
+    "copy-new-below": "CTRL + ALT + DOWN"
   },
   "headers": {
     "status": "Status",
@@ -42,7 +81,7 @@
   },
   "user": {
     "tour_description": "In co.meta you can learn about features interactive using the virtual tour guide. The virtual tour guide will show you around and explain step by step the how's and where's. Move your mouse over the tour buttons to see a short description.",
-    "webhooks_desc": "Integrating co.meta with your preferred tools empowers you to optimize your development process. By seamlessly connecting Co.Meta, you can accelerate project completion, implement continuous testing practices, and effectively share quality updates with your entire department."
+    "webhooks_desc": "Integrating co.meta with your preferred tools empowers you to optimize your development process. By seamlessly connecting co.meta, you can accelerate project completion, implement continuous testing practices, and effectively share quality updates with your entire department."
   },
   "connected": "Connected",
   "not_connected": "Not connected",
@@ -67,6 +106,7 @@
     "allocation": "Allocation"
   },
   "about": {
+    "shortcut": "Shortcuts",
     "config": "Config",
     "sponsor": "Sponsor",
     "credits": "Credits",
@@ -80,6 +120,8 @@
     "delete_templates_with_features": "If checked, the template images of each result will also be deleted",
     "variables_requires": "Please select a department and environment to edit variables",
     "run_feature": "Run feature",
+    "run_all_features": "Run all features",
+    "runnning_all_features": "Running all the features",
     "edit_schedule": "Edit schedule",
     "edit_feature": "Edit feature",
     "loading_feature": "Loading feature",
@@ -116,7 +158,9 @@
     "budget_ahead_title": "Low budget",
     "budget_ahead_desc": "The feature you are about to run will likely exceed your configured budget. Do you want to continue?",
     "move_feature_title": "Move feature",
-    "move_feature": "You are attempting to move feature to different department, environment variables that the feature in question is currently using, will no longer be usable. Do you want to continue?"
+    "move_feature": "You are attempting to move feature to different department, environment variables that the feature in question is currently using, will no longer be usable. Do you want to continue?",
+    "mobile_title": "Are you sure to close the container?",
+    "mobile_description": "This will stop the emulator and active processes."
   },
 
   "integrations": {
@@ -129,5 +173,22 @@
   "send_on": {
     "after_test_execution": "Always",
     "after_test_execution_failed": "On error"
+  },
+  "schedule": {
+    "last-run": "Last run: ",
+    "no-last-run": "Last run: No runs have been made yet"
+  },
+  "mobile_list": {
+    "mobile_presentation": "Run mobile tests based on automation configurations",
+    "emulator_mobile": "Run mobile tests using specified automation configurations",
+    "apk_file": "Upload apk files in the upload section of edit feature screen and select apk from here to install in the mobile",
+    "close_emulator": "Stop and close the mobile emulator",
+    "inspect_novnc": "Open a noVNC viewer to interact with the mobile emulator in real-time",
+    "inspect_emulator": "Inspect the mobile emulator screen for testing and monitoring",
+    "inspect_novnc_shared": "Open a noVNC viewer to interact with the shared mobile emulator in real-time.",
+    "inspect_emulator_shared": "Inspect the shared mobile emulator screen for collaborative testing and monitoring.",
+    "start_emulator": "Start the mobile emulator to test applications",
+    "pause_emulator": "Pause the mobile emulator temporarily",
+    "restart_emulator": "Restart the mobile emulator to reset its state"
   }
 }

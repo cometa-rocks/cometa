@@ -20,9 +20,14 @@ import { ModifyUserComponent } from '@dialogs/modify-user/modify-user.component'
 import { ModifyPasswordComponent } from '@dialogs/modify-password/modify-password.component';
 import { PermissionGuard } from '@guards/permission.guard';
 import { ModifyDepartmentComponent } from '@dialogs/modify-department/modify-department.component';
+import { MobileListComponent } from '@dialogs/mobile-list/mobile-list.component';
 import { ModifyDepartmentTimeoutComponent } from '@dialogs/modify-department-timeout/modify-department-timeout.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { AccountsDialog } from '@dialogs/accounts-dialog/accounts-dialog.component';
+import { HouseKeepingComponent } from '@components/admin/others/housekeeping/housekeeping.component';
+import { ShowHousekeepingLogDialog } from '@dialogs/show-housekeeping-logs/show-housekeeping-logs.component';
+import { AdministrationComponent } from '@components/admin/administration/administration.component';
+import { EditConfigurationComponent } from '@components/admin/administration/edit-configuration/edit-configuration.component';
 
 const routes: Routes = [
   {
@@ -100,6 +105,15 @@ const routes: Routes = [
         data: {
           require_permission: 'view_others_panel',
         },
+      }, 
+      {
+        path: 'administration',
+        component: AdministrationComponent,
+        title: 'Administration - Admin',
+        canActivate: [PermissionGuard],
+        data: {
+          require_permission: 'manage_configurations',
+        },
       },
     ],
   },
@@ -131,7 +145,12 @@ const routes: Routes = [
     FeaturesComponent,
     AccountsComponent,
     AdminOthersComponent,
+    HouseKeepingComponent,
     AccountsDialog,
+    ShowHousekeepingLogDialog,
+    AdministrationComponent,
+    EditConfigurationComponent,
+    MobileListComponent
   ],
 })
 export class AdminModule {}

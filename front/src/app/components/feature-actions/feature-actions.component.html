@@ -4,19 +4,22 @@
       matTooltip="Click to view current run (SPACE)"
       *ngIf="running$ | async; else run"
       (click)="runNow()"
-      class="running"></div>
+      class="running">
+    </div>
     <ng-template #run>
       <div
         matTooltip="Run Feature Now (SPACE)"
         (click)="runNow()"
-        class="run"></div>
+        class="run">
+      </div>
     </ng-template>
   </ng-container>
   <div
     *ngIf="canEditFeature$ | async"
     matTooltip="Edit Feature (E)"
     (click)="_sharedActions.openEditFeature(feature.feature_id, 'edit')"
-    class="edit"></div>
+    class="edit">
+  </div>
   <ng-container *ngIf="!feature.depends_on_others">
     <div matTooltip="Show Log Output (L)" (click)="viewLog()" class="log">
       LOG
@@ -24,26 +27,32 @@
     <div
       matTooltip="Edit Schedule (S)"
       (click)="_sharedActions.editSchedule(feature.feature_id)"
-      class="schedule"></div>
+      class="schedule">
+    </div>
     <div
       [class.enabled]="notificationEnabled$ | async"
       matTooltip="Enable/Disable notifications for this feature (N)"
       (click)="toggleNotification()"
-      class="notification"></div>
+      class="notification">
+    </div>
   </ng-container>
   <!-- PDF Download Link -->
   <a
     *ngIf="pdfLink$ | async as link"
     [href]="link"
     target="_blank"
-    matTooltip="Download complete Feature Report as PDF"
-    class="pdf"></a>
+    matTooltip="Download complete Feature Report as PDF (P)"
+    class="pdf"
+    id="pdfLink">
+  </a>
 
   <!-- CSV Download Link -->
   <a
     *ngIf="csvLink$ | async as link"
     [href]="link"
     target="_blank"
-    matTooltip="Download complete Feature Report as CSV"
-    class="csv"></a>
+    matTooltip="Download complete Feature Report as CSV (C)"
+    class="csv"
+    id="csvLink">
+  </a>
 </ng-container>

@@ -98,6 +98,7 @@ export class ModifyDepartmentComponent {
         ],
       ],
       result_expire_days: [expireDays],
+      queue_name: [this.department.settings?.queue_name || '', Validators.required],
     });
     this.timeoutForm = this.fb.group({
       step_timeout_from: [
@@ -144,6 +145,7 @@ export class ModifyDepartmentComponent {
         result_expire_days: this.expireDaysChecked$.getValue()
           ? values.result_expire_days
           : null,
+          queue_name: values.queue_name,
       },
     };
     this._api.modifyDepartment(this.department_id, payload).subscribe(
@@ -152,7 +154,7 @@ export class ModifyDepartmentComponent {
           this._store.dispatch(
             new Departments.UpdateDepartment(this.department_id, payload)
           );
-          // this.dialogRef.close();
+          this.dialogRef.close();
           this.snack.open('Department modified successfully!', 'OK');
         } else {
           this.snack.open('An error ocurred', 'OK');

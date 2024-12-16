@@ -26,8 +26,7 @@
       <img src="assets/img/poster_2.svg" alt="shown when there is no charts" />
       <p>
         This screen shows the results of your testruns. <br /><br />
-        Once you have more then 10 results, co.meta will show you a beautiful
-        linechart with execution times and more.
+        Once you have more than 10 results, co.meta will show you a beautiful line chart with execution times and more.
       </p>
     </div>
     <!-- Mobile Header -->
@@ -75,7 +74,8 @@
     execution_time: timeTpl,
     description: descriptionTpl,
     pixel_diff: pixelTpl,
-    browser: browserTpl
+    browser: browserTpl,
+    options: optionsTpl
   }"
   [noResultTemplate]="noResultTpl"
   [showPaginator]="showPagination"
@@ -119,6 +119,56 @@
   </div>
 </ng-template>
 
+<ng-template #optionsTpl let-row let-index="index" let-col="colDef">
+  <ng-container *ngIf="col?.buttons">
+    <ng-container *ngFor="let button of buttons">
+      <div *ngIf="button.class != 'replay-button-2'">
+        <button
+        stopPropagation
+        mat-icon-button
+        *ngIf="!button.iif || button.iif(row)"
+        (click)="button.click && button.click(row)"
+        [ngClass]="button.class"
+        matTooltip="{{ button.tooltip }}"
+        [matTooltipPosition]="'above'">
+        <mat-icon>{{ button.icon }}</mat-icon>
+      </button>
+    </div>
+    
+      <div *ngIf="button.class == 'replay-button-2'" class="mobile-container">
+        <div class="custom-context">
+          <button
+            class="mobile-button-replay"
+            stopPropagation
+            mat-icon-button
+            *ngIf="!button.iif || button.iif(row)"
+            [ngClass]="{'replay-button-2': row.mobile && row.mobile.length > 1}"
+            matTooltip="{{ button.tooltip }}"
+            [matTooltipPosition]="'above'">
+            <mat-icon 
+              class="mobile-mat-icon-replay"
+              [matBadge]="row.mobile.length > 1 ? row.mobile.length : null"
+              matBadgeSize="small">{{ button.icon }}</mat-icon>
+            <ng-container *ngIf="row.mobile && row.mobile.length > 1 && button.class === 'replay-button-2'">
+              <mat-select
+                stopPropagation
+                class="mobile-selector"
+                (selectionChange)="onMobileSelectionChange($event, row)"
+                [(value)]="selectMobile[row.feature_result_id]">
+                <mat-option *ngFor="let mobile of row.mobile" [value]="mobile">
+                  <mat-label>
+                    {{ mobile.name }}
+                  </mat-label>
+                </mat-option>
+              </mat-select>
+            </ng-container>
+          </button>
+        </div>
+      </div>
+      </ng-container>
+    </ng-container>
+</ng-template>
+
 <ng-template #dateTpl let-row let-index="index" let-col="colDef">
   <span>{{
     row.result_date | amParse | amDateFormat: 'MMMM d yyyy, HH:mm'
@@ -156,12 +206,21 @@
 <!-- TOOLBAR TEMPLATE -->
 <ng-template #toolbarTpl>
   <div class="custom_toolbar">
-    <mat-checkbox
-      color="primary"
-      [checked]="archived$ | async"
-      (change)="handleArchived($event)"
-      >Show archived items</mat-checkbox
+    <button
+    mat-stroked-button
+    color="primary"
+    [checked]="archived$ | async"
+    (click)="handleArchived()"
     >
+    <ng-container *ngIf="archived; else showIcon">
+      <mat-icon>visibility_off</mat-icon>
+      Hide archived items
+    </ng-container>
+    <ng-template #showIcon>
+      <mat-icon>visibility</mat-icon>
+      Show archived items
+    </ng-template>
+    </button>
     <button mat-stroked-button [matMenuTriggerFor]="clearRunsTemplate">
       <mat-icon>delete</mat-icon>
       <span class="mdc-button__label">Clear Feature Results</span>
