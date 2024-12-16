@@ -41,17 +41,18 @@
                       <mat-icon
                         class="browser-icon live_preview_mobile"
                         matTooltipPosition="below"
+                        [matBadge]="mobiles[feature_result_id]?.length || 0"
+                        matBadgeSize="small"
                         [matTooltip]="'View execution, GO live!'">
                         tablet_mac
                       </mat-icon>
                       <mat-icon
-                        (click)="noVNCMobile(selectedMobile)"
                         class="browser-icon live_preview_mobile_play_more">
                         play_arrow
                       </mat-icon>
-                      <div class="number-phones">
+                      <!-- <div class="number-phones">
                         {{ mobiles[feature_result_id]?.length || 0 }}
-                      </div>
+                      </div> -->
                     </mat-label>
                     
                     <mat-select
