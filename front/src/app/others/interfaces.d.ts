@@ -1121,4 +1121,5 @@ interface Container {
   shared: boolean;
   hostname:string;
   isPaused?: boolean;
+  isTerminating?: boolean;
 }

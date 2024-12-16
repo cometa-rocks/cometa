@@ -58,10 +58,11 @@ import { DraggableWindowModule } from '@modules/draggable-window.module'
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
 import { Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
-import { Features } from '@store/actions/features.actions';
 import { LogService } from '@services/log.service';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { timeStamp } from 'console';
+import { Key } from 'readline';
 
 /**
  * MobileListComponent
@@ -134,40 +135,45 @@ export class MobileListComponent implements OnInit {
   mobiles: IMobile[] = [];
   runningMobiles: Container[] = [];
   sharedMobileContainers: Container[] = [];
-  isIconActive = false;
+  isIconActive: { [key: string]: boolean } = {};
   showDetails: { [key: string]: boolean} = {};
   sharedDetails: { [key: string]: boolean} = {};
   isDialog: boolean = false;
   selectedApps: { [mobileId: string]: string | null } = {};
 
   // No dialog
-
-  isEditing: boolean = false;
   departmentChecked: { [key: string]: boolean } = {};
   buttonEnabledState = false;
-  features$: Observable<any[]>;
-  allFeatures: any[] = []
   selectionsDisabled: boolean = false;
-  selectedDepartment: { id: number, name: string } = { 
-    id: null, 
+  selectedDepartment: { id: number, name: string } = {
+    id: null,
     name: '',
   };
 
-
   departments$: Department[] = [];
   destroy$ = new Subject<void>();
-  // departments: Folder[] = [];
   departments: Department[] = [];
   apkFiles: any[] = [];
-  nuevoContainer: any[] = [];
+
 
   ngOnInit(): void {
+
+    this.logger.msg("1", "CO-selectedDepartment:", "mobile-list", this.selectedDepartment);
+
+    const terminatingContainerIds = JSON.parse(localStorage.getItem('terminatingContainers') || '[]');
+    terminatingContainerIds.forEach((containerId: number) => {
+      const container = this.runningMobiles.find(c => c.id === containerId);
+      if (container) {
+        container.isTerminating = true;
+      }
+    });
+
     // Call the API service on component initialization
     this._api.getMobileList().subscribe(
       (mobiles: IMobile[]) => {
         // Assign the received data to the `mobile` variable
         this.mobiles = mobiles;
-        
+
         // department_id is received only when component is opened as dialog
         this.isDialog = this.data?.department_id ? true : false;
 
@@ -177,53 +183,56 @@ export class MobileListComponent implements OnInit {
         ).subscribe(departments => {
           this.departments = departments;
           this.departments.forEach(department => {
-            const depData = JSON.parse(JSON.stringify(department)); 
+            const depData = JSON.parse(JSON.stringify(department));
             this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
           })
         });
 
-        this.logger.msg("1", "CO-depID:", "mobile-list", this.departments[0].department_id);
+        // this.logger.msg("1", "CO-depID:", "mobile-list", this.departments[0].department_id);
 
-        if (this.departments.length > 0) {
-          this.logger.msg("1", "CO-Departments:", "mobile-list", this.departments);
-          this.selectedDepartment = { 
-            id: this.departments[0].department_id, 
-            name: this.departments[0].department_name
-          };
-          // this.selectedDepartment = {
-          //   id: this.departments[0].department_id,
-          //   name: this.departments[0].department_name
-          // };
-          this.onDepartmentSelect({ value: this.selectedDepartment });
-        }
+        // This part of the code makes the button selector enabled automa...
+        // if (this.departments.length > 0) {
+        //   this.logger.msg("1", "CO-Departments:", "mobile-list", this.departments);
+        //   this.selectedDepartment = {
+        //     id: this.departments[0].department_id,
+        //     name: this.departments[0].department_name
+        //   };
+        //   // this.selectedDepartment = {
+        //   //   id: this.departments[0].department_id,
+        //   //   name: this.departments[0].department_name
+        //   // };
+        //   this.onDepartmentSelect({ value: this.selectedDepartment });
+        // }
 
-        this.logger.msg("1", "CO-Data:", "mobile-list", this.data);
-        this.logger.msg("1", "CO-Dialog:", "mobile-list", this.isDialog);
+        // this.logger.msg("1", "CO-Data:", "mobile-list", this.data);
+        // this.logger.msg("1", "CO-Dialog:", "mobile-list", this.isDialog);
 
         // Call the API service on component initialization
         this._api.getContainersList().subscribe(
           (containers: Container[]) => {
-            this.logger.msg("1", "CO-containerS", "mobile-list" , containers);
-    
+            // this.logger.msg("1", "CO-containerS", "mobile-list" , containers);
+
             for (let container of containers) {
+
+              if (container.isTerminating) {
+                this.showSpinnerFor(container.id);
+              }
+
               if (container.shared && this.user.user_id != container.created_by) {
                 container.image = this.mobiles.find( m => m.mobile_id === container.image);
 
                 if(this.isDialog){
                   container.apk_file = this.data.uploadedAPKsList.find(
-                   
                     m => m.mobile_id === container.apk_file
                   );
-                  console.log("dentro");
                 }
                 else{
                   this.departments.forEach(department => {
-                    this.logger.msg("1", "CO-departmentid:", "mobile-list", department.department_id);
-                    this.logger.msg("1", "CO-containerid:", "mobile-list", container.id);
-                    const depData = JSON.parse(JSON.stringify(department)); 
-                    // if(container.department_id)
+                    // this.logger.msg("1", "CO-departmentid:", "mobile-list", department.department_id);
+                    // this.logger.msg("1", "CO-containerid:", "mobile-list", container.id);
+                    const depData = JSON.parse(JSON.stringify(department));
                     this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
-                     this.logger.msg("1", "CO-Department:", "mobile-list", department)
+                    // this.logger.msg("1", "CO-Department:", "mobile-list", department)
                   })
                 }
 
@@ -231,15 +240,11 @@ export class MobileListComponent implements OnInit {
               } else if (
                 this.user.user_id == container.created_by
               ) {
-                // console.log("Mobile service id", container.service_id);
                 // this.logger.msg("1", "CO-containerServiceid:", "mobile-list" , container.service_id);
                 this.runningMobiles.push(container);
               }
             }
-            // console.log("mobiles", this.mobiles);
             // this.logger.msg("1", "CO-Mobiles:", "mobile-list", this.mobiles);
-
-            // console.log('Load runnign desde init:', this.runningMobiles);
             // this.logger.msg("1", "CO-RunningMobiles:", "mobile-list", this.runningMobiles);
             this._cdr.detectChanges();
           },
@@ -261,8 +266,14 @@ export class MobileListComponent implements OnInit {
         );
       }
     );
+  }
 
-
+  showSpinnerFor(containerId: number): void {
+    const container = this.runningMobiles.find(c => c.id === containerId);
+    if (container) {
+      container.isTerminating = true; // Asegura que el spinner se muestre solo para este contenedor
+      console.log(`Showing spinner for container ${containerId}`);
+    }
   }
 
   updateSharedStatus(isShared: any, mobile: IMobile, container): void {
@@ -374,57 +385,73 @@ export class MobileListComponent implements OnInit {
   }
 
   // This method stops the mobile container using ID
-  // rename Terminate Mo
   terminateMobile(container: Container): void {
     this._dialog
-    .open(AreYouSureDialog, {
-      data: {
-        title: 'translate:you_sure.mobile_title',
-        description: 'translate:you_sure.mobile_description', 
-      } as AreYouSureData,
-    })
-    .afterClosed()
-    .subscribe((exit: boolean) => {
-      if (exit) {
-        this._api.terminateMobile(container.id).subscribe(
-          (response: any) => {
-            if (response.success) {
-              this.snack.open(`Mobile stopped successfully`, 'OK');
-              this.runningMobiles = this.runningMobiles.filter(
-                runningContainer => runningContainer.id !== container.id
-              );
-
-              const mobile = this.mobiles.find(m => m.mobile_id === container.image);
-              if (mobile) {
-                mobile.selectedAPKFileID = null;
-              }
-
-              this.selectedApps[container.service_id] = null;
-
-              this._cdr.detectChanges();
-            } else {
-              console.error(
-                'An error occurred while stopping the mobile',
-                response.message
-              );
-              this.snack.open(`Error while stopping the Mobile`, 'OK');
-            }
-          },
-          error => {
-            console.error(
-              'An error occurred while fetching the mobile list',
-              error
-            );
+      .open(AreYouSureDialog, {
+        data: {
+          title: 'translate:you_sure.mobile_title',
+          description: 'translate:you_sure.mobile_description',
+        } as AreYouSureData,
+      })
+      .afterClosed()
+      .subscribe((exit: boolean) => {
+        if (exit) {
+          container.isTerminating = true;
+  
+          // Guardar el contenedor en localStorage
+          const terminatingContainerIds = JSON.parse(localStorage.getItem('terminatingContainers') || '[]');
+          if (!terminatingContainerIds.includes(container.id)) {
+            terminatingContainerIds.push(container.id);
+            console.log("Aqui terminating", terminatingContainerIds)
+            localStorage.setItem('terminatingContainers', JSON.stringify(terminatingContainerIds));
           }
-        );
-      }
-    });
+  
+          this._cdr.detectChanges();
+          this._api.terminateMobile(container.id).subscribe(
+            (response: any) => {
+              if (response.success) {
+                this.snack.open(`Mobile stopped successfully`, 'OK');
+                this.runningMobiles = this.runningMobiles.filter(
+                  runningContainer => runningContainer.id !== container.id
+                );
+  
+                const mobile = this.mobiles.find(m => m.mobile_id === container.image);
+                if (mobile) {
+                  mobile.selectedAPKFileID = null;
+                }
+  
+                this.selectedApps[container.service_id] = null;
+  
+                // Eliminar del localStorage si se detuvo correctamente
+                const updatedContainerIds = terminatingContainerIds.filter(id => id !== container.id);
+                localStorage.setItem('terminatingContainers', JSON.stringify(updatedContainerIds));
+
+              } else {
+                console.error('An error occurred while stopping the mobile', response.message);
+                this.snack.open(`Error while stopping the Mobile`, 'OK');
+              }
+              container.isTerminating = false;
+              this._cdr.detectChanges();
+            },
+            error => {
+              container.isTerminating = false;
+              console.error('An error occurred while stopping the mobile', error);
+  
+              // Eliminar del localStorage si hubo un error
+              const updatedContainerIds = terminatingContainerIds.filter(id => id !== container.id);
+              localStorage.setItem('terminatingContainers', JSON.stringify(updatedContainerIds));
+            }
+          );
+        } else {
+          container.isTerminating = false;
+        }
+      });
   }
 
   // This method stops the mobile container using ID
   restartMobile(container: Container): void {
     let body = {
-      "action":"restart"    
+      "action":"restart"
     }
     // Call the API service on component initialization
     this._api.updateMobile(container.id, body).subscribe(
@@ -455,11 +482,13 @@ export class MobileListComponent implements OnInit {
   // This method stops the mobile container using ID
   pauseMobile(container: Container): void {
     let body = {
-      "action":"stop"    
+      "action":"stop"
     }
+    this.logger.msg("1", "CO-containerpaused:", "mobile-list", container);
     // Call the API service on component initialization
     this._api.updateMobile(container.id, body).subscribe(
       (response: any) => {
+        this.logger.msg("1", "CO-respose:", "mobile-list", response);
         if (response.success) {
           container.isPaused = true;
           this.snack.open(`Mobile paused successfully`, 'OK');
@@ -491,8 +520,8 @@ export class MobileListComponent implements OnInit {
   }
 
   noVNCMobile(container: Container): void {
-    // FIXME this connection needs to be fixed, to improve security over emulators 
-    
+    // FIXME this connection needs to be fixed, to improve security over emulators
+
     let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${container.service_id}`;
     window.open(complete_url, '_blank');
   }
@@ -508,12 +537,12 @@ export class MobileListComponent implements OnInit {
 
   importClipboard(androidVersion: string) {
     navigator.clipboard.writeText(androidVersion).then(() => {
-    this.isIconActive = true;
+    this.isIconActive[androidVersion] = true;
     this._cdr.detectChanges();
     setTimeout(() => {
-      this.isIconActive = false;
+      this.isIconActive[androidVersion] = false;
       this._cdr.detectChanges();
-    }, 2000);
+    }, 400);
     this.snack.open('Text copied to clipboard', 'Close');
     }).catch(err => {
       console.error('Error copying: ', err);
@@ -521,11 +550,11 @@ export class MobileListComponent implements OnInit {
     });
   }
 
-  toggleDetails(containerId) {
-    if(containerId){
-      this.showDetails[containerId] = !this.showDetails[containerId];
-    }
-  }
+  // toggleDetails(containerId) {
+  //   if(containerId){
+  //     this.showDetails[containerId] = !this.showDetails[containerId];
+  //   }
+  // }
 
   toggleSharedDetails(containerId) {
     if(containerId){
@@ -541,20 +570,21 @@ export class MobileListComponent implements OnInit {
   onDepartmentSelect($event){
 
     if (!this.selectedDepartment || !this.selectedDepartment.id) {
-      this.buttonEnabledState = false;
+      this.selectionsDisabled = false;
       return;
     }
 
     this.apkFiles = [];
     this.departments.forEach(department => {
       if(department.department_id == this.selectedDepartment.id) {
-        const depData = JSON.parse(JSON.stringify(department)); 
+        const depData = JSON.parse(JSON.stringify(department));
         this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
       }
     })
 
     this.departmentChecked[this.selectedDepartment.id] = true;
-    this.buttonEnabledState = true;
+    this.selectionsDisabled = true;
+    this.logger.msg("1", "CO-selectedDepartment:", "mobile-list", this.selectedDepartment);
   }
 
 }

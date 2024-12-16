@@ -109,7 +109,7 @@ mat-dialog-container {
 }
 
 .not-running {
-  height: 20px;
+  height: 30px;
 }
 
 .not-running-2 {
@@ -325,6 +325,9 @@ mat-dialog-content {
     transform: scale(0.7);
     margin-left: -60px;
     margin-bottom: 10px;
+    p {
+      font-size: 20px;
+    }
   }
 }
 
@@ -436,7 +439,6 @@ mat-divider {
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-
   // max-height: calc(100vh - var(--header-height) - var(--new-landing-filters-height));
 }
 
@@ -499,9 +501,14 @@ mat-divider {
 
 .container-father {
   display: flex;
-  flex-direction: column !important;
+  // flex-direction: column !important;
+
   margin-right: 10px;
-  width: 100%;
+  width: 1000px;
+}
+
+.selectFormField {
+  width: 300px;
 }
 
 @include for-phone-only {
@@ -552,9 +559,9 @@ mat-divider {
   display: flex;
 }
 
-#mobile-actions {
-  margin-top: 9px;
-}
+// #mobile-actions {
+//   margin-top: 9px;
+// }
 
 .get-app {
   font-size: 20px !important;
@@ -593,4 +600,66 @@ mat-divider {
   display: flex;
   flex-direction: column !important;
   margin-bottom: 20px;
+}
+
+.mobile-devices-header {
+  display: flex;
+  padding: 0 20px 0 10px;
+  justify-content: space-between;
+  align-items: center;
+  height: 40px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.5);
+  .mobile-results {
+    color: $blue;
+  }
+}
+
+.spinner-active {
+  background-color: #f97412;
+  cursor: default;
+  mat-spinner {
+
+  }
+}
+
+::ng-deep mat-spinner circle {
+  color: #4A4A4A;
+}
+
+.spinner {
+  position: absolute;
+  top: 27px;
+  right: 27px;
+}
+
+.department-warning {
+  display: inline-flex;
+  align-items: center;
+  color: $blue;
+  margin-bottom: 15px;
+  .mat-icon {
+    font-size: 19px;
+    margin-right: 5px;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.nonMobileShared {
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+mat-card {
+  mat-icon {
+    color: rgba(0, 0, 0, 0.5);
+  }
+}
+
+.mobile-options {
+  position: absolute;
+  top: 20px;
 }
