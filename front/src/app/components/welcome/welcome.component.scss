@@ -9,17 +9,43 @@
 // First level container
 .container {
   width: 100%;
-  height: 100%;
+  height: 180%;
+  display: flex;
+  justify-content: center; 
+  align-items: center; 
+
+  @include for-phone-only {
+    height: 260vh;
+    margin-bottom: 0;
+  }
+
+  @include for-tablet-portrait-only {
+    height: 190vh;
+  }
+
   // Main container for the welcome page
   .welcome {
     display: flex;
     flex-direction: column;
+    justify-content: center; 
     width: 100%;
-    height: 100%;
+    max-width: 70vw;
     align-items: center;
-    @include for-phone-landscape-up {
+
+    @include for-phone-only {
+      justify-content: space-evenly;
       flex-wrap: nowrap;
     }
+
+
+    @include for-tablet-portrait-only {
+      width: 100%;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      margin-top: 0;
+      height: 100%;
+    }
+
     // Container for the text the user sees beneath the welcome message
     .welcome_message {
       text-align: center;
@@ -33,91 +59,301 @@
         margin-top: 10px;
       }
     }
-    // Container for the welcome buttons and new testcase
-    .welcome_buttons,
-    .create_testcase {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      @include for-phone-landscape-up {
-        justify-content: space-evenly;
-        flex-direction: row;
-        flex-wrap: nowrap;
-      }
-      // Each div the button description
-      div {
-        display: flex;
-        flex-direction: column;
-        border-radius: 3px;
-        border: 1px solid $low-dark;
-        padding: 10px;
-        box-sizing: border-box;
-        margin: 10px 0;
-        width: 90%;
-        background-color: $pure-white;
-        color: $primary-color;
-        align-self: center;
-        // Container for the upper image of the button
-        div {
-          align-items: center;
-          border: none;
-          // Image itself
-          i {
-            width: 100px;
-            height: 100px;
-            background-image: url(^assets/internal/COM_WELCOME_LOGO.svg);
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-            @include for-phone-landscape-up {
-              width: 100px;
-              height: 100px;
-            }
-          }
-        }
-        // Header and footer text of the button
-        a {
-          text-decoration: none;
-          display: inline-block;
-          margin: 10px 0;
-          h2,
-          h3 {
-            cursor: pointer;
-            color: $blue;
-            font-weight: normal;
-          }
-        }
-        @include for-phone-landscape-up {
-          width: 30%;
-        }
-      }
-    }
-    // Container with the buttons to manage testcase creation and tutorial
-    .create_testcase {
-      // Each button
-      div {
-        cursor: pointer;
-      }
-    }
-    // Upper image with cometa's log container
-    .welcome_logo {
-      width: 60%;
-      display: flex;
-      justify-content: center;
+
+// Container for the welcome buttons and new testcase
+.welcome_buttons {
+  display: flex;
+  flex-direction: row;
+  width: 97.5%;
+  height: 100%;
+  margin-top: 30px;
+  max-width: 75vw;
+  column-gap: 20px;
+
+  @include for-phone-only {
+    flex-direction: column;
+  }
+
+  @include for-tablet-portrait-only {
+    flex-direction: column;
+  }
+
+  .welcome_container {
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+    padding: 15px;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
+    width: 100%;
+    min-height: 300px; // Altura mínima para un tamaño uniforme
+
+    @include for-phone-only {
       margin-top: 30px;
-      // Logo itself
+    }
+
+    @include for-tablet-portrait-only {
+      margin: 40px 0 0 0;
+    }
+
+    @include for-desktop-up {
+      margin: 10px 0 0 0;
+    }
+  }
+
+  .welcome_container_header {
+    position: absolute;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    max-width: 140px;
+    height: 30px; 
+    transform: translateY(-100%);
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;   
+  }
+
+  .welcome_container_info {
+    flex-direction: column; // Cambia a columna para un mejor control
+    justify-content: space-between; 
+    text-align: left;
+    padding-left: 20px;
+    margin: 20px 0 20px 10px;
+
+    div {
+      align-items: left;
+      text-align: left;
+      flex: 1; // Permite que cada div tome el mismo espacio
+    }
+  }
+
+ 
+  div {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 90%;
+    height: 100%;
+    background-color: $pure-white;
+    color: $primary-color;
+
+    div {
+      width: 100%;
       i {
-        width: 60vw;
-        height: 40vw;
+        width: 100px;
+        height: 100px;
         background-image: url(^assets/internal/COM_WELCOME_LOGO.svg);
         background-repeat: no-repeat;
         background-position: center;
         background-size: contain;
         @include for-phone-landscape-up {
+          width: 100px;
+          height: 100px;
+        }
+      }
+    }
+
+    .welcome_container_i {
+      align-items: center;
+    }
+
+    a {
+      text-decoration: none;
+      display: inline-block;
+
+      h2,
+      h3 {
+        cursor: pointer;
+        color: $blue;
+        font-weight: normal;
+      }
+    }
+
+    @include for-phone-landscape-up {
+      width: 30%;
+    }
+  }
+}
+
+    .create_testcase {
+      display: flex;
+      flex-direction: row;
+      width: 98.5%;
+      height: 100%;
+      margin-top: 30px;
+      align-self: center;
+      justify-content: space-between; 
+      color: #1a1a1a;
+    
+      div {
+        display: flex;
+        align-items: center; 
+        justify-content: center;
+        cursor: pointer;
+        color: $blue;
+        font-weight: normal;
+        background-color: $pure-white;
+        font-size: 18px;
+        border-top-right-radius: 8px;  
+        height: 40px;
+        flex-grow: 1; /* Agregado para que crezcan equitativamente */
+        margin: 0 5px; /* Espaciado entre botones */
+        box-shadow: 0 1px 3px 0 #e5b355;
+    
+        @include for-phone-only {
+          width: 100%;
+          margin-bottom: 30px;
+        }
+      }
+    
+      @include for-phone-only {
+        flex-direction: column;
+      }
+    
+      @include for-tablet-portrait-only {
+        flex-direction: row;
+        margin-top: 60px;
+      }
+    }
+
+    // Upper image with cometa's log container
+    .welcome_logo {
+      width: 60%;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+      margin-top: -150px;
+      // Logo itself
+      i {
+        width: 60vw;
+        height: 25vh;
+        background-image: url(^assets/internal/COM_WELCOME_LOGO.svg);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        @include for-phone-only  {
           width: 60vw;
-          height: 20vw;
+          height: 25vh;
+          margin-top: -200px;
+        }
+        @include for-tablet-portrait-only {
+          width: 30vw;
+          height: 15vh;
+          margin-top: 200px;
         }
       }
     }
   }
 }
+
+.welcome_container_info {
+  min-height: 100px;
+}
+
+.whats-new-title {
+  margin: 0;
+  padding: 12px 15px;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  line-height: 20px;
+  align-items: flex-start;
+  width: 100%;
+  margin-top: 50px;
+  .title {
+    text-transform: uppercase;
+    color: $blue;
+    width: 100%;
+    font: inherit;
+    font-family: 'CorpoS', sans-serif;
+    font-weight: bold;
+    font-size: 14pt;
+  }
+  .date {
+    width: 100%;
+    font-size: 9pt;
+    font-weight: bold;
+    color: rgba(black, 0.75);
+  }
+}
+
+.what-new-content {
+  width: 100%;
+}
+
+:host {
+  display: block;
+  position: relative;
+}
+
+:host::ng-deep icon {
+  background-repeat: no-repeat;
+  display: inline-block;
+  fill: currentColor;
+  height: 24px;
+  width: 24px;
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  display: inline-block;
+  line-height: 10px;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+  position: relative;
+  top: 7px;
+  color: $blue;
+}
+
+.body {
+  padding: 15px;
+  box-sizing: border-box;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 15px; 
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    .title {
+      flex: initial;
+      text-transform: uppercase;
+      color: $blue;
+      font-weight: bold;
+    }
+    .bar {
+      flex: 1;
+      height: 1px;
+      margin-left: 10px;
+      background-color: rgba($blue, 0.75);
+    }
+  }
+  ul {
+    display: block;
+    padding-left: 20px;
+    li {
+      list-style-type: none;
+      margin: 10px 0;
+      line-height: 25px;
+      strong {
+        color: $blue;
+      }
+      &:before {
+        content: '• ';
+        color: $blue;
+      }
+    }
+  }
+}
+
+

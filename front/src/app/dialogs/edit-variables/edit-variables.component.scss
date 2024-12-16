@@ -1,4 +1,5 @@
 @import 'color';
+@import 'breakpoints';
 
 .mat-dialog-title {
   margin: 0;
@@ -18,11 +19,6 @@
 }
 .table-wrapper.component {
   height: calc(100% - 275px);
-}
-
-.columns-button-wrapper {
-  text-align: end;
-  padding-bottom: 20px;
 }
 
 .env-info {
@@ -135,4 +131,54 @@ p.inuse {
 
 mat-dialog-actions {
   gap: 8px;
+}
+
+.container-father {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  height: 100%; 
+}
+
+.add, .button-column{
+  height: 40px;
+  margin-top: 13px;
+  margin-bottom: 10px;
+}
+
+
+@include for-phone-only {
+  .container-father {
+    position: relative;
+    height: 15vh; 
+  }
+
+  .selectFormField {
+    width: 145px;
+  }
+
+  .container-father .selectFormField:nth-last-of-type(2) {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+  
+  .container-father .selectFormField:nth-last-of-type(1) {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+
+  button {
+    align-self: flex-end; 
+  }
+
+  .add, .button-column{
+    margin-bottom: 10px;
+    width: auto;
+  }
+}
+
+.feature {
+  height: 14px;
 }

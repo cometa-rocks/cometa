@@ -1,0 +1,72 @@
+[
+    {
+        "model": "mobile.Mobile",
+        "pk": 1,
+        "fields": {
+            "mobile_id": 1,
+            "mobile_name": "Android_13.0_API33_x86_64",
+            "mobile_json": {
+                "image": "cometa/emulator:Android_13.0_API33_x86_64",
+                "api_level": "33",
+                "deviceName": "emulator-5554",
+                "architecture": "x86_64",
+                "android_version": "13"
+            },
+            "capabilities": {
+                "platformName": "Android",
+                "appium:deviceName": "emulator-5554",
+                "appium:automationName": "UiAutomator2",
+                "appium:platformVersion": "13.0",
+                "appium:newCommandTimeout": 300,
+                "appium:adbExecTimeout": 60000
+            }
+        }
+    },
+    {
+        "model": "mobile.Mobile",
+        "pk": 2,
+        "fields": {
+            "mobile_id": 1,
+            "mobile_name": "Android_14.0_API34_x86_64",
+            "mobile_json": {
+                "image": "cometa/emulator:Android_14.0_API34_x86_64",
+                "api_level": "34",
+                "deviceName": "emulator-5554",
+                "architecture": "x86_64",
+                "android_version": "14"
+            },
+            "capabilities": {
+                "platformName": "Android",
+                "appium:deviceName": "emulator-5554",
+                "appium:automationName": "UiAutomator2",
+                "appium:platformVersion": "14.0",
+                "appium:newCommandTimeout": 300,
+                "appium:adbExecTimeout": 60000
+            }
+        }
+    },
+    {
+        "model": "mobile.Mobile",
+        "pk": 2,
+        "fields": {
+            "mobile_id": 1,
+            "mobile_name": "Android_12.0_API31_x86_64",
+            "mobile_json": {
+                "image": "cometa/emulator:Android_12.0_API31_x86_64",
+                "api_level": "31",
+                "deviceName": "emulator-5554",
+                "architecture": "x86_64",
+                "android_version": "14"
+            },
+            "capabilities": {
+                "platformName": "Android",
+                "appium:deviceName": "emulator-5554",
+                "appium:automationName": "UiAutomator2",
+                "appium:platformVersion": "12.0",
+                "appium:newCommandTimeout": 300,
+                "appium:adbExecTimeout": 60000
+            }
+        }
+    }
+]
+

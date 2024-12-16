@@ -1,0 +1,51 @@
+@import 'color';
+@import 'breakpoints';
+
+.house-keeping-logs{
+  padding: 1% 3%;
+}
+
+.house-keeping-logs-content{
+  width: 100%;
+  overflow-y: scroll;
+  background-color: rgba(54, 52, 52, 0.2);
+}
+
+h2 {
+  color: $blue;
+}
+
+button {
+  font-weight: bold;
+}
+
+button.submit {
+  color: $blue;
+}
+
+.add {
+  cursor: pointer;
+  color: $blue;
+  margin-left: 15px;
+  margin-top: 10px;
+}
+
+:host::ng-deep .mat-dialog-content {
+  display: flex;
+  flex-wrap: wrap;
+  @include for-phone-landscape-up {
+    .mat-form-field {
+      flex: 0 calc(50% - 10px);
+      &:nth-child(odd) {
+        margin-right: 10px;
+      }
+      &:nth-child(even) {
+        margin-left: 10px;
+      }
+    }
+  }
+}
+
+.extra-info {
+  flex: 1 100%;
+}
