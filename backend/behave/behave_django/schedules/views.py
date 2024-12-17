@@ -239,7 +239,7 @@ def updated_step_actions(request):
 
         logger.debug(f"Ending Action Parse")
         # send a request to web sockets about the actions update
-        requests.post('http://cometa_socket:3001/sendAction', json={
+        requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Actions] Get All'
         })
 

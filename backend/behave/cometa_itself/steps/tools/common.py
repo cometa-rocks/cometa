@@ -2,7 +2,6 @@ import time
 import signal
 import logging
 
-from src.backend.utility.config_handler import *
 from .exceptions import *
 from .variables import *
 from functools import wraps
@@ -16,6 +15,8 @@ from selenium.webdriver.common.by import By
 import time, requests, json, os, datetime, sys, subprocess, re, shutil
 
 sys.path.append("/opt/code/behave_django")
+
+from utility.config_handler import *
 from utility.common import *
 from utility.cometa_logger import CometaLogger
 from utility.configurations import ConfigurationManager

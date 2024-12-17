@@ -39,7 +39,6 @@ function auto_record() {
         no_test=true
         while $no_test; do
             task=$(curl -s http://localhost:4444/status | jq -r '.value.nodes[].slots[] | select(.session != null) | .session.sessionId' | sed 's/-//g')
-            echo "Received Task $task"
             if [ -z "$task" ]; then
                 sleep 2
                 echo "Waiting for the test to start"

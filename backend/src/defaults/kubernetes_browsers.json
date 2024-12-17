@@ -1,0 +1,137 @@
+[
+    {
+        "model": "backend.Browser",
+        "pk": 1,
+        "fields": {
+            "browser_json": {
+                "os": "Generic",
+                "device": null,
+                "browser": "chrome",
+                "os_version": "Selenium",
+                "real_mobile": false,
+                "browser_version": "131",
+                "cloud": "local"
+            }
+        }
+    },
+    {
+        "model": "backend.Browser",
+        "pk": 2,
+        "fields": {
+            "browser_json": {
+                "os": "Generic",
+                "device": null,
+                "browser": "chrome",
+                "os_version": "Selenium",
+                "real_mobile": false,
+                "browser_version": "130",
+                "cloud": "local"
+            }
+        }
+    },
+    {
+        "model": "backend.Browser",
+        "pk": 3,
+        "fields": {
+            "browser_json": {
+                "os": "Generic",
+                "device": null,
+                "browser": "chrome",
+                "os_version": "Selenium",
+                "real_mobile": false,
+                "browser_version": "129",
+                "cloud": "local"
+            }
+        }
+    },
+    {
+        "model": "backend.Browser",
+        "pk": 4,
+        "fields": {
+            "browser_json": {
+                "os": "Generic",
+                "device": null,
+                "browser": "firefox",
+                "os_version": "Selenium",
+                "real_mobile": false,
+                "browser_version": "133",
+                "cloud": "local"
+            }
+        }
+    },
+    {
+        "model": "backend.Browser",
+        "pk": 5,
+        "fields": {
+            "browser_json": {
+                "os": "Generic",
+                "device": null,
+                "browser": "firefox",
+                "os_version": "Selenium",
+                "real_mobile": false,
+                "browser_version": "132",
+                "cloud": "local"
+            }
+        }
+    },
+    {
+        "model": "backend.Browser",
+        "pk": 6,
+        "fields": {
+            "browser_json": {
+                "os": "Generic",
+                "device": null,
+                "browser": "firefox",
+                "os_version": "Selenium",
+                "real_mobile": false,
+                "browser_version": "131",
+                "cloud": "local"
+            }
+        }
+    },
+    {
+        "model": "backend.Browser",
+        "pk": 7,
+        "fields": {
+            "browser_json": {
+                "os": "Generic",
+                "device": null,
+                "browser": "edge",
+                "os_version": "Selenium",
+                "real_mobile": false,
+                "browser_version": "131",
+                "cloud": "local"
+            }
+        }
+    },
+    {
+        "model": "backend.Browser",
+        "pk": 8,
+        "fields": {
+            "browser_json": {
+                "os": "Generic",
+                "device": null,
+                "browser": "edge",
+                "os_version": "Selenium",
+                "real_mobile": false,
+                "browser_version": "130",
+                "cloud": "local"
+            }
+        }
+    },
+    {
+        "model": "backend.Browser",
+        "pk": 9,
+        "fields": {
+            "browser_json": {
+                "os": "Generic",
+                "device": null,
+                "browser": "edge",
+                "os_version": "Selenium",
+                "real_mobile": false,
+                "browser_version": "129",
+                "cloud": "local"
+            }
+        }
+    }
+]  

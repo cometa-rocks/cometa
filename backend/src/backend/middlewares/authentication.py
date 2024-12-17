@@ -8,7 +8,7 @@ from pprint import pprint
 from django.shortcuts import redirect
 from backend.utility.configurations import ConfigurationManager
 import urllib3
-from utility.config_handler import get_config
+from backend.utility.config_handler import get_config
 logger = getLogger()
 
 DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
