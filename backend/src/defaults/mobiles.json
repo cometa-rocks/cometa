@@ -26,7 +26,7 @@
         "model": "mobile.Mobile",
         "pk": 2,
         "fields": {
-            "mobile_id": 1,
+            "mobile_id": 2,
             "mobile_name": "Android_14.0_API34_x86_64",
             "mobile_json": {
                 "image": "cometa/emulator:Android_14.0_API34_x86_64",
@@ -49,7 +49,7 @@
         "model": "mobile.Mobile",
         "pk": 2,
         "fields": {
-            "mobile_id": 1,
+            "mobile_id": 3,
             "mobile_name": "Android_12.0_API31_x86_64",
             "mobile_json": {
                 "image": "cometa/emulator:Android_12.0_API31_x86_64",

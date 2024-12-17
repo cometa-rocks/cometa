@@ -14,7 +14,7 @@ from appium.options.common.base import AppiumOptions
 
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append("/code/behave/cometa_itself/steps")
+sys.path.append("/opt/code/cometa_itself/steps")
 
 from utility.functions import *
 from tools.exceptions import *

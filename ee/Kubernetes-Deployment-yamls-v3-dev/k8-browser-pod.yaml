@@ -3,30 +3,32 @@ kind: Pod
 metadata:
   name: cometa-chrome
   namespace: cometa
+  labels:
+    app: cometa-chrome  # Added label to match the service selector
 spec:
   tolerations:
   - key: "architecture"
     operator: "Equal"
     value: "amd"
     effect: "NoSchedule"
-  securityContext:
-    fsGroup: 472
-    runAsGroup: 472
-    runAsNonRoot: true
-    runAsUser: 472
+  # securityContext:
+  #   fsGroup: 472
+  #   runAsGroup: 472
+  #   runAsNonRoot: true
+  #   runAsUser: 472
   containers:
   - name: cometa-chrome
-    image: cometa/chrome:130.0
+    image: cometa/chrome:131.0
     securityContext:
-      allowPrivilegeEscalation: false
-      capabilities:
-        drop:
-        - ALL
-      runAsNonRoot: true
-      runAsGroup: 472
-      runAsUser: 472
-      seccompProfile:
-        type: RuntimeDefault
+      allowPrivilegeEscalation: true
+      # capabilities:
+      #   drop:
+      #   - ALL
+      # runAsNonRoot: true
+      # runAsGroup: 472
+      # runAsUser: 472
+      # seccompProfile:
+      #   type: RuntimeDefault
     resources:
       limits:
         cpu: "2"
@@ -48,11 +50,13 @@ spec:
     - name: cometa-volume
       mountPath: /video
       subPath: data/cometa/videos
+    # - name: cometa-volume
+    #   mountPath: /opt/selenium/config.toml
+    #   subPath: data/cometa/videos
   volumes:
   - name: cometa-volume
     persistentVolumeClaim:
       claimName: cometa-data-volume-claim
-
 
 ---
 
@@ -63,7 +67,7 @@ metadata:
   namespace: cometa
 spec:
   selector:
-    app: cometa-chrome
+    app: cometa-chrome  # This matches the pod's labels
   ports:
   - name: selenium
     protocol: TCP
@@ -73,27 +77,4 @@ spec:
     protocol: TCP
     port: 7900
     targetPort: 7900
-  type: ClusterIP
-
-
-# ---
-
-# apiVersion: networking.k8s.io/v1
-# kind: NetworkPolicy
-# metadata:
-#   name: cometa-django-network-policy
-#   namespace: cometa
-# spec:
-#   podSelector: 
-#     matchLabels:
-#       app: cometa-django-pod # This matches all pods in the namespace
-#   policyTypes:
-#     - Ingress
-#   ingress:
-#     - from:
-#         - podSelector:
-#             matchLabels:
-#               app: cometa-behave-pod
-#           namespaceSelector:
-#             matchLabels:
-#               name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+  type: NodePort

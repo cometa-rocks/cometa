@@ -202,9 +202,9 @@ def addVariable(context, variable_name, result, encrypted=False):
             )
         else:
             # make the request to cometa_django and add the environment variable
-            response = requests.patch(
-                "http://cometa_django:8000/api/variables/"
-                + str(env_variables[index]["id"])
+            response = requests.patch(               
+                f"{get_cometa_backend_url()}/api/variables/"
+                + str(env_variables[index]["id"]) 
                 + "/",
                 headers={"Host": "cometa.local"},
                 json=env_variables[index],
@@ -227,7 +227,7 @@ def addVariable(context, variable_name, result, encrypted=False):
         }
         # make the request to cometa_django and add the environment variable
         response = requests.post(
-            "http://cometa_django:8000/api/variables/",
+            f"{get_cometa_backend_url()}/api/variables/",
             headers={"Host": "cometa.local"},
             json=update_data,
         )
@@ -237,7 +237,7 @@ def addVariable(context, variable_name, result, encrypted=False):
 
     # send a request to websockets about the environment variables update
     requests.post(
-        "http://cometa_socket:3001/sendAction",
+        f"{get_cometa_socket_url()}/sendAction",
         json={
             "type": "[Variables] Get All",
             "departmentId": int(context.feature_info["department_id"]),
@@ -571,7 +571,7 @@ def saveToDatabase(
     log_file.write("\n")
     try:
         response = requests.post(
-            "http://cometa_django:8000/api/feature_results/"
+            f"{get_cometa_backend_url()}/api/feature_results/"
             + str(feature_id)
             + "/step_results/"
             + str(feature_result_id)
@@ -658,7 +658,7 @@ def saveToDatabase(
             context.counters["pixel_diff"] += int(float(pixel_diff))
             logger.debug("Saveing pixel difference %s to database" % str(pixel_diff))
             requests.post(
-                "http://cometa_django:8000/steps/" + str(step_id) + "/update/",
+                f"{get_cometa_backend_url()}/steps/" + str(step_id) + "/update/",
                 json=data,
                 headers={"Host": "cometa.local"},
             )
@@ -698,7 +698,7 @@ def saveToDatabase(
         }
         logger.debug("Writing data %s to database" % json.dumps(data))
         requests.post(
-            "http://cometa_django:8000/setScreenshots/%s/" % str(step_id),
+            f"{get_cometa_backend_url()}/setScreenshots/%s/" % str(step_id),
             json=data,
             headers={"Host": "cometa.local"},
         )
@@ -809,7 +809,7 @@ def compareHTML(params):
         # Return if there was a difference or not
         different = TEMPLATE_HTML_CONTENT != params["SOURCE_HTML"]
         requests.post(
-            "http://cometa_django:8000/steps/" + str(params["step_id"]) + "/update/",
+            f"{get_cometa_backend_url()}/steps/" + str(params["step_id"]) + "/update/",
             json={"different_html": different},
             headers={"Host": "cometa.local"},
         )

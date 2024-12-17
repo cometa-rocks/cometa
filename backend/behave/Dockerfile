@@ -1,6 +1,11 @@
 # Use Python 3.9 base image from the Docker Hub
 FROM python:3.9
 
+LABEL AUTHOR="COMETA ROCKS S.L."
+
+# SHELL ["/bin/bash", "-c"]
+USER root
+
 # Install necessary packages
 RUN apt-get update && apt-get install --no-install-recommends -y \
     rsyslog \
@@ -12,18 +17,16 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && apt-get purge -y --auto-remove exim* \
     && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get purge -y exim*
 # Update pip
 RUN python -m pip install --upgrade pip
-
-# Install Poetry via pip for security reasons
-RUN pip install poetry
 
 # Create a non-root user 'cometa' with UID 472 and GID 472
 RUN groupadd -g 472 cometa && \
     useradd -u 472 -g cometa -m cometa -s /bin/bash
 
+RUN usermod -aG sudo cometa
     
-RUN supervisord -c /etc/supervisor/supervisord.conf
 
 # Create necessary directories with appropriate ownership and permissions
 RUN mkdir -p /etc/supervisor/conf.d
@@ -34,7 +37,7 @@ RUN mkdir -p /dev/log
 RUN mkdir -p /code/behave/screenshots
 RUN mkdir -p /code/behave/videos
 RUN mkdir -p /code/behave/pdf
-RUN mkdir -p /code/behave/downloads
+RUN mkdir -p /data/test/downloads
 RUN mkdir -p /code/behave/department_data
 RUN mkdir -p /code/src/logs
 
@@ -57,48 +60,61 @@ RUN chown -R cometa:cometa /var/log/supervisor/
 RUN chmod -R 755 /code 
 RUN chmod -R 755 /code/src/logs
 RUN chmod -R 755 /share
-RUN chmod -R 755 /opt/code
-RUN chmod -R 755 /proc/kmsg
+RUN chmod -R 755 /opt/code 
+RUN chmod -R 755 /proc/kmsg 
 RUN chmod -R 755 /var/run 
-RUN chmod -R 755 /var/log/supervisor/
+RUN chmod -R 755 /var/log/supervisor/ 
 RUN chmod -R 755 /usr/local/lib/python3.9/
 # RUN chmod -R 755 /usr/local/bin/chardetect/
 
 # RUN rsyslogd -n
 
-
 # Set the working directory
 WORKDIR /code/behave
 
-COPY --chown=cometa:cometa ./behave/supervisord.conf /etc/supervisor/supervisord.conf
-COPY --chown=cometa:cometa ./behave /opt/code
-COPY --chown=cometa:cometa . /code
-
+COPY --chown=cometa:cometa ./supervisord.conf /etc/supervisor/supervisord.conf
+COPY --chown=cometa:cometa . /opt/code
 
 WORKDIR /opt/code/
-# Switch to non-root user before installing packages
-
+# Switch to non-root user
 USER cometa
+
+# Set working directory
+WORKDIR /opt/code
+
+# Update file permissions
 RUN chmod -R 755 /opt/code
-# Configure Poetry and install dependencies without creating a virtual environment
-RUN poetry config virtualenvs.create false
+
+# Install Poetry via curl
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Add Poetry to PATH
+ENV PATH="/home/cometa/.local/bin:$PATH"
+
+# Verify Poetry installation
+RUN poetry --version
+
+# # Configure Poetry to avoid creating virtual environments
+RUN poetry config virtualenvs.create false --local
+
+# Install project dependencies
 RUN poetry install --no-interaction --no-ansi
-# Install Behave
+
+# Install Behave for testing
 RUN pip install behave
-RUN pip install kubernetes
+
 
 # Set the entry point script, ensure it's executable
-COPY --chown=cometa:cometa ./behave/entry.sh /opt/code/behave_django/entry.sh
 
-RUN chmod +x /opt/code/behave_django/entry.sh
+RUN chmod +x /opt/code/behave_django/start_pod.sh
 RUN chmod +x /opt/code/run_remote_from_django.sh
 
 WORKDIR /opt/code/behave_django
 
 # Finish setup, execute the entrypoint script
-CMD ["./entry.sh"]
-
+ENTRYPOINT ["/bin/sh", "-c", "/opt/code/behave_django/start_pod.sh"]
 
 
 # build image for arm and amd processors 
-# docker buildx build -f Dockerfile_behave_build --platform linux/amd64,linux/arm64 -t cometa/behave:latest --push .
+# docker buildx build  --platform linux/amd64,linux/arm64 -t cometa/behave:latest --push .
+# docker build -t cometa/behave:0.1 --push .

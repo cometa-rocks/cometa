@@ -42,6 +42,7 @@ bs4 = "^0.0.2"
 pypdf = "3.17.0"
 appium-python-client = "^4.2.0"
 docker = "^7.1.0"
+kubernetes = "31.0.0"
 
 [tool.poetry.dev-dependencies]
 

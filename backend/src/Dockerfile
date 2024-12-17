@@ -1,6 +1,10 @@
 # Use the specified Python base image
 FROM python:3.9
 
+LABEL AUTHOR="COMETA ROCKS S.L."
+
+SHELL ["/bin/bash", "-c"]
+
 # # Create a non-root user 'cometa' with UID and GID 472
 RUN groupadd -g 472 cometa && \
     useradd -u 472 -g cometa -m cometa -s /bin/bash
@@ -30,9 +34,10 @@ RUN mkdir -p /opt/code
 RUN mkdir -p /share
 RUN mkdir -p /code
 RUN mkdir -p /home/cometa
+RUN mkdir -p /migration 
 
 
-RUN mkdir -p /code/behave/screenshots
+RUN mkdir -p /data/screenshots
 RUN mkdir -p /code/behave/videos
 RUN mkdir -p /code/behave/pdf
 RUN mkdir -p /code/behave/downloads
@@ -57,7 +62,12 @@ RUN chown -R cometa:cometa /usr/sbin/rsyslogd
 RUN chown -R cometa:cometa /var/spool/rsyslog
 RUN chown -R cometa:cometa /etc/rsyslog.d
 RUN chown -R cometa:cometa /proc/kmsg
+RUN chown -R cometa:cometa /migration 
 
+RUN chown clamav:clamav /var/lib/clamav
+RUN chmod 775 /var/lib/clamav
+RUN chown clamav:clamav /var/log/clamav
+RUN chmod 775 /var/log/clamav
 
 RUN chmod -R 755 /code
 RUN chmod -R 755 /opt/code
@@ -70,15 +80,16 @@ RUN chmod -R 755 /var/run/clamav
 RUN chmod -R 755 /run/clamav
 RUN chmod -R 755 /usr/sbin/rsyslogd
 RUN chmod -R 755 /var/spool/rsyslog
+RUN chmod -R 755 /migration
 
 # Copy backend application files
 # COPY --chown=cometa:cometa ./src /code/src
 # COPY --chown=cometa:cometa ./behave /code/behave
-COPY --chown=cometa:cometa . /code
-COPY --chown=cometa:cometa ./src /opt/code
-COPY --chown=cometa:cometa ./crontabs/cometa_django_crontab /etc/cron.d/crontab
-COPY --chown=cometa:cometa ./src/rsyslog/rsyslog.conf /etc/rsyslog.conf
-COPY --chown=cometa:cometa ./src/rsyslog/rsyslog.service /lib/systemd/system/rsyslog.service
+# COPY --chown=cometa:cometa . /code
+COPY --chown=cometa:cometa . /opt/code
+# COPY --chown=cometa:cometa ./crontabs/cometa_django_crontab /etc/cron.d/crontab
+COPY --chown=cometa:cometa ./rsyslog/rsyslog.conf /etc/rsyslog.conf
+COPY --chown=cometa:cometa ./rsyslog/rsyslog.service /lib/systemd/system/rsyslog.service
 WORKDIR /opt/code
 
 
@@ -86,6 +97,7 @@ RUN touch /etc/cron.d/crontab
 RUN chmod 0744 /etc/cron.d/crontab
 RUN crontab /etc/cron.d/crontab
 
+RUN usermod -aG cometa clamav
 
 # Switch to non-root user
 USER cometa
@@ -103,9 +115,9 @@ RUN chmod +x ./start_pod.sh
 # Expose the port Django will run on
 EXPOSE 8000
 
-# Command to run the entry script which starts Django or Gunicorn based on the environment
+# Command to run the entry script which starts Django or gunicorn based on the environment
 CMD ["./start_pod.sh"]
-
 
 # build image for arm and amd processors 
 # docker buildx build -f Dockerfile_django_build --platform linux/amd64,linux/arm64 -t cometa/django:latest --push .
+# docker build -f Dockerfile_django_build -t cometa/django:0.1 --push .

@@ -324,13 +324,13 @@ def CreateOIDCAccount(request):
 
 
 """ def Screenshot(request, screenshot_name):
-    os.chdir('/code/behave/screenshots/')
+    os.chdir('/data/screenshots/')
     # Check for WebP Support
     webp_support = 'image/webp' in request.META.get('HTTP_ACCEPT', 'none')
     image_extension = 'webp' if webp_support else 'jpg'
     compressedImage = 'compressed/%s_compressed.%s' % (screenshot_name.replace('.png', ''), image_extension)
     # Create compressed folder if not exists
-    Path('/code/behave/screenshots/compressed/').mkdir(parents=True, exist_ok=True)
+    Path('/data/screenshots/compressed/').mkdir(parents=True, exist_ok=True)
     if not os.path.exists(compressedImage):
         # Compress image
         try:
@@ -446,7 +446,7 @@ def removeScreenshot(request, *args, **kwargs):
         return JsonResponse({'success': False, 'error': 'Step result not found with ID: ' + str(step_result_id)})
     step_result = step_result[0]
     # Construct screenshots folders and screenshot filename
-    screenshots_root = '/code/behave/screenshots/'
+    screenshots_root = '/data/screenshots/'
     filename = getattr(step_result, 'screenshot_' + screen_type, '')
     # print(step_result.screenshot_current)
     if not filename:
@@ -488,7 +488,7 @@ def removeTemplate(request, *args, **kwargs):
         return JsonResponse({'success': False, 'error': 'Specified step result id not found.'})
 
     # Construct screenshots folders and screenshot filename
-    screenshots_root = '/code/behave/screenshots/'
+    screenshots_root = '/data/screenshots/'
     file = screenshots_root + template
     # Make sure the file exists in disk before anything else
     if not os.path.isfile(file):
@@ -504,7 +504,7 @@ def removeTemplate(request, *args, **kwargs):
 
 
 def Screenshots(step_result_id):
-    os.chdir('/code/behave/screenshots/')
+    os.chdir('/data/screenshots/')
     screenshots = {}
     try:
         # FIXME: Dirty fix for getting correct current image
@@ -627,7 +627,7 @@ def downloadFeatureFiles(request, filepath, *args, **kwargs):
     # get user from the session
     user = request.session['user']
     # static path to downloads folder
-    downloadsFolder = '/code/behave/downloads/'
+    downloadsFolder = '/data/downloads/'
     # join static path and filepath
     fullPath = os.path.join(downloadsFolder, filepath)
     # get the feature_result_id from the filepath
@@ -1187,7 +1187,7 @@ def UpdateScreenshots(request, step_result_id):
 
 @csrf_exempt
 def MigrateScreenshots(request):
-    screenshots_root = '/code/behave/screenshots/'
+    screenshots_root = '/data/screenshots/'
     # CD into screenshots directory
     os.chdir(screenshots_root)
     # Construct grouped dictionary by step_result_id

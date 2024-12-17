@@ -34,6 +34,8 @@ django-cryptography = "^1.1"
 jq = "^1.6.0"
 pytz = "^2023.4"
 docker = "^7.1.0"
+kubernetes = "31.0.0"
+
 
 [tool.poetry.dev-dependencies]
 

@@ -18,8 +18,9 @@ from backend.common import *
 from backend.utility.configurations import ConfigurationManager 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(BASE_DIR, "migrations"))
 
-SCREENSHOTS_ROOT = '/code/behave/screenshots/'
+SCREENSHOTS_ROOT = '/data/screenshots/'
 
 
 SENTRY_DJANGO = ConfigurationManager.get_configuration('COMETA_SENTRY_DJANGO', False) 
@@ -58,7 +59,7 @@ ALLOWED_HOSTS = ['*']
 CONTAINER_SHARED_SPACE = os.path.join("/code/shared")
 if not os.path.exists(CONTAINER_SHARED_SPACE):
     os.mkdir(CONTAINER_SHARED_SPACE)
-
+  
 
 # Application definition
 INSTALLED_APPS = [
@@ -80,6 +81,17 @@ INSTALLED_APPS = [
     'modules.container_service'
 ]
 
+MIGRATION_MODULES = {
+    'backend': 'migrations.backend',
+    'humanize': 'migrations.humanize',
+    'ManagementCommandLogConfig': 'migrations.ManagementCommandLogConfig',
+    'mobile': 'migrations.mobile',
+    'configuration': 'migrations.configuration',
+    'container_service': 'migrations.container_service',
+    'housekeeping': 'migrations.housekeeping',
+    'security': 'migrations.security',
+} 
+ 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',

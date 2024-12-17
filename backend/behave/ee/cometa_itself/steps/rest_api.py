@@ -7,14 +7,16 @@ from behave import (
     use_step_matcher
 )
 import sys, requests, re, json
-sys.path.append('/code/behave/cometa_itself/steps')
+sys.path.append('/opt/code/cometa_itself/steps')
+sys.path.append("/opt/code/behave_django")
+
 from actions import (
     done,
     logger,
     addVariable
 )
 from tools.exceptions import CustomError
-from src.backend.utility.config_handler import *
+from utility.config_handler import *
 
 use_step_matcher("re")
 

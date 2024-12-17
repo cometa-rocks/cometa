@@ -23,7 +23,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from behave import step, use_step_matcher
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append("/code/behave/cometa_itself/steps")
+sys.path.append("/opt/code/cometa_itself/steps")
 
 from utility.functions import *
 from tools.exceptions import *

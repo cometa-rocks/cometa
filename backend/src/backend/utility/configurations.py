@@ -123,8 +123,9 @@ class ConfigurationManager:
         conn_params = {
             "dbname": "postgres",
             "user": "postgres",
-            "host": "db",
-            "port": 5432,
+            "password": os.getenv("DATABASE_PASSWORD",""),
+            "host": os.getenv("DATABASE_SERVER","db"),
+            "port": 5432,            
         }
         # Connect to the PostgreSQL database
         self.__db_connection = psycopg2.connect(**conn_params)
