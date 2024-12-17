@@ -69,7 +69,7 @@ from utility.config_handler import *
 import sys
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append('/code/behave/cometa_itself/steps')
+sys.path.append('/opt/code/cometa_itself/steps')
 
 from utility.functions import *
 from utility.configurations import ConfigurationManager
@@ -1878,70 +1878,6 @@ def step_impl(context,comment):
     logger.debug("Read a comment from testplan. Will do nothing.")
     logger.info("Comment: %s" % comment)
 
-def getVariable(context, variable_name):
-    # get the variables from the context
-    env_variables = json.loads(context.VARIABLES)
-    # check if variable_name is in the env_variables
-    index = [i for i,_ in enumerate(env_variables) if _['variable_name'] == variable_name]
-
-    if len(index) == 0:
-        raise CustomError("No variable found with name: %s" % variable_name)
-
-    # get variable value from the variables
-    variable_value = env_variables[index[0]]['variable_value']
-
-    return variable_value
-
-
-def addVariable(context, variable_name, result, encrypted=False):
-    # get the variables from the context
-    env_variables = json.loads(context.VARIABLES)
-    # check if variable_name is in the env_variables
-    index = [i for i,_ in enumerate(env_variables) if _['variable_name'] == variable_name]
-
-    if len(index) > 0: # update the variable
-        index = index[0]
-        logger.debug("Patching existing variable")
-        env_variables[index]['variable_value'] = result
-        env_variables[index]['encrypted'] = encrypted
-        env_variables[index]['updated_by'] = context.PROXY_USER['user_id']
-
-        # do not update if scope is data-driven
-        if 'scope' in env_variables[index] and env_variables[index]['scope'] == 'data-driven':
-            logger.info("Will not send request to update the variable in co.meta since we are in 'data-driven' scope.")
-        else:
-            # make the request to cometa_django and add the environment variable
-            response = requests.patch(f'{get_cometa_backend_url()}/api/variables/' + str(env_variables[index]['id']) + '/', headers={"Host": "cometa.local"}, json=env_variables[index])
-            if response.status_code == 200:
-                env_variables[index] = response.json()['data']
-    else: # create new variable
-        logger.debug("Creating variable")
-        # create data to send to django
-        update_data = {
-            "environment": int(context.feature_info['environment_id']),
-            "department": int(context.feature_info['department_id']),
-            "feature": int(context.feature_id),
-            "variable_name": variable_name,
-            "variable_value": result,
-            "based": "environment",
-            "encrypted": encrypted,
-            "created_by": context.PROXY_USER['user_id'],
-            "updated_by": context.PROXY_USER['user_id']
-        }
-        # make the request to cometa_django and add the environment variable
-        response = requests.post(f'{get_cometa_backend_url()}/api/variables/', headers={"Host": "cometa.local"}, json=update_data)
-
-        if response.status_code == 201:
-            env_variables.append(response.json()['data'])
-
-    # send a request to websockets about the environment variables update
-    requests.post(f'{get_cometa_socket_url()}/sendAction', json={
-        'type': '[Variables] Get All',
-        'departmentId': int(context.feature_info['department_id'])
-    })
-    # update variables inside context
-    context.VARIABLES = json.dumps(env_variables)
-
 # save css-selector's property value if available else gets selector's innerText and saves it as an environment variable, environment variable value has a maximum value of 255 characters.
 @step(u'Save selector "{css_selector}" value to environment variable "{variable_name}"')
 @done(u'Save selector "{css_selector}" value to environment variable "{variable_name}"')
@@ -3423,13 +3359,13 @@ def scrollThroughLazyLoading(context, xpath, MaxScrolls, MaxTimeOfLife):
 
 
 if __name__ != 'actions':
-    sys.path.append('/code/behave/')
+    sys.path.append('/opt/code/')
     from ee.cometa_itself.steps import rest_api  
     from ee.cometa_itself.steps import ai_actions
     from ee.cometa_itself.steps import conditional_actions
     from ee.cometa_itself.steps import mobile_actions  
     
-    sys.path.append('/code/behave/cometa_itself')
+    sys.path.append('/opt/code/cometa_itself')
     from steps import validation_actions
     from steps import unimplemented_steps
     

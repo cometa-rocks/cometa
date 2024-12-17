@@ -7,8 +7,9 @@ from .common import get_logger
 
 logger = get_logger()
 
+from .config_handler import *
 
-COMETA_DJANGO_URL = "http://django:8000"
+COMETA_DJANGO_URL = get_cometa_backend_url()
 
 
 # This ConfigurationManager is for BEHAVE
@@ -40,7 +41,7 @@ class ConfigurationManager:
             # logger.info(self.__COMETA_CONFIGURATIONS)
         except requests.exceptions.ConnectionError as exception:
             logger.info(f"Waiting for {COMETA_DJANGO_URL} to come alive")
-            time.sleep(2)
+            time.sleep(5)
             self.load_configurations()
 
     @classmethod

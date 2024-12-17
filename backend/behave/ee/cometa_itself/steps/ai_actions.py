@@ -10,7 +10,7 @@ import jq
 from behave import step, use_step_matcher
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append("/code/behave/cometa_itself/steps")
+sys.path.append("/opt/code/cometa_itself/steps")
 
 from utility.functions import *
 
