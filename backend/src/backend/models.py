@@ -20,8 +20,8 @@ from crontab import CronSlices
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 
-from utility.config_handler import *
-
+from .utility.config_handler import *
+ 
 # GLOBAL VARIABLES
 
 # check if we are inside a loop
@@ -32,8 +32,8 @@ logger = getLogger()
 # Step Keywords
 step_keywords = (
     ('Given', 'Given',),
-    ('When', 'When',),
-    ('Then', 'Then',),
+    ('When', 'When',), 
+    ('Then', 'Then',), 
     ('and', 'and',),
 )
 
@@ -63,7 +63,7 @@ def get_feature_path(feature):
     Returns the store path for the given feature meta and steps files
     """
     feature = get_model(feature, Feature)
-    path = '/code/behave/department_data/'+slugify(feature.department_name)+'/'+slugify(feature.app_name)+'/'+feature.environment_name+'/'
+    path = '/data/department_data/'+slugify(feature.department_name)+'/'+slugify(feature.app_name)+'/'+feature.environment_name+'/'
     # Make sure path exists
     Path(path).mkdir(parents=True, exist_ok=True)
 
@@ -846,8 +846,8 @@ class Feature(models.Model):
         # Remove runs and feature results
         Feature_Runs.available_objects.filter(feature__feature_id=self.feature_id).delete()
         Feature_result.available_objects.filter(feature_id=self.feature_id).delete()
-        feature_screenshots = '/code/behave/screenshots/%s/' % str(self.feature_id)
-        feature_templates = '/code/behave/screenshots/templates/%s/' % str(self.feature_id)
+        feature_screenshots = '/data/screenshots/%s/' % str(self.feature_id)
+        feature_templates = '/data/screenshots/templates/%s/' % str(self.feature_id)
 
         # Delete folder with step results, runs and feature results
         if os.path.exists(feature_screenshots):
@@ -946,7 +946,7 @@ class Feature_result(SoftDeletableModel):
         # remove templates
         if deleteTemplate != False:
             # screenshots directory
-            templates_root = '/code/behave/screenshots/templates/'
+            templates_root = '/data/screenshots/templates/'
             styles_path = templates_root + str(self.feature_id.feature_id)
             if os.path.exists(styles_path):
                 try:

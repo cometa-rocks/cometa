@@ -3,7 +3,7 @@ from docker.errors import NullResource, NotFound
 
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append("/code/behave/cometa_itself/steps")
+sys.path.append("/opt/code/cometa_itself/steps")
 
 from utility.functions import *
 from utility.cometa_logger import CometaLogger

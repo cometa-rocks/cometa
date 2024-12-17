@@ -17,7 +17,8 @@ from selenium.common.exceptions import InvalidCookieDomainException
 import copy
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append("/code/behave/cometa_itself/steps")
+sys.path.append("/opt/code/cometa_itself/steps")
+sys.path.append("/opt/code/ee/cometa_itself/steps")
 
 from utility.config_handler import *
 from utility.functions import *
@@ -65,7 +66,7 @@ REDIS_IMAGE_ANALYSYS_QUEUE_NAME = ConfigurationManager.get_configuration(
     "REDIS_IMAGE_ANALYSYS_QUEUE_NAME", "image_analysis"
 )  # converting to seconds
 
-DEPARTMENT_DATA_PATH = "/opt/code/department_data"
+DEPARTMENT_DATA_PATH = "/data/department_data"
 
 
 # handle SIGTERM when user stops the testcase
@@ -95,9 +96,7 @@ def error_handling(*_args, **_kwargs):
 
                     # remove the feature_result if it was created
                     if "feature_result_id" in os.environ:
-                        response = requests.delete(
-<<<<<<< backend/behave/cometa_itself/environment.py
-                            f'{get_cometa_backend_url()}/api/feature_results/%s' % os.environ['feature_result_id'],
+                        response = requests.delete(f'{get_cometa_backend_url()}/api/feature_results/%s' % os.environ['feature_result_id'],
                             headers={'Host': 'cometa.local'})
 
                     # let the front user know that the feature has been failed
@@ -110,29 +109,6 @@ def error_handling(*_args, **_kwargs):
                         "error": str(err),
                         "user_id": args[0].PROXY_USER['user_id']
                     })
-=======
-                            "http://cometa_django:8000/api/feature_results/%s"
-                            % os.environ["feature_result_id"],
-                            headers={"Host": "cometa.local"},
-                        )
-
-                    # let the front user know that the feature has been failed
-                    logger.debug("Sending a error websocket....")
-                    request = requests.post(
-                        "http://cometa_socket:3001/feature/%s/error"
-                        % args[0].feature_id,
-                        data={
-                            "browser_info": json.dumps(args[0].browser_info),
-                            "feature_result_id": os.environ["feature_result_id"],
-                            "run_id": os.environ["feature_run"],
-                            "datetime": datetime.datetime.utcnow().strftime(
-                                "%Y-%m-%dT%H:%M:%SZ"
-                            ),
-                            "error": str(err),
-                            "user_id": args[0].PROXY_USER["user_id"],
-                        },
-                    )
->>>>>>> backend/behave/cometa_itself/environment.py
 
                     # let behave know that feature has been failed
                     os.environ["FEATURE_FAILED"] = "True"
@@ -235,6 +211,7 @@ def before_all(context):
     context.network_logging_enabled = os.environ.get("NETWORK_LOGGING") == "Yes"
     # get the connection URL for the browser
     connection_url = os.environ["CONNECTION_URL"]
+    connection_url = "http://cometa-chrome-service:4444/wd/hub"
     context.connection_url = os.environ["CONNECTION_URL"]
     # set loop settings
     context.insideLoop = False  # meaning we are inside a loop
@@ -269,7 +246,7 @@ def before_all(context):
     context.RUN_HASH = os.environ["RUN_HASH"]
     context.FEATURE_RESULT_ID = os.environ["feature_result_id"]
     # Set root folder of screenshots
-    context.SCREENSHOTS_ROOT = "/opt/code/screenshots/"
+    context.SCREENSHOTS_ROOT = "/code/behave/screenshots"
     # Construct screenshots path for saving images
     context.SCREENSHOTS_PATH = context.SCREENSHOTS_ROOT + "%s/%s/%s/%s/" % (
         str(data["feature_id"]),
@@ -290,7 +267,7 @@ def before_all(context):
 
     # HTML Comparing
     # Set and create the folder used to store and compare HTML step snapshots
-    context.HTML_PATH = "/opt/code/html/"
+    context.HTML_PATH = "/data/test/html"
     Path(context.HTML_PATH).mkdir(parents=True, exist_ok=True)
 
     context.feature_info = data
@@ -370,7 +347,9 @@ def before_all(context):
     # more options can be found at:
     # https://www.w3.org/TR/webdriver1/#capabilities
     options.set_capability("browserName", context.browser_info["browser"])
-    options.browser_version = context.browser_info["browser_version"]
+    if not KUBERNETES_DEPLOYMENT:
+        options.browser_version = context.browser_info["browser_version"]
+    
     options.accept_insecure_certs = True
     # Get the chrome container timezone from browser_info
     devices_time_zone = context.browser_info.get("selectedTimeZone", "")
@@ -440,7 +419,7 @@ def before_all(context):
 
     # LOCAL only
     # download preferences for chrome
-    context.downloadDirectoryOutsideSelenium = r"/code/behave/downloads/%s" % str(
+    context.downloadDirectoryOutsideSelenium = r"/data/test/downloads/%s" % str(
         os.environ["feature_result_id"]
     )
     context.uploadDirectoryOutsideSelenium = r"/code/behave/uploads/%s" % str(
@@ -480,7 +459,9 @@ def before_all(context):
 
     logger.debug("Driver Capabilities: {}".format(options.to_capabilities()))
     logger.info(f"Trying to get a browser context {connection_url}")
-
+    capabilities = options.to_capabilities()
+    logger.info("Options Summary (Capabilities):")
+    logger.info(capabilities)
     context.browser = webdriver.Remote(command_executor=connection_url, options=options)
 
     logger.debug("Session id: %s" % context.browser.session_id)
