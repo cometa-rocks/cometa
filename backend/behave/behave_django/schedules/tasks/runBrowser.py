@@ -41,7 +41,7 @@ def run_browser(json_path, env, **kwargs):
     # Combine environment value related to cometa and feature data 
     # this is required because in new bash session env information will be lost related to cometa servers
     all_env = {**get_all_cometa_environments(), **env}
-
+    logger.debug(f"Setting all envs : {all_env}")
     # Start running feature with current browser
     with subprocess.Popen(["bash", settings.RUNTEST_COMMAND_PATH, json_path], env=all_env, stdout=subprocess.PIPE) as process:
         try:

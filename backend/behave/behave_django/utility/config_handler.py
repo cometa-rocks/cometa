@@ -28,5 +28,7 @@ def get_all_cometa_environments():
         "BEHAVE_SERVER_PORT":get_config("BEHAVE_SERVER_PORT","8001"),
         "DJANGO_SERVER_URL":get_config("DJANGO_SERVER_URL","django"),
         "DJANGO_SERVER_PORT": get_config("DJANGO_SERVER_PORT","8000"),
-        "VIDEO_EXTENSION": get_config("VIDEO_EXTENSION","mp4")
+        "VIDEO_EXTENSION": get_config("VIDEO_EXTENSION","mp4"),
+        "KUBERNETES_SERVICE_HOST": os.getenv("KUBERNETES_SERVICE_HOST",""),
+        "KUBERNETES_SERVICE_PORT": os.getenv("KUBERNETES_SERVICE_PORT","")   
     }

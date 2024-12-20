@@ -21,3 +21,7 @@ spec:
       protocol: TCP
       port: 443
       targetPort: 8443
+    - name: development
+      protocol: TCP
+      port: 4200
+      targetPort: 4200

@@ -975,7 +975,7 @@ class Feature_result(SoftDeletableModel):
 step_type_choices = (
     ('BROWSER','BROWSER'), 
     ('MOBILE','MOBILE'), 
-    ('API','API')
+    ('API','API'),
 )
 
 class Step_result(models.Model):
