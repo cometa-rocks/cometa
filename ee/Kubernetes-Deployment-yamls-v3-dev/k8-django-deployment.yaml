@@ -13,6 +13,7 @@ spec:
       labels:
         app: cometa-django-pod
     spec:
+      serviceAccountName: pod-manager
       tolerations:
       - key: "architecture"
         operator: "Equal"

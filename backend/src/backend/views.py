@@ -4,7 +4,7 @@ from itertools import islice
 from backend.ee.modules.security.models import ResponseHeaders
 from backend.ee.modules.security.serializers import ResponseHeadersSerializer
 from backend.models import *
-# Import all serializers
+# Import all serializers 
 from backend.serializers import *
 # import django exceptions
 from django.core.exceptions import *
@@ -396,17 +396,25 @@ def noVNCProxy(request, feature_result_id, *args, **kwargs):
     # request.session['user'] = OIDCAccountLoginSerializer(OIDCAccount.objects.get(user_id=5), many=False).data
     try:
         # get feature_result from feature_result_id
-        fr = Feature_result.objects.get(feature_result_id=int(feature_result_id))
+        feature_result = Feature_result.objects.get(feature_result_id=int(feature_result_id))
         # get logged in user departments
         user_departments = [x['department_id'] for x in request.session['user']['departments']]
         # check if logged in user is the one that executed this feature_result
         # or if user belongs to the feature department
-        if (fr.executed_by.user_id == request.session['user']['user_id'] or fr.department_id in user_departments):
+        
+        if (feature_result.executed_by.user_id == request.session['user']['user_id'] or feature_result.department_id in user_departments):
             # check if session is still running
-            if not fr.running:
+            if not feature_result.running:
                 raise Exception("Live session has ended.")
             # get session_id from feature_result and proxy to noVNC
-            session_id = fr.session_id
+            container_details = feature_result.browser.get("container_service",False)
+            if not container_details:
+                session_id = feature_result.session_id
+            else:
+                session_id = ServiceManager().get_service_name(container_details['Id'])
+                
+            logger.debug(f"Returning session_id : {session_id}" )
+                
             return JsonResponse({'success': True, 'session_id': session_id})
         else:
             raise Exception("You don't have permissions to view this live session.")
@@ -1828,10 +1836,15 @@ class ActionViewSet(viewsets.ModelViewSet):
         query = self.request.query_params
         department = query.get('department', None)
         application = query.get('app', None)
+        action_types = ['BROWSER','API']
+        
+        if ConfigurationManager.get_configuration("COMETA_FEATURE_MOBILE_TEST_ENABLED","False")=="True":   
+            action_types.append('MOBILE')
+
         if department is not None:
-            queryset = queryset.filter(department=department)
+            queryset = queryset.filter(department=department, step_type__in=action_types)
         if application is not None:
-            queryset = queryset.filter(application=application)
+            queryset = queryset.filter(application=application, step_type__in=action_types)
         return Response({
             'results': ActionSerializer(queryset, many=True).data
         })
@@ -3367,6 +3380,11 @@ def remove_running_containers(feature_result):
         # If Mobile was started by the user and test only connected to it do not stop it
         if mobile['is_started_by_test']:
             ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
+
+    browser_container_info = feature_result.browser.get("container_service",False)
+    
+    if browser_container_info:
+        ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"]) 
 
 
 @csrf_exempt

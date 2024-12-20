@@ -1,33 +1,128 @@
-import docker, os, sys, logging, time, traceback
+import docker, os, sys, logging, time, traceback, uuid
 from docker.errors import NullResource, NotFound
+from kubernetes import client, config
+from kubernetes.client import ApiException
 
 
 sys.path.append("/opt/code/behave_django")
 sys.path.append("/opt/code/cometa_itself/steps")
 
+from tools.common import *
 from utility.functions import *
 from utility.cometa_logger import CometaLogger
 from utility.common import *
 from utility.encryption import *
 from utility.configurations import ConfigurationManager
-from tools.common import *
+from utility.config_handler import *
+
 
 # setup logging
 logger = logging.getLogger("FeatureExecution")
 
+
 class KubernetesServiceManager:
+    
     deployment_type = "kubernetes"
+    namespace=ConfigurationManager.get_configuration("COMETA_KUBERNETES_NAMESPACE",'cometa')
+    data_pv_claim=ConfigurationManager.get_configuration("COMETA_KUBERNETES_DATA_PVC",'cometa-data-volume-claim')
 
-    def __init__(self):
-        pass
+    def __init__(self,  ):
+        # FIXME need to take this value from 
+        self.__service_configuration = None
+        self.pod_manifest = None
+        self.pod_service_manifest = None
+                
+        # Load in-cluster configuration
+        logger.debug(f"Loading cluster config ")        
+        # Try to load in-cluster configuration
+        config.load_incluster_config()
+        logger.debug(f"Loaded config")
+        self.v1 = client.CoreV1Api()
+        logger.debug(f"Created Client connection")
+    
+    
+    def get_pod_name(self, uuid):
+        return f"pod-{uuid}"
+    
+    def get_service_name(self, uuid):
+        return f"service-{uuid}"
+        
+     
+    def __create_pod_and_wait_to_running(self, timeout=300):
+        logger.debug(f"Creating pod '{self.pod_manifest['metadata']['name']}'")
+        try:
+            # Create the pod
+            self.v1.create_namespaced_pod(namespace=self.namespace, body=self.pod_manifest)
+            logger.debug(f"Pod '{self.pod_manifest['metadata']['name']}' created.")
 
-    # This method will create the container base on the environment
-    def create_service(self, configuration):
-        pass
+            # Wait for the pod to become ready
+            start_time = time.time()
+            while time.time() - start_time < timeout:
+                pod = self.v1.read_namespaced_pod(name=self.pod_manifest['metadata']['name'], namespace=self.namespace)
+                if pod.status.phase == "Running":
+                    logger.debug(f"Pod '{pod.metadata.name}' is running.")
+                    return True
+
+                logger.debug(f"Pod '{pod.metadata.name}' status is {pod.status.phase}")
+                time.sleep(2)
+
+            # Timeout
+            logger.debug(f"Pod '{self.pod_manifest['metadata']['name']}' did not become ready within {timeout} seconds.")
+            self.delete_pod()
+            return False
+        except ApiException as e:
+            logger.debug(f"Exception occurred while creating pod: {e}")
+            return False
+
+    def __create_pod_url(self, ):
+        logger.debug(f"Creating Service '{self.pod_service_manifest['metadata']['name']}'")
+        try:
+            service_response = self.v1.create_namespaced_service(namespace=self.namespace, body=self.pod_service_manifest)
+            logger.debug(f"Service '{service_response.metadata.name}' created.")
+            return True
+        except ApiException as e:
+            logger.debug(f"Exception occurred while creating service: {e}")
+            return False
+
+    def __delete_pod(self, pod_id):
+        pod_name = self.get_pod_name(pod_id)
+        logger.debug(f"Deleting Pod '{pod_name}'")
+        try:
+            # Define the body of the delete options with the grace period
+            delete_options = client.V1DeleteOptions(
+                grace_period_seconds=60
+            )
+            self.v1.delete_namespaced_pod(name=pod_name, namespace=self.namespace, body=delete_options)
+            logger.debug(f"Pod '{pod_name}' deleted.")
+        except ApiException as e:
+            logger.debug(f"Exception occurred while deleting pod: {e}")
+
+    def __delete_pod_url(self,pod_url_id):
+        url_name = self.get_service_name(pod_url_id)
+        logger.debug(f"Deleting Pod Service '{url_name}'")
+        try:
+            self.v1.delete_namespaced_service(name=url_name, namespace=self.namespace)
+            logger.debug(f"Service '{url_name}' deleted.")
+        except ApiException as e:
+            logger.debug(f"Exception occurred while deleting service: {e}")
+
+    def create_service(self,configuration):
+        try:
+            self.__create_pod_and_wait_to_running()
+            if not self.__create_pod_url():
+                # In case pod service creation fails delete the pod 
+                self.__delete_pod(pod_id = configuration['Id'])
+            
+            return True
+        except Exception:
+            logger.debug(f"Exception while creation Kubernetes service\n{configuration}")
+            traceback.print_exc()
+            return False
 
     def delete_service(self, service_name_or_id):
+        self.__delete_pod(pod_id = service_name_or_id)
+        self.__delete_pod_url(pod_url_id = service_name_or_id)
         pass
-
 
 class DockerServiceManager:
     deployment_type = "docker"
@@ -193,12 +288,12 @@ class DockerServiceManager:
     def inspect_service(self,service_name_or_id):
         return self.docker_client.containers.get(service_name_or_id).attrs
 
-
+# Select ServiceManager Parent class based on the deployment 
 service_manager = DockerServiceManager
-if (
-    ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker")
-    == "kubernetes"
-):
+
+IS_KUBERNETES_DEPLOYMENT = ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker") == "kubernetes"
+
+if IS_KUBERNETES_DEPLOYMENT:
     service_manager = KubernetesServiceManager
     logger.debug(
         f'Deployment type is {ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT","docker")}'
@@ -267,3 +362,140 @@ class ServiceManager(service_manager):
             # Create Configuration for kubernetes
             pass
         return self.__service_configuration
+
+
+    def prepare_browser_service_configuration(self, browser="chrome", version="131.0"):
+        # Generate a random UUID
+        random_uuid = str(uuid.uuid4())
+        container_image = f"cometa/{browser}:{version}"
+        pod_name = self.get_pod_name(random_uuid)
+        service_name = self.get_service_name(random_uuid)
+        
+        pod_selectors = {
+            "browser":browser,
+            "version": version,
+            "Id": random_uuid
+        }
+        
+        if super().deployment_type == "docker":
+            # Need to implement  this section
+            pass
+        else:
+            # Define the pod manifest
+            self.pod_manifest = {
+                "apiVersion": "v1",
+                "kind": "Pod",
+                "metadata": {
+                    "name": pod_name,
+                    "namespace": self.namespace,
+                    "labels": pod_selectors
+                },
+                "spec": {
+                    "tolerations": [
+                        {
+                            "key": "architecture",
+                            "operator": "Equal",
+                            "value": "amd",
+                            "effect": "NoSchedule"
+                        }
+                    ],
+                    "containers": [
+                        {
+                            "name": "browser",
+                            "image": container_image,
+                            "securityContext": {"allowPrivilegeEscalation": True},
+                            "resources": {
+                                "limits": {"cpu": "2", "memory": "2Gi"},
+                                "requests": {"cpu": "1", "memory": "1Gi"}
+                            },
+                            "env": [
+                                {"name": "AUTO_RECORD", "value": "true"},
+                                {"name": "VIDEO_PATH", "value": "/video"}
+                            ],
+                            "ports": [
+                                {"containerPort": 4444, "protocol": "TCP"},
+                                {"containerPort": 7900, "protocol": "TCP"}
+                            ],
+                            "volumeMounts": [
+                                {
+                                    "name": "cometa-volume",
+                                    "mountPath": "/opt/scripts/video_recorder.sh",
+                                    "subPath": "./scripts/video_recorder.sh"
+                                }, 
+                                {
+                                    "name": "cometa-volume",
+                                    "mountPath": "/video",
+                                    "subPath": "data/cometa/videos"
+                                }
+                            ]
+                        }
+                    ],
+                    "volumes": [
+                        {
+                            "name": "cometa-volume",
+                            "persistentVolumeClaim": {
+                                "claimName": self.data_pv_claim
+                            }
+                        }
+                    ]
+                }
+            }
+
+            # Define the service manifest
+            self.pod_service_manifest = {
+                "apiVersion": "v1",
+                "kind": "Service",
+                "metadata": {
+                    "name": service_name,
+                    "namespace": self.namespace
+                },
+                "spec": {
+                    "selector": pod_selectors,
+                    "ports": [
+                        {"name": "selenium", "protocol": "TCP", "port": 4444, "targetPort": 4444},
+                        {"name": "vnc", "protocol": "TCP", "port": 7900, "targetPort": 7900}
+                    ],
+                    "type": "ClusterIP"
+                }
+            }
+            
+            self.__service_configuration = {
+                "Id": random_uuid, 
+                "pod": self.pod_manifest, 
+                "pod_service": self.pod_service_manifest}
+            
+        return self.__service_configuration
+    
+    
+    def wait_for_selenium_hub_be_up(self,hub_url,timeout=120):
+        start_time = time.time()
+        interval = 1
+        logger.debug(f"Waiting for selenium hub {hub_url} to available")
+        while True:
+            try:
+                response = requests.get(hub_url, timeout=5)
+                if response.status_code == 200:
+                    print("Selenium Hub is available!")
+                    return True
+            except requests.exceptions.RequestException:
+                pass  # Ignore exceptions and continue to retry
+
+            elapsed_time = time.time() - start_time
+            if elapsed_time >= timeout:
+                logger.debug(f"Timeout reached. Selenium Hub is not available after {timeout} seconds.")
+                return False
+
+            logger.debug(f"Waiting for Selenium Hub to be available... (retrying in {interval} seconds)")
+            time.sleep(interval)
+
+
+    def remove_all_service(self,container_services):
+        # Delete all the services which were started during test
+        for service in container_services:
+            logger.debug(f"Deleting container service with ID : {service['Id']}")
+            service_manager = ServiceManager()
+            service_manager.delete_service(
+                service_name_or_id=service['Id']
+            )
+
+    

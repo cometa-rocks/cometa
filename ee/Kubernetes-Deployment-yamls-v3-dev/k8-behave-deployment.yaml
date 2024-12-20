@@ -15,6 +15,7 @@ spec:
       labels:
         app: cometa-behave-pod
     spec:
+      serviceAccountName: pod-manager
       tolerations:
       - key: "architecture"
         operator: "Equal"

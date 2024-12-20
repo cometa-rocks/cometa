@@ -10,3 +10,5 @@ do
     rsync -avh --delete "$SOURCE_DIR" "$DEST_DIR"
     echo "Synced changes to $DEST_DIR"
 done
+
+

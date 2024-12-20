@@ -28,11 +28,13 @@ from utility.encryption import *
 from utility.configurations import ConfigurationManager, load_configurations
 from modules.ai import AI
 from tools.models import Condition
-from tools.service_manager import ServiceManager
+# from tools.kubernetes_service import KubernetesServiceManager
 
 LOGGER_FORMAT = "\33[96m[%(asctime)s][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s"
 
 load_configurations()
+
+from tools.service_manager import ServiceManager
 
 # setup logging
 logging.setLoggerClass(CometaLogger)
@@ -59,8 +61,9 @@ NO_PROXY = ConfigurationManager.get_configuration("COMETA_NO_PROXY", "")
 DOMAIN = ConfigurationManager.get_configuration("COMETA_DOMAIN", "")
 S3ENABLED = ConfigurationManager.get_configuration("COMETA_S3_ENABLED", False) == "True"
 ENCRYPTION_START = ConfigurationManager.get_configuration("COMETA_ENCRYPTION_START", "")
-COMETA_AI_ENABLED =  ConfigurationManager.get_configuration("COMETA_AI_ENABLED", False) == "True"
-KUBERNETES_DEPLOYMENT =  ConfigurationManager.get_configuration("KUBERNETES_DEPLOYMENT", "False") =="True"
+COMETA_AI_ENABLED =  ConfigurationManager.get_configuration("COMETA_FEATURE_AI_ENABLED", False) == "True"
+IS_KUBERNETES_DEPLOYMENT = ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker") == "kubernetes"
+logger.debug(f'##################### Deployment environment {ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker")} ##############################')
 # FIXME to take this value from department information
 REDIS_IMAGE_ANALYSYS_QUEUE_NAME = ConfigurationManager.get_configuration(
     "REDIS_IMAGE_ANALYSYS_QUEUE_NAME", "image_analysis"
@@ -93,6 +96,11 @@ def error_handling(*_args, **_kwargs):
                         % (fn.__name__)
                     )
                     traceback.print_exc()
+                    
+                    # Delete the pod and service in case of any error in the before_all and after_all methods
+                    if IS_KUBERNETES_DEPLOYMENT and fn.__name__ in ('before_all','after_all'):
+                        # Delete all the services which were started during test
+                        ServiceManager().remove_all_service(args[0].container_services)
 
                     # remove the feature_result if it was created
                     if "feature_result_id" in os.environ:
@@ -211,7 +219,6 @@ def before_all(context):
     context.network_logging_enabled = os.environ.get("NETWORK_LOGGING") == "Yes"
     # get the connection URL for the browser
     connection_url = os.environ["CONNECTION_URL"]
-    connection_url = "http://cometa-chrome-service:4444/wd/hub"
     context.connection_url = os.environ["CONNECTION_URL"]
     # set loop settings
     context.insideLoop = False  # meaning we are inside a loop
@@ -246,7 +253,7 @@ def before_all(context):
     context.RUN_HASH = os.environ["RUN_HASH"]
     context.FEATURE_RESULT_ID = os.environ["feature_result_id"]
     # Set root folder of screenshots
-    context.SCREENSHOTS_ROOT = "/code/behave/screenshots"
+    context.SCREENSHOTS_ROOT = "/data/screenshots/"
     # Construct screenshots path for saving images
     context.SCREENSHOTS_PATH = context.SCREENSHOTS_ROOT + "%s/%s/%s/%s/" % (
         str(data["feature_id"]),
@@ -308,7 +315,29 @@ def before_all(context):
     context.cloud = context.browser_info.get(
         "cloud", "browserstack"
     )  # default it back to browserstack incase it is not set.
+    
+    
+    context.service_manager = ServiceManager()
+    
+    if IS_KUBERNETES_DEPLOYMENT:
+        logger.debug(f"This is kubernetes deployment, creating browser pod")
+        logger.debug(f"Browser_info : {context.browser_info}")
 
+        service_configuration = context.service_manager.prepare_browser_service_configuration(
+            browser=context.browser_info["browser"],
+            version=context.browser_info["browser_version"]
+        )
+        if not context.service_manager.create_service():
+            raise Exception("Error while starting browser in the pod, Please contact administrator")    
+        
+        # Save container details in the browser_info, which then gets saved in the feature results browser 
+        context.browser_info["container_service"] = {"Id":service_configuration["Id"]}
+        context.container_services.append(service_configuration)
+        browser_hub_url = context.service_manager.get_service_name(service_configuration['Id'])
+        connection_url = f"http://{browser_hub_url}:4444/wd/hub"
+        status_check_connection_url = f"http://{browser_hub_url}:4444/status"
+        context.service_manager.wait_for_selenium_hub_be_up(status_check_connection_url)
+    
     # video recording on or off
     context.record_video = data["video"] if "video" in data else True
     logger.debug(f"context.record_video {context.record_video }")
@@ -346,8 +375,15 @@ def before_all(context):
     # Configure WC3 Webdriver
     # more options can be found at:
     # https://www.w3.org/TR/webdriver1/#capabilities
-    options.set_capability("browserName", context.browser_info["browser"])
-    if not KUBERNETES_DEPLOYMENT:
+    
+    browser_name = context.browser_info["browser"]
+    
+    if browser_name=='edge':
+        browser_name='MicrosoftEdge'
+    
+    options.set_capability("browserName", browser_name)
+    
+    if not IS_KUBERNETES_DEPLOYMENT:
         options.browser_version = context.browser_info["browser_version"]
     
     options.accept_insecure_certs = True
@@ -362,21 +398,32 @@ def before_all(context):
     # selenoid specific capabilities
     # more options can be found at:
     # https://aerokube.com/selenoid/latest/#_special_capabilities
-    selenoid_capabilities = {
-        "name": data["feature_name"],
-        "enableVNC": True,
-        "screenResolution": "1920x1080x24",
-        "enableVideo": context.record_video,
-        "sessionTimeout": "30m",
-        "timeZone": devices_time_zone,  # based on the user selected timezone
-        "labels": {"by": "COMETA ROCKS"},
-        "s3KeyPattern": "$sessionId/$fileType$fileExtension",
-        # previously used for s3 which is not currently being used.
-    }
+    
+    if IS_KUBERNETES_DEPLOYMENT:
+        cometa_options = {
+            "record_video":context.record_video,
+            "is_test":True
+        }
+        options.set_capability("cometa:options", cometa_options)
 
-    # add cloud/provider capabilities to the
-    # browser capabilities
-    options.set_capability("selenoid:options", selenoid_capabilities)
+    else:
+        logger.debug(f"Adding selenoid capabilities")
+        selenoid_capabilities = {
+            "name": data["feature_name"],
+            "enableVNC": True,
+            "screenResolution": "1920x1080x24",
+            "enableVideo": context.record_video,
+            "sessionTimeout": "30m",
+            "timeZone": devices_time_zone,  # based on the user selected timezone
+            "labels": {"by": "COMETA ROCKS"},
+            "s3KeyPattern": "$sessionId/$fileType$fileExtension",
+            # previously used for s3 which is not currently being used.
+        }
+        # add cloud/provider capabilities to the
+        # browser capabilities
+        options.set_capability("selenoid:options", selenoid_capabilities)
+        
+        
     if context.browser_info["browser"] == "chrome" and context.network_logging_enabled:
         options.set_capability(
             "goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"}
@@ -473,6 +520,7 @@ def before_all(context):
         "feature_result_id": os.environ["feature_result_id"],
         "session_id": context.browser.session_id,
         "description": feature_description,
+        "browser": context.browser_info
     }
     # update feature_result with session_id
     requests.patch(f'{get_cometa_backend_url()}/api/feature_results/', json=data, headers=headers)
@@ -548,6 +596,13 @@ def after_all(context):
         logger.debug("Unable to delete cookies or quit the browser. See error below.")
         logger.debug(str(err))
 
+
+    # if IS_KUBERNETES_DEPLOYMENT:
+    #     logger.debug(f"Deleting kubernetes browser pod and service")
+    #     context.kubernetes_service_manager.delete_pod()
+    #     context.kubernetes_service_manager.delete_service()
+        
+    
     # Close all Mobile sessions
     for key, mobile in context.mobiles.items():
         logger.debug(mobile['driver'])
@@ -568,12 +623,7 @@ def after_all(context):
     })
 
     # Delete all the services which were started during test
-    for service in context.container_services:
-        logger.debug(f"Deleting container service with ID : {service['Id']}")
-        service_manager = ServiceManager()
-        service_manager.delete_service(
-            service_name_or_id=service['Id']
-        )
+    ServiceManager().remove_all_service(context.container_services)
 
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None
@@ -610,11 +660,10 @@ def after_all(context):
                         "S3 is enabled but COMETA_S3_ENDPOINT and COMETA_S3_BUCKETNAME seems to be empty ... please check."
                     )
             else:
-                # FIXME As a temporary fix video extension decided based on KUBERNETES deployment
-                # Because video recorded by selenium/video container with extension .mp4 gets corrupted
-                video_extension = os.getenv("VIDEO_EXTENSION", "mp4")
-                bsVideoURL = f"/videos/{context.browser.session_id}.{video_extension}"
+                # video_extension = os.getenv("VIDEO_EXTENSION", "mp4")
+                bsVideoURL = f"/videos/{context.browser.session_id}.mp4"
                 logger.debug(f"Video path {bsVideoURL}" )
+                
     # load feature into data
     data = json.loads(os.environ["FEATURE_DATA"])
     # junit file path for the executed testcase

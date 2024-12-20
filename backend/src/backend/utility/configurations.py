@@ -70,7 +70,11 @@ default_cometa_configurations = {
     "REDIS_DB_TSL_SSL_ENABLED": False,
     "REDIS_CA_CERTIFICATE_FILE": "/share/certs/ca-cert.pem",
     "COMETA_DEPLOYMENT_ENVIRONMENT": "docker", # it can be 'docker' or 'kubernetes'
-    "COMETA_MOBILE_TOTAL_EMULATOR_VERSIONS": 3, # it can be 'docker' or 'kubernetes'    
+    "COMETA_MOBILE_TOTAL_EMULATOR_VERSIONS": 3, 
+    "COMETA_KUBERNETES_NAMESPACE": "cometa", 
+    "COMETA_KUBERNETES_DATA_PVC": "cometa-data-volume-claim", 
+    "COMETA_FEATURE_AI_ENABLED": False, 
+    "COMETA_FEATURE_MOBILE_TEST_ENABLED": False, 
 }
 
 
