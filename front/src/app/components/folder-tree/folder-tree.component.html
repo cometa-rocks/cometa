@@ -17,6 +17,11 @@ Author: dph000
   <mat-icon>format_indent_increase</mat-icon>
   Data Driven
 </div>
+<!-- Mobile emulator -->
+<div (click)="toggleList('mobile-emulator')" [class.selected]="(activeList$ | async) === 'mobile-emulator'" [matTooltip]="'mobile_list.mobile_presentation' | translate" matTooltipPosition="right">
+  <mat-icon>tablet_mac</mat-icon>
+  Mobile Devices
+</div>
 <!-- Variables list button -->
 <div (click)="toggleList('variables')" [class.selected]="(activeList$ | async) === 'variables'" [matTooltip]="'sidenav_page.variables_sidenav' | translate" matTooltipPosition="right">
   <mat-icon>settings_input_component</mat-icon>

@@ -30,11 +30,63 @@
                   (click)="live(feature_result_id)"
                   class="browser-icon live_preview"
                   matTooltipPosition="below"
-                  matTooltip="View your feature GO live!"
+                  matTooltip="View your browser execution, GO live!"
                   *ngIf="showLiveIcon(browser)"
-                  >live_tv</mat-icon
-                >
+                  >live_tv</mat-icon>
+
+                <div class="father-mobile-container">
+                  <ng-container>
+                    <span class="separator-text"></span> Mobile
+                    <mat-label>
+                      <mat-icon
+                        class="browser-icon live_preview_mobile"
+                        matTooltipPosition="below"
+                        [matBadge]="mobiles[feature_result_id]?.length || 0"
+                        matBadgeSize="small"
+                        [matTooltip]="'View execution, GO live!'">
+                        tablet_mac
+                      </mat-icon>
+                      <mat-icon
+                        class="browser-icon live_preview_mobile_play_more">
+                        play_arrow
+                      </mat-icon>
+                      <!-- <div class="number-phones">
+                        {{ mobiles[feature_result_id]?.length || 0 }}
+                      </div> -->
+                    </mat-label>
+                    
+                    <mat-select
+                      placeholder="Select mobile"
+                      [(value)]="selectedMobile"
+                      (selectionChange)="noVNCMobile(selectedMobile)"
+                      class="mobiles">
+                      <mat-option *ngFor="let mobile of mobiles[feature_result_id]" [value]="mobile.hostname">
+                        {{ mobile.name }}
+                      </mat-option>
+                    </mat-select>
+                  </ng-container>
+<!-- 
+                  <ng-template 
+                    #singleMobile
+                    matTooltipPosition="below"
+                    [matTooltip]="'View ' + extractedMobileNames[0] + ' execution, GO live!'">
+                    <span class="separator-text"></span> noVnc view mobile
+                    <mat-icon
+                      (click)="noVNCMobile(mobiles[feature_result_id][0]?.hostname)"
+                      class="browser-icon live_preview_mobile"
+                      matTooltipPosition="below"
+                      [matTooltip]="'View ' + extractedMobileNames[0] + ' execution, GO live!'">
+                      tablet_mac
+                    </mat-icon>
+                    <mat-icon
+                      (click)="noVNCMobile(mobiles[feature_result_id][0]?.hostname)"
+                      class="browser-icon live_preview_mobile_play">
+                      play_arrow
+                    </mat-icon>
+                  </ng-template> -->
+                </div>
               </ng-template>
+
               <ng-container *ngIf="browser.value?.error; else browserContent">
                 <div>
                   <div class="live-status">
@@ -143,7 +195,10 @@
                         [step]="step"
                         [feature_id]="feature_id"
                         [steps$]="steps$"
-                        [index]="i"></cometa-live-step>
+                        [index]="i"
+                        [feature_result_id]="browser.value.feature_result_id"
+                        (updateMobiles)="updateMobile($event)"
+                        ></cometa-live-step>
                     </div>
                   </ng-container>
                 </ng-container>

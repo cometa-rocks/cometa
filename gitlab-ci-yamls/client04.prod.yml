@@ -22,7 +22,6 @@
     # move the file to the correct filename needed by mod_oAuth as seen in https://github.com/zmartzone/mod_auth_openidc/wiki/Multiple-Providers
     - echo $COMETA_CLIENT_04_OIDC_SECRETS > front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.client
     - echo $COMETA_CLIENT_04_OIDC_CONFIGURATION > front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.conf
-
     # Update OIDC provider information at the run time
     - curl https://$COMETA_CLIENT04_PROD_OIDCHOST/.well-known/openid-configuration | jq . > front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.provider 
     # Remove standard ports for this client, as it conflicts with other running software

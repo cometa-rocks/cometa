@@ -1,14 +1,15 @@
 import os.path
 import traceback, requests
 import sys, time
-from .encryption import decrypt, update_ENCRYPTION_PASSPHRASE, update_ENCRYPTION_START
+from .encryption import decrypt, update_ENCRYPTION_PASSPHRASE, update_ENCRYPTION_START, update_COMETA_UPLOAD_ENCRYPTION_PASSPHRASE
 import json
 from .common import get_logger
 
 logger = get_logger()
 
+from .config_handler import *
 
-COMETA_DJANGO_URL = "http://django:8000"
+COMETA_DJANGO_URL = get_cometa_backend_url()
 
 
 # This ConfigurationManager is for BEHAVE
@@ -40,7 +41,7 @@ class ConfigurationManager:
             # logger.info(self.__COMETA_CONFIGURATIONS)
         except requests.exceptions.ConnectionError as exception:
             logger.info(f"Waiting for {COMETA_DJANGO_URL} to come alive")
-            time.sleep(2)
+            time.sleep(5)
             self.load_configurations()
 
     @classmethod
@@ -71,4 +72,7 @@ def load_configurations():
         )
         update_ENCRYPTION_START(
             ConfigurationManager.get_configuration("COMETA_ENCRYPTION_START", "")
+        )
+        update_COMETA_UPLOAD_ENCRYPTION_PASSPHRASE(
+            ConfigurationManager.get_configuration("COMETA_UPLOAD_ENCRYPTION_PASSPHRASE", "")
         )
