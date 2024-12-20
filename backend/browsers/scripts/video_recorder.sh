@@ -1,10 +1,20 @@
 #!/bin/bash
+
 # Function to get the session ID where "is_test": true and "record_video": true
 # and remove hyphens (-) from the session ID
 function get_test_session_id() {
-    # Use sed to remove the hyphens from the session ID
-    curl -s http://localhost:4444/status | jq -r '.value.nodes[].slots[] | select(.session != null) | .session.sessionId' | sed 's/-//g'
+    # Retry logic to fetch a valid session ID
+    local session_id="reserved"
+    while [ "$session_id" = "reserved" ] || [ -z "$session_id" ]; do
+        session_id=$(curl -s http://localhost:4444/status | jq -r '.value.nodes[].slots[] | select(.session != null) | .session.sessionId' | sed 's/-//g')
+        if [ "$session_id" = "reserved" ] || [ -z "$session_id" ]; then
+            echo "Session ID is 'reserved' or empty, retrying..."
+            sleep 1
+        fi
+    done
+    echo "$session_id"
 }
+
 
 # Start video recording using the session ID as the video name
 function start() {
@@ -12,22 +22,33 @@ function start() {
     # Get the session ID that satisfies the test and record_video condition
     session_id=$(get_test_session_id)
     FULL_VIDEO_PATH="$VIDEO_PATH/${session_id}.mp4"
-    
+
     # Fallback to timestamp if session ID is empty or "null"
     if [ -z "$session_id" ] || [ "$session_id" = "null" ]; then
         session_id="$(date '+%d_%m_%Y_%H_%M_%S')"  # Fallback to timestamp if session ID is not found
     fi
     echo "Start video recording with name: $FULL_VIDEO_PATH"
+
     # Start recording video using ffmpeg
-    ffmpeg -video_size ${SE_SCREEN_WIDTH}x${SE_SCREEN_HEIGHT} -framerate 15 -f x11grab -i $DISPLAY $FULL_VIDEO_PATH -y &
-    echo "Video started"
+    ffmpeg -video_size ${SE_SCREEN_WIDTH}x${SE_SCREEN_HEIGHT} -framerate 15 -f x11grab -i $DISPLAY -preset ultrafast -crf 28 -movflags +faststart $FULL_VIDEO_PATH -y &
+    FFMPEG_PID=$!
+    echo "Video started with PID $FFMPEG_PID"
 }
 
 # Stop video recording
 function stop() {
     echo "Stop video recording"
-    kill $(ps -ef | grep [f]fmpeg | awk '{print $2}')
+    if [ -n "$FFMPEG_PID" ] && kill -0 $FFMPEG_PID 2>/dev/null; then
+        kill -QUIT $FFMPEG_PID
+        wait $FFMPEG_PID
+        echo "Recording stopped gracefully."
+    else
+        echo "No ffmpeg process found."
+    fi
 }
+
+# Trap signals to ensure graceful termination
+trap "stop; exit 0" SIGTERM SIGINT
 
 # Automatically start and stop recording based on the test session status
 function auto_record() {
@@ -51,7 +72,6 @@ function auto_record() {
 
         # Check if the test is finished
         while [ $no_test = false ]; do
-            
             task=$(curl -s http://localhost:4444/status | jq -r '.value.nodes[].slots[] | select(.session != null) | .session.sessionId' | sed 's/-//g')
             if [ -z "$task" ]; then
                 stop
