@@ -102,19 +102,18 @@ services:
       - ./data/cometa/videos:/opt/selenoid/video
     environment:
       TZ: Europe/Berlin
-      OVERRIDE_VIDEO_OUTPUT_DIR: ${PWD}/data/cometa/videos
+      OVERRIDE_VIDEO_OUTPUT_DIR: /data/cometa/videos
     networks:
       - testing
     restart: always
     entrypoint: sh /etc/selenoid/start.sh
 
   novnc:
-    image: cometa/novnc:1.0
+    image: cometa/novnc:1.2
     container_name: cometa_novnc
     networks:
       - testing
     restart: always
-
 
   crontab:
     image: cometa/scheduler:latest
@@ -127,7 +126,8 @@ services:
     networks:
       - testing
     restart: always
-  # Since this a deployment file, build image is used to spinup cometa_front 
+
+  # Since this a deployment file, build image is used to start cometa_front 
   # n the build pipeline 
   apache:
     image: "cometa/front:latest"

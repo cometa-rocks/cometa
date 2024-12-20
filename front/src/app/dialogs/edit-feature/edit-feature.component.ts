@@ -48,6 +48,7 @@ import { EditVariablesComponent } from '@dialogs/edit-variables/edit-variables.c
 import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
+import { MobileListComponent } from '@dialogs/mobile-list/mobile-list.component';
 import { EmailTemplateHelp } from './email-template-help/email-template-help.component';
 import { KEY_CODES } from '@others/enums';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -131,7 +132,8 @@ import { DraggableWindowModule } from '@modules/draggable-window.module'
     SortByPipe,
     HumanizeBytesPipe,
     TranslateModule,
-    DraggableWindowModule
+    DraggableWindowModule,
+    MobileListComponent
   ],
 })
 export class EditFeature implements OnInit, OnDestroy {
@@ -413,6 +415,26 @@ export class EditFeature implements OnInit, OnDestroy {
       });
   }
 
+  // Open variables popup, only if a environment is selected (see HTML)
+  openStartEmulatorScreen() {
+    let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk'));
+    const departmentId = this.departments$.find(
+      dep =>
+        dep.department_name === this.featureForm.get('department_name').value
+    ).department_id;
+    this._dialog
+      .open(MobileListComponent, {
+        data: {
+          department_id: departmentId,
+          uploadedAPKsList: uploadedAPKsList
+        },
+        panelClass: 'mobile-emulator-panel',
+      })
+      .afterClosed()
+      .subscribe(res => {
+      });
+  }
+
   // Remove given address from addresses array
   removeAddress(email: string, fieldName: string) {
     if (email) {
@@ -435,8 +457,9 @@ export class EditFeature implements OnInit, OnDestroy {
     if (this.inputFocus) return;
     let KeyPressed = event.keyCode;
     const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
+    const startEmulatorOpen = document.querySelector('mobile-list') as HTMLElement;
 
-    if(!this.inputFocus && editVarOpen == null){
+    if(!this.inputFocus && editVarOpen == null && startEmulatorOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
@@ -466,6 +489,10 @@ export class EditFeature implements OnInit, OnDestroy {
         case KEY_CODES.D:
             // Depends on other feature
             this.toggleDependsOnOthers(KeyPressed);
+          break;
+        case KEY_CODES.S:
+            // Open Emulator mobile
+            this.openStartEmulatorScreen();
           break;
         case KEY_CODES.M:
             // Send email

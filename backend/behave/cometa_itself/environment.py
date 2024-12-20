@@ -14,10 +14,13 @@ from slugify import slugify
 import hashlib
 import os, pickle
 from selenium.common.exceptions import InvalidCookieDomainException
+import copy
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append("/code/behave/cometa_itself/steps")
+sys.path.append("/opt/code/cometa_itself/steps")
+sys.path.append("/opt/code/ee/cometa_itself/steps")
 
+from utility.config_handler import *
 from utility.functions import *
 from utility.cometa_logger import CometaLogger
 from utility.common import *
@@ -25,10 +28,13 @@ from utility.encryption import *
 from utility.configurations import ConfigurationManager, load_configurations
 from modules.ai import AI
 from tools.models import Condition
+# from tools.kubernetes_service import KubernetesServiceManager
 
 LOGGER_FORMAT = "\33[96m[%(asctime)s][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s"
 
 load_configurations()
+
+from tools.service_manager import ServiceManager
 
 # setup logging
 logging.setLoggerClass(CometaLogger)
@@ -49,24 +55,21 @@ BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration(
 BROWSERSTACK_PASSWORD = ConfigurationManager.get_configuration(
     "COMETA_BROWSERSTACK_PASSWORD", ""
 )
-PROXY_ENABLED = (
-    ConfigurationManager.get_configuration("COMETA_PROXY_ENABLED", False) == "True"
-)
+PROXY_ENABLED = ConfigurationManager.get_configuration("COMETA_PROXY_ENABLED", False) == "True"
 PROXY = ConfigurationManager.get_configuration("COMETA_PROXY", "")
 NO_PROXY = ConfigurationManager.get_configuration("COMETA_NO_PROXY", "")
 DOMAIN = ConfigurationManager.get_configuration("COMETA_DOMAIN", "")
 S3ENABLED = ConfigurationManager.get_configuration("COMETA_S3_ENABLED", False) == "True"
 ENCRYPTION_START = ConfigurationManager.get_configuration("COMETA_ENCRYPTION_START", "")
-COMETA_AI_ENABLED = (
-    ConfigurationManager.get_configuration("COMETA_AI_ENABLED", False) == "True"
-)
-
+COMETA_AI_ENABLED =  ConfigurationManager.get_configuration("COMETA_FEATURE_AI_ENABLED", False) == "True"
+IS_KUBERNETES_DEPLOYMENT = ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker") == "kubernetes"
+logger.debug(f'##################### Deployment environment {ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker")} ##############################')
 # FIXME to take this value from department information
 REDIS_IMAGE_ANALYSYS_QUEUE_NAME = ConfigurationManager.get_configuration(
     "REDIS_IMAGE_ANALYSYS_QUEUE_NAME", "image_analysis"
 )  # converting to seconds
 
-DEPARTMENT_DATA_PATH = "/opt/code/department_data"
+DEPARTMENT_DATA_PATH = "/data/department_data"
 
 
 # handle SIGTERM when user stops the testcase
@@ -93,31 +96,27 @@ def error_handling(*_args, **_kwargs):
                         % (fn.__name__)
                     )
                     traceback.print_exc()
+                    
+                    # Delete the pod and service in case of any error in the before_all and after_all methods
+                    if IS_KUBERNETES_DEPLOYMENT and fn.__name__ in ('before_all','after_all'):
+                        # Delete all the services which were started during test
+                        ServiceManager().remove_all_service(args[0].container_services)
 
                     # remove the feature_result if it was created
                     if "feature_result_id" in os.environ:
-                        response = requests.delete(
-                            "http://cometa_django:8000/api/feature_results/%s"
-                            % os.environ["feature_result_id"],
-                            headers={"Host": "cometa.local"},
-                        )
+                        response = requests.delete(f'{get_cometa_backend_url()}/api/feature_results/%s' % os.environ['feature_result_id'],
+                            headers={'Host': 'cometa.local'})
 
                     # let the front user know that the feature has been failed
                     logger.debug("Sending a error websocket....")
-                    request = requests.post(
-                        "http://cometa_socket:3001/feature/%s/error"
-                        % args[0].feature_id,
-                        data={
-                            "browser_info": json.dumps(args[0].browser_info),
-                            "feature_result_id": os.environ["feature_result_id"],
-                            "run_id": os.environ["feature_run"],
-                            "datetime": datetime.datetime.utcnow().strftime(
-                                "%Y-%m-%dT%H:%M:%SZ"
-                            ),
-                            "error": str(err),
-                            "user_id": args[0].PROXY_USER["user_id"],
-                        },
-                    )
+                    request = requests.post(f'{get_cometa_socket_url()}/feature/%s/error' % args[0].feature_id, data={
+                        "browser_info": json.dumps(args[0].browser_info),
+                        "feature_result_id": os.environ['feature_result_id'],
+                        "run_id": os.environ['feature_run'],
+                        "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+                        "error": str(err),
+                        "user_id": args[0].PROXY_USER['user_id']
+                    })
 
                     # let behave know that feature has been failed
                     os.environ["FEATURE_FAILED"] = "True"
@@ -220,6 +219,7 @@ def before_all(context):
     context.network_logging_enabled = os.environ.get("NETWORK_LOGGING") == "Yes"
     # get the connection URL for the browser
     connection_url = os.environ["CONNECTION_URL"]
+    context.connection_url = os.environ["CONNECTION_URL"]
     # set loop settings
     context.insideLoop = False  # meaning we are inside a loop
     context.jumpLoopIndex = (
@@ -251,8 +251,9 @@ def before_all(context):
     run_id = os.environ["feature_run"]
     # Retrieve run hash
     context.RUN_HASH = os.environ["RUN_HASH"]
+    context.FEATURE_RESULT_ID = os.environ["feature_result_id"]
     # Set root folder of screenshots
-    context.SCREENSHOTS_ROOT = "/opt/code/screenshots/"
+    context.SCREENSHOTS_ROOT = "/data/screenshots/"
     # Construct screenshots path for saving images
     context.SCREENSHOTS_PATH = context.SCREENSHOTS_ROOT + "%s/%s/%s/%s/" % (
         str(data["feature_id"]),
@@ -273,7 +274,7 @@ def before_all(context):
 
     # HTML Comparing
     # Set and create the folder used to store and compare HTML step snapshots
-    context.HTML_PATH = "/opt/code/html/"
+    context.HTML_PATH = "/data/test/html"
     Path(context.HTML_PATH).mkdir(parents=True, exist_ok=True)
 
     context.feature_info = data
@@ -290,19 +291,56 @@ def before_all(context):
         "run_id": os.environ["feature_run"],
         "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
-    request = requests.get(
-        "http://cometa_socket:3001/feature/%s/initializing" % str(context.feature_id),
-        data=payload,
-    )
+    request = requests.get(f'{get_cometa_socket_url()}/feature/%s/initializing' % str(context.feature_id), data=payload)
 
+
+    
+    # #################################
+    # keeps track of mobile devices driver, so that test can be performed in the multiple mobiles switched
+    context.mobiles = {}
+    # keep the reference of active mobile device
+    context.mobile = None
+    # Mobile common capabilities to  
+    context.mobile_capabilities = {}
+    # Keeps track of service/containers started during test, so that if can be kill/stopped after test 
+    context.container_services = []
+    # Keeps track of step type, which types of step was executed 
+    # Currently supported values BROWSER, MOBILE and API
+    context.STEP_TYPE = 'BROWSER'
+
+    # #################################
+    context.PREVIOUS_STEP_TYPE = context.STEP_TYPE   
+    
     # browser data
     context.cloud = context.browser_info.get(
         "cloud", "browserstack"
     )  # default it back to browserstack incase it is not set.
+    
+    
+    context.service_manager = ServiceManager()
+    
+    if IS_KUBERNETES_DEPLOYMENT:
+        logger.debug(f"This is kubernetes deployment, creating browser pod")
+        logger.debug(f"Browser_info : {context.browser_info}")
 
+        service_configuration = context.service_manager.prepare_browser_service_configuration(
+            browser=context.browser_info["browser"],
+            version=context.browser_info["browser_version"]
+        )
+        if not context.service_manager.create_service():
+            raise Exception("Error while starting browser in the pod, Please contact administrator")    
+        
+        # Save container details in the browser_info, which then gets saved in the feature results browser 
+        context.browser_info["container_service"] = {"Id":service_configuration["Id"]}
+        context.container_services.append(service_configuration)
+        browser_hub_url = context.service_manager.get_service_name(service_configuration['Id'])
+        connection_url = f"http://{browser_hub_url}:4444/wd/hub"
+        status_check_connection_url = f"http://{browser_hub_url}:4444/status"
+        context.service_manager.wait_for_selenium_hub_be_up(status_check_connection_url)
+    
     # video recording on or off
     context.record_video = data["video"] if "video" in data else True
-
+    logger.debug(f"context.record_video {context.record_video }")
     # create the options based on the browser name
     if context.browser_info["browser"] == "firefox":
         options = FirefoxOptions()
@@ -337,50 +375,68 @@ def before_all(context):
     # Configure WC3 Webdriver
     # more options can be found at:
     # https://www.w3.org/TR/webdriver1/#capabilities
-    options.set_capability("browserName", context.browser_info["browser"])
-    options.browser_version = context.browser_info["browser_version"]
+    
+    browser_name = context.browser_info["browser"]
+    
+    if browser_name=='edge':
+        browser_name='MicrosoftEdge'
+    
+    options.set_capability("browserName", browser_name)
+    
+    if not IS_KUBERNETES_DEPLOYMENT:
+        options.browser_version = context.browser_info["browser_version"]
+    
     options.accept_insecure_certs = True
     # Get the chrome container timezone from browser_info
-    selenoid_time_zone = context.browser_info.get("selectedTimeZone", "")
+    devices_time_zone = context.browser_info.get("selectedTimeZone", "")
 
-    if not selenoid_time_zone or selenoid_time_zone.strip() == "":
-        selenoid_time_zone = "Etc/UTC"
+    if not devices_time_zone or devices_time_zone.strip() == "":
+        devices_time_zone = "Etc/UTC"
 
-    logger.debug(f"Browser container timezone is : {selenoid_time_zone}")
+    context.mobile_capabilities['timezone'] = devices_time_zone
+    logger.debug(f"Test is running in the timezone : {devices_time_zone}")
     # selenoid specific capabilities
     # more options can be found at:
     # https://aerokube.com/selenoid/latest/#_special_capabilities
-    selenoid_capabilities = {
-        "name": data["feature_name"],
-        "enableVNC": True,
-        "screenResolution": "1920x1080x24",
-        "enableVideo": context.record_video,
-        "sessionTimeout": "30m",
-        "timeZone": selenoid_time_zone,  # based on the user selected timezone
-        "labels": {"by": "COMETA ROCKS"},
-        "s3KeyPattern": "$sessionId/$fileType$fileExtension",
-        # previously used for s3 which is not currently being used.
-    }
+    
+    if IS_KUBERNETES_DEPLOYMENT:
+        cometa_options = {
+            "record_video":context.record_video,
+            "is_test":True
+        }
+        options.set_capability("cometa:options", cometa_options)
 
-    # add cloud/provider capabilities to the
-    # browser capabilities
-    options.set_capability("selenoid:options", selenoid_capabilities)
+    else:
+        logger.debug(f"Adding selenoid capabilities")
+        selenoid_capabilities = {
+            "name": data["feature_name"],
+            "enableVNC": True,
+            "screenResolution": "1920x1080x24",
+            "enableVideo": context.record_video,
+            "sessionTimeout": "30m",
+            "timeZone": devices_time_zone,  # based on the user selected timezone
+            "labels": {"by": "COMETA ROCKS"},
+            "s3KeyPattern": "$sessionId/$fileType$fileExtension",
+            # previously used for s3 which is not currently being used.
+        }
+        # add cloud/provider capabilities to the
+        # browser capabilities
+        options.set_capability("selenoid:options", selenoid_capabilities)
+        
+        
     if context.browser_info["browser"] == "chrome" and context.network_logging_enabled:
         options.set_capability(
             "goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"}
         )
         # If network logging enabled then fetch vulnerability headers info from server
-        response = requests.get(
-            "http://cometa_django:8000/security/vulnerable_headers/",
-            headers={"Host": "cometa.local"},
-        )
+        response =  requests.get(f'{get_cometa_backend_url()}/security/vulnerable_headers/', headers={'Host': 'cometa.local'})
         logger.info("vulnerable headers info received")
         context.vulnerability_headers_info = response.json()["results"]
         logger.info("stored in the context")
 
-    options.add_argument("--enable-logging")
-    options.add_argument("--log-level=0")
-
+    options.add_argument('--enable-logging')
+    options.add_argument('--log-level=0')
+    options.add_argument("--window-size=1920,1080")
     # proxy configuration
     if PROXY_ENABLED and PROXY:
         logger.debug(
@@ -400,10 +456,17 @@ def before_all(context):
                 "autodetect": False,
             },
         )
+        # Appium does not support proxy settings
+        # https://github.com/appium/appium/issues/19316 
+        # context.mobile_capabilities['proxy'] = {
+        #     'proxyType': "manual",
+        #     'httpProxy': "your-proxy-server:port",
+        #     'sslProxy': "your-proxy-server:port"
+        # }
 
     # LOCAL only
     # download preferences for chrome
-    context.downloadDirectoryOutsideSelenium = r"/code/behave/downloads/%s" % str(
+    context.downloadDirectoryOutsideSelenium = r"/data/test/downloads/%s" % str(
         os.environ["feature_result_id"]
     )
     context.uploadDirectoryOutsideSelenium = r"/code/behave/uploads/%s" % str(
@@ -428,11 +491,8 @@ def before_all(context):
         "pid": str(os.getpid()),
         "feature_result_id": os.environ["feature_result_id"],
     }
-    response = requests.post(
-        "http://cometa_django:8000/updateTask/",
-        headers={"Host": "cometa.local"},
-        data=json.dumps(task),
-    )
+    response = requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
+                             data=json.dumps(task))
 
     logger.info("\33[92mRunning feature...\33[0m")
     logger.info(
@@ -446,7 +506,9 @@ def before_all(context):
 
     logger.debug("Driver Capabilities: {}".format(options.to_capabilities()))
     logger.info(f"Trying to get a browser context {connection_url}")
-
+    capabilities = options.to_capabilities()
+    logger.info("Options Summary (Capabilities):")
+    logger.info(capabilities)
     context.browser = webdriver.Remote(command_executor=connection_url, options=options)
 
     logger.debug("Session id: %s" % context.browser.session_id)
@@ -458,17 +520,15 @@ def before_all(context):
         "feature_result_id": os.environ["feature_result_id"],
         "session_id": context.browser.session_id,
         "description": feature_description,
+        "browser": context.browser_info
     }
     # update feature_result with session_id
-    requests.patch(
-        "http://cometa_django:8000/api/feature_results/", json=data, headers=headers
-    )
+    requests.patch(f'{get_cometa_backend_url()}/api/feature_results/', json=data, headers=headers)
 
     # get all the steps from django
-    response = requests.get(
-        "http://cometa_django:8000/steps/%s/?subSteps=True" % context.feature_id,
-        headers={"Host": "cometa.local"},
-    )
+    response = requests.get(f'{get_cometa_backend_url()}/steps/%s/?subSteps=True' % context.feature_id,
+                            headers={"Host": "cometa.local"})
+
     # save the steps to environment variable ... this will overload ENV variables in bash size. Must use context, not env.
     # os.environ['STEPS'] = json.dumps(response.json()['results'])
 
@@ -482,16 +542,13 @@ def before_all(context):
     os.environ["total_steps"] = str(context.counters["total"])
 
     # send a websocket request about that feature has been started
-    request = requests.get(
-        "http://cometa_socket:3001/feature/%s/started" % context.feature_id,
-        data={
-            "user_id": context.PROXY_USER["user_id"],
-            "browser_info": json.dumps(context.browser_info),
-            "feature_result_id": os.environ["feature_result_id"],
-            "run_id": os.environ["feature_run"],
-            "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        },
-    )
+    request = requests.get(f'{get_cometa_socket_url()}/feature/%s/started' % context.feature_id, data={
+        "user_id": context.PROXY_USER['user_id'],
+        "browser_info": json.dumps(context.browser_info),
+        "feature_result_id": os.environ['feature_result_id'],
+        "run_id": os.environ['feature_run'],
+        "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    })
 
     logger.info("Processing done ... will continue with the steps.")
 
@@ -528,21 +585,45 @@ def after_all(context):
             context.browser.delete_all_cookies()
         # quit the browser since at this point feature has been executed
         context.browser.quit()
+        
+        if context.cloud == "local":
+            url = f"http://cometa_selenoid:4444/sessions/{context.browser.session_id}"
+            logger.debug(f"Requesting to delete the {url}")
+            response = requests.delete(url)
+            logger.debug(response.json())
+            logger.debug(response.body)
     except Exception as err:
         logger.debug("Unable to delete cookies or quit the browser. See error below.")
         logger.debug(str(err))
 
+
+    # if IS_KUBERNETES_DEPLOYMENT:
+    #     logger.debug(f"Deleting kubernetes browser pod and service")
+    #     context.kubernetes_service_manager.delete_pod()
+    #     context.kubernetes_service_manager.delete_service()
+        
+    
+    # Close all Mobile sessions
+    for key, mobile in context.mobiles.items():
+        logger.debug(mobile['driver'])
+        try:
+            mobile['driver'].quit()
+            
+        except Exception as err:
+            logger.error(f"Unable to stop the mobile session, Mobile details : {mobile['driver']}")
+            logger.error(str(err))
+
     # testcase has finished, send websocket about processing data
-    request = requests.get(
-        "http://cometa_socket:3001/feature/%s/processing" % context.feature_id,
-        data={
-            "user_id": context.PROXY_USER["user_id"],
-            "browser_info": json.dumps(context.browser_info),
-            "feature_result_id": os.environ["feature_result_id"],
-            "run_id": os.environ["feature_run"],
-            "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        },
-    )
+    request = requests.get(f'{get_cometa_socket_url()}/feature/%s/processing' % context.feature_id, data={
+        "user_id": context.PROXY_USER['user_id'],
+        "browser_info": json.dumps(context.browser_info),
+        "feature_result_id": os.environ['feature_result_id'],
+        "run_id": os.environ['feature_run'],
+        "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    })
+
+    # Delete all the services which were started during test
+    ServiceManager().remove_all_service(context.container_services)
 
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None
@@ -579,7 +660,10 @@ def after_all(context):
                         "S3 is enabled but COMETA_S3_ENDPOINT and COMETA_S3_BUCKETNAME seems to be empty ... please check."
                     )
             else:
-                bsVideoURL = "/videos/%s.mp4" % context.browser.session_id
+                # video_extension = os.getenv("VIDEO_EXTENSION", "mp4")
+                bsVideoURL = f"/videos/{context.browser.session_id}.mp4"
+                logger.debug(f"Video path {bsVideoURL}" )
+                
     # load feature into data
     data = json.loads(os.environ["FEATURE_DATA"])
     # junit file path for the executed testcase
@@ -666,29 +750,22 @@ def after_all(context):
     # set the headers for the request
     headers = {"Content-type": "application/json", "Host": "cometa.local"}
     # send the patch request
-    requests.patch(
-        "http://cometa_django:8000/api/feature_results/", json=data, headers=headers
-    )
+    requests.patch(f'{get_cometa_backend_url()}/api/feature_results/', json=data, headers=headers)
 
     logger.debug("\33[92m" + "FeatureResult ran successfully!" + "\33[0m")
 
     # get the final result for the feature_result
-    request_info = requests.get(
-        "http://cometa_django:8000/api/feature_results/%s"
-        % os.environ["feature_result_id"],
-        headers=headers,
-    )
-    requests.post(
-        "http://cometa_socket:3001/feature/%s/finished" % context.feature_id,
-        data={
-            "user_id": context.PROXY_USER["user_id"],
-            "browser_info": json.dumps(context.browser_info),
-            "feature_result_id": os.environ["feature_result_id"],
-            "run_id": os.environ["feature_run"],
-            "feature_result_info": json.dumps(request_info.json()["result"]),
-            "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        },
-    )
+    request_info = requests.get(f"{get_cometa_backend_url()}/api/feature_results/%s" % os.environ['feature_result_id'],
+                                headers=headers)
+    requests.post(f'{get_cometa_socket_url()}/feature/%s/finished' % context.feature_id, data={
+        "user_id": context.PROXY_USER['user_id'],
+        "browser_info": json.dumps(context.browser_info),
+        "feature_result_id": os.environ['feature_result_id'],
+        "run_id": os.environ['feature_run'],
+        "feature_result_info": json.dumps(request_info.json()['result']),
+        "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    })
+
     if hasattr(context, "network_responses") and context.network_logging_enabled:
 
         network_response_count = 0
@@ -708,31 +785,23 @@ def after_all(context):
 
         logger.info("Sending vulnerability_headers")
         # request to save vulnerable network headers
-        response = requests.post(
-            "http://cometa_django:8000/security/network_headers/",
-            headers=headers,
-            data=json.dumps(
-                {
-                    "result_id": os.environ["feature_result_id"],
-                    "responses": context.network_responses,
-                    "vulnerable_response_count": vulnerable_response_count,
-                    "network_response_count": network_response_count,
-                }
-            ),
-        )
+        response = requests.post(f"{get_cometa_backend_url()}/security/network_headers/", headers=headers,
+                                 data=json.dumps({
+                                     "result_id": os.environ['feature_result_id'],
+                                     "responses": context.network_responses,
+                                     "vulnerable_response_count": vulnerable_response_count,
+                                     "network_response_count": network_response_count
+                                 }))
+
         if response.status_code == 201:
             logger.debug("Vulnerability Headers Saved ")
         else:
             # logger.debug(f"Error while saving Vulnerability Headers : {json.dumps(response.json())}")
             logger.debug(f"Error while saving Vulnerability Headers : {response}")
     # send mail
-    sendemail = requests.get(
-        "http://cometa_django:8000/pdf/?feature_result_id=%s"
-        % os.environ["feature_result_id"],
-        headers={"Host": "cometa.local"},
-    )
-    logger.debug("SendEmail status: " + str(sendemail.status_code))
-
+    sendemail = requests.get(f'{get_cometa_backend_url()}/pdf/?feature_result_id=%s' % os.environ['feature_result_id'],
+                             headers={'Host': 'cometa.local'})
+    logger.debug('SendEmail status: ' + str(sendemail.status_code))
     # remove download folder if no files where downloaded during the testcase
     downloadedFiles = glob.glob(context.downloadDirectoryOutsideSelenium + "/*")
     if len(downloadedFiles) == 0:
@@ -758,17 +827,16 @@ def after_all(context):
         "feature_id": context.feature_id,
         "pid": str(os.getpid()),
     }
-    response = requests.post(
-        "http://cometa_django:8000/updateTask/",
-        headers={"Host": "cometa.local"},
-        data=json.dumps(task),
-    )
-
+    response = requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
+                             data=json.dumps(task))
 
 @error_handling()
 def before_step(context, step):
+    logger.debug(f"Starting Step : ################################ {step.name} ################################")
     context.CURRENT_STEP = step
     context.CURRENT_STEP_STATUS = "Failed"
+    context.STEP_TYPE = 'BROWSER'
+
     os.environ["current_step"] = str(context.counters["index"] + 1)
     # complete step name to let front know about the step that will be executed next
     step_name = "%s %s" % (step.keyword, step.name)
@@ -797,20 +865,17 @@ def before_step(context, step):
     #         pass # just incase if no url has been searched at the time
 
     # send websocket to front to let front know about the step
-    requests.post(
-        "http://cometa_socket:3001/feature/%s/stepBegin" % context.feature_id,
-        data={
-            "user_id": context.PROXY_USER["user_id"],
-            "feature_result_id": os.environ["feature_result_id"],
-            "browser_info": json.dumps(context.browser_info),
-            "run_id": os.environ["feature_run"],
-            "step_name": step_name,
-            "step_index": index,
-            "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "belongs_to": context.step_data["belongs_to"],
-        },
-    )
-
+    requests.post(f'{get_cometa_socket_url()}/feature/%s/stepBegin' % context.feature_id, data={
+        "user_id": context.PROXY_USER["user_id"],
+        "feature_result_id": os.environ["feature_result_id"],
+        "browser_info": json.dumps(context.browser_info),
+        "run_id": os.environ["feature_run"],
+        "step_name": step_name,
+        "step_index": index,
+        "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "belongs_to": context.step_data["belongs_to"],
+    })
+   
 
 def find_vulnerable_headers(context, step_index) -> int:
     try:
@@ -887,6 +952,9 @@ def find_vulnerable_headers(context, step_index) -> int:
 
 @error_handling()
 def after_step(context, step):
+    # Save p
+    context.PREVIOUS_STEP_TYPE = context.STEP_TYPE
+    logger.debug(f"context.PREVIOUS_STEP_TYPE : {context.PREVIOUS_STEP_TYPE}")
     # Capture the exception if it exists and print it
     if step.exception:
         logger.exception("", exc_info=step.exception, stack_info=True)
@@ -927,8 +995,13 @@ def after_step(context, step):
     elif hasattr(context, "step_error"):
         step_error = context.step_error
     # send websocket to front to let front know about the step
+
+    logger.debug("Running Mobiles")
+    hostnames = [{'hostname':mobile['container_service_details']["Id"], 'name': mobile_name} for mobile_name, mobile in context.mobiles.items()]
+    logger.debug(hostnames)
+                 
     requests.post(
-        "http://cometa_socket:3001/feature/%s/stepFinished" % context.feature_id,
+        f'{get_cometa_socket_url()}/feature/%s/stepFinished' % context.feature_id,
         json={
             "user_id": context.PROXY_USER["user_id"],
             "feature_result_id": os.environ["feature_result_id"],
@@ -944,6 +1017,8 @@ def after_step(context, step):
             "belongs_to": context.step_data["belongs_to"],
             "screenshots": json.dumps(screenshots),  # load screenshots object
             "vulnerable_headers_count": vulnerable_headers_count,
+            "step_type": context.STEP_TYPE,
+            "mobiles_info": hostnames
         },
     )
 
@@ -974,3 +1049,4 @@ def after_step(context, step):
         if hasattr(context, key):
             delattr(context, key)
 
+    logger.debug(f"Step Over : ################################ {step.name} ################################")
