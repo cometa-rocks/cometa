@@ -18,6 +18,7 @@ services:
       driver: json-file
     command: bash start.sh -dev
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa/screenshots:/code/behave/screenshots
       - ./data/cometa/videos:/code/behave/videos
       - ./data/cometa/config:/code/config:rw
@@ -49,6 +50,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa/screenshots:/opt/code/screenshots
       - ./data/cometa/videos:/opt/code/videos
       - ./data/cometa/config:/code/config:rw
@@ -104,7 +106,7 @@ services:
     entrypoint: sh /etc/selenoid/start.sh
 
   novnc:
-    image: cometa/novnc:1.0
+    image: cometa/novnc:1.2
     container_name: cometa_novnc
     networks:
       - testing
@@ -124,6 +126,20 @@ services:
     networks:
       - testing
     restart: always
+
+  # This service is only used for build the appium_inspector dist files
+  # with image node:20, once build is done, copy the build files to front foler
+  # when apache image is using node:20 to build the angular project this can be done with in the apache container it self
+  # After that appium.inspector should be removed 
+  appium.inspector:
+    image: node:20
+    volumes:
+      - ./front/appium-inspector-build:/app
+      - ./front:/front
+    working_dir: /front/appium-inspector-build
+    command: bash appium_build.sh
+    networks:
+      - testing
 
   apache:
     image: "httpd:2.4.48"

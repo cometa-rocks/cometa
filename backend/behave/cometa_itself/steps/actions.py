@@ -33,7 +33,7 @@ import logging
 import traceback
 import urllib.parse
 import random
-
+import copy
 # import PIL
 from subprocess import call, run
 from selenium.common.exceptions import WebDriverException, NoAlertPresentException, ElementNotInteractableException, TimeoutException, StaleElementReferenceException
@@ -65,10 +65,11 @@ base64.encodestring = base64.encodebytes
 from hashlib import md5
 from pathlib import Path
 from tools import expected_conditions as CEC
+from utility.config_handler import *
 import sys
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append('/code/behave/cometa_itself/steps')
+sys.path.append('/opt/code/cometa_itself/steps')
 
 from utility.functions import *
 from utility.configurations import ConfigurationManager
@@ -138,7 +139,7 @@ def step_impl(context,css_selector):
         ActionChains(context.browser).move_to_element(elem[0]).click().perform()
         if generate_dataset:
             payload['success'] = True
-            requests.post('http://cometa_django:8000/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
+            requests.post(f'{get_cometa_backend_url()}/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
     except Exception as err:
         if isCommandNotSupported(err):
             # I move mouse is not supported in the current device, falling back to "click element with css"
@@ -147,7 +148,7 @@ def step_impl(context,css_selector):
 
             if generate_dataset:
                 payload['success'] = False
-                requests.post('http://cometa_django:8000/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
+                requests.post(f'{get_cometa_backend_url()}/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
         else:
             raise err
 
@@ -1187,12 +1188,14 @@ def step_impl(context, username, password):
 @step(u'I sleep "{sleeptime}" seconds')
 @done(u'I sleep "{sleeptime}" seconds')
 def step_impl(context, sleeptime):
+    context.STEP_TYPE = copy.copy(context.PREVIOUS_STEP_TYPE)
     cometa_sleep(sleeptime)
 
 # Sleeps for X seconds
 @step(u'I can sleep "{sleeptime}" seconds')
 @done(u'I can sleep "{sleeptime}" seconds')
 def step_impl(context,sleeptime):
+    context.STEP_TYPE = copy.copy(context.PREVIOUS_STEP_TYPE)
     cometa_sleep(sleeptime)
 
 # Function to check if throwed error is of type not supported
@@ -2155,7 +2158,7 @@ def step_imp(context, feature_name, parameters, schedule):
     }
 
     # make the request to save the object
-    response = requests.post("http://cometa_django:8000/api/schedule/", headers={"Host": "cometa.local"}, json=payload)
+    response = requests.post(f"{get_cometa_backend_url()}/api/schedule/", headers={"Host": "cometa.local"}, json=payload)
 
     # if response returns a 404 throw an error
     if response.status_code != 200:
@@ -2178,7 +2181,7 @@ def step_imp(context):
             'id': jobId
         }
         # make request to remove schedule
-        response = requests.delete("http://cometa_django:8000/api/schedule/", headers={"Host": "cometa.local"}, json=payload)
+        response = requests.delete(f"{get_cometa_backend_url()}/api/schedule/", headers={"Host": "cometa.local"}, json=payload)
 
         # check the response if not 200 raise exception
         if response.status_code != 200:
@@ -3356,12 +3359,13 @@ def scrollThroughLazyLoading(context, xpath, MaxScrolls, MaxTimeOfLife):
 
 
 if __name__ != 'actions':
-    sys.path.append('/code/behave/')
+    sys.path.append('/opt/code/')
     from ee.cometa_itself.steps import rest_api  
     from ee.cometa_itself.steps import ai_actions
     from ee.cometa_itself.steps import conditional_actions
+    from ee.cometa_itself.steps import mobile_actions  
     
-    sys.path.append('/code/behave/cometa_itself')
+    sys.path.append('/opt/code/cometa_itself')
     from steps import validation_actions
     from steps import unimplemented_steps
     

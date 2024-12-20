@@ -54,7 +54,44 @@ function check_ssl_certificate() {
 }
 
 
+# #########
+# This function handel apache configuration files 
+# It will copy Apache configuration files from /code/front/apache-conf to /share/apache-conf for first-time installation 
+# And create .initiated directory with /share dir
+# Second time, if it finds .initiated file within /share, it will copy files from /share/apache-conf to /code/front/apache-conf
+# #########
+copy_apache_conf_file() {
+    # if this is the first time initializing co.meta
+    # import basic data
+    if [ ! -f "/share/.initiated" ]; then
+		echo "#### For the first time ####"
+        cp -r /code/front/apache-conf /share/apache-conf
+        echo "Copied files from /code/front/apache-conf to /share/apache-conf"
+		mkdir -p /share/apache2
+        cp -r /usr/local/apache2/conf /share/apache2/conf
+        echo "Copied files from /usr/local/apache2/conf to /share/apache2/conf"
+        touch /share/.initiated
+		echo "/share/.initiated file is created"
+		cp -r /etc/ssl/certs/apache-self-signed.crt /share/front/certs/apache-self-signed.crt
+		echo "Copied files from /etc/ssl/certs/apache-self-signed.crt to /share/front/certs/apache-self-signed.crt"
+		cp -r /etc/ssl/certs/apache-self-signed.key /share/front/certs/apache-self-signed.key
+		echo "Copied files from /etc/ssl/certs/apache-self-signed.key to /share/front/certs/apache-self-signed.key"
+    else
+        cp -r /share/apache-conf /code/front
+        echo "Copied files from /share/apache-conf to /code/front/apache-conf"
+        cp -r /share/apache2/conf /usr/local/apache2
+		echo "Copied files from /share/apache2/conf to /usr/local/apache2/conf"
+		cp /share/front/certs/apache-self-signed.crt /etc/ssl/certs/apache-self-signed.crt 
+		echo "Copied files from /share/front/certs/apache-self-signed.crt to /etc/ssl/certs/apache-self-signed.crt" 
+		cp /share/front/certs/apache-self-signed.key /etc/ssl/certs/apache-self-signed.key 
+		echo "Copied files from /share/front/certs/apache-self-signed.key to /etc/ssl/certs/apache-self-signed.key"
+    fi
+}
+
+
 check_ssl_certificate
+
+# copy_apache_conf_file
 
 echo -e "\e[32mSuccessful\e[0m"
 

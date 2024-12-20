@@ -69,6 +69,12 @@ default_cometa_configurations = {
     "REDIS_DB": 0,
     "REDIS_DB_TSL_SSL_ENABLED": False,
     "REDIS_CA_CERTIFICATE_FILE": "/share/certs/ca-cert.pem",
+    "COMETA_DEPLOYMENT_ENVIRONMENT": "docker", # it can be 'docker' or 'kubernetes'
+    "COMETA_MOBILE_TOTAL_EMULATOR_VERSIONS": 3, 
+    "COMETA_KUBERNETES_NAMESPACE": "cometa", 
+    "COMETA_KUBERNETES_DATA_PVC": "cometa-data-volume-claim", 
+    "COMETA_FEATURE_AI_ENABLED": False, 
+    "COMETA_FEATURE_MOBILE_TEST_ENABLED": False, 
 }
 
 
@@ -121,8 +127,9 @@ class ConfigurationManager:
         conn_params = {
             "dbname": "postgres",
             "user": "postgres",
-            "host": "db",
-            "port": 5432,
+            "password": os.getenv("DATABASE_PASSWORD",""),
+            "host": os.getenv("DATABASE_SERVER","db"),
+            "port": 5432,            
         }
         # Connect to the PostgreSQL database
         self.__db_connection = psycopg2.connect(**conn_params)

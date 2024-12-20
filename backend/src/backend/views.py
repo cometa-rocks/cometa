@@ -4,7 +4,7 @@ from itertools import islice
 from backend.ee.modules.security.models import ResponseHeaders
 from backend.ee.modules.security.serializers import ResponseHeadersSerializer
 from backend.models import *
-# Import all serializers
+# Import all serializers 
 from backend.serializers import *
 # import django exceptions
 from django.core.exceptions import *
@@ -57,15 +57,15 @@ from django.db import connection
 import secrets, traceback
 from openpyxl import Workbook
 import base64
-# just to import secrets
-sys.path.append("/code")
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
 # import humanize for time conversion
 from backend.templatetags.humanize import *
 from sentry_sdk import capture_exception
 from backend.utility.uploadFile import UploadFile, decryptFile
+from backend.utility.config_handler import *
 # from silk.profiling.profiler import silk_profile
+from modules.container_service.service_manager import ServiceManager
 
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
@@ -324,13 +324,13 @@ def CreateOIDCAccount(request):
 
 
 """ def Screenshot(request, screenshot_name):
-    os.chdir('/code/behave/screenshots/')
+    os.chdir('/data/screenshots/')
     # Check for WebP Support
     webp_support = 'image/webp' in request.META.get('HTTP_ACCEPT', 'none')
     image_extension = 'webp' if webp_support else 'jpg'
     compressedImage = 'compressed/%s_compressed.%s' % (screenshot_name.replace('.png', ''), image_extension)
     # Create compressed folder if not exists
-    Path('/code/behave/screenshots/compressed/').mkdir(parents=True, exist_ok=True)
+    Path('/data/screenshots/compressed/').mkdir(parents=True, exist_ok=True)
     if not os.path.exists(compressedImage):
         # Compress image
         try:
@@ -382,7 +382,7 @@ def featureRunning(request, feature_id, *args, **kwargs):
     """
     This view acts as a proxy for <sw_server>/featureStatus/:feature_id
     """
-    request_response = requests.get('http://cometa_socket:3001/featureStatus/%d' % int(feature_id))
+    request_response = requests.get(f'{get_cometa_socket_url()}/featureStatus/%d' % int(feature_id))
     django_response = HttpResponse(
         content=request_response.content,
         status=request_response.status_code,
@@ -396,17 +396,25 @@ def noVNCProxy(request, feature_result_id, *args, **kwargs):
     # request.session['user'] = OIDCAccountLoginSerializer(OIDCAccount.objects.get(user_id=5), many=False).data
     try:
         # get feature_result from feature_result_id
-        fr = Feature_result.objects.get(feature_result_id=int(feature_result_id))
+        feature_result = Feature_result.objects.get(feature_result_id=int(feature_result_id))
         # get logged in user departments
         user_departments = [x['department_id'] for x in request.session['user']['departments']]
         # check if logged in user is the one that executed this feature_result
         # or if user belongs to the feature department
-        if (fr.executed_by.user_id == request.session['user']['user_id'] or fr.department_id in user_departments):
+        
+        if (feature_result.executed_by.user_id == request.session['user']['user_id'] or feature_result.department_id in user_departments):
             # check if session is still running
-            if not fr.running:
+            if not feature_result.running:
                 raise Exception("Live session has ended.")
             # get session_id from feature_result and proxy to noVNC
-            session_id = fr.session_id
+            container_details = feature_result.browser.get("container_service",False)
+            if not container_details:
+                session_id = feature_result.session_id
+            else:
+                session_id = ServiceManager().get_service_name(container_details['Id'])
+                
+            logger.debug(f"Returning session_id : {session_id}" )
+                
             return JsonResponse({'success': True, 'session_id': session_id})
         else:
             raise Exception("You don't have permissions to view this live session.")
@@ -446,7 +454,7 @@ def removeScreenshot(request, *args, **kwargs):
         return JsonResponse({'success': False, 'error': 'Step result not found with ID: ' + str(step_result_id)})
     step_result = step_result[0]
     # Construct screenshots folders and screenshot filename
-    screenshots_root = '/code/behave/screenshots/'
+    screenshots_root = '/data/screenshots/'
     filename = getattr(step_result, 'screenshot_' + screen_type, '')
     # print(step_result.screenshot_current)
     if not filename:
@@ -488,7 +496,7 @@ def removeTemplate(request, *args, **kwargs):
         return JsonResponse({'success': False, 'error': 'Specified step result id not found.'})
 
     # Construct screenshots folders and screenshot filename
-    screenshots_root = '/code/behave/screenshots/'
+    screenshots_root = '/data/screenshots/'
     file = screenshots_root + template
     # Make sure the file exists in disk before anything else
     if not os.path.isfile(file):
@@ -504,7 +512,7 @@ def removeTemplate(request, *args, **kwargs):
 
 
 def Screenshots(step_result_id):
-    os.chdir('/code/behave/screenshots/')
+    os.chdir('/data/screenshots/')
     screenshots = {}
     try:
         # FIXME: Dirty fix for getting correct current image
@@ -627,7 +635,7 @@ def downloadFeatureFiles(request, filepath, *args, **kwargs):
     # get user from the session
     user = request.session['user']
     # static path to downloads folder
-    downloadsFolder = '/code/behave/downloads/'
+    downloadsFolder = '/data/downloads/'
     # join static path and filepath
     fullPath = os.path.join(downloadsFolder, filepath)
     # get the feature_result_id from the filepath
@@ -665,7 +673,7 @@ def downloadFeatureFiles(request, filepath, *args, **kwargs):
 
 # Sends the request to behave without waiting
 def startFeatureRun(data):
-    result = requests.post('http://behave:8001/run_test/', data=data)
+    result = requests.post(f'{get_cometa_behave_url()}/run_test/', data=data)
 
 
 @csrf_exempt
@@ -685,7 +693,7 @@ def viewRunStatus(request, feature_id):
         return JsonResponse({'success': False, 'error': 'Provided Feature ID does not exist.'})
 
     # check if it feature is currently running
-    request_response = requests.get(f'http://cometa_socket:3001/featureStatus/{feature_id}')
+    request_response = requests.get(f'{get_cometa_socket_url()}/featureStatus/{feature_id}')
 
     # result that will be returned
     result = ""
@@ -913,7 +921,7 @@ def runFeature(request, feature_id, data={}, additional_variables=list):
     # check if user belong to the department
     userDepartments = GetUserDepartments(request)
     if feature.department_id not in userDepartments:
-        return {'success': False, 'error': 'Provided Feature ID does not exist.'}
+        return {'success': False, 'error': 'Provided Feature ID does not exist..'}
 
     if len(feature.browsers) == 0:
         return JsonResponse({
@@ -1120,8 +1128,8 @@ def runTest(request, *args, **kwargs):
         data = json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse({'success': False, 'error': 'Unable to parse request body.'})
-
-    return JsonResponse(runFeature(request, data.get('feature_id', None), data))
+    response = runFeature(request, data.get('feature_id', None), data)
+    return JsonResponse(response, status=200 if response.get("success") else 400)
 
 
 @csrf_exempt
@@ -1187,7 +1195,7 @@ def UpdateScreenshots(request, step_result_id):
 
 @csrf_exempt
 def MigrateScreenshots(request):
-    screenshots_root = '/code/behave/screenshots/'
+    screenshots_root = '/data/screenshots/'
     # CD into screenshots directory
     os.chdir(screenshots_root)
     # Construct grouped dictionary by step_result_id
@@ -1372,7 +1380,7 @@ def parseBrowsers(request):
                 }
                 Browser.objects.create(**args)
     # Send a request to websockets about the browsers update
-    requests.post('http://cometa_socket:3001/sendAction', json={
+    requests.post(f'{get_cometa_socket_url()}/sendAction', json={
         'type': '[Browsers] Get All'
     })
     return JsonResponse({'success': True})
@@ -1464,7 +1472,7 @@ def parseBrowsers(request):
 def parseActions(request):
     
     logger.debug("Getting latest actions from behave")
-    response = requests.get("http://behave:8001/updated_step_actions", headers={"Content-Type": "application/json"})
+    response = requests.get(f"{get_cometa_behave_url()}/updated_step_actions", headers={"Content-Type": "application/json"})
     
     if response.status_code==500:
         return JsonResponse(response.json())
@@ -1498,7 +1506,7 @@ def parseActions(request):
         actions.save()
         logger.debug(f"Ending Action Parse")
         # send a request to web sockets about the actions update
-        requests.post('http://cometa_socket:3001/sendAction', json={
+        requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Actions] Get All'
         })
         
@@ -1509,7 +1517,7 @@ def parseActions(request):
     except Exception as exception:
         traceback.print_exc()
         return JsonResponse({'success': True, 'message':str(exception)}, status=500)
-    
+
 
 
 @csrf_exempt
@@ -1570,7 +1578,7 @@ def schedule_update(feature_id, schedule, user_id):
             schedule_model = Schedule.objects.create(
                 feature_id=feature.pk,
                 schedule=schedule,
-                owner_id=user_id,
+                owner_id=user_id, 
                 delete_after_days=0
             )
             schedule_model.save()
@@ -1788,7 +1796,7 @@ class AccountViewset(viewsets.ModelViewSet):
             # get user thats been updated
             user = OIDCAccount.objects.filter(user_id=user_id)[0]
             # send a websocket to front about the creation
-            response = requests.post('http://cometa_socket:3001/sendAction', json={
+            response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
                 'type': '[Accounts] Modify Account',
                 'account': IAccount(user, many=False).data
             })
@@ -1807,7 +1815,7 @@ class AccountViewset(viewsets.ModelViewSet):
         users.delete()
 
         # send a websocket to front about the creation
-        response = requests.post('http://cometa_socket:3001/sendAction', json={
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Accounts] Remove  Account',
             'account_id': user_id
         })
@@ -1828,10 +1836,15 @@ class ActionViewSet(viewsets.ModelViewSet):
         query = self.request.query_params
         department = query.get('department', None)
         application = query.get('app', None)
+        action_types = ['BROWSER','API']
+        
+        if ConfigurationManager.get_configuration("COMETA_FEATURE_MOBILE_TEST_ENABLED","False")=="True":   
+            action_types.append('MOBILE')
+
         if department is not None:
-            queryset = queryset.filter(department=department)
+            queryset = queryset.filter(department=department, step_type__in=action_types)
         if application is not None:
-            queryset = queryset.filter(application=application)
+            queryset = queryset.filter(application=application, step_type__in=action_types)
         return Response({
             'results': ActionSerializer(queryset, many=True).data
         })
@@ -1920,12 +1933,21 @@ class FeatureResultByFeatureIdViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(page, many=True)
             feature_results = serializer.data
             for result in feature_results:
+                new_mobile_results = []
+                # Remove container_service_details from the result object as it is not needed in the result page,
+                # holds container details with volume mounts information, for security reasons should be send in the frontend
+                for mobile in result["mobile"]:
+                    del mobile['container_service_details'] 
+                    new_mobile_results.append(mobile)
+                result["mobile"] = new_mobile_results
+                
                 try:
                     response_headers = ResponseHeaders.objects.values('network_response_count',
                                                                       'vulnerable_response_count').get(
                         result_id=result["feature_result_id"])
                     result["network_response_count"] = response_headers["network_response_count"]
                     result["vulnerable_response_count"] = response_headers["vulnerable_response_count"]
+      
                 except Exception as e:
                     pass
 
@@ -1951,6 +1973,7 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
         # Second option is from body Payload
         if 'feature_result_id' in request.data:
             feature_result_id = request.data['feature_result_id']
+            
         if feature_result_id:
             data = request.data
             self.queryset.filter(feature_result_id=feature_result_id).update(**data)
@@ -2229,7 +2252,7 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
             return JsonResponse({"success": False, "error": "Environment_id invalid or doesn't exist."}, status=400)
         environments.update(environment_name=environment_name)
         # send a websocket to front about the creation
-        response = requests.post('http://cometa_socket:3001/sendAction', json={
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Environments] Update one',
             'environment': IEnvironment(environments[0], many=False).data
         })
@@ -2243,7 +2266,7 @@ class EnvironmentViewSet(viewsets.ModelViewSet):
             return JsonResponse({"success": False, "error": "Environment id invalid or doesn't exist."}, status=400)
         environments.delete()
         # send a websocket to front about the creation
-        response = requests.post('http://cometa_socket:3001/sendAction', json={
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Environments] Remove Environment',
             'environment_id': environment_id
         })
@@ -2276,7 +2299,7 @@ class BrowserViewSet(viewsets.ModelViewSet):
         browsers.delete()
 
         # send a websocket to front about the creation
-        response = requests.post('http://cometa_socket:3001/sendAction', json={
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Browsers] Remove',
             'browser_id': browser_id
         })
@@ -2307,7 +2330,7 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         apps.update(app_name=app_name)
 
         # send a websocket to front about the creation
-        response = requests.post('http://cometa_socket:3001/sendAction', json={
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Applications] Modify Application',
             'app': IApplication(apps[0], many=False).data
         })
@@ -2323,7 +2346,7 @@ class ApplicationViewSet(viewsets.ModelViewSet):
         apps.delete()
 
         # send a websocket to front about the creation
-        response = requests.post('http://cometa_socket:3001/sendAction', json={
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Applications] Remove  Application',
             'app_id': app_id
         })
@@ -2429,13 +2452,13 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         account_role.save()
 
         # send a websocket to front about the creation
-        response = requests.post('http://cometa_socket:3001/sendAction', json={
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Departments] Add Admin Department',
             'department': DepartmentWithUsersSerializer(department, many=False).data
         })
 
         # update the user who has been added to the created department
-        response = requests.post('http://cometa_socket:3001/sendAction', json={
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Accounts] Modify Account',
             'account': IAccount(user, many=False).data
         })
@@ -2478,7 +2501,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
             # update department with data recieved from payload
             departments.update(**data)
             # send a websocket to front about the creation
-            response = requests.post('http://cometa_socket:3001/sendAction', json={
+            response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
                 'type': '[Departments] Update Department Info',
                 'departmentId': department_id,
                 'options': IDepartment(departments[0], many=False).data
@@ -2496,7 +2519,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
             return JsonResponse({"success": False, "error": "Department_id invalid or doesn't exist."}, status=400)
         departments.delete()
         # send a websocket to front about the creation
-        response = requests.post('http://cometa_socket:3001/sendAction', json={
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Departments] Remove Admin Department',
             'department_id': department_id
         })
@@ -2657,7 +2680,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
             result = feature.save(steps=steps)
         else:
             # Save without steps
-            result = feature.save()
+            result = feature.save()  
 
         """
         Process schedule if requested
@@ -2676,12 +2699,12 @@ class FeatureViewSet(viewsets.ModelViewSet):
         # Add the updated feature to the result if feature save was ok
         if result['success']:
             result['info'] = FeatureSerializer(feature, many=False).data
-            requests.post('http://cometa_socket:3001/sendAction', json={
+            requests.post(f'{get_cometa_socket_url()}/sendAction', json={
                 'type': '[Features] Update feature offline',
                 'feature': result['info'],
                 'exclude': [request.session['user']['user_id']]
             })
-            requests.post('http://cometa_socket:3001/sendAction', json={
+            requests.post(f'{get_cometa_socket_url()}/sendAction', json={
                 'type': '[Features] Get Folders',
                 'exclude': [request.session['user']['user_id']]
             })
@@ -2694,7 +2717,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
 
     def run_test(self, json_path):
         post_data = {'json_path': json_path}
-        response = requests.post('http://behave:8001/run_test/', data=post_data)
+        response = requests.post(f'{get_cometa_behave_url()}/run_test/', data=post_data)
         return response.status_code
 
     @require_permissions("delete_feature", feature_id="kwargs['feature_id']")
@@ -3027,7 +3050,7 @@ class FolderViewset(viewsets.ModelViewSet):
                     print("Failed to get the folder....")
         try:
             Folder.objects.create(**payload)
-            requests.post('http://cometa_socket:3001/updatedObjects/folders')
+            requests.post(f'{get_cometa_socket_url()}/updatedObjects/folders')
             return Response({"success": True})
         except Exception as err:
             return Response({"success": False, "error": str(err)})
@@ -3185,8 +3208,8 @@ class FolderViewset(viewsets.ModelViewSet):
 
                 folder.save()
 
-                requests.post('http://cometa_socket:3001/updatedObjects/folders')
-                requests.post('http://cometa_socket:3001/sendAction', json={
+                requests.post(f'{get_cometa_socket_url()}/updatedObjects/folders')
+                requests.post(f'{get_cometa_socket_url()}/sendAction', json={
                     'type': '[Features] Folder got renamed',
                     'folder': FolderSerializer(folder, many=False).data,
                     'exclude': [request.session['user']['user_id']]
@@ -3206,8 +3229,8 @@ class FolderViewset(viewsets.ModelViewSet):
                                     status=200)
             department_id = folder.department.department_id
             if folder.delete():
-                requests.post('http://cometa_socket:3001/updatedObjects/folders')
-                requests.post('http://cometa_socket:3001/sendAction', json={
+                requests.post(f'{get_cometa_socket_url()}/updatedObjects/folders')
+                requests.post(f'{get_cometa_socket_url()}/sendAction', json={
                     'type': '[Features] Folder got removed',
                     'folder_id': int(folder_id),
                     'department_id': int(department_id)
@@ -3266,7 +3289,7 @@ class FolderFeatureViewset(viewsets.ModelViewSet):
                 # Return an error if the previous fails
                 return JsonResponse({"success": False, "error": str(er)}, status=404)
             # Send testcase websockets
-            requests.post('http://cometa_socket:3001/sendAction', json={
+            requests.post(f'{get_cometa_socket_url()}/sendAction', json={
                 'type': '[Features] Update feature offline',
                 'feature': FeatureSerializer(feat, many=False).data,
                 'exclude': [request.session['user']['user_id']]
@@ -3288,7 +3311,7 @@ class FolderFeatureViewset(viewsets.ModelViewSet):
             obj.save()
 
         # update websockets
-        requests.post('http://cometa_socket:3001/updatedObjects/folders')
+        requests.post(f'{get_cometa_socket_url()}/updatedObjects/folders')
 
         return JsonResponse({"success": True}, status=200)
 
@@ -3350,22 +3373,38 @@ def UpdateTask(request):
     except Feature_result.DoesNotExist as exception:
         return JsonResponse({"success": True,'message':str(exception)})
 
+def remove_running_containers(feature_result):
+    for mobile in feature_result.mobile:
+        # While running mobile tests User have options to connect to already running mobile or start mobile during test
+        # If Mobile was started by the test then remove it after execution 
+        # If Mobile was started by the user and test only connected to it do not stop it
+        if mobile['is_started_by_test']:
+            ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
+
+    browser_container_info = feature_result.browser.get("container_service",False)
+    
+    if browser_container_info:
+        ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"]) 
+
+
 @csrf_exempt
 def KillTask(request, feature_id):
-    tasks = Feature_Task.objects.filter(feature_id=feature_id)
+    tasks = Feature_Task.objects.filter(feature_id=feature_id).select_related('feature_result_id')
     for task in tasks:
-        request = requests.get('http://behave:8001/kill_task/' + str(task.pid) + "/")
+        remove_running_containers(task.feature_result_id)
+        request = requests.get(f'{get_cometa_behave_url()}/kill_task/' + str(task.pid) + "/")
         Feature_Task.objects.filter(pid=task.pid).delete()
     if len(tasks) > 0:
         # Force state of stopped for current feature in WebSocket Server
-        request = requests.get('http://cometa_socket:3001/feature/%s/killed' % feature_id)
+        request = requests.get(f'{get_cometa_socket_url()}/feature/%s/killed' % feature_id)
     return JsonResponse({"success": True, "tasks": len(tasks)}, status=200)
 
 @csrf_exempt
 def KillTaskPID(request, pid):
-    tasks = Feature_Task.objects.filter(pid=pid)
-    for task in tasks:
-        request = requests.get('http://behave:8001/kill_task/' + str(task.pid) + "/")
+    tasks = Feature_Task.objects.filter(pid=pid).select_related('feature_result_id')
+    for task in tasks: 
+        remove_running_containers(task.feature_result_id)
+        request = requests.get(f'{get_cometa_behave_url()}/kill_task/' + str(task.pid) + "/")
         Feature_Task.objects.filter(pid=task.pid).delete()
     return JsonResponse({"success": True, "tasks": len(tasks)}, status=200)
 

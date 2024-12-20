@@ -125,5 +125,6 @@ fi
 #
 if [ "$ENVIRONMENT" != "dev" ]; then    
     # spin up gunicorn
+    cd behave_django
     gunicorn behave_django.wsgi:application --workers=2 --threads=${THREADS:-2} --worker-class=gthread --bind 0.0.0.0:8001 --preload
 fi
