@@ -65,7 +65,7 @@ EOF
 # #########
 function install_angular(){
 	# echo -e "\e[37mInstalling @angular/cli...\e[0m"
-	# npm install -g @angular/cli@15.2.9 >> output.log 2>&1
+	npm install -g @angular/cli@15.2.9 >> output.log 2>&1
 	# echo -e "\e[32mOK\e[0m"
 	npm config set unsafe-perm true
 	echo -e "\e[37mInstalling npm packages...\e[0m"
@@ -180,7 +180,7 @@ function install_openidc(){
 	apt-get install -y pkg-config make gcc gdb lcov valgrind vim curl iputils-ping wget
 	apt-get install -y autoconf automake libtool
 	apt-get install -y libssl-dev libjansson-dev libcurl4-openssl-dev check
-	apt-get install -y libpcre3-dev zlib1g-dev libcjose0 libcjose-dev
+	apt-get install -y libpcre3-dev zlib1g-dev libcjose0 libcjose-dev 
 	apt-get install -y libapache2-mod-security2
 	cd -
 }
