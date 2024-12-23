@@ -127,7 +127,7 @@ fi
 
 
 # update clamav database and start clamav in daemon mode
-# echo "0" > /tmp/clam_started && freshclam && service clamav-daemon start && echo "1" > /tmp/clam_started
+echo "0" > /tmp/clam_started && freshclam && service clamav-daemon start && echo "1" > /tmp/clam_started
 
 #
 # in DEVMODE Start Django server
