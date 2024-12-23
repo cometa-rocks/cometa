@@ -1,5 +1,5 @@
 {
-  "version": "3.0.5",
+  "version": "3.0.6",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,11 +233,21 @@
   ],
   "changelog": [
     {
+      "version": "3.0.6",
+      "date": "2024-12-23",
+      "features": [
+        {
+          "title": "#5519 Kubernetes deployment with mobile feature",
+          "description": "Kubernetes changes are merged with Mobile and AI feature, making it scalable"
+        }
+      ]
+    },
+    {
       "version": "3.0.5",
       "date": "2024-11-21",
       "features": [
         {
-          "title": "#5414 Change background image of test environment ",
+          "title": "#5414 Change background image of test environment",
           "description": "Backgroud images can be change for the test browser and mobile device using Cometa admin section"
         }
       ]
