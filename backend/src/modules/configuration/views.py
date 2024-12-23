@@ -31,7 +31,7 @@ class ConfigurationViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, args, kwargs)
 
-    @require_permissions("manage_configurations")
+    # @require_permissions("manage_configurations")
     def list(self, request, *args, **kwargs):
         return super().list(request, args, kwargs)
 
