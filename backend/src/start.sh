@@ -101,7 +101,7 @@ mkdir -p /opt/code/logs || true
 apt update && apt install -y rsyslog jq nano vim clamav-daemon
 service rsyslog start
 # Install cron
-install_cron
+# install_cron
 # check and create secret_variables.py
 # create_secret_variables
 # Install poetry package manager

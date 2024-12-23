@@ -57,7 +57,7 @@ RUN chown -R cometa:cometa /etc/cron.d
 RUN chown -R cometa:cometa /home/cometa
 RUN chown -R cometa:cometa /usr/local/
 RUN chown -R cometa:cometa /bin/sh
-RUN chown -R cometa:cometa /var/spool/cron/crontabs /var/log/cron /var/run/clamav /run/clamav
+# RUN chown -R cometa:cometa /var/spool/cron/crontabs /var/log/cron /var/run/clamav /run/clamav
 RUN chown -R cometa:cometa /usr/sbin/rsyslogd
 RUN chown -R cometa:cometa /var/spool/rsyslog
 RUN chown -R cometa:cometa /etc/rsyslog.d
@@ -119,5 +119,5 @@ EXPOSE 8000
 CMD ["./start_pod.sh"]
 
 # build image for arm and amd processors 
-# docker buildx build -f Dockerfile_django_build --platform linux/amd64,linux/arm64 -t cometa/django:latest --push .
-# docker build -f Dockerfile_django_build -t cometa/django:0.1 --push .
+# docker buildx build -f Dockerfile --platform linux/amd64,linux/arm64 -t cometa/django:latest --push .
+# docker build -f Dockerfile -t cometa/django:0.1 --push .

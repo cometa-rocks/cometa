@@ -102,6 +102,9 @@ spec:
         - name: cometa-volume
           mountPath: /opt/code/logs
           subPath: ./opt/code/logs
+        - name: cometa-volume
+          mountPath: /var/lib/clamav
+          subPath: ./opt/code/clamav
 
 
 
