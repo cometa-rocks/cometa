@@ -117,4 +117,8 @@ ENTRYPOINT ["/bin/sh", "-c", "/opt/code/behave_django/start_pod.sh"]
 
 # build image for arm and amd processors 
 # docker buildx build  --platform linux/amd64,linux/arm64 -t cometa/behave:latest --push .
+# version used for kubernetes development 
 # docker build -t cometa/behave:0.1 --push .
+
+# version used for kubernetes deployment 
+# docker build -t cometa/behave:1.1 --push .

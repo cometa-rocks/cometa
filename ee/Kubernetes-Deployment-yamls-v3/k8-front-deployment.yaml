@@ -25,7 +25,7 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-front-container
-        image: cometa/front:0.1.2
+        image: cometa/front:latest
         ports:
         - containerPort: 8080
         - containerPort: 8443

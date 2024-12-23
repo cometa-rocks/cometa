@@ -5,7 +5,7 @@ metadata:
   namespace: cometa  # Specify the namespace
   labels:
     app: cometa-behave-pod
-spec:
+spec: 
   replicas: 1
   selector:
     matchLabels:
@@ -15,6 +15,7 @@ spec:
       labels:
         app: cometa-behave-pod
     spec:
+      serviceAccountName: pod-manager
       tolerations:
       - key: "architecture"
         operator: "Equal"
@@ -28,7 +29,7 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-behave-container
-        image: cometa/behave:1.0
+        image: cometa/behave:1.1
         imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
@@ -42,29 +43,22 @@ spec:
             type: RuntimeDefault
         ports:
         - containerPort: 8001
-        command: ["./entry.sh"]
         volumeMounts:
         - name: cometa-volume
-          mountPath: /opt/code/screenshots
+          mountPath: /data/screenshots
           subPath: ./data/cometa/screenshots
         - name: cometa-volume
-          mountPath: /opt/code/videos
-          subPath: ./data/cometa/videos
+          mountPath: /data/department_data
+          subPath: ./data/department_data
         - name: cometa-volume
-          mountPath: /code/behave/pdf
-          subPath: ./data/cometa/pdf
+          mountPath: /data/test/html
+          subPath: ./data/html
         - name: cometa-volume
-          mountPath: /code/behave/downloads
+          mountPath: /data/test/downloads
           subPath: ./data/cometa/downloads
         - name: cometa-volume
-          mountPath: /code/behave/department_data
-          subPath: ./data/department_data
-        - name: cometa-volume
-          mountPath: /opt/code/department_data
-          subPath: ./data/department_data
-        - name: cometa-volume
-          mountPath: /share
-          subPath: ./share
+          mountPath: /data/logs
+          subPath: ./share/code/behave/logs
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -88,8 +82,6 @@ spec:
           value: "cometa-django-service"
         - name: DJANGO_SERVER_PORT
           value: "8000"
-        - name: VIDEO_EXTENSION
-          value: "mkv"
         resources:
           limits:
             cpu: "2"
