@@ -410,11 +410,13 @@ class ServiceManager(service_manager):
                             },
                             "env": [
                                 {"name": "AUTO_RECORD", "value": "true"},
-                                {"name": "VIDEO_PATH", "value": "/video"}
+                                {"name": "VIDEO_PATH", "value": "/video"},
+                                {"name": "SE_VNC_NO_PASSWORD", "value": "1"},
+                                {"name": "SE_ENABLE_TRACING", "value": "false"}
                             ],
                             "ports": [
                                 {"containerPort": 4444, "protocol": "TCP"},
-                                {"containerPort": 7900, "protocol": "TCP"}
+                                {"containerPort": 5900, "protocol": "TCP"}
                             ],
                             "volumeMounts": [
                                 {
@@ -453,7 +455,7 @@ class ServiceManager(service_manager):
                     "selector": pod_selectors,
                     "ports": [
                         {"name": "selenium", "protocol": "TCP", "port": 4444, "targetPort": 4444},
-                        {"name": "vnc", "protocol": "TCP", "port": 7900, "targetPort": 7900}
+                        {"name": "vnc", "protocol": "TCP", "port": 5900, "targetPort": 5900}
                     ],
                     "type": "ClusterIP"
                 }
