@@ -27,12 +27,13 @@ spec:
         image: postgres:latest
         ports:
         - containerPort: 5432
+        # command: ["/bin/bash", "-c", "sleep infinity"]
         env:
           - name: PGDATA
             value: "/var/lib/postgresql/data/pgdata"
           - name: POSTGRES_PASSWORD
             # Note: Please change the password before the deployment
-            value: password
+            value: ***REMOVED***
 
         volumeMounts:
           - name: cometa-db-volume
