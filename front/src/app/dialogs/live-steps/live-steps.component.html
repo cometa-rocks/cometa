@@ -34,7 +34,7 @@
                   *ngIf="showLiveIcon(browser)"
                   >live_tv</mat-icon>
 
-                <div class="father-mobile-container">
+                <div *ngIf="configuration_value_boolean" class="father-mobile-container">
                   <ng-container>
                     <span class="separator-text"></span> noVnc view mobile
                     <mat-label>
