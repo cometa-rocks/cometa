@@ -74,7 +74,8 @@
         cdkDragLockAxis="y"
         [contextMenu]="basicMenu"
         [contextMenuValue]="i"
-        [ngClass]="'step-id-' + i">
+        [class.odd-row]="i % 2 !== 0"
+        [class.even-row]="i % 2 === 0">
         <div class="father-block">
           <div class="first-block">
             <div class="move-row" cdkDragHandle></div>
@@ -112,6 +113,14 @@
               </mat-select>
             </div>
           </div>
+          <div style="display: none;">
+            <!-- <input
+              type="hidden"
+              formControlName="step_action"
+              [value]="step.get('step_action').value"
+            /> -->
+            <input matInput type="hidden" formControlName="step_action" />
+          </div>
           <div class="second-block">
             <div
               class="step_content"
@@ -140,8 +149,8 @@
                 formControlName="step_content"
                 [matAutocomplete]="stepHelp"
                 placeholder="Step Code"
-                (focus)="sendTextareaFocusToParent(true)"
-                (blur)="sendTextareaFocusToParent(false)">
+                (focus)="sendTextareaFocusToParent(true, i)"
+                (blur)="sendTextareaFocusToParent(false, i)">
               </textarea>
               <mat-list
                 class="var_name_autoComplete"
@@ -265,15 +274,23 @@
               <mat-option *ngFor="let action of actions | filterStep: step.value.step_content : false" [value]="action.action_name">
                 {{ action.action_name }}
               </mat-option>
+
             </mat-autocomplete>
           </div>
         </div>
       </div>
-      <div *ngIf="stepVisible[i]" class="stepContainer">
-        <p class="stepByStep">Step-by-step guide</p>
-        <div class="stepDescription">
-          <p class="stepDescriptionPar">Description: <br><span>{{ descriptionText }}</span></p>
-          <p class="stepDescriptionPar">Examples: <br><span> {{ examplesText }}</span></p>
+      <div *ngIf="!showHideStepDocumentation">
+        <div *ngIf="stepVisible[i]" class="stepContainer">
+          <p class="stepByStep">Step documentation</p>
+          <div class="stepDescription">
+            <p class="stepDescriptionPar">
+              Description: <br><span>{{ descriptionText }}</span>
+            </p>
+            <p class="stepDescriptionPar">Examples: <br><span>{{ examplesText }}</span></p>
+          </div>
+          <!-- <div class="closeStepDocumentation">
+            X
+          </div> -->
         </div>
       </div>
     </ng-container>
@@ -338,6 +355,18 @@
     </mat-menu>
   </div>
   <div class="right">
+    <button
+    color="primary"
+    (click)="toggleShowHideDoc()"
+    mat-stroked-button
+    class="remove_all"
+    matTooltip="{{ showHideStepDocumentation ? 'Hide the step documentation' : 'Show the step documentation' }}"
+    matTooltipPosition="above">
+      <span class="button-content">
+        <mat-icon class="icon-left">{{ showHideStepDocumentation ? 'visibility_off' : 'visibility' }}</mat-icon>
+        <span>{{ showHideStepDocumentation ? 'SHOW' : 'HIDE' }}</span>
+      </span>
+    </button>
     <button
       color="primary"
       (click)="removeAll()"

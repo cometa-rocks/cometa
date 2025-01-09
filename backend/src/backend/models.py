@@ -18,6 +18,7 @@ from django.dispatch import receiver
 from django_cryptography.fields import encrypt
 from crontab import CronSlices
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 
 # GLOBAL VARIABLES
 
@@ -380,6 +381,7 @@ def create_feature_file(feature, steps, featureFileName):
                     feature_id = feature.feature_id,
                     step_keyword = step['step_keyword'],
                     step_content = step['step_content'].replace('\\xa0', ' '),
+                    step_action = step['step_action'],
                     enabled = step['enabled'],
                     step_type = step['step_type'],
                     screenshot = step['screenshot'],
@@ -741,6 +743,8 @@ class Step(models.Model):
     id = models.AutoField(primary_key=True)
     feature_id = models.IntegerField(db_index=True)
     step_keyword = models.CharField(max_length=10, choices=step_keywords, default="Given")
+    # step_action = models.TextField(default="")
+    step_action = models.CharField(max_length=255, null=True, blank=True)
     step_content = models.TextField()
     enabled = models.BooleanField(default=True)
     step_type = models.CharField(max_length=255, default="normal", blank=False, null=False)
@@ -755,6 +759,16 @@ class Step(models.Model):
         ordering = ['id']
         verbose_name_plural = "Steps"
 
+
+    def clean(self):
+        super().clean()
+        if self.step_action:
+            if not Action.objects.filter(action_name=self.step_action).exists():
+                raise ValidationError(
+                    {'step_action': f"Action with name '{self.step_action}' does not exist."}
+                )
+                
+                
 class Feature(models.Model):
     feature_id = models.AutoField(primary_key=True)
     feature_name = models.CharField(max_length=255)

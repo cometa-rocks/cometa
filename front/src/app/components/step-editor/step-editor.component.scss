@@ -136,11 +136,11 @@
       opacity: 0.9;
     }
   }
-  &:nth-child(2n + 1) {
-    background-color: #f3f7fc;
-  }
-  &:nth-child(2n + 2) {
+  &.odd-row {
     background-color: white;
+  }
+  &.even-row {
+    background-color: #f3f7fc;
   }
   .index {
     @include for-tablet-portrait-up {
@@ -352,13 +352,13 @@
   font-weight: bold;
   margin-top: 10px;
   margin-bottom: 10px;
-
+  color: #1565c0;
 }
 
 .stepByStep {
   align-self: flex-start;
   background: white;
-  width: 118px;
+  width: 130px;
   padding-left: 10px;
   margin-left: 19px;
   margin-top: -25px;
@@ -376,8 +376,7 @@
 
 .stepDescription {
   align-self: flex-start;
-  margin-left: 393px;
-  width: 600px;
+  margin-left: 385px;
   text-align: left;
   font-weight: bold;
   letter-spacing: 0.7px;
@@ -386,22 +385,21 @@
     width: 100%;
     span {
       color: rgba(0, 0, 0, 0.5);
-      white-space: pre-wrap;
-      word-wrap: break-word;
     }
   }
 }
 
-::ng-deep .mat-autocomplete-panel {
-  position: absolute !important;
-  transform: translateY(-119%) !important;
-  z-index: 1000;
+.cdk-overlay-container {
+  position: relative;
 }
 
-// ::ng-deep .cdk-overlay-pane .mat-autocomplete-panel{
-//   height: 230px;
-//   width: 295px;
-// }
+::ng-deep .mat-autocomplete-panel {
+  position: absolute !important;
+  bottom: 100% !important;
+  top: auto !important; 
+  transform: translateY(-40px);
+  z-index: 1000;
+}
 
 .autocomplete-container {
   display: flex;
@@ -458,6 +456,9 @@ mat-autocomplete {
   }
   .left,
   .right {
+    display: inline-flex; 
+    justify-content: center; 
+    align-items: center; 
     button:not(:first-child) {
       margin-left: 20px;
     }
@@ -472,4 +473,27 @@ mat-autocomplete {
   border-radius: 3px;
   padding: 5px;
   outline: 0;
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  width: 80px;
+  justify-content: center;
+}
+
+.icon-left {
+  font-size: 16px;
+  margin-right: 8px; 
+  display: inline-flex; 
+  justify-content: center; 
+  align-items: center; 
+}
+
+.closeStepDocumentation {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  height: 30px !important;
+  width: 30px !important;
+  background-color: #ef5350;
 }

@@ -7,7 +7,8 @@ import {
   HostListener,
   OnDestroy,
   ChangeDetectorRef,
-  Renderer2
+  Renderer2,
+  ɵɵtrustConstantResourceUrl
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
@@ -745,8 +746,19 @@ export class EditFeature implements OnInit, OnDestroy {
 
   @ViewChild(BrowserSelectionComponent, { static: false })
   _browserSelection: BrowserSelectionComponent;
+  configuration_value_boolean: boolean = false;
 
   ngOnInit() {
+
+    this._api.getCometaConfigurations().subscribe(res => {
+
+      const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
+      
+      if (config_feature_mobile) {
+        this.configuration_value_boolean = config_feature_mobile.configuration_value === 'True';
+      }
+    })
+
     // Connection with the service who is connected with Step-editor
     this.inputFocusSubscription = this.inputFocusService.inputFocus$.subscribe(isFocused => {
       this.inputFocus = isFocused;

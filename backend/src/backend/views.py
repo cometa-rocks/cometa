@@ -2542,7 +2542,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
         }
         return Response(data)
     
-    # This method is not use when creating feature
+    # This method is not used when creating feature
     @require_permissions("create_feature")
     def create(self, request, *args, **kwargs):
         """
