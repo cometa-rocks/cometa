@@ -383,6 +383,8 @@
   .stepDescriptionPar {
     color: #1565c0;
     width: 100%;
+    word-wrap: break-word;
+    word-break: break-word;
     span {
       color: rgba(0, 0, 0, 0.5);
     }
@@ -396,7 +398,7 @@
 ::ng-deep .mat-autocomplete-panel {
   position: absolute !important;
   bottom: 100% !important;
-  top: auto !important; 
+  top: auto !important;
   transform: translateY(-40px);
   z-index: 1000;
 }
@@ -456,9 +458,9 @@ mat-autocomplete {
   }
   .left,
   .right {
-    display: inline-flex; 
-    justify-content: center; 
-    align-items: center; 
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
     button:not(:first-child) {
       margin-left: 20px;
     }
@@ -484,16 +486,87 @@ mat-autocomplete {
 
 .icon-left {
   font-size: 16px;
-  margin-right: 8px; 
-  display: inline-flex; 
-  justify-content: center; 
-  align-items: center; 
+  margin-right: 8px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .closeStepDocumentation {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   border-radius: 50%;
   height: 30px !important;
   width: 30px !important;
-  background-color: #ef5350;
+  background-color: white;
+  align-self: self-end;
+  margin-top: -25px;
+  margin-right: 15px;
+}
+
+.containerPin {
+  display: flex;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+
+  .pinIcon,
+  .unpinIcon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 15px;
+    height: 20px;
+    width: 20px;
+    transition: opacity 0.3s ease, height 0.3s ease, width 0.3s ease;
+  }
+
+  .pinIcon {
+    filter: invert(70%) sepia(93%) saturate(814%) hue-rotate(1249deg) brightness(100%) contrast(102%);
+    opacity: 1;
+  }
+
+  .unpinIcon {
+    filter: invert(70%) sepia(93%) saturate(814%) hue-rotate(1249deg) brightness(100%) contrast(102%);
+    opacity: 0;
+  }
+}
+
+.containerPin:hover .pinIcon {
+  opacity: 0;
+  height: 0;
+  width: 0;
+  cursor: pointer;
+}
+
+.containerPin:hover .unpinIcon {
+  filter: invert(70%) sepia(90%) saturate(750%) hue-rotate(1050deg) brightness(100%) contrast(102%);
+  opacity: 1;
+  cursor: pointer;
+}
+
+.copyClipboardIcon {
+  font-size: 15px;
+  margin-left: 10px;
+  cursor: pointer;
+  margin-bottom: -10px;
+  margin-left: -25px;
+  &.active {
+    animation: changeColor 3s forwards;
+  }
+}
+
+@keyframes changeColor {
+  0% {
+    color: $blue;
+  }
+  100% {
+    color: inherit;
+  }
+}
+
+.copyClipboardIcon:hover {
+
 }

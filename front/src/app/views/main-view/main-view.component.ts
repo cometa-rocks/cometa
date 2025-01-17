@@ -255,16 +255,16 @@ export class MainViewComponent implements OnInit {
       ],
     },
   ];
-  
+
   results = [];
   total = 0;
   isLoading = true;
   showPagination = true;
   latestFeatureResultId: number = 0;
   archived: boolean = false;
-  buttons: any[] = []; 
+  buttons: any[] = [];
   selectMobile: { [key: number]: any } = {};
-  
+
   query = {
     page: 0,
     size: 10,
@@ -345,12 +345,13 @@ export class MainViewComponent implements OnInit {
     const selectedMobile = event.value;
     // this.logger.msg("1", "CO-Sel-Event-value", "live-steps:", event.value);
     // this.logger.msg("1", "CO-Sel-Row", "live-steps:", row);
+    // console.log('Row ID:', row.feature_result_id, 'Selected Mobile:', selectedMobile);
 
     if (selectedMobile && selectedMobile.video_recording) {
       this.openVideo(row, selectedMobile.video_recording);
     }
   }
-  
+
   updateData(e: PageEvent) {
     this.query.page = e.pageIndex;
     this.query.size = e.pageSize;
@@ -396,7 +397,7 @@ export class MainViewComponent implements OnInit {
           });
 
           dialogRef.afterClosed().subscribe(() => {
-            
+
             const targetElement = this.elementRef.nativeElement.ownerDocument.querySelector('.replay-button');
             if (targetElement) {
               (targetElement as HTMLElement).blur();
@@ -407,7 +408,7 @@ export class MainViewComponent implements OnInit {
         error: err => this._snack.open('An error ocurred', 'OK'),
       });
   }
-  
+
 
   /**
    * Clears runs depending on the type of clearing passed
@@ -481,12 +482,12 @@ export class MainViewComponent implements OnInit {
       });
       this.extractButtons();
     }
-    
+
   // Extract buttons from mtxgridCoumns
   extractButtons() {
     this.buttons = this.columns
     .filter(col => col.buttons)
-    .map(col => col.buttons)   
+    .map(col => col.buttons)
     .reduce((acc, val) => acc.concat(val), []);
   }
 
