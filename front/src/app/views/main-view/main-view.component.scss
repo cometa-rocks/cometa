@@ -527,12 +527,14 @@
   font-weight: bold;
 }
 
-::ng-deep .mtx-grid .mat-mdc-paginator-container {
-  display: flex;
-  justify-content: center;
-  position: fixed;
-  bottom: 0;
-  box-shadow: 0 2px 3px 1px rgba(0, 0, 0, 0.3),
-  0 10px 2px 0 rgba(0, 0, 0, 0.2),
-  0 2px 6px 0 rgba(0, 0, 0, 10.15);
-}
+// ::ng-deep .mtx-grid .mat-mdc-paginator-container {
+//   display: flex;
+//   justify-content: center;
+//   position: fixed;
+//   bottom: 0;
+//   box-shadow: 0 2px 3px 1px rgba(0, 0, 0, 0.3),
+//   0 10px 2px 0 rgba(0, 0, 0, 0.2),
+//   0 2px 6px 0 rgba(0, 0, 0, 10.15);
+// }
+
+

@@ -154,9 +154,20 @@ export class MobileListComponent implements OnInit {
   destroy$ = new Subject<void>();
   departments: Department[] = [];
   apkFiles: any[] = [];
-
+  configValueBoolean: boolean = false;
+  isLoading = true;
 
   ngOnInit(): void {
+
+    this._api.getCometaConfigurations().subscribe(res => {
+
+      const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
+      // console.log("config_feature_mobile: ", !!JSON.parse(config_feature_mobile.configuration_value.toLowerCase()));
+      if (config_feature_mobile) {
+        this.configValueBoolean = !!JSON.parse(config_feature_mobile.configuration_value.toLowerCase());
+      }
+      this.isLoading = false;
+    })
 
     // this.logger.msg("1", "CO-selectedDepartment:", "mobile-list", this.selectedDepartment);
 
@@ -167,11 +178,11 @@ export class MobileListComponent implements OnInit {
         container.isTerminating = true;
       }
     });
-   
+
     // Call the API service on component initialization
     this._api.getMobileList().subscribe(
       (mobiles: IMobile[]) => {
-        this.logger.msg("1", "CO-depID:", "mobiles", mobiles);
+        // this.logger.msg("1", "CO-depID:", "mobiles", mobiles);
         // Assign the received data to the `mobile` variable
         this.mobiles = mobiles;
 
@@ -182,11 +193,11 @@ export class MobileListComponent implements OnInit {
         this._store.select(UserState.RetrieveUserDepartments).pipe(
           map(departments => JSON.parse(JSON.stringify(departments)))
         ).subscribe(departments => {
-          console.log('Departamentos cargados:', departments); 
+          // console.log('Departamentos cargados:', departments);
           this.departments = departments;
           this.departments.forEach(department => {
             const depData = JSON.parse(JSON.stringify(department));
-            console.log('Archivos APK para el departamento:', depData.files);
+            // console.log('Archivos APK para el departamento:', depData.files);
             this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
           })
         });
@@ -213,7 +224,7 @@ export class MobileListComponent implements OnInit {
         // Call the API service on component initialization
         this._api.getContainersList().subscribe(
           (containers: Container[]) => {
-            this.logger.msg("1", "CO-containerS", "mobile-list" , containers);
+            // this.logger.msg("1", "CO-containerS", "mobile-list" , containers);
 
             for (let container of containers) {
 
@@ -225,20 +236,20 @@ export class MobileListComponent implements OnInit {
               if (container.shared && this.user.user_id != container.created_by) {
                 container.image = this.mobiles.find( m => m.mobile_id === container.image);
 
-                console.log("Dialogo: ", this.isDialog)
+                // console.log("Dialogo: ", this.isDialog)
                 if(this.isDialog){
                   container.apk_file = this.data.uploadedAPKsList.find(
                     m => m.mobile_id === container.apk_file
                   );
                 }
                 else{
-                  console.log("Im inside")
+                  // console.log("Im inside")
                   this.departments.forEach(department => {
                     // this.logger.msg("1", "CO-departmentid:", "mobile-list", department.department_id);
                     // this.logger.msg("1", "CO-containerid:", "mobile-list", container.id);
                     const depData = JSON.parse(JSON.stringify(department));
                     this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
-                    this.logger.msg("1", "CO-Department:", "mobile-list", department)
+                    // this.logger.msg("1", "CO-Department:", "mobile-list", department)
                   })
                 }
 
@@ -277,7 +288,7 @@ export class MobileListComponent implements OnInit {
   showSpinnerFor(containerId: number): void {
     const container = this.runningMobiles.find(c => c.id === containerId);
     if (container) {
-      container.isTerminating = true; 
+      container.isTerminating = true;
     }
   }
 
@@ -402,15 +413,15 @@ export class MobileListComponent implements OnInit {
       .subscribe((exit: boolean) => {
         if (exit) {
           container.isTerminating = true;
-  
+
           // Guardar el contenedor en localStorage
           const terminatingContainerIds = JSON.parse(localStorage.getItem('terminatingContainers') || '[]');
           if (!terminatingContainerIds.includes(container.id)) {
             terminatingContainerIds.push(container.id);
-            console.log("Aqui terminating", terminatingContainerIds)
+            // console.log("Aqui terminating", terminatingContainerIds)
             localStorage.setItem('terminatingContainers', JSON.stringify(terminatingContainerIds));
           }
-  
+
           this._cdr.detectChanges();
           this._api.terminateMobile(container.id).subscribe(
             (response: any) => {
@@ -419,14 +430,14 @@ export class MobileListComponent implements OnInit {
                 this.runningMobiles = this.runningMobiles.filter(
                   runningContainer => runningContainer.id !== container.id
                 );
-  
+
                 const mobile = this.mobiles.find(m => m.mobile_id === container.image);
                 if (mobile) {
                   mobile.selectedAPKFileID = null;
                 }
-  
+
                 this.selectedApps[container.service_id] = null;
-  
+
                 // Eliminar del localStorage si se detuvo correctamente
                 const updatedContainerIds = terminatingContainerIds.filter(id => id !== container.id);
                 localStorage.setItem('terminatingContainers', JSON.stringify(updatedContainerIds));
@@ -441,7 +452,7 @@ export class MobileListComponent implements OnInit {
             error => {
               container.isTerminating = false;
               console.error('An error occurred while stopping the mobile', error);
-  
+
               // Eliminar del localStorage si hubo un error
               const updatedContainerIds = terminatingContainerIds.filter(id => id !== container.id);
               localStorage.setItem('terminatingContainers', JSON.stringify(updatedContainerIds));
@@ -581,7 +592,7 @@ export class MobileListComponent implements OnInit {
 
     this.apkFiles = [];
     this.departments.forEach(department => {
-      this.logger.msg("1", "CO-selectedDepartment:", "department -->", department);
+      // this.logger.msg("1", "CO-selectedDepartment:", "department -->", department);
       if(department.department_id == this.selectedDepartment.id) {
         const depData = JSON.parse(JSON.stringify(department));
         this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));

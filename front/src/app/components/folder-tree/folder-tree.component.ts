@@ -51,22 +51,20 @@ export class FolderTreeComponent implements OnInit {
   // Global variables
   folders$: Observable<Folder[]>;
 
-  configuration_value_boolean: boolean = false;
-   
+  configValueBoolean: boolean = false;
+
   ngOnInit() {
+
     this._api.getCometaConfigurations().subscribe(res => {
-  
+
       const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
-  
+      // console.log("config_feature_mobile: ", typeof(config_feature_mobile.configuration_value))
       if (config_feature_mobile) {
-        this.configuration_value_boolean = config_feature_mobile.configuration_value === 'True';
-      }
-      else{
-        this.snack.open('COMETA_FEATURE_MOBILE_TEST_ENABLED configuration not found.', 'Close', { duration: 3000 });
+        this.configValueBoolean = !!JSON.parse(config_feature_mobile.configuration_value.toLowerCase());
       }
     })
-    
-    this.log.msg('1', 'Inicializing component...', 'folder-tree');
+
+    // this.log.msg('1', 'Inicializing component...', 'folder-tree');
 
     this.folders$ = this._store.select<Folder[]>(
       CustomSelectors.GetDepartmentFolders()
@@ -81,21 +79,21 @@ export class FolderTreeComponent implements OnInit {
     const last_selected_folder = JSON.parse(
       localStorage.getItem('co_last_selected_folder_route')
     );
-    this.log.msg(
-      '1',
-      'Getting last selected folder route...',
-      'folder-tree',
-      last_selected_folder
-    );
+    // this.log.msg(
+    //   '1',
+    //   'Getting last selected folder route...',
+    //   'folder-tree',
+    //   last_selected_folder
+    // );
 
     // dispach recieved route to features state manager to adapt the path of the currently selected folder accordingly
     // this will load the same folder path that user was working on, before reloading browser window
-    this.log.msg(
-      '1',
-      'Dispatching last selected folder route to store...',
-      'folder-tree',
-      last_selected_folder
-    );
+    // this.log.msg(
+    //   '1',
+    //   'Dispatching last selected folder route to store...',
+    //   'folder-tree',
+    //   last_selected_folder
+    // );
     this._store.dispatch(new Features.SetFolderRoute(last_selected_folder));
   }
 

@@ -15,7 +15,7 @@
   </ng-template>
   <mat-dialog-content>
     <mat-accordion multi>
-      <mat-expansion-panel 
+      <mat-expansion-panel
       [expanded]="!config$.toggles.hideInformation"
       >
         <mat-expansion-panel-header>
@@ -76,8 +76,8 @@
               <input
                 matInput
                 spellcheck="false"
-                formControlName="feature_name" 
-                (focus)="onInputFocus()" 
+                formControlName="feature_name"
+                (focus)="onInputFocus()"
                 (blur)="onInputBlur()"
                 />
             </mat-form-field>
@@ -88,7 +88,7 @@
                 formControlName="description"
                 matInput
                 rows="1"
-                (focus)="onInputFocus()" 
+                (focus)="onInputFocus()"
                 (blur)="onInputBlur()"
                 ></textarea>
             </mat-form-field>
@@ -109,19 +109,19 @@
               </mat-checkbox>
               <div class="hover-box">(D)</div>
             </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
               <mat-checkbox color="primary" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">
                 Send email on finish
               </mat-checkbox>
               <div class="hover-box">(M)</div>
             </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
               <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="'edit_feature.record_video' | translate" matTooltipPosition="above">
                 Record video
               </mat-checkbox>
               <div class="hover-box">(R)</div>
             </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">   
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
               <mat-checkbox
                 color="primary"
                 *ngIf="!featureForm.value.depends_on_others"
@@ -131,7 +131,7 @@
               </mat-checkbox>
               <div class="hover-box">(N)</div>
             </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()"> 
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
               <mat-checkbox
                 color="primary"
                 *ngIf="!featureForm.value.depends_on_others"
@@ -141,7 +141,7 @@
               </mat-checkbox>
               <div class="hover-box">(G)</div>
             </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">  
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
               <ng-container *ngLet="((departmentSettings$ | async)?.continue_on_failure || user.settings?.continue_on_failure) as disabled">
                 <mat-checkbox [matTooltip]="'continue_on_failure.tooltip' | translate" [matTooltipDisabled]="!disabled" color="primary" [disabled]="disabled" formControlName="continue_on_failure">
                   Continue on failure
@@ -149,17 +149,17 @@
                 <div class="hover-box">(F)</div>
               </ng-container>
             </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()"> 
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
               <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
               <div class="hover-box">(H)</div>
             </div>
             <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
-              <div class="checkbox-container move-right"> 
+              <div class="checkbox-container move-right">
                 <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
-                  <button color="primary" 
-                  [disabled]="disableVariables" 
-                  (click)="editVariables()" 
-                  mat-stroked-button 
+                  <button color="primary"
+                  [disabled]="disableVariables"
+                  (click)="editVariables()"
+                  mat-stroked-button
                   [matTooltip]="'edit_feature.edit_variable' | translate" matTooltipPosition="above">
                     Edit Variables
                   </button>
@@ -168,15 +168,54 @@
               </div>
             </ng-container>
             <ng-container>
-              <div *ngIf="configuration_value_boolean" class="checkbox-container move-right"> 
+              <div *ngIf="configValueBoolean" class="checkbox-container move-right">
                 <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
-                  <button color="primary" 
-                  [disabled]="disableVariables" 
-                  (click)="openStartEmulatorScreen()" 
-                  mat-stroked-button 
-                  [matTooltip]="'mobile_list.emulator_mobile' | translate" matTooltipPosition="above">
-                    Start Mobile
-                  </button>
+                  <div class="button-container">
+                    <button
+                      color="primary"
+                      [disabled]="disableVariables"
+                      (click)="openStartEmulatorScreen()"
+                      mat-stroked-button
+                      [matTooltip]="'mobile_list.emulator_mobile' | translate"
+                      matTooltipPosition="above">
+                      Start Mobile
+                    </button>
+                    <mat-icon
+                      class="memberShip"
+                      [matTooltip]="'To use this functionality, you need to purchase a Cometa license.'">
+                      card_membership
+                    </mat-icon>
+                  </div>
+                  <!-- <mat-icon>
+                    add_card
+                  </mat-icon>
+                  <mat-icon>
+                    attach_money
+                  </mat-icon>
+                  <mat-icon>
+                    shopping_bag
+                  </mat-icon>
+                  <mat-icon>
+                    paid
+                  </mat-icon>
+                  <mat-icon>
+                    shopping_cart
+                  </mat-icon>
+                  <mat-icon>
+                    blur
+                  </mat-icon>
+                  <mat-icon>
+                    trail
+                  </mat-icon>
+                  <mat-icon>
+                    license
+                  </mat-icon>
+                  <mat-icon>
+                    bookmark
+                  </mat-icon>
+                  <mat-icon>
+                    person
+                  </mat-icon> -->
                 </span>
                 <div class="hover-box-Vshortcut">(S)</div>
               </div>
@@ -215,13 +254,13 @@
                 [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
                 [matChipInputAddOnBlur]="true"
                 (matChipInputTokenEnd)="addAddress($event, 'email_address')"
-                (focus)="onInputFocus()" 
+                (focus)="onInputFocus()"
                 (blur)="onInputBlur()" />
             </mat-chip-list>
           </mat-form-field>
           <mat-form-field appearance="fill" class="full-width">
             <mat-label
-              >CC (Carbon Copy): Enter email addresses, use tab to separate emails. 
+              >CC (Carbon Copy): Enter email addresses, use tab to separate emails.
             </mat-label>
             <mat-chip-list #ccChipList>
               <mat-chip
@@ -237,7 +276,7 @@
               [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
               [matChipInputAddOnBlur]="true"
               (matChipInputTokenEnd)="addAddress($event, 'email_cc_address')"
-              (focus)="onInputFocus()" 
+              (focus)="onInputFocus()"
               (blur)="onInputBlur()"
               />
             </mat-chip-list>
@@ -254,13 +293,13 @@
                 >{{ addr }}
                 <mat-icon matChipRemove>cancel</mat-icon>
               </mat-chip>
-            <input 
+            <input
               formControlName="address_to_add"
               [matChipInputFor]="bccChipList"
               [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
               [matChipInputAddOnBlur]="true"
               (matChipInputTokenEnd)="addAddress($event, 'email_bcc_address')"
-              (focus)="onInputFocus()" 
+              (focus)="onInputFocus()"
               (blur)="onInputBlur()"
               />
             </mat-chip-list>
@@ -273,7 +312,7 @@
               matInput
               spellcheck="false"
               formControlName="email_subject"
-              (focus)="onInputFocus()" 
+              (focus)="onInputFocus()"
               (blur)="onInputBlur()"
               />
           </mat-form-field>
@@ -286,20 +325,20 @@
               matInput
               spellcheck="false"
               formControlName="email_body"
-              (focus)="onInputFocus()" 
+              (focus)="onInputFocus()"
               (blur)="onInputBlur()"
               ></textarea>
           </mat-form-field>
           <mat-form-field appearance="fill" class="" *ngIf="featureForm.value.check_maximum_notification_on_error" >
             <mat-label
-              > Maximum notifications on errors 
+              > Maximum notifications on errors
             </mat-label>
             <input
               type="number"
               matInput
               spellcheck="false"
               formControlName="maximum_notification_on_error"
-              (focus)="onInputFocus()" 
+              (focus)="onInputFocus()"
               (blur)="onInputBlur()"
               />
           </mat-form-field>
@@ -313,7 +352,7 @@
               >On error</mat-radio-button
             >
           </mat-radio-group>
-          
+
           <mat-checkbox
             formControlName="check_maximum_notification_on_error"
             aria-label="Screenshot"
@@ -328,7 +367,7 @@
             [matTooltip]="'edit_feature.default_template' | translate" matTooltipPosition="above"
             class="screenshot checkbox-blue default_template"
             > Do not use default template </mat-checkbox>
-          
+
           <mat-checkbox
             formControlName="attach_pdf_report_to_email"
             aria-label="Screenshot"
@@ -478,7 +517,7 @@
                     }}
                   </td>
                 </ng-container>
-                
+
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr
                   mat-row
@@ -551,13 +590,13 @@
             [variables]="variables"
             [name]="featureForm.get('feature_name').value">
           </cometa-step-editor> -->
-          <cometa-step-editor 
-            (textareaFocusToParent)="receiveDataFromChild($event)" 
-            *ngIf="feature | async as feat" 
-            [mode]="data.mode" 
-            [department]="department" 
-            [feature]="feat" 
-            [variables]="variables" 
+          <cometa-step-editor
+            (textareaFocusToParent)="receiveDataFromChild($event)"
+            *ngIf="feature | async as feat"
+            [mode]="data.mode"
+            [department]="department"
+            [feature]="feat"
+            [variables]="variables"
             [name]="featureForm.get('feature_name').value">
           </cometa-step-editor>
         </ng-template>
