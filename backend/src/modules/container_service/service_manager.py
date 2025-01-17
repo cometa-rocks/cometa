@@ -78,7 +78,7 @@ class DockerServiceManager:
     # This method will create the container base on the environment
     def stop_service(self, service_name_or_id, *args, **kwargs):
         logger.info(
-            f"Deleting service with container_name_or_id : {service_name_or_id}"
+            f"Stopping service with container_name_or_id : {service_name_or_id}"
         )
         try:
             # Find the container

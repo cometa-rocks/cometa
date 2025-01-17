@@ -149,8 +149,7 @@
                 formControlName="step_content"
                 [matAutocomplete]="stepHelp"
                 placeholder="Step Code"
-                (focus)="sendTextareaFocusToParent(true, i)"
-                (blur)="sendTextareaFocusToParent(false, i)">
+                (focus)="sendTextareaFocusToParent(true, i)">
               </textarea>
               <mat-list
                 class="var_name_autoComplete"
@@ -266,7 +265,7 @@
               #stepHelp="matAutocomplete"
               (opened)="onAutocompleteOpened(i)"
               (optionSelected)="selectFirstVariable($event, i)"
-              (optionActivated)="onOptionActivated($event)"
+              (optionActivated)="onOptionActivated($event, i)"
               (closed)="closeAutocomplete(i)"
               [panelClass]="'autocomplete-above'"
               [ngClass]="{ 'is-transparent': isTransparent }">
@@ -282,15 +281,30 @@
       <div *ngIf="!showHideStepDocumentation">
         <div *ngIf="stepVisible[i]" class="stepContainer">
           <p class="stepByStep">Step documentation</p>
+          <div class="closeStepDocumentation">
+            <div class="containerPin" (click)="sendTextareaFocusToParent(false, i)">
+              <img src="assets/icons/push_pin.svg" alt="Pin Icon" class="pinIcon"/>
+              <img src="assets/icons/keep_off.svg" alt="Unpin Icon" class="unpinIcon" matTooltip="You can unpin the step documentation"  matTooltipPosition="above"/>
+            </div>
+          </div>
           <div class="stepDescription">
             <p class="stepDescriptionPar">
-              Description: <br><span>{{ descriptionText }}</span>
+              Description: <br><span>{{ stepsDocumentation[i]?.description }}</span>
             </p>
-            <p class="stepDescriptionPar">Examples: <br><span>{{ examplesText }}</span></p>
+            <div class="stepDescriptionPar">
+              <div>
+                Examples: <br>
+                <mat-icon
+                  (click)="importClipboardStepDoc(stepsDocumentation[i]?.examples)"
+                  [ngClass]="{ active: isIconActive[i] }"
+                  class="copyClipboardIcon"
+                  [color]="isIconActive[i] ? 'primary' : ''">
+                  content_copy
+                </mat-icon>
+                <span>{{ stepsDocumentation[i]?.examples }}</span>
+              </div>
+            </div>
           </div>
-          <!-- <div class="closeStepDocumentation">
-            X
-          </div> -->
         </div>
       </div>
     </ng-container>

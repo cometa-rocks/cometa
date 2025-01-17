@@ -253,7 +253,7 @@ export class StepViewComponent implements OnInit {
           `feature_results/${featureId}/step_results/${resultId}/`
       )
     );
-    
+
     this.scrollToError();
   }
 
@@ -315,7 +315,7 @@ export class StepViewComponent implements OnInit {
           }
         }
       });
-      console.log('Error Rows:', this.errorRows);
+      // console.log('Error Rows:', this.errorRows);
     }, 500);
   }
 

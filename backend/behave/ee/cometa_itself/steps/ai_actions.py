@@ -2,9 +2,7 @@ import base64
 import time
 import logging
 import json
-import sys
-import sys, requests, re, json
-
+import sys, requests, re, json, traceback, html
 import jq
 
 from behave import step, use_step_matcher
@@ -308,24 +306,15 @@ def get_information_from_current_screen_based_on_prompt(context, prompt, variabl
     logger.debug("Will analyze data")
     send_step_details(context, "Analyzing screen")
     is_success, response = context.ai.analyze_image(context, data)
-    logger.debug(response)
-
     if not is_success:
         raise CustomError(
             f'The AI server could not complete the analysis and failed with the error: "{response}"'
         )
-    logger.debug(response)
-    
-    # json_response = convert_ai_answer_to_json()
-    # logger.debug(json_response)
-    # output = response[1]
 
     if option=='Output JSON':
         response = convert_ai_answer_to_json(response)
         logger.debug(response)
-
     addTestRuntimeVariable(context, variable, response)
-
 
 use_step_matcher("parse")
 
@@ -344,6 +333,12 @@ def show_variable_value(context, variable, seconds):
     variable_type = type(variable_value).__name__  # You can replace this with your own logic
     if variable_type!='str':
         variable_value = json.dumps(variable_value)  # Convert the value to JSON format
+      
+    # Escape special characters in the variable value for JavaScript
+    variable_name_safe = html.escape(variable)
+    variable_value_safe = html.escape(variable_value.replace("`","\`"))  # JSON string-escapes special characters
+    variable_type_safe = html.escape(variable_type)
+    
     try:
         if context.browser: 
         # Use old-style string formatting (%s) with escaped % symbols for the JavaScript code
@@ -371,13 +366,11 @@ def show_variable_value(context, variable, seconds):
                 contentDiv.style.width = '100%%';  // Make sure the inner div takes up the full width of its container
 
                 // Populate the content div with JSON data (in a simple format)
-                const jsonContent = `
-                    <h2>Cometa Runtime Variable</h2>
-                    <p><b>Variable Name:</b> %s</p>
-                    <p><b>Variable Value:</b> %s</p>
-                    <p><b>Variable Type:</b> %s</p>
+                const jsonContent = `<h2>Cometa Runtime Variable</h2>
+                    <p><b>Variable Name:</b> %s </p>
+                    <p><b>Variable Value:</b> %s </p>
+                    <p><b>Variable Type:</b> %s </p>
                 `;
-
                 contentDiv.innerHTML = jsonContent;
 
                 // Add the content div to the container
@@ -394,11 +387,11 @@ def show_variable_value(context, variable, seconds):
 
             // Invoke the function
             invokeDiv();
-        """ % (variable, variable_value, variable_type, seconds)
-
-            context.browser.execute_script(script)
+        """ % (variable_name_safe, variable_value_safe, variable_type_safe, seconds)
+        context.browser.execute_script(script)
     except Exception as e:
-        logger.exception("Exception while showing value in browser", e)
+        logger.error("Exception while showing value in browser", e)
+        traceback.print_exc()
         
         
     time.sleep(int(seconds))
