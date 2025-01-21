@@ -295,7 +295,7 @@ export class MainViewComponent implements OnInit {
   featureId$: Observable<number>;
 
   openContent(feature_result: FeatureResult) {
-    this.logger.msg("1", "CO-featResult", "main-view", feature_result);
+    // this.logger.msg("1", "CO-featResult", "main-view", feature_result);
 
     this._router.navigate([
       this._route.snapshot.paramMap.get('app'),
@@ -343,9 +343,8 @@ export class MainViewComponent implements OnInit {
   onMobileSelectionChange(event: any, row: FeatureResult): void {
     // Event it's the selected mobile
     const selectedMobile = event.value;
-    this.logger.msg("1", "CO-Sel-Event-value", "live-steps:", event.value);
-    this.logger.msg("1", "CO-Sel-Row", "live-steps:", row);
-
+    // this.logger.msg("1", "CO-Sel-Event-value", "live-steps:", event.value);
+    // this.logger.msg("1", "CO-Sel-Row", "live-steps:", row);
 
     if (selectedMobile && selectedMobile.video_recording) {
       this.openVideo(row, selectedMobile.video_recording);

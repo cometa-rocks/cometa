@@ -212,8 +212,8 @@ interface Feature {
   send_mail: boolean;
   send_mail_on_error: boolean;
   email_address: string[];
-  email_cc_address?: string[]; 
-  email_bcc_address?: string[]; 
+  email_cc_address?: string[];
+  email_bcc_address?: string[];
   email_subject: string;
   email_body: string;
   folder_id?: number;
@@ -340,8 +340,8 @@ interface SendFeature {
   depends_on_other: boolean;
   send_mail: boolean;
   email_address: string[];
-  email_cc_address?: string[]; 
-  email_bcc_address?: string[]; 
+  email_cc_address?: string[];
+  email_bcc_address?: string[];
   email_subject: string;
   email_body: string;
   last_edited: number;
@@ -367,6 +367,7 @@ interface FeatureStep {
   step_type?: StepType;
   continue_on_failure?: boolean;
   timeout?: number;
+  step_action: Action["action_name"]; // Value should be Action.action_name
 }
 
 declare type StepType = 'normal' | 'subfeature' | 'substep' | 'loop';
@@ -500,8 +501,8 @@ interface SendSaveFeature {
   browsers: BrowserstackBrowser[];
   send_mail: boolean;
   email_address: string[];
-  email_cc_address?: string[]; 
-  email_bcc_address?: string[]; 
+  email_cc_address?: string[];
+  email_bcc_address?: string[];
   email_subject: string;
   email_body: string;
   send_mail_on_error: boolean;
@@ -1097,7 +1098,7 @@ interface MobileJSON {
 
 interface IMobile {
   mobile_id: number;
-  mobile_image_name: string; 
+  mobile_image_name: string;
   mobile_json: MobileJSON;
   capabilities: any;
   // These 2 fields below are related only to the frontend, does not have be stored in the backend
@@ -1115,8 +1116,8 @@ interface Container {
   information?: string;
   user?: OIDCUserInfo
   created_on: string,
-  created_by?: number; 
-  created_by_name?: string; 
+  created_by?: number;
+  created_by_name?: string;
   apk_file?: number | File;
   shared: boolean;
   hostname:string;
