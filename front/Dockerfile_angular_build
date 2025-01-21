@@ -33,6 +33,12 @@ RUN apt-get install -y libapache2-mod-security2
 
 COPY start_server.sh start_server.sh
 
+RUN touch /etc/ssl/certs/apache-self-signed.crt
+RUN touch /etc/ssl/certs/apache-self-signed.key
+
+RUN chown -R cometa:cometa /etc/ssl/certs/
+RUN chmod -R 755 /etc/ssl/certs/
+
 RUN chown -R www-data:www-data /usr/local/apache2/logs
 RUN chmod -R 755 /usr/local/apache2/logs
 
