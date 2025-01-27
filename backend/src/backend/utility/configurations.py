@@ -74,7 +74,10 @@ default_cometa_configurations = {
     "COMETA_KUBERNETES_NAMESPACE": "cometa", 
     "COMETA_KUBERNETES_DATA_PVC": "cometa-data-volume-claim", 
     "COMETA_FEATURE_AI_ENABLED": False, 
-    "COMETA_FEATURE_MOBILE_TEST_ENABLED": False, 
+    "COMETA_FEATURE_MOBILE_TEST_ENABLED": False,
+    # Add host hostAliases to test environments 
+    # For https://redmine.amvara.de/projects/ibis/wiki/Add_DNS_mapping_to_hosts_(etchosts)_file_using_Cometa_configuration
+    "COMETA_TEST_ENV_HOST_FILE_MAPPINGS": "[]"
 }
 
 

@@ -27,6 +27,7 @@ spec:
         runAsGroup: 472
         runAsNonRoot: true
         runAsUser: 472
+      
       containers:
       - name: cometa-behave-container
         image: cometa/behave:1.1
@@ -89,6 +90,10 @@ spec:
           requests:
             cpu: "1"
             memory: "1Gi"
+      
+
+        hostAliases:
+        
       volumes:
       - name: cometa-volume
         persistentVolumeClaim:
