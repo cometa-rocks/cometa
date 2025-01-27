@@ -75,12 +75,9 @@ WORKDIR /code/behave
 COPY --chown=cometa:cometa ./supervisord.conf /etc/supervisor/supervisord.conf
 COPY --chown=cometa:cometa . /opt/code
 
-WORKDIR /opt/code/
+WORKDIR /opt/code
 # Switch to non-root user
 USER cometa
-
-# Set working directory
-WORKDIR /opt/code
 
 # Update file permissions
 RUN chmod -R 755 /opt/code

@@ -305,7 +305,7 @@ class ServiceManager(service_manager):
         super().__init__(*args, **kwargs)
 
     # This method will create the container base on the environment
-    def create_service(self, *args, **kwargs):
+    def create_service(self, *args, **kwargs):    
         if not self.__service_configuration:
             raise Exception("Please prepare service_configuration configuration first")
         return super().create_service(
@@ -331,9 +331,27 @@ class ServiceManager(service_manager):
 
     def inspect_service(self, service_name_or_id,  *args, **kwargs):
         return super().inspect_service(service_name_or_id,  *args, **kwargs)
+    
+    def get_host_name_mapping(self):
+        # Load the host file mappings
+        try:
+            # https://redmine.amvara.de/projects/ibis/wiki/Add_DNS_mapping_to_hosts_(etchosts)_file_using_Cometa_configuration
+            cometa_test_env_host_file_mappings = ConfigurationManager.get_configuration("COMETA_TEST_ENV_HOST_FILE_MAPPINGS",'[]')
+            return json.loads(cometa_test_env_host_file_mappings)
+        except Exception as e:
+            logger.error("Exception loading the test hostAliases configurations", e)
+            return []
 
     def prepare_emulator_service_configuration(self, image):
-
+        host_mappings = self.get_host_name_mapping()
+        
+        # Flatten the host mappings for `extra_hosts`
+        extra_hosts = [
+            f"{hostname}:{entry['ip']}"
+            for entry in host_mappings
+            for hostname in entry['hostnames']
+        ]
+        
         if super().deployment_type == "docker":
             info = self.inspect_service("cometa_behave")
             volume_mounts :list = info['HostConfig']['Binds']
@@ -356,13 +374,13 @@ class ServiceManager(service_manager):
                 "restart_policy": {"Name": "unless-stopped"},
                 "volumes":[
                     f"{video_volume}:/video"
-                ]
+                ],
+                "extra_hosts": extra_hosts  # Add the custom host mappings here
             }
         else:
             # Create Configuration for kubernetes
             pass
         return self.__service_configuration
-
 
     def prepare_browser_service_configuration(self, browser="chrome", version="131.0"):
         # Generate a random UUID
@@ -370,7 +388,8 @@ class ServiceManager(service_manager):
         container_image = f"cometa/{browser}:{version}"
         pod_name = self.get_pod_name(random_uuid)
         service_name = self.get_service_name(random_uuid)
-        
+        host_mappings = self.get_host_name_mapping()
+                
         pod_selectors = {
             "browser":browser,
             "version": version,
@@ -381,6 +400,7 @@ class ServiceManager(service_manager):
             # Need to implement  this section
             pass
         else:
+            
             # Define the pod manifest
             self.pod_manifest = {
                 "apiVersion": "v1",
@@ -432,6 +452,7 @@ class ServiceManager(service_manager):
                             ]
                         }
                     ],
+                    "hostAliases":host_mappings,
                     "volumes": [
                         {
                             "name": "cometa-volume",

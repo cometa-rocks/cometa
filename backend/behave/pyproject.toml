@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["AMVARA CONSULTING <info@amvara.de>"]
 license = "MIT"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -42,7 +43,8 @@ bs4 = "^0.0.2"
 pypdf = "3.17.0"
 appium-python-client = "^4.2.0"
 docker = "^7.1.0"
-kubernetes = "31.0.0"
+kubernetes = "^31.0.0"
+
 
 [tool.poetry.dev-dependencies]
 
