@@ -4,6 +4,7 @@ version = "2.5.54"
 description = ""
 authors = ["AMVARA CONSULTING <info@amvara.de>"]
 license = "MIT"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
