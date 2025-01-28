@@ -1253,11 +1253,13 @@ mat-card {
   mat-icon {
     font-size: 21px;
     margin-right: 16px;
+    margin-top: 4px;
+
     vertical-align: middle;
   }
   img {
     font-size: 21px;
-    margin-right: 16px;
+    margin-right: 17px;
     vertical-align: middle;
   }
 }
@@ -1269,8 +1271,13 @@ mat-card {
 }
 
 .restartMenu {
-  img {
-    color: #1565c0 !important;
+  background-color: transparent;
+  .iconImgRestart {
+    width: 21px;
+    height: 21px;
+    filter: brightness(0) saturate(100%) invert(26%) sepia(94%) saturate(1046%) hue-rotate(185deg) brightness(105%) contrast(93%);
+    // margin-right: 8px;
+    // color: #1565c0 !important;
   }
   span {
     color: #1565c0 !important;
