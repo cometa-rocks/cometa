@@ -63,6 +63,8 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { timeStamp } from 'console';
 import { Key } from 'readline';
+// import { ModifyEmulatorDialogComponent } from '@dialogs/mobile-list/modify-emulator-dialog/modify-emulator-dialog.component';
+
 
 /**
  * MobileListComponent
@@ -381,6 +383,9 @@ export class MobileListComponent implements OnInit {
     // Call the API service on component initialization
     this._api.startMobile(body).subscribe(
       (container: Container) => {
+        // Update the service status to Running
+        container.service_status = 'Running';
+
         // Add the container to the runningMobiles list
         this.runningMobiles.push(container);
 
@@ -413,12 +418,12 @@ export class MobileListComponent implements OnInit {
       .subscribe((exit: boolean) => {
         if (exit) {
           container.isTerminating = true;
+          container.service_status = 'Stopping';
 
-          // Guardar el contenedor en localStorage
+          // Save the container in localStorage
           const terminatingContainerIds = JSON.parse(localStorage.getItem('terminatingContainers') || '[]');
           if (!terminatingContainerIds.includes(container.id)) {
             terminatingContainerIds.push(container.id);
-            // console.log("Aqui terminating", terminatingContainerIds)
             localStorage.setItem('terminatingContainers', JSON.stringify(terminatingContainerIds));
           }
 
@@ -438,13 +443,15 @@ export class MobileListComponent implements OnInit {
 
                 this.selectedApps[container.service_id] = null;
 
-                // Eliminar del localStorage si se detuvo correctamente
+                // Remove from localStorage if stopped successfully
                 const updatedContainerIds = terminatingContainerIds.filter(id => id !== container.id);
                 localStorage.setItem('terminatingContainers', JSON.stringify(updatedContainerIds));
 
+                container.service_status = 'Stopped';
               } else {
                 console.error('An error occurred while stopping the mobile', response.message);
                 this.snack.open(`Error while stopping the Mobile`, 'OK');
+                container.service_status = 'Error';
               }
               container.isTerminating = false;
               this._cdr.detectChanges();
@@ -453,9 +460,11 @@ export class MobileListComponent implements OnInit {
               container.isTerminating = false;
               console.error('An error occurred while stopping the mobile', error);
 
-              // Eliminar del localStorage si hubo un error
+              // Remove from localStorage if there was an error
               const updatedContainerIds = terminatingContainerIds.filter(id => id !== container.id);
               localStorage.setItem('terminatingContainers', JSON.stringify(updatedContainerIds));
+
+              container.service_status = 'Error';
             }
           );
         } else {
@@ -464,16 +473,19 @@ export class MobileListComponent implements OnInit {
       });
   }
 
-  // This method stops the mobile container using ID
+  // This method restarts the mobile container using ID
   restartMobile(container: Container): void {
     let body = {
-      "action":"restart"
-    }
+      action: 'restart'
+    };
+    container.service_status = 'Restarting';
+
     // Call the API service on component initialization
     this._api.updateMobile(container.id, body).subscribe(
       (response: any) => {
         if (response.success) {
           container.isPaused = false;
+          container.service_status = 'Running';
           this.snack.open(`Mobile restarted successfully`, 'OK');
           container = response.containerservice;
           this._cdr.detectChanges();
@@ -482,6 +494,7 @@ export class MobileListComponent implements OnInit {
             `Failed to restart mobile container with ID: ${container.id}. Reason: ${response.message}`
           );
           this.snack.open(`Error restarting the mobile container`, 'OK');
+          container.service_status = 'Error';
         }
       },
       error => {
@@ -491,24 +504,26 @@ export class MobileListComponent implements OnInit {
           error
         );
         this.snack.open(`Network error while restarting mobile`, 'OK');
+        container.service_status = 'Error';
       }
     );
   }
 
-  // This method stops the mobile container using ID
+  // This method pauses the mobile container using ID
   pauseMobile(container: Container): void {
     let body = {
-      "action":"stop"
-    }
-    // this.logger.msg("1", "CO-containerpaused:", "mobile-list", container);
+      action: 'stop'
+    };
+    container.service_status = 'Stopping';
+
     // Call the API service on component initialization
     this._api.updateMobile(container.id, body).subscribe(
       (response: any) => {
-        // this.logger.msg("1", "CO-respose:", "mobile-list", response);
         if (response.success) {
           container.isPaused = true;
+          container.service_status = 'Stopped';
           this.snack.open(`Mobile paused successfully`, 'OK');
-          container = response.containerservice
+          container = response.containerservice;
           this._cdr.detectChanges();
         } else {
           console.error(
@@ -516,6 +531,7 @@ export class MobileListComponent implements OnInit {
             response.message
           );
           this.snack.open(`Error while stopping the Mobile`, 'OK');
+          container.service_status = 'Error';
         }
       },
       error => {
@@ -524,9 +540,11 @@ export class MobileListComponent implements OnInit {
           'An error occurred while fetching the mobile list',
           error
         );
+        container.service_status = 'Error';
       }
     );
   }
+
 
   inspectMobile(container: Container, mobile: IMobile): void {
     let host = window.location.hostname;
@@ -602,5 +620,25 @@ export class MobileListComponent implements OnInit {
     this.departmentChecked[this.selectedDepartment.id] = true;
     this.selectionsDisabled = true;
   }
+
+  // openModifyEmulatorDialog() {
+  //   let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk'));
+  //   const departmentId = this.departments$.find(
+  //     dep =>
+  //       dep.department_name === this.featureForm.get('department_name').value
+  //   ).department_id;
+
+  //   this._dialog
+  //     .open(ModifyEmulatorDialogComponent, {
+  //       data: {
+  //         department_id: departmentId,
+  //         uploadedAPKsList: uploadedAPKsList
+  //       },
+  //       panelClass: 'mobile-emulator-panel-dialog',
+  //     })
+  //     .afterClosed()
+  //     .subscribe(res => {
+  //     });
+  // }
 
 }

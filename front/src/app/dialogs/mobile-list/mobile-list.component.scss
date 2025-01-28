@@ -59,6 +59,7 @@ mat-dialog-container {
         display: flex;
         flex-direction: column;
         width: 390px;
+        height: 185px;
         min-width: 390px;
         background-color: rgba(255, 255, 255, 0.4);
         .mobile-icon {
@@ -281,6 +282,8 @@ mat-dialog-content {
     display: flex;
     flex-direction: row;
     margin-bottom: 5px;
+    margin-left: 10px;
+    font-size: 14px;
     strong {
       align-items: center;
       margin-left: 5px;
@@ -323,20 +326,20 @@ mat-dialog-content {
 // }
 
 
-.apk-selection {
-  display: flex;
-  flex-direction: column !important;
-  margin-right: 10px;
-  margin-left: 10px;
-  .mat-slider-toggle {
-    transform: scale(0.7);
-    margin-left: -60px;
-    margin-bottom: 10px;
-    p {
-      font-size: 20px;
-    }
-  }
-}
+// .apk-selection {
+//   display: flex;
+//   flex-direction: column !important;
+//   margin-right: 10px;
+//   margin-left: 10px;
+//   .mat-slider-toggle {
+//     transform: scale(0.7);
+//     margin-left: -60px;
+//     margin-bottom: 10px;
+//     p {
+//       font-size: 20px;
+//     }
+//   }
+// }
 
 .pop-up-info {
   display: flex;
@@ -370,6 +373,16 @@ mat-dialog-content {
 .row-content {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  p {
+    font-weight: bold;
+    font-size: 14px;
+    mat-label {
+      // font-weight: bold;
+      // font-size: 14px;
+    }
+  }
+
 }
 
 mat-divider {
@@ -582,7 +595,7 @@ mobile-list {
 // }
 
 .get-app {
-  font-size: 20px !important;
+  font-size: 18px !important;
   color: rgba(0, 0, 0, 0.7) !important;
 }
 
@@ -596,7 +609,7 @@ mobile-list {
   margin-left: 5px;
   // margin-bottom: -11px;
   button {
-    margin-left: -5px;
+    margin-left: -10px;
   }
   mat-icon {
     color: black;
@@ -618,6 +631,8 @@ mobile-list {
   display: flex;
   flex-direction: column !important;
   margin-bottom: 20px;
+  position: relative;
+  top: -50px;
 }
 
 .mobile-devices-header {
@@ -1200,4 +1215,79 @@ mat-card {
 
 .stopped {
   background-color: #d4145a;
+}
+
+.emulatorOptions {
+  position: relative;
+  top: -23px;
+  left: 360px;
+  z-index: 9999;
+}
+
+// .apkContainer {
+//   position: relative;
+//   top: -79px;
+//   left: -2px;
+// }
+
+.mobile-emulator-panel-dialog {
+  width: 500px;
+  max-height: 80vh;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+
+// Menu more vert emulator feature
+
+.startMenu, .restartMenu, .pauseMenu, .modifyMenu, .closeMenu {
+  padding: 0 16px;
+  width: 136px;
+  min-height: 30px !important;
+  span {
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 14px;
+
+  }
+  mat-icon {
+    font-size: 21px;
+    margin-right: 16px;
+    vertical-align: middle;
+  }
+  img {
+    font-size: 21px;
+    margin-right: 16px;
+    vertical-align: middle;
+  }
+}
+
+.startMenu {
+  mat-icon, span {
+    color: #1565c0 !important;
+  }
+}
+
+.restartMenu {
+  img {
+    color: #1565c0 !important;
+  }
+  span {
+    color: #1565c0 !important;
+  }
+}
+
+.pauseMenu {
+  mat-icon {
+    color:  #ef5350 !important;
+  }
+  span {
+    color:  #ef5350 !important;
+  }
+}
+
+.dissabled-more-vert {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
 }
