@@ -52,7 +52,7 @@ use_step_matcher("re")
 # Parameters:
 # - object_name: The name of the object that should be present on the screen.
 # - options: (Optional) Additional options or conditions that can refine the validation. This part is optional, meaning it can be omitted in the Gherkin step.   
-# Example Usages:
+# Example:
 # - Validate current screen to contain "Car"
 # - Validate current screen to contain "Car" with "color:red"
 # In the second case, the additional option "fullscreen" will be captured and used in the step logic.
@@ -104,7 +104,7 @@ def validate_screen_using_ai(context, object_name, options):
 # Regular Expression Breakdown:
 # - (?P<variable>.*?): Captures the name of the variable where the list of objects will be stored.
 # - (?: with "(?P<options>.*?)")?: This part is optional.
-# Example Usages:
+# Example:
 # - Get list of visible objects in the current screen and store in "myObjects"
 # - Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
 # The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
@@ -150,7 +150,8 @@ def get_list_of_visible_objects_in_the_screen(context, variable, options):
 
     addTestRuntimeVariable(context, variable, json_response)
 
-
+# Captures a screenshot of the current screen and stores it in a variable.
+# Example: Get screenshot and store in the variable "screenshot_data"
 @step(u'Get screenshot and store in the variable \"(?P<variable_name>.*?)\"')
 @done(u'Get screenshot and store in the variable "{variable_name}"')
 def get_screen_shot(context, variable_name):
@@ -162,6 +163,7 @@ def get_screen_shot(context, variable_name):
 
 # Assert the variable's value by providing variable_name, jq_pattern, condition (match|contain), and value using JQ patterns. Refer to the JQ documentation: https://jqlang.github.io/jq/manual/
 # The jq_pattern is a JSON path that can be combined with conditions to perform assertions.
+# Example: Assert variable "response_data" using jq_pattern ".status" to "match" "success"
 @step(u'Assert variable \"(?P<variable_name>.*?)\" using jq_pattern \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert variable "{variable_name}" using jq_pattern "{jq_pattern}" to "{condition}" "{value}"')
 def assert_imp(context, variable_name, jq_pattern, condition, value):
@@ -184,6 +186,7 @@ def assert_imp(context, variable_name, jq_pattern, condition, value):
 
 
 # Assert variable value by providing 'variable_name', 'condition(match|contain)' and exepected 'value'
+# Example: Assert variable "status_code" to "match" "200"
 @step(u'Assert variable \"(?P<variable_name>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert variable "{variable_name}" to "{condition}" "{value}"')
 def assert_imp(context, variable_name, condition, value):
@@ -220,6 +223,15 @@ def assert_imp(context, variable_name, condition, value):
 # - variable: (String) The name of the variable where the AI analysis output will be stored.
 # - options: (String) (Optional) Modifies how the analysis result is processed. For example, if 'Output JSON' is provided,
 #     the result will be converted to a JSON format before being stored.
+# Example: Get information based on the input message and store it in a variable.
+# Get information based on """
+# [
+#     {
+#         "content": "Explain everything you see in the image.",
+#         "images": ["screenshot1"]
+#     }
+# ]
+# """ and store in the "analysis_result"
 @step(u'Get information based on """(?P<user_message_to_ai>[\s\S]*?)""" and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
 @done(u'Get information based on """{user_message_to_ai}""" and store in the "{variable}" with "{option}"')
 def ai_analyze(context, user_message_to_ai, variable, option):
@@ -257,7 +269,6 @@ def ai_analyze(context, user_message_to_ai, variable, option):
     addTestRuntimeVariable(context, variable, response)
 
 
-
 # This step retrieves information from current screen based on the given prompt and stores it in a variable. 
 # An optional set of option can be provided to modify the output format (e.g., JSON conversion).
 # Parameters:
@@ -265,6 +276,10 @@ def ai_analyze(context, user_message_to_ai, variable, option):
 # - variable: (String) The name of the variable where the AI analysis output will be stored.
 # - option: (String) (Optional) Modifies how the analysis result is processed. For example, if 'Output JSON' is provided,
 #            if option "Output JSON" is provided the result will be converted to a JSON format before it is stored in the variable.
+# Example: Get information from the screen and store it in a variable.
+# Get information based on """
+# Explain everything that you see in the image.
+# """ from current screen and store in the "screen_analysis"
 @step(u'Get information based on """(?P<prompt>[\s\S]*?)""" from current screen and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
 @done(u'Get information based on """{prompt}""" from current screen and store in the "{variable}" with "{option}"')
 def get_information_from_current_screen_based_on_prompt(context, prompt, variable, option):
@@ -317,6 +332,7 @@ use_step_matcher("parse")
     
 # This step displays the value of a variable_name at runtime and in the browser screen as well for a given seconds amount of time.
 # The popup will disappear after the specified number of seconds.
+# Example: Show me variable "user_details" value for "10" seconds
 @step(u'Show me variable "{variable}" value for "{seconds}" seconds')
 @done(u'Show me variable "{variable}" value for "{seconds}" seconds')
 def show_variable_value(context, variable, seconds):

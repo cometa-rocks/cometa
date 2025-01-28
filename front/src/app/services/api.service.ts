@@ -842,6 +842,7 @@ export class ApiService {
       map(response => response.mobiles) // Extract only the `results` field
     );
   }
+
   /**
    * Get the mobile emulators list
    * @returns Observable<IMobile>

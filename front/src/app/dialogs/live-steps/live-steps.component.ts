@@ -119,6 +119,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     private _api: ApiService,
     private _snack: MatSnackBar,
     private logger: LogService,
+    private snack: MatSnackBar,
     private _cdr: ChangeDetectorRef 
   ) {
     this.status$ = this._store.select(
@@ -148,8 +149,30 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   }
 
   mobiles = {}
+  configuration_value_boolean: boolean = false;
+  docker_kubernetes_name: string = ''
   
   ngOnInit() {
+    this._api.getCometaConfigurations().subscribe(res => {
+
+      const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
+      const config_docker_kubernetes_name = res.find((item: any) => item.configuration_name === 'COMETA_DEPLOYMENT_ENVIRONMENT');
+
+      if (config_feature_mobile) {
+        this.configuration_value_boolean = config_feature_mobile.configuration_value === 'True';
+      }
+      else{
+        this.snack.open('COMETA_FEATURE_MOBILE_TEST_ENABLED configuration not found.', 'Close', { duration: 3000 });
+      }
+      
+      if(config_docker_kubernetes_name){
+        this.docker_kubernetes_name = config_docker_kubernetes_name.configuration_value;
+      }
+      else{
+        this.snack.open('COMETA_DEPLOYMENT_ENVIRONMENT configuration not found.', 'Close', { duration: 3000 });
+      }
+      
+    });
     
     // Grab the steps of the feature
     this.steps$ = this._store
@@ -226,14 +249,18 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   }
 
   live(feature_result_id) {
-    const url = `/live-session/vnc.html?autoconnect=true&path=feature_result_id/${feature_result_id}`;
+    let url;
+
+    if(this.docker_kubernetes_name == "docker"){
+      url = `/live-session/vnc.html?autoconnect=true&path=feature_result_id/${feature_result_id}`;
+    }
+    else if(this.docker_kubernetes_name == "kubernetes"){
+      url = `/live-session/vnc.html?autoconnect=true&path=feature_result_id/${feature_result_id}&deployment=kubernetes`;
+    }
     window.open(url, '_blank').focus();
   }
   
   noVNCMobile(selectedMobile) {
-    this.logger.msg("1", "CO-Sel-Mobiles", "live-steps:", selectedMobile);
-
-    // let selectedMobileHostname = this.selectedMobile;
     let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${selectedMobile}`;
     window.open(complete_url, '_blank').focus();
   }
@@ -257,13 +284,11 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
 
   updateMobile(data: any) {
     this.mobiles[data.feature_run_id] = data.mobiles_info
-
-    this.logger.msg("1", "CO-Mobiles", "live-steps:", this.mobiles);
   }
 
-  hasMultipleMobiles(featureResultId: string) {
-    this.logger.msg("1", "CO-Mobiles", "live-steps:", this.mobiles[featureResultId].length > 1);
-    // return Array.isArray(this.mobiles[featureResultId]) && this.mobiles[featureResultId].length > 1;
-  }
+  // hasMultipleMobiles(featureResultId: string) {
+  //   this.logger.msg("1", "CO-Mobiles", "live-steps:", this.mobiles[featureResultId].length > 1);
+  //   return Array.isArray(this.mobiles[featureResultId]) && this.mobiles[featureResultId].length > 1;
+  // }
   
 }

@@ -158,7 +158,7 @@ export class MobileListComponent implements OnInit {
 
   ngOnInit(): void {
 
-    this.logger.msg("1", "CO-selectedDepartment:", "mobile-list", this.selectedDepartment);
+    // this.logger.msg("1", "CO-selectedDepartment:", "mobile-list", this.selectedDepartment);
 
     const terminatingContainerIds = JSON.parse(localStorage.getItem('terminatingContainers') || '[]');
     terminatingContainerIds.forEach((containerId: number) => {
@@ -167,10 +167,11 @@ export class MobileListComponent implements OnInit {
         container.isTerminating = true;
       }
     });
-
+   
     // Call the API service on component initialization
     this._api.getMobileList().subscribe(
       (mobiles: IMobile[]) => {
+        this.logger.msg("1", "CO-depID:", "mobiles", mobiles);
         // Assign the received data to the `mobile` variable
         this.mobiles = mobiles;
 
@@ -181,9 +182,11 @@ export class MobileListComponent implements OnInit {
         this._store.select(UserState.RetrieveUserDepartments).pipe(
           map(departments => JSON.parse(JSON.stringify(departments)))
         ).subscribe(departments => {
+          console.log('Departamentos cargados:', departments); 
           this.departments = departments;
           this.departments.forEach(department => {
             const depData = JSON.parse(JSON.stringify(department));
+            console.log('Archivos APK para el departamento:', depData.files);
             this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
           })
         });
@@ -210,7 +213,7 @@ export class MobileListComponent implements OnInit {
         // Call the API service on component initialization
         this._api.getContainersList().subscribe(
           (containers: Container[]) => {
-            // this.logger.msg("1", "CO-containerS", "mobile-list" , containers);
+            this.logger.msg("1", "CO-containerS", "mobile-list" , containers);
 
             for (let container of containers) {
 
@@ -218,21 +221,24 @@ export class MobileListComponent implements OnInit {
                 this.showSpinnerFor(container.id);
               }
 
+              // console.log("Conainer-shared, user-id, created by: ", container.shared, this.user.user_id, container.created_by)
               if (container.shared && this.user.user_id != container.created_by) {
                 container.image = this.mobiles.find( m => m.mobile_id === container.image);
 
+                console.log("Dialogo: ", this.isDialog)
                 if(this.isDialog){
                   container.apk_file = this.data.uploadedAPKsList.find(
                     m => m.mobile_id === container.apk_file
                   );
                 }
                 else{
+                  console.log("Im inside")
                   this.departments.forEach(department => {
                     // this.logger.msg("1", "CO-departmentid:", "mobile-list", department.department_id);
                     // this.logger.msg("1", "CO-containerid:", "mobile-list", container.id);
                     const depData = JSON.parse(JSON.stringify(department));
                     this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
-                    // this.logger.msg("1", "CO-Department:", "mobile-list", department)
+                    this.logger.msg("1", "CO-Department:", "mobile-list", department)
                   })
                 }
 
@@ -271,8 +277,7 @@ export class MobileListComponent implements OnInit {
   showSpinnerFor(containerId: number): void {
     const container = this.runningMobiles.find(c => c.id === containerId);
     if (container) {
-      container.isTerminating = true; // Asegura que el spinner se muestre solo para este contenedor
-      console.log(`Showing spinner for container ${containerId}`);
+      container.isTerminating = true; 
     }
   }
 
@@ -284,7 +289,7 @@ export class MobileListComponent implements OnInit {
     this._api.updateMobile(container.id, updateData).subscribe(
       (response: any) => {
         if (response && response.containerservice) {
-          container = response.containerservice; // Update the container if `containerservice` is present
+          container = response.containerservice;
           this.snack.open(
             `Mobile ${mobile.isShared ? 'shared' : 'unshared'} with other users in this department`,
             'OK'
@@ -484,11 +489,11 @@ export class MobileListComponent implements OnInit {
     let body = {
       "action":"stop"
     }
-    this.logger.msg("1", "CO-containerpaused:", "mobile-list", container);
+    // this.logger.msg("1", "CO-containerpaused:", "mobile-list", container);
     // Call the API service on component initialization
     this._api.updateMobile(container.id, body).subscribe(
       (response: any) => {
-        this.logger.msg("1", "CO-respose:", "mobile-list", response);
+        // this.logger.msg("1", "CO-respose:", "mobile-list", response);
         if (response.success) {
           container.isPaused = true;
           this.snack.open(`Mobile paused successfully`, 'OK');
@@ -576,6 +581,7 @@ export class MobileListComponent implements OnInit {
 
     this.apkFiles = [];
     this.departments.forEach(department => {
+      this.logger.msg("1", "CO-selectedDepartment:", "department -->", department);
       if(department.department_id == this.selectedDepartment.id) {
         const depData = JSON.parse(JSON.stringify(department));
         this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
@@ -584,7 +590,6 @@ export class MobileListComponent implements OnInit {
 
     this.departmentChecked[this.selectedDepartment.id] = true;
     this.selectionsDisabled = true;
-    this.logger.msg("1", "CO-selectedDepartment:", "mobile-list", this.selectedDepartment);
   }
 
 }

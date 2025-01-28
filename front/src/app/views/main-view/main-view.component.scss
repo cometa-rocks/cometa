@@ -13,6 +13,7 @@
 :host::ng-deep {
   .mtx-grid {
     z-index: 0;
+    padding-bottom: 60px;
     .mtx-grid-toolbar-content {
       flex-grow: 1;
       .custom_toolbar {
@@ -43,7 +44,6 @@
         0 3px 1px -2px $table-low-shadow,
         0 2px 2px 0 $table-medium-shadow,
         0 1px 5px 0 $table-high-shadow;
-
       thead {
         background-color: #474747;
         [role='columnheader'] {
@@ -527,3 +527,12 @@
   font-weight: bold;
 }
 
+::ng-deep .mtx-grid .mat-mdc-paginator-container {
+  display: flex;
+  justify-content: center;
+  position: fixed;
+  bottom: 0;
+  box-shadow: 0 2px 3px 1px rgba(0, 0, 0, 0.3),
+  0 10px 2px 0 rgba(0, 0, 0, 0.2),
+  0 2px 6px 0 rgba(0, 0, 0, 10.15);
+}

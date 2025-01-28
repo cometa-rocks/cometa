@@ -459,3 +459,44 @@
 .skipped {
   background-color: rgb(182, 182, 101);
 }
+
+// .error-border {
+//   border: 2px solid red;
+//   animation: fade-border 3s ease-out;
+// }
+
+// @keyframes fade-border {
+//   0% {
+//     opacity: 1;
+//   }
+//   100% {
+//     opacity: 0;
+//   }
+// }
+
+.error-border {
+  position: relative; 
+}
+
+.error-border::after {
+  content: ''; 
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid red;
+  border-radius: inherit; 
+  pointer-events: none;
+  animation: fade-border 3s ease-out forwards;
+}
+
+@keyframes fade-border {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+

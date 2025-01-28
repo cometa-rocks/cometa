@@ -135,38 +135,38 @@
       </button>
     </div>
     
-      <div *ngIf="button.class == 'replay-button-2'" class="mobile-container">
-        <div class="custom-context">
-          <button
-            class="mobile-button-replay"
-            stopPropagation
-            mat-icon-button
-            *ngIf="!button.iif || button.iif(row)"
-            [ngClass]="{'replay-button-2': row.mobile && row.mobile.length > 1}"
-            matTooltip="{{ button.tooltip }}"
-            [matTooltipPosition]="'above'">
-            <mat-icon 
-              class="mobile-mat-icon-replay"
-              [matBadge]="row.mobile.length > 1 ? row.mobile.length : null"
-              matBadgeSize="small">{{ button.icon }}</mat-icon>
-            <ng-container *ngIf="row.mobile && row.mobile.length > 1 && button.class === 'replay-button-2'">
-              <mat-select
-                stopPropagation
-                class="mobile-selector"
-                (selectionChange)="onMobileSelectionChange($event, row)"
-                [(value)]="selectMobile[row.feature_result_id]">
-                <mat-option *ngFor="let mobile of row.mobile" [value]="mobile">
-                  <mat-label>
-                    {{ mobile.name }}
-                  </mat-label>
-                </mat-option>
-              </mat-select>
-            </ng-container>
-          </button>
-        </div>
+    <div *ngIf="button.class == 'replay-button-2'" class="mobile-container">
+      <div class="custom-context">
+        <button
+          class="mobile-button-replay"
+          stopPropagation
+          mat-icon-button
+          *ngIf="!button.iif || button.iif(row)"
+          [ngClass]="{'replay-button-2': row.mobile && row.mobile.length > 1}"
+          matTooltip="{{ button.tooltip }}"
+          [matTooltipPosition]="'above'">
+          <mat-icon 
+            class="mobile-mat-icon-replay"
+            [matBadge]="row.mobile.length > 1 ? row.mobile.length : null"
+            matBadgeSize="small">{{ button.icon }}</mat-icon>
+          <ng-container *ngIf="row.mobile && row.mobile.length > 1 && button.class === 'replay-button-2'">
+            <mat-select
+              stopPropagation
+              class="mobile-selector"
+              (selectionChange)="onMobileSelectionChange($event, row)"
+              [(value)]="selectMobile[row.feature_result_id]">
+              <mat-option *ngFor="let mobile of row.mobile" [value]="mobile">
+                <mat-label>
+                  {{ mobile.name }}
+                </mat-label>
+              </mat-option>
+            </mat-select>
+          </ng-container>
+        </button>
       </div>
-      </ng-container>
+    </div>
     </ng-container>
+  </ng-container>
 </ng-template>
 
 <ng-template #dateTpl let-row let-index="index" let-col="colDef">

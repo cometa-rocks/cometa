@@ -131,7 +131,6 @@ export class EditConfigurationComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this._api.getCometaConfigurations().subscribe(
       res => {
-        console.log(res);
         if (res) {
           this.configurations = res;
           // Making configurations[...n].disabled = true so that in front row by default editing is disabled
@@ -310,7 +309,6 @@ export class EditConfigurationComponent implements OnInit, OnDestroy {
               this._snack.open('Configuration deleted successfully', 'Ok');
           },
           error: (err) => {
-            console.log(err)
             this._snack.open('Error while deleting configuration', 'OK');
           }
       });

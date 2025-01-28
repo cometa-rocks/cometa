@@ -168,7 +168,7 @@
               </div>
             </ng-container>
             <ng-container>
-              <div class="checkbox-container move-right"> 
+              <div *ngIf="configuration_value_boolean" class="checkbox-container move-right"> 
                 <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
                   <button color="primary" 
                   [disabled]="disableVariables" 

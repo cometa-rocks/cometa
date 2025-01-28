@@ -18,7 +18,8 @@ Author: dph000
   Data Driven
 </div>
 <!-- Mobile emulator -->
-<div (click)="toggleList('mobile-emulator')" [class.selected]="(activeList$ | async) === 'mobile-emulator'" [matTooltip]="'mobile_list.mobile_presentation' | translate" matTooltipPosition="right">
+ 
+<div *ngIf="configuration_value_boolean" (click)="toggleList('mobile-emulator')" [class.selected]="(activeList$ | async) === 'mobile-emulator'" [matTooltip]="'mobile_list.mobile_presentation' | translate" matTooltipPosition="right">
   <mat-icon>tablet_mac</mat-icon>
   Mobile Devices
 </div>

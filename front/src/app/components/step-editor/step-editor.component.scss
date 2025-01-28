@@ -136,11 +136,11 @@
       opacity: 0.9;
     }
   }
-  &:nth-child(2n + 1) {
-    background-color: #f3f7fc;
-  }
-  &:nth-child(2n + 2) {
+  &.odd-row {
     background-color: white;
+  }
+  &.even-row {
+    background-color: #f3f7fc;
   }
   .index {
     @include for-tablet-portrait-up {
@@ -340,6 +340,107 @@
   color: rgba(0, 0, 0, 0.24) !important;
 }
 
+.stepContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  border: 1px #1565c0 solid;
+  border-radius: 4px;
+  padding: 15px;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  color: #1565c0;
+}
+
+.stepByStep {
+  align-self: flex-start;
+  background: white;
+  width: 130px;
+  padding-left: 10px;
+  margin-left: 19px;
+  margin-top: -25px;
+  font-size: 14px;
+}
+
+.stepContainer {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.stepContainer.ng-transition {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.stepDescription {
+  align-self: flex-start;
+  margin-left: 385px;
+  text-align: left;
+  font-weight: bold;
+  letter-spacing: 0.7px;
+  .stepDescriptionPar {
+    color: #1565c0;
+    width: 100%;
+    span {
+      color: rgba(0, 0, 0, 0.5);
+    }
+  }
+}
+
+.cdk-overlay-container {
+  position: relative;
+}
+
+::ng-deep .mat-autocomplete-panel {
+  position: absolute !important;
+  bottom: 100% !important;
+  top: auto !important; 
+  transform: translateY(-40px);
+  z-index: 1000;
+}
+
+.autocomplete-container {
+  display: flex;
+  align-items: center;
+}
+
+.icon-container {
+  background: white;
+  position: absolute;
+  width: 30px;
+  height: 230px;
+  border-radius: 4px;
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+  mat-icon {
+    display: flex;
+    font-size: 18px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+mat-icon {
+  font-size: 24px;
+}
+
+// .autocomplete-wrapper {
+//   transition: opacity 0.3s ease;
+// }
+
+.is-transparent {
+  opacity: 0.3;
+  transition: opacity 1s ease-in-out;
+}
+
+mat-autocomplete {
+  opacity: 1;
+  transition: opacity 1s ease-in-out;
+}
+
+
 .button-actions {
   margin-top: 20px;
   display: flex;
@@ -355,6 +456,9 @@
   }
   .left,
   .right {
+    display: inline-flex; 
+    justify-content: center; 
+    align-items: center; 
     button:not(:first-child) {
       margin-left: 20px;
     }
@@ -369,4 +473,27 @@
   border-radius: 3px;
   padding: 5px;
   outline: 0;
+}
+
+.button-content {
+  display: flex;
+  align-items: center;
+  width: 80px;
+  justify-content: center;
+}
+
+.icon-left {
+  font-size: 16px;
+  margin-right: 8px; 
+  display: inline-flex; 
+  justify-content: center; 
+  align-items: center; 
+}
+
+.closeStepDocumentation {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  height: 30px !important;
+  width: 30px !important;
+  background-color: #ef5350;
 }

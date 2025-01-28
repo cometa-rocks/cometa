@@ -134,6 +134,9 @@ services:
       DEBUG_LEVEL: 10
     # volumes:
     #   - ./scheduler:/app:rw
+    depends_on:
+      django:
+        condition: service_healthy
     networks:
       - testing
     restart: always

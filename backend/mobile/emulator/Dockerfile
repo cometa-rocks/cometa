@@ -97,6 +97,6 @@ EXPOSE 5900
 
 RUN chmod +x /app/scripts/video_recorder.sh
 
-# Run ollama when the container launches
+# Run supervisord when the container launches
 ENTRYPOINT ["supervisord", "-c", "/app/supervisor/supervisord.conf"]
 

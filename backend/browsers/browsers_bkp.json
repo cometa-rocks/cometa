@@ -6,11 +6,11 @@
       },      
       {
         "name": "cometa/chrome:130.0",
-        "image": "selenium/standalone-chrome:131.0"
+        "image": "selenium/standalone-chrome:130.0"
       },      
       {
         "name": "cometa/chrome:129.0",
-        "image": "selenium/standalone-chrome:131.0"
+        "image": "selenium/standalone-chrome:129.0"
       },
       {
         "name": "cometa/firefox:133.0",
