@@ -1,0 +1,5 @@
+data/
+# ignore _template files
+*_template
+
+.idea
