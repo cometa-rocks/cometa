@@ -7,7 +7,7 @@ from backend.utility.uploadFile import decryptFile
 
 logger = getLogger()
 
-import uuid, time, sys
+import uuid, time, sys, json
 from kubernetes import client, config
 from kubernetes.client import ApiException
 
@@ -129,6 +129,9 @@ class DockerServiceManager:
         container = self.docker_client.containers.run(**configuration)
         return container.attrs
 
+    def get_service_name(self, uuid):
+        return self.inspect_service(uuid)['Config']['Hostname']             
+
     # This method will create the container base on the environment
     def wait_for_service_to_be_running(
         self, service_name_or_id, max_wait_time_seconds=30
@@ -233,28 +236,36 @@ class DockerServiceManager:
             traceback.print_exc()
             return False
 
-    def upload_file(self, service_name_or_id, file_path):
+    def upload_file(self, service_name_or_id, file_path, decryptFile=True):
         container = self.docker_client.containers.get(service_name_or_id)
 
         # Destination path inside the container
         container_dest_path = "/tmp"  # Change as needed
         file_name = file_path.split("/")[-1]
-        decrypted_file_path = decryptFile(file_path)
+        if decryptFile:
+            file_path = decryptFile(file_path)
         # i.e decrypted_file /tmp/6oy2p464
         # Create the tar archive
-        tar_stream = create_tarball(decrypted_file_path)
-        
+        logger.debug("Creating a tar stream of file")
+        tar_stream = create_tarball(file_path)
+        logger.debug(f"Uploading the file to container from {file_path} to {container_dest_path}")
         # This will paste in the mobile container in the same location as decrypted_file_path 
         if container.put_archive(container_dest_path, tar_stream):
             logger.debug("APK File copied to the container")
-            command = f"mv \"{decrypted_file_path}\" \"/tmp/{file_name}\""
-
+            # File was not decrypted then file will be copied to container with correct name 
+            if not decryptFile:
+                return file_name
+            
+            command = f"mv \"{file_path}\" \"/tmp/{file_name}\""
             # Run the tar extraction command in the container
             exit_code, output = container.exec_run(command)
             if exit_code==0:
                 logger.debug(f"APK File moved from file {tar_stream} to the {file_name}")
                 return file_name
-        return
+            else:
+                raise Exception(output)
+        else:
+            raise Exception("Error while uploading apk file to server")
     
     def install_apk(self,service_name_or_id, apk_file_name):
         container = self.docker_client.containers.get(service_name_or_id)
@@ -326,6 +337,11 @@ class ServiceManager(service_manager):
         except Exception as e:
             logger.error("Exception loading the test hostAliases configurations", e)
             return []
+        
+    def get_video_volume(self):
+        info = self.inspect_service("cometa_behave")
+        volume_mounts :list = info['HostConfig']['Binds']
+        return [volume for volume in volume_mounts if volume.find("/data/videos") >= 0][0].split(":")[0]
 
 
     def prepare_emulator_service_configuration(self, image):
@@ -339,13 +355,10 @@ class ServiceManager(service_manager):
         ]
         
         if super().deployment_type == "docker":
-            info = self.inspect_service("cometa_behave")
-            volume_mounts :list = info['HostConfig']['Binds']
-            video_volume = [volume for volume in volume_mounts if volume.find("/opt/code/videos") >= 0][0].split(":")[0]
-            logger.debug("Preparing service configuration")
+            video_volume = self.get_video_volume()
+            logger.debug("Preparing service emulator service configuration for docker")
             self.__service_configuration = {
                 "image": image,  # Replace with your desired image name
-                # "name": "emulator_appium_api_31",  # Replace with your desired container name
                 "detach": True,  # Run the container in the background
                 "working_dir": "/app",  # Set the working directory inside the container
                 "devices": [
@@ -374,20 +387,57 @@ class ServiceManager(service_manager):
         # Generate a random UUID
         random_uuid = str(uuid.uuid4())
         container_image = f"cometa/{browser}:{version}"
-        pod_name = self.get_pod_name(random_uuid)
-        service_name = self.get_service_name(random_uuid)
-        host_mappings = self.get_host_name_mapping()
-
-        pod_selectors = {
-            "browser":browser,
-            "version": version,
-            "Id": random_uuid
-        }
+        self.__service_configuration = { "Id": random_uuid }
+        browser_memory=ConfigurationManager.get_configuration("COMETA_BROWSER_MEMORY","2")
+        browser_cpu=int(ConfigurationManager.get_configuration("COMETA_BROWSER_CPU","1"))
         
-        if super().deployment_type == "docker":
+        host_mappings = self.get_host_name_mapping()
+        
+        if super().deployment_type == "docker":        
+            video_volume = self.get_video_volume()
+            # Flatten the host mappings for `extra_hosts`
+            extra_hosts = [
+                f"{hostname}:{entry['ip']}"
+                for entry in host_mappings
+                for hostname in entry['hostnames']
+            ]
             # Need to implement  this section
-            pass
+            logger.debug("Preparing service browser service configuration for docker")
+
+            self.__service_configuration = {
+                "image": container_image,  # Replace with your desired image name
+                "detach": True,  # Run the container in the background
+                "working_dir": "/opt/scripts",  # Set the working directory inside the container
+                "privileged": True,  # Required to access hardware features and KVM
+                "environment": {
+                    "AUTO_RECORD": "true",
+                    "VIDEO_PATH": "/video",
+                    "SE_VNC_NO_PASSWORD": "1",
+                    "SE_ENABLE_TRACING": "false"
+                },  # Set environment variables
+                "network": "cometa_testing",  # Attach the container to the 'cometa_testing' network
+                "restart_policy": {"Name": "unless-stopped"},
+                "volumes":[
+                    f"{video_volume}:/video"
+                ],  # Mount volumes
+                "extra_hosts": extra_hosts,  # Add custom host mappings
+                "ports": {
+                    "4444/tcp": None,  # Expose Selenium port without mapping to the host
+                    "5900/tcp": None   # Expose VNC port without mapping to the host
+                },
+                "cpu_shares": browser_cpu*1024,  # Translate CPU request/limits to Docker's CPU shares
+                "mem_limit": f"{browser_memory}g"    # Set memory limit
+            }
+            
         else:
+            pod_name = self.get_pod_name(random_uuid)
+            service_name = self.get_service_name(random_uuid)
+            pod_selectors = {
+                "browser":browser,
+                "version": version,
+                "Id": random_uuid
+            }
+        
             # Define the pod manifest
             self.pod_manifest = {
                 "apiVersion": "v1",
@@ -412,18 +462,25 @@ class ServiceManager(service_manager):
                             "image": container_image,
                             "securityContext": {"allowPrivilegeEscalation": True},
                             "resources": {
-                                "limits": {"cpu": "2", "memory": "2Gi"},
+                                "limits": {"cpu": browser_cpu, "memory": f"{browser_memory}Gi"},
                                 "requests": {"cpu": "1", "memory": "1Gi"}
                             },
                             "env": [
                                 {"name": "AUTO_RECORD", "value": "true"},
-                                {"name": "VIDEO_PATH", "value": "/video"}
+                                {"name": "VIDEO_PATH", "value": "/video"},
+                                {"name": "SE_VNC_NO_PASSWORD", "value": "1"},
+                                {"name": "SE_ENABLE_TRACING", "value": "false"}
                             ],
                             "ports": [
                                 {"containerPort": 4444, "protocol": "TCP"},
-                                {"containerPort": 7900, "protocol": "TCP"}
+                                {"containerPort": 5900, "protocol": "TCP"}
                             ],
                             "volumeMounts": [
+                                {
+                                    "name": "cometa-volume",
+                                    "mountPath": "/opt/scripts/video_recorder.sh",
+                                    "subPath": "./scripts/video_recorder.sh"
+                                }, 
                                 {
                                     "name": "cometa-volume",
                                     "mountPath": "/video",
@@ -456,20 +513,19 @@ class ServiceManager(service_manager):
                     "selector": pod_selectors,
                     "ports": [
                         {"name": "selenium", "protocol": "TCP", "port": 4444, "targetPort": 4444},
-                        {"name": "vnc", "protocol": "TCP", "port": 7900, "targetPort": 7900}
+                        {"name": "vnc", "protocol": "TCP", "port": 5900, "targetPort": 5900}
                     ],
                     "type": "ClusterIP"
                 }
             }
             
-            self.__service_configuration = {
-                "Id": random_uuid, 
-                "pod": self.pod_manifest, 
-                "pod_service": self.pod_service_manifest}
+            self.__service_configuration["pod"]= self.pod_manifest, 
+            self.__service_configuration["pod_service"]= self.pod_service_manifest, 
             
         return self.__service_configuration
     
-    def wait_for_selenium_hub_be_up(self, hub_url, timeout=60):
+    
+    def wait_for_selenium_hub_be_up(self,hub_url,timeout=120):
         start_time = time.time()
         interval = 1
         logger.debug(f"Waiting for selenium hub {hub_url} to available")
@@ -490,6 +546,7 @@ class ServiceManager(service_manager):
             logger.debug(f"Waiting for Selenium Hub to be available... (retrying in {interval} seconds)")
             time.sleep(interval)
 
+
     def remove_all_service(self,container_services):
         # Delete all the services which were started during test
         for service in container_services:
@@ -498,6 +555,5 @@ class ServiceManager(service_manager):
             service_manager.delete_service(
                 service_name_or_id=service['Id']
             )
-
 
     
