@@ -27,6 +27,7 @@ spec:
         runAsGroup: 472
         runAsNonRoot: true
         runAsUser: 472
+      
       containers:
       - name: cometa-behave-container
         image: cometa/behave:1.1
@@ -51,6 +52,9 @@ spec:
           mountPath: /data/department_data
           subPath: ./data/department_data
         - name: cometa-volume
+          mountPath: /code/config
+          subPath: ./data/cometa/config
+        - name: cometa-volume
           mountPath: /data/test/html
           subPath: ./data/html
         - name: cometa-volume
@@ -59,6 +63,9 @@ spec:
         - name: cometa-volume
           mountPath: /data/logs
           subPath: ./share/code/behave/logs
+        - name: cometa-volume
+          mountPath: /share/certs
+          subPath: ./data/redis/certs
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -89,6 +96,10 @@ spec:
           requests:
             cpu: "1"
             memory: "1Gi"
+      
+
+        hostAliases:
+        
       volumes:
       - name: cometa-volume
         persistentVolumeClaim:

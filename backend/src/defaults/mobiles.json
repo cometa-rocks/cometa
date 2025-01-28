@@ -4,7 +4,7 @@
         "pk": 1,
         "fields": {
             "mobile_id": 1,
-            "mobile_name": "Android_13.0_API33_x86_64",
+            "mobile_image_name": "Android_13.0_API33_x86_64",
             "mobile_json": {
                 "image": "cometa/emulator:Android_13.0_API33_x86_64",
                 "api_level": "33",
@@ -27,7 +27,7 @@
         "pk": 2,
         "fields": {
             "mobile_id": 2,
-            "mobile_name": "Android_14.0_API34_x86_64",
+            "mobile_image_name": "Android_14.0_API34_x86_64",
             "mobile_json": {
                 "image": "cometa/emulator:Android_14.0_API34_x86_64",
                 "api_level": "34",
@@ -47,10 +47,10 @@
     },
     {
         "model": "mobile.Mobile",
-        "pk": 2,
+        "pk": 3,
         "fields": {
             "mobile_id": 3,
-            "mobile_name": "Android_12.0_API31_x86_64",
+            "mobile_image_name": "Android_12.0_API31_x86_64",
             "mobile_json": {
                 "image": "cometa/emulator:Android_12.0_API31_x86_64",
                 "api_level": "31",

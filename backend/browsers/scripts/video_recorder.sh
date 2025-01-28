@@ -59,7 +59,7 @@ function auto_record() {
         # Check if there is a test running that matches the conditions
         no_test=true
         while $no_test; do
-            task=$(curl -s http://localhost:4444/status | jq -r '.value.nodes[].slots[] | select(.session != null) | .session.sessionId' | sed 's/-//g')
+            task=$(curl -s http://localhost:4444/status | jq -r '.value.nodes[].slots[] | select(.session != null and .session.capabilities["cometa:options"].record_video == true) | .session.sessionId' | sed 's/-//g')
             if [ -z "$task" ]; then
                 sleep 2
                 echo "Waiting for the test to start"
@@ -72,7 +72,7 @@ function auto_record() {
 
         # Check if the test is finished
         while [ $no_test = false ]; do
-            task=$(curl -s http://localhost:4444/status | jq -r '.value.nodes[].slots[] | select(.session != null) | .session.sessionId' | sed 's/-//g')
+            task=$(curl -s http://localhost:4444/status | jq -r '.value.nodes[].slots[] | select(.session != null and .session.capabilities["cometa:options"].record_video == true) | .session.sessionId' | sed 's/-//g')
             if [ -z "$task" ]; then
                 stop
                 no_test=true

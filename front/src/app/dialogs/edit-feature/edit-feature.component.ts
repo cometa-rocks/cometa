@@ -7,7 +7,8 @@ import {
   HostListener,
   OnDestroy,
   ChangeDetectorRef,
-  Renderer2
+  Renderer2,
+  ɵɵtrustConstantResourceUrl
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
@@ -57,6 +58,7 @@ import { noWhitespaceValidator, deepClone } from 'ngx-amvara-toolbox';
 import { StepDefinitions } from '@store/actions/step_definitions.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
+import { ActionsState } from '@store/actions.state';
 import { finalize, switchMap } from 'rxjs/operators';
 import {
   AreYouSureData,
@@ -162,7 +164,6 @@ export class EditFeature implements OnInit, OnDestroy {
   @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
   @Select(VariablesState) variableState$: Observable<VariablePair[]>;
   
-
   saving$ = new BehaviorSubject<boolean>(false);
 
   departmentSettings$: Observable<Department['settings']>;
@@ -207,6 +208,9 @@ export class EditFeature implements OnInit, OnDestroy {
   @Select(FeaturesState.GetStateDAta) state$: Observable<
     ReturnType<typeof FeaturesState.GetStateDAta>
   >;
+
+  // Step actions
+  @Select(ActionsState) actions$: Observable<Action[]>;
 
   featureForm: UntypedFormGroup;
 
@@ -742,8 +746,19 @@ export class EditFeature implements OnInit, OnDestroy {
 
   @ViewChild(BrowserSelectionComponent, { static: false })
   _browserSelection: BrowserSelectionComponent;
+  configuration_value_boolean: boolean = false;
 
   ngOnInit() {
+
+    this._api.getCometaConfigurations().subscribe(res => {
+
+      const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
+      
+      if (config_feature_mobile) {
+        this.configuration_value_boolean = config_feature_mobile.configuration_value === 'True';
+      }
+    })
+
     // Connection with the service who is connected with Step-editor
     this.inputFocusSubscription = this.inputFocusService.inputFocus$.subscribe(isFocused => {
       this.inputFocus = isFocused;
