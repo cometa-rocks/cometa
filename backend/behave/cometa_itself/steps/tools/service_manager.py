@@ -137,6 +137,9 @@ class DockerServiceManager:
         container = self.docker_client.containers.run(**configuration)
         return container.attrs
 
+    def get_service_name(self, uuid):
+        return self.inspect_service(uuid)['Config']['Hostname']             
+
     # This method will create the container base on the environment
     def wait_for_service_to_be_running(
         self, service_name_or_id, max_wait_time_seconds=30
@@ -341,6 +344,12 @@ class ServiceManager(service_manager):
         except Exception as e:
             logger.error("Exception loading the test hostAliases configurations", e)
             return []
+        
+    def get_video_volume(self):
+        info = self.inspect_service("cometa_behave")
+        volume_mounts :list = info['HostConfig']['Binds']
+        return [volume for volume in volume_mounts if volume.find("/data/videos") >= 0][0].split(":")[0]
+
 
     def prepare_emulator_service_configuration(self, image):
         host_mappings = self.get_host_name_mapping()
@@ -353,10 +362,8 @@ class ServiceManager(service_manager):
         ]
         
         if super().deployment_type == "docker":
-            info = self.inspect_service("cometa_behave")
-            volume_mounts :list = info['HostConfig']['Binds']
-            video_volume = [volume for volume in volume_mounts if volume.find("/opt/code/videos") >= 0][0].split(":")[0]
-            logger.debug("Preparing service configuration")
+            video_volume = self.get_video_volume()
+            logger.debug("Preparing service emulator service configuration for docker")
             self.__service_configuration = {
                 "image": image,  # Replace with your desired image name
                 "detach": True,  # Run the container in the background
@@ -386,21 +393,57 @@ class ServiceManager(service_manager):
         # Generate a random UUID
         random_uuid = str(uuid.uuid4())
         container_image = f"cometa/{browser}:{version}"
-        pod_name = self.get_pod_name(random_uuid)
-        service_name = self.get_service_name(random_uuid)
-        host_mappings = self.get_host_name_mapping()
-                
-        pod_selectors = {
-            "browser":browser,
-            "version": version,
-            "Id": random_uuid
-        }
+        self.__service_configuration = { "Id": random_uuid }
+        browser_memory=ConfigurationManager.get_configuration("COMETA_BROWSER_MEMORY","2")
+        browser_cpu=int(ConfigurationManager.get_configuration("COMETA_BROWSER_CPU","1"))
         
-        if super().deployment_type == "docker":
+        host_mappings = self.get_host_name_mapping()
+        
+        if super().deployment_type == "docker":        
+            video_volume = self.get_video_volume()
+            # Flatten the host mappings for `extra_hosts`
+            extra_hosts = [
+                f"{hostname}:{entry['ip']}"
+                for entry in host_mappings
+                for hostname in entry['hostnames']
+            ]
             # Need to implement  this section
-            pass
-        else:
+            logger.debug("Preparing service browser service configuration for docker")
+
+            self.__service_configuration = {
+                "image": container_image,  # Replace with your desired image name
+                "detach": True,  # Run the container in the background
+                "working_dir": "/opt/scripts",  # Set the working directory inside the container
+                "privileged": True,  # Required to access hardware features and KVM
+                "environment": {
+                    "AUTO_RECORD": "true",
+                    "VIDEO_PATH": "/video",
+                    "SE_VNC_NO_PASSWORD": "1",
+                    "SE_ENABLE_TRACING": "false"
+                },  # Set environment variables
+                "network": "cometa_testing",  # Attach the container to the 'cometa_testing' network
+                "restart_policy": {"Name": "unless-stopped"},
+                "volumes":[
+                    f"{video_volume}:/video"
+                ],  # Mount volumes
+                "extra_hosts": extra_hosts,  # Add custom host mappings
+                "ports": {
+                    "4444/tcp": None,  # Expose Selenium port without mapping to the host
+                    "5900/tcp": None   # Expose VNC port without mapping to the host
+                },
+                "cpu_shares": browser_cpu*1024,  # Translate CPU request/limits to Docker's CPU shares
+                "mem_limit": f"{browser_memory}g"    # Set memory limit
+            }
             
+        else:
+            pod_name = self.get_pod_name(random_uuid)
+            service_name = self.get_service_name(random_uuid)
+            pod_selectors = {
+                "browser":browser,
+                "version": version,
+                "Id": random_uuid
+            }
+        
             # Define the pod manifest
             self.pod_manifest = {
                 "apiVersion": "v1",
@@ -425,7 +468,7 @@ class ServiceManager(service_manager):
                             "image": container_image,
                             "securityContext": {"allowPrivilegeEscalation": True},
                             "resources": {
-                                "limits": {"cpu": "2", "memory": "2Gi"},
+                                "limits": {"cpu": browser_cpu, "memory": f"{browser_memory}Gi"},
                                 "requests": {"cpu": "1", "memory": "1Gi"}
                             },
                             "env": [
@@ -482,10 +525,8 @@ class ServiceManager(service_manager):
                 }
             }
             
-            self.__service_configuration = {
-                "Id": random_uuid, 
-                "pod": self.pod_manifest, 
-                "pod_service": self.pod_service_manifest}
+            self.__service_configuration["pod"]= self.pod_manifest, 
+            self.__service_configuration["pod_service"]= self.pod_service_manifest, 
             
         return self.__service_configuration
     
