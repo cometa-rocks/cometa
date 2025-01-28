@@ -81,7 +81,7 @@ RUN touch /usr/local/apache2/logs/error_log /usr/local/apache2/logs/access.log \
 COPY start_server.sh start_server.sh
 
 RUN chown -R www-data:www-data /usr/local/apache2/logs
-RUN chmod -R 755 /usr/local/apache2/logs
+RUN chmod -R 777 /usr/local/apache2/logs
 
 RUN touch /usr/local/apache2/logs/error_log
 RUN touch /usr/local/apache2/logs/access.log
@@ -103,3 +103,4 @@ ENTRYPOINT ["start_server.sh"]
 
 # Command for multi-architecture build:
 # docker buildx build --platform linux/amd64,linux/arm64 -t cometa/front:0.1.1 --push .
+# docker build -t cometa/front:3.0.6 --push .

@@ -63,6 +63,13 @@ S3ENABLED = ConfigurationManager.get_configuration("COMETA_S3_ENABLED", False) =
 ENCRYPTION_START = ConfigurationManager.get_configuration("COMETA_ENCRYPTION_START", "")
 COMETA_AI_ENABLED =  ConfigurationManager.get_configuration("COMETA_FEATURE_AI_ENABLED", False) == "True"
 IS_KUBERNETES_DEPLOYMENT = ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker") == "kubernetes"
+USE_COMETA_BROWSER_IMAGES = ConfigurationManager.get_configuration("USE_COMETA_BROWSER_IMAGES", "True") == "True"
+
+if IS_KUBERNETES_DEPLOYMENT:
+    # Since only cometa custom browser images are compatible with the kubernetes environment,
+    # So if using kubernetes environment must use the cometa browser images from docker hub
+    USE_COMETA_BROWSER_IMAGES = True
+
 logger.debug(f'##################### Deployment environment {ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker")} ##############################')
 # FIXME to take this value from department information
 REDIS_IMAGE_ANALYSYS_QUEUE_NAME = ConfigurationManager.get_configuration(
@@ -319,21 +326,21 @@ def before_all(context):
     
     context.service_manager = ServiceManager()
     
-    if IS_KUBERNETES_DEPLOYMENT:
-        logger.debug(f"This is kubernetes deployment, creating browser pod")
+    if USE_COMETA_BROWSER_IMAGES:
+        logger.debug(f"Using cometa browsers, Starting browser ")
         logger.debug(f"Browser_info : {context.browser_info}")
 
-        service_configuration = context.service_manager.prepare_browser_service_configuration(
+        service_details = context.service_manager.prepare_browser_service_configuration(
             browser=context.browser_info["browser"],
             version=context.browser_info["browser_version"]
         )
-        if not context.service_manager.create_service():
-            raise Exception("Error while starting browser in the pod, Please contact administrator")    
-        
+        service_details = context.service_manager.create_service()
+        if not service_details:
+            raise Exception("Error while starting browser, Please contact administrator")    
         # Save container details in the browser_info, which then gets saved in the feature results browser 
-        context.browser_info["container_service"] = {"Id":service_configuration["Id"]}
-        context.container_services.append(service_configuration)
-        browser_hub_url = context.service_manager.get_service_name(service_configuration['Id'])
+        context.browser_info["container_service"] = {"Id":service_details["Id"]}
+        context.container_services.append(service_details)
+        browser_hub_url = context.service_manager.get_service_name(service_details['Id'])
         connection_url = f"http://{browser_hub_url}:4444/wd/hub"
         status_check_connection_url = f"http://{browser_hub_url}:4444/status"
         context.service_manager.wait_for_selenium_hub_be_up(status_check_connection_url)

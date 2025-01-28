@@ -34,7 +34,8 @@ ENCRYPTION_START = ConfigurationManager.get_configuration('COMETA_ENCRYPTION_STA
 # setup logging
 logger = logging.getLogger('FeatureExecution')
 
-
+# Validates if a selector is present in the browser within a given time and saves the result to a variable.
+# Example: Validate if "div#content" present in the browser in "5" seconds and save result in "$is_present"
 @step(u'Validate if "{selector}" present in the browser in "{time}" seconds and save result in "{variable}"')
 @done(u'Validate if "{selector}" present in the browser in "{time}" seconds and save result in "{variable}"')
 def validate_element_presence(context, selector, time, variable):
@@ -57,6 +58,8 @@ def validate_element_presence(context, selector, time, variable):
     send_step_details(context, f"Presence validation result for '{selector}' saved to variable '{variable}': {result}")
 
 
+# Validates if a selector is visible in the browser within a given time and saves the result to a variable.
+# Example: Validate if "button.submit" appeared in the browser in "10" seconds and save result in "$is_visible"
 @step(u'Validate if "{selector}" appeared in the browser in "{time}" seconds and save result in "{variable}"')
 @done(u'Validate if "{selector}" appeared in the browser in "{time}" seconds and save result in "{variable}"')
 def validate_element_visibility(context, selector, time, variable):

@@ -1,0 +1,40 @@
+services:
+
+  # Use this command to have mutiple containers of ollama.ai
+  # docker-compose -f docker-compose.yml up --scale cometa.emulator=3
+  cometa-emulator:
+    build:
+      context: ./emulator
+      dockerfile: Dockerfile
+    # image: cometa/emulator:Android_12.0_API34_x86_64  # Specify the build image name
+    # container_name: cometa-mobile-emulator
+    # ports:
+    # - "5724:4723" #appium
+    # - "5085:6080"
+    # - "5908:5900"
+    
+    working_dir: /app 
+    devices:
+      - "/dev/kvm:/dev/kvm"  # Pass KVM device for hardware acceleration
+    privileged: true  # Required for KVM and to access hardware features
+    environment:
+      - DISPLAY=:0
+      - AUTO_RECORD=true
+    networks:
+      - testing
+    restart: always
+
+  # mobile-novnc:
+  #   build: 
+  #     context: .  # Build context, specifying the current directory
+  #     dockerfile: DockerfileNoVNC  # Reference to the Dockerfile
+  #   container_name: mobile-novnc
+  #   ports:
+  #   - "6089:6081"
+
+networks:
+  testing:
+    driver: "bridge"
+
+volumes:
+  mobile_build:

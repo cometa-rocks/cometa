@@ -86,6 +86,9 @@ spec:
           mountPath: /data/pdf
           subPath: ./data/cometa/pdf
         - name: cometa-volume
+          mountPath: /code/config
+          subPath: ./data/cometa/config
+        - name: cometa-volume
           mountPath: /data/downloads
           subPath: ./data/cometa/downloads
         - name: cometa-volume
