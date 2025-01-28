@@ -83,7 +83,6 @@ INSTALLED_APPS = [
 
 MIGRATION_MODULES = {
     'backend': 'migrations.backend',
-    'humanize': 'migrations.humanize',
     'ManagementCommandLogConfig': 'migrations.ManagementCommandLogConfig',
     'mobile': 'migrations.mobile',
     'configuration': 'migrations.configuration',
