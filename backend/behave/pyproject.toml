@@ -40,6 +40,11 @@ jq = "^1.6.0"
 behave = "^1.2.6"
 bs4 = "^0.0.2"
 pypdf = "3.17.0"
+psycopg = {extras = ["binary"], version = "^3.2.4"}
+pyodbc = "^5.2.0"
+cx-oracle = "^8.3.0"
+pymongo = "^4.10.1"
+mysql-connector-python = "<9.0.0"
 
 [tool.poetry.dev-dependencies]
 
