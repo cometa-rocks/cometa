@@ -3,6 +3,22 @@
 # AMVARA CONSULTING S.L. - 2024
 # #########################################
 
+
+mkdir -p /usr/local/apache2/htdocs/infra
+
+# Create the HTML file with the content
+cat <<EOF > "usr/local/apache2/htdocs/infra/lbtest1.html"
+<html>
+  <head>
+    <title>LB Test #1</title>
+  </head>
+  <body>
+    <p>Status: OK</p>
+  </body>
+</html>
+EOF
+
+
 # #########
 # This function checks if self signed SSL certificate exists
 # and it is not expired if so or missing it will create one
