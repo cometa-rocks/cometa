@@ -119,6 +119,8 @@ python manage.py makemigrations backend
 python manage.py makemigrations security
 python manage.py makemigrations housekeeping
 python manage.py makemigrations configuration
+python manage.py makemigrations container_service
+python manage.py makemigrations mobile
 python manage.py migrate
 
 # if this is the first time initializing co.meta

@@ -47,7 +47,7 @@
     },
     {
         "model": "mobile.Mobile",
-        "pk": 2,
+        "pk": 3,
         "fields": {
             "mobile_id": 3,
             "mobile_name": "Android_12.0_API31_x86_64",
