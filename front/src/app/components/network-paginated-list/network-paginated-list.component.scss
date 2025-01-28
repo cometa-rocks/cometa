@@ -1,7 +1,9 @@
+@import 'breakpoints';
 @import 'color';
 
 .paginated-rows {
   overflow-y: auto;
+  margin-bottom: 60px;
 }
 
 .header {
@@ -19,6 +21,13 @@
   font-size: 1.4rem;
   line-height: 40px;
   font-weight: bold;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #F2F2F2;
+  box-shadow: 0 2px 3px 1px rgba(0, 0, 0, 0.3),
+  0 10px 2px 0 rgba(0, 0, 0, 0.2),
+  0 2px 6px 0 rgba(0, 0, 0, 10.15);
   &::ng-deep .mat-spinner {
     margin-top: 10px;
   }
@@ -66,4 +75,138 @@
 
 .item {
   height: 50px;
+}
+
+// .container-button-fails {
+//   width: 100%;
+// }
+
+.container-button-fails {
+  margin-right: auto;
+}
+
+.container-number-fails {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: 0 2px 3px 1px rgba(0, 0, 0, 0.3),
+              0 10px 2px 0 rgba(0, 0, 0, 0.2),
+              0 2px 6px 0 rgba(0, 0, 0, 0.15);
+  padding: 0;
+  display: flex;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.container-fails {
+  display: flex;
+  position: fixed;
+  top: 25%;
+  left: 25%;
+  background-color: bisque;
+  width: 60%;
+  height: 50%;
+  border-radius: 5px;
+  box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+}
+
+.fails {
+  width: 100%;
+  height: 15%;
+}
+
+
+.step-row {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  min-height: 53px;
+  box-sizing: border-box;
+  font-weight: bold;
+  cursor: pointer;
+  padding-right: 10px;
+  @include for-tablet-portrait-up {
+    padding-right: 0;
+  }
+  &:nth-child(odd) {
+    background-color: #e6e6e6;
+    border-bottom: 2px solid rgba(black, 0.05);
+  }
+  &:nth-child(even) {
+    background-color: #f2f2f2;
+    border-bottom: 2px solid rgba(black, 0.1);
+  }
+  &:hover .name {
+    color: $blue;
+  }
+  .status-bar {
+    flex: 0 5px;
+    max-width: 5px;
+    height: 100%;
+    &.success, &.Success {
+      background-color: $good;
+    }
+    &.failed, &.Failed {
+      background-color: $bad;
+    }
+    &.skipped, &.Skipped {
+      background-color: rgb(204, 204, 129);
+    }
+    @include for-tablet-portrait-up {
+      display: none;
+    }
+  }
+  .name {
+    max-width: 90%;
+    padding-left: 10px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 0.9rem;
+    @include for-tablet-portrait-up {
+      padding-left: 20px;
+      font-size: 1rem;
+    }
+    .step-index {
+      margin-right: 15px;
+      color: $blue;
+      min-width: 30px;
+      text-align: center;
+      display: none;
+      @include for-tablet-portrait-up {
+        display: initial;
+      }
+    }
+    .step-content {
+      max-width: 100%;
+      // padding: 10px 0; prevents step row from increasing its height when custom error message has to be displayed, thus causing content overflow
+      .feature-reference,
+      .step-error {
+        font-size: 0.8rem;
+        margin-bottom: 3px;
+        display: inline-flex;
+        position: relative;
+        transform: translate3d(0, 0, 0);
+        transition: transform 0.15s ease-in-out;
+      }
+
+      .feature-reference {
+        color: rgba(black, 0.55);
+        &:hover {
+          transform: translate3d(10px, 0, 0);
+        }
+      }
+
+      .step-name,
+      .step-error {
+        word-break: break-all;
+      }
+
+      .step-error {
+        max-width: 100%;
+        color: $bad;
+      }
+    }
+  }
 }
