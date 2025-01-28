@@ -686,71 +686,6 @@
                         </div>
                       </ng-template>
 
-                      <!-- Button more vert (modify etc) -->
-                      <div class="mobile-details">
-                        <button
-                          matTooltip="Emulator options"
-                          matTooltipPosition="above"
-                          class="emulatorOptions"
-                          mat-icon-button
-                          [matMenuTriggerFor]="emulatorOptions">
-                          <mat-icon>more_vert</mat-icon>
-                        </button>
-
-                        <mat-menu #emulatorOptions="matMenu">
-                          <!-- Start -->
-                          <button
-                            (click)="startMobile(mobile.mobile_id)"
-                            class="startMenu"
-                            [matTooltip]="'tooltips.run_feature' | translate"
-                            matTooltipPosition="after"
-                            mat-menu-item>
-                            <mat-icon>play_circle_filled</mat-icon>
-                            <span>Start</span>
-                          </button>
-
-                          <!-- Restart -->
-                          <button
-                            (click)="restartMobile(runningContainer)"
-                            class="restartMenu"
-                            mat-menu-item>
-                            <img alt="Not started icon" src="assets/not_started.svg">
-                            <span>Restart</span>
-                          </button>
-
-                          <!-- Pause -->
-                          <button
-                            (click)="pauseMobile(mobile.mobile_id)"
-                            class="pauseMenu"
-                            mat-menu-item>
-                            <mat-icon>pause_circle_filled</mat-icon>
-                            <span>Pause</span>
-                          </button>
-
-                          <mat-divider></mat-divider>
-
-                          <!-- Modify -->
-                          <button
-                            (click)="openModifyEmulatorDialog()"
-                            class="modifyMenu"
-                            mat-menu-item>
-                            <mat-icon>edit</mat-icon>
-                            <span>Modify</span>
-                          </button>
-
-                          <mat-divider></mat-divider>
-
-                          <!-- Close -->
-                          <button
-                            (click)="terminateMobile(runningContainer)"
-                            class="closeMenu"
-                            mat-menu-item>
-                            <mat-icon class="close-icon">close</mat-icon>
-                            <span>Close</span>
-                          </button>
-                        </mat-menu>
-                      </div>
-
                       <!-- Mobile details -->
                       <!-- <div class="view-selector">
                         <div
@@ -769,6 +704,19 @@
                         </div>
                       </div> -->
                       <div class="mobile-details">
+                        <button
+                          matTooltip="Emulator options"
+                          matTooltipPosition="above"
+                          stopPropagation
+                          class="emulatorOptions"
+                          mat-icon-button
+                          [matMenuTriggerFor]="featureOptions">
+                          <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <!-- <h4>
+                          Mobile Information
+                        </h4>
+                        <mat-divider></mat-divider> -->
                         <div class="mobile-information">
                           <div class="emulator-info">
                             <i class="material-icons">adb</i>
@@ -826,7 +774,7 @@
                                 matTooltip="Show more information"
                                 matTooltipPosition="above"
                                 mat-icon-button
-                                [matMenuTriggerFor]="apkResults">
+                                [matMenuTriggerFor]="featureOptions">
                                 <mat-icon>more_vert</mat-icon>
                               </button>
                               <span>
@@ -834,7 +782,7 @@
                               </span>
                             </div>
 
-                            <mat-menu #apkResults="matMenu">
+                            <mat-menu #featureOptions="matMenu">
                               <mat-menu-item class="pop-up-info">
                                 <ng-container *ngIf="runningContainer">
                                   <mat-menu-item>
