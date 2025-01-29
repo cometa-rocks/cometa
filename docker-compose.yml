@@ -20,10 +20,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa:/data:rw
-      # - ./data/cometa/screenshots:/data/screenshots
-      # - ./data/cometa/videos:/data/videos
-      # - ./data/cometa/pdf:/data/pdf
-      # - ./data/cometa/downloads:/data/downloads:rw
+      - ./data/cometa/screenshots:/data/screenshots
+      - ./data/cometa/videos:/data/videos
+      - ./data/cometa/pdf:/data/pdf
+      - ./data/cometa/downloads:/data/downloads:rw
       - ./data/department_data:/data/department_data:rw
       - ./data/cometa/config:/code/config:rw
       - ./data/django/migrations:/opt/code/migrations:rw
@@ -57,9 +57,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa:/data:rw
-      # - ./data/cometa/screenshots:/data/screenshots
-      # - ./data/cometa/downloads:/data/test/downloads
-      # - ./data/cometa/videos:/data/videos
+      - ./data/cometa/screenshots:/data/screenshots
+      - ./data/cometa/downloads:/data/test/downloads
+      - ./data/cometa/videos:/data/videos
       - ./data/department_data:/data/department_data:rw
       - ./data/cometa/config:/code/config:rw
       - ./data/redis/certs:/share/certs
