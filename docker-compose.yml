@@ -66,7 +66,7 @@ services:
       - ./data/django/logs:/opt/code/logs
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
-    command: /opt/code/entry.sh
+    command: "/opt/code/behave_django/entry.sh"
     working_dir: /opt/code/behave_django
     environment:
       PYTHONUNBUFFERED: 1

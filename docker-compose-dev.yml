@@ -65,7 +65,7 @@ services:
       - ./data/django/logs:/opt/code/logs
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
-    command: /opt/code/entry.sh -dev
+    command: "/opt/code/behave_django/entry.sh"
     # command:     sleep infinity
     working_dir: /opt/code/behave_django
     environment:
