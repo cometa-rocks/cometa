@@ -151,7 +151,7 @@ class AuthenticationMiddleware:
             return JsonResponse({
                 "success": False, 
                 "error": """
-                Unable to determin user information.
+                Unable to determine user information.
                 This could mean that oAuth provider did not return user information.
                 
                 Try again later or please contact us @ %s
