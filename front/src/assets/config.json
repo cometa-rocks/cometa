@@ -1,5 +1,5 @@
 {
-  "version": "3.0.6",
+  "version": "3.0.7",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.7",
+      "date": "2025-01-29",
+      "features": [
+        {
+          "title": "#5519 Deployment improvement of front container with ",
+          "description": ""
+        }
+      ]
+    },
     {
       "version": "3.0.6",
       "date": "2024-12-23",
