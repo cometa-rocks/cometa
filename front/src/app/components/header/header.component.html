@@ -22,7 +22,7 @@
         class="icon" 
         [routerLink]="['/my-account']" 
         routerLinkActive="active"
-        [matTooltip]="('header.profile' | translate) + ' \n Name: ' + (account$ | async)?.name + ' \n Email: ' + (account$ | async)?.email" matTooltipPosition="below"
+        [matTooltip]="('header.profile' | translate) + '\n' + (account$ | async)?.name + '\n' + (account$ | async)?.email" matTooltipPosition="below"
         aria-label="Open profile">
         <i class="user"></i>
       </div>
