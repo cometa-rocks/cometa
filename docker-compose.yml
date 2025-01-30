@@ -19,12 +19,13 @@ services:
     command: bash start.sh
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/cometa:/data:rw
       - ./data/cometa/screenshots:/data/screenshots
       - ./data/cometa/videos:/data/videos
       - ./data/cometa/pdf:/data/pdf
       - ./data/cometa/downloads:/data/downloads:rw
-      - ./data/cometa/config:/code/config:rw
       - ./data/department_data:/data/department_data:rw
+      - ./data/cometa/config:/code/config:rw
       - ./data/django/migrations:/opt/code/migrations:rw
       - ./data/django/logs:/opt/code/logs:rw
       - ./data/django/clamav:/var/lib/clamav:rw
@@ -55,16 +56,17 @@ services:
         condition: service_healthy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/cometa:/data:rw
       - ./data/cometa/screenshots:/data/screenshots
       - ./data/cometa/downloads:/data/test/downloads
       - ./data/cometa/videos:/data/videos
+      - ./data/department_data:/data/department_data:rw
       - ./data/cometa/config:/code/config:rw
-      - ./data/department_data:/data/department_data
       - ./data/redis/certs:/share/certs
       - ./data/django/logs:/opt/code/logs
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
-    command: /opt/code/entry.sh
+    command: "/opt/code/behave_django/entry.sh"
     working_dir: /opt/code/behave_django
     environment:
       PYTHONUNBUFFERED: 1
@@ -133,22 +135,24 @@ services:
   # Since this a deployment file, build image is used to start cometa_front 
   # n the build pipeline 
   apache:
-    image: "cometa/front:latest"
+    image: "cometa/front:3.0.7"
     container_name: cometa_front
     volumes:
-    
-      - ./front/apache-conf/metadata:/code/front/apache-conf/metadata
-      - ./front/apache-conf:/usr/local/apache2/conf
-      - ./front/apache-conf/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
+      - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
+      - ./data/front/apache2/conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./data/front/apache2/conf/openidc.conf:/usr/local/apache2/conf/openidc.conf
+      - ./data/front/apache2/conf/paths.conf:/usr/local/apache2/conf/paths.conf
+      - ./data/front/apache2/modules/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
       - ./data/front/apache2/certs:/share/apache2/certs
       - ./data/cometa/screenshots:/screenshots
+      - ./front/start_server.sh:/code/front/start_server.sh
       # Use below line to mount the company logo in the login page
       # - /share/front/apache2/icons/{{COMPANY}}.svg:/usr/local/apache2/htdocs/assets/icons/{{COMPANY}}.svg
-          
+
     working_dir: /code/front
     privileged: true
     ports:
-      - "<outside_port>:80"
+      - "80:80"
       - "443:443"
     entrypoint: bash /code/front/start_server.sh
     environment:

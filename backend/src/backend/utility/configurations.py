@@ -81,6 +81,9 @@ default_cometa_configurations = {
     "USE_COMETA_BROWSER_IMAGES": False,
     "COMETA_BROWSER_MEMORY": "2",
     "COMETA_BROWSER_CPU": "2",
+    # having password hardcoded does not create a security issue, because this communication is internal
+    # this can be always changed to a more secure password
+    "COMETA_BROWSER_VNC_PASSWORD":"secret",
 }
 
 
