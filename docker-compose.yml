@@ -145,6 +145,7 @@ services:
       - ./data/front/apache2/modules/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
       - ./data/front/apache2/certs:/share/apache2/certs
       - ./data/cometa/screenshots:/screenshots
+      - ./data/cometa/videos:/videos
       - ./front/start_server.sh:/code/front/start_server.sh
       # Use below line to mount the company logo in the login page
       # - /share/front/apache2/icons/{{COMPANY}}.svg:/usr/local/apache2/htdocs/assets/icons/{{COMPANY}}.svg
