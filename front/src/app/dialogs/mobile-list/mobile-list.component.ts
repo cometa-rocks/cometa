@@ -1,3 +1,4 @@
+import { Subscribe } from 'ngx-amvara-toolbox';
 import {
   Component,
   ChangeDetectionStrategy,
@@ -63,7 +64,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { timeStamp } from 'console';
 import { Key } from 'readline';
-// import { ModifyEmulatorDialogComponent } from '@dialogs/mobile-list/modify-emulator-dialog/modify-emulator-dialog.component';
+import { ModifyEmulatorDialogComponent } from '@dialogs/mobile-list/modify-emulator-dialog/modify-emulator-dialog.component';
 
 
 /**
@@ -164,7 +165,6 @@ export class MobileListComponent implements OnInit {
     this._api.getCometaConfigurations().subscribe(res => {
 
       const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
-      // console.log("config_feature_mobile: ", !!JSON.parse(config_feature_mobile.configuration_value.toLowerCase()));
       if (config_feature_mobile) {
         this.configValueBoolean = !!JSON.parse(config_feature_mobile.configuration_value.toLowerCase());
       }
@@ -195,11 +195,9 @@ export class MobileListComponent implements OnInit {
         this._store.select(UserState.RetrieveUserDepartments).pipe(
           map(departments => JSON.parse(JSON.stringify(departments)))
         ).subscribe(departments => {
-          // console.log('Departamentos cargados:', departments);
           this.departments = departments;
           this.departments.forEach(department => {
             const depData = JSON.parse(JSON.stringify(department));
-            // console.log('Archivos APK para el departamento:', depData.files);
             this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
           })
         });
@@ -234,18 +232,15 @@ export class MobileListComponent implements OnInit {
                 this.showSpinnerFor(container.id);
               }
 
-              // console.log("Conainer-shared, user-id, created by: ", container.shared, this.user.user_id, container.created_by)
               if (container.shared && this.user.user_id != container.created_by) {
                 container.image = this.mobiles.find( m => m.mobile_id === container.image);
 
-                // console.log("Dialogo: ", this.isDialog)
                 if(this.isDialog){
                   container.apk_file = this.data.uploadedAPKsList.find(
                     m => m.mobile_id === container.apk_file
                   );
                 }
                 else{
-                  // console.log("Im inside")
                   this.departments.forEach(department => {
                     // this.logger.msg("1", "CO-departmentid:", "mobile-list", department.department_id);
                     // this.logger.msg("1", "CO-containerid:", "mobile-list", container.id);
@@ -545,6 +540,13 @@ export class MobileListComponent implements OnInit {
     );
   }
 
+  handleMobileState(container: Container): void {
+    if (container.service_status === 'Running') {
+      this.pauseMobile(container); // Si está corriendo, lo pausamos
+    } else if (container.service_status === 'Stopped') {
+      this.restartMobile(container); // Si está detenido, lo reiniciamos
+    }
+  }
 
   inspectMobile(container: Container, mobile: IMobile): void {
     let host = window.location.hostname;
@@ -621,24 +623,37 @@ export class MobileListComponent implements OnInit {
     this.selectionsDisabled = true;
   }
 
-  // openModifyEmulatorDialog() {
-  //   let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk'));
-  //   const departmentId = this.departments$.find(
-  //     dep =>
-  //       dep.department_name === this.featureForm.get('department_name').value
-  //   ).department_id;
+  openModifyEmulatorDialog() {
 
-  //   this._dialog
-  //     .open(ModifyEmulatorDialogComponent, {
-  //       data: {
-  //         department_id: departmentId,
-  //         uploadedAPKsList: uploadedAPKsList
-  //       },
-  //       panelClass: 'mobile-emulator-panel-dialog',
-  //     })
-  //     .afterClosed()
-  //     .subscribe(res => {
-  //     });
-  // }
+    let uploadedApksList = this.departments
+    .filter(department => department.department_id === this.selectedDepartment?.id)
+    .map(department => department.files || [])
+    .reduce((acc, files) => acc.concat(files), []);
+
+    // this.departments.forEach( department => {
+    //   department.name
+    // })
+
+    let departmentName = this.departments.filter(
+      department => department.department_id === this.selectedDepartment?.id)
+      .map(department => department.department_name || []);
+
+      this.logger.msg("1", "CO-Departments:", "mobile-list", departmentName);
+
+    this._dialog
+      .open(ModifyEmulatorDialogComponent, {
+        data: {
+          department_name: departmentName,
+          department_id: this.selectedDepartment.id,
+          uploadedAPKsList: uploadedApksList
+        },
+        height: '65vh',
+        width: '80vw',
+        panelClass: 'mobile-emulator-panel-dialog',
+      })
+      .afterClosed()
+      .subscribe(res => {
+      });
+  }
 
 }
