@@ -1,5 +1,5 @@
 {
-  "version": "3.0.7",
+  "version": "3.0.8",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -232,6 +232,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.8",
+      "date": "2025-01-30",
+      "features": [
+        {
+          "title": "#5519 Improved vnc proxy",
+          "description": "Adding option to take vnc path from backend, to support Selenoid and Cometa browsers vnc connection"
+        }
+      ]
+    },
     {
       "version": "3.0.7",
       "date": "2025-01-29",
