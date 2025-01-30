@@ -408,14 +408,21 @@ def noVNCProxy(request, feature_result_id, *args, **kwargs):
                 raise Exception("Live session has ended.")
             # get session_id from feature_result and proxy to noVNC
             container_details = feature_result.browser.get("container_service",False)
+            vnc_path = None
             if not container_details:
                 session_id = feature_result.session_id
+                vnc_path = f"vnc/{session_id}"
             else:
                 session_id = ServiceManager().get_service_name(container_details['Id'])
+                vnc_path = f"vnc_cometa_browser/{session_id}"
+            
+            # having password hardcoded does not create a security issue, because this communication is internal
+            # this can be always changed to a more secure password
+            password = ConfigurationManager.get_configuration('COMETA_BROWSER_VNC_PASSWORD', 'secret')
                 
             logger.debug(f"Returning session_id : {session_id}" )
                 
-            return JsonResponse({'success': True, 'session_id': session_id})
+            return JsonResponse({'success': True, 'session_id': session_id, 'vnc_path': vnc_path, 'password': password})
         else:
             raise Exception("You don't have permissions to view this live session.")
     except Exception as error:
