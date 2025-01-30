@@ -386,7 +386,7 @@ mat-dialog-content {
 }
 
 mat-divider {
-  margin-bottom: 15px !important;
+  margin-bottom: 10px !important;
 }
 
 .status-circle {
@@ -632,7 +632,7 @@ mobile-list {
   flex-direction: column !important;
   margin-bottom: 20px;
   position: relative;
-  top: -50px;
+  top: -58px;
 }
 
 .mobile-devices-header {
@@ -1064,8 +1064,9 @@ mat-card {
 
 .spinnerRestart {
   position: relative;
-  left: -12px;
+  left: 0px;
   top: -1.5px;
+  transform: skew(30deg);
 }
 
 .not-allowed {
@@ -1221,7 +1222,7 @@ mat-card {
   position: relative;
   top: -23px;
   left: 360px;
-  z-index: 9999;
+  z-index: 999;
 }
 
 // .apkContainer {
@@ -1259,7 +1260,7 @@ mat-card {
   }
   img {
     font-size: 21px;
-    margin-right: 17px;
+    margin-right: 19px;
     vertical-align: middle;
   }
 }
@@ -1293,8 +1294,68 @@ mat-card {
   }
 }
 
+.closeMenu {
+  mat-icon {
+    color:  #ef5350 !important;
+  }
+  span {
+    color:  #ef5350 !important;
+  }
+}
+
 .dissabled-more-vert {
   opacity: 0.5;
   pointer-events: none;
   cursor: not-allowed;
+}
+
+::ng-deep .mobile-emulator-panel-dialog .mat-dialog-content {
+  width: 100% !important;
+}
+
+
+// pruebassssssssssss
+
+// Inclinated container
+.skewed-button-container {
+  display: inline-block;
+  transform: skew(-30deg);
+}
+
+.restart-bg {
+  background-color: #1565c0;
+  margin-right: -21px;
+}
+
+.pause-bg {
+  background-color: #f57c00;
+  margin-right: -21px;
+}
+
+.skewed-button {
+  display: flex;
+  height: 19px;
+  padding: 3px 10px 4px 0;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: rgb(255, 255, 255);
+  font-size: 0.9rem;
+  mat-icon {
+    height: 14px;
+    width: 15px;
+    margin-right: 6px;
+    margin-left: 7px;
+    font-size: 16px;
+  }
+}
+
+.skewed-content {
+  transform: skew(30deg);
+  display: inline-block;
+  margin-right: 3px;
+}
+
+.spinnerPause {
+  transform: skew(30deg);
 }
