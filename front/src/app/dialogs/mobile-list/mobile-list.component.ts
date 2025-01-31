@@ -20,7 +20,7 @@ import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { BrowserFavouritedPipe } from '@pipes/browser-favourited.pipe';
 import { PlatformSortPipe } from '@pipes/platform-sort.pipe';
-import { BehaviorSubject, map, Observable, Subject, take, takeUntil } from 'rxjs';
+import { BehaviorSubject, map, Observable, Subject, takeUntil } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslateModule } from '@ngx-translate/core';
 import { SortByPipe } from '@pipes/sort-by.pipe';
@@ -164,7 +164,6 @@ export class MobileListComponent implements OnInit {
   // Preselected department
   preselectDepartment: number;
 
-
   ngOnInit(): void {
 
     this.logger.msg("1", "CO-User:", "mobile-list", this.user);
@@ -182,6 +181,7 @@ export class MobileListComponent implements OnInit {
         const selected = this.departments.find(department => department.department_id === this.preselectDepartment);
 
         this.selectedDepartment = { id: selected.department_id, name: selected.department_name };
+        this._cdr.detectChanges();
         this.logger.msg("1", "CO-selectedDepartment:", "mobile-list", this.selectedDepartment);
       }
     }
@@ -360,33 +360,6 @@ export class MobileListComponent implements OnInit {
 
   updateAPKSelection(event: any, mobile: IMobile): void {
     mobile.selectedAPKFileID = event.value;
-  }
-
-  installAPK(mobile: IMobile, container): void {
-    let updateData = { apk_file: mobile.selectedAPKFileID };
-
-    this._api.updateMobile(container.id, updateData).subscribe(
-
-      (response: any) => {
-        if (response && response.containerservice) {
-          container = response.containerservice;
-          this.snack.open(
-            `APK Installed in the mobile ${mobile.mobile_image_name}`,
-            'OK'
-          );
-          this._cdr.detectChanges();
-        } else {
-          this.snack.open(response.message, 'OK');
-        }
-      },
-      error => {
-        // Handle any errors
-        console.error(
-          'An error occurred while fetching the mobile list',
-          error
-        );
-      }
-    );
   }
 
   // This method starts the mobile container
