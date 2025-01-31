@@ -522,28 +522,27 @@
           <div class="container-father">
             <ng-container>
               <mat-form-field class="selectFormField">
-                <mat-label><mat-icon>domain</mat-icon> Select Department <strong class="required">(required)*</strong></mat-label>
-                <mat-select
-                  [(ngModel)]="selectedDepartment"
-                  (selectionChange)="onDepartmentSelect($event)">
+                <mat-label><mat-icon>domain</mat-icon> Select Department</mat-label>
+                <mat-select [(ngModel)]="selectedDepartment" (selectionChange)="onDepartmentSelect($event)">
                   <mat-option
                     class="mobile-options"
                     *ngFor="let department of departments"
-                    [value]="{ id: department.department_id, name: department.department_name}">
+                    [value]="{ id: department.department_id, name: department.department_name }">
                     <mat-card>{{ department.department_name }}</mat-card>
                   </mat-option>
                 </mat-select>
               </mat-form-field>
             </ng-container>
-            <div *ngIf="selectedDepartment.name == ''"
-            class="department-warning">
-            <mat-icon>info</mat-icon>
-            <span>
-              Selecting a <strong>department</strong> will make the container buttons available for use.
-            </span>
-          </div>
+
+            <div *ngIf="!selectedDepartment || selectedDepartment.name === ''" class="department-warning">
+              <mat-icon>info</mat-icon>
+              <span>
+                Selecting a <strong>department</strong> will make the container buttons available for use.
+              </span>
+            </div>
           </div>
         </div>
+
 
         <div class="dialog-header">
           <h3 class="not-dialog-title">Mobile Devices</h3>
@@ -604,8 +603,8 @@
                         <ng-container *ngIf="runningContainer">
                           <div class="skewed-button-container"
                             [ngClass]="{
-                              'restart-bg': runningContainer.service_status === 'Stopped',
-                              'pause-bg': runningContainer.service_status === 'Running'
+                              'restart-bg': runningContainer.service_status === 'Stopped' || runningContainer.service_status === 'Restarting',
+                              'pause-bg': runningContainer.service_status === 'Running' || runningContainer.service_status === 'Stopping'
                             }">
 
                             <div
@@ -617,7 +616,11 @@
                               matTooltipPosition="above">
 
                               <ng-container *ngIf="runningContainer.service_status === 'Stopping' || runningContainer.service_status === 'Restarting'; else showIcon">
-                                <mat-spinner class="spinnerPause" color="accent" diameter="16"></mat-spinner>
+                                <mat-spinner
+                                  class="spinnerPause"
+                                  [color]="runningContainer.service_status === 'Restarting' ? 'warn' : 'primary'"
+                                  diameter="16">
+                                </mat-spinner>
                               </ng-container>
 
                               <ng-template #showIcon>

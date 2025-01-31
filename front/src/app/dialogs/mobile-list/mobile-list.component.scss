@@ -959,7 +959,7 @@ mat-card {
   height: 0;
   border-left: 15px solid transparent;
   border-bottom: 26px solid #1565c0;
-  z-index: 99;
+  // z-index: 99;
 }
 
 // Only restart
@@ -968,7 +968,7 @@ mat-card {
   height: 0;
   // border-left: 15px solid transparent;
   border-bottom: 26px solid #1565c0;
-  z-index: 99;
+  // z-index: 99;
   margin-right: 61px;
 }
 
@@ -1002,7 +1002,7 @@ mat-card {
 .disabled-button-border-restart {
   border-bottom: 26px solid rgba(21, 101, 192, 0.9);
   opacity: 0.6;
-  z-index: 99;
+  // z-index: 99;
   // color: black;
   margin-right: 61px;
 }
@@ -1166,7 +1166,6 @@ mat-card {
   border-left: 15px solid transparent;
   border-bottom: 26px solid rgba(128, 128, 128, 0.5);
   opacity: 0.5;
-  z-index: 99;
 }
 
 
@@ -1294,6 +1293,15 @@ mat-card {
   }
 }
 
+.modifyMenu {
+  mat-icon {
+    font-size: 21px;
+  }
+  mat-icon, span {
+    color: rgba(0, 0, 0, 0.6);
+  }
+}
+
 .closeMenu {
   mat-icon {
     color:  #ef5350 !important;
@@ -1324,11 +1332,13 @@ mat-card {
 
 .restart-bg {
   background-color: #1565c0;
+  width: 98.15px;
   margin-right: -21px;
 }
 
 .pause-bg {
   background-color: #f57c00;
+  width: 90.74px;
   margin-right: -21px;
 }
 
@@ -1358,4 +1368,9 @@ mat-card {
 
 .spinnerPause {
   transform: skew(30deg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2px;
+  margin-left: 18px;
 }
