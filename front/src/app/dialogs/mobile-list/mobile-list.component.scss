@@ -1083,7 +1083,7 @@ mat-card {
 .border-left-close {
   height: 0px;
   border-left: 15px solid transparent;
-  border-bottom: 26px solid #ef5350;
+  border-bottom: 26px solid #da4747;
   position: absolute;
   top: 0px;
   right: -63px;
@@ -1235,6 +1235,7 @@ mat-card {
   max-height: 80vh;
   border-radius: 8px;
   overflow: hidden;
+  background-color: #f7f7f7;
 }
 
 
@@ -1333,7 +1334,7 @@ mat-card {
 .restart-bg {
   background-color: #1565c0;
   width: 98.15px;
-  margin-right: -21px;
+  margin-right: -22px;
 }
 
 .pause-bg {
@@ -1374,3 +1375,4 @@ mat-card {
   margin-top: 2px;
   margin-left: 18px;
 }
+
