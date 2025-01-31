@@ -20,7 +20,7 @@ import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { BrowserFavouritedPipe } from '@pipes/browser-favourited.pipe';
 import { PlatformSortPipe } from '@pipes/platform-sort.pipe';
-import { BehaviorSubject, map, Observable, Subject, takeUntil } from 'rxjs';
+import { BehaviorSubject, map, Observable, Subject, take, takeUntil } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslateModule } from '@ngx-translate/core';
 import { SortByPipe } from '@pipes/sort-by.pipe';
@@ -65,6 +65,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { timeStamp } from 'console';
 import { Key } from 'readline';
 import { ModifyEmulatorDialogComponent } from '@dialogs/mobile-list/modify-emulator-dialog/modify-emulator-dialog.component';
+
 
 
 /**
@@ -160,7 +161,31 @@ export class MobileListComponent implements OnInit {
   configValueBoolean: boolean = false;
   isLoading = true;
 
+  // Preselected department
+  preselectDepartment: number;
+
+
   ngOnInit(): void {
+
+    this.logger.msg("1", "CO-User:", "mobile-list", this.user);
+
+
+    if (this.user && this.user.departments) {
+      // User departments
+      this.departments = this.user.departments;
+
+      // User preselect department
+      this.preselectDepartment = this.user.settings?.preselectDepartment;
+
+      this.logger.msg("1", "CO-User:", "mobile-list", this.user);
+      if (this.preselectDepartment) {
+        const selected = this.departments.find(department => department.department_id === this.preselectDepartment);
+
+        this.selectedDepartment = { id: selected.department_id, name: selected.department_name };
+        this.logger.msg("1", "CO-selectedDepartment:", "mobile-list", this.selectedDepartment);
+      }
+    }
+
 
     this._api.getCometaConfigurations().subscribe(res => {
 
@@ -542,11 +567,14 @@ export class MobileListComponent implements OnInit {
 
   handleMobileState(container: Container): void {
     if (container.service_status === 'Running') {
-      this.pauseMobile(container); // Si está corriendo, lo pausamos
+      this.pauseMobile(container);
     } else if (container.service_status === 'Stopped') {
-      this.restartMobile(container); // Si está detenido, lo reiniciamos
+      this.restartMobile(container);
+    } else if (container.service_status === 'Stopping' || container.service_status === 'Restarting') {
+      return;
     }
   }
+
 
   inspectMobile(container: Container, mobile: IMobile): void {
     let host = window.location.hostname;
