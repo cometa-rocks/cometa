@@ -16,7 +16,7 @@ import {
   MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormGroup, Validators, FormBuilder } from '@angular/forms';
 import { BehaviorSubject, map, Observable, Subject, takeUntil } from 'rxjs';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { TranslateModule } from '@ngx-translate/core';
@@ -46,6 +46,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { DraggableWindowModule } from '@modules/draggable-window.module'
 import { MatExpansionModule } from '@angular/material/expansion';
+import { LogService } from '@services/log.service';
 
 
 /**
@@ -93,44 +94,98 @@ import { MatExpansionModule } from '@angular/material/expansion';
 ],
 })
 export class ModifyEmulatorDialogComponent {
+
+  editMobileForm: FormGroup;
+
+
   constructor(
     private _dialog: MatDialog,
     private _cdr: ChangeDetectorRef,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private snack: MatSnackBar,
     private _store: Store,
+    private _fb: FormBuilder,
+    private logger: LogService
   ) {
+
+    this.editMobileForm = this._fb.group({
+      selectedApp: [null, Validators.required]  // Ajusta los validadores según lo que necesites
+    });
+
+    // Log para ver los datos que vienen en 'data'
+    this.logger.msg("1", "CO-Departments:", "mobile-list", this.data.department_name);
+
   }
 
-  // Declare the variable where the API result will be assigned
-  mobiles: IMobile[] = [];
-  runningMobiles: Container[] = [];
-  sharedMobileContainers: Container[] = [];
-  isIconActive: { [key: string]: boolean } = {};
-  showDetails: { [key: string]: boolean} = {};
-  sharedDetails: { [key: string]: boolean} = {};
-  isDialog: boolean = false;
-  selectedApps: { [mobileId: string]: string | null } = {};
+  // // Declare the variable where the API result will be assigned
+  // mobiles: IMobile[] = [];
+  // runningMobiles: Container[] = [];
+  // sharedMobileContainers: Container[] = [];
+  // isIconActive: { [key: string]: boolean } = {};
+  // showDetails: { [key: string]: boolean} = {};
+  // sharedDetails: { [key: string]: boolean} = {};
+  // isDialog: boolean = false;
+  // selectedApps: { [mobileId: string]: string | null } = {};
 
-  // No dialog
-  departmentChecked: { [key: string]: boolean } = {};
-  buttonEnabledState = false;
-  selectionsDisabled: boolean = false;
-  selectedDepartment: { id: number, name: string } = {
-    id: null,
-    name: '',
-  };
+  // // No dialog
+  // departmentChecked: { [key: string]: boolean } = {};
+  // buttonEnabledState = false;
+  // selectionsDisabled: boolean = false;
+  // selectedDepartment: { id: number, name: string } = {
+  //   id: null,
+  //   name: '',
+  // };
 
-  departments$: Department[] = [];
-  destroy$ = new Subject<void>();
-  departments: Department[] = [];
-  apkFiles: any[] = [];
-  configValueBoolean: boolean = false;
-  isLoading = true;
+  // departments$: Department[] = [];
+  // destroy$ = new Subject<void>();
+  // departments: Department[] = [];
+  // apkFiles: any[] = [];
+  // configValueBoolean: boolean = false;
+  // isLoading = true;
 
   ngOnInit(): void {
     console.log("Data: ", this.data)
   }
 
+  closeDialog(): void {
+    this._dialog.closeAll();
+  }
+
+  // Función para guardar los cambios
+  saveChanges(): void {
+    if (this.editMobileForm.valid) {
+      const selectedApp = this.editMobileForm.value.selectedApp;
+      this.logger.msg("1", "App-seleccionada:", "modify-emulator", selectedApp);
+    } else {
+      this.logger.msg("1", "CO-Departments:", "modify-emulator", 'Formulario no válido');
+    }
+  }
+
+  // installAPK(mobile: IMobile, container): void {
+  //   let updateData = { apk_file: mobile.selectedAPKFileID };
+
+  //   this._api.updateMobile(container.id, updateData).subscribe(
+
+  //     (response: any) => {
+  //       if (response && response.containerservice) {
+  //         container = response.containerservice;
+  //         this.snack.open(
+  //           `APK Installed in the mobile ${mobile.mobile_image_name}`,
+  //           'OK'
+  //         );
+  //         this._cdr.detectChanges();
+  //       } else {
+  //         this.snack.open(response.message, 'OK');
+  //       }
+  //     },
+  //     error => {
+  //       // Handle any errors
+  //       console.error(
+  //         'An error occurred while fetching the mobile list',
+  //         error
+  //       );
+  //     }
+  //   );
+  // }
 
 }
