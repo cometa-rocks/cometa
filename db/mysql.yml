@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   mysql:
     image: mysql:8.0
@@ -7,18 +5,18 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: testdb
+      MYSQL_DATABASE: organization
       MYSQL_USER: testuser
       MYSQL_PASSWORD: testpassword
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - data_mysql:/var/lib/mysql
     networks:
       - cometa_testing
 
 volumes:
-  mysql_data:
+  data_mysql:
 
 networks:
   cometa_testing:

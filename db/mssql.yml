@@ -1,0 +1,24 @@
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql_db
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "StrongPassword123!"  # Updated to match MySQL root password
+      MSSQL_DATABASE: "organization"  # Equivalent to MYSQL_DATABASE
+      MSSQL_USER: "testuser"  # Equivalent to MYSQL_USER
+      MSSQL_PASSWORD: "testpassword"  # Equivalent to MYSQL_PASSWORD
+    ports:
+      - "1433:1433"
+    volumes:
+      - data_mssql:/var/opt/mssql
+    networks:
+      - cometa_testing
+
+volumes:
+  data_mssql:
+
+networks:
+  cometa_testing:
+    external: true
