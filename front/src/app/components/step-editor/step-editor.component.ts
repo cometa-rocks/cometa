@@ -11,7 +11,7 @@ import {
   ViewChildren,
   QueryList,
   Renderer2,
-  Output, 
+  Output,
   EventEmitter,
   HostListener,
 } from '@angular/core';
@@ -46,6 +46,8 @@ import {
   UntypedFormBuilder,
   Validators,
   ReactiveFormsModule,
+  FormGroup,
+  FormControl,
 } from '@angular/forms';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { UserState } from '@store/user.state';
@@ -84,6 +86,10 @@ import { NgFor, NgClass, NgIf, NgStyle, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { ContextMenuModule } from '@perfectmemory/ngx-contextmenu';
 import { KEY_CODES } from '@others/enums';
+import { LogService } from '@services/log.service';
+import { MatAutocompleteActivatedEvent } from '@angular/material/autocomplete';
+import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+
 
 @Component({
   selector: 'cometa-step-editor',
@@ -154,16 +160,60 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     public dialogRef: MatDialogRef<EditFeature>,
     @Host() public readonly _editFeature: EditFeature,
     private renderer: Renderer2,
-    private inputFocusService: InputFocusService
+    private inputFocusService: InputFocusService,
+    private logger: LogService,
   ) {
     super();
     this.stepsForm = this._fb.array([]);
   }
 
   // Shortcut emitter to parent component
-  sendTextareaFocusToParent(isFocused: boolean) {
+  sendTextareaFocusToParent(isFocused: boolean, index?) {
     this.textareaFocusToParent.emit(isFocused);
+
+    // This makes appear or disappear the AI guide
+    if (isFocused) {
+        this.stepVisible[index] = true;
+
+        const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+        console.log(stepFormGroup);
+
+        const stepAction = stepFormGroup.get('step_action')?.value;
+        const stepContent = stepFormGroup.get('step_content')?.value;
+
+        if (stepContent == '') {
+            // Clear the description and examples if the content is empty
+            this.descriptionText = '';
+            this.examplesText = '';
+            this._cdr.detectChanges();
+            return;
+        }
+
+        const activatedAction = this.actions.find(action =>
+            action.action_name === stepAction
+        );
+
+        if (activatedAction) {
+            this.selectedActionTitle = activatedAction.action_name;
+            this.selectedActionDescription = activatedAction.description;
+            this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
+
+            if (this.selectedActionDescription.includes("Example")) {
+                const parts = this.selectedActionDescription.split("Example:");
+                this.descriptionText = parts[0].trim();
+                this.examplesText = parts[1]?.trim() || '';
+            } else {
+                this.descriptionText = this.selectedActionDescription;
+                this.examplesText = '';
+            }
+            this._cdr.detectChanges();
+        }
+    } else {
+        this.stepVisible[index] = false;
+    }
   }
+
+
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
     if (clear) this.stepsForm.clear();
@@ -178,6 +228,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
             step.step_content,
             CustomValidators.StepAction.bind(this),
           ],
+          step_action: step.step_action || '',
           step_type: step.step_type,
           continue_on_failure: step.continue_on_failure,
           timeout:
@@ -253,7 +304,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   // maintains focus on text area while firing events on arrow keys to select variables
-  onTextareaArrowKey(event: Event, direction: string) {
+  onTextareaArrowKey(event: Event, direction: string, step) {
     event.preventDefault();
 
     setTimeout(() => {
@@ -322,6 +373,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   // inserts variable into step when clicked
   onClickVariable(variable_name: string, index: number) {
+    // console.log("Clicado elinput: ", variable_name)
     if (!variable_name) return;
 
     let step = this.stepsForm.at(index).get('step_content');
@@ -340,7 +392,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (this.displayedVariables.length > 0) {
       event.preventDefault();
     }
-
+    console.log("hellow");
     // get currently displayed variable list
     const varlistItems = this.varlistItems.toArray();
 
@@ -419,6 +471,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         this.renderer.addClass(firstVariableRef, 'selected');
       }, 0);
     }
+
   }
 
   // returns the index of nearest left $ and nearest right " char in string, taking received startIndex as startpoint reference
@@ -449,7 +502,78 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
    * @param index Index of the current step
    */
   selectFirstVariable(event: MatAutocompleteSelectedEvent, index: number) {
+    // Get the value of the selected step from the Autocomplete
     const step = event.option.value;
+
+    // Make the step visible in the UI for the specified index
+    this.stepVisible[index] = true;
+
+    const cleanedStep = step.replace(/Parameters:([\s\S]*?)Example:/gs, '').trim();
+
+
+    console.log("Prueba: ", cleanedStep);
+
+    // Use a regular expression to match the step format: "ActionName" and a quoted variable
+    const matchResult = step.match(/^(.*?)\s*"(.*?)"/);
+    if (matchResult) {
+      // Extract the action name (before the quotes)
+      const actionName = matchResult[1].trim();
+
+      // Extract the variable inside the quotes
+      const capturedVariable = matchResult[2];
+
+      // Log the matched results, action name, and captured variable for debugging
+      // console.log("matchResult: ", matchResult);
+      // console.log("Action Name: ", actionName);
+      // console.log("Captured Variable: ", capturedVariable);
+      // console.log("This stepform:", this.stepsForm);
+
+      // Search for the corresponding action in the list of actions using the action name
+      const activatedAction = this.actions.find(action =>
+          action.action_name.split('"')[0].trim() === actionName
+      );
+
+      // Log the activated action for debugging purposes
+      // console.log("activatedAction:", activatedAction);
+
+      // Access the specific form group for this step from the stepsForm array
+      const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+
+      // Log the form group for debugging
+      // console.log("stepFormGroup:", stepFormGroup);
+
+      // Update the step_action field in the form group with the action name of the activated action
+      stepFormGroup.patchValue({ step_action: activatedAction.action_name });
+
+      // Log the updated form group and the entire stepsForm for verification
+      // console.log("Activated action:", stepFormGroup);
+      // console.log("StepsForm:", this.stepsForm);
+      // console.log('Steps JSON:', JSON.stringify(this.getSteps(), null, 2));
+
+      this.selectedActionTitle = activatedAction.action_name;
+      this.selectedActionDescription = activatedAction.description;
+
+      // Actualizar descripción eliminando <br> si es necesario
+      this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
+
+      // Separar ejemplos de descripción si corresponde
+      if (this.selectedActionDescription.includes("Example")) {
+        const parts = this.selectedActionDescription.split("Example:");
+        this.descriptionText = parts[0].trim();
+        // console.log("Description text:", this.descriptionText)
+        this.examplesText = parts[1]?.trim() || '';
+        if (this.examplesText.includes('"')) {
+          // Agregar <b> al inicio y </b> al final de la cadena entre comillas
+          this.examplesText = this.examplesText.replace(/"([^"]+)"/, '<b>"$1"</b>');
+          // console.log("Example text:", this.examplesText)
+        }      
+      } else {
+        this.descriptionText = this.selectedActionDescription;
+        this.examplesText = '';
+      }
+      this._cdr.detectChanges();
+    }
+
     // Get current step input
     const input = this._elementRef.nativeElement.querySelectorAll(
       'textarea.code'
@@ -463,6 +587,109 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         input.setSelectionRange(match.index, match.index + match[0].length)
       );
     }
+    this._cdr.detectChanges();
+  }
+
+  selectedActionTitle: string = '';
+  selectedActionDescription: string = '';
+  descriptionText: string = '';
+  examplesText: string = '';
+  showHideStepDocumentation: boolean = true;
+
+  onOptionActivated(event: MatAutocompleteActivatedEvent): void {
+    if (event && event.option) {
+      const activatedActionName = event.option.value;
+
+      const activatedAction = this.actions.find(action => action.action_name === activatedActionName);
+      if (activatedAction) {
+        this.selectedActionTitle = activatedAction.action_name;
+        this.selectedActionDescription = activatedAction.description;
+
+        this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
+
+        if (this.selectedActionDescription.includes("Example")) {
+          const parts = this.selectedActionDescription.split("Example:");
+
+          this.descriptionText = parts[0].trim();
+          this.examplesText = parts[1]?.trim() || '';
+          // if (this.examplesText.includes('"')) {
+          //   this.examplesText = this.examplesText.replace(/"([^"]+)"/, '<strong>"$1"</strong>');
+          // }      
+          console.log("Example text:", this.examplesText)
+        } else {
+          this.descriptionText = this.selectedActionDescription;
+          this.examplesText = '';
+        }
+      }
+    }
+  }
+
+  toggleShowHideDoc() {
+    this.showHideStepDocumentation = !this.showHideStepDocumentation
+  }
+
+  @ViewChild(MatAutocompleteTrigger) autocompleteTrigger!: MatAutocompleteTrigger;
+
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent): void {
+    if (event.keyCode === KEY_CODES.ESCAPE) {
+      this.closeAutocomplete();
+    }
+  }
+
+  iconPosition = { top: 0, left: 0 };
+
+  focusedIndex: number | null = null;
+  stepVisible: boolean[] = [];
+
+  closeAutocomplete(index?: number) {
+    this.stepVisible[index] = false;
+    // this.selectedActionTitle = '';
+    this.selectedActionDescription = '';
+    if(this.isTransparent) {
+      this.isAutocompleteOpened = true;
+    }
+    else {
+      this.isAutocompleteOpened = false;
+    }
+    // console.log("Close: ", this.isTransparent)
+  }
+
+  isAutocompleteOpened: boolean = false;
+
+  onAutocompleteOpened(index?: number) {
+    this.stepVisible[index] = true;
+    console.log("FocusedIndex: ", index)
+    this.isAutocompleteOpened = true;
+
+    setTimeout(() => {
+      this.updateIconPosition();
+    });
+  }
+
+  updateIconPosition() {
+    const overlayElement = document.querySelector('.cdk-overlay-pane');
+    // console.log("Overlay:", overlayElement)
+    if (overlayElement) {
+      const rect = overlayElement.getBoundingClientRect();
+      // console.log("rect:", rect)
+      this.iconPosition = {
+        top: rect.top,
+        left: rect.left + rect.width,
+      };
+    }
+  }
+
+
+  isTransparent: boolean = false;
+
+  toggleVisibility(): void {
+    this.isTransparent = !this.isTransparent;
+    if(this.isTransparent) {
+      this.onAutocompleteOpened()
+    }
+    console.log("toggleVisibility: ", this.isTransparent)
   }
 
   // Automatically adds http:// if URL doesn't contain it
@@ -544,7 +771,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         templates: false,
       },
     });
-  
+
     dialogRef.afterOpened().subscribe(() => {
       const addStepInstance = dialogRef.componentInstance;
       if (addStepInstance) {
@@ -554,7 +781,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         });
       }
     });
-  
+
     dialogRef.afterClosed().subscribe((res: Action) => {
       if (res) {
         this.stepsForm.push(
@@ -584,7 +811,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       }
     });
   }
-  
+
 
   addEmpty(index: number = null) {
     const template = this._fb.group({
@@ -592,6 +819,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       screenshot: false,
       step_keyword: 'Given',
       step_content: ['', CustomValidators.StepAction.bind(this)],
+      step_action: '',
       enabled: true,
       continue_on_failure: false,
       timeout:
@@ -632,6 +860,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         stepToCopy.value.step_content,
         CustomValidators.StepAction.bind(this),
       ],
+      step_action: stepToCopy.value.step_action,
       enabled: stepToCopy.value.enabled,
       continue_on_failure: stepToCopy.value.continue_on_failure,
       timeout: stepToCopy.value.timeout,
@@ -641,11 +870,24 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   drop(event: CdkDragDrop<string[]>) {
+    // if (this.stepVisible.length > 0) {
+    //   this.stepVisible = this.stepVisible.map(() => false);
+    // } else {
+    //   console.warn('stepVisible está vacío');
+    // }
+    const panel = document.querySelector('.stepContainer');
+    if (panel) {
+      this.renderer.removeChild(document.body, panel);
+      // console.log('Autocomplete panel eliminado');
+    }
+
     const control = this.stepsForm.controls[event.previousIndex];
     this.stepsForm.removeAt(event.previousIndex);
     this.stepsForm.insert(event.currentIndex, control);
+
     this._cdr.detectChanges();
   }
+
 
   deleteStep(i: number) {
     this.stepsForm.removeAt(i);
@@ -794,6 +1036,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           'StartBrowser and call URL "{url}"',
           CustomValidators.StepAction.bind(this),
         ],
+        step_action: '',
         continue_on_failure: false,
         timeout:
           this.department.settings?.step_timeout ||
@@ -810,7 +1053,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   insertStep(event: KeyboardEvent, i: number){
-    event.preventDefault(); 
+    event.preventDefault();
     if(event.key == 'ArrowDown'){
       this.addEmpty(i+1);
     }
@@ -820,7 +1063,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   copyStep(event: KeyboardEvent, i: number){
-    event.preventDefault(); 
+    event.preventDefault();
     if(event.key == 'ArrowDown'){
       this.copyItem(i+1, 'down');
     }
@@ -828,4 +1071,5 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       this.copyItem(i, 'up');
     }
   }
+
 }

@@ -10,7 +10,7 @@ import jq
 from behave import step, use_step_matcher
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append("/code/behave/cometa_itself/steps")
+sys.path.append("/opt/code/cometa_itself/steps")
 
 from utility.functions import *
 
@@ -52,13 +52,14 @@ use_step_matcher("re")
 # Parameters:
 # - object_name: The name of the object that should be present on the screen.
 # - options: (Optional) Additional options or conditions that can refine the validation. This part is optional, meaning it can be omitted in the Gherkin step.   
-# Example Usages:
+# Example:
 # - Validate current screen to contain "Car"
 # - Validate current screen to contain "Car" with "color:red"
 # In the second case, the additional option "fullscreen" will be captured and used in the step logic.
 @step(u'Validate current screen to contain \"(?P<object_name>.*?)\"(?: with \"(?P<options>.*?)\")?')
 @done(u'Validate current screen to contain "{object_name}" with "{options}"')
 def validate_screen_using_ai(context, object_name, options):
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
         feature_cannot_be_used_error()
 
@@ -81,13 +82,14 @@ def validate_screen_using_ai(context, object_name, options):
     ]
     logger.debug("Will analyze data")
     send_step_details(context, "Analyzing screen")
-    response = context.ai.analyze_image(context, data)
+    is_success, response = context.ai.analyze_image(context, data)
     logger.debug(response)
-    if not response[0]:
+    if not is_success:
         raise CustomError(
             f'The AI server could not complete the analysis and failed with the error: "{response[1]}"'
         )
-    json_response = convert_ai_answer_to_json(response[1])
+        
+    json_response = convert_ai_answer_to_json(response)
     logger.debug(json_response)
     if not json_response.get("has_object", False):
         raise CustomError(f"{object_name} did not appear on the screen")
@@ -102,13 +104,14 @@ def validate_screen_using_ai(context, object_name, options):
 # Regular Expression Breakdown:
 # - (?P<variable>.*?): Captures the name of the variable where the list of objects will be stored.
 # - (?: with "(?P<options>.*?)")?: This part is optional.
-# Example Usages:
+# Example:
 # - Get list of visible objects in the current screen and store in "myObjects"
 # - Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
 # The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
 @step(u'Get list of visible objects in the current screen and store in "(?P<variable>.*?)"(?: with "(?P<options>.*?)")?')
 @done(u'Get list of visible objects in the current screen and store in "{variable}" with "{options}"')
 def get_list_of_visible_objects_in_the_screen(context, variable, options):
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
         feature_cannot_be_used_error()
 
@@ -135,22 +138,24 @@ def get_list_of_visible_objects_in_the_screen(context, variable, options):
 
     logger.debug("Will analyze data")
     send_step_details(context, "Analyzing screen")
-    response = context.ai.analyze_image(context, data)
+    is_success, response = context.ai.analyze_image(context, data)
     logger.debug(response)
 
-    if not response[0]:
+    if not is_success:
         raise CustomError(
-            f'The AI server could not complete the analysis and failed with the error: "{response[1]}"'
+            f'The AI server could not complete the analysis and failed with the error: "{response}"'
         )
-    json_response = convert_ai_answer_to_json(response[1])
+    json_response = convert_ai_answer_to_json(response)
     logger.debug(json_response)
 
     addTestRuntimeVariable(context, variable, json_response)
 
-
+# Captures a screenshot of the current screen and stores it in a variable.
+# Example: Get screenshot and store in the variable "screenshot_data"
 @step(u'Get screenshot and store in the variable \"(?P<variable_name>.*?)\"')
 @done(u'Get screenshot and store in the variable "{variable_name}"')
 def get_screen_shot(context, variable_name):
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     screenshot_bytes = get_screenshot_bytes_from_screen(context)
     addTestRuntimeVariable(context, variable_name, screenshot_bytes)
     
@@ -158,10 +163,11 @@ def get_screen_shot(context, variable_name):
 
 # Assert the variable's value by providing variable_name, jq_pattern, condition (match|contain), and value using JQ patterns. Refer to the JQ documentation: https://jqlang.github.io/jq/manual/
 # The jq_pattern is a JSON path that can be combined with conditions to perform assertions.
+# Example: Assert variable "response_data" using jq_pattern ".status" to "match" "success"
 @step(u'Assert variable \"(?P<variable_name>.*?)\" using jq_pattern \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert variable "{variable_name}" using jq_pattern "{jq_pattern}" to "{condition}" "{value}"')
 def assert_imp(context, variable_name, jq_pattern, condition, value):
-    
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     variable_value = getVariable(context, variable_name) 
     try:
         parsed_value = jq.compile(jq_pattern).input(variable_value).text()
@@ -180,9 +186,11 @@ def assert_imp(context, variable_name, jq_pattern, condition, value):
 
 
 # Assert variable value by providing 'variable_name', 'condition(match|contain)' and exepected 'value'
+# Example: Assert variable "status_code" to "match" "200"
 @step(u'Assert variable \"(?P<variable_name>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert variable "{variable_name}" to "{condition}" "{value}"')
 def assert_imp(context, variable_name, condition, value):
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     variable_value = getVariable(context, variable_name) 
     
     assert_failed_error = f"{variable_name} does not { condition } {value}"
@@ -215,9 +223,19 @@ def assert_imp(context, variable_name, condition, value):
 # - variable: (String) The name of the variable where the AI analysis output will be stored.
 # - options: (String) (Optional) Modifies how the analysis result is processed. For example, if 'Output JSON' is provided,
 #     the result will be converted to a JSON format before being stored.
+# Example: Get information based on the input message and store it in a variable.
+# Get information based on """
+# [
+#     {
+#         "content": "Explain everything you see in the image.",
+#         "images": ["screenshot1"]
+#     }
+# ]
+# """ and store in the "analysis_result"
 @step(u'Get information based on """(?P<user_message_to_ai>[\s\S]*?)""" and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
 @done(u'Get information based on """{user_message_to_ai}""" and store in the "{variable}" with "{option}"')
 def ai_analyze(context, user_message_to_ai, variable, option):
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
         feature_cannot_be_used_error()
     user_messages = user_message_to_ai.encode().decode("unicode_escape")
@@ -236,21 +254,19 @@ def ai_analyze(context, user_message_to_ai, variable, option):
     logger.debug(f"length : {len(user_messages)}")
     
     send_step_details(context, "Analyzing user message")
-    response = context.ai.analyze_image(context, user_messages)
+    is_success, response = context.ai.analyze_image(context, user_messages)
     send_step_details(context, "Analysis done")
     logger.debug(response)
-    if not response[0]:
+    if not is_success:
         raise CustomError(
-            f'The AI server could not complete the analysis and failed with the error: "{response[1]}"'
+            f'The AI server could not complete the analysis and failed with the error: "{response}"'
         )
-    output = response[1]
-
+        
     if option=='Output JSON':
-        output = convert_ai_answer_to_json(output)
-        logger.debug(output)
+        response = convert_ai_answer_to_json(response)
+        logger.debug(response)
 
-    addTestRuntimeVariable(context, variable, output)
-
+    addTestRuntimeVariable(context, variable, response)
 
 
 # This step retrieves information from current screen based on the given prompt and stores it in a variable. 
@@ -260,9 +276,14 @@ def ai_analyze(context, user_message_to_ai, variable, option):
 # - variable: (String) The name of the variable where the AI analysis output will be stored.
 # - option: (String) (Optional) Modifies how the analysis result is processed. For example, if 'Output JSON' is provided,
 #            if option "Output JSON" is provided the result will be converted to a JSON format before it is stored in the variable.
+# Example: Get information from the screen and store it in a variable.
+# Get information based on """
+# Explain everything that you see in the image.
+# """ from current screen and store in the "screen_analysis"
 @step(u'Get information based on """(?P<prompt>[\s\S]*?)""" from current screen and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
 @done(u'Get information based on """{prompt}""" from current screen and store in the "{variable}" with "{option}"')
-def get_list_of_visible_objects_in_the_current_screen(context, prompt, variable, option):
+def get_information_from_current_screen_based_on_prompt(context, prompt, variable, option):
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
         feature_cannot_be_used_error()
     
@@ -286,24 +307,24 @@ def get_list_of_visible_objects_in_the_current_screen(context, prompt, variable,
 
     logger.debug("Will analyze data")
     send_step_details(context, "Analyzing screen")
-    response = context.ai.analyze_image(context, data)
+    is_success, response = context.ai.analyze_image(context, data)
     logger.debug(response)
 
-    if not response[0]:
+    if not is_success:
         raise CustomError(
-            f'The AI server could not complete the analysis and failed with the error: "{response[1]}"'
+            f'The AI server could not complete the analysis and failed with the error: "{response}"'
         )
-    logger.debug(response[1])
+    logger.debug(response)
     
-    json_response = convert_ai_answer_to_json(response[1])
-    logger.debug(json_response)
-    output = response[1]
+    # json_response = convert_ai_answer_to_json()
+    # logger.debug(json_response)
+    # output = response[1]
 
     if option=='Output JSON':
-        output = convert_ai_answer_to_json(output)
-        logger.debug(output)
+        response = convert_ai_answer_to_json(response)
+        logger.debug(response)
 
-    addTestRuntimeVariable(context, variable, json_response)
+    addTestRuntimeVariable(context, variable, response)
 
 
 use_step_matcher("parse")
@@ -311,9 +332,11 @@ use_step_matcher("parse")
     
 # This step displays the value of a variable_name at runtime and in the browser screen as well for a given seconds amount of time.
 # The popup will disappear after the specified number of seconds.
+# Example: Show me variable "user_details" value for "10" seconds
 @step(u'Show me variable "{variable}" value for "{seconds}" seconds')
 @done(u'Show me variable "{variable}" value for "{seconds}" seconds')
 def show_variable_value(context, variable, seconds):
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     # Assuming getVariable is a function that retrieves the variable value
     variable_value = getVariable(context, variable) 
     send_step_details(context, f"{variable} : {variable_value}")    
@@ -321,59 +344,63 @@ def show_variable_value(context, variable, seconds):
     variable_type = type(variable_value).__name__  # You can replace this with your own logic
     if variable_type!='str':
         variable_value = json.dumps(variable_value)  # Convert the value to JSON format
-    # Use old-style string formatting (%s) with escaped % symbols for the JavaScript code
-    script = """
-        // Function to invoke the div and display JSON content
-        function invokeDiv() {
-            // Create a container element (div)
-            const container = document.createElement('div');
-            container.style.position = 'fixed';
-            container.style.top = '28%%';  // Place it at the top of the viewport
-            container.style.marginLeft = '24%%';
-            container.style.width = '50%%';
-            container.style.minHeight = '200px';
-            container.style.border = '10px solid';
-            container.style.borderRadius = '6px';
-            container.style.padding = '1%%';
-            container.style.fontFamily = 'system-ui';
-            container.style.color = 'black';
-            container.style.background = 'rgb(240, 240, 240)';  // A light gray background for visibility
-            container.style.zIndex = '1000';  // High z-index to make it visible at top
+    try:
+        if context.browser: 
+        # Use old-style string formatting (%s) with escaped % symbols for the JavaScript code
+            script = """
+            // Function to invoke the div and display JSON content
+            function invokeDiv() {
+                // Create a container element (div)
+                const container = document.createElement('div');
+                container.style.position = 'fixed';
+                container.style.top = '28%%';  // Place it at the top of the viewport
+                container.style.marginLeft = '24%%';
+                container.style.width = '50%%';
+                container.style.minHeight = '200px';
+                container.style.border = '10px solid';
+                container.style.borderRadius = '6px';
+                container.style.padding = '1%%';
+                container.style.fontFamily = 'system-ui';
+                container.style.color = 'black';
+                container.style.background = 'rgb(240, 240, 240)';  // A light gray background for visibility
+                container.style.zIndex = '1000';  // High z-index to make it visible at top
 
-            // Create an inner div to hold the JSON content
-            const contentDiv = document.createElement('div');
-            contentDiv.style.padding = '20px';
-            contentDiv.style.width = '100%%';  // Make sure the inner div takes up the full width of its container
+                // Create an inner div to hold the JSON content
+                const contentDiv = document.createElement('div');
+                contentDiv.style.padding = '20px';
+                contentDiv.style.width = '100%%';  // Make sure the inner div takes up the full width of its container
 
-            // Populate the content div with JSON data (in a simple format)
-            const jsonContent = `
-                <h2>Cometa Runtime Variable</h2>
-                <p><b>Variable Name:</b> %s</p>
-                <p><b>Variable Value:</b> %s</p>
-                <p><b>Variable Type:</b> %s</p>
-            `;
+                // Populate the content div with JSON data (in a simple format)
+                const jsonContent = `
+                    <h2>Cometa Runtime Variable</h2>
+                    <p><b>Variable Name:</b> %s</p>
+                    <p><b>Variable Value:</b> %s</p>
+                    <p><b>Variable Type:</b> %s</p>
+                `;
 
-            contentDiv.innerHTML = jsonContent;
+                contentDiv.innerHTML = jsonContent;
 
-            // Add the content div to the container
-            container.appendChild(contentDiv);
+                // Add the content div to the container
+                container.appendChild(contentDiv);
 
-            // Append the container to the body of the document
-            document.body.appendChild(container);
+                // Append the container to the body of the document
+                document.body.appendChild(container);
 
-            // After disappearTime seconds, remove the container from the DOM
-            setTimeout(() => {
-                container.remove();
-            }, %s * 1000 + 500);  // Multiply by 1000 to convert seconds to milliseconds
-        }
+                // After disappearTime seconds, remove the container from the DOM
+                setTimeout(() => {
+                    container.remove();
+                }, %s * 1000 + 500);  // Multiply by 1000 to convert seconds to milliseconds
+            }
 
-        // Invoke the function
-        invokeDiv();
-    """ % (variable, variable_value, variable_type, seconds)
-    
-    # logger.debug(script)
-    
-    context.browser.execute_script(script)
+            // Invoke the function
+            invokeDiv();
+        """ % (variable, variable_value, variable_type, seconds)
+
+            context.browser.execute_script(script)
+    except Exception as e:
+        logger.exception("Exception while showing value in browser", e)
+        
+        
     time.sleep(int(seconds))
 
 

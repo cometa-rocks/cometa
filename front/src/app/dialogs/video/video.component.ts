@@ -40,9 +40,9 @@ export class VideoComponent {
 
   constructor(
     public dialogRef: MatDialogRef<VideoComponent>,
-    @Inject(MAT_DIALOG_DATA) public result: FeatureResult,
+    @Inject(MAT_DIALOG_DATA) public data: any,
     private _sanitizer: DomSanitizer
   ) {
-    this.src = this._sanitizer.bypassSecurityTrustUrl(this.result.video_url);
+    this.src = this._sanitizer.bypassSecurityTrustUrl(this.data.video_url);
   }
 }

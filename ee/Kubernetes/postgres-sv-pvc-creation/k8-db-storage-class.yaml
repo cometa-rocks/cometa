@@ -1,0 +1,21 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cometa-azure-file-db-sc
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true" # Make it default (if needed)
+provisioner: kubernetes.io/azure-file
+parameters:
+  skuName: Premium_LRS 
+reclaimPolicy: Retain 
+allowVolumeExpansion: true # Allow resizing of volumes
+mountOptions:
+  - dir_mode=0700
+  - file_mode=0700
+  - uid=999  
+  - gid=999  
+  # This is important for compatibility with applications that expect to use symlinks as part of their file structure.
+  - mfsymlinks 
+  #  Setting this option to strict ensures that all read and write operations are done directly against the Azure Files share without caching intermediate results.
+  - cache=strict
+
