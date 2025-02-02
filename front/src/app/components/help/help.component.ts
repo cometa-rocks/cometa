@@ -1,5 +1,6 @@
+import { Subscribe } from 'ngx-amvara-toolbox';
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-import { Select } from '@ngxs/store';
+import { Select, Actions } from '@ngxs/store';
 import { ConfigState } from '@store/config.state';
 import { ActionsState } from '@store/actions.state';
 import { Observable } from 'rxjs';
@@ -38,7 +39,7 @@ export class HelpComponent {
     { position: 5, key: 'N', description: 'Enable/Disable notifications' },
     { position: 6, key: 'P', description: 'Download pdf file' },
     { position: 6, key: 'S', description: 'Edit Schedule' },
-    
+
   ];
 
   ShortMainPage: Shortcut[] = [
@@ -83,5 +84,4 @@ export class HelpComponent {
   trackByName(index: number, item: any) {
     return item.name;
   }
-
 }
