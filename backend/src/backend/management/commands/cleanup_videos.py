@@ -46,12 +46,12 @@ class Command(LoggedCommand, LogCommand):
 
     def do_command(self, *args, **kwargs):
         # Get video files with 0 size
-        videos_zero_size = subprocess.check_output(['/usr/bin/find', '/code/behave/videos', '-name',  '*.mp4', '-mtime', '+1', '-size', '0']).splitlines()
+        videos_zero_size = subprocess.check_output(['/usr/bin/find', '/data/videos', '-name',  '*.mp4', '-mtime', '+1', '-size', '0']).splitlines()
         self.log('Found %d videos with size 0' % len(videos_zero_size))
         for index, video in enumerate(videos_zero_size):
             self.remove_video(video, index)
         # Get video files dangling (videos created by selenoid which failed while running, therefore they couldn't be renamed)
-        videos_dangling = subprocess.check_output(['/usr/bin/find', '/code/behave/videos', '-name',  'selenoid*.mp4', '-mtime', '+1']).splitlines()
+        videos_dangling = subprocess.check_output(['/usr/bin/find', '/data/videos', '-name',  'selenoid*.mp4', '-mtime', '+1']).splitlines()
         self.log('Found %d dangling videos' % len(videos_dangling))
         for index, video in enumerate(videos_dangling):
             self.remove_video(video, index)
