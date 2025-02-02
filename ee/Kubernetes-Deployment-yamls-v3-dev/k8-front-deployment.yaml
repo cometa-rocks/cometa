@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-front-deployment
+  namespace: cometa  # Set the namespace to 'cometa'
+spec:
+  replicas: 1  # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: cometa-front-pod  # Ensure this matches the label used in the template
+  template:
+    metadata:
+      labels:
+        app: cometa-front-pod
+    spec:
+      tolerations:
+      - key: "architecture"
+        operator: "Equal"
+        value: "amd"
+        effect: "NoSchedule"
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
+      containers:
+      - name: cometa-front-container
+        # image: cometa/front:0.1.2
+        image: cometa/front:latest
+        ports:
+        - containerPort: 8080
+        - containerPort: 8443
+        command: ["/bin/bash","-c"]
+        args: ['/share/apache2/start_server.sh']
+        # args: ['sleep infinity']
+
+        env:
+        - name: DJANGO_SERVER_URL
+          value: "cometa-django-service"
+        - name: DJANGO_SERVER_PORT
+          value: "8000"
+        - name: SOCKET_SERVER_URL
+          value: "cometa-socket-service"
+        - name: SOCKET_SERVER_PORT
+          value: "3001"
+        - name: SELENOID_SERVER_URL
+          value: "selenium-grid-selenium-hub"
+        - name: SELENOID_SERVER_PORT
+          value: "4444"
+        - name: NOVNC_SERVER_URL
+          value: "cometa-novnc-service"
+        - name: NOVNC_SERVER_PORT
+          value: "8080"
+
+        volumeMounts:
+        - name: cometa-volume
+          mountPath: /screenshots
+          subPath: ./data/cometa/screenshots
+        - name: cometa-volume
+          mountPath: /videos
+          subPath: ./data/cometa/videos
+        - name: cometa-volume
+          mountPath: /usr/local/apache2/conf
+          # mountPath: /share/apache2/conf
+          subPath: ./share/front/apache2/conf
+        - name: cometa-volume
+          mountPath: /share/apache2/certs
+          subPath: ./share/front/apache2/certs
+        - name: cometa-volume
+          mountPath: /usr/local/apache2/modules/mod_auth_openidc.so
+          subPath: ./share/front/apache2/modules/mod_auth_openidc.so
+        - name: cometa-volume
+          mountPath: /share/apache2/start_server.sh
+          subPath: ./share/front/apache2/start_server.sh
+        - name: cometa-volume
+          mountPath: /usr/local/apache2/logs
+          subPath: ./share/front/apache2/logs
+        - name: cometa-volume
+          mountPath: /usr/local/apache2/htdocs/assets/icons/motherson.svg
+          subPath: ./share/front/apache2/icons/motherson.svg
+           
+        securityContext:
+          allowPrivilegeEscalation: true
+        resources:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+      volumes:
+      - name: cometa-volume
+        persistentVolumeClaim:
+          claimName: cometa-data-volume-claim
+      # restartPolicy: Always (uncomment if needed, default is Always for Deployment)

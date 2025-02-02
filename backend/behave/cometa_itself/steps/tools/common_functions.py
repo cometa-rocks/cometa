@@ -76,6 +76,7 @@ def takeScreenshot(context, step_id):
     start_time = time.time()  # prepare a screenshot name
     DATETIMESTRING = time.strftime("%Y%m%d-%H%M%S")  # LOOKS LIKE IS NOT USED
     context.SCREENSHOT_FILE = SCREENSHOT_PREFIX + "current.png"
+    context.MOBILE_SCREENSHOT_FILE = "Mobile_"+SCREENSHOT_PREFIX + "current.png"
     logger.debug("Screenshot filename: %s" % context.SCREENSHOT_FILE)
     final_screenshot_file = context.SCREENSHOTS_STEP_PATH + context.SCREENSHOT_FILE
     logger.debug("Final screenshot filename and path: %s" % final_screenshot_file)
@@ -90,7 +91,11 @@ def takeScreenshot(context, step_id):
         # create the screenshot
         logger.debug("Saving screenshot to file")
         try:
-            context.browser.save_screenshot(final_screenshot_file)
+            if context.STEP_TYPE=='MOBILE':
+               context.mobile['driver'].save_screenshot(final_screenshot_file)
+            else: 
+                context.browser.save_screenshot(final_screenshot_file)
+
         except Exception as err:
             logger.error("Unable to take screenshot ...")
             logger.exception(err)
@@ -115,9 +120,14 @@ def convert_image_to_decoded_bytes(image_path):
 
 
 def get_screenshot_bytes_from_screen(context):
+    logger.debug(f"context.PREVIOUS_STEP_TYPE : {context.PREVIOUS_STEP_TYPE}")
     try:
-        logger.debug("Taking screenshot")
-        screenshot_bytes = context.browser.get_screenshot_as_png()
+        if context.PREVIOUS_STEP_TYPE=='MOBILE':
+            logger.debug("Taking screenshot from mobile")
+            screenshot_bytes = context.mobile['driver'].get_screenshot_as_png()
+        else:
+            logger.debug("Taking screenshot from browser")
+            screenshot_bytes = context.browser.get_screenshot_as_png()
         logger.debug("Converting to bytes")
         return base64.b64encode(screenshot_bytes).decode("utf-8")
     except Exception as exception:
@@ -192,9 +202,9 @@ def addVariable(context, variable_name, result, encrypted=False):
             )
         else:
             # make the request to cometa_django and add the environment variable
-            response = requests.patch(
-                "http://cometa_django:8000/api/variables/"
-                + str(env_variables[index]["id"])
+            response = requests.patch(               
+                f"{get_cometa_backend_url()}/api/variables/"
+                + str(env_variables[index]["id"]) 
                 + "/",
                 headers={"Host": "cometa.local"},
                 json=env_variables[index],
@@ -217,7 +227,7 @@ def addVariable(context, variable_name, result, encrypted=False):
         }
         # make the request to cometa_django and add the environment variable
         response = requests.post(
-            "http://cometa_django:8000/api/variables/",
+            f"{get_cometa_backend_url()}/api/variables/",
             headers={"Host": "cometa.local"},
             json=update_data,
         )
@@ -227,7 +237,7 @@ def addVariable(context, variable_name, result, encrypted=False):
 
     # send a request to websockets about the environment variables update
     requests.post(
-        "http://cometa_socket:3001/sendAction",
+        f"{get_cometa_socket_url()}/sendAction",
         json={
             "type": "[Variables] Get All",
             "departmentId": int(context.feature_info["department_id"]),
@@ -467,7 +477,7 @@ def done(*_args, **_kwargs):
                 # reset timeout incase of exception in function
                 signal.alarm(0)
                 # print stack trace
-                traceback.print_exc()
+                logger.exception(err, stack_info=True)
                 # set the error message to the step_error inside context so we can pass it through websockets!
                 args[0].step_error = logger.mask_values(str(err))
                 try:
@@ -561,7 +571,7 @@ def saveToDatabase(
     log_file.write("\n")
     try:
         response = requests.post(
-            "http://cometa_django:8000/api/feature_results/"
+            f"{get_cometa_backend_url()}/api/feature_results/"
             + str(feature_id)
             + "/step_results/"
             + str(feature_result_id)
@@ -648,7 +658,7 @@ def saveToDatabase(
             context.counters["pixel_diff"] += int(float(pixel_diff))
             logger.debug("Saveing pixel difference %s to database" % str(pixel_diff))
             requests.post(
-                "http://cometa_django:8000/steps/" + str(step_id) + "/update/",
+                f"{get_cometa_backend_url()}/steps/" + str(step_id) + "/update/",
                 json=data,
                 headers={"Host": "cometa.local"},
             )
@@ -688,7 +698,7 @@ def saveToDatabase(
         }
         logger.debug("Writing data %s to database" % json.dumps(data))
         requests.post(
-            "http://cometa_django:8000/setScreenshots/%s/" % str(step_id),
+            f"{get_cometa_backend_url()}/setScreenshots/%s/" % str(step_id),
             json=data,
             headers={"Host": "cometa.local"},
         )
@@ -799,7 +809,7 @@ def compareHTML(params):
         # Return if there was a difference or not
         different = TEMPLATE_HTML_CONTENT != params["SOURCE_HTML"]
         requests.post(
-            "http://cometa_django:8000/steps/" + str(params["step_id"]) + "/update/",
+            f"{get_cometa_backend_url()}/steps/" + str(params["step_id"]) + "/update/",
             json={"different_html": different},
             headers={"Host": "cometa.local"},
         )

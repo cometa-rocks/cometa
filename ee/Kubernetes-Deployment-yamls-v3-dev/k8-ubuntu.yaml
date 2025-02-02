@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-deployment
+  namespace: cometa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ubuntu-app
+  template:
+    metadata:
+      labels:
+        app: ubuntu-app
+
+    spec:
+      securityContext:
+        fsGroup: 0
+        runAsGroup: 0
+        runAsNonRoot: false
+        runAsUser: 0
+      containers:
+      - name: ubuntu-container
+        image: ubuntu:20.04
+        command: ["/bin/bash", "-c", "--"]
+        args: ["sleep infinity"]
+        securityContext:
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - name: cometa-volume
+          mountPath: /share
+          subPath: ./share/compilation
+        resources:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+      volumes:
+      - name: cometa-volume
+        persistentVolumeClaim:
+          claimName: cometa-data-volume-claim
