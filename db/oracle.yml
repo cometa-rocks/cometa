@@ -1,0 +1,29 @@
+services:
+  oracle:
+    image: gvenzl/oracle-xe:21-slim
+    container_name: oracle_db
+    restart: unless-stopped
+    environment:
+      ORACLE_PASSWORD: "root_password"
+      ORACLE_DATABASE: "organization"
+      ORACLE_USER: "testuser"
+      ORACLE_PASSWORD_USER: "testpassword"
+    ports:
+      - "1521:1521"
+      - "5500:5500"
+    volumes:
+      - data_oracle:/opt/oracle/oradata
+    networks:
+      - cometa_testing
+
+volumes:
+  data_oracle:
+
+networks:
+  cometa_testing:
+    external: true
+
+
+# Use below command to connect with oracle container using CLI
+# docker exec -it oracle_db sqlplus sys/root_password@//localhost:1521/XEPDB1 as sysdba
+# 
