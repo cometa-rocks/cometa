@@ -5,7 +5,7 @@ import base64
 import sys
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append("/code/behave/cometa_itself/steps")
+sys.path.append("/opt/code/cometa_itself/steps")
 
 import logging
 from utility.connections import connect_redis

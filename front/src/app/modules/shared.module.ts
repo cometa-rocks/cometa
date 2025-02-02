@@ -43,6 +43,7 @@ import { FormatVersionPipe } from '@pipes/format-version.pipe';
 import { VersionSortPipe } from '@pipes/version-sort.pipe';
 import { BrowserFavouritedPipe } from '@pipes/browser-favourited.pipe';
 import { BrowserIconPipe } from '@pipes/browser-icon.pipe';
+import { MobileIconPipe } from '@pipes/mobile-icon.pipe';
 import { CheckSelectedBrowserPipe } from '@pipes/check-selected-browser.pipe';
 import { CheckBrowserExistsPipe } from '@pipes/check-browser-exists.pipe';
 import { BrowserResultStatusPipe } from '@pipes/browser-result-status.pipe';
@@ -172,6 +173,7 @@ const pipes = [
   PlatformSortPipe,
   SecondsToHumanReadablePipe,
   BrowserIconPipe,
+  MobileIconPipe,
   PercentagePipe,
   PercentageFieldPipe,
   LoadingPipe,

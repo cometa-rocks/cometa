@@ -90,6 +90,8 @@
   </div>
   <div class="data">
     <network-paginated-list
+      #networkList
+      [errorCount]="errorCount"
       listId="steps"
       [endpointUrl]="stepResultsUrl$ | async"
       [headerTemplate]="headTemplate"
@@ -101,7 +103,7 @@
             item.status === 'Success' || 
             (!item.status && item.success) as passed
           ">
-          <div class="step-row" (click)="goToDetail(item.step_result_id)">
+          <div #nameElement class="step-row" (click)="goToDetail(item.step_result_id)">
             <div
               class="status-bar"
               [ngClass]="passed ? 'success' : 'failed'"></div>
@@ -128,15 +130,16 @@
                   </div>
                 </ng-container>
                 <div class="step-name">{{ item?.step_name }}</div>
-                <small *ngIf="item?.error" class="step-error">
+                <small *ngIf="item?.error" class="step-error" [id]="'row-' + item.step_result_id" #stepError>
                   Custom error: {{ item?.error }}
-                </small>
+                </small>                                       
               </div>
             </div>
             <div class="status">
               <!-- Status Box -->
               <div
                 class="status-box {{item.status.toLowerCase()}}"
+                #statusBar
                 stopPropagation
                 [matMenuTriggerFor]="resultStatus"
                 >

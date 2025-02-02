@@ -1,0 +1,40 @@
+{
+  "issuer": "https://@@COMETA_CLIENT01_OIDCHOST@@",
+  "authorization_endpoint": "https://@@COMETA_CLIENT01_OIDCHOST@@/as/authorization.oauth2",
+  "token_endpoint": "https://@@COMETA_CLIENT01_OIDCHOST@@/as/token.oauth2",
+  "introspection_endpoint": "https://@@COMETA_CLIENT01_OIDCHOST@@/as/introspect.oauth2",
+  "userinfo_endpoint": "https://@@COMETA_CLIENT01_OIDCHOST@@/idp/userinfo.openid",
+  "revocation_endpoint": "https://@@COMETA_CLIENT01_OIDCHOST@@/as/revoke_token.oauth2",
+  "end_session_endpoint": "https://@@COMETA_CLIENT01_OIDCHOST@@/idp/startSLO.ping",
+  "ping_end_session_endpoint": "https://@@COMETA_CLIENT01_OIDCHOST@@/idp/startSLO.ping",
+  "jwks_uri": "https://@@COMETA_CLIENT01_OIDCHOST@@/pf/JWKS",
+  "scopes_supported": [
+    "openid"
+  ],
+  "response_types_supported": [
+    "code"
+  ],
+  "grant_types_supported": [
+    "refresh_token",
+    "authorization_code"
+  ],
+  "acr_values_supported": [
+    "daimler:idp:gas:standard",
+    "daimler:idp:gas:strong"
+  ],
+  "subject_types_supported": [
+    "public"
+  ],
+  "id_token_signing_alg_values_supported": [
+    "RS256"
+  ],
+  "code_challenge_methods_supported": [
+    "S256"
+  ],
+  "frontchannel_logout_supported": true,
+  "token_endpoint_auth_methods_supported": [
+    "client_secret_basic",
+    "client_secret_post"
+  ],
+  "ping_revoked_sris_endpoint": "https://@@COMETA_CLIENT01_OIDCHOST@@/pf-ws/rest/sessionMgmt/revokedSris"
+}

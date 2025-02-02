@@ -1,0 +1,53 @@
+services:
+  # cometa-chrome:
+  #   image: cometa/chrome:131.0
+  #   ports:
+  #     - "4445:4444"
+  #     - "4905:7900"
+
+  #   shm_size: "2g"
+  #   restart: unless-stopped
+  #   environment:
+  #     - AUTO_RECORD=true
+  #     - VIDEO_PATH=/video
+  #   networks:
+  #     - testing
+  #   volumes:
+  #     - ./video:/video:rw
+  
+  cometa-firefox:
+    image: cometa/firefox:133.0
+    ports:
+      - "4446:4444"
+      - "4906:7900"
+
+    shm_size: "2g"
+    restart: unless-stopped  
+    environment:
+      - AUTO_RECORD=true
+      - VIDEO_PATH=/video
+    networks:
+      - testing
+    volumes:
+      - ./video:/video:rw
+
+  # cometa-edge:
+  #   image: cometa/edge:131.0
+  #   ports:
+  #     - "4447:4444"
+  #     - "4907:7900"
+
+  #   shm_size: "2g"
+  #   restart: unless-stopped
+  #   environment:
+  #     - AUTO_RECORD=true
+  #     - VIDEO_PATH=/video
+  #   networks:
+  #     - testing
+  #   volumes:
+  #     - ./video:/video:rw
+
+
+networks:
+  testing:
+    driver: "bridge"

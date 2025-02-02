@@ -18,7 +18,7 @@ if __name__ == "__main__":
         ) from exc
     
     
-    from backend.utility.configurations import load_configurations   
+    from backend.utility.configurations import load_configurations
     load_configurations()
     
     execute_from_command_line(sys.argv)

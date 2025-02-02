@@ -6,14 +6,10 @@ from .views import (
     ResponseHeadersViewSet,
     VulnerableHeaderViewSet
 )
-from rest_framework import routers
-from django.urls import path, include
 
-# network_headers Endpoints
-router = routers.DefaultRouter()
-router.register(r'network_headers', ResponseHeadersViewSet)
-router.register(r'vulnerable_headers', VulnerableHeaderViewSet)
-
-urlpatterns = [
-    path('', include(router.urls)),
-]
+# Add new modules url here
+# This keeps url.py file short and clean
+def register_security_routers(router) :
+    router.register(r'security/network_headers', ResponseHeadersViewSet)
+    router.register(r'security/vulnerable_headers', VulnerableHeaderViewSet)
+    return router
