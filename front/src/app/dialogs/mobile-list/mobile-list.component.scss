@@ -175,10 +175,6 @@ mat-dialog-content {
     margin-right: 10px;
   }
 
-  .start-stop-inpect-buttons {
-    font-weight: bold;
-  }
-
   .start{
     margin-left: auto;
     margin-right: 10px;
@@ -215,10 +211,6 @@ mat-dialog-content {
   align-items: center;
   justify-content: center;
 
-  .start-stop-inpect-buttons {
-    font-weight: bold;
-  }
-
   .start{
     margin-left: auto;
     margin-right: 10px;
@@ -228,23 +220,6 @@ mat-dialog-content {
   .restart {
     background-color: #ffbf59;
     color: black;
-  }
-
-  .icon-on-hover {
-    display: none;
-  }
-
-  button:hover .inspect-text {
-    display: none;
-  }
-
-  button:hover .icon-on-hover {
-    display: inline-block;
-    width: 41px;
-  }
-
-  .inspect-text {
-    display: inline-block;
   }
 }
 
@@ -1079,6 +1054,101 @@ mat-card {
   border-radius: 0 5px 0 0;
 }
 
+// inspect-left
+
+// .container-inspect-left{
+//   position: absolute;
+//   top: 0px;
+//   right: 300px;
+//   z-index: 999;
+//   background-color: #FFFFFF66;
+// }
+
+.start-stop-inpect-buttons {
+  background-color: #f5f5f5;
+  color: black;
+  height: 26px;
+  width: 80px;
+  border-radius: 5px 0 0 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: -2px -2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.container-buttons {
+  .icon-on-hover {
+    display: none;
+  }
+
+  div:hover .inspect-text {
+    display: none;
+  }
+
+  div:hover .icon-on-hover {
+    display: inline-block;
+    width: 41px;
+    margin-top: 2px;
+    margin-left: 30px;
+    font-size: 18px;
+  }
+
+  .inspect-text {
+    display: inline-block;
+  }
+}
+
+.start-stop-inpect-buttons::after {
+  font-weight: bold;
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -10px;
+  width: 20px;
+  height: 26px;
+  background-color: #f5f5f5;
+  box-shadow: 1px 0px 0px rgba(0, 0, 0, 0.2);
+  transform: skewX(30deg);
+}
+
+
+.inspect-left {
+  height: 0px;
+  border-right: 15px solid transparent;
+  border-bottom: 26px solid #FFFFFF66;
+  box-shadow: 0 3px 1px -2px rgba(0, 0, 0, -0.8), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+  // transform: skew(-30deg);
+  // background-color: rgba(255, 255, 255, 0.4);
+  border-radius: 0 5px 0 0;
+}
+
+.container-novnc-left {
+  position: relative;
+  right: 208px;
+}
+
+.container-inspect-left {
+  position: relative;
+  right: 204px;
+}
+
+
+// .noVnc-right {
+//   height: 0px;
+//   box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+//   position: absolute;
+//   top: 1px;
+//   right: 280px;
+//   z-index: 999;
+//   border-radius: 0 5px 0 0;
+// }
+
+
+
 // Close
 .border-left-close {
   height: 0px;
@@ -1334,13 +1404,13 @@ mat-card {
 .restart-bg {
   background-color: #1565c0;
   width: 98.15px;
-  margin-right: -22px;
+  margin-right: -181px;
 }
 
 .pause-bg {
   background-color: #f57c00;
   width: 90.74px;
-  margin-right: -21px;
+  margin-right: -181px;
 }
 
 .skewed-button {
