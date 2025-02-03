@@ -143,7 +143,7 @@ export class L1FeatureRecentListComponent {
    */
   columns = [
     { header: 'Run', field: 'type' },
-    { header: 'ID', field: 'id', sortable: true },
+    { header: 'Last run', field: 'date', sortable: true, sort: 'desc' },  
     {
       header: 'Name',
       field: 'name',
@@ -152,10 +152,10 @@ export class L1FeatureRecentListComponent {
       sortable: true,
     },
     { header: 'Status', field: 'status', sortable: true },
-    { header: 'Last run', field: 'date', sortable: true },
-    { header: 'Last duration', field: 'time', sortable: true },
-    { header: 'Last steps', field: 'total', sortable: true },
-    { header: 'Last modification', field: 'modification', sortable: true },
+    { header: 'Duration', field: 'time', sortable: true },
+    { header: 'Steps', field: 'total', sortable: true },
+    { header: 'Modified on', field: 'modification', sortable: true },
+    { header: 'ID', field: 'id', sortable: true },
     { header: 'Department', field: 'department', sortable: true },
     { header: 'Application', field: 'app', sortable: true },
     { header: 'Environment', field: 'environment', sortable: true },
