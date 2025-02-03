@@ -68,8 +68,8 @@ def connect_to_sql_database(context, connection_string, variable):
 # - Get list of visible objects in the current screen and store in "myObjects"
 # - Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
 # The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
-@step(u'Execute SQL query "{query}" and store result in "{variable}"')
-@done(u'Execute SQL query "{query}" and store result in "{variable}"')
+@step(u'Execute SQL query """{query}""" and store result in "{variable}"')
+@done(u'Execute SQL query """{query}""" and store result in "{variable}"')
 def execute_sql_query_get_answer_in_json(context, query, variable):
     context.STEP_TYPE = "DATABASE"
     database_feature_cannot_be_used_error(context)
@@ -108,8 +108,8 @@ def connect_to_sql_database(context, connection_string, variable):
 # - Get list of visible objects in the current screen and store in "myObjects"
 # - Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
 # The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
-@step(u'Execute the NoSQL query {query} on the {collection} collection and store the result in {variable}')
-@done(u'Execute the NoSQL query {query} on the {collection} collection and store the result in {variable}')
+@step(u'Execute the NoSQL query """{query}""" on the "{collection}" collection and store the result in "{variable}"')
+@done(u'Execute the NoSQL query """{query}""" on the "{collection}" collection and store the result in "{variable}"')
 def execute_nosql_query_get_answer_in_json(context, query, variable):
     context.STEP_TYPE = "DATABASE"
     database_feature_cannot_be_used_error(context)
