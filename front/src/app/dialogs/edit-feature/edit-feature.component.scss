@@ -130,6 +130,10 @@ a {
   // overflow: unset;
 }
 
+:host::ng-deep .mat-expansion-panel-header {
+  padding: 0 27px 0 24px;
+}
+
 :host::ng-deep .mat-dialog-content {
   padding: 0 10px 5px;
   @include for-tablet-portrait-up {

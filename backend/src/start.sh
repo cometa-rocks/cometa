@@ -101,7 +101,7 @@ mkdir -p /opt/code/logs || true
 apt update && apt install -y rsyslog jq nano vim clamav-daemon
 service rsyslog start
 # Install cron
-install_cron
+# install_cron
 # check and create secret_variables.py
 # create_secret_variables
 # Install poetry package manager
@@ -119,6 +119,8 @@ python manage.py makemigrations backend
 python manage.py makemigrations security
 python manage.py makemigrations housekeeping
 python manage.py makemigrations configuration
+python manage.py makemigrations container_service
+python manage.py makemigrations mobile
 python manage.py migrate
 
 # if this is the first time initializing co.meta

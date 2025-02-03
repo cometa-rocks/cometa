@@ -136,11 +136,28 @@ Author: dph000
         >
       </div>
       <!-- Feature ID -->
-      <div class="feature-id">ID: {{ item.id }}</div>
+      <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
+      <div
+        stopPropagation
+        class="feature-id" 
+        (mouseover)="hovering = true" 
+        (mouseout)="hovering = false">
+        <ng-container *ngIf="!hovering; else hoverIcon">
+          <span>
+            ID: {{ item.id }}
+          </span>
+        </ng-container>
+        <ng-template #hoverIcon>
+          <span class="icon-container" (click)="copyToClipboard()">
+            ID: <mat-icon class="clipboard-icon">content_copy</mat-icon>
+          </span>
+        </ng-template>
+      </div>
+
       <!-- Feature browser -->
       <div class="browser" *ngIf="item.browsers[0] as browser">
         <i class="my-icons" [ngClass]="browser.browser"></i>
-        {{ browser | browserComboText }}
+        <span>{{ browser | browserComboText }}</span>
       </div>
       <div class="schedule-container">
         <div class="schedule-data">
@@ -148,7 +165,7 @@ Author: dph000
             <ng-container *ngIf="item.date; else noRuns">
               <span [matTooltip]="( 'schedule.last-run' | translate ) + ' ' + (item.date | amParse | amDateFormat: 'hh:mm a')"
                     matTooltipPosition="above">
-                <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
+                <img alt="schedule url not found" class="my-icons schedule-image" src="assets/icons/calendar.svg">
                 <span>Schedule:&nbsp;</span>
                 <span>{{ item.schedule }}</span>
               </span>
@@ -303,6 +320,7 @@ Author: dph000
       </div>
       <!-- Id of the folder -->
       <div class="feature-id">ID: {{ item.id }}</div>
+
       <button
         matTooltip="Folder options"
         matTooltipPosition="above"
