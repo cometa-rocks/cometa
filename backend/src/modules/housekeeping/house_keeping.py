@@ -13,7 +13,7 @@ logger = getLogger()
 
 # This class is responsible to select all files which should be delete based on it's department day's policy
 class HouseKeepingThread(LogCommand, Thread):
-    screenshot_file_path = "/code/behave/screenshots"
+    screenshot_file_path = "/data/screenshots"
     video_directory_path = "/code/behave"
     pdf_report_file_path = "/code/behave/pdf"
 
