@@ -9,6 +9,10 @@ import { Paginations } from './actions/paginations.actions';
 import { getDescendantProp } from '@services/tools';
 import { CustomSelectors } from '@others/custom-selectors';
 import { UserState } from './user.state';
+import { Observable } from 'rxjs';
+import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
+import { User } from './actions/user.actions';
+
 
 /**
  * @description Contains the state of:
@@ -45,7 +49,7 @@ export class FeaturesState {
     public _api: ApiService,
     public _store: Store
   ) {}
-
+  
   /**
    * Fetches the folders from backend
    */
@@ -780,6 +784,7 @@ export class FeaturesState {
     let folders = JSON.parse(JSON.stringify(state.folders)) as FoldersResponse;
     let result: any = {};
     let user_id = UserState.GetUserId(user); // Get the user id
+    let department = UserState.RetrieveUserDepartments(user);
     let activeList = localStorage.getItem('co_active_list'); // Get the current list status
     // Variable to know what this state does
     result.AAA_help =
@@ -804,6 +809,8 @@ export class FeaturesState {
         break;
       case 'recent':
         // Get the recently modified features list
+        //TODO: new case, "recent-department, calls this function to display recent by selected department"
+        //folders = this.getRecentFeaturesByDpt(state, department[1].department_id)
         folders = this.getRecentFeatures(state, user_id);
         break;
       default:
@@ -838,6 +845,33 @@ export class FeaturesState {
     let result = { folders: [], features: sorted };
     result.features = sorted.map(val => val.feature_id); // Store only the id of each feature
     return result;
+  }
+
+
+  //WIP
+  /**
+   * Gets the 10 most recent features from the selected department.
+   * @returns the filtered features and folders of the new landing
+   * @param state 
+   * @param department
+   * @author Nico Clariana
+   * @date 03-02-25
+   */
+  static getRecentFeaturesByDpt(state: IFeaturesState, department: number ): FoldersResponse {
+    
+      let features: Feature[] = Object.values(
+        JSON.parse(JSON.stringify(state.details))
+      ); // Get all the features
+      // Filter the data rows by the selected department.
+      features = features.filter(val => val.department_id === department);
+      // Sorts the features by modification date
+      let sorted: any = features.sort(function (a: any, b: any) {
+        return b.last_update < a.last_update ? -1 : 1;
+      });
+      sorted = sorted.length > 10 ? sorted.slice(0, 10) : sorted; // Limit the results to 10 rows
+      let result = { folders: [], features: sorted };
+      result.features = sorted.map(val => val.feature_id); // Store only the id of each feature
+      return result;
   }
 
   /**

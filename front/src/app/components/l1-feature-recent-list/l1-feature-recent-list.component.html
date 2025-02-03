@@ -8,6 +8,25 @@ Author: dph000
 <!-- Newer datatable -->
 <ng-container *ngLet="data$ as table">
   <div *ngIf="table.rows.length > 0; else showWelcome" class="table_container">
+    <!-- View Switch -->
+    <div class="view-selector">
+      <div
+        matRipple
+        matTooltip="My features"
+        class="view tiles"
+        [class.selected]="currentView === 'features'"
+        (click)="switchView('features')">
+        My Features
+      </div>
+      <div
+        matRipple
+        matTooltip="Show by department"
+        class="view list"
+        [class.selected]="currentView === 'department'"
+        (click)="switchView('department')">
+        Show by Department
+      </div>
+    </div>
     <!-- Mtx-grid datatable template -->
     <mtx-grid
       [data]="table.rows"
