@@ -57,13 +57,21 @@ class SQLDatabaseClient(DatabaseClient):
             ls.append(dt)
         return ls
 
-    # MySQL/MariaDB
+    
     def execute_query(self, context, query):
         logger.info(f"Executing query: {query}")
         text_query = text(query)
+        convert_result_to_json = True
         try:   
             send_step_details(context, "Executing query")
             result = self.connection.execute(text_query)   
+            
+            query_lower = query.strip().lower()
+            if query_lower.startswith(("create ", "alter ", "drop ")):
+                logger.info("DDL statement executed successfully.")
+                return {"message": "Query executed successfully"}
+            
+            
         except Exception as e:
             logger.error("Error while executing the query", e)
             raise CustomError(e)
