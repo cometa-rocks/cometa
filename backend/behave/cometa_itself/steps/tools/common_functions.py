@@ -182,7 +182,7 @@ def addTestRuntimeVariable(context, variable_name, variable_value, save_to_step_
         index = index[0]
         logger.debug("Patching existing variable")
         env_variables[index]["variable_value"] = variable_value
-        addStepVariableToContext(context,env_variables[index])
+        addStepVariableToContext(context,env_variables[index], save_to_step_report)
 
     else:
         logger.debug("Adding new variable")
@@ -192,7 +192,7 @@ def addTestRuntimeVariable(context, variable_name, variable_value, save_to_step_
             "encrypted": False,
         }
         env_variables.append(new_variable)
-        addStepVariableToContext(context,new_variable)
+        addStepVariableToContext(context,new_variable, save_to_step_report)
 
     context.VARIABLES = json.dumps(env_variables)
 
@@ -570,6 +570,19 @@ def saveToDatabase(
     compares = os.environ["COMPARES"].split(".")
     feature_id = context.feature_id
     feature_result_id = os.environ["feature_result_id"]
+    notes_data = context.step_data.get("notes", {})
+    
+    if notes_data=={} and context.LAST_STEP_DB_QUERY_RESULT is not None:
+        notes_data = {
+            "title": "Query Output",
+            "content": json.dumps(context.LAST_STEP_DB_QUERY_RESULT)
+        }
+    elif notes_data=={} and context.LAST_STEP_VARIABLE_AND_VALUE is not None:
+        notes_data = {
+            "title": "Created Variables Value",
+            "content": json.dumps(context.LAST_STEP_VARIABLE_AND_VALUE)
+        }
+              
     data = {
         "feature_result_id": feature_result_id,
         "step_name": step_name,
@@ -579,13 +592,11 @@ def saveToDatabase(
         "status": status,
         "belongs_to": context.step_data["belongs_to"],
         "rest_api_id": context.step_data.get("rest_api", None),
-        "notes": context.step_data.get("notes", {}),
+        "notes": notes_data,
         "database_query_result": context.LAST_STEP_DB_QUERY_RESULT,
         "current_step_variables_value": context.LAST_STEP_VARIABLE_AND_VALUE,
-
     }
-    # logger.debug(f"context.LAST_STEP_DB_QUERY_RESULT : {context.LAST_STEP_DB_QUERY_RESULT}")
-    # logger.debug(f"context.LAST_STEP_VARIABLE_AND_VALUE : {context.LAST_STEP_VARIABLE_AND_VALUE}")
+
     # add custom error if exists
     if "custom_error" in context.step_data:
         data["error"] = context.step_data["custom_error"]
