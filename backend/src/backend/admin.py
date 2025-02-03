@@ -62,7 +62,8 @@ class AdminStep(admin.ModelAdmin):
 class AdminStep_result(admin.ModelAdmin):
     model = Step_result
     list_display = ('step_result_id', 'step_name', 'execution_time', 'success')
-    list_filter = ('success','feature_result_id')
+    list_filter = ('success')
+    search_fields = ('feature_result_id','step_name')
 
 class AdminFeature(admin.ModelAdmin):
     model = Feature
