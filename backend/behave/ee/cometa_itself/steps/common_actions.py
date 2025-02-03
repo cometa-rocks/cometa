@@ -29,13 +29,13 @@ logger = logging.getLogger("FeatureExecution")
 # This step displays the value of a variable_name at runtime and in the browser screen as well for a given seconds amount of time.
 # The popup will disappear after the specified number of seconds.
 # Example: Show me variable "user_details" value for "10" seconds
-@step(u'Show me variable "{variable}" value for "{seconds}" seconds')
-@done(u'Show me variable "{variable}" value for "{seconds}" seconds')
-def show_variable_value(context, variable, seconds):
+@step(u'Show me variable "{variable_name}" value for "{seconds}" seconds')
+@done(u'Show me variable "{variable_name}" value for "{seconds}" seconds')
+def show_variable_value(context, variable_name, seconds):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     # Assuming getVariable is a function that retrieves the variable value
-    variable_value = getVariable(context, variable) 
-    send_step_details(context, f"{variable} : {variable_value}")    
+    variable_value = getVariable(context, variable_name) 
+    send_step_details(context, f"{variable_name} : {variable_value}")    
     # Define the variable type (implement the logic as needed)
     variable_type = type(variable_value).__name__  # You can replace this with your own logic
     if variable_type!='str':
@@ -49,9 +49,9 @@ def show_variable_value(context, variable, seconds):
                 // Create a container element (div)
                 const container = document.createElement('div');
                 container.style.position = 'fixed';
-                container.style.top = '28%%';  // Place it at the top of the viewport
-                container.style.marginLeft = '24%%';
-                container.style.width = '50%%';
+                container.style.top = '18%%';  // Place it at the top of the viewport
+                container.style.marginLeft = '14%%';
+                container.style.width = '70%%';
                 container.style.minHeight = '200px';
                 container.style.border = '10px solid';
                 container.style.borderRadius = '6px';
@@ -90,7 +90,7 @@ def show_variable_value(context, variable, seconds):
 
             // Invoke the function
             invokeDiv();
-        """ % (variable, variable_value, variable_type, seconds)
+        """ % (variable_name, variable_value, variable_type, seconds)
 
             context.browser.execute_script(script)
     except Exception as e:
