@@ -151,18 +151,26 @@ def getVariable(context, variable_name):
 
     return variable_value
 
-def addStepVariableToContext(context, variable):
+
+
+
+def is_valid_variable(value):
+    """Check if value is a valid type (dict, list, number, string, bool, None)."""
+    return isinstance(value, (dict, list, int, float, str, bool))
+
+def addStepVariableToContext(context, variable, save_to_step_report=False):
+    """Assign variable to context only if variable_value is of an allowed type."""
     
-    try:
-        """Check if a value can be converted to a JSON-compatible string."""
-        json.dumps(variable)
-        context.LAST_STEP_VARIABLE_AND_VALUE = variable
-    except (TypeError, ValueError):
+    if is_valid_variable(variable["variable_value"]):
+        if save_to_step_report:
+            context.LAST_STEP_VARIABLE_AND_VALUE = variable
+            logger.debug(f"Assigned: {variable}")
+    else:
         logger.warning(f"Warning: Skipping assignment. Value '{variable['variable_value']}' is not JSON-serializable.")
     
 
 # variables added using this method will not be saved in the database
-def addTestRuntimeVariable(context, variable_name, variable_value):
+def addTestRuntimeVariable(context, variable_name, variable_value, save_to_step_report=False):
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
     # check if variable_name is in the env_variables
@@ -189,7 +197,7 @@ def addTestRuntimeVariable(context, variable_name, variable_value):
     context.VARIABLES = json.dumps(env_variables)
 
 
-def addVariable(context, variable_name, result, encrypted=False):
+def addVariable(context, variable_name, result, encrypted=False, save_to_step_report=False):
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
     # check if variable_name is in the env_variables
@@ -203,7 +211,7 @@ def addVariable(context, variable_name, result, encrypted=False):
         env_variables[index]["variable_value"] = result
         env_variables[index]["encrypted"] = encrypted
         env_variables[index]["updated_by"] = context.PROXY_USER["user_id"]
-        addStepVariableToContext(context,env_variables[index])
+        addStepVariableToContext(context,env_variables[index], save_to_step_report)
         # do not update if scope is data-driven
         if (
             "scope" in env_variables[index]
@@ -241,7 +249,8 @@ def addVariable(context, variable_name, result, encrypted=False):
                 "variable_name": variable_name,
                 "variable_value": result,
                 "encrypted": encrypted,
-            }
+            },
+            save_to_step_report
         )
         # make the request to cometa_django and add the environment variable
         response = requests.post(
@@ -575,6 +584,8 @@ def saveToDatabase(
         "current_step_variables_value": context.LAST_STEP_VARIABLE_AND_VALUE,
 
     }
+    # logger.debug(f"context.LAST_STEP_DB_QUERY_RESULT : {context.LAST_STEP_DB_QUERY_RESULT}")
+    # logger.debug(f"context.LAST_STEP_VARIABLE_AND_VALUE : {context.LAST_STEP_VARIABLE_AND_VALUE}")
     # add custom error if exists
     if "custom_error" in context.step_data:
         data["error"] = context.step_data["custom_error"]
