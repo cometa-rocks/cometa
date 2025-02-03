@@ -480,8 +480,8 @@ h3 {
 .my-icons {
   display: inline-block;
   vertical-align: top;
-  height: 17px;
-  width: 17px;
+  height: 16px;
+  width: 16px;
   background-repeat: no-repeat;
   background-size: contain;
   &:not(:last-child) {
@@ -625,6 +625,17 @@ h3 {
   .mat-dialog-container {
     resize: both;
     overflow: auto;
+  }
+}
+
+.mobile-emulator-panel {
+  width: 80vw;
+  height: 81vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .mat-dialog-container {
+    overflow: hidden;
   }
 }
 
@@ -838,7 +849,7 @@ video-player .header {
     align-items: center;
   }
   .browser {
-    margin-left: 15px;
+    margin-left: 10px;
     display: flex;
     align-items: center;
     i {
@@ -1015,13 +1026,19 @@ input[type='number'] {
 
 .schedule-data {
   width: 250px;
+  letter-spacing: 0.5px;
+  span:first-of-type{
+    font-size: 15px;
+    font-weight: 100;
+  }
   span{
     vertical-align: middle;
-    font-size: 16px;
+    font-size: 12px;
     color: #5d6d7e;
   }
   span:last-of-type{
     color: #00a99d;
+    font-weight: bold;
   }
 }
 

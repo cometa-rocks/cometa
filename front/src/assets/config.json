@@ -1,5 +1,5 @@
 {
-  "version": "3.0.7",
+  "version": "3.0.8",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -233,12 +233,22 @@
   ],
   "changelog": [
     {
-      "version": "3.0.7",
+      "version": "3.0.8",
       "date": "2025-01-30",
       "features": [
         {
-          "title": "#5663 Fix order of recent tab ",
-          "description": "When loading into recent page,  'Last run' in descending order. Column order has been changed to include relevant information on the left side. Shortened the names of some columns to align items better. "
+          "title": "#5519 Improved vnc proxy",
+          "description": "Adding option to take vnc path from backend, to support Selenoid and Cometa browsers vnc connection"
+        }
+      ]
+    },
+    {
+      "version": "3.0.7",
+      "date": "2025-01-29",
+      "features": [
+        {
+            "title": "#5663 Fix order of recent tab ",
+            "description": "When loading into recent page,  'Last run' in descending order. Column order has been changed to include relevant information on the left side. Shortened the names of some columns to align items better. "
         }
       ]
     },
@@ -249,6 +259,10 @@
         {
           "title": "#5655 Add user details - hover profile ",
           "description": "Added User information when hovering over the profile icon"
+        },
+        {
+          "title": "#5519 Kubernetes deployment with mobile feature",
+          "description": "Kubernetes changes are merged with Mobile and AI feature, making it scalable"
         }
       ]
     },
@@ -257,7 +271,7 @@
       "date": "2024-11-21",
       "features": [
         {
-          "title": "#5414 Change background image of test environment ",
+          "title": "#5414 Change background image of test environment",
           "description": "Backgroud images can be change for the test browser and mobile device using Cometa admin section"
         }
       ]

@@ -1,0 +1,5 @@
+[
+    { "_id": 1, "name": "Karen Davis", "department": "Recruitment", "email": "karen.hr@company.com", "phone": "111-222-3333", "admin_id": 1 },
+    { "_id": 2, "name": "Leo Carter", "department": "Payroll", "email": "leo.hr@company.com", "phone": "222-333-4444", "admin_id": 1 }
+  ]
+  
