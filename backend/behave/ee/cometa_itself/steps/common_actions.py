@@ -116,7 +116,7 @@ def assert_imp(context, jq_pattern, variable_name, new_variable_name):
     logger.debug(variable_value)
     try:
         parsed_value = jq.compile(jq_pattern).input(variable_value).text()
-        addTestRuntimeVariable(context, new_variable_name, parsed_value)
+        addTestRuntimeVariable(context, new_variable_name, parsed_value, save_to_step_report=True)
     except Exception as err:
         logger.error("Invalid JQ pattern", err)
         raise CustomError(err)

@@ -76,7 +76,7 @@ def execute_sql_query_get_answer_in_json(context, query, variable):
     check_if_step_call_is_valid(context,"SQL")
     
     result = context.database_connection.execute_query(context,query)
-    addTestRuntimeVariable(context, variable, result)
+    addTestRuntimeVariable(context, variable, result, save_to_step_report=True)
     context.LAST_DB_QUERY_RESULT = result
     
 
@@ -116,7 +116,7 @@ def execute_nosql_query_get_answer_in_json(context, query, collection, variable)
     check_if_step_call_is_valid(context, "NOSQL")
     
     result = context.database_connection.execute_query(context, collection,  query)
-    addTestRuntimeVariable(context, variable, result)
+    addTestRuntimeVariable(context, variable, result, save_to_step_report=True)
     context.LAST_DB_QUERY_RESULT = result
 
 
