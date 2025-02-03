@@ -24,7 +24,7 @@ class MongoDBClient(DatabaseClient):
             send_step_details(context, "Connecting to database")
             logger.info(f"Connecting to MongoDB")
             self.connection = MongoClient(connection_string)  # Create connection
-            self.connected_database = self.client.get_database()  # No need to specify database_name
+            self.connected_database = self.connection.get_database()  # No need to specify database_name
             self.connection.admin.command("ping")
         except Exception as e:
             logger.error(f"Error while connecting to MongoDB: ",e)
@@ -54,7 +54,7 @@ class MongoDBClient(DatabaseClient):
         try:
             send_step_details(context, "Executing query")  
             logger.info(f"Executing MongoDB query on collection \"{collection}\": {query}")  
-            collection = self.db[collection]
+            collection = self.connected_database[collection]
             # Check if query contains an aggregation operator like `$lookup`
             if any(k.startswith("$") for k in query.keys()):
                 logger.info("Detected aggregation query, using `aggregate()`")
@@ -75,7 +75,7 @@ class MongoDBClient(DatabaseClient):
         
         
     
-    def close_connection(self):    
+    def close_connection(context, self):    
         try:
             send_step_details(context, "Closing \"{self.connection_name}\" MongoDB connection")
             logger.info(f"Closing \"{self.connection_name}\" MongoDB connection")
