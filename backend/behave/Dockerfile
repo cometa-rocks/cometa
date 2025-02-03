@@ -1,5 +1,5 @@
 # Use Python 3.9 base image from the Docker Hub
-FROM python:3.9
+FROM python:3.11
 
 LABEL AUTHOR="COMETA ROCKS S.L."
 
