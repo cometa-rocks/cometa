@@ -34,10 +34,11 @@ python -m pip install -U pip
 curl -sSL https://install.python-poetry.org | python3 -
 # Create symbolic link to Poetry so it's available as command everywhere
 
-########################### Start MSSQL related configurations ########################################
-curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update \
+########################### Start MSSQL related library downloading ########################################
+export DEBIAN_FRONTEND=noninteractive \
+    && curl -s https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl -s https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update -y \
     && ACCEPT_EULA=Y apt-get install -y msodbcsql17 \
     && apt-get install -y mssql-tools unixodbc-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -50,8 +51,7 @@ apt-get update && apt-get install -y \
     curl \
     gnupg2 \
     && rm -rf /var/lib/apt/lists/*
-
-########################### End MSSQL related configurations ########################################
+########################### End MSSQL related library downloading ########################################
 
 
 ln -s /root/.local/bin/poetry /usr/local/bin/poetry

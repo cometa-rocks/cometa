@@ -16,7 +16,7 @@ import oracledb
 
 
 from db_tests.common import get_logger
-from tests import test_connections
+from db_tests.sql_tests import test_connections
 
 logger = get_logger()
 
