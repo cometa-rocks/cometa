@@ -168,6 +168,9 @@ export class MobileListComponent implements OnInit {
 
     this.logger.msg("1", "CO-User:", "mobile-list", this.user);
 
+    // this.logger.msg("1", "CO-Mobiles:", "mobile-list", this.mobiles);
+
+    // this.logger.msg("1", "CO-ApkFiles:", "mobile-list", this.apkFiles);
 
     if (this.user && this.user.departments) {
       // User departments
@@ -605,6 +608,10 @@ export class MobileListComponent implements OnInit {
 
 
   onDepartmentSelect($event){
+
+    console.log("Mobile: ", this.mobiles);
+
+    console.log("ApkFiles: ", this.apkFiles);
 
     if (!this.selectedDepartment || !this.selectedDepartment.id) {
       this.selectionsDisabled = false;
