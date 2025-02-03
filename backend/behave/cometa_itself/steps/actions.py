@@ -3493,6 +3493,8 @@ if __name__ != 'actions':
     from ee.cometa_itself.steps import ai_actions
     from ee.cometa_itself.steps import conditional_actions
     from ee.cometa_itself.steps import mobile_actions  
+    from ee.cometa_itself.steps import database_actions  
+    from ee.cometa_itself.steps import common_actions  
     
     sys.path.append('/opt/code/cometa_itself')
     from steps import validation_actions

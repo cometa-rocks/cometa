@@ -62,6 +62,7 @@ DOMAIN = ConfigurationManager.get_configuration("COMETA_DOMAIN", "")
 S3ENABLED = ConfigurationManager.get_configuration("COMETA_S3_ENABLED", False) == "True"
 ENCRYPTION_START = ConfigurationManager.get_configuration("COMETA_ENCRYPTION_START", "")
 COMETA_AI_ENABLED =  ConfigurationManager.get_configuration("COMETA_FEATURE_AI_ENABLED", False) == "True"
+COMETA_FEATURE_DATABASE_ENABLED =  ConfigurationManager.get_configuration("COMETA_FEATURE_DATABASE_ENABLED", False) == "True"
 IS_KUBERNETES_DEPLOYMENT = ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker") == "kubernetes"
 USE_COMETA_BROWSER_IMAGES = ConfigurationManager.get_configuration("USE_COMETA_BROWSER_IMAGES", "True") == "True"
 
@@ -301,9 +302,10 @@ def before_all(context):
     request = requests.get(f'{get_cometa_socket_url()}/feature/%s/initializing' % str(context.feature_id), data=payload)
 
 
+    context.LAST_STEP_VARIABLE_AND_VALUE = None
     
-    # #################################
-    # keeps track of mobile devices driver, so that test can be performed in the multiple mobiles switched
+    # ################# MOBILE DEVICES RELATED SETINGS ################
+    # keeps track of mobile devices driver, so that test can be performed in the multiple mobiles devices
     context.mobiles = {}
     # keep the reference of active mobile device
     context.mobile = None
@@ -311,11 +313,26 @@ def before_all(context):
     context.mobile_capabilities = {}
     # Keeps track of service/containers started during test, so that if can be kill/stopped after test 
     context.container_services = []
+    
     # Keeps track of step type, which types of step was executed 
-    # Currently supported values BROWSER, MOBILE and API
+    # Currently supported values BROWSER, MOBILE and API, DATABASES
+    # only browser steps are then which are not defined with the STEP_TYPE to for those step have step type = BROWSER
     context.STEP_TYPE = 'BROWSER'
-
     # #################################
+
+    
+    context.COMETA_FEATURE_DATABASE_ENABLED = COMETA_FEATURE_DATABASE_ENABLED
+    
+    # ############# DATABASE RELATED SETTINGS ####################
+    if COMETA_FEATURE_DATABASE_ENABLED:
+        # keeps track of database connections, so that test can be performed in the multiple databases with in the same test
+        context.database_connections = {}
+        # keep the reference of active mobile device
+        context.database_connection = None    
+        context.LAST_STEP_DB_QUERY_RESULT = None
+        
+    # #################################
+
     context.PREVIOUS_STEP_TYPE = context.STEP_TYPE   
     
     # browser data
@@ -843,6 +860,8 @@ def before_step(context, step):
     context.CURRENT_STEP = step
     context.CURRENT_STEP_STATUS = "Failed"
     context.STEP_TYPE = 'BROWSER'
+    context.LAST_STEP_DB_QUERY_RESULT = None
+    context.LAST_STEP_VARIABLE_AND_VALUE = None
 
     os.environ["current_step"] = str(context.counters["index"] + 1)
     # complete step name to let front know about the step that will be executed next
@@ -1013,7 +1032,7 @@ def after_step(context, step):
             "user_id": context.PROXY_USER["user_id"],
             "feature_result_id": os.environ["feature_result_id"],
             "browser_info": json.dumps(context.browser_info),
-            "run_id": os.environ["feature_run"],
+            "run_id": os.environ["feature_run"], 
             "step_name": step_name,
             "step_index": index,
             "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),

@@ -990,6 +990,7 @@ step_type_choices = (
     ('BROWSER','BROWSER'), 
     ('MOBILE','MOBILE'), 
     ('API','API'),
+    ('DATABASE','DATABASE')
 )
 
 class Step_result(models.Model):
@@ -1011,6 +1012,8 @@ class Step_result(models.Model):
     belongs_to = models.IntegerField(null=True) # feature that step belongs to
     rest_api = models.ForeignKey("REST_API", on_delete=models.CASCADE, null=True, default=None)
     notes = models.JSONField(default=dict)
+    database_query_result = models.JSONField(default=list, null=True)
+    current_step_variables_value = models.JSONField(default=dict, null=True)
     error = models.TextField(null=True, blank=True)
     step_type = models.CharField(choices=step_type_choices, max_length=10, blank=False, default='BROWSER')
 

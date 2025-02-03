@@ -165,6 +165,7 @@ def addTestRuntimeVariable(context, variable_name, variable_value):
         index = index[0]
         logger.debug("Patching existing variable")
         env_variables[index]["variable_value"] = variable_value
+        context.LAST_STEP_VARIABLE_AND_VALUE = env_variables[index]
     else:
         logger.debug("Adding new variable")
         new_variable = {
@@ -173,6 +174,7 @@ def addTestRuntimeVariable(context, variable_name, variable_value):
             "encrypted": False,
         }
         env_variables.append(new_variable)
+        context.LAST_STEP_VARIABLE_AND_VALUE = new_variable
 
     context.VARIABLES = json.dumps(env_variables)
 
@@ -191,7 +193,7 @@ def addVariable(context, variable_name, result, encrypted=False):
         env_variables[index]["variable_value"] = result
         env_variables[index]["encrypted"] = encrypted
         env_variables[index]["updated_by"] = context.PROXY_USER["user_id"]
-
+        context.LAST_STEP_VARIABLE_AND_VALUE = env_variables[index]
         # do not update if scope is data-driven
         if (
             "scope" in env_variables[index]
@@ -225,6 +227,11 @@ def addVariable(context, variable_name, result, encrypted=False):
             "created_by": context.PROXY_USER["user_id"],
             "updated_by": context.PROXY_USER["user_id"],
         }
+        context.LAST_STEP_VARIABLE_AND_VALUE = {
+                "variable_name": variable_name,
+                "variable_value": result,
+                "encrypted": encrypted,
+            }
         # make the request to cometa_django and add the environment variable
         response = requests.post(
             f"{get_cometa_backend_url()}/api/variables/",
@@ -553,6 +560,9 @@ def saveToDatabase(
         "belongs_to": context.step_data["belongs_to"],
         "rest_api_id": context.step_data.get("rest_api", None),
         "notes": context.step_data.get("notes", {}),
+        "database_query_result": context.LAST_STEP_DB_QUERY_RESULT,
+        "current_step_variables_value": context.LAST_STEP_VARIABLE_AND_VALUE,
+
     }
     # add custom error if exists
     if "custom_error" in context.step_data:

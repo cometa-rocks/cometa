@@ -161,7 +161,9 @@ def updated_step_actions(request):
             'ee/cometa_itself/steps/rest_api.py',
             'ee/cometa_itself/steps/ai_actions.py',
             'ee/cometa_itself/steps/conditional_actions.py',
-            'ee/cometa_itself/steps/mobile_actions.py'
+            'ee/cometa_itself/steps/mobile_actions.py',
+            'ee/cometa_itself/steps/database_actions.py',
+            'ee/cometa_itself/steps/common_actions.py'
         ]
         
         # variable to contain action comment
