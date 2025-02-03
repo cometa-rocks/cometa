@@ -1,7 +1,0 @@
-[
-    { "_id": 1, "name": "Adam Taylor", "job_title": "Software Engineer", "department": "IT", "salary": 75000, "email": "adam@company.com", "phone": "101-202-3030", "hired_at": "2022-03-15", "hr_id": 1 },
-    { "_id": 2, "name": "Betty Cooper", "job_title": "Marketing Manager", "department": "Marketing", "salary": 85000, "email": "betty@company.com", "phone": "202-303-4040", "hired_at": "2021-06-22", "hr_id": 2 },
-    { "_id": 3, "name": "Chris Evans", "job_title": "Financial Analyst", "department": "Finance", "salary": 65000, "email": "chris@company.com", "phone": "303-404-5050", "hired_at": "2020-09-30", "hr_id": 3 },
-    { "_id": 4, "name": "Diana Prince", "job_title": "HR Coordinator", "department": "HR", "salary": 55000, "email": "diana@company.com", "phone": "404-505-6060", "hired_at": "2019-11-11", "hr_id": 4 },
-    { "_id": 5, "name": "Edward Norton", "job_title": "Network Administrator", "department": "IT", "salary": 72000, "email": "edward@company.com", "phone": "505-606-7070", "hired_at": "2023-01-25", "hr_id": 5 }
-]
