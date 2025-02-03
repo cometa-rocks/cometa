@@ -561,6 +561,35 @@
                       <!-- In developement -->
                       <div class="container-buttons">
                         <div
+                          class="container-inspect-left"
+                          *ngIf="runningContainer; else notRunningTemplate">
+                          <div
+                            (click)="inspectMobile(runningContainer, mobile)"
+                            mat-raised-button
+                            color="basic"
+                            class="start-stop-inpect-buttons"
+                            [disabled]="runningContainer.isTerminating"
+                            [matTooltip]="'mobile_list.inspect_emulator' | translate" matTooltipPosition="above">
+                            <span class="inspect-text">Inspect</span>
+                            <i class="material-icons icon-on-hover">visibility</i>
+                          </div>
+                        </div>
+                        <div
+                          class="container-novnc-left"
+                          *ngIf="runningContainer; else notRunningTemplate">
+                          <div
+                            (click)="noVNCMobile(runningContainer, mobile)"
+                            mat-raised-button
+                            color="basic"
+                            class="start-stop-inpect-buttons"
+                            [disabled]="runningContainer.isTerminating"
+                            [matTooltip]="'mobile_list.inspect_novnc' | translate"
+                            matTooltipPosition="above">
+                            <span class="inspect-text">noVNC</span>
+                            <i class="material-icons icon-on-hover">visibility</i>
+                          </div>
+                        </div>
+                        <div
                           class="border-left-close"
                           *ngIf="runningContainer; else notRunningTemplate">
                           <div
@@ -713,23 +742,6 @@
                         </mat-menu>
                       </div>
 
-                      <!-- Mobile details -->
-                      <!-- <div class="view-selector">
-                        <div
-                          matRipple
-                          matTooltip="Tree view"
-                          [class.selected]="itemsViewWith === 'tree'"
-                          class="tree view">
-                            <mat-icon class="iconsMatRipple info">info</mat-icon>
-                        </div>
-                        <div
-                          matRipple
-                          matTooltip="APK installation"
-                          [class.selected]="itemsViewWith === 'list'"
-                          class="list view">
-                          <mat-icon class="iconsMatRipple download">file_download</mat-icon>
-                        </div>
-                      </div> -->
                       <div class="mobile-details">
                         <div class="mobile-information">
                           <div class="emulator-info">
@@ -957,28 +969,9 @@
                           Start
                         </button> -->
 
-                        <!-- <ng-container *ngIf="runningContainer">
-                          <button
-                            (click)="inspectMobile(runningContainer, mobile)"
-                            mat-raised-button
-                            color="basic"
-                            class="start-stop-inpect-buttons"
-                            [disabled]="runningContainer.isTerminating"
-                            [matTooltip]="'mobile_list.inspect_emulator' | translate" matTooltipPosition="above">
-                            <span class="inspect-text">Inspect</span>
-                            <i class="material-icons icon-on-hover">visibility</i>
-                          </button>
-                          <button
-                            (click)="noVNCMobile(runningContainer, mobile)"
-                            mat-raised-button
-                            color="basic"
-                            class="start-stop-inpect-buttons noVNCButton"
-                            [disabled]="runningContainer.isTerminating"
-                            [matTooltip]="'mobile_list.inspect_novnc' | translate" matTooltipPosition="above">
-                            <span class="inspect-text">noVNC</span>
-                            <i class="material-icons icon-on-hover">visibility</i>
-                          </button>
-                        </ng-container> -->
+                        <!-- <ng-container *ngIf="runningContainer"> -->
+
+                        <!-- </ng-container> -->
                       </div>
                     </div>
                   </div>

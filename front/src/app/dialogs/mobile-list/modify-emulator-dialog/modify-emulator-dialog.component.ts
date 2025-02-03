@@ -47,7 +47,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { DraggableWindowModule } from '@modules/draggable-window.module'
 import { MatExpansionModule } from '@angular/material/expansion';
 import { LogService } from '@services/log.service';
-
+import { ApiService } from '@services/api.service';
 
 /**
  * MobileListComponent
@@ -105,7 +105,8 @@ export class ModifyEmulatorDialogComponent {
     private snack: MatSnackBar,
     private _store: Store,
     private _fb: FormBuilder,
-    private logger: LogService
+    private logger: LogService,
+    private _api: ApiService,
   ) {
 
     this.editMobileForm = this._fb.group({
@@ -156,36 +157,62 @@ export class ModifyEmulatorDialogComponent {
     if (this.editMobileForm.valid) {
       const selectedApp = this.editMobileForm.value.selectedApp;
       this.logger.msg("1", "App-seleccionada:", "modify-emulator", selectedApp);
+
+      // Si se seleccionó un APK, lo instalamos
+      if (selectedApp) {
+        // this.installAPK(selectedApp);
+      }
     } else {
       this.logger.msg("1", "CO-Departments:", "modify-emulator", 'Formulario no válido');
     }
   }
 
-  // installAPK(mobile: IMobile, container): void {
-  //   let updateData = { apk_file: mobile.selectedAPKFileID };
+  installAPK(mobile: IMobile, container): void {
+    let updateData = { apk_file: mobile.selectedAPKFileID };
 
-  //   this._api.updateMobile(container.id, updateData).subscribe(
+    this._api.updateMobile(container.id, updateData).subscribe(
 
-  //     (response: any) => {
-  //       if (response && response.containerservice) {
-  //         container = response.containerservice;
-  //         this.snack.open(
-  //           `APK Installed in the mobile ${mobile.mobile_image_name}`,
-  //           'OK'
-  //         );
-  //         this._cdr.detectChanges();
-  //       } else {
-  //         this.snack.open(response.message, 'OK');
+      (response: any) => {
+        if (response && response.containerservice) {
+          container = response.containerservice;
+          this.snack.open(
+            `APK Installed in the mobile ${mobile.mobile_image_name}`,
+            'OK'
+          );
+          this._cdr.detectChanges();
+        } else {
+          this.snack.open(response.message, 'OK');
+        }
+      },
+      error => {
+        // Handle any errors
+        console.error(
+          'An error occurred while fetching the mobile list',
+          error
+        );
+      }
+    );
+  }
+
+  // // Función para eliminar APKs instalados
+  // removeInstalledApk(apk: any, index: number): void {
+  //   const confirmDelete = confirm(`Are you sure you want to uninstall ${apk.name}?`);
+  //   if (confirmDelete) {
+  //     this._api.uninstallAPK(this.selectedDepartment.id, apk.id).subscribe(
+  //       (response: any) => {
+  //         if (response.success) {
+  //           this.installedAPKs.splice(index, 1);
+  //           this._cdr.detectChanges();
+  //           this.snack.open(`APK ${apk.name} uninstalled successfully`, 'OK', { duration: 3000 });
+  //         } else {
+  //           this.snack.open(`Failed to uninstall APK: ${response.message}`, 'OK', { duration: 3000 });
+  //         }
+  //       },
+  //       error => {
+  //         console.error("Error uninstalling APK:", error);
+  //         this.snack.open("Error uninstalling APK", 'OK', { duration: 3000 });
   //       }
-  //     },
-  //     error => {
-  //       // Handle any errors
-  //       console.error(
-  //         'An error occurred while fetching the mobile list',
-  //         error
-  //       );
-  //     }
-  //   );
+  //     );
+  //   }
   // }
-
 }

@@ -8,7 +8,7 @@
       <mat-expansion-panel>
         <mat-expansion-panel-header>
           <mat-panel-title>
-            <span>Information</span>
+            <span>Install APKs</span>
           </mat-panel-title>
         </mat-expansion-panel-header>
         <div class="edit-feature-info">
@@ -24,6 +24,30 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
+        </div>
+      </mat-expansion-panel>
+
+
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Installed APKs</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="installed-apks">
+          <mat-list *ngIf="data.installedAPKs?.length > 0; else noAPKs">
+            <mat-list-item *ngFor="let installedApk of data.installedAPKs; let i = index">
+              <mat-icon color="primary">check_circle</mat-icon>
+              <span>{{ installedApk.name }}</span>
+              <span class="spacer"></span>
+              <button mat-icon-button color="warn" (click)="removeInstalledApk(installedApk, i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </mat-list-item>
+          </mat-list>
+          <ng-template #noAPKs>
+            <p>No APKs installed</p>
+          </ng-template>
         </div>
       </mat-expansion-panel>
     </mat-accordion>
