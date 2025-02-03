@@ -40,9 +40,9 @@ def convert_ai_answer_to_json(ai_answer, use_regex=True):
     return json.loads(json_string)
 
 
-def feature_cannot_be_used_error():
+def ai_feature_cannot_be_used_error():
     raise CustomError(
-        "AI features cannot be used because this Cometa installation does not have the AI feature enabled."
+        "AI based testing features cannot be used because this Cometa subscription. Please contact your administrator to enable AI features."
     )
 
 use_step_matcher("re")
@@ -61,7 +61,7 @@ use_step_matcher("re")
 def validate_screen_using_ai(context, object_name, options):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
-        feature_cannot_be_used_error()
+        ai_feature_cannot_be_used_error()
 
     image_decoded_data = get_screenshot_bytes_from_screen(context)
 
@@ -113,7 +113,7 @@ def validate_screen_using_ai(context, object_name, options):
 def get_list_of_visible_objects_in_the_screen(context, variable, options):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
-        feature_cannot_be_used_error()
+        ai_feature_cannot_be_used_error()
 
     image_decoded_data = get_screenshot_bytes_from_screen(context)
 
@@ -237,7 +237,7 @@ def assert_imp(context, variable_name, condition, value):
 def ai_analyze(context, user_message_to_ai, variable, option):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
-        feature_cannot_be_used_error()
+        ai_feature_cannot_be_used_error()
     user_messages = user_message_to_ai.encode().decode("unicode_escape")
     logger.debug(user_messages)
     user_messages = json.loads(user_messages)
@@ -285,7 +285,7 @@ def ai_analyze(context, user_message_to_ai, variable, option):
 def get_information_from_current_screen_based_on_prompt(context, prompt, variable, option):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
-        feature_cannot_be_used_error()
+        ai_feature_cannot_be_used_error()
     
     image_decoded_data = get_screenshot_bytes_from_screen(context)
 
@@ -330,77 +330,3 @@ def get_information_from_current_screen_based_on_prompt(context, prompt, variabl
 use_step_matcher("parse")
 
     
-# This step displays the value of a variable_name at runtime and in the browser screen as well for a given seconds amount of time.
-# The popup will disappear after the specified number of seconds.
-# Example: Show me variable "user_details" value for "10" seconds
-@step(u'Show me variable "{variable}" value for "{seconds}" seconds')
-@done(u'Show me variable "{variable}" value for "{seconds}" seconds')
-def show_variable_value(context, variable, seconds):
-    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
-    # Assuming getVariable is a function that retrieves the variable value
-    variable_value = getVariable(context, variable) 
-    send_step_details(context, f"{variable} : {variable_value}")    
-    # Define the variable type (implement the logic as needed)
-    variable_type = type(variable_value).__name__  # You can replace this with your own logic
-    if variable_type!='str':
-        variable_value = json.dumps(variable_value)  # Convert the value to JSON format
-    try:
-        if context.browser: 
-        # Use old-style string formatting (%s) with escaped % symbols for the JavaScript code
-            script = """
-            // Function to invoke the div and display JSON content
-            function invokeDiv() {
-                // Create a container element (div)
-                const container = document.createElement('div');
-                container.style.position = 'fixed';
-                container.style.top = '28%%';  // Place it at the top of the viewport
-                container.style.marginLeft = '24%%';
-                container.style.width = '50%%';
-                container.style.minHeight = '200px';
-                container.style.border = '10px solid';
-                container.style.borderRadius = '6px';
-                container.style.padding = '1%%';
-                container.style.fontFamily = 'system-ui';
-                container.style.color = 'black';
-                container.style.background = 'rgb(240, 240, 240)';  // A light gray background for visibility
-                container.style.zIndex = '1000';  // High z-index to make it visible at top
-
-                // Create an inner div to hold the JSON content
-                const contentDiv = document.createElement('div');
-                contentDiv.style.padding = '20px';
-                contentDiv.style.width = '100%%';  // Make sure the inner div takes up the full width of its container
-
-                // Populate the content div with JSON data (in a simple format)
-                const jsonContent = `
-                    <h2>Cometa Runtime Variable</h2>
-                    <p><b>Variable Name:</b> %s</p>
-                    <p><b>Variable Value:</b> %s</p>
-                    <p><b>Variable Type:</b> %s</p>
-                `;
-
-                contentDiv.innerHTML = jsonContent;
-
-                // Add the content div to the container
-                container.appendChild(contentDiv);
-
-                // Append the container to the body of the document
-                document.body.appendChild(container);
-
-                // After disappearTime seconds, remove the container from the DOM
-                setTimeout(() => {
-                    container.remove();
-                }, %s * 1000 + 500);  // Multiply by 1000 to convert seconds to milliseconds
-            }
-
-            // Invoke the function
-            invokeDiv();
-        """ % (variable, variable_value, variable_type, seconds)
-
-            context.browser.execute_script(script)
-    except Exception as e:
-        logger.exception("Exception while showing value in browser", e)
-        
-        
-    time.sleep(int(seconds))
-
-
