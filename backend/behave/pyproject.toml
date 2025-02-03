@@ -7,7 +7,7 @@ license = "MIT"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.11"
 arrow = "^1.2.3"
 html-diff = "^0.3.0"
 tqdm = "^4.65.0"
@@ -44,7 +44,18 @@ pypdf = "3.17.0"
 appium-python-client = "^4.2.0"
 docker = "^7.1.0"
 kubernetes = "^31.0.0"
-
+psycopg = {extras = ["binary"], version = "^3.2.4"}
+pyodbc = "^5.2.0"
+cx-oracle = "^8.3.0"
+pymongo = "^4.10.1"
+mysql-connector-python = "<9.0.0"
+sqlalchemy = "^2.0.37"
+pymysql = "^1.1.1"
+ibm-db-sa = "^0.4.1"
+mysqlclient = "^2.2.7"
+cryptography = "^44.0.0"
+orjson = "^3.10.15"
+ibm-db = "^3.2.5"
 
 [tool.poetry.dev-dependencies]
 
