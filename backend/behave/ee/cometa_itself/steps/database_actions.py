@@ -110,12 +110,12 @@ def connect_to_sql_database(context, connection_string, variable):
 # The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
 @step(u'Execute the NoSQL query """{query}""" on the "{collection}" collection and store the result in "{variable}"')
 @done(u'Execute the NoSQL query """{query}""" on the "{collection}" collection and store the result in "{variable}"')
-def execute_nosql_query_get_answer_in_json(context, query, variable):
+def execute_nosql_query_get_answer_in_json(context, query, collection, variable):
     context.STEP_TYPE = "DATABASE"
     database_feature_cannot_be_used_error(context)
     check_if_step_call_is_valid(context, "NOSQL")
     
-    result = context.database_connection.execute_query(context, query)
+    result = context.database_connection.execute_query(context, collection,  query)
     addTestRuntimeVariable(context, variable, result)
     context.LAST_DB_QUERY_RESULT = result
 
