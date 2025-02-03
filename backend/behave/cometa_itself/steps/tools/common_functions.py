@@ -151,6 +151,15 @@ def getVariable(context, variable_name):
 
     return variable_value
 
+def addStepVariableToContext(context, variable):
+    
+    try:
+        """Check if a value can be converted to a JSON-compatible string."""
+        json.dumps(variable)
+        context.LAST_STEP_VARIABLE_AND_VALUE = variable
+    except (TypeError, ValueError):
+        logger.warning(f"Warning: Skipping assignment. Value '{variable['variable_value']}' is not JSON-serializable.")
+    
 
 # variables added using this method will not be saved in the database
 def addTestRuntimeVariable(context, variable_name, variable_value):
@@ -165,7 +174,8 @@ def addTestRuntimeVariable(context, variable_name, variable_value):
         index = index[0]
         logger.debug("Patching existing variable")
         env_variables[index]["variable_value"] = variable_value
-        context.LAST_STEP_VARIABLE_AND_VALUE = env_variables[index]
+        addStepVariableToContext(context,env_variables[index])
+
     else:
         logger.debug("Adding new variable")
         new_variable = {
@@ -174,7 +184,7 @@ def addTestRuntimeVariable(context, variable_name, variable_value):
             "encrypted": False,
         }
         env_variables.append(new_variable)
-        context.LAST_STEP_VARIABLE_AND_VALUE = new_variable
+        addStepVariableToContext(context,new_variable)
 
     context.VARIABLES = json.dumps(env_variables)
 
@@ -193,7 +203,7 @@ def addVariable(context, variable_name, result, encrypted=False):
         env_variables[index]["variable_value"] = result
         env_variables[index]["encrypted"] = encrypted
         env_variables[index]["updated_by"] = context.PROXY_USER["user_id"]
-        context.LAST_STEP_VARIABLE_AND_VALUE = env_variables[index]
+        addStepVariableToContext(context,env_variables[index])
         # do not update if scope is data-driven
         if (
             "scope" in env_variables[index]
@@ -227,11 +237,12 @@ def addVariable(context, variable_name, result, encrypted=False):
             "created_by": context.PROXY_USER["user_id"],
             "updated_by": context.PROXY_USER["user_id"],
         }
-        context.LAST_STEP_VARIABLE_AND_VALUE = {
+        addStepVariableToContext(context, {
                 "variable_name": variable_name,
                 "variable_value": result,
                 "encrypted": encrypted,
             }
+        )
         # make the request to cometa_django and add the environment variable
         response = requests.post(
             f"{get_cometa_backend_url()}/api/variables/",
