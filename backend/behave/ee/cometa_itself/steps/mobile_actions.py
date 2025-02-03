@@ -30,7 +30,7 @@ from tools.exceptions import *
 from tools.common import send_step_details, decryptFile, waitSelector
 from tools.common_functions import *
 from tools.service_manager import ServiceManager
-from .mobile_actions_utils import upload_file_to_appium_container, perform_swipe
+from .utils.mobile_actions_utils import upload_file_to_appium_container, perform_swipe
 
 # setup logging
 logger = logging.getLogger("FeatureExecution")
