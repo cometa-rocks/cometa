@@ -247,15 +247,19 @@
       "date": "2025-01-29",
       "features": [
         {
-          "title": "#5519 Deployment improvement of front container with ",
-          "description": ""
+            "title": "#5663 Fix order of recent tab ",
+            "description": "When loading into recent page,  'Last run' in descending order. Column order has been changed to include relevant information on the left side. Shortened the names of some columns to align items better. "
         }
       ]
     },
     {
       "version": "3.0.6",
-      "date": "2024-12-23",
+      "date": "2025-01-29",
       "features": [
+        {
+          "title": "#5655 Add user details - hover profile ",
+          "description": "Added User information when hovering over the profile icon"
+        },
         {
           "title": "#5519 Kubernetes deployment with mobile feature",
           "description": "Kubernetes changes are merged with Mobile and AI feature, making it scalable"
