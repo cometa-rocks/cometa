@@ -78,29 +78,11 @@ mat-dialog-container {
           justify-content: center;
           margin-bottom: 10px;
 
-          .moreOrLess {
-            text-align: left;
-            padding: 0 0 0 10px;
-            margin-bottom: 5px;
-            background-color: transparent;
-          }
-
-          // .moreOrLess:hover {
-          //   background-color: transparent;
-          // }
-
-          .moreOrLessNotRunning {
-            text-align: left;
-            // margin-top: 30px;
-            padding: 0 0 0 10px;
-            background-color: transparent;
-          }
-
           .moreInfo{
             display: flex;
             flex-direction: column;
-            margin-left: 10px;
-            margin-bottom: 15px;
+            // margin-left: 10px;
+            // margin-bottom: 15px;
           }
         }
       }
@@ -578,25 +560,25 @@ mobile-list {
   margin-left: 10px;
 }
 
-.options {
-  display: flex;
-  align-items: center;
-  margin-left: 5px;
-  // margin-bottom: -11px;
-  button {
-    margin-left: -10px;
-  }
-  mat-icon {
-    color: black;
-    font-size: 19px;
-    margin-bottom: 0px;
-  }
-  span {
-    margin-left: -8px;
-    font-weight: bold;
-    font-size: 14px;
-  }
-}
+// .options {
+//   display: flex;
+//   align-items: center;
+//   margin-left: 5px;
+//   // margin-bottom: -11px;
+//   button {
+//     margin-left: -10px;
+//   }
+//   mat-icon {
+//     color: black;
+//     font-size: 19px;
+//     margin-bottom: 0px;
+//   }
+//   span {
+//     margin-left: -8px;
+//     font-weight: bold;
+//     font-size: 14px;
+//   }
+// }
 
 .mat-form-field-wrapper {
   font-size: 13px;
@@ -1452,3 +1434,26 @@ mat-card {
   margin-left: 18px;
 }
 
+// Mobile shared
+
+.sharedEmulator {
+  position: relative;
+  top: -90px;
+  left: 350px;
+}
+
+::ng-deep .mat-slide-toggle[disabled] .mat-slide-toggle-bar {
+  background-color: #2196F3;
+}
+
+::ng-deep .mat-slide-toggle[disabled] .mat-slide-toggle-thumb {
+  background-color: white;
+}
+
+.mat-slide-toggle[disabled] .mat-slide-toggle-bar {
+  background-color: #2196F3 !important;
+}
+
+.mat-slide-toggle[disabled] .mat-slide-toggle-thumb {
+  background-color: white !important;
+}
