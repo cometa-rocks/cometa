@@ -566,9 +566,9 @@
                           <div
                             (click)="inspectMobile(runningContainer, mobile)"
                             mat-raised-button
-                            color="basic"
                             class="start-stop-inpect-buttons"
                             [disabled]="runningContainer.isTerminating"
+
                             [matTooltip]="'mobile_list.inspect_emulator' | translate" matTooltipPosition="above">
                             <span class="inspect-text">Inspect</span>
                             <i class="material-icons icon-on-hover">visibility</i>
@@ -580,9 +580,8 @@
                           <div
                             (click)="noVNCMobile(runningContainer, mobile)"
                             mat-raised-button
-                            color="basic"
                             class="start-stop-inpect-buttons"
-                            [disabled]="runningContainer.isTerminating"
+
                             [matTooltip]="'mobile_list.inspect_novnc' | translate"
                             matTooltipPosition="above">
                             <span class="inspect-text">noVNC</span>
@@ -721,7 +720,7 @@
 
                           <!-- Modify -->
                           <button
-                            (click)="openModifyEmulatorDialog()"
+                            (click)="openModifyEmulatorDialog(mobile, runningContainer)"
                             class="modifyMenu"
                             mat-menu-item>
                             <mat-icon>edit</mat-icon>
@@ -847,36 +846,37 @@
                             </mat-menu>
                           </ng-container>
                           <div
-                          [ngClass]="{ 'disabled-content': !runningContainer }"
-                          class="row-content">
+                            [ngClass]="{ 'disabled-content': !runningContainer }"
+                            class="row-content">
 
-                          <mat-icon [inline]="true" class="get-app"
-                          [matTooltip]="'mobile_list.apk_file' | translate"
-                            matTooltipPosition="above">
-                            file_download
-                          </mat-icon>
-                          <p
+                            <mat-icon [inline]="true" class="get-app"
                             [matTooltip]="'mobile_list.apk_file' | translate"
-                            matTooltipPosition="above">
-                            Installed Apps
-                            <mat-form-field  class="select-app">
-                              <mat-label>Select App (extension <strong>.apk</strong>)</mat-label>
-                              <mat-select
-                                [disabled]="!runningContainer"
-                                id="apkFileSelectBox_{{ mobile.mobile_id }}"
-                                [(value)]="selectedApps[mobile.mobile_id]"
-                                (selectionChange)="
-                                  updateAPKSelection($event, mobile, runningContainer)
-                                ">
-                                <mat-option
-                                  *ngFor="let apk_file of this.apkFiles"
-                                  [value]="apk_file.id">
-                                  {{ apk_file.name }}
-                                </mat-option>
-                              </mat-select>
-                            </mat-form-field>
-                          </p>
-                        </div>
+                              matTooltipPosition="above">
+                              file_download
+                            </mat-icon>
+                            <p
+                              [matTooltip]="'mobile_list.apk_file' | translate"
+                              matTooltipPosition="above">
+                              Installed Apps
+                              <mat-form-field  class="select-app">
+                                <mat-label>Select App (extension <strong>.apk</strong>)</mat-label>
+                                <mat-select
+                                  [disabled]="!runningContainer"
+                                  id="apkFileSelectBox_{{ mobile.mobile_id }}"
+                                  [(value)]="selectedApps[mobile.mobile_id]"
+                                  (selectionChange)="
+                                    updateAPKSelection($event, mobile, runningContainer)
+                                  ">
+                                  <mat-option
+                                    *ngFor="let apk_file of this.apkFiles"
+                                    [value]="apk_file.id">
+                                    {{ apk_file.name }}
+                                  </mat-option>
+                                </mat-select>
+                              </mat-form-field>
+                            </p>
+                          </div>
+
                         </div>
 
                         <div class="apkContainer">
@@ -887,7 +887,7 @@
                           <!-- <mat-divider></mat-divider> -->
 
                           <div class="apk-selection">
-                              <!-- <mat-slide-toggle
+                            <!-- <mat-slide-toggle
                               [disabled]="!runningContainer"
                               class="mat-slider-toggle"
                               id="isShared_{{ mobile.mobile_id }}"
@@ -897,8 +897,8 @@
                                 updateSharedStatus($event, mobile, runningContainer)
                               ">
                               <p>Share this mobile with others</p>
-                            </mat-slide-toggle>
-                            <div
+                            </mat-slide-toggle> -->
+                            <!-- <div
                               [ngClass]="{ 'disabled-content': !runningContainer }"
                               class="row-content">
 
