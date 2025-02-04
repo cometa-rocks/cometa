@@ -108,7 +108,7 @@ export class ModifyEmulatorDialogComponent {
     private logger: LogService,
     private _api: ApiService,
   ) {
-
+    this.logger.msg("1", "CO-Dialog-data", "Modify-emulator-dialog", this.data);
     this.editMobileForm = this._fb.group({
       selectedApp: [null, Validators.required]  // Ajusta los validadores según lo que necesites
     });
@@ -119,8 +119,8 @@ export class ModifyEmulatorDialogComponent {
   }
 
   // // Declare the variable where the API result will be assigned
-  // mobiles: IMobile[] = [];
-  // runningMobiles: Container[] = [];
+  mobiles: IMobile[] = [];
+  runningMobiles: Container[] = [];
   // sharedMobileContainers: Container[] = [];
   // isIconActive: { [key: string]: boolean } = {};
   // showDetails: { [key: string]: boolean} = {};
@@ -194,7 +194,7 @@ export class ModifyEmulatorDialogComponent {
     );
   }
 
-  // // Función para eliminar APKs instalados
+  // Función para eliminar APKs instalados
   // removeInstalledApk(apk: any, index: number): void {
   //   const confirmDelete = confirm(`Are you sure you want to uninstall ${apk.name}?`);
   //   if (confirmDelete) {
@@ -215,4 +215,32 @@ export class ModifyEmulatorDialogComponent {
   //     );
   //   }
   // }
+
+  updateSharedStatus(isShared: any, mobile: IMobile, container): void {
+    mobile.isShared = isShared.checked;
+
+    let updateData = { shared: mobile.isShared };
+
+    this._api.updateMobile(container.id, updateData).subscribe(
+      (response: any) => {
+        if (response && response.containerservice) {
+          container = response.containerservice;
+          this.snack.open(
+            `Mobile ${mobile.isShared ? 'shared' : 'unshared'} with other users in this department`,
+            'OK'
+          );
+          this._cdr.detectChanges();
+        } else {
+          this.snack.open(response.message, 'OK');
+        }
+      },
+      error => {
+        console.error(
+          'An error occurred while updating the mobile container:',
+          error
+        );
+        // Handle the error
+      }
+    );
+  }
 }

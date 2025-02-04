@@ -317,33 +317,33 @@ export class MobileListComponent implements OnInit {
     }
   }
 
-  updateSharedStatus(isShared: any, mobile: IMobile, container): void {
-    mobile.isShared = isShared.checked;
+  // updateSharedStatus(isShared: any, mobile: IMobile, container): void {
+  //   mobile.isShared = isShared.checked;
 
-    let updateData = { shared: mobile.isShared };
+  //   let updateData = { shared: mobile.isShared };
 
-    this._api.updateMobile(container.id, updateData).subscribe(
-      (response: any) => {
-        if (response && response.containerservice) {
-          container = response.containerservice;
-          this.snack.open(
-            `Mobile ${mobile.isShared ? 'shared' : 'unshared'} with other users in this department`,
-            'OK'
-          );
-          this._cdr.detectChanges();
-        } else {
-          this.snack.open(response.message, 'OK');
-        }
-      },
-      error => {
-        console.error(
-          'An error occurred while updating the mobile container:',
-          error
-        );
-        // Handle the error
-      }
-    );
-  }
+  //   this._api.updateMobile(container.id, updateData).subscribe(
+  //     (response: any) => {
+  //       if (response && response.containerservice) {
+  //         container = response.containerservice;
+  //         this.snack.open(
+  //           `Mobile ${mobile.isShared ? 'shared' : 'unshared'} with other users in this department`,
+  //           'OK'
+  //         );
+  //         this._cdr.detectChanges();
+  //       } else {
+  //         this.snack.open(response.message, 'OK');
+  //       }
+  //     },
+  //     error => {
+  //       console.error(
+  //         'An error occurred while updating the mobile container:',
+  //         error
+  //       );
+  //       // Handle the error
+  //     }
+  //   );
+  // }
 
   // updateSharedStatus(isShared: boolean, mobile: IMobile, container): void {
   //   mobile.isShared = isShared;
@@ -553,6 +553,7 @@ export class MobileListComponent implements OnInit {
 
 
   inspectMobile(container: Container, mobile: IMobile): void {
+    if (this.stopGoToUrl(container)) return;
     let host = window.location.hostname;
     let capabilities = encodeURIComponent(JSON.stringify(mobile.capabilities));
     let complete_url = `/mobile/inspector?host=${host}&port=443&path=/emulator/${container.id}/&ssl=true&autoStart=true&capabilities=${capabilities}`;
@@ -561,9 +562,16 @@ export class MobileListComponent implements OnInit {
 
   noVNCMobile(container: Container): void {
     // FIXME this connection needs to be fixed, to improve security over emulators
-
+    if (this.stopGoToUrl(container)) return;
     let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${container.service_id}`;
     window.open(complete_url, '_blank');
+  }
+
+  stopGoToUrl(container: Container) {
+    if (container.service_status === 'Stopped' || container.service_status === 'Stopping' || container.service_status === 'Restarting') {
+      return true;
+    }
+    return false;
   }
 
   isThisMobileContainerRunning(mobile_id): Container | null {
@@ -631,7 +639,10 @@ export class MobileListComponent implements OnInit {
     this.selectionsDisabled = true;
   }
 
-  openModifyEmulatorDialog() {
+  openModifyEmulatorDialog(mobile: IMobile, runningContainer: Container) {
+
+    this.logger.msg("1", "CO-mobile", "mobile-list", mobile);
+    this.logger.msg("1", "CO-runningContainer", "mobile-list", runningContainer);
 
     let uploadedApksList = this.departments
     .filter(department => department.department_id === this.selectedDepartment?.id)
@@ -653,7 +664,9 @@ export class MobileListComponent implements OnInit {
         data: {
           department_name: departmentName,
           department_id: this.selectedDepartment.id,
-          uploadedAPKsList: uploadedApksList
+          uploadedAPKsList: uploadedApksList,
+          mobile,
+          runningContainer
         },
         height: '65vh',
         width: '80vw',

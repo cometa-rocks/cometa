@@ -50,6 +50,26 @@
           </ng-template>
         </div>
       </mat-expansion-panel>
+
+      <!-- Sharing Settings Panel -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Sharing Emulator</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="sharing-settings">
+          <mat-slide-toggle
+            [disabled]="!data.runningContainer"
+            class="mat-slider-toggle"
+            id="isShared_{{ data.mobile.mobile_id }}"
+            color="primary"
+            [checked]="data.runningContainer?.shared"
+            (change)="updateSharedStatus($event, data.mobile, data.runningContainer)">
+            <span>Share this mobile with others</span>
+          </mat-slide-toggle>
+        </div>
+      </mat-expansion-panel>
     </mat-accordion>
   </mat-dialog-content>
   <mat-dialog-actions align="end">
