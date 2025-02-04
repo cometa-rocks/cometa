@@ -71,20 +71,6 @@ mat-dialog-container {
           background-repeat: no-repeat;
           position: relative;
         }
-
-        .mobile-details {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          margin-bottom: 10px;
-
-          .moreInfo{
-            display: flex;
-            flex-direction: column;
-            // margin-left: 10px;
-            // margin-bottom: 15px;
-          }
-        }
       }
     }
   }
@@ -235,6 +221,10 @@ mat-dialog-content {
 
 
 .mobile-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 10px;
   div {
     display: flex;
     flex-direction: row;
@@ -251,14 +241,9 @@ mat-dialog-content {
       width: 16px;
     }
     mat-icon {
-      font-size: 17px;
-      color: black;
+      font-size: 15px;
       margin-right: 5px;
     }
-  }
-  .emulator-info {
-    margin-left: 10px;
-    font-size: 14px;
   }
   .status-container {
     margin-left: 10px;
@@ -380,6 +365,11 @@ mat-divider {
 
 
 .emulator-info {
+  .moreInfo {
+    position: relative;
+    top: -13px;
+    left: -10px;
+  }
   .copyClipboardIcon {
     font-size: 15px;
     margin-left: 10px;
@@ -561,6 +551,12 @@ mobile-list {
 }
 
 // .options {
+//   position: relative;
+//   top: -13px;
+//   left: -20px;
+// }
+
+// .options {
 //   display: flex;
 //   align-items: center;
 //   margin-left: 5px;
@@ -589,7 +585,13 @@ mobile-list {
   flex-direction: column !important;
   margin-bottom: 20px;
   position: relative;
-  top: -70px;
+  top: -57px;
+  .emulator-info {
+    .moreInfoStrong {
+      position: relative;
+      left: -24px;
+    }
+  }
 }
 
 .mobile-devices-header {
@@ -1437,9 +1439,12 @@ mat-card {
 // Mobile shared
 
 .sharedEmulator {
-  position: relative;
-  top: -90px;
-  left: 350px;
+  position: absolute;
+  top: 183px;
+  left: 370px;
+  mat-slide-toggle {
+    transform: scale(0.8);
+  }
 }
 
 ::ng-deep .mat-slide-toggle[disabled] .mat-slide-toggle-bar {
