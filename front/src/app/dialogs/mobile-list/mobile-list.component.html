@@ -739,9 +739,7 @@
                             <span>Close</span>
                           </button>
                         </mat-menu>
-                      </div>
 
-                      <div class="mobile-details">
                         <div class="mobile-information">
                           <div class="emulator-info">
                             <i class="material-icons">adb</i>
@@ -768,6 +766,46 @@
                               content_copy
                             </mat-icon>
                           </div>
+
+                          <div class="emulator-info">
+                            <button
+                              class="moreInfo"
+                              matTooltip="Show more information"
+                              matTooltipPosition="above"
+                              mat-icon-button
+                              [matMenuTriggerFor]="moreInfo">
+                              <mat-icon>more_vert</mat-icon>
+                            </button>
+                            <strong class="moreInfoStrong">
+                              More information
+                            </strong>
+                          </div>
+
+                          <mat-menu #moreInfo="matMenu">
+                            <mat-menu-item class="pop-up-info">
+
+                              <mat-menu-item>
+                                <i class="material-icons">info</i>
+                                <strong>Device Name:</strong> {{ mobile.mobile_json.deviceName }}
+                              </mat-menu-item>
+
+                              <mat-menu-item>
+                                <i class="material-icons">memory</i>
+                                <strong>Architecture:</strong> {{ mobile.mobile_json.architecture }}
+                              </mat-menu-item>
+
+                              <mat-menu-item>
+                                <i class="material-icons">phone_android</i>
+                                <strong>Android Version:</strong> {{ mobile.mobile_json.android_version }}
+                              </mat-menu-item>
+
+                              <mat-menu-item>
+                                <i class="material-icons">layers</i>
+                                <strong>API Level:</strong> {{ mobile.mobile_json.api_level }}
+                              </mat-menu-item>
+                            </mat-menu-item>
+                          </mat-menu>
+
                           <!-- <ng-container>
                             <div class="status-container">
                               <i class="material-icons">
@@ -806,88 +844,51 @@
 
                             </div> -->
 
-                          <div class="emulator-info">
-                            <div class="options">
-                              <button
-                                matTooltip="Show more information"
-                                matTooltipPosition="above"
-                                mat-icon-button
-                                [matMenuTriggerFor]="moreInfo">
-                                <mat-icon>more_vert</mat-icon>
-                              </button>
-                              <span>
-                                More information
-                              </span>
+                          <div
+                            class="emulator-info">
+                            <div
+                              [ngClass]="{ 'disabled-content': !runningContainer }"
+                              class="">
+
+                              <mat-icon class="get-app"
+                              [matTooltip]="'mobile_list.apk_file' | translate"
+                                matTooltipPosition="above">
+                                file_download
+                              </mat-icon>
+                              <p
+                                [matTooltip]="'mobile_list.apk_file' | translate"
+                                matTooltipPosition="above">
+                                Installed Apps
+                                <mat-form-field  class="select-app">
+                                  <mat-label>Select App (extension <strong>.apk</strong>)</mat-label>
+                                  <mat-select
+                                    [disabled]="!runningContainer"
+                                    id="apkFileSelectBox_{{ mobile.mobile_id }}"
+                                    [(value)]="selectedApps[mobile.mobile_id]"
+                                    (selectionChange)="
+                                      updateAPKSelection($event, mobile, runningContainer)
+                                    ">
+                                    <mat-option
+                                      *ngFor="let apk_file of this.apkFiles"
+                                      [value]="apk_file.id">
+                                      {{ apk_file.name }}
+                                    </mat-option>
+                                  </mat-select>
+                                </mat-form-field>
+                              </p>
                             </div>
                           </div>
-
-                          <mat-menu #moreInfo="matMenu">
-                            <mat-menu-item class="pop-up-info">
-
-                              <mat-menu-item>
-                                <i class="material-icons">info</i>
-                                <strong>Device Name:</strong> {{ mobile.mobile_json.deviceName }}
-                              </mat-menu-item>
-
-                              <mat-menu-item>
-                                <i class="material-icons">memory</i>
-                                <strong>Architecture:</strong> {{ mobile.mobile_json.architecture }}
-                              </mat-menu-item>
-
-                              <mat-menu-item>
-                                <i class="material-icons">phone_android</i>
-                                <strong>Android Version:</strong> {{ mobile.mobile_json.android_version }}
-                              </mat-menu-item>
-
-                              <mat-menu-item>
-                                <i class="material-icons">layers</i>
-                                <strong>API Level:</strong> {{ mobile.mobile_json.api_level }}
-                              </mat-menu-item>
-                            </mat-menu-item>
-                          </mat-menu>
-                          <div
-                            [ngClass]="{ 'disabled-content': !runningContainer }"
-                            class="row-content">
-
-                            <mat-icon [inline]="true" class="get-app"
-                            [matTooltip]="'mobile_list.apk_file' | translate"
-                              matTooltipPosition="above">
-                              file_download
-                            </mat-icon>
-                            <p
-                              [matTooltip]="'mobile_list.apk_file' | translate"
-                              matTooltipPosition="above">
-                              Installed Apps
-                              <mat-form-field  class="select-app">
-                                <mat-label>Select App (extension <strong>.apk</strong>)</mat-label>
-                                <mat-select
-                                  [disabled]="!runningContainer"
-                                  id="apkFileSelectBox_{{ mobile.mobile_id }}"
-                                  [(value)]="selectedApps[mobile.mobile_id]"
-                                  (selectionChange)="
-                                    updateAPKSelection($event, mobile, runningContainer)
-                                  ">
-                                  <mat-option
-                                    *ngFor="let apk_file of this.apkFiles"
-                                    [value]="apk_file.id">
-                                    {{ apk_file.name }}
-                                  </mat-option>
-                                </mat-select>
-                              </mat-form-field>
-                            </p>
-                          </div>
-
                         </div>
 
-                        <div class="apkContainer">
-                          <!-- <h4 *ngIf="runningContainer else notRunning">Mobile Actions</h4> -->
+                        <!-- <div class="apkContainer">
+                          <h4 *ngIf="runningContainer else notRunning">Mobile Actions</h4>
                           <ng-template #notRunning>
-                          <!-- <h4 id="mobile-actions">Mobile Actions</h4> -->
+                          <h4 id="mobile-actions">Mobile Actions</h4>
                           </ng-template>
-                          <!-- <mat-divider></mat-divider> -->
+                          <mat-divider></mat-divider>
 
                           <div class="apk-selection">
-                            <!-- <mat-slide-toggle
+                            <mat-slide-toggle
                               [disabled]="!runningContainer"
                               class="mat-slider-toggle"
                               id="isShared_{{ mobile.mobile_id }}"
@@ -897,8 +898,8 @@
                                 updateSharedStatus($event, mobile, runningContainer)
                               ">
                               <p>Share this mobile with others</p>
-                            </mat-slide-toggle> -->
-                            <!-- <div
+                            </mat-slide-toggle>
+                            <div
                               [ngClass]="{ 'disabled-content': !runningContainer }"
                               class="row-content">
 
@@ -952,9 +953,9 @@
                               [disabled]="!mobile.selectedAPKFileID"
                               (click)="installAPK(mobile, runningContainer)">
                               Install App
-                            </button> -->
+                            </button>
                           </div>
-                        </div>
+                        </div> -->
                       </div>
 
                       <!-- Actions: Start, Stop, Inspect -->
