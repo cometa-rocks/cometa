@@ -189,6 +189,8 @@
     "inspect_emulator_shared": "Inspect the shared mobile emulator screen for collaborative testing and monitoring.",
     "start_emulator": "Start the mobile emulator to test applications",
     "pause_emulator": "Pause the mobile emulator temporarily",
-    "restart_emulator": "Restart the mobile emulator to reset its state"
+    "restart_emulator": "Restart the mobile emulator to reset its state",
+    "shared": "This emulator is shared with other users",
+    "not_shared": "This emulator is not shared with other users"
   }
 }

@@ -755,7 +755,20 @@
                               content_copy
                             </mat-icon>
                           </div>
-                          <ng-container>
+                          <div
+                            class="emulator-info"
+                            *ngIf="runningContainer">
+                            <i class="material-icons">code</i>
+                            <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
+                            <mat-icon
+                              (click)="importClipboard(runningContainer.hostname); $event.stopPropagation();"
+                              [ngClass]="{ active: isIconActive[runningContainer.hostname] }"
+                              class="copyClipboardIcon"
+                              [color]="isIconActive[runningContainer.hostname] ? 'primary' : ''">
+                              content_copy
+                            </mat-icon>
+                          </div>
+                          <!-- <ng-container>
                             <div class="status-container">
                               <i class="material-icons">
                                 {{
@@ -791,9 +804,9 @@
                                 class="status-circle">
                               </span>
 
-                            </div>
+                            </div> -->
 
-
+                          <div class="emulator-info">
                             <div class="options">
                               <button
                                 matTooltip="Show more information"
@@ -806,45 +819,32 @@
                                 More information
                               </span>
                             </div>
+                          </div>
 
-                            <mat-menu #moreInfo="matMenu">
-                              <mat-menu-item class="pop-up-info">
-                                <ng-container *ngIf="runningContainer">
-                                  <mat-menu-item>
-                                    <i class="material-icons">code</i>
-                                    <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
-                                    <mat-icon
-                                      (click)="importClipboard(runningContainer.hostname); $event.stopPropagation();"
-                                      [ngClass]="{ active: isIconActive[runningContainer.hostname] }"
-                                      class="copyClipboardIcon"
-                                      [color]="isIconActive[runningContainer.hostname] ? 'primary' : ''">
-                                      content_copy
-                                    </mat-icon>
-                                  </mat-menu-item>
-                                </ng-container>
+                          <mat-menu #moreInfo="matMenu">
+                            <mat-menu-item class="pop-up-info">
 
-                                <mat-menu-item>
-                                  <i class="material-icons">info</i>
-                                  <strong>Device Name:</strong> {{ mobile.mobile_json.deviceName }}
-                                </mat-menu-item>
-
-                                <mat-menu-item>
-                                  <i class="material-icons">memory</i>
-                                  <strong>Architecture:</strong> {{ mobile.mobile_json.architecture }}
-                                </mat-menu-item>
-
-                                <mat-menu-item>
-                                  <i class="material-icons">phone_android</i>
-                                  <strong>Android Version:</strong> {{ mobile.mobile_json.android_version }}
-                                </mat-menu-item>
-
-                                <mat-menu-item>
-                                  <i class="material-icons">layers</i>
-                                  <strong>API Level:</strong> {{ mobile.mobile_json.api_level }}
-                                </mat-menu-item>
+                              <mat-menu-item>
+                                <i class="material-icons">info</i>
+                                <strong>Device Name:</strong> {{ mobile.mobile_json.deviceName }}
                               </mat-menu-item>
-                            </mat-menu>
-                          </ng-container>
+
+                              <mat-menu-item>
+                                <i class="material-icons">memory</i>
+                                <strong>Architecture:</strong> {{ mobile.mobile_json.architecture }}
+                              </mat-menu-item>
+
+                              <mat-menu-item>
+                                <i class="material-icons">phone_android</i>
+                                <strong>Android Version:</strong> {{ mobile.mobile_json.android_version }}
+                              </mat-menu-item>
+
+                              <mat-menu-item>
+                                <i class="material-icons">layers</i>
+                                <strong>API Level:</strong> {{ mobile.mobile_json.api_level }}
+                              </mat-menu-item>
+                            </mat-menu-item>
+                          </mat-menu>
                           <div
                             [ngClass]="{ 'disabled-content': !runningContainer }"
                             class="row-content">
@@ -972,6 +972,19 @@
                         <!-- <ng-container *ngIf="runningContainer"> -->
 
                         <!-- </ng-container> -->
+                      </div>
+                      <div
+                        class="sharedEmulator">
+                        <mat-slide-toggle
+                          [matTooltip]="(runningContainer?.shared ? 'mobile_list.shared' : 'mobile_list.not_shared') | translate"
+                          matTooltipPosition="above"
+                          [disabled]="true"
+                          aria-disabled="true"
+                          class="mat-slider-toggle"
+                          id="isShared_{{ mobile.mobile_id }}"
+                          color="primary"
+                          [checked]="runningContainer?.shared">
+                        </mat-slide-toggle>
                       </div>
                     </div>
                   </div>
