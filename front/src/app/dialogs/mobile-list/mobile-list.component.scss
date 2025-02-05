@@ -59,7 +59,7 @@ mat-dialog-container {
         display: flex;
         flex-direction: column;
         width: 390px;
-        height: 185px;
+        height: 145px;
         min-width: 390px;
         background-color: rgba(255, 255, 255, 0.4);
         .mobile-icon {
@@ -242,14 +242,23 @@ mat-dialog-content {
     }
     mat-icon {
       font-size: 15px;
-      margin-right: 5px;
+      // margin-right: 5px;
     }
   }
   .status-container {
     margin-left: 10px;
     font-size: 14px;
   }
-
+  .get-app {
+    position: relative;
+    top: -15px;
+  }
+  .installedApp {
+    display: flex;
+    font-weight: bold;
+    position: relative;
+    top: -15px;
+  }
 }
 
 .status-container {
@@ -368,7 +377,7 @@ mat-divider {
   .moreInfo {
     position: relative;
     top: -13px;
-    left: -10px;
+    left: -12px;
   }
   .copyClipboardIcon {
     font-size: 15px;
@@ -1393,14 +1402,18 @@ mat-card {
 
 .restart-bg {
   background-color: #1565c0;
-  width: 98.15px;
+  // width: 98.15px;
+  width: 120px;
   margin-right: -182px;
+  // transition: background-color 0.2s ease-in-out;
 }
 
 .pause-bg {
   background-color: #f57c00;
-  width: 90.74px;
+  // width: 90.74px;
+  width: 120px;
   margin-right: -181px;
+  // transition: background-color 0.2s ease-in-out;
 }
 
 .skewed-button {
@@ -1440,25 +1453,10 @@ mat-card {
 
 .sharedEmulator {
   position: absolute;
-  top: 183px;
+  top: 147px;
   left: 370px;
   mat-slide-toggle {
     transform: scale(0.8);
   }
 }
 
-::ng-deep .mat-slide-toggle[disabled] .mat-slide-toggle-bar {
-  background-color: #2196F3;
-}
-
-::ng-deep .mat-slide-toggle[disabled] .mat-slide-toggle-thumb {
-  background-color: white;
-}
-
-.mat-slide-toggle[disabled] .mat-slide-toggle-bar {
-  background-color: #2196F3 !important;
-}
-
-.mat-slide-toggle[disabled] .mat-slide-toggle-thumb {
-  background-color: white !important;
-}

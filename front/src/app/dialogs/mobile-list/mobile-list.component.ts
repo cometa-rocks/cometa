@@ -677,4 +677,15 @@ export class MobileListComponent implements OnInit {
       });
   }
 
+  hoveredStates: { [key: string]: boolean } = {};
+
+  setHovered(mobileId: string, state: boolean): void {
+    this.hoveredStates = Object.assign({}, this.hoveredStates, { [mobileId]: state });
+  }
+
+  isHovered(mobileId: string): boolean {
+    return !!this.hoveredStates[mobileId];
+  }
+
+
 }
