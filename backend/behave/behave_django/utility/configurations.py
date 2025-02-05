@@ -12,10 +12,12 @@ from .config_handler import *
 COMETA_DJANGO_URL = get_cometa_backend_url()
 
 
+COMETA_CONFIGURATIONS = {}
+
 # This ConfigurationManager is for BEHAVE
 # This class is responsible for managing configurations (i.e. values with in variable default_cometa_configurations)
 class ConfigurationManager:
-    __COMETA_CONFIGURATIONS = {}
+    # __COMETA_CONFIGURATIONS = {}
 
     def __init__(self) -> None:
         pass
@@ -40,7 +42,7 @@ class ConfigurationManager:
 
                 configurations = response.json()["results"]
                 for configuration in configurations:
-                    self.__COMETA_CONFIGURATIONS[configuration["configuration_name"]] = {
+                    COMETA_CONFIGURATIONS[configuration["configuration_name"]] = {
                         "configuration_value": configuration["configuration_value"],
                         "encrypted": configuration["encrypted"],
                     }
@@ -51,7 +53,7 @@ class ConfigurationManager:
 
     @classmethod
     def get_configuration(cls, key: str, default=""):
-        configuration_value = cls.__COMETA_CONFIGURATIONS.get(key, None)
+        configuration_value = COMETA_CONFIGURATIONS.get(key, None)
         if configuration_value == None:
             return default
         # If variable is encrypted then decrypt it and then return
@@ -63,12 +65,14 @@ class ConfigurationManager:
 
 def load_configurations():
 
+
     if len(sys.argv) > 1:
         configuration_loaded = False
         
         while not configuration_loaded:
             
             try:
+                            
                 logger.debug("Start loading configurations from backend server")
                 # Load secret_variables as a module
                 conf = ConfigurationManager()

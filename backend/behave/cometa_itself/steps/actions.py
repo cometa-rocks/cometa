@@ -3490,10 +3490,26 @@ def scrollThroughLazyLoading(context, xpath, MaxScrolls, MaxTimeOfLife):
 if __name__ != 'actions':
     sys.path.append('/opt/code/')
     from ee.cometa_itself.steps import rest_api  
-    from ee.cometa_itself.steps import ai_actions
     from ee.cometa_itself.steps import conditional_actions
-    from ee.cometa_itself.steps import mobile_actions  
-    from ee.cometa_itself.steps import database_actions  
+    COMETA_FEATURE_DATABASE_ENABLED = ConfigurationManager.get_configuration("COMETA_FEATURE_MOBILE_TEST_ENABLED","False")=="True"
+    # logger.debug(f"COMETA_FEATURE_DATABASE_ENABLED : {COMETA_FEATURE_DATABASE_ENABLED}")
+    if COMETA_FEATURE_DATABASE_ENABLED:
+        from ee.cometa_itself.steps import mobile_actions 
+        logger.debug("Importing mobile_actions")
+        
+    COMETA_FEATURE_DATABASE_ENABLED = ConfigurationManager.get_configuration("COMETA_FEATURE_DATABASE_ENABLED","False")=="True"
+    # logger.debug(f"COMETA_FEATURE_DATABASE_ENABLED : {COMETA_FEATURE_DATABASE_ENABLED}")
+    if COMETA_FEATURE_DATABASE_ENABLED:
+        logger.debug("Importing database_actions")
+        from ee.cometa_itself.steps import database_actions  
+    
+    COMETA_FEATURE_AI_ENABLED = ConfigurationManager.get_configuration("COMETA_FEATURE_AI_ENABLED","False")=="True"
+    # logger.debug(f"COMETA_FEATURE_AI_ENABLED : {COMETA_FEATURE_AI_ENABLED}")
+    if COMETA_FEATURE_AI_ENABLED:
+        from ee.cometa_itself.steps import ai_actions
+        logger.debug("Importing ai_actions")        
+
+
     from ee.cometa_itself.steps import common_actions  
     
     sys.path.append('/opt/code/cometa_itself')
