@@ -589,11 +589,11 @@
                           </div>
                         </div>
                         <div
-                          (mouseenter)="setHovered(mobile.mobile_id, true)"
-                          (mouseleave)="setHovered(mobile.mobile_id, false)"
                           class="border-left-close"
                           *ngIf="runningContainer; else notRunningTemplate">
                           <div
+                            (mouseenter)="setHovered(mobile.mobile_id, true)"
+                            (mouseleave)="setHovered(mobile.mobile_id, false)"
                             mat-raised-button
                             color="warn"
                             class="close"
