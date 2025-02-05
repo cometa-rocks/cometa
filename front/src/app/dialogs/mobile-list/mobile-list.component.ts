@@ -674,20 +674,27 @@ export class MobileListComponent implements OnInit {
       })
       .afterClosed()
       .subscribe(res => {
-      });
+        this.logger.msg("1", "CO-Res:", "mobile-list", res);
+
+        if (res) {
+          this.logger.msg("1", "CO-mobile:", "mobile-list",  mobile.mobile_id);
+          this.fetchUpdatedContainer(mobile.mobile_id);
+        }
+    });
+
   }
 
-  hoveredStates: { [key: string]: boolean } = {};
+  fetchUpdatedContainer(mobileId: number) {
+    console.log("Runn mobile: ", this.mobiles)
+    console.log("Runn mobile: ", )
 
-  setHovered(mobileId: string, state: boolean): void {
-    this.hoveredStates = Object.assign({}, this.hoveredStates, { [mobileId]: state });
+    this._api.getRunningContainer(mobileId).subscribe(updatedContainer => {
+      console.log("UpdatedContainer: ", updatedContainer)
+      // const index = this.mobiles.findIndex(c => c.mobile_id === mobileId);
+      // if (index !== -1) {
+      //   this.mobiles[index] = updatedContainer;
+      // }
+    });
   }
-
-  isHovered(mobileId: string): boolean {
-    return !!this.hoveredStates[mobileId];
-  }
-
-
-
 
 }
