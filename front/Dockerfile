@@ -66,7 +66,7 @@ COPY --chown=cometa:cometa --from=appium_inspector_build /app/appium-inspector/d
 COPY --chown=cometa:cometa --from=appium_inspector_build /app/appium-inspector/dist-browser/index.html /usr/local/apache2/htdocs/mobile/inspector/index.html
 
 RUN apt-get update
-RUN apt-get install -y pkg-config make gcc gdb lcov valgrind vim curl iputils-ping wget
+RUN apt-get install -y pkg-config make gcc gdb lcov valgrind vim curl iputils-ping wget telnet
 RUN apt-get install -y autoconf automake libtool
 RUN apt-get install -y libssl-dev libjansson-dev libcurl4-openssl-dev check
 RUN apt-get install -y libpcre3-dev zlib1g-dev libcjose0 libcjose-dev
