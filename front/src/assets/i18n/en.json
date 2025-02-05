@@ -182,7 +182,7 @@
     "mobile_presentation": "Run mobile tests based on automation configurations",
     "emulator_mobile": "Run mobile tests using specified automation configurations",
     "apk_file": "Upload apk files in the upload section of edit feature screen and select apk from here to install in the mobile",
-    "close_emulator": "Stop and close the mobile emulator",
+    "close_emulator": "Stop the mobile emulator",
     "inspect_novnc": "Open a noVNC viewer to interact with the mobile emulator in real-time",
     "inspect_emulator": "Inspect the mobile emulator screen for testing and monitoring",
     "inspect_novnc_shared": "Open a noVNC viewer to interact with the shared mobile emulator in real-time.",

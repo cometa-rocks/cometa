@@ -2,23 +2,18 @@ import {
   Component,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Output,
-  EventEmitter,
-  OnInit,
-  Input,
-  ViewChild,
   Inject,
 } from '@angular/core';
 
 import {
+  MatLegacyDialogRef as MatDialogRef,
   MatLegacyDialog as MatDialog,
   MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
   MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { ReactiveFormsModule, FormsModule, FormGroup, Validators, FormBuilder } from '@angular/forms';
-import { BehaviorSubject, map, Observable, Subject, takeUntil } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
@@ -38,7 +33,6 @@ import {
   TitleCasePipe,
   KeyValuePipe,
 } from '@angular/common';
-import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDividerModule } from '@angular/material/divider';
 import { Store } from '@ngxs/store';
@@ -48,6 +42,7 @@ import { DraggableWindowModule } from '@modules/draggable-window.module'
 import { MatExpansionModule } from '@angular/material/expansion';
 import { LogService } from '@services/log.service';
 import { ApiService } from '@services/api.service';
+
 
 /**
  * MobileListComponent
@@ -62,7 +57,6 @@ import { ApiService } from '@services/api.service';
   templateUrl: './modify-emulator-dialog.component.html',
   styleUrls: ['./modify-emulator-dialog.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  // providers: [BrowserFavouritedPipe, PlatformSortPipe],
   standalone: true,
   imports: [
     NgIf,
@@ -90,7 +84,7 @@ import { ApiService } from '@services/api.service';
     MatMenuModule,
     MatButtonToggleModule,
     DraggableWindowModule,
-    MatExpansionModule
+    MatExpansionModule,
 ],
 })
 export class ModifyEmulatorDialogComponent {
@@ -100,6 +94,7 @@ export class ModifyEmulatorDialogComponent {
 
   constructor(
     private _dialog: MatDialog,
+    private dialogRef: MatDialogRef<ModifyEmulatorDialogComponent>,
     private _cdr: ChangeDetectorRef,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private snack: MatSnackBar,
@@ -110,7 +105,7 @@ export class ModifyEmulatorDialogComponent {
   ) {
     this.logger.msg("1", "CO-Dialog-data", "Modify-emulator-dialog", this.data);
     this.editMobileForm = this._fb.group({
-      selectedApp: [null, Validators.required]  // Ajusta los validadores según lo que necesites
+      selectedApp: [null, Validators.required]
     });
 
     // Log para ver los datos que vienen en 'data'
@@ -145,11 +140,11 @@ export class ModifyEmulatorDialogComponent {
   // isLoading = true;
 
   ngOnInit(): void {
-    console.log("Data: ", this.data)
+
   }
 
   closeDialog(): void {
-    this._dialog.closeAll();
+    this.dialogRef.close(false);
   }
 
   // Función para guardar los cambios
@@ -157,15 +152,11 @@ export class ModifyEmulatorDialogComponent {
     if (this.editMobileForm.valid) {
       const selectedApp = this.editMobileForm.value.selectedApp;
       this.logger.msg("1", "App-seleccionada:", "modify-emulator", selectedApp);
-
-      // Si se seleccionó un APK, lo instalamos
-      if (selectedApp) {
-        // this.installAPK(selectedApp);
-      }
-    } else {
-      this.logger.msg("1", "CO-Departments:", "modify-emulator", 'Formulario no válido');
+      this.dialogRef.close(true);
+      // this._dialog.getDialogById('modifyEmulatorDialog')?.close(true);
     }
   }
+
 
   installAPK(mobile: IMobile, container): void {
     let updateData = { apk_file: mobile.selectedAPKFileID };
@@ -219,6 +210,10 @@ export class ModifyEmulatorDialogComponent {
   updateSharedStatus(isShared: any, mobile: IMobile, container): void {
     mobile.isShared = isShared.checked;
 
+    console.log("Mobile shared: ", mobile);
+
+    console.log("Container: ", container)
+
     let updateData = { shared: mobile.isShared };
 
     this._api.updateMobile(container.id, updateData).subscribe(
@@ -242,5 +237,6 @@ export class ModifyEmulatorDialogComponent {
         // Handle the error
       }
     );
+    // this.mobileListComponent.updateRunningContainer(container);
   }
 }

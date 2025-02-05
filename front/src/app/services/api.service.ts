@@ -832,7 +832,7 @@ export class ApiService {
     });
   }
 
-  
+
   /**
    * Get the mobile emulators list
    * @returns Observable<IMobile>
@@ -860,7 +860,7 @@ export class ApiService {
   startMobile(body) {
     return this._http.post<Container>(`${this.api}container_service/`, body)
   }
-  
+
  /**
  * Terminates a running mobile emulator by its container ID.
  * @param {string} container_id - The ID of the container to be terminated.
@@ -879,6 +879,14 @@ export class ApiService {
   updateMobile(container_id, body) {
     return this._http.put(`${this.api}container_service/${container_id}/`, body);
   }
-  
+
+  /**
+ * Get a specific running mobile container by its ID.
+ * @param {string} container_id - The ID of the container.
+ * @returns Observable<Container> - An observable containing the container details.
+ */
+  getRunningContainer(container_id: number) {
+    return this._http.get<Container>(`${this.api}container_service/${container_id}/`);
+  }
 
 }
