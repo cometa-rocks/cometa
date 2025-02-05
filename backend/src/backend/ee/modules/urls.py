@@ -2,7 +2,7 @@ from django.conf.urls import url, include
 from django.urls import path, re_path
 
 from .security.urls import register_security_routers
-from .mobile.urls import register_mobile_routers
+from .mobile.urls import register_mobile_routers, register_mobile_urlpatterns
 from .data_driven.urls import register_data_driven_urlpatterns, register_data_driven_routers
 
 
@@ -19,6 +19,8 @@ def register_ee_modules_routers(router):
 # This keeps url.py file short and clean
 def register_ee_modules_urlpatterns(urlpatterns):
     urlpatterns = register_data_driven_urlpatterns(urlpatterns)
+    urlpatterns = register_data_driven_urlpatterns(urlpatterns)
+    urlpatterns = register_mobile_urlpatterns(urlpatterns)
     return urlpatterns
     
 
