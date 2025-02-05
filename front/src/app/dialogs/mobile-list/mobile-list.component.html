@@ -589,6 +589,8 @@
                           </div>
                         </div>
                         <div
+                          (mouseenter)="setHovered(mobile.mobile_id, true)"
+                          (mouseleave)="setHovered(mobile.mobile_id, false)"
                           class="border-left-close"
                           *ngIf="runningContainer; else notRunningTemplate">
                           <div
@@ -601,7 +603,10 @@
                               [matTooltip]="'mobile_list.close_emulator' | translate"
                               matTooltipPosition="above"
                               *ngIf="!runningContainer?.isTerminating; else showSpinner">
-                              <mat-icon class="close-icon">close</mat-icon>
+                              <span *ngIf="isHovered(mobile.mobile_id)">
+                                Click to Stop
+                              </span>
+                              <mat-icon class="close-icon" *ngIf="!isHovered(mobile.mobile_id)">close</mat-icon>
                             </ng-container>
 
                             <ng-template #showSpinner>
@@ -613,7 +618,6 @@
                             </ng-template>
                           </div>
                         </div>
-
 
                         <div class="border-left-start-restart"
                           [ngClass]="{ 'disabled-button-border': !selectedDepartment || !selectedDepartment.id }"
@@ -628,41 +632,51 @@
                             Start
                           </div>
                         </div>
-                        <ng-container *ngIf="runningContainer">
-                          <div class="skewed-button-container"
-                            [ngClass]="{
-                              'restart-bg': runningContainer.service_status === 'Stopped' || runningContainer.service_status === 'Restarting',
-                              'pause-bg': runningContainer.service_status === 'Running' || runningContainer.service_status === 'Stopping'
-                            }">
 
-                            <div
-                              mat-raised-button
-                              class="skewed-button"
-                              (click)="handleMobileState(runningContainer)"
-                              [disabled]="runningContainer.service_status === 'Restarting' || runningContainer.service_status === 'Stopping'"
-                              [matTooltip]="runningContainer.service_status === 'Running' ? 'Pause' : 'Restart'"
-                              matTooltipPosition="above">
+                      <ng-container *ngIf="runningContainer">
+                        <div class="skewed-button-container"
+                          [ngClass]="isHovered(mobile.mobile_id) ?
+                                    (runningContainer.service_status === 'Running' ? 'pause-bg' : 'restart-bg') :
+                                    (runningContainer.service_status === 'Restarting' ? 'restart-bg' :
+                                    (runningContainer.service_status === 'Stopped' ? 'pause-bg' :
+                                    (runningContainer.service_status === 'Stopping' ? 'pause-bg' : 'restart-bg')))"
+                          (mouseenter)="setHovered(mobile.mobile_id, true)"
+                          (mouseleave)="setHovered(mobile.mobile_id, false)">
 
-                              <ng-container *ngIf="runningContainer.service_status === 'Stopping' || runningContainer.service_status === 'Restarting'; else showIcon">
-                                <mat-spinner
-                                  class="spinnerPause"
-                                  [color]="runningContainer.service_status === 'Restarting' ? 'warn' : 'primary'"
-                                  diameter="16">
-                                </mat-spinner>
-                              </ng-container>
+                          <div
+                            mat-raised-button
+                            class="skewed-button"
+                            (click)="handleMobileState(runningContainer)"
+                            [disabled]="runningContainer.service_status === 'Restarting' || runningContainer.service_status === 'Stopping'">
 
-                              <ng-template #showIcon>
+                            <!-- Mostrar Spinner si está en Restarting o Stopping -->
+                            <ng-container *ngIf="runningContainer.service_status === 'Restarting' || runningContainer.service_status === 'Stopping'; else showText">
+                              <mat-spinner
+                                class="spinnerPause"
+                                [color]="runningContainer.service_status === 'Restarting' ? 'warn' : 'primary'"
+                                diameter="16">
+                              </mat-spinner>
+                            </ng-container>
+
+                            <!-- Contenido normal cuando NO está en Restarting o Stopping -->
+                            <ng-template #showText>
+                              <ng-container *ngIf="isHovered(mobile.mobile_id)">
                                 <mat-icon class="skewed-content">
                                   {{ runningContainer.service_status === 'Running' ? 'pause' : 'play_arrow' }}
                                 </mat-icon>
-                                <span class="skewed-content">
-                                  {{ runningContainer.service_status === 'Running' ? 'Pause' : 'Restart' }}
-                                </span>
-                              </ng-template>
+                              </ng-container>
 
-                            </div>
+                              <span class="skewed-content">
+                                {{ isHovered(mobile.mobile_id) ?
+                                  (runningContainer.service_status === 'Running' ? 'Click Pause' : 'Click Run') :
+                                  (runningContainer.service_status === 'Running' ? 'Running' : 'Paused') }}
+                              </span>
+                            </ng-template>
+
                           </div>
-                        </ng-container>
+                        </div>
+                      </ng-container>
+
                       </div>
                       <!-- Take it and put it above on the mobile div with X  -->
                       <!-- Popup a confirmation box to Yes/No -->
@@ -845,38 +859,35 @@
                             </div> -->
 
                           <div
+                            [ngClass]="{ 'disabled-content': !runningContainer }"
                             class="emulator-info">
-                            <div
-                              [ngClass]="{ 'disabled-content': !runningContainer }"
-                              class="">
 
-                              <mat-icon class="get-app"
+                            <mat-icon
+                              class="get-app"
                               [matTooltip]="'mobile_list.apk_file' | translate"
-                                matTooltipPosition="above">
-                                file_download
-                              </mat-icon>
-                              <p
-                                [matTooltip]="'mobile_list.apk_file' | translate"
-                                matTooltipPosition="above">
-                                Installed Apps
-                                <mat-form-field  class="select-app">
-                                  <mat-label>Select App (extension <strong>.apk</strong>)</mat-label>
-                                  <mat-select
-                                    [disabled]="!runningContainer"
-                                    id="apkFileSelectBox_{{ mobile.mobile_id }}"
-                                    [(value)]="selectedApps[mobile.mobile_id]"
-                                    (selectionChange)="
-                                      updateAPKSelection($event, mobile, runningContainer)
-                                    ">
-                                    <mat-option
-                                      *ngFor="let apk_file of this.apkFiles"
-                                      [value]="apk_file.id">
-                                      {{ apk_file.name }}
-                                    </mat-option>
-                                  </mat-select>
-                                </mat-form-field>
-                              </p>
-                            </div>
+                              matTooltipPosition="above">
+                              file_download
+                            </mat-icon>
+                            <p
+                              class="installedApp"
+                              [matTooltip]="'mobile_list.apk_file' | translate"
+                              matTooltipPosition="above">
+                              Installed Apps
+                              <!-- <mat-form-field class="select-app">
+                                <mat-label>Select App (extension <strong>.apk</strong>)</mat-label>
+                                <mat-select
+                                  [disabled]="!runningContainer"
+                                  id="apkFileSelectBox_{{ mobile.mobile_id }}"
+                                  [(value)]="selectedApps[mobile.mobile_id]"
+                                  (selectionChange)="updateAPKSelection($event, mobile, runningContainer)">
+                                  <mat-option
+                                    *ngFor="let apk_file of this.apkFiles"
+                                    [value]="apk_file.id">
+                                    {{ apk_file.name }}
+                                  </mat-option>
+                                </mat-select>
+                              </mat-form-field> -->
+                            </p>
                           </div>
                         </div>
 
