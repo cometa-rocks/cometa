@@ -592,21 +592,16 @@
                           class="border-left-close"
                           *ngIf="runningContainer; else notRunningTemplate">
                           <div
-                            (mouseenter)="setHovered(mobile.mobile_id, true)"
-                            (mouseleave)="setHovered(mobile.mobile_id, false)"
+                            [matTooltip]="'mobile_list.close_emulator' | translate"
+                            matTooltipPosition="above"
                             mat-raised-button
                             color="warn"
                             class="close"
                             (click)="!runningContainer?.isTerminating && terminateMobile(runningContainer)"
                             [ngClass]="{ 'spinner-active': runningContainer?.isTerminating }">
                             <ng-container
-                              [matTooltip]="'mobile_list.close_emulator' | translate"
-                              matTooltipPosition="above"
                               *ngIf="!runningContainer?.isTerminating; else showSpinner">
-                              <span *ngIf="isHovered(mobile.mobile_id)">
-                                Click to Stop
-                              </span>
-                              <mat-icon class="close-icon" *ngIf="!isHovered(mobile.mobile_id)">close</mat-icon>
+                              <mat-icon class="close-icon">close</mat-icon>
                             </ng-container>
 
                             <ng-template #showSpinner>
@@ -618,6 +613,7 @@
                             </ng-template>
                           </div>
                         </div>
+
 
                         <div class="border-left-start-restart"
                           [ngClass]="{ 'disabled-button-border': !selectedDepartment || !selectedDepartment.id }"
@@ -632,51 +628,43 @@
                             Start
                           </div>
                         </div>
+                        <ng-container *ngIf="runningContainer">
+                          <div class="skewed-button-container"
+                            [ngClass]="{
+                              'restart-bg': runningContainer.service_status === 'Stopped' || runningContainer.service_status === 'Restarting',
+                              'pause-bg': runningContainer.service_status === 'Running' || runningContainer.service_status === 'Stopping'
+                            }">
 
-                      <ng-container *ngIf="runningContainer">
-                        <div class="skewed-button-container"
-                          [ngClass]="isHovered(mobile.mobile_id) ?
-                                    (runningContainer.service_status === 'Running' ? 'pause-bg' : 'restart-bg') :
-                                    (runningContainer.service_status === 'Restarting' ? 'restart-bg' :
-                                    (runningContainer.service_status === 'Stopped' ? 'pause-bg' :
-                                    (runningContainer.service_status === 'Stopping' ? 'pause-bg' : 'restart-bg')))"
-                          (mouseenter)="setHovered(mobile.mobile_id, true)"
-                          (mouseleave)="setHovered(mobile.mobile_id, false)">
+                            <div
+                              mat-raised-button
+                              class="skewed-button"
+                              (click)="handleMobileState(runningContainer)"
+                              [disabled]="runningContainer.service_status === 'Restarting' || runningContainer.service_status === 'Stopping'"
+                              [matTooltip]="
+                              runningContainer.service_status === 'Running' ? 'Click to pause' :
+                              (runningContainer.service_status === 'Stopped' ? 'Click to restart' : '')"
+                              matTooltipPosition="above">
 
-                          <div
-                            mat-raised-button
-                            class="skewed-button"
-                            (click)="handleMobileState(runningContainer)"
-                            [disabled]="runningContainer.service_status === 'Restarting' || runningContainer.service_status === 'Stopping'">
+                              <ng-container *ngIf="runningContainer.service_status === 'Stopping' || runningContainer.service_status === 'Restarting'; else showIcon">
+                                <mat-spinner
+                                  class="spinnerPause"
+                                  [color]="runningContainer.service_status === 'Restarting' ? 'warn' : 'primary'"
+                                  diameter="16">
+                                </mat-spinner>
+                              </ng-container>
 
-                            <!-- Mostrar Spinner si está en Restarting o Stopping -->
-                            <ng-container *ngIf="runningContainer.service_status === 'Restarting' || runningContainer.service_status === 'Stopping'; else showText">
-                              <mat-spinner
-                                class="spinnerPause"
-                                [color]="runningContainer.service_status === 'Restarting' ? 'warn' : 'primary'"
-                                diameter="16">
-                              </mat-spinner>
-                            </ng-container>
-
-                            <!-- Contenido normal cuando NO está en Restarting o Stopping -->
-                            <ng-template #showText>
-                              <ng-container *ngIf="isHovered(mobile.mobile_id)">
+                              <ng-template #showIcon>
                                 <mat-icon class="skewed-content">
                                   {{ runningContainer.service_status === 'Running' ? 'pause' : 'play_arrow' }}
                                 </mat-icon>
-                              </ng-container>
+                                <span class="skewed-content">
+                                  {{ runningContainer.service_status === 'Running' ? 'Pause' : 'Restart' }}
+                                </span>
+                              </ng-template>
 
-                              <span class="skewed-content">
-                                {{ isHovered(mobile.mobile_id) ?
-                                  (runningContainer.service_status === 'Running' ? 'Click Pause' : 'Click Run') :
-                                  (runningContainer.service_status === 'Running' ? 'Running' : 'Paused') }}
-                              </span>
-                            </ng-template>
-
+                            </div>
                           </div>
-                        </div>
-                      </ng-container>
-
+                        </ng-container>
                       </div>
                       <!-- Take it and put it above on the mobile div with X  -->
                       <!-- Popup a confirmation box to Yes/No -->
@@ -995,7 +983,7 @@
                           class="mat-slider-toggle"
                           id="isShared_{{ mobile.mobile_id }}"
                           color="primary"
-                          [checked]="runningContainer?.shared">
+                          [checked]="(runningContainer$ | async)?.shared">
                         </mat-slide-toggle>
                       </div>
                     </div>
