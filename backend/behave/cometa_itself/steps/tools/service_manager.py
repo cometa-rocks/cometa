@@ -537,9 +537,6 @@ class ServiceManager(service_manager):
             
         return self.__service_configuration
     
-        
-    def get_service_details(self):
-        return self.__service_configuration
     
     def wait_for_selenium_hub_be_up(self,hub_url,timeout=120):
         start_time = time.time()
