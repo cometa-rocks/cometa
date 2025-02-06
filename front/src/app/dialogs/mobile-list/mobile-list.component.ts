@@ -673,15 +673,12 @@ export class MobileListComponent implements OnInit {
         panelClass: 'mobile-emulator-panel-dialog',
       })
       .afterClosed()
-      .subscribe(res => {
-        this.logger.msg("1", "CO-Res:", "mobile-list", res);
-
-        if (res) {
-          this.logger.msg("1", "CO-mobile:", "mobile-list",  mobile.mobile_id);
-          this.fetchUpdatedContainer(mobile.mobile_id);
+      .subscribe(result => {
+        if (result?.updatedContainer) {
+          runningContainer.shared = result.updatedContainer.shared;
+          this._cdr.detectChanges();
         }
     });
-
   }
 
   fetchUpdatedContainer(mobileId: number) {
