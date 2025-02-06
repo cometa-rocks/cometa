@@ -18,37 +18,57 @@
           </mat-form-field>
           <mat-form-field appearance="fill" class="edit-app">
             <mat-label>Application</mat-label>
-            <mat-select formControlName="selectedApp">
+            <mat-select formControlName="selectedApp" (selectionChange)="onSelectApp($event)">
               <mat-option *ngFor="let apk of data.uploadedAPKsList" [value]="apk">
                 {{ apk.name }}
               </mat-option>
             </mat-select>
           </mat-form-field>
         </div>
+        <div *ngIf="selectedApks.length === 0" class="no-apks-message">
+          <p>No APKs selected yet. Please select an APK to add it here.</p>
+        </div>
+        <div class="selected-apks">
+          <mat-chip-grid #chipGrid aria-label="Selected APKs">
+            <mat-chip-row
+              *ngFor="let apk of selectedApks; let i = index"
+              (removed)="removeSelectedApk(apk, i)"
+              [editable]="false"
+              [aria-description]="'press enter to remove ' + apk.name"
+            >
+              <span class="chip-text">{{ apk.name }}</span>
+              <button matChipRemove [attr.aria-label]="'remove ' + apk.name">
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </mat-chip-row>
+          </mat-chip-grid>
+        </div>
       </mat-expansion-panel>
 
-
       <mat-expansion-panel>
-        <mat-expansion-panel-header>
+        <!-- <mat-expansion-panel-header>
           <mat-panel-title>
-            <span>Installed APKs</span>
+            <span>Selected APKs</span>
           </mat-panel-title>
         </mat-expansion-panel-header>
-        <div class="installed-apks">
-          <mat-list *ngIf="data.installedAPKs?.length > 0; else noAPKs">
-            <mat-list-item *ngFor="let installedApk of data.installedAPKs; let i = index">
-              <mat-icon color="primary">check_circle</mat-icon>
-              <span>{{ installedApk.name }}</span>
-              <span class="spacer"></span>
-              <button mat-icon-button color="warn" (click)="removeInstalledApk(installedApk, i)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </mat-list-item>
-          </mat-list>
-          <ng-template #noAPKs>
-            <p>No APKs installed</p>
-          </ng-template>
+        <div *ngIf="selectedApks.length === 0" class="no-apks-message">
+          <p>No APKs selected yet. Please select an APK to add it here.</p>
         </div>
+        <div class="selected-apks">
+          <mat-chip-grid #chipGrid aria-label="Selected APKs">
+            <mat-chip-row
+              *ngFor="let apk of selectedApks; let i = index"
+              (removed)="removeSelectedApk(apk, i)"
+              [editable]="false"
+              [aria-description]="'press enter to remove ' + apk.name"
+            >
+              <span class="chip-text">{{ apk.name }}</span>
+              <button matChipRemove [attr.aria-label]="'remove ' + apk.name">
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </mat-chip-row>
+          </mat-chip-grid>
+        </div> -->
       </mat-expansion-panel>
 
       <!-- Sharing Settings Panel -->
@@ -60,12 +80,10 @@
         </mat-expansion-panel-header>
         <div class="sharing-settings">
           <mat-slide-toggle
-            [disabled]="!data.runningContainer"
+            formControlName="shared"
             class="mat-slider-toggle"
             id="isShared_{{ data.mobile.mobile_id }}"
-            color="primary"
-            [checked]="data.runningContainer?.shared"
-            (change)="updateSharedStatus($event, data.mobile, data.runningContainer)">
+            color="primary">
             <span>Share this mobile with others</span>
           </mat-slide-toggle>
         </div>

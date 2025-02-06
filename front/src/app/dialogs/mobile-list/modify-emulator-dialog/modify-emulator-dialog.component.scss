@@ -1,2 +1,48 @@
 @import 'color';
 @import 'breakpoints';
+
+::ng-deep .selected-apks mat-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+::ng-deep .selected-apks mat-chip-row {
+  border-radius: 10px;
+  padding: 8px 16px;
+  max-width: 150px; /* Ancho fijo para las chips */
+  height: 40px;
+  display: flex;
+  justify-content: space-between; /* Asegura que el texto y el botón estén separados */
+}
+
+::ng-deep .selected-apks mat-chip-row .mdc-evolution-chip__text-label {
+  flex-grow: 1; /* Permite que el texto ocupe el espacio disponible */
+  max-width: 130px; /* Ajusta el ancho máximo para el texto */
+  white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+  overflow: hidden; /* Oculta el texto que se desborda */
+  text-overflow: ellipsis; /* Muestra los puntos suspensivos cuando el texto se corta */
+}
+
+::ng-deep .selected-apks mat-chip-row mat-icon {
+  font-size: 18px;
+}
+
+::ng-deep .selected-apks mat-chip-row button {
+  padding: 4px;
+  background-color: transparent;
+  border: none;
+  margin-left: 8px; /* Asegura un pequeño espacio entre el texto y el icono */
+}
+
+::ng-deep .selected-apks mat-chip-row .chip-text {
+  flex-grow: 1;  /* Deja que el texto ocupe el espacio restante */
+  white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+  overflow: hidden; /* Oculta el texto que se desborda */
+  text-overflow: ellipsis; /* Muestra "..." si el texto es demasiado largo */
+}
+
+::ng-deep .selected-apks mat-chip-grid {
+  margin-top: 10px;
+  flex-wrap: wrap;
+}

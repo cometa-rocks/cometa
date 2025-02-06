@@ -42,7 +42,9 @@ import { DraggableWindowModule } from '@modules/draggable-window.module'
 import { MatExpansionModule } from '@angular/material/expansion';
 import { LogService } from '@services/log.service';
 import { ApiService } from '@services/api.service';
-
+import { catchError, map, Observable, throwError } from 'rxjs';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatChipInputEvent } from '@angular/material/chips';
 
 /**
  * MobileListComponent
@@ -85,12 +87,15 @@ import { ApiService } from '@services/api.service';
     MatButtonToggleModule,
     DraggableWindowModule,
     MatExpansionModule,
+    MatChipsModule
 ],
 })
 export class ModifyEmulatorDialogComponent {
 
   editMobileForm: FormGroup;
-
+  selectedApks: any[] = [];
+  separatorKeysCodes: number[] = [13, 188];
+  addOnBlur = true;
 
   constructor(
     private _dialog: MatDialog,
@@ -105,7 +110,8 @@ export class ModifyEmulatorDialogComponent {
   ) {
     this.logger.msg("1", "CO-Dialog-data", "Modify-emulator-dialog", this.data);
     this.editMobileForm = this._fb.group({
-      selectedApp: [null, Validators.required]
+      selectedApp: [null],
+      shared: [data.runningContainer?.shared || false]
     });
 
     // Log para ver los datos que vienen en 'data'
@@ -143,20 +149,76 @@ export class ModifyEmulatorDialogComponent {
 
   }
 
+  onSelectApp(event: any): void {
+    const selectedApp = event.value;
+    if (selectedApp && !this.selectedApks.includes(selectedApp)) {
+      this.selectedApks.push(selectedApp);
+    }
+  }
+
+  // Eliminar un APK seleccionado
+  removeSelectedApk(apk: any, index: number): void {
+    this.selectedApks.splice(index, 1);
+  }
+
+
   closeDialog(): void {
     this.dialogRef.close(false);
   }
 
-  // Función para guardar los cambios
   saveChanges(): void {
-    if (this.editMobileForm.valid) {
-      const selectedApp = this.editMobileForm.value.selectedApp;
+    const selectedApp = this.editMobileForm.value.selectedApp;
+    const isShared = this.editMobileForm.value.shared;
+
+    const currentSharedStatus = this.data.runningContainer?.shared;
+
+    if (this.editMobileForm.valid && currentSharedStatus !== isShared) {
       this.logger.msg("1", "App-seleccionada:", "modify-emulator", selectedApp);
-      this.dialogRef.close(true);
-      // this._dialog.getDialogById('modifyEmulatorDialog')?.close(true);
+      this.updateSharedStatus({ checked: isShared }, this.data.mobile, this.data.runningContainer)
+        .subscribe((updatedContainer: any) => {
+
+          // for each apk
+          this.selectedApks.forEach(apk => {
+            this.installAPK(apk, updatedContainer);
+          });
+
+          this.dialogRef.close({ updatedContainer });
+        });
+    } else {
+
+      this.selectedApks.forEach(apk => {
+        this.installAPK(apk, this.data.runningContainer);
+      });
+
+      this.dialogRef.close();
     }
   }
 
+
+  updateSharedStatus(isShared: any, mobile: IMobile, container): Observable<any> {
+    let updateData = { shared: isShared.checked };
+
+    return this._api.updateMobile(container.id, updateData).pipe(
+      map((response: any) => {
+        if (response?.containerservice) {
+          container.shared = response.containerservice.shared;
+          this.snack.open(
+            `Mobile ${isShared.checked ? 'shared' : 'unshared'} with other users in this department`,
+            'OK'
+          );
+          this._cdr.detectChanges();
+          return container;
+        } else {
+          this.snack.open(response.message, 'OK');
+          throw new Error(response.message);
+        }
+      }),
+      catchError(error => {
+        console.error('An error occurred while updating the mobile container:', error);
+        return throwError(error);
+      })
+    );
+  }
 
   installAPK(mobile: IMobile, container): void {
     let updateData = { apk_file: mobile.selectedAPKFileID };
@@ -185,58 +247,4 @@ export class ModifyEmulatorDialogComponent {
     );
   }
 
-  // Función para eliminar APKs instalados
-  // removeInstalledApk(apk: any, index: number): void {
-  //   const confirmDelete = confirm(`Are you sure you want to uninstall ${apk.name}?`);
-  //   if (confirmDelete) {
-  //     this._api.uninstallAPK(this.selectedDepartment.id, apk.id).subscribe(
-  //       (response: any) => {
-  //         if (response.success) {
-  //           this.installedAPKs.splice(index, 1);
-  //           this._cdr.detectChanges();
-  //           this.snack.open(`APK ${apk.name} uninstalled successfully`, 'OK', { duration: 3000 });
-  //         } else {
-  //           this.snack.open(`Failed to uninstall APK: ${response.message}`, 'OK', { duration: 3000 });
-  //         }
-  //       },
-  //       error => {
-  //         console.error("Error uninstalling APK:", error);
-  //         this.snack.open("Error uninstalling APK", 'OK', { duration: 3000 });
-  //       }
-  //     );
-  //   }
-  // }
-
-  updateSharedStatus(isShared: any, mobile: IMobile, container): void {
-    mobile.isShared = isShared.checked;
-
-    console.log("Mobile shared: ", mobile);
-
-    console.log("Container: ", container)
-
-    let updateData = { shared: mobile.isShared };
-
-    this._api.updateMobile(container.id, updateData).subscribe(
-      (response: any) => {
-        if (response && response.containerservice) {
-          container = response.containerservice;
-          this.snack.open(
-            `Mobile ${mobile.isShared ? 'shared' : 'unshared'} with other users in this department`,
-            'OK'
-          );
-          this._cdr.detectChanges();
-        } else {
-          this.snack.open(response.message, 'OK');
-        }
-      },
-      error => {
-        console.error(
-          'An error occurred while updating the mobile container:',
-          error
-        );
-        // Handle the error
-      }
-    );
-    // this.mobileListComponent.updateRunningContainer(container);
-  }
 }
