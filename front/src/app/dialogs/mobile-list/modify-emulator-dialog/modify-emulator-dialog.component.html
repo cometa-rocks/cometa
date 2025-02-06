@@ -10,16 +10,18 @@
           <mat-panel-title>
             <span>Install APKs</span>
           </mat-panel-title>
+          <mat-panel-description class="mat-expansion-panel-header-description ng-tns-c95-66">
+            Department: {{ data.department_name }} - {{ data.uploadedAPKsList.length }} APKs
+          </mat-panel-description>
         </mat-expansion-panel-header>
         <div class="edit-feature-info">
-          <mat-form-field appearance="fill" class="edit-dep">
-            <mat-label>Department</mat-label>
-            <input matInput [value]="data.department_name" disabled>
-          </mat-form-field>
           <mat-form-field appearance="fill" class="edit-app">
             <mat-label>Application</mat-label>
             <mat-select formControlName="selectedApp" (selectionChange)="onSelectApp($event)">
-              <mat-option *ngFor="let apk of data.uploadedAPKsList" [value]="apk">
+              <mat-option
+                *ngFor="let apk of data.uploadedAPKsList"
+                [value]="apk"
+                [class.selected-apk]="isApkSelected(apk)">
                 {{ apk.name }}
               </mat-option>
             </mat-select>
@@ -34,9 +36,13 @@
               *ngFor="let apk of selectedApks; let i = index"
               (removed)="removeSelectedApk(apk, i)"
               [editable]="false"
-              [aria-description]="'press enter to remove ' + apk.name"
-            >
-              <span class="chip-text">{{ apk.name }}</span>
+              [aria-description]="'press enter to remove ' + apk.name">
+              <span
+                class="chip-text"
+                matTooltip="{{ apk.name }}"
+                matTooltipPosition="above">
+                {{ apk.name }}
+              </span>
               <button matChipRemove [attr.aria-label]="'remove ' + apk.name">
                 <mat-icon>cancel</mat-icon>
               </button>
@@ -46,29 +52,30 @@
       </mat-expansion-panel>
 
       <mat-expansion-panel>
-        <!-- <mat-expansion-panel-header>
+        <mat-expansion-panel-header>
           <mat-panel-title>
-            <span>Selected APKs</span>
+            <span>Installed APKs</span>
           </mat-panel-title>
+          <mat-panel-description>
+            {{ data.uploadedAPKsList.length }} APKs Installed
+          </mat-panel-description>
         </mat-expansion-panel-header>
-        <div *ngIf="selectedApks.length === 0" class="no-apks-message">
-          <p>No APKs selected yet. Please select an APK to add it here.</p>
+
+        <div *ngIf="data.uploadedAPKsList.length === 0" class="no-apks-message">
+          <p>No APKs installed yet.</p>
         </div>
-        <div class="selected-apks">
-          <mat-chip-grid #chipGrid aria-label="Selected APKs">
+
+        <div class="installed-apks">
+          <mat-chip-grid #chipGrid aria-label="Installed APKs">
             <mat-chip-row
-              *ngFor="let apk of selectedApks; let i = index"
-              (removed)="removeSelectedApk(apk, i)"
-              [editable]="false"
-              [aria-description]="'press enter to remove ' + apk.name"
-            >
-              <span class="chip-text">{{ apk.name }}</span>
-              <button matChipRemove [attr.aria-label]="'remove ' + apk.name">
-                <mat-icon>cancel</mat-icon>
-              </button>
+              *ngFor="let apk of data.uploadedAPKsList; let i = index"
+              [editable]="false">
+              <span class="chip-text" matTooltip="{{ apk.name }}" matTooltipPosition="above">
+                {{ apk.name }}
+              </span>
             </mat-chip-row>
           </mat-chip-grid>
-        </div> -->
+        </div>
       </mat-expansion-panel>
 
       <!-- Sharing Settings Panel -->
