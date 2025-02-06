@@ -146,6 +146,11 @@ export class ModifyEmulatorDialogComponent {
   // isLoading = true;
 
   ngOnInit(): void {
+    this.logger.msg("1", "ModifyEmulatorDialogComponent",  "Data received:", this.data);
+
+    if (!this.data.runningContainer) {
+      this.logger.msg("1", "ModifyEmulatorDialogComponent", "", "runningContainer is undefined!");
+    }
 
   }
 
@@ -161,6 +166,9 @@ export class ModifyEmulatorDialogComponent {
     this.selectedApks.splice(index, 1);
   }
 
+  isApkSelected(apk: any): boolean {
+    return this.selectedApks.some(selected => selected.name === apk.name);
+  }
 
   closeDialog(): void {
     this.dialogRef.close(false);
@@ -222,6 +230,8 @@ export class ModifyEmulatorDialogComponent {
 
   installAPK(mobile: IMobile, container): void {
     let updateData = { apk_file: mobile.selectedAPKFileID };
+
+    console.log("Mobile y container: ", mobile, container)
 
     this._api.updateMobile(container.id, updateData).subscribe(
 

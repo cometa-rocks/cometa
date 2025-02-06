@@ -880,13 +880,4 @@ export class ApiService {
     return this._http.put(`${this.api}container_service/${container_id}/`, body);
   }
 
-  /**
- * Get a specific running mobile container by its ID.
- * @param {string} container_id - The ID of the container.
- * @returns Observable<Container> - An observable containing the container details.
- */
-  getRunningContainer(container_id: number) {
-    return this._http.get<Container>(`${this.api}container_service/${container_id}/`);
-  }
-
 }
