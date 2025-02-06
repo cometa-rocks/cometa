@@ -533,8 +533,11 @@ def before_all(context):
     capabilities = options.to_capabilities()
     logger.info("Options Summary (Capabilities):")
     logger.info(capabilities)
-    context.browser = webdriver.Remote(command_executor=connection_url, options=options)
-
+    if USE_COMETA_BROWSER_IMAGES:
+        context.browser = webdriver.Remote(command_executor=connection_url, options=options, keep_alive=True)
+    else:
+        context.browser = webdriver.Remote(command_executor=connection_url, options=options)
+        
     logger.debug("Session id: %s" % context.browser.session_id)
 
     # set headers for the request
