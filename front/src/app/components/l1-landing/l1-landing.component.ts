@@ -222,7 +222,7 @@ export class L1LandingComponent implements OnInit {
       }
     );
 
-    this.log.msg('1', 'Inicializing component...', 'landing');
+    this.log.msg('1', 'Initializing component...', 'landing');
     // #3414 -------------------------------------------------start
     // check if there are folder ids in url params, if so redirect to that folder
     this.redirect_with_url_params();
@@ -235,9 +235,10 @@ export class L1LandingComponent implements OnInit {
       });
 
     this.aciveList$.pipe(untilDestroyed(this)).subscribe(value => {
+      this.log.msg('l1-landing','setting co_active_list:'+value,'238-','')
       localStorage.setItem('co_active_list', value); // Initialize the recentList_active variable in the local storage
     });
-
+    
   }
 
   /**

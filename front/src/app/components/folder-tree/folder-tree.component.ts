@@ -47,7 +47,7 @@ export class FolderTreeComponent implements OnInit {
   folders$: Observable<Folder[]>;
 
   ngOnInit() {
-    this.log.msg('1', 'Inicializing component...', 'folder-tree');
+    this.log.msg('1', 'Initializing component...', 'folder-tree');
 
     this.folders$ = this._store.select<Folder[]>(
       CustomSelectors.GetDepartmentFolders()

@@ -15,7 +15,7 @@ Author: dph000
         matTooltip="My features"
         class="view tiles"
         [class.selected]="currentView === 'features'"
-        (click)="switchView('features')">
+        (click)="sortRecent('my')">
         My Features
       </div>
       <div
@@ -23,7 +23,7 @@ Author: dph000
         matTooltip="Show by department"
         class="view list"
         [class.selected]="currentView === 'department'"
-        (click)="switchView('department')">
+        (click)="sortRecent('dpt')">
         Show by Department
       </div>
     </div>

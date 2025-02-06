@@ -66,6 +66,7 @@ import {
   LowerCasePipe,
 } from '@angular/common';
 import { LetDirective } from '../../directives/ng-let.directive';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'cometa-l1-feature-recent-list',
@@ -109,6 +110,7 @@ export class L1FeatureRecentListComponent {
   constructor(
     private _store: Store,
     public _sharedActions: SharedActionsService,
+    private _router: Router,
     private _dialog: MatDialog,
     private _api: ApiService,
     private _snackBar: MatSnackBar,
@@ -341,5 +343,35 @@ export class L1FeatureRecentListComponent {
   SAmoveFolder(folder: Folder) {
     this.log.msg('1', 'Moving folder...', 'feature-recent-list', folder);
     this._sharedActions.moveFolder(folder);
+  }
+
+  hideSidenav() {
+    return this._store.dispatch(
+      new Configuration.SetProperty('openedSidenav', false)
+    );
+  }
+
+  toggleListType(listType: string) {
+    this.log.msg('1', 'Navigating to root(home)...', 'folder-tree');
+    this._sharedActions.set_url_folder_params('');
+
+    this._router.navigate(['/new']);
+    return this._store.dispatch(
+      new Configuration.SetProperty('co_active_list', listType, true)
+    );
+  }
+
+  toggleList(listType: string) {
+    this.hideSidenav(); // Hide the sidenav on mobile
+    this.toggleListType(listType); // Toggles the list type
+    this._store.dispatch(new Features.ReturnToFolderRoute(0)); // Remove the current route
+  }
+
+  //Changes view to recent by department
+  //WIP current departent should be loaded from selected in a future dropdown
+  sortRecent(sortType: string) {
+    localStorage.setItem('co_recent_sort_type', sortType);
+    this.log.msg('l1-feature-recent-list.component.ts','392','Added, [' + sortType + '] to Localstorage','')
+    this.toggleList('recent')
   }
 }
