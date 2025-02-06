@@ -681,17 +681,4 @@ export class MobileListComponent implements OnInit {
     });
   }
 
-  fetchUpdatedContainer(mobileId: number) {
-    console.log("Runn mobile: ", this.mobiles)
-    console.log("Runn mobile: ", )
-
-    this._api.getRunningContainer(mobileId).subscribe(updatedContainer => {
-      console.log("UpdatedContainer: ", updatedContainer)
-      // const index = this.mobiles.findIndex(c => c.mobile_id === mobileId);
-      // if (index !== -1) {
-      //   this.mobiles[index] = updatedContainer;
-      // }
-    });
-  }
-
 }
