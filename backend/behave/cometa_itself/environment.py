@@ -347,15 +347,18 @@ def before_all(context):
         logger.debug(f"Using cometa browsers, Starting browser ")
         logger.debug(f"Browser_info : {context.browser_info}")
 
-        service_details = context.service_manager.prepare_browser_service_configuration(
+        context.service_manager.prepare_browser_service_configuration(
             browser=context.browser_info["browser"],
             version=context.browser_info["browser_version"]
         )
-        service_details = context.service_manager.create_service()
-        if not service_details:
+        service_created = context.service_manager.create_service()
+        if not service_created:
             raise Exception("Error while starting browser, Please contact administrator")    
+        
+        service_details = context.service_manager.get_service_details()
+        
         # Save container details in the browser_info, which then gets saved in the feature results browser 
-        context.browser_info["container_service"] = {"Id":service_details["Id"]}
+        context.browser_info["container_service"] = {"Id": service_details["Id"]}
         context.container_services.append(service_details)
         browser_hub_url = context.service_manager.get_service_name(service_details['Id'])
         connection_url = f"http://{browser_hub_url}:4444/wd/hub"
