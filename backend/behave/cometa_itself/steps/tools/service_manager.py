@@ -46,7 +46,9 @@ class KubernetesServiceManager:
     
     def get_service_name(self, uuid):
         return f"service-{uuid}"
-        
+
+    def get_service_details(self):
+        return self.__service_configuration
      
     def __create_pod_and_wait_to_running(self, timeout=300):
         logger.debug(f"Creating pod '{self.pod_manifest['metadata']['name']}'")
@@ -117,8 +119,8 @@ class KubernetesServiceManager:
         except Exception:
             logger.debug(f"Exception while creation Kubernetes service\n{configuration}")
             traceback.print_exc()
-            return False
-
+            return False      
+    
     def delete_service(self, service_name_or_id):
         self.__delete_pod(pod_id = service_name_or_id)
         self.__delete_pod_url(pod_url_id = service_name_or_id)
@@ -128,6 +130,7 @@ class DockerServiceManager:
     deployment_type = "docker"
 
     def __init__(self):
+        self.__service_configuration = None
         # Initialize Docker client using the Docker socket
         self.docker_client = docker.DockerClient(base_url="unix://var/run/docker.sock")
 
@@ -135,10 +138,14 @@ class DockerServiceManager:
     def create_service(self, configuration) -> dict:
         logger.info(f"Creating container with configuration : {configuration}")
         container = self.docker_client.containers.run(**configuration)
+        self.__service_configuration = container.attrs
         return container.attrs
 
     def get_service_name(self, uuid):
-        return self.inspect_service(uuid)['Config']['Hostname']             
+        return self.inspect_service(uuid)['Config']['Hostname']           
+    
+    def get_service_details(self):
+        return self.__service_configuration
 
     # This method will create the container base on the environment
     def wait_for_service_to_be_running(
@@ -530,6 +537,9 @@ class ServiceManager(service_manager):
             
         return self.__service_configuration
     
+        
+    def get_service_details(self):
+        return self.__service_configuration
     
     def wait_for_selenium_hub_be_up(self,hub_url,timeout=120):
         start_time = time.time()
