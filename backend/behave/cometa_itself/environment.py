@@ -356,7 +356,6 @@ def before_all(context):
             raise Exception("Error while starting browser, Please contact administrator")    
         
         service_details = context.service_manager.get_service_details()
-        
         # Save container details in the browser_info, which then gets saved in the feature results browser 
         context.browser_info["container_service"] = {"Id": service_details["Id"]}
         context.container_services.append(service_details)
