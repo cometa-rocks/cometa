@@ -28,7 +28,7 @@ spec:
 
       containers:
         - name: cometa-socket-container
-          image: cometa/socket:1.1
+          image: cometa/socket:1.2
           ports:
           - containerPort: 3001
           env:
