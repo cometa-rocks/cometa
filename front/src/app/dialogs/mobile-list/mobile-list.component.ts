@@ -649,10 +649,6 @@ export class MobileListComponent implements OnInit {
     .map(department => department.files || [])
     .reduce((acc, files) => acc.concat(files), []);
 
-    // this.departments.forEach( department => {
-    //   department.name
-    // })
-
     let departmentName = this.departments.filter(
       department => department.department_id === this.selectedDepartment?.id)
       .map(department => department.department_name || []);
