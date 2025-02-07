@@ -31,7 +31,7 @@
           <p>No APKs selected yet. Please select an APK to add it here.</p>
         </div>
         <div class="selected-apks">
-          <mat-chip-grid #chipGrid aria-label="Selected APKs">
+          <mat-chip-grid #chipGrid>
             <mat-chip-row
               *ngFor="let apk of selectedApks; let i = index"
               (removed)="removeSelectedApk(apk, i)"
@@ -66,7 +66,7 @@
         </div>
 
         <div class="installed-apks">
-          <mat-chip-grid #chipGrid aria-label="Installed APKs">
+          <mat-chip-grid #chipGrid>
             <mat-chip-row
               *ngFor="let apk of data.uploadedAPKsList; let i = index"
               [editable]="false">
