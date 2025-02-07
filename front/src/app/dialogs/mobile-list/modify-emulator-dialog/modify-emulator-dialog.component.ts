@@ -115,42 +115,20 @@ export class ModifyEmulatorDialogComponent {
     });
 
     // Log para ver los datos que vienen en 'data'
-    this.logger.msg("1", "CO-Departments:", "mobile-list", this.data.department_name);
+    // this.logger.msg("1", "CO-Departments:", "mobile-list", this.data.department_name);
 
   }
 
-  // // Declare the variable where the API result will be assigned
   mobiles: IMobile[] = [];
   runningMobiles: Container[] = [];
-  // sharedMobileContainers: Container[] = [];
-  // isIconActive: { [key: string]: boolean } = {};
-  // showDetails: { [key: string]: boolean} = {};
-  // sharedDetails: { [key: string]: boolean} = {};
-  // isDialog: boolean = false;
-  // selectedApps: { [mobileId: string]: string | null } = {};
 
-  // // No dialog
-  // departmentChecked: { [key: string]: boolean } = {};
-  // buttonEnabledState = false;
-  // selectionsDisabled: boolean = false;
-  // selectedDepartment: { id: number, name: string } = {
-  //   id: null,
-  //   name: '',
-  // };
-
-  // departments$: Department[] = [];
-  // destroy$ = new Subject<void>();
-  // departments: Department[] = [];
-  // apkFiles: any[] = [];
-  // configValueBoolean: boolean = false;
-  // isLoading = true;
 
   ngOnInit(): void {
     this.logger.msg("1", "ModifyEmulatorDialogComponent",  "Data received:", this.data);
-
-    if (!this.data.runningContainer) {
-      this.logger.msg("1", "ModifyEmulatorDialogComponent", "", "runningContainer is undefined!");
-    }
+    // console.log("dAT: ", this.data);
+    // if (!this.data.runningContainer) {
+    //   this.logger.msg("1", "ModifyEmulatorDialogComponent", "", "runningContainer is undefined!");
+    // }
 
   }
 
@@ -231,13 +209,17 @@ export class ModifyEmulatorDialogComponent {
   installAPK(mobile: IMobile, container): void {
     let updateData = { apk_file: mobile.selectedAPKFileID };
 
-    console.log("Mobile y container: ", mobile, container)
-
+    this.logger.msg("1", "Mobile", "", mobile);
+    this.logger.msg("1", "container", "", container);
+    // console.log("MObilke", mobile);
     this._api.updateMobile(container.id, updateData).subscribe(
 
       (response: any) => {
         if (response && response.containerservice) {
+          // console.log("response.containerservice: ", response.containerservice);
           container = response.containerservice;
+          // console.log("container: ", container);
+          this.logger.msg("1", "container inside: ", "", container);
           this.snack.open(
             `APK Installed in the mobile ${mobile.mobile_image_name}`,
             'OK'
