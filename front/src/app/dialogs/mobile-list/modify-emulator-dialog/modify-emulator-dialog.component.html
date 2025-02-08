@@ -5,13 +5,86 @@
   </ng-container>
   <mat-dialog-content>
     <mat-accordion multi>
-      <mat-expansion-panel>
+
+      <!-- Information Panel -->
+      <mat-expansion-panel
+      [expanded]="!config$.toggles.hideInformationMobile">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Information</span>
+          </mat-panel-title>
+          <mat-panel-description class="mat-expansion-panel-header-description ng-tns-c95-66">
+            Emulator information
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+      
+        <div class="info-container">
+          <!-- Department & Mobile Info -->
+          <div class="info-row">
+            <mat-icon class="info-icon">business</mat-icon>
+            <strong>Department:</strong>
+            <span>{{ data.department_name }}</span>
+          </div>
+  
+          <div class="info-row">
+            <mat-icon class="info-icon">adb</mat-icon>
+            <strong>Mobile Name:</strong>
+            <span>{{ data.mobile.mobile_image_name }}</span>
+            <mat-icon class="copy-icon"
+              (click)="importClipboard(data.mobile.mobile_image_name)"
+              [ngClass]="{ active: isIconActive[data.mobile.mobile_image_name] }"
+              [color]="isIconActive[data.mobile.mobile_image_name] ? 'primary' : ''">
+              content_copy
+            </mat-icon>
+          </div>
+  
+          <div class="info-row" *ngIf="data.runningContainer">
+            <mat-icon class="info-icon">code</mat-icon>
+            <strong>Mobile Code:</strong>
+            <span>{{ data.runningContainer.hostname }}</span>
+            <mat-icon class="copy-icon"
+              (click)="importClipboard(data.runningContainer.hostname)"
+              [ngClass]="{ active: isIconActive[data.runningContainer.hostname] }"
+              [color]="isIconActive[data.runningContainer.hostname] ? 'primary' : ''">
+              content_copy
+            </mat-icon>
+          </div>
+
+          <div class="info-row">
+            <mat-icon class="info-icon">info</mat-icon>
+            <strong>Device Name:</strong>
+            <span>{{ data.mobile.mobile_json.deviceName }}</span>
+          </div>
+
+          <div class="info-row">
+            <mat-icon class="info-icon">memory</mat-icon>
+            <strong>Architecture:</strong>
+            <span>{{ data.mobile.mobile_json.architecture }}</span>
+          </div>
+
+          <div class="info-row">
+            <mat-icon class="info-icon">phone_android</mat-icon>
+            <strong>Android Version:</strong>
+            <span>{{ data.mobile.mobile_json.android_version }}</span>
+          </div>
+
+          <div class="info-row">
+            <mat-icon class="info-icon">layers</mat-icon>
+            <strong>API Level:</strong>
+            <span>{{ data.mobile.mobile_json.api_level }}</span>
+          </div>
+        </div>
+      </mat-expansion-panel>
+      
+      <!-- Install apks -->
+      <mat-expansion-panel
+      [expanded]="!config$.toggles.hideInstallAPKSMobile">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Install APKs</span>
           </mat-panel-title>
-          <mat-panel-description class="mat-expansion-panel-header-description ng-tns-c95-66">
-            Department: {{ data.department_name }} - {{ data.uploadedAPKsList.length }} APKs
+          <mat-panel-description class="mat-expansion-panel-header-description">
+            APKs available: {{ data.uploadedAPKsList.length }} APKs
           </mat-panel-description>
         </mat-expansion-panel-header>
         <div class="edit-feature-info">
@@ -51,13 +124,15 @@
         </div>
       </mat-expansion-panel>
 
-      <mat-expansion-panel>
+      <!-- Installed apks -->
+      <mat-expansion-panel
+      [expanded]="!config$.toggles.hideInstalledAPKSMobile">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Installed APKs</span>
           </mat-panel-title>
           <mat-panel-description>
-            {{ data.uploadedAPKsList.length }} APKs Installed
+            APKs Installed: {{ data.uploadedAPKsList.length }} APKs
           </mat-panel-description>
         </mat-expansion-panel-header>
 
@@ -79,11 +154,26 @@
       </mat-expansion-panel>
 
       <!-- Sharing Settings Panel -->
-      <mat-expansion-panel>
+      <mat-expansion-panel
+      [expanded]="!config$.toggles.hideSharedMobile">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Sharing Emulator</span>
           </mat-panel-title>
+          <mat-panel-description class="mat-expansion-panel-header-description">
+            <ng-container *ngIf="editMobileForm.controls['shared'].value === data.runningContainer.shared; else pendingChange">
+              <span *ngIf="editMobileForm.controls['shared'].value; else privateText">Emulator is shared</span>
+            </ng-container>
+          
+            <ng-template #pendingChange>
+              <span *ngIf="editMobileForm.controls['shared'].value; else privateTextChange">
+                Emulator will be shared after saving
+              </span>
+            </ng-template>
+          
+            <ng-template #privateText>Emulator not shared</ng-template>
+            <ng-template #privateTextChange>Emulator will not be shared after saving</ng-template>
+          </mat-panel-description>          
         </mat-expansion-panel-header>
         <div class="sharing-settings">
           <mat-slide-toggle

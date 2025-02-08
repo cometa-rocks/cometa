@@ -573,6 +573,7 @@
                             <span class="inspect-text">Inspect</span>
                             <i class="material-icons icon-on-hover">visibility</i>
                           </div>
+                          <div class="hideShadow"></div>
                         </div>
                         <div
                           class="container-novnc-left"
@@ -587,6 +588,7 @@
                             <span class="inspect-text">noVNC</span>
                             <i class="material-icons icon-on-hover">visibility</i>
                           </div>
+                          <div class="hideShadow"></div>
                         </div>
                         <div
                           class="border-left-close"
@@ -722,6 +724,11 @@
 
                           <!-- Modify -->
                           <button
+                            [disabled]="runningContainer?.service_status !== 'Running'" 
+                            [matTooltip]="(runningContainer?.service_status !== 'Running' 
+                            ? 'mobile_list.modify_emulator_not_started' 
+                            : 'mobile_list.modify_emulator_started') | translate"
+                            matTooltipPosition="after"
                             (click)="openModifyEmulatorDialog(mobile, runningContainer)"
                             class="modifyMenu"
                             mat-menu-item>
@@ -738,7 +745,7 @@
                             [disabled]="runningContainer?.isTerminating"
                             mat-menu-item>
                             <mat-icon class="close-icon">cancel</mat-icon>
-                            <span>Close</span>
+                            <span class="modifySpan">Close</span>
                           </button>
                         </mat-menu>
 
@@ -993,7 +1000,7 @@
                 <div class="mobiles">
                   <!-- Iterate over shared containers list -->
                   <div class="mobile" *ngFor="let container of sharedMobileContainers">
-                    <div *ngLet="container.service_status == 'Running' as isRunning">
+                    <div *ngLet="container.service_status == 'Stopped' as isRunning">
                       <!-- Shared device details -->
                       <div class="mobile-details">
                         <h4>Shared Device Information</h4>
