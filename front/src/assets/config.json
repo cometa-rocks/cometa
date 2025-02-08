@@ -1,5 +1,5 @@
 {
-  "version": "3.0.5",
+  "version": "3.0.6",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -105,7 +105,11 @@
     "hideSteps": false,
     "hideSchedule": false,
     "hideSendMail": false,
-    "hideUploadedFiles": false
+    "hideUploadedFiles": false,
+    "hideInformationMobile": false,
+    "hideInstallAPKSMobile": false,
+    "hideInstalledAPKSMobile": false,
+    "hideSharedMobile": false
   },
   "websocketsTimeout": 30000,
   "flaticon": [

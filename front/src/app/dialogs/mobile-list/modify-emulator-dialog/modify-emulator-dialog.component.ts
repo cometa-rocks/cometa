@@ -45,6 +45,9 @@ import { ApiService } from '@services/api.service';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatChipInputEvent } from '@angular/material/chips';
+import { MatCardModule } from '@angular/material/card';
+import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
+import { ConfigState } from '@store/config.state';
 
 /**
  * MobileListComponent
@@ -87,7 +90,8 @@ import { MatChipInputEvent } from '@angular/material/chips';
     MatButtonToggleModule,
     DraggableWindowModule,
     MatExpansionModule,
-    MatChipsModule
+    MatChipsModule,
+    MatCardModule
 ],
 })
 export class ModifyEmulatorDialogComponent {
@@ -118,9 +122,11 @@ export class ModifyEmulatorDialogComponent {
     // this.logger.msg("1", "CO-Departments:", "mobile-list", this.data.department_name);
 
   }
+  @ViewSelectSnapshot(ConfigState) config$!: Config;
 
   mobiles: IMobile[] = [];
   runningMobiles: Container[] = [];
+  isIconActive: { [key: string]: boolean } = {};
 
 
   ngOnInit(): void {
@@ -155,14 +161,15 @@ export class ModifyEmulatorDialogComponent {
   saveChanges(): void {
     const selectedApp = this.editMobileForm.value.selectedApp;
     const isShared = this.editMobileForm.value.shared;
-
     const currentSharedStatus = this.data.runningContainer?.shared;
+    // console.log(" this.data.runningContainer",  this.data.runningContainer);
 
     if (this.editMobileForm.valid && currentSharedStatus !== isShared) {
-      this.logger.msg("1", "App-seleccionada:", "modify-emulator", selectedApp);
+      // this.logger.msg("1", "App-seleccionada:", "modify-emulator", selectedApp);
       this.updateSharedStatus({ checked: isShared }, this.data.mobile, this.data.runningContainer)
         .subscribe((updatedContainer: any) => {
 
+          console.log("data.runningContainer-->savchanges", this.data.runningContainer.id);
           // for each apk
           this.selectedApks.forEach(apk => {
             this.installAPK(apk, updatedContainer);
@@ -171,7 +178,7 @@ export class ModifyEmulatorDialogComponent {
           this.dialogRef.close({ updatedContainer });
         });
     } else {
-
+      // for each apk
       this.selectedApks.forEach(apk => {
         this.installAPK(apk, this.data.runningContainer);
       });
@@ -180,9 +187,44 @@ export class ModifyEmulatorDialogComponent {
     }
   }
 
+  installAPK(mobile: IMobile, container): void {
+    let updateData = { apk_file: mobile.selectedAPKFileID };
+
+    // this.logger.msg("1", "Mobile", "", mobile);
+    // this.logger.msg("1", "container", "", container);
+    console.log("data.runningContainer", this.data.runningContainer.id);
+    this._api.updateMobile(this.data.runningContainer.id, updateData).subscribe(
+
+      (response: any) => {
+        if (response && response.containerservice) {
+          // console.log("response.containerservice: ", response.containerservice);
+          container = response.containerservice;
+          console.log("mobile: ", mobile);
+          console.log("container: ", container);
+          this.logger.msg("1", "container inside: ", "", container);
+          this.snack.open(
+            `APK Installed in the mobile ${this.data.mobile.mobile_image_name}`,
+            'OK'
+          );
+          this._cdr.detectChanges();
+        } else {
+          this.snack.open(response.message, 'OK');
+        }
+      },
+      error => {
+        // Handle any errors
+        console.error(
+          'An error occurred while fetching the mobile list',
+          error
+        );
+      }
+    );
+  }
 
   updateSharedStatus(isShared: any, mobile: IMobile, container): Observable<any> {
     let updateData = { shared: isShared.checked };
+
+    console.log("container - updateshared: ", container)
 
     return this._api.updateMobile(container.id, updateData).pipe(
       map((response: any) => {
@@ -206,37 +248,19 @@ export class ModifyEmulatorDialogComponent {
     );
   }
 
-  installAPK(mobile: IMobile, container): void {
-    let updateData = { apk_file: mobile.selectedAPKFileID };
-
-    this.logger.msg("1", "Mobile", "", mobile);
-    this.logger.msg("1", "container", "", container);
-    // console.log("MObilke", mobile);
-    this._api.updateMobile(container.id, updateData).subscribe(
-
-      (response: any) => {
-        if (response && response.containerservice) {
-          // console.log("response.containerservice: ", response.containerservice);
-          container = response.containerservice;
-          // console.log("container: ", container);
-          this.logger.msg("1", "container inside: ", "", container);
-          this.snack.open(
-            `APK Installed in the mobile ${mobile.mobile_image_name}`,
-            'OK'
-          );
-          this._cdr.detectChanges();
-        } else {
-          this.snack.open(response.message, 'OK');
-        }
-      },
-      error => {
-        // Handle any errors
-        console.error(
-          'An error occurred while fetching the mobile list',
-          error
-        );
-      }
-    );
+  importClipboard(androidVersion: string) {
+    navigator.clipboard.writeText(androidVersion).then(() => {
+    this.isIconActive[androidVersion] = true;
+    this._cdr.detectChanges();
+    setTimeout(() => {
+      this.isIconActive[androidVersion] = false;
+      this._cdr.detectChanges();
+    }, 400);
+    this.snack.open('Text copied to clipboard', 'Close');
+    }).catch(err => {
+      console.error('Error copying: ', err);
+      this.snack.open('Error copying text', 'Close');
+    });
   }
 
 }

@@ -641,8 +641,10 @@ export class MobileListComponent implements OnInit {
 
   openModifyEmulatorDialog(mobile: IMobile, runningContainer: Container) {
 
-    this.logger.msg("1", "CO-mobile", "mobile-list", mobile);
-    this.logger.msg("1", "CO-runningContainer", "mobile-list", runningContainer);
+    // this.logger.msg("1", "CO-mobile", "mobile-list", mobile);
+    // this.logger.msg("1", "CO-runningContainer", "mobile-list", runningContainer);
+    // console.log("running: ", runningContainer)
+    // console.log("mobile: ", mobile)
 
     let uploadedApksList = this.departments
     .filter(department => department.department_id === this.selectedDepartment?.id)
@@ -652,8 +654,6 @@ export class MobileListComponent implements OnInit {
     let departmentName = this.departments.filter(
       department => department.department_id === this.selectedDepartment?.id)
       .map(department => department.department_name || []);
-
-      this.logger.msg("1", "CO-Departments:", "mobile-list", departmentName);
 
     this._dialog
       .open(ModifyEmulatorDialogComponent, {

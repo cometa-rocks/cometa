@@ -63,3 +63,70 @@
   background-color: #d6d6d6 !important;
   color: #333 !important;
 }
+
+// Information expansion panel
+
+.info-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.info-card {
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.info-icon {
+  color: #000000B3;
+  font-size: 19px;
+}
+
+.copy-icon {
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.copy-icon.active {
+  color: #4caf50;
+}
+
+::ng-deep .mat-dialog-container {
+  // overflow: hidden;
+}
+
+::ng-deep .mat-dialog-actions {
+  padding: 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 52px;
+  align-items: center;
+  box-sizing: content-box;
+  margin-bottom: -24px;
+}
+
+:host::ng-deep .mat-expansion-panel-header {
+  padding: 0 27px 0 24px;
+}
+
+:host::ng-deep .mat-dialog-content {
+  padding: 0 10px 5px;
+  @include for-tablet-portrait-up {
+    padding: 0 24px 5px;
+  }
+}
+
+:host::ng-deep .mat-expansion-panel-body {
+  padding: 0 15px 16px;
+  @include for-tablet-portrait-up {
+    padding: 0 24px 16px;
+  }
+}
