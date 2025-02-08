@@ -679,8 +679,8 @@
                       <!-- Button more vert (modify etc) -->
                       <div class="mobile-details">
                         <button
-                          matTooltip="Emulator options"
-                          matTooltipPosition="above"
+                          [matTooltip]="'mobile_list.emulator_options' | translate"
+                          matTooltipPosition="after"
                           class="emulatorOptions"
                           mat-icon-button
                           [matMenuTriggerFor]="emulatorOptions">
@@ -996,15 +996,47 @@
                     </div>
                   </div>
                 </div>
-                <h3>Shared Mobile Devices</h3>
+
+                <div class="dialog-header">
+                  <h3 class="not-dialog-title">Shared Mobile Devices</h3>
+                </div>
                 <div class="mobiles">
                   <!-- Iterate over shared containers list -->
                   <div class="mobile" *ngFor="let container of sharedMobileContainers">
-                    <div *ngLet="container.service_status == 'Stopped' as isRunning">
+                    <div *ngLet="container.service_status == 'Running' as isRunning">
                       <!-- Shared device details -->
                       <div class="mobile-details">
-                        <h4>Shared Device Information</h4>
-                        <mat-divider></mat-divider>
+                        <!-- <h4>Shared Device Information</h4>
+                        <mat-divider></mat-divider> -->
+                        <div class="container-buttons-shared">
+                          <div
+                            class="container-inspect-left-shared">
+                            <div
+                              (click)="inspectMobile(runningContainer, mobile)"
+                              mat-raised-button
+                              class="start-stop-inpect-buttons"
+                              [disabled]="container.service_status !== 'Running'"
+                              [matTooltip]="'mobile_list.inspect_emulator_shared' | translate" matTooltipPosition="above">
+                              <span class="inspect-text">Inspect</span>
+                              <i class="material-icons icon-on-hover">visibility</i>
+                            </div>
+                            <div class="hideShadow"></div>
+                          </div>
+                          <div
+                            class="container-novnc-left-shared">
+                            <div
+                              (click)="noVNCMobile(runningContainer, mobile)"
+                              mat-raised-button
+                              class="start-stop-inpect-buttons"
+                              [disabled]="container.service_status !== 'Running'"
+                              [matTooltip]="'mobile_list.inspect_novnc_shared' | translate"
+                              matTooltipPosition="above">
+                              <span class="inspect-text">noVNC</span>
+                              <i class="material-icons icon-on-hover">visibility</i>
+                            </div>
+                            <div class="hideShadow"></div>
+                          </div>
+                        </div>
                         <div class="emulator-info">
                           <i class="material-icons">adb</i>
                           <strong>Mobile Name:</strong>
@@ -1040,17 +1072,18 @@
                           </div>
                         </ng-container>
 
-                        <div class="options">
+                        <div class="emulator-info">
                           <button
+                            class="moreInfo"
                             matTooltip="Show more information"
                             matTooltipPosition="above"
                             mat-icon-button
-                            [matMenuTriggerFor]="featureOptions">
+                            [matMenuTriggerFor]="moreInfo">
                             <mat-icon>more_vert</mat-icon>
                           </button>
-                          <span>
+                          <strong class="moreInfoStrong">
                             More information
-                          </span>
+                          </strong>
                         </div>
 
                         <mat-menu #featureOptions="matMenu">
@@ -1105,9 +1138,8 @@
                         </mat-menu>
                       </div>
                     </div>
-
                     <!-- Actions: Start, Stop, Inspect -->
-                    <div class="mobile-buttons-shared">
+                    <!-- <div class="mobile-buttons-shared">
                       <button
                         (click)="inspectMobile(container, container.image)"
                         mat-raised-button
@@ -1126,7 +1158,7 @@
                         <span class="inspect-text novnc-hover">noVNC</span>
                         <i class="material-icons icon-on-hover">visibility</i>
                       </button>
-                    </div>
+                    </div> -->
                     <div class="created-by">
                       <strong>Created by:</strong> {{ container.created_by_name }}
                     </div>
