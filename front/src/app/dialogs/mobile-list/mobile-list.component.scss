@@ -376,7 +376,7 @@ mat-divider {
 
 .created-by {
   text-align: right;
-  margin-top: 27px;
+  margin-top: -15px;
   margin-right: 10px;
 }
 
@@ -909,6 +909,14 @@ mat-card {
   // margin-right: -48px;
 }
 
+.container-buttons-shared {
+  display: flex;
+  flex-direction: row-reverse;
+  position: relative;
+  top: -46px;
+  left: -32px;
+}
+
 .start, .restart, .pause, .close {
   box-sizing: border-box;
   cursor: pointer;
@@ -1140,6 +1148,16 @@ mat-card {
 .container-inspect-left {
   position: relative;
   right: 204px;
+}
+
+.container-novnc-left-shared {
+  position: relative;
+  right: 31px;
+}
+
+.container-inspect-left-shared {
+	position: relative;
+  right: 18px;
 }
 
 

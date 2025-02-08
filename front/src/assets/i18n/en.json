@@ -179,6 +179,7 @@
     "no-last-run": "Last run: No runs have been made yet"
   },
   "mobile_list": {
+    "emulator_options": "Emulator options",
     "mobile_presentation": "Run mobile tests based on automation configurations",
     "emulator_mobile": "Run mobile tests using specified automation configurations",
     "apk_file": "Upload apk files in the upload section of edit feature screen and select apk from here to install in the mobile",
