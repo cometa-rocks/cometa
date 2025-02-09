@@ -985,11 +985,10 @@
                         <mat-slide-toggle
                           [matTooltip]="(runningContainer?.shared ? 'mobile_list.shared' : 'mobile_list.not_shared') | translate"
                           matTooltipPosition="above"
-                          [disabled]="true"
-                          aria-disabled="true"
                           class="mat-slider-toggle"
+                          [disableRipple]="runningContainer?.shared"
+                          (change)="preventToggle($event, runningContainer?.shared)"
                           id="isShared_{{ mobile.mobile_id }}"
-                          color="primary"
                           [checked]="runningContainer?.shared">
                         </mat-slide-toggle>
                       </div>
