@@ -131,7 +131,11 @@ export class ModifyEmulatorDialogComponent {
 
   ngOnInit(): void {
     this.logger.msg("1", "ModifyEmulatorDialogComponent",  "Data received:", this.data);
-    // console.log("dAT: ", this.data);
+
+    console.log('Config value:', this.config$);
+    // this.config$.subscribe( config => {
+    //   console.log("config: ", config.toggles);
+    // });
     // if (!this.data.runningContainer) {
     //   this.logger.msg("1", "ModifyEmulatorDialogComponent", "", "runningContainer is undefined!");
     // }
@@ -165,7 +169,7 @@ export class ModifyEmulatorDialogComponent {
     // console.log(" this.data.runningContainer",  this.data.runningContainer);
 
     if (this.editMobileForm.valid && currentSharedStatus !== isShared) {
-      // this.logger.msg("1", "App-seleccionada:", "modify-emulator", selectedApp);
+      this.logger.msg("1", "App-seleccionada:", "modify-emulator", selectedApp);
       this.updateSharedStatus({ checked: isShared }, this.data.mobile, this.data.runningContainer)
         .subscribe((updatedContainer: any) => {
 
@@ -197,7 +201,7 @@ export class ModifyEmulatorDialogComponent {
 
       (response: any) => {
         if (response && response.containerservice) {
-          // console.log("response.containerservice: ", response.containerservice);
+          console.log("response.containerservice: ", response.containerservice);
           container = response.containerservice;
           console.log("mobile: ", mobile);
           console.log("container: ", container);
