@@ -227,7 +227,7 @@
         *ngIf="
           featureForm.value.send_mail && !featureForm.value.depends_on_others
         "
-        [expanded]="isExpanded"
+        [expanded]="!config$.toggles.hideSendMail"
         >
         <mat-expansion-panel-header>
           <mat-panel-title>
@@ -393,7 +393,7 @@
       <!-- FILE UPLOAD -->
       <mat-expansion-panel
         #uploadPanel
-        [expanded]="isExpanded">
+        [expanded]="!config$.toggles.hideUploadedFiles">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Files</span>
@@ -539,7 +539,7 @@
       <!-- FILE UPLOAD -->
 
       <mat-expansion-panel
-        [expanded]="isExpanded"
+        [expanded]="!config$.toggles.hideBrowsers"
         *ngIf="!featureForm.value.depends_on_others">
         <mat-expansion-panel-header>
           <mat-panel-title>
@@ -570,7 +570,7 @@
           </ng-template>
         </ng-template>
       </mat-expansion-panel>
-      <mat-expansion-panel [expanded]="true">
+      <mat-expansion-panel [expanded]="data.mode !== 'new' && !config$.toggles.hideSteps">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Steps definition</span>
@@ -601,7 +601,7 @@
           </cometa-step-editor>
         </ng-template>
       </mat-expansion-panel>
-      <mat-expansion-panel [expanded]="isExpanded">
+      <mat-expansion-panel [expanded]="!config$.toggles.hideSchedule">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Schedule</span>

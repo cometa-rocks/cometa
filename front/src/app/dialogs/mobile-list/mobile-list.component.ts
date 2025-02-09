@@ -166,6 +166,8 @@ export class MobileListComponent implements OnInit {
 
   ngOnInit(): void {
 
+
+  console.log("tree", this.mobiles, this.runningMobiles, this.sharedMobileContainers)
     this.logger.msg("1", "CO-User:", "mobile-list", this.user);
 
     // this.logger.msg("1", "CO-Mobiles:", "mobile-list", this.mobiles);
@@ -675,6 +677,12 @@ export class MobileListComponent implements OnInit {
           this._cdr.detectChanges();
         }
     });
+  }
+
+  preventToggle(event: any, mobileShared: boolean) {
+    if (mobileShared) {
+      event.source.checked = true;
+    }
   }
 
 }
