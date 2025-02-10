@@ -8,6 +8,9 @@ from PIL import Image
 from .common import *
 from django.db.models import Sum, Value
 from django.db.models.functions import Coalesce
+from html import escape
+from typing import Any, Callable
+from functools import wraps
 import asyncio
 import io
 import tarfile
@@ -180,3 +183,69 @@ def create_tarball(file_path):
     tar_stream.seek(0)  # Go back to the beginning of the BytesIO object
     logger.debug(f"tar file created, Path : {file_path}")
     return tar_stream
+
+
+def sanitize_input(value: Any) -> Any:  
+    """Sanitizes input values while preserving data types and structures
+    
+    Args:
+        value: Input value to sanitize (can be string, dict, list or other types)
+        
+    Returns:
+        Sanitized value maintaining original type
+    """
+    try:
+        if isinstance(value, str):
+            escaped_value = escape(value, quote=False)
+            return escaped_value
+                
+        elif isinstance(value, dict):
+            return {k: sanitize_input(v) for k, v in value.items()}
+            
+        elif isinstance(value, list):
+            return [sanitize_input(item) for item in value]
+            
+        elif value is None:
+            return None
+            
+        return value
+        
+    except Exception as e:
+        logger.error(f"Error sanitizing input: {str(e)}")
+        return value
+
+def sanitize_step_inputs(skip_first_arg: bool = True) -> Callable:
+    """Decorator to sanitize string inputs in step functions
+
+    Args:
+        skip_first_arg: If True (default), the first positional argument is skipped from sanitization
+        (intended for 'context' in behave steps). Set to False to sanitize all positional arguments.
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:               
+                sanitized_args = list(args)
+                start_index = 1 if skip_first_arg and len(args) > 0 else 0
+                
+                for i in range(start_index, len(args)):
+                    if isinstance(args[i], str):
+                        sanitized_args[i] = sanitize_input(args[i])
+
+                sanitized_kwargs = {
+                    key: sanitize_input(value) if isinstance(value, str) else value
+                    for key, value in kwargs.items()
+                }
+                
+                logger.debug(f"Sanitized args: {sanitized_args}")
+                logger.debug(f"Sanitized kwargs: {sanitized_kwargs}")
+                
+                return func(*sanitized_args, **sanitized_kwargs)
+                
+            except Exception as e:
+                logger.error(f"Error in sanitize_step_inputs decorator: {str(e)}")
+                logger.debug("Falling back to original function call")
+                return func(*args, **kwargs)
+                
+        return wrapper
+    return decorator
