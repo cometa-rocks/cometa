@@ -58,6 +58,7 @@ use_step_matcher("re")
 # In the second case, the additional option "fullscreen" will be captured and used in the step logic.
 @step(u'Validate current screen to contain \"(?P<object_name>.*?)\"(?: with \"(?P<options>.*?)\")?')
 @done(u'Validate current screen to contain "{object_name}" with "{options}"')
+@sanitize_step_inputs() 
 def validate_screen_using_ai(context, object_name, options):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
@@ -110,6 +111,7 @@ def validate_screen_using_ai(context, object_name, options):
 # The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
 @step(u'Get list of visible objects in the current screen and store in "(?P<variable>.*?)"(?: with "(?P<options>.*?)")?')
 @done(u'Get list of visible objects in the current screen and store in "{variable}" with "{options}"')
+@sanitize_step_inputs() 
 def get_list_of_visible_objects_in_the_screen(context, variable, options):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
@@ -153,6 +155,7 @@ def get_list_of_visible_objects_in_the_screen(context, variable, options):
 
 @step(u'Get screenshot and store in the variable \"(?P<variable_name>.*?)\"')
 @done(u'Get screenshot and store in the variable "{variable_name}"')
+@sanitize_step_inputs() 
 def get_screen_shot(context, variable_name):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     screenshot_bytes = get_screenshot_bytes_from_screen(context)
@@ -186,6 +189,7 @@ def assert_imp(context, variable_name, jq_pattern, condition, value):
 # Assert variable value by providing 'variable_name', 'condition(match|contain)' and exepected 'value'
 @step(u'Assert variable \"(?P<variable_name>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert variable "{variable_name}" to "{condition}" "{value}"')
+@sanitize_step_inputs() 
 def assert_imp(context, variable_name, condition, value):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     variable_value = getVariable(context, variable_name) 
@@ -220,8 +224,9 @@ def assert_imp(context, variable_name, condition, value):
 # - variable: (String) The name of the variable where the AI analysis output will be stored.
 # - options: (String) (Optional) Modifies how the analysis result is processed. For example, if 'Output JSON' is provided,
 #     the result will be converted to a JSON format before being stored.
-@step(u'Get information based on """(?P<user_message_to_ai>[\s\S]*?)""" and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
-@done(u'Get information based on """{user_message_to_ai}""" and store in the "{variable}" with "{option}"')
+@step(u'Get information based on "(?P<user_message_to_ai>[\s\S]*?)" and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
+@done(u'Get information based on "{user_message_to_ai}" and store in the "{variable}" with "{option}"')
+@sanitize_step_inputs() 
 def ai_analyze(context, user_message_to_ai, variable, option):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
@@ -265,8 +270,9 @@ def ai_analyze(context, user_message_to_ai, variable, option):
 # - variable: (String) The name of the variable where the AI analysis output will be stored.
 # - option: (String) (Optional) Modifies how the analysis result is processed. For example, if 'Output JSON' is provided,
 #            if option "Output JSON" is provided the result will be converted to a JSON format before it is stored in the variable.
-@step(u'Get information based on """(?P<prompt>[\s\S]*?)""" from current screen and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
-@done(u'Get information based on """{prompt}""" from current screen and store in the "{variable}" with "{option}"')
+@step(u'Get information based on "(?P<prompt>[\s\S]*?)" from current screen and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
+@done(u'Get information based on "{prompt}" from current screen and store in the "{variable}" with "{option}"')
+@sanitize_step_inputs()
 def get_information_from_current_screen_based_on_prompt(context, prompt, variable, option):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
@@ -319,6 +325,7 @@ use_step_matcher("parse")
 # The popup will disappear after the specified number of seconds.
 @step(u'Show me variable "{variable}" value for "{seconds}" seconds')
 @done(u'Show me variable "{variable}" value for "{seconds}" seconds')
+@sanitize_step_inputs()
 def show_variable_value(context, variable, seconds):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     # Assuming getVariable is a function that retrieves the variable value
