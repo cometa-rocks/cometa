@@ -21,15 +21,13 @@ h3 {
   margin-left: 10px;
 }
 
-mat-dialog-container {
-  overflow: hidden;
-}
+// mat-dialog-container {
+//   overflow: hidden;
+// }
 
 ::ng-deep .mobile-emulator-panel {
   background-color: #f7f7f7;
 }
-
-
 
 @keyframes slideDown {
   from {
@@ -269,6 +267,48 @@ mat-dialog-content {
   }
 }
 
+.mobile-details-shared {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 10px;
+  margin-top: -27px;
+  div {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 5px;
+    margin-left: 10px;
+    font-size: 14px;
+    strong {
+      align-items: center;
+      margin-left: 5px;
+      margin-right: 5px;
+    }
+    i {
+      font-size: 17px;
+      width: 16px;
+    }
+    mat-icon {
+      font-size: 15px;
+      // margin-right: 5px;
+    }
+  }
+  .status-container {
+    margin-left: 10px;
+    font-size: 14px;
+  }
+  .get-app {
+    position: relative;
+    top: -15px;
+  }
+  .installedApp {
+    display: flex;
+    font-weight: bold;
+    position: relative;
+    top: -15px;
+  }
+}
+
 .status-container {
   display: flex;
   align-items: center;
@@ -299,6 +339,21 @@ mat-dialog-content {
 //     }
 //   }
 // }
+
+::ng-deep .mdc-switch.mdc-switch--selected.mdc-switch--checked {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+::ng-deep .mdc-switch.mdc-switch--unselected {
+  cursor: default !important;
+  pointer-events: none !important;
+}
+
+::ng-deep .mdc-switch__icons:hover {
+  animation: none !important;
+  transition: none !important;
+}
 
 .pop-up-info {
   display: flex;
@@ -376,15 +431,21 @@ mat-divider {
 
 .created-by {
   text-align: right;
-  margin-top: -15px;
+  margin-top: -20px;
   margin-right: 10px;
+  font-size: 14px;
 }
 
 
 .emulator-info {
   .moreInfo {
     position: relative;
-    top: -13px;
+    top: -12px;
+    left: -12px;
+  }
+  .moreInfoShared {
+    position: relative;
+    top: -4px;
     left: -12px;
   }
   .copyClipboardIcon {
@@ -597,7 +658,7 @@ mobile-list {
   font-size: 13px;
 }
 
-.mobile-information{
+.mobile-information {
   display: flex;
   flex-direction: column !important;
   margin-bottom: 20px;
@@ -607,6 +668,21 @@ mobile-list {
     .moreInfoStrong {
       position: relative;
       left: -24px;
+    }
+  }
+}
+
+.mobile-information-shared {
+  display: flex;
+  flex-direction: column !important;
+  margin-bottom: 20px;
+  position: relative;
+  top: -4px;
+  .emulator-info {
+    .moreInfoStrongShared {
+      position: relative;
+      left: -24px;
+      top: 9px;
     }
   }
 }
@@ -913,7 +989,7 @@ mat-card {
   display: flex;
   flex-direction: row-reverse;
   position: relative;
-  top: -46px;
+  top: -19px;
   left: -32px;
 }
 
@@ -1173,12 +1249,12 @@ mat-card {
   right: 204px;
 }
 
-.container-novnc-left-shared {
+.container-inspect-left-shared {
   position: relative;
   right: 31px;
 }
 
-.container-inspect-left-shared {
+.container-novnc-left-shared {
 	position: relative;
   right: 18px;
 }
@@ -1204,7 +1280,6 @@ mat-card {
   position: absolute;
   top: 0px;
   right: -63px;
-  z-index: 999;
   border-radius: 0 5px 0 0;
 }
 
@@ -1463,13 +1538,13 @@ mat-card {
 .pause-bg {
   background-color: #f57c00;
   width: 90px;
-  margin-right: -181px;
+  margin-right: -182px;
   // transition: background-color 0.2s ease-in-out;
 }
 
 .skewed-button {
   display: flex;
-  height: 19px;
+  height: 18.6px;
   padding: 3px 10px 4px 0;
   align-items: center;
   justify-content: center;
@@ -1507,9 +1582,9 @@ mat-card {
   top: 147px;
   left: 373px;
   mat-slide-toggle {
-    transform: scale(0.8); 
-    background-color: var(--mdc-theme-primary) !important; 
-    opacity: 1 !important; 
+    transform: scale(0.8);
+    background-color: var(--mdc-theme-primary) !important;
+    opacity: 1 !important;
   }
   .mat-slide-toggle.mat-checked::after {
     background-color: #333 !important;
@@ -1519,5 +1594,26 @@ mat-card {
   }
 }
 
+::ng-deep .mat-dialog-container {
+  background-color: #f7f7f7;
+}
 
+::ng-deep .mobile-emulator-panel-dialog {
+  width: 80vw;
+  height: 81vh;
+}
 
+::ng-deep div mat-slide-toggle button {
+  transform: scale(0.8);
+}
+
+// ::ng-deep .mat-form-field-flex {
+//   font-size: 12px;
+// }
+
+::ng-deep .mat-badge-content.mat-badge-active {
+  transform: scale(0.8);
+  font-size: 14px;
+  margin-right: -144px;
+  margin-top: 8px;
+}

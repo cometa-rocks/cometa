@@ -65,7 +65,8 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { timeStamp } from 'console';
 import { Key } from 'readline';
 import { ModifyEmulatorDialogComponent } from '@dialogs/mobile-list/modify-emulator-dialog/modify-emulator-dialog.component';
-
+import { ConfigState } from '@store/config.state';
+import { MatBadgeModule } from '@angular/material/badge';
 
 
 /**
@@ -119,7 +120,8 @@ import { ModifyEmulatorDialogComponent } from '@dialogs/mobile-list/modify-emula
     DraggableWindowModule,
     FormsModule,
     MatMenuModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
+    MatBadgeModule,
   ],
 })
 export class MobileListComponent implements OnInit {
@@ -134,6 +136,7 @@ export class MobileListComponent implements OnInit {
   ) {
   }
   @ViewSelectSnapshot(UserState) user!: UserInfo;
+  @ViewSelectSnapshot(ConfigState) config$!: Config;
 
   // Declare the variable where the API result will be assigned
   mobiles: IMobile[] = [];
@@ -166,29 +169,48 @@ export class MobileListComponent implements OnInit {
 
   ngOnInit(): void {
 
-
-  console.log("tree", this.mobiles, this.runningMobiles, this.sharedMobileContainers)
-    this.logger.msg("1", "CO-User:", "mobile-list", this.user);
+    console.log("User: ", this.user, this.config$)
+    console.log("tree", this.mobiles, this.runningMobiles, this.sharedMobileContainers)
+    // this.logger.msg("1", "CO-User:", "mobile-list", this.user);
 
     // this.logger.msg("1", "CO-Mobiles:", "mobile-list", this.mobiles);
 
     // this.logger.msg("1", "CO-ApkFiles:", "mobile-list", this.apkFiles);
+    console.log("shared: ", this.sharedMobileContainers)
 
-    if (this.user && this.user.departments) {
-      // User departments
-      this.departments = this.user.departments;
+    this.departments = this.user.departments;
 
-      // User preselect department
-      this.preselectDepartment = this.user.settings?.preselectDepartment;
+    this.isDialog = this.data?.department_id ? true : false;
 
-      this.logger.msg("1", "CO-User:", "mobile-list", this.user);
-      if (this.preselectDepartment) {
-        const selected = this.departments.find(department => department.department_id === this.preselectDepartment);
+    console.log("isDialog: ", this.isDialog)
+    if(!this.isDialog ){
+      if (this.user && this.user.departments) {
+        console.log("selectedDepartment: ", this.selectedDepartment )
 
-        this.selectedDepartment = { id: selected.department_id, name: selected.department_name };
-        this._cdr.detectChanges();
-        this.logger.msg("1", "CO-selectedDepartment:", "mobile-list", this.selectedDepartment);
+        // User preselect department
+        this.preselectDepartment = this.user.settings?.preselectDepartment;
+
+        this.logger.msg("1", "CO-User:", "mobile-list", this.user);
+
+        let selected = this.departments.find(department => department.department_id === this.preselectDepartment);
+
+        // Si no hay preselectDepartment o no se encuentra, tomar el primero de la lista
+        if (!selected && this.departments.length > 0) {
+          selected = this.departments[0];
+        }
+
+        if (selected) {
+          this.selectedDepartment = { id: selected.department_id, name: selected.department_name };
+          this._cdr.detectChanges();
+          this.logger.msg("1", "CO-selectedDepartment:", "mobile-list", this.selectedDepartment);
+        }
       }
+    }
+    else{
+      console.log("selectedDepartment: ",  this.data.department_id )
+      let selected = this.departments.find(department => department.department_id === this.data.department_id);
+      console.log("selected: ",  selected )
+      this.selectedDepartment = { id: selected.department_id, name: selected.department_name };
     }
 
 
@@ -478,6 +500,7 @@ export class MobileListComponent implements OnInit {
     };
     container.service_status = 'Restarting';
 
+
     // Call the API service on component initialization
     this._api.updateMobile(container.id, body).subscribe(
       (response: any) => {
@@ -555,6 +578,7 @@ export class MobileListComponent implements OnInit {
 
 
   inspectMobile(container: Container, mobile: IMobile): void {
+    console.log(this.stopGoToUrl(container), container.service_id);
     if (this.stopGoToUrl(container)) return;
     let host = window.location.hostname;
     let capabilities = encodeURIComponent(JSON.stringify(mobile.capabilities));
@@ -564,6 +588,9 @@ export class MobileListComponent implements OnInit {
 
   noVNCMobile(container: Container): void {
     // FIXME this connection needs to be fixed, to improve security over emulators
+    console.log(this.stopGoToUrl(container), container.service_id);
+    console.log("Coonatiner novnc", container);
+
     if (this.stopGoToUrl(container)) return;
     let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${container.service_id}`;
     window.open(complete_url, '_blank');
@@ -619,10 +646,6 @@ export class MobileListComponent implements OnInit {
 
   onDepartmentSelect($event){
 
-    console.log("Mobile: ", this.mobiles);
-
-    console.log("ApkFiles: ", this.apkFiles);
-
     if (!this.selectedDepartment || !this.selectedDepartment.id) {
       this.selectionsDisabled = false;
       return;
@@ -645,17 +668,19 @@ export class MobileListComponent implements OnInit {
 
     // this.logger.msg("1", "CO-mobile", "mobile-list", mobile);
     // this.logger.msg("1", "CO-runningContainer", "mobile-list", runningContainer);
-    // console.log("running: ", runningContainer)
-    // console.log("mobile: ", mobile)
+    console.log("runningContainer: ", runningContainer)
+    console.log("mobile: ", mobile)
 
     let uploadedApksList = this.departments
     .filter(department => department.department_id === this.selectedDepartment?.id)
     .map(department => department.files || [])
     .reduce((acc, files) => acc.concat(files), []);
 
+    // if(!this.isDialog) {
     let departmentName = this.departments.filter(
       department => department.department_id === this.selectedDepartment?.id)
       .map(department => department.department_name || []);
+    // }
 
     this._dialog
       .open(ModifyEmulatorDialogComponent, {
@@ -666,8 +691,6 @@ export class MobileListComponent implements OnInit {
           mobile,
           runningContainer
         },
-        height: '65vh',
-        width: '80vw',
         panelClass: 'mobile-emulator-panel-dialog',
       })
       .afterClosed()
@@ -682,6 +705,9 @@ export class MobileListComponent implements OnInit {
   preventToggle(event: any, mobileShared: boolean) {
     if (mobileShared) {
       event.source.checked = true;
+    }
+    else{
+      event.source.checked = false;
     }
   }
 
