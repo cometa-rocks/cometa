@@ -10,21 +10,42 @@ Author: dph000
   <div *ngIf="table.rows.length > 0; else showWelcome" class="table_container">
     <!-- View Switch -->
     <div class="view-selector">
-      <div
-        matRipple
-        matTooltip="My features"
-        class="view tiles"
-        [class.selected]="currentView === 'features'"
-        (click)="sortRecent('my')">
-        My Features
+
+      <form [formGroup]="featureForm" [hidden]="!isVisible">
+        <mat-form-field appearance="fill" class="edit-dep">
+          <mat-label>Department</mat-label>
+          <mat-select
+            [(ngModel)]="selected_department"
+            (selectionChange) = onDepartmentChange()
+            [disabled]="table.mode === 'edit'"
+            formControlName="department_name"
+            (focus)="onInputFocus()"
+            (blur)="onInputBlur()">
+            <mat-option
+              *ngFor="let dep of departments$ | sortBy: 'department_name'"
+              [value]="dep.department_name">
+              {{ dep.department_name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </form>
+
+
+      <div class="button-container" [matTooltip]="'recent.sort_by_department' | translate" matTooltipPosition="above">
+        <button 
+          mat-flat-button color="primary" (click)="sortRecent('dpt')">
+          <span class="mdc-button__label">
+            Departments
+          </span>
+        </button>
       </div>
-      <div
-        matRipple
-        matTooltip="Show by department"
-        class="view list"
-        [class.selected]="currentView === 'department'"
-        (click)="sortRecent('dpt')">
-        Show by Department
+      <div class="button-container" [matTooltip]="'recent.my_features' | translate" matTooltipPosition="above">
+        <button 
+          mat-flat-button color="primary" (click)="sortRecent('my')">
+          <span class="mdc-button__label">
+            My Features
+          </span>
+        </button>
       </div>
     </div>
     <!-- Mtx-grid datatable template -->

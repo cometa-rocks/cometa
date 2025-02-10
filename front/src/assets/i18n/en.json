@@ -30,6 +30,10 @@
   "data_driven": {
     "data_driven_button": "Execution of tests based on the variables provided by the excel sheet. (T)"
   },
+  "recent":{
+    "my_features":"Display recent features modified by you",
+    "sort_by_department":"Display recent features from a selected department"
+  },
   "edit_feature":{
     "depends_on_other_feature": "If enabled, only a third feature can run this feature",
     "send_mail": "If enabled, a new section will be displayed for sending the results to the desired email address.",
