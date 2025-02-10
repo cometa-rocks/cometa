@@ -48,6 +48,8 @@ import { MatChipInputEvent } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { ConfigState } from '@store/config.state';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 /**
  * MobileListComponent
@@ -91,7 +93,9 @@ import { ConfigState } from '@store/config.state';
     DraggableWindowModule,
     MatExpansionModule,
     MatChipsModule,
-    MatCardModule
+    MatCardModule,
+    SortByPipe,
+    MatToolbarModule
 ],
 })
 export class ModifyEmulatorDialogComponent {
@@ -127,24 +131,19 @@ export class ModifyEmulatorDialogComponent {
   mobiles: IMobile[] = [];
   runningMobiles: Container[] = [];
   isIconActive: { [key: string]: boolean } = {};
+  installedApks: any[] = [];
+  isRemovingApk: { [id: number]: boolean } = {};
 
 
   ngOnInit(): void {
-    this.logger.msg("1", "ModifyEmulatorDialogComponent",  "Data received:", this.data);
-
-    console.log('Config value:', this.config$);
-    // this.config$.subscribe( config => {
-    //   console.log("config: ", config.toggles);
-    // });
-    // if (!this.data.runningContainer) {
-    //   this.logger.msg("1", "ModifyEmulatorDialogComponent", "", "runningContainer is undefined!");
-    // }
-
+    this.installedApks = this.data.uploadedAPKsList.filter(apk =>
+      this.data.runningContainer.apk_file.includes(apk.id)
+    );
   }
 
   onSelectApp(event: any): void {
     const selectedApp = event.value;
-    if (selectedApp && !this.selectedApks.includes(selectedApp)) {
+    if (selectedApp && !this.selectedApks.some(apk => apk.id === selectedApp.id)) {
       this.selectedApks.push(selectedApp);
     }
   }
@@ -176,34 +175,46 @@ export class ModifyEmulatorDialogComponent {
           console.log("data.runningContainer-->savchanges", this.data.runningContainer.id);
           // for each apk
           this.selectedApks.forEach(apk => {
-            this.installAPK(apk, updatedContainer);
+            this.installAPK(apk.id, updatedContainer);
           });
+
+          // //  Delete each apk
+          // this.installedApks.forEach(apk => {
+          //   this.removeInstalledApk(apk.id);
+          // });
 
           this.dialogRef.close({ updatedContainer });
         });
     } else {
       // for each apk
       this.selectedApks.forEach(apk => {
-        this.installAPK(apk, this.data.runningContainer);
+        this.installAPK(apk.id, this.data.runningContainer);
       });
 
-      this.dialogRef.close();
+      // //  Delete each apk
+      // this.installedApks.forEach(apk => {
+      //   this.removeInstalledApk(apk.id);
+      // });
+
+      this.dialogRef.close({ updatedContainer: this.data.runningContainer });
     }
   }
 
-  installAPK(mobile: IMobile, container): void {
-    let updateData = { apk_file: mobile.selectedAPKFileID };
-
+  installAPK(apk_id, container): void {
+    if (!this.selectedApks.length) {
+      this.snack.open("Please select at least one APK before installing.", "OK");
+      return;
+    }
+    let updateData = { apk_file: apk_id};
+    console.log("updateData: ", updateData)
     // this.logger.msg("1", "Mobile", "", mobile);
     // this.logger.msg("1", "container", "", container);
-    console.log("data.runningContainer", this.data.runningContainer.id);
     this._api.updateMobile(this.data.runningContainer.id, updateData).subscribe(
 
       (response: any) => {
         if (response && response.containerservice) {
           console.log("response.containerservice: ", response.containerservice);
           container = response.containerservice;
-          console.log("mobile: ", mobile);
           console.log("container: ", container);
           this.logger.msg("1", "container inside: ", "", container);
           this.snack.open(
@@ -224,6 +235,40 @@ export class ModifyEmulatorDialogComponent {
       }
     );
   }
+
+  // Not implementated yet in backend
+  // removeInstalledApk(apk: any): void {
+  //   let updatedApkList = this.data.runningContainer.apk_file.filter(id => id !== apk.id);
+  //   let updateData = { apk_file: apk.id };
+
+  //   if (!apk.id) {
+  //     console.error("APK ID is missing!", apk);
+  //     return;
+  //   }
+
+  //   this.isRemovingApk[apk.id] = true;
+
+  //   this._api.updateMobile(this.data.runningContainer.id, updateData).subscribe(
+  //     (response: any) => {
+  //       if (response && response.containerservice) {
+  //         this.snack.open(`APK "${apk.name}" uninstalled successfully`, 'OK');
+  //         this.data.runningContainer.apk_file = updatedApkList;
+  //         this.installedApks = this.data.uploadedAPKsList.filter(apk =>
+  //           updatedApkList.includes(apk.id)
+  //         );
+  //         this._cdr.detectChanges();
+  //       } else {
+  //         this.isRemovingApk[apk.id] = false;
+  //         this.snack.open(response.message, 'OK');
+  //       }
+  //     },
+  //     error => {
+  //       this.isRemovingApk[apk.id] = false;
+  //       console.error('Error removing APK:', error);
+  //       this.snack.open('Failed to remove APK', 'OK');
+  //     }
+  //   );
+  // }
 
   updateSharedStatus(isShared: any, mobile: IMobile, container): Observable<any> {
     let updateData = { shared: isShared.checked };

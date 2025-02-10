@@ -69,7 +69,6 @@
 .info-container {
   display: flex;
   flex-direction: column;
-  gap: 5px;
 }
 
 .info-card {
@@ -82,7 +81,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 0;
+  padding: 3px 0;
 }
 
 .info-icon {
@@ -92,11 +91,12 @@
 
 .copy-icon {
   cursor: pointer;
-  margin-left: auto;
+  font-size: 17px;
+  margin-top: 6px;
 }
 
 .copy-icon.active {
-  color: #4caf50;
+  color: #1565c0;
 }
 
 ::ng-deep .mat-dialog-container {
@@ -129,4 +129,29 @@
   @include for-tablet-portrait-up {
     padding: 0 24px 16px;
   }
+}
+
+// hidden input
+
+.hidden-input {
+  display: none;
+}
+
+h2 {
+  color: $blue;
+}
+
+.mat-dialog-actions {
+  padding: 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 52px;
+  align-items: center;
+  box-sizing: content-box;
+  margin-bottom: -24px;
+  justify-content: flex-end !important;
+
+  position: sticky;
+  bottom: 0;
+
 }
