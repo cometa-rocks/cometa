@@ -13,6 +13,8 @@ import { LogService } from '@services/log.service';
 import { Observable } from 'rxjs';
 import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { User } from './actions/user.actions';
+import { userInfo } from 'os';
+import { InitialState } from '@ngxs/store/internals';
 
 
 /**
@@ -51,7 +53,13 @@ export class FeaturesState {
     public _store: Store,
     private log: LogService
   ) {}
-  
+  /* 
+  * Global static Varables
+  */
+  static initialSetup = true
+  static selectedDepartment: number
+
+
   /**
    * Fetches the folders from backend
    */
@@ -758,6 +766,14 @@ export class FeaturesState {
   static GetStateDAta(state: IFeaturesState, user): any {
     return JSON.parse(JSON.stringify(state));
   }
+    /**
+   * Setter of the global variable selectedDepartment.
+   * @author Nico Clariana
+   * 
+   */
+  static static_setSelectedDepartment(departent: number){
+    this.selectedDepartment = departent
+  }
 
   /**
    * Prepares the data to be used in the table of the new landing
@@ -789,6 +805,17 @@ export class FeaturesState {
     let department = UserState.RetrieveUserDepartments(user);
     let activeList = localStorage.getItem('co_active_list'); // Get the current list status
     let activeSortList = localStorage.getItem('co_recent_sort_type') ?? ''; //Get the current sorting type
+    //if its the first time method is called, sort by preselected department or Default
+    let preselectedDept = user.settings.preselectDepartment
+    if(FeaturesState.initialSetup){
+      if(preselectedDept == null){
+        this.selectedDepartment = 0;
+      } else {
+        this.selectedDepartment = preselectedDept - 1
+      }
+    }
+    FeaturesState.initialSetup = false
+    console.log("los settins", preselectedDept)
     // Variable to know what this state does
     result.AAA_help =
       'This state saves the information of all the folders and features to use them subsequently in the datatable.';
@@ -812,7 +839,7 @@ export class FeaturesState {
         break;
       case 'recent':
             //Process resulting in a list of recently modified Features (Displaying by user or by department)
-            folders = this.getRecentFeatures(state, user_id, activeSortList, department[0].department_id);
+            folders = this.getRecentFeatures(state, user_id, activeSortList, department[this.selectedDepartment].department_id);
       default:
         break;
     }

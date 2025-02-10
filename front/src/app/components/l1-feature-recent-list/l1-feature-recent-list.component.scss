@@ -126,26 +126,7 @@
   align-items: center;
   gap: 10px; 
   height: 40px;
-  
-  .view {
-    flex: 0 1 auto;
-    padding: 8px 16px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 5px;
-    background-color: rgba(white, 0.8);
-    cursor: pointer;
-    font-size: 14px;
-    white-space: nowrap;
-    transition: background-color 0.3s ease;
-
-    &.selected {
-      background-color: rgba($blue, 0.85);
-      color: white;
-    }
-  }
+  padding-right: 8px;
 }
 .folderIcon {
   height: 18px;
