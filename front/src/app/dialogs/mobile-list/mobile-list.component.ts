@@ -169,23 +169,23 @@ export class MobileListComponent implements OnInit {
 
   ngOnInit(): void {
 
-    console.log("User: ", this.user, this.config$)
-    console.log("tree", this.mobiles, this.runningMobiles, this.sharedMobileContainers)
+    // console.log("User: ", this.user, this.config$)
+    // console.log("tree", this.mobiles, this.runningMobiles, this.sharedMobileContainers)
     // this.logger.msg("1", "CO-User:", "mobile-list", this.user);
 
     // this.logger.msg("1", "CO-Mobiles:", "mobile-list", this.mobiles);
 
     // this.logger.msg("1", "CO-ApkFiles:", "mobile-list", this.apkFiles);
-    console.log("shared: ", this.sharedMobileContainers)
+    // console.log("shared: ", this.sharedMobileContainers)
 
     this.departments = this.user.departments;
 
     this.isDialog = this.data?.department_id ? true : false;
 
-    console.log("isDialog: ", this.isDialog)
+    // console.log("isDialog: ", this.isDialog)
     if(!this.isDialog ){
       if (this.user && this.user.departments) {
-        console.log("selectedDepartment: ", this.selectedDepartment )
+        // console.log("selectedDepartment: ", this.selectedDepartment )
 
         // User preselect department
         this.preselectDepartment = this.user.settings?.preselectDepartment;
@@ -207,9 +207,9 @@ export class MobileListComponent implements OnInit {
       }
     }
     else{
-      console.log("selectedDepartment: ",  this.data.department_id )
+      // console.log("selectedDepartment: ",  this.data.department_id )
       let selected = this.departments.find(department => department.department_id === this.data.department_id);
-      console.log("selected: ",  selected )
+      // console.log("selected: ",  selected )
       this.selectedDepartment = { id: selected.department_id, name: selected.department_name };
     }
 
@@ -578,7 +578,7 @@ export class MobileListComponent implements OnInit {
 
 
   inspectMobile(container: Container, mobile: IMobile): void {
-    console.log(this.stopGoToUrl(container), container.service_id);
+    // console.log(this.stopGoToUrl(container), container.service_id);
     if (this.stopGoToUrl(container)) return;
     let host = window.location.hostname;
     let capabilities = encodeURIComponent(JSON.stringify(mobile.capabilities));
@@ -588,8 +588,8 @@ export class MobileListComponent implements OnInit {
 
   noVNCMobile(container: Container): void {
     // FIXME this connection needs to be fixed, to improve security over emulators
-    console.log(this.stopGoToUrl(container), container.service_id);
-    console.log("Coonatiner novnc", container);
+    // console.log(this.stopGoToUrl(container), container.service_id);
+    // console.log("Coonatiner novnc", container);
 
     if (this.stopGoToUrl(container)) return;
     let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${container.service_id}`;
@@ -668,8 +668,8 @@ export class MobileListComponent implements OnInit {
 
     // this.logger.msg("1", "CO-mobile", "mobile-list", mobile);
     // this.logger.msg("1", "CO-runningContainer", "mobile-list", runningContainer);
-    console.log("runningContainer: ", runningContainer)
-    console.log("mobile: ", mobile)
+    // console.log("runningContainer: ", runningContainer)
+    // console.log("mobile: ", mobile)
 
     let uploadedApksList = this.departments
     .filter(department => department.department_id === this.selectedDepartment?.id)
