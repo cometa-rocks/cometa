@@ -172,7 +172,7 @@ export class ModifyEmulatorDialogComponent {
       this.updateSharedStatus({ checked: isShared }, this.data.mobile, this.data.runningContainer)
         .subscribe((updatedContainer: any) => {
 
-          console.log("data.runningContainer-->savchanges", this.data.runningContainer.id);
+          // console.log("data.runningContainer-->savchanges", this.data.runningContainer.id);
           // for each apk
           this.selectedApks.forEach(apk => {
             this.installAPK(apk.id, updatedContainer);
@@ -206,16 +206,16 @@ export class ModifyEmulatorDialogComponent {
       return;
     }
     let updateData = { apk_file: apk_id};
-    console.log("updateData: ", updateData)
+    // console.log("updateData: ", updateData)
     // this.logger.msg("1", "Mobile", "", mobile);
     // this.logger.msg("1", "container", "", container);
     this._api.updateMobile(this.data.runningContainer.id, updateData).subscribe(
 
       (response: any) => {
         if (response && response.containerservice) {
-          console.log("response.containerservice: ", response.containerservice);
+          // console.log("response.containerservice: ", response.containerservice);
           container = response.containerservice;
-          console.log("container: ", container);
+          // console.log("container: ", container);
           this.logger.msg("1", "container inside: ", "", container);
           this.snack.open(
             `APK Installed in the mobile ${this.data.mobile.mobile_image_name}`,
@@ -273,7 +273,7 @@ export class ModifyEmulatorDialogComponent {
   updateSharedStatus(isShared: any, mobile: IMobile, container): Observable<any> {
     let updateData = { shared: isShared.checked };
 
-    console.log("container - updateshared: ", container)
+    // console.log("container - updateshared: ", container)
 
     return this._api.updateMobile(container.id, updateData).pipe(
       map((response: any) => {
