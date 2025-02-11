@@ -1,0 +1,13 @@
+version: '3.5'
+services:
+  Cometa-NFS-Storage:
+    image: itsthenetwork/nfs-server-alpine:12
+    container_name: Cometa-NFS-Storage
+    restart: unless-stopped
+    privileged: true
+    environment:
+      - SHARED_DIRECTORY=/data
+    volumes:
+      - /home/ubuntu/kubernetes/nfs_cometa_share:/data
+    ports:
+      - 2049:2049

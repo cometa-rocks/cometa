@@ -28,7 +28,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("run_test/", run_test),
     re_path("kill_task/(?P<pid>[0-9]+)/", kill_task),
-    path("update_configuration", update_configuration_in_memory),
+    path("update_configurations", update_configuration_in_memory),
     path("updated_step_actions", updated_step_actions),
     # Django RQ URLS
     path("django-rq/", include("django_rq.urls")),

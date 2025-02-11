@@ -63,8 +63,8 @@ export class FolderTreeComponent implements OnInit {
         this.configValueBoolean = !!JSON.parse(config_feature_mobile.configuration_value.toLowerCase());
       }
     })
-
-    // this.log.msg('1', 'Inicializing component...', 'folder-tree');
+    
+    this.log.msg('1', 'Initializing component...', 'folder-tree');
 
     this.folders$ = this._store.select<Folder[]>(
       CustomSelectors.GetDepartmentFolders()

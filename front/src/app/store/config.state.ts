@@ -12,6 +12,7 @@ import enLocale from 'date-fns/locale/en-US';
 import esLocale from 'date-fns/locale/es';
 import deLocale from 'date-fns/locale/de';
 import { Router } from '@angular/router';
+import { LogService } from '@services/log.service';
 
 /**
  * @description Contains the state of the Configuration
@@ -25,7 +26,8 @@ import { Router } from '@angular/router';
 export class ConfigState {
   constructor(
     private _api: ApiService,
-    private _router: Router
+    private _router: Router,
+    private log: LogService
   ) {}
 
   @Action(Configuration.GetConfig)
@@ -146,6 +148,7 @@ export class ConfigState {
   ) {
     if (save) {
       localStorage.setItem(key, value);
+      this.log.msg('config.state.ts','Added to LocalStorage with key: [' + key+'='+value+']','138-',' ')
     }
     setState(
       produce((ctx: Config) => {

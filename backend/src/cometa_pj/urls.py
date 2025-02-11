@@ -108,6 +108,7 @@ urlpatterns = [
     url(r'^encrypt/', views.Encrypt),
     url(r'^parseActions/', views.parseActions),
     url(r'^parseBrowsers/', views.parseBrowsers),
+    url(r'^parseCometaBrowsers/', views.parseCometaBrowsers),
     url(r'browsers/browserstack', cache_page(browserstackCacheTime)(views.GetBrowserStackBrowsers)),
     url(r'browsers/lyrid', cache_page(browserstackCacheTime)(views.get_lyrid_browsers)),
     url(r'^feature_results/(?P<feature_result_id>[0-9]+)/log', views.getLog),
