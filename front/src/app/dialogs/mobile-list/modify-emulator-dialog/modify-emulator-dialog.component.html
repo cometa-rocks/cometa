@@ -1,7 +1,7 @@
 <draggable-window></draggable-window>
 <form [formGroup]="editMobileForm">
   <ng-container>
-    <h2 mat-dialog-title color="primary">Edit Mobile Device</h2>
+    <h3 mat-dialog-title color="primary">Edit Mobile Device</h3>
   </ng-container>
   <mat-dialog-content>
     <mat-accordion multi>
@@ -100,6 +100,9 @@
             </mat-select>
           </mat-form-field>
         </div>
+        <div class="apk-install-message" *ngIf="selectedApks.length > 0">
+          <p><strong>These are the APKs that will be installed.</strong> You can remove any if needed.</p>
+        </div>
         <div *ngIf="selectedApks.length === 0" class="no-apks-message">
           <p>No APKs selected yet. Please select an APK to add it here.</p>
         </div>
@@ -111,7 +114,6 @@
               [editable]="false"
               [aria-description]="'press enter to remove ' + apk.name">
               <span
-
                 matTooltip="{{ apk.name }}"
                 matTooltipPosition="above">
                 {{ apk.name }}

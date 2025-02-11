@@ -315,7 +315,6 @@ export class StepViewComponent implements OnInit {
           }
         }
       });
-      // console.log('Error Rows:', this.errorRows);
     }, 500);
   }
 
