@@ -30,7 +30,6 @@ import {
 import { ApiService } from '@services/api.service';
 import { Store } from '@ngxs/store';
 import { ActionsState } from '@store/actions.state';
-import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { ClipboardService } from 'ngx-clipboard';
 import { ImportJSONComponent } from '@dialogs/import-json/import-json.component';
 import {
@@ -89,6 +88,8 @@ import { KEY_CODES } from '@others/enums';
 import { LogService } from '@services/log.service';
 import { MatAutocompleteActivatedEvent } from '@angular/material/autocomplete';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { MatSnackBar } from '@angular/material/snack-bar';
+
 
 
 @Component({
@@ -162,58 +163,80 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
     private logger: LogService,
+    private snack: MatSnackBar
   ) {
     super();
     this.stepsForm = this._fb.array([]);
   }
 
   // Shortcut emitter to parent component
-  sendTextareaFocusToParent(isFocused: boolean, index?) {
+  sendTextareaFocusToParent(isFocused: boolean, index?: number): void {
     this.textareaFocusToParent.emit(isFocused);
 
-    // This makes appear or disappear the AI guide
-    if (isFocused) {
-        this.stepVisible[index] = true;
-
-        const stepFormGroup = this.stepsForm.at(index) as FormGroup;
-        console.log(stepFormGroup);
-
-        const stepAction = stepFormGroup.get('step_action')?.value;
-        const stepContent = stepFormGroup.get('step_content')?.value;
-
-        if (stepContent == '') {
-            // Clear the description and examples if the content is empty
-            this.descriptionText = '';
-            this.examplesText = '';
-            this._cdr.detectChanges();
-            return;
-        }
-
-        const activatedAction = this.actions.find(action =>
-            action.action_name === stepAction
-        );
-
-        if (activatedAction) {
-            this.selectedActionTitle = activatedAction.action_name;
-            this.selectedActionDescription = activatedAction.description;
-            this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
-
-            if (this.selectedActionDescription.includes("Example")) {
-                const parts = this.selectedActionDescription.split("Example:");
-                this.descriptionText = parts[0].trim();
-                this.examplesText = parts[1]?.trim() || '';
-            } else {
-                this.descriptionText = this.selectedActionDescription;
-                this.examplesText = '';
-            }
-            this._cdr.detectChanges();
-        }
-    } else {
-        this.stepVisible[index] = false;
+    if (index === undefined) {
+      return;
     }
+
+    // Esto hace que aparezca o desaparezca la guía de IA
+    if (isFocused) {
+      // Hacer visible el paso en la UI
+      this.stepVisible[index] = true;
+
+      const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+      // console.log(stepFormGroup);
+
+      const stepAction = stepFormGroup.get('step_action')?.value;
+      const stepContent = stepFormGroup.get('step_content')?.value;
+
+      if (stepContent === undefined) {
+        // Limpiar la descripción y ejemplos si el contenido está vacío
+        this.descriptionText = '';
+        this.examplesText = '';
+        this._cdr.detectChanges();
+        return;
+      }
+
+      const activatedAction = this.actions.find(action =>
+        action.action_name === stepAction
+      );
+
+      if (activatedAction) {
+        // Asignar título y descripción de la acción seleccionada
+        this.selectedActionTitle = activatedAction.action_name;
+        this.selectedActionDescription = activatedAction.description;
+
+        // Limpiar las etiquetas <br> de la descripción
+        this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
+
+        // Separar la descripción y ejemplos si es necesario
+        if (this.selectedActionDescription.includes("Example")) {
+          const parts = this.selectedActionDescription.split("Example:");
+          this.descriptionText = parts[0].trim();
+          this.examplesText = parts[1]?.trim() || '';
+        } else {
+          this.descriptionText = this.selectedActionDescription;
+          this.examplesText = '';
+        }
+
+        // Actualizar la documentación del paso correspondiente
+        const currentIndex = this.stepsForm.value.findIndex(step => step.step_action === stepAction);
+        if (currentIndex !== -1) {
+          this.stepsDocumentation[currentIndex] = {
+            description: this.descriptionText,
+            examples: this.examplesText
+          };
+        }
+
+        this._cdr.detectChanges();
+      }
+    } else {
+      if (index !== undefined) {
+        this.stepVisible[index] = false;
+      }
+    }
+
+    // console.log("stepVisible: ", this.stepVisible[index]);
   }
-
-
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
     if (clear) this.stepsForm.clear();
@@ -392,7 +415,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (this.displayedVariables.length > 0) {
       event.preventDefault();
     }
-    console.log("hellow");
     // get currently displayed variable list
     const varlistItems = this.varlistItems.toArray();
 
@@ -417,6 +439,17 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   onStepChange(event, index: number) {
     this.displayedVariables = [];
     this.stepVariableData = {};
+
+    const textareaValue = (event.target as HTMLTextAreaElement).value.trim();
+
+    if (!textareaValue) {
+      this.stepsDocumentation[index] = {
+        description: '',
+        examples: ''
+      };
+    }
+
+    this._cdr.detectChanges();
 
     // sets the index of currently being edited step row
     this.stepVariableData.currentStepIndex = index;
@@ -496,99 +529,78 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     return { prev: prevQuoteIndex, next: nextQuoteIndex };
   }
 
+  stepsDocumentation: { description: string, examples: string }[] = [];
+
   /**
    * Triggered when the user selects a step from the Autocomplete feature
    * @param event MatAutocompleteSelectedEvent
    * @param index Index of the current step
    */
   selectFirstVariable(event: MatAutocompleteSelectedEvent, index: number) {
-    // Get the value of the selected step from the Autocomplete
+    // Obtener el valor del paso seleccionado
     const step = event.option.value;
 
-    // Make the step visible in the UI for the specified index
+    // Hacer que el paso sea visible en la UI para el índice especificado
     this.stepVisible[index] = true;
 
     const cleanedStep = step.replace(/Parameters:([\s\S]*?)Example:/gs, '').trim();
+    // console.log("Prueba: ", cleanedStep);
 
-
-    console.log("Prueba: ", cleanedStep);
-
-    // Use a regular expression to match the step format: "ActionName" and a quoted variable
+    // Usamos una expresión regular para extraer el nombre de la acción y la variable
     const matchResult = step.match(/^(.*?)\s*"(.*?)"/);
     if (matchResult) {
-      // Extract the action name (before the quotes)
       const actionName = matchResult[1].trim();
 
-      // Extract the variable inside the quotes
-      const capturedVariable = matchResult[2];
-
-      // Log the matched results, action name, and captured variable for debugging
-      // console.log("matchResult: ", matchResult);
-      // console.log("Action Name: ", actionName);
-      // console.log("Captured Variable: ", capturedVariable);
-      // console.log("This stepform:", this.stepsForm);
-
-      // Search for the corresponding action in the list of actions using the action name
+      // Buscar la acción correspondiente usando el nombre de la acción
       const activatedAction = this.actions.find(action =>
-          action.action_name.split('"')[0].trim() === actionName
+        action.action_name.split('"')[0].trim() === actionName
       );
 
-      // Log the activated action for debugging purposes
-      // console.log("activatedAction:", activatedAction);
-
-      // Access the specific form group for this step from the stepsForm array
+      // Acceder al FormGroup específico para este paso en la lista de formularios
       const stepFormGroup = this.stepsForm.at(index) as FormGroup;
 
-      // Log the form group for debugging
-      // console.log("stepFormGroup:", stepFormGroup);
-
-      // Update the step_action field in the form group with the action name of the activated action
+      // Actualizar el valor de "step_action" en el FormGroup
       stepFormGroup.patchValue({ step_action: activatedAction.action_name });
 
-      // Log the updated form group and the entire stepsForm for verification
-      // console.log("Activated action:", stepFormGroup);
-      // console.log("StepsForm:", this.stepsForm);
-      // console.log('Steps JSON:', JSON.stringify(this.getSteps(), null, 2));
-
+      // Actualizar la documentación para este paso
       this.selectedActionTitle = activatedAction.action_name;
       this.selectedActionDescription = activatedAction.description;
 
-      // Actualizar descripción eliminando <br> si es necesario
+      // Limpiar las etiquetas <br> de la descripción
       this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
 
-      // Separar ejemplos de descripción si corresponde
+      // Separar la descripción y los ejemplos si es necesario
       if (this.selectedActionDescription.includes("Example")) {
         const parts = this.selectedActionDescription.split("Example:");
         this.descriptionText = parts[0].trim();
-        // console.log("Description text:", this.descriptionText)
         this.examplesText = parts[1]?.trim() || '';
-        if (this.examplesText.includes('"')) {
-          // Agregar <b> al inicio y </b> al final de la cadena entre comillas
-          this.examplesText = this.examplesText.replace(/"([^"]+)"/, '<b>"$1"</b>');
-          // console.log("Example text:", this.examplesText)
-        }      
       } else {
         this.descriptionText = this.selectedActionDescription;
         this.examplesText = '';
       }
+
+      // Almacenar la documentación para el paso actual
+      this.stepsDocumentation[index] = {
+        description: this.descriptionText,
+        examples: this.examplesText
+      };
+
       this._cdr.detectChanges();
     }
 
-    // Get current step input
-    const input = this._elementRef.nativeElement.querySelectorAll(
-      'textarea.code'
-    )[index] as HTMLInputElement;
-    // Get where the first parameter starts and ends
+    // Obtener el textarea correspondiente y seleccionar el primer parámetro
+    const input = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLInputElement;
     const parameterRegex = /\{[a-z\d\-_\s]+\}/i;
     const match = parameterRegex.exec(step);
     if (match) {
-      // Select first parameter
       this._ngZone.runOutsideAngular(() =>
         input.setSelectionRange(match.index, match.index + match[0].length)
       );
     }
+
     this._cdr.detectChanges();
   }
+
 
   selectedActionTitle: string = '';
   selectedActionDescription: string = '';
@@ -596,33 +608,45 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   examplesText: string = '';
   showHideStepDocumentation: boolean = true;
 
-  onOptionActivated(event: MatAutocompleteActivatedEvent): void {
+  onOptionActivated(event: MatAutocompleteActivatedEvent, index): void {
     if (event && event.option) {
       const activatedActionName = event.option.value;
 
       const activatedAction = this.actions.find(action => action.action_name === activatedActionName);
       if (activatedAction) {
+        // Asignar los valores de la acción seleccionada
         this.selectedActionTitle = activatedAction.action_name;
         this.selectedActionDescription = activatedAction.description;
 
+        // Limpiar las etiquetas <br> de la descripción
         this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
 
+        // Separar la descripción y los ejemplos si es necesario
         if (this.selectedActionDescription.includes("Example")) {
           const parts = this.selectedActionDescription.split("Example:");
 
+          // Guardar la descripción y ejemplos por separado
           this.descriptionText = parts[0].trim();
           this.examplesText = parts[1]?.trim() || '';
-          // if (this.examplesText.includes('"')) {
-          //   this.examplesText = this.examplesText.replace(/"([^"]+)"/, '<strong>"$1"</strong>');
-          // }      
-          console.log("Example text:", this.examplesText)
+
+          // console.log("Example text:", this.examplesText);
         } else {
           this.descriptionText = this.selectedActionDescription;
           this.examplesText = '';
         }
+
+        // Aquí puedes agregar la actualización de la documentación para este paso
+        // Si tienes un arreglo de `stepsDocumentation`, puedes almacenarlo aquí también
+        this.stepsDocumentation[index] = {
+          description: this.descriptionText,
+          examples: this.examplesText
+        };
+
+        this._cdr.detectChanges();
       }
     }
   }
+
 
   toggleShowHideDoc() {
     this.showHideStepDocumentation = !this.showHideStepDocumentation
@@ -631,12 +655,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   @ViewChild(MatAutocompleteTrigger) autocompleteTrigger!: MatAutocompleteTrigger;
 
 
-  @HostListener('document:keydown', ['$event'])
-  handleKeydown(event: KeyboardEvent): void {
-    if (event.keyCode === KEY_CODES.ESCAPE) {
-      this.closeAutocomplete();
-    }
-  }
+  // @HostListener('document:keydown', ['$event'])
+  // handleKeydown(event: KeyboardEvent): void {
+  //   if (event.keyCode === KEY_CODES.ESCAPE) {
+  //     this.closeAutocomplete();
+  //   }
+  // }
 
   iconPosition = { top: 0, left: 0 };
 
@@ -644,23 +668,43 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   stepVisible: boolean[] = [];
 
   closeAutocomplete(index?: number) {
-    this.stepVisible[index] = false;
-    // this.selectedActionTitle = '';
-    this.selectedActionDescription = '';
-    if(this.isTransparent) {
-      this.isAutocompleteOpened = true;
+    // console.log("El evento: ", event.value.step_content)
+    // console.log("El index: ", index)
+    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+    const stepContent = stepFormGroup.get('step_content')?.value;
+    // console.log('Step Content:', stepContent);
+    if (stepContent == '') {
+      this.stepsDocumentation[index] = {
+        description: '',
+        examples: ''
+      };
     }
-    else {
-      this.isAutocompleteOpened = false;
-    }
-    // console.log("Close: ", this.isTransparent)
+
+    this._cdr.detectChanges();
+  }
+
+  isIconActive: { [key: string]: boolean } = {};
+
+  importClipboardStepDoc(stepsDocumentationExample: string) {
+    navigator.clipboard.writeText(stepsDocumentationExample).then(() => {
+    this.isIconActive[stepsDocumentationExample] = true;
+    this._cdr.detectChanges();
+    setTimeout(() => {
+      this.isIconActive[stepsDocumentationExample] = false;
+      this._cdr.detectChanges();
+    }, 400);
+    this.snack.open('Text copied to clipboard', 'Close');
+    }).catch(err => {
+      console.error('Error copying: ', err);
+      this.snack.open('Error copying text', 'Close');
+    });
   }
 
   isAutocompleteOpened: boolean = false;
 
   onAutocompleteOpened(index?: number) {
     this.stepVisible[index] = true;
-    console.log("FocusedIndex: ", index)
+    // console.log("FocusedIndex: ", index)
     this.isAutocompleteOpened = true;
 
     setTimeout(() => {
@@ -689,7 +733,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if(this.isTransparent) {
       this.onAutocompleteOpened()
     }
-    console.log("toggleVisibility: ", this.isTransparent)
   }
 
   // Automatically adds http:// if URL doesn't contain it
@@ -866,6 +909,39 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       timeout: stepToCopy.value.timeout,
     });
     this.stepsForm.insert(index, newStepToCopy);
+
+    const stepFormGroup = this.stepsForm.at(index) as FormGroup;
+
+    const stepAction = stepFormGroup.get('step_action')?.value;
+    const stepContent = stepFormGroup.get('step_content')?.value;
+
+    const activatedAction = this.actions.find(action =>
+      action.action_name === stepAction
+    );
+
+    if (activatedAction) {
+      // Asignar título y descripción de la acción seleccionada
+      this.selectedActionTitle = activatedAction.action_name;
+      this.selectedActionDescription = activatedAction.description;
+
+      // Limpiar las etiquetas <br> de la descripción
+      this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
+
+      // Separar la descripción y ejemplos si es necesario
+      if (this.selectedActionDescription.includes("Example")) {
+        const parts = this.selectedActionDescription.split("Example:");
+        this.descriptionText = parts[0].trim();
+        this.examplesText = parts[1]?.trim() || '';
+      } else {
+        this.descriptionText = this.selectedActionDescription;
+        this.examplesText = '';
+      }
+
+      this.stepsDocumentation[index] = {
+        description: this.descriptionText,
+        examples: this.examplesText
+      };
+    }
     this._cdr.detectChanges();
   }
 
