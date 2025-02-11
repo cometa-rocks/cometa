@@ -20,6 +20,9 @@ import { NgFor, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
+import { ApiService } from '@services/api.service';
+import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'cometa-folder-tree',
@@ -27,13 +30,15 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrls: ['./folder-tree.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [MatTooltipModule, MatIconModule, NgFor, FolderItemTreeComponent, AsyncPipe, TranslateModule],
+  imports: [MatTooltipModule, MatIconModule, NgFor, FolderItemTreeComponent, AsyncPipe, TranslateModule, CommonModule],
 })
 export class FolderTreeComponent implements OnInit {
   constructor(
     private _store: Store,
     private _router: Router,
     private log: LogService,
+    private _api: ApiService,
+    private snack: MatSnackBar,
     private _sharedActions: SharedActionsService
   ) {}
 
@@ -46,7 +51,21 @@ export class FolderTreeComponent implements OnInit {
   // Global variables
   folders$: Observable<Folder[]>;
 
+  configuration_value_boolean: boolean = false;
+   
   ngOnInit() {
+    this._api.getCometaConfigurations().subscribe(res => {
+  
+      const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
+  
+      if (config_feature_mobile) {
+        this.configuration_value_boolean = config_feature_mobile.configuration_value === 'True';
+      }
+      else{
+        this.snack.open('COMETA_FEATURE_MOBILE_TEST_ENABLED configuration not found.', 'Close', { duration: 3000 });
+      }
+    })
+    
     this.log.msg('1', 'Initializing component...', 'folder-tree');
 
     this.folders$ = this._store.select<Folder[]>(

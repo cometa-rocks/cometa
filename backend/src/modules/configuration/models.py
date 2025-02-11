@@ -4,12 +4,13 @@ from django.db import models
 from django.db import models
 from backend.models import OIDCAccount
 from django.core.exceptions import ValidationError
-import datetime, os
+import datetime, os, requests
 from backend.utility.encryption import encrypt
 from backend.utility.configurations import ConfigurationManager
+from backend.utility.config_handler import get_cometa_behave_url
+from backend.utility.functions import getLogger
 
-
-
+logger = getLogger()
 class Configuration(models.Model):
     id = models.AutoField(primary_key=True)
     configuration_name = models.CharField(max_length=100, default=None, blank=False, null=False, unique=True)
@@ -31,9 +32,10 @@ class Configuration(models.Model):
         return_data = super(Configuration, self).save(*args, **kwargs)
         # Refresh configuration from memory
         conf = ConfigurationManager()
-        conf.create_db_connection()
+        conf.create_db_connection() 
         conf.load_configuration_from_db()
-        
+        logger.info("Updating the configuration is the behave")
+        requests.get(f'{get_cometa_behave_url()}/update_configurations')
         return return_data
     
     class Meta:

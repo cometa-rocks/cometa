@@ -162,7 +162,9 @@
     "budget_ahead_title": "Low budget",
     "budget_ahead_desc": "The feature you are about to run will likely exceed your configured budget. Do you want to continue?",
     "move_feature_title": "Move feature",
-    "move_feature": "You are attempting to move feature to different department, environment variables that the feature in question is currently using, will no longer be usable. Do you want to continue?"
+    "move_feature": "You are attempting to move feature to different department, environment variables that the feature in question is currently using, will no longer be usable. Do you want to continue?",
+    "mobile_title": "Are you sure to close the container?",
+    "mobile_description": "This will stop the emulator and active processes."
   },
 
   "integrations": {
@@ -179,5 +181,18 @@
   "schedule": {
     "last-run": "Last run: ",
     "no-last-run": "Last run: No runs have been made yet"
+  },
+  "mobile_list": {
+    "mobile_presentation": "Run mobile tests based on automation configurations",
+    "emulator_mobile": "Run mobile tests using specified automation configurations",
+    "apk_file": "Upload apk files in the upload section of edit feature screen and select apk from here to install in the mobile",
+    "close_emulator": "Stop and close the mobile emulator",
+    "inspect_novnc": "Open a noVNC viewer to interact with the mobile emulator in real-time",
+    "inspect_emulator": "Inspect the mobile emulator screen for testing and monitoring",
+    "inspect_novnc_shared": "Open a noVNC viewer to interact with the shared mobile emulator in real-time.",
+    "inspect_emulator_shared": "Inspect the shared mobile emulator screen for collaborative testing and monitoring.",
+    "start_emulator": "Start the mobile emulator to test applications",
+    "pause_emulator": "Pause the mobile emulator temporarily",
+    "restart_emulator": "Restart the mobile emulator to reset its state"
   }
 }

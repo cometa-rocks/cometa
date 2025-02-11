@@ -349,4 +349,15 @@ export class L1FeatureItemListComponent implements OnInit {
       localStorage.setItem('co_folderState', JSON.stringify(storedState));
     }
   }
+
+  hovering = false;
+  
+  copyToClipboard(text: string): void {
+    navigator.clipboard.writeText(text).then(() => {
+      this._snackBar.open('ID copied to clipboard!', 'OK', { duration: 2000 });
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+    });
+  }
+  
 }

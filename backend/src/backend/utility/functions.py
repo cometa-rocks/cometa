@@ -5,10 +5,12 @@ import time
 import subprocess
 import requests
 from PIL import Image
-from src.backend.common import *
+from backend.common import *
 from django.db.models import Sum, Value
 from django.db.models.functions import Coalesce
 import asyncio
+import io
+import tarfile
 
 # setup logging
 logger = logging.getLogger(__name__)
@@ -97,7 +99,7 @@ def set_test_schedule(feature_id, schedule, user_id):
         'schedule': schedule,
         'user_id': user_id
     }
-    return requests.post('http://behave:8001/set_test_schedule/', data=post_data)
+    return requests.post(f'{get_cometa_behave_url()}/set_test_schedule/', data=post_data)
 
 # Calculates the total values of OK, NOK, Skipped, etc for the given run
 def calculate_run_totals(run):
@@ -131,3 +133,13 @@ async def sleep_fn(seconds):
 # Async sleep which can be cancelled by Signal
 def cometa_sleep(seconds):
     asyncio.run(sleep_fn(int(seconds)))
+    
+    
+# Function to create a tarball from a single file
+def create_tarball(file_path):
+    tar_stream = io.BytesIO()
+    with tarfile.open(fileobj=tar_stream, mode='w') as tar:
+        tar.add(file_path, arcname=os.path.basename(file_path))  # Add the file to the tar, without directory structure
+    tar_stream.seek(0)  # Go back to the beginning of the BytesIO object
+    logger.debug(f"tar file created, Path : {file_path}")
+    return tar_stream
