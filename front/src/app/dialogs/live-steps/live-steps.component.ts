@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   OnInit,
   OnDestroy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import {
   MatLegacyDialogRef as MatDialogRef,
@@ -55,7 +56,12 @@ import {
   AsyncPipe,
   KeyValuePipe,
 } from '@angular/common';
+
 import { DraggableWindowModule } from '@modules/draggable-window.module';
+import { color } from 'highcharts';
+import { LogService } from '@services/log.service';
+import { MatSelectModule } from '@angular/material/select';
+import { MatBadgeModule } from '@angular/material/badge';
 
 @UntilDestroy()
 @Component({
@@ -89,7 +95,9 @@ import { DraggableWindowModule } from '@modules/draggable-window.module';
     BrowserComboTextPipe,
     TestDurationPipe,
     TranslateModule,
-    DraggableWindowModule
+    DraggableWindowModule,
+    MatSelectModule,
+    MatBadgeModule
   ],
 })
 export class LiveStepsComponent implements OnInit, OnDestroy {
@@ -99,16 +107,20 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   feature$: Observable<Feature>;
   steps$: Observable<FeatureStep[]>;
 
+  
   // Controls de auto scroll
   autoScroll = localStorage.getItem('live_steps_auto_scroll') === 'true';
-
+  
   constructor(
     private dialogRef: MatDialogRef<LiveStepsComponent>,
     @Inject(MAT_DIALOG_DATA) public feature_id: number,
     private _store: Store,
     private _actions$: Actions,
     private _api: ApiService,
-    private _snack: MatSnackBar
+    private _snack: MatSnackBar,
+    private logger: LogService,
+    private snack: MatSnackBar,
+    private _cdr: ChangeDetectorRef 
   ) {
     this.status$ = this._store.select(
       CustomSelectors.GetFeatureStatus(this.feature_id)
@@ -123,20 +135,45 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
       this.feature_id
     );
   }
-
+  
   // Cleanup old or unused runs info on close
   ngOnDestroy = () =>
     this._store.dispatch(new WebSockets.CleanupFeatureResults(this.feature_id));
-
+  
   trackBrowserFn(index, item) {
     return item.key;
   }
-
+  
   trackStepFn(index, item) {
     return item.id;
   }
 
+  mobiles = {}
+  configuration_value_boolean: boolean = false;
+  docker_kubernetes_name: string = ''
+  
   ngOnInit() {
+    this._api.getCometaConfigurations().subscribe(res => {
+
+      const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
+      const config_docker_kubernetes_name = res.find((item: any) => item.configuration_name === 'COMETA_DEPLOYMENT_ENVIRONMENT');
+
+      if (config_feature_mobile) {
+        this.configuration_value_boolean = config_feature_mobile.configuration_value === 'True';
+      }
+      else{
+        this.snack.open('COMETA_FEATURE_MOBILE_TEST_ENABLED configuration not found.', 'Close', { duration: 3000 });
+      }
+      
+      if(config_docker_kubernetes_name){
+        this.docker_kubernetes_name = config_docker_kubernetes_name.configuration_value;
+      }
+      else{
+        this.snack.open('COMETA_DEPLOYMENT_ENVIRONMENT configuration not found.', 'Close', { duration: 3000 });
+      }
+      
+    });
+    
     // Grab the steps of the feature
     this.steps$ = this._store
       .select(
@@ -184,8 +221,10 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
           }
         }
       });
+      
   }
 
+  
   @Subscribe()
   stopTest() {
     return this._api.stopRunningTask(this.feature_id).pipe(
@@ -210,9 +249,22 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   }
 
   live(feature_result_id) {
-    const url = `/live-session/vnc.html?autoconnect=true&path=feature_result_id/${feature_result_id}`;
+    let url;
+
+    if(this.docker_kubernetes_name == "docker"){
+      url = `/live-session/vnc.html?autoconnect=true&path=feature_result_id/${feature_result_id}`;
+    }
+    else if(this.docker_kubernetes_name == "kubernetes"){
+      url = `/live-session/vnc.html?autoconnect=true&path=feature_result_id/${feature_result_id}&deployment=kubernetes`;
+    }
     window.open(url, '_blank').focus();
   }
+  
+  noVNCMobile(selectedMobile) {
+    let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${selectedMobile}`;
+    window.open(complete_url, '_blank').focus();
+  }
+
 
   showLiveIcon(browser) {
     // get data from browser
@@ -229,4 +281,14 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     this.autoScroll = checked;
     localStorage.setItem('live_steps_auto_scroll', checked.toString());
   }
+
+  updateMobile(data: any) {
+    this.mobiles[data.feature_run_id] = data.mobiles_info
+  }
+
+  // hasMultipleMobiles(featureResultId: string) {
+  //   this.logger.msg("1", "CO-Mobiles", "live-steps:", this.mobiles[featureResultId].length > 1);
+  //   return Array.isArray(this.mobiles[featureResultId]) && this.mobiles[featureResultId].length > 1;
+  // }
+  
 }

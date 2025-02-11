@@ -1,33 +1,31 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  Input,
-  Host,
-  OnInit,
-  forwardRef,
-} from '@angular/core';
-import { Store } from '@ngxs/store';
-import { tap } from 'rxjs/operators';
-import { LiveStepsComponent } from '../live-steps.component';
-import { DomSanitizer } from '@angular/platform-browser';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
-import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { CustomSelectors } from '@others/custom-selectors';
 import { animate, style, transition, trigger } from '@angular/animations';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
-import { JsonViewerComponent } from 'app/views/json-view/json-view.component';
-import { ApiService } from '@services/api.service';
-import { log } from 'console';
-import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import {
+  AsyncPipe,
   NgClass,
   NgIf,
   NgStyle,
-  AsyncPipe,
   TitleCasePipe,
 } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output
+} from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { DomSanitizer } from '@angular/platform-browser';
+import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
+import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { Store } from '@ngxs/store';
+import { CustomSelectors } from '@others/custom-selectors';
+import { ApiService } from '@services/api.service';
+import { JsonViewerComponent } from 'app/views/json-view/json-view.component';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { LetDirective } from '../../../directives/ng-let.directive';
 
 @UntilDestroy()
@@ -80,10 +78,14 @@ export class LiveStepComponent implements OnInit {
 
   @Input() step: FeatureStep;
   @Input() index: number;
+  @Input() feature_result_id: number;
   @Input() featureRunID: number;
   @Input() browser: BrowserstackBrowser;
+  @Input() mobiles: any;
   @Input() feature_id: number;
   @Input() steps$: Observable<FeatureStep[]>;
+
+  @Output() updateMobiles: EventEmitter<any> = new EventEmitter<any>();
 
   details$: Observable<LiveStepSubDetail>;
 
@@ -121,9 +123,13 @@ export class LiveStepComponent implements OnInit {
               steps[this.index].info.success ? 'success' : 'failed'
             );
             this.rest_api = steps[this.index].info.rest_api;
+            const mobiles_info = JSON.parse(JSON.stringify(steps[this.index].mobiles_info));
+            this.updateMobiles.emit({
+              feature_run_id:this.feature_result_id,
+              mobiles_info: mobiles_info
+            });
           }
-          this.vulnerable_headers_count =
-            steps[this.index].vulnerable_headers_count;
+          this.vulnerable_headers_count = steps[this.index].vulnerable_headers_count;
           this.screenshots = steps[this.index].screenshots;
           if (steps[this.index].error)
             this.error$.next(steps[this.index].error);
