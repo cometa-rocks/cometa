@@ -131,29 +131,37 @@
   }
   .options {
     position: absolute;
-    margin: auto;
+    margin-top: 7px;
     top: 0;
     right: 0;
   }
   .name {
     color: $blue;
-    font-size: 21pt;
+    font-size: 18pt;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     width: 100%;
     padding-right: 30px;
+    margin-top: 5px;
+    margin-left: 10px;
     box-sizing: border-box;
   }
   .steps {
     margin-top: 10px;
+    margin-left: 10px;
   }
   .exec_time {
     color: $bad;
+    font-size: 14px;
+    letter-spacing: 0.5px;
   }
   .browser {
     color: #546e7a;
     margin-top: 10px;
+    margin-left: 10px;
+    font-size: 14px;
+    letter-spacing: 0.5px;
   }
 }
 
@@ -220,10 +228,11 @@ input {
 
 .feature-id {
   position: absolute;
-  bottom: 8px;
-  right: 10px;
   font-weight: bold;
+  bottom: 8px;
+  right: 15px;
   color: rgba(black, 0.35);
+  transition: all 0.3s ease-in-out;
 }
 
 .top-left-container {
@@ -424,4 +433,22 @@ input {
     font-size: 21pt;
   }
   
+}
+
+.schedule-container {
+  margin-left: 10px;
+}
+
+.clipboard-icon {
+  font-size: 16px;
+  color: #555;
+  opacity: 0.8;
+}
+
+.icon-container {
+  position: relative;
+  top: 10px;
+  right: -8px;
+  margin: 0;
+
 }

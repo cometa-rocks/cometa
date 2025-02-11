@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import *
 
-from backend.ee.modules.data_driven.models import DataDriven_Runs
+from backend.ee.modules.data_driven.models import DataDriven_Runs 
 
 from pygments import highlight
 from pygments.lexers import JsonLexer
@@ -61,8 +61,9 @@ class AdminStep(admin.ModelAdmin):
 
 class AdminStep_result(admin.ModelAdmin):
     model = Step_result
-    list_display = ('step_name', 'execution_time', 'success')
-    list_filter = ('success','feature_result_id')
+    list_display = ('step_result_id', 'step_name', 'execution_time', 'success')
+    list_filter = ('success',)
+    search_fields = ('feature_result_id','step_name')
 
 class AdminFeature(admin.ModelAdmin):
     model = Feature
@@ -298,6 +299,12 @@ class AdminDepartment(admin.ModelAdmin):
     list_display = ("department_name", "created_on")
     list_filter = ('created_on',)
 
+class ActionAdmin(admin.ModelAdmin):
+    model = Action
+    search_fields = ['action_name']
+    list_display = ("action_id", "action_name", "step_type")
+    list_filter = ('step_type',)
+
 admin.site.register(OIDCAccount, AdminOIDCAccount)
 admin.site.register(Account_role, AdminAccount_role)
 admin.site.register(Step, AdminStep)
@@ -314,7 +321,7 @@ admin.site.register(Environment)
 admin.site.register(Department, AdminDepartment)
 admin.site.register(Browser)
 admin.site.register(File, AdminFile)
-admin.site.register(Action)
+admin.site.register(Action, ActionAdmin)
 admin.site.register(Permissions, AdminPermissions)
 admin.site.register(Cloud, AdminCloud)
 admin.site.register(AuthenticationProvider)
@@ -328,5 +335,6 @@ admin.site.register(StripeWebhook, AdminStripeWebhooks)
 admin.site.register(UserSubscription, AdminUserSubscription)
 admin.site.register(UsageInvoice, AdminUsageInvoice)
 admin.site.register(Dataset)
+admin.site.register(Feature_Task)
 
 # Register your models here.

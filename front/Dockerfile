@@ -1,45 +1,106 @@
-# initialize base httpd image
+# Stage 1: Build the Angular application
+FROM node:14 AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+COPY . ./
+RUN npx ng build -c production 
+
+# Stage 1: This stage to download the appium inspector and build the code to get html files
+FROM node:20 AS appium_inspector_build
+
+RUN apt install git
+# Set the working directory inside the container
+WORKDIR /app
+
+# Clone git repository
+RUN git clone https://github.com/AMVARA-CONSULTING/appium-inspector.git
+
+WORKDIR /app/appium-inspector
+
+# Install dependencies
+RUN npm i
+
+# Build the Angular application
+RUN npm run build:browser
+RUN ls -la /app/appium-inspector
+RUN ls -la /app/appium-inspector/dist-browser/
+RUN ls -la /app/appium-inspector/dist-browser/locales/
+RUN ls
+
+# Stage 2: Serve the application with Nginx
 FROM httpd:2.4.48
 
-# author of the image
 LABEL AUTHOR="COMETA ROCKS S.L."
 
-# set a default shell
 SHELL ["/bin/bash", "-c"]
 
-# make a /code directory that will save all the git repo data
-RUN mkdir /code
 
-# COPY repository code to /code
-COPY . /code
+# Create a non-root user 'cometa'
+RUN groupadd -g 472 cometa \
+    && useradd -u 472 -g cometa -d /home/cometa -s /bin/bash cometa
 
-# set workdir to /code for compiling purposes
-WORKDIR /code
+# Create necessary directories and set ownership/permissions
+RUN mkdir -p /code /screenshots /code/front /usr/local/apache2/conf \
+    /usr/local/apache2/htdocs/infra /share/apache2/conf \
+    && chown -R cometa:cometa /code /screenshots /usr/local/apache2 /share/apache2/conf \
+    && chmod -R 755 /code /screenshots /usr/local/apache2 /share/apache2/conf
 
-# copy apache configuration files
-COPY apache-conf/httpd.conf /usr/local/apache2/conf/httpd.conf
-COPY apache-conf/openidc.conf_basic /usr/local/apache2/conf/openidc.conf
-COPY apache-conf/paths.conf /usr/local/apache2/conf/paths.conf
-COPY apache-conf/mod_auth_openidc.so /usr/local/apache2/modules/mod_auth_openidc.so
+# Copy build artifacts and configuration files
+COPY --chown=cometa:cometa --from=build /app/dist/ /usr/local/apache2/htdocs
+COPY --chown=cometa:cometa apache-conf/ /usr/local/apache2/conf/
+COPY --chown=cometa:cometa apache-conf/mod_auth_openidc.so /usr/local/apache2/modules/
+COPY --chown=cometa:cometa start_server.sh /code/front/start_server.sh
 
-# make sure start.sh has execution permissions
-RUN chmod +x /code/front/start.sh
+WORKDIR /code/front
 
-# run /code/front/start.sh script to install everything we need
-RUN /code/front/start.sh openidc basic angular compile no-restart
+# Copy the Angular build output to the Nginx HTML directory
+COPY --from=build /app/dist/ /usr/local/apache2/htdocs
 
-# finally set workdir to httpd htdocs
-WORKDIR /usr/local/apache2
+RUN mkdir -p /usr/local/apache2/htdocs/mobile/inspector
+# Copy appium Inspector code from inspector build
+COPY --chown=cometa:cometa --from=appium_inspector_build /app/appium-inspector/dist-browser/assets/* /usr/local/apache2/htdocs/assets
+COPY --chown=cometa:cometa --from=appium_inspector_build /app/appium-inspector/dist-browser/locales/* /usr/local/apache2/htdocs/locales
+COPY --chown=cometa:cometa --from=appium_inspector_build /app/appium-inspector/dist-browser/index.html /usr/local/apache2/htdocs/mobile/inspector/index.html
 
-# remove /code directory
-RUN rm -r /code
+RUN apt-get update
+RUN apt-get install -y pkg-config make gcc gdb lcov valgrind vim curl iputils-ping wget telnet
+RUN apt-get install -y autoconf automake libtool
+RUN apt-get install -y libssl-dev libjansson-dev libcurl4-openssl-dev check
+RUN apt-get install -y libpcre3-dev zlib1g-dev libcjose0 libcjose-dev
+RUN apt-get install -y libapache2-mod-security2
 
-# expose necessary ports
+# Set permissions and ownership for Apache logs
+RUN touch /usr/local/apache2/logs/error_log /usr/local/apache2/logs/access.log \
+    && chown -R www-data:www-data /usr/local/apache2/logs \
+    && chmod -R 755 /usr/local/apache2/logs
+
+
+COPY start_server.sh start_server.sh
+
+RUN chown -R www-data:www-data /usr/local/apache2/logs
+RUN chmod -R 777 /usr/local/apache2/logs
+
+RUN touch /usr/local/apache2/logs/error_log
+RUN touch /usr/local/apache2/logs/access.log
+
+# # Ensure start.sh has execution permissions and run it
+RUN chmod +x ./start_server.sh
+# Expose port 80
 EXPOSE 80
-EXPOSE 443
 
-# generate self-signed certificate
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt -subj "/C=/ST=/L=/O=/OU=/CN="
+USER cometa
 
-# tail a logfile as ENTRYPOINT
-CMD ["httpd-foreground"]
+EXPOSE 80 443
+
+# Start Nginx server
+ENTRYPOINT ["start_server.sh"]
+
+
+
+
+# Command for multi-architecture build:
+# docker buildx build --platform linux/amd64,linux/arm64 -t cometa/front:0.1.1 --push .
+# docker build -t cometa/front:3.0.6 --push .

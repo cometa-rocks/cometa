@@ -1,0 +1,4 @@
+{
+    "client_id" : "@@COMETA_GOOGLE_CLIENTID@@",
+    "client_secret" : "@@COMETA_GOOGLE_SECRETKEY@@"
+}

@@ -9,10 +9,8 @@ from backend.common import UPLOADS_FOLDER
 from backend.models import File, FileData
 from backend.serializers import FileSerializer
 from backend.utility.functions import getLogger
-sys.path.append("/code")
+from .config_handler import *
 from backend.utility.configurations import ConfigurationManager
-
-
 
 # logger information
 logger = getLogger()
@@ -179,6 +177,14 @@ class UploadFile():
             self.virusScan()
             self.encrypt()
         except Exception as err:
+            self.sendWebsocket({
+                "type": "[Files] Error",
+                "file": FileSerializer(self.file, many=False).data,
+                "error": {
+                    "status": f"UNABLE_TO_SAVE_FILE",
+                    "description": str(err)
+                }
+            })
             return None
         
         # finally save the object if everything went well
@@ -224,6 +230,11 @@ class UploadFile():
 
         # start with scanning
         tempFilePath = self.tempFile.temporary_file_path()
+        if not os.path.exists("/var/lib/clamav/main.cvd"):
+            logger.error("ClamAV database is missing. Please run 'freshclam' to update the database.")
+            raise Exception('ClamAV database is missing. Please contact an administrator.')
+        
+        
         result = subprocess.run(["bash", "-c", f"clamscan {tempFilePath} | grep {tempFilePath}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if result.returncode > 0:
             # get the error
@@ -333,7 +344,7 @@ class UploadFile():
             return False
     
     def sendWebsocket(self, payload):
-        response = requests.post('http://cometa_socket:3001/sendAction', json=payload)
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json=payload)
         return response
     
     def sanitize(self, filename: str):

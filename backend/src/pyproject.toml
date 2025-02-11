@@ -4,6 +4,7 @@ version = "2.5.54"
 description = ""
 authors = ["AMVARA CONSULTING <info@amvara.de>"]
 license = "MIT"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
@@ -33,6 +34,9 @@ odfpy = "^1.4.1"
 django-cryptography = "^1.1"
 jq = "^1.6.0"
 pytz = "^2023.4"
+docker = "^7.1.0"
+kubernetes = "31.0.0"
+
 
 [tool.poetry.dev-dependencies]
 

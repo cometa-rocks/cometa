@@ -210,7 +210,7 @@ build:amvara6.build:
         echo "The latest version is already $BUILD_VERSION. Skipping build and push."
       else
         cd front
-        docker build . -f Dockerfile_angular_build -t $COMETA_FRONT:$BUILD_VERSION
+        docker build . -f Dockerfile -t $COMETA_FRONT:$BUILD_VERSION
         echo "$COMETA_FRONT:$BUILD_VERSION build successfully"
         echo "Pushing $COMETA_FRONT:$BUILD_VERSION image to Docker $DOCKER_REGISTRY"
         docker push $COMETA_FRONT:$BUILD_VERSION
