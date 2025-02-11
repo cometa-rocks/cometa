@@ -53,6 +53,8 @@ import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
+import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { WelcomeComponent } from '../welcome/welcome.component';
 import { MtxGridModule } from '@ng-matero/extensions/grid';
 import {
@@ -65,7 +67,22 @@ import {
   AsyncPipe,
   LowerCasePipe,
 } from '@angular/common';
+import {
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators,
+  UntypedFormBuilder,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { LetDirective } from '../../directives/ng-let.directive';
+import { Router } from '@angular/router';
+import { SortByPipe } from '@pipes/sort-by.pipe';
+import { DepartmentsState } from '@store/departments.state';
+import { InputFocusService } from '../../services/inputFocus.service';
+import { I } from '@angular/cdk/keycodes';
+import { stringify } from 'querystring';
+import { FeaturesState } from '@store/features.state';
+
 
 @Component({
   selector: 'cometa-l1-feature-recent-list',
@@ -74,6 +91,7 @@ import { LetDirective } from '../../directives/ng-let.directive';
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [
+    ReactiveFormsModule,
     LetDirective,
     NgIf,
     MtxGridModule,
@@ -81,6 +99,8 @@ import { LetDirective } from '../../directives/ng-let.directive';
     MatLegacyProgressSpinnerModule,
     MatLegacyButtonModule,
     MatIconModule,
+    MatLegacyFormFieldModule,
+    MatLegacySelectModule,
     MatLegacyTooltipModule,
     NgClass,
     NgSwitch,
@@ -103,17 +123,30 @@ import { LetDirective } from '../../directives/ng-let.directive';
     FeatureRunningPipe,
     AsyncPipe,
     LowerCasePipe,
+    SortByPipe  
   ],
 })
 export class L1FeatureRecentListComponent {
+  
+  featureForm: UntypedFormGroup;
+
   constructor(
     private _store: Store,
     public _sharedActions: SharedActionsService,
+    private _router: Router,
     private _dialog: MatDialog,
     private _api: ApiService,
     private _snackBar: MatSnackBar,
-    private log: LogService
-  ) {}
+    private log: LogService,
+    private _fb: UntypedFormBuilder,
+    private inputFocusService: InputFocusService,
+
+
+  ) {
+    this.featureForm = this._fb.group({
+      department_name: ['', Validators.required],
+    });
+  }
 
   // Contains the new structure of the features / folders
   @Input() data$: any;
@@ -132,11 +165,18 @@ export class L1FeatureRecentListComponent {
   @ViewSelectSnapshot(UserState.HasOneActiveSubscription)
   hasSubscription: boolean;
   @Output() closeAdd: EventEmitter<any> = new EventEmitter();
+  departments$!: Department[];
+  @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
+  @ViewSelectSnapshot(UserState) user!: UserInfo;
+
 
   /**
    * Global variables
    */
 
+  isVisible = false;
+  activeButton: string
+  selected_department: string;
   /**
    * List of columns to be shown on the feature list
    * The format is due to mtx-grid. To see more go to https://ng-matero.github.io/extensions/components/data-grid/overview
@@ -182,9 +222,40 @@ export class L1FeatureRecentListComponent {
     new MatTableDataSource<any>([])
   );
 
+  inputFocus: boolean = false;
+
+
   /**
    * Global functions
    */
+
+
+  ngOnInit() {
+    localStorage.setItem('co_recent_sort_type', 'my');
+    this.activeButton = 'my'
+    this.allDepartments$.subscribe(departments => {
+      console.log('preselected:', this.user.settings.preselectDepartment);
+      this.departments$ = departments;
+    });
+
+    if(localStorage.getItem('co_recent_sort_type') === 'dpt') {
+      this.isVisible = true;
+    } else if (localStorage.getItem('co_recent_sort_type') === 'my') {
+      this.isVisible = false;
+    }
+
+    this.log.msg('l1-feature-recent.component.ts','Initializing selected_department as the preselected department','','')
+    //If user has no preselected department, it will select Default by default, else it will select based on user settings.
+    if(this.user.settings.preselectDepartment == null){
+      this.selected_department = 'Default'
+      FeaturesState.static_setSelectedDepartment(0);
+    } else {
+      //preselected departments numeration starts at 1 (need to normalize)
+      this.selected_department = this.departments$[this.user.settings.preselectDepartment - 1].department_name
+      FeaturesState.static_setSelectedDepartment(this.departments$[this.user.settings.preselectDepartment - 1].department_id - 1)
+    }
+    this.toggleList('recent');
+  }
 
   // Checks whether the clicked row is a feature or a folder and opens it
   openContent(row: any) {
@@ -341,5 +412,63 @@ export class L1FeatureRecentListComponent {
   SAmoveFolder(folder: Folder) {
     this.log.msg('1', 'Moving folder...', 'feature-recent-list', folder);
     this._sharedActions.moveFolder(folder);
+  }
+
+  hideSidenav() {
+    return this._store.dispatch(
+      new Configuration.SetProperty('openedSidenav', false)
+    );
+  }
+
+  toggleListType(listType: string) {
+    this.log.msg('1', 'Navigating to root(home)...', 'folder-tree');
+    this._sharedActions.set_url_folder_params('');
+
+    this._router.navigate(['/new']);
+    return this._store.dispatch(
+      new Configuration.SetProperty('co_active_list', listType, true)
+    );
+  }
+
+  toggleList(listType: string) {
+    this.hideSidenav(); // Hide the sidenav on mobile
+    this.toggleListType(listType); // Toggles the list type
+    this._store.dispatch(new Features.ReturnToFolderRoute(0)); // Remove the current route
+  }
+
+  //Changes view to recent by department
+  //WIP current departent should be loaded from selected in a future dropdown
+  sortRecent(sortType: string) {
+    this.activeButton = sortType;
+    localStorage.setItem('co_recent_sort_type', sortType);
+    this.log.msg('l1-feature-recent-list.component.ts','392','Added, [' + sortType + '] to Localstorage','')
+    // Make dropdown visibility persist uf needed,
+    if(localStorage.getItem('co_recent_sort_type') === 'dpt') {
+      this.isVisible = true;
+    } else if (localStorage.getItem('co_recent_sort_type') === 'my') {
+      this.isVisible = false;
+    }
+    //refresh UI
+    this.toggleList('recent')
+  }
+
+  onDepartmentChange() {
+    this._sharedActions.setSelectedDepartment(this.selected_department);
+    //When switchin options in the dropdown, we update the UI and call FutureState to sort by the new option.
+    for (const department of this.user.departments) {
+      if(department.department_name == this.selected_department){
+        FeaturesState.static_setSelectedDepartment(department.department_id-1)
+        //refresh UI
+        this.toggleList('recent')
+      }
+    }
+  }
+
+  onInputFocus() {
+    this.inputFocus = true;
+  }
+
+  onInputBlur() {
+    this.inputFocus = false;
   }
 }

@@ -109,7 +109,7 @@ export class L1FeatureItemListComponent implements OnInit {
 
   // NgOnInit
   ngOnInit() {
-    this.log.msg('1', 'Inicializing component...', 'feature-item-list');
+    this.log.msg('1', 'Initializing component...', 'feature-item-list');
 
     this.feature$ = this._store.select(
       CustomSelectors.GetFeatureInfo(this.feature_id)
