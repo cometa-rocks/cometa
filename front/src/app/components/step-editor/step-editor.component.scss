@@ -340,54 +340,70 @@
   color: rgba(0, 0, 0, 0.24) !important;
 }
 
-.stepContainer {
+.stepContainerDocumentation {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100%;
-  border: 1px #1565c0 solid;
+  border-top: 1px $blue solid;
+  border-bottom: 1px $blue solid;
   border-radius: 4px;
   padding: 15px;
-  font-weight: bold;
   margin-top: 10px;
   margin-bottom: 10px;
-  color: #1565c0;
-}
-
-.stepByStep {
-  align-self: flex-start;
-  background: white;
-  width: 130px;
-  padding-left: 10px;
-  margin-left: 19px;
-  margin-top: -25px;
-  font-size: 14px;
-}
-
-.stepContainer {
   transition: opacity 0.3s ease-in-out;
 }
 
-.stepContainer.ng-transition {
+.stepByStep {
+
+}
+
+.stepContainerDocumentation.ng-transition {
   opacity: 0;
   visibility: hidden;
 }
 
+.containerFather {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.stepDescriptionExample{
+  width: 80%;
+}
+
+.stepDocumentationIcons {
+  width: 20%;
+}
+
+.columnOfIcons {
+  color: $blue;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
 .stepDescription {
-  align-self: flex-start;
-  margin-left: 385px;
+  // margin-left: -670px;
   text-align: left;
-  font-weight: bold;
   letter-spacing: 0.7px;
   .stepDescriptionPar {
-    color: #1565c0;
+
     width: 100%;
-    span {
-      color: rgba(0, 0, 0, 0.5);
-    }
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+  .stepDescriptionPar:last-of-type {
+
   }
 }
+.bluetext {
+  color: $blue;
+  font-weight: bold;
+}
+
 
 .cdk-overlay-container {
   position: relative;
@@ -396,7 +412,7 @@
 ::ng-deep .mat-autocomplete-panel {
   position: absolute !important;
   bottom: 100% !important;
-  top: auto !important; 
+  top: auto !important;
   transform: translateY(-40px);
   z-index: 1000;
 }
@@ -407,7 +423,6 @@
 }
 
 .icon-container {
-  background: white;
   position: absolute;
   width: 30px;
   height: 230px;
@@ -456,9 +471,9 @@ mat-autocomplete {
   }
   .left,
   .right {
-    display: inline-flex; 
-    justify-content: center; 
-    align-items: center; 
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
     button:not(:first-child) {
       margin-left: 20px;
     }
@@ -478,22 +493,75 @@ mat-autocomplete {
 .button-content {
   display: flex;
   align-items: center;
-  width: 80px;
+  width: 120px;
   justify-content: center;
 }
 
 .icon-left {
   font-size: 16px;
-  margin-right: 8px; 
-  display: inline-flex; 
-  justify-content: center; 
-  align-items: center; 
+  margin-right: 8px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .closeStepDocumentation {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  border-radius: 50%;
-  height: 30px !important;
+  height: 0px !important;
   width: 30px !important;
-  background-color: #ef5350;
 }
+
+.containerVisibility {
+  display: flex;
+  align-items: center !important;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  .visibilityIcon,
+  .visibility_offIcon {
+    font-size: 15px;
+  }
+
+  .visibility_offIcon {
+    opacity: 1;
+  }
+}
+
+.copyClipboardIcon {
+  font-size: 15px;
+  cursor: pointer;
+  &.active {
+    animation: changeColor 3s forwards;
+  }
+}
+
+@keyframes changeColor {
+  0% {
+    color: $blue;
+  }
+  100% {
+    color: inherit;
+  }
+}
+
+.copyClipboardIcon:hover {
+
+}
+
+
+.linkTo {
+  text-decoration: none;
+  color: $blue;
+}
+
+.linkTo:hover {
+  background-color: transparent;
+}
+
+.linkToSteps {
+  font-size: 15px !important; /* Asegura que el tamaño del ícono se mantenga */
+}
+
+// .mat-button, .mat-icon-button, .mat-stroked-button, .mat-flat-button {
+//   min-width: 0px;
+//   padding: 0 0px;
+// }

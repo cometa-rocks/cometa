@@ -150,9 +150,17 @@
   .steps {
     margin-top: 10px;
     margin-left: 10px;
+    .stepsFolder {
+      display: flex;
+      align-items: center;
+      .folderDomain {
+        font-size: 20px;
+        color: #767676;
+      }
+    }
   }
   .exec_time {
-    color: $bad;
+    color: #767676;
     font-size: 14px;
     letter-spacing: 0.5px;
   }
@@ -224,15 +232,6 @@ input {
   &:focus {
     border-bottom-color: $blue;
   }
-}
-
-.feature-id {
-  position: absolute;
-  font-weight: bold;
-  bottom: 8px;
-  right: 15px;
-  color: rgba(black, 0.35);
-  transition: all 0.3s ease-in-out;
 }
 
 .top-left-container {
@@ -324,22 +323,22 @@ input {
   .parent-container {
     display: block;
   }
-  
+
   .parent-container.hidden {
     display: none;
   }
-  
-  
+
+
   .cont-fath-folder {
-    position: relative; 
-    width: 100%; 
+    position: relative;
+    width: 100%;
     transition: width 0.2s;
   }
-  
+
   .cont-son-folder {
     position: absolute;
-    top: 40px; 
-    left: 103.1%; 
+    top: 40px;
+    left: 103.1%;
     transform: translateX(-50%);
     display: flex;
     align-items: center;
@@ -351,10 +350,10 @@ input {
     transition: width 0.2s;
     opacity: 1;
   }
-  
+
   .cont-son-folder:hover {
     cursor: default;
-    width: 550px; 
+    width: 550px;
     transform: translateX(-50%);
     .domainIcon-1 {
       opacity: 0;
@@ -377,7 +376,7 @@ input {
       margin-left: 10px;
     }
   }
-  
+
   .absolute-path {
     display: flex;
     align-items: center;
@@ -388,15 +387,15 @@ input {
       font-size: 15px;
       max-width: 50px;
       margin-left: 5px;
-      white-space: nowrap; 
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     span:nth-of-type(odd) {
-      cursor: pointer; 
+      cursor: pointer;
     }
   }
-  
+
   .circle-domainIcon-2 {
     border-radius: 150px;
     height: 35px;
@@ -409,7 +408,7 @@ input {
     justify-content: center;
     cursor: pointer;
   }
-  
+
   .chevron{
     font-size: 16px;
     line-height: 1;
@@ -417,7 +416,7 @@ input {
     align-items: center;
     justify-content: center;
   }
-  
+
   .folder-go-to {
     height: 18pt;
     transition: transform 0.3s ease;
@@ -428,27 +427,61 @@ input {
     background-size: contain;
     cursor: pointer;
   }
-  
+
   .domainIcon-1{
     font-size: 21pt;
   }
-  
+
 }
 
 .schedule-container {
   margin-left: 10px;
 }
 
-.clipboard-icon {
-  font-size: 16px;
-  color: #555;
-  opacity: 0.8;
+
+.feature-id {
+  position: absolute;
+  font-weight: bold;
+  bottom: 8px;
+  right: 17px;
+  color: rgba(0, 0, 0, 0.35);
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  max-width: 100%;
 }
 
-.icon-container {
-  position: relative;
-  top: 10px;
-  right: -8px;
-  margin: 0;
+.id-text {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: nowrap;
+  font-size: 15px;
+}
 
+.id-label {
+  margin-right: 3px;
+}
+
+.id-container {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.icon-container-clipboard {
+  opacity: 0;
+}
+
+.feature-id:hover .icon-container-clipboard {
+  opacity: 1;
+  position: relative;
+  right: -5px;
+  top: 7px;
+}
+
+.clipboard-icon {
+  font-size: 14px;
+  color: #555;
+  opacity: 0.8;
 }

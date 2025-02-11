@@ -134,7 +134,7 @@
         <mat-icon>{{ button.icon }}</mat-icon>
       </button>
     </div>
-    
+
     <div *ngIf="button.class == 'replay-button-2'" class="mobile-container">
       <div class="custom-context">
         <button
@@ -144,11 +144,14 @@
           *ngIf="!button.iif || button.iif(row)"
           [ngClass]="{'replay-button-2': row.mobile && row.mobile.length > 1}"
           matTooltip="{{ button.tooltip }}"
-          [matTooltipPosition]="'above'">
-          <mat-icon 
+          [matTooltipPosition]="'above'"
+          (click)="row.mobile.length === 1 && onMobileSelectionChange({ value: row.mobile[0] }, row)">
+          <mat-icon
             class="mobile-mat-icon-replay"
             [matBadge]="row.mobile.length > 1 ? row.mobile.length : null"
-            matBadgeSize="small">{{ button.icon }}</mat-icon>
+            matBadgeSize="small">
+            {{ button.icon }}
+          </mat-icon>
           <ng-container *ngIf="row.mobile && row.mobile.length > 1 && button.class === 'replay-button-2'">
             <mat-select
               stopPropagation

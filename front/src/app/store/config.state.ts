@@ -76,6 +76,19 @@ export class ConfigState {
     configFile.reverse =
       localStorage.getItem('search_sorting_reverse') === 'true' ||
       configFile.reverse;
+    configFile.toggles.hideInformationMobile =
+      localStorage.getItem('hideInformationMobile') === 'true' ||
+      configFile.toggles.hideInformationMobile;
+    configFile.toggles.hideInstallAPKSMobile =
+      localStorage.getItem('hideInstallAPKSMobile') === 'true' ||
+      configFile.toggles.hideInstallAPKSMobile;
+    configFile.toggles.hideInstalledAPKSMobile =
+      localStorage.getItem('hideInstalledAPKSMobile') === 'true' ||
+      configFile.toggles.hideInstalledAPKSMobile;
+    configFile.toggles.hideSharedMobile =
+      localStorage.getItem('hideSharedMobile') === 'true' ||
+      configFile.toggles.hideSharedMobile;
+
     let routerConfig = this._router.config;
     routerConfig[0].redirectTo = configFile.useNewDashboard ? 'new' : 'search';
     this._router.resetConfig(routerConfig);

@@ -696,7 +696,6 @@ def after_all(context):
     # load feature into data
     data = json.loads(os.environ["FEATURE_DATA"])
     # junit file path for the executed testcase
-    logger.debug(data)
     files_path = f"{DEPARTMENT_DATA_PATH}/{slugify(data['department_name'])}/{slugify(data['app_name'])}/{data['environment_name']}"
     file_name = f"{context.feature_id}_{slugify(data['feature_name'])}"
 
@@ -706,10 +705,10 @@ def after_all(context):
     xmlFilePath = f"{files_path}/junit_reports/TESTS-features.{file_name}.xml"
 
     logger.debug("Adding path to temp files for housekeeping")
-    # context.tempfiles.append(meta_file_path)
-    # context.tempfiles.append(feature_file_path)
-    # context.tempfiles.append(feature_json_file_path)
-    # context.tempfiles.append(xmlFilePath)
+    context.tempfiles.append(meta_file_path)
+    context.tempfiles.append(feature_file_path)
+    context.tempfiles.append(feature_json_file_path)
+    context.tempfiles.append(xmlFilePath)
     # xmlFilePath = junit_reports/TESTS-features.%s_%s.xml' % (
     #     slugify(data['department_name']), slugify(data['app_name']), data['environment_name'], context.feature_id,
     #     slugify(data['feature_name']))
