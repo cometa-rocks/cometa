@@ -7,13 +7,16 @@ from behave import (
     use_step_matcher
 )
 import sys, requests, re, json
-sys.path.append('/code/behave/cometa_itself/steps')
+sys.path.append('/opt/code/cometa_itself/steps')
+sys.path.append("/opt/code/behave_django")
+
 from actions import (
     done,
     logger,
     addVariable
 )
 from tools.exceptions import CustomError
+from utility.config_handler import *
 
 use_step_matcher("re")
 
@@ -127,7 +130,7 @@ def api_call(context, method, endpoint, parameters, headers, body):
     api_call = build_rest_api_object(session, response)
 
     # save the api call
-    response = requests.post("http://cometa_django:8000/api/rest_api/", json={
+    response = requests.post(f"{get_cometa_backend_url()}/api/rest_api/", json={
         "call": api_call,
         "department_id": int(context.feature_info['department_id'])
     }, headers={"Host": "cometa.local"})

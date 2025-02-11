@@ -9,7 +9,9 @@ from django.conf import settings
 from django.db.models import Sum
 from backend.payments import get_user_subscriptions, get_requires_payment
 from backend.utility.functions import getLogger
+from backend.utility.config_handler import *
 from backend.utility.configurations import ConfigurationManager
+
 # logger information
 logger = getLogger()
 
@@ -36,7 +38,7 @@ class OIDCAccountSerializer(serializers.ModelSerializer):
         user_department = Account_role(user=new_user, department=defaultDepartment)
         user_department.save()
         # send a websocket to front about the creation
-        response = requests.post('http://cometa_socket:3001/sendAction', json={
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Accounts] Add Account',
             'account': IAccount(new_user, many=False).data
         })
@@ -426,7 +428,7 @@ class EnvironmentSerializer(serializers.ModelSerializer):
         # create a new environment using the validated_data
         new_environment = Environment.objects.create(**validated_data)
         # send a websocket to front about the creation
-        response = requests.post('http://cometa_socket:3001/sendAction', json={
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Environments] Add Environment',
             'env': IEnvironment(new_environment, many=False).data
         })
@@ -457,7 +459,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
         # create a new application using the validated_data
         new_app = Application.objects.create(**validated_data)
         # send a websocket to front about the creation
-        response = requests.post('http://cometa_socket:3001/sendAction', json={
+        response = requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Applications] Add Application',
             'app': IApplication(new_app, many=False).data
         })

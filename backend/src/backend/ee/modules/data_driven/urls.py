@@ -34,6 +34,5 @@ def register_data_driven_urlpatterns(urlpatterns) :
         url(r'^exec_data_driven/', runDataDriven),
         url(r'^stop_data_driven/(?P<run_id>[0-9]+)', stop_data_driven_test)
     ]
-    print("loaded register_modules_urlpatterns")
     return urlpatterns
     

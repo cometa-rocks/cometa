@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: cometa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: cometa-storage
+          mountPath: /usr/share/nginx/html  # Mount path where NGINX serves files
+      volumes:
+      - name: cometa-storage
+        persistentVolumeClaim:
+          claimName: cometa-volume-claim  # Reference to your PVC

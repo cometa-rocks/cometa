@@ -11,10 +11,15 @@ from .serializers import MobileSerializer
 from backend.utility.response_manager import ResponseManager
 from backend.utility.functions import getLogger
 from backend.utility.decorators import require_permissions
+from backend.utility.config_handler import get_cometa_socket_url
 import os, requests, traceback
 import time
 from datetime import datetime, timedelta
+import json
+import requests
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+
 
 logger = getLogger()
 
@@ -63,3 +68,42 @@ class MobileViewSet(viewsets.ModelViewSet):
             traceback.print_exc()
             logger.error("Exception while updating the")
             return self.response_manager.server_error_response(data={"error": str(e)})
+
+
+@csrf_exempt
+def parseCometaMobiles(request):
+    mobilesFile = '/opt/code/defaults/mobiles.json'
+    
+    # Check if the file exists
+    if not os.path.exists(mobilesFile):
+        print(f"File {mobilesFile} doesn't exist, please contact administrator")
+        return JsonResponse({'success': False, 'error': 'mobiles.json not found'}, status=503)
+    
+    # Load JSON data from mobiles.json
+    try:
+        with open(mobilesFile, 'r') as file:
+            mobiles_data = json.load(file)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'mobiles.json contains invalid JSON data'}, status=503)
+    
+    # Delete all previous mobile objects
+    Mobile.objects.all().delete()
+    
+    # Insert data into the Mobile model
+    for entry in mobiles_data:
+        model = entry.get("model")
+        fields = entry.get("fields", {})
+        if model == "mobile.Mobile" and "mobile_json" in fields:
+            Mobile.objects.create(
+                mobile_id=fields.get("mobile_id"),
+                mobile_image_name=fields.get("mobile_image_name"),
+                mobile_json=fields.get("mobile_json"),
+                capabilities=fields.get("capabilities")
+            )
+    
+    # Notify websockets about the mobile update
+    requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+        'type': '[Mobiles] Get All'
+    })
+    
+    return JsonResponse({'success': True})

@@ -23,14 +23,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from behave import step, use_step_matcher
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append("/code/behave/cometa_itself/steps")
+sys.path.append("/opt/code/cometa_itself/steps")
 
 from utility.functions import *
 from tools.exceptions import *
 from tools.common import send_step_details, decryptFile, waitSelector
 from tools.common_functions import *
 from tools.service_manager import ServiceManager
-from .mobile_actions_utils import upload_file_to_appium_container, perform_swipe
+from .utils.mobile_actions_utils import upload_file_to_appium_container, perform_swipe
 
 # setup logging
 logger = logging.getLogger("FeatureExecution")
