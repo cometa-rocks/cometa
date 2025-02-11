@@ -152,8 +152,25 @@ def getVariable(context, variable_name):
     return variable_value
 
 
+
+
+def is_valid_variable(value):
+    """Check if value is a valid type (dict, list, number, string, bool, None)."""
+    return isinstance(value, (dict, list, int, float, str, bool))
+
+def addStepVariableToContext(context, variable, save_to_step_report=False):
+    """Assign variable to context only if variable_value is of an allowed type."""
+    
+    if is_valid_variable(variable["variable_value"]):
+        if save_to_step_report:
+            context.LAST_STEP_VARIABLE_AND_VALUE = variable
+            logger.debug(f"Assigned: {variable}")
+    else:
+        logger.warning(f"Warning: Skipping assignment. Value '{variable['variable_value']}' is not JSON-serializable.")
+    
+
 # variables added using this method will not be saved in the database
-def addTestRuntimeVariable(context, variable_name, variable_value):
+def addTestRuntimeVariable(context, variable_name, variable_value, save_to_step_report=False):
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
     # check if variable_name is in the env_variables
@@ -165,6 +182,8 @@ def addTestRuntimeVariable(context, variable_name, variable_value):
         index = index[0]
         logger.debug("Patching existing variable")
         env_variables[index]["variable_value"] = variable_value
+        addStepVariableToContext(context,env_variables[index], save_to_step_report)
+
     else:
         logger.debug("Adding new variable")
         new_variable = {
@@ -173,11 +192,12 @@ def addTestRuntimeVariable(context, variable_name, variable_value):
             "encrypted": False,
         }
         env_variables.append(new_variable)
+        addStepVariableToContext(context,new_variable, save_to_step_report)
 
     context.VARIABLES = json.dumps(env_variables)
 
 
-def addVariable(context, variable_name, result, encrypted=False):
+def addVariable(context, variable_name, result, encrypted=False, save_to_step_report=False):
     # get the variables from the context
     env_variables = json.loads(context.VARIABLES)
     # check if variable_name is in the env_variables
@@ -191,7 +211,7 @@ def addVariable(context, variable_name, result, encrypted=False):
         env_variables[index]["variable_value"] = result
         env_variables[index]["encrypted"] = encrypted
         env_variables[index]["updated_by"] = context.PROXY_USER["user_id"]
-
+        addStepVariableToContext(context,env_variables[index], save_to_step_report)
         # do not update if scope is data-driven
         if (
             "scope" in env_variables[index]
@@ -202,9 +222,9 @@ def addVariable(context, variable_name, result, encrypted=False):
             )
         else:
             # make the request to cometa_django and add the environment variable
-            response = requests.patch(
-                "http://cometa_django:8000/api/variables/"
-                + str(env_variables[index]["id"])
+            response = requests.patch(               
+                f"{get_cometa_backend_url()}/api/variables/"
+                + str(env_variables[index]["id"]) 
                 + "/",
                 headers={"Host": "cometa.local"},
                 json=env_variables[index],
@@ -225,9 +245,16 @@ def addVariable(context, variable_name, result, encrypted=False):
             "created_by": context.PROXY_USER["user_id"],
             "updated_by": context.PROXY_USER["user_id"],
         }
+        addStepVariableToContext(context, {
+                "variable_name": variable_name,
+                "variable_value": result,
+                "encrypted": encrypted,
+            },
+            save_to_step_report
+        )
         # make the request to cometa_django and add the environment variable
         response = requests.post(
-            "http://cometa_django:8000/api/variables/",
+            f"{get_cometa_backend_url()}/api/variables/",
             headers={"Host": "cometa.local"},
             json=update_data,
         )
@@ -237,7 +264,7 @@ def addVariable(context, variable_name, result, encrypted=False):
 
     # send a request to websockets about the environment variables update
     requests.post(
-        "http://cometa_socket:3001/sendAction",
+        f"{get_cometa_socket_url()}/sendAction",
         json={
             "type": "[Variables] Get All",
             "departmentId": int(context.feature_info["department_id"]),
@@ -543,6 +570,19 @@ def saveToDatabase(
     compares = os.environ["COMPARES"].split(".")
     feature_id = context.feature_id
     feature_result_id = os.environ["feature_result_id"]
+    notes_data = context.step_data.get("notes", {})
+    
+    if notes_data=={} and context.LAST_STEP_DB_QUERY_RESULT is not None:
+        notes_data = {
+            "title": "Query Output",
+            "content": json.dumps(context.LAST_STEP_DB_QUERY_RESULT)
+        }
+    elif notes_data=={} and context.LAST_STEP_VARIABLE_AND_VALUE is not None:
+        notes_data = {
+            "title": "Created Variables Value",
+            "content": json.dumps(context.LAST_STEP_VARIABLE_AND_VALUE)
+        }
+              
     data = {
         "feature_result_id": feature_result_id,
         "step_name": step_name,
@@ -552,8 +592,11 @@ def saveToDatabase(
         "status": status,
         "belongs_to": context.step_data["belongs_to"],
         "rest_api_id": context.step_data.get("rest_api", None),
-        "notes": context.step_data.get("notes", {}),
+        "notes": notes_data,
+        "database_query_result": context.LAST_STEP_DB_QUERY_RESULT,
+        "current_step_variables_value": context.LAST_STEP_VARIABLE_AND_VALUE,
     }
+
     # add custom error if exists
     if "custom_error" in context.step_data:
         data["error"] = context.step_data["custom_error"]
@@ -571,7 +614,7 @@ def saveToDatabase(
     log_file.write("\n")
     try:
         response = requests.post(
-            "http://cometa_django:8000/api/feature_results/"
+            f"{get_cometa_backend_url()}/api/feature_results/"
             + str(feature_id)
             + "/step_results/"
             + str(feature_result_id)
@@ -658,7 +701,7 @@ def saveToDatabase(
             context.counters["pixel_diff"] += int(float(pixel_diff))
             logger.debug("Saveing pixel difference %s to database" % str(pixel_diff))
             requests.post(
-                "http://cometa_django:8000/steps/" + str(step_id) + "/update/",
+                f"{get_cometa_backend_url()}/steps/" + str(step_id) + "/update/",
                 json=data,
                 headers={"Host": "cometa.local"},
             )
@@ -698,7 +741,7 @@ def saveToDatabase(
         }
         logger.debug("Writing data %s to database" % json.dumps(data))
         requests.post(
-            "http://cometa_django:8000/setScreenshots/%s/" % str(step_id),
+            f"{get_cometa_backend_url()}/setScreenshots/%s/" % str(step_id),
             json=data,
             headers={"Host": "cometa.local"},
         )
@@ -809,7 +852,7 @@ def compareHTML(params):
         # Return if there was a difference or not
         different = TEMPLATE_HTML_CONTENT != params["SOURCE_HTML"]
         requests.post(
-            "http://cometa_django:8000/steps/" + str(params["step_id"]) + "/update/",
+            f"{get_cometa_backend_url()}/steps/" + str(params["step_id"]) + "/update/",
             json={"different_html": different},
             headers={"Host": "cometa.local"},
         )

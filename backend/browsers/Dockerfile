@@ -14,6 +14,8 @@ RUN mkdir -p /opt/recordings
 
 COPY ./supervisor/supervisord.conf /etc/supervisord.conf
 
+RUN chown 1200:1201 /opt/selenium/ -R
+
 COPY --chown=1200:1201 ./scripts/video_recorder.sh /opt/scripts/video_recorder.sh
 RUN chmod ugo+x /opt/scripts/video_recorder.sh
 

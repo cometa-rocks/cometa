@@ -20,7 +20,7 @@ from tools import expected_conditions as CEC
 import sys
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append('/code/behave/cometa_itself/steps')
+sys.path.append('/opt/code/cometa_itself/steps')
 
 from utility.functions import *
 from utility.configurations import ConfigurationManager

@@ -121,7 +121,7 @@ export class L1FilterComponent implements OnInit {
    * Once the file loads, subscribes to the specified variables and updates them on change
    */
   ngOnInit() {
-    this.log.msg('1', 'Inicializing component...', 'filter');
+    this.log.msg('1', 'Initializing component...', 'filter');
     this.moreOrLessSteps.valueChanges
       .pipe(untilDestroyed(this))
       .subscribe(value => {
