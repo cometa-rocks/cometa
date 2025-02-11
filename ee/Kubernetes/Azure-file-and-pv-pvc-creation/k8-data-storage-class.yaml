@@ -1,0 +1,18 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cometa-azure-file-storageclass
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true" # Make it default (if needed)
+provisioner: file.csi.azure.com # Azure File CSI Driver
+parameters:
+  skuName: Premium_LRS # Choose between Standard_LRS, Standard_ZRS, Premium_ZRS
+reclaimPolicy: Retain # Choose Delete or Retain
+allowVolumeExpansion: true # Allow resizing of volumes
+mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  - mfsymlinks
+  - uid=472
+  - gid=472
+  - cache=strict

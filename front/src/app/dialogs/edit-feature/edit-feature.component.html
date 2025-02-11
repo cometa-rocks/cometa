@@ -167,6 +167,20 @@
                 <div class="hover-box-Vshortcut">(V)</div>
               </div>
             </ng-container>
+            <ng-container>
+              <div *ngIf="configuration_value_boolean" class="checkbox-container move-right"> 
+                <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
+                  <button color="primary" 
+                  [disabled]="disableVariables" 
+                  (click)="openStartEmulatorScreen()" 
+                  mat-stroked-button 
+                  [matTooltip]="'mobile_list.emulator_mobile' | translate" matTooltipPosition="above">
+                    Start Mobile
+                  </button>
+                </span>
+                <div class="hover-box-Vshortcut">(S)</div>
+              </div>
+            </ng-container>
           </div>
         </ng-template>
       </mat-expansion-panel>
@@ -367,54 +381,6 @@
                 mat-table
                 [dataSource]="department?.files"
                 class="mat-elevation-z8">
-                <ng-container matColumnDef="name">
-                  <th mat-header-cell *matHeaderCellDef>File name</th>
-                  <td mat-cell *matCellDef="let element">
-                    <div class="name-wrapper">
-                      <mat-spinner
-                        *ngIf="element.status != 'Done'"
-                        [matTooltip]="element.status"
-                        matTooltipPosition="above"
-                        color="primary"
-                        diameter="15"></mat-spinner>
-                      <span
-                        [class.canDownload]="element.status == 'Done'"
-                        (click)="onDownloadFile(element)"
-                        >{{ element.name }}</span
-                      >
-                    </div>
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="mime">
-                  <th mat-header-cell *matHeaderCellDef>File type</th>
-                  <td mat-cell *matCellDef="let element">{{ element.mime }}</td>
-                </ng-container>
-
-                <ng-container matColumnDef="size">
-                  <th mat-header-cell *matHeaderCellDef>File size</th>
-                  <td mat-cell *matCellDef="let element">
-                    {{ element.size | humanizeBytes }}
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="uploaded_by.name">
-                  <th mat-header-cell *matHeaderCellDef>Uploaded By</th>
-                  <td mat-cell *matCellDef="let element">
-                    {{ element.uploaded_by.name }}
-                  </td>
-                </ng-container>
-
-                <ng-container matColumnDef="created_on">
-                  <th mat-header-cell *matHeaderCellDef>Upload date</th>
-                  <td mat-cell *matCellDef="let element">
-                    {{
-                      element.created_on
-                        | amParse
-                        | amDateFormat: 'MMMM d yyyy, HH:mm a'
-                    }}
-                  </td>
-                </ng-container>
 
                 <ng-container matColumnDef="actions">
                   <th mat-header-cell *matHeaderCellDef>Actions</th>
@@ -463,6 +429,56 @@
                     </mat-menu>
                   </td>
                 </ng-container>
+
+                <ng-container matColumnDef="name">
+                  <th mat-header-cell *matHeaderCellDef>File name</th>
+                  <td mat-cell *matCellDef="let element">
+                    <div class="name-wrapper">
+                      <mat-spinner
+                        *ngIf="element.status != 'Done'"
+                        [matTooltip]="element.status"
+                        matTooltipPosition="above"
+                        color="primary"
+                        diameter="15"></mat-spinner>
+                      <span
+                        [class.canDownload]="element.status == 'Done'"
+                        (click)="onDownloadFile(element)"
+                        >{{ element.name }}</span
+                      >
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="mime">
+                  <th mat-header-cell *matHeaderCellDef>File type</th>
+                  <td mat-cell *matCellDef="let element">{{ element.mime }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="size">
+                  <th mat-header-cell *matHeaderCellDef>File size</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.size | humanizeBytes }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="uploaded_by.name">
+                  <th mat-header-cell *matHeaderCellDef>Uploaded By</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.uploaded_by.name }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="created_on">
+                  <th mat-header-cell *matHeaderCellDef>Upload date</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{
+                      element.created_on
+                        | amParse
+                        | amDateFormat: 'MMMM d yyyy, HH:mm a'
+                    }}
+                  </td>
+                </ng-container>
+                
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr
                   mat-row

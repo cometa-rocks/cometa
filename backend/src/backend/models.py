@@ -18,7 +18,11 @@ from django.dispatch import receiver
 from django_cryptography.fields import encrypt
 from crontab import CronSlices
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
 
+
+from .utility.config_handler import *
+ 
 # GLOBAL VARIABLES
 
 # check if we are inside a loop
@@ -29,8 +33,8 @@ logger = getLogger()
 # Step Keywords
 step_keywords = (
     ('Given', 'Given',),
-    ('When', 'When',),
-    ('Then', 'Then',),
+    ('When', 'When',), 
+    ('Then', 'Then',), 
     ('and', 'and',),
 )
 
@@ -60,7 +64,7 @@ def get_feature_path(feature):
     Returns the store path for the given feature meta and steps files
     """
     feature = get_model(feature, Feature)
-    path = '/code/behave/department_data/'+slugify(feature.department_name)+'/'+slugify(feature.app_name)+'/'+feature.environment_name+'/'
+    path = '/data/department_data/'+slugify(feature.department_name)+'/'+slugify(feature.app_name)+'/'+feature.environment_name+'/'
     # Make sure path exists
     Path(path).mkdir(parents=True, exist_ok=True)
 
@@ -380,6 +384,7 @@ def create_feature_file(feature, steps, featureFileName):
                     feature_id = feature.feature_id,
                     step_keyword = step['step_keyword'],
                     step_content = step['step_content'].replace('\\xa0', ' '),
+                    step_action = step['step_action'],
                     enabled = step['enabled'],
                     step_type = step['step_type'],
                     screenshot = step['screenshot'],
@@ -741,6 +746,8 @@ class Step(models.Model):
     id = models.AutoField(primary_key=True)
     feature_id = models.IntegerField(db_index=True)
     step_keyword = models.CharField(max_length=10, choices=step_keywords, default="Given")
+    # step_action = models.TextField(default="")
+    step_action = models.CharField(max_length=255, null=True, blank=True)
     step_content = models.TextField()
     enabled = models.BooleanField(default=True)
     step_type = models.CharField(max_length=255, default="normal", blank=False, null=False)
@@ -755,6 +762,16 @@ class Step(models.Model):
         ordering = ['id']
         verbose_name_plural = "Steps"
 
+
+    def clean(self):
+        super().clean()
+        if self.step_action:
+            if not Action.objects.filter(action_name=self.step_action).exists():
+                raise ValidationError(
+                    {'step_action': f"Action with name '{self.step_action}' does not exist."}
+                )
+                
+                
 class Feature(models.Model):
     feature_id = models.AutoField(primary_key=True)
     feature_name = models.CharField(max_length=255)
@@ -773,6 +790,7 @@ class Feature(models.Model):
     depends_on_others = models.BooleanField(default=False)
     cloud = models.TextField(max_length=100, null=False, blank=False, default="local")
     browsers = models.JSONField(default=list)
+    mobiles = models.JSONField(default=list)
     last_edited = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None, related_name="last_edited")
     last_edited_date = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False)
@@ -842,8 +860,8 @@ class Feature(models.Model):
         # Remove runs and feature results
         Feature_Runs.available_objects.filter(feature__feature_id=self.feature_id).delete()
         Feature_result.available_objects.filter(feature_id=self.feature_id).delete()
-        feature_screenshots = '/code/behave/screenshots/%s/' % str(self.feature_id)
-        feature_templates = '/code/behave/screenshots/templates/%s/' % str(self.feature_id)
+        feature_screenshots = '/data/screenshots/%s/' % str(self.feature_id)
+        feature_templates = '/data/screenshots/templates/%s/' % str(self.feature_id)
 
         # Delete folder with step results, runs and feature results
         if os.path.exists(feature_screenshots):
@@ -883,6 +901,9 @@ class Feature_result(SoftDeletableModel):
     department_name = models.CharField(max_length=100, blank=True)
     description = models.TextField(null=True, blank=True, default=None)
     browser = models.JSONField(default=dict)
+    # mobile is json fields which stores the browser configuration and 
+    # It contains the session ids which is used as a recording name 
+    mobile = models.JSONField(default=dict)
     total = models.IntegerField(default=0)
     fails = models.IntegerField(default=0)
     running = models.BooleanField(default=False)
@@ -896,7 +917,7 @@ class Feature_result(SoftDeletableModel):
     screen_actual = models.CharField(max_length=100, blank=True, default='')
     screen_diff = models.CharField(max_length=100, blank=True, default='')
     log=models.TextField(default='')
-    video_url = models.TextField(blank=True, null=True)
+    video_url = models.TextField(blank=True, null=True) # Browser video url
     files = models.JSONField(default=list)
     archived = models.BooleanField(default=False)
     executed_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True, default=None)
@@ -939,7 +960,7 @@ class Feature_result(SoftDeletableModel):
         # remove templates
         if deleteTemplate != False:
             # screenshots directory
-            templates_root = '/code/behave/screenshots/templates/'
+            templates_root = '/data/screenshots/templates/'
             styles_path = templates_root + str(self.feature_id.feature_id)
             if os.path.exists(styles_path):
                 try:
@@ -965,6 +986,13 @@ class Feature_result(SoftDeletableModel):
 
         return True
 
+step_type_choices = (
+    ('BROWSER','BROWSER'), 
+    ('MOBILE','MOBILE'), 
+    ('API','API'),
+    ('DATABASE','DATABASE')
+)
+
 class Step_result(models.Model):
     step_result_id = models.AutoField(primary_key=True)
     feature_result_id = models.IntegerField()
@@ -984,7 +1012,10 @@ class Step_result(models.Model):
     belongs_to = models.IntegerField(null=True) # feature that step belongs to
     rest_api = models.ForeignKey("REST_API", on_delete=models.CASCADE, null=True, default=None)
     notes = models.JSONField(default=dict)
+    database_query_result = models.JSONField(default=list, null=True)
+    current_step_variables_value = models.JSONField(default=dict, null=True)
     error = models.TextField(null=True, blank=True)
+    step_type = models.CharField(choices=step_type_choices, max_length=10, blank=False, default='BROWSER')
 
     class Meta:
         ordering = ['step_result_id']
@@ -1047,6 +1078,8 @@ class Account_role(models.Model):
         ordering = ['account_role_id']
         verbose_name_plural = "Account Roles"
 
+
+
 class Action(models.Model):
     action_id = models.AutoField(primary_key=True)
     action_name = models.CharField(max_length=255)
@@ -1055,7 +1088,7 @@ class Action(models.Model):
     department = models.CharField(max_length=100, default=None, null = True, blank=True)
     application = models.CharField(max_length=100, default=None, null = True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True, editable=False, null=False, blank=False)
-    
+    step_type = models.CharField(choices=step_type_choices, max_length=10, default="BROWSER", null=True, blank=True)
     def __str__( self ):
         return self.action_name
     
@@ -1348,7 +1381,8 @@ class Schedule(models.Model):
             self.delete_on = self.created_on + datetime.timedelta(days=self.delete_after_days)
         # create the command
         if self.command is None:
-            self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST http://django:8000/exectest/""" % (self.feature.feature_id, self.owner.user_id)
+            # self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST %s/exectest/""" % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
+            self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST %s/exectest/""" % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
         # create the comment
         if self.comment is None:
             self.comment = "# added by cometa JobID: <jobId> on %s, to be deleted on %s" % (self.created_on.strftime("%Y-%m-%d"), self.delete_on.strftime("%Y-%m-%d") if self.delete_on is not None else "***never*** (disable it in feature)")
@@ -1366,14 +1400,14 @@ class Schedule(models.Model):
         super(Schedule, self).save(*args, **kwargs)
 
         # make the request to crontab
-        requests.get('http://crontab:8080/')
+        requests.get(f'{get_cometa_crontab_url()}/')
         return True
 
     def delete(self, *args, **kwargs):
         # delete the object and send request to crontab to update
         super(Schedule, self).delete()
         # make the request to crontab
-        requests.get('http://crontab:8080/')
+        requests.get(f'{get_cometa_crontab_url()}/')
         return True
 
 IntegrationApplications = (
