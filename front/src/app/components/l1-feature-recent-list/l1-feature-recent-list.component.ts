@@ -175,6 +175,7 @@ export class L1FeatureRecentListComponent {
    */
 
   isVisible = false;
+  activeButton: string
   selected_department: string;
   /**
    * List of columns to be shown on the feature list
@@ -230,6 +231,8 @@ export class L1FeatureRecentListComponent {
 
 
   ngOnInit() {
+    localStorage.setItem('co_recent_sort_type', 'my');
+    this.activeButton = 'my'
     this.allDepartments$.subscribe(departments => {
       console.log('preselected:', this.user.settings.preselectDepartment);
       this.departments$ = departments;
@@ -251,6 +254,7 @@ export class L1FeatureRecentListComponent {
       this.selected_department = this.departments$[this.user.settings.preselectDepartment - 1].department_name
       FeaturesState.static_setSelectedDepartment(this.departments$[this.user.settings.preselectDepartment - 1].department_id - 1)
     }
+    this.toggleList('recent');
   }
 
   // Checks whether the clicked row is a feature or a folder and opens it
@@ -435,7 +439,7 @@ export class L1FeatureRecentListComponent {
   //Changes view to recent by department
   //WIP current departent should be loaded from selected in a future dropdown
   sortRecent(sortType: string) {
-
+    this.activeButton = sortType;
     localStorage.setItem('co_recent_sort_type', sortType);
     this.log.msg('l1-feature-recent-list.component.ts','392','Added, [' + sortType + '] to Localstorage','')
     // Make dropdown visibility persist uf needed,
