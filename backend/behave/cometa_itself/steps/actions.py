@@ -65,10 +65,11 @@ base64.encodestring = base64.encodebytes
 from hashlib import md5
 from pathlib import Path
 from tools import expected_conditions as CEC
+from utility.config_handler import *
 import sys
 
 sys.path.append("/opt/code/behave_django")
-sys.path.append('/code/behave/cometa_itself/steps')
+sys.path.append('/opt/code/cometa_itself/steps')
 
 from utility.functions import *
 from utility.configurations import ConfigurationManager
@@ -144,7 +145,7 @@ def step_impl(context,css_selector):
         ActionChains(context.browser).move_to_element(elem[0]).click().perform()
         if generate_dataset:
             payload['success'] = True
-            requests.post('http://cometa_django:8000/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
+            requests.post(f'{get_cometa_backend_url()}/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
     except Exception as err:
         if isCommandNotSupported(err):
             # I move mouse is not supported in the current device, falling back to "click element with css"
@@ -153,7 +154,7 @@ def step_impl(context,css_selector):
 
             if generate_dataset:
                 payload['success'] = False
-                requests.post('http://cometa_django:8000/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
+                requests.post(f'{get_cometa_backend_url()}/api/dataset/', headers={"Host": "cometa.local"}, json=payload)
         else:
             raise err
 
@@ -2251,7 +2252,7 @@ def step_imp(context, feature_name, parameters, schedule):
     }
 
     # make the request to save the object
-    response = requests.post("http://cometa_django:8000/api/schedule/", headers={"Host": "cometa.local"}, json=payload)
+    response = requests.post(f"{get_cometa_backend_url()}/api/schedule/", headers={"Host": "cometa.local"}, json=payload)
 
     # if response returns a 404 throw an error
     if response.status_code != 200:
@@ -2275,7 +2276,7 @@ def step_imp(context):
             'id': jobId
         }
         # make request to remove schedule
-        response = requests.delete("http://cometa_django:8000/api/schedule/", headers={"Host": "cometa.local"}, json=payload)
+        response = requests.delete(f"{get_cometa_backend_url()}/api/schedule/", headers={"Host": "cometa.local"}, json=payload)
 
         # check the response if not 200 raise exception
         if response.status_code != 200:
@@ -3324,6 +3325,77 @@ def find_element_in_lazy_loaded_element(context, selector, scrollable_element_se
         raise CustomError('Element not found in lazy-loaded table... please try a different selector.')
 
 
+
+# Read tag value from given selector and store in a variable
+# Example 1: Get value from "//a[@href="/home"]" and store in "home_link_text" with ""
+# Example 2: Get value from "//a[@href="/home"]" and store in "home_link_text" with "trim the spaces"
+@step(u'Get value from "{selector}" and store in the "{variable_name}" with "{option}"')
+@done(u'Get value from "{selector}" and store in the "{variable_name}" with "{option}"')
+def step_impl(context, selector, variable_name, option):
+    send_step_details(context, f'Searching for selector: {selector}')
+
+    if option not in ['', 'trim the spaces']:
+        raise ValueError(f'Invalid option "{option}". Use "", or "trim the spaces".')
+
+    elements = waitSelector(context, "css", selector)
+
+    if not elements:
+        raise ValueError(f"No elements found for selector: {selector}")
+
+    try:
+        # Get the tag value (text content)
+        tag_value = elements[0].text
+
+        # Process the tag value based on the given option
+        if option.lower() == "trim the spaces":
+            tag_value = tag_value.strip()
+
+        # Store the processed value in the variable
+        addVariable(context, variable_name, tag_value)
+        send_step_details(context, f'Stored value "{tag_value}" in variable "{variable_name}".')
+
+    except Exception as err:
+        raise CustomError(err)
+
+
+# Read tag's attribute value from given selector and store in a variable
+# Example 1: Get "href" value of "//a[@href="/home"]" and store in "href_value" with ""
+# Example 2: Get "class" value of "//a[@href="/home"]" and store in "class_value" with "trim the spaces"
+@step(u'Get "{attribute}" value of "{selector}" and store in the "{variable_name}" with "{option}"')
+@done(u'Get "{attribute}" value of "{selector}" and store in the "{variable_name}" with "{option}"')
+def step_impl(context, attribute, selector, variable_name, option):
+    send_step_details(context, f'Searching for selector: {selector}')
+
+    if option not in ['', 'trim the spaces']:
+        raise ValueError(f'Invalid option "{option}". Use "", or "trim the spaces".')
+
+    elements = waitSelector(context, "css", selector)
+
+    if not elements:
+        raise ValueError(f"No elements found for selector: {selector}")
+
+    try:
+        # Get the attribute value
+        attribute_value = elements[0].get_attribute(attribute)
+
+        if attribute_value is None:
+            raise ValueError(f'Attribute "{attribute}" not found for selector: {selector}')
+
+        # Process the attribute value based on the given option
+        if option.lower() == "trim the spaces":
+            attribute_value = attribute_value.strip()
+
+        # Store the processed value in the variable
+        addVariable(context, variable_name, attribute_value)
+        send_step_details(context, f'Stored value "{attribute_value}" in variable "{variable_name}".')
+
+    except Exception as err:
+        raise CustomError(err)
+
+
+
+
+
 # This step waits for the selector to appear within the given timeout (in seconds) and then wait the step timeout to disappear. The options provided are 'do not fail if not visible' or 'fail if never visible'
 # If the selector does not appear within the specified timeout:
 # 1. If the selected option is 'do not fail if not visible', the step will not fail, and it will skip the wait to disappear.
@@ -3487,13 +3559,31 @@ def scrollThroughLazyLoading(context, xpath, MaxScrolls, MaxTimeOfLife):
 
 
 if __name__ != 'actions':
-    sys.path.append('/code/behave/')
+    sys.path.append('/opt/code/')
     from ee.cometa_itself.steps import rest_api  
-    from ee.cometa_itself.steps import ai_actions
     from ee.cometa_itself.steps import conditional_actions
-    from ee.cometa_itself.steps import mobile_actions  
+    COMETA_FEATURE_DATABASE_ENABLED = ConfigurationManager.get_configuration("COMETA_FEATURE_MOBILE_TEST_ENABLED","False")=="True"
+    # logger.debug(f"COMETA_FEATURE_DATABASE_ENABLED : {COMETA_FEATURE_DATABASE_ENABLED}")
+    if COMETA_FEATURE_DATABASE_ENABLED:
+        from ee.cometa_itself.steps import mobile_actions 
+        logger.debug("Importing mobile_actions")
+        
+    COMETA_FEATURE_DATABASE_ENABLED = ConfigurationManager.get_configuration("COMETA_FEATURE_DATABASE_ENABLED","False")=="True"
+    # logger.debug(f"COMETA_FEATURE_DATABASE_ENABLED : {COMETA_FEATURE_DATABASE_ENABLED}")
+    if COMETA_FEATURE_DATABASE_ENABLED:
+        logger.debug("Importing database_actions")
+        from ee.cometa_itself.steps import database_actions  
     
-    sys.path.append('/code/behave/cometa_itself')
+    COMETA_FEATURE_AI_ENABLED = ConfigurationManager.get_configuration("COMETA_FEATURE_AI_ENABLED","False")=="True"
+    # logger.debug(f"COMETA_FEATURE_AI_ENABLED : {COMETA_FEATURE_AI_ENABLED}")
+    if COMETA_FEATURE_AI_ENABLED:
+        from ee.cometa_itself.steps import ai_actions
+        logger.debug("Importing ai_actions")        
+
+
+    from ee.cometa_itself.steps import common_actions  
+    
+    sys.path.append('/opt/code/cometa_itself')
     from steps import validation_actions
     from steps import unimplemented_steps
     
