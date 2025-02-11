@@ -68,13 +68,20 @@
       </div>
     </ng-template>
   </div>
+
+
+
   <ng-template #boughtLicense>
     <div *ngIf="isDialog; else notDialog">
+      <draggable-window></draggable-window>
+      <ng-container>
+        <h2 class="dialog-title">Mobile Devices</h2>
+      </ng-container>
       <mat-dialog-actions class="dialog-header">
-        <h3 class="dialog-title">Mobile Devices</h3>
-        <div class="dialog-draggable-wrapper">
+        <!-- <h3 class="dialog-title">Mobile Devices</h3> -->
+        <!-- <div class="dialog-draggable-wrapper">
           <draggable-window style="margin-top: -23px !important; margin-right: 10px;"></draggable-window>
-        </div>
+        </div> -->
       </mat-dialog-actions>
 
       <mat-dialog-content class="scrollable-content">
@@ -536,8 +543,8 @@
           </div>
         </div>
       </mat-dialog-content>
-      <mat-dialog-actions class="dialog-footer">
-        <button mat-stroked-button color="warn" mat-dialog-close class="closeButton">
+      <mat-dialog-actions >
+        <button mat-stroked-button color="warn" mat-dialog-close>
           Close
         </button>
       </mat-dialog-actions>

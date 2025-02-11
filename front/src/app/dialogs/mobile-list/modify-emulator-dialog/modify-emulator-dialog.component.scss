@@ -103,15 +103,15 @@
   // overflow: hidden;
 }
 
-::ng-deep .mat-dialog-actions {
-  padding: 8px 0;
-  display: flex;
-  flex-wrap: wrap;
-  min-height: 52px;
-  align-items: center;
-  box-sizing: content-box;
-  margin-bottom: -24px;
-}
+// ::ng-deep .mat-dialog-actions {
+//   padding: 8px 0;
+//   display: flex;
+//   flex-wrap: wrap;
+//   min-height: 52px;
+//   align-items: center;
+//   box-sizing: content-box;
+//   margin-bottom: -24px;
+// }
 
 :host::ng-deep .mat-expansion-panel-header {
   padding: 0 27px 0 24px;
@@ -137,7 +137,7 @@
   display: none;
 }
 
-h2 {
+h2, h3 {
   color: $blue;
 }
 
@@ -154,4 +154,15 @@ h2 {
   position: sticky;
   bottom: 0;
 
+}
+
+.apk-install-message {
+  color: #1565c0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.info-row:last-child  {
+  margin-bottom: 10px;
 }

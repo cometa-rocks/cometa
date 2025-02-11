@@ -16,9 +16,9 @@ h4 {
   // margin-bottom: 10px;
 }
 
-h3 {
+h2, h3{
   color: $blue;
-  margin-left: 10px;
+  margin-left: 20px;
 }
 
 // mat-dialog-container {
@@ -95,9 +95,11 @@ h3 {
 }
 
 .dialog-footer {
-  padding: 29px 0px 0px;
-  display: flex;
-  width: 100%;
+  // padding: 29px 0px 0px;
+  // display: flex;
+  // width: 100%;
+  position: relative;
+  bottom: -75px;
 }
 
 .dialog-footer-nolicense {
@@ -423,11 +425,7 @@ mat-divider {
   pointer-events: none;
 }
 
-.closeButton {
-  margin-top: 10px;
-  text-align: right;
-  margin-right: 20px;
-}
+
 
 .created-by {
   text-align: right;
@@ -506,7 +504,7 @@ mobile-list {
 
 .dialog-title {
   flex-grow: 1;
-  margin: 15px 0 15px 0;
+  margin: 15px 0 15px 11px;
 }
 
 .not-dialog-title {
