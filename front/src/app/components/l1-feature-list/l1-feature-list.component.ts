@@ -188,7 +188,7 @@ export class L1FeatureListComponent implements OnInit {
 
 
   ngOnInit() {
-    this.log.msg('1', 'Inicializing component...', 'feature-list');
+    this.log.msg('1', 'Initializing component...', 'feature-list');
 
     // Initialize the co_features_pagination variable in the local storage
     this.log.msg('1', 'Loading feature pagination...', 'feature-list');
