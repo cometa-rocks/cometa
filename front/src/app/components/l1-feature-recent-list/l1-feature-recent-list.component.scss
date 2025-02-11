@@ -172,3 +172,16 @@
 :host::ng-deep .exec-feature-loading {
   margin: 0 auto;
 }
+
+::ng-deep .mtx-grid-toolbar{
+  flex-wrap: wrap;
+  justify-content: flex-end !important;
+}
+
+.button-container button.active {
+  background-color: $blue; 
+  color: $body-bg-color;
+}
+.button-container button {
+  height: 35px;
+}
