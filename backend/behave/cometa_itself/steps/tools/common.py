@@ -1,6 +1,7 @@
 import time
 import signal
 import logging
+
 from .exceptions import *
 from .variables import *
 from functools import wraps
@@ -14,6 +15,8 @@ from selenium.webdriver.common.by import By
 import time, requests, json, os, datetime, sys, subprocess, re, shutil
 
 sys.path.append("/opt/code/behave_django")
+
+from utility.config_handler import *
 from utility.common import *
 from utility.cometa_logger import CometaLogger
 from utility.configurations import ConfigurationManager
@@ -238,20 +241,16 @@ def load_parameters(parameters):
 
 
 def send_step_details(context, text):
-    logger.debug("Sending websocket with detailed step ... [%s] " % text)
-    requests.post(
-        "http://cometa_socket:3001/feature/%s/stepDetail" % context.feature_id,
-        data={
-            "user_id": context.PROXY_USER["user_id"],
-            "browser_info": json.dumps(context.browser_info),
-            "run_id": os.environ["feature_run"],
-            "step_index": context.counters["index"],
-            "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "belongs_to": context.step_data["belongs_to"],
-            "info": text,
-        },
-    )
-
+    logger.debug('Sending websocket with detailed step ... [%s] ' % text)
+    requests.post(f'{get_cometa_socket_url()}/feature/%s/stepDetail' % context.feature_id, data={
+        "user_id": context.PROXY_USER['user_id'],
+        'browser_info': json.dumps(context.browser_info),
+        "run_id": os.environ['feature_run'],
+        'step_index': context.counters['index'],
+        'datetime': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'belongs_to': context.step_data['belongs_to'],
+        'info': text
+    })
 
 def click_element_by_css(context, selector):
     elem = waitSelector(context, "css", selector)

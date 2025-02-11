@@ -19,14 +19,18 @@ services:
     command: bash start.sh
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/cometa/screenshots:/code/behave/screenshots
-      - ./data/cometa/videos:/code/behave/videos
-      - ./data/cometa/pdf:/code/behave/pdf
-      - ./data/cometa/downloads:/code/behave/downloads
+      - ./data/cometa:/data:rw
+      - ./data/cometa/screenshots:/data/screenshots
+      - ./data/cometa/videos:/data/videos
+      - ./data/cometa/pdf:/data/pdf
+      - ./data/cometa/downloads:/data/downloads:rw
+      - ./data/department_data:/data/department_data:rw
       - ./data/cometa/config:/code/config:rw
+      - ./data/django/migrations:/opt/code/migrations:rw
+      - ./data/django/logs:/opt/code/logs:rw
+      - ./data/django/clamav:/var/lib/clamav:rw
       - ./backend:/code
       - ./backend/src:/opt/code:rw
-      - "./backend/crontabs/cometa_django_crontab:/etc/cron.d/crontab"
     working_dir: /opt/code
     environment:
       - PYTHONUNBUFFERED=1
@@ -42,7 +46,7 @@ services:
 
   behave:
     container_name: cometa_behave
-    image: python:3.9
+    image: python:3.11
     logging:
       driver: json-file
     expose:
@@ -52,16 +56,17 @@ services:
         condition: service_healthy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/cometa/screenshots:/opt/code/screenshots
-      - ./data/cometa/videos:/opt/code/videos
-      - ./data/cometa/pdf:/code/behave/pdf
-      - ./data/cometa/downloads:/code/behave/downloads
-      - ./data/redis/certs:/share/certs
+      - ./data/cometa:/data:rw
+      - ./data/cometa/screenshots:/data/screenshots
+      - ./data/cometa/downloads:/data/test/downloads
+      - ./data/cometa/videos:/data/videos
+      - ./data/department_data:/data/department_data:rw
       - ./data/cometa/config:/code/config:rw
+      - ./data/redis/certs:/share/certs
+      - ./data/django/logs:/opt/code/logs
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
-      - "./backend/behave/schedules/crontab:/etc/cron.d/crontab"
-    command: /opt/code/entry.sh
+    command: "/opt/code/behave_django/entry.sh"
     working_dir: /opt/code/behave_django
     environment:
       PYTHONUNBUFFERED: 1
@@ -81,7 +86,7 @@ services:
     volumes:
       - ./backend/ws-server:/home/node/app:rw
     expose:
-      - "5532"
+      - "3001"
     command: "npm run-script start"
     networks:
      - testing
@@ -93,8 +98,8 @@ services:
     container_name: cometa_selenoid
     logging:
       driver: json-file
-    expose:
-      - "5532"
+    ports:
+      - 4444:4444
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./backend/selenoid/:/etc/selenoid/:rw
@@ -109,7 +114,7 @@ services:
     entrypoint: sh /etc/selenoid/start.sh
 
   novnc:
-    image: cometa/novnc:1.2
+    image: cometa/novnc:1.6
     container_name: cometa_novnc
     networks:
       - testing
@@ -130,21 +135,36 @@ services:
   # Since this a deployment file, build image is used to start cometa_front 
   # n the build pipeline 
   apache:
-    image: "cometa/front:latest"
+    image: "cometa/front:3.0.7"
     container_name: cometa_front
     volumes:
-      - ./front/apache-conf/metadata:/code/front/apache-conf/metadata
-      - ./front/apache-conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
-      - ./front/apache-conf/openidc.conf_<server>:/usr/local/apache2/conf/openidc.conf
-      - ./front/apache-conf/paths.conf:/usr/local/apache2/conf/paths.conf
-      - ./front/apache-conf/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
+      - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
+      - ./data/front/apache2/conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./data/front/apache2/conf/openidc.conf:/usr/local/apache2/conf/openidc.conf
+      - ./data/front/apache2/conf/paths.conf:/usr/local/apache2/conf/paths.conf
+      - ./data/front/apache2/modules/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
+      - ./data/front/apache2/certs:/share/apache2/certs
       - ./data/cometa/screenshots:/screenshots
+      - ./data/cometa/videos:/videos
+      - ./front/start_server.sh:/code/front/start_server.sh
+      # Use below line to mount the company logo in the login page
+      # - /share/front/apache2/icons/{{COMPANY}}.svg:/usr/local/apache2/htdocs/assets/icons/{{COMPANY}}.svg
+
     working_dir: /code/front
     privileged: true
     ports:
-      - "<outside_port>:80"
+      - "80:80"
       - "443:443"
     entrypoint: bash /code/front/start_server.sh
+    environment:
+      - DJANGO_SERVER_URL=django
+      - DJANGO_SERVER_PORT=8000
+      - SOCKET_SERVER_URL=ws
+      - SOCKET_SERVER_PORT=3001
+      - SELENOID_SERVER_URL=selenoid
+      - SELENOID_SERVER_PORT=4444
+      - NOVNC_SERVER_URL=novnc
+      - NOVNC_SERVER_PORT=80
     networks:
       - testing
     restart: always

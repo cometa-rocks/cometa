@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: cometa-volume
+  namespace: cometa
+spec:
+  capacity:
+    storage: 500Gi # 500GB of storage
+  accessModes:
+    - ReadWriteMany # Azure File supports ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain # Choose Retain to keep the volume after PVC deletion
+  storageClassName: cometa-data-azure-file-storageclass # Match the StorageClass name
+  azureFile:
+    secretName: cometa-storage-account-secret # Kubernetes secret for Azure credentials
+    shareName: cometa-azure-file-share # Azure File Share name
+    readOnly: false

@@ -18,6 +18,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 from utility.common import *
+from utility.config_handler import *
 from utility.configurations import ConfigurationManager,load_configurations
 from behave_django.settings import BEHAVE_HOME_DIR 
 
@@ -95,7 +96,7 @@ def run_test(request):
         # dump the json as string
         browser = json.dumps(browser)
         # send websocket about the feature has been queued
-        request = requests.get('http://cometa_socket:3001/feature/%s/queued' % feature_id, data={
+        request = requests.get(f'{get_cometa_socket_url()}/feature/%s/queued' % feature_id, data={
             "user_id": user_data['user_id'],
             "browser_info": browser,
             "network_logging_enabled": network_logging_enabled,
@@ -140,7 +141,7 @@ def kill_task(request, pid):
 @xframe_options_exempt
 def update_configuration_in_memory(request):
     try:
-        logger.debug("Updating configuration from configuration.json, requested by server")
+        logger.debug("Updating configurations, requested by server")
         load_configurations()
         logger.debug("Updating configuration updated")
         return JsonResponse({"success": True, "message": "configuration updated"})
@@ -158,10 +159,29 @@ def updated_step_actions(request):
             'cometa_itself/steps/actions.py',
             'cometa_itself/steps/validation_actions.py',
             'ee/cometa_itself/steps/rest_api.py',
-            'ee/cometa_itself/steps/ai_actions.py',
             'ee/cometa_itself/steps/conditional_actions.py',
-            'ee/cometa_itself/steps/mobile_actions.py'
+            'ee/cometa_itself/steps/common_actions.py'
         ]
+        
+        COMETA_FEATURE_MOBILE_TEST_ENABLED = ConfigurationManager.get_configuration("COMETA_FEATURE_MOBILE_TEST_ENABLED","False")=="True"
+        # logger.debug(f"COMETA_FEATURE_MOBILE_TEST_ENABLED : {COMETA_FEATURE_MOBILE_TEST_ENABLED}")
+        if COMETA_FEATURE_MOBILE_TEST_ENABLED:
+            actions_files.append('ee/cometa_itself/steps/mobile_actions.py')
+            logger.debug("Adding mobile_actions")
+            
+        COMETA_FEATURE_DATABASE_ENABLED = ConfigurationManager.get_configuration("COMETA_FEATURE_DATABASE_ENABLED","False")=="True"
+        # logger.debug(f"COMETA_FEATURE_DATABASE_ENABLED : {COMETA_FEATURE_DATABASE_ENABLED}")
+        if COMETA_FEATURE_DATABASE_ENABLED:
+            actions_files.append('ee/cometa_itself/steps/database_actions.py')
+            logger.debug("Importing database_actions")            
+
+        COMETA_FEATURE_AI_ENABLED = ConfigurationManager.get_configuration("COMETA_FEATURE_AI_ENABLED","False")=="True"
+        # test = ConfigurationManager.get_configuration("COMETA_FEATURE_AI_ENABLED","False")
+        # logger.debug(f"COMETA_FEATURE_AI_ENABLED : {COMETA_FEATURE_AI_ENABLED}, {test}")
+        if COMETA_FEATURE_AI_ENABLED:
+            actions_files.append('ee/cometa_itself/steps/ai_actions.py')
+            logger.debug("Importing ai_actions")            
+
         
         # variable to contain action comment
         action_comments = []
@@ -172,14 +192,16 @@ def updated_step_actions(request):
             matches = re.findall(regex, action)
             if matches[0][2] == "{step}":
                 return
-            logger.debug(f"Action matcher found : {matches[0]}")
-            logger.debug(f"Action value : {matches[0][2]}")
-            logger.debug(f"Step type line : {step_type}")
+            # logger.debug(f"Action matcher found : {matches[0]}")
+            # logger.debug(f"Action value : {matches[0][2]}")
+            # logger.debug(f"Step type line : {step_type}")
                         
             if "API" in step_type:
                 step_type = "API"
             elif "MOBILE" in step_type:
                 step_type = "MOBILE"
+            elif "DATABASE" in step_type:
+                step_type = "DATABASE"
             else:
                 step_type = "BROWSER"
                 
@@ -210,7 +232,7 @@ def updated_step_actions(request):
         logger.debug(f"String Action Parse")
         for index, action in enumerate(actions):
             if action.startswith("@step") and '(?P<' not in action:
-                logger.debug(f"Parsing Step Action : {action}")
+                # logger.debug(f"Parsing Step Action : {action}")
                 # parse action will use action_comments, if found to be action otherwise make it empty
                 parseAction(action, actions[index+3])
                 
@@ -219,7 +241,7 @@ def updated_step_actions(request):
             # If action started with @step then it never start with @done and in case above condition is false then any how this will be executed
             # not need of two if conditions
             elif action.startswith('@done') and '(?P<' in previousLine:
-                logger.debug(f"Parsing Done Action : {action}")
+                # logger.debug(f"Parsing Done Action : {action}")
                 parseAction(action, actions[index+2])
 
             # when any comment related to action written, that line will not have any spaces considering that line
@@ -238,7 +260,7 @@ def updated_step_actions(request):
 
         logger.debug(f"Ending Action Parse")
         # send a request to web sockets about the actions update
-        requests.post('http://cometa_socket:3001/sendAction', json={
+        requests.post(f'{get_cometa_socket_url()}/sendAction', json={
             'type': '[Actions] Get All'
         })
 

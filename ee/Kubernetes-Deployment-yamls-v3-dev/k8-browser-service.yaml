@@ -1,0 +1,25 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-test-browser-service
+  namespace: cometa
+spec:
+  selector:
+    Id: 68565061-1459-4c0c-9959-977c4a027eba
+    browser: chrome
+    version: '131.0'
+  ports: 
+  - name: selenium-hub
+    protocol: TCP
+    port: 4444
+    targetPort: 4444
+  - name: novnc
+    protocol: TCP
+    port: 7900
+    targetPort: 7900
+  - name: vnc
+    protocol: TCP
+    port: 5900
+    targetPort: 5900
+  type: NodePort

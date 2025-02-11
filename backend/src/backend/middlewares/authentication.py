@@ -8,8 +8,7 @@ from pprint import pprint
 from django.shortcuts import redirect
 from backend.utility.configurations import ConfigurationManager
 import urllib3
-
-
+from backend.utility.config_handler import get_config
 logger = getLogger()
 
 DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
@@ -46,7 +45,8 @@ class AuthenticationMiddleware:
                 if HTTP_HOST == 'cometa.local':
                     raise Exception("User session none existent from behave.")
                 if not re.match(r'^(cometa.*\.amvara\..*)|(.*\.cometa\.rocks)$', HTTP_HOST):
-                    HTTP_HOST = 'cometa_front'
+                    HTTP_HOST = get_config("FRONT_SERVER_HOST", "cometa_front")
+
                 # make a request to cometa_front to get info about the logged in user
                 response = requests.get('https://%s/callback?info=json' % HTTP_HOST, verify=False, cookies={
                     'mod_auth_openidc_session': request.COOKIES.get('mod_auth_openidc_session', '')
@@ -151,7 +151,7 @@ class AuthenticationMiddleware:
             return JsonResponse({
                 "success": False, 
                 "error": """
-                Unable to determin user information.
+                Unable to determine user information.
                 This could mean that oAuth provider did not return user information.
                 
                 Try again later or please contact us @ %s

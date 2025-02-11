@@ -15,6 +15,7 @@
     "socket.io": "^4.1.2"
   },
   "scripts": {
+    "server-start": "pm2 start --no-daemon app/index.js",
     "start": "npm install && pm2 start --no-daemon app/index.js",
     "test": "npm install && pm2 start --no-daemon app/index.js --watch --ignore-watch=\"node_modules\""
   },

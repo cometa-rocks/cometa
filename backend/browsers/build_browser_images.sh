@@ -27,16 +27,16 @@ for browser in $browsers; do
     exit 1
   fi
 
-  # Push the Docker image to the registry
-  echo "Pushing $tag to Docker registry..."
-  docker push $tag
+  # # Push the Docker image to the registry
+  # echo "Pushing $tag to Docker registry..."
+  # docker push $tag
 
-  if [ $? -eq 0 ]; then
-    echo "Successfully pushed $tag"
-  else
-    echo "Failed to push $tag"
-    exit 1
-  fi
+  # if [ $? -eq 0 ]; then
+  #   echo "Successfully pushed $tag"
+  # else
+  #   echo "Failed to push $tag"
+  #   exit 1
+  # fi
 done
 
 echo "All images built and pushed successfully."

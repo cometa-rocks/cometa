@@ -7,7 +7,7 @@ from behave import (
     use_step_matcher
 )
 import sys, requests, re, json
-sys.path.append('/code/behave/cometa_itself/steps')
+sys.path.append('/opt/code/cometa_itself/steps')
 from actions import (
     done,
     logger,

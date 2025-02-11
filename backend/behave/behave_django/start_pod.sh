@@ -20,36 +20,12 @@ do
                         ;;
         esac
 done
-
-
-# sh -c service rsyslog start; tail -f /dev/null # FIXME: This fails every time
-# Install requirements
-apt update
-apt install --no-install-recommends -y rsyslog vim jq nano supervisor psmisc
-service rsyslog start
-apt-get purge -y exim*
-# Upgrade PIP
-python -m pip install -U pip
-# Install poetry package manager
-curl -sSL https://install.python-poetry.org | python3 -
-# Create symbolic link to Poetry so it's available as command everywhere
-ln -s /root/.local/bin/poetry /usr/local/bin/poetry
-# Disable creation of virtual env
-poetry config virtualenvs.create false
-# Install project dependencies
-poetry install --no-interaction --no-ansi
-# Install Behave
-pip install behave
+# service rsyslog start
 # Run Django migrations
-python manage.py makemigrations
-python manage.py migrate
+# python manage.py makemigrations
+# python manage.py migrate
 
-# install crontab
-# 2024-02-15 ASO No longer needed since we are using the contrab container for that.
-# install_cron
-
-# Start Django server
-# python manage.py runserver 0.0.0.0:8001
+echo "Migration done"
 
 # get processor cores
 CPUCORES=`getconf _NPROCESSORS_ONLN`
@@ -83,20 +59,11 @@ stderr_logfile=/proc/1/fd/1
 stderr_logfile_maxbytes=0
 EOF
 
+echo "Starting supervisord"
 # start supervisord to spin django-rq workers.
 supervisord -c /etc/supervisor/supervisord.conf
 
-
-# SEMFILE="stop_behave_semaphore.sem"
-
-# while [ ! -e "${SEMFILE}" ]
-# do
-#     sleep 30s
-#     logger "Behave Docker up and running, polling for ${SEMFILE} ... "
-# done
-# rm -f ${SEMFILE}
-# logger "Behave exited."
-
+echo "Started supervisord"
 #
 # in DEVMODE Start Django server
 #
@@ -108,7 +75,7 @@ if [ "$ENVIRONMENT" = "dev" ]; then
     echo "Devmode was requested ... starting python manage.py runserver"
     python manage.py runserver 0.0.0.0:8001
 fi
-#
+#cd
 #  Run in VSCode IDE debug mode 
 #
 if [ "$ENVIRONMENT" = "debug" ]; then

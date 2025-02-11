@@ -20,6 +20,9 @@ from crontab import CronSlices
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 
+
+from .utility.config_handler import *
+ 
 # GLOBAL VARIABLES
 
 # check if we are inside a loop
@@ -30,8 +33,8 @@ logger = getLogger()
 # Step Keywords
 step_keywords = (
     ('Given', 'Given',),
-    ('When', 'When',),
-    ('Then', 'Then',),
+    ('When', 'When',), 
+    ('Then', 'Then',), 
     ('and', 'and',),
 )
 
@@ -61,7 +64,7 @@ def get_feature_path(feature):
     Returns the store path for the given feature meta and steps files
     """
     feature = get_model(feature, Feature)
-    path = '/code/behave/department_data/'+slugify(feature.department_name)+'/'+slugify(feature.app_name)+'/'+feature.environment_name+'/'
+    path = '/data/department_data/'+slugify(feature.department_name)+'/'+slugify(feature.app_name)+'/'+feature.environment_name+'/'
     # Make sure path exists
     Path(path).mkdir(parents=True, exist_ok=True)
 
@@ -857,8 +860,8 @@ class Feature(models.Model):
         # Remove runs and feature results
         Feature_Runs.available_objects.filter(feature__feature_id=self.feature_id).delete()
         Feature_result.available_objects.filter(feature_id=self.feature_id).delete()
-        feature_screenshots = '/code/behave/screenshots/%s/' % str(self.feature_id)
-        feature_templates = '/code/behave/screenshots/templates/%s/' % str(self.feature_id)
+        feature_screenshots = '/data/screenshots/%s/' % str(self.feature_id)
+        feature_templates = '/data/screenshots/templates/%s/' % str(self.feature_id)
 
         # Delete folder with step results, runs and feature results
         if os.path.exists(feature_screenshots):
@@ -957,7 +960,7 @@ class Feature_result(SoftDeletableModel):
         # remove templates
         if deleteTemplate != False:
             # screenshots directory
-            templates_root = '/code/behave/screenshots/templates/'
+            templates_root = '/data/screenshots/templates/'
             styles_path = templates_root + str(self.feature_id.feature_id)
             if os.path.exists(styles_path):
                 try:
@@ -986,7 +989,8 @@ class Feature_result(SoftDeletableModel):
 step_type_choices = (
     ('BROWSER','BROWSER'), 
     ('MOBILE','MOBILE'), 
-    ('API','API')
+    ('API','API'),
+    ('DATABASE','DATABASE')
 )
 
 class Step_result(models.Model):
@@ -1008,6 +1012,8 @@ class Step_result(models.Model):
     belongs_to = models.IntegerField(null=True) # feature that step belongs to
     rest_api = models.ForeignKey("REST_API", on_delete=models.CASCADE, null=True, default=None)
     notes = models.JSONField(default=dict)
+    database_query_result = models.JSONField(default=list, null=True)
+    current_step_variables_value = models.JSONField(default=dict, null=True)
     error = models.TextField(null=True, blank=True)
     step_type = models.CharField(choices=step_type_choices, max_length=10, blank=False, default='BROWSER')
 
@@ -1375,7 +1381,8 @@ class Schedule(models.Model):
             self.delete_on = self.created_on + datetime.timedelta(days=self.delete_after_days)
         # create the command
         if self.command is None:
-            self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST http://django:8000/exectest/""" % (self.feature.feature_id, self.owner.user_id)
+            # self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST %s/exectest/""" % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
+            self.command = """curl --silent --data '{"feature_id":%d, "jobId":<jobId>}' -H "Content-Type: application/json" -H "COMETA-ORIGIN: CRONTAB" -H "COMETA-USER: %d" -X POST %s/exectest/""" % (self.feature.feature_id, self.owner.user_id, get_cometa_backend_url())
         # create the comment
         if self.comment is None:
             self.comment = "# added by cometa JobID: <jobId> on %s, to be deleted on %s" % (self.created_on.strftime("%Y-%m-%d"), self.delete_on.strftime("%Y-%m-%d") if self.delete_on is not None else "***never*** (disable it in feature)")
@@ -1393,14 +1400,14 @@ class Schedule(models.Model):
         super(Schedule, self).save(*args, **kwargs)
 
         # make the request to crontab
-        requests.get('http://crontab:8080/')
+        requests.get(f'{get_cometa_crontab_url()}/')
         return True
 
     def delete(self, *args, **kwargs):
         # delete the object and send request to crontab to update
         super(Schedule, self).delete()
         # make the request to crontab
-        requests.get('http://crontab:8080/')
+        requests.get(f'{get_cometa_crontab_url()}/')
         return True
 
 IntegrationApplications = (

@@ -12,7 +12,7 @@ import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Configuration } from '@store/actions/config.actions';
 import { User } from '@store/actions/user.actions';
-import { Store } from '@ngxs/store';
+import { Select, Store } from '@ngxs/store';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { DOCUMENT, NgIf } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
@@ -20,6 +20,16 @@ import { KEY_CODES } from '@others/enums';
 import { InputFocusService } from '../../services/inputFocus.service';
 import { TranslateModule } from '@ngx-translate/core'; 
 import { WhatsNewService } from '@services/whats-new.service';
+import { Observable } from 'rxjs';
+import {
+  NgFor,
+  NgClass,
+  AsyncPipe,
+  UpperCasePipe,
+  TitleCasePipe,
+  KeyValuePipe,
+} from '@angular/common';
+import { LetDirective } from '../../directives/ng-let.directive';
 @Component({
   selector: 'header',
   templateUrl: './header.component.html',
@@ -43,9 +53,10 @@ import { WhatsNewService } from '@services/whats-new.service';
     ]),
   ],
   standalone: true,
-  imports: [RouterLink, NgIf, MatLegacyTooltipModule, RouterLinkActive, TranslateModule],
+  imports: [RouterLink, NgIf, MatLegacyTooltipModule, RouterLinkActive, TranslateModule, AsyncPipe, LetDirective],
 })
 export class HeaderComponent {
+  @Select(UserState) account$: Observable<UserInfo>;
   @ViewSelectSnapshot(UserState.GetPermission('view_admin_panel'))
   canViewAdminPanel: boolean;
   @ViewSelectSnapshot(UserState.GetPermission('create_feature'))

@@ -22,7 +22,6 @@ def register_modules_urlpatterns(urlpatterns) :
         # url(r'^emulator/(?P<emulator_id>[0-9]+)/ ', emulator_proxy_view),
         re_path(r'^emulator/(?P<emulator_id>[0-9]+)/(?P<remaining_path>.*)$', emulator_proxy_view, name='emulator_proxy_view'),
     ]
-    print("loaded register_modules_urlpatterns")
     return urlpatterns
     
 
