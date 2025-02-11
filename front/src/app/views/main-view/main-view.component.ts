@@ -343,9 +343,6 @@ export class MainViewComponent implements OnInit {
   onMobileSelectionChange(event: any, row: FeatureResult): void {
     // Event it's the selected mobile
     const selectedMobile = event.value;
-    // this.logger.msg("1", "CO-Sel-Event-value", "live-steps:", event.value);
-    // this.logger.msg("1", "CO-Sel-Row", "live-steps:", row);
-    // console.log('Row ID:', row.feature_result_id, 'Selected Mobile:', selectedMobile);
 
     if (selectedMobile && selectedMobile.video_recording) {
       this.openVideo(row, selectedMobile.video_recording);

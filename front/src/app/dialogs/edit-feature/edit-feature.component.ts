@@ -753,9 +753,9 @@ export class EditFeature implements OnInit, OnDestroy {
     this._api.getCometaConfigurations().subscribe(res => {
 
       const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
-      // console.log("config_feature_mobile: ", typeof(config_feature_mobile.configuration_value))
       if (config_feature_mobile) {
         this.configValueBoolean = !!JSON.parse(config_feature_mobile.configuration_value.toLowerCase());
+        this.cdr.detectChanges();
       }
     })
 

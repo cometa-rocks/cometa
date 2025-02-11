@@ -169,23 +169,12 @@ export class MobileListComponent implements OnInit {
 
   ngOnInit(): void {
 
-    // console.log("User: ", this.user, this.config$)
-    // console.log("tree", this.mobiles, this.runningMobiles, this.sharedMobileContainers)
-    // this.logger.msg("1", "CO-User:", "mobile-list", this.user);
-
-    // this.logger.msg("1", "CO-Mobiles:", "mobile-list", this.mobiles);
-
-    // this.logger.msg("1", "CO-ApkFiles:", "mobile-list", this.apkFiles);
-    // console.log("shared: ", this.sharedMobileContainers)
-
     this.departments = this.user.departments;
 
     this.isDialog = this.data?.department_id ? true : false;
 
-    // console.log("isDialog: ", this.isDialog)
     if(!this.isDialog ){
       if (this.user && this.user.departments) {
-        // console.log("selectedDepartment: ", this.selectedDepartment )
 
         // User preselect department
         this.preselectDepartment = this.user.settings?.preselectDepartment;
@@ -207,9 +196,7 @@ export class MobileListComponent implements OnInit {
       }
     }
     else{
-      // console.log("selectedDepartment: ",  this.data.department_id )
       let selected = this.departments.find(department => department.department_id === this.data.department_id);
-      // console.log("selected: ",  selected )
       this.selectedDepartment = { id: selected.department_id, name: selected.department_name };
     }
 
@@ -222,8 +209,6 @@ export class MobileListComponent implements OnInit {
       }
       this.isLoading = false;
     })
-
-    // this.logger.msg("1", "CO-selectedDepartment:", "mobile-list", this.selectedDepartment);
 
     const terminatingContainerIds = JSON.parse(localStorage.getItem('terminatingContainers') || '[]');
     terminatingContainerIds.forEach((containerId: number) => {
@@ -254,29 +239,9 @@ export class MobileListComponent implements OnInit {
           })
         });
 
-        // this.logger.msg("1", "CO-depID:", "mobile-list", this.departments[0].department_id);
-
-        // This part of the code makes the button selector enabled automa...
-        // if (this.departments.length > 0) {
-        //   this.logger.msg("1", "CO-Departments:", "mobile-list", this.departments);
-        //   this.selectedDepartment = {
-        //     id: this.departments[0].department_id,
-        //     name: this.departments[0].department_name
-        //   };
-        //   // this.selectedDepartment = {
-        //   //   id: this.departments[0].department_id,
-        //   //   name: this.departments[0].department_name
-        //   // };
-        //   this.onDepartmentSelect({ value: this.selectedDepartment });
-        // }
-
-        // this.logger.msg("1", "CO-Data:", "mobile-list", this.data);
-        // this.logger.msg("1", "CO-Dialog:", "mobile-list", this.isDialog);
-
         // Call the API service on component initialization
         this._api.getContainersList().subscribe(
           (containers: Container[]) => {
-            // this.logger.msg("1", "CO-containerS", "mobile-list" , containers);
 
             for (let container of containers) {
 
@@ -294,11 +259,8 @@ export class MobileListComponent implements OnInit {
                 }
                 else{
                   this.departments.forEach(department => {
-                    // this.logger.msg("1", "CO-departmentid:", "mobile-list", department.department_id);
-                    // this.logger.msg("1", "CO-containerid:", "mobile-list", container.id);
                     const depData = JSON.parse(JSON.stringify(department));
                     this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
-                    // this.logger.msg("1", "CO-Department:", "mobile-list", department)
                   })
                 }
 
@@ -306,12 +268,9 @@ export class MobileListComponent implements OnInit {
               } else if (
                 this.user.user_id == container.created_by
               ) {
-                // this.logger.msg("1", "CO-containerServiceid:", "mobile-list" , container.service_id);
                 this.runningMobiles.push(container);
               }
             }
-            // this.logger.msg("1", "CO-Mobiles:", "mobile-list", this.mobiles);
-            // this.logger.msg("1", "CO-RunningMobiles:", "mobile-list", this.runningMobiles);
             this._cdr.detectChanges();
           },
           error => {
@@ -340,50 +299,6 @@ export class MobileListComponent implements OnInit {
       container.isTerminating = true;
     }
   }
-
-  // updateSharedStatus(isShared: any, mobile: IMobile, container): void {
-  //   mobile.isShared = isShared.checked;
-
-  //   let updateData = { shared: mobile.isShared };
-
-  //   this._api.updateMobile(container.id, updateData).subscribe(
-  //     (response: any) => {
-  //       if (response && response.containerservice) {
-  //         container = response.containerservice;
-  //         this.snack.open(
-  //           `Mobile ${mobile.isShared ? 'shared' : 'unshared'} with other users in this department`,
-  //           'OK'
-  //         );
-  //         this._cdr.detectChanges();
-  //       } else {
-  //         this.snack.open(response.message, 'OK');
-  //       }
-  //     },
-  //     error => {
-  //       console.error(
-  //         'An error occurred while updating the mobile container:',
-  //         error
-  //       );
-  //       // Handle the error
-  //     }
-  //   );
-  // }
-
-  // updateSharedStatus(isShared: boolean, mobile: IMobile, container): void {
-  //   mobile.isShared = isShared;
-
-  //   let updateData = { shared: mobile.isShared };
-
-  //   this._api.updateMobile(container.id, updateData).subscribe(
-  //     (updated_container: Container) => {
-  //       container = updated_container;
-  //       this._cdr.detectChanges();
-  //     },
-  //     error => {
-  //       console.error('An error occurred while fetching the mobile list', error);
-  //     }
-  //   );
-  // }
 
   updateAPKSelection(event: any, mobile: IMobile): void {
     mobile.selectedAPKFileID = event.value;
@@ -578,7 +493,6 @@ export class MobileListComponent implements OnInit {
 
 
   inspectMobile(container: Container, mobile: IMobile): void {
-    // console.log(this.stopGoToUrl(container), container.service_id);
     if (this.stopGoToUrl(container)) return;
     let host = window.location.hostname;
     let capabilities = encodeURIComponent(JSON.stringify(mobile.capabilities));
@@ -588,9 +502,6 @@ export class MobileListComponent implements OnInit {
 
   noVNCMobile(container: Container): void {
     // FIXME this connection needs to be fixed, to improve security over emulators
-    // console.log(this.stopGoToUrl(container), container.service_id);
-    // console.log("Coonatiner novnc", container);
-
     if (this.stopGoToUrl(container)) return;
     let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${container.service_id}`;
     window.open(complete_url, '_blank');
@@ -627,12 +538,6 @@ export class MobileListComponent implements OnInit {
     });
   }
 
-  // toggleDetails(containerId) {
-  //   if(containerId){
-  //     this.showDetails[containerId] = !this.showDetails[containerId];
-  //   }
-  // }
-
   toggleSharedDetails(containerId) {
     if(containerId){
       this.sharedDetails[containerId] = !this.sharedDetails[containerId];
@@ -653,7 +558,6 @@ export class MobileListComponent implements OnInit {
 
     this.apkFiles = [];
     this.departments.forEach(department => {
-      // this.logger.msg("1", "CO-selectedDepartment:", "department -->", department);
       if(department.department_id == this.selectedDepartment.id) {
         const depData = JSON.parse(JSON.stringify(department));
         this.apkFiles = depData.files.filter(file => file.name.endsWith('.apk'));
@@ -666,21 +570,14 @@ export class MobileListComponent implements OnInit {
 
   openModifyEmulatorDialog(mobile: IMobile, runningContainer: Container) {
 
-    // this.logger.msg("1", "CO-mobile", "mobile-list", mobile);
-    // this.logger.msg("1", "CO-runningContainer", "mobile-list", runningContainer);
-    // console.log("runningContainer: ", runningContainer)
-    // console.log("mobile: ", mobile)
-
     let uploadedApksList = this.departments
     .filter(department => department.department_id === this.selectedDepartment?.id)
     .map(department => department.files || [])
     .reduce((acc, files) => acc.concat(files), []);
 
-    // if(!this.isDialog) {
     let departmentName = this.departments.filter(
       department => department.department_id === this.selectedDepartment?.id)
       .map(department => department.department_name || []);
-    // }
 
     this._dialog
       .open(ModifyEmulatorDialogComponent, {
