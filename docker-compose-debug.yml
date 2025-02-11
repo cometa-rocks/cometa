@@ -18,6 +18,7 @@ services:
       driver: json-file
     command: bash start.sh -d
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa/screenshots:/code/behave/screenshots
       - ./data/cometa/videos:/code/behave/videos
       - ./backend:/code
@@ -40,7 +41,7 @@ services:
 
   behave:
     container_name: cometa_behave
-    image: python:3.9
+    image: python:3.11
     logging:
       driver: json-file
     ports:
@@ -49,6 +50,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa/screenshots:/opt/code/screenshots
       - ./data/cometa/videos:/opt/code/videos
       - ./backend/behave:/opt/code:rw
@@ -57,7 +59,7 @@ services:
       - ./data/redis/certs:/share/certs
       - "./backend/behave/schedules/crontab:/etc/cron.d/crontab"
     # command: "/opt/code/entry.sh -d"
-    command: "/opt/code/entry.sh"
+    command: "/opt/code/behave_django/entry.sh"
     working_dir: /opt/code/behave_django
     environment:
       PYTHONUNBUFFERED: 1
@@ -105,13 +107,22 @@ services:
     entrypoint: sh /etc/selenoid/start.sh
 
   novnc:
-    image: cometa/novnc:1.0
     container_name: cometa_novnc
+    build: 
+      context: noVNC  # Build context, specifying the current directory
+      dockerfile: Dockerfile  # Reference to the Dockerfile
+    working_dir: /home/cometa/noVNC
+    command: ./utils/novnc_proxy --listen 80
+    expose:
+      - 80
+    volumes:
+      - ./noVNC:/home/cometa/noVNC
+    ports:
+      - 4088:80
     networks:
       - testing
     restart: always
-    
-  
+
   crontab:
     image: cometa/scheduler:latest
     container_name: cometa_crontab
@@ -123,6 +134,9 @@ services:
       DEBUG_LEVEL: 10
     # volumes:
     #   - ./scheduler:/app:rw
+    depends_on:
+      django:
+        condition: service_healthy
     networks:
       - testing
     restart: always
@@ -143,9 +157,20 @@ services:
       - "4200:4200"
     command: bash /code/front/start.sh openidc basic angular compile
     # command: bash /code/start.sh compile 
+    environment:
+      - DJANGO_SERVER_URL=django
+      - DJANGO_SERVER_PORT=8000
+      - SOCKET_SERVER_URL=ws
+      - SOCKET_SERVER_PORT=3001
+      - SELENOID_SERVER_URL=selenoid
+      - SELENOID_SERVER_PORT=4444
+      - NOVNC_SERVER_URL=novnc
+      - NOVNC_SERVER_PORT=8080
+
     networks:
       - testing
     restart: always
+    
   redis:
     image: redis:7.2.0-alpine
     container_name: cometa_redis

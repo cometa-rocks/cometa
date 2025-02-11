@@ -1,0 +1,23 @@
+services:
+  cometa-emulator:
+    image: cometa/emulator:Android_12.0_API31_x86_64    
+    working_dir: /app 
+    devices:
+      # - "/dev/kvm:/dev/kvm"  # If you have KVM device then pass KVM device for hardware acceleration
+      - "./video:/video"  
+      - "./apps:/tmp"  
+    privileged: true
+    ports:
+    - "4723:4723"
+    - "6080:6080"
+    - "5900:5900"
+    environment:
+      - DISPLAY=:0
+      - AUTO_RECORD=true
+    networks:
+      - testing
+    restart: always
+
+networks:
+  testing:
+    driver: "bridge"

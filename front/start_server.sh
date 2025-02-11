@@ -3,6 +3,22 @@
 # AMVARA CONSULTING S.L. - 2024
 # #########################################
 
+
+mkdir -p /usr/local/apache2/htdocs/infra
+
+touch /usr/local/apache2/htdocs/infra/lbtest1.html
+# Create the HTML file with the content
+cat <<EOF > "/usr/local/apache2/htdocs/infra/lbtest1.html"
+<html>
+  <head>
+    <title>LB Test #1</title>
+  </head>
+  <body>
+    <p>Status: OK</p>
+  </body>
+</html>
+EOF
+
 # #########
 # This function checks if self signed SSL certificate exists
 # and it is not expired if so or missing it will create one
@@ -10,51 +26,87 @@
 # #########
 function check_ssl_certificate() {
 
-	echo -e "\e[37mChecking SSL certificate...\e[0m"
+        echo -e "\e[37mChecking SSL certificate...\e[0m"
 
-	# set cert file
-	CERTFILE="/etc/ssl/certs/apache-self-signed.crt"
-	# set privkey file
-	PRIVKEY="/etc/ssl/certs/apache-self-signed.key"
+        # set cert file
+        CERTFILE="/share/apache2/certs/apache-self-signed.crt"
+        # set privkey file
+        PRIVKEY="/share/apache2/certs/apache-self-signed.key"
 
-	# check if all three files exist
-	test ! -f ${CERTFILE} && CREATE_NEW=TRUE
-	test ! -f ${PRIVKEY} && CREATE_NEW=TRUE
-	
-	# check if we need to create a new SSL certificate
-	if [[ "${CREATE_NEW:-FALSE}" == "FALSE" ]]; then
-		echo "SSL certificate exists ... checking expiration date"
+        # check if all three files exist
+        test ! -f ${CERTFILE} && CREATE_NEW=TRUE
+        test ! -f ${PRIVKEY} && CREATE_NEW=TRUE
 
-		# check the expiration date for the cert file
-		EXPIRATION_DATE_CERT=`date --date="$(openssl x509 -enddate -noout -in $CERTFILE |cut -d= -f 2)" +"%s"`
-		# get current date
-		CURRENT_DATE=`date +"%s"`
-		# date difference between two dates
-		DIFFERENCE_BETWEEN=$(($EXPIRATION_DATE_CERT-$CURRENT_DATE))
+        # check if we need to create a new SSL certificate
+        if [[ "${CREATE_NEW:-FALSE}" == "FALSE" ]]; then
+                echo "SSL certificate exists ... checking expiration date"
 
-		echo "SSL certificate expires on:" $(date -d @${EXPIRATION_DATE_CERT} +"%Y-%m-%d")
+                # check the expiration date for the cert file
+                EXPIRATION_DATE_CERT=`date --date="$(openssl x509 -enddate -noout -in $CERTFILE |cut -d= -f 2)" +"%s"`
+                # get current date
+                CURRENT_DATE=`date +"%s"`
+                # date difference between two dates
+                DIFFERENCE_BETWEEN=$(($EXPIRATION_DATE_CERT-$CURRENT_DATE))
 
-		# number of days difference before considering it exipired
-		DAYS_DIFFERENCE="10"
-		# days difference in seconds
-		DAYS_DIFFERENCE_SECONDS=$(($DAYS_DIFFERENCE*24*60*60))
-		# check if certificate is valid
-		if [[ $DIFFERENCE_BETWEEN -gt $DAYS_DIFFERENCE_SECONDS ]]; then
-			echo "SSL Certificate is valid ... meaning it's not expiring in ${DAYS_DIFFERENCE} days."
-			# do nothing certificate is valid
-			return
-		fi
-	fi
+                echo "SSL certificate expires on:" $(date -d @${EXPIRATION_DATE_CERT} +"%Y-%m-%d")
 
-	echo "Generating a new certificate..."
-	# generate a new certificate
-	openssl req -days 365 -nodes -x509 -newkey rsa:4096 -keyout ${PRIVKEY} -out ${CERTFILE} -sha256 -days 365 -subj '/CN=localhost'
+                # number of days difference before considering it exipired
+                DAYS_DIFFERENCE="10"
+                # days difference in seconds
+                DAYS_DIFFERENCE_SECONDS=$(($DAYS_DIFFERENCE*24*60*60))
+                # check if certificate is valid
+                if [[ $DIFFERENCE_BETWEEN -gt $DAYS_DIFFERENCE_SECONDS ]]; then
+                        echo "SSL Certificate is valid ... meaning it's not expiring in ${DAYS_DIFFERENCE} days."
+                        # do nothing certificate is valid
+                        return
+                fi
+        fi
 
-	echo -e "\e[32mOK\e[0m"
+        echo "Generating a new certificate..."
+        # generate a new certificate
+        openssl req -days 365 -nodes -x509 -newkey rsa:4096 -keyout ${PRIVKEY} -out ${CERTFILE} -sha256 -days 365 -subj '/CN=localhost'
+
+        echo -e "\e[32mOK\e[0m"
 }
 
 
+# #########
+# This function handel apache configuration files 
+# It will copy Apache configuration files from /code/front/apache-conf to /share/apache-conf for first-time installation 
+# And create .initiated directory with /share dir
+# Second time, if it finds .initiated file within /share, it will copy files from /share/apache-conf to /code/front/apache-conf
+# #########
+copy_apache_conf_file() {
+    # if this is the first time initializing co.meta
+    # import basic data
+    if [ ! -f "/share/.initiated" ]; then
+                echo "#### For the first time ####"
+        cp -r /code/front/apache-conf /share/apache-conf
+        echo "Copied files from /code/front/apache-conf to /share/apache-conf"
+                mkdir -p /share/apache2
+        cp -r /usr/local/apache2/conf /share/apache2/conf
+        echo "Copied files from /usr/local/apache2/conf to /share/apache2/conf"
+        touch /share/.initiated
+                echo "/share/.initiated file is created"
+                cp -r /etc/ssl/certs/apache-self-signed.crt /share/front/certs/apache-self-signed.crt
+                echo "Copied files from /etc/ssl/certs/apache-self-signed.crt to /share/front/certs/apache-self-signed.crt"
+                cp -r /etc/ssl/certs/apache-self-signed.key /share/front/certs/apache-self-signed.key
+                echo "Copied files from /etc/ssl/certs/apache-self-signed.key to /share/front/certs/apache-self-signed.key"
+    else
+        cp -r /share/apache-conf /code/front
+        echo "Copied files from /share/apache-conf to /code/front/apache-conf"
+        cp -r /share/apache2/conf /usr/local/apache2
+                echo "Copied files from /share/apache2/conf to /usr/local/apache2/conf"
+                cp /share/front/certs/apache-self-signed.crt /etc/ssl/certs/apache-self-signed.crt 
+                echo "Copied files from /share/front/certs/apache-self-signed.crt to /etc/ssl/certs/apache-self-signed.crt" 
+                cp /share/front/certs/apache-self-signed.key /etc/ssl/certs/apache-self-signed.key 
+                echo "Copied files from /share/front/certs/apache-self-signed.key to /etc/ssl/certs/apache-self-signed.key"
+    fi
+}
+
 check_ssl_certificate
+
+# copy_apache_conf_file
 
 echo -e "\e[32mSuccessful\e[0m"
 
