@@ -39,7 +39,7 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
-import { InputFocusService } from '@services/inputFocus.service'; 
+import { InputFocusService } from '@services/inputFocus.service';
 
 @UntilDestroy()
 @Component({
@@ -121,6 +121,12 @@ export class L1FilterComponent implements OnInit {
    * Once the file loads, subscribes to the specified variables and updates them on change
    */
   ngOnInit() {
+    this.currentRoute$.subscribe( ruta => {
+      console.log("Ruta JSON:", JSON.stringify(ruta)); // Intenta convertir a JSON
+      console.log("Ruta Copia:", Object.assign({}, ruta)); // Copia para evitar Proxy
+      console.log("Ruta Entries:", Object.entries(ruta)); // Claves y valores
+      console.dir(ruta);
+    })
     this.log.msg('1', 'Initializing component...', 'filter');
     this.moreOrLessSteps.valueChanges
       .pipe(untilDestroyed(this))
@@ -348,7 +354,7 @@ export class L1FilterComponent implements OnInit {
 
   // #3420 ------------------------------------------------ start
   // Hotkey Shift-Alt-f ... opens the finder
-  @HostListener('document:keydown.Shift.Alt.f', ['$event'])
+  @HostListener('document:keydown.s', ['$event'])
   hotkey_shift_alt_f(event: KeyboardEvent) {
     // rewrite browser shortcut
     event.preventDefault();
