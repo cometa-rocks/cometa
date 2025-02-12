@@ -56,8 +56,7 @@ export class FeaturesState {
   /* 
   * Global static Varables
   */
-  static initialSetup = true
-  static selectedDepartment: number
+  static selectedDepartmentId: number
 
 
   /**
@@ -772,7 +771,7 @@ export class FeaturesState {
    * 
    */
   static static_setSelectedDepartment(departent: number){
-    this.selectedDepartment = departent
+    this.selectedDepartmentId = departent
   }
 
   /**
@@ -805,17 +804,6 @@ export class FeaturesState {
     let department = UserState.RetrieveUserDepartments(user);
     let activeList = localStorage.getItem('co_active_list'); // Get the current list status
     let activeSortList = localStorage.getItem('co_recent_sort_type') ?? ''; //Get the current sorting type
-    //if its the first time method is called, sort by preselected department or Default
-    let preselectedDept = user.settings.preselectDepartment
-    if(FeaturesState.initialSetup){
-      if(preselectedDept == null){
-        this.selectedDepartment = 0;
-      } else {
-        this.selectedDepartment = preselectedDept - 1
-      }
-    }
-    FeaturesState.initialSetup = false
-    console.log("los settins", preselectedDept)
     // Variable to know what this state does
     result.AAA_help =
       'This state saves the information of all the folders and features to use them subsequently in the datatable.';
@@ -839,7 +827,7 @@ export class FeaturesState {
         break;
       case 'recent':
             //Process resulting in a list of recently modified Features (Displaying by user or by department)
-            folders = this.getRecentFeatures(state, user_id, activeSortList, department[this.selectedDepartment].department_id);
+            folders = this.getRecentFeatures(state, user_id, activeSortList, this.selectedDepartmentId);
       default:
         break;
     }
