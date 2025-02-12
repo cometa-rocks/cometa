@@ -284,3 +284,26 @@ button {
     list-style: '\2192  ';
   }
 }
+
+.button-container {
+  position: relative;
+  display: inline-block;
+  button {
+    // background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082);
+    // background-size: 400%;
+    // -webkit-background-clip: text;
+    // -webkit-text-fill-color: transparent;
+    // animation: rainbow 4s linear infinite;
+    border: #fdcb4d 1px solid;
+  }
+}
+
+.memberShip {
+  position: absolute;
+  bottom: -15px;
+  right: 5px;
+  font-size: 20px;
+  color: goldenrod;
+  background-color: white;
+  padding-left: 3px;
+}

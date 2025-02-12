@@ -1392,89 +1392,41 @@ def parseBrowsers(request):
     })
     return JsonResponse({'success': True})
 
-# FIXME need to delete this function if you see this after date 17-10-2024 
-# @csrf_exempt
-# def parseActions(request):
-#     # variable to contain action comment
-#     action_comments = []
 
-#     def parseAction(action):
-#         regex = r"\@(.*)\((u|)'(.*)'\)"
-#         matches = re.findall(regex, action)
-#         if matches[0][2] == "{step}":
-#             return
-#         logger.debug(f"Action matcher Found : {matches[0]}")
-#         logger.debug(f"Action Value : {matches[0][2]}")
-#         actionsParsed.append(matches[0][2])
-#         actionObject = Action(
-#             action_name=matches[0][2],
-#             department='DIF',
-#             application='amvara',
-#             values=matches[0][2].count("{"),
-#             description='<br>'.join(action_comments)
-#         )
+@csrf_exempt
+def parseCometaBrowsers(request):
+    browsersFile = '/opt/code/defaults/cometa_browsers.json'
+    
+    # Check if the file exists
+    if not os.path.exists(browsersFile):
+        print(f"File {browsersFile} doesn't exist, please contact administrator")
+        return JsonResponse({'success': False, 'error': 'cometa_browsers.json not found'}, status=503)
+    
+    # Load JSON data from cometa_browsers.json
+    try:
+        with open(browsersFile, 'r') as file:
+            browsers_data = json.load(file)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'cometa_browsers.json contains invalid JSON data'}, status=503)
+    
+    # Delete all previous browser objects
+    Browser.objects.all().delete()
+    
+    # Insert data into the Browser model
+    for entry in browsers_data:
+        model = entry.get("model")
+        fields = entry.get("fields", {})
+        if model == "backend.Browser" and "browser_json" in fields:
+            Browser.objects.create(browser_json=fields["browser_json"])
+    
+    # Notify websockets about the browser update
+    requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+        'type': '[Browsers] Get All'
+    })
+    
+    return JsonResponse({'success': True})
 
-#         logger.debug(f"Adding action comments : {actionObject.description}")
-#         actionObject.save()
 
-#     actions = []
-#     # Add your new created action files here
-#     actions_files = [
-#         '/code/behave/cometa_itself/steps/actions.py',
-#         '/code/behave/ee/cometa_itself/steps/rest_api.py'
-#     ]
-
-#     # Iterate your action file as store in the lines in the files    
-#     for actions_file in actions_files:
-#         logger.debug(f"Reading Action from {actions_file}")
-#         with open(actions_file) as file:
-#             lines_in_file = file.readlines()
-#             logger.debug(f"Found {len(lines_in_file)} lines in the file : {actions_file}")
-#             actions = actions + lines_in_file
-
-#     actionsParsed = []
-#     Action.objects.all().delete()
-
-#     # variable to contain previous line
-#     previousLine = ''
-#     logger.debug(f"String Action Parse")
-#     for action in actions:
-#         if action.startswith("@step") and '(?P<' not in action:
-#             logger.debug(f"Parsing Step Action : {action}")
-#             # parse action will use action_comments, if found to be action otherwise make it empty
-#             parseAction(action)
-
-#         # This condition rarely executes when @step contains regular expression
-#         # If action started with @step then it never start with @done and in case above condition is false then any how this will be executed
-#         # not need of two if conditions
-#         elif action.startswith('@done') and '(?P<' in previousLine:
-#             logger.debug(f"Parsing Done Action : {action}")
-#             parseAction(action)
-
-#         # when any comment related to action written, that line will not have any spaces considering that line
-#         # If there is Multi line comments, keep on adding in the list 
-#         elif action.startswith('# '):
-#             # Action Comments to be written in with out line gaps
-#             # [2:] to remove # and single space from the front of the comment
-#             action_comments.append(action[2:])
-#             # logger.debug(f"Found actions comment {action_comments}")
-#         else:
-#             if not action.startswith("@step"):
-#                 action_comments = []  # if other then comments found remove empty the list
-#                 logger.debug(f"Removed action comments {action}")
-
-#         previousLine = action
-
-#     logger.debug(f"Ending Action Parse")
-#     # send a request to web sockets about the actions update
-#     requests.post('http://cometa_socket:3001/sendAction', json={
-#         'type': '[Actions] Get All'
-#     })
-
-#     return JsonResponse({'success': True, 'actions': actionsParsed})
-
-# This method is change so that behave code can be separated from django code 
-# This will help in scaling the application
 @csrf_exempt
 def parseActions(request):
     
@@ -1845,8 +1797,11 @@ class ActionViewSet(viewsets.ModelViewSet):
         application = query.get('app', None)
         action_types = ['BROWSER','API']
         
-        if ConfigurationManager.get_configuration("COMETA_FEATURE_MOBILE_TEST_ENABLED","False")=="True":   
+        if ConfigurationManager.get_configuration("COMETA_FEATURE_MOBILE_TEST_ENABLED","False")=="True":
             action_types.append('MOBILE')
+
+        if ConfigurationManager.get_configuration("COMETA_FEATURE_DATABASE_ENABLED","False")=="True":
+            action_types.append('DATABASE')
 
         if department is not None:
             queryset = queryset.filter(department=department, step_type__in=action_types)

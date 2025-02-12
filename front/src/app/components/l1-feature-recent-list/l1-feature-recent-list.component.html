@@ -8,11 +8,52 @@ Author: dph000
 <!-- Newer datatable -->
 <ng-container *ngLet="data$ as table">
   <div *ngIf="table.rows.length > 0; else showWelcome" class="table_container">
+    <ng-template #customToolbar>
+      <div class="custom-toolbar">
+        <!-- View Switch -->
+        <div class="view-selector">
+          <form [formGroup]="featureForm" [hidden]="!isVisible">
+            <mat-form-field appearance="fill" class="edit-dep">
+              <mat-label>Department</mat-label>
+              <mat-select
+                [(ngModel)]="selected_department"
+                (selectionChange) = onDepartmentChange()
+                [disabled]="table.mode === 'edit'"
+                formControlName="department_name"
+                (focus)="onInputFocus()"
+                (blur)="onInputBlur()">
+                <mat-option
+                  *ngFor="let dep of departments$ | sortBy: 'department_name'"
+                  [value]="dep.department_name">
+                  {{ dep.department_name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </form>
+          <!-- Sort Buttons -->
+          <div class="button-container" [matTooltip]="'recent.sort_by_department' | translate" matTooltipPosition="above">
+            <button mat-stroked-button (click)="sortRecent('dpt')" [class.active]="activeButton === 'dpt'">
+              <span class="mdc-button__label">
+                Departments
+              </span>
+            </button>
+          </div>
+          <div class="button-container" [matTooltip]="'recent.my_features' | translate" matTooltipPosition="above">
+            <button mat-stroked-button (click)="sortRecent('my')" [class.active]="activeButton === 'my'">
+              <span class="mdc-button__label">
+                My Features
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
     <!-- Mtx-grid datatable template -->
     <mtx-grid
       [data]="table.rows"
       [columns]="columns"
       [showToolbar]="true"
+      [toolbarTemplate] = "customToolbar"
       [pageSize]="10"
       [showPaginator]="false"
       [multiSelectable]="multiSelectable"
@@ -23,6 +64,8 @@ Author: dph000
       [columnMovable]="columnMovable"
       [showColumnMenuHeader]="true"
       [columnMenuHeaderText]="'Columns Settings'"
+      [sortActive] = "'date'"
+      [sortDirection] = "'desc'"
       [cellTemplate]="{
         type: runningTpl,
         name: nameTpl,
