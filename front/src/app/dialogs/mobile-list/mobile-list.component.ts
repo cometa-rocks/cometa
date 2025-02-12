@@ -173,6 +173,12 @@ export class MobileListComponent implements OnInit {
 
     this.isDialog = this.data?.department_id ? true : false;
 
+    // console.log("department_id: " , this.data?.department_id)
+
+    // console.log("runningMobiles: " , this.runningMobiles)
+
+    // console.log("mobiles: " , this.mobiles)
+
     if(!this.isDialog ){
       if (this.user && this.user.departments) {
 
@@ -224,7 +230,7 @@ export class MobileListComponent implements OnInit {
         // this.logger.msg("1", "CO-depID:", "mobiles", mobiles);
         // Assign the received data to the `mobile` variable
         this.mobiles = mobiles;
-
+        // console.log(" this.mobiles <><><>: ", this.mobiles)
         // department_id is received only when component is opened as dialog
         this.isDialog = this.data?.department_id ? true : false;
 
@@ -264,10 +270,13 @@ export class MobileListComponent implements OnInit {
                   })
                 }
 
-                this.sharedMobileContainers.push(container);
-              } else if (
-                this.user.user_id == container.created_by
-              ) {
+                if (container.department_id === this.selectedDepartment.id) {
+                  this.sharedMobileContainers.push(container);
+                }
+
+
+
+              } else if (this.user.user_id == container.created_by) {
                 this.runningMobiles.push(container);
               }
             }
@@ -291,6 +300,16 @@ export class MobileListComponent implements OnInit {
         );
       }
     );
+  }
+
+  getSharedMobileContainers() {
+    this.sharedMobileContainers = this.runningMobiles.filter(
+      container =>
+        container.shared &&
+        container.created_by !== this.user.user_id &&
+        container.department_id === this.selectedDepartment.id
+    );
+    // this._cdr.detectChanges();
   }
 
   showSpinnerFor(containerId: number): void {
@@ -507,6 +526,7 @@ export class MobileListComponent implements OnInit {
     window.open(complete_url, '_blank');
   }
 
+  // access or not to novnc or inspect
   stopGoToUrl(container: Container) {
     if (container.service_status === 'Stopped' || container.service_status === 'Stopping' || container.service_status === 'Restarting') {
       return true;
@@ -514,9 +534,13 @@ export class MobileListComponent implements OnInit {
     return false;
   }
 
+  // Check the running containers filtered by deprtament
   isThisMobileContainerRunning(mobile_id): Container | null {
+    console.log("Shared containers by department", this.sharedMobileContainers)
+    // this.mobiles.filter(m => m.department_id === this.selectedDepartment?.id);
     for (let container of this.runningMobiles) {
-      if (container.image == mobile_id) {
+      console.log("Container", container)
+      if (container.image == mobile_id && container.department_id == this.selectedDepartment.id) {
         return container;
       }
     }
