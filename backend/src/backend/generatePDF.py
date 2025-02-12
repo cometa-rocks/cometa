@@ -591,6 +591,9 @@ class GeneratePDF(View):
             )
         
         if self.feature_template.email_body is not None:
+            # Replace new lines with <br>
+            self.feature_template.email_body = str(self.feature_template.email_body).replace("\r", "<br><br>").replace("\n", "<br><br>")
+            # add the custom message part
             custom_message_part = """
                 <strong>Custom message:</strong><br>
                 %s<br><br>
@@ -621,8 +624,10 @@ class GeneratePDF(View):
             </table>
             $[[[CUSTOM_EMAIL_DATA]]]
             %s
-            Thankyou for using co.meta<br><br>
-            Best regards<br><br>
+            <br><p>
+            ----<br>
+            Thank you for using co.meta<br><br>
+            <br><br>
         """ % (
             self.feature_result.feature_id.feature_id,
             self.feature_result.total,

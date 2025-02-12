@@ -88,7 +88,7 @@ class ContainerService(models.Model):
                     service_name_or_id=self.service_id
                 )
                 if result:
-                    self.service_details = service_manager.inspect_service()
+                    self.service_details = service_manager.inspect_service(self.service_id)
                     self.service_status = "Running"
                     return super(ContainerService, self).save()
 
@@ -97,7 +97,7 @@ class ContainerService(models.Model):
                     service_name_or_id=self.service_id
                 )
                 if result:
-                    self.service_details = service_manager.inspect_service()
+                    self.service_details = service_manager.inspect_service(self.service_id)
                     self.service_status = "Stopped"
                     return super(ContainerService, self).save()
 
