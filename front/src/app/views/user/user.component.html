@@ -105,7 +105,9 @@
                 matInput
                 [value]="account.settings?.budget || 0"
                 (change)="handleAccountSetting($event, 'budget')"
-                type="number" />
+                type="number"
+                (focus)="onInputFocus()"
+                (blur)="onInputBlur()"/>
               <span matSuffix>EUR</span>
             </mat-form-field>
           </div>
@@ -267,7 +269,7 @@
             </li>
           </ul>
         </div>
-      </div>  
+      </div>
       <h3>Feature Settings</h3>
       <div class="feature-settings">
         <p>
