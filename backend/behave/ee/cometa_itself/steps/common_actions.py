@@ -5,6 +5,8 @@ import json
 import sys
 import sys, requests, re, json
 
+import pandas as pd
+import os
 import jq
 
 from behave import step, use_step_matcher
@@ -15,7 +17,7 @@ sys.path.append("/opt/code/cometa_itself/steps")
 from utility.functions import *
 
 from tools.exceptions import *
-from tools.common import send_step_details
+from tools.common import send_step_details, uploadFileTarget
 from tools.common_functions import *
 
 
@@ -121,6 +123,44 @@ def assert_imp(context, jq_pattern, variable_name, new_variable_name):
         logger.error("Invalid JQ pattern", err)
         raise CustomError(err)
         
+
+# Reads data from an Excel file for a given sheet and row number, 
+# then stores the row's data as a dictionary in a runtime variable.  
+@step(u'Read data from Excel file "(?P<file_path>.+?)" sheet "(?P<sheet_name>.+?)" row "(?P<row_number>\d+)" and store in "(?P<variable_name>.+?)"')
+@done(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in "{variable_name}"')
+def read_excel_step(context, file_path, sheet_name, row_number, variable_name):
+
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
+
+    # Convert row number to an integer
+    row_number = int(row_number)
+
+    try:
+            
+        excelFilePath = uploadFileTarget(context, file_path)
+        logger.debug("Excel file opening: %s", excelFilePath)
+        # Read the Excel sheet
+        df = pd.read_excel(excelFilePath, sheet_name=sheet_name, engine='openpyxl')
+
+        # Ensure the row exists
+        if row_number >= len(df):
+            raise CustomError(f"Row number {row_number} is out of range. Max rows: {len(df)}")
+
+        # Fetch the row as a dictionary (column_name -> value)
+        row_data = df.iloc[row_number].to_dict()
+        logger.debug(row_data)
+        # Convert to JSON
+        json_data = json.dumps(row_data, ensure_ascii=False)
+        logger.debug(json_data)
+        # Store the JSON data in runtime variables
+        addTestRuntimeVariable(context, variable_name, json_data)
+        
+        logger.debug(f"Stored data from Excel row {row_number} into variable '{variable_name}': {row_data}")
+
+    except Exception as err:
+        logger.error("Error reading Excel file", err)
+        raise CustomError(f"Error reading Excel file: {err}")
+
 
 use_step_matcher("parse")
 
