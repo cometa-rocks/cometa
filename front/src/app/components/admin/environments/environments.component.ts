@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { EnterValueComponent } from '@dialogs/enter-value/enter-value.component';
@@ -74,4 +74,26 @@ export class EnvironmentsComponent implements OnInit {
         )
       );
   }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent): void {
+    // Verificar si el foco está en un input o textarea
+    const activeElement = document.activeElement;
+    if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+      // Si el foco está en un campo de entrada, no ejecutar shortcuts
+      return;
+    }
+
+    // Aquí puedes manejar los shortcuts como de costumbre
+    // switch (event.key) {
+    //   case 'Enter': // Ejemplo de shortcut
+    //     this.someShortcutAction();
+    //     break;
+    //   case 'Escape': // Otro shortcut
+    //     this.anotherShortcutAction();
+    //     break;
+    //   // Agrega más casos según los shortcuts
+    // }
+  }
+
 }

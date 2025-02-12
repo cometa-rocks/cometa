@@ -120,6 +120,14 @@
   }
 }
 
+.view-selector {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  gap: 10px; 
+  height: 40px;
+  padding-right: 8px;
+}
 .folderIcon {
   height: 18px;
   min-width: 18px;
@@ -163,4 +171,17 @@
 
 :host::ng-deep .exec-feature-loading {
   margin: 0 auto;
+}
+
+::ng-deep .mtx-grid-toolbar{
+  flex-wrap: wrap;
+  justify-content: flex-end !important;
+}
+
+.button-container button.active {
+  background-color: $blue; 
+  color: $body-bg-color;
+}
+.button-container button {
+  height: 35px;
 }

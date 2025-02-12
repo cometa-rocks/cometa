@@ -41,7 +41,7 @@ services:
 
   behave:
     container_name: cometa_behave
-    image: python:3.9
+    image: python:3.11
     logging:
       driver: json-file
     ports:

@@ -30,7 +30,7 @@ from tools.exceptions import *
 from tools.common import send_step_details, decryptFile, waitSelector
 from tools.common_functions import *
 from tools.service_manager import ServiceManager
-from .mobile_actions_utils import upload_file_to_appium_container, perform_swipe
+from .utils.mobile_actions_utils import upload_file_to_appium_container, perform_swipe
 
 # setup logging
 logger = logging.getLogger("FeatureExecution")
@@ -68,13 +68,27 @@ def start_mobile_and_application(context, mobile_name, capabilities="{}", variab
     send_step_details(context, "Starting mobile container")
     service_details = service_manager.create_service()
     logger.debug(f"Service created with Id {service_details['Id']}")
+    
+    
+    new_container_data = {'image': mobile_configuration['mobile_id'], 'service_type': 'Emulator', 'department_id': 1, 'shared': False, 'created_by': 1, 'do_not_create_container': True}
+    
+    response = call_backend(method="POST", path="/api/container_service/", body=new_container_data)
+    
+    if not response.status_code == 200:
+        raise CustomError(f"Can not find mobile with name {mobile_name} ")
+
+    service_details['db_container_id'] = response['id']
+    
     context.container_services.append(service_details)
+    
     service_manager.wait_for_service_to_be_running(
         service_name_or_id=service_details["Id"],
         max_wait_time_seconds=30,
     )
-    time.sleep(40)
 
+
+    time.sleep(40)
+    
     mobile_configuration["capabilities"].update(context.mobile_capabilities)
     try:
         user_provided_capabilities: dict = json.loads(capabilities)
