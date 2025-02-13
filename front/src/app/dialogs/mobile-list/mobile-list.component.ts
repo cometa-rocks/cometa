@@ -1,13 +1,8 @@
-import { Subscribe } from 'ngx-amvara-toolbox';
 import {
   Component,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Output,
-  EventEmitter,
   OnInit,
-  Input,
-  ViewChild,
   Inject,
 } from '@angular/core';
 
@@ -20,8 +15,8 @@ import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { BrowserFavouritedPipe } from '@pipes/browser-favourited.pipe';
 import { PlatformSortPipe } from '@pipes/platform-sort.pipe';
-import { BehaviorSubject, map, Observable, Subject, takeUntil } from 'rxjs';
-import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
+import { map, Observable, Subject } from 'rxjs';
+import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslateModule } from '@ngx-translate/core';
 import { SortByPipe } from '@pipes/sort-by.pipe';
 import { MobileIconPipe } from '@pipes/mobile-icon.pipe';
@@ -57,17 +52,14 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDividerModule } from '@angular/material/divider';
 import { DraggableWindowModule } from '@modules/draggable-window.module'
 import { AreYouSureData, AreYouSureDialog } from '@dialogs/are-you-sure/are-you-sure.component';
-import { Store } from '@ngxs/store';
-import { CustomSelectors } from '@others/custom-selectors';
+import { Select, Store } from '@ngxs/store';
 import { LogService } from '@services/log.service';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { timeStamp } from 'console';
-import { Key } from 'readline';
 import { ModifyEmulatorDialogComponent } from '@dialogs/mobile-list/modify-emulator-dialog/modify-emulator-dialog.component';
 import { ConfigState } from '@store/config.state';
 import { MatBadgeModule } from '@angular/material/badge';
-
+import { LoadSharedMobiles, SharedMobileState } from '@store/shared_mobile.state';
 
 /**
  * MobileListComponent
@@ -137,6 +129,7 @@ export class MobileListComponent implements OnInit {
   }
   @ViewSelectSnapshot(UserState) user!: UserInfo;
   @ViewSelectSnapshot(ConfigState) config$!: Config;
+  @Select(SharedMobileState.getSharedMobiles) sharedMobileContainers$: Observable<any[]>;
 
   // Declare the variable where the API result will be assigned
   mobiles: IMobile[] = [];
@@ -173,11 +166,7 @@ export class MobileListComponent implements OnInit {
 
     this.isDialog = this.data?.department_id ? true : false;
 
-    // console.log("department_id: " , this.data?.department_id)
-
-    // console.log("runningMobiles: " , this.runningMobiles)
-
-    // console.log("mobiles: " , this.mobiles)
+    // this._store.dispatch(new LoadSharedMobiles([]));
 
     if(!this.isDialog ){
       if (this.user && this.user.departments) {
@@ -270,11 +259,9 @@ export class MobileListComponent implements OnInit {
                   })
                 }
 
-                if (container.department_id === this.selectedDepartment.id) {
-                  this.sharedMobileContainers.push(container);
-                }
-
-
+                // if (container.department_id === this.selectedDepartment.id) {
+                //   this.sharedMobileContainers.push(container);
+                // }
 
               } else if (this.user.user_id == container.created_by) {
                 this.runningMobiles.push(container);
@@ -300,16 +287,6 @@ export class MobileListComponent implements OnInit {
         );
       }
     );
-  }
-
-  getSharedMobileContainers() {
-    this.sharedMobileContainers = this.runningMobiles.filter(
-      container =>
-        container.shared &&
-        container.created_by !== this.user.user_id &&
-        container.department_id === this.selectedDepartment.id
-    );
-    // this._cdr.detectChanges();
   }
 
   showSpinnerFor(containerId: number): void {
@@ -536,10 +513,10 @@ export class MobileListComponent implements OnInit {
 
   // Check the running containers filtered by deprtament
   isThisMobileContainerRunning(mobile_id): Container | null {
-    console.log("Shared containers by department", this.sharedMobileContainers)
+    // console.log("Shared containers by department", this.sharedMobileContainers)
     // this.mobiles.filter(m => m.department_id === this.selectedDepartment?.id);
     for (let container of this.runningMobiles) {
-      console.log("Container", container)
+      // console.log("Container", container)
       if (container.image == mobile_id && container.department_id == this.selectedDepartment.id) {
         return container;
       }
@@ -574,6 +551,8 @@ export class MobileListComponent implements OnInit {
 
 
   onDepartmentSelect($event){
+
+    this._store.dispatch(new LoadSharedMobiles(this.selectedDepartment.id));
 
     if (!this.selectedDepartment || !this.selectedDepartment.id) {
       this.selectionsDisabled = false;
@@ -630,6 +609,30 @@ export class MobileListComponent implements OnInit {
     else{
       event.source.checked = false;
     }
+  }
+
+  loadSharedContainers() {
+    this.sharedMobileContainers = [];
+
+    this._api.getContainersList().subscribe((containers: Container[]) => {
+      this.sharedMobileContainers = containers.filter(container =>
+        container.shared &&
+        container.department_id === this.selectedDepartment.id &&
+        container.created_by !== this.user.user_id
+      );
+
+      console.log("Cotnainer: ", this.runningMobiles)
+      this.sharedMobileContainers.forEach(container => {
+        container.image = this.mobiles.find(m => m.mobile_id === container.image);
+        console.log("container image: ", container.image)
+      });
+
+      console.log("shared ", this.sharedMobileContainers)
+      console.log("Selected Dep: ", this.selectedDepartment.id)
+      console.log("sharedMobile: ", this.sharedMobileContainers)
+
+      this._cdr.detectChanges();
+    });
   }
 
 }
