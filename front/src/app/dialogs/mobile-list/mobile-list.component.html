@@ -937,7 +937,7 @@
                 </div>
                 <div class="mobiles">
                   <!-- Iterate over shared containers list -->
-                  <div class="mobile" *ngFor="let container of sharedMobileContainers">
+                  <div class="mobile" *ngFor="let container of sharedMobileContainers$ | async">
                     <div *ngLet="container.service_status == 'Running' as isRunning">
                       <!-- Shared device details -->
                       <div class="mobile-details-shared">
