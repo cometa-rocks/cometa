@@ -1,5 +1,5 @@
 {
-  "version": "3.0.10",
+  "version": "3.0.11",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.11",
+      "date": "2025-02-13",
+      "features": [
+        {
+          "title": "#5519 Maximum 3 emulator running",
+          "description": "Limits the number of running emulators to 3, with a notification showing the current running emulators and department"
+        }
+      ]
+    },
     {
       "version": "3.0.10",
       "date": "2025-02-13",

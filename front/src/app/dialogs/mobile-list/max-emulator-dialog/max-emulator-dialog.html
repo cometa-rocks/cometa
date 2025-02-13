@@ -1,0 +1,18 @@
+<h2 mat-dialog-title>Max Emulator Limit Reached</h2>
+<mat-dialog-content>
+  <p>You cannot run more than 3 emulators at the same time.</p>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Running Emulators</mat-label>
+    <mat-hint>{{ runningEmulators.length }} emulators are currently running in {{ departmentName }}.</mat-hint>
+    <mat-list>
+      <mat-list-item *ngFor="let emulator of runningEmulators">
+        Emulator ID: {{ emulator.id }} - {{ emulator.name }}
+      </mat-list-item>
+    </mat-list>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="closeDialog()">OK</button>
+</mat-dialog-actions>

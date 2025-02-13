@@ -676,7 +676,7 @@
                           [ngClass]="{ 'disabled-button-border': !selectedDepartment || !selectedDepartment.id }"
                           *ngIf="!runningContainer">
                           <div
-                            (click)="startMobile(mobile.mobile_id)"
+                            (click)="startMobile(mobile.mobile_id) "
                             [disabled]="!selectionsDisabled"
                             [ngClass]="{ 'disabled-button': !selectedDepartment || !selectedDepartment.id }"
                             mat-raised-button
@@ -685,6 +685,7 @@
                             Start
                           </div>
                         </div>
+
                         <ng-container *ngIf="runningContainer">
                           <div class="skewed-button-container"
                             [ngClass]="{

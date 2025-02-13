@@ -59,6 +59,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ModifyEmulatorDialogComponent } from '@dialogs/mobile-list/modify-emulator-dialog/modify-emulator-dialog.component';
 import { ConfigState } from '@store/config.state';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MaxEmulatorDialogComponent } from '@dialogs/mobile-list/max-emulator-dialog/max-emulator-dialog';
 
 /**
  * MobileListComponent
@@ -293,38 +294,44 @@ export class MobileListComponent implements OnInit {
 
   // This method starts the mobile container
   startMobile(mobile_id): void {
-    const mobile = this.mobiles.find(m => m.mobile_id === mobile_id);
-    let body = {
-      image: mobile_id,
-      service_type: 'Emulator',
-      department_id: this.data.department_id || this.selectedDepartment?.id,
-      shared: mobile.isShared === true ? true : false,
-      selected_apk_file_id: mobile.selectedAPKFileID,
-    };
 
-    // Call the API service on component initialization
-    this._api.startMobile(body).subscribe(
-      (container: Container) => {
-        // Update the service status to Running
-        container.service_status = 'Running';
+    if (this.runningMobiles.length >= 3) {
+      this.openMaxEmulatorDialog();
+    }
+    else{
+      const mobile = this.mobiles.find(m => m.mobile_id === mobile_id);
+      let body = {
+        image: mobile_id,
+        service_type: 'Emulator',
+        department_id: this.data.department_id || this.selectedDepartment?.id,
+        shared: mobile.isShared === true ? true : false,
+        selected_apk_file_id: mobile.selectedAPKFileID,
+      };
 
-        // Add the container to the runningMobiles list
-        this.runningMobiles.push(container);
+      // Call the API service on component initialization
+      this._api.startMobile(body).subscribe(
+        (container: Container) => {
+          // Update the service status to Running
+          container.service_status = 'Running';
 
-        // Show success snackbar
-        this.snack.open('Mobile started successfully', 'OK');
+          // Add the container to the runningMobiles list
+          this.runningMobiles.push(container);
 
-        // Trigger change detection
-        this._cdr.detectChanges();
-      },
-      error => {
-        // Handle any errors
-        console.error('An error occurred while starting the mobile', error);
+          // Show success snackbar
+          this.snack.open('Mobile started successfully', 'OK');
 
-        // Show error snackbar
-        this.snack.open('Error while starting the mobile', 'OK');
-      }
-    );
+          // Trigger change detection
+          this._cdr.detectChanges();
+        },
+        error => {
+          // Handle any errors
+          console.error('An error occurred while starting the mobile', error);
+
+          // Show error snackbar
+          this.snack.open('Error while starting the mobile', 'OK');
+        }
+      );
+    }
   }
 
   // This method stops the mobile container using ID
@@ -617,4 +624,17 @@ export class MobileListComponent implements OnInit {
     });
   }
 
+  // Dialog max emulators
+  openMaxEmulatorDialog(): void {
+    const runningEmulators = this.runningMobiles;
+    const departmentName = this.selectedDepartment?.name;
+
+    this._dialog.open(MaxEmulatorDialogComponent, {
+      data: {
+        runningEmulators: runningEmulators,
+        departmentName: departmentName
+      },
+      panelClass: 'max-emulator-dialog'
+    });
+  }
 }
