@@ -59,7 +59,6 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ModifyEmulatorDialogComponent } from '@dialogs/mobile-list/modify-emulator-dialog/modify-emulator-dialog.component';
 import { ConfigState } from '@store/config.state';
 import { MatBadgeModule } from '@angular/material/badge';
-import { LoadSharedMobiles, SharedMobileState } from '@store/shared_mobile.state';
 
 /**
  * MobileListComponent
@@ -129,7 +128,6 @@ export class MobileListComponent implements OnInit {
   }
   @ViewSelectSnapshot(UserState) user!: UserInfo;
   @ViewSelectSnapshot(ConfigState) config$!: Config;
-  @Select(SharedMobileState.getSharedMobiles) sharedMobileContainers$: Observable<any[]>;
 
   // Declare the variable where the API result will be assigned
   mobiles: IMobile[] = [];
@@ -166,15 +164,11 @@ export class MobileListComponent implements OnInit {
 
     this.isDialog = this.data?.department_id ? true : false;
 
-    // this._store.dispatch(new LoadSharedMobiles([]));
-
     if(!this.isDialog ){
       if (this.user && this.user.departments) {
 
         // User preselect department
         this.preselectDepartment = this.user.settings?.preselectDepartment;
-
-        this.logger.msg("1", "CO-User:", "mobile-list", this.user);
 
         let selected = this.departments.find(department => department.department_id === this.preselectDepartment);
 
@@ -186,7 +180,6 @@ export class MobileListComponent implements OnInit {
         if (selected) {
           this.selectedDepartment = { id: selected.department_id, name: selected.department_name };
           this._cdr.detectChanges();
-          this.logger.msg("1", "CO-selectedDepartment:", "mobile-list", this.selectedDepartment);
         }
       }
     }
@@ -216,10 +209,8 @@ export class MobileListComponent implements OnInit {
     // Call the API service on component initialization
     this._api.getMobileList().subscribe(
       (mobiles: IMobile[]) => {
-        // this.logger.msg("1", "CO-depID:", "mobiles", mobiles);
         // Assign the received data to the `mobile` variable
         this.mobiles = mobiles;
-        // console.log(" this.mobiles <><><>: ", this.mobiles)
         // department_id is received only when component is opened as dialog
         this.isDialog = this.data?.department_id ? true : false;
 
@@ -259,9 +250,9 @@ export class MobileListComponent implements OnInit {
                   })
                 }
 
-                // if (container.department_id === this.selectedDepartment.id) {
-                //   this.sharedMobileContainers.push(container);
-                // }
+                if (container.department_id === this.selectedDepartment.id) {
+                  this.sharedMobileContainers.push(container);
+                }
 
               } else if (this.user.user_id == container.created_by) {
                 this.runningMobiles.push(container);
@@ -513,10 +504,8 @@ export class MobileListComponent implements OnInit {
 
   // Check the running containers filtered by deprtament
   isThisMobileContainerRunning(mobile_id): Container | null {
-    // console.log("Shared containers by department", this.sharedMobileContainers)
     // this.mobiles.filter(m => m.department_id === this.selectedDepartment?.id);
     for (let container of this.runningMobiles) {
-      // console.log("Container", container)
       if (container.image == mobile_id && container.department_id == this.selectedDepartment.id) {
         return container;
       }
@@ -551,8 +540,7 @@ export class MobileListComponent implements OnInit {
 
 
   onDepartmentSelect($event){
-
-    this._store.dispatch(new LoadSharedMobiles(this.selectedDepartment.id));
+    this.loadSharedContainers();
 
     if (!this.selectedDepartment || !this.selectedDepartment.id) {
       this.selectionsDisabled = false;
@@ -621,15 +609,9 @@ export class MobileListComponent implements OnInit {
         container.created_by !== this.user.user_id
       );
 
-      console.log("Cotnainer: ", this.runningMobiles)
       this.sharedMobileContainers.forEach(container => {
         container.image = this.mobiles.find(m => m.mobile_id === container.image);
-        console.log("container image: ", container.image)
       });
-
-      console.log("shared ", this.sharedMobileContainers)
-      console.log("Selected Dep: ", this.selectedDepartment.id)
-      console.log("sharedMobile: ", this.sharedMobileContainers)
 
       this._cdr.detectChanges();
     });
