@@ -1,18 +1,27 @@
 <h2 mat-dialog-title>Max Emulator Limit Reached</h2>
 <mat-dialog-content>
-  <p>You cannot run more than 3 emulators at the same time.</p>
+  <p>You cannot run more than <span>3</span> emulators at the same time.</p>
 
-  <mat-form-field appearance="outline">
-    <mat-label>Running Emulators</mat-label>
-    <mat-hint>{{ runningEmulators.length }} emulators are currently running in {{ departmentName }}.</mat-hint>
-    <mat-list>
-      <mat-list-item *ngFor="let emulator of runningEmulators">
-        Emulator ID: {{ emulator.id }} - {{ emulator.name }}
-      </mat-list-item>
-    </mat-list>
-  </mat-form-field>
+  <mat-hint>
+    The following departments have emulators running:
+  </mat-hint>
+
+  <mat-list>
+    <ng-container *ngFor="let department of departments">
+      <ng-container *ngIf="emulatorsByDepartment[department.department_id]">
+        <mat-list-item>
+          <strong>{{ department.department_name }}</strong> has the following emulators running:
+        </mat-list-item>
+
+        <!-- Mostrar los emuladores de ese departamento -->
+        <mat-list-item *ngFor="let emulator of emulatorsByDepartment[department.department_id]">
+          Emulator ID: {{ emulator.id }} - <strong>{{ department.department_name }}</strong>
+        </mat-list-item>
+      </ng-container>
+    </ng-container>
+  </mat-list>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button (click)="closeDialog()">OK</button>
+  <button mat-stroked-button color="primary" (click)="closeDialog()">OK</button>
 </mat-dialog-actions>
