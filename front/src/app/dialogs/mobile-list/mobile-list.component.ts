@@ -295,7 +295,10 @@ export class MobileListComponent implements OnInit {
   // This method starts the mobile container
   startMobile(mobile_id): void {
 
-    if (this.runningMobiles.length >= 3) {
+    let serviceStatusCount = this.runningMobiles.filter(container => container.service_status === 'Running').length;
+
+    console.log("Count service running: ", serviceStatusCount)
+    if (serviceStatusCount >= 3) {
       this.openMaxEmulatorDialog();
     }
     else{
@@ -627,14 +630,24 @@ export class MobileListComponent implements OnInit {
   // Dialog max emulators
   openMaxEmulatorDialog(): void {
     const runningEmulators = this.runningMobiles;
-    const departmentName = this.selectedDepartment?.name;
+    const departments = this.departments;
+
+    const emulatorsByDepartment = runningEmulators.reduce((acc, emulator) => {
+      const departmentId = emulator.department_id;
+      if (!acc[departmentId]) {
+        acc[departmentId] = [];
+      }
+      acc[departmentId].push(emulator);
+      return acc;
+    }, {});
 
     this._dialog.open(MaxEmulatorDialogComponent, {
       data: {
-        runningEmulators: runningEmulators,
-        departmentName: departmentName
+        departments: departments,
+        emulatorsByDepartment: emulatorsByDepartment
       },
       panelClass: 'max-emulator-dialog'
     });
   }
+
 }
