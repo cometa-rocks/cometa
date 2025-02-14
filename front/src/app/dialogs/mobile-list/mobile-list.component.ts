@@ -60,6 +60,14 @@ import { ModifyEmulatorDialogComponent } from '@dialogs/mobile-list/modify-emula
 import { ConfigState } from '@store/config.state';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MaxEmulatorDialogComponent } from '@dialogs/mobile-list/max-emulator-dialog/max-emulator-dialog';
+import { FeaturesState } from '@store/features.state';
+import {
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators,
+  UntypedFormBuilder,
+} from '@angular/forms';
+
 
 /**
  * MobileListComponent
@@ -117,6 +125,7 @@ import { MaxEmulatorDialogComponent } from '@dialogs/mobile-list/max-emulator-di
   ],
 })
 export class MobileListComponent implements OnInit {
+  featureForm: UntypedFormGroup;
   constructor(
     private _dialog: MatDialog,
     private _api: ApiService,
@@ -124,8 +133,12 @@ export class MobileListComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private snack: MatSnackBar,
     private _store: Store,
-    private logger: LogService
+    private logger: LogService,
+    private _fb: UntypedFormBuilder,
   ) {
+    this.featureForm = this._fb.group({
+      department_name: ['', Validators.required],
+    });
   }
   @ViewSelectSnapshot(UserState) user!: UserInfo;
   @ViewSelectSnapshot(ConfigState) config$!: Config;
@@ -160,7 +173,6 @@ export class MobileListComponent implements OnInit {
   preselectDepartment: number;
 
   ngOnInit(): void {
-
     this.departments = this.user.departments;
 
     this.isDialog = this.data?.department_id ? true : false;
@@ -279,6 +291,7 @@ export class MobileListComponent implements OnInit {
         );
       }
     );
+    // this.selected_department = this.getPreselectedDepartment();
   }
 
   showSpinnerFor(containerId: number): void {
@@ -650,4 +663,45 @@ export class MobileListComponent implements OnInit {
     });
   }
 
+  // selected_department: string;
+
+//   getPreselectedDepartment(): string {
+
+//     console.log("Nico: ")
+//     // 1. localstorage -> last selected department
+//     const lastDept = localStorage.getItem('co_last_dpt');
+//     const userSettingsPreselectedDpt = this.user.settings.preselectDepartment
+//     console.log("User settings: ", this.departments)
+//     if (lastDept) {
+//       for (let i = 0; i < this.departments.length; i++) {
+//         if (this.departments[i].department_name === lastDept) {
+//           this.selected_department = this.departments[i].department_name;
+//           FeaturesState.static_setSelectedDepartment(this.departments[i].department_id);
+//         }
+//       }
+//     }
+//     console.log("Nico2: ")
+//     // 2. personal preference
+//     if(!lastDept && userSettingsPreselectedDpt){
+//       console.log("User depar: ", this.departments[userSettingsPreselectedDpt])
+//       this.selected_department = this.departments[userSettingsPreselectedDpt].department_name;
+//       localStorage.setItem('co_last_dpt', this.selected_department)
+//       FeaturesState.static_setSelectedDepartment(this.departments[userSettingsPreselectedDpt].department_id);
+
+//     }
+//     console.log("Nico3: ")
+//     // 3. First of the list
+//     if(!lastDept && !userSettingsPreselectedDpt){
+//       try {
+//         this.selected_department = this.departments[0].department_name;
+//         localStorage.setItem('co_last_dpt', this.selected_department)
+//         FeaturesState.static_setSelectedDepartment(this.departments[0].department_id);
+//       } catch (error) {
+//         this.logger.msg('l1-feature-recent.component.ts', 'Error setting default department', error, '');
+//       }
+//     }
+//     this.logger.msg('l1-feature-recent.component.ts','Selected Department: '+this.selected_department,'','')
+//     return this.selected_department
+//   }
+// }
 }
