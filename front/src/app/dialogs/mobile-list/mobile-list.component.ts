@@ -291,7 +291,8 @@ export class MobileListComponent implements OnInit {
         );
       }
     );
-    // this.selected_department = this.getPreselectedDepartment();
+    this.selectedDepartment = this.getPreselectedDepartment();
+    console.log("Departamento preseleccionado:", this.selectedDepartment);
   }
 
   showSpinnerFor(containerId: number): void {
@@ -638,6 +639,20 @@ export class MobileListComponent implements OnInit {
 
       this._cdr.detectChanges();
     });
+    this.onDepartmentChange()
+  }
+
+  onDepartmentChange() {
+    //this._sharedActions.setSelectedDepartment(this.selected_department);
+    //When switching options in the dropdown, we update the UI and call FutureState to sort by the new option.
+    for (const department of this.user.departments) {
+      if(department.department_name == this.selectedDepartment.name){
+        localStorage.setItem('co_last_dpt',this.selectedDepartment.name)
+        FeaturesState.static_setSelectedDepartment(department.department_id)
+        //refresh UI
+      }
+    }
+    this._cdr.detectChanges();
   }
 
   // Dialog max emulators
@@ -665,43 +680,61 @@ export class MobileListComponent implements OnInit {
 
   // selected_department: string;
 
-//   getPreselectedDepartment(): string {
+  getPreselectedDepartment(): { name: string, id: number } | null {
+    // 1. Obtener el último departamento seleccionado desde localStorage
+    const lastDept = localStorage.getItem('co_last_dpt');
+    console.log("Último departamento seleccionado en localStorage:", lastDept);
 
-//     console.log("Nico: ")
-//     // 1. localstorage -> last selected department
-//     const lastDept = localStorage.getItem('co_last_dpt');
-//     const userSettingsPreselectedDpt = this.user.settings.preselectDepartment
-//     console.log("User settings: ", this.departments)
-//     if (lastDept) {
-//       for (let i = 0; i < this.departments.length; i++) {
-//         if (this.departments[i].department_name === lastDept) {
-//           this.selected_department = this.departments[i].department_name;
-//           FeaturesState.static_setSelectedDepartment(this.departments[i].department_id);
-//         }
-//       }
-//     }
-//     console.log("Nico2: ")
-//     // 2. personal preference
-//     if(!lastDept && userSettingsPreselectedDpt){
-//       console.log("User depar: ", this.departments[userSettingsPreselectedDpt])
-//       this.selected_department = this.departments[userSettingsPreselectedDpt].department_name;
-//       localStorage.setItem('co_last_dpt', this.selected_department)
-//       FeaturesState.static_setSelectedDepartment(this.departments[userSettingsPreselectedDpt].department_id);
+    // 2. Obtener la configuración del usuario para preseleccionar departamento
+    const userSettingsPreselectedDpt = this.user.settings?.preselectDepartment;
+    console.log("Preseleccionado en user.settings:", userSettingsPreselectedDpt);
 
-//     }
-//     console.log("Nico3: ")
-//     // 3. First of the list
-//     if(!lastDept && !userSettingsPreselectedDpt){
-//       try {
-//         this.selected_department = this.departments[0].department_name;
-//         localStorage.setItem('co_last_dpt', this.selected_department)
-//         FeaturesState.static_setSelectedDepartment(this.departments[0].department_id);
-//       } catch (error) {
-//         this.logger.msg('l1-feature-recent.component.ts', 'Error setting default department', error, '');
-//       }
-//     }
-//     this.logger.msg('l1-feature-recent.component.ts','Selected Department: '+this.selected_department,'','')
-//     return this.selected_department
-//   }
-// }
+    // 3. Si hay un departamento en localStorage, buscarlo en la lista de departamentos
+    if (lastDept) {
+        const selected = this.departments.find(dept => dept.department_name === lastDept);
+        if (selected) {
+            console.log("Departamento encontrado en lista:", selected);
+            this.selectedDepartment = {
+                id: selected.department_id,
+                name: selected.department_name
+            };
+            FeaturesState.static_setSelectedDepartment(this.selectedDepartment.id);
+            return this.selectedDepartment;
+        }
+    }
+
+    // 4. Si no hay departamento en localStorage, usar el preseleccionado en settings del usuario
+    if (userSettingsPreselectedDpt) {
+        const selected = this.departments.find(dept => dept.department_id === userSettingsPreselectedDpt);
+        if (selected) {
+            console.log("Departamento encontrado por configuración de usuario:", selected);
+            this.selectedDepartment = {
+                id: selected.department_id,
+                name: selected.department_name
+            };
+            FeaturesState.static_setSelectedDepartment(this.selectedDepartment.id);
+            return this.selectedDepartment;
+        }
+    }
+
+    // 5. Si no hay preselección válida, elegir el primer departamento de la lista
+    if (this.departments.length > 0) {
+        this.selectedDepartment = {
+          id: this.departments[0].department_id,
+          name: this.departments[0].department_name
+        };
+        console.log("Seleccionando el primer departamento de la lista:", this.selectedDepartment);
+        FeaturesState.static_setSelectedDepartment(this.selectedDepartment.id);
+        return this.selectedDepartment;
+    }
+
+    console.log("No se encontró un departamento preseleccionado");
+    return null;
+  }
+
+  //
+  compareDepartments(d1: any, d2: any): boolean {
+    return d1 && d2 ? d1.id === d2.id : d1 === d2;
+  }
+
 }

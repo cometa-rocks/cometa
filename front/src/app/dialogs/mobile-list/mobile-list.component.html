@@ -578,30 +578,19 @@
             <ng-container>
               <mat-form-field class="selectFormField">
                 <mat-label><mat-icon>domain</mat-icon> Select Department</mat-label>
-                <mat-select [(ngModel)]="selected_department" (selectionChange)="onDepartmentSelect($event)">
+                <mat-select
+                  [(ngModel)]="selectedDepartment"
+                  (selectionChange)="onDepartmentSelect($event)"
+                  [compareWith]="compareDepartments">
+
                   <mat-option
                     class="mobile-options"
                     *ngFor="let department of departments"
-                    [value]="department.department_name">
+                    [value]="{ id: department.department_id, name: department.department_name }">
                     <mat-card>{{ department.department_name }}</mat-card>
                   </mat-option>
                 </mat-select>
               </mat-form-field>
-              <!-- <form [formGroup]="featureForm">
-                <mat-form-field appearance="fill" class="edit-dep">
-                  <mat-label>Department</mat-label>
-                  <mat-select
-                    [(ngModel)]="selected_department"
-                    formControlName="department_name"
-                    (selectionChange)="onDepartmentSelect($event)">
-                    <mat-option
-                      *ngFor="let dep of departments | sortBy: 'department_name'"
-                      [value]="dep.department_name">
-                      {{ dep.department_name }}
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
-              </form> -->
             </ng-container>
 
             <div *ngIf="!selectedDepartment || selectedDepartment.name === ''" class="department-warning">
