@@ -321,27 +321,6 @@ mat-dialog-content {
   color: $success;
 }
 
-// .stopped-text {
-//   font-weight: bold;
-//   color: rgb(152, 145, 145) !important;
-// }
-
-
-// .apk-selection {
-//   display: flex;
-//   flex-direction: column !important;
-//   margin-right: 10px;
-//   margin-left: 10px;
-//   .mat-slider-toggle {
-//     transform: scale(0.7);
-//     margin-left: -60px;
-//     margin-bottom: 10px;
-//     p {
-//       font-size: 20px;
-//     }
-//   }
-// }
-
 ::ng-deep .mdc-switch.mdc-switch--selected.mdc-switch--checked {
   cursor: default !important;
   pointer-events: none !important;
