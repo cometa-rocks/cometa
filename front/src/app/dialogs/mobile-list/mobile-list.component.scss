@@ -1206,8 +1206,6 @@ mat-card {
   border-right: 15px solid transparent;
   border-bottom: 26px solid #FFFFFF66;
   box-shadow: 0 3px 1px -2px rgba(0, 0, 0, -0.8), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-  // transform: skew(-30deg);
-  // background-color: rgba(255, 255, 255, 0.4);
   border-radius: 0 5px 0 0;
 }
 
@@ -1231,19 +1229,6 @@ mat-card {
   right: 18px;
 }
 
-
-// .noVnc-right {
-//   height: 0px;
-//   box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-//   position: absolute;
-//   top: 1px;
-//   right: 280px;
-//   z-index: 999;
-//   border-radius: 0 5px 0 0;
-// }
-
-
-
 // Close
 .border-left-close {
   height: 0px;
@@ -1256,7 +1241,6 @@ mat-card {
 }
 
 .close {
-  // background-color: #ef5350;
   min-width: 35px;
   border-radius: 0 5px 0 0;
   overflow: hidden;
@@ -1334,7 +1318,6 @@ mat-card {
 
 
 /* Status */
-
 .pause[disabled] {
   background-color: orange !important;
   pointer-events: none;
@@ -1388,15 +1371,8 @@ mat-card {
   z-index: 999;
 }
 
-// .apkContainer {
-//   position: relative;
-//   top: -79px;
-//   left: -2px;
-// }
-
 .mobile-emulator-panel-dialog {
   width: 500px;
-  // max-height: 80vh;
   border-radius: 8px;
   overflow: hidden;
   background-color: #f7f7f7;
@@ -1404,7 +1380,6 @@ mat-card {
 
 
 // Menu more vert emulator feature
-
 .startMenu, .restartMenu, .pauseMenu, .modifyMenu, .closeMenu {
   padding: 0 16px;
   width: 136px;
@@ -1446,8 +1421,6 @@ mat-card {
     width: 21px;
     height: 21px;
     filter: brightness(0) saturate(100%) invert(26%) sepia(94%) saturate(1046%) hue-rotate(185deg) brightness(105%) contrast(93%);
-    // margin-right: 8px;
-    // color: #1565c0 !important;
   }
   span {
     color: #1565c0 !important;
@@ -1503,7 +1476,6 @@ mat-card {
   width: 90px;
   height: 26px;
   margin-right: -182px;
-  // transition: background-color 0.2s ease-in-out;
 }
 
 .pause-bg {
@@ -1511,7 +1483,6 @@ mat-card {
   width: 90px;
   height: 26px;
   margin-right: -182px;
-  // transition: background-color 0.2s ease-in-out;
 }
 
 .skewed-button {
