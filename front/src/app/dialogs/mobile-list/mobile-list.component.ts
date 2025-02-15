@@ -291,8 +291,10 @@ export class MobileListComponent implements OnInit {
         );
       }
     );
-    this.selectedDepartment = this.getPreselectedDepartment();
-    console.log("Departamento preseleccionado:", this.selectedDepartment);
+
+    if(!this.isDialog){
+      this.selectedDepartment = this.getPreselectedDepartment();
+    }
   }
 
   showSpinnerFor(containerId: number): void {
@@ -311,7 +313,6 @@ export class MobileListComponent implements OnInit {
 
     let serviceStatusCount = this.runningMobiles.filter(container => container.service_status === 'Running').length;
 
-    console.log("Count service running: ", serviceStatusCount)
     if (serviceStatusCount >= 3) {
       this.openMaxEmulatorDialog();
     }
@@ -639,6 +640,7 @@ export class MobileListComponent implements OnInit {
 
       this._cdr.detectChanges();
     });
+
     this.onDepartmentChange()
   }
 
@@ -683,17 +685,14 @@ export class MobileListComponent implements OnInit {
   getPreselectedDepartment(): { name: string, id: number } | null {
     // 1. Obtener el último departamento seleccionado desde localStorage
     const lastDept = localStorage.getItem('co_last_dpt');
-    console.log("Último departamento seleccionado en localStorage:", lastDept);
 
     // 2. Obtener la configuración del usuario para preseleccionar departamento
     const userSettingsPreselectedDpt = this.user.settings?.preselectDepartment;
-    console.log("Preseleccionado en user.settings:", userSettingsPreselectedDpt);
 
     // 3. Si hay un departamento en localStorage, buscarlo en la lista de departamentos
     if (lastDept) {
         const selected = this.departments.find(dept => dept.department_name === lastDept);
         if (selected) {
-            console.log("Departamento encontrado en lista:", selected);
             this.selectedDepartment = {
                 id: selected.department_id,
                 name: selected.department_name
@@ -707,7 +706,6 @@ export class MobileListComponent implements OnInit {
     if (userSettingsPreselectedDpt) {
         const selected = this.departments.find(dept => dept.department_id === userSettingsPreselectedDpt);
         if (selected) {
-            console.log("Departamento encontrado por configuración de usuario:", selected);
             this.selectedDepartment = {
                 id: selected.department_id,
                 name: selected.department_name
@@ -723,16 +721,13 @@ export class MobileListComponent implements OnInit {
           id: this.departments[0].department_id,
           name: this.departments[0].department_name
         };
-        console.log("Seleccionando el primer departamento de la lista:", this.selectedDepartment);
         FeaturesState.static_setSelectedDepartment(this.selectedDepartment.id);
         return this.selectedDepartment;
     }
-
-    console.log("No se encontró un departamento preseleccionado");
     return null;
   }
 
-  //
+
   compareDepartments(d1: any, d2: any): boolean {
     return d1 && d2 ? d1.id === d2.id : d1 === d2;
   }

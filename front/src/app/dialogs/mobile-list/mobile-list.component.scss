@@ -1198,6 +1198,7 @@ mat-card {
   background-color: #f5f5f5;
   box-shadow: 1px 0px 0px rgba(0, 0, 0, 0.2);
   transform: skewX(30deg);
+  z-index: 9;
 }
 
 
@@ -1541,10 +1542,9 @@ mat-card {
   background-color: #f7f7f7;
 }
 
-::ng-deep .mobile-emulator-panel-dialog {
-  width: 80vw;
-  height: 81vh;
-}
+// ::ng-deep .mobile-emulator-panel-dialog {
+//   width: 80vw;
+// }
 
 ::ng-deep div mat-slide-toggle button {
   transform: scale(0.8);
@@ -1555,4 +1555,13 @@ mat-card {
   font-size: 14px;
   margin-right: -144px;
   margin-top: 8px;
+}
+
+::ng-depp .edit-feature-panel {
+  width: 80vw;
+  position: relative !important;
+}
+
+.noDialogCloseButton {
+  margin-top: 22px;
 }
