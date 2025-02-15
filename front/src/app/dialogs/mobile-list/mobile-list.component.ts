@@ -588,8 +588,9 @@ export class MobileListComponent implements OnInit {
 
     let uploadedApksList = this.departments
     .filter(department => department.department_id === this.selectedDepartment?.id)
-    .map(department => department.files || [])
-    .reduce((acc, files) => acc.concat(files), []);
+    .map(department => department.files || []) // Extract the files array
+    .reduce((acc, files) => acc.concat(files), []) // Flatten the array
+    .filter(file => file.name?.toLowerCase().endsWith('.apk') || file.mime === 'application/vnd.android.package-archive');
 
     let departmentName = this.departments.filter(
       department => department.department_id === this.selectedDepartment?.id)
@@ -605,6 +606,7 @@ export class MobileListComponent implements OnInit {
           runningContainer
         },
         panelClass: 'mobile-emulator-panel-dialog',
+        disableClose: true,
       })
       .afterClosed()
       .subscribe(result => {
@@ -645,7 +647,6 @@ export class MobileListComponent implements OnInit {
   }
 
   onDepartmentChange() {
-    //this._sharedActions.setSelectedDepartment(this.selected_department);
     //When switching options in the dropdown, we update the UI and call FutureState to sort by the new option.
     for (const department of this.user.departments) {
       if(department.department_name == this.selectedDepartment.name){
@@ -680,16 +681,14 @@ export class MobileListComponent implements OnInit {
     });
   }
 
-  // selected_department: string;
-
   getPreselectedDepartment(): { name: string, id: number } | null {
-    // 1. Obtener el último departamento seleccionado desde localStorage
+    // 1. Get the last selected department from localStorage
     const lastDept = localStorage.getItem('co_last_dpt');
 
-    // 2. Obtener la configuración del usuario para preseleccionar departamento
+    // 2. Get the user's settings for preselecting a department
     const userSettingsPreselectedDpt = this.user.settings?.preselectDepartment;
 
-    // 3. Si hay un departamento en localStorage, buscarlo en la lista de departamentos
+    // 3. If there is a department in localStorage, find it in the department list
     if (lastDept) {
         const selected = this.departments.find(dept => dept.department_name === lastDept);
         if (selected) {
@@ -702,7 +701,7 @@ export class MobileListComponent implements OnInit {
         }
     }
 
-    // 4. Si no hay departamento en localStorage, usar el preseleccionado en settings del usuario
+    // 4. If no department is found in localStorage, use the one preselected in user settings
     if (userSettingsPreselectedDpt) {
         const selected = this.departments.find(dept => dept.department_id === userSettingsPreselectedDpt);
         if (selected) {
@@ -715,7 +714,7 @@ export class MobileListComponent implements OnInit {
         }
     }
 
-    // 5. Si no hay preselección válida, elegir el primer departamento de la lista
+    // 5. If no valid preselection is found, choose the first department in the list
     if (this.departments.length > 0) {
         this.selectedDepartment = {
           id: this.departments[0].department_id,
@@ -724,8 +723,10 @@ export class MobileListComponent implements OnInit {
         FeaturesState.static_setSelectedDepartment(this.selectedDepartment.id);
         return this.selectedDepartment;
     }
+
     return null;
   }
+
 
 
   compareDepartments(d1: any, d2: any): boolean {
