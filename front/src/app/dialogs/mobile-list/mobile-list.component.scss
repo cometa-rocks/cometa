@@ -1542,9 +1542,9 @@ mat-card {
   background-color: #f7f7f7;
 }
 
-// ::ng-deep .mobile-emulator-panel-dialog {
-//   width: 80vw;
-// }
+::ng-deep .mobile-emulator-panel-dialog {
+  width: 80vw;
+}
 
 ::ng-deep div mat-slide-toggle button {
   transform: scale(0.8);
@@ -1555,11 +1555,6 @@ mat-card {
   font-size: 14px;
   margin-right: -144px;
   margin-top: 8px;
-}
-
-::ng-depp .edit-feature-panel {
-  width: 80vw;
-  position: relative !important;
 }
 
 .noDialogCloseButton {
