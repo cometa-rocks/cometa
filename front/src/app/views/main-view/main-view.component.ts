@@ -114,6 +114,7 @@ export class MainViewComponent implements OnInit {
     { header: 'NOK', field: 'fails', sortable: true, class: 'aligned-center' },
     { header: 'Skipped', field: 'skipped', class: 'aligned-center' },
     { header: 'Browser', field: 'browser', class: 'aligned-center' },
+    { header: 'Mobile', field: 'mobile', class: 'aligned-center' },
     {
       header: 'Browser Version',
       field: 'browser.browser_version',
@@ -327,6 +328,18 @@ export class MainViewComponent implements OnInit {
               // set latest feature id
               if (this.showPagination)
                 this.latestFeatureResultId = this.results[0].feature_result_id;
+
+              this.results.forEach(result => {
+                if (result.mobile && result.mobile.length > 0) {
+                  console.log(`FeatureResult ID: ${result.feature_result_id}`);
+                  result.mobile.forEach(mobile => {
+                    console.log('📱 Mobile:', mobile);
+                    console.log(`📱 Mobile (JSON): ${JSON.stringify(mobile, null, 2)}`);
+                    console.log(`📱 Mobile Name: ${mobile.name}`);
+                    console.log(`🎥 Video Recording: ${mobile.video_recording}`);
+                  });
+                }
+              });
             },
             error: err => {
               console.error(err);
@@ -461,6 +474,7 @@ export class MainViewComponent implements OnInit {
 
 
   ngOnInit() {
+
     this.featureId$ = this._route.paramMap.pipe(
       map(params => +params.get('feature'))
     );
