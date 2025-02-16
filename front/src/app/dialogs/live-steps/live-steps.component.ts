@@ -286,9 +286,4 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     this.mobiles[data.feature_run_id] = data.mobiles_info
   }
 
-  // hasMultipleMobiles(featureResultId: string) {
-  //   this.logger.msg("1", "CO-Mobiles", "live-steps:", this.mobiles[featureResultId].length > 1);
-  //   return Array.isArray(this.mobiles[featureResultId]) && this.mobiles[featureResultId].length > 1;
-  // }
-
 }
