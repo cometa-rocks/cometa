@@ -1,5 +1,5 @@
 {
-  "version": "3.0.11",
+  "version": "3.0.13",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,26 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.13",
+      "date": "2025-02-16",
+      "features": [
+        {
+          "title": "#5606 Show in main-view the mobile device",
+          "description": "Show the mobile device in the main-view results"
+        }
+      ]
+    },
+    {
+      "version": "3.0.12",
+      "date": "2025-02-15",
+      "features": [
+        {
+          "title": "#5606 Save last departement selected",
+          "description": "Save the last department selected in mobile device selector"
+        }
+      ]
+    },
     {
       "version": "3.0.11",
       "date": "2025-02-13",
