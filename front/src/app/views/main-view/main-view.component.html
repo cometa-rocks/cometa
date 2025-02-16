@@ -209,15 +209,20 @@
 
 <ng-template #mobileTpl let-row let-index="index" let-col="colDef">
   <div class="divMobile">
-    <div *ngFor = "let mobile of row.mobile">
-      <mat-icon
-        stopPropagation
-        class="mobileIcon"
-        matTooltipPosition="above"
-        [matTooltip]="mobile.name">
-        tablet_mac
-      </mat-icon>
+    <div *ngIf="row.mobile.length > 0; else noMobile">
+      <div *ngFor="let mobile of row.mobile">
+        <mat-icon
+          stopPropagation
+          class="mobileIcon"
+          matTooltipPosition="above"
+          [matTooltip]="mobile.name">
+          tablet_mac
+        </mat-icon>
+      </div>
     </div>
+    <ng-template #noMobile>
+      -
+    </ng-template>
   </div>
 </ng-template>
 
