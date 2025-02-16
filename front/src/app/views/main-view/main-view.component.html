@@ -208,18 +208,17 @@
 </ng-template>
 
 <ng-template #mobileTpl let-row let-index="index" let-col="colDef">
-  <mat-icon>phone_iphone </mat-icon>{{ mobile.mobile_image_name }}
-  <!-- <ng-container *ngIf="row.mobile">
-    <mat-select
-      stopPropagation
-      [(value)]="selectMobile[row.feature_result_id]">
-      <mat-option *ngFor="let mobile of row.mobile" [value]="mobile">
-        <mat-label>
-          <mat-icon>phone_iphone </mat-icon>{{ mobile.mobile_image_name }}
-        </mat-label>
-      </mat-option>
-    </mat-select>
-  </ng-container> -->
+  <div class="divMobile">
+    <div *ngFor = "let mobile of row.mobile">
+      <mat-icon
+        stopPropagation
+        class="mobileIcon"
+        matTooltipPosition="above"
+        [matTooltip]="mobile.name">
+        tablet_mac
+      </mat-icon>
+    </div>
+  </div>
 </ng-template>
 
 <!-- TOOLBAR TEMPLATE -->
