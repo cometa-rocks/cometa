@@ -328,18 +328,6 @@ export class MainViewComponent implements OnInit {
               // set latest feature id
               if (this.showPagination)
                 this.latestFeatureResultId = this.results[0].feature_result_id;
-
-              this.results.forEach(result => {
-                if (result.mobile && result.mobile.length > 0) {
-                  console.log(`FeatureResult ID: ${result.feature_result_id}`);
-                  result.mobile.forEach(mobile => {
-                    console.log('📱 Mobile:', mobile);
-                    console.log(`📱 Mobile (JSON): ${JSON.stringify(mobile, null, 2)}`);
-                    console.log(`📱 Mobile Name: ${mobile.name}`);
-                    console.log(`🎥 Video Recording: ${mobile.video_recording}`);
-                  });
-                }
-              });
             },
             error: err => {
               console.error(err);
