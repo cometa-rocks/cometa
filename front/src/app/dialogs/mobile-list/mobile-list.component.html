@@ -2,10 +2,10 @@
   <div *ngIf="!configValueBoolean; else boughtLicense">
     <div *ngIf="isDialog; else notDialog"
       [ngClass]="{ 'mobile-emulator-panel': !configValueBoolean, 'bought-license-panel': configValueBoolean }">
-      <div class="containerFather">
-        <!-- <span> Contract Mobile Device </span> -->
+      <!-- <div class="containerFather">
+        <span> Contract Mobile Device </span>
         <mat-icon>card_membership</mat-icon>
-      </div>
+      </div> -->
       <div class="license-info-container">
         <div class="containerContract">
           <img class="mobileContactImage" src="assets/img/contract_mobile_device.svg" alt="Image contract mobile device"/>
