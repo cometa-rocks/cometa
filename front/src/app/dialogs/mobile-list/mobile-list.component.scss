@@ -342,10 +342,10 @@ mat-dialog-content {
   display: flex;
   flex-direction: column;
   align-items: start;
-  gap: 10px;
+  gap: 6px;
   font-size: 14px;
-  padding: 10px;
-  color: #000000b3;
+  padding: 0 12px;
+  color: rgba(0, 0, 0, 0.7019607843);
 }
 
 .pop-up-info mat-menu-item {
@@ -359,7 +359,7 @@ mat-dialog-content {
 
 .pop-up-info i,
 .pop-up-info mat-icon {
-  font-size: 18px;
+  font-size: 16px;
   margin-right: 8px;
 }
 
