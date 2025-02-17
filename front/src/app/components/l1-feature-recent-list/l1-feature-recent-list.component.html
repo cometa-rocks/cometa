@@ -52,6 +52,7 @@ Author: dph000
     <mtx-grid
       [data]="table.rows"
       [columns]="columns"
+      [noResultText]="'🚀 No data available. Please create a feature for this department'"
       [showToolbar]="true"
       [toolbarTemplate] = "customToolbar"
       [pageSize]="10"
@@ -81,9 +82,6 @@ Author: dph000
       (rowClick)="closeAddButtons()">
     </mtx-grid>
   </div>
-  <ng-template #showWelcome>
-    <cometa-welcome></cometa-welcome>
-  </ng-template>
 </ng-container>
 
 <!-- List of templates for each column used in mtx-grid -->
