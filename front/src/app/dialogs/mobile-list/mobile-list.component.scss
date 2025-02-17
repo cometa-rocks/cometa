@@ -711,20 +711,13 @@ mobile-list {
 }
 
 .nonMobileShared {
-  font-weight: bold;
   color: $primary-color;
-  // color: rgba(0, 0, 0, 0.5);
 }
 
 mat-card {
   mat-icon {
     color: rgba(0, 0, 0, 0.5);
   }
-}
-
-.mobile-options {
-  // position: absolute;
-  // top: 20px;
 }
 
 .containerFather {
