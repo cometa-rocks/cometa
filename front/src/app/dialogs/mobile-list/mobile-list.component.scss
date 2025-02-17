@@ -260,12 +260,14 @@ mat-dialog-content {
   .get-app {
     position: relative;
     top: -15px;
+    left: -1px;
   }
   .installedApp {
     display: flex;
     font-weight: bold;
     position: relative;
     top: -15px;
+    left: -2px;
   }
 }
 
@@ -832,12 +834,8 @@ mat-card {
   border-radius: 4px;
 }
 
-// ::ng-deep .mobile-emulator-panel {
-//   width: 40vw;
-// }
-
 .mobile-emulator-panel {
-  width: 40vw;
+  // width: 40vw;
 }
 
 .bought-license-panel {
