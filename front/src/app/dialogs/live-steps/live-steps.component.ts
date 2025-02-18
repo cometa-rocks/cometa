@@ -107,10 +107,10 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   feature$: Observable<Feature>;
   steps$: Observable<FeatureStep[]>;
 
-  
+
   // Controls de auto scroll
   autoScroll = localStorage.getItem('live_steps_auto_scroll') === 'true';
-  
+
   constructor(
     private dialogRef: MatDialogRef<LiveStepsComponent>,
     @Inject(MAT_DIALOG_DATA) public feature_id: number,
@@ -120,7 +120,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     private _snack: MatSnackBar,
     private logger: LogService,
     private snack: MatSnackBar,
-    private _cdr: ChangeDetectorRef 
+    private _cdr: ChangeDetectorRef
   ) {
     this.status$ = this._store.select(
       CustomSelectors.GetFeatureStatus(this.feature_id)
@@ -135,15 +135,15 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
       this.feature_id
     );
   }
-  
+
   // Cleanup old or unused runs info on close
   ngOnDestroy = () =>
     this._store.dispatch(new WebSockets.CleanupFeatureResults(this.feature_id));
-  
+
   trackBrowserFn(index, item) {
     return item.key;
   }
-  
+
   trackStepFn(index, item) {
     return item.id;
   }
@@ -151,7 +151,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   mobiles = {}
   configuration_value_boolean: boolean = false;
   docker_kubernetes_name: string = ''
-  
+
   ngOnInit() {
     this._api.getCometaConfigurations().subscribe(res => {
 
@@ -164,16 +164,16 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
       else{
         this.snack.open('COMETA_FEATURE_MOBILE_TEST_ENABLED configuration not found.', 'Close', { duration: 3000 });
       }
-      
+
       if(config_docker_kubernetes_name){
         this.docker_kubernetes_name = config_docker_kubernetes_name.configuration_value;
       }
       else{
         this.snack.open('COMETA_DEPLOYMENT_ENVIRONMENT configuration not found.', 'Close', { duration: 3000 });
       }
-      
+
     });
-    
+
     // Grab the steps of the feature
     this.steps$ = this._store
       .select(
@@ -221,10 +221,10 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
           }
         }
       });
-      
+
   }
 
-  
+
   @Subscribe()
   stopTest() {
     return this._api.stopRunningTask(this.feature_id).pipe(
@@ -259,7 +259,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     }
     window.open(url, '_blank').focus();
   }
-  
+
   noVNCMobile(selectedMobile) {
     let complete_url = `/live-session/vnc.html?autoconnect=true&path=mobile/${selectedMobile}`;
     window.open(complete_url, '_blank').focus();
@@ -286,9 +286,4 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     this.mobiles[data.feature_run_id] = data.mobiles_info
   }
 
-  // hasMultipleMobiles(featureResultId: string) {
-  //   this.logger.msg("1", "CO-Mobiles", "live-steps:", this.mobiles[featureResultId].length > 1);
-  //   return Array.isArray(this.mobiles[featureResultId]) && this.mobiles[featureResultId].length > 1;
-  // }
-  
 }
