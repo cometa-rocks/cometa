@@ -2,10 +2,10 @@
   <div *ngIf="!configValueBoolean; else boughtLicense">
     <div *ngIf="isDialog; else notDialog"
       [ngClass]="{ 'mobile-emulator-panel': !configValueBoolean, 'bought-license-panel': configValueBoolean }">
-      <div class="containerFather">
-        <!-- <span> Contract Mobile Device </span> -->
+      <!-- <div class="containerFather">
+        <span> Contract Mobile Device </span>
         <mat-icon>card_membership</mat-icon>
-      </div>
+      </div> -->
       <div class="license-info-container">
         <div class="containerContract">
           <img class="mobileContactImage" src="assets/img/contract_mobile_device.svg" alt="Image contract mobile device"/>
@@ -543,8 +543,8 @@
           </div>
         </div>
       </mat-dialog-content>
-      <mat-dialog-actions >
-        <button mat-stroked-button color="warn" mat-dialog-close>
+      <mat-dialog-actions>
+        <button class="noDialogCloseButton" mat-stroked-button color="warn" mat-dialog-close>
           Close
         </button>
       </mat-dialog-actions>
@@ -578,7 +578,11 @@
             <ng-container>
               <mat-form-field class="selectFormField">
                 <mat-label><mat-icon>domain</mat-icon> Select Department</mat-label>
-                <mat-select [(ngModel)]="selectedDepartment" (selectionChange)="onDepartmentSelect($event)">
+                <mat-select
+                  [(ngModel)]="selectedDepartment"
+                  (selectionChange)="onDepartmentSelect($event)"
+                  [compareWith]="compareDepartments">
+
                   <mat-option
                     class="mobile-options"
                     *ngFor="let department of departments"
@@ -676,7 +680,7 @@
                           [ngClass]="{ 'disabled-button-border': !selectedDepartment || !selectedDepartment.id }"
                           *ngIf="!runningContainer">
                           <div
-                            (click)="startMobile(mobile.mobile_id)"
+                            (click)="startMobile(mobile.mobile_id) "
                             [disabled]="!selectionsDisabled"
                             [ngClass]="{ 'disabled-button': !selectedDepartment || !selectedDepartment.id }"
                             mat-raised-button
@@ -685,6 +689,7 @@
                             Start
                           </div>
                         </div>
+
                         <ng-container *ngIf="runningContainer">
                           <div class="skewed-button-container"
                             [ngClass]="{
@@ -939,7 +944,6 @@
                   <!-- Iterate over shared containers list -->
                   <div class="mobile" *ngFor="let container of sharedMobileContainers">
                     <div *ngLet="container.service_status == 'Running' as isRunning">
-                      <p> {{ conatiner }}</p>
                       <!-- Shared device details -->
                       <div class="mobile-details-shared">
                         <!-- <h4>Shared Device Information</h4>
