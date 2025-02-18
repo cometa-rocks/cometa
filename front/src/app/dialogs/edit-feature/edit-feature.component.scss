@@ -188,6 +188,7 @@ a {
   display: flex;
   align-items: flex-start;
   flex-direction: column;
+  flex-wrap: wrap;
   @include for-tablet-portrait-up {
     flex-direction: row;
     align-items: center;
