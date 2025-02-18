@@ -1127,4 +1127,5 @@ interface Container {
   hostname:string;
   isPaused?: boolean;
   isTerminating?: boolean;
+  department_id?: number;
 }
