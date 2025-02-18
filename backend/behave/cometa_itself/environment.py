@@ -425,7 +425,7 @@ def before_all(context):
     # more options can be found at:
     # https://aerokube.com/selenoid/latest/#_special_capabilities
     
-    if IS_KUBERNETES_DEPLOYMENT:
+    if USE_COMETA_BROWSER_IMAGES:
         cometa_options = {
             "record_video":context.record_video,
             "is_test":True

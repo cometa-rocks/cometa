@@ -114,6 +114,7 @@ export class MainViewComponent implements OnInit {
     { header: 'NOK', field: 'fails', sortable: true, class: 'aligned-center' },
     { header: 'Skipped', field: 'skipped', class: 'aligned-center' },
     { header: 'Browser', field: 'browser', class: 'aligned-center' },
+    { header: 'Mobile', field: 'mobile', class: 'aligned-center' },
     {
       header: 'Browser Version',
       field: 'browser.browser_version',
@@ -461,6 +462,7 @@ export class MainViewComponent implements OnInit {
 
 
   ngOnInit() {
+
     this.featureId$ = this._route.paramMap.pipe(
       map(params => +params.get('feature'))
     );

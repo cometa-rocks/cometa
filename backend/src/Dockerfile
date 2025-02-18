@@ -61,7 +61,7 @@ RUN chown -R cometa:cometa /bin/sh
 RUN chown -R cometa:cometa /usr/sbin/rsyslogd
 RUN chown -R cometa:cometa /var/spool/rsyslog
 RUN chown -R cometa:cometa /etc/rsyslog.d
-RUN chown -R cometa:cometa /proc/kmsg
+# RUN chown -R cometa:cometa /proc/kmsg
 RUN chown -R cometa:cometa /migration 
 
 RUN chown clamav:clamav /var/lib/clamav
@@ -121,3 +121,4 @@ CMD ["./start_pod.sh"]
 # build image for arm and amd processors 
 # docker buildx build -f Dockerfile --platform linux/amd64,linux/arm64 -t cometa/django:latest --push .
 # docker build -f Dockerfile -t cometa/django:0.1 --push .
+# docker build -f Dockerfile -t cometa/django:1.2 --push .
