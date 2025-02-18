@@ -1,5 +1,5 @@
 {
-  "version": "3.0.13",
+  "version": "3.0.14",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.14",
+      "date": "2025-02-17",
+      "features": [
+        {
+          "title": "#5664 Recent page update",
+          "description": "The recent page has been overhauled. giving the user the choice to filter features created by the user or by the selected department. Features are now sorted in order of the earliest feature executed."
+        }
+      ]
+    },    
     {
       "version": "3.0.13",
       "date": "2025-02-16",
