@@ -827,6 +827,7 @@ def checkBrowser(selected, local_browsers, cloud_browsers, lyrid_browsers):
     # Retrieve all browsers from either local or browserstack
     if selected.get('cloud', '') == 'local':
         browsers = local_browsers
+        logger.info(f"Selected Object: {selected}")
     elif selected.get('cloud', '') == 'Lyrid.io':
         browsers = lyrid_browsers
     else:

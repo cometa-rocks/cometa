@@ -1,5 +1,5 @@
 {
-  "version": "3.0.8",
+  "version": "3.0.14",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,6 +237,66 @@
   ],
   "changelog": [
     {
+      "version": "3.0.14",
+      "date": "2025-02-17",
+      "features": [
+        {
+          "title": "#5664 Recent page update",
+          "description": "The recent page has been overhauled. giving the user the choice to filter features created by the user or by the selected department. Features are now sorted in order of the earliest feature executed."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.13",
+      "date": "2025-02-16",
+      "features": [
+        {
+          "title": "#5606 Show in main-view the mobile device",
+          "description": "Show the mobile device in the main-view results"
+        }
+      ]
+    },
+    {
+      "version": "3.0.12",
+      "date": "2025-02-15",
+      "features": [
+        {
+          "title": "#5606 Save last departement selected",
+          "description": "Save the last department selected in mobile device selector"
+        }
+      ]
+    },
+    {
+      "version": "3.0.11",
+      "date": "2025-02-13",
+      "features": [
+        {
+          "title": "#5519 Maximum 3 emulator running",
+          "description": "Limits the number of running emulators to 3, with a notification showing the current running emulators and department"
+        }
+      ]
+    },
+    {
+      "version": "3.0.10",
+      "date": "2025-02-13",
+      "features": [
+        {
+          "title": "#5519 Mobile device - Emulator sync with departments",
+          "description": "Emulators and running mobile devices are now synchronized with the selected department from the selector. Shared containers are also updated based on the department selection"
+        }
+      ]
+    },
+    {
+      "version": "3.0.9",
+      "date": "2025-02-11",
+      "features": [
+        {
+          "title": "#5606 Mobile device",
+          "description": "Introducing mobile device support in the landing tree and feature dialog. Running an emulator now generates testable mobile devices"
+        }
+      ]
+    },
+    {
       "version": "3.0.8",
       "date": "2025-01-30",
       "features": [
@@ -343,7 +403,7 @@
           "description": "Added an icon to allow dragging the live steps window."
         }
       ]
-    },    
+    },
     {
       "version": "2.8.384",
       "date": "2024-09-16",
@@ -393,7 +453,7 @@
           "description": "Implement a feature that allows users to be redirected to the containing folder or department when searching for a feature or folder."
         }
       ]
-    }, 
+    },
     {
       "version": "2.8.379",
       "date": "2024-08-30",
@@ -407,7 +467,7 @@
           "description": "Put back in the same position Add variable button and reposition logout button."
         }
       ]
-    }, 
+    },
     {
     "version": "2.8.378",
     "date": "2024-08-26",
@@ -417,7 +477,7 @@
         "description": "Last screenshot in case of failure can be seen using $screenshot[last] variable"
       }
       ]
-    }, 
+    },
     {
     "version": "2.8.377",
     "date": "2024-08-19",
