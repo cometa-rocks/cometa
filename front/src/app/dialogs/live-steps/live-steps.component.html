@@ -34,7 +34,7 @@
                   *ngIf="showLiveIcon(browser)"
                   >live_tv</mat-icon>
 
-                <div *ngIf="configuration_value_boolean" class="father-mobile-container">
+                <div *ngIf="configuration_value_boolean && mobiles[feature_result_id]?.length > 0" class="father-mobile-container">
                   <ng-container>
                     <span class="separator-text"></span> Mobile
                     <mat-label>
@@ -50,11 +50,8 @@
                         class="browser-icon live_preview_mobile_play_more">
                         play_arrow
                       </mat-icon>
-                      <!-- <div class="number-phones">
-                        {{ mobiles[feature_result_id]?.length || 0 }}
-                      </div> -->
                     </mat-label>
-                    
+
                     <mat-select
                       placeholder="Select mobile"
                       [(value)]="selectedMobile"
@@ -65,25 +62,6 @@
                       </mat-option>
                     </mat-select>
                   </ng-container>
-<!-- 
-                  <ng-template 
-                    #singleMobile
-                    matTooltipPosition="below"
-                    [matTooltip]="'View ' + extractedMobileNames[0] + ' execution, GO live!'">
-                    <span class="separator-text"></span> noVnc view mobile
-                    <mat-icon
-                      (click)="noVNCMobile(mobiles[feature_result_id][0]?.hostname)"
-                      class="browser-icon live_preview_mobile"
-                      matTooltipPosition="below"
-                      [matTooltip]="'View ' + extractedMobileNames[0] + ' execution, GO live!'">
-                      tablet_mac
-                    </mat-icon>
-                    <mat-icon
-                      (click)="noVNCMobile(mobiles[feature_result_id][0]?.hostname)"
-                      class="browser-icon live_preview_mobile_play">
-                      play_arrow
-                    </mat-icon>
-                  </ng-template> -->
                 </div>
               </ng-template>
 
