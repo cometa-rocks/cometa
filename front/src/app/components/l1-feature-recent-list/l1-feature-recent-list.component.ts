@@ -79,8 +79,6 @@ import { Router } from '@angular/router';
 import { SortByPipe } from '@pipes/sort-by.pipe';
 import { DepartmentsState } from '@store/departments.state';
 import { InputFocusService } from '../../services/inputFocus.service';
-import { I } from '@angular/cdk/keycodes';
-import { stringify } from 'querystring';
 import { FeaturesState } from '@store/features.state';
 
 
@@ -174,7 +172,7 @@ export class L1FeatureRecentListComponent {
    * Global variables
    */
 
-  isVisible = false;
+  isDropdownVisible = false;
   activeButton: string
   selected_department: string;
   /**
@@ -231,30 +229,28 @@ export class L1FeatureRecentListComponent {
 
 
   ngOnInit() {
-    localStorage.setItem('co_recent_sort_type', 'my');
-    this.activeButton = 'my'
+    //set initial localstorage viewing as MY features, also if an incognito page/completely new user/browser wants to load, it needs an initial value
+    if(localStorage.getItem('co_recent_sort_type') == null){
+      localStorage.setItem('co_recent_sort_type', 'my')
+    } 
+    //creates observable that dynamically gets all current departments from the user.
     this.allDepartments$.subscribe(departments => {
-      console.log('preselected:', this.user.settings.preselectDepartment);
       this.departments$ = departments;
     });
-
+    this.log.msg('l1-feature-recent.component.ts','241','VALUE OF PRESELECTED DEPARTMENT: ', this.user.settings.preselectDepartment)
+    // Get last select view MY or Department from LocalStorage (Default=My)
+    this.activeButton = localStorage.getItem('co_recent_sort_type') || 'my'
+    this.log.msg('l1-feature-recent.component.ts','Reading view to show from co_recent_sort_type: '+this.activeButton,'','')
+    // isDropdownVisible=fallse, means, MY View is shown, true=Department view is shown. Deafault is my-view, will be overwritten below
+    this.isDropdownVisible = false;
+    // Make dropdown visible only if dpt-view was selected
     if(localStorage.getItem('co_recent_sort_type') === 'dpt') {
-      this.isVisible = true;
-    } else if (localStorage.getItem('co_recent_sort_type') === 'my') {
-      this.isVisible = false;
-    }
-
-    this.log.msg('l1-feature-recent.component.ts','Initializing selected_department as the preselected department','','')
-    //If user has no preselected department, it will select Default by default, else it will select based on user settings.
-    if(this.user.settings.preselectDepartment == null){
-      this.selected_department = 'Default'
-      FeaturesState.static_setSelectedDepartment(0);
-    } else {
-      //preselected departments numeration starts at 1 (need to normalize)
-      this.selected_department = this.departments$[this.user.settings.preselectDepartment - 1].department_name
-      FeaturesState.static_setSelectedDepartment(this.departments$[this.user.settings.preselectDepartment - 1].department_id - 1)
-    }
-    this.toggleList('recent');
+      this.isDropdownVisible = true;
+      // get the preselected department from localStorage, userpreferences or first of list
+      this.log.msg('l1-feature-recent.component.ts','Initializing selected_department as the preselected department','','')
+      this.selected_department = this.getPreselectedDepartment();
+    } 
+    this.toggleList('recent') 
   }
 
   // Checks whether the clicked row is a feature or a folder and opens it
@@ -442,11 +438,13 @@ export class L1FeatureRecentListComponent {
     this.activeButton = sortType;
     localStorage.setItem('co_recent_sort_type', sortType);
     this.log.msg('l1-feature-recent-list.component.ts','392','Added, [' + sortType + '] to Localstorage','')
-    // Make dropdown visibility persist uf needed,
+    // Make dropdown visibility persist,
     if(localStorage.getItem('co_recent_sort_type') === 'dpt') {
-      this.isVisible = true;
+      //when going from MY to DPT, we need to get the preselected department, the same as if we load into DPT with ngOnInit
+      this.selected_department = this.getPreselectedDepartment();
+      this.isDropdownVisible = true;
     } else if (localStorage.getItem('co_recent_sort_type') === 'my') {
-      this.isVisible = false;
+      this.isDropdownVisible = false;
     }
     //refresh UI
     this.toggleList('recent')
@@ -454,10 +452,11 @@ export class L1FeatureRecentListComponent {
 
   onDepartmentChange() {
     this._sharedActions.setSelectedDepartment(this.selected_department);
-    //When switchin options in the dropdown, we update the UI and call FutureState to sort by the new option.
+    //When switching options in the dropdown, we update the UI and call FutureState to sort by the new option.
     for (const department of this.user.departments) {
       if(department.department_name == this.selected_department){
-        FeaturesState.static_setSelectedDepartment(department.department_id-1)
+        localStorage.setItem('co_last_dpt',this.selected_department)
+        FeaturesState.static_setSelectedDepartment(department.department_id)
         //refresh UI
         this.toggleList('recent')
       }
@@ -470,5 +469,46 @@ export class L1FeatureRecentListComponent {
 
   onInputBlur() {
     this.inputFocus = false;
+  }
+
+  /**
+ * Function to get preselected Department for user convinience
+ * 1. localstorage
+ * 2. preselected in Userpreferences
+ * 3. First Item in List
+ * 
+ */
+  getPreselectedDepartment(): string {
+
+    // 1. localstorage -> last selected department
+    const lastDept = localStorage.getItem('co_last_dpt');
+    const userSettingsPreselectedDpt = this.user.settings.preselectDepartment
+    if (lastDept) {
+      for (let i = 0; i < this.departments$.length; i++) {
+        if (this.departments$[i].department_name === lastDept) {
+          this.selected_department = this.departments$[i].department_name;
+          FeaturesState.static_setSelectedDepartment(this.departments$[i].department_id);
+        }
+      }
+    }
+    // 2. personal preference
+    if(!lastDept && userSettingsPreselectedDpt){
+      this.selected_department = this.departments$[userSettingsPreselectedDpt].department_name;
+      localStorage.setItem('co_last_dpt', this.selected_department)
+      FeaturesState.static_setSelectedDepartment(this.departments$[userSettingsPreselectedDpt].department_id);
+
+    }
+    // 3. First of the list
+    if(!lastDept && !userSettingsPreselectedDpt){
+      try {
+        this.selected_department = this.departments$[0].department_name;
+        localStorage.setItem('co_last_dpt', this.selected_department)
+        FeaturesState.static_setSelectedDepartment(this.departments$[0].department_id);
+      } catch (error) {
+        this.log.msg('l1-feature-recent.component.ts', 'Error setting default department', error, '');
+      }
+    }
+    this.log.msg('l1-feature-recent.component.ts','Selected Department: '+this.selected_department,'','')
+    return this.selected_department
   }
 }
