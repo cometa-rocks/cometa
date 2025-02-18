@@ -14,20 +14,20 @@
 ::ng-deep .selected-apks mat-chip-row {
   border-radius: 10px;
   padding: 8px 16px;
-  max-width: 120px; /* Ancho fijo para las chips */
+  max-width: 120px;
   height: 40px;
   display: flex;
-  justify-content: space-between; /* Asegura que el texto y el botón estén separados */
+  justify-content: space-between;
   padding-right: 35px;
 }
 
 ::ng-deep .selected-apks mat-chip-row .mdc-evolution-chip__text-label {
-  flex-grow: 1; /* Permite que el texto ocupe el espacio disponible */
-  min-width: 100px; /* Ajusta el ancho máximo para el texto */
+  flex-grow: 1;
+  min-width: 100px;
   max-width: 100px;
-  white-space: nowrap; /* Evita que el texto se divida en varias líneas */
-  overflow: hidden; /* Oculta el texto que se desborda */
-  text-overflow: ellipsis; /* Muestra los puntos suspensivos cuando el texto se corta */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 ::ng-deep .selected-apks mat-chip-row mat-icon {
@@ -54,10 +54,6 @@
   margin-top: 10px;
   flex-wrap: wrap;
 }
-
-// .no-apks-message {
-//   padding-left: 10px;
-// }
 
 ::ng-deep .selected-apk {
   background-color: #d6d6d6 !important;
@@ -103,16 +99,6 @@
   // overflow: hidden;
 }
 
-// ::ng-deep .mat-dialog-actions {
-//   padding: 8px 0;
-//   display: flex;
-//   flex-wrap: wrap;
-//   min-height: 52px;
-//   align-items: center;
-//   box-sizing: content-box;
-//   margin-bottom: -24px;
-// }
-
 :host::ng-deep .mat-expansion-panel-header {
   padding: 0 27px 0 24px;
 }
@@ -141,20 +127,6 @@ h2, h3 {
   color: $blue;
 }
 
-.mat-dialog-actions {
-  padding: 8px 0;
-  display: flex;
-  flex-wrap: wrap;
-  min-height: 52px;
-  align-items: center;
-  box-sizing: content-box;
-  margin-bottom: -24px;
-  justify-content: flex-end !important;
-
-  position: sticky;
-  bottom: 0;
-
-}
 
 .apk-install-message {
   color: #1565c0;
