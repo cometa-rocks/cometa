@@ -271,7 +271,7 @@
       "date": "2025-02-15",
       "features": [
         {
-          "title": "#5606 Save last departement selected",
+          "title": "Save last departement selected - #5606 ",
           "description": "Save the last department selected in mobile device selector"
         }
       ]
@@ -281,7 +281,7 @@
       "date": "2025-02-13",
       "features": [
         {
-          "title": "#5519 Maximum 3 emulator running",
+          "title": "Maximum 3 emulator running - #5519",
           "description": "Limits the number of running emulators to 3, with a notification showing the current running emulators and department"
         }
       ]
@@ -291,7 +291,7 @@
       "date": "2025-02-13",
       "features": [
         {
-          "title": "#5519 Mobile device - Emulator sync with departments",
+          "title": "Mobile device - Emulator sync with departments #5519",
           "description": "Emulators and running mobile devices are now synchronized with the selected department from the selector. Shared containers are also updated based on the department selection"
         }
       ]
@@ -301,7 +301,7 @@
       "date": "2025-02-11",
       "features": [
         {
-          "title": "#5606 Mobile device",
+          "title": "Mobile device #5606",
           "description": "Introducing mobile device support in the landing tree and feature dialog. Running an emulator now generates testable mobile devices"
         }
       ]
@@ -311,7 +311,7 @@
       "date": "2025-01-30",
       "features": [
         {
-          "title": "#5519 Improved vnc proxy",
+          "title": "Improved vnc proxy #5519",
           "description": "Adding option to take vnc path from backend, to support Selenoid and Cometa browsers vnc connection"
         }
       ]
