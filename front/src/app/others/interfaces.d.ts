@@ -591,6 +591,10 @@ interface Toggles {
   hideSteps: boolean;
   hideSchedule: boolean;
   hideSendMail: boolean;
+  hideInformationMobile: boolean;
+  hideInstallAPKSMobile: boolean;
+  hideInstalledAPKSMobile: boolean;
+  hideSharedMobile: boolean;
 }
 
 interface FileExtras {
@@ -1123,4 +1127,5 @@ interface Container {
   hostname:string;
   isPaused?: boolean;
   isTerminating?: boolean;
+  department_id?: number;
 }
