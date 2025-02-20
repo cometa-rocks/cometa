@@ -2,9 +2,7 @@ import base64
 import time
 import logging
 import json
-import sys
-import sys, requests, re, json
-
+import sys, requests, re, json, traceback, html
 import jq
 
 from behave import step, use_step_matcher
@@ -308,25 +306,14 @@ def get_information_from_current_screen_based_on_prompt(context, prompt, variabl
     logger.debug("Will analyze data")
     send_step_details(context, "Analyzing screen")
     is_success, response = context.ai.analyze_image(context, data)
-    logger.debug(response)
-
     if not is_success:
         raise CustomError(
             f'The AI server could not complete the analysis and failed with the error: "{response}"'
         )
-    logger.debug(response)
-    
-    # json_response = convert_ai_answer_to_json()
-    # logger.debug(json_response)
-    # output = response[1]
 
     if option=='Output JSON':
         response = convert_ai_answer_to_json(response)
         logger.debug(response)
-
     addTestRuntimeVariable(context, variable, response)
 
-
 use_step_matcher("parse")
-
-    
