@@ -26,7 +26,7 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-django
-        image: cometa/django:latest
+        image: cometa/django:1.3
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -40,7 +40,7 @@ spec:
         resources:
           limits:
             cpu: "4"
-            memory: "4Gi"
+            memory: "8Gi"
           requests:
             cpu: "2"
             memory: "2Gi"
@@ -91,6 +91,10 @@ spec:
         - name: cometa-volume
           mountPath: /data/downloads
           subPath: ./data/cometa/downloads
+        - name: cometa-volume
+        # FIXME to mountPath : /data/uploads 
+          mountPath: /code/behave/uploads 
+          subPath: ./data/cometa/uploads
         - name: cometa-volume
           mountPath: /data/department_data
           subPath: ./data/department_data
