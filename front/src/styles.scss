@@ -397,10 +397,11 @@ h3 {
 }
 
 .edit-feature-panel {
-  width: 80vw;
+  width: 100%;
   position: relative !important;
   @media (max-width: 600px) {
-    width: 95vw;
+    //width: 95vw;
+    width: 100%;
   }
 }
 

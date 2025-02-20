@@ -338,6 +338,50 @@
           </li>
         </ul>
       </div>
+      <h3>Mobile Device Settings</h3>
+      <div class="feature-settings">
+        <p>
+          Select which sections of Add/Edit Mobile device are closed by default.
+        </p>
+        <ul>
+          <li>
+            <mat-slide-toggle
+              color="primary"
+              labelPosition="after"
+              [checked]="account.settings?.hideInformationMobile"
+              (change)="handleToggle($event, 'hideInformationMobile')"
+              >Information</mat-slide-toggle
+            >
+          </li>
+          <li>
+            <mat-slide-toggle
+              color="primary"
+              labelPosition="after"
+              [checked]="account.settings?.hideInstallAPKSMobile"
+              (change)="handleToggle($event, 'hideInstallAPKSMobile')"
+              >Install APKs</mat-slide-toggle
+            >
+          </li>
+          <li>
+            <mat-slide-toggle
+              color="primary"
+              labelPosition="after"
+              [checked]="account.settings?.hideInstalledAPKSMobile"
+              (change)="handleToggle($event, 'hideInstalledAPKSMobile')"
+              >Installed APKs</mat-slide-toggle
+            >
+          </li>
+          <li>
+            <mat-slide-toggle
+              color="primary"
+              labelPosition="after"
+              [checked]="account.settings?.hideSharedMobile"
+              (change)="handleToggle($event, 'hideSharedMobile')"
+              >Sharing Emulator</mat-slide-toggle
+            >
+          </li>
+        </ul>
+      </div>
       <ng-container *ngLet="tours$ | async as tours">
         <h3>BADGES</h3>
         <div class="badge-container">

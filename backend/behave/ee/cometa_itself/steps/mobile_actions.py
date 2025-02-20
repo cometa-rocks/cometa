@@ -62,19 +62,35 @@ def start_mobile_and_application(context, mobile_name, capabilities="{}", variab
     logger.debug(f"Received mobile configuration {mobile_configuration}")
     service_manager = ServiceManager()
     logger.debug(f"preparing emulator service configurations")
-    service_manager.prepare_emulator_service_configuration(
-        image=mobile_configuration["mobile_json"]["image"]
-    )
-    send_step_details(context, "Starting mobile container")
-    service_details = service_manager.create_service()
-    logger.debug(f"Service created with Id {service_details['Id']}")
+    # service_manager.prepare_emulator_service_configuration(
+    #     image=mobile_configuration["mobile_json"]["image"]
+    # )
+    # send_step_details(context, "Starting mobile container")
+    # service_details = service_manager.create_service()
+    # logger.debug(f"Service created with Id {service_details['Id']}")
+    
+    
+    new_container_data = {'image': mobile_configuration['mobile_id'], 'service_type': 'Emulator', 'department_id': 1, 'shared': False, 'created_by': 1, 'do_not_create_container': True}
+    
+    response = call_backend(method="POST", path="/api/container_service/", body=new_container_data)
+    
+    if not response.status_code == 201:
+        raise CustomError(f"Could not store the container information in the backend for mobile, status_code : {response.status_code}")
+
+    service_id = response.json()['service_id']
+    logger.debug("Service ID")
+    
+    service_details = service_manager.inspect_service(service_name_or_id=service_id)
+    
     context.container_services.append(service_details)
+    
     service_manager.wait_for_service_to_be_running(
         service_name_or_id=service_details["Id"],
         max_wait_time_seconds=30,
     )
-    time.sleep(40)
 
+    time.sleep(40)
+    
     mobile_configuration["capabilities"].update(context.mobile_capabilities)
     try:
         user_provided_capabilities: dict = json.loads(capabilities)
@@ -89,6 +105,7 @@ def start_mobile_and_application(context, mobile_name, capabilities="{}", variab
         raise CustomeError(
             f"The following keys are already in set : {common_keys}, you do not need to pass them"
         )
+
 
     # connect to backend
     mobile_configuration["capabilities"].update(user_provided_capabilities)

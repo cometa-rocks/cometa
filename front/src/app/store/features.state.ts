@@ -1,4 +1,4 @@
-import { State, Action, StateContext, Selector, Store } from '@ngxs/store';
+import { State, Action, StateContext, Selector, Store, actionMatcher } from '@ngxs/store';
 import { ApiService } from '@services/api.service';
 import { tap } from 'rxjs/operators';
 import { Injectable } from '@angular/core';
@@ -9,6 +9,13 @@ import { Paginations } from './actions/paginations.actions';
 import { getDescendantProp } from '@services/tools';
 import { CustomSelectors } from '@others/custom-selectors';
 import { UserState } from './user.state';
+import { LogService } from '@services/log.service';
+import { Observable } from 'rxjs';
+import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
+import { User } from './actions/user.actions';
+import { userInfo } from 'os';
+import { InitialState } from '@ngxs/store/internals';
+
 
 /**
  * @description Contains the state of:
@@ -43,8 +50,14 @@ import { UserState } from './user.state';
 export class FeaturesState {
   constructor(
     public _api: ApiService,
-    public _store: Store
+    public _store: Store,
+    private log: LogService
   ) {}
+  /*
+  * Global static Varables
+  */
+  static selectedDepartmentId: number
+
 
   /**
    * Fetches the folders from backend
@@ -752,6 +765,14 @@ export class FeaturesState {
   static GetStateDAta(state: IFeaturesState, user): any {
     return JSON.parse(JSON.stringify(state));
   }
+    /**
+   * Setter of the global variable selectedDepartment.
+   * @author Nico Clariana
+   *
+   */
+  static static_setSelectedDepartment(departent: number){
+    this.selectedDepartmentId = departent
+  }
 
   /**
    * Prepares the data to be used in the table of the new landing
@@ -780,7 +801,9 @@ export class FeaturesState {
     let folders = JSON.parse(JSON.stringify(state.folders)) as FoldersResponse;
     let result: any = {};
     let user_id = UserState.GetUserId(user); // Get the user id
+    let department = UserState.RetrieveUserDepartments(user);
     let activeList = localStorage.getItem('co_active_list'); // Get the current list status
+    let activeSortList = localStorage.getItem('co_recent_sort_type') ?? ''; //Get the current sorting type
     // Variable to know what this state does
     result.AAA_help =
       'This state saves the information of all the folders and features to use them subsequently in the datatable.';
@@ -803,9 +826,8 @@ export class FeaturesState {
         }
         break;
       case 'recent':
-        // Get the recently modified features list
-        folders = this.getRecentFeatures(state, user_id);
-        break;
+            //Process resulting in a list of recently modified Features (Displaying by user or by department)
+            folders = this.getRecentFeatures(state, user_id, activeSortList, this.selectedDepartmentId);
       default:
         break;
     }
@@ -823,14 +845,62 @@ export class FeaturesState {
    */
   static getRecentFeatures(
     state: IFeaturesState,
-    user_id: number
+    user_id: number,
+    activeSortList: string,
+    department: number
   ): FoldersResponse {
+    // Get all the features
+    // Filter the data depending on the localstorage variable co_aciveList and co_recent_sorttype,
+    // rows by the modification user id, removing the rows that are not equal to the current user's id
+    switch (activeSortList){
+      case 'my':
+        return this.getRecentFeaturesByMy(state,user_id)
+        //features = features.filter(val => val.last_edited?.user_id === user_id);
+      case 'dpt':
+        return this.getRecentFeaturesByDpt(state, department)
+        //features = features.filter(val => val.department_id === department);
+      default:
+        break;
+    }
+  }
+  /**
+   * Gets the 10 most recent features from the selected department.
+   * @returns the filtered features and folders of the new landing
+   * @param state
+   * @param department
+   * @author Nico Clariana
+   * @date 03-02-25
+   */
+  static getRecentFeaturesByDpt(state: IFeaturesState, department: number ): FoldersResponse {
+
+      let features: Feature[] = Object.values(
+        JSON.parse(JSON.stringify(state.details))
+      ); // Get all the features
+      // Filter the data rows by the selected department.
+      features = features.filter(val => val.department_id === department);
+      // Sorts the features by modification date
+      let sorted: any = features.sort(function (a: any, b: any) {
+        return b.last_update < a.last_update ? -1 : 1;
+      });
+      sorted = sorted.length > 10 ? sorted.slice(0, 10) : sorted; // Limit the results to 10 rows
+      let result = { folders: [], features: sorted };
+      result.features = sorted.map(val => val.feature_id); // Store only the id of each feature
+      return result;
+  }
+
+    /**
+   * Gets the 10 most recent features from the selected department.
+   * @returns the filtered features and folders of the new landing
+   * @param state
+   * @param department
+   * @author Nico Clariana
+   * @date 06-02-25
+   */
+  static getRecentFeaturesByMy(state: IFeaturesState, user_id: number){
     let features: Feature[] = Object.values(
       JSON.parse(JSON.stringify(state.details))
-    ); // Get all the features
-    // Filter the data rows by the modification user id, removing the rows that are not equal to the current user's id
+    );
     features = features.filter(val => val.last_edited?.user_id === user_id);
-    // Sorts the features by modification date
     let sorted: any = features.sort(function (a: any, b: any) {
       return b.last_edited_date < a.last_edited_date ? -1 : 1;
     });

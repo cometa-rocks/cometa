@@ -73,6 +73,12 @@
   top: -7px;
   left: 15.5px;
   z-index: 9999;
+  transition: top 0.3s ease, left 0.3s ease;
+}
+
+.row:hover .feature-run-text {
+  top: -7.8px;
+  left: 15.5px;
 }
 
 .feature-run {
@@ -81,6 +87,12 @@
   background-color: #1565c0;
   position: absolute;
   top: 7px;
+  left: 12.4px;
+  transition: top 0.3s ease, left 0.3s ease;
+}
+
+.row:hover .feature-run {
+  top: 6px;
   left: 12.4px;
 }
 
@@ -93,6 +105,12 @@
   left: 4.4px;
   border-top-right-radius: 5%;
   border-top-left-radius: 5%;
+  // transition: top 0.3s ease, left 0.3s ease;
+}
+
+.row:hover .feature-sheet {
+  height: 4.5px;
+  top: 8px;
 }
 
 .feature-sheet-line {
@@ -102,6 +120,11 @@
   position: absolute;
   top: 10px;
   left: 7px;
+  transition: top 0.3s ease, left 0.3s ease;
+}
+
+.row:hover .feature-sheet-line {
+  top: 9px;
 }
 
 .feature-sheet-line-two {
@@ -111,6 +134,11 @@
   position: absolute;
   top: 10px;
   left: 13px;
+  transition: top 0.3s ease, left 0.3s ease;
+}
+
+.row:hover .feature-sheet-line-two {
+  top: 9px;
 }
 
 .folder-line {
@@ -148,6 +176,10 @@
   font-size: 20px;
 }
 
+.row:hover .little-folder {
+  top: 3.5px;
+}
+
 .second-little-folder {
   height: 9px;
   width: 23px;
@@ -160,6 +192,10 @@
   font-size: 20px;
 }
 
+.row:hover .second-little-folder {
+  top: 0.5px;
+}
+
 .sec-folder-line {
   height: 1px;
   width: 12px;
@@ -167,6 +203,10 @@
   position: absolute;
   top: 13.5px;
   left: 9px;
+}
+
+.row:hover .sec-folder-line {
+  top: 11.5px;
 }
 
 .sec-folder-line-two {
@@ -178,6 +218,10 @@
   left: 3px;
 }
 
+.row:hover .sec-folder-line-two {
+  top: 10.5px;
+}
+
 .sec-folder-title {
   height: 1px;
   width: 4px;
@@ -187,26 +231,38 @@
   left: 5.4px;
 }
 
-// ----------- #checkFeatAndFold-------------- //
+.row:hover .sec-folder-title {
+  top: 9px;
+}
 
 .both-feature-run-text {
   font-size: 1px;
-    font-weight: 100;
-    color: #ffffff;
-    position: absolute;
-    top: -8px;
-    left: 15.5px;
-    z-index: 9999;
+  font-weight: 100;
+  color: #ffffff;
+  position: absolute;
+  top: -8px;
+  left: 15.5px;
+  z-index: 9999;
+  transition: top 0.3s ease;
+}
+
+.row:hover .both-feature-run-text {
+  top: -7px;
 }
 
 .both-feature-run {
   height: 2px;
-    width: 7px;
-    background-color: #1565c0;
-    position: absolute;
-    top: 6px;
-    left: 12.4px;
-    z-index: 9998;
+  width: 7px;
+  background-color: #1565c0;
+  position: absolute;
+  top: 6px;
+  left: 12.4px;
+  z-index: 9998;
+  transition: top 0.3s ease;
+}
+
+.row:hover .both-feature-run {
+  top: 5px;
 }
 
 .both-feature-sheet {
@@ -219,6 +275,11 @@
   border-top-right-radius: 5%;
   border-top-left-radius: 5%;
   z-index: 9998;
+  transition: top 0.3s ease;
+}
+
+.row:hover .both-feature-sheet {
+  top: 7px;
 }
 
 .both-feature-sheet-line {
@@ -229,6 +290,11 @@
   top: 9px;
   left: 7px;
   z-index: 9998;
+  transition: top 0.3s ease;
+}
+
+.row:hover .both-feature-sheet-line {
+  top: 8px;
 }
 
 .both-feature-sheet-line-two {
@@ -239,6 +305,11 @@
   top: 9px;
   left: 13px;
   z-index: 9998;
+  transition: top 0.3s ease;
+}
+
+.row:hover .both-feature-sheet-line-two {
+  top: 8px;
 }
 
 .both-little-folder {
@@ -252,6 +323,11 @@
   opacity: 101%;
   font-size: 20px;
   z-index: 9999;
+  transition: top 0.3s ease;
+}
+
+.row:hover .both-little-folder {
+  top: 4.5px;
 }
 
 .both-second-little-folder {
@@ -264,6 +340,11 @@
   border-top-right-radius: 5%;
   opacity: 71%;
   font-size: 20px;
+  transition: top 0.3s ease;
+}
+
+.row:hover .both-second-little-folder {
+  top: 2.5px;
 }
 
 .both-sec-folder-title {
@@ -274,6 +355,11 @@
   top: 11px;
   left: 5.4px;
   z-index: 9999;
+  transition: top 0.3s ease;
+}
+
+.row:hover .both-sec-folder-title {
+  top: 9px;
 }
 
 .both-sec-folder-line {
@@ -284,6 +370,11 @@
   top: 13.5px;
   left: 10px;
   z-index: 9999;
+  transition: top 0.3s ease;
+}
+
+.row:hover .both-sec-folder-line {
+  top: 12.5px;
 }
 
 .both-sec-folder-line-two {
@@ -294,4 +385,10 @@
   top: 12.5px;
   left: 2px;
   z-index: 9999;
+  transition: top 0.3s ease;
 }
+
+.row:hover .both-sec-folder-line-two {
+  top: 11.5px;
+}
+

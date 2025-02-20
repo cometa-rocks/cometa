@@ -30,6 +30,10 @@
   "data_driven": {
     "data_driven_button": "Execution of tests based on the variables provided by the excel sheet. (T)"
   },
+  "recent":{
+    "my_features":"Display recent features modified by you",
+    "sort_by_department":"Display recent features from a selected department"
+  },
   "edit_feature":{
     "depends_on_other_feature": "If enabled, only a third feature can run this feature",
     "send_mail": "If enabled, a new section will be displayed for sending the results to the desired email address.",
@@ -179,16 +183,21 @@
     "no-last-run": "Last run: No runs have been made yet"
   },
   "mobile_list": {
+    "emulator_options": "Emulator options",
     "mobile_presentation": "Run mobile tests based on automation configurations",
     "emulator_mobile": "Run mobile tests using specified automation configurations",
     "apk_file": "Upload apk files in the upload section of edit feature screen and select apk from here to install in the mobile",
-    "close_emulator": "Stop and close the mobile emulator",
+    "close_emulator": "Stop the mobile emulator",
     "inspect_novnc": "Open a noVNC viewer to interact with the mobile emulator in real-time",
     "inspect_emulator": "Inspect the mobile emulator screen for testing and monitoring",
     "inspect_novnc_shared": "Open a noVNC viewer to interact with the shared mobile emulator in real-time.",
     "inspect_emulator_shared": "Inspect the shared mobile emulator screen for collaborative testing and monitoring.",
     "start_emulator": "Start the mobile emulator to test applications",
     "pause_emulator": "Pause the mobile emulator temporarily",
-    "restart_emulator": "Restart the mobile emulator to reset its state"
+    "restart_emulator": "Restart the mobile emulator to reset its state",
+    "shared": "This emulator is shared with other users",
+    "not_shared": "This emulator is not shared with other users",
+    "modify_emulator_started": "Show and modify the emulator parameters",
+    "modify_emulator_not_started": "The emulator must be starting to be modified"
   }
 }

@@ -163,7 +163,7 @@ export class EditFeature implements OnInit, OnDestroy {
   hasSubscription: boolean;
   @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
   @Select(VariablesState) variableState$: Observable<VariablePair[]>;
-  
+
   saving$ = new BehaviorSubject<boolean>(false);
 
   departmentSettings$: Observable<Department['settings']>;
@@ -415,7 +415,7 @@ export class EditFeature implements OnInit, OnDestroy {
       })
       .afterClosed()
       .subscribe(res => {
-        
+
       });
   }
 
@@ -524,7 +524,7 @@ export class EditFeature implements OnInit, OnDestroy {
           break;
         default:
           break;
-      } 
+      }
     }
   }
 
@@ -746,16 +746,16 @@ export class EditFeature implements OnInit, OnDestroy {
 
   @ViewChild(BrowserSelectionComponent, { static: false })
   _browserSelection: BrowserSelectionComponent;
-  configuration_value_boolean: boolean = false;
+  configValueBoolean: boolean = false;
 
   ngOnInit() {
 
     this._api.getCometaConfigurations().subscribe(res => {
 
       const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
-      
       if (config_feature_mobile) {
-        this.configuration_value_boolean = config_feature_mobile.configuration_value === 'True';
+        this.configValueBoolean = !!JSON.parse(config_feature_mobile.configuration_value.toLowerCase());
+        this.cdr.detectChanges();
       }
     })
 

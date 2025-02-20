@@ -48,15 +48,15 @@ use_step_matcher("parse")
 # - variable: The name of the variable in which to store the database connection.
 # Example:
 # - Connect to SQL database using "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;" and store connection in "myDatabaseConnection"
-@step(u'Connect to SQL database using "{connection_string}" and store connection in "{variable}"')
-@done(u'Connect to SQL database using "{connection_string}" and store connection in "{variable}"')
-def connect_to_sql_database(context, connection_string, variable):
+@step(u'Connect to SQL database using "{connection_string}" and store connection in "{variable_name}"')
+@done(u'Connect to SQL database using "{connection_string}" and store connection in "{variable_name}"')
+def connect_to_sql_database(context, connection_string, variable_name):
     context.STEP_TYPE = "DATABASE"
    
     database_feature_cannot_be_used_error(context)
         
-    connection = SQLDatabaseClient(context, connection_string, variable)  # Database auto-selected
-    context.database_connections[variable] = connection
+    connection = SQLDatabaseClient(context, connection_string, variable_name)  # Database auto-selected
+    context.database_connections[variable_name] = connection
     context.database_connection = connection
     send_step_details(context, "Connected to database")
     logger.info("Connected to database")
@@ -68,15 +68,15 @@ def connect_to_sql_database(context, connection_string, variable):
 # - Get list of visible objects in the current screen and store in "myObjects"
 # - Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
 # The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
-@step(u'Execute SQL query """{query}""" and store result in "{variable}"')
-@done(u'Execute SQL query """{query}""" and store result in "{variable}"')
-def execute_sql_query_get_answer_in_json(context, query, variable):
+@step(u'Execute SQL query """{query}""" and store result in "{variable_name}"')
+@done(u'Execute SQL query """{query}""" and store result in "{variable_name}"')
+def execute_sql_query_get_answer_in_json(context, query, variable_name):
     context.STEP_TYPE = "DATABASE"
     database_feature_cannot_be_used_error(context)
     check_if_step_call_is_valid(context,"SQL")
     
     result = context.database_connection.execute_query(context,query)
-    addTestRuntimeVariable(context, variable, result)
+    addTestRuntimeVariable(context, variable_name, result, save_to_step_report=True)
     context.LAST_DB_QUERY_RESULT = result
     
 
@@ -88,15 +88,15 @@ def execute_sql_query_get_answer_in_json(context, query, variable):
 # - variable: The name of the variable in which to store the database connection.
 # Example:
 # - Connect to SQL database using "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;" and store connection in "myDatabaseConnection"
-@step(u'Connect to NoSQL database using "{connection_string}" and store connection in "{variable}"')
-@done(u'Connect to NoSQL database using "{connection_string}" and store connection in "{variable}"')
-def connect_to_sql_database(context, connection_string, variable):
+@step(u'Connect to NoSQL database using "{connection_string}" and store connection in "{variable_name}"')
+@done(u'Connect to NoSQL database using "{connection_string}" and store connection in "{variable_name}"')
+def connect_to_sql_database(context, connection_string, variable_name):
     context.STEP_TYPE = "DATABASE"
    
     database_feature_cannot_be_used_error(context)
         
-    connection = MongoDBClient(context, connection_string, variable)  # Database auto-selected
-    context.database_connections[variable] = connection
+    connection = MongoDBClient(context, connection_string, variable_name)  # Database auto-selected
+    context.database_connections[variable_name] = connection
     context.database_connection = connection
     send_step_details(context, "Connected to database")
     logger.info("Connected to database")
@@ -108,21 +108,25 @@ def connect_to_sql_database(context, connection_string, variable):
 # - Get list of visible objects in the current screen and store in "myObjects"
 # - Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
 # The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
-@step(u'Execute the NoSQL query """{query}""" on the "{collection}" collection and store the result in "{variable}"')
-@done(u'Execute the NoSQL query """{query}""" on the "{collection}" collection and store the result in "{variable}"')
-def execute_nosql_query_get_answer_in_json(context, query, collection, variable):
+@step(u'Execute the NoSQL query """{query}""" on the "{collection}" collection and store the result in "{variable_name}"')
+@done(u'Execute the NoSQL query """{query}""" on the "{collection}" collection and store the result in "{variable_name}"')
+def execute_nosql_query_get_answer_in_json(context, query, collection, variable_name):
     context.STEP_TYPE = "DATABASE"
     database_feature_cannot_be_used_error(context)
     check_if_step_call_is_valid(context, "NOSQL")
     
     result = context.database_connection.execute_query(context, collection,  query)
-    addTestRuntimeVariable(context, variable, result)
+    addTestRuntimeVariable(context, variable_name, result, save_to_step_report=True)
     context.LAST_DB_QUERY_RESULT = result
 
 
-@step('Switch current database to "{variable}"')
-@done('Switch current database to "{variable}"')
-def switch_mobile(context, variable):
+@step('Switch current database to "{variable_name}"')
+@done('Switch current database to "{variable_name}"')
+def switch_mobile(context, variable_name):
     context.STEP_TYPE = "DATABASE"
-    send_step_details(context, f"Changing current database to {variable}")
-    context.database_connection = context.database_connections[variable]
+    
+    if variable_name in context.database_connections.keys():
+        send_step_details(context, f"Changing current database to {variable_name}")
+        context.database_connection = context.database_connections[variable_name]
+    else:
+        raise CustomError(f"No database found with name \"{variable_name}\"")

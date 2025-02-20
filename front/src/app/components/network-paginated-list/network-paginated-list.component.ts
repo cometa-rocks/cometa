@@ -209,7 +209,7 @@ export class NetworkPaginatedListComponent implements OnChanges {
 
   errorRowsSaved: { stepIndex: string; stepName: string; errorMessage: string }[] = [];
   isLoading: boolean = true;
-  failTexts: { id: string, text: string }[] = []; 
+  failTexts: { id: string, text: string }[] = [];
 
   handleErrorItems(errorItems: any[]) {
     this.errorRowsSaved = errorItems.map(item => {
@@ -218,31 +218,31 @@ export class NetworkPaginatedListComponent implements OnChanges {
         const stepIndex = errorElement.querySelector('.step-index')?.textContent?.trim() || 'without index';
         const stepName = errorElement.querySelector('.step-name')?.textContent?.trim() || 'without name';
         const errorMessage = errorElement.querySelector('.step-error')?.textContent?.trim() || 'without error';
-  
+
         return { stepIndex, stepName, errorMessage };
       }
       return null;
     }).filter(error => error !== null) as { stepIndex: string; stepName: string; errorMessage: string }[];
-  
-    console.log("ErrorRowsSaved:", this.errorRowsSaved);
+
+    // console.log("ErrorRowsSaved:", this.errorRowsSaved);
   }
-  
+
   getErrorElement(item: any): HTMLElement | null {
     const errorElement = document.getElementById(`row-${item.step_result_id}`);
-    console.log("Elemento con error:", errorElement);
+    // console.log("Elemento con error:", errorElement);
     return errorElement?.closest('.name') as HTMLElement; // Devuelve el contenedor principal
   }
-  
-  
+
+
   extractErrorMessage(element: HTMLElement): string {
     const stepIndex = element.querySelector('.step-index')?.textContent?.trim() || 'Sin índice';
     const stepName = element.querySelector('.step-name')?.textContent?.trim() || 'Sin nombre';
     const errorMessage = element.querySelector('.step-error')?.textContent?.trim() || 'Sin mensaje de error';
-  
+
     return `Paso ${stepIndex}: ${stepName} - Error: ${errorMessage}`;
   }
-  
-  
+
+
   // Retrieves the page size based on multiple places to get it
   getPageSize(params: ParamMap, changes: SimpleChanges): number {
     // Get page size from URL param

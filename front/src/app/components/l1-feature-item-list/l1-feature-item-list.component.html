@@ -82,11 +82,11 @@ Author: dph000
         </div>
       <!-- Feature go to folder -->
       </div>
-        <div 
+        <div
         *ngIf="finder"
         class="parent-container"
         (mouseover)="handleMouseOver($event)">
-        <div 
+        <div
           class="cont-fath-folder"
           stopPropagation>
           <div class="cont-son-folder">
@@ -100,11 +100,11 @@ Author: dph000
               <span> ... </span>
               <mat-icon class="chevron">chevron_right</mat-icon>
               <div class="circle-domainIcon-2">
-                <i 
+                <i
                 class="folder-go-to"
                 (click)="featuresGoToFolder(item.id, '', true)"></i>
               </div>
-              <span (click)="featuresGoToFolder(item.id, '', true)"> 
+              <span (click)="featuresGoToFolder(item.id, '', true)">
                 {{ folderName }}
               </span>
             </div>
@@ -118,7 +118,7 @@ Author: dph000
             <span>{{ item.name }}</span>
           </span>
         </ng-container>
-      
+
         <ng-template #noDescription>
           <span [matTooltip]="'Description: No description available'" matTooltipPosition="above">
             <span>{{ item.name }}</span>
@@ -137,22 +137,20 @@ Author: dph000
       </div>
       <!-- Feature ID -->
       <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
-      <div
-        stopPropagation
-        class="feature-id" 
-        (mouseover)="hovering = true" 
-        (mouseout)="hovering = false">
-        <ng-container *ngIf="!hovering; else hoverIcon">
-          <span>
-            ID: {{ item.id }}
-          </span>
+      <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
+        <ng-container>
+          <p class="id-text">
+            <span class="icon-container-clipboard">
+              <mat-icon class="clipboard-icon">content_copy</mat-icon>
+            </span>
+            <span class="id-label">ID:</span>
+            <span class="id-container">
+              {{ item.id }}
+            </span>
+          </p>
         </ng-container>
-        <ng-template #hoverIcon>
-          <span class="icon-container" (click)="copyToClipboard()">
-            ID: <mat-icon class="clipboard-icon">content_copy</mat-icon>
-          </span>
-        </ng-template>
       </div>
+
 
       <!-- Feature browser -->
       <div class="browser" *ngIf="item.browsers[0] as browser">
@@ -170,12 +168,12 @@ Author: dph000
                 <span>{{ item.schedule }}</span>
               </span>
             </ng-container>
-            
+
             <ng-template #noRuns>
               <span [matTooltip]="'schedule.no-last-run' | translate"
               matTooltipPosition="above" class="schedule-active">
                 <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
-                <span>Schedule:&nbsp;</span> 
+                <span>Schedule:&nbsp;</span>
                 <span>{{ item.schedule }}</span>
               </span>
             </ng-template>
@@ -282,11 +280,11 @@ Author: dph000
   <!-- Folder item container -->
   <div class="folder-container" (click)="goFolder(item.route)">
     <div class="wrapper folder">
-      <div 
+      <div
         *ngIf="finder"
         class="parent-container"
         (mouseover)="handleMouseOverFolder($event)">
-        <div 
+        <div
           class="cont-fath-folder"
           stopPropagation>
           <div class="cont-son-folder">
@@ -299,11 +297,11 @@ Author: dph000
               <span> ... </span>
               <mat-icon class="chevron">chevron_right</mat-icon>
               <div class="circle-domainIcon-2">
-                <i 
+                <i
                 class="folder-go-to"
                 (click)="folderGoToFolder(item.id, true)"></i>
               </div>
-              <span (click)="folderGoToFolder(item.id, true)"> 
+              <span (click)="folderGoToFolder(item.id, true)">
                 {{ folderName }}
               </span>
             </div>
@@ -316,7 +314,10 @@ Author: dph000
       </div>
       <!-- Department of the folder -->
       <div class="steps">
-        <span class="exec_time">{{ item.department | departmentName }}</span>
+        <div class="stepsFolder">
+          <mat-icon class="folderDomain">domain</mat-icon>
+          <span class="exec_time">{{ item.department | departmentName }}</span>
+        </div>
       </div>
       <!-- Id of the folder -->
       <div class="feature-id">ID: {{ item.id }}</div>

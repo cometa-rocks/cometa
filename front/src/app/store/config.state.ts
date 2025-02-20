@@ -12,6 +12,7 @@ import enLocale from 'date-fns/locale/en-US';
 import esLocale from 'date-fns/locale/es';
 import deLocale from 'date-fns/locale/de';
 import { Router } from '@angular/router';
+import { LogService } from '@services/log.service';
 
 /**
  * @description Contains the state of the Configuration
@@ -25,7 +26,8 @@ import { Router } from '@angular/router';
 export class ConfigState {
   constructor(
     private _api: ApiService,
-    private _router: Router
+    private _router: Router,
+    private log: LogService
   ) {}
 
   @Action(Configuration.GetConfig)
@@ -74,6 +76,19 @@ export class ConfigState {
     configFile.reverse =
       localStorage.getItem('search_sorting_reverse') === 'true' ||
       configFile.reverse;
+    configFile.toggles.hideInformationMobile =
+      localStorage.getItem('hideInformationMobile') === 'true' ||
+      configFile.toggles.hideInformationMobile;
+    configFile.toggles.hideInstallAPKSMobile =
+      localStorage.getItem('hideInstallAPKSMobile') === 'true' ||
+      configFile.toggles.hideInstallAPKSMobile;
+    configFile.toggles.hideInstalledAPKSMobile =
+      localStorage.getItem('hideInstalledAPKSMobile') === 'true' ||
+      configFile.toggles.hideInstalledAPKSMobile;
+    configFile.toggles.hideSharedMobile =
+      localStorage.getItem('hideSharedMobile') === 'true' ||
+      configFile.toggles.hideSharedMobile;
+
     let routerConfig = this._router.config;
     routerConfig[0].redirectTo = configFile.useNewDashboard ? 'new' : 'search';
     this._router.resetConfig(routerConfig);
@@ -133,6 +148,7 @@ export class ConfigState {
   ) {
     if (save) {
       localStorage.setItem(key, value);
+      this.log.msg('config.state.ts','Added to LocalStorage with key: [' + key+'='+value+']','138-',' ')
     }
     setState(
       produce((ctx: Config) => {

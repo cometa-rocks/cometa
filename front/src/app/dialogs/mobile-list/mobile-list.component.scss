@@ -1,35 +1,18 @@
 @import 'color';
 @import 'breakpoints';
 
-// :host {
-//   display: flex;
-//   flex-wrap: wrap;
-//   width: 100%;
-//   min-height: 200px;
-//   position: relative;
-// }
-
 h4 {
   color: #1565c0;
-  // height: 30px;
-  // margin-top: 10px;
-  // margin-bottom: 10px;
 }
 
-h3 {
+h2, h3{
   color: $blue;
-  margin-left: 10px;
-}
-
-mat-dialog-container {
-  overflow: hidden;
+  margin-left: 20px;
 }
 
 ::ng-deep .mobile-emulator-panel {
   background-color: #f7f7f7;
 }
-
-
 
 @keyframes slideDown {
   from {
@@ -45,23 +28,21 @@ mat-dialog-container {
     .mobiles {
       display: flex;
       gap: 50px;
-      margin: 20px 0 20px 10px;
+      margin: 30px 0 20px 10px;
       flex-wrap: wrap;
-      overflow-x: hidden;
       .mobile {
         padding: 20px 20px;
         margin-bottom: 15px;
-        min-height: 230px;
         border: 1px solid #ddd;
-        border-radius: 10px;
-        // box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        border-radius: 5px 0px 5px 5px;
         box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
         position: relative;
         display: flex;
         flex-direction: column;
         width: 390px;
+        height: 145px;
         min-width: 390px;
-        background-color: rgba(255, 255, 255, 0.4);
+        background-color: #F5F5F5;
         .mobile-icon {
           width: 100px;
           height: 200px;
@@ -70,38 +51,6 @@ mat-dialog-container {
           background-position: left;
           background-repeat: no-repeat;
           position: relative;
-        }
-
-        .mobile-details {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          margin-bottom: 10px;
-
-          .moreOrLess {
-            text-align: left;
-            padding: 0 0 0 10px;
-            margin-bottom: 5px;
-            background-color: transparent;
-          }
-
-          // .moreOrLess:hover {
-          //   background-color: transparent;
-          // }
-
-          .moreOrLessNotRunning {
-            text-align: left;
-            // margin-top: 30px;
-            padding: 0 0 0 10px;
-            background-color: transparent;
-          }
-
-          .moreInfo{
-            display: flex;
-            flex-direction: column;
-            margin-left: 10px;
-            margin-bottom: 15px;
-          }
         }
       }
     }
@@ -129,6 +78,11 @@ mat-dialog-container {
 }
 
 .dialog-footer {
+  position: relative;
+  bottom: -75px;
+}
+
+.dialog-footer-nolicense {
   padding: 29px 18px 0px;
   display: flex;
   flex-wrap: wrap;
@@ -136,7 +90,9 @@ mat-dialog-container {
   align-items: center;
   box-sizing: content-box;
   margin-bottom: -15px;
-  width: 100%;
+  width: 37%;
+  position: fixed;
+  bottom: 130px;
 }
 
 mat-dialog-content {
@@ -150,8 +106,8 @@ mat-dialog-content {
 }
 
 .disabled-div {
-  pointer-events: none; 
-  opacity: 0.5;          
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .mobile-buttons-install {
@@ -167,50 +123,44 @@ mat-dialog-content {
     margin-right: 10px;
   }
 
-  .start-stop-inpect-buttons {
-    font-weight: bold;
-  }
-
   .start{
     margin-left: auto;
     margin-right: 10px;
     font-weight: bold;
   }
 
-  .restart {
-    background-color: #ffbf59;
-    color: black;
-  }
-
   .icon-on-hover {
     display: none;
   }
-  
+
   button:hover .inspect-text {
     display: none;
   }
-  
+
   button:hover .icon-on-hover {
     display: inline-block;
-    width: 41px;  
+    width: 41px;
   }
-  
+
   .inspect-text {
     display: inline-block;
   }
+}
+
+.hideShadow {
+  height: 5px;
+  width: 78px;
+  background-color: #F5F5F5;
+  position: absolute;
+  top: 23px;
 }
 
 .mobile-buttons {
   display: flex;
   flex-direction: row-reverse;
   gap: 28px;
-  height: 55px;
   align-items: center;
   justify-content: center;
-
-  .start-stop-inpect-buttons {
-    font-weight: bold;
-  }
 
   .start{
     margin-left: auto;
@@ -220,24 +170,6 @@ mat-dialog-content {
 
   .restart {
     background-color: #ffbf59;
-    color: black;
-  }
-
-  .icon-on-hover {
-    display: none;
-  }
-  
-  button:hover .inspect-text {
-    display: none;
-  }
-  
-  button:hover .icon-on-hover {
-    display: inline-block;
-    width: 41px;  
-  }
-  
-  .inspect-text {
-    display: inline-block;
   }
 }
 
@@ -248,14 +180,13 @@ mat-dialog-content {
 
 .clipped {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  // clip-path: polygon(100% 0, 0 0, 100% 100%);
   border-radius: 50%;
   height: 30px !important;
   width: 30px !important;
   background-color: #ef5350;
 }
 
-.clipped, .close-icon {
+.clipped {
   font-size: 18px;
   transition: font-size 0.3s ease;
   text-align: center;
@@ -271,10 +202,16 @@ mat-dialog-content {
 
 
 .mobile-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 10px;
   div {
     display: flex;
     flex-direction: row;
     margin-bottom: 5px;
+    margin-left: 10px;
+    font-size: 14px;
     strong {
       align-items: center;
       margin-left: 5px;
@@ -282,22 +219,70 @@ mat-dialog-content {
     }
     i {
       font-size: 17px;
+      width: 16px;
     }
     mat-icon {
-      font-size: 17px;
-      color: black;
-      margin-right: 5px;
+      font-size: 15px;
     }
-  }
-  .emulator-info {
-    margin-left: 10px;
-    font-size: 14px;
   }
   .status-container {
     margin-left: 10px;
     font-size: 14px;
   }
+  .get-app {
+    position: relative;
+    top: -15px;
+    left: -1px;
+  }
+  .installedApp {
+    display: flex;
+    font-weight: bold;
+    position: relative;
+    top: -15px;
+    left: -2px;
+  }
+}
 
+.mobile-details-shared {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 10px;
+  margin-top: -27px;
+  div {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 5px;
+    margin-left: 10px;
+    font-size: 14px;
+    strong {
+      align-items: center;
+      margin-left: 5px;
+      margin-right: 5px;
+    }
+    i {
+      font-size: 17px;
+      width: 16px;
+    }
+    mat-icon {
+      font-size: 15px;
+      // margin-right: 5px;
+    }
+  }
+  .status-container {
+    margin-left: 10px;
+    font-size: 14px;
+  }
+  .get-app {
+    position: relative;
+    top: -15px;
+  }
+  .installedApp {
+    display: flex;
+    font-weight: bold;
+    position: relative;
+    top: -15px;
+  }
 }
 
 .status-container {
@@ -310,35 +295,29 @@ mat-dialog-content {
   color: $success;
 }
 
-.stopped-text {
-  font-weight: bold;
-  color: rgb(152, 145, 145); 
+::ng-deep .mdc-switch.mdc-switch--selected.mdc-switch--checked {
+  cursor: default !important;
+  pointer-events: none !important;
 }
 
+::ng-deep .mdc-switch.mdc-switch--unselected {
+  cursor: default !important;
+  pointer-events: none !important;
+}
 
-.apk-selection {
-  display: flex;
-  flex-direction: column !important;
-  margin-right: 10px;
-  margin-left: 10px;
-  .mat-slider-toggle {
-    transform: scale(0.7);
-    margin-left: -60px;
-    margin-bottom: 10px;
-    p {
-      font-size: 20px;
-    }
-  }
+::ng-deep .mdc-switch__icons:hover {
+  animation: none !important;
+  transition: none !important;
 }
 
 .pop-up-info {
   display: flex;
   flex-direction: column;
-  align-items: start; 
-  gap: 10px; 
+  align-items: start;
+  gap: 6px;
   font-size: 14px;
-  padding: 10px;
-  color: #000000b3;
+  padding: 0 12px;
+  color: $darker-step;
 }
 
 .pop-up-info mat-menu-item {
@@ -347,26 +326,32 @@ mat-dialog-content {
   gap: 8px;
   strong {
     margin-left: -10px;
-  } 
+  }
 }
 
-.pop-up-info i, 
+.pop-up-info i,
 .pop-up-info mat-icon {
-  font-size: 18px;
-  margin-right: 8px; 
+  font-size: 16px;
+  margin-right: 8px;
 }
 
 .pop-up-info strong {
-  flex-grow: 1; 
+  flex-grow: 1;
 }
 
 .row-content {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  p {
+    font-weight: bold;
+    font-size: 14px;
+  }
+
 }
 
 mat-divider {
-  margin-bottom: 15px !important;
+  margin-bottom: 10px !important;
 }
 
 .status-circle {
@@ -385,24 +370,31 @@ mat-divider {
 }
 
 .disabled-content {
-  opacity: 0.5; 
-  pointer-events: none; 
+  opacity: 0.5;
+  pointer-events: none;
 }
 
-.closeButton {
-  margin-top: 10px;
-  text-align: right;
-  margin-right: 20px;
-}
+
 
 .created-by {
   text-align: right;
-  margin-top: 27px;
+  margin-top: -20px;
   margin-right: 10px;
+  font-size: 14px;
 }
 
 
 .emulator-info {
+  .moreInfo {
+    position: relative;
+    top: -12px;
+    left: -12px;
+  }
+  .moreInfoShared {
+    position: relative;
+    top: -4px;
+    left: -12px;
+  }
   .copyClipboardIcon {
     font-size: 15px;
     margin-left: 10px;
@@ -424,7 +416,7 @@ mat-divider {
 }
 
 .scrollable-content {
-  max-height: 60vh; 
+  max-height: 60vh;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
@@ -435,27 +427,36 @@ mat-divider {
 }
 
 .not-dialog-scrollable-content {
-  // max-height: 60vh; 
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  // max-height: calc(100vh - var(--header-height) - var(--new-landing-filters-height));
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+mobile-list {
+  height: 100%;
+  display: flex;
 }
 
 .notDialog-landing {
   padding: 25px 15px 15px 15px;
   height: calc(100% + 50px);
+  min-height: 1200px;
 }
 
-
 .dialog-title {
-  flex-grow: 1; 
-  margin: 15px 0 15px 0;
+  flex-grow: 1;
+  margin: 15px 0 15px 11px;
 }
 
 .not-dialog-title {
-  flex-grow: 1; 
-  margin: 0;
+  flex-grow: 1;
+  margin: 0 0 20px 0;
 }
 
 .toggle-button {
@@ -501,7 +502,6 @@ mat-divider {
 
 .container-father {
   display: flex;
-  // flex-direction: column !important;
 
   margin-right: 10px;
   width: 1000px;
@@ -514,7 +514,7 @@ mat-divider {
 @include for-phone-only {
   .container-father {
     position: relative;
-    height: 15vh; 
+    height: 15vh;
   }
 
   .selectFormField {
@@ -526,7 +526,7 @@ mat-divider {
     left: 0;
     top: 0;
   }
-  
+
   .container-father .selectFormField:nth-last-of-type(1) {
     position: absolute;
     right: 0;
@@ -534,7 +534,7 @@ mat-divider {
   }
 
   button {
-    align-self: flex-end; 
+    align-self: flex-end;
   }
 
   .add, .button-column{
@@ -559,47 +559,46 @@ mat-divider {
   display: flex;
 }
 
-// #mobile-actions {
-//   margin-top: 9px;
-// }
-
 .get-app {
-  font-size: 20px !important;
-  color: rgba(0, 0, 0, 0.7) !important;
+  font-size: 18px !important;
+  color: $darker-step !important;
 }
 
 .selectDepExplan {
   margin-left: 10px;
 }
 
-.options {
-  display: flex;
-  align-items: center;
-  margin-left: 5px;
-  // margin-bottom: -11px;
-  button {
-    margin-left: -5px;
-  }
-  mat-icon {
-    color: black;
-    font-size: 19px;
-    margin-bottom: 0px;
-  }
-  span {
-    margin-left: -8px;
-    font-weight: bold;
-    font-size: 14px;
-  }
-}
-
 .mat-form-field-wrapper {
   font-size: 13px;
 }
 
-.mobile-information{
+.mobile-information {
   display: flex;
   flex-direction: column !important;
   margin-bottom: 20px;
+  position: relative;
+  top: -57px;
+  .emulator-info {
+    .moreInfoStrong {
+      position: relative;
+      left: -24px;
+    }
+  }
+}
+
+.mobile-information-shared {
+  display: flex;
+  flex-direction: column !important;
+  margin-bottom: 20px;
+  position: relative;
+  top: -4px;
+  .emulator-info {
+    .moreInfoStrongShared {
+      position: relative;
+      left: -24px;
+      top: 9px;
+    }
+  }
 }
 
 .mobile-devices-header {
@@ -610,28 +609,22 @@ mat-divider {
   height: 40px;
   margin-bottom: 10px;
   font-weight: bold;
-  color: rgba(0, 0, 0, 0.5);
+  color: $darker-step;
   .mobile-results {
     color: $blue;
   }
 }
 
 .spinner-active {
-  background-color: #f97412;
-  cursor: default;
-  mat-spinner {
-
-  }
-}
-
-::ng-deep mat-spinner circle {
-  color: #4A4A4A;
+  pointer-events: none;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .spinner {
-  position: absolute;
-  top: 27px;
-  right: 27px;
+  position: relative;
+  top: 0px;
+  right: 2px;
 }
 
 .department-warning {
@@ -649,17 +642,631 @@ mat-divider {
 }
 
 .nonMobileShared {
-  font-weight: bold;
-  color: rgba(0, 0, 0, 0.5);
+  color: $primary-color;
 }
 
-mat-card {
-  mat-icon {
-    color: rgba(0, 0, 0, 0.5);
+.license-info-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  .containerContract {
+    height: 650px;
+    width: 30%;
+    display: flex;
+    align-items: center;
+    .mobileContactImage {
+      height: 400px;
+    }
   }
 }
 
-.mobile-options {
-  // position: absolute;
-  // top: 20px;
+.license-icon {
+  font-size: 22px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.email {
+  font-size: 20px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.containerExplanations {
+  margin-left: 10px;
+}
+
+.license-text,
+.contactMail {
+  display: flex;
+  align-items: center;
+}
+
+.license-text {
+  font-size: 14px;
+  color: $darker-step;
+  line-height: 1.4;
+  width: 600px;
+}
+
+.license-text a {
+  color: $blue;
+  text-decoration: underline;
+}
+
+.contactMail,
+.mailTo  {
+  font-size: 14px;
+  color: $darker-step;
+  line-height: 1.4;
+}
+
+.contactMail {
+  margin-top: 20px;
+}
+
+.mailTo {
+  margin-left: 30px;
+  a {
+    text-decoration: none;
+  }
+}
+
+.mailTo:hover {
+  a {
+    text-decoration: underline;
+  }
+}
+
+.email {
+  color: $blue;
+}
+
+.bought-license-panel {
+  width: 81vw;
+}
+
+/* Para pantallas más pequeñas */
+@media (max-width: 1800px) {
+  .license-info-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .containerContract {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+  }
+
+  .mobileContactImage {
+    height: auto;
+    max-width: none;
+    margin-bottom: 20px;
+  }
+
+  .containerExplanations {
+    width: 100%;
+    padding: 10px;
+  }
+}
+
+// Landing mobile ( Not dialog)
+
+.info-section {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 20px;
+  padding: 20px;
+}
+
+.content-wrapper {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 30px;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.image-large {
+  width: 50%;
+  height: auto;
+}
+
+.text-column {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 10px;
+  flex: 1;
+}
+
+.text-row {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  color: $darker-step;
+  line-height: 1.5;
+}
+
+.icon-tooltip {
+  font-size: 22px;
+  margin-right: 10px;
+  color: $blue;
+}
+
+.icon-email {
+  font-size: 20px;
+  margin-right: 10px;
+  color: $blue;
+}
+
+.email-link a {
+  text-decoration: none;
+  color: $blue;
+  font-size: 16px;
+  line-height: 1.4;
+  margin-left: 35px;
+}
+
+.email-link a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .image-large {
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 20px;
+  }
+
+  .text-column {
+    width: 100%;
+    padding: 20px;
+  }
+}
+
+.container-buttons {
+  display: flex;
+  flex-direction: row-reverse;
+  position: relative;
+  top: -45px;
+  left: -42px;
+}
+
+.container-buttons-shared {
+  display: flex;
+  flex-direction: row-reverse;
+  position: relative;
+  top: -19px;
+  left: -32px;
+}
+
+.start, .restart, .pause, .close {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  min-width: 64px;
+  height: 26px;
+  color: $table-background-opaque;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.restart, .pause {
+  transform: skew(-30deg);
+}
+
+
+// Only start
+.border-left-start-restart {
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-bottom: 26px solid $blue;
+}
+
+// Only restart
+.border-left-restart {
+  width: 0;
+  height: 0;
+  border-bottom: 26px solid $blue;
+  margin-right: 61px;
+}
+
+.restart {
+  background-color: $blue;
+  width: 82px;
+}
+
+.restart {
+ span, mat-icon {
+  transform: skew(30deg);
+ }
+ mat-icon {
+  font-size: 18px;
+  position: relative;
+  top: 3px;
+  left: 7px;
+ }
+}
+
+.spinnerPause {
+  position: relative;
+  left: -2px;
+  top: -0.5px;
+}
+
+.start {
+  background-color: $blue;
+  border-radius: 0 5px 0 0;
+}
+
+.start-stop-inpect-buttons {
+  background-color: #F5F5F5;
+  height: 24px;
+  width: 80px;
+  border-radius: 5px 0 0 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: -1px 0px 4px rgba(0, 0, 0, 0.2);
+}
+
+.container-buttons {
+  .icon-on-hover {
+    display: none;
+  }
+
+  div:hover .inspect-text {
+    display: none;
+  }
+
+  div:hover .icon-on-hover {
+    display: inline-block;
+    width: 41px;
+    margin-top: 2px;
+    margin-left: 30px;
+    font-size: 18px;
+  }
+
+  .inspect-text {
+    display: inline-block;
+  }
+}
+
+.container-buttons-shared {
+  .icon-on-hover {
+    display: none;
+  }
+
+  div:hover .inspect-text {
+    display: none;
+  }
+
+  div:hover .icon-on-hover {
+    display: inline-block;
+    width: 41px;
+    margin-top: 2px;
+    margin-left: 30px;
+    font-size: 18px;
+  }
+
+  .inspect-text {
+    display: inline-block;
+  }
+}
+
+.start-stop-inpect-buttons::after {
+  font-weight: bold;
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -10px;
+  width: 20px;
+  height: 26px;
+  background-color: #F5F5F5;
+  box-shadow: 1px 0px 0px rgba(0, 0, 0, 0.2);
+  transform: skewX(30deg);
+  z-index: 9;
+}
+
+
+.container-novnc-left {
+  position: relative;
+  right: 208px;
+}
+
+.container-inspect-left {
+  position: relative;
+  right: 204px;
+}
+
+.container-inspect-left-shared {
+  position: relative;
+  right: 31px;
+}
+
+.container-novnc-left-shared {
+	position: relative;
+  right: 18px;
+}
+
+// Close
+.border-left-close {
+  height: 0px;
+  border-left: 15px solid transparent;
+  border-bottom: 26px solid #da4747;
+  position: absolute;
+  top: 0px;
+  right: -63px;
+  border-radius: 0 5px 0 0;
+}
+
+.close {
+  min-width: 35px;
+  border-radius: 0 5px 0 0;
+  overflow: hidden;
+}
+
+.close-icon {
+  font-size: 18px;
+  transition: font-size 0.1s ease;
+  text-align: end;
+  width: 100%;
+  height: 100%;
+  align-content: center;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.close-icon:hover {
+  font-size: 18.5px;
+}
+
+.disabled-button {
+  background-color: $darker-step !important;
+  pointer-events: none;
+}
+
+.disabled-button-border {
+  border-left: 15px solid transparent;
+  border-bottom: 26px solid $darker-step;
+  opacity: 0.5;
+}
+
+.stopped-text {
+  font-weight: bold;
+}
+
+.stopped-text {
+  color: #d4145a;
+}
+
+.status-circle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-left: 5px;
+}
+
+.stopped {
+  font-weight: bold;
+}
+
+.stopped {
+  background-color: #d4145a;
+}
+
+.emulatorOptions {
+  position: relative;
+  top: -32px;
+  left: 360px;
+  z-index: 999;
+}
+
+.mobile-emulator-panel-dialog {
+  width: 500px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f7f7f7;
+}
+
+// Menu more vert emulator feature
+.startMenu, .restartMenu, .pauseMenu, .modifyMenu, .closeMenu {
+  padding: 0 16px;
+  width: 136px;
+  min-height: 30px !important;
+  span {
+    font-weight: bold;
+    color: $darker-step;
+    font-size: 14px;
+  }
+  mat-icon {
+    font-size: 21px;
+    margin-right: 16px;
+    margin-top: 4px;
+    vertical-align: middle;
+  }
+  .close-icon {
+    margin-right: 18px;
+  }
+  img {
+    font-size: 21px;
+    margin-right: 19px;
+    vertical-align: middle;
+  }
+  .modifySpan {
+    margin-right: 29px !important;
+  }
+}
+
+.startMenu {
+  mat-icon, span {
+    color: $blue !important;
+  }
+}
+
+.restartMenu {
+  background-color: transparent;
+  .iconImgRestart {
+    width: 21px;
+    height: 21px;
+    filter: brightness(0) saturate(100%) invert(26%) sepia(94%) saturate(1046%) hue-rotate(185deg) brightness(105%) contrast(93%);
+  }
+  span {
+    color: $blue !important;
+  }
+}
+
+.pauseMenu {
+  mat-icon {
+    color:  #ef5350 !important;
+  }
+  span {
+    color:  #ef5350 !important;
+  }
+}
+
+.modifyMenu {
+  mat-icon {
+    font-size: 21px;
+  }
+  mat-icon, span {
+    color: $darker-step;
+  }
+}
+
+.closeMenu {
+  mat-icon {
+    color:  #ef5350 !important;
+  }
+  span {
+    color:  #ef5350 !important;
+  }
+}
+
+.dissabled-more-vert {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+::ng-deep .mobile-emulator-panel-dialog .mat-dialog-content {
+  width: 100% !important;
+}
+
+
+// Inclinated container
+.skewed-button-container {
+  display: inline-block;
+  transform: skew(-30deg);
+}
+
+.restart-bg {
+  background-color: $blue;
+  width: 90px;
+  height: 26px;
+  margin-right: -182px;
+}
+
+.pause-bg {
+  background-color: #f57c00;
+  width: 90px;
+  height: 26px;
+  margin-right: -182px;
+}
+
+.skewed-button {
+  display: flex;
+  height: 18.6px;
+  padding: 3px 10px 4px 0;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: $table-background-opaque;
+  font-size: 0.9rem;
+  mat-icon {
+    height: 14px;
+    width: 15px;
+    margin-right: 6px;
+    margin-left: 7px;
+    font-size: 16px;
+  }
+}
+
+.skewed-content {
+  transform: skew(30deg);
+  display: inline-block;
+  margin-right: 3px;
+}
+
+.spinnerPause {
+  transform: skew(30deg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 2px;
+  margin-left: 18px;
+}
+
+// Mobile shared
+
+.sharedEmulator {
+  position: absolute;
+  top: 147px;
+  left: 373px;
+  mat-slide-toggle {
+    transform: scale(0.8);
+    background-color: var(--mdc-theme-primary) !important;
+    opacity: 1 !important;
+  }
+  .mat-slide-toggle.mat-checked::after {
+    background-color: #333 !important;
+  }
+  .mat-slide-toggle.mat-checked::after {
+    background-color: #333;
+  }
+}
+
+::ng-deep .mat-dialog-container {
+  background-color: #f7f7f7;
+}
+
+::ng-deep .mobile-emulator-panel-dialog {
+  width: 80vw;
+}
+
+::ng-deep div mat-slide-toggle button {
+  transform: scale(0.8);
+}
+
+::ng-deep .mat-badge-content.mat-badge-active {
+  transform: scale(0.8);
+  font-size: 14px;
+  margin-right: -144px;
+  margin-top: 8px;
+}
+
+.noDialogCloseButton {
+  margin-top: 22px;
 }

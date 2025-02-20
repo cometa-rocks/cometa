@@ -20,7 +20,7 @@ import { HtmlDiffDialog } from '@dialogs/html-diff/html-diff.component';
 import { LiveStepsComponent } from '@dialogs/live-steps/live-steps.component';
 import { MoveItemDialog } from '@dialogs/move-feature/move-item.component';
 import { SureRemoveFeatureComponent } from '@dialogs/sure-remove-feature/sure-remove-feature.component';
-import { Store } from '@ngxs/store';
+import { Selector, Store } from '@ngxs/store';
 import { CustomSelectors } from '@others/custom-selectors';
 import { Features } from '@store/actions/features.actions';
 import { WebSockets } from '@store/actions/results.actions';
@@ -44,11 +44,15 @@ import {
 import { ApiService } from './api.service';
 import { SocketService } from './socket.service';
 import { Console } from 'console';
+import { ImmutableSelector } from '@ngxs-labs/immer-adapter';
+
 
 /**
  * This service is used to execute function which should be accessible from application and Tour definitions
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class SharedActionsService {
   headers$ = new BehaviorSubject<ResultHeader[]>([]);
   dialogActive: boolean = false;
@@ -59,6 +63,10 @@ export class SharedActionsService {
   public folderRunningStates = new BehaviorSubject<Map<number, boolean>>(new Map());
 
   public featuresRunning$ = this.folderRunningStates.asObservable();
+
+  //Observable that tracks the selected department from dropdowns
+  private selectedDepartmentSubject = new BehaviorSubject<string>('')
+  selectedDepartment$ = this.selectedDepartmentSubject.asObservable();
 
   //  Next minor version 2.8.377
   // @ViewChild(LiveStepsComponent) liveStepsComponent!: LiveStepsComponent;
@@ -571,6 +579,10 @@ export class SharedActionsService {
 
   setFilterState(isActive: boolean) {
     this.filterStateSubject.next(isActive);
+  }
+  //updates the observable with new data
+  setSelectedDepartment(department: string) {
+    this.selectedDepartmentSubject.next(department);
   }
 
 }
