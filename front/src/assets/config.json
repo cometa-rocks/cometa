@@ -1,5 +1,5 @@
 {
-  "version": "3.0.14",
+  "version": "3.0.15",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.15",
+      "date": "2025-02-20",
+      "features": [
+        {
+          "title": "#5800 Resize Dialog edit features",
+          "description": "The feature dialog is now 100% and can be resized within the same window."
+        }
+      ]
+    },   
     {
       "version": "3.0.14",
       "date": "2025-02-17",
