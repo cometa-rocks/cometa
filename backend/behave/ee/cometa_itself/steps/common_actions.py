@@ -103,30 +103,11 @@ def show_variable_value(context, variable, seconds):
 
 
 
-
-use_step_matcher("re")
-
-
-# Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
-# jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
-@step(u'Fetch value using \"(?P<jq_pattern>.*?)\" from "(?P<variable_name>.+?)" and store in "(?P<new_variable_name>.+?)"')
-@done(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}"')
-def assert_imp(context, jq_pattern, variable_name, new_variable_name):
-    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
-
-    variable_value = getVariable(context, variable_name) 
-    logger.debug(variable_value)
-    try:
-        parsed_value = jq.compile(jq_pattern).input(variable_value).text()
-        addTestRuntimeVariable(context, new_variable_name, parsed_value)
-    except Exception as err:
-        logger.error("Invalid JQ pattern", err)
-        raise CustomError(err)
         
 
 # Reads data from an Excel file for a given sheet and row number, 
 # then stores the row's data as a dictionary in a runtime variable.  
-@step(u'Read data from Excel file "(?P<file_path>.+?)" sheet "(?P<sheet_name>.+?)" row "(?P<row_number>\d+)" and store in "(?P<variable_name>.+?)"')
+@step(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in "{variable_name}"')
 @done(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in "{variable_name}"')
 def read_excel_step(context, file_path, sheet_name, row_number, variable_name):
 
@@ -162,5 +143,75 @@ def read_excel_step(context, file_path, sheet_name, row_number, variable_name):
         raise CustomError(f"Error reading Excel file: {err}")
 
 
-use_step_matcher("parse")
+# Reads data from an Excel file for a given sheet and row number,
+# then stores the row's data as individual runtime variables.
+@step(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in runtime variables')
+@done(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in runtime variables')
+def read_excel_step(context, file_path, sheet_name, row_number):
 
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
+
+    # Convert row number to an integer
+    row_number = int(row_number)
+
+    try:
+        excelFilePath = uploadFileTarget(context, file_path)
+        logger.debug(f"Opening Excel file: {excelFilePath}")
+
+        # Read the Excel sheet
+        df = pd.read_excel(excelFilePath, sheet_name=sheet_name, engine='openpyxl')
+
+        # Ensure the row exists
+        if row_number >= len(df):
+            raise CustomError(f"Row number {row_number} is out of range. Max rows: {len(df)}")
+
+        # Fetch the row as a dictionary (column_name -> value)
+        row_data = df.iloc[row_number].to_dict()
+        logger.debug(f"Row data: {row_data}")
+
+        # Variables to exclude from overriding
+        excluded_variables = {"feature_id", "feature_name"}
+
+        # Store each key-value pair in runtime variables except excluded ones
+        for key, value in row_data.items():
+            if key not in excluded_variables:  # Skip overriding feature_id and feature_name
+                addTestRuntimeVariable(context, key, str(value))  # Convert value to string
+                logger.debug(f"Stored {key}: {value}")
+            else:
+                logger.debug(f"Skipping variable: {key}, to prevent overriding.")
+
+    except Exception as err:
+        logger.error("Error reading Excel file", exc_info=True)
+        raise CustomError(f"Error reading Excel file: {err}")
+
+
+
+
+use_step_matcher("re")
+
+
+# Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
+# jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
+@step(u'Fetch value using \"(?P<jq_pattern>.*?)\" from "(?P<variable_name>.+?)" and store in "(?P<new_variable_name>.+?)"')
+@done(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}"')
+def assert_imp(context, jq_pattern, variable_name, new_variable_name):
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
+
+    variable_value = getVariable(context, variable_name) 
+    logger.debug(variable_value)
+    
+    # Check if the value is a string and attempt JSON loading
+    if isinstance(variable_value, str):
+        try:
+            variable_value = json.loads(variable_value)
+        except json.JSONDecodeError as e:
+            raise CustomError(f"Failed to parse JSON: {e}")
+
+    try:
+        parsed_value = jq.compile(jq_pattern).input(variable_value).text()
+        addTestRuntimeVariable(context, new_variable_name, parsed_value)
+    except Exception as err:
+        logger.error("Invalid JQ pattern", err)
+        raise CustomError(err)
+
+use_step_matcher("parse")
