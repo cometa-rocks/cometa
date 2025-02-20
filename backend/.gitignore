@@ -30,6 +30,7 @@ uploads/
 logs/
 *.log
 000*
+00*
 output.txt
 
 # secrets
