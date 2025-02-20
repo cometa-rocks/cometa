@@ -1,6 +1,6 @@
 #!/bin/bash
 ENVIRONMENT=${ENVIRONMENT:-prod}
-
+BROWSERS=${BROWSERS:-4}
 while [[ $# -gt 0 ]]
 do
         key="$1"
@@ -32,14 +32,14 @@ CPUCORES=`getconf _NPROCESSORS_ONLN`
 # calculate workers
 # GUNI_WORKERS=$((($CPUCORES*2+1)))
 
-GUNI_WORKERS=$((($CPUCORES+1)))
+# GUNI_WORKERS=$((($CPUCORES+1)))
 
-# prevents $CPUCORES to be set to <=0, which causes failure during test execution on Cometa due to non existant CPU cores.
-if [ $CPUCORES -le 2 ]; then
-    REDIS_WORKERS=$((($CPUCORES)))
-else
-    REDIS_WORKERS=$((($CPUCORES-2)))
-fi
+# # prevents $CPUCORES to be set to <=0, which causes failure during test execution on Cometa due to non existant CPU cores.
+# if [ $CPUCORES -le 2 ]; then
+#     REDIS_WORKERS=$((($CPUCORES)))
+# else
+#     REDIS_WORKERS=$((($CPUCORES-2)))
+# fi
 
 # configure django-rq service in supervisor / redis - number of workers equals number of CPUs - #4236
 # limit number of procs to Cores - 2
@@ -48,7 +48,7 @@ cat <<EOF > /etc/supervisor/conf.d/django-rq.conf
 environment=PYTHONUNBUFFERED=1
 process_name=%(program_name)s-%(process_num)s
 command=python manage.py rqworker default
-numprocs=$REDIS_WORKERS
+numprocs=$BROWSERS
 directory=/opt/code/behave_django
 stopsignal=TERM
 autostart=true
@@ -92,5 +92,5 @@ fi
 #
 if [ "$ENVIRONMENT" != "dev" ]; then    
     # spin up gunicorn
-    gunicorn behave_django.wsgi:application --workers=2 --threads=${THREADS:-2} --worker-class=gthread --bind 0.0.0.0:8001 --preload
+    gunicorn behave_django.wsgi:application --workers=2 --threads=${BROWSERS:-2} --worker-class=gthread --bind 0.0.0.0:8001 --preload
 fi
