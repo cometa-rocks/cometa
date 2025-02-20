@@ -109,7 +109,7 @@ export class L1FeatureItemListComponent implements OnInit {
 
   // NgOnInit
   ngOnInit() {
-    this.log.msg('1', 'Inicializing component...', 'feature-item-list');
+    this.log.msg('1', 'Initializing component...', 'feature-item-list');
 
     this.feature$ = this._store.select(
       CustomSelectors.GetFeatureInfo(this.feature_id)
@@ -228,7 +228,7 @@ export class L1FeatureItemListComponent implements OnInit {
     this.departmentFolders$.subscribe(
       alldepartments => {
         const { result, folderName, foldersToOpen } = this.findFolderAndNavigate(alldepartments, folder_id, '', folderNameBoolean);
-        
+
         if (result && folderNameBoolean) {
           this.openFolderInLocalStorage(foldersToOpen);
           const url = `/new/${result}`;
@@ -271,14 +271,14 @@ export class L1FeatureItemListComponent implements OnInit {
 
     for (const subfolder of folder.folders) {
       const resultPath = `${path}:${folder.folder_id}`;
-      const { result, folderName, foldersToOpen } = this.processFolder(subfolder, folder_id, resultPath, folder.name, department_id); 
+      const { result, folderName, foldersToOpen } = this.processFolder(subfolder, folder_id, resultPath, folder.name, department_id);
       if (result) {
         return { result, folderName, foldersToOpen: [folder.name, ...foldersToOpen] };
       }
     }
     return { result: null, folderName: null, foldersToOpen: []  };
   }
-  
+
 
   goToDomain(department_id: number) {
     department_id = this.item.reference.department_id;
@@ -351,7 +351,7 @@ export class L1FeatureItemListComponent implements OnInit {
   }
 
   hovering = false;
-  
+
   copyToClipboard(text: string): void {
     navigator.clipboard.writeText(text).then(() => {
       this._snackBar.open('ID copied to clipboard!', 'OK', { duration: 2000 });
@@ -359,5 +359,5 @@ export class L1FeatureItemListComponent implements OnInit {
       console.error('Failed to copy text: ', err);
     });
   }
-  
+
 }

@@ -347,15 +347,17 @@ def before_all(context):
         logger.debug(f"Using cometa browsers, Starting browser ")
         logger.debug(f"Browser_info : {context.browser_info}")
 
-        service_details = context.service_manager.prepare_browser_service_configuration(
+        context.service_manager.prepare_browser_service_configuration(
             browser=context.browser_info["browser"],
             version=context.browser_info["browser_version"]
         )
-        service_details = context.service_manager.create_service()
-        if not service_details:
+        service_created = context.service_manager.create_service()
+        if not service_created:
             raise Exception("Error while starting browser, Please contact administrator")    
+        
+        service_details = context.service_manager.get_service_details()
         # Save container details in the browser_info, which then gets saved in the feature results browser 
-        context.browser_info["container_service"] = {"Id":service_details["Id"]}
+        context.browser_info["container_service"] = {"Id": service_details["Id"]}
         context.container_services.append(service_details)
         browser_hub_url = context.service_manager.get_service_name(service_details['Id'])
         connection_url = f"http://{browser_hub_url}:4444/wd/hub"
@@ -423,7 +425,7 @@ def before_all(context):
     # more options can be found at:
     # https://aerokube.com/selenoid/latest/#_special_capabilities
     
-    if IS_KUBERNETES_DEPLOYMENT:
+    if USE_COMETA_BROWSER_IMAGES:
         cometa_options = {
             "record_video":context.record_video,
             "is_test":True
@@ -694,7 +696,6 @@ def after_all(context):
     # load feature into data
     data = json.loads(os.environ["FEATURE_DATA"])
     # junit file path for the executed testcase
-    logger.debug(data)
     files_path = f"{DEPARTMENT_DATA_PATH}/{slugify(data['department_name'])}/{slugify(data['app_name'])}/{data['environment_name']}"
     file_name = f"{context.feature_id}_{slugify(data['feature_name'])}"
 
@@ -704,10 +705,10 @@ def after_all(context):
     xmlFilePath = f"{files_path}/junit_reports/TESTS-features.{file_name}.xml"
 
     logger.debug("Adding path to temp files for housekeeping")
-    # context.tempfiles.append(meta_file_path)
-    # context.tempfiles.append(feature_file_path)
-    # context.tempfiles.append(feature_json_file_path)
-    # context.tempfiles.append(xmlFilePath)
+    context.tempfiles.append(meta_file_path)
+    context.tempfiles.append(feature_file_path)
+    context.tempfiles.append(feature_json_file_path)
+    context.tempfiles.append(xmlFilePath)
     # xmlFilePath = junit_reports/TESTS-features.%s_%s.xml' % (
     #     slugify(data['department_name']), slugify(data['app_name']), data['environment_name'], context.feature_id,
     #     slugify(data['feature_name']))
