@@ -186,7 +186,8 @@ def api_call(context, method, endpoint, parameters, headers, body, row_body):
         "url":endpoint,
         "params":parse_parameters(parameters),
         "headers":parse_parameters(headers),
-        "proxies":proxies 
+        "proxies":proxies,
+        "verify":False 
     }
         
     if body:
