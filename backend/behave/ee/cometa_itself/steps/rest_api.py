@@ -82,8 +82,9 @@ def parse_parameters(parameters):
 # Create API step using this action where, the method is HTTP method (GET, POST, PUT or DELETE, etc), the endpoint is your API to be called
 # Optionally: you can set query parameters and headers using the format Key=Value, with semicolons ; used to separate key-value pairs (e.g., Key1=value1;Key2=value2)
 # Optionally: you can pass body parameter with JSON format i.e. "body:{"key":"value"}"
-#@step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?)|body:(?P<body>.*?))\")*')
-#@done(u'Make an API call with "{method}" to "{endpoint}" with "params:{parameters}" and "headers:{headers}" and "body:{body}"')
+# Example: Make an API call with "GET" to "https://api.example.com/users" with "params:id=123;name=John"
+@step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?)|body:(?P<body>.*?))\")*')
+@done(u'Make an API call with "{method}" to "{endpoint}" with "params:{parameters}" and "headers:{headers}" and "body:{body}"')
 def api_call(context, method, endpoint, parameters, headers, body):
     context.STEP_TYPE = "API"
 
@@ -152,6 +153,7 @@ def api_call(context, method, endpoint, parameters, headers, body):
 # Create API step using this action where, the method is HTTP method (GET, POST, PUT or DELETE, etc), the endpoint is your API to be called
 # Optionally: you can set query parameters and headers using the format Key=Value, with semicolons ; used to separate key-value pairs (e.g., Key1=value1;Key2=value2)
 # Optionally: you can pass body parameter with JSON format i.e. "body:{"key":"value"}"
+# Example: Make an API call with "GET" to "https://api.example.com/users" with "params:id=123;name=John" and "headers:Authorization=Bearer abc123"
 @step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?)|body:(?P<json_body>.*?)|raw-body:(?P<row_body>.*?))\")*')
 @done(u'Make an API call with "{method}" to "{endpoint}" with "params:{parameters}" and "headers:{headers}" and "body:{json_body}" and "row_body:{row_body}"')
 def api_call(context, method, endpoint, parameters, headers, body, row_body):
@@ -224,6 +226,7 @@ def api_call(context, method, endpoint, parameters, headers, body, row_body):
 
 # Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
 # jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
+# Example: Assert last API Call property ".data.user.name" to "match" "Jane"
 @step(u'Assert last API Call property \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert last API Call property "{jq_pattern}" to "{condition}" "{value}"')
 def assert_imp(context, jq_pattern, condition, value):
@@ -250,6 +253,7 @@ use_step_matcher("parse")
 
 
 # The last API request and response data can be saved into an environment variable using this action, which can then be used as a value for other steps or for performing assertions when required
+# Example: Save last API Call property ".data.user.name" to "user_name"
 @step(u'Save last API Call property "{jq_pattern}" to "{environment_variable}"')
 @done(u'Save last API Call property "{jq_pattern}" to "{environment_variable}"')
 def assert_imp(context, jq_pattern, environment_variable):

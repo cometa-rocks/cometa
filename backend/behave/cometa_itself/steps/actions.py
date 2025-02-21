@@ -782,8 +782,8 @@ def step_impl(context, foldername):
     # Detect Environment
 
     # Execute the steps in feature 33 by changing the environment-dependent settings.
-
-
+#
+#
 # Checks if the current Tab Title is/contains some sentence
 # Example: BrowserTitle is "Home - Complete Meta Test Platform"
 @step(u'BrowserTitle is "{browserTitle}"')
@@ -1548,7 +1548,7 @@ def step_impl(context, function):
         raise CustomError(error)
 
 # Click on element using an XPath Selector
-# Example: click on element with xpath "//button[@id='login']"
+# Example: Click on element with xpath "//button[@id='login']"
 @step(u'click on element with xpath "{xpath}"')
 @done(u'click on element with xpath "{xpath}"')
 def step_impl(context, xpath):
@@ -1955,7 +1955,7 @@ def step_impl(context,comment):
     logger.info("Comment: %s" % comment)
 
 # Insert custom comments in testplans
-# Example: #Here the comment
+# Example: # Here the comment
 @step(u'#{comment}')
 @done(u'#{comment}')
 def step_impl(context,comment):
@@ -2389,7 +2389,7 @@ def editFile(context, excelfile, value, cell):
     assert cell_value == value, f"Cell value ({cell_value}) does not match expected value ({value})."
 
 # Opens excel file adds a variable to environment and sets the value as seen in Excel cell
-# Example: open "cometa_results.xlsx" and set environment variable "total_fails" with value from cell "C5"
+# Example: Open "cometa_results.xlsx" and set environment variable "total_fails" with value from cell "C5"
 @step(u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"')
 @done(u'Open "{excelfile}" and set environment variable "{variable_name}" with value from cell "{cell}"')
 def editFile(context, excelfile, variable_name, cell):
@@ -3277,6 +3277,7 @@ def fetch_page_source(context):
 
 # This step scrolls to a specific element in a lazy-loaded table (such as one in AG Grid)
 # Scroll to element in lazy-loaded table, specially useful when working with AG Grid
+# Example: Scroll to element with ".row-class" in AG Grid table "//div[@class='ag-body-viewport']"
 @step(u'Scroll to element with "{selector}" in AG Grid table "{scrollable_element_selector}"')
 @done(u'Scroll to element with "{selector}" in AG Grid table "{scrollable_element_selector}"')
 def find_element_in_lazy_loaded_element(context, selector, scrollable_element_selector):
@@ -3327,8 +3328,7 @@ def find_element_in_lazy_loaded_element(context, selector, scrollable_element_se
 
 
 # Read tag value from given selector and store in a variable
-# Example 1: Get value from "//a[@href="/home"]" and store in "home_link_text" with ""
-# Example 2: Get value from "//a[@href="/home"]" and store in "home_link_text" with "trim the spaces"
+# Example: Get value from "//a[@href="/home"]" and store in "home_link_text" with "", Get value from "//a[@href="/home"]" and store in "home_link_text" with "trim the spaces"
 @step(u'Get value from "{selector}" and store in the "{variable_name}" with "{option}"')
 @done(u'Get value from "{selector}" and store in the "{variable_name}" with "{option}"')
 def step_impl(context, selector, variable_name, option):
@@ -3359,8 +3359,8 @@ def step_impl(context, selector, variable_name, option):
 
 
 # Read tag's attribute value from given selector and store in a variable
-# Example 1: Get "href" value of "//a[@href="/home"]" and store in "href_value" with ""
-# Example 2: Get "class" value of "//a[@href="/home"]" and store in "class_value" with "trim the spaces"
+# Example: Get "href" value of "//a[@href="/home"]" and store in "href_value" with ""
+# Example: Get "class" value of "//a[@href="/home"]" and store in "class_value" with "trim the spaces"
 @step(u'Get "{attribute}" value of "{selector}" and store in the "{variable_name}" with "{option}"')
 @done(u'Get "{attribute}" value of "{selector}" and store in the "{variable_name}" with "{option}"')
 def step_impl(context, attribute, selector, variable_name, option):
@@ -3404,6 +3404,12 @@ def step_impl(context, attribute, selector, variable_name, option):
 # 4. If the selected option is 'reload page while waiting to disappear', then the page is reloaded every minute while waiting to disappear. 
 # Options can be chained like:  'reload page after appearing;do not fail if not visible' 
 # For Option 4: the step timeout must be bigger then 1 minute, as the waiting time after reloading is set to 1 minute.
+#
+# This step waits for the selector to appear within the given timeout (in seconds) and then wait the step timeout to disappear. The options provided are 'do not fail if not visible' or 'fail if never visible'
+# Example:
+# Wait 10 seconds for ".loading-spinner" to appear and disappear using option "fail if never visible".
+# Wait 15 seconds for "#modal-dialog" to appear and disappear using option "reload page after appearing;do not fail if not visible".
+# Wait 30 seconds for ".notification-banner" to appear and disappear using option "reload page while waiting to disappear".
 @step(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 @done(u'Wait "{timeout}" seconds for "{selector}" to appear and disappear using option "{option}"')
 def wait_for_appear_and_disappear(context, timeout, selector, option):
@@ -3511,6 +3517,7 @@ def wait_for_appear_and_disappear(context, timeout, selector, option):
 
 # This step scrolls through a lazy-loaded table (or page) to reach the last visible position of a specified element, identified by its XPath
 # Scroll to the end of the page/table depending on the xpath with maximum scrolls and time of life.
+# Example: Scroll to the last position of the desired element identified by "//div[@class='row-last']" with maximum number of scrolls "50" and maximum time of "30".
 @step(u'Scroll to the last position of the desired element identified by "{xpath}" with maximum number of scrolls "{MaxScrolls}" and maximum time of  "{MaxTimeOfLife}"')
 @done(u'Scroll to the last position of the desired element identified by "{xpath}" with maximum number of scrolls "{MaxScrolls}" and maximum time of  "{MaxTimeOfLife}"')
 def scrollThroughLazyLoading(context, xpath, MaxScrolls, MaxTimeOfLife):

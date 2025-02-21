@@ -108,7 +108,8 @@ def show_variable_value(context, variable, seconds):
         
 
 # Reads data from an Excel file for a given sheet and row number, 
-# then stores the row's data as a dictionary in a runtime variable.  
+# then stores the row's data as a dictionary in a runtime variable.
+# Example: Read data from Excel file "/path/to/excel.xlsx" sheet "Sheet1" row "3" and store in "user_data"  
 @step(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in "{variable_name}"')
 @done(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in "{variable_name}"')
 def read_excel_step(context, file_path, sheet_name, row_number, variable_name):
@@ -147,6 +148,7 @@ def read_excel_step(context, file_path, sheet_name, row_number, variable_name):
 
 # Reads data from an Excel file for a given sheet and row number,
 # then stores the row's data as individual runtime variables.
+# Example: Read data from Excel file "/path/to/file.xlsx" sheet "Sheet1" row "2" and store in runtime variables
 @step(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in runtime variables')
 @done(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" row "{row_number}" and store in runtime variables')
 def read_excel_step(context, file_path, sheet_name, row_number):
@@ -193,7 +195,8 @@ use_step_matcher("re")
 
 
 # Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
-# jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
+# jq_pattern is a JSON path that can also be combined with conditions to perform assertions
+# Example: Fetch value using ".data.user.name" from "user_details" and store in "user_name"
 @step(u'Fetch value using \"(?P<jq_pattern>.*?)\" from "(?P<variable_name>.+?)" and store in "(?P<new_variable_name>.+?)"')
 @done(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}"')
 def assert_imp(context, jq_pattern, variable_name, new_variable_name):

@@ -35,6 +35,7 @@ use_step_matcher("re")
 #     - "!="           -> Checks if value1 is not equal to value2 (numeric comparison).
 # - value2: (String|Number) The second value for comparison.
 #
+# This step initiates a conditional "If" block to evaluate a comparison between two values. 
 # Example:
 # 1. If "5" ">=" "3"             -> True, condition is activated.
 # 2. If "Hello World" "contains" "World" -> True, condition is activated.
@@ -67,7 +68,6 @@ def start_if(context, value1, condition, value2):
 
 # This step defines the 'Else' block within an If condition flow. 
 # It allows for alternative execution when the "If" condition fails.
-#
 # Example:
 # If "5" "==" "10"
 #     <perform actions if true>
@@ -84,7 +84,6 @@ def start_else(context):
 
 # This step marks the end of an "If-Else" conditional block. 
 # It finalizes the condition and removes it from the active condition list.
-#
 # Example:
 # If "5" ">=" "3"
 #     <perform actions if true>
