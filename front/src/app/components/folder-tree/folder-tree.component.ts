@@ -5,7 +5,7 @@
  *
  * @author: dph000
  */
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { Observable } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -39,7 +39,8 @@ export class FolderTreeComponent implements OnInit {
     private log: LogService,
     private _api: ApiService,
     private snack: MatSnackBar,
-    private _sharedActions: SharedActionsService
+    private _sharedActions: SharedActionsService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   @Select(CustomSelectors.GetConfigProperty('co_active_list'))
@@ -54,15 +55,10 @@ export class FolderTreeComponent implements OnInit {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
-
-    this._api.getCometaConfigurations().subscribe(res => {
-
-      const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
-      // console.log("config_feature_mobile: ", typeof(config_feature_mobile.configuration_value))
-      if (config_feature_mobile) {
-        this.configValueBoolean = !!JSON.parse(config_feature_mobile.configuration_value.toLowerCase());
-      }
-    })
+    this._sharedActions.config$.subscribe(configValue => {
+      this.configValueBoolean = configValue;
+      this.cdr.detectChanges(); 
+    });
     
     this.log.msg('1', 'Initializing component...', 'folder-tree');
 

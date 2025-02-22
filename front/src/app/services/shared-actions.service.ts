@@ -71,6 +71,10 @@ export class SharedActionsService {
   //  Next minor version 2.8.377
   // @ViewChild(LiveStepsComponent) liveStepsComponent!: LiveStepsComponent;
 
+  // Motivation - pass configValueBoolean to the folder-tree component
+  private configSubject = new BehaviorSubject<boolean>(false);
+  config$ = this.configSubject.asObservable();
+
 
   constructor(
     public _dialog: MatDialog,
@@ -585,4 +589,17 @@ export class SharedActionsService {
     this.selectedDepartmentSubject.next(department);
   }
 
+  loadConfig() {
+    this._api.getCometaConfigurations().subscribe(res => {
+      const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
+      if (config_feature_mobile) {
+        const configValue = !!JSON.parse(config_feature_mobile.configuration_value.toLowerCase());
+        this.configSubject.next(configValue); 
+      }
+    });
+  }
+
+  updateConfigValue(configValue: boolean) {
+    this.configSubject.next(configValue);
+  }
 }
