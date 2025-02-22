@@ -195,10 +195,10 @@
                               </ng-container>
 
                               <ng-template #showIcon>
-                                <mat-icon class="skewed-content">
+                                <i class="material-icons skewed-content">
                                   {{ runningContainer.service_status === 'Running' ? 'pause' : 'play_arrow' }}
-                                </mat-icon>
-                                <span class="skewed-content">
+                                </i>
+                                <span class="skewed-content-span">
                                   {{ runningContainer.service_status === 'Running' ? 'Pause' : 'Restart' }}
                                 </span>
                               </ng-template>
@@ -295,26 +295,26 @@
                             <i class="material-icons">adb</i>
                             <strong>Mobile Name:</strong>
                             {{ mobile.mobile_image_name }}
-                            <mat-icon
+                            <i
                               (click)="importClipboard(mobile.mobile_image_name)"
                               [ngClass]="{ active: isIconActive[mobile.mobile_image_name] }"
-                              class="copyClipboardIcon"
+                              class="material-icons copyClipboardIcon"
                               [color]="isIconActive[mobile.mobile_image_name] ? 'primary' : ''">
                               content_copy
-                            </mat-icon>
+                            </i>
                           </div>
                           <div
                             class="emulator-info"
                             *ngIf="runningContainer">
                             <i class="material-icons">code</i>
                             <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
-                            <mat-icon
+                            <i
                               (click)="importClipboard(runningContainer.hostname); $event.stopPropagation();"
                               [ngClass]="{ active: isIconActive[runningContainer.hostname] }"
-                              class="copyClipboardIcon"
+                              class="material-icons copyClipboardIcon"
                               [color]="isIconActive[runningContainer.hostname] ? 'primary' : ''">
                               content_copy
-                            </mat-icon>
+                            </i>
                           </div>
 
                           <div class="emulator-info">
@@ -324,7 +324,7 @@
                               matTooltipPosition="above"
                               mat-icon-button
                               [matMenuTriggerFor]="moreInfo">
-                              <mat-icon>more_vert</mat-icon>
+                              <i class="material-icons">more_vert</i>
                             </button>
                             <strong class="moreInfoStrong">
                               More information
@@ -457,25 +457,25 @@
                         <i class="material-icons">adb</i>
                         <strong>Mobile Name:</strong>
                         {{ container.image.mobile_image_name }}
-                        <mat-icon
+                        <i
                           (click)="importClipboard(container.image.mobile_image_name)"
                           [ngClass]="{ active: isIconActive[container.image.mobile_image_name] }"
-                          class="copyClipboardIcon"
+                          class="material-icons copyClipboardIcon"
                           [color]="isIconActive[container.image.mobile_image_name] ? 'primary' : ''">
                           content_copy
-                        </mat-icon>
+                        </i>
                       </div>
                       <div class="emulator-info" *ngIf="isRunning">
                         <i class="material-icons">code</i>
                         <strong>Device Code:</strong>
                         {{ container.hostname }}
-                        <mat-icon
+                        <i
                           (click)="importClipboard(container.hostname)"
                           [ngClass]="{ active: isIconActive }"
-                          class="copyClipboardIcon"
+                          class="material-icons copyClipboardIcon"
                           [color]="isIconActive ? 'primary' : ''">
                           content_copy
-                        </mat-icon>
+                        </i>
                       </div>
                       <ng-container>
                         <div class="status-container">
@@ -495,7 +495,7 @@
                           matTooltipPosition="above"
                           mat-icon-button
                           [matMenuTriggerFor]="moreInfo">
-                          <mat-icon>more_vert</mat-icon>
+                          <i class="material-icons">more_vert</i>
                         </button>
                         <strong class="moreInfoStrongShared">
                           More information
@@ -716,10 +716,10 @@
                               </ng-container>
 
                               <ng-template #showIcon>
-                                <mat-icon class="skewed-content">
+                                <i class="material-icons skewed-content">
                                   {{ runningContainer.service_status === 'Running' ? 'pause' : 'play_arrow' }}
-                                </mat-icon>
-                                <span class="skewed-content">
+                                </i>
+                                <span class="skewed-content-span">
                                   {{ runningContainer.service_status === 'Running' ? 'Pause' : 'Restart' }}
                                 </span>
                               </ng-template>
@@ -822,26 +822,26 @@
                             <i class="material-icons">adb</i>
                             <strong>Mobile Name:</strong>
                             {{ mobile.mobile_image_name }}
-                            <mat-icon
+                            <i
                               (click)="importClipboard(mobile.mobile_image_name)"
                               [ngClass]="{ active: isIconActive[mobile.mobile_image_name] }"
-                              class="copyClipboardIcon"
+                              class="material-icons copyClipboardIcon"
                               [color]="isIconActive[mobile.mobile_image_name] ? 'primary' : ''">
                               content_copy
-                            </mat-icon>
+                            </i>
                           </div>
                           <div
                             class="emulator-info"
                             *ngIf="runningContainer">
                             <i class="material-icons">code</i>
                             <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
-                            <mat-icon
+                            <i
                               (click)="importClipboard(runningContainer.hostname); $event.stopPropagation();"
                               [ngClass]="{ active: isIconActive[runningContainer.hostname] }"
-                              class="copyClipboardIcon"
+                              class="material-icons copyClipboardIcon"
                               [color]="isIconActive[runningContainer.hostname] ? 'primary' : ''">
                               content_copy
-                            </mat-icon>
+                            </i>
                           </div>
 
                           <div class="emulator-info">
@@ -851,7 +851,7 @@
                               matTooltipPosition="above"
                               mat-icon-button
                               [matMenuTriggerFor]="moreInfo">
-                              <mat-icon>more_vert</mat-icon>
+                              <i class="material-icons">more_vert</i>
                             </button>
                             <strong class="moreInfoStrong">
                               More information
@@ -984,25 +984,25 @@
                             <i class="material-icons">adb</i>
                             <strong>Mobile Name:</strong>
                             {{ container.image.mobile_image_name }}
-                            <mat-icon
+                            <i
                               (click)="importClipboard(container.image.mobile_image_name)"
                               [ngClass]="{ active: isIconActive[container.image.mobile_image_name] }"
-                              class="copyClipboardIcon"
+                              class="material-icons copyClipboardIcon"
                               [color]="isIconActive[container.image.mobile_image_name] ? 'primary' : ''">
                               content_copy
-                            </mat-icon>
+                            </i>
                           </div>
                           <div class="emulator-info" *ngIf="isRunning">
                             <i class="material-icons">code</i>
                             <strong>Device Code:</strong>
                             {{ container.hostname }}
-                            <mat-icon
+                            <i
                               (click)="importClipboard(container.hostname)"
                               [ngClass]="{ active: isIconActive }"
-                              class="copyClipboardIcon"
+                              class="material-icons copyClipboardIcon"
                               [color]="isIconActive ? 'primary' : ''">
                               content_copy
-                            </mat-icon>
+                            </i>
                           </div>
                           <ng-container>
                             <div class="status-container">
@@ -1022,7 +1022,7 @@
                               matTooltipPosition="above"
                               mat-icon-button
                               [matMenuTriggerFor]="moreInfo">
-                              <mat-icon>more_vert</mat-icon>
+                              <i class="material-icons">more_vert</i>
                             </button>
                             <strong class="moreInfoStrongShared">
                               More information

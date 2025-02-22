@@ -50,6 +50,7 @@ import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
 import { Configuration } from '@store/actions/config.actions';
 import { E } from '@angular/cdk/keycodes';
+import { SharedActionsService } from '@services/shared-actions.service';
 
 @Component({
   selector: 'edit-configuration',
@@ -121,7 +122,8 @@ export class EditConfigurationComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private _dialog: MatDialog,
     private inputFocusService: InputFocusService,
-    private dialogRef: MatDialogRef<EditConfigurationComponent>
+    private dialogRef: MatDialogRef<EditConfigurationComponent>,
+    public _sharedActions: SharedActionsService,
   ) { }
 
   sendInputFocusToParent(inputFocus: boolean): void {
@@ -259,6 +261,8 @@ export class EditConfigurationComponent implements OnInit, OnDestroy {
 
     action.subscribe(
       (res: Configuration) => {
+        // motivation - call loadConfig from shared service
+        this._sharedActions.loadConfig(); 
         // if new user added, then update the array with new user 
         if (configuration.id === 0) {
           this.configurations[this.configurations.length - 1] = res;

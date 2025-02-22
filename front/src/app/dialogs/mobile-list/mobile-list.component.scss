@@ -83,16 +83,11 @@ h2, h3{
 }
 
 .dialog-footer-nolicense {
-  padding: 29px 18px 0px;
   display: flex;
   flex-wrap: wrap;
-  min-height: 52px;
-  align-items: center;
-  box-sizing: content-box;
-  margin-bottom: -15px;
-  width: 37%;
+  width: 73%;
   position: fixed;
-  bottom: 130px;
+  bottom: 110px;
 }
 
 mat-dialog-content {
@@ -212,6 +207,7 @@ mat-dialog-content {
     margin-bottom: 5px;
     margin-left: 10px;
     font-size: 14px;
+    gap: 5px;
     strong {
       align-items: center;
       margin-left: 5px;
@@ -231,14 +227,14 @@ mat-dialog-content {
   }
   .get-app {
     position: relative;
-    top: -15px;
+    top: -22px;
     left: -1px;
   }
   .installedApp {
     display: flex;
     font-weight: bold;
     position: relative;
-    top: -15px;
+    top: -22px;
     left: -2px;
   }
 }
@@ -316,7 +312,7 @@ mat-dialog-content {
   align-items: start;
   gap: 6px;
   font-size: 14px;
-  padding: 0 12px;
+  padding: 0 16px;
   color: $darker-step;
 }
 
@@ -374,8 +370,6 @@ mat-divider {
   pointer-events: none;
 }
 
-
-
 .created-by {
   text-align: right;
   margin-top: -20px;
@@ -383,21 +377,23 @@ mat-divider {
   font-size: 14px;
 }
 
-
 .emulator-info {
   .moreInfo {
+    transform: scale(1.2);
     position: relative;
     top: -12px;
     left: -12px;
   }
   .moreInfoShared {
+    transform: scale(1.2);
     position: relative;
     top: -4px;
     left: -12px;
   }
   .copyClipboardIcon {
-    font-size: 15px;
-    margin-left: 10px;
+    transform: scale(0.9);
+    width: 15px;
+    margin-left: 2px;
     cursor: pointer;
 
     &.active {
@@ -405,6 +401,16 @@ mat-divider {
     }
   }
 }
+
+// .copyClipboardIcon {
+//   transform: scale(1);
+//   width: 15px;
+//   margin-left: 10px;
+//   cursor: pointer;
+//   &.active {
+//     animation: changeColor 3s forwards;
+//   }
+// }
 
 @keyframes changeColor {
   0% {
@@ -416,7 +422,7 @@ mat-divider {
 }
 
 .scrollable-content {
-  max-height: 60vh;
+  max-height: 58vh;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
@@ -856,14 +862,13 @@ mobile-list {
 .start, .restart, .pause, .close {
   box-sizing: border-box;
   cursor: pointer;
-  font-weight: bold;
   display: flex;
   min-width: 64px;
   height: 26px;
   color: $table-background-opaque;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
 }
 
@@ -1199,7 +1204,7 @@ mobile-list {
 .skewed-button {
   display: flex;
   height: 18.6px;
-  padding: 3px 10px 4px 0;
+  padding: 3px 0px 4px 0px;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -1218,6 +1223,15 @@ mobile-list {
   transform: skew(30deg);
   display: inline-block;
   margin-right: 3px;
+  font-size: 16px;
+}
+
+.skewed-content-span {
+  transform: skew(30deg);
+  display: inline-block;
+  margin-right: 3px;
+  font-size: 14px;
+  letter-spacing: 1px;
 }
 
 .spinnerPause {
@@ -1263,7 +1277,7 @@ mobile-list {
 ::ng-deep .mat-badge-content.mat-badge-active {
   transform: scale(0.8);
   font-size: 14px;
-  margin-right: -144px;
+  margin-right: -150px;
   margin-top: 8px;
 }
 
