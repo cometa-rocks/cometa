@@ -46,6 +46,8 @@ use_step_matcher("parse")
 # Parameters:
 # - connection_string: The connection string used to connect to the SQL database.
 # - variable: The name of the variable in which to store the database connection.
+#
+# This step connects to an SQL database using the provided connection string and stores the connection in the specified variable.
 # Example:
 # - Connect to SQL database using "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;" and store connection in "myDatabaseConnection"
 @step(u'Connect to SQL database using "{connection_string}" and store connection in "{variable_name}"')

@@ -50,6 +50,8 @@ use_step_matcher("re")
 # Parameters:
 # - object_name: The name of the object that should be present on the screen.
 # - options: (Optional) Additional options or conditions that can refine the validation. This part is optional, meaning it can be omitted in the Gherkin step.   
+#
+# This step validates whether the current screen contains a specific object, with an optional set of conditions (options).
 # Example:
 # - Validate current screen to contain "Car"
 # - Validate current screen to contain "Car" with "color:red"
@@ -102,6 +104,9 @@ def validate_screen_using_ai(context, object_name, options):
 # Regular Expression Breakdown:
 # - (?P<variable>.*?): Captures the name of the variable where the list of objects will be stored.
 # - (?: with "(?P<options>.*?)")?: This part is optional.
+#
+# This step retrieves the list of visible objects on the current screen and stores it in the specified variable, 
+# with an optional set of conditions (options) that can alter the behavior of the retrieval.
 # Example:
 # - Get list of visible objects in the current screen and store in "myObjects"
 # - Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
@@ -230,6 +235,7 @@ def assert_imp(context, variable_name, condition, value):
 #     }
 # ]
 # """ and store in the "analysis_result"
+# Example: Get information based on """What is the capital of France?""" and store in the "$capital" with "Output JSON"'
 @step(u'Get information based on """(?P<user_message_to_ai>[\s\S]*?)""" and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
 @done(u'Get information based on """{user_message_to_ai}""" and store in the "{variable}" with "{option}"')
 def ai_analyze(context, user_message_to_ai, variable, option):
@@ -274,6 +280,8 @@ def ai_analyze(context, user_message_to_ai, variable, option):
 # - variable: (String) The name of the variable where the AI analysis output will be stored.
 # - option: (String) (Optional) Modifies how the analysis result is processed. For example, if 'Output JSON' is provided,
 #            if option "Output JSON" is provided the result will be converted to a JSON format before it is stored in the variable.
+#
+# This step retrieves information from current screen based on the given prompt and stores it in a variable. 
 # Example: Get information from the screen and store it in a variable.
 # Get information based on """
 # Explain everything that you see in the image.
