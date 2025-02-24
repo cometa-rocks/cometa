@@ -589,6 +589,11 @@ export class SharedActionsService {
     this.selectedDepartmentSubject.next(department);
   }
 
+  /**
+   * Loads the Cometa configuration and checks if the mobile test feature is enabled.
+   * It retrieves the configurations from the API, finds the specific setting
+   * 'COMETA_FEATURE_MOBILE_TEST_ENABLED', and updates the configSubject with its boolean value.
+   */
   loadConfig() {
     this._api.getCometaConfigurations().subscribe(res => {
       const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
