@@ -251,6 +251,7 @@ mat-dialog-content {
     margin-bottom: 5px;
     margin-left: 10px;
     font-size: 14px;
+    gap: 5px;
     strong {
       align-items: center;
       margin-left: 5px;
@@ -387,7 +388,7 @@ mat-divider {
   .moreInfoShared {
     transform: scale(1.2);
     position: relative;
-    top: -4px;
+    top: -7px;
     left: -12px;
   }
   .copyClipboardIcon {
@@ -602,7 +603,7 @@ mobile-list {
     .moreInfoStrongShared {
       position: relative;
       left: -24px;
-      top: 9px;
+      top: 6px;
     }
   }
 }
@@ -1007,7 +1008,7 @@ mobile-list {
 
 .container-inspect-left-shared {
   position: relative;
-  right: 31px;
+  right: 37px;
 }
 
 .container-novnc-left-shared {
