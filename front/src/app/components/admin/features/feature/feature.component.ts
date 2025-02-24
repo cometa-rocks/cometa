@@ -25,6 +25,7 @@ import { NgIf, AsyncPipe } from '@angular/common';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
 import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
+import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
   selector: 'feature',
@@ -43,6 +44,7 @@ import { MatLegacyCheckboxModule } from '@angular/material/legacy-checkbox';
 export class FeatureComponent implements OnInit {
   canEditFeature$: Observable<boolean>;
   canDeleteFeature$: Observable<boolean>;
+  inputFocus: boolean = false;
 
   @Output() checkboxChange = new EventEmitter<boolean>();
 
@@ -51,7 +53,8 @@ export class FeatureComponent implements OnInit {
     private _snack: MatSnackBar,
     private _dialog: MatDialog,
     private _store: Store,
-    @Host() private _features: FeaturesComponent
+    @Host() private _features: FeaturesComponent,
+    private inputFocusService: InputFocusService
   ) {}
 
   checked$: Observable<boolean>;
@@ -110,5 +113,14 @@ export class FeatureComponent implements OnInit {
             err => this._snack.open('An error ocurred', 'OK')
           );
       });
+  }
+
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocusService.setInputFocus(true);
+  }
+
+  onInputBlur() {
+    this.inputFocusService.setInputFocus(false);
   }
 }
