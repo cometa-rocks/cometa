@@ -1011,7 +1011,7 @@
                               <span [ngClass]="{ 'running-text': isRunning, 'stopped-text': !isRunning }">
                                 {{ container.service_status}}
                               </span>
-                              <span [ngClass]="{ 'running': isRunning, 'stopped': !isRunning }" class="status-circle"></span>
+                              <span [ngClass]="{ 'running': isRunning, 'paused': !isRunning }" class="status-circle"></span>
                             </div>
                           </ng-container>
 
