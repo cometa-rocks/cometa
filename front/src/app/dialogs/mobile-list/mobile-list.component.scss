@@ -2,7 +2,7 @@
 @import 'breakpoints';
 
 h4 {
-  color: #1565c0;
+  color: $blue;
 }
 
 h2, h3{
@@ -11,7 +11,7 @@ h2, h3{
 }
 
 ::ng-deep .mobile-emulator-panel {
-  background-color: #f7f7f7;
+  background-color: $bg-mat-dialog-container;
 }
 
 @keyframes slideDown {
@@ -42,7 +42,7 @@ h2, h3{
         width: 390px;
         height: 145px;
         min-width: 390px;
-        background-color: #F5F5F5;
+        background-color: $bg-novnc-inspector;
         .mobile-icon {
           width: 100px;
           height: 200px;
@@ -145,7 +145,7 @@ mat-dialog-content {
 .hideShadow {
   height: 5px;
   width: 78px;
-  background-color: #F5F5F5;
+  background-color: $bg-novnc-inspector;
   position: absolute;
   top: 23px;
 }
@@ -163,38 +163,15 @@ mat-dialog-content {
     font-weight: bold;
   }
 
-  .restart {
-    background-color: #ffbf59;
-  }
+  // .restart {
+  //   background-color: #ffbf59;
+  // }
 }
 
 .button-container {
   display: flex;
   flex-direction: row-reverse;
 }
-
-.clipped {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  border-radius: 50%;
-  height: 30px !important;
-  width: 30px !important;
-  background-color: #ef5350;
-}
-
-.clipped {
-  font-size: 18px;
-  transition: font-size 0.3s ease;
-  text-align: center;
-  width: 100%;
-  height: 100%;
-  align-content: center;
-  cursor: pointer;
-}
-
-.clipped:hover, .close-icon:hover {
-  font-size: 20px;
-}
-
 
 .mobile-details {
   display: flex;
@@ -347,10 +324,6 @@ mat-dialog-content {
 
 }
 
-mat-divider {
-  margin-bottom: 10px !important;
-}
-
 .status-circle {
   width: 12px;
   height: 12px;
@@ -362,8 +335,8 @@ mat-divider {
   background-color: $success;
 }
 
-.status-circle.stopped {
-  background-color: $bad;
+.status-circle.paused {
+  background-color: $bg-and-status;
 }
 
 .disabled-content {
@@ -402,16 +375,6 @@ mat-divider {
     }
   }
 }
-
-// .copyClipboardIcon {
-//   transform: scale(1);
-//   width: 15px;
-//   margin-left: 10px;
-//   cursor: pointer;
-//   &.active {
-//     animation: changeColor 3s forwards;
-//   }
-// }
 
 @keyframes changeColor {
   0% {
@@ -469,7 +432,7 @@ mobile-list {
 .toggle-button {
   background: none;
   border: none;
-  color: #007bff;
+  color: $shared-emulator-toggle;
   cursor: pointer;
   padding: 0;
   font-size: inherit;
@@ -489,10 +452,6 @@ mobile-list {
 
 .rotated {
   transform: rotate(90deg);
-}
-
-.handle {
-  top: -13px !important;
 }
 
 .inspect-hover, .novnc-hover {
@@ -923,7 +882,7 @@ mobile-list {
 }
 
 .start-stop-inpect-buttons {
-  background-color: #F5F5F5;
+  background-color: $bg-novnc-inspector;
   height: 24px;
   width: 80px;
   border-radius: 5px 0 0 0;
@@ -989,7 +948,7 @@ mobile-list {
   right: -10px;
   width: 20px;
   height: 26px;
-  background-color: #F5F5F5;
+  background-color: $bg-novnc-inspector;
   box-shadow: 1px 0px 0px rgba(0, 0, 0, 0.2);
   transform: skewX(30deg);
   z-index: 9;
@@ -1064,7 +1023,7 @@ mobile-list {
 }
 
 .stopped-text {
-  color: #d4145a;
+  color: $bg-and-status;
 }
 
 .status-circle {
@@ -1080,7 +1039,7 @@ mobile-list {
 }
 
 .stopped {
-  background-color: #d4145a;
+  background-color: $bg-and-status;
 }
 
 .emulatorOptions {
@@ -1094,7 +1053,7 @@ mobile-list {
   width: 500px;
   border-radius: 8px;
   overflow: hidden;
-  background-color: #f7f7f7;
+  background-color: $bg-mat-dialog-container;
 }
 
 // Menu more vert emulator feature
@@ -1146,10 +1105,10 @@ mobile-list {
 
 .pauseMenu {
   mat-icon {
-    color:  #ef5350 !important;
+    color:  $red !important;
   }
   span {
-    color:  #ef5350 !important;
+    color:  $red !important;
   }
 }
 
@@ -1164,10 +1123,10 @@ mobile-list {
 
 .closeMenu {
   mat-icon {
-    color:  #ef5350 !important;
+    color:  $red !important;
   }
   span {
-    color:  #ef5350 !important;
+    color:  $red!important;
   }
 }
 
@@ -1196,7 +1155,7 @@ mobile-list {
 }
 
 .pause-bg {
-  background-color: #f57c00;
+  background-color: $bg-and-status;
   width: 90px;
   height: 26px;
   margin-right: -182px;
@@ -1256,15 +1215,15 @@ mobile-list {
     opacity: 1 !important;
   }
   .mat-slide-toggle.mat-checked::after {
-    background-color: #333 !important;
+    background-color: $disabled-slide-toggle !important;
   }
   .mat-slide-toggle.mat-checked::after {
-    background-color: #333;
+    background-color: $disabled-slide-toggle;
   }
 }
 
 ::ng-deep .mat-dialog-container {
-  background-color: #f7f7f7;
+  background-color: $bg-mat-dialog-container;
 }
 
 ::ng-deep .mobile-emulator-panel-dialog {
