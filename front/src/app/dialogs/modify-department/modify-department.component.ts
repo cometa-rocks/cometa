@@ -30,6 +30,7 @@ import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { InputFocusService } from '../../services/inputFocus.service';
 
 @Component({
   selector: 'modify-department',
@@ -70,7 +71,8 @@ export class ModifyDepartmentComponent {
     private _api: ApiService,
     private fb: UntypedFormBuilder,
     private snack: MatSnackBar,
-    private _store: Store
+    private _store: Store,
+    private inputFocusService: InputFocusService
   ) {
     this.department = this.departments.find(
       dept => dept.department_id === this.department_id
@@ -162,5 +164,14 @@ export class ModifyDepartmentComponent {
       },
       () => this.snack.open('An error ocurred', 'OK')
     );
+  }
+
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocusService.setInputFocus(true);
+  }
+
+  onInputBlur() {
+    this.inputFocusService.setInputFocus(false);
   }
 }
