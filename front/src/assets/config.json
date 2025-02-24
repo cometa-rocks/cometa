@@ -1,5 +1,5 @@
 {
-  "version": "3.0.15",
+  "version": "3.0.16",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.16",
+      "date": "2025-02-24",
+      "features": [
+        {
+          "title": "#5807 Fixed mobile device visibility",
+          "description": "Fixed mobile device visibility in tree-folder. Updated CSS and dialog styling (mat-icon replaced with icon i)."
+        }
+      ]
+    },   
     {
       "version": "3.0.15",
       "date": "2025-02-20",
