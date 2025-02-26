@@ -18,6 +18,7 @@
   margin-bottom: 10px;
 }
 
+
 .hover-box {
   display: none;
   position: absolute;
@@ -130,6 +131,10 @@ a {
   // overflow: unset;
 }
 
+:host::ng-deep .mat-expansion-panel-header {
+  padding: 0 27px 0 24px;
+}
+
 :host::ng-deep .mat-dialog-content {
   padding: 0 10px 5px;
   @include for-tablet-portrait-up {
@@ -188,6 +193,7 @@ a {
   display: flex;
   align-items: flex-start;
   flex-direction: column;
+  flex-wrap: wrap;
   @include for-tablet-portrait-up {
     flex-direction: row;
     align-items: center;
@@ -279,4 +285,39 @@ button {
     margin-left: 10px;
     list-style: '\2192  ';
   }
+}
+
+.button-container {
+  position: relative;
+  display: inline-block;
+  button {
+    // background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082);
+    // background-size: 400%;
+    // -webkit-background-clip: text;
+    // -webkit-text-fill-color: transparent;
+    // animation: rainbow 4s linear infinite;
+    border: #fdcb4d 1px solid;
+  }
+}
+
+.memberShip {
+  position: absolute;
+  bottom: -15px;
+  right: 5px;
+  font-size: 20px;
+  color: goldenrod;
+  background-color: white;
+  padding-left: 3px;
+}
+
+edit-feature{
+  height: 100%;
+}
+
+::ng-deep .mat-dialog-content {
+  max-height: 82vh;
+}
+
+::ng-deep .mat-dialog-container {
+  resize: both
 }
