@@ -1,5 +1,5 @@
 {
-  "version": "3.0.5",
+  "version": "3.0.15",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -105,7 +105,11 @@
     "hideSteps": false,
     "hideSchedule": false,
     "hideSendMail": false,
-    "hideUploadedFiles": false
+    "hideUploadedFiles": false,
+    "hideInformationMobile": false,
+    "hideInstallAPKSMobile": false,
+    "hideInstalledAPKSMobile": false,
+    "hideSharedMobile": false
   },
   "websocketsTimeout": 30000,
   "flaticon": [
@@ -233,11 +237,115 @@
   ],
   "changelog": [
     {
+      "version": "3.0.15",
+      "date": "2025-02-20",
+      "features": [
+        {
+          "title": "#5800 Resize Dialog edit features",
+          "description": "The feature dialog is now 100% and can be resized within the same window."
+        }
+      ]
+    },   
+    {
+      "version": "3.0.14",
+      "date": "2025-02-17",
+      "features": [
+        {
+          "title": "#5664 Recent page update",
+          "description": "The recent page has been overhauled. giving the user the choice to filter features created by the user or by the selected department. Features are now sorted in order of the earliest feature executed."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.13",
+      "date": "2025-02-16",
+      "features": [
+        {
+          "title": "#5606 Show in main-view the mobile device",
+          "description": "Show the mobile device in the main-view results"
+        }
+      ]
+    },
+    {
+      "version": "3.0.12",
+      "date": "2025-02-15",
+      "features": [
+        {
+          "title": "Save last departement selected - #5606 ",
+          "description": "Save the last department selected in mobile device selector"
+        }
+      ]
+    },
+    {
+      "version": "3.0.11",
+      "date": "2025-02-13",
+      "features": [
+        {
+          "title": "Maximum 3 emulator running - #5519",
+          "description": "Limits the number of running emulators to 3, with a notification showing the current running emulators and department"
+        }
+      ]
+    },
+    {
+      "version": "3.0.10",
+      "date": "2025-02-13",
+      "features": [
+        {
+          "title": "Mobile device - Emulator sync with departments #5519",
+          "description": "Emulators and running mobile devices are now synchronized with the selected department from the selector. Shared containers are also updated based on the department selection"
+        }
+      ]
+    },
+    {
+      "version": "3.0.9",
+      "date": "2025-02-11",
+      "features": [
+        {
+          "title": "Mobile device #5606",
+          "description": "Introducing mobile device support in the landing tree and feature dialog. Running an emulator now generates testable mobile devices"
+        }
+      ]
+    },
+    {
+      "version": "3.0.8",
+      "date": "2025-01-30",
+      "features": [
+        {
+          "title": "Improved vnc proxy #5519",
+          "description": "Adding option to take vnc path from backend, to support Selenoid and Cometa browsers vnc connection"
+        }
+      ]
+    },
+    {
+      "version": "3.0.7",
+      "date": "2025-01-29",
+      "features": [
+        {
+            "title": "#5663 Fix order of recent tab ",
+            "description": "When loading into recent page,  'Last run' in descending order. Column order has been changed to include relevant information on the left side. Shortened the names of some columns to align items better. "
+        }
+      ]
+    },
+    {
+      "version": "3.0.6",
+      "date": "2025-01-29",
+      "features": [
+        {
+          "title": "#5655 Add user details - hover profile ",
+          "description": "Added User information when hovering over the profile icon"
+        },
+        {
+          "title": "#5519 Kubernetes deployment with mobile feature",
+          "description": "Kubernetes changes are merged with Mobile and AI feature, making it scalable"
+        }
+      ]
+    },
+    {
       "version": "3.0.5",
       "date": "2024-11-21",
       "features": [
         {
-          "title": "#5414 Change background image of test environment ",
+          "title": "#5414 Change background image of test environment",
           "description": "Backgroud images can be change for the test browser and mobile device using Cometa admin section"
         }
       ]
@@ -305,7 +413,7 @@
           "description": "Added an icon to allow dragging the live steps window."
         }
       ]
-    },    
+    },
     {
       "version": "2.8.384",
       "date": "2024-09-16",
@@ -355,7 +463,7 @@
           "description": "Implement a feature that allows users to be redirected to the containing folder or department when searching for a feature or folder."
         }
       ]
-    }, 
+    },
     {
       "version": "2.8.379",
       "date": "2024-08-30",
@@ -369,7 +477,7 @@
           "description": "Put back in the same position Add variable button and reposition logout button."
         }
       ]
-    }, 
+    },
     {
     "version": "2.8.378",
     "date": "2024-08-26",
@@ -379,7 +487,7 @@
         "description": "Last screenshot in case of failure can be seen using $screenshot[last] variable"
       }
       ]
-    }, 
+    },
     {
     "version": "2.8.377",
     "date": "2024-08-19",

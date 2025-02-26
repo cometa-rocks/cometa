@@ -7,13 +7,16 @@ from behave import (
     use_step_matcher
 )
 import sys, requests, re, json
-sys.path.append('/code/behave/cometa_itself/steps')
+sys.path.append('/opt/code/cometa_itself/steps')
+sys.path.append("/opt/code/behave_django")
+
 from actions import (
     done,
     logger,
     addVariable
 )
 from tools.exceptions import CustomError
+from utility.config_handler import *
 
 use_step_matcher("re")
 
@@ -79,9 +82,10 @@ def parse_parameters(parameters):
 # Create API step using this action where, the method is HTTP method (GET, POST, PUT or DELETE, etc), the endpoint is your API to be called
 # Optionally: you can set query parameters and headers using the format Key=Value, with semicolons ; used to separate key-value pairs (e.g., Key1=value1;Key2=value2)
 # Optionally: you can pass body parameter with JSON format i.e. "body:{"key":"value"}"
-@step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?)|body:(?P<body>.*?))\")*')
-@done(u'Make an API call with "{method}" to "{endpoint}" with "params:{parameters}" and "headers:{headers}" and "body:{body}"')
+#@step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?)|body:(?P<body>.*?))\")*')
+#@done(u'Make an API call with "{method}" to "{endpoint}" with "params:{parameters}" and "headers:{headers}" and "body:{body}"')
 def api_call(context, method, endpoint, parameters, headers, body):
+    context.STEP_TYPE = "API"
 
     logger.debug({
         "method": method,
@@ -126,7 +130,80 @@ def api_call(context, method, endpoint, parameters, headers, body):
     api_call = build_rest_api_object(session, response)
 
     # save the api call
-    response = requests.post("http://cometa_django:8000/api/rest_api/", json={
+    response = requests.post(f"{get_cometa_backend_url()}/api/rest_api/", json={
+        "call": api_call,
+        "department_id": int(context.feature_info['department_id'])
+    }, headers={"Host": "cometa.local"})
+
+    try:
+        json_res = response.json()
+    except Exception as err:
+        json_res = {
+            "success": False,
+            "error": str(err)
+        }
+    if response.status_code != 201 and not json_res['success']:
+        raise CustomError(f"Error while saving the call to the database: {json_res['error']}")
+    
+    context.step_data['rest_api'] = json_res['id']
+    context.api_call = api_call
+
+
+# Create API step using this action where, the method is HTTP method (GET, POST, PUT or DELETE, etc), the endpoint is your API to be called
+# Optionally: you can set query parameters and headers using the format Key=Value, with semicolons ; used to separate key-value pairs (e.g., Key1=value1;Key2=value2)
+# Optionally: you can pass body parameter with JSON format i.e. "body:{"key":"value"}"
+@step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?)|body:(?P<json_body>.*?)|raw-body:(?P<row_body>.*?))\")*')
+@done(u'Make an API call with "{method}" to "{endpoint}" with "params:{parameters}" and "headers:{headers}" and "body:{json_body}" and "row_body:{row_body}"')
+def api_call(context, method, endpoint, parameters, headers, body, row_body):
+    context.STEP_TYPE = "API"
+
+
+    cookies = {
+        cookie['name'] : cookie['value'] for cookie in context.browser.get_cookies()
+        # TODO: Match Cookie Domain with the Endpoint Domain.
+    }
+
+    if body:
+        body = json.loads(body)
+        logger.debug(f"Request will be sent with body : {body}")
+    
+    logger.debug(context.browser.get_cookies())
+    session = requests.Session()
+    session.cookies.update(cookies)
+    # need to add proxies - #4545
+    proxies = None
+
+    if context.PROXY and len(context.PROXY) > 0:
+        # need to use "http://" in front of IP for bug seen here: https://github.com/psf/requests/issues/5297
+        proxies = {
+            'http' : 'http://'+context.PROXY,
+            'https' : 'http://'+context.PROXY
+        }
+        logger.debug(f"Making API request using proxy : {proxies}")
+        
+    request_parameters = { 
+        "method":method,
+        "url":endpoint,
+        "params":parse_parameters(parameters),
+        "headers":parse_parameters(headers),
+        "proxies":proxies,
+        "verify":False 
+    }
+        
+    if body:
+        request_parameters["json"] = body
+
+    elif row_body:
+        request_parameters["data"] = row_body
+    
+    logger.debug(request_parameters)
+    
+    response = session.request(**request_parameters)
+
+    api_call = build_rest_api_object(session, response)
+
+    # save the api call
+    response = requests.post(f"{get_cometa_backend_url()}/api/rest_api/", json={
         "call": api_call,
         "department_id": int(context.feature_info['department_id'])
     }, headers={"Host": "cometa.local"})
@@ -150,7 +227,8 @@ def api_call(context, method, endpoint, parameters, headers, body):
 @step(u'Assert last API Call property \"(?P<jq_pattern>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert last API Call property "{jq_pattern}" to "{condition}" "{value}"')
 def assert_imp(context, jq_pattern, condition, value):
-    
+    context.STEP_TYPE = "API"
+
     import jq
 
     try:
@@ -175,6 +253,7 @@ use_step_matcher("parse")
 @step(u'Save last API Call property "{jq_pattern}" to "{environment_variable}"')
 @done(u'Save last API Call property "{jq_pattern}" to "{environment_variable}"')
 def assert_imp(context, jq_pattern, environment_variable):
+    context.STEP_TYPE = "API"
 
     import jq
 

@@ -74,7 +74,9 @@
     execution_time: timeTpl,
     description: descriptionTpl,
     pixel_diff: pixelTpl,
-    browser: browserTpl
+    browser: browserTpl,
+    mobile: mobileTpl,
+    options: optionsTpl
   }"
   [noResultTemplate]="noResultTpl"
   [showPaginator]="showPagination"
@@ -118,6 +120,59 @@
   </div>
 </ng-template>
 
+<ng-template #optionsTpl let-row let-index="index" let-col="colDef">
+  <ng-container *ngIf="col?.buttons">
+    <ng-container *ngFor="let button of buttons">
+      <div *ngIf="button.class != 'replay-button-2'">
+        <button
+          stopPropagation
+          mat-icon-button
+          *ngIf="!button.iif || button.iif(row)"
+          (click)="button.click && button.click(row)"
+          [ngClass]="button.class"
+          matTooltip="{{ button.tooltip }}"
+          [matTooltipPosition]="'above'">
+            <mat-icon>{{ button.icon }}</mat-icon>
+        </button>
+      </div>
+
+      <div *ngIf="button.class == 'replay-button-2'" class="mobile-container">
+        <div class="custom-context">
+          <button
+            class="mobile-button-replay"
+            stopPropagation
+            mat-icon-button
+            *ngIf="!button.iif || button.iif(row)"
+            [ngClass]="{'replay-button-2': row.mobile && row.mobile.length > 1}"
+            matTooltip="{{ button.tooltip }}"
+            [matTooltipPosition]="'above'"
+            (click)="row.mobile.length === 1 && onMobileSelectionChange({ value: row.mobile[0] }, row)">
+            <mat-icon
+              class="mobile-mat-icon-replay"
+              [matBadge]="row.mobile.length > 1 ? row.mobile.length : null"
+              matBadgeSize="small">
+              {{ button.icon }}
+            </mat-icon>
+            <ng-container *ngIf="row.mobile && row.mobile.length > 1 && button.class === 'replay-button-2'">
+              <mat-select
+                stopPropagation
+                class="mobile-selector"
+                (selectionChange)="onMobileSelectionChange($event, row)"
+                [(value)]="selectMobile[row.feature_result_id]">
+                <mat-option *ngFor="let mobile of row.mobile" [value]="mobile">
+                  <mat-label>
+                    {{ mobile.name }}
+                  </mat-label>
+                </mat-option>
+              </mat-select>
+            </ng-container>
+          </button>
+        </div>
+      </div>
+    </ng-container>
+  </ng-container>
+</ng-template>
+
 <ng-template #dateTpl let-row let-index="index" let-col="colDef">
   <span>{{
     row.result_date | amParse | amDateFormat: 'MMMM d yyyy, HH:mm'
@@ -150,6 +205,25 @@
     matTooltipPosition="above"
     [matTooltip]="row.browser.browser | titlecase"
     [style.backgroundImage]="row.browser.browser | browserIcon"></i>
+</ng-template>
+
+<ng-template #mobileTpl let-row let-index="index" let-col="colDef">
+  <div class="divMobile">
+    <div *ngIf="row.mobile.length > 0; else noMobile">
+      <div *ngFor="let mobile of row.mobile">
+        <mat-icon
+          stopPropagation
+          class="mobileIcon"
+          matTooltipPosition="above"
+          [matTooltip]="mobile.name">
+          tablet_mac
+        </mat-icon>
+      </div>
+    </div>
+    <ng-template #noMobile>
+      -
+    </ng-template>
+  </div>
 </ng-template>
 
 <!-- TOOLBAR TEMPLATE -->

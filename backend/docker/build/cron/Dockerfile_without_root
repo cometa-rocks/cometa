@@ -1,0 +1,37 @@
+# Start from a base image of Alpine
+FROM alpine:3.15.0
+
+# Install necessary packages
+RUN apk update
+RUN apk add curl 
+RUN apk add jq
+RUN apk add libcap
+
+# Create non-root user and group
+RUN addgroup -g 1201 cometa && \
+    adduser -D -u 1200 -G cometa cometa
+
+# Set the working directory
+WORKDIR /home/cometa/crontab/
+
+# Copy files and set ownership and permissions
+COPY --chown=cometa:cometa ./persistent_crontab_configuration /home/cometa/crontab/
+COPY --chown=cometa:cometa ./update_crontab.sh .
+COPY --chown=cometa:cometa ./entrypoint.sh .
+COPY --chown=cometa:cometa ./.curlrc /home/cometa/
+
+RUN chmod +x ./update_crontab.sh ./entrypoint.sh
+# Allow the root crontabs to avoid the issue
+RUN rm /etc/crontabs/root
+
+# create a starting cometa user crontab
+RUN cp persistent_crontab_configuration /var/spool/cron/crontabs/cometa
+
+# add the capabilities to the crond command
+# RUN setcap cap_setgid=ep /bin/busybox
+
+# Switch to non-root user
+USER cometa
+
+# Entry point running crond in the foreground with logging to stderr
+ENTRYPOINT ["/home/cometa/crontab/entrypoint.sh"]

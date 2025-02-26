@@ -65,7 +65,7 @@ EOF
 # #########
 function install_angular(){
 	# echo -e "\e[37mInstalling @angular/cli...\e[0m"
-	# npm install -g @angular/cli >> output.log 2>&1
+	npm install -g @angular/cli@15.2.9 >> output.log 2>&1
 	# echo -e "\e[32mOK\e[0m"
 	npm config set unsafe-perm true
 	echo -e "\e[37mInstalling npm packages...\e[0m"
@@ -127,9 +127,9 @@ function check_ssl_certificate() {
 # #########
 # This function builds angular project
 # and copies the content to the apache
-# folder.
+# folder.  
 # needed on hot deployment
-# @params:
+# @params: 
 # #########
 function build_project(){
 	# replace baseHref inside index.html before serving
@@ -180,10 +180,42 @@ function install_openidc(){
 	apt-get install -y pkg-config make gcc gdb lcov valgrind vim curl iputils-ping wget
 	apt-get install -y autoconf automake libtool
 	apt-get install -y libssl-dev libjansson-dev libcurl4-openssl-dev check
-	apt-get install -y libpcre3-dev zlib1g-dev libcjose0 libcjose-dev
+	apt-get install -y libpcre3-dev zlib1g-dev libcjose0 libcjose-dev 
 	apt-get install -y libapache2-mod-security2
 	cd -
 }
+
+# #########
+# This function installs Appium Inspector
+# to the Apache server.
+# Only needed for fresh installations.
+# @params: None
+# #########
+function install_appium_inspector() {
+    # Check if the Appium Inspector build exists in the specified path
+    if [ -f "/code/front/appium-inspector-build/appium-inspector/dist-browser/index.html" ]; then
+        echo "Appium Inspector build found, starting installation..."
+		
+		# Make sure folders are existed
+		mkdir -p /usr/local/apache2/htdocs/mobile/inspector/
+		mkdir -p /usr/local/apache2/htdocs/locales/
+		mkdir -p /usr/local/apache2/htdocs/assets/
+
+        # Copy necessary files to Apache's web root
+        cp -r /code/front/appium-inspector-build/appium-inspector/dist-browser/index.html /usr/local/apache2/htdocs/mobile/inspector/index.html 
+        cp -r /code/front/appium-inspector-build/appium-inspector/dist-browser/locales/* /usr/local/apache2/htdocs/locales/
+        cp -r /code/front/appium-inspector-build/appium-inspector/dist-browser/assets/* /usr/local/apache2/htdocs/assets/
+
+        echo "Appium Inspector files successfully copied to Apache server."
+
+        # Return to the previous directory
+        cd -
+    else
+        echo "Appium Inspector build not found, skipping appium-inspector installation."
+    fi
+}
+
+
 
 # #########
 # Outputs help on how to use the script.
@@ -280,6 +312,7 @@ test "${SERVE:-FALSE}" == "TRUE" && serve_project
 
 echo -e "\e[32mSuccessful\e[0m"
 
+install_appium_inspector
 
 if [[ "${NORESTART:-FALSE}" == "FALSE" ]]; then
 	# #########################################

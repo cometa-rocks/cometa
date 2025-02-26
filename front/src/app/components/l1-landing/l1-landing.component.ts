@@ -45,6 +45,7 @@ import { WelcomeComponent } from '../welcome/welcome.component';
 import { L1TreeViewComponent } from '../l1-tree-view/l1-tree-view.component';
 import { L1FeatureListComponent } from '../l1-feature-list/l1-feature-list.component';
 import { L1FeatureItemListComponent } from '../l1-feature-item-list/l1-feature-item-list.component';
+import { MobileListComponent } from '../../dialogs/mobile-list/mobile-list.component';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { MatRippleModule } from '@angular/material/core';
 import { L1FilterComponent } from '../l1-filter/l1-filter.component';
@@ -118,6 +119,7 @@ import { TranslateModule } from '@ngx-translate/core';
     L1FeatureRecentListComponent,
     L1FeatureStarredListComponent,
     L1FeatureTrashbinListComponent,
+    MobileListComponent,
     AsyncPipe,
     TranslateModule
   ],
@@ -222,7 +224,7 @@ export class L1LandingComponent implements OnInit {
       }
     );
 
-    this.log.msg('1', 'Inicializing component...', 'landing');
+    this.log.msg('1', 'Initializing component...', 'landing');
     // #3414 -------------------------------------------------start
     // check if there are folder ids in url params, if so redirect to that folder
     this.redirect_with_url_params();
@@ -235,9 +237,10 @@ export class L1LandingComponent implements OnInit {
       });
 
     this.aciveList$.pipe(untilDestroyed(this)).subscribe(value => {
+      this.log.msg('l1-landing','setting co_active_list:'+value,'238-','')
       localStorage.setItem('co_active_list', value); // Initialize the recentList_active variable in the local storage
     });
-
+    
   }
 
   /**

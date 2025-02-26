@@ -2,10 +2,17 @@ import { HttpClient } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
+  ComponentFactoryResolver,
+  ElementRef,
+  EventEmitter,
   Input,
   OnChanges,
+  Output,
+  QueryList,
   SimpleChanges,
   TemplateRef,
+  ViewChild,
+  ViewChildren,
 } from '@angular/core';
 import {
   LegacyPageEvent as PageEvent,
@@ -21,6 +28,9 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
 import { NgTemplateOutlet, NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+
+
 
 /**
  * This component is used to display an array of items in a paginated fashion using network.
@@ -39,6 +49,7 @@ import { NgTemplateOutlet, NgIf, NgFor, AsyncPipe } from '@angular/common';
     MatLegacyProgressSpinnerModule,
     MatLegacyPaginatorModule,
     AsyncPipe,
+    MatIconModule
   ],
 })
 export class NetworkPaginatedListComponent implements OnChanges {
@@ -143,6 +154,10 @@ export class NetworkPaginatedListComponent implements OnChanges {
     private _api: ApiService
   ) {}
 
+  @Input() errorCount: number = 0;
+  @Output() errorItems: EventEmitter<any[]> = new EventEmitter();
+  errorRows: HTMLElement[] = [];
+
   ngOnChanges(changes: SimpleChanges) {
     this.skeletonItems$ = this._acRouted.queryParamMap.pipe(
       map(queryParams => this.getPageSize(queryParams, changes)),
@@ -151,12 +166,20 @@ export class NetworkPaginatedListComponent implements OnChanges {
     if (this.listId) {
       // Assign pagedItems observable
       this.pagedItems$ = this._store
-        .select(PaginatedListsState.GetPagedItems)
-        .pipe(map(fn => fn(this.listId)));
+      .select(PaginatedListsState.GetPagedItems)
+      .pipe(map(fn => fn(this.listId)));
+
       // Assign allItems observable
       this.allItems$ = this._store
         .select(PaginatedListsState.GetItems)
         .pipe(map(fn => fn(this.listId)));
+
+      this.allItems$.subscribe(items => {
+        const errorItems = items.filter(item => item.error);
+        // Emit the elements to father component
+        this.handleErrorItems(errorItems);
+      });
+
       // Get parameter values
       const endpointUrl =
         (changes.endpointUrl && changes.endpointUrl.currentValue) ||
@@ -183,6 +206,42 @@ export class NetworkPaginatedListComponent implements OnChanges {
       );
     }
   }
+
+  errorRowsSaved: { stepIndex: string; stepName: string; errorMessage: string }[] = [];
+  isLoading: boolean = true;
+  failTexts: { id: string, text: string }[] = [];
+
+  handleErrorItems(errorItems: any[]) {
+    this.errorRowsSaved = errorItems.map(item => {
+      const errorElement = this.getErrorElement(item);
+      if (errorElement) {
+        const stepIndex = errorElement.querySelector('.step-index')?.textContent?.trim() || 'without index';
+        const stepName = errorElement.querySelector('.step-name')?.textContent?.trim() || 'without name';
+        const errorMessage = errorElement.querySelector('.step-error')?.textContent?.trim() || 'without error';
+
+        return { stepIndex, stepName, errorMessage };
+      }
+      return null;
+    }).filter(error => error !== null) as { stepIndex: string; stepName: string; errorMessage: string }[];
+
+    // console.log("ErrorRowsSaved:", this.errorRowsSaved);
+  }
+
+  getErrorElement(item: any): HTMLElement | null {
+    const errorElement = document.getElementById(`row-${item.step_result_id}`);
+    // console.log("Elemento con error:", errorElement);
+    return errorElement?.closest('.name') as HTMLElement; // Devuelve el contenedor principal
+  }
+
+
+  extractErrorMessage(element: HTMLElement): string {
+    const stepIndex = element.querySelector('.step-index')?.textContent?.trim() || 'Sin índice';
+    const stepName = element.querySelector('.step-name')?.textContent?.trim() || 'Sin nombre';
+    const errorMessage = element.querySelector('.step-error')?.textContent?.trim() || 'Sin mensaje de error';
+
+    return `Paso ${stepIndex}: ${stepName} - Error: ${errorMessage}`;
+  }
+
 
   // Retrieves the page size based on multiple places to get it
   getPageSize(params: ParamMap, changes: SimpleChanges): number {

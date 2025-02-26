@@ -1,0 +1,28 @@
+services:
+
+  cometa-browser-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "4444:4444"
+      - "4900:7900"
+    environment:
+      - AUTO_RECORD=true
+      - VIDEO_PATH=/video
+    networks:
+      - testing
+    restart: always
+    volumes:
+      - ./video:/video:rw
+      # - ./scripts/video_recorder.sh:/opt/scripts/video_recorder.sh
+      # - ./supervisor/supervisord.conf:/etc/supervisord.conf
+      # - ./background.png:/usr/share/images/fluxbox/aerokube.png
+      # - ./background.png:/usr/share/images/fluxbox/ubuntu-light.png
+
+networks:
+  testing:
+    driver: "bridge"
+
+
+# http://localhost:7900/?autoconnect=1&resize=scale&password=secret⁠
