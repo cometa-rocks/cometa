@@ -1,5 +1,5 @@
 {
-  "version": "3.0.15",
+  "version": "3.0.17",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,7 +237,7 @@
   ],
   "changelog": [
     {
-      "version": "3.0.16",
+      "version": "3.0.17",
       "date": "2025-02-26",
       "features": [
         {
@@ -246,6 +246,16 @@
         }
       ]
     }, 
+    {
+      "version": "3.0.16",
+      "date": "2025-02-24",
+      "features": [
+        {
+          "title": "Fixed mobile device visibility #5807",
+          "description": "Fixed mobile device visibility in tree-folder. Updated CSS and dialog styling (mat-icon replaced with icon i)."
+        }
+      ]
+    },   
     {
       "version": "3.0.15",
       "date": "2025-02-20",
@@ -281,7 +291,7 @@
       "date": "2025-02-15",
       "features": [
         {
-          "title": "Save last departement selected - #5606 ",
+          "title": "Save last departement selected #5606 ",
           "description": "Save the last department selected in mobile device selector"
         }
       ]
@@ -291,7 +301,7 @@
       "date": "2025-02-13",
       "features": [
         {
-          "title": "Maximum 3 emulator running - #5519",
+          "title": "Maximum 3 emulator running #5519",
           "description": "Limits the number of running emulators to 3, with a notification showing the current running emulators and department"
         }
       ]
@@ -341,11 +351,11 @@
       "date": "2025-01-29",
       "features": [
         {
-          "title": "#5655 Add user details - hover profile ",
+          "title": "Add user details - hover profile #5655",
           "description": "Added User information when hovering over the profile icon"
         },
         {
-          "title": "#5519 Kubernetes deployment with mobile feature",
+          "title": "Kubernetes deployment with mobile feature #5519",
           "description": "Kubernetes changes are merged with Mobile and AI feature, making it scalable"
         }
       ]
@@ -355,7 +365,7 @@
       "date": "2024-11-21",
       "features": [
         {
-          "title": "#5414 Change background image of test environment",
+          "title": "Change background image of test environment #5414",
           "description": "Backgroud images can be change for the test browser and mobile device using Cometa admin section"
         }
       ]
@@ -365,7 +375,7 @@
       "date": "2024-11-20",
       "features": [
         {
-          "title": "#5414 - Conditional statements ",
+          "title": "Conditional statements #5414",
           "description": "Implemented conditional steps (if...else...end if) with conditions such as equals, not equals, contains, not contains, and for numeric values (<=, >=, ==, !=). Also implemented steps to check visibility and presence of an element."
         }
       ]
@@ -375,7 +385,7 @@
       "date": "2024-11-13",
       "features": [
         {
-          "title": "#4938 - Email report enhancement",
+          "title": "Email report enhancement #4938",
           "description": "Email reporting enhanced to set the number of consecutive failure emails you want to receive. This option helps to avoid continuous failure notifications, so the user is not bombarded with excessive emails."
         }
       ]
@@ -385,7 +395,7 @@
       "date": "2024-10-09",
       "features": [
         {
-          "title": "#4694 - Updated Keyboard Shortcut",
+          "title": "Updated Keyboard Shortcut #4694",
           "description": "The keyboard shortcut for the feature that was previously triggered by pressing 'D' is now updated to 'O'."
         }
       ]
@@ -395,7 +405,7 @@
       "date": "2024-09-26",
       "features": [
         {
-          "title": "#4694 Implemented 'What's New' Section and Profile Updates",
+          "title": "Implemented 'What's New' Section and Profile Updates #4694",
           "description": "Added a 'What's New' section in the Home tab, updated Profile with new changes, corrected typos, and adjusted the draggable icon for alignment."
         }
       ]
