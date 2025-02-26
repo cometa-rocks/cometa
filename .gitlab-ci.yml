@@ -168,14 +168,14 @@ deploy:amvara3.prod:
   extends: .amvara3.prod
 
 # create a deploy job for client01 for branch prod
-deploy:client01.int:
-  <<: *deployment_script
-  extends: .client01.int
+#deploy:client01.int:
+#  <<: *deployment_script
+#  extends: .client01.int
 
 # create a deploy job for client01 for branch prod
-deploy:client01.prod:
-  <<: *deployment_script
-  extends: .client01.prod
+#deploy:client01.prod:
+#  <<: *deployment_script
+#  extends: .client01.prod
 
 # create a deploy job for client02 for branch prod
 # deploy:client02.prod:
@@ -183,9 +183,9 @@ deploy:client01.prod:
 #  extends: .client02.prod
 
 # create a deploy job for client04 for branch prod
-deploy:client04.prod:
-  <<: *deployment_script
-  extends: .client04.prod
+#deploy:client04.prod:
+#  <<: *deployment_script
+#  extends: .client04.prod
 
 
 # create a deploy job for client04 for branch build
