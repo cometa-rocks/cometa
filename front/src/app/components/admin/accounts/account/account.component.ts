@@ -19,7 +19,7 @@ import { AmParsePipe } from '@pipes/am-parse.pipe';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { NgIf, AsyncPipe } from '@angular/common';
 import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
-
+import { InputFocusService } from '@services/inputFocus.service';
 @Component({
   selector: 'account',
   templateUrl: './account.component.html',
@@ -40,12 +40,14 @@ export class AccountComponent {
   canEditAccount$: Observable<boolean>;
   @Select(UserState.GetPermission('delete_account'))
   canDeleteAccount$: Observable<boolean>;
+  inputFocus: boolean = false;
 
   constructor(
     private _api: ApiService,
     private _snack: MatSnackBar,
     private _dialog: MatDialog,
-    private _store: Store
+    private _store: Store,
+    private inputFocusService: InputFocusService
   ) {}
 
   @Input() account: IAccount;
@@ -110,5 +112,14 @@ export class AccountComponent {
             err => this._snack.open('An error ocurred', 'OK')
           );
       });
+  }
+
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocusService.setInputFocus(true);
+  }
+
+  onInputBlur() {
+    this.inputFocusService.setInputFocus(false);
   }
 }
