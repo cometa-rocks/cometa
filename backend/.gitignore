@@ -16,7 +16,6 @@ db_data_bkp
 junit_reports/
 node_modules/
 backups/
-migrations/
 downloads/
 videos/
 behave/pdf/
@@ -30,6 +29,8 @@ uploads/
 # logs
 logs/
 *.log
+000*
+00*
 output.txt
 
 # secrets

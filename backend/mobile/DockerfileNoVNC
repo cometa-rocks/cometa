@@ -1,0 +1,23 @@
+# Base image
+# Thanks to https://github.com/amrsa1/Android-Emulator-image
+
+FROM ubuntu:20.04
+
+# Create a non-root user `cometa`
+RUN useradd -ms /bin/bash cometa
+
+# set directory for sdk 
+WORKDIR /home/cometa/novnc
+
+# Install necessary dependencies
+RUN apt-get update && \
+    apt-get install -y git websockify && \
+    apt-get clean
+
+RUN git clone https://github.com/novnc/noVNC.git
+
+# set directory for sdk 
+WORKDIR /home/cometa/novnc/noVNC
+
+# Start VNC, Xvfb, noVNC and Emulator
+CMD ./utils/novnc_proxy --vnc cometa.mobile.emulator:5900 --listen 0.0.0.0:6081

@@ -104,7 +104,7 @@ class Command(LoggedCommand, LogCommand):
                         featureId = run.feature.feature_id
                         featureRunId = run.run_id
                         featureResultId = result.feature_result_id
-                        dirPath = '/code/behave/screenshots/%d/%d/%d/' % (featureId, featureRunId, featureResultId)
+                        dirPath = '/data/screenshots/%d/%d/%d/' % (featureId, featureRunId, featureResultId)
                         # Iterate over all the files in directory
                         for folderName, subfolders, filenames in os.walk(dirPath):
                             for filename in filenames:

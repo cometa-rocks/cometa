@@ -69,6 +69,22 @@ default_cometa_configurations = {
     "REDIS_DB": 0,
     "REDIS_DB_TSL_SSL_ENABLED": False,
     "REDIS_CA_CERTIFICATE_FILE": "/share/certs/ca-cert.pem",
+    "COMETA_DEPLOYMENT_ENVIRONMENT": "docker", # it can be 'docker' or 'kubernetes'
+    "COMETA_MOBILE_TOTAL_EMULATOR_VERSIONS": 3, 
+    "COMETA_KUBERNETES_NAMESPACE": "cometa", 
+    "COMETA_KUBERNETES_DATA_PVC": "cometa-data-volume-claim", 
+    "COMETA_FEATURE_AI_ENABLED": False, 
+    "COMETA_FEATURE_DATABASE_ENABLED": False, 
+    "COMETA_FEATURE_MOBILE_TEST_ENABLED": False,
+    # Add host hostAliases to test environments 
+    # For https://redmine.amvara.de/projects/ibis/wiki/Add_DNS_mapping_to_hosts_(etchosts)_file_using_Cometa_configuration
+    "COMETA_TEST_ENV_HOST_FILE_MAPPINGS": "[]",
+    "USE_COMETA_BROWSER_IMAGES": False,
+    "COMETA_BROWSER_MEMORY": "2",
+    "COMETA_BROWSER_CPU": "2",
+    # having password hardcoded does not create a security issue, because this communication is internal
+    # this can be always changed to a more secure password
+    "COMETA_BROWSER_VNC_PASSWORD":"secret",
 }
 
 
@@ -106,10 +122,13 @@ def load_module_from_file(module_name, file_path):
 secret_variables = None
 
 
+COMETA_CONFIGURATIONS = {}
+
+
 # This class is responsible for managing configurations (i.e. values with in variable default_cometa_configurations)
 class ConfigurationManager:
     __db_connection = None
-    __COMETA_CONFIGURATIONS = {}
+    # __COMETA_CONFIGURATIONS = COMETA_CONFIGURATIONS
     __sql_cursor = None
 
     def __init__(self) -> None:
@@ -121,8 +140,9 @@ class ConfigurationManager:
         conn_params = {
             "dbname": "postgres",
             "user": "postgres",
-            "host": "db",
-            "port": 5432,
+            "password": os.getenv("DATABASE_PASSWORD",""),
+            "host": os.getenv("DATABASE_SERVER","db"),
+            "port": 5432,            
         }
         # Connect to the PostgreSQL database
         self.__db_connection = psycopg2.connect(**conn_params)
@@ -251,7 +271,7 @@ class ConfigurationManager:
             default_value,
             encrypted,
         ) in results:
-            self.__COMETA_CONFIGURATIONS[configuration_name] = {
+            COMETA_CONFIGURATIONS[configuration_name] = {
                 "configuration_value": configuration_value,
                 "default_value": default_value,
                 "encrypted": encrypted,
@@ -269,7 +289,7 @@ class ConfigurationManager:
             configuration_name,
             configuration_value,
         ) in default_cometa_configurations.items():
-            ConfigurationManager.__COMETA_CONFIGURATIONS[configuration_name] = {
+            COMETA_CONFIGURATIONS[configuration_name] = {
                 "configuration_value": configuration_value,
                 "default_value": configuration_value,
                 "encrypted": False,
@@ -277,7 +297,7 @@ class ConfigurationManager:
 
     @classmethod
     def get_configuration(cls, key: str, default=""):
-        configuration_value = cls.__COMETA_CONFIGURATIONS.get(key, None)
+        configuration_value = COMETA_CONFIGURATIONS.get(key, None)
         if configuration_value == None:
             return default
         # If variable is encrypted then decrypt it and then return
@@ -288,7 +308,7 @@ class ConfigurationManager:
 
     @classmethod
     def update_configuration(cls, key: str, value):
-        cls.__COMETA_CONFIGURATIONS[key] = value
+        COMETA_CONFIGURATIONS[key] = value
 
 
 def load_configurations():
