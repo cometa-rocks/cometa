@@ -168,14 +168,14 @@ deploy:amvara3.prod:
   extends: .amvara3.prod
 
 # create a deploy job for client01 for branch prod
-deploy:client01.int:
-  <<: *deployment_script
-  extends: .client01.int
+#deploy:client01.int:
+#  <<: *deployment_script
+#  extends: .client01.int
 
 # create a deploy job for client01 for branch prod
-deploy:client01.prod:
-  <<: *deployment_script
-  extends: .client01.prod
+#deploy:client01.prod:
+#  <<: *deployment_script
+#  extends: .client01.prod
 
 # create a deploy job for client02 for branch prod
 # deploy:client02.prod:
@@ -183,9 +183,9 @@ deploy:client01.prod:
 #  extends: .client02.prod
 
 # create a deploy job for client04 for branch prod
-deploy:client04.prod:
-  <<: *deployment_script
-  extends: .client04.prod
+#deploy:client04.prod:
+#  <<: *deployment_script
+#  extends: .client04.prod
 
 
 # create a deploy job for client04 for branch build
@@ -210,7 +210,7 @@ build:amvara6.build:
         echo "The latest version is already $BUILD_VERSION. Skipping build and push."
       else
         cd front
-        docker build . -f Dockerfile_angular_build -t $COMETA_FRONT:$BUILD_VERSION
+        docker build . -f Dockerfile -t $COMETA_FRONT:$BUILD_VERSION
         echo "$COMETA_FRONT:$BUILD_VERSION build successfully"
         echo "Pushing $COMETA_FRONT:$BUILD_VERSION image to Docker $DOCKER_REGISTRY"
         docker push $COMETA_FRONT:$BUILD_VERSION

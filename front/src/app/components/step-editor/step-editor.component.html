@@ -23,23 +23,23 @@
 <!-- Right click menu -->
 <context-menu menuClass="step-contect-menu" #basicMenu>
   <ng-template contextMenuItem let-item>
-    <div 
-      (click)="addEmpty(item)" 
+    <div
+      (click)="addEmpty(item)"
       [matTooltip]="'step-definition.insert-new-above' | translate" matTooltipPosition="right">
       <mat-icon>unarchive</mat-icon>
       <span>Insert new step above</span>
     </div>
   </ng-template>
   <ng-template contextMenuItem let-item>
-    <div 
-      (click)="addEmpty(item + 1)" 
+    <div
+      (click)="addEmpty(item + 1)"
       [matTooltip]="'step-definition.insert-new-below' | translate" matTooltipPosition="right">
       <mat-icon>archive</mat-icon>
       <span>Insert new step below</span>
     </div>
   </ng-template>
   <ng-template contextMenuItem let-item>
-    <div 
+    <div
       (click)="copyItem(item, 'up')"
       [matTooltip]="'step-definition.copy-new-above' | translate" matTooltipPosition="right">
       <mat-icon>unarchive</mat-icon>
@@ -47,7 +47,7 @@
     </div>
   </ng-template>
   <ng-template contextMenuItem let-item>
-    <div 
+    <div
       (click)="copyItem(item + 1, 'down')"
       [matTooltip]="'step-definition.copy-new-below' | translate" matTooltipPosition="right">
       <mat-icon>archive</mat-icon>
@@ -74,7 +74,8 @@
         cdkDragLockAxis="y"
         [contextMenu]="basicMenu"
         [contextMenuValue]="i"
-        [ngClass]="'step-id-' + i">
+        [class.odd-row]="i % 2 !== 0"
+        [class.even-row]="i % 2 === 0">
         <div class="father-block">
           <div class="first-block">
             <div class="move-row" cdkDragHandle></div>
@@ -82,7 +83,7 @@
               <mat-icon>more_vert</mat-icon>
             </button>
             <div class="step-extras">
-              
+
               <div class="index">{{ i + 1 }}</div>
               <mat-checkbox
                 formControlName="enabled"
@@ -112,6 +113,14 @@
               </mat-select>
             </div>
           </div>
+          <div style="display: none;">
+            <!-- <input
+              type="hidden"
+              formControlName="step_action"
+              [value]="step.get('step_action').value"
+            /> -->
+            <input matInput type="hidden" formControlName="step_action" />
+          </div>
           <div class="second-block">
             <div
               class="step_content"
@@ -125,15 +134,14 @@
                 (click)="
                   stepVariableData['currentStepIndex'] === i
                     ? (stepVariableData.currentStepIndex = i)
-                    : (stepVariableData.currentStepIndex = null)
-                "
-                (keydown.arrowdown)="onTextareaArrowKey($event, 'down')"
+                    : (stepVariableData.currentStepIndex = null)"
+                (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
                 (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
                 (keydown.enter)="onTextareaEnter($event, i)"
                 (keydown.control.arrowup)="insertStep($event, i)"
                 (keydown.control.arrowdown)="insertStep($event, i)"
                 (keydown.alt.control.arrowup)="copyStep($event, i)"
-                (keydown.alt.control.arrowdown)="copyStep($event, i)"    
+                (keydown.alt.control.arrowdown)="copyStep($event, i)"
                 class="code"
                 spellcheck="false"
                 cdkTextareaAutosize
@@ -141,8 +149,7 @@
                 formControlName="step_content"
                 [matAutocomplete]="stepHelp"
                 placeholder="Step Code"
-                (focus)="sendTextareaFocusToParent(true)" 
-                (blur)="sendTextareaFocusToParent(false)">
+                (focus)="sendTextareaFocusToParent(true, i)">
               </textarea>
               <mat-list
                 class="var_name_autoComplete"
@@ -198,7 +205,7 @@
             matTooltip="This step definition has been found inside an import"
             matTooltipPosition="above"></i>
         </ng-container>
-       
+
         <!-- Step Options Menu -->
         <mat-menu class="step-options-menu" #stepOptions="matMenu">
           <button mat-menu-item stopPropagation>
@@ -251,24 +258,100 @@
             <mat-icon color="warn">delete</mat-icon>Delete
           </button>
         </mat-menu>
-        <mat-autocomplete
-          class="edit-feature-step-suggestions"
-          #stepHelp="matAutocomplete"
-          (optionSelected)="selectFirstVariable($event, i)">
-          <mat-option
-            *ngFor="
-              let action of actions
-                | filterStep: step.value.step_content : false
-            "
-            [value]="action.action_name"
-            >{{ action.action_name }}</mat-option
-          >
-        </mat-autocomplete>
+        <div class="autocomplete-container">
+          <div class="autocomplete-wrapper">
+            <mat-autocomplete
+              class="edit-feature-step-suggestions"
+              #stepHelp="matAutocomplete"
+              (opened)="onAutocompleteOpened(i)"
+              (optionSelected)="selectFirstVariable($event, i)"
+              (optionActivated)="onOptionActivated($event, i)"
+              (closed)="closeAutocomplete(i)"
+              [panelClass]="'autocomplete-above'"
+              [ngClass]="{ 'is-transparent': isTransparent }">
+
+              <mat-option *ngFor="let action of actions | filterStep: step.value.step_content : false" [value]="action.action_name">
+                {{ action.action_name }}
+              </mat-option>
+
+            </mat-autocomplete>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="!showHideStepDocumentation">
+        <div *ngIf="stepVisible[i]" class="stepContainerDocumentation">
+
+          <div class="containerFather">
+            <div class="stepDescriptionExample">
+              <p class="stepDescriptionPar">
+                <span class="bluetext">Description:</span> <br>
+                <span class="stepDescriptionParText">{{ stepsDocumentation[i]?.description }}</span>
+              </p>
+              <p class="stepDescriptionPar">
+                <span class="bluetext">Examples:</span> <br>
+                <span class="stepDescriptionParText">{{ stepsDocumentation[i]?.examples }}</span>
+              </p>
+            </div>
+            <div class="stepDocumentationIcons">
+              <p class="stepByStep">Step Documentation</p>
+
+            </div>
+            <div class="columnOfIcons">
+              <div class="contentCopy">
+                <mat-icon
+                  (click)="importClipboardStepDoc(stepsDocumentation[i]?.examples)"
+                  [ngClass]="{ active: isIconActive[i] }"
+                  class="copyClipboardIcon"
+                  [color]="isIconActive[i] ? 'primary' : ''"
+                  matTooltip="Copy the example"
+                  matTooltipPosition="above">
+                  content_copy
+                </mat-icon>
+              </div>
+              <div class="contentCopy">
+                <a
+                  class="linkTo"
+                  href="https://github.com/cometa-rocks/cometa_documentation/blob/main/cometa_actions.md"
+                  target="_blank"
+                  rel="Link cometa documentation"
+                  matTooltip="Open Cometa documentation"
+                  matTooltipPosition="above">
+                  <mat-icon class="linkToSteps">link</mat-icon>
+                </a>
+              </div>
+              <div class="contentCopy">
+                <div class="containerVisibility" (click)="sendTextareaFocusToParent(false, i)">
+                  <mat-icon
+                    class="visibility_offIcon"
+                    matTooltip="Hide the step documentation"
+                    matTooltipPosition="above">visibility_off</mat-icon>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </ng-container>
   </ng-container>
+  <!-- <div
+    class="icon-container"
+    *ngIf='isAutocompleteOpened'
+    [ngStyle]="{ top: iconPosition.top + 'px', left: iconPosition.left + 'px' }">
+    <p>Options</p>
+    <mat-icon
+      (click)="toggleVisibility()">
+        {{ isTransparent ? 'visibility_off' : 'visibility' }}
+    </mat-icon>
+  </div> -->
 </div>
 <!-- Buttons actions -->
+<!-- <div class="stepContainer">
+  <p class="stepByStep">Step-by-step guide</p>
+  <div class="stepDescription">
+    <p>Description: <span>{{ selectedActionDescription }}</span></p>
+    <p>Examples: <span> 1 2 3 </span></p>
+  </div>
+</div> -->
 <div class="button-actions">
   <div class="left">
     <button
@@ -310,6 +393,18 @@
     </mat-menu>
   </div>
   <div class="right">
+    <button
+    color="primary"
+    (click)="toggleShowHideDoc()"
+    mat-stroked-button
+    class="remove_all"
+    matTooltip="{{ showHideStepDocumentation ? 'Show the step documentation' : 'Hide the step documentation' }}"
+    matTooltipPosition="above">
+      <span class="button-content">
+        <mat-icon class="icon-left">{{ showHideStepDocumentation ? 'visibility' : 'visibility_off' }}</mat-icon>
+        <span>Documentation</span>
+      </span>
+    </button>
     <button
       color="primary"
       (click)="removeAll()"

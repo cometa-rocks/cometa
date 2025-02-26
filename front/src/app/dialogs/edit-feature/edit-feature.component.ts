@@ -7,7 +7,8 @@ import {
   HostListener,
   OnDestroy,
   ChangeDetectorRef,
-  Renderer2
+  Renderer2,
+  ɵɵtrustConstantResourceUrl
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
@@ -48,6 +49,7 @@ import { EditVariablesComponent } from '@dialogs/edit-variables/edit-variables.c
 import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
+import { MobileListComponent } from '@dialogs/mobile-list/mobile-list.component';
 import { EmailTemplateHelp } from './email-template-help/email-template-help.component';
 import { KEY_CODES } from '@others/enums';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -56,6 +58,7 @@ import { noWhitespaceValidator, deepClone } from 'ngx-amvara-toolbox';
 import { StepDefinitions } from '@store/actions/step_definitions.actions';
 import { Features } from '@store/actions/features.actions';
 import { FeaturesState } from '@store/features.state';
+import { ActionsState } from '@store/actions.state';
 import { finalize, switchMap } from 'rxjs/operators';
 import {
   AreYouSureData,
@@ -131,7 +134,8 @@ import { DraggableWindowModule } from '@modules/draggable-window.module'
     SortByPipe,
     HumanizeBytesPipe,
     TranslateModule,
-    DraggableWindowModule
+    DraggableWindowModule,
+    MobileListComponent
   ],
 })
 export class EditFeature implements OnInit, OnDestroy {
@@ -159,7 +163,6 @@ export class EditFeature implements OnInit, OnDestroy {
   hasSubscription: boolean;
   @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
   @Select(VariablesState) variableState$: Observable<VariablePair[]>;
-  
 
   saving$ = new BehaviorSubject<boolean>(false);
 
@@ -205,6 +208,9 @@ export class EditFeature implements OnInit, OnDestroy {
   @Select(FeaturesState.GetStateDAta) state$: Observable<
     ReturnType<typeof FeaturesState.GetStateDAta>
   >;
+
+  // Step actions
+  @Select(ActionsState) actions$: Observable<Action[]>;
 
   featureForm: UntypedFormGroup;
 
@@ -409,7 +415,27 @@ export class EditFeature implements OnInit, OnDestroy {
       })
       .afterClosed()
       .subscribe(res => {
-        
+
+      });
+  }
+
+  // Open variables popup, only if a environment is selected (see HTML)
+  openStartEmulatorScreen() {
+    let uploadedAPKsList = this.department.files.filter(file => file.name.endsWith('.apk'));
+    const departmentId = this.departments$.find(
+      dep =>
+        dep.department_name === this.featureForm.get('department_name').value
+    ).department_id;
+    this._dialog
+      .open(MobileListComponent, {
+        data: {
+          department_id: departmentId,
+          uploadedAPKsList: uploadedAPKsList
+        },
+        panelClass: 'mobile-emulator-panel',
+      })
+      .afterClosed()
+      .subscribe(res => {
       });
   }
 
@@ -435,8 +461,9 @@ export class EditFeature implements OnInit, OnDestroy {
     if (this.inputFocus) return;
     let KeyPressed = event.keyCode;
     const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
+    const startEmulatorOpen = document.querySelector('mobile-list') as HTMLElement;
 
-    if(!this.inputFocus && editVarOpen == null){
+    if(!this.inputFocus && editVarOpen == null && startEmulatorOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
@@ -467,6 +494,10 @@ export class EditFeature implements OnInit, OnDestroy {
             // Depends on other feature
             this.toggleDependsOnOthers(KeyPressed);
           break;
+        case KEY_CODES.S:
+            // Open Emulator mobile
+            this.openStartEmulatorScreen();
+          break;
         case KEY_CODES.M:
             // Send email
             this.toggleDependsOnOthers(KeyPressed);
@@ -493,7 +524,7 @@ export class EditFeature implements OnInit, OnDestroy {
           break;
         default:
           break;
-      } 
+      }
     }
   }
 
@@ -715,8 +746,19 @@ export class EditFeature implements OnInit, OnDestroy {
 
   @ViewChild(BrowserSelectionComponent, { static: false })
   _browserSelection: BrowserSelectionComponent;
+  configValueBoolean: boolean = false;
 
   ngOnInit() {
+
+    this._api.getCometaConfigurations().subscribe(res => {
+
+      const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
+      if (config_feature_mobile) {
+        this.configValueBoolean = !!JSON.parse(config_feature_mobile.configuration_value.toLowerCase());
+        this.cdr.detectChanges();
+      }
+    })
+
     // Connection with the service who is connected with Step-editor
     this.inputFocusSubscription = this.inputFocusService.inputFocus$.subscribe(isFocused => {
       this.inputFocus = isFocused;

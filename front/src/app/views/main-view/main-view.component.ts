@@ -45,6 +45,10 @@ import { NgClass, NgIf, AsyncPipe, TitleCasePipe } from '@angular/common';
 import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
 import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
 import { ElementRef } from '@angular/core';
+import { LogService } from '@services/log.service';
+import { CommonModule } from '@angular/common';
+import { MatSelectModule } from '@angular/material/select';
+import { MatBadgeModule } from '@angular/material/badge';
 
 @UntilDestroy()
 @Component({
@@ -77,6 +81,9 @@ import { ElementRef } from '@angular/core';
     PixelDifferencePipe,
     AsyncPipe,
     TitleCasePipe,
+    CommonModule,
+    MatSelectModule,
+    MatBadgeModule
   ],
 })
 export class MainViewComponent implements OnInit {
@@ -107,6 +114,7 @@ export class MainViewComponent implements OnInit {
     { header: 'NOK', field: 'fails', sortable: true, class: 'aligned-center' },
     { header: 'Skipped', field: 'skipped', class: 'aligned-center' },
     { header: 'Browser', field: 'browser', class: 'aligned-center' },
+    { header: 'Mobile', field: 'mobile', class: 'aligned-center' },
     {
       header: 'Browser Version',
       field: 'browser.browser_version',
@@ -134,16 +142,27 @@ export class MainViewComponent implements OnInit {
       // pinned: 'right',
       right: '0px',
       type: 'button',
+      class: 'options-buttons',
       buttons: [
         {
           type: 'icon',
           text: 'replay',
           icon: 'videocam',
-          tooltip: 'View results replay',
+          tooltip: 'View browser test result replay',
           color: 'primary',
           iif: (result: FeatureResult) => (result.video_url ? true : false),
-          click: (result: FeatureResult) => this.openVideo(result),
+          click: (result: FeatureResult) => this.openVideo(result, result.video_url),
           class: 'replay-button',
+        },
+        {
+          type: 'icon',
+          text: 'replay',
+          icon: 'videocam',
+          tooltip: 'View mobile test result replay',
+          color: 'primary',
+          iif: (result: FeatureResult) => (result.mobile && result.mobile.length>0),
+          click: (result: FeatureResult) => this.openVideo(result, result.mobile[0].video_recording),
+          class: 'replay-button-2',
         },
         {
           type: 'icon',
@@ -244,6 +263,8 @@ export class MainViewComponent implements OnInit {
   showPagination = true;
   latestFeatureResultId: number = 0;
   archived: boolean = false;
+  buttons: any[] = [];
+  selectMobile: { [key: number]: any } = {};
 
   query = {
     page: 0,
@@ -268,12 +289,15 @@ export class MainViewComponent implements OnInit {
     private _api: ApiService,
     private _pdfLinkPipe: PdfLinkPipe,
     private _downloadService: DownloadService,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private logger: LogService
   ) {}
 
   featureId$: Observable<number>;
 
   openContent(feature_result: FeatureResult) {
+    // this.logger.msg("1", "CO-featResult", "main-view", feature_result);
+
     this._router.navigate([
       this._route.snapshot.paramMap.get('app'),
       this._route.snapshot.paramMap.get('environment'),
@@ -317,6 +341,15 @@ export class MainViewComponent implements OnInit {
     );
   }
 
+  onMobileSelectionChange(event: any, row: FeatureResult): void {
+    // Event it's the selected mobile
+    const selectedMobile = event.value;
+
+    if (selectedMobile && selectedMobile.video_recording) {
+      this.openVideo(row, selectedMobile.video_recording);
+    }
+  }
+
   updateData(e: PageEvent) {
     this.query.page = e.pageIndex;
     this.query.size = e.pageSize;
@@ -333,6 +366,7 @@ export class MainViewComponent implements OnInit {
           `${result.vulnerable_response_count} responses contain vulnerable headers`
       : message;
   }
+
   /**
    * Performs the overriding action through the Store
    */
@@ -342,11 +376,11 @@ export class MainViewComponent implements OnInit {
     });
   }
 
-  openVideo(result: FeatureResult) {
+  openVideo(result: FeatureResult, video_url:string) {
 
     this._sharedActions
       .loadingObservable(
-        this._sharedActions.checkVideo(result.video_url),
+        this._sharedActions.checkVideo(video_url),
         'Loading video'
       )
       .subscribe({
@@ -354,11 +388,14 @@ export class MainViewComponent implements OnInit {
           const dialogRef = this._dialog.open(VideoComponent, {
             backdropClass: 'video-player-backdrop',
             panelClass: 'video-player-panel',
-            data: result,
+            data: {
+              result: result,
+              video_url: video_url
+            },
           });
 
           dialogRef.afterClosed().subscribe(() => {
-            
+
             const targetElement = this.elementRef.nativeElement.ownerDocument.querySelector('.replay-button');
             if (targetElement) {
               (targetElement as HTMLElement).blur();
@@ -369,7 +406,7 @@ export class MainViewComponent implements OnInit {
         error: err => this._snack.open('An error ocurred', 'OK'),
       });
   }
-  
+
 
   /**
    * Clears runs depending on the type of clearing passed
@@ -423,7 +460,9 @@ export class MainViewComponent implements OnInit {
     );
   };
 
+
   ngOnInit() {
+
     this.featureId$ = this._route.paramMap.pipe(
       map(params => +params.get('feature'))
     );
@@ -440,6 +479,15 @@ export class MainViewComponent implements OnInit {
       .subscribe(_ => {
         this.getResults();
       });
+      this.extractButtons();
+    }
+
+  // Extract buttons from mtxgridCoumns
+  extractButtons() {
+    this.buttons = this.columns
+    .filter(col => col.buttons)
+    .map(col => col.buttons)
+    .reduce((acc, val) => acc.concat(val), []);
   }
 
   // return to v2 dashboard

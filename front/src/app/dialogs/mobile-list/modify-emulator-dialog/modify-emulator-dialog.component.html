@@ -1,0 +1,207 @@
+<draggable-window></draggable-window>
+<form [formGroup]="editMobileForm">
+  <ng-container>
+    <h3 mat-dialog-title color="primary">Edit Mobile Device</h3>
+  </ng-container>
+  <mat-dialog-content>
+    <mat-accordion multi>
+
+      <!-- Information Panel -->
+      <mat-expansion-panel
+      [expanded]="!config$.toggles.hideInformationMobile">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Information</span>
+          </mat-panel-title>
+          <mat-panel-description class="mat-expansion-panel-header-description">
+            Emulator information
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div class="info-container">
+          <!-- Department & Mobile Info -->
+          <div class="info-row">
+            <mat-icon class="info-icon">business</mat-icon>
+            <strong>Department:</strong>
+            <span>{{ data.department_name }}</span>
+          </div>
+
+          <div class="info-row">
+            <mat-icon class="info-icon">adb</mat-icon>
+            <strong>Mobile Name:</strong>
+            <span>{{ data.mobile.mobile_image_name }}</span>
+            <mat-icon class="copy-icon"
+              (click)="importClipboard(data.mobile.mobile_image_name)"
+              [ngClass]="{ active: isIconActive[data.mobile.mobile_image_name] }"
+              [color]="isIconActive[data.mobile.mobile_image_name] ? 'primary' : ''">
+              content_copy
+            </mat-icon>
+          </div>
+
+          <div class="info-row" *ngIf="data.runningContainer">
+            <mat-icon class="info-icon">code</mat-icon>
+            <strong>Mobile Code:</strong>
+            <span>{{ data.runningContainer.hostname }}</span>
+            <mat-icon class="copy-icon"
+              (click)="importClipboard(data.runningContainer.hostname)"
+              [ngClass]="{ active: isIconActive[data.runningContainer.hostname] }"
+              [color]="isIconActive[data.runningContainer.hostname] ? 'primary' : ''">
+              content_copy
+            </mat-icon>
+          </div>
+
+          <div class="info-row">
+            <mat-icon class="info-icon">info</mat-icon>
+            <strong>Device Name:</strong>
+            <span>{{ data.mobile.mobile_json.deviceName }}</span>
+          </div>
+
+          <div class="info-row">
+            <mat-icon class="info-icon">memory</mat-icon>
+            <strong>Architecture:</strong>
+            <span>{{ data.mobile.mobile_json.architecture }}</span>
+          </div>
+
+          <div class="info-row">
+            <mat-icon class="info-icon">phone_android</mat-icon>
+            <strong>Android Version:</strong>
+            <span>{{ data.mobile.mobile_json.android_version }}</span>
+          </div>
+
+          <div class="info-row">
+            <mat-icon class="info-icon">layers</mat-icon>
+            <strong>API Level:</strong>
+            <span>{{ data.mobile.mobile_json.api_level }}</span>
+          </div>
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Install apks -->
+      <mat-expansion-panel
+      [expanded]="!config$.toggles.hideInstallAPKSMobile">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Install APKs</span>
+          </mat-panel-title>
+          <mat-panel-description class="mat-expansion-panel-header-description">
+            APKs available: {{ data.uploadedAPKsList.length }} APKs
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div class="edit-feature-info">
+          <mat-form-field appearance="fill" class="edit-app">
+            <mat-label>Application</mat-label>
+            <mat-select formControlName="selectedApp" (selectionChange)="onSelectApp($event)">
+              <mat-option
+                *ngFor="let apk of data.uploadedAPKsList"
+                [value]="apk"
+                [class.selected-apk]="isApkSelected(apk)">
+                {{ apk.name }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+        <div class="apk-install-message" *ngIf="selectedApks.length > 0">
+          <p><strong>These are the APKs that will be installed.</strong> You can remove any if needed.</p>
+        </div>
+        <div *ngIf="selectedApks.length === 0" class="no-apks-message">
+          <p>No APKs selected yet. Please select an APK to add it here.</p>
+        </div>
+        <div class="">
+          <mat-chip-grid #installChipGrid>
+            <mat-chip-row
+              *ngFor="let apk of selectedApks; let i = index"
+              (removed)="removeSelectedApk(apk, i)"
+              [editable]="false"
+              [aria-description]="'press enter to remove ' + apk.name">
+              <span
+                matTooltip="{{ apk.name }}"
+                matTooltipPosition="above">
+                {{ apk.name }}
+              </span>
+              <button matChipRemove [attr.aria-label]="'remove ' + apk.name">
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </mat-chip-row>
+          </mat-chip-grid>
+          <input matInput [matChipInputFor]="installChipGrid" class="hidden-input" />
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Installed apks -->
+      <mat-expansion-panel
+      [expanded]="!config$.toggles.hideInstalledAPKSMobile">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Installed APKs</span>
+          </mat-panel-title>
+          <mat-panel-description>
+            APKs Installed: {{ installedApks.length }} APKs
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div *ngIf="installedApks.length === 0" class="no-apks-message">
+          <p>No APKs installed yet.</p>
+        </div>
+
+        <div class="installed-apks">
+          <mat-chip-grid #installedChipGrid>
+            <mat-chip-row
+              *ngFor="let apk of installedApks | sortBy: 'name'; let i = index"
+              [editable]="false">
+              <span class="chip-text" matTooltip="{{ apk.name }}" matTooltipPosition="above">
+                {{ apk.name }}
+              </span>
+              <!-- <button mat-icon-button (click)="removeInstalledApk(apk)" [disabled]="isRemovingApk?.[apk.id]">
+                <mat-icon *ngIf="!isRemovingApk?.[apk.id]">cancel</mat-icon>
+                <mat-spinner *ngIf="isRemovingApk?.[apk.id]" diameter="20"></mat-spinner>
+              </button> -->
+            </mat-chip-row>
+          </mat-chip-grid>
+          <input matInput [matChipInputFor]="installedChipGrid" class="hidden-input" />
+        </div>
+      </mat-expansion-panel>
+
+      <!-- Sharing Settings Panel -->
+      <mat-expansion-panel
+      [expanded]="!config$.toggles.hideSharedMobile">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Sharing Emulator</span>
+          </mat-panel-title>
+          <mat-panel-description class="mat-expansion-panel-header-description">
+            <ng-container *ngIf="editMobileForm.controls['shared'].value === data.runningContainer.shared; else pendingChange">
+              <span *ngIf="editMobileForm.controls['shared'].value; else privateText">Emulator is shared</span>
+            </ng-container>
+
+            <ng-template #pendingChange>
+              <span *ngIf="editMobileForm.controls['shared'].value; else privateTextChange">
+                Emulator will be shared after saving
+              </span>
+            </ng-template>
+
+            <ng-template #privateText>Emulator not shared</ng-template>
+            <ng-template #privateTextChange>Emulator will not be shared after saving</ng-template>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <div class="sharing-settings">
+          <mat-slide-toggle
+            formControlName="shared"
+            class="mat-slider-toggle"
+            id="isShared_{{ data.mobile.mobile_id }}"
+            color="primary">
+            <span>Share this mobile with others</span>
+          </mat-slide-toggle>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </mat-dialog-content>
+  <mat-dialog-actions>
+    <button
+      color="warn"
+      mat-stroked-button
+      mat-dialog-close
+      mat-button
+      (click)="closeDialog()">Cancel</button>
+    <button mat-stroked-button color="primary" (click)="saveChanges()">Save</button>
+  </mat-dialog-actions>
+</form>

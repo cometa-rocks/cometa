@@ -13,6 +13,7 @@
 :host::ng-deep {
   .mtx-grid {
     z-index: 0;
+    padding-bottom: 60px;
     .mtx-grid-toolbar-content {
       flex-grow: 1;
       .custom_toolbar {
@@ -43,7 +44,6 @@
         0 3px 1px -2px $table-low-shadow,
         0 2px 2px 0 $table-medium-shadow,
         0 1px 5px 0 $table-high-shadow;
-
       thead {
         background-color: #474747;
         [role='columnheader'] {
@@ -463,3 +463,79 @@
     }
   }
 }
+
+.mobile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.mobile-mat-icon-replay {
+  font-size: 24px;
+}
+
+.mobile-selector {
+  width: 80px;
+}
+
+.number-phones {
+  display: flex;
+  color: white;
+  border-radius: 50%;
+  background-color: #ef5350;
+  height: 13px;
+  width: 13px;
+  font-size: 10px;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 8px;
+  left: 16px;
+  z-index: 9999;
+}
+
+::ng-deep .replay-button-2 {
+  margin-left: 6px !important;
+  margin-right: -7px !important;
+}
+
+
+::ng-deep td.options-buttons {
+  display: flex;
+  flex-direction: row;
+}
+
+.custom-context {
+  ::ng-deep .mat-mdc-select-arrow {
+    margin-right: 70px;
+  }
+}
+
+
+::ng-deep .mat-mdc-option {
+  width: 100%;
+}
+
+::ng-deep .mobile-selector mat-option {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.required {
+  font-weight: bold;
+}
+
+.divMobile {
+  display: flex;
+  flex-direction: row;
+}
+
+.mobileIcon {
+  transform: scale(0.8);
+  display: flex;
+  align-items: center;
+}
+
+
