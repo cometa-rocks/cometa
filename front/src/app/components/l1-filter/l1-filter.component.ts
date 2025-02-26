@@ -353,7 +353,7 @@ export class L1FilterComponent implements OnInit {
    */
 
   // #3420 ------------------------------------------------ start
-  // Hotkey Shift-Alt-f ... opens the finder
+  // Hotkey s ... opens the finder
   @HostListener('document:keydown.s', ['$event'])
   hotkey_shift_alt_f(event: KeyboardEvent) {
     // rewrite browser shortcut

@@ -61,6 +61,8 @@ export class AddFolderComponent {
   availableDepartments: Department[];
   // Sets the selected as default folder department
   selected_department: number;
+  // Know if the input is focused 
+  inputFocus: boolean = false;
 
   constructor(
     private dialogRef: MatDialogRef<AddFolderComponent>,
@@ -112,13 +114,14 @@ export class AddFolderComponent {
   }
 
   rForm: UntypedFormGroup;
-  private InputFocusService = new Subject<boolean>();
 
-  inputFocus$ = this.InputFocusService.asObservable();
+  // private InputFocusService = new Subject<boolean>();
 
-  sendInputFocusToParent(inputFocus: boolean): void {
-    this.inputFocusService.setInputFocus(inputFocus);
-  }
+  // inputFocus$ = this.InputFocusService.asObservable();
+
+  // sendInputFocusToParent(inputFocus: boolean): void {
+  //   this.inputFocusService.setInputFocus(inputFocus);
+  // }
 
   submit(values) {
     if (this.data.mode === 'new') {
@@ -158,5 +161,14 @@ export class AddFolderComponent {
           this.dialogRef.close(true);
         });
     }
+  }
+  
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocusService.setInputFocus(true);
+  }
+
+  onInputBlur() {
+    this.inputFocusService.setInputFocus(false);
   }
 }
