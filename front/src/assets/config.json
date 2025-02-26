@@ -237,11 +237,21 @@
   ],
   "changelog": [
     {
+      "version": "3.0.16",
+      "date": "2025-02-26",
+      "features": [
+        {
+          "title": "New button functionality added to update mobile list and update cometa browsers #5719",
+          "description": "A new button functionality has been added to trigger the update of the mobile list and the update of cometa browsers."
+        }
+      ]
+    }, 
+    {
       "version": "3.0.15",
       "date": "2025-02-20",
       "features": [
         {
-          "title": "#5800 Resize Dialog edit features",
+          "title": "Resize Dialog edit features #5800",
           "description": "The feature dialog is now 100% and can be resized within the same window."
         }
       ]
@@ -251,7 +261,7 @@
       "date": "2025-02-17",
       "features": [
         {
-          "title": "#5664 Recent page update",
+          "title": "Recent page update #5664",
           "description": "The recent page has been overhauled. giving the user the choice to filter features created by the user or by the selected department. Features are now sorted in order of the earliest feature executed."
         }
       ]
@@ -261,7 +271,7 @@
       "date": "2025-02-16",
       "features": [
         {
-          "title": "#5606 Show in main-view the mobile device",
+          "title": "Show in main-view the mobile device #5606",
           "description": "Show the mobile device in the main-view results"
         }
       ]
