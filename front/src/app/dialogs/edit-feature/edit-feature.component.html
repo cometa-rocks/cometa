@@ -473,7 +473,7 @@
                 <ng-container matColumnDef="uploaded_by.name">
                   <th mat-header-cell *matHeaderCellDef>Uploaded By</th>
                   <td mat-cell *matCellDef="let element">
-                    {{ element.uploaded_by.name }}
+                    <span [innerHTML]="element.uploaded_by?.name || '<b>User</b> no longer exists'"></span>
                   </td>
                 </ng-container>
 
