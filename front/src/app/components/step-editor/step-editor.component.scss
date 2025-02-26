@@ -136,11 +136,11 @@
       opacity: 0.9;
     }
   }
-  &:nth-child(2n + 1) {
-    background-color: #f3f7fc;
-  }
-  &:nth-child(2n + 2) {
+  &.odd-row {
     background-color: white;
+  }
+  &.even-row {
+    background-color: #f3f7fc;
   }
   .index {
     @include for-tablet-portrait-up {
@@ -340,6 +340,122 @@
   color: rgba(0, 0, 0, 0.24) !important;
 }
 
+.stepContainerDocumentation {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  border-top: 1px $blue solid;
+  border-bottom: 1px $blue solid;
+  border-radius: 4px;
+  padding: 15px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.stepByStep {
+
+}
+
+.stepContainerDocumentation.ng-transition {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.containerFather {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.stepDescriptionExample{
+  width: 80%;
+}
+
+.stepDocumentationIcons {
+  width: 20%;
+}
+
+.columnOfIcons {
+  color: $blue;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.stepDescription {
+  // margin-left: -670px;
+  text-align: left;
+  letter-spacing: 0.7px;
+  .stepDescriptionPar {
+
+    width: 100%;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+  .stepDescriptionPar:last-of-type {
+
+  }
+}
+.bluetext {
+  color: $blue;
+  font-weight: bold;
+}
+
+
+.cdk-overlay-container {
+  position: relative;
+}
+
+::ng-deep .mat-autocomplete-panel {
+  position: absolute !important;
+  bottom: 100% !important;
+  top: auto !important;
+  transform: translateY(-40px);
+  z-index: 1000;
+}
+
+.autocomplete-container {
+  display: flex;
+  align-items: center;
+}
+
+.icon-container {
+  position: absolute;
+  width: 30px;
+  height: 230px;
+  border-radius: 4px;
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+  mat-icon {
+    display: flex;
+    font-size: 18px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+mat-icon {
+  font-size: 24px;
+}
+
+// .autocomplete-wrapper {
+//   transition: opacity 0.3s ease;
+// }
+
+.is-transparent {
+  opacity: 0.3;
+  transition: opacity 1s ease-in-out;
+}
+
+mat-autocomplete {
+  opacity: 1;
+  transition: opacity 1s ease-in-out;
+}
+
+
 .button-actions {
   margin-top: 20px;
   display: flex;
@@ -355,6 +471,9 @@
   }
   .left,
   .right {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
     button:not(:first-child) {
       margin-left: 20px;
     }
@@ -370,3 +489,79 @@
   padding: 5px;
   outline: 0;
 }
+
+.button-content {
+  display: flex;
+  align-items: center;
+  width: 120px;
+  justify-content: center;
+}
+
+.icon-left {
+  font-size: 16px;
+  margin-right: 8px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.closeStepDocumentation {
+  height: 0px !important;
+  width: 30px !important;
+}
+
+.containerVisibility {
+  display: flex;
+  align-items: center !important;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  .visibilityIcon,
+  .visibility_offIcon {
+    font-size: 15px;
+  }
+
+  .visibility_offIcon {
+    opacity: 1;
+  }
+}
+
+.copyClipboardIcon {
+  font-size: 15px;
+  cursor: pointer;
+  &.active {
+    animation: changeColor 3s forwards;
+  }
+}
+
+@keyframes changeColor {
+  0% {
+    color: $blue;
+  }
+  100% {
+    color: inherit;
+  }
+}
+
+.copyClipboardIcon:hover {
+
+}
+
+
+.linkTo {
+  text-decoration: none;
+  color: $blue;
+}
+
+.linkTo:hover {
+  background-color: transparent;
+}
+
+.linkToSteps {
+  font-size: 15px !important; /* Asegura que el tamaño del ícono se mantenga */
+}
+
+// .mat-button, .mat-icon-button, .mat-stroked-button, .mat-flat-button {
+//   min-width: 0px;
+//   padding: 0 0px;
+// }

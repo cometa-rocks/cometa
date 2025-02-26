@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: azure-file-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  azureFile:
+    secretName: azure-secret  # Name of the secret with storage account credentials
+    shareName: myfileshare     # Name of your Azure File share
+    readOnly: false             # Ensure it's not read-only
+  mountOptions:
+    - dir_mode=0777             # Set directory permissions to 0777
+    - file_mode=0777            # Set file permissions to 0777
+    - uid=1000                  # Set user ID (adjust as necessary)
+    - gid=1000                  # Set group ID (adjust as necessary)

@@ -23,6 +23,7 @@
     #########################################################
     # FRONTEND
     #########################################################
+    - sed -i 's|\.\/data|/data|g' docker-compose.yml
     # Replace oAuth information in openidc
     - sed -i 's|@@COMETA_CLIENT01_INT_CLIENTID@@|'$COMETA_CLIENT01_INT_CLIENTID'|g' front/apache-conf/metadata/client001.client
     - sed -i 's|@@COMETA_CLIENT01_INT_SECRETKEY@@|'$COMETA_CLIENT01_INT_SECRETKEY'|g' front/apache-conf/metadata/client001.client
@@ -31,6 +32,10 @@
     - mv front/apache-conf/metadata/client001.client front/apache-conf/metadata/$COMETA_CLIENT01_OIDCHOST.client
     - mv front/apache-conf/metadata/client001.conf front/apache-conf/metadata/$COMETA_CLIENT01_OIDCHOST.conf
     - mv front/apache-conf/metadata/client001.provider front/apache-conf/metadata/$COMETA_CLIENT01_OIDCHOST.provider
+    
+    # Export Amvara git.amvara.de OIDC details in the git.amvara.de.*
+    - echo $GITLAB_OIDC_SECRETS > front/apache-conf/metadata/git.amvara.de.client
+    - echo $GITLAB_OIDC_CONFIGURATION > front/apache-conf/metadata/git.amvara.de.conf
   after_script:
     #########################################################
     # FRONTEND
