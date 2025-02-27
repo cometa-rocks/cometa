@@ -115,14 +115,6 @@ export class AddFolderComponent {
 
   rForm: UntypedFormGroup;
 
-  // private InputFocusService = new Subject<boolean>();
-
-  // inputFocus$ = this.InputFocusService.asObservable();
-
-  // sendInputFocusToParent(inputFocus: boolean): void {
-  //   this.inputFocusService.setInputFocus(inputFocus);
-  // }
-
   submit(values) {
     if (this.data.mode === 'new') {
       this._api
@@ -162,7 +154,7 @@ export class AddFolderComponent {
         });
     }
   }
-  
+
   // Check if focused on input or textarea
   onInputFocus() {
     this.inputFocusService.setInputFocus(true);
