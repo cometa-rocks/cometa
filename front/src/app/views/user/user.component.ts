@@ -45,6 +45,7 @@ import {
   KeyValuePipe,
 } from '@angular/common';
 import { LetDirective } from '../../directives/ng-let.directive';
+import { InputFocusService } from '../../services/inputFocus.service';
 
 @Component({
   selector: 'account-settings',
@@ -98,6 +99,10 @@ export class UserComponent implements OnInit {
   details$: Observable<UserDetails>;
   invoices$: Observable<UsageInvoice[]>;
 
+  inputFocus: boolean = false;
+
+  private inputFocusSubscription: Subscription;
+
   constructor(
     private _tours: Tours,
     private _tourService: TourService,
@@ -107,8 +112,14 @@ export class UserComponent implements OnInit {
     private _snack: MatSnackBar,
     private _store: Store,
     private _router: Router,
-    private _translate: TranslateService
+    private _translate: TranslateService,
+    private inputFocusService: InputFocusService,
   ) {
+
+    this.inputFocusService.inputFocus$.subscribe(isFocused => {
+      this.inputFocus = isFocused;
+    });
+
     this.tours$ = this.settings$.pipe(
       map(settings => {
         return (
@@ -142,6 +153,11 @@ export class UserComponent implements OnInit {
   }
 
   ngOnInit() {
+
+    // this.inputFocusSubscription = this.inputFocusService.inputFocus$.subscribe(isFocused => {
+    //   this.inputFocus = isFocused;
+    // });
+
     this.details$ = this._api.getUserDetails();
     this.invoices$ = this._api.getInvoices();
   }

@@ -1,5 +1,5 @@
 {
-  "version": "3.0.18",
+  "version": "3.0.19",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,11 +237,21 @@
   ],
   "changelog": [
     {
+      "version": "3.0.19",
+      "date": "2025-02-27",
+      "features": [
+        {
+          "title": "Shortcut behavior improvements #4694",
+          "description": "Updated shortcut behavior to prevent execution while focusing on inputs and textareas in profile and administration page. Changed the search shortcut."
+        }
+      ]
+    },    
+    {
       "version": "3.0.18",
       "date": "2025-02-26",
       "features": [
         {
-          "title": "Fix error when uploaded user is deleted",
+          "title": "Fix error when uploaded user is deleted #5831",
           "description": "Prevent errors in the file list when the user who uploaded a file is deleted. Now, it displays 'User no longer exists' instead of breaking the table."
         }
       ]

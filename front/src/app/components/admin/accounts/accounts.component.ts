@@ -27,7 +27,8 @@ import { InputFocusService } from '@services/inputFocus.service';
   ],
 })
 export class AccountsComponent implements OnInit {
-
+  inputFocus: boolean = false;
+  
   constructor(
     private inputFocusService: InputFocusService
   ){}
@@ -36,14 +37,6 @@ export class AccountsComponent implements OnInit {
 
   search = new UntypedFormControl('');
 
-  private InputFocusService = new Subject<boolean>();
-
-  inputFocus$ = this.InputFocusService.asObservable();
-
-
-  sendInputFocusToParent(inputFocus: boolean): void {
-    this.inputFocusService.setInputFocus(inputFocus);
-  }
 
   ngOnInit() {
     this.accountsUrl$ = this.search.valueChanges.pipe(
@@ -58,5 +51,14 @@ export class AccountsComponent implements OnInit {
         }
       })
     );
+  }
+
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocusService.setInputFocus(true);
+  }
+
+  onInputBlur() {
+    this.inputFocusService.setInputFocus(false);
   }
 }
