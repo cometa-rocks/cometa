@@ -815,7 +815,6 @@ export class FeaturesState {
       }
     }
     FeaturesState.initialSetup = false
-    console.log("los settins", preselectedDept)
     // Variable to know what this state does
     result.AAA_help =
       'This state saves the information of all the folders and features to use them subsequently in the datatable.';

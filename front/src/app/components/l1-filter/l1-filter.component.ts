@@ -121,12 +121,12 @@ export class L1FilterComponent implements OnInit {
    * Once the file loads, subscribes to the specified variables and updates them on change
    */
   ngOnInit() {
-    this.currentRoute$.subscribe( ruta => {
-      console.log("Ruta JSON:", JSON.stringify(ruta)); // Intenta convertir a JSON
-      console.log("Ruta Copia:", Object.assign({}, ruta)); // Copia para evitar Proxy
-      console.log("Ruta Entries:", Object.entries(ruta)); // Claves y valores
-      console.dir(ruta);
-    })
+    // this.currentRoute$.subscribe( ruta => {
+    //   console.log("Ruta JSON:", JSON.stringify(ruta)); // Intenta convertir a JSON
+    //   console.log("Ruta Copia:", Object.assign({}, ruta)); // Copia para evitar Proxy
+    //   console.log("Ruta Entries:", Object.entries(ruta)); // Claves y valores
+    //   console.dir(ruta);
+    // })
     this.log.msg('1', 'Initializing component...', 'filter');
     this.moreOrLessSteps.valueChanges
       .pipe(untilDestroyed(this))
@@ -355,9 +355,25 @@ export class L1FilterComponent implements OnInit {
   // #3420 ------------------------------------------------ start
   // Hotkey s ... opens the finder
   @HostListener('document:keydown.s', ['$event'])
-  hotkey_shift_alt_f(event: KeyboardEvent) {
+  hotkey_s(event: KeyboardEvent) {
+    // Check if input or textarea is focused
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+      return;
+    }
+
     // rewrite browser shortcut
     event.preventDefault();
+
+    // Check if edit feature is open because inside of dialog have the same shortcut (s)
+    const editFeature = document.querySelector('edit-feature') as HTMLElement;
+
+    // Check if add-folder dialog is open
+    const addFolder = document.querySelector('add-folder') as HTMLElement;
+
+    if(editFeature || addFolder) {
+      return;
+    }
 
     // set searchterm to empty ---- #3461
     if (this.searchInput) this.searchInput = '';
