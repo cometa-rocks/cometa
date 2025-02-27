@@ -1,4 +1,4 @@
-# listen on port 443 with ssl certificates
+# listen on port 80 without ssl certificates
 Listen 80
 #error_page  404              /404.html;
 Header set Access-Control-Allow-Origin "*"
@@ -23,7 +23,7 @@ ErrorDocument 504 /50x.html
 LoadModule auth_openidc_module modules/mod_auth_openidc.so
 
 # provide multiple providers data
-OIDCMetadataDir /code/front/apache-conf/metadata
+OIDCMetadataDir /usr/local/apache2/conf/metadata
 OIDCDiscoverURL /welcome.html
 
 OIDCXForwardedHeaders X-Forwarded-Proto
