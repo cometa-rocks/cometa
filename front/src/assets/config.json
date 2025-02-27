@@ -1,5 +1,5 @@
 {
-  "version": "3.0.16",
+  "version": "3.0.18",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,6 +237,26 @@
   ],
   "changelog": [
     {
+      "version": "3.0.18",
+      "date": "2025-02-26",
+      "features": [
+        {
+          "title": "Fix error when uploaded user is deleted",
+          "description": "Prevent errors in the file list when the user who uploaded a file is deleted. Now, it displays 'User no longer exists' instead of breaking the table."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.17",
+      "date": "2025-02-26",
+      "features": [
+        {
+          "title": "New buttons functionality added to update mobile list and update cometa browsers #5719",
+          "description": "A new buttons functionality has been added to trigger the update of the mobile list and the update of cometa browsers."
+        }
+      ]
+    }, 
+    {
       "version": "3.0.16",
       "date": "2025-02-24",
       "features": [
@@ -281,7 +301,7 @@
       "date": "2025-02-15",
       "features": [
         {
-          "title": "Save last departement selected #5606 ",
+          "title": "Save last departement selected #5606",
           "description": "Save the last department selected in mobile device selector"
         }
       ]
@@ -331,8 +351,8 @@
       "date": "2025-01-29",
       "features": [
         {
-            "title": "#5663 Fix order of recent tab ",
-            "description": "When loading into recent page,  'Last run' in descending order. Column order has been changed to include relevant information on the left side. Shortened the names of some columns to align items better. "
+          "title": "Fix order of recent tab #5663",
+          "description": "When loading into recent page,  'Last run' in descending order. Column order has been changed to include relevant information on the left side. Shortened the names of some columns to align items better. "
         }
       ]
     },
