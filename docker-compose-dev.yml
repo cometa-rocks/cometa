@@ -66,8 +66,8 @@ services:
       - ./data/django/logs:/opt/code/logs
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
-    # command: "/opt/code/behave_django/entry.sh"
-    command:     sleep infinity
+    command: "/opt/code/behave_django/entry.sh"
+    # command:     sleep infinity
     working_dir: /opt/code/behave_django
     environment:
       PYTHONUNBUFFERED: 1
@@ -160,6 +160,7 @@ services:
       - ./front/apache-conf/paths.conf:/usr/local/apache2/conf/paths.conf
       - ./front/apache-conf/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
       - ./data/cometa/screenshots:/screenshots
+      - ./data/cometa/videos:/videos
     working_dir: /code/front
     ports:
       - "443:443"
