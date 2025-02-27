@@ -8,7 +8,9 @@ import {
   OnDestroy,
   ChangeDetectorRef,
   Renderer2,
-  ɵɵtrustConstantResourceUrl
+  ɵɵtrustConstantResourceUrl,
+  ViewChildren,
+  QueryList
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
@@ -92,7 +94,7 @@ import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyOptionModule } from '@angular/material/legacy-core';
 import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatExpansionModule } from '@angular/material/expansion';
+import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { DraggableWindowModule } from '@modules/draggable-window.module'
 
@@ -147,6 +149,8 @@ export class EditFeature implements OnInit, OnDestroy {
     'created_on',
     'actions',
   ];
+  // Get all expansion panels
+  @ViewChildren(MatExpansionPanel) expansionPanels!: QueryList<MatExpansionPanel>;
 
   @ViewSelectSnapshot(ConfigState) config$!: Config;
   /**
@@ -191,6 +195,7 @@ export class EditFeature implements OnInit, OnDestroy {
   variables!: VariablePair[];
 
   readonly separatorKeysCodes: number[] = [ENTER, COMMA];
+
 
   @ViewChild(StepEditorComponent, { static: false })
   stepEditor: StepEditorComponent;
@@ -319,6 +324,24 @@ export class EditFeature implements OnInit, OnDestroy {
       this.parseSchedule({ minute, hour, day_month, month, day_week });
     });
   }
+
+  // Check if the create button should be disabled
+  ngAfterViewInit() {
+    this.expansionPanels.changes.subscribe(() => this.setFocusOnFirstOpenPanel());
+  }
+  
+  // Focus on the first input or textarea of the first open panel
+  setFocusOnFirstOpenPanel() {
+    setTimeout(() => {
+      const firstOpenPanel = this.expansionPanels.find(panel => panel.expanded);
+      if (firstOpenPanel) {
+        const panelElement = firstOpenPanel._body.nativeElement; // Accede al cuerpo del panel
+        const input = panelElement.querySelector('input, textarea') as HTMLInputElement | HTMLTextAreaElement;
+        input?.focus();        
+      }
+    });
+  }
+  
 
   ngOnDestroy() {
     // When Edit Feature Dialog is closed, clear temporal steps
