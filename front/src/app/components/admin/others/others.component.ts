@@ -80,4 +80,39 @@ export class AdminOthersComponent implements OnInit {
       }
     });
   }
+
+  // Update the mobile list
+  updateMobilesList() {
+    fetch('https://localhost/backend/parse_mobiles/')
+      .then(res => res.json()) 
+      .then(data => {
+        // Update the mobiles list
+        this.houseKeepingLogs = data; 
+        this.cdr.markForCheck(); 
+        this._snack.open('Mobiles list updated successfully!', 'OK');
+      })
+      .catch(() => {
+        this._snack.open('An error occurred while updating mobiles list', 'OK');
+      });
+  }
+  
+  // Update the cometa browsers
+  updateCometaBrowsers() {
+    fetch('https://localhost/backend/parseCometaBrowsers/')
+      .then(res => res.json())
+      .then(success => { 
+        // Boolean value to check if the update was successful
+        if (success) {
+          this._snack.open('Cometa browsers updated successfully!', 'OK');
+        } else {
+          this._snack.open('Failed to update Cometa browsers.', 'OK');
+        }
+      })
+      .catch(() => {
+        this._snack.open('An error occurred while updating Cometa browsers', 'OK');
+      });
+  }
+  
+  
+
 }

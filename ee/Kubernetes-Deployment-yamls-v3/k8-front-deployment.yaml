@@ -26,7 +26,7 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-front-container
-        image: cometa/front:latest
+        image: cometa/front:3.0.14
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

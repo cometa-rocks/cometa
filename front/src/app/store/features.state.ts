@@ -53,11 +53,10 @@ export class FeaturesState {
     public _store: Store,
     private log: LogService
   ) {}
-  /* 
+  /*
   * Global static Varables
   */
-  static initialSetup = true
-  static selectedDepartment: number
+  static selectedDepartmentId: number
 
 
   /**
@@ -769,10 +768,10 @@ export class FeaturesState {
     /**
    * Setter of the global variable selectedDepartment.
    * @author Nico Clariana
-   * 
+   *
    */
   static static_setSelectedDepartment(departent: number){
-    this.selectedDepartment = departent
+    this.selectedDepartmentId = departent
   }
 
   /**
@@ -838,7 +837,7 @@ export class FeaturesState {
         break;
       case 'recent':
             //Process resulting in a list of recently modified Features (Displaying by user or by department)
-            folders = this.getRecentFeatures(state, user_id, activeSortList, department[this.selectedDepartment].department_id);
+            folders = this.getRecentFeatures(state, user_id, activeSortList, this.selectedDepartmentId);
       default:
         break;
     }
@@ -861,7 +860,7 @@ export class FeaturesState {
     department: number
   ): FoldersResponse {
     // Get all the features
-    // Filter the data depending on the localstorage variable co_aciveList and co_recent_sorttype, 
+    // Filter the data depending on the localstorage variable co_aciveList and co_recent_sorttype,
     // rows by the modification user id, removing the rows that are not equal to the current user's id
     switch (activeSortList){
       case 'my':
@@ -877,13 +876,13 @@ export class FeaturesState {
   /**
    * Gets the 10 most recent features from the selected department.
    * @returns the filtered features and folders of the new landing
-   * @param state 
+   * @param state
    * @param department
    * @author Nico Clariana
    * @date 03-02-25
    */
   static getRecentFeaturesByDpt(state: IFeaturesState, department: number ): FoldersResponse {
-    
+
       let features: Feature[] = Object.values(
         JSON.parse(JSON.stringify(state.details))
       ); // Get all the features
@@ -902,7 +901,7 @@ export class FeaturesState {
     /**
    * Gets the 10 most recent features from the selected department.
    * @returns the filtered features and folders of the new landing
-   * @param state 
+   * @param state
    * @param department
    * @author Nico Clariana
    * @date 06-02-25

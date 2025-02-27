@@ -7,12 +7,12 @@ Author: dph000
 -->
 <!-- Newer datatable -->
 <ng-container *ngLet="data$ as table">
-  <div *ngIf="table.rows.length > 0; else showWelcome" class="table_container">
+  <div class="table_container">
     <ng-template #customToolbar>
       <div class="custom-toolbar">
         <!-- View Switch -->
         <div class="view-selector">
-          <form [formGroup]="featureForm" [hidden]="!isVisible">
+          <form [formGroup]="featureForm" [hidden]="!isDropdownVisible">
             <mat-form-field appearance="fill" class="edit-dep">
               <mat-label>Department</mat-label>
               <mat-select
@@ -52,6 +52,7 @@ Author: dph000
     <mtx-grid
       [data]="table.rows"
       [columns]="columns"
+      [noResultText]="'🚀 No data available. Please create a feature for this department'"
       [showToolbar]="true"
       [toolbarTemplate] = "customToolbar"
       [pageSize]="10"

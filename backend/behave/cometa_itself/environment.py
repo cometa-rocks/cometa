@@ -425,7 +425,7 @@ def before_all(context):
     # more options can be found at:
     # https://aerokube.com/selenoid/latest/#_special_capabilities
     
-    if IS_KUBERNETES_DEPLOYMENT:
+    if USE_COMETA_BROWSER_IMAGES:
         cometa_options = {
             "record_video":context.record_video,
             "is_test":True
@@ -455,7 +455,7 @@ def before_all(context):
             "goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"}
         )
         # If network logging enabled then fetch vulnerability headers info from server
-        response =  requests.get(f'{get_cometa_backend_url()}/security/vulnerable_headers/', headers={'Host': 'cometa.local'})
+        response =  requests.get(f'{get_cometa_backend_url()}/api/security/vulnerable_headers/', headers={'Host': 'cometa.local'})
         logger.info("vulnerable headers info received")
         context.vulnerability_headers_info = response.json()["results"]
         logger.info("stored in the context")
@@ -813,7 +813,7 @@ def after_all(context):
 
         logger.info("Sending vulnerability_headers")
         # request to save vulnerable network headers
-        response = requests.post(f"{get_cometa_backend_url()}/security/network_headers/", headers=headers,
+        response = requests.post(f"{get_cometa_backend_url()}/api/security/network_headers/", headers=headers,
                                  data=json.dumps({
                                      "result_id": os.environ['feature_result_id'],
                                      "responses": context.network_responses,
