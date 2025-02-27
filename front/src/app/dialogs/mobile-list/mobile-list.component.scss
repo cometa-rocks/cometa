@@ -1,19 +1,8 @@
 @import 'color';
 @import 'breakpoints';
 
-// :host {
-//   display: flex;
-//   flex-wrap: wrap;
-//   width: 100%;
-//   min-height: 200px;
-//   position: relative;
-// }
-
 h4 {
-  color: #1565c0;
-  // height: 30px;
-  // margin-top: 10px;
-  // margin-bottom: 10px;
+  color: $blue;
 }
 
 h2, h3{
@@ -21,12 +10,8 @@ h2, h3{
   margin-left: 20px;
 }
 
-// mat-dialog-container {
-//   overflow: hidden;
-// }
-
 ::ng-deep .mobile-emulator-panel {
-  background-color: #f7f7f7;
+  background-color: $bg-mat-dialog-container;
 }
 
 @keyframes slideDown {
@@ -45,11 +30,9 @@ h2, h3{
       gap: 50px;
       margin: 30px 0 20px 10px;
       flex-wrap: wrap;
-      // overflow-x: hidden;
       .mobile {
         padding: 20px 20px;
         margin-bottom: 15px;
-        // min-height: 230px;
         border: 1px solid #ddd;
         border-radius: 5px 0px 5px 5px;
         box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
@@ -59,7 +42,7 @@ h2, h3{
         width: 390px;
         height: 145px;
         min-width: 390px;
-        background-color: rgba(255, 255, 255, 0.4);
+        background-color: $bg-novnc-inspector;
         .mobile-icon {
           width: 100px;
           height: 200px;
@@ -95,24 +78,16 @@ h2, h3{
 }
 
 .dialog-footer {
-  // padding: 29px 0px 0px;
-  // display: flex;
-  // width: 100%;
   position: relative;
   bottom: -75px;
 }
 
 .dialog-footer-nolicense {
-  padding: 29px 18px 0px;
   display: flex;
   flex-wrap: wrap;
-  min-height: 52px;
-  align-items: center;
-  box-sizing: content-box;
-  margin-bottom: -15px;
-  width: 37%;
+  width: 73%;
   position: fixed;
-  bottom: 130px;
+  bottom: 110px;
 }
 
 mat-dialog-content {
@@ -149,11 +124,6 @@ mat-dialog-content {
     font-weight: bold;
   }
 
-  .restart {
-    background-color: #ffbf59;
-    color: black;
-  }
-
   .icon-on-hover {
     display: none;
   }
@@ -175,7 +145,7 @@ mat-dialog-content {
 .hideShadow {
   height: 5px;
   width: 78px;
-  background-color: #F5F5F5;
+  background-color: $bg-novnc-inspector;
   position: absolute;
   top: 23px;
 }
@@ -193,40 +163,15 @@ mat-dialog-content {
     font-weight: bold;
   }
 
-  .restart {
-    background-color: #ffbf59;
-    color: black;
-  }
+  // .restart {
+  //   background-color: #ffbf59;
+  // }
 }
 
 .button-container {
   display: flex;
   flex-direction: row-reverse;
 }
-
-.clipped {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  // clip-path: polygon(100% 0, 0 0, 100% 100%);
-  border-radius: 50%;
-  height: 30px !important;
-  width: 30px !important;
-  background-color: #ef5350;
-}
-
-.clipped {
-  font-size: 18px;
-  transition: font-size 0.3s ease;
-  text-align: center;
-  width: 100%;
-  height: 100%;
-  align-content: center;
-  cursor: pointer;
-}
-
-.clipped:hover, .close-icon:hover {
-  font-size: 20px;
-}
-
 
 .mobile-details {
   display: flex;
@@ -239,6 +184,7 @@ mat-dialog-content {
     margin-bottom: 5px;
     margin-left: 10px;
     font-size: 14px;
+    gap: 5px;
     strong {
       align-items: center;
       margin-left: 5px;
@@ -250,7 +196,6 @@ mat-dialog-content {
     }
     mat-icon {
       font-size: 15px;
-      // margin-right: 5px;
     }
   }
   .status-container {
@@ -259,13 +204,15 @@ mat-dialog-content {
   }
   .get-app {
     position: relative;
-    top: -15px;
+    top: -22px;
+    left: -1px;
   }
   .installedApp {
     display: flex;
     font-weight: bold;
     position: relative;
-    top: -15px;
+    top: -22px;
+    left: -2px;
   }
 }
 
@@ -281,6 +228,7 @@ mat-dialog-content {
     margin-bottom: 5px;
     margin-left: 10px;
     font-size: 14px;
+    gap: 5px;
     strong {
       align-items: center;
       margin-left: 5px;
@@ -321,27 +269,6 @@ mat-dialog-content {
   color: $success;
 }
 
-// .stopped-text {
-//   font-weight: bold;
-//   color: rgb(152, 145, 145) !important;
-// }
-
-
-// .apk-selection {
-//   display: flex;
-//   flex-direction: column !important;
-//   margin-right: 10px;
-//   margin-left: 10px;
-//   .mat-slider-toggle {
-//     transform: scale(0.7);
-//     margin-left: -60px;
-//     margin-bottom: 10px;
-//     p {
-//       font-size: 20px;
-//     }
-//   }
-// }
-
 ::ng-deep .mdc-switch.mdc-switch--selected.mdc-switch--checked {
   cursor: default !important;
   pointer-events: none !important;
@@ -361,10 +288,10 @@ mat-dialog-content {
   display: flex;
   flex-direction: column;
   align-items: start;
-  gap: 10px;
+  gap: 6px;
   font-size: 14px;
-  padding: 10px;
-  color: #000000b3;
+  padding: 0 16px;
+  color: $darker-step;
 }
 
 .pop-up-info mat-menu-item {
@@ -378,7 +305,7 @@ mat-dialog-content {
 
 .pop-up-info i,
 .pop-up-info mat-icon {
-  font-size: 18px;
+  font-size: 16px;
   margin-right: 8px;
 }
 
@@ -393,16 +320,8 @@ mat-dialog-content {
   p {
     font-weight: bold;
     font-size: 14px;
-    mat-label {
-      // font-weight: bold;
-      // font-size: 14px;
-    }
   }
 
-}
-
-mat-divider {
-  margin-bottom: 10px !important;
 }
 
 .status-circle {
@@ -416,16 +335,14 @@ mat-divider {
   background-color: $success;
 }
 
-.status-circle.stopped {
-  background-color: $bad;
+.status-circle.paused {
+  background-color: $bg-and-status;
 }
 
 .disabled-content {
   opacity: 0.5;
   pointer-events: none;
 }
-
-
 
 .created-by {
   text-align: right;
@@ -434,21 +351,23 @@ mat-divider {
   font-size: 14px;
 }
 
-
 .emulator-info {
   .moreInfo {
+    transform: scale(1.2);
     position: relative;
     top: -12px;
     left: -12px;
   }
   .moreInfoShared {
+    transform: scale(1.2);
     position: relative;
-    top: -4px;
+    top: -7px;
     left: -12px;
   }
   .copyClipboardIcon {
-    font-size: 15px;
-    margin-left: 10px;
+    transform: scale(0.9);
+    width: 15px;
+    margin-left: 2px;
     cursor: pointer;
 
     &.active {
@@ -467,7 +386,7 @@ mat-divider {
 }
 
 .scrollable-content {
-  max-height: 60vh;
+  max-height: 58vh;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
@@ -478,11 +397,9 @@ mat-divider {
 }
 
 .not-dialog-scrollable-content {
-  // max-height: 60vh;
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  // max-height: calc(100vh - var(--header-height) - var(--new-landing-filters-height));
 }
 
 html, body {
@@ -515,7 +432,7 @@ mobile-list {
 .toggle-button {
   background: none;
   border: none;
-  color: #007bff;
+  color: $shared-emulator-toggle;
   cursor: pointer;
   padding: 0;
   font-size: inherit;
@@ -537,10 +454,6 @@ mobile-list {
   transform: rotate(90deg);
 }
 
-.handle {
-  top: -13px !important;
-}
-
 .inspect-hover, .novnc-hover {
   font-weight: bold;
 }
@@ -555,7 +468,6 @@ mobile-list {
 
 .container-father {
   display: flex;
-  // flex-direction: column !important;
 
   margin-right: 10px;
   width: 1000px;
@@ -613,44 +525,14 @@ mobile-list {
   display: flex;
 }
 
-// #mobile-actions {
-//   margin-top: 9px;
-// }
-
 .get-app {
   font-size: 18px !important;
-  color: rgba(0, 0, 0, 0.7) !important;
+  color: $darker-step !important;
 }
 
 .selectDepExplan {
   margin-left: 10px;
 }
-
-// .options {
-//   position: relative;
-//   top: -13px;
-//   left: -20px;
-// }
-
-// .options {
-//   display: flex;
-//   align-items: center;
-//   margin-left: 5px;
-//   // margin-bottom: -11px;
-//   button {
-//     margin-left: -10px;
-//   }
-//   mat-icon {
-//     color: black;
-//     font-size: 19px;
-//     margin-bottom: 0px;
-//   }
-//   span {
-//     margin-left: -8px;
-//     font-weight: bold;
-//     font-size: 14px;
-//   }
-// }
 
 .mat-form-field-wrapper {
   font-size: 13px;
@@ -680,7 +562,7 @@ mobile-list {
     .moreInfoStrongShared {
       position: relative;
       left: -24px;
-      top: 9px;
+      top: 6px;
     }
   }
 }
@@ -693,7 +575,7 @@ mobile-list {
   height: 40px;
   margin-bottom: 10px;
   font-weight: bold;
-  color: rgba(0, 0, 0, 0.5);
+  color: $darker-step;
   .mobile-results {
     color: $blue;
   }
@@ -703,10 +585,6 @@ mobile-list {
   pointer-events: none;
   opacity: 0.6;
   cursor: not-allowed;
-}
-
-::ng-deep mat-spinner circle {
-  color: #4A4A4A;
 }
 
 .spinner {
@@ -730,40 +608,7 @@ mobile-list {
 }
 
 .nonMobileShared {
-  font-weight: bold;
-  color: rgba(0, 0, 0, 0.5);
-}
-
-mat-card {
-  mat-icon {
-    color: rgba(0, 0, 0, 0.5);
-  }
-}
-
-.mobile-options {
-  // position: absolute;
-  // top: 20px;
-}
-
-.containerFather {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  color: goldenrod;
-  mat-icon {
-    font-size: 24px;
-    margin-right: 5px;
-  }
-  span {
-    font-size: 14px;
-    line-height: 1.4;
-    font-size: 14px;
-    margin-right: 10px;
-    margin-bottom: 3px;
-    letter-spacing: 0.8px;
-  }
+  color: $primary-color;
 }
 
 .license-info-container {
@@ -806,20 +651,20 @@ mat-card {
 
 .license-text {
   font-size: 14px;
-  color: #333;
+  color: $darker-step;
   line-height: 1.4;
   width: 600px;
 }
 
 .license-text a {
-  color: #1976d2;
+  color: $blue;
   text-decoration: underline;
 }
 
 .contactMail,
 .mailTo  {
   font-size: 14px;
-  color: #333;
+  color: $darker-step;
   line-height: 1.4;
 }
 
@@ -841,23 +686,7 @@ mat-card {
 }
 
 .email {
-  color: #1565c0;
-}
-
-.mat-tooltip {
-  background-color: #333;
-  color: #fff;
-  font-size: 14px;
-  padding: 8px;
-  border-radius: 4px;
-}
-
-// ::ng-deep .mobile-emulator-panel {
-//   width: 40vw;
-// }
-
-.mobile-emulator-panel {
-  width: 40vw;
+  color: $blue;
 }
 
 .bought-license-panel {
@@ -928,25 +757,25 @@ mat-card {
   display: flex;
   align-items: center;
   font-size: 16px;
-  color: #444;
+  color: $darker-step;
   line-height: 1.5;
 }
 
 .icon-tooltip {
   font-size: 22px;
   margin-right: 10px;
-  color: #1565c0;
+  color: $blue;
 }
 
 .icon-email {
   font-size: 20px;
   margin-right: 10px;
-  color: #1565c0;
+  color: $blue;
 }
 
 .email-link a {
   text-decoration: none;
-  color: #1565c0;
+  color: $blue;
   font-size: 16px;
   line-height: 1.4;
   margin-left: 35px;
@@ -980,7 +809,6 @@ mat-card {
   position: relative;
   top: -45px;
   left: -42px;
-  // margin-right: -48px;
 }
 
 .container-buttons-shared {
@@ -994,15 +822,13 @@ mat-card {
 .start, .restart, .pause, .close {
   box-sizing: border-box;
   cursor: pointer;
-  font-weight: bold;
   display: flex;
   min-width: 64px;
   height: 26px;
-  color: rgb(255, 255, 255);
-  // border-radius: 0 5px 0 0;
+  color: $table-background-opaque;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 14px;
   letter-spacing: 1px;
 }
 
@@ -1016,22 +842,19 @@ mat-card {
   width: 0;
   height: 0;
   border-left: 15px solid transparent;
-  border-bottom: 26px solid #1565c0;
-  // z-index: 99;
+  border-bottom: 26px solid $blue;
 }
 
 // Only restart
 .border-left-restart {
   width: 0;
   height: 0;
-  // border-left: 15px solid transparent;
-  border-bottom: 26px solid #1565c0;
-  // z-index: 99;
+  border-bottom: 26px solid $blue;
   margin-right: 61px;
 }
 
 .restart {
-  background-color: #1565c0;
+  background-color: $blue;
   width: 82px;
 }
 
@@ -1047,108 +870,19 @@ mat-card {
  }
 }
 
-// Restarting class
-.disabled-button-restart {
-  background-color: rgba(21, 101, 192, 0.9);
-  pointer-events: none;
-  opacity: 0.9;
-  width: 82px;
-  // margin-right: 61px;
-  // color: black;
-}
-
-.disabled-button-border-restart {
-  border-bottom: 26px solid rgba(21, 101, 192, 0.9);
-  opacity: 0.6;
-  // z-index: 99;
-  // color: black;
-  margin-right: 61px;
-}
-
-// Stopping class
-.disabled-button-pause {
-  transform: skew(0deg);
-  pointer-events: none;
-  // opacity: 0.5;
-  color: black;
-}
-
-.border-left-start-pause {
-  transform: skew(-30deg);
-  height: 0px;
-  border-bottom: 26px solid #ef5350;
-  width: 75px;
-  span, mat-icon {
-    transform: skew(50deg);
-  }
-  mat-icon {
-    font-size: 18px;
-    position: relative;
-    top: 3px;
-    left: 7px;
-  }
-}
-
-.disabled-button-border-pause {
-  transform: skew(-30deg);
-  border-bottom: 26px solid orange;
-  opacity: 0.5;
-  span {
-    transform: skew(30deg);
-  }
-}
-
-.stopping-button-pause {
-  pointer-events: none;
-  color: black;
-  .spinnerPause {
-    transform: skew(50deg);
-  }
-  span {
-    transform: skew(50deg);
-  }
-}
-
-.stopping-button-border-pause {
-  border-bottom: 26px solid orange;
-  opacity: 0.5;
-}
-
 .spinnerPause {
   position: relative;
   left: -2px;
   top: -0.5px;
 }
 
-.spinnerRestart {
-  position: relative;
-  left: 0px;
-  top: -1.5px;
-  transform: skew(30deg);
-}
-
-.not-allowed {
-  pointer-events: none;
-  opacity: 0.9;
-}
-
 .start {
-  background-color: #1565c0;
+  background-color: $blue;
   border-radius: 0 5px 0 0;
 }
 
-// inspect-left
-
-// .container-inspect-left{
-//   position: absolute;
-//   top: 0px;
-//   right: 300px;
-//   z-index: 999;
-//   background-color: #FFFFFF66;
-// }
-
 .start-stop-inpect-buttons {
-  background-color: #f5f5f5;
+  background-color: $bg-novnc-inspector;
   height: 24px;
   width: 80px;
   border-radius: 5px 0 0 0;
@@ -1161,12 +895,6 @@ mat-card {
   cursor: pointer;
   box-shadow: -1px 0px 4px rgba(0, 0, 0, 0.2);
 }
-
-// .disabled-div {
-//   pointer-events: none;
-//   // opacity: 0.5;
-//   cursor: not-allowed;
-// }
 
 .container-buttons {
   .icon-on-hover {
@@ -1220,22 +948,12 @@ mat-card {
   right: -10px;
   width: 20px;
   height: 26px;
-  background-color: #f5f5f5;
+  background-color: $bg-novnc-inspector;
   box-shadow: 1px 0px 0px rgba(0, 0, 0, 0.2);
   transform: skewX(30deg);
-  z-index: 99;
+  z-index: 9;
 }
 
-
-.inspect-left {
-  height: 0px;
-  border-right: 15px solid transparent;
-  border-bottom: 26px solid #FFFFFF66;
-  box-shadow: 0 3px 1px -2px rgba(0, 0, 0, -0.8), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-  // transform: skew(-30deg);
-  // background-color: rgba(255, 255, 255, 0.4);
-  border-radius: 0 5px 0 0;
-}
 
 .container-novnc-left {
   position: relative;
@@ -1249,26 +967,13 @@ mat-card {
 
 .container-inspect-left-shared {
   position: relative;
-  right: 31px;
+  right: 37px;
 }
 
 .container-novnc-left-shared {
 	position: relative;
   right: 18px;
 }
-
-
-// .noVnc-right {
-//   height: 0px;
-//   box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-//   position: absolute;
-//   top: 1px;
-//   right: 280px;
-//   z-index: 999;
-//   border-radius: 0 5px 0 0;
-// }
-
-
 
 // Close
 .border-left-close {
@@ -1282,7 +987,6 @@ mat-card {
 }
 
 .close {
-  // background-color: #ef5350;
   min-width: 35px;
   border-radius: 0 5px 0 0;
   overflow: hidden;
@@ -1303,84 +1007,23 @@ mat-card {
   font-size: 18.5px;
 }
 
-.view-selector {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  top: -30px;
-  left: 12px;
-  padding: 8px;
-  width: 50px;
-  height: 12px;
-  border-radius: 5px;
-  overflow: hidden;
-  box-shadow:
-    0 3px 1px -2px $table-low-shadow,
-    0 2px 2px 0 $table-medium-shadow,
-    0 1px 5px 0 $table-low-shadow;
-  .view {
-    cursor: pointer;
-    background-color: $transparent-white;
-    .iconsMatRipple {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 15px;
-    }
-    .info {
-
-    }
-    .checkList {
-
-    }
-    .download {
-
-    }
-    &.selected {
-      background-color: rgba($blue, 0.85);
-      &:after {
-        filter: brightness(1);
-        opacity: 1;
-      }
-    }
-  }
-}
-
 .disabled-button {
-  background-color: rgba(128, 128, 128, 0.5) !important;
+  background-color: $darker-step !important;
   pointer-events: none;
 }
 
 .disabled-button-border {
   border-left: 15px solid transparent;
-  border-bottom: 26px solid rgba(128, 128, 128, 0.5);
+  border-bottom: 26px solid $darker-step;
   opacity: 0.5;
-}
-
-
-/* Status */
-
-.pause[disabled] {
-  background-color: orange !important;
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-.running-state-text, .paused-state-text, .stopped-text {
-  font-weight: bold;
-}
-
-.running-state-text {
-  color: #32ba7c;
-}
-
-.paused-state-text {
-  color: orange;
 }
 
 .stopped-text {
-  color: #d4145a;
+  font-weight: bold;
+}
+
+.stopped-text {
+  color: $bg-and-status;
 }
 
 .status-circle {
@@ -1391,20 +1034,12 @@ mat-card {
   margin-left: 5px;
 }
 
-.running-state, .paused-state, .stopped {
+.stopped {
   font-weight: bold;
 }
 
-.running-state {
-  background-color: #32ba7c;
-}
-
-.paused-state {
-  background-color: orange;
-}
-
 .stopped {
-  background-color: #d4145a;
+  background-color: $bg-and-status;
 }
 
 .emulatorOptions {
@@ -1414,32 +1049,22 @@ mat-card {
   z-index: 999;
 }
 
-// .apkContainer {
-//   position: relative;
-//   top: -79px;
-//   left: -2px;
-// }
-
 .mobile-emulator-panel-dialog {
   width: 500px;
-  // max-height: 80vh;
   border-radius: 8px;
   overflow: hidden;
-  background-color: #f7f7f7;
+  background-color: $bg-mat-dialog-container;
 }
 
-
 // Menu more vert emulator feature
-
 .startMenu, .restartMenu, .pauseMenu, .modifyMenu, .closeMenu {
   padding: 0 16px;
   width: 136px;
   min-height: 30px !important;
   span {
     font-weight: bold;
-    color: rgba(0, 0, 0, 0.6);
+    color: $darker-step;
     font-size: 14px;
-
   }
   mat-icon {
     font-size: 21px;
@@ -1462,7 +1087,7 @@ mat-card {
 
 .startMenu {
   mat-icon, span {
-    color: #1565c0 !important;
+    color: $blue !important;
   }
 }
 
@@ -1472,20 +1097,18 @@ mat-card {
     width: 21px;
     height: 21px;
     filter: brightness(0) saturate(100%) invert(26%) sepia(94%) saturate(1046%) hue-rotate(185deg) brightness(105%) contrast(93%);
-    // margin-right: 8px;
-    // color: #1565c0 !important;
   }
   span {
-    color: #1565c0 !important;
+    color: $blue !important;
   }
 }
 
 .pauseMenu {
   mat-icon {
-    color:  #ef5350 !important;
+    color:  $red !important;
   }
   span {
-    color:  #ef5350 !important;
+    color:  $red !important;
   }
 }
 
@@ -1494,16 +1117,16 @@ mat-card {
     font-size: 21px;
   }
   mat-icon, span {
-    color: rgba(0, 0, 0, 0.6);
+    color: $darker-step;
   }
 }
 
 .closeMenu {
   mat-icon {
-    color:  #ef5350 !important;
+    color:  $red !important;
   }
   span {
-    color:  #ef5350 !important;
+    color:  $red!important;
   }
 }
 
@@ -1518,8 +1141,6 @@ mat-card {
 }
 
 
-// pruebassssssssssss
-
 // Inclinated container
 .skewed-button-container {
   display: inline-block;
@@ -1527,27 +1148,27 @@ mat-card {
 }
 
 .restart-bg {
-  background-color: #1565c0;
+  background-color: $blue;
   width: 90px;
+  height: 26px;
   margin-right: -182px;
-  // transition: background-color 0.2s ease-in-out;
 }
 
 .pause-bg {
-  background-color: #f57c00;
+  background-color: $bg-and-status;
   width: 90px;
+  height: 26px;
   margin-right: -182px;
-  // transition: background-color 0.2s ease-in-out;
 }
 
 .skewed-button {
   display: flex;
   height: 18.6px;
-  padding: 3px 10px 4px 0;
+  padding: 3px 0px 4px 0px;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: rgb(255, 255, 255);
+  color: $table-background-opaque;
   font-size: 0.9rem;
   mat-icon {
     height: 14px;
@@ -1562,6 +1183,15 @@ mat-card {
   transform: skew(30deg);
   display: inline-block;
   margin-right: 3px;
+  font-size: 16px;
+}
+
+.skewed-content-span {
+  transform: skew(30deg);
+  display: inline-block;
+  margin-right: 3px;
+  font-size: 14px;
+  letter-spacing: 1px;
 }
 
 .spinnerPause {
@@ -1585,33 +1215,32 @@ mat-card {
     opacity: 1 !important;
   }
   .mat-slide-toggle.mat-checked::after {
-    background-color: #333 !important;
+    background-color: $disabled-slide-toggle !important;
   }
   .mat-slide-toggle.mat-checked::after {
-    background-color: #333;
+    background-color: $disabled-slide-toggle;
   }
 }
 
 ::ng-deep .mat-dialog-container {
-  background-color: #f7f7f7;
+  background-color: $bg-mat-dialog-container;
 }
 
 ::ng-deep .mobile-emulator-panel-dialog {
   width: 80vw;
-  height: 81vh;
 }
 
 ::ng-deep div mat-slide-toggle button {
   transform: scale(0.8);
 }
 
-// ::ng-deep .mat-form-field-flex {
-//   font-size: 12px;
-// }
-
 ::ng-deep .mat-badge-content.mat-badge-active {
   transform: scale(0.8);
   font-size: 14px;
-  margin-right: -144px;
+  margin-right: -150px;
   margin-top: 8px;
+}
+
+.noDialogCloseButton {
+  margin-top: 22px;
 }
