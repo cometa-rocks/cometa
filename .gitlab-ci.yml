@@ -188,7 +188,7 @@ deploy:client04.prod:
   extends: .client04.prod
 
 
-# create a deploy job for client04 for branch build
+# build cometa front image and push to docker hub
 build:amvara6.build:
   stage: build
   script:
