@@ -135,7 +135,7 @@ services:
   # Since this a deployment file, build image is used to start cometa_front 
   # n the build pipeline 
   apache:
-    image: "cometa/front:3.0.7"
+    image: "cometa/front:3.0.14"
     container_name: cometa_front
     volumes:
       - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
@@ -153,7 +153,7 @@ services:
     working_dir: /code/front
     privileged: true
     ports:
-      - "80:80"
+      - "<outside_port>:80"
       - "443:443"
     entrypoint: bash /code/front/start_server.sh
     environment:
