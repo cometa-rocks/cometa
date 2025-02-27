@@ -26,6 +26,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
   selector: 'modify-user',
@@ -55,13 +56,15 @@ export class ModifyUserComponent {
   @Select(UserState.GetPermissionTypes) permissions$: Observable<string[]>;
 
   rForm: UntypedFormGroup;
+  inputFocus: boolean = false;
 
   constructor(
     private dialogRef: MatDialogRef<ModifyUserComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { account: IAccount },
     private _api: ApiService,
     private fb: UntypedFormBuilder,
-    private snack: MatSnackBar
+    private snack: MatSnackBar,
+    private inputFocusService: InputFocusService
   ) {
     this.rForm = this.fb.group({
       name: ['', Validators.required],
@@ -89,5 +92,14 @@ export class ModifyUserComponent {
       },
       () => this.snack.open('An error ocurred', 'OK')
     );
+  }
+
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocusService.setInputFocus(true);
+  }
+
+  onInputBlur() {
+    this.inputFocusService.setInputFocus(false);
   }
 }
