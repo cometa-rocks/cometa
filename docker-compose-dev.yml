@@ -24,6 +24,7 @@ services:
       - ./data/cometa/videos:/data/videos
       - ./data/cometa/pdf:/data/pdf
       - ./data/cometa/downloads:/data/downloads:rw
+      - ./data/cometa/uploads:/data/uploads:rw
       - ./data/department_data:/data/department_data:rw
       - ./data/cometa/config:/code/config:rw
       - ./data/django/migrations:/opt/code/migrations:rw
@@ -59,6 +60,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa/screenshots:/data/screenshots
       - ./data/cometa/downloads:/data/test/downloads
+      - ./data/cometa/uploads:/data/test/uploads
       - ./data/cometa/videos:/data/videos
       - ./data/cometa/config:/code/config:rw
       - ./data/department_data:/data/department_data

@@ -495,7 +495,7 @@ def before_all(context):
     context.downloadDirectoryOutsideSelenium = r"/data/test/downloads/%s" % str(
         os.environ["feature_result_id"]
     )
-    context.uploadDirectoryOutsideSelenium = r"/code/behave/uploads/%s" % str(
+    context.uploadDirectoryOutsideSelenium = r"/data/test/uploads/%s" % str(
         context.department["department_id"]
     )
     os.makedirs(context.downloadDirectoryOutsideSelenium, exist_ok=True)
