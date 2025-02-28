@@ -2,8 +2,8 @@
 Listen 80
 Listen 443
 SSLEngine on
-SSLCertificateFile /etc/ssl/certs/apache-self-signed.crt
-SSLCertificateKeyFile /etc/ssl/certs/apache-self-signed.key
+SSLCertificateFile /share/apache2/certs/apache-self-signed.crt
+SSLCertificateKeyFile /share/apache2/certs/apache-self-signed.key
 
 #error_page  404              /404.html;
 Header set Access-Control-Allow-Origin "*"
