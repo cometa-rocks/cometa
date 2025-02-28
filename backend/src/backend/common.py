@@ -30,4 +30,4 @@ LOGGER_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 # Folders MAX drill down level
 MAX_FOLDER_HIERARCHY=20
 # Uploads folder
-UPLOADS_FOLDER='/code/behave/uploads'
+UPLOADS_FOLDER='/data/uploads'
