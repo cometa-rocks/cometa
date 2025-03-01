@@ -804,16 +804,6 @@ export class FeaturesState {
     let department = UserState.RetrieveUserDepartments(user);
     let activeList = localStorage.getItem('co_active_list'); // Get the current list status
     let activeSortList = localStorage.getItem('co_recent_sort_type') ?? ''; //Get the current sorting type
-    //if its the first time method is called, sort by preselected department or Default
-    let preselectedDept = user.settings.preselectDepartment
-    if(FeaturesState.initialSetup){
-      if(preselectedDept == null){
-        this.selectedDepartment = 0;
-      } else {
-        this.selectedDepartment = preselectedDept - 1
-      }
-    }
-    FeaturesState.initialSetup = false
     // Variable to know what this state does
     result.AAA_help =
       'This state saves the information of all the folders and features to use them subsequently in the datatable.';
