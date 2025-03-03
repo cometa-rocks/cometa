@@ -3362,7 +3362,8 @@ if __name__ != 'actions':
     from ee.cometa_itself.steps import rest_api  
     from ee.cometa_itself.steps import ai_actions
     from ee.cometa_itself.steps import conditional_actions
-    from ee.cometa_itself.steps import mobile_actions  
+    from ee.cometa_itself.steps import mobile_actions
+    from ee.cometa_itself.steps import playwright_actions
     
     sys.path.append('/code/behave/cometa_itself')
     from steps import validation_actions

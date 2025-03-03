@@ -68,6 +68,10 @@ REDIS_IMAGE_ANALYSYS_QUEUE_NAME = ConfigurationManager.get_configuration(
     "REDIS_IMAGE_ANALYSYS_QUEUE_NAME", "image_analysis"
 )  # converting to seconds
 
+REDIS_BROWSER_USE_QUEUE_NAME = ConfigurationManager.get_configuration(
+    "REDIS_BROWSER_USE_QUEUE_NAME", "browser_use_queue"
+) 
+
 DEPARTMENT_DATA_PATH = "/opt/code/department_data"
 
 
@@ -180,6 +184,7 @@ def before_all(context):
     if COMETA_AI_ENABLED:
         context.ai = AI(
             REDIS_IMAGE_ANALYSYS_QUEUE_NAME=REDIS_IMAGE_ANALYSYS_QUEUE_NAME,
+            REDIS_BROWSER_USE_QUEUE_NAME=REDIS_BROWSER_USE_QUEUE_NAME,
             logger=logger,
         )
 
@@ -541,6 +546,10 @@ def get_video_url(context):
 def after_all(context):
     del os.environ["current_step"]
     del os.environ["total_steps"]
+
+    if hasattr(context,"pw"):
+        context.pw.stop()
+
     # check if any alertboxes are open before quiting the browser
     try:
         while context.browser.switch_to.alert:

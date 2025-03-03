@@ -318,6 +318,53 @@ def get_information_from_current_screen_based_on_prompt(context, prompt, variabl
     addTestRuntimeVariable(context, variable, response)
 
 
+
+# This step executes the browser-use action based on the given prompt.
+# Parameters:
+# - prompt: (String) The prompt that specifies the action
+# Example Usage:
+# Execute AI agent action "Navigate to https://www.google.com and search for 'Cometa Rocks'"
+@step(u'Execute AI agent action "(?P<prompt>[\s\S]*?)"')
+@done(u'Execute AI agent action "{prompt}"')
+def execute_ai_action(context, prompt):
+    
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
+    
+    try:
+        # Verify AI features are enabled in the environment
+        if not context.COMETA_AI_ENABLED:
+            feature_cannot_be_used_error()
+
+        logger.debug("Executing AI action")
+        logger.debug(f"Prompt: {prompt}")
+
+        # Update UI with current action status
+        send_step_details(context, "Executing Browser-Use action")
+        
+        # Execute the AI action and get results
+        is_success, response = context.ai.execute_browser_use_action(context, prompt)
+        
+        # Log response and relevant context for debugging
+        logger.debug("Response: %s", response)
+        logger.debug(f"Context attributes:")
+        logger.debug(f"- Browser session ID: {getattr(context.browser, 'session_id', 'Not available')}")
+        logger.debug(f"- Page URL: {getattr(context.page, 'url', 'Not available')}")
+        logger.debug(f"- AI enabled: {getattr(context, 'COMETA_AI_ENABLED', False)}")
+        
+        logger.debug("AI action executed")
+
+        # Handle errors if the action fails
+        if not is_success:
+            error_msg = f'The AI server could not complete the analysis and failed with the error: "{response}"'
+            logger.error(error_msg)
+            raise AssertionError(error_msg)
+    except Exception as e:
+        # Log any unexpected errors and store for reporting
+        logger.exception("Exception while executing browser-use step: %s", str(e))
+        context.STEP_ERROR = str(e)
+        raise
+
+
 use_step_matcher("parse")
 
     
