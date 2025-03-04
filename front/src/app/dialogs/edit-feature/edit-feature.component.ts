@@ -841,10 +841,6 @@ export class EditFeature implements OnInit, OnDestroy {
 
   ngOnInit() {
 
-    console.log("User: ", this.user);
-
-    console.log("Departments: ", JSON.stringify(this.departments$));
-
     this.loadPanelStates();
 
     this._api.getCometaConfigurations().subscribe(res => {
