@@ -241,11 +241,11 @@
       "date": "2025-03-4",
       "features": [
         {
-          "title": "Focus on input or textarea when mat-expansion panels are opened",
+          "title": "Focus on input or textarea when mat-expansion panels are opened #4694",
           "description": "Implemented focus on the input or textarea when the mat-expansion panels are opened."
         },
         {
-          "title": "Retain the last opened state of mat-expansion panels per feature",
+          "title": "Retain the last opened state of mat-expansion panels per feature #4694",
           "description": "Now each feature retains the last opened state of its panels, as set by the user."
         }
       ]
