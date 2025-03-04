@@ -1,5 +1,5 @@
 {
-  "version": "3.0.20",
+  "version": "3.0.21",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,7 +237,7 @@
   ],
   "changelog": [
     {
-      "version": "3.0.20",
+      "version": "3.0.21",
       "date": "2025-03-4",
       "features": [
         {
@@ -254,6 +254,16 @@
         }
       ]
     },
+    {
+      "version": "3.0.21",
+      "date": "2025-02-27",
+      "features": [
+        {
+          "title": "Hotfix: Removed conflicting code in feature state #4694",
+          "description": "Resolved an issue by deleting conflicting code in the feature state."
+        }
+      ]
+    },    
     {
       "version": "3.0.19",
       "date": "2025-02-27",
