@@ -12,12 +12,14 @@
     <ng-template #cloneTitle>
       <h2 mat-dialog-title>Clone feature</h2>
     </ng-template>
+
   </ng-template>
   <mat-dialog-content>
     <mat-accordion multi>
       <mat-expansion-panel
       [expanded]="!config$.toggles.hideInformation"
-      >
+      (opened)="setFocusOnFirstOpenPanel()"
+      (closed)="setFocusOnFirstOpenPanel()">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Information</span>
@@ -198,6 +200,8 @@
           featureForm.value.send_mail && !featureForm.value.depends_on_others
         "
         [expanded]="!config$.toggles.hideSendMail"
+        (opened)="setFocusOnFirstOpenPanel()"
+        (closed)="setFocusOnFirstOpenPanel()"
         >
         <mat-expansion-panel-header>
           <mat-panel-title>
@@ -363,7 +367,9 @@
       <!-- FILE UPLOAD -->
       <mat-expansion-panel
         #uploadPanel
-        [expanded]="!config$.toggles.hideUploadedFiles">
+        [expanded]="!config$.toggles.hideUploadedFiles"
+        (opened)="setFocusOnFirstOpenPanel()"
+        (closed)="setFocusOnFirstOpenPanel()">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Files</span>
@@ -510,7 +516,9 @@
 
       <mat-expansion-panel
         [expanded]="!config$.toggles.hideBrowsers"
-        *ngIf="!featureForm.value.depends_on_others">
+        *ngIf="!featureForm.value.depends_on_others"
+        (opened)="setFocusOnFirstOpenPanel()"
+        (closed)="setFocusOnFirstOpenPanel()">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Browser selection</span>
@@ -540,7 +548,10 @@
           </ng-template>
         </ng-template>
       </mat-expansion-panel>
-      <mat-expansion-panel [expanded]="data.mode !== 'new' && !config$.toggles.hideSteps">
+      <mat-expansion-panel 
+        [expanded]="data.mode !== 'new' && !config$.toggles.hideSteps"
+        (opened)="setFocusOnFirstOpenPanel()"
+        (closed)="setFocusOnFirstOpenPanel()">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Steps definition</span>
@@ -571,7 +582,10 @@
           </cometa-step-editor>
         </ng-template>
       </mat-expansion-panel>
-      <mat-expansion-panel [expanded]="!config$.toggles.hideSchedule">
+      <mat-expansion-panel 
+        [expanded]="!config$.toggles.hideSchedule"
+        (opened)="setFocusOnFirstOpenPanel()"
+        (closed)="setFocusOnFirstOpenPanel()">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Schedule</span>

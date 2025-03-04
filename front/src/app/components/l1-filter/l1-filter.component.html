@@ -9,7 +9,7 @@ Author: dph000
   <div
     (click)="toggleSidenav()"
     class="showFolders"
-    matTooltip="Show+Hide Folders"
+    [matTooltip]="'filter.show-hide' | translate"
     [class.toggle-search]="openedSearch$ | async">
     <i [class.sidebar-closed]="getSidebarState()"></i>
   </div>
@@ -26,11 +26,11 @@ Author: dph000
     <!-- Breadcrumbs home button -->
     <div
       class="breadcrumb"
-      matTooltip="Shift + Alt + H"
+      [matTooltip]="'filter.home' | translate"
       (click)="returnToRoot()">
-      <mat-icon [class.navigable]="(currentRoute$ | async).length > 0"
-        >home</mat-icon
-      >
+      <mat-icon [class.navigable]="(currentRoute$ | async).length > 0">
+        home
+      </mat-icon>
       <span>Home</span>
     </div>
     <!-- Breadcrumbs directory list -->
@@ -68,7 +68,7 @@ Author: dph000
       <div
         (click)="removeFilter(filter)"
         class="close"
-        matTooltip="Shift + Alt + X"></div>
+        [matTooltip]="'filter.remove-filter' | translate"></div>
     </div>
     <div style="clear: both"></div>
   </div>
@@ -77,8 +77,8 @@ Author: dph000
     *ngIf="filters$.length == 0"
     class="search-container"
     (click)="open_search(); searchFeature()">
-    <mat-icon class="search-button" matTooltip="Shift + Alt + F"
-      >search</mat-icon
-    >
+    <mat-icon class="search-button" [matTooltip]="'filter.search' | translate">
+      search
+    </mat-icon>
   </div>
 </div>
