@@ -40,6 +40,7 @@ import { NgFor, NgIf, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { InputFocusService } from '@services/inputFocus.service';
+import { TranslateModule } from '@ngx-translate/core';
 
 @UntilDestroy()
 @Component({
@@ -61,6 +62,7 @@ import { InputFocusService } from '@services/inputFocus.service';
     StoreSelectorPipe,
     FilterTextPipe,
     AsyncPipe,
+    TranslateModule
   ],
 })
 export class L1FilterComponent implements OnInit {
@@ -389,8 +391,14 @@ export class L1FilterComponent implements OnInit {
   // #3420 -------------------------------------------------- end
 
   // Hotkey Shift-Alt-h ... goes to root-Folder
-  @HostListener('document:keydown.Shift.Alt.h', ['$event'])
+  @HostListener('document:keydown.h', ['$event'])
   hotkey_shift_alt_h(event: KeyboardEvent) {
+    // Check if input or textarea is focused
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+      return;
+    }
+
     this.returnToRoot();
     event.preventDefault();
   }
