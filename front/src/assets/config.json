@@ -249,7 +249,7 @@
           "description": "Now each feature retains the last opened state of its panels, as set by the user."
         },
         {
-          "title": "Updated the shortcuts page",
+          "title": "Updated the shortcuts page #4694",
           "description": "Updated the page with new and improved shortcuts for better user experience."
         }
       ]
