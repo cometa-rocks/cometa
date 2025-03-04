@@ -1,5 +1,5 @@
 {
-  "version": "3.0.19",
+  "version": "3.0.20",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,20 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.20",
+      "date": "2025-03-4",
+      "features": [
+        {
+          "title": "Focus on input or textarea when mat-expansion panels are opened",
+          "description": "Implemented focus on the input or textarea when the mat-expansion panels are opened."
+        },
+        {
+          "title": "Retain the last opened state of mat-expansion panels per feature",
+          "description": "Now each feature retains the last opened state of its panels, as set by the user."
+        }
+      ]
+    },
     {
       "version": "3.0.19",
       "date": "2025-02-27",
