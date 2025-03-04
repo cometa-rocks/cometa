@@ -327,17 +327,31 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // Check if the create button should be disabled
   ngAfterViewInit() {
-    this.expansionPanels.changes.subscribe(() => this.setFocusOnFirstOpenPanel());
+    setTimeout(() => {
+      this.expansionPanels.changes.subscribe(() => this.setFocusOnFirstOpenPanel());
+      this.setFocusOnFirstOpenPanel();
+    });
   }
   
   // Focus on the first input or textarea of the first open panel
   setFocusOnFirstOpenPanel() {
     setTimeout(() => {
       const firstOpenPanel = this.expansionPanels.find(panel => panel.expanded);
+  
       if (firstOpenPanel) {
-        const panelElement = firstOpenPanel._body.nativeElement; // Accede al cuerpo del panel
-        const input = panelElement.querySelector('input, textarea') as HTMLInputElement | HTMLTextAreaElement;
-        input?.focus();        
+        setTimeout(() => { 
+          const panelElement = firstOpenPanel._body?.nativeElement;
+  
+          if (panelElement) {
+            // Filter the input have type hidden and checkbox
+            const input = panelElement.querySelector('input:not([type="hidden"]):not([type="checkbox"]), textarea') as HTMLInputElement | HTMLTextAreaElement;
+  
+            if (input) {
+              // Focus on the first input or textarea
+              input.focus();
+            }
+          }
+        }, 50);
       }
     });
   }
