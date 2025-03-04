@@ -16,17 +16,19 @@
   </ng-template>
   <mat-dialog-content>
     <mat-accordion multi>
+
+      <!-- INFORMATION -->
       <mat-expansion-panel
-      [expanded]="!config$.toggles.hideInformation"
-      (opened)="setFocusOnFirstOpenPanel()"
-      (closed)="setFocusOnFirstOpenPanel()">
+        [expanded]="data.mode == 'new' || (!config$.toggles.hideInformation && features[0].panels[0].expanded)"
+        (opened)="onExpansionChange(featureId, '1', true); setFocusOnFirstOpenPanel()"
+        (closed)="onExpansionChange(featureId, '1', false); setFocusOnFirstOpenPanel()">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Information</span>
           </mat-panel-title>
-          <mat-panel-description
-            >Edit information of the feature</mat-panel-description
-          >
+          <mat-panel-description>
+            Edit information of the feature
+          </mat-panel-description>
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
           <div class="edit-feature-info">
@@ -195,13 +197,15 @@
           </div>
         </ng-template>
       </mat-expansion-panel>
+
+      <!-- EMAIL -->
       <mat-expansion-panel
         *ngIf="
           featureForm.value.send_mail && !featureForm.value.depends_on_others
         "
-        [expanded]="!config$.toggles.hideSendMail"
-        (opened)="setFocusOnFirstOpenPanel()"
-        (closed)="setFocusOnFirstOpenPanel()"
+        [expanded]="!config$.toggles.hideSendMail && features[0].panels[1].expanded"
+        (opened)="onExpansionChange(featureId, '2', true); setFocusOnFirstOpenPanel()"
+        (closed)="onExpansionChange(featureId, '2', false); setFocusOnFirstOpenPanel()"
         >
         <mat-expansion-panel-header>
           <mat-panel-title>
@@ -367,9 +371,9 @@
       <!-- FILE UPLOAD -->
       <mat-expansion-panel
         #uploadPanel
-        [expanded]="!config$.toggles.hideUploadedFiles"
-        (opened)="setFocusOnFirstOpenPanel()"
-        (closed)="setFocusOnFirstOpenPanel()">
+        [expanded]="!config$.toggles.hideUploadedFiles && features[0].panels[2].expanded"
+        (opened)="onExpansionChange(featureId, '3', true); setFocusOnFirstOpenPanel()"
+        (closed)="onExpansionChange(featureId, '3', false); setFocusOnFirstOpenPanel()">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Files</span>
@@ -512,13 +516,13 @@
           </ng-template>
         </ng-template>
       </mat-expansion-panel>
-      <!-- FILE UPLOAD -->
-
+      
+      <!-- BROWSERS -->
       <mat-expansion-panel
-        [expanded]="!config$.toggles.hideBrowsers"
         *ngIf="!featureForm.value.depends_on_others"
-        (opened)="setFocusOnFirstOpenPanel()"
-        (closed)="setFocusOnFirstOpenPanel()">
+        [expanded]="data.mode == 'new' || !config$.toggles.hideBrowsers && features[0].panels[3].expanded"
+        (opened)="onExpansionChange(featureId, '4', true); setFocusOnFirstOpenPanel()"
+        (closed)="onExpansionChange(featureId, '4', false); setFocusOnFirstOpenPanel()">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Browser selection</span>
@@ -548,10 +552,12 @@
           </ng-template>
         </ng-template>
       </mat-expansion-panel>
+
+      <!-- STEPS -->
       <mat-expansion-panel 
-        [expanded]="data.mode !== 'new' && !config$.toggles.hideSteps"
-        (opened)="setFocusOnFirstOpenPanel()"
-        (closed)="setFocusOnFirstOpenPanel()">
+        [expanded]="data.mode == 'new' || !config$.toggles.hideSteps && features[0].panels[4].expanded"
+        (opened)="onExpansionChange(featureId, '5', true); setFocusOnFirstOpenPanel()"
+        (closed)="onExpansionChange(featureId, '5', false); setFocusOnFirstOpenPanel()">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Steps definition</span>
@@ -582,10 +588,12 @@
           </cometa-step-editor>
         </ng-template>
       </mat-expansion-panel>
+
+      <!-- SCHEDULE -->
       <mat-expansion-panel 
-        [expanded]="!config$.toggles.hideSchedule"
-        (opened)="setFocusOnFirstOpenPanel()"
-        (closed)="setFocusOnFirstOpenPanel()">
+        [expanded]="!config$.toggles.hideSchedule && features[0].panels[5].expanded"
+        (opened)="onExpansionChange(featureId, '6', true); setFocusOnFirstOpenPanel()"
+        (closed)="onExpansionChange(featureId, '6', false); setFocusOnFirstOpenPanel()">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Schedule</span>
@@ -705,6 +713,7 @@
           </div>
         </ng-template>
       </mat-expansion-panel>
+
     </mat-accordion>
     <div
       class="last-edition"

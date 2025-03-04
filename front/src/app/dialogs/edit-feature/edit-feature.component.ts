@@ -219,6 +219,10 @@ export class EditFeature implements OnInit, OnDestroy {
 
   featureForm: UntypedFormGroup;
 
+  featureId: number;
+
+  features: any[] = [];
+
   constructor(
     public dialogRef: MatDialogRef<EditFeature>,
     @Inject(MAT_DIALOG_DATA) public data: IEditFeature,
@@ -232,6 +236,16 @@ export class EditFeature implements OnInit, OnDestroy {
     @Inject(API_URL) public api_url: string,
     private inputFocusService: InputFocusService,
   ) {
+
+    this.featureId = this.data.feature.feature_id;
+
+    this.features = [
+      {
+        id: this.featureId,
+        name: '',
+        panels: Array.from({ length: 6 }, (_, i) => ({ id: (i + 1).toString(), expanded: false }))
+      }
+    ];
 
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
       this.inputFocus = isFocused;
@@ -324,6 +338,46 @@ export class EditFeature implements OnInit, OnDestroy {
       this.parseSchedule({ minute, hour, day_month, month, day_week });
     });
   }
+
+  // Save the state of the expansion panel
+  savePanelState(featureId: number, panelId: string, isExpanded: boolean) {
+    const panelStates = JSON.parse(localStorage.getItem('matExpansionStates') || '{}');
+
+    if (!panelStates[featureId]) {
+      panelStates[featureId] = {};
+    }
+
+    // Save the state of the panel
+    panelStates[featureId][panelId] = isExpanded;
+    localStorage.setItem('matExpansionStates', JSON.stringify(panelStates));
+  }
+
+  // Load the state of the expansion panel
+  loadPanelStates() {
+    const savedStates = JSON.parse(localStorage.getItem('matExpansionStates') || '{}');
+
+    this.features.forEach(feature => {
+      if (!feature.id) return;
+      feature.panels.forEach(panel => {
+        panel.expanded = savedStates[feature.id]?.[panel.id] ?? false;
+      });
+    });
+  }
+
+  // When the expansion panel changes, save
+  onExpansionChange(featureId: number, panelId: string, isExpanded: boolean) {
+    this.savePanelState(featureId, panelId, isExpanded);
+
+    // Expand only one panel at a time
+    const feature = this.features.find(f => f.id === featureId);
+    if (feature) {
+      const panel = feature.panels.find(p => p.id === panelId);
+      if (panel) {
+        panel.expanded = isExpanded;
+      }
+    }
+  }
+
 
   // Check if the create button should be disabled
   ngAfterViewInit() {
@@ -786,6 +840,12 @@ export class EditFeature implements OnInit, OnDestroy {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
+
+    console.log("User: ", this.user);
+
+    console.log("Departments: ", JSON.stringify(this.departments$));
+
+    this.loadPanelStates();
 
     this._api.getCometaConfigurations().subscribe(res => {
 
