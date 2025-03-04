@@ -50,7 +50,7 @@ export class HelpComponent {
     { position: 5, key: 'M', description: '[M] Header Icon: Menu' },
     { position: 6, key: 'S', description: 'Open search'},
     { position: 7, key: 'ESC', description: 'Close search'},
-    { position: 8, key: 'Shift + Alt + H', description: 'Return to home'},
+    { position: 8, key: 'H', description: 'Return to home'},
     { position: 9, key: 'Shift + Alt + X', description: 'Remove all the filters'},
   ];
 
