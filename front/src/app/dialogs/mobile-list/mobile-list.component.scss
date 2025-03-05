@@ -544,6 +544,7 @@ mobile-list {
   margin-bottom: 20px;
   position: relative;
   top: -57px;
+  color: $smoth-black-text;
   .emulator-info {
     .moreInfoStrong {
       position: relative;
@@ -1243,4 +1244,30 @@ mobile-list {
 
 .noDialogCloseButton {
   margin-top: 22px;
+}
+
+// slide toggle
+
+mat-slide-toggle {
+ opacity: 0.6;
+}
+
+:host::ng-deep .mdc-switch__track::after {
+  background-color: $blue !important;
+}
+
+:host::ng-deep .mdc-switch__track::before {
+  background-color: $disabled-slide-toggle-track;
+}
+
+:host::ng-deep .mdc-switch--selected .mdc-switch__handle {
+  background-color: $blue;
+}
+
+:host::ng-deep .mdc-switch--selected .mdc-switch__shadow {
+  background-color: $blue;
+}
+
+:host::ng-deep .mdc-form-field {
+  opacity: 0.7;
 }
