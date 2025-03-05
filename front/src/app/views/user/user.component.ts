@@ -32,9 +32,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyRadioModule } from '@angular/material/legacy-radio';
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacySlideToggleModule } from '@angular/material/legacy-slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import {
   NgIf,
   NgFor,
@@ -46,6 +44,9 @@ import {
 } from '@angular/common';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { InputFocusService } from '../../services/inputFocus.service';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'account-settings',
@@ -56,10 +57,8 @@ import { InputFocusService } from '../../services/inputFocus.service';
   imports: [
     LetDirective,
     NgIf,
-    MatLegacyButtonModule,
     NgFor,
     MatIconModule,
-    MatLegacySlideToggleModule,
     MatLegacyFormFieldModule,
     MatLegacyInputModule,
     MatLegacyRadioModule,
@@ -77,6 +76,9 @@ import { InputFocusService } from '../../services/inputFocus.service';
     UpperCasePipe,
     TitleCasePipe,
     KeyValuePipe,
+    MatSlideToggleModule,
+    MatButtonToggleModule,
+    MatButtonModule
   ],
 })
 export class UserComponent implements OnInit {
