@@ -189,7 +189,6 @@ def assert_imp(context, variable_name, jq_pattern, condition, value):
 # Assert variable value by providing 'variable_name', 'condition(match|contain)' and exepected 'value'
 @step(u'Assert variable \"(?P<variable_name>.*?)\" to "(?P<condition>match|contain)" \"(?P<value>.*?)\"')
 @done(u'Assert variable "{variable_name}" to "{condition}" "{value}"')
-@sanitize_step_inputs() 
 def assert_imp(context, variable_name, condition, value):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     variable_value = getVariable(context, variable_name) 
