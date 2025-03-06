@@ -371,11 +371,16 @@
 }
 
 .stepDescriptionExample{
-  width: 80%;
+  flex: 4;
+  margin-left: 325px;
 }
 
 .stepDocumentationIcons {
-  width: 20%;
+  flex: 1;
+}
+
+.columnOfIcons {
+  flex: 0.2;
 }
 
 .columnOfIcons {
@@ -558,10 +563,11 @@ mat-autocomplete {
 }
 
 .linkToSteps {
-  font-size: 15px !important; /* Asegura que el tamaño del ícono se mantenga */
+  font-size: 15px;
 }
 
-// .mat-button, .mat-icon-button, .mat-stroked-button, .mat-flat-button {
-//   min-width: 0px;
-//   padding: 0 0px;
-// }
+.columnOfIcons {
+  display: flex;
+  gap: 10px;
+  margin-top: 3px;
+}
