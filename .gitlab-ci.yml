@@ -196,99 +196,14 @@ build:amvara6.build:
     # BUILD IMAGES (Front, Behave, Django)
     ########################################################
     
-      - |
-        IMAGE_PATHS=("front" "backend/behave" "backend/django")
-        IMAGE_NAMES=("cometa/front" "cometa/behave" "cometa/django")
-        VERSION_PATHS=("front/src/assets/config.json" "backend/behave/version.json" "backend/src/version.json")
-        for i in "${!IMAGE_PATHS[@]}"; do
-          IMAGE_DIR="${IMAGE_PATHS[$i]}"
-          IMAGE_NAME="${IMAGE_NAMES[$i]}"
-          VERSION_PATH="${VERSION_PATHS[$i]}"  
-
-          BUILD_VERSION=$(jq -r '.version' "$VERSION_PATH")  
-
-          echo "Processing image: $IMAGE_NAME"
-
-          # Fetch the JSON response from Docker Hub
-          RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/$IMAGE_NAME/tags/?page_size=2&ordering=last_updated")
-
-          # Extract the latest tag using jq
-          LATEST_TAG=$(echo "$RESPONSE" | jq -r '.results[1].name')
-          echo "Latest tag for $IMAGE_NAME from Docker Hub is: $LATEST_TAG"
-          # Compare the latest tag with the build version
-          if [ "$LATEST_TAG" == "$BUILD_VERSION" ]; then
-            echo "The latest version is already $BUILD_VERSION for $IMAGE_NAME. Skipping build and push."
-          else
-            cd $IMAGE_DIR
-            docker build . -f Dockerfile -t $IMAGE_NAME:$BUILD_VERSION
-            echo "$IMAGE_NAME:$BUILD_VERSION build successfully"
-            echo "Pushing $IMAGE_NAME:$BUILD_VERSION image to Docker $DOCKER_REGISTRY"
-            docker push $IMAGE_NAME:$BUILD_VERSION
-            echo "$IMAGE_NAME:$BUILD_VERSION image pushed"
-            echo "Converting $IMAGE_NAME:$BUILD_VERSION tag $IMAGE_NAME:latest"
-            docker tag $IMAGE_NAME:$BUILD_VERSION $IMAGE_NAME:latest
-            echo "Pushing $IMAGE_NAME:latest image to Docker $DOCKER_REGISTRY"
-            docker push $IMAGE_NAME:latest
-            echo "$IMAGE_NAME:latest image pushed"
-            cd -
-          fi
-        done
+      - ./updateImages.sh
       
     #########################################################
     # BUILD BROWSER IMAGES (Chrome, Firefox and Edge)
     ########################################################
-      - |
-        IMAGE_PATH="backend/browsers"
-        IMAGE_NAMES_SELENIUM=("selenium/standalone-chrome" "selenium/standalone-firefox" "selenium/standalone-edge")
-        IMAGE_NAMES_COMETA=("cometa/chrome" "cometa/firefox" "cometa/edge")
-        # Empty browsers JSON array
-        BROWSERS_JSON='{"browsers": []}'
-        for i in "${!IMAGE_NAMES_SELENIUM[@]}"; do
-          #Gets the lastest versions from each selenium browser and cometa browser
-          IMAGE_NAME_SELENIUM="${IMAGE_NAMES_SELENIUM[$i]}"
-          IMAGE_NAME_COMETA="${IMAGE_NAMES_COMETA[$i]}"
-          echo "Processing image: $IMAGE_NAME_SELENIUM"
-          #Get latest versions from selenium
-          RESPONSE_SELENIUM=$(curl -s "https://hub.docker.com/v2/repositories/$IMAGE_NAME_SELENIUM/tags/?page_size=4&ordering=last_updated")
-          #Get latest versions from cometa
-          RESPONSE_COMETA=$(curl -s "https://hub.docker.com/v2/repositories/$IMAGE_NAME_COMETA/tags/?page_size=4&ordering=last_updated")
-          #from selenium, get the 4th result, first 3 are nigtly, dev and beta
-          LATEST_TAG_SELENIUM=$(echo "$RESPONSE_SELENIUM" | jq -r '.results[3].name')
-          #from cometa, get 1st. no latest in browsers
-          LATEST_TAG_COMETA=$(echo "$RESPONSE_COMETA" | jq -r '.results[0].name')
-          #Strip away excess version information, keep only XXX.0 verson
-          TAG_VERSION_ONLY=$(echo "$LATEST_TAG_SELENIUM" | cut -d'-' -f1)
-          #Check if the version is valid by checking http response code (200-299 OK)
-          URL="https://hub.docker.com/v2/repositories/$IMAGE_NAME_SELENIUM/tags/$TAG_VERSION_ONLY"
-          RESPONSE_SELENIUM=$(curl -s -w "%{http_code}" -o /dev/null "$URL")
-          if [ "$RESPONSE_SELENIUM" -ge 200 ] && [ "$RESPONSE_SELENIUM" -lt 300 ]; then
-            #If versions are valid, start checking if update is needed
-            echo "Latest version for $IMAGE_NAME_SELENIUM from Docker Hub is: $TAG_VERSION_ONLY"
-            echo "Latest version for $IMAGE_NAME_COMETA from Docker Hub is: $LATEST_TAG_COMETA"
-            if [ "$TAG_VERSION_ONLY" == "$LATEST_TAG_COMETA" ]; then
-              echo "The latest version is already $TAG_VERSION_ONLY for $IMAGE_NAME_COMETA. Skipping build and push."
-            else
-              #write version in browsers.json and call backend/browsers/build_browser_images.sh
-              cd backend/browsers
-              # replaces the version section of name and images keys of the json. 
-              BROWSERS_JSON=$(echo "$BROWSERS_JSON" | jq --argjson index "$i" --arg version "$TAG_VERSION_ONLY" --arg name "$IMAGE_NAME_COMETA" --arg image "$IMAGE_NAME_SELENIUM" '
-                .browsers += [{"name": "\($name):\($version)", "image": "\($image):\($version)"}]')
-              cd -
-            fi
-          else
-            echo "The request failed with status code: $RESPONSE_SELENIUM"
-          fi
-        done
-        echo "------------------------------"
-        cd backend/browsers
-        # Write the final JSON array to browsers.json
-        echo "$BROWSERS_JSON" | jq . > browsers.json
-        # Check if there are any browsers to update
-        if [ "$(echo "$BROWSERS_JSON" | jq '.browsers | length')" -gt 0 ]; then
-        ./build_browser_images.sh
-        else
-        echo "Not calling image building script, all browsers are up to date"
-        fi
-        cd -
+      - ./backend/browsers/populateBrowsersJSON.sh
 
   extends: .amvara6.build
+  only:
+    refs:
+      - schedules
