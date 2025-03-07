@@ -199,5 +199,12 @@
     "not_shared": "This emulator is not shared with other users",
     "modify_emulator_started": "Show and modify the emulator parameters",
     "modify_emulator_not_started": "The emulator must be starting to be modified"
+  },
+  "filter": {
+    "home": "Home shortcut: H",
+    "search": "Search shortcut: S",
+    "show-hide": "Show / hide folders",
+    "escape": "ESC",
+    "remove-filter": "Remove filter shotcut: Shift + Alt + X"
   }
 }
