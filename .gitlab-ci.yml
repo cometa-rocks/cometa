@@ -189,7 +189,7 @@ deploy:amvara3.prod:
 
 
 # build cometa front image and push to docker hub
-build:amvara8.build:
+build:amvara8.build-1:
   stage: build
   script:
     #########################################################
@@ -197,11 +197,17 @@ build:amvara8.build:
     ########################################################
     
       - ./updateImages.sh
-      
+
+  extends: .amvara8.build-1
+
+# build cometa browser images and push to docker hub 
+build:amvara8.build-2:
+  stage: build
+  script:
     #########################################################
     # BUILD BROWSER IMAGES (Chrome, Firefox and Edge)
     ########################################################
       - ./backend/browsers/populateBrowsersJSON.sh
 
-  extends: .amvara8.build
+  extends: .amvara8.build-2
       
