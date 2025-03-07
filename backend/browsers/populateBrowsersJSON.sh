@@ -29,15 +29,15 @@ for i in "${!IMAGE_NAMES_SELENIUM[@]}"; do
     echo "$IMAGE_NAME_SELENIUM is up to date in version $LATEST_TAG_COMETA"
   fi
 done
+cd $IMAGE_PATH
 # Write the final JSON array to browsers.json
 echo "$BROWSERS_JSON" | jq . > browsers.json
 # Check if there are any browsers to update
 if [ "$(echo "$BROWSERS_JSON" | jq '.browsers | length')" -gt 0 ]; then
 echo "browsers.json updated"
 echo "---------------CALLING BUILDING AND PUSHING SCRIPT---------------"
-cd $IMAGE_PATH
 ./build_browser_images.sh
-cd -
 else
 echo "Not calling image building script, all browsers are up to date"
 fi
+cd -
