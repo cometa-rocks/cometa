@@ -1,5 +1,5 @@
 {
-  "version": "3.0.21",
+  "version": "3.0.22",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,8 +237,26 @@
   ],
   "changelog": [
     {
+      "version": "3.0.22",
+      "date": "2025-03-07",
+      "features": [
+        {
+          "title": "Enhanced User Experience #4694",
+          "description": "Improved several Angular components to provide a smoother and more intuitive user experience."
+        },
+        {
+          "title": "Fixed Dialog Sizing in Edit-Feature #5868",
+          "description": "Adjusted the dialog size in edit-feature to ensure proper display across different screen resolutions."
+        },
+        {
+          "title": "Shortcut and Profile Page Improvements #4694",
+          "description": "The menu now toggles with the same shortcut, header shortcuts updated, and profile page styling improved."
+        }
+      ]
+    },    
+    {
       "version": "3.0.21",
-      "date": "2025-03-4",
+      "date": "2025-03-04",
       "features": [
         {
           "title": "Focus on input or textarea when mat-expansion panels are opened #4694",

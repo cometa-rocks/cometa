@@ -355,10 +355,6 @@
   transition: opacity 0.3s ease-in-out;
 }
 
-.stepByStep {
-
-}
-
 .stepContainerDocumentation.ng-transition {
   opacity: 0;
   visibility: hidden;
@@ -370,13 +366,17 @@
   width: 100%;
 }
 
-.stepDescriptionExample {
+.stepDescriptionExample{
   flex: 4;
   margin-left: 325px;
 }
 
 .stepDocumentationIcons {
   flex: 1;
+}
+
+.columnOfIcons {
+  flex: 0.2;
 }
 
 .columnOfIcons {
@@ -421,6 +421,10 @@
 .cdk-overlay-container {
   position: relative;
 }
+
+// :host::ng-deep .cdk-overlay-pane {
+//   position: fixed !important;
+// }
 
 ::ng-deep .mat-autocomplete-panel {
   position: absolute !important;
@@ -556,11 +560,6 @@ mat-autocomplete {
   }
 }
 
-.copyClipboardIcon:hover {
-
-}
-
-
 .linkTo {
   text-decoration: none;
   color: $blue;
@@ -571,10 +570,11 @@ mat-autocomplete {
 }
 
 .linkToSteps {
-  font-size: 15px !important; /* Asegura que el tamaño del ícono se mantenga */
+  font-size: 15px;
 }
 
-// .mat-button, .mat-icon-button, .mat-stroked-button, .mat-flat-button {
-//   min-width: 0px;
-//   padding: 0 0px;
-// }
+.columnOfIcons {
+  display: flex;
+  gap: 10px;
+  margin-top: 3px;
+}
