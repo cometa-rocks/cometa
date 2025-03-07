@@ -21,7 +21,7 @@
   background-size: 20px;
   background-position: center;
   width: 40px;
-  // height: 100%;
+  margin-right: 2%;
   opacity: 0.7;
   &:hover {
     opacity: 1;
@@ -378,6 +378,18 @@
 .columnOfIcons {
   flex: 0.2;
 }
+
+.columnOfIcons {
+  flex: 0.2;
+}
+
+// .stepDescriptionExample{
+//   width: 80%;
+// }
+
+// .stepDocumentationIcons {
+//   width: 20%;
+// }
 
 .columnOfIcons {
   color: $blue;
