@@ -18,25 +18,25 @@ for browser in $browsers; do
   # Build a Docker image for the browser
   tag="$name"
   echo "Building Docker image for $name using base image $image..."
-  # docker build --build-arg BASE_IMAGE=$image -t $tag .
+  docker build --build-arg BASE_IMAGE=$image -t $tag .
 
   if [ $? -eq 0 ]; then
-    echo "SIMULATION: Successfully built $tag"
+    echo "Successfully built $tag"
   else
-    echo "SIMULATION: Failed to build $tag"
+    echo "Failed to build $tag"
     exit 1
   fi
 
   # Push the Docker image to the registry
   echo "Pushing $tag to Docker registry..."
-  # docker push $tag
+  docker push $tag
 
   if [ $? -eq 0 ]; then
-    echo "SIMULATION: Successfully pushed $tag"
+    echo "Successfully pushed $tag"
   else
-    echo "SIMULATION: Failed to push $tag"
+    echo "Failed to push $tag"
     exit 1
   fi
 done
 
-echo "SIMULATION: All images built and pushed successfully."
+echo "All images built and pushed successfully."
