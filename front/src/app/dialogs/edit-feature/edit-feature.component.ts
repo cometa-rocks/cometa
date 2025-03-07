@@ -8,7 +8,9 @@ import {
   OnDestroy,
   ChangeDetectorRef,
   Renderer2,
-  ɵɵtrustConstantResourceUrl
+  ɵɵtrustConstantResourceUrl,
+  ViewChildren,
+  QueryList
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
@@ -92,7 +94,7 @@ import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyOptionModule } from '@angular/material/legacy-core';
 import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatExpansionModule } from '@angular/material/expansion';
+import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { DraggableWindowModule } from '@modules/draggable-window.module'
 
@@ -147,6 +149,8 @@ export class EditFeature implements OnInit, OnDestroy {
     'created_on',
     'actions',
   ];
+  // Get all expansion panels
+  @ViewChildren(MatExpansionPanel) expansionPanels!: QueryList<MatExpansionPanel>;
 
   @ViewSelectSnapshot(ConfigState) config$!: Config;
   /**
@@ -192,6 +196,7 @@ export class EditFeature implements OnInit, OnDestroy {
 
   readonly separatorKeysCodes: number[] = [ENTER, COMMA];
 
+
   @ViewChild(StepEditorComponent, { static: false })
   stepEditor: StepEditorComponent;
 
@@ -214,6 +219,10 @@ export class EditFeature implements OnInit, OnDestroy {
 
   featureForm: UntypedFormGroup;
 
+  featureId: number;
+
+  features: any[] = [];
+
   constructor(
     public dialogRef: MatDialogRef<EditFeature>,
     @Inject(MAT_DIALOG_DATA) public data: IEditFeature,
@@ -227,6 +236,16 @@ export class EditFeature implements OnInit, OnDestroy {
     @Inject(API_URL) public api_url: string,
     private inputFocusService: InputFocusService,
   ) {
+
+    this.featureId = this.data.feature.feature_id;
+
+    this.features = [
+      {
+        id: this.featureId,
+        name: '',
+        panels: Array.from({ length: 6 }, (_, i) => ({ id: (i + 1).toString(), expanded: false }))
+      }
+    ];
 
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
       this.inputFocus = isFocused;
@@ -319,6 +338,78 @@ export class EditFeature implements OnInit, OnDestroy {
       this.parseSchedule({ minute, hour, day_month, month, day_week });
     });
   }
+
+  // Save the state of the expansion panel
+  savePanelState(featureId: number, panelId: string, isExpanded: boolean) {
+    const panelStates = JSON.parse(localStorage.getItem('matExpansionStates') || '{}');
+
+    if (!panelStates[featureId]) {
+      panelStates[featureId] = {};
+    }
+
+    // Save the state of the panel
+    panelStates[featureId][panelId] = isExpanded;
+    localStorage.setItem('matExpansionStates', JSON.stringify(panelStates));
+  }
+
+  // Load the state of the expansion panel
+  loadPanelStates() {
+    const savedStates = JSON.parse(localStorage.getItem('matExpansionStates') || '{}');
+
+    this.features.forEach(feature => {
+      if (!feature.id) return;
+      feature.panels.forEach(panel => {
+        panel.expanded = savedStates[feature.id]?.[panel.id] ?? false;
+      });
+    });
+  }
+
+  // When the expansion panel changes, save
+  onExpansionChange(featureId: number, panelId: string, isExpanded: boolean) {
+    this.savePanelState(featureId, panelId, isExpanded);
+
+    // Expand only one panel at a time
+    const feature = this.features.find(f => f.id === featureId);
+    if (feature) {
+      const panel = feature.panels.find(p => p.id === panelId);
+      if (panel) {
+        panel.expanded = isExpanded;
+      }
+    }
+  }
+
+
+  // Check if the create button should be disabled
+  ngAfterViewInit() {
+    setTimeout(() => {
+      this.expansionPanels.changes.subscribe(() => this.setFocusOnFirstOpenPanel());
+      this.setFocusOnFirstOpenPanel();
+    });
+  }
+  
+  // Focus on the first input or textarea of the first open panel
+  setFocusOnFirstOpenPanel() {
+    setTimeout(() => {
+      const firstOpenPanel = this.expansionPanels.find(panel => panel.expanded);
+  
+      if (firstOpenPanel) {
+        setTimeout(() => { 
+          const panelElement = firstOpenPanel._body?.nativeElement;
+  
+          if (panelElement) {
+            // Filter the input have type hidden and checkbox
+            const input = panelElement.querySelector('input:not([type="hidden"]):not([type="checkbox"]), textarea') as HTMLInputElement | HTMLTextAreaElement;
+  
+            if (input) {
+              // Focus on the first input or textarea
+              input.focus();
+            }
+          }
+        }, 50);
+      }
+    });
+  }
+  
 
   ngOnDestroy() {
     // When Edit Feature Dialog is closed, clear temporal steps
@@ -749,6 +840,8 @@ export class EditFeature implements OnInit, OnDestroy {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
+
+    this.loadPanelStates();
 
     this._api.getCometaConfigurations().subscribe(res => {
 
