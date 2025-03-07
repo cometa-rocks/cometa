@@ -1,0 +1,26 @@
+services:
+  cometa-emulator:
+    image: cometa/emulator
+    working_dir: /app 
+    devices:
+      - "/dev/kvm:/dev/kvm"  # If you have KVM device then pass KVM device for hardware acceleration
+    volumes:
+      # - "./emulator/supervisor/supervisord.conf:/app/supervisor/supervisord.conf"  
+      - "./video:/video"  
+      - "./apps:/tmp"  
+    privileged: true
+    ports:
+    - "4723:4723"
+    # - "6080:6080"
+    # - "5900:5900"
+    environment:
+      # - DISPLAY=:0
+      - AUTO_RECORD=true
+    # networks:
+    #   - testing
+    restart: always
+    network_mode: "host"
+
+networks:
+  testing:
+    driver: "bridge"

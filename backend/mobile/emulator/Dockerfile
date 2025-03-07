@@ -17,9 +17,9 @@ ENV ANDROID_COMMAND_LINE_TOOLS="commandlinetools-linux-8512546_latest.zip"
 
 # Install necessary dependencies
 RUN apt-get update && \
-    apt-get install -y wget unzip lib32stdc++6 lib32z1 libvirt-daemon-system libvirt-clients bridge-utils lib32stdc++6 lib32z1 \
+    apt-get install -y wget unzip openjdk-11-jdk lib32stdc++6 lib32z1 libvirt-daemon-system libvirt-clients bridge-utils lib32stdc++6 lib32z1 \
     qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils \
-    x11vnc xvfb fluxbox websockify git ffmpeg jq && \
+    x11vnc xvfb fluxbox novnc websockify git ffmpeg jq && \
     apt-get clean
 
 ENV COMMAND_LINE_TOOLS $ANDROID_SDK_ROOT/cmdline-tools
@@ -45,7 +45,7 @@ RUN echo ${ANDROID_API_LEVEL}
 
 ARG ARCH="x86_64" 
 ARG TARGET="google_apis"  
-ARG API_LEVEL="31" 
+ARG API_LEVEL="30" 
 ARG BUILD_TOOLS="34.0.0"
 ARG ANDROID_API_LEVEL="android-${API_LEVEL}"
 ARG ANDROID_APIS="${TARGET};${ARCH}"
@@ -90,13 +90,11 @@ RUN echo "hw.ramSize = 2048" >> "/root/.android/avd/${EMULATOR_NAME}.avd/config.
 
 # Copy the current directory contents into the container at /app
 COPY . /app
-RUN ls /app
 
 # Expose ports needed by the emulator
-EXPOSE 5900 
+EXPOSE 6080 5900 
 
-RUN chmod +x /app/scripts/video_recorder.sh
 
-# Run supervisord when the container launches
+# Run ollama when the container launches
 ENTRYPOINT ["supervisord", "-c", "/app/supervisor/supervisord.conf"]
 
