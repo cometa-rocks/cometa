@@ -1,5 +1,5 @@
 {
-  "version": "3.0.19",
+  "version": "3.0.22",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,52 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.22",
+      "date": "2025-03-07",
+      "features": [
+        {
+          "title": "Enhanced User Experience",
+          "description": "Improved several Angular components to provide a smoother and more intuitive user experience."
+        },
+        {
+          "title": "Fixed Dialog Sizing in Edit-Feature",
+          "description": "Adjusted the dialog size in edit-feature to ensure proper display across different screen resolutions."
+        },
+        {
+          "title": "Shortcut and Profile Page Improvements",
+          "description": "The menu now toggles with the same shortcut, header shortcuts updated, and profile page styling improved."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.21",
+      "date": "2025-03-04",
+      "features": [
+        {
+          "title": "Focus on input or textarea when mat-expansion panels are opened #4694",
+          "description": "Implemented focus on the input or textarea when the mat-expansion panels are opened."
+        },
+        {
+          "title": "Retain the last opened state of mat-expansion panels per feature #4694",
+          "description": "Now each feature retains the last opened state of its panels, as set by the user."
+        },
+        {
+          "title": "Updated the shortcuts page #4694",
+          "description": "Updated the page with new and improved shortcuts for better user experience."
+        }
+      ]
+    },
+    {
+      "version": "3.0.20",
+      "date": "2025-02-27",
+      "features": [
+        {
+          "title": "Hotfix: Removed conflicting code in feature state #4694",
+          "description": "Resolved an issue by deleting conflicting code in the feature state."
+        }
+      ]
+    },    
     {
       "version": "3.0.19",
       "date": "2025-02-27",
