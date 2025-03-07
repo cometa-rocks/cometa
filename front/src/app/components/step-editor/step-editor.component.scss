@@ -355,10 +355,6 @@
   transition: opacity 0.3s ease-in-out;
 }
 
-.stepByStep {
-
-}
-
 .stepContainerDocumentation.ng-transition {
   opacity: 0;
   visibility: hidden;
@@ -413,6 +409,10 @@
 .cdk-overlay-container {
   position: relative;
 }
+
+// :host::ng-deep .cdk-overlay-pane {
+//   position: fixed !important;
+// }
 
 ::ng-deep .mat-autocomplete-panel {
   position: absolute !important;
@@ -547,11 +547,6 @@ mat-autocomplete {
     color: inherit;
   }
 }
-
-.copyClipboardIcon:hover {
-
-}
-
 
 .linkTo {
   text-decoration: none;

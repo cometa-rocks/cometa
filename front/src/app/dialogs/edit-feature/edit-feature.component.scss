@@ -291,11 +291,6 @@ button {
   position: relative;
   display: inline-block;
   button {
-    // background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082);
-    // background-size: 400%;
-    // -webkit-background-clip: text;
-    // -webkit-text-fill-color: transparent;
-    // animation: rainbow 4s linear infinite;
     border: #fdcb4d 1px solid;
   }
 }
@@ -310,14 +305,18 @@ button {
   padding-left: 3px;
 }
 
-edit-feature{
-  height: 100%;
+/* ########## Only for Edt feature ########## */
+
+::ng-deep .edit-feature-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh; 
+  max-height: 100dvh;
+  resize: both;
+  overflow: hidden;
 }
 
-::ng-deep .mat-dialog-content {
-  max-height: 82vh;
-}
-
-::ng-deep .mat-dialog-container {
-  resize: both
+::ng-deep .mat-dialog-content.editFeatureContent {
+  flex-grow: 1; 
+  max-height: calc(91dvh - 64px);
 }
