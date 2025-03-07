@@ -1,7 +1,7 @@
 # create a basic configuration script for
 # selected server change extension name to
 # match filename
-.amvara6.build:
+.amvara8.build:
   # set main variable for selected server
   variables:
  
@@ -30,4 +30,4 @@
     - build
   only: # on what branch we'd like to run this job
     refs:
-      - build
+      - schedules
