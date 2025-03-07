@@ -433,7 +433,7 @@ class ServiceManager(service_manager):
                 "volumes":[
                     f"{video_volume}:/video",
                     # FIXME this should relative path, adding this for the demo
-                    "/development/cometa/backend/browsers/scripts/video_recorder.sh:/opt/scripts/video_recorder.sh" 
+                    # "/development/cometa/backend/browsers/scripts/video_recorder.sh:/opt/scripts/video_recorder.sh" 
 
                 ],  # Mount volumes
                 "extra_hosts": extra_hosts,  # Add custom host mappings
