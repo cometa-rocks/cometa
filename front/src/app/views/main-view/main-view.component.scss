@@ -13,7 +13,7 @@
 :host::ng-deep {
   .mtx-grid {
     z-index: 0;
-    padding-bottom: 60px;
+    margin-bottom: 60px;
     .mtx-grid-toolbar-content {
       flex-grow: 1;
       .custom_toolbar {
@@ -93,17 +93,6 @@
         font-size: 16px;
       }
 
-      // th .mat-header-cell-inner {
-      //     justify-content: center;
-      // }
-
-      // .aligned-center {
-      //     text-align: center;
-      // }
-      // .aligned-right {
-      //     text-align: right;
-      // }
-
       .mdc-icon-button {
         color: #0000008a;
 
@@ -119,7 +108,15 @@
       border-left-color: rgba(0, 0, 0, 0.2);
     }
     .mat-mdc-paginator-container {
-      background-color: $body-bg-color;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 40px;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background-color: $table-footer-bg;
+      box-shadow: 0 2px 3px 1px rgba(0, 0, 0, 0.3), 0 10px 2px 0 rgba(0, 0, 0, 0.2), 0 2px 6px 0 rgb(0, 0, 0);
     }
 
     .browser-icon {
