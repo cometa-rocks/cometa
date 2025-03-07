@@ -35,7 +35,9 @@ echo "$BROWSERS_JSON" | jq . > browsers.json
 if [ "$(echo "$BROWSERS_JSON" | jq '.browsers | length')" -gt 0 ]; then
 echo "browsers.json updated"
 echo "---------------CALLING BUILDING AND PUSHING SCRIPT---------------"
+cd $IMAGE_PATH
 ./build_browser_images.sh
+cd -
 else
 echo "Not calling image building script, all browsers are up to date"
 fi
