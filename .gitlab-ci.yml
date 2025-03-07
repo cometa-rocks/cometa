@@ -189,7 +189,7 @@ deploy:amvara3.prod:
 
 
 # build cometa front image and push to docker hub
-build:amvara6.build:
+build:amvara8.build:
   stage: build
   script:
     #########################################################
@@ -203,7 +203,5 @@ build:amvara6.build:
     ########################################################
       - ./backend/browsers/populateBrowsersJSON.sh
 
-  extends: .amvara6.build
-  only:
-    refs:
-      - schedules
+  extends: .amvara8.build
+      
