@@ -1,6 +1,17 @@
 <!-- Header section-->
 <div class="header">
   <ng-container *ngTemplateOutlet="headerTemplate"></ng-container>
+  <!-- TOOLBAR TEMPLATE -->
+  <ng-template #toolbarTpl>
+    <div class="custom_toolbar">
+      <button 
+        mat-stroked-button 
+        color="primary" 
+        (click)="filteredByFailuresResults()">
+      {{ showingFiltered ? "All features" : "Failed features" }}
+      </button>
+    </div>
+  </ng-template>
 </div>
 <!-- <div class="container-fails">
   <div class="step-row" *ngIf="isLoading && errorRowsSaved.length">
@@ -17,6 +28,7 @@
     Loading errors...
   </div>
 </div> -->
+
 
 <ng-container *ngIf="pagination$ | async as pagination; else loadingPagination">
   <ng-container *ngIf="pagination.results.length > 0; else noItemsFound">

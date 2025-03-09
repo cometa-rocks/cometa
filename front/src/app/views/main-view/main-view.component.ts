@@ -294,6 +294,7 @@ export class MainViewComponent implements OnInit {
   ) {}
 
   featureId$: Observable<number>;
+  originalResults: any[] = [];
 
   openContent(feature_result: FeatureResult) {
     // this.logger.msg("1", "CO-featResult", "main-view", feature_result);
@@ -322,9 +323,10 @@ export class MainViewComponent implements OnInit {
           .subscribe({
             next: (res: any) => {
               this.results = res.results;
+              this.originalResults = this.results;
               this.total = res.count;
               this.showPagination = this.total > 0 ? true : false;
-
+    
               // set latest feature id
               if (this.showPagination)
                 this.latestFeatureResultId = this.results[0].feature_result_id;
@@ -480,7 +482,7 @@ export class MainViewComponent implements OnInit {
         this.getResults();
       });
       this.extractButtons();
-    }
+  }
 
   // Extract buttons from mtxgridCoumns
   extractButtons() {
@@ -494,4 +496,17 @@ export class MainViewComponent implements OnInit {
   returnToMain() {
     this._router.navigate(['/']);
   }
+
+  showingFiltered: boolean = false;
+
+  // Filtered featureby status
+  filteredByFailuresResults() {
+    if(this.showingFiltered) {
+      this.results = [...this.originalResults]
+    }
+    else {
+      this.results = this.results.filter( result => result.status === 'Failed' ||  result.status === 'Canceled');
+    }
+    this.showingFiltered = !this.showingFiltered;
+  } 
 }

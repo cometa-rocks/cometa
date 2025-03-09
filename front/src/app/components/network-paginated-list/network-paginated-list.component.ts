@@ -175,6 +175,7 @@ export class NetworkPaginatedListComponent implements OnChanges {
         .pipe(map(fn => fn(this.listId)));
 
       this.allItems$.subscribe(items => {
+        console.log("items: ", items)
         const errorItems = items.filter(item => item.error);
         // Emit the elements to father component
         this.handleErrorItems(errorItems);
