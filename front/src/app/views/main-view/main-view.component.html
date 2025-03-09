@@ -229,6 +229,12 @@
 <!-- TOOLBAR TEMPLATE -->
 <ng-template #toolbarTpl>
   <div class="custom_toolbar">
+    <button 
+      mat-stroked-button 
+      color="primary" 
+      (click)="filteredByFailuresResults()">
+     {{ showingFiltered ? "All features" : "Failed features" }}
+    </button>
     <button
     mat-stroked-button
     color="primary"
