@@ -27,11 +27,11 @@ class AuthenticationMiddleware:
         # save all public routes, this is a temporary fix.
         # FIXME not a good idea.
         public_routes = [
-            '/api/authproviders/'
+            '/api/authproviders/',
+            '/integrations/v2/execute',
         ]
         public_route_found = len([x for x in public_routes if request.get_full_path().startswith(x)]) > 0
         if public_route_found:
-
             return self.append_custom_headers(self.get_response(request))
 
         # check if user_info is already saved in session
@@ -121,7 +121,7 @@ class AuthenticationMiddleware:
             superuser = Permissions.objects.filter(permission_name="SUPERUSER")[0]
             if REMOTE_ADDR.startswith('172') or REMOTE_ADDR.startswith('10') or REMOTE_ADDR.startswith('192'):
                 # save the user as Scheduler
-                if HTTP_COMETA_ORIGIN == 'CRONTAB':
+                if HTTP_COMETA_ORIGIN == 'CRONTAB' or HTTP_COMETA_ORIGIN == 'DJANGO':
                     # Try to get HTTP_COMETA_USER from behave cron, we will fallback to dummy user
                     if HTTP_COMETA_USER:
                         # Retrieve user account with id
@@ -159,7 +159,9 @@ class AuthenticationMiddleware:
             }, status=200)
 
         # get the user from the OIDCAccounts model
-        users = OIDCAccount.objects.filter(email=REMOTE_USER)
+        # users = OIDCAccount.objects.filter(email=REMOTE_USER)
+        users = OIDCAccount.objects.filter(email__iexact=REMOTE_USER)
+
         # check if user does not exists
         if not users.exists():
             if ('prod.cometa.' in request.META.get('HTTP_HOST', '') or 'stage.cometa.' in request.META.get('HTTP_HOST', '')) and request.GET.get('invite', None) == None:
@@ -180,7 +182,9 @@ class AuthenticationMiddleware:
                     "error": "Missing name and/or email, unable to register the user."
                 }, status=401)
             else:
-                users = OIDCAccount.objects.filter(email=REMOTE_USER)
+                # users = OIDCAccount.objects.filter(email=REMOTE_USER)
+                users = OIDCAccount.objects.filter(email__iexact=REMOTE_USER)
+
         # get the first user from the users
         user = users[0]
         # update user name just in case
