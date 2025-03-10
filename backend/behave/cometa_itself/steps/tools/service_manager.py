@@ -114,7 +114,7 @@ class KubernetesServiceManager:
             if not self.__create_pod_url():
                 # In case pod service creation fails delete the pod 
                 self.__delete_pod(pod_id = configuration['Id'])
-            
+                self.__service_configuration = configuration
             return True
         except Exception:
             logger.debug(f"Exception while creation Kubernetes service\n{configuration}")
@@ -139,7 +139,7 @@ class DockerServiceManager:
         logger.info(f"Creating container with configuration : {configuration}")
         container = self.docker_client.containers.run(**configuration)
         self.__service_configuration = container.attrs
-        return container.attrs
+        return True
 
     def get_service_name(self, uuid):
         return self.inspect_service(uuid)['Config']['Hostname']           
@@ -416,7 +416,7 @@ class ServiceManager(service_manager):
             ]
             # Need to implement  this section
             logger.debug("Preparing service browser service configuration for docker")
-
+ 
             self.__service_configuration = {
                 "image": container_image,  # Replace with your desired image name
                 "detach": True,  # Run the container in the background
