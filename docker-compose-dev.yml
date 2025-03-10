@@ -24,6 +24,7 @@ services:
       - ./data/cometa/videos:/data/videos
       - ./data/cometa/pdf:/data/pdf
       - ./data/cometa/downloads:/data/downloads:rw
+      - ./data/cometa/uploads:/data/uploads:rw
       - ./data/department_data:/data/department_data:rw
       - ./data/cometa/config:/code/config:rw
       - ./data/django/migrations:/opt/code/migrations:rw
@@ -55,10 +56,13 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      django:
+        condition: service_healthy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa/screenshots:/data/screenshots
       - ./data/cometa/downloads:/data/test/downloads
+      - ./data/cometa/uploads:/data/test/uploads
       - ./data/cometa/videos:/data/videos
       - ./data/cometa/config:/code/config:rw
       - ./data/department_data:/data/department_data
@@ -155,10 +159,12 @@ services:
     container_name: cometa_front
     volumes:
       - ./:/code
-      - ./front/apache-conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
-      - ./front/apache-conf/openidc.conf_local:/usr/local/apache2/conf/openidc.conf
-      - ./front/apache-conf/paths.conf:/usr/local/apache2/conf/paths.conf
-      - ./front/apache-conf/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
+      - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
+      - ./data/front/apache2/conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./data/front/apache2/conf/openidc.conf:/usr/local/apache2/conf/openidc.conf
+      - ./data/front/apache2/conf/paths.conf:/usr/local/apache2/conf/paths.conf
+      - ./data/front/apache2/modules/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
+      - ./data/front/apache2/certs:/share/apache2/certs
       - ./data/cometa/screenshots:/screenshots
       - ./data/cometa/videos:/videos
     working_dir: /code/front

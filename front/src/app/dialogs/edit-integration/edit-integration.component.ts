@@ -32,6 +32,7 @@ import { LetDirective } from '../../directives/ng-let.directive';
 import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { NgIf, NgClass, NgFor } from '@angular/common';
+import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
   selector: 'edit-integration',
@@ -62,6 +63,7 @@ export class EditIntegrationDialog implements OnInit {
   @ViewSelectSnapshot(UserState.RetrieveIntegrationApps) integrations: string[];
 
   intForm: UntypedFormGroup;
+  inputFocus: boolean = false;
 
   constructor(
     private dialogRef: MatDialogRef<EditIntegrationDialog>,
@@ -69,7 +71,8 @@ export class EditIntegrationDialog implements OnInit {
     private _fb: UntypedFormBuilder,
     private _api: ApiService,
     private _sharedActions: SharedActionsService,
-    private _store: Store
+    private _store: Store,
+    private inputFocusService: InputFocusService
   ) {}
 
   ngOnInit() {
@@ -134,6 +137,15 @@ export class EditIntegrationDialog implements OnInit {
         )
         .subscribe({ complete: () => this.dialogRef.close() });
     }
+  }
+  
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocusService.setInputFocus(true);
+  }
+
+  onInputBlur() {
+    this.inputFocusService.setInputFocus(false);
   }
 }
 
