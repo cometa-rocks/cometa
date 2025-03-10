@@ -1,4 +1,4 @@
-IMAGE_PATHS=("front" "backend/behave" "backend/django")
+IMAGE_PATHS=("front" "backend/behave" "backend/src")
 IMAGE_NAMES=("cometa/front" "cometa/behave" "cometa/django")
 VERSION_PATHS=("front/src/assets/config.json" "backend/behave/version.json" "backend/src/version.json")
 for i in "${!IMAGE_PATHS[@]}"; do
@@ -16,17 +16,16 @@ for i in "${!IMAGE_PATHS[@]}"; do
   if [ "$LATEST_TAG" == "$BUILD_VERSION" ]; then
     echo "The latest version is already $BUILD_VERSION for $IMAGE_NAME. Skipping build and push."
   else
-    # ----- docker commands not uncommented until all images have building logic -----
     cd $IMAGE_DIR
-    #docker build . -f Dockerfile -t $IMAGE_NAME:$BUILD_VERSION
+    docker build . -f Dockerfile -t $IMAGE_NAME:$BUILD_VERSION
     echo "$IMAGE_NAME:$BUILD_VERSION build successfully"
     echo "Pushing $IMAGE_NAME:$BUILD_VERSION image to Docker $DOCKER_REGISTRY"
-    #docker push $IMAGE_NAME:$BUILD_VERSION
+    docker push $IMAGE_NAME:$BUILD_VERSION
     echo "$IMAGE_NAME:$BUILD_VERSION image pushed"
     echo "Converting $IMAGE_NAME:$BUILD_VERSION tag $IMAGE_NAME:latest"
-    #docker tag $IMAGE_NAME:$BUILD_VERSION $IMAGE_NAME:latest
+    docker tag $IMAGE_NAME:$BUILD_VERSION $IMAGE_NAME:latest
     echo "Pushing $IMAGE_NAME:latest image to Docker $DOCKER_REGISTRY"
-    #docker push $IMAGE_NAME:latest
+    docker push $IMAGE_NAME:latest
     echo "$IMAGE_NAME:latest image pushed"
     cd -
   fi
