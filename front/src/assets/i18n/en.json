@@ -206,5 +206,8 @@
     "show-hide": "Show / hide folders",
     "escape": "ESC",
     "remove-filter": "Remove filter shotcut: Shift + Alt + X"
+  },
+  "networkPaginated": {
+    "failureSteps": "No failure steps"
   }
 }

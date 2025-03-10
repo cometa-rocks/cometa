@@ -1,33 +1,19 @@
+<!-- TOOLBAR TEMPLATE -->
+<div class="custom_toolbar">
+  <button 
+    [disabled]="buttonDisabled" 
+    [matTooltip]="'networkPaginated.failureSteps' | translate"
+    matTooltipPosition="above"
+    mat-stroked-button 
+    (click)="filterItems()">
+    {{ showingFiltered ? "All Steps" : "Failed Steps" }}
+  </button>
+</div>
+
 <!-- Header section-->
 <div class="header">
   <ng-container *ngTemplateOutlet="headerTemplate"></ng-container>
-  <!-- TOOLBAR TEMPLATE -->
-  <ng-template #toolbarTpl>
-    <div class="custom_toolbar">
-      <button 
-        mat-stroked-button 
-        color="primary" 
-        (click)="filteredByFailuresResults()">
-      {{ showingFiltered ? "All features" : "Failed features" }}
-      </button>
-    </div>
-  </ng-template>
 </div>
-<!-- <div class="container-fails">
-  <div class="step-row" *ngIf="isLoading && errorRowsSaved.length">
-    <div class="name" *ngFor="let errorRow of errorRowsSaved">
-      <div class="step-index">{{ errorRow.stepIndex }}</div>
-      <div class="step-name">{{ errorRow.stepName }}</div>
-      <div class="step-error">{{ errorRow.errorMessage }}</div>
-      <div> 
-        <mat-icon>chevron_right</mat-icon>
-      </div>
-    </div>
-  </div>
-  <div *ngIf="!isLoading">
-    Loading errors...
-  </div>
-</div> -->
 
 
 <ng-container *ngIf="pagination$ | async as pagination; else loadingPagination">
@@ -49,15 +35,6 @@
       </ng-container>
     </div>
     <div class="pagination">
-      <!-- <div class="container-button-fails">
-        <div
-          class="container-number-fails"
-          mat-raised-button
-          [matBadge]="errorCount"
-          (click)="toggleBadgeVisibility()">
-          Fails
-        </div>
-      </div> -->
       <!-- Loader section-->
       <ng-container *ngIf="loading$ | async as loading; else pageButtons">
         <mat-spinner
