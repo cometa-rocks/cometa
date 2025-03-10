@@ -30,7 +30,7 @@
     - build
   only: # on what branch we'd like to run this job
     refs:
-      - schedules
+      - build
 
 .amvara8.build-2:
 
