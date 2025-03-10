@@ -152,9 +152,9 @@ def api_call(context, method, endpoint, parameters, headers, body):
 # Create API step using this action where, the method is HTTP method (GET, POST, PUT or DELETE, etc), the endpoint is your API to be called
 # Optionally: you can set query parameters and headers using the format Key=Value, with semicolons ; used to separate key-value pairs (e.g., Key1=value1;Key2=value2)
 # Optionally: you can pass body parameter with JSON format i.e. "body:{"key":"value"}"
-@step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?)|body:(?P<body>.*?)|raw-body:(?P<body>.*?))\")*')
-@done(u'Make an API call with "{method}" to "{endpoint}" with "params:{parameters}" and "headers:{headers}" and "json_body:{json_body}" and "row_body:{row_body}"')
-def api_call(context, method, endpoint, parameters, headers, json_body, row_body):
+@step(u'Make an API call with \"(?P<method>.*?)\" to \"(?P<endpoint>.*?)\"(?: (?:with|and) \"(?:params:(?P<parameters>.*?)|headers:(?P<headers>.*?)|body:(?P<json_body>.*?)|raw-body:(?P<row_body>.*?))\")*')
+@done(u'Make an API call with "{method}" to "{endpoint}" with "params:{parameters}" and "headers:{headers}" and "body:{json_body}" and "row_body:{row_body}"')
+def api_call(context, method, endpoint, parameters, headers, body, row_body):
     context.STEP_TYPE = "API"
 
 
@@ -186,11 +186,12 @@ def api_call(context, method, endpoint, parameters, headers, json_body, row_body
         "url":endpoint,
         "params":parse_parameters(parameters),
         "headers":parse_parameters(headers),
-        "proxies":proxies 
+        "proxies":proxies,
+        "verify":False 
     }
         
     if body:
-        request_parameters["json"] = json_body
+        request_parameters["json"] = body
 
     elif row_body:
         request_parameters["data"] = row_body
