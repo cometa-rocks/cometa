@@ -347,7 +347,7 @@ def before_all(context):
         logger.debug(f"Using cometa browsers, Starting browser ")
         logger.debug(f"Browser_info : {context.browser_info}")
 
-        context.service_manager.prepare_browser_service_configuration(
+        service_details = context.service_manager.prepare_browser_service_configuration(
             browser=context.browser_info["browser"],
             version=context.browser_info["browser_version"]
         )
@@ -355,7 +355,8 @@ def before_all(context):
         if not service_created:
             raise Exception("Error while starting browser, Please contact administrator")    
         
-        service_details = context.service_manager.get_service_details()
+        if not IS_KUBERNETES_DEPLOYMENT:
+            service_details = context.service_manager.get_service_details()
         # Save container details in the browser_info, which then gets saved in the feature results browser 
         context.browser_info["container_service"] = {"Id": service_details["Id"]}
         context.container_services.append(service_details)
