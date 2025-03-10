@@ -147,10 +147,10 @@ function switchDataMountPoint() {
     # check if first parameter contains root
     if [[ "$1" == "root" ]]; then
         # change ./data => /data
-        sed -i_template "s#- \./data#- /data#g" docker-compose.yml
+        sed -i_template "s#- \./data#- /data#g" docker-compose-dev.yml
     else
         # change /data => ./data
-        sed -i_template "s#- /data#- \./data#g" docker-compose.yml
+        sed -i_template "s#- /data#- \./data#g" docker-compose-dev.yml
     fi
 }
 
@@ -210,7 +210,7 @@ function updateCrontab() {
 }
 
 
-function initiate_config_dirs(){
+function init_dirs(){
     debug "Init dirs"
     ./init_dirs.sh
     debug "Init dirs"
@@ -257,12 +257,12 @@ function get_cometa_up_and_running() {
     #
     # Replace <server> in docker-compose.yml with "local"
     #
-    sed -i_template "s|<server>|local|g" docker-compose.yml && info "Replaced <server> in docker-compose.yml with local"
+    sed -i_template "s|<server>|local|g" docker-compose-dev.yml && info "Replaced <server> in docker-compose.yml with local"
 
     #
     # Replace <outside_port> in docker-compose.yml with "80"
     #
-    sed -i_template "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <outside_port> in docker-compose.yml with 80"
+    sed -i_template "s|<outside_port>|80|g" docker-compose-dev.yml && info "Replaced <outside_port> in docker-compose.yml with 80"
 
     #
     # Check client id has been replaced
@@ -302,17 +302,6 @@ function get_cometa_up_and_running() {
     #
 
 
-    #
-    # Check selenoid browsers
-    #
-    if [ "${RUNSELENOIDSCRIPT:-false}" = "true" ]; then
-        info "Downloading latest browser versions"
-        ./backend/selenoid/deploy_selenoid.sh -n 3 || warning "Something went wrong getting the latests browsers for the system"
-    fi
-
-    #
-    # parse browsers and actions
-    #
 
     # check health status
     # Max retries
@@ -323,7 +312,7 @@ function get_cometa_up_and_running() {
     TOTAL_TIMEOUT=$(($MAX_RETRIES*$WAIT_RETRY))
 
     log_wfr "Waiting for parseBrowsers"
-    retry "docker exec -it cometa_django curl --fail http://localhost:8000/parseBrowsers/ -o /dev/null -s " && log_res "[done]" || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container django is not running"; }
+    retry "docker exec -it cometa_django curl --fail http://localhost:8000/parseCometaBrowsers/ -o /dev/null -s " && log_res "[done]" || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container django is not running"; }
 
     log_wfr "Waiting for parseActions"
     retry "docker exec -it cometa_django curl --fail http://localhost:8000/parseActions/ -o /dev/null -s " && log_res "[done]" || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container django is not running"; }
@@ -385,7 +374,6 @@ do
 done
 
 checkRequirements
-initiate_config_dirs
 get_cometa_up_and_running
 
 info "The test automation platform is ready to rumble at https://localhost/"
