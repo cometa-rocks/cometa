@@ -13,6 +13,7 @@ import {
 import { NgIf, NgClass, AsyncPipe } from '@angular/common';
 import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
   selector: 'environment',
@@ -39,7 +40,8 @@ export class EnvironmentComponent {
     private _api: ApiService,
     private _snack: MatSnackBar,
     private _dialog: MatDialog,
-    private _store: Store
+    private _store: Store,
+    private inputFocusService: InputFocusService
   ) {}
 
   @Input() environment: Environment;
@@ -96,5 +98,14 @@ export class EnvironmentComponent {
               err => this._snack.open('An error ocurred', 'OK')
             );
       });
+  }
+  
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocusService.setInputFocus(true);
+  }
+
+  onInputBlur() {
+    this.inputFocusService.setInputFocus(false);
   }
 }

@@ -455,7 +455,7 @@ def before_all(context):
             "goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"}
         )
         # If network logging enabled then fetch vulnerability headers info from server
-        response =  requests.get(f'{get_cometa_backend_url()}/security/vulnerable_headers/', headers={'Host': 'cometa.local'})
+        response =  requests.get(f'{get_cometa_backend_url()}/api/security/vulnerable_headers/', headers={'Host': 'cometa.local'})
         logger.info("vulnerable headers info received")
         context.vulnerability_headers_info = response.json()["results"]
         logger.info("stored in the context")
@@ -495,7 +495,7 @@ def before_all(context):
     context.downloadDirectoryOutsideSelenium = r"/data/test/downloads/%s" % str(
         os.environ["feature_result_id"]
     )
-    context.uploadDirectoryOutsideSelenium = r"/code/behave/uploads/%s" % str(
+    context.uploadDirectoryOutsideSelenium = r"/data/test/uploads/%s" % str(
         context.department["department_id"]
     )
     os.makedirs(context.downloadDirectoryOutsideSelenium, exist_ok=True)
@@ -813,7 +813,7 @@ def after_all(context):
 
         logger.info("Sending vulnerability_headers")
         # request to save vulnerable network headers
-        response = requests.post(f"{get_cometa_backend_url()}/security/network_headers/", headers=headers,
+        response = requests.post(f"{get_cometa_backend_url()}/api/security/network_headers/", headers=headers,
                                  data=json.dumps({
                                      "result_id": os.environ['feature_result_id'],
                                      "responses": context.network_responses,
