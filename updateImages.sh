@@ -16,6 +16,7 @@ for i in "${!IMAGE_PATHS[@]}"; do
   if [ "$LATEST_TAG" == "$BUILD_VERSION" ]; then
     echo "The latest version is already $BUILD_VERSION for $IMAGE_NAME. Skipping build and push."
   else
+    # ----- docker commands not uncommented until all images have building logic -----
     cd $IMAGE_DIR
     #docker build . -f Dockerfile -t $IMAGE_NAME:$BUILD_VERSION
     echo "$IMAGE_NAME:$BUILD_VERSION build successfully"
