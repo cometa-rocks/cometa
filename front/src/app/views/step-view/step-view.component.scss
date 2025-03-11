@@ -90,7 +90,6 @@
   flex-direction: column;
   justify-content: flex-start;
   margin: 15px 20px 0;
-  height: 85px;
   @include for-tablet-portrait-up-plus30 {
     flex-direction: row;
   }

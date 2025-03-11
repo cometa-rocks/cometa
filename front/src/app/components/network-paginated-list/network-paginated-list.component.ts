@@ -2,17 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
-  ComponentFactoryResolver,
-  ElementRef,
   EventEmitter,
   Input,
   OnChanges,
   Output,
-  QueryList,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
-  ViewChildren,
 } from '@angular/core';
 import {
   LegacyPageEvent as PageEvent,
@@ -29,7 +24,6 @@ import { map, switchMap, tap } from 'rxjs/operators';
 import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
 import { NgTemplateOutlet, NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { ChangeDetectorRef } from '@angular/core';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -158,8 +152,7 @@ export class NetworkPaginatedListComponent implements OnChanges {
     private _http: HttpClient,
     private _router: Router,
     private _store: Store,
-    private _api: ApiService,
-    private cdr: ChangeDetectorRef
+    private _api: ApiService
   ) {}
 
   @Input() errorCount: number = 0;
