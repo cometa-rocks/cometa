@@ -2,7 +2,7 @@
 <div class="custom_toolbar">
   <button 
     [disabled]="buttonDisabled" 
-    [matTooltip]="'networkPaginated.failureSteps' | translate"
+    [matTooltip]="buttonDisabled ? ('networkPaginated.noFailureSteps' | translate) : (showingFiltered ? ('networkPaginated.failureSteps' | translate) : ('networkPaginated.allSteps' | translate))"
     matTooltipPosition="above"
     mat-stroked-button 
     (click)="filterItems()">

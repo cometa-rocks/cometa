@@ -229,18 +229,21 @@
 <!-- TOOLBAR TEMPLATE -->
 <ng-template #toolbarTpl>
   <div class="custom_toolbar">
-    <button 
+    <button
+      class="failedFeatures"
+      [disabled]="buttonDisabled" 
+      [matTooltip]="showingFiltered ? ('mainView.allResults' | translate) : ('mainView.failureResults' | translate)"
+      matTooltipPosition="above"
       mat-stroked-button 
-      color="primary" 
       (click)="filteredByFailuresResults()">
      {{ showingFiltered ? "All features" : "Failed features" }}
     </button>
     <button
-    mat-stroked-button
-    color="primary"
-    [checked]="archived$ | async"
-    (click)="handleArchived()"
-    >
+      class="archivedItems"
+      mat-stroked-button
+      color="primary"
+      [checked]="archived$ | async"
+      (click)="handleArchived()">
     <ng-container *ngIf="archived; else showIcon">
       <mat-icon>visibility_off</mat-icon>
       Hide archived items

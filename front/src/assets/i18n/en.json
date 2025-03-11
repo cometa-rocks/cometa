@@ -208,6 +208,12 @@
     "remove-filter": "Remove filter shotcut: Shift + Alt + X"
   },
   "networkPaginated": {
-    "failureSteps": "No failure steps"
+    "allSteps": "Show only failed steps",
+    "failureSteps": "Show all steps",
+    "noFailureSteps": "No failed steps"
+  },
+  "mainView": {
+    "allResults": "Show all features",
+    "failureResults": "Show all failed features"
   }
 }
