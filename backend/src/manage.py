@@ -17,10 +17,11 @@ if __name__ == "__main__":
             "forget to activate a virtual environment?"
         ) from exc
     
-    
+    # This load configurations from DB and set it to Configuration class
     from backend.utility.configurations import load_configurations
     load_configurations()
     
+    # This initiates migrations for the first time and creates __init__.py file in migrations folder
     from initiate.initiate_setups import initiate_migrations
     initiate_migrations()
 
