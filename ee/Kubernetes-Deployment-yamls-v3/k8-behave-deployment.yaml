@@ -30,7 +30,7 @@ spec:
       
       containers:
       - name: cometa-behave-container
-        image: cometa/behave:1.10
+        image: cometa/behave:1.12
         imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
@@ -65,7 +65,7 @@ spec:
           subPath: ./data/cometa/downloads
         - name: cometa-volume
         # FIXME to mountPath : /data/uploads 
-          mountPath: /code/behave/uploads 
+          mountPath: /data/test/uploads
           subPath: ./data/cometa/uploads
         - name: cometa-volume
           mountPath: /data/logs
@@ -115,6 +115,9 @@ spec:
       - ip: "172.29.55.176"
         hostnames:
           - "uatabani.motherson.com"
+      - ip: "172.29.57.207"
+        hostnames:
+          - "empro-dev.mindeservices.com"
         
       volumes:
       - name: cometa-volume
