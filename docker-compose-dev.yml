@@ -40,8 +40,8 @@ services:
       - "8000:8000"
     depends_on:
       - db
-    links:
-      - behave:cometabehave.local
+    # links:
+    #   - behave:cometabehave.local
     networks:
      - testing
     restart: always
