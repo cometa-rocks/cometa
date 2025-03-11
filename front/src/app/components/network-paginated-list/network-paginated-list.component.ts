@@ -140,7 +140,7 @@ export class NetworkPaginatedListComponent implements OnChanges {
   public pagedItems$: Observable<any> = of({});
   
   /** Exposes an observable with all items in all pages, in one array */
-  public allItems$: Observable<any> = of({});
+  public allItems$: Observable<any[]> = of([]);
 
   skeletonItems$: Observable<number[]>;
 
