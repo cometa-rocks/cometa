@@ -37,21 +37,43 @@ for dir in "${dirs[@]}"; do
     fi
 done
 
-# Define the list of files to copy
-declare -A files=(
-    ["./front/apache2/conf/httpd.conf"]="$BASE_DIR/front/apache2/conf/httpd.conf"
-    ["./front/apache2/conf/openidc.conf"]="$BASE_DIR/front/apache2/conf/openidc.conf"
-    ["./front/apache2/conf/paths.conf"]="$BASE_DIR/front/apache2/conf/paths.conf"
-    ["./front/apache2/modules/mod_auth_openidc.so"]="$BASE_DIR/front/apache2/modules/mod_auth_openidc.so"
-)
-
 # Copy files to their respective locations
-for src in "${!files[@]}"; do
-    dest="${files[$src]}"
-    if [ -f "$src" ]; then
-        cp "$src" "$dest"
-        echo "Copied: $src -> $dest"
-    else
-        echo "Warning: Source file not found - $src"
-    fi
-done
+# Copy httpd.conf
+if [ -f "./front/apache2/conf/httpd.conf" ]; then
+    cp "./front/apache2/conf/httpd.conf" "$BASE_DIR/front/apache2/conf/httpd.conf"
+    echo "Copied: ./front/apache2/conf/httpd.conf -> $BASE_DIR/front/apache2/conf/httpd.conf"
+else
+    echo "Warning: Source file not found - ./front/apache2/conf/httpd.conf"
+fi
+
+# Copy openidc.conf
+if [ -f "./front/apache2/conf/openidc.conf" ]; then
+    cp "./front/apache2/conf/openidc.conf" "$BASE_DIR/front/apache2/conf/openidc.conf"
+    echo "Copied: ./front/apache2/conf/openidc.conf -> $BASE_DIR/front/apache2/conf/openidc.conf"
+else
+    echo "Warning: Source file not found - ./front/apache2/conf/openidc.conf"
+fi
+
+# Copy paths.conf
+if [ -f "./front/apache2/conf/paths.conf" ]; then
+    cp "./front/apache2/conf/paths.conf" "$BASE_DIR/front/apache2/conf/paths.conf"
+    echo "Copied: ./front/apache2/conf/paths.conf -> $BASE_DIR/front/apache2/conf/paths.conf"
+else
+    echo "Warning: Source file not found - ./front/apache2/conf/paths.conf"
+fi
+
+# Copy mod_auth_openidc.so
+if [ -f "./front/apache2/modules/mod_auth_openidc.so" ]; then
+    cp "./front/apache2/modules/mod_auth_openidc.so" "$BASE_DIR/front/apache2/modules/mod_auth_openidc.so"
+    echo "Copied: ./front/apache2/modules/mod_auth_openidc.so -> $BASE_DIR/front/apache2/modules/mod_auth_openidc.so"
+else
+    echo "Warning: Source file not found - ./front/apache2/modules/mod_auth_openidc.so"
+fi
+
+# Copy front/apache2/metadata
+if [ -d "./front/apache2/metadata" ]; then
+    cp -r "./front/apache2/metadata" "$BASE_DIR/front/apache2/"
+    echo "Copied: ./front/apache2/metadata -> $BASE_DIR/front/apache2/metadata"
+else
+    echo "Warning: Source file not found - ./front/metadata"
+fi
