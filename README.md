@@ -3,44 +3,45 @@
 <p  align="center">
 <h1  align="center">Cometa</h1>
 <p  align="center">
-Open source is the future. Co.Meta is an advanced & evolving meta-test product that has been made with ❤️ for DevOps and QA Engineers. <a  href="https://cometa.rocks/"><strong>Learn more</strong></a>
+Open source is the future. Co.Meta is an advanced & evolving meta-test product that has been made with :heart: for DevOps and QA Engineers.
+
+Co.Meta offers the basic functional and visual regression testing together with Load Testing, Data Driven Testing, API-Testing, Security Testing (basic). It can easily execute parallel tests and on Kubernetes scales infinite. It comes with integerated AI vision and AI agent to support easily navigate even complex situation. Co.Meta was built using 100% Open Source.  Co.Meta is mainly built with python. It uses Selenium, Appium and Playwright. 
+
 <br>
-<br>
-<a  href="https://cometa.rocks/support/">Support</a>
 
-</p>
+Built with: [Angular](https://angular.io/) •
+[Django](https://www.djangoproject.com/) •
+[Behave](https://behave.readthedocs.io/en/stable/) •
+[Selenium](https://selenium.dev/) •
+[Appium](https://appium.io/) •
+[PostgreSQL](https://www.postgresql.org/) •
+[Ollama](https://ollama.com) •
+[python](python.org) 
 
-</p>
+# Getting started :rocket:
 
-[![YouTube video](https://img.youtube.com/vi/vbgcb9R-ewI/maxresdefault.jpg)](https://www.youtube.com/watch?v=vbgcb9R-ewI)
-(Clicking the thumbnail will redirect you to a quick YouTube video)
+The Co.Meta installation is straight forward. It uses docker technology and can be run on a Laptop (minimum 16GB RAM, 8 Cores) as well as on a Kubernetes cluster.
 
-### Built With
+In corporate environments there are some things to know regarding Internet access as well as SSO provider setup. 
 
-- [Angular](https://angular.io/)
-- [Django](https://www.djangoproject.com/)
-- [Behave](https://behave.readthedocs.io/en/stable/)
-- [Selenoid](https://aerokube.com/selenoid/)
-- [PostgreSQL](https://www.postgresql.org/)
 
-## Getting started
 
-### Prerequisites
+## Prerequisites
 
 Here is what you need to be able to run Cometa.
 
 * **Docker and Docker Compose**
 
-  Docker and Docker Compose run seamlessly on both Mac and Windows. Installations have been successfully carried out using Docker Desktop 4.25.2 on macOS 14.1 with Rosetta x86/amd64 emulation. Additionally, running WSL with Ubuntu is a viable option. The choice ultimately depends on your personal preference. We recommend running Co.meta on Linux, considering that Linux is its native environment. Please use Linux as the operating system. You can explore pre-built  [Virtual Boxes](https://osboxes.org/) for your convenience.
+  Docker and Docker Compose run seamlessly on both Mac and Windows. Installations have been successfully carried out using Docker Desktop 4.25.2 on macOS 14.1 with Rosetta x86/amd64 emulation. Additionally, running WSL with Ubuntu is a viable option. The choice ultimately depends on your personal preference. Co.Meta runs best on Linux, considering that Linux is its native environment. Please use Linux as the operating system. You can explore pre-built  [Virtual Boxes](https://osboxes.org/) for your convenience.
   <br><p>
 
 * **Internet Connection**
 
   Co.Meta needs to be able to fetch software from the internet. For example python libraries, pre-built containers with virtual browser.
 
-  When installing Co.meta in a corporate environment, make sure to whitelist the following domains on the Secure Proxy:
-  
-* **List of FQDNs (Full Qualified Domain Names) to clear proxy**
+  When installing Co.Meta in a corporate environment, make sure to whitelist the following domains on the Secure Proxy:
+ 
+
 	| **Domain** | **Reason**                                                                                                                                                    |
 	|--------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 	| git.amvara.de                                                | Configure GitLab-runner to provide updates to Cometa. The server should have access to the Amvara GitLab.                                                      |
@@ -57,7 +58,7 @@ Here is what you need to be able to run Cometa.
 
   <br><p>
 
-  For corporate environments using a Secure Proxy the Proxy usage needs to be configured:
+  For corporate environments using a Secure Proxy the usage needs to be configured:
   Edit the following `nano ~/.docker/config.json`
 
   <br>
@@ -117,10 +118,11 @@ Here is what you need to be able to run Cometa.
 	Why is this important? Because Co.Meta supports Single Sign On Providers like oAuth from Gitlab, Github, Azure, Google, Facebook, Ping or others. And the cookie timestamp must be accurate.
 
 
-In case you are stuck for more than 5 minutes - please let us know. And please give us the opportunity to help you. We want to learn how you are using Co.Meta and what problems you encounter. <a href="https://cometa.rocks/support/">Contact us</a>. We are happy to help.
 
+## Installation :fire:
 
-#### Installation
+Co.Meta normally is installed in less then 10 minutes. In case you are stuck for more than 5 minutes - please let us know. And please give us the opportunity to help you. We want to learn how you are using Co.Meta and what problems you encounter. We are happy to help.
+
 
 1. Clone the repo
 	```sh
@@ -151,7 +153,7 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 	In both cases, the default URL when installing on you Desktop or Laptop, is `localhost`.
 
 
-**Don't miss this note**: Instead of following the manual setup instructions below, you may execute `./cometa.sh` to bring up a localhost version on your machine.
+:point_right: **Don't miss this note**: Instead of following the manual setup instructions below, you may execute `./cometa.sh` to bring up a localhost version on your machine.
 
 
 3. Create a crontab file for scheduling your automated tests
@@ -189,7 +191,7 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 
 5. **(Optional)** Create superuser for the Backend Admin
 
-	Default superuser is created on runtime as `admin:admin`.
+	Default superuser is created at runtime as `admin:admin`.
 
 	```
 	bash
@@ -201,7 +203,7 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 
 	`./backend/selenoid/deploy_selenoid.sh -n 3`.
 
-	This will configure and pull the three newest Docker images with virtual browsers for Selenoid.
+	This will configure and pull the three newest Docker images with virtual browsers.
 
 	Selenoid image are the browser that you will be able use and select in Co.Meta. 
 
@@ -224,6 +226,8 @@ In case you are stuck for more than 5 minutes - please let us know. And please g
 
 	On first start you have to manually parse the actions.py file. This enables cometa to use any steps defined in the UI. The user can then choose from the steps in the UI.
 	`https://localhost/backend/parseActions/` ... as a result cometa will show all actions that have been parsed and are now available for selection in cometa-front.
+
+	Import option is also available in the Admin Section of Co.Meta.
 
 
 9. Run your first test
@@ -276,7 +280,22 @@ That's all, easy peasy.
 * `./src/cometa_pj:` contains the configuration of Django
 * `./ws-server` WebSocket server related files
 
-## License
+
+## Support
+
+Happy to see your e-Mail help - at - cometa.rocks. 
+
+Preferable open an issue: https://github.com/cometa-rocks/cometa/issues  
+
+
+# Investing
+
+[![YouTube video](https://img.youtube.com/vi/vbgcb9R-ewI/maxresdefault.jpg)](https://www.youtube.com/watch?v=vbgcb9R-ewI)
+
+Happy to explore further collaboration: the thumbnail will redirect you to a quick YouTube video
+
+
+# License
 
 Copyright 2022 COMETA ROCKS S.L.
 
