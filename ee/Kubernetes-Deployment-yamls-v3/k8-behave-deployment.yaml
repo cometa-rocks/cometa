@@ -30,7 +30,7 @@ spec:
       
       containers:
       - name: cometa-behave-container
-        image: cometa/behave:1.7
+        image: cometa/behave:1.12
         imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
@@ -55,17 +55,27 @@ spec:
           mountPath: /code/config
           subPath: ./data/cometa/config
         - name: cometa-volume
+          mountPath: /opt/code/behave_django/start_pod.sh
+          subPath: ./data/cometa/start_pod.sh
+        - name: cometa-volume
           mountPath: /data/test/html
           subPath: ./data/html
         - name: cometa-volume
           mountPath: /data/test/downloads
           subPath: ./data/cometa/downloads
         - name: cometa-volume
+        # FIXME to mountPath : /data/uploads 
+          mountPath: /data/test/uploads
+          subPath: ./data/cometa/uploads
+        - name: cometa-volume
           mountPath: /data/logs
           subPath: ./share/code/behave/logs
         - name: cometa-volume
           mountPath: /share/certs
           subPath: ./data/redis/certs
+        # command: ["/bin/bash","-c"]
+        # args: ['sleep infinity']
+
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -89,6 +99,8 @@ spec:
           value: "cometa-django-service"
         - name: DJANGO_SERVER_PORT
           value: "8000"
+        - name: BROWSERS
+          value: "40"
         resources:
           limits:
             cpu: "2"
@@ -96,9 +108,16 @@ spec:
           requests:
             cpu: "1"
             memory: "1Gi"
-      
-
-        hostAliases:
+      hostAliases:
+      - ip: "***REMOVED***"
+        hostnames:
+          - "***REMOVED***"
+      - ip: "***REMOVED***"
+        hostnames:
+          - "***REMOVED***"
+      - ip: "***REMOVED***"
+        hostnames:
+          - "***REMOVED***"
         
       volumes:
       - name: cometa-volume

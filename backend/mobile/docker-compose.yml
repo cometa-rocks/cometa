@@ -2,8 +2,9 @@ services:
   cometa-emulator:
     image: cometa/emulator:Android_12.0_API31_x86_64    
     working_dir: /app 
-    devices:
-      # - "/dev/kvm:/dev/kvm"  # If you have KVM device then pass KVM device for hardware acceleration
+    # devices:
+    #   - "/dev/kvm:/dev/kvm"  # If you have KVM device then pass KVM device for hardware acceleration
+    volumes:
       - "./video:/video"  
       - "./apps:/tmp"  
     privileged: true
@@ -17,6 +18,7 @@ services:
     networks:
       - testing
     restart: always
+    # network_mode: "host"
 
 networks:
   testing:
