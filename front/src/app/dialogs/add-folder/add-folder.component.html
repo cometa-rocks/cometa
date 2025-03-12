@@ -18,8 +18,8 @@
         spellcheck="false"
         type="text"
         matInput 
-        (focus)="sendInputFocusToParent(true)" 
-        (blur)="sendInputFocusToParent(false)"/>
+        (focus)="onInputFocus()"
+        (blur)="onInputBlur()"/>
     </mat-form-field>
     <mat-form-field *ngIf="rForm.contains('department')" appearance="outline">
       <mat-label>Department</mat-label>

@@ -181,7 +181,29 @@
 .button-container button.active {
   background-color: $blue; 
   color: $body-bg-color;
+  display: flex;
+  align-items: center;
 }
 .button-container button {
-  height: 35px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.mat-form-field-flex {
+  
+}
+
+:host::ng-deep .mtx-grid-toolbar {
+  padding: 8px 0px;
+}
+
+:host::ng-deep .mat-mdc-menu-trigger {
+  height: 43px;
+}
+
+:host::ng-deep .mat-form-field-flex {
+  font-size: 12px;
+  transform-origin: right;
+  margin-top: 20px;
 }
