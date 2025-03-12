@@ -206,5 +206,14 @@
     "show-hide": "Show / hide folders",
     "escape": "ESC",
     "remove-filter": "Remove filter shotcut: Shift + Alt + X"
+  },
+  "networkPaginated": {
+    "allSteps": "Show only failed steps",
+    "failureSteps": "Show all steps",
+    "noFailureSteps": "No failed steps"
+  },
+  "mainView": {
+    "allResults": "Show all features",
+    "failureResults": "Show all failed features"
   }
 }
