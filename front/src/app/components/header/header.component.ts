@@ -67,7 +67,7 @@ export class HeaderComponent {
 
   /** Holds if the sidebar menu is opened or not */
   @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('internal.openedMenu'))
-  openedMenu: boolean;
+  openedMenu: boolean = false;
   inputFocus: boolean = false;
 
   private inputFocusSubscription: Subscription;
@@ -83,15 +83,19 @@ export class HeaderComponent {
     });
   }
 
-  closeMenu = () =>
+  closeMenu () {
     this._store.dispatch(
       new Configuration.SetProperty('internal.openedMenu', false)
     );
+    this.toggleMenu();
+  }
 
-  openMenu = () =>
+  openMenu() {
     this._store.dispatch(
       new Configuration.SetProperty('internal.openedMenu', true)
     );
+    this.toggleMenu();
+  }
 
   openWhatsNewDialog(): void {
     this.closeMenu();
@@ -99,6 +103,11 @@ export class HeaderComponent {
   }
 
   logout = () => this._store.dispatch(new User.Logout());
+
+  // Control with manual click
+  toggleMenu() {
+    this.openedMenu = !this.openedMenu;
+  }
 
   // Handle keyboard keys
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
@@ -126,10 +135,16 @@ export class HeaderComponent {
         }
         break;
       case KEY_CODES.M:
+        if (editFeatOpen == null) {
+          // Now open and close with the same shortcut
+          this.openedMenu = !this.openedMenu;
+        }
+        break;
+      case KEY_CODES.C:
         if(editFeatOpen == null){
-          const menuBackdrop = document.querySelector('div.fRight div.icon') as HTMLElement;
-          if (menuBackdrop) {
-            menuBackdrop.click();
+          const cometaDiv = document.querySelector('div.fLeft div.title') as HTMLElement;
+          if (cometaDiv) {
+            cometaDiv.click();
           }
         }
         break;
