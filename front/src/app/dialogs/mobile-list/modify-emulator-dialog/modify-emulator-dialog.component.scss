@@ -138,3 +138,21 @@ h2, h3 {
 .info-row:last-child  {
   margin-bottom: 10px;
 }
+
+// slide toggle
+ 
+ :host::ng-deep .mdc-switch__track::after {
+   background-color: $blue !important;
+ }
+ 
+ :host::ng-deep .mdc-switch__track::before {
+   background-color: $disabled-slide-toggle-track;
+ }
+ 
+ :host::ng-deep .mdc-switch--selected .mdc-switch__handle {
+   background-color: $blue;
+ }
+ 
+ :host::ng-deep .mdc-switch--selected .mdc-switch__shadow {
+   background-color: $blue;
+ }

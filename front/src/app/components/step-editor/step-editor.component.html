@@ -298,15 +298,15 @@
             </div>
             <div class="columnOfIcons">
               <div class="contentCopy">
-                <mat-icon
+                <i
                   (click)="importClipboardStepDoc(stepsDocumentation[i]?.examples)"
                   [ngClass]="{ active: isIconActive[i] }"
-                  class="copyClipboardIcon"
+                  class="material-icons copyClipboardIcon"
                   [color]="isIconActive[i] ? 'primary' : ''"
                   matTooltip="Copy the example"
                   matTooltipPosition="above">
                   content_copy
-                </mat-icon>
+                </i>
               </div>
               <div class="contentCopy">
                 <a
@@ -316,15 +316,20 @@
                   rel="Link cometa documentation"
                   matTooltip="Open Cometa documentation"
                   matTooltipPosition="above">
-                  <mat-icon class="linkToSteps">link</mat-icon>
+                  <i 
+                    class="material-icons linkToSteps">
+                    link
+                  </i>
                 </a>
               </div>
               <div class="contentCopy">
                 <div class="containerVisibility" (click)="sendTextareaFocusToParent(false, i)">
-                  <mat-icon
-                    class="visibility_offIcon"
+                  <i
+                    class="material-icons visibility_offIcon"
                     matTooltip="Hide the step documentation"
-                    matTooltipPosition="above">visibility_off</mat-icon>
+                    matTooltipPosition="above">
+                    visibility_off
+                  </i>
                 </div>
               </div>
             </div>
@@ -333,25 +338,7 @@
       </div>
     </ng-container>
   </ng-container>
-  <!-- <div
-    class="icon-container"
-    *ngIf='isAutocompleteOpened'
-    [ngStyle]="{ top: iconPosition.top + 'px', left: iconPosition.left + 'px' }">
-    <p>Options</p>
-    <mat-icon
-      (click)="toggleVisibility()">
-        {{ isTransparent ? 'visibility_off' : 'visibility' }}
-    </mat-icon>
-  </div> -->
 </div>
-<!-- Buttons actions -->
-<!-- <div class="stepContainer">
-  <p class="stepByStep">Step-by-step guide</p>
-  <div class="stepDescription">
-    <p>Description: <span>{{ selectedActionDescription }}</span></p>
-    <p>Examples: <span> 1 2 3 </span></p>
-  </div>
-</div> -->
 <div class="button-actions">
   <div class="left">
     <button
@@ -401,7 +388,7 @@
     matTooltip="{{ showHideStepDocumentation ? 'Show the step documentation' : 'Hide the step documentation' }}"
     matTooltipPosition="above">
       <span class="button-content">
-        <mat-icon class="icon-left">{{ showHideStepDocumentation ? 'visibility' : 'visibility_off' }}</mat-icon>
+        <mat-icon class="icon-left">{{ showHideStepDocumentation ? 'visibility_off' : 'visibility' }}</mat-icon>
         <span>Documentation</span>
       </span>
     </button>

@@ -109,6 +109,7 @@ export class L1FeatureItemListComponent implements OnInit {
 
   // NgOnInit
   ngOnInit() {
+
     this.log.msg('1', 'Initializing component...', 'feature-item-list');
 
     this.feature$ = this._store.select(
@@ -182,6 +183,7 @@ export class L1FeatureItemListComponent implements OnInit {
       data: {
         mode: 'edit',
         folder: folder,
+        featureId: this.item.id
       } as IEditFolder,
     });
   }

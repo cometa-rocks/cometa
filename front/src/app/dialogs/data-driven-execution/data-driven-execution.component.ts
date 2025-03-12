@@ -64,6 +64,12 @@ import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 export class DataDrivenExecution implements OnInit {
   columns: MtxGridColumn[] = [
     {
+      header: 'ID',
+      field: 'id',
+      sortable: true,
+      class: 'name' 
+    },
+    {
       header: 'Status',
       field: 'status',
       showExpand: true,
