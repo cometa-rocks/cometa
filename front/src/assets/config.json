@@ -1,5 +1,5 @@
 {
-  "version": "3.0.15",
+  "version": "3.0.23",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,11 +237,107 @@
   ],
   "changelog": [
     {
+      "version": "3.0.23",
+      "date": "2025-03-11",
+      "features": [
+        {
+          "title": "Button failed features | button Failed steps - #4694",
+          "description": "Added logic for button clicks to affect the feature result status and implemented matTooltip in step-view."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.22",
+      "date": "2025-03-07",
+      "features": [
+        {
+          "title": "Enhanced User Experience #4694",
+          "description": "Improved several Angular components to provide a smoother and more intuitive user experience."
+        },
+        {
+          "title": "Fixed Dialog Sizing in Edit-Feature #5868",
+          "description": "Adjusted the dialog size in edit-feature to ensure proper display across different screen resolutions."
+        },
+        {
+          "title": "Shortcut and Profile Page Improvements #4694",
+          "description": "The menu now toggles with the same shortcut, header shortcuts updated, and profile page styling improved."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.21",
+      "date": "2025-03-04",
+      "features": [
+        {
+          "title": "Focus on input or textarea when mat-expansion panels are opened #4694",
+          "description": "Implemented focus on the input or textarea when the mat-expansion panels are opened."
+        },
+        {
+          "title": "Retain the last opened state of mat-expansion panels per feature #4694",
+          "description": "Now each feature retains the last opened state of its panels, as set by the user."
+        },
+        {
+          "title": "Updated the shortcuts page #4694",
+          "description": "Updated the page with new and improved shortcuts for better user experience."
+        }
+      ]
+    },
+    {
+      "version": "3.0.20",
+      "date": "2025-02-27",
+      "features": [
+        {
+          "title": "Hotfix: Removed conflicting code in feature state #4694",
+          "description": "Resolved an issue by deleting conflicting code in the feature state."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.19",
+      "date": "2025-02-27",
+      "features": [
+        {
+          "title": "Shortcut behavior improvements #4694",
+          "description": "Updated shortcut behavior to prevent execution while focusing on inputs and textareas in profile and administration page. Changed the search shortcut."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.18",
+      "date": "2025-02-26",
+      "features": [
+        {
+          "title": "Fix error when uploaded user is deleted #5831",
+          "description": "Prevent errors in the file list when the user who uploaded a file is deleted. Now, it displays 'User no longer exists' instead of breaking the table."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.17",
+      "date": "2025-02-26",
+      "features": [
+        {
+          "title": "New buttons functionality added to update mobile list and update cometa browsers #5719",
+          "description": "A new buttons functionality has been added to trigger the update of the mobile list and the update of cometa browsers."
+        }
+      ]
+    }, 
+    {
+      "version": "3.0.16",
+      "date": "2025-02-24",
+      "features": [
+        {
+          "title": "Fixed mobile device visibility #5807",
+          "description": "Fixed mobile device visibility in tree-folder. Updated CSS and dialog styling (mat-icon replaced with icon i)."
+        }
+      ]
+    },   
+    {
       "version": "3.0.15",
       "date": "2025-02-20",
       "features": [
         {
-          "title": "#5800 Resize Dialog edit features",
+          "title": "Resize Dialog edit features #5800",
           "description": "The feature dialog is now 100% and can be resized within the same window."
         }
       ]
@@ -251,7 +347,7 @@
       "date": "2025-02-17",
       "features": [
         {
-          "title": "#5664 Recent page update",
+          "title": "Recent page update #5664",
           "description": "The recent page has been overhauled. giving the user the choice to filter features created by the user or by the selected department. Features are now sorted in order of the earliest feature executed."
         }
       ]
@@ -261,7 +357,7 @@
       "date": "2025-02-16",
       "features": [
         {
-          "title": "#5606 Show in main-view the mobile device",
+          "title": "Show in main-view the mobile device #5606",
           "description": "Show the mobile device in the main-view results"
         }
       ]
@@ -271,7 +367,7 @@
       "date": "2025-02-15",
       "features": [
         {
-          "title": "Save last departement selected - #5606 ",
+          "title": "Save last departement selected #5606",
           "description": "Save the last department selected in mobile device selector"
         }
       ]
@@ -281,7 +377,7 @@
       "date": "2025-02-13",
       "features": [
         {
-          "title": "Maximum 3 emulator running - #5519",
+          "title": "Maximum 3 emulator running #5519",
           "description": "Limits the number of running emulators to 3, with a notification showing the current running emulators and department"
         }
       ]
@@ -321,8 +417,8 @@
       "date": "2025-01-29",
       "features": [
         {
-            "title": "#5663 Fix order of recent tab ",
-            "description": "When loading into recent page,  'Last run' in descending order. Column order has been changed to include relevant information on the left side. Shortened the names of some columns to align items better. "
+          "title": "Fix order of recent tab #5663",
+          "description": "When loading into recent page,  'Last run' in descending order. Column order has been changed to include relevant information on the left side. Shortened the names of some columns to align items better. "
         }
       ]
     },
@@ -331,11 +427,11 @@
       "date": "2025-01-29",
       "features": [
         {
-          "title": "#5655 Add user details - hover profile ",
+          "title": "Add user details - hover profile #5655",
           "description": "Added User information when hovering over the profile icon"
         },
         {
-          "title": "#5519 Kubernetes deployment with mobile feature",
+          "title": "Kubernetes deployment with mobile feature #5519",
           "description": "Kubernetes changes are merged with Mobile and AI feature, making it scalable"
         }
       ]
@@ -345,7 +441,7 @@
       "date": "2024-11-21",
       "features": [
         {
-          "title": "#5414 Change background image of test environment",
+          "title": "Change background image of test environment #5414",
           "description": "Backgroud images can be change for the test browser and mobile device using Cometa admin section"
         }
       ]
@@ -355,7 +451,7 @@
       "date": "2024-11-20",
       "features": [
         {
-          "title": "#5414 - Conditional statements ",
+          "title": "Conditional statements #5414",
           "description": "Implemented conditional steps (if...else...end if) with conditions such as equals, not equals, contains, not contains, and for numeric values (<=, >=, ==, !=). Also implemented steps to check visibility and presence of an element."
         }
       ]
@@ -365,7 +461,7 @@
       "date": "2024-11-13",
       "features": [
         {
-          "title": "#4938 - Email report enhancement",
+          "title": "Email report enhancement #4938",
           "description": "Email reporting enhanced to set the number of consecutive failure emails you want to receive. This option helps to avoid continuous failure notifications, so the user is not bombarded with excessive emails."
         }
       ]
@@ -375,7 +471,7 @@
       "date": "2024-10-09",
       "features": [
         {
-          "title": "#4694 - Updated Keyboard Shortcut",
+          "title": "Updated Keyboard Shortcut #4694",
           "description": "The keyboard shortcut for the feature that was previously triggered by pressing 'D' is now updated to 'O'."
         }
       ]
@@ -385,7 +481,7 @@
       "date": "2024-09-26",
       "features": [
         {
-          "title": "#4694 Implemented 'What's New' Section and Profile Updates",
+          "title": "Implemented 'What's New' Section and Profile Updates #4694",
           "description": "Added a 'What's New' section in the Home tab, updated Profile with new changes, corrected typos, and adjusted the draggable icon for alignment."
         }
       ]

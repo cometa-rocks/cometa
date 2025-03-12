@@ -48,9 +48,10 @@ export class HelpComponent {
     { position: 3, key: 'F', description: '[F] button: Create feature' },
     { position: 4, key: 'P', description: '[P] Header Icon: Profile' },
     { position: 5, key: 'M', description: '[M] Header Icon: Menu' },
-    { position: 6, key: 'Shift + Alt + F', description: 'Open search'},
-    { position: 7, key: 'Shift + Alt + H', description: 'Return to home'},
-    { position: 8, key: 'Shift + Alt + X', description: 'Remove all the filters'},
+    { position: 6, key: 'S', description: 'Open search'},
+    { position: 7, key: 'ESC', description: 'Close search'},
+    { position: 8, key: 'H', description: 'Return to home'},
+    { position: 9, key: 'Shift + Alt + X', description: 'Remove all the filters'},
   ];
 
   ShortDataDriven: Shortcut[] = [
@@ -67,8 +68,9 @@ export class HelpComponent {
     { position: 6, key: 'N', description: 'Checkbox: Network logging' },
     { position: 7, key: 'R', description: 'Checkbox: Record video' },
     { position: 8, key: 'V', description: 'Button: Edit Variables' },
-    { position: 9, key: 'CTRL+UP/DOWN', description: 'Textarea: Insert new step above or below' },
-    { position: 10, key: 'CTRL+ALT+UP/DOWN', description: 'Textarea: Copy the step above or below of the reference step' },
+    { position: 9, key: 'S', description: 'Button: Open Mobiles' },
+    { position: 10, key: 'CTRL+UP/DOWN', description: 'Textarea: Insert new step above or below' },
+    { position: 11, key: 'CTRL+ALT+UP/DOWN', description: 'Textarea: Copy the step above or below of the reference step' },
   ];
 
   columns: MtxGridColumn[] = [

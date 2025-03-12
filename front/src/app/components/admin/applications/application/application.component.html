@@ -4,7 +4,9 @@
     spellcheck="false"
     disableAutocomplete
     [disabled]="!(modify | async)"
-    [(ngModel)]="app.app_name" />
+    [(ngModel)]="app.app_name"
+    (focus)="onInputFocus()"
+    (blur)="onInputBlur()"/>
 </div>
 <div
   *ngIf="canEditApplication$ | async"

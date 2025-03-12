@@ -22,6 +22,7 @@ import { FooterComponent } from './components/footer/footer.component';
 import { ToursComponent } from './components/tours/tours.component';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/header/header.component';
+import { SharedActionsService } from './services/shared-actions.service';
 
 @Component({
   selector: 'cometa',
@@ -57,7 +58,8 @@ export class CometaComponent implements OnInit {
     private _http: HttpClient,
     private _dialog: MatDialog,
     private _tourService: TourService,
-    private _whatsNew: WhatsNewService
+    private _whatsNew: WhatsNewService,
+    public _sharedActions: SharedActionsService
   ) {
     this._socket.Init();
     this.translate.setDefaultLang('en');
@@ -98,6 +100,8 @@ export class CometaComponent implements OnInit {
   ngOnInit() {
     // Start create feature tour
     this._tourService.startTour('CreateFeature');
+    // Load config 
+    this._sharedActions.loadConfig(); 
     // Log Easter Egg
     const styles = [
       'font-weight: bold',

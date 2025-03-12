@@ -14,6 +14,7 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { DisableAutocompleteDirective } from '../../directives/disable-autocomplete.directive';
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
   selector: 'enter-value',
@@ -31,11 +32,14 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
   ],
 })
 export class EnterValueComponent {
+  inputFocus: boolean = false;
+
   constructor(
     private dialogRef: MatDialogRef<EnterValueComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private fb: UntypedFormBuilder,
-    private _api: ApiService
+    private _api: ApiService,
+    private inputFocusService: InputFocusService
   ) {
     this.rForm = this.fb.group({
       value: [data.value || ''],
@@ -70,5 +74,14 @@ export class EnterValueComponent {
       default:
         return false;
     }
+  }
+
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocusService.setInputFocus(true);
+  }
+
+  onInputBlur() {
+    this.inputFocusService.setInputFocus(false);
   }
 }
