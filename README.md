@@ -3,9 +3,9 @@
 <p  align="center">
 <h1  align="center">Cometa</h1>
 <p  align="center">
-Open source is the future. Co.Meta is an advanced & evolving meta-test product that has been made with :heart: for DevOps and QA Engineers.
+Open source is the future. Co.Meta is an advanced & evolving meta-test product that has been made with :heart: for DevOps and QA Engineers. Co.Meta was built using 100% Open Source.
 
-Co.Meta offers the basic functional and visual regression testing together with Load Testing, Data Driven Testing, API-Testing, Security Testing (basic). It can easily execute parallel tests and on Kubernetes scales infinite. It comes with integerated AI vision and AI agent to support easily navigate even complex situation. Co.Meta was built using 100% Open Source.  Co.Meta is mainly built with python. It uses Selenium, Appium and Playwright. 
+Co.Meta offers the basic functional and visual regression testing together with Load Testing, Data Driven Testing, API-Testing, Security Testing (basic). It can easily execute parallel tests and on Kubernetes scales infinite. It comes with integrated AI vision and AI agent to easily navigate even complex situation. Co.Meta is mainly built with python. It uses Selenium, Appium and Playwright. 
 
 <br>
 
@@ -283,7 +283,9 @@ That's all, easy peasy.
 
 ## Support
 
-Happy to see your e-Mail help - at - cometa.rocks. 
+See [Documentation] for in depth explanations how to use Co.Meta.
+
+Happy to see your e-Mail help - at - cometa.rocks.
 
 Preferable open an issue: https://github.com/cometa-rocks/cometa/issues  
 
