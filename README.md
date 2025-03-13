@@ -1,12 +1,16 @@
 <!-- PROJECT LOGO -->
-<h1><div style="background-color:#fafafa;align:center;"><img style="display: block;margin-left: auto;margin-right: auto; width: 70%;" src="https://github.com/cometa-rocks/cometa_documentation/blob/main/img/logos/COMETA_LogoEslog_Y_B.png"></div></h1>
+<div style="background-color:#fafafa;vertical-align:center;"><center><span style="color:#f4b829;font-size:3em">Co.</span><span style="color:#191919;font-size:3em">meta</span></center></div>
 
 <br><p>
-Co.Meta is an advanced & evolving meta-test product that has been made with :heart: for DevOps and QA Engineers. Co.Meta was built using 100% Open Source. The future is Open Source. 
+Co.meta is a powerful meta-testing tool designed for DevOps and QA engineers, built entirely with Open Source technology :heart:.
 
-Co.Meta offers functional and visual regression testing together with Load Testing, Data Driven Testing, API-Testing, Security Testing (basic). It can easily execute parallel tests and on Kubernetes scales infinite. It comes with integrated AI vision and AI agent to easily navigate even complex situation. Co.Meta is mainly built with python. It uses Selenium, Appium and Playwright. 
+It supports functional and visual regression testing, load testing, data-driven testing, API testing, and basic security testing.
 
-<br>
+Co.meta offers both codeless and code-based test creation using BDD (behave framework). It enables parallel test execution and scales infinitely on Kubernetes.
+
+With AI-powered vision and an AI agent, it handles even complex scenarios effortlessly.
+
+Built mainly with Python, it integrates with Selenium, Appium, and Playwright for seamless testing.
 
 Built with: [Angular](https://angular.io/) •
 [Django](https://www.djangoproject.com/) •
@@ -17,15 +21,13 @@ Built with: [Angular](https://angular.io/) •
 [Ollama](https://ollama.com) •
 [python](python.org) 
 
-<br><p>
-
 Co.meta is available on cloud and on-prem. It can be installed on your Laptop also.
 
-You are looking at the Cometa Community Edition (CE) licensed under AGPLv3. See [Cometa Versions](https://github.com/cometa-rocks/cometa_documentation?tab=readme-ov-file#cometaversions) to understand the difference from Cloud Edition (CEE) and the Enterprise Edition (EE).
+You are looking at the Cometa Community Edition (CE) licensed under AGPLv3. See [Cometa Versions](https://github.com/cometa-rocks/cometa_documentation?tab=readme-ov-file#cometaversions) to understand the difference between Community Edition (CE) and Enterprise Edition (EE).
 
 # Getting started :rocket:
 
-The Co.Meta installation is straight forward. It uses docker technology and can be run on a Laptop (minimum 16GB RAM, 8 Cores) as well as on a Kubernetes cluster.
+The Co.meta installation is straight forward. It uses docker technology and can be run on a Laptop (minimum 16GB RAM, 8 Cores, 28GB diskspace) as well as on a Kubernetes cluster.
 
 In corporate environments there are some things to know regarding Internet access as well as SSO provider setup. 
 
@@ -37,16 +39,16 @@ Here is what you need to be able to run Cometa.
 
 * **Docker and Docker Compose**
 
-  Docker and Docker Compose run seamlessly on both Mac and Windows. Installations have been successfully carried out using Docker Desktop 4.25.2 on macOS 14.1 with Rosetta x86/amd64 emulation. Additionally, running WSL with Ubuntu is a viable option. The choice ultimately depends on your personal preference. Co.Meta runs best on Linux, considering that Linux is its native environment. Please use Linux as the operating system. You can explore pre-built  [Virtual Boxes](https://osboxes.org/) for your convenience.
+  Docker and Docker Compose run seamlessly on both Mac and Windows. Installations have been successfully carried out using Docker Desktop 4.25.2 on macOS 14.1 with Rosetta x86/amd64 emulation. Additionally, running WSL with Ubuntu is a viable option. The choice ultimately depends on your personal preference. Co.meta runs best on Linux, considering that Linux is its native environment. Please use Linux as the operating system. You can explore pre-built  [Virtual Boxes](https://osboxes.org/) for your convenience.
   <br><p>
   Minimum hardware requirements: 16GB RAM, 8 CPUs, 10GB of diskspace.
   <br><p>
 
 * **Internet Connection**
 
-  Co.Meta needs to be able to fetch software from the internet. For example python libraries, pre-built containers with virtual browser.
+  Co.meta needs to be able to fetch software from the internet. For example python libraries, pre-built containers with virtual browser.
 
-  When installing Co.Meta in a corporate environment, make sure to whitelist the following domains on the Secure Proxy:
+  When installing Co.meta in a corporate environment, make sure to whitelist the following domains on the Secure Proxy:
  
 
 	| **Domain** | **Reason**                                                                                                                                                    |
@@ -63,13 +65,12 @@ Here is what you need to be able to run Cometa.
 	| deb.debian.org  <br> security.debian.org (http and https) | Most of the containers running within cometa uses debian based container, so Debian official repositories are needed for downloading and updating dependencies. |
 	| deb-multimedia.org (http and https)                   | Debian multimedia repository for additional multimedia-related packages.                                                    |
 
-  <br><p>
 
-  For corporate environments using a Secure Proxy the usage needs to be configured:
-  Edit the following `nano ~/.docker/config.json`
+  If your corporate environment uses a Secure Proxy, you need to configure Docker to use it:
+  
+  1. Open the docker config file `nano ~/.docker/config.json`
 
-  <br>
-  Add the following:
+  2. Add the following:
 
   ```
   {
@@ -84,7 +85,7 @@ Here is what you need to be able to run Cometa.
 		}
   }
   ```
-  This configuration ensures, that the Co.Meta container use the proxy server, when spinning up virtual browsers. 
+  This configuration ensures, that the Co.meta container use the proxy server, when spinning up virtual browsers. 
   Add any internal Websites, ERPs or Application Endpoints into the above file to be accessible without Proxy.
   <br><p>
   Selenoid Container must be built without above file. So, before rebuilding (e.g. with option --force-recreate) move above to *_bkp (`mv ~/.docker/config.json ~/.docker/config.json_bkp`), then rebuilt selenoid and finally move the file back to original name using `mv ~/.docker/config.json_bkp ~/.docker/config.json`.  
@@ -122,13 +123,13 @@ Here is what you need to be able to run Cometa.
 
 	Your server must be in sync with the global time - consider using [NTP](https://en.wikipedia.org/wiki/Network_Time_Protocol) to keep your local server time synchronized. Time deviation of more than 10 minutes is not supported.
 
-	Why is this important? Because Co.Meta supports Single Sign On Providers like oAuth from Gitlab, Github, Azure, Google, Facebook, Ping or others. And the cookie timestamp must be accurate.
+	Why is this important? Because Co.meta supports Single Sign On Providers like oAuth from Gitlab, Github, Azure, Google, Facebook, Ping or others. And the cookie timestamp must be accurate.
 
 
 
 ## Installation :fire:
 
-Co.Meta normally is installed in less then 10 minutes. In case you are stuck for more than 5 minutes - please let us know. And please give us the opportunity to help you. We want to learn how you are using Co.Meta and what problems you encounter. We are happy to help.
+Co.meta normally is installed in less then 10 minutes. In case you are stuck for more than 5 minutes - please let us know. And please give us the opportunity to help you. We want to learn how you are using Co.meta and what problems you encounter. We are happy to help.
 
 
 1. Clone the repo
@@ -182,12 +183,12 @@ Co.Meta normally is installed in less then 10 minutes. In case you are stuck for
 	docker-compose up -d && docker-compose logs -f --tail=10
 	```
 
-	Co.Meta starts on port 443. If that port is used on your machine, change it `docker-compose.yml` to e.g. "8443:443"
-	Co.Meta also starts on port 80. If that is not available you could change that to 8081 in `docker-compose.yml`
+	Co.meta starts on port 443. If that port is used on your machine, change it `docker-compose.yml` to e.g. "8443:443"
+	Co.meta also starts on port 80. If that is not available you could change that to 8081 in `docker-compose.yml`
 
-	View some logs `docker-compose logs -f --tail=10` of the installation process, to get a understanding, when Co.Meta is ready.
+	View some logs `docker-compose logs -f --tail=10` of the installation process, to get a understanding, when Co.meta is ready.
 
-	Give Co.Meta some minutes to install python, setup django, download npm and docker files, compile the front end.
+	Give Co.meta some minutes to install python, setup django, download npm and docker files, compile the front end.
 	Depending on your computer this can take a couple of minutes.
 
 	You want a development server?
@@ -212,15 +213,15 @@ Co.Meta normally is installed in less then 10 minutes. In case you are stuck for
 
 	This will configure and pull the three newest Docker images with virtual browsers.
 
-	Selenoid image are the browser that you will be able use and select in Co.Meta. 
+	Selenoid image are the browser that you will be able use and select in Co.meta. 
 
 	Of course there are options to include browserstack, headspin or sourcelabs browsers. But that is a bit you would not want to configure on your first setup.
 
 	This step will take some time as all the default browser images are being pulled.
 
-	Once Co.Meta is up and running, you can parse the new browser images available into Co.Meta by calling `https://localhost/backend/parseBrowsers/`
+	Once Co.meta is up and running, you can parse the new browser images available into Co.meta by calling `https://localhost/backend/parseBrowsers/`
 
-7. See Co.Meta in your browser
+7. See Co.meta in your browser
 
 	Test server access `curl -k  https://<yourdomain>:<specified port - default 443>/`
 
@@ -234,7 +235,7 @@ Co.Meta normally is installed in less then 10 minutes. In case you are stuck for
 	On first start you have to manually parse the actions.py file. This enables cometa to use any steps defined in the UI. The user can then choose from the steps in the UI.
 	`https://localhost/backend/parseActions/` ... as a result cometa will show all actions that have been parsed and are now available for selection in cometa-front.
 
-	Import option is also available in the Admin Section of Co.Meta.
+	Import option is also available in the Admin Section of Co.meta.
 
 
 9. Run your first test
@@ -248,7 +249,7 @@ Co.Meta normally is installed in less then 10 minutes. In case you are stuck for
 
 #### Notes
 
-* Final Co.Meta is available at `https://localhost/`
+* Final Co.meta is available at `https://localhost/`
 * To enable Debug mode on front:
 	```bash
 	docker exec -it cometa_front bash
@@ -290,7 +291,7 @@ That's all, easy peasy.
 
 ## Support
 
-See [Documentation] for in depth explanations how to use Co.Meta.
+See [Documentation] for in depth explanations how to use Co.meta.
 
 Happy to see your e-Mail help - at - cometa.rocks.
 
@@ -311,5 +312,5 @@ Copyright 2025 COMETA ROCKS S.L.
 Portions of this software are licensed as follows:
 
 * All content that resides under "ee/" directory of this repository (Enterprise Edition) is licensed under the license defined in "ee/LICENSE". (Work in progress)
-* All third party components incorporated into the Co.Meta Software are licensed under the original license provided by the owner of the applicable component.
+* All third party components incorporated into the Co.meta Software are licensed under the original license provided by the owner of the applicable component.
 * Content outside of the above mentioned directories or restrictions above is available under the "AGPLv3" license as defined in `LICENSE` file.
