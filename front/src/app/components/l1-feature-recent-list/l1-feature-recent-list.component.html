@@ -22,6 +22,9 @@ Author: dph000
                 formControlName="department_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()">
+                <mat-option [value]="'__ALLDEPARTMENTS__'">
+                  -- Show all Departments --
+                </mat-option>
                 <mat-option
                   *ngFor="let dep of user.departments | sortBy: 'department_name'"
                   [value]="dep.department_name">
