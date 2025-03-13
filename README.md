@@ -280,14 +280,14 @@ That's all, easy peasy.
 
 ## 📂 Directory Layout
 ```
-./behave 				# Behave related files
-./crontabs 			    # contains crontab files for Django & Behave
-./selenoid 			    # Selenoid related files
-./front 				# Apache and Angular files
-./src 				    # Django related files
-./src/backend 		    # contains the Backend code for URLs
-./src/cometa_pj: 		# contains the configuration of Django
-./ws-server 			# WebSocket server related files
+./behave                # Behave related files
+./crontabs              # contains crontab files for Django & Behave
+./selenoid              # Selenoid related files
+./front                 # Apache and Angular files
+./src                   # Django related files
+./src/backend           # contains the Backend code for URLs
+./src/cometa_pj         # contains the configuration of Django
+./ws-server             # WebSocket server related files
 ```
 
 ## Support
