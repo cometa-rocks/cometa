@@ -28,7 +28,9 @@ You are looking at the Cometa Community Edition (CE) licensed under AGPLv3. See 
 
 # Getting started :rocket:
 
-The Co.meta installation is straight forward. It uses docker technology and can be run on a Laptop (minimum 16GB RAM, 8 Cores, 28GB diskspace) as well as on a Kubernetes cluster.
+The easiest way to try out Co.meta is to [join our discord](https://discord.gg/e3uBKHhKW5) and ask for an invitation link. No installation, no credit card required.
+
+The Co.meta installation is straight forward. It uses docker technology and can be run on a Laptop (minimum 16GB RAM, 8 Cores, 28GB diskspace) as well as on a Kubernetes cluster. 
 
 In corporate environments there are some things to know regarding Internet access as well as SSO provider setup. 
 
