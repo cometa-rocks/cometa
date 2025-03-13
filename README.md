@@ -1,11 +1,10 @@
 <!-- PROJECT LOGO -->
+<h1><div style="background-color:#fafafa;align:center;"><img style="display: block;margin-left: auto;margin-right: auto; width: 70%;" src="https://github.com/cometa-rocks/cometa_documentation/blob/main/img/logos/COMETA_LogoEslog_Y_B.png"></div></h1>
 
-<p  align="center">
-<h1  align="center">Cometa</h1>
-<p  align="center">
-Open source is the future. Co.Meta is an advanced & evolving meta-test product that has been made with :heart: for DevOps and QA Engineers. Co.Meta was built using 100% Open Source.
+<br><p>
+Co.Meta is an advanced & evolving meta-test product that has been made with :heart: for DevOps and QA Engineers. Co.Meta was built using 100% Open Source. The future is Open Source. 
 
-Co.Meta offers the basic functional and visual regression testing together with Load Testing, Data Driven Testing, API-Testing, Security Testing (basic). It can easily execute parallel tests and on Kubernetes scales infinite. It comes with integrated AI vision and AI agent to easily navigate even complex situation. Co.Meta is mainly built with python. It uses Selenium, Appium and Playwright. 
+Co.Meta offers functional and visual regression testing together with Load Testing, Data Driven Testing, API-Testing, Security Testing (basic). It can easily execute parallel tests and on Kubernetes scales infinite. It comes with integrated AI vision and AI agent to easily navigate even complex situation. Co.Meta is mainly built with python. It uses Selenium, Appium and Playwright. 
 
 <br>
 
@@ -17,6 +16,12 @@ Built with: [Angular](https://angular.io/) •
 [PostgreSQL](https://www.postgresql.org/) •
 [Ollama](https://ollama.com) •
 [python](python.org) 
+
+<br><p>
+
+Co.meta is available on cloud and on-prem. It can be installed on your Laptop also.
+
+You are looking at the Cometa Community Edition (CE) licensed under AGPLv3. See [Cometa Versions](https://github.com/cometa-rocks/cometa_documentation?tab=readme-ov-file#cometaversions) to understand the difference from Cloud Edition (CEE) and the Enterprise Edition (EE).
 
 # Getting started :rocket:
 
@@ -33,6 +38,8 @@ Here is what you need to be able to run Cometa.
 * **Docker and Docker Compose**
 
   Docker and Docker Compose run seamlessly on both Mac and Windows. Installations have been successfully carried out using Docker Desktop 4.25.2 on macOS 14.1 with Rosetta x86/amd64 emulation. Additionally, running WSL with Ubuntu is a viable option. The choice ultimately depends on your personal preference. Co.Meta runs best on Linux, considering that Linux is its native environment. Please use Linux as the operating system. You can explore pre-built  [Virtual Boxes](https://osboxes.org/) for your convenience.
+  <br><p>
+  Minimum hardware requirements: 16GB RAM, 8 CPUs, 10GB of diskspace.
   <br><p>
 
 * **Internet Connection**
@@ -299,7 +306,7 @@ Happy to explore further collaboration: the thumbnail will redirect you to a qui
 
 # License
 
-Copyright 2022 COMETA ROCKS S.L.
+Copyright 2025 COMETA ROCKS S.L.
 
 Portions of this software are licensed as follows:
 
