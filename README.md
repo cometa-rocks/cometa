@@ -1,7 +1,6 @@
 <!-- PROJECT LOGO -->
-<div style="background-color:#fafafa;vertical-align:center;"><center><span style="color:#f4b829;font-size:3em">Co.</span><span style="color:#191919;font-size:3em">meta</span></center></div>
+# Co.meta - Complete Meta Test Platform 
 
-<br><p>
 Co.meta is a powerful meta-testing tool designed for DevOps and QA engineers, built entirely with Open Source technology :heart:.
 
 It supports functional and visual regression testing, load testing, data-driven testing, API testing, and basic security testing.
@@ -9,6 +8,8 @@ It supports functional and visual regression testing, load testing, data-driven 
 Co.meta offers both codeless and code-based test creation using BDD (behave framework). It enables parallel test execution and scales infinitely on Kubernetes.
 
 With AI-powered vision and an AI agent, it handles even complex scenarios effortlessly.
+
+Co.meta makes scheduling and continuous End-to-End testing effortless and seamless. :rocket:
 
 Built mainly with Python, it integrates with Selenium, Appium, and Playwright for seamless testing.
 
@@ -277,21 +278,21 @@ That's all, easy peasy.
 * Selenoid Dashboard: http://localhost:4444/dashboard/
 * Django: http://localhost:8000/admin
 
-## Directory Layout
-
-* `./behave` Behave related files
-* `./crontabs` contains crontab files for Django & Behave
-* `./selenoid` Selenoid related files
-* `./front` Apache and Angular files
-* `./src` Django related files
-* `./src/backend` contains the Backend code for URLs
-* `./src/cometa_pj:` contains the configuration of Django
-* `./ws-server` WebSocket server related files
-
+## 📂 Directory Layout
+```
+./behave 				# Behave related files
+./crontabs 			    # contains crontab files for Django & Behave
+./selenoid 			    # Selenoid related files
+./front 				# Apache and Angular files
+./src 				    # Django related files
+./src/backend 		    # contains the Backend code for URLs
+./src/cometa_pj: 		# contains the configuration of Django
+./ws-server 			# WebSocket server related files
+```
 
 ## Support
 
-See [Documentation] for in depth explanations how to use Co.meta.
+See [Documentation](https://github.com/cometa-rocks/cometa_documentation) for in depth explanations how to use Co.meta.
 
 Happy to see your e-Mail help - at - cometa.rocks.
 
