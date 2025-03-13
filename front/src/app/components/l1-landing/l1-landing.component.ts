@@ -419,6 +419,9 @@ export class L1LandingComponent implements OnInit {
 
     const featureShow = document.querySelector("edit-feature");
 
+    const mainPage = this._router.url.startsWith('/new');
+    const adminPage = this._router.url.startsWith('/admin');
+    const profilePage = this._router.url.startsWith('/my-account');
     // If exist the searchs don't enter
     if(folderShow || featureShow || event.ctrlKey){
       return;
@@ -430,7 +433,7 @@ export class L1LandingComponent implements OnInit {
           this.buttonAddFolderFeature.nativeElement.querySelector('.addIcon').click();
           break;
         case KEY_CODES.B:
-          if(this.openedAdd) {
+          if(this.openedAdd && mainPage) {
             this.createFolder();
             // Input empty 
             const inputElement = document.querySelector('#mat-input-5');
@@ -438,7 +441,7 @@ export class L1LandingComponent implements OnInit {
           }
         break;
         case KEY_CODES.F:
-          if (this.openedAdd) {
+          if (this.openedAdd && mainPage) {
             this.SAopenCreateFeature();
           }
         break;
