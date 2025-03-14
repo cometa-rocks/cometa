@@ -189,38 +189,25 @@ deploy:amvara3.prod:
 
 
 # build cometa front image and push to docker hub
-build:amvara6.build:
+build:amvara8.build-1:
   stage: build
   script:
     #########################################################
-    # FRONTEND
+    # BUILD IMAGES (Front, Behave, Django)
     ########################################################
     
-    - |
-      # Fetch the JSON response from Docker Hub
-      RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/cometa/front/tags/?page_size=2&ordering=last_updated")
+      - ./updateImages.sh
 
-      # Extract the latest tag using jq
-      LATEST_TAG=$(echo "$RESPONSE" | jq -r '.results[1].name')
+  extends: .amvara8.build-1
 
-      echo "Latest tag from Docker Hub is: $LATEST_TAG"
+# build cometa browser images and push to docker hub 
+build:amvara8.build-2:
+  stage: build
+  script:
+    #########################################################
+    # BUILD BROWSER IMAGES (Chrome, Firefox and Edge)
+    ########################################################
+      - ./backend/browsers/populateBrowsersJSON.sh
 
-      # Compare the latest tag with the build version
-       if [ "$LATEST_TAG" == "$BUILD_VERSION" ]; then
-        echo "The latest version is already $BUILD_VERSION. Skipping build and push."
-      else
-        cd front
-        docker build . -f Dockerfile -t $COMETA_FRONT:$BUILD_VERSION
-        echo "$COMETA_FRONT:$BUILD_VERSION build successfully"
-        echo "Pushing $COMETA_FRONT:$BUILD_VERSION image to Docker $DOCKER_REGISTRY"
-        docker push $COMETA_FRONT:$BUILD_VERSION
-        echo "$COMETA_FRONT:$BUILD_VERSION image pushed"
-        echo "Converting $COMETA_FRONT:$BUILD_VERSION tag $COMETA_FRONT:latest"
-        docker tag $COMETA_FRONT:$BUILD_VERSION $COMETA_FRONT:latest
-        echo "Pushing $COMETA_FRONT:latest image to Docker $DOCKER_REGISTRY"     
-        docker push $COMETA_FRONT:latest   
-        echo "$COMETA_FRONT:latest image pushed"
-        cd -
-      fi
-    
-  extends: .amvara6.build
+  extends: .amvara8.build-2
+      
