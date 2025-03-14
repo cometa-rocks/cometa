@@ -486,6 +486,7 @@ export class L1FeatureRecentListComponent {
   getPreselectedDepartment(): string {
 
     // 1. localstorage -> last selected department
+    let departmentFound = false;
     const lastDept = localStorage.getItem('co_last_dpt');
     const userSettingsPreselectedDpt = this.user.settings.preselectDepartment
     if (lastDept) {
@@ -493,11 +494,13 @@ export class L1FeatureRecentListComponent {
         if (this.departments$[i].department_name === lastDept) {
           this.selected_department = this.departments$[i].department_name;
           FeaturesState.static_setSelectedDepartment(this.departments$[i].department_id);
+          departmentFound = true;
         }
       }
-      //if the department selected is not on the list -> the option selected is -- Show all Departments --
-      this.selected_department = this.showAllDepartments
-      FeaturesState.static_setSelectedDepartment(null);
+      if(!departmentFound){
+        this.selected_department = this.showAllDepartments
+        FeaturesState.static_setSelectedDepartment(null);
+      }
     }
     // 2. personal preference
     if(!lastDept && userSettingsPreselectedDpt){
