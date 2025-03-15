@@ -11,6 +11,13 @@
     </div>
     <div 
       class="icon" 
+      (click)="toggleChatbot()"
+      [matTooltip]="'Chat Support'" matTooltipPosition="below" 
+      aria-label="Open chat support">
+      <i class="chat"></i>
+    </div>
+    <div 
+      class="icon" 
       *ngIf="canCreateFeature && hasSubscription" 
       (click)="_sharedActions.openEditFeature()"
       [matTooltip]="'header.upload' | translate" matTooltipPosition="below" 
