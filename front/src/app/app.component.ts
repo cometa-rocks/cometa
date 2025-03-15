@@ -23,6 +23,7 @@ import { ToursComponent } from './components/tours/tours.component';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/header/header.component';
 import { SharedActionsService } from './services/shared-actions.service';
+import { ChatbotComponent } from './components/chatbot/chatbot.component';
 
 @Component({
   selector: 'cometa',
@@ -35,6 +36,7 @@ import { SharedActionsService } from './services/shared-actions.service';
     RouterOutlet,
     ToursComponent,
     FooterComponent,
+    ChatbotComponent,
     AsyncPipe,
   ],
 })
