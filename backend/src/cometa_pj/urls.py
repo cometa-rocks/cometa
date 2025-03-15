@@ -12,6 +12,7 @@ from backend.common import *
 import os
 from django.views.static import serve
 import re
+from backend import ai_chat
 from django.urls import re_path
 from modules.urls import register_modules_routers, register_modules_urlpatterns
 from backend.ee.modules.urls import register_ee_modules_routers, register_ee_modules_urlpatterns
@@ -133,6 +134,11 @@ urlpatterns = [
     url(r'^departments/(?P<department_id>[0-9]+)/updateStepTimeout/', views.UpdateStepTimeout),
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
+    # AI Chat endpoint
+    url(r'^api/chat/completion/', ai_chat.chat_completion),
+    # RAG system API
+    url(r'^api/rag/', include('backend.rag_system.urls')),
+    
     
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) 
 
