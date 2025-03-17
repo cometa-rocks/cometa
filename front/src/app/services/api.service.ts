@@ -880,4 +880,13 @@ export class ApiService {
     return this._http.put(`${this.api}container_service/${container_id}/`, body);
   }
 
+  /**
+   * Gets a list of backup files for a specific feature
+   * @param featureId The ID of the feature to get backups for
+   * @returns Observable<string[]> List of backup filenames
+   */
+  getBackupFiles(feature_id: number): Observable<string[]> {
+    return this._http.get<string[]>(`${this.base}/get_backup_files/${feature_id}/`);
+  }
+
 }

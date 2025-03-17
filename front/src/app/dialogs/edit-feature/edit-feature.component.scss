@@ -320,3 +320,14 @@ button {
   flex-grow: 1; 
   max-height: calc(91dvh - 64px);
 }
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  
+  button {
+    margin-right: 8px;
+  }
+}

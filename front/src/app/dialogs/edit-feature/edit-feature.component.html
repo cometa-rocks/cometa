@@ -714,6 +714,38 @@
         </ng-template>
       </mat-expansion-panel>
 
+      <!-- Feature History -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+          <span>Feature History</span>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <p>Feature History</p>
+        <mat-form-field>
+          <mat-label>Backup Files</mat-label>
+          <mat-select>
+            <mat-option *ngFor="let file of backupFiles$ | async" [value]="file">
+              {{file}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button color="primary" (click)="file.click()" mat-stroked-button>
+          Restore Feature
+        </button>
+        <button color="primary" (click)="file.click()" mat-stroked-button>
+          Save to Git
+        </button>
+        <button color="primary" (click)="file.click()" mat-stroked-button>
+          Copy Feature
+        </button>
+        <button color="primary" (click)="deleteFeatureAfterDialog(featureId)"  mat-stroked-button>
+          Delete Feature
+        </button>
+      </ng-template>
+    </mat-expansion-panel>
+
     </mat-accordion>
     <div
       class="last-edition"
