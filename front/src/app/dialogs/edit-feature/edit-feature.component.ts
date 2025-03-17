@@ -48,7 +48,7 @@ import { EnvironmentsState } from '@store/environments.state';
 import { ConfigState } from '@store/config.state';
 import { UserState } from '@store/user.state';
 import { EditVariablesComponent } from '@dialogs/edit-variables/edit-variables.component';
-import { BehaviorSubject, Observable, of, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subscription, catchError } from 'rxjs';
 import { FeatureCreated } from '@dialogs/edit-feature/feature-created/feature-created.component';
 import { ScheduleHelp } from '@dialogs/edit-feature/schedule-help/schedule-help.component';
 import { MobileListComponent } from '@dialogs/mobile-list/mobile-list.component';
@@ -97,6 +97,7 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { DraggableWindowModule } from '@modules/draggable-window.module'
+import { SureRemoveFeatureComponent } from '@dialogs/sure-remove-feature/sure-remove-feature.component';
 
 @Component({
   selector: 'edit-feature',
@@ -172,7 +173,7 @@ export class EditFeature implements OnInit, OnDestroy {
 
   departmentSettings$: Observable<Department['settings']>;
   variable_dialog_isActive: boolean = false;
-
+  backupFiles$!: Observable<string[]>;
   steps$: Observable<FeatureStep[]>;
 
   // next runs an array of next executions
@@ -843,6 +844,9 @@ export class EditFeature implements OnInit, OnDestroy {
 
     this.loadPanelStates();
 
+    // Load backup feature files
+    this.loadBackupFiles();
+
     this._api.getCometaConfigurations().subscribe(res => {
 
       const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
@@ -1399,4 +1403,42 @@ export class EditFeature implements OnInit, OnDestroy {
       this.isExpanded = false;
     }
   }
+  deleteFeatureAfterDialog() {
+    // Get a reference to the current dialog
+    const currentDialog = this.dialogRef;
+    
+    // Open the delete confirmation dialog
+    const deleteDialog = this._dialog.open(SureRemoveFeatureComponent, {
+      data: {
+        feature_name: this.feature.getValue().feature_name,
+        feature_id: this.featureId,
+      },
+    });
+    
+    // Subscribe to the afterClosed event of the delete dialog
+    deleteDialog.afterClosed().subscribe(result => {
+      // If the dialog was closed after a successful deletion
+      currentDialog.close();
+    });
+  }
+  
+  loadBackupFiles() {
+    // Get the feature ID from the current feature
+    const featureId = this.data.feature.feature_id;
+    
+    // Only fetch backups for existing features (not for new features)
+    if (featureId && featureId > 0) {
+      this.backupFiles$ = this._api.getBackupFiles(featureId).pipe(
+        catchError(error => {
+          console.error('Error loading backup files:', error);
+          this._snackBar.open('Failed to load backup files', 'OK', { duration: 5000 });
+          return of([]);
+        })
+      );
+    } else {
+      // For new features, there are no backups
+      this.backupFiles$ = of([]);
+    }
+  }
+
 }

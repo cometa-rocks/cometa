@@ -3983,6 +3983,28 @@ def CometaUsage(request):
     # 5. number of failed tests
     '''
 
+@csrf_exempt
+def get_backup_files(request, feature_id):
+    # This method is used to get the backup files for a specific feature stored in /code/backups/features/
+    logger.debug(f"Getting backup files for feature {feature_id}")
+    # Get all the backup files from the backups directory
+    backups_dir = os.path.join(settings.BASE_DIR, '/../../code/backups/features/')
+    
+    feature_id_str = str(feature_id)    
+    # Filter files that start with the feature_id
+    backup_files = []
+    try:
+        for file in os.listdir(backups_dir):
+            file_path = os.path.join(backups_dir, file)
+            if os.path.isfile(file_path) and file.startswith(feature_id_str):
+                backup_files.append(file)
+    except FileNotFoundError:
+        logger.error(f"Backup directory not found: {backups_dir}")
+    except Exception as e:
+        logger.error(f"Error reading backup files: {str(e)}")
+    
+    logger.debug(f"Found {len(backup_files)} backup files for feature {feature_id}")
+    return JsonResponse(backup_files, safe=False)
 
 # import EE Modules
 from backend.ee.modules.data_driven.views import (
