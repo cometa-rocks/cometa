@@ -80,7 +80,7 @@ INSTALLED_APPS = [
     'modules.configuration',
     'modules.container_service',
     'modules.token_authentication',
-    'backend.rag_system',
+    'backend.ee.modules.rag_system',
 ]
 
 MIGRATION_MODULES = {
