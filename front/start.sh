@@ -84,9 +84,9 @@ function check_ssl_certificate() {
 	echo -e "\e[37mChecking SSL certificate...\e[0m"
 
 	# set cert file
-	CERTFILE="/etc/ssl/certs/apache-self-signed.crt"
+	CERTFILE="/share/apache2/certs/apache-self-signed.crt"
 	# set privkey file
-	PRIVKEY="/etc/ssl/certs/apache-self-signed.key"
+	PRIVKEY="/share/apache2/certs/apache-self-signed.key"
 
 	# check if all three files exist
 	test ! -f ${CERTFILE} && CREATE_NEW=TRUE

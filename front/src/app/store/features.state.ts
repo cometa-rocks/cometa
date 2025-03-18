@@ -858,7 +858,7 @@ export class FeaturesState {
         return this.getRecentFeaturesByMy(state,user_id, departmentArray)
         //features = features.filter(val => val.last_edited?.user_id === user_id);
       case 'dpt':
-        return this.getRecentFeaturesByDpt(state, department)
+        return this.getRecentFeaturesByDpt(state, department, departmentArray)
         //features = features.filter(val => val.department_id === department);
       default:
         break;
@@ -872,13 +872,16 @@ export class FeaturesState {
    * @author Nico Clariana
    * @date 03-02-25
    */
-  static getRecentFeaturesByDpt(state: IFeaturesState, department: number ): FoldersResponse {
+  static getRecentFeaturesByDpt(state: IFeaturesState, department: number, departmentArray: Array<Department>): FoldersResponse {
 
       let features: Feature[] = Object.values(
         JSON.parse(JSON.stringify(state.details))
       ); // Get all the features
-      // Filter the data rows by the selected department.
-      features = features.filter(val => val.department_id === department);
+      if(department != null){
+        // Filter the data rows by the selected department.
+        features = features.filter(val => val.department_id === department);
+      }
+      features = features.filter(val => departmentArray.some(dept => dept.department_name === val.department_name));
       // Sorts the features by modification date
       let sorted: any = features.sort(function (a: any, b: any) {
         return b.last_update < a.last_update ? -1 : 1;
