@@ -5,6 +5,13 @@
   box-sizing: border-box;
 }
 
+:host {
+  display: block;
+  height: 100%;
+  padding: 70px 10vw;
+  box-sizing: border-box;
+}
+
 .close {
   display: block;
   position: absolute;
@@ -26,6 +33,27 @@
   }
 }
 
+.chat-icon {
+  display: block;
+  position: absolute;
+  top: 150px;
+  right: 50px;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  background-color: rgba(white, 0.2);
+  border-radius: 50%;
+  background-image: url(^assets/icons/chat.svg);
+  background-repeat: no-repeat;
+  background-size: 26px;
+  background-position: center;
+  transform: scale(1);
+  transition: all 0.15s ease-in-out;
+  &:hover {
+    transform: scale(1.2);
+  }
+}
+
 .image {
   display: block;
   width: 100%;
@@ -33,4 +61,49 @@
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+.image-with-chat-dialog {
+  display: block;
+  width: 50%;
+  height: 50%;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  float: left;
+}
+
+.chatdiv {
+  float: left;
+  display: block;
+  width: 48%;
+  background-color: rgb(249, 249, 249);
+  min-height: 80%;
+  // background-size: contain;
+  // background-position: center;
+  background-repeat: no-repeat;
+}
+
+.right {
+  width: 300px;
+  margin-right: 30px;
+  text-align: right;
+}
+
+
+.chat-container-div {
+  padding: 20px;
+}
+
+.chat-response-container-div {
+  padding: 20px;
+}
+
+.chat-response{
+  color: rgb(83, 83, 83);
+  padding: 10px;
+  background-color: white;
+  min-height: 300px;
+  border-radius: 5px;
+  border: 1px solid gray
 }

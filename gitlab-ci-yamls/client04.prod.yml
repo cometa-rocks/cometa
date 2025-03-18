@@ -8,6 +8,7 @@
     # BACKEND
     #########################################################
     DEPLOY_BACKEND_FOLDER: "/opt/cometa/cometa"
+    COMETA_DATA_FOLDER: "/opt/cometa_data"
     COMETA_TOTAL_BROWSER_VERSION: 3
     #########################################################
     # FRONTEND
@@ -20,16 +21,15 @@
     # #########################################################
     # Replace oAuth information in openidc
     # move the file to the correct filename needed by mod_oAuth as seen in https://github.com/zmartzone/mod_auth_openidc/wiki/Multiple-Providers
-    - echo $COMETA_CLIENT_04_OIDC_SECRETS > front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.client
-    - echo $COMETA_CLIENT_04_OIDC_CONFIGURATION > front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.conf
+    - echo $COMETA_CLIENT_04_OIDC_SECRETS > $COMETA_DATA_FOLDER/front/apache2/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.client
+    - echo $COMETA_CLIENT_04_OIDC_CONFIGURATION > $COMETA_DATA_FOLDER/front/apache2/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.conf
     # Update OIDC provider information at the run time
-    - curl https://$COMETA_CLIENT04_PROD_OIDCHOST/.well-known/openid-configuration | jq . > front/apache-conf/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.provider 
+    - curl https://$COMETA_CLIENT04_PROD_OIDCHOST/.well-known/openid-configuration | jq . > $COMETA_DATA_FOLDER/front/apache2/metadata/$COMETA_CLIENT04_PROD_OIDCHOST.provider 
     # Remove standard ports for this client, as it conflicts with other running software
     - sed -i '/443:443/d;' docker-compose.yml
     # Client uses port 58080, which is mapped to load balancer, make changes persistent for port 58080
-    # - sed -i 's#/data/cometa/#./data/cometa/#g' docker-compose.yml
-    - sed -i_template "s#- /data#- \./data#g" docker-compose.yml
-    
+    - sed -i 's#\./data#/opt/cometa_data#g' docker-compose.yml
+    # - sed -i 's|OVERRIDE_VIDEO_OUTPUT_DIR: .*/data/cometa/videos|OVERRIDE_VIDEO_OUTPUT_DIR: /opt/cometa_data/cometa/videos|g' docker-compose.yml
   after_script:
     #########################################################
     # FRONTEND
