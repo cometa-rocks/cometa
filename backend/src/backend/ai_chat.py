@@ -6,9 +6,10 @@ import json
 import logging
 import os
 import socket
+import uuid
 
 # Import RAG system components
-from backend.rag_system.rag_engine import RAGEngine
+from backend.ee.modules.rag_system.rag_engine import RAGEngine
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +47,11 @@ def chat_completion(request):
         
         try:
             # Initialize RAG engine
+            logger.info(f"[{str(uuid.uuid4())[:8]}] Initializing RAG engine...")
             rag_engine = RAGEngine(top_k=5)
             
             # Process query to get relevant documents
+            logger.info(f"[{str(uuid.uuid4())[:8]}] Using RAG for query: '{user_message}'")
             rag_result = rag_engine.process_query(
                 query=user_message,
                 system_prompt=base_system_prompt
@@ -58,17 +61,22 @@ def chat_completion(request):
             if rag_result['has_context']:
                 augmented_prompt = rag_result['system']
                 rag_context = rag_result['context_docs']
-                logger.info(f"Found {len(rag_context)} relevant documents for RAG")
+                logger.info(f"[{str(uuid.uuid4())[:8]}] Found {len(rag_context)} relevant documents for RAG")
+                if rag_context:
+                    # Log a sample of the documents retrieved
+                    for i, doc in enumerate(rag_context[:2]):  # Log just 2 docs
+                        score = doc['relevance_score']
+                        meta = doc['metadata']
+                        source = meta.get('source', 'Unknown')
+                        logger.info(f"[{str(uuid.uuid4())[:8]}] Doc {i+1}: Score={score:.4f}, Source={source}")
             else:
-                logger.info("No relevant documents found for RAG")
+                logger.info(f"[{str(uuid.uuid4())[:8]}] No relevant documents found for RAG")
         except Exception as e:
-            logger.warning(f"Error using RAG system: {str(e)}")
-            if "Error connecting to Ollama API" in str(e) or "Failed to resolve" in str(e):
-                return Response({
-                    "message": "I'm sorry, but the AI service is currently unavailable. Our team has been notified of this issue. Please try again later.",
-                    "success": False,
-                    "error": "AI service unavailable"
-                }, status=200)
+            logger.warning(f"[{str(uuid.uuid4())[:8]}] Error using RAG system: {str(e)}")
+            import traceback
+            logger.warning(f"[{str(uuid.uuid4())[:8]}] RAG traceback: {traceback.format_exc()}")
+            # Continue without RAG enhancement
+            augmented_prompt = base_system_prompt
         
         # Format messages for Ollama
         messages = [{"role": "system", "content": augmented_prompt}]

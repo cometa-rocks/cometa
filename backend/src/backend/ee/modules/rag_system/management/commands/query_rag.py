@@ -2,10 +2,11 @@
 Management command to query the RAG system.
 """
 import logging
+import json
 from django.core.management.base import BaseCommand, CommandError
 
-from backend.rag_system.rag_engine import RAGEngine
-from backend.rag_system.models import Document
+from backend.ee.modules.rag_system.rag_engine import RAGEngine
+from backend.ee.modules.rag_system.models import Document
 
 logger = logging.getLogger(__name__)
 

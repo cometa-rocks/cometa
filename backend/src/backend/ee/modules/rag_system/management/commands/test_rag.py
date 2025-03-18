@@ -6,8 +6,8 @@ import logging
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
-from backend.rag_system.rag_engine import RAGEngine
-from backend.rag_system.models import Document
+from backend.ee.modules.rag_system.rag_engine import RAGEngine
+from backend.ee.modules.rag_system.models import Document
 from chromadb.errors import InvalidDimensionException
 
 logger = logging.getLogger(__name__)

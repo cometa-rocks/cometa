@@ -6,10 +6,10 @@ import logging
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 
-from backend.rag_system.document_processor import DocumentProcessor
-from backend.rag_system.vector_store import VectorStore
-from backend.rag_system.embeddings import get_embedder
-from backend.rag_system.models import Document, DocumentChunk
+from backend.ee.modules.rag_system.document_processor import DocumentProcessor
+from backend.ee.modules.rag_system.vector_store import VectorStore
+from backend.ee.modules.rag_system.embeddings import get_embedder
+from backend.ee.modules.rag_system.models import Document, DocumentChunk
 
 logger = logging.getLogger(__name__)
 
@@ -76,9 +76,12 @@ class Command(BaseCommand):
             if chunks:
                 # Generate embeddings and add to vector store
                 texts = [chunk.content for chunk in chunks]
-                embeddings = embedder.get_embeddings(texts)
                 
-                # Add to vector store
+                # IMPORTANT: We need to use Chroma's own embedding system to ensure consistent dimensions
+                # Let's modify the process to pass text directly to the vector store
+                self.stdout.write("Adding documents to vector store...")
+                
+                # Create metadata
                 metadata = [{
                     'document_id': str(document.id),
                     'chunk_id': str(chunk.id),
@@ -88,9 +91,9 @@ class Command(BaseCommand):
                 
                 ids = [str(chunk.id) for chunk in chunks]
                 
-                vector_store.add_documents(
+                # Use direct add with query_texts to let ChromaDB handle embeddings consistently
+                vector_store.collection.add(
                     documents=texts,
-                    embeddings=embeddings,
                     metadatas=metadata,
                     ids=ids
                 )

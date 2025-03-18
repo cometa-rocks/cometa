@@ -8,6 +8,7 @@ This module handles:
 """
 import logging
 from typing import List, Dict, Any, Optional, Tuple
+import numpy as np
 
 # Internal imports
 from .vector_store import VectorStore
@@ -59,42 +60,90 @@ class RAGEngine:
         Returns:
             List of documents with their content and metadata
         """
-        logger.info(f"Retrieving context for query: {query}")
+        logger.info(f"Retrieving context for query: '{query}'")
         
         # First check if we have any data
         if not self.has_rag_data():
             logger.warning("No documents in RAG system, returning empty context")
             return []
         
-        # Query the vector store
-        results = self.vector_store.query(
-            query_text=query,
-            n_results=self.top_k
-        )
-        
-        # Process the results
-        context_docs = []
-        if results:
-            documents = results.get('documents', [[]])
-            metadatas = results.get('metadatas', [[]])
-            distances = results.get('distances', [[]])
-            ids = results.get('ids', [[]])
-            
-            # Handle empty results
-            if not documents[0]:
-                return []
+        try:
+            # Get embedding model info if possible
+            try:
+                embedding_model_name = getattr(self.embedding_model, 'model_name', 'Unknown model')
+                logger.info(f"Using embedding model: {embedding_model_name}")
+            except Exception as e:
+                logger.warning(f"Could not get embedding model info: {e}")
                 
-            # Extract information from results
-            for i in range(len(documents[0])):
-                context_docs.append({
-                    'id': ids[0][i],
-                    'content': documents[0][i],
-                    'metadata': metadatas[0][i] if i < len(metadatas[0]) else {},
-                    'relevance_score': 1.0 - distances[0][i] if i < len(distances[0]) else 0.0
-                })
-        
-        logger.info(f"Retrieved {len(context_docs)} context documents")
-        return context_docs
+            # Log vector store collection info if possible
+            try:
+                collection_name = getattr(self.vector_store, 'collection_name', 'Unknown')
+                collection_count = self.vector_store.get_collection_count()
+                logger.info(f"Using vector store collection: {collection_name} with {collection_count} documents")
+                
+                # Try to get collection dimension info
+                try:
+                    collection = self.vector_store.collection
+                    if collection:
+                        peek_results = collection.peek(limit=1)
+                        if peek_results and 'embeddings' in peek_results:
+                            if isinstance(peek_results['embeddings'], list) and len(peek_results['embeddings']) > 0:
+                                collection_dim = len(peek_results['embeddings'][0])
+                                logger.info(f"Collection embedding dimension from peek: {collection_dim}")
+                except Exception as peek_error:
+                    logger.warning(f"Could not determine collection dimensionality: {peek_error}")
+            except Exception as vs_error:
+                logger.warning(f"Could not get vector store info: {vs_error}")
+            
+            # IMPORTANT: Use text query directly instead of pre-generating embeddings
+            # This avoids embedding dimension mismatches by letting ChromaDB handle the embeddings internally
+            logger.info("Querying vector store for relevant documents using text query...")
+            
+            # Query the vector store
+            results = self.vector_store.query(
+                query_text=query,
+                n_results=self.top_k
+            )
+            
+            # Process the results
+            context_docs = []
+            if results:
+                documents = results.get('documents', [[]])
+                metadatas = results.get('metadatas', [[]])
+                distances = results.get('distances', [[]])
+                ids = results.get('ids', [[]])
+                
+                # Safely handle document results
+                docs_count = 0
+                if isinstance(documents, list) and len(documents) > 0:
+                    if isinstance(documents[0], list):
+                        docs_count = len(documents[0])
+                
+                logger.info(f"Retrieved {docs_count} documents from vector store")
+                
+                # Handle empty results
+                if docs_count == 0:
+                    logger.warning("Empty results returned from vector store")
+                    return []
+                    
+                # Extract information from results
+                for i in range(docs_count):
+                    context_doc = {
+                        'id': ids[0][i] if ids and len(ids) > 0 and len(ids[0]) > i else f"unknown-{i}",
+                        'content': documents[0][i],
+                        'metadata': metadatas[0][i] if metadatas and len(metadatas) > 0 and len(metadatas[0]) > i else {},
+                        'relevance_score': 1.0 - distances[0][i] if distances and len(distances) > 0 and len(distances[0]) > i else 0.0
+                    }
+                    context_docs.append(context_doc)
+            
+            logger.info(f"Retrieved {len(context_docs)} context documents")
+            return context_docs
+            
+        except Exception as e:
+            logger.error(f"Error retrieving context: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return []
     
     def format_context_for_prompt(self, context_docs: List[Dict[str, Any]]) -> str:
         """
@@ -179,8 +228,11 @@ class RAGEngine:
         Returns:
             Dictionary with augmented prompt and context information
         """
+        logger.info(f"Processing RAG query: '{query}'")
+        
         # Check if we have RAG data
         has_rag_data = self.has_rag_data()
+        logger.info(f"RAG data available: {has_rag_data}")
         
         if not has_rag_data:
             logger.warning("No documents in RAG system, returning query without context")
@@ -192,21 +244,58 @@ class RAGEngine:
                 "rag_available": False
             }
         
-        # Retrieve relevant context
-        context_docs = self.retrieve_context(query)
-        
-        # Create augmented prompt
-        prompt_data = self.create_augmented_prompt(
-            query=query,
-            context_docs=context_docs,
-            system_prompt=system_prompt
-        )
-        
-        # Add context docs for reference
-        prompt_data['context_docs'] = context_docs
-        prompt_data['rag_available'] = True
-        
-        return prompt_data
+        try:
+            # Get embedding model info if possible
+            try:
+                embedding_model_name = getattr(self.embedding_model, 'model_name', 'Unknown model')
+                logger.info(f"Using embedding model: {embedding_model_name}")
+            except Exception as e:
+                logger.warning(f"Could not get embedding model info: {e}")
+            
+            # Retrieve relevant context
+            logger.info("Retrieving context documents...")
+            context_docs = self.retrieve_context(query)
+            logger.info(f"Retrieved {len(context_docs)} context documents")
+            
+            # Log context document information
+            if context_docs:
+                for i, doc in enumerate(context_docs[:3]):  # Log first 3 docs
+                    relevance = doc.get('relevance_score', 0)
+                    metadata = doc.get('metadata', {})
+                    source = metadata.get('source', 'Unknown')
+                    logger.info(f"Doc {i+1}: Relevance={relevance:.4f}, Source={source}, " +
+                               f"Content length={len(doc.get('content', ''))}")
+            
+            # Create augmented prompt
+            logger.info("Creating augmented prompt...")
+            prompt_data = self.create_augmented_prompt(
+                query=query,
+                context_docs=context_docs,
+                system_prompt=system_prompt
+            )
+            
+            # Add context docs for reference
+            prompt_data['context_docs'] = context_docs
+            prompt_data['rag_available'] = True
+            
+            logger.info("RAG query processing completed successfully")
+            return prompt_data
+            
+        except Exception as e:
+            logger.error(f"Error processing RAG query: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            # Fallback return
+            logger.warning("Returning query without context due to error")
+            return {
+                "system": system_prompt or "You are a helpful AI assistant for Co.meta, a software testing platform.",
+                "query": query,
+                "has_context": False,
+                "context_docs": [],
+                "rag_available": True,
+                "error": str(e)
+            }
         
     def query(self, query: str, num_results: int = 3) -> Dict[str, Any]:
         """
@@ -219,8 +308,11 @@ class RAGEngine:
         Returns:
             Dictionary containing retrieved documents and RAG availability status
         """
+        logger.info(f"Starting direct RAG query: '{query}' for {num_results} results")
+        
         # Check if we have RAG data
         has_rag_data = self.has_rag_data()
+        logger.info(f"RAG data available: {has_rag_data}")
         
         if not has_rag_data:
             logger.warning("No documents in RAG system, returning empty results")
@@ -231,14 +323,23 @@ class RAGEngine:
             }
         
         try:
-            # Get query embedding
-            query_embedding = self.embedding_model.get_embedding(query)
+            # IMPORTANT: Use text query directly instead of pre-generating embeddings
+            # This avoids embedding dimension mismatches by letting ChromaDB handle embeddings internally
+            logger.info("Using text query directly to avoid embedding dimension mismatches")
             
-            # Query vector store with embedding
-            results = self.vector_store.query(
-                query_embedding=query_embedding,
-                n_results=num_results
-            )
+            # Query vector store with text
+            logger.info(f"Querying vector store with text query: '{query}'")
+            try:
+                results = self.vector_store.query(
+                    query_text=query,
+                    n_results=num_results
+                )
+                logger.info("Vector store query successful")
+            except Exception as query_error:
+                logger.error(f"Error querying vector store: {query_error}")
+                import traceback
+                logger.error(f"Query error traceback: {traceback.format_exc()}")
+                raise
             
             # Process and format results
             formatted_results = []
@@ -246,6 +347,10 @@ class RAGEngine:
                 documents = results.get('documents', [[]])
                 metadatas = results.get('metadatas', [[]])
                 distances = results.get('distances', [[]])
+                
+                # Log retrieved document info
+                doc_count = len(documents[0]) if documents and documents[0] else 0
+                logger.info(f"Retrieved {doc_count} documents")
                 
                 # Handle empty results
                 if not documents[0]:

@@ -136,8 +136,6 @@ urlpatterns = [
     url(r'^cometausage/', views.CometaUsage),
     # AI Chat endpoint
     url(r'^api/chat/completion/', ai_chat.chat_completion),
-    # RAG system API
-    url(r'^api/rag/', include('backend.rag_system.urls')),
     
     
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) 

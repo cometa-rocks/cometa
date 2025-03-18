@@ -14,11 +14,11 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "cometa_pj.settings")
 django.setup()
 
 # Import RAG system components
-from backend.rag_system.document_processor import DocumentProcessor
-from backend.rag_system.vector_store import VectorStore
-from backend.rag_system.embeddings import get_embedder
-from backend.rag_system.rag_engine import RAGEngine
-from backend.rag_system.models import Document, DocumentChunk
+from backend.ee.modules.rag_system.document_processor import DocumentProcessor
+from backend.ee.modules.rag_system.vector_store import VectorStore
+from backend.ee.modules.rag_system.embeddings import get_embedder
+from backend.ee.modules.rag_system.rag_engine import RAGEngine
+from backend.ee.modules.rag_system.models import Document, DocumentChunk
 
 # Configure logging
 logging.basicConfig(
