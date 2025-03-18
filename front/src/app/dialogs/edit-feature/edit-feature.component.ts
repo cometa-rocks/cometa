@@ -175,7 +175,8 @@ export class EditFeature implements OnInit, OnDestroy {
   variable_dialog_isActive: boolean = false;
   backupFiles$!: Observable<string[]>;
   steps$: Observable<FeatureStep[]>;
-
+  files: string[] = [];
+  featureAge: string = '';
   // next runs an array of next executions
   nextRuns = [];
   // parse error
@@ -1430,15 +1431,58 @@ export class EditFeature implements OnInit, OnDestroy {
     if (featureId && featureId > 0) {
       this.backupFiles$ = this._api.getBackupFiles(featureId).pipe(
         catchError(error => {
-          console.error('Error loading backup files:', error);
           this._snackBar.open('Failed to load backup files', 'OK', { duration: 5000 });
           return of([]);
         })
       );
+      
+      // Subscribe to the Observable and store values in the files array
+      this.backupFiles$.subscribe(backupFiles => {
+        
+        // Create a new array with the modified file names
+        this.files = backupFiles.map(file => {
+          // Extract just the date and time part from the filename
+          // Pattern is: {id}_{name}_{date}_{time}.json
+          const parts = file.split('_');
+          if (parts.length >= 3) {
+            // return like year-month-day "space" hour:minute:second
+            return parts.slice(2).join('_').replace('.json', '');
+          }
+          return file; // Return original if pattern doesn't match
+        });
+        
+        this.cdr.detectChanges(); // Make sure the view updates
+      });
     } else {
       // For new features, there are no backups
       this.backupFiles$ = of([]);
+      this.files = [];
     }
   }
 
+  getHowLongAgo(file: string) {
+    
+    // get the date and time from the file name 
+    // the format of the file name is [YEAR]-[MONTH]-[DAY]_[HOUR]-[MINUTE]-[SECOND].json
+    const dateTime = file.split('_')[0];
+    const dateTimeObj = new Date(dateTime);
+    const currentDateTime = new Date();
+    const difference = currentDateTime.getTime() - dateTimeObj.getTime();
+    
+    // Calculate time differences
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+    // Build output string
+    let output = 'From ';
+    if (days > 1) output += `${days} days `;
+    else if (days == 1) output += `${days} day `;
+    else if (hours > 0) output += `${hours} hours `;
+    else if (minutes > 0) output += `${minutes} minutes `;
+    else if (seconds > 0) output += `${seconds} seconds `;
+    output += 'ago';
+    this.featureAge = output;
+  }
 }
