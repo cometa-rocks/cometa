@@ -63,7 +63,6 @@ default_cometa_configurations = {
     "COMETA_S3_ENABLED": False,
     "COMETA_S3_ENDPOINT": "",
     "COMETA_S3_BUCKETNAME": "",
-    "COMETA_AI_ENABLED": False,
     "REDIS_HOST": "cometa.redis.ai",
     "REDIS_PORT": 6379,
     "REDIS_DB": 0,
@@ -79,7 +78,7 @@ default_cometa_configurations = {
     # Add host hostAliases to test environments 
     # For https://redmine.amvara.de/projects/ibis/wiki/Add_DNS_mapping_to_hosts_(etchosts)_file_using_Cometa_configuration
     "COMETA_TEST_ENV_HOST_FILE_MAPPINGS": "[]",
-    "USE_COMETA_BROWSER_IMAGES": False,
+    "USE_COMETA_BROWSER_IMAGES": True,
     "COMETA_BROWSER_MEMORY": "2",
     "COMETA_BROWSER_CPU": "2",
     # having password hardcoded does not create a security issue, because this communication is internal
