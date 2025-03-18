@@ -6,8 +6,8 @@ import os
 import shutil
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from backend.rag_system.models import Document, DocumentChunk
-from backend.rag_system.vector_store import VectorStore, DEFAULT_CHROMA_PATH
+from backend.ee.modules.rag_system.models import Document, DocumentChunk
+from backend.ee.modules.rag_system.vector_store import VectorStore, DEFAULT_CHROMA_PATH
 import logging
 
 logger = logging.getLogger(__name__)
