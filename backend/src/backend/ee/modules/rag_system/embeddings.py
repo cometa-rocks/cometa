@@ -87,6 +87,9 @@ class OllamaEmbedder(EmbeddingModel):
             NumPy array of embedding with shape (embedding_dim,)
         """
         try:
+            logger.info(f"Generating embedding with model: {self.model_name}")
+            logger.info(f"Text length: {len(text)} characters")
+            
             response = requests.post(
                 f"{self.host}/api/embeddings",
                 json={"model": self.model_name, "prompt": text}
@@ -99,7 +102,35 @@ class OllamaEmbedder(EmbeddingModel):
             data = response.json()
             embedding = data.get('embedding', [])
             
-            return np.array(embedding, dtype=np.float32)
+            # Log embedding details
+            embedding_array = np.array(embedding, dtype=np.float32)
+            embedding_dim = embedding_array.shape[0]
+            logger.info(f"Generated embedding dimension: {embedding_dim}")
+            logger.info(f"Embedding stats - Min: {embedding_array.min():.4f}, Max: {embedding_array.max():.4f}, Mean: {embedding_array.mean():.4f}")
+            
+            # Handle dimension inconsistency - granite-embedding:278m can return either 384 or 768 dimensions
+            # For consistency, always ensure we have 768 dimensions
+            expected_dim = 768
+            
+            if embedding_dim != expected_dim:
+                logger.warning(f"Embedding dimension mismatch. Got {embedding_dim}, expected {expected_dim}")
+                
+                if embedding_dim == 384 and expected_dim == 768:
+                    # If we received 384 dimensions but expected 768, pad with zeros
+                    logger.info("Padding embedding from 384 to 768 dimensions")
+                    padded_embedding = np.zeros(expected_dim, dtype=np.float32)
+                    padded_embedding[:embedding_dim] = embedding_array
+                    embedding_array = padded_embedding
+                    logger.info(f"Padded embedding to dimension: {len(embedding_array)}")
+                elif embedding_dim == 768 and expected_dim == 384:
+                    # If we received 768 dimensions but expected 384, truncate
+                    logger.info("Truncating embedding from 768 to 384 dimensions")
+                    embedding_array = embedding_array[:expected_dim]
+                    logger.info(f"Truncated embedding to dimension: {len(embedding_array)}")
+                else:
+                    logger.error(f"Unexpected embedding dimensions: {embedding_dim}")
+            
+            return embedding_array
             
         except Exception as e:
             logger.error(f"Error generating embedding via Ollama API: {e}")
@@ -119,34 +150,36 @@ class OllamaEmbedder(EmbeddingModel):
             return np.array([])
             
         all_embeddings = []
+        expected_dim = 768  # Always expect 768 dimensions
+        logger.info(f"Generating embeddings for {len(texts)} texts with expected dimension {expected_dim}")
         
         # Process in batches
         for i in range(0, len(texts), self.batch_size):
             batch_texts = texts[i:i+self.batch_size]
+            logger.info(f"Processing batch {i//self.batch_size + 1}/{(len(texts) + self.batch_size - 1)//self.batch_size}")
             
             batch_embeddings = []
             for text in batch_texts:
                 try:
                     embedding = self.get_embedding(text)
+                    # Note: get_embedding now handles dimension standardization
                     batch_embeddings.append(embedding)
                 except Exception as e:
                     logger.error(f"Error generating embedding for text: {e}")
-                    # Use a zero vector as fallback
-                    # Use the first successful embedding's shape if available
-                    if batch_embeddings:
-                        batch_embeddings.append(np.zeros_like(batch_embeddings[0]))
-                    else:
-                        # If no embeddings yet, try to get the dimension from a simple test
-                        try:
-                            test_embedding = self.get_embedding("test")
-                            batch_embeddings.append(np.zeros_like(test_embedding))
-                        except:
-                            # Last resort: typical embedding size
-                            batch_embeddings.append(np.zeros(1024, dtype=np.float32))
+                    # Use a zero vector as fallback with the expected dimension
+                    batch_embeddings.append(np.zeros(expected_dim, dtype=np.float32))
             
             all_embeddings.extend(batch_embeddings)
             
-        return np.array(all_embeddings)
+        # Final verification of dimensions
+        embeddings_array = np.array(all_embeddings)
+        logger.info(f"Generated {len(embeddings_array)} embeddings with shape {embeddings_array.shape}")
+        
+        # Verify all embeddings have the expected dimension
+        if embeddings_array.shape[1] != expected_dim:
+            logger.error(f"Embedding dimension mismatch in batch. Got {embeddings_array.shape[1]}, expected {expected_dim}")
+            
+        return embeddings_array
 
 # Factory function to get the appropriate embedder
 def get_embedder(**kwargs) -> EmbeddingModel:

@@ -176,15 +176,80 @@ class VectorStore:
                 
             if query_embedding is None and query_text is None:
                 raise ValueError("Either query_text or query_embedding must be provided")
-                
-            results = self.collection.query(
-                query_embeddings=[query_embedding] if query_embedding is not None else None,
-                query_texts=[query_text] if query_text is not None else None,
-                n_results=n_results,
-                where=where,
-                include=["documents", "metadatas", "distances", "embeddings"]
-            )
-            return results
+            
+            # Log collection info
+            try:
+                collection_info = self.client.get_collection(self.collection_name)
+                logger.info(f"Collection name: {self.collection_name}")
+                logger.info(f"Collection count: {collection_info.count()}")
+                # Try to get dimensionality from collection
+                metadata = collection_info.metadata()
+                if metadata:
+                    logger.info(f"Collection metadata: {metadata}")
+            except Exception as e:
+                logger.warning(f"Could not retrieve collection info: {e}")
+            
+            # IMPORTANT: If text query is provided but no embedding, set query_text to None
+            # and let ChromaDB handle the embedding generation internally.
+            # This avoids dimension mismatch issues when using different embedders.
+            if query_text is not None and query_embedding is None:
+                logger.info(f"Using text query directly without pre-computing embedding: {query_text}")
+                use_query_text = True
+                use_query_embedding = False
+            elif query_embedding is not None:
+                # Log query embedding information
+                embedding_dim = len(query_embedding)
+                logger.info(f"Query embedding dimension: {embedding_dim}")
+                embedding_array = np.array(query_embedding)
+                logger.info(f"Query embedding stats - Min: {embedding_array.min():.4f}, Max: {embedding_array.max():.4f}, Mean: {embedding_array.mean():.4f}")
+                use_query_text = False
+                use_query_embedding = True
+            
+            try:
+                # If we have a pre-computed embedding, use it; otherwise use query_text directly
+                results = self.collection.query(
+                    query_embeddings=[query_embedding] if use_query_embedding else None,
+                    query_texts=[query_text] if use_query_text else None,
+                    n_results=n_results,
+                    where=where,
+                    include=["documents", "metadatas", "distances", "embeddings"]
+                )
+                # Log query results info
+                if results:
+                    # Safely handle documents array
+                    if 'documents' in results and isinstance(results['documents'], list) and len(results['documents']) > 0:
+                        doc_list = results['documents'][0]
+                        docs_count = len(doc_list) if isinstance(doc_list, list) else 0
+                        logger.info(f"Query returned {docs_count} results")
+                    else:
+                        logger.info("Query returned no documents")
+                        
+                    # Safely handle embeddings array
+                    if 'embeddings' in results and isinstance(results['embeddings'], list) and len(results['embeddings']) > 0:
+                        if isinstance(results['embeddings'][0], list) and len(results['embeddings'][0]) > 0:
+                            if isinstance(results['embeddings'][0][0], (list, np.ndarray)):
+                                result_embedding_dim = len(results['embeddings'][0][0])
+                                logger.info(f"Result embedding dimension: {result_embedding_dim}")
+                return results
+            except Exception as e:
+                logger.error(f"Error querying vector store: {e}")
+                # Add more detailed error information
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
+                if "dimension" in str(e).lower():
+                    logger.error(f"Dimension mismatch detected. Query embedding dim: {len(query_embedding) if query_embedding else 'N/A'}")
+                    # Try to get collection dimension
+                    try:
+                        # Check first document in collection to get dimension
+                        peek_results = self.collection.peek(limit=1)
+                        if peek_results and 'embeddings' in peek_results and peek_results['embeddings']:
+                            # Make sure we safely handle the embedding array
+                            if isinstance(peek_results['embeddings'], list) and len(peek_results['embeddings']) > 0:
+                                collection_dim = len(peek_results['embeddings'][0])
+                                logger.error(f"Collection dimension from peek: {collection_dim}")
+                    except Exception as peek_error:
+                        logger.error(f"Could not peek collection: {peek_error}")
+                raise
         except Exception as e:
             logger.error(f"Error querying vector store: {e}")
             raise
@@ -228,6 +293,70 @@ class VectorStore:
         except Exception as e:
             logger.error(f"Error in delete_collection: {e}")
             raise
+            
+    def diagnose_dimension_mismatch(self, test_query_embedding=None) -> Dict[str, Any]:
+        """
+        Diagnose dimension mismatch issues between embeddings and collection.
+        
+        Args:
+            test_query_embedding: Optional test embedding to compare with collection
+            
+        Returns:
+            Dictionary with diagnostic information
+        """
+        logger.info("Running vector store dimension mismatch diagnostics...")
+        
+        diagnostics = {
+            "collection_name": self.collection_name,
+            "collection_exists": False,
+            "collection_count": 0,
+            "collection_dim": None,
+            "test_query_dim": None if test_query_embedding is None else len(test_query_embedding),
+            "dimension_mismatch": False,
+            "issues_found": []
+        }
+        
+        try:
+            if not self.collection:
+                logger.warning("Collection not initialized")
+                diagnostics["issues_found"].append("Collection not initialized")
+                return diagnostics
+                
+            # Check if collection exists and has documents
+            diagnostics["collection_exists"] = True
+            count = self.collection.count()
+            diagnostics["collection_count"] = count
+            
+            if count == 0:
+                logger.warning("Collection is empty - no documents to check dimensions")
+                diagnostics["issues_found"].append("Collection is empty")
+                return diagnostics
+            
+            # Try to get embedding dimension from collection
+            try:
+                peek_results = self.collection.peek(limit=1)
+                # Safely handle embeddings array
+                if peek_results and 'embeddings' in peek_results:
+                    if isinstance(peek_results['embeddings'], list) and len(peek_results['embeddings']) > 0:
+                        diagnostics["collection_dim"] = len(peek_results['embeddings'][0])
+                        logger.info(f"Collection has embedding dimension: {diagnostics['collection_dim']}")
+                        
+                        # Check for dimension mismatch
+                        if test_query_embedding is not None:
+                            if len(test_query_embedding) != diagnostics["collection_dim"]:
+                                diagnostics["dimension_mismatch"] = True
+                                logger.error(f"Dimension mismatch detected: Query dim = {len(test_query_embedding)}, Collection dim = {diagnostics['collection_dim']}")
+                                diagnostics["issues_found"].append(f"Dimension mismatch: {len(test_query_embedding)} vs {diagnostics['collection_dim']}")
+            except Exception as peek_error:
+                logger.error(f"Error getting collection dimensions: {peek_error}")
+                diagnostics["issues_found"].append(f"Error getting collection dimensions: {str(peek_error)}")
+            
+            return diagnostics
+            
+        except Exception as e:
+            logger.error(f"Error in diagnose_dimension_mismatch: {e}")
+            diagnostics["issues_found"].append(f"Diagnostic error: {str(e)}")
+            return diagnostics
 
 # Singleton instance for app-wide use
 _vector_store_instance = None
