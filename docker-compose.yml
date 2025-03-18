@@ -13,7 +13,7 @@ services:
 
   django:
     container_name: cometa_django
-    image: python:3.9
+    image: python:3.11
     logging:
       driver: json-file
     command: bash start.sh
