@@ -177,6 +177,7 @@ export class EditFeature implements OnInit, OnDestroy {
   steps$: Observable<FeatureStep[]>;
   files: string[] = [];
   featureAge: string = '';
+  selectedFile = new UntypedFormControl();
   // next runs an array of next executions
   nextRuns = [];
   // parse error
@@ -845,8 +846,10 @@ export class EditFeature implements OnInit, OnDestroy {
 
     this.loadPanelStates();
 
-    // Load backup feature files
-    this.loadBackupFiles();
+    // Load backup feature files only if mode is edit
+    if (this.data.mode === 'edit') {
+      this.loadBackupFiles();
+    }
 
     this._api.getCometaConfigurations().subscribe(res => {
 
@@ -1424,10 +1427,8 @@ export class EditFeature implements OnInit, OnDestroy {
   }
   
   loadBackupFiles() {
-    // Get the feature ID from the current feature
     const featureId = this.data.feature.feature_id;
     
-    // Only fetch backups for existing features (not for new features)
     if (featureId && featureId > 0) {
       this.backupFiles$ = this._api.getBackupFiles(featureId).pipe(
         catchError(error => {
@@ -1436,25 +1437,21 @@ export class EditFeature implements OnInit, OnDestroy {
         })
       );
       
-      // Subscribe to the Observable and store values in the files array
       this.backupFiles$.subscribe(backupFiles => {
+        // First filter out _meta.json files, then map the remaining files
+        this.files = backupFiles
+          .filter(file => !file.endsWith('_meta.json'))
+          .map(file => {
+            const parts = file.split('_');
+            if (parts.length >= 3) {
+              return parts.slice(2).join('_').replace('.json', '');
+            }
+            return file;
+          });
         
-        // Create a new array with the modified file names
-        this.files = backupFiles.map(file => {
-          // Extract just the date and time part from the filename
-          // Pattern is: {id}_{name}_{date}_{time}.json
-          const parts = file.split('_');
-          if (parts.length >= 3) {
-            // return like year-month-day "space" hour:minute:second
-            return parts.slice(2).join('_').replace('.json', '');
-          }
-          return file; // Return original if pattern doesn't match
-        });
-        
-        this.cdr.detectChanges(); // Make sure the view updates
+        this.cdr.detectChanges();
       });
     } else {
-      // For new features, there are no backups
       this.backupFiles$ = of([]);
       this.files = [];
     }
@@ -1463,7 +1460,7 @@ export class EditFeature implements OnInit, OnDestroy {
   getHowLongAgo(file: string) {
     
     // get the date and time from the file name 
-    // the format of the file name is [YEAR]-[MONTH]-[DAY]_[HOUR]-[MINUTE]-[SECOND].json
+    // the format of the file name is [YEAR]-[MONTH]-[DAY]_[HOUR]-[MINUTE]-[SECOND]
     const dateTime = file.split('_')[0];
     const dateTimeObj = new Date(dateTime);
     const currentDateTime = new Date();
@@ -1484,5 +1481,43 @@ export class EditFeature implements OnInit, OnDestroy {
     else if (seconds > 0) output += `${seconds} seconds `;
     output += 'ago';
     this.featureAge = output;
+  }
+  
+  restoreFeature() {
+
+    //before restoring, open a dialog to ask the user if they are sure they want to restore the feature
+
+    const selectedValue = this.selectedFile.value;
+    console.log("Restoring feature from:", selectedValue);
+    
+    // Subscribe to get the full file names from the API
+    this.backupFiles$.subscribe(files => {
+      //print all inside backupFiles$
+      console.log("Backup files:", files);
+      // Find the files that contain the selected date/time string
+      const featureInfo = files.find(f => f.includes(selectedValue) && f.includes('_meta.json'));
+      const featureSteps = files.find(f => f.includes(selectedValue) && f.endsWith('.json') && !f.includes('_meta.json'));
+      let featureInfoArray: string[] = [];
+      let featureStepsArray: string[] = [];
+      console.log("Feature info:", featureInfo);
+      console.log("Feature steps:", featureSteps);
+      
+      //save in an array the parsed json after calling the api
+
+      //call api to get the json content of the files
+      // this.backupFiles$.subscribe(files => {
+      //   featureInfoArray = JSON.parse(featureInfo);
+      //   featureStepsArray = JSON.parse(featureSteps);
+      // });     
+
+      //need to check how import from clipboard does it.
+      // this.stepEditor.setSteps(JSON.parse(featureSteps), true);
+      // this.featureForm.get('feature_name').setValue(JSON.parse(featureInfo).feature_name);
+      // this.featureForm.get('description').setValue(JSON.parse(featureInfo).description);
+      // this.featureForm.get('department_name').setValue(JSON.parse(featureInfo).department_name);
+      // this.featureForm.get('environment_name').setValue(JSON.parse(featureInfo).environment_name);
+      // this.featureForm.get('app_name').setValue(JSON.parse(featureInfo).app_name);
+      
+    });
   }
 }

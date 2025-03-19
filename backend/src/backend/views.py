@@ -3996,7 +3996,9 @@ def get_backup_files(request, feature_id):
     try:
         for file in os.listdir(backups_dir):
             file_path = os.path.join(backups_dir, file)
-            if os.path.isfile(file_path) and file.startswith(feature_id_str):
+            # Append only if the file is a file and starts with the feature_id and does not end with _meta.json
+            if os.path.isfile(file_path) and file.startswith(feature_id_str): 
+                logger.debug(f"Found backup file: {file}")
                 backup_files.append(file)
     except FileNotFoundError:
         logger.error(f"Backup directory not found: {backups_dir}")
