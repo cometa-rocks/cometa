@@ -77,6 +77,10 @@ REDIS_IMAGE_ANALYSYS_QUEUE_NAME = ConfigurationManager.get_configuration(
     "REDIS_IMAGE_ANALYSYS_QUEUE_NAME", "image_analysis"
 )  # converting to seconds
 
+REDIS_BROWSER_USE_QUEUE_NAME = ConfigurationManager.get_configuration(
+     "REDIS_BROWSER_USE_QUEUE_NAME", "browser_use_queue"
+ ) 
+
 DEPARTMENT_DATA_PATH = "/data/department_data"
 
 
@@ -185,6 +189,7 @@ def before_all(context):
     if COMETA_AI_ENABLED:
         context.ai = AI(
             REDIS_IMAGE_ANALYSYS_QUEUE_NAME=REDIS_IMAGE_ANALYSYS_QUEUE_NAME,
+            REDIS_BROWSER_USE_QUEUE_NAME=REDIS_BROWSER_USE_QUEUE_NAME,
             logger=logger,
         )
 
@@ -600,6 +605,10 @@ def after_all(context):
     del os.environ["current_step"]
     del os.environ["total_steps"]
     # check if any alertboxes are open before quiting the browser
+
+    if hasattr(context,"pw"):
+         context.pw.stop()
+
     try:
         while context.browser.switch_to.alert:
             logger.debug("Found an open alert before shutting down the browser...")
