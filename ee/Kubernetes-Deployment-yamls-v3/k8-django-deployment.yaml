@@ -26,7 +26,7 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-django
-        image: cometa/django:1.5
+        image: cometa/django:1.6
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
@@ -93,7 +93,7 @@ spec:
           subPath: ./data/cometa/downloads
         - name: cometa-volume
         # FIXME to mountPath : /data/uploads 
-          mountPath: /code/behave/uploads 
+          mountPath: /data/uploads 
           subPath: ./data/cometa/uploads
         - name: cometa-volume
           mountPath: /data/department_data
