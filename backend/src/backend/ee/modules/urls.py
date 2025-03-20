@@ -5,7 +5,6 @@ from .security.urls import register_security_routers
 from .mobile.urls import register_mobile_routers, register_mobile_urlpatterns
 from .data_driven.urls import register_data_driven_urlpatterns, register_data_driven_routers
 from .rest_api.urls import register_rest_api_routers, register_rest_api_urlpatterns
-from .rag_system.urls import urlpatterns as rag_system_urlpatterns
 
 
 # Add new modules url here
@@ -24,7 +23,6 @@ def register_ee_modules_urlpatterns(urlpatterns):
     urlpatterns = register_data_driven_urlpatterns(urlpatterns)
     urlpatterns = register_rest_api_urlpatterns(urlpatterns)
     urlpatterns = register_mobile_urlpatterns(urlpatterns)
-    urlpatterns.append(path('api/rag/', include(rag_system_urlpatterns)))
     
     return urlpatterns
     
