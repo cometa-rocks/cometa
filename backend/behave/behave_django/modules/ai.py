@@ -22,6 +22,7 @@ class AI:
     def __init__(self, REDIS_IMAGE_ANALYSYS_QUEUE_NAME, REDIS_BROWSER_USE_QUEUE_NAME, logger):
         self.logger = logger
         self.REDIS_IMAGE_ANALYSYS_QUEUE_NAME = REDIS_IMAGE_ANALYSYS_QUEUE_NAME
+        self.REDIS_BROWSER_USE_QUEUE_NAME = REDIS_BROWSER_USE_QUEUE_NAME
         self.__REDIS_CONNECTION = connect_redis()
         # This variable is path of cometa_ai.src.workers....
         self.__IMAGE_ANALYST_WORKER_NAME = "src.workers.image_analyst.analyze_image"

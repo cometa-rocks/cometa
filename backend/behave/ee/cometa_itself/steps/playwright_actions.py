@@ -27,7 +27,7 @@ def launch_playwright_browser(context):
         send_step_details(context, 'Launching Browser')
         logger.debug("Starting browser")
         # Connect to existing Chrome instance in Selenoid via CDP
-        browser = context.pw.chromium.connect_over_cdp(f"ws://cometa_selenoid:4444/devtools/{context.browser.session_id}")
+        browser = context.pw.chromium.connect_over_cdp(f"ws://{context.browser_hub_url}:4444/devtools/{context.browser.session_id}")
         logger.debug("Browser started")
         time.sleep(5)
         logger.debug("Getting page")

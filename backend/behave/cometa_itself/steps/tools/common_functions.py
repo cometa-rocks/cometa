@@ -629,6 +629,10 @@ def saveToDatabase(
     except Exception as e:
         logger.error("An error occured: ")
         logger.error(str(e))
+        traceback.print_exc()
+        
+    if not step_id:
+        raise CustomError("Cannot connect to the backend to save the step result.")
 
     log_file.close()
     # Some steps shouldn't be allowed to take screenshots and compare, as some can cause errors
