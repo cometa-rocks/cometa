@@ -15,7 +15,7 @@ import { User } from '@store/actions/user.actions';
 import { Select, Store } from '@ngxs/store';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { DOCUMENT, NgIf } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { KEY_CODES } from '@others/enums';
 import { InputFocusService } from '../../services/inputFocus.service';
 import { TranslateModule } from '@ngx-translate/core'; 
@@ -30,6 +30,8 @@ import {
   KeyValuePipe,
 } from '@angular/common';
 import { LetDirective } from '../../directives/ng-let.directive';
+import { ChatbotService } from '../../services/chatbot.service';
+
 @Component({
   selector: 'header',
   templateUrl: './header.component.html',
@@ -73,10 +75,12 @@ export class HeaderComponent {
   private inputFocusSubscription: Subscription;
 
   constructor(
+    private _router: Router,
     public _sharedActions: SharedActionsService,
     private _store: Store,
     private inputFocusService: InputFocusService,
-    private whatsNewService: WhatsNewService
+    private whatsNewService: WhatsNewService,
+    private chatbotService: ChatbotService
   ) {
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
       this.inputFocus = isFocused;
@@ -113,6 +117,10 @@ export class HeaderComponent {
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
+
+    const mainPage = this._router.url.startsWith('/new');
+    const adminPage = this._router.url.startsWith('/admin');
+    const profilePage = this._router.url.startsWith('/my-account');
     const editFeatOpen = document.querySelector('edit-feature') as HTMLElement;
     // If true... return | only execute switch case if input focus is false
     if (this.inputFocus || event.ctrlKey) return;
@@ -127,7 +135,7 @@ export class HeaderComponent {
         }
         break;
       case KEY_CODES.F:
-        if(editFeatOpen == null){
+        if(editFeatOpen == null && mainPage){
           const featureDiv = document.querySelector('div.icon[aria-label="Create feature"]') as HTMLElement;
           if (featureDiv) {
             featureDiv.click();
@@ -151,5 +159,8 @@ export class HeaderComponent {
       default:
         break;
     }
+  }
+  toggleChatbot(): void {
+    this.chatbotService.toggleChat();
   }
 }

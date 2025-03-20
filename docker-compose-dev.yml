@@ -3,8 +3,7 @@ services:
     container_name: cometa_postgres
     image: postgres:12.1
     volumes:
-      - ./backend:/code
-      - ./backend/db_data:/var/lib/postgresql/data
+      - ./data/db_data:/var/lib/postgresql/data
     expose:
       - "5532"
     networks:
@@ -13,10 +12,11 @@ services:
 
   django:
     container_name: cometa_django
-    image: python:3.9
+    image: python:3.11
     logging:
       driver: json-file
-    command: bash start.sh -dev
+    command:  sleep infinity
+    # command: bash start.sh -dev
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa:/data:rw
@@ -40,8 +40,8 @@ services:
       - "8000:8000"
     depends_on:
       - db
-    links:
-      - behave:cometabehave.local
+    # links:
+    #   - behave:cometabehave.local
     networks:
      - testing
     restart: always
@@ -56,8 +56,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-      django:
-        condition: service_healthy
+      # django:
+      #   condition: service_healthy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa/screenshots:/data/screenshots

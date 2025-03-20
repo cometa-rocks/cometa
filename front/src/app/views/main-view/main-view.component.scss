@@ -23,8 +23,21 @@
         margin-right: 5px;
       }
       button {
+        margin: 0 5px 0 5px;
+        mat-icon {
+          font-size: 1.125rem;
+          width: 1.125rem;
+          height: 1.125rem;
+          margin-left: -4px;
+          margin-right: 8px;
+          display: inline-block;
+        }
+      }
+      .failedFeatures {
+        width: 175px;
+      }
+      .archivedItems {
         color: #000;
-        margin-left: 5px;
         width: 175px;
         mat-icon {
           font-size: 1.125rem;
