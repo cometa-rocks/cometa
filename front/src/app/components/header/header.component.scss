@@ -65,6 +65,10 @@
         background: url(^assets/internal/COM_User_Icon.hover.svg) no-repeat;
         background-size: contain;
       }
+      &.chat {
+        background: url(^assets/icons/chat.hover.svg) no-repeat;
+        background-size: contain;
+      }
     }
     @include maxWidth(1100px) {
       width: 60px;
@@ -94,6 +98,10 @@
       }
       &.user {
         background: url(^assets/internal/COM_User_Icon.svg) no-repeat;
+        background-size: contain;
+      }
+      &.chat {
+        background: url(^assets/icons/chat.svg) no-repeat;
         background-size: contain;
       }
       &.landing {

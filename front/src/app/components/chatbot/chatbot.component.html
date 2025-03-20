@@ -1,0 +1,81 @@
+<!-- Chat toggle button -->
+<div class="chat-toggle" [matTooltip]="'Chat Support'" matTooltipPosition="left" (click)="toggleChat()">
+  <mat-icon>chat</mat-icon>
+</div>
+
+<!-- Chat window -->
+<div class="chat-window" 
+     [@chatWindow]="getChatWindowState()"
+     [class.maximized]="isMaximized"
+     [class.minimized]="isMinimized"
+     [class.mobile]="isMobile"
+     [class.dragging]="isDragging"
+     (keydown)="handleKeyboardEvent($event)"
+     #chatWindow>
+  <div class="chat-header" #chatHeader>
+    <div class="chat-title">
+      <span class="secondary-color as-text">co.</span>meta Support
+    </div>
+    <div class="window-controls">
+      <!-- New pop-out button -->
+      <button mat-icon-button class="pop-out-button" (click)="openInNewWindow($event)" matTooltip="Open in new window">
+        <mat-icon>open_in_new</mat-icon>
+      </button>
+      <button mat-icon-button (click)="minimizeChat($event)" matTooltip="Minimize" *ngIf="!isMobile">
+        <mat-icon>remove</mat-icon>
+      </button>
+      <button mat-icon-button (click)="maximizeChat($event)" matTooltip="{{isMaximized ? 'Restore' : 'Maximize'}}">
+        <mat-icon>{{isMaximized ? 'filter_none' : 'crop_square'}}</mat-icon>
+      </button>
+      <button mat-icon-button (click)="toggleChat()" matTooltip="Close">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+  
+  <div class="chat-messages" #messagesContainer>
+    <div *ngFor="let message of messages$ | async" class="message" [ngClass]="{'user-message': message.isUser, 'bot-message': !message.isUser}">
+      <div class="message-content">
+        <div class="message-text">
+          <!-- All messages as plain text for now -->
+          <span>{{ message.text }}</span>
+        </div>
+        <div class="message-time">{{ message.timestamp | date:'shortTime' }}</div>
+      </div>
+    </div>
+    
+    <!-- Loading indicator -->
+    <div *ngIf="isLoading$ | async" class="message bot-message">
+      <div class="message-content">
+        <div class="message-text typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="chat-input">
+    <input 
+      type="text" 
+      [(ngModel)]="newMessage" 
+      placeholder="Type your message..." 
+      (keyup.enter)="sendMessage()"
+      (focus)="onInputFocus()"
+      (blur)="onInputBlur()"
+      [disabled]="isLoading$ | async"
+      autofocus
+    >
+    <button mat-icon-button color="primary" (click)="sendMessage()" [disabled]="!newMessage.trim() || (isLoading$ | async)">
+      <mat-icon *ngIf="!(isLoading$ | async)">send</mat-icon>
+      <mat-icon *ngIf="isLoading$ | async" class="rotating">sync</mat-icon>
+    </button>
+  </div>
+</div>
+
+<!-- Minimized chat indicator - only shown when minimized and not on mobile -->
+<div class="minimized-indicator" *ngIf="isOpenLocal && isMinimized && !isMobile" (click)="restoreChat()">
+  <mat-icon>chat</mat-icon>
+  <span>Chat Support</span>
+</div> 

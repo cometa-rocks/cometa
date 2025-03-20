@@ -79,7 +79,8 @@ INSTALLED_APPS = [
     'modules.housekeeping',
     'modules.configuration',
     'modules.container_service',
-    'modules.token_authentication'
+    'modules.token_authentication',
+    'backend.ee.modules.rag_system',
 ]
 
 MIGRATION_MODULES = {
@@ -91,6 +92,7 @@ MIGRATION_MODULES = {
     'housekeeping': 'migrations.housekeeping',
     'security': 'migrations.security',
     'token_authentication': 'migrations.token_authentication',
+    'rag_system': 'migrations.rag_system',
 } 
  
 MIDDLEWARE = [
