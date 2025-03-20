@@ -191,23 +191,39 @@ deploy:amvara3.prod:
 # build cometa front image and push to docker hub
 build:amvara8.build-1:
   stage: build
+  tags: # on what runners we'd like to run this job
+    - build
+  only: # on what branch we'd like to run this job
+    refs:
+      - build
+  before_script:
+    #########################################################
+    # FRONTEND
+    #########################################################
+    # Get the version of build from front config.json
+    - BUILD_VERSION=$(jq -r '.version' "$CONFIG_FILE") # Extract versions
+    - echo "Build Versions -> $BUILD_VERSION"
+  
   script:
     #########################################################
     # BUILD IMAGES (Front, Behave, Django)
     ########################################################
-    
       - ./updateImages.sh
-
-  extends: .amvara8.build-1
+ 
 
 # build cometa browser images and push to docker hub 
 build:amvara8.build-2:
   stage: build
+  
+  tags: # on what runners we'd like to run this job
+    - build
+  only: # Indicates this job is set to run on a schedule.
+    refs:
+      - schedules
   script:
     #########################################################
     # BUILD BROWSER IMAGES (Chrome, Firefox and Edge)
     ########################################################
       - ./backend/browsers/populateBrowsersJSON.sh
 
-  extends: .amvara8.build-2
       
