@@ -30,20 +30,6 @@ import { Observable, Subscription } from 'rxjs';
                 <span>{{ message.text }}</span>
               </div>
               <div class="message-time">{{ message.timestamp | date:'shortTime' }}</div>
-              
-              <!-- RAG information display -->
-              <div *ngIf="!message.isUser && message.ragInfo" class="rag-info">
-                <div class="rag-badge">
-                  <mat-icon class="rag-icon">auto_stories</mat-icon>
-                  <span>RAG</span>
-                </div>
-                <div class="rag-sources" *ngIf="message.ragInfo.sources && message.ragInfo.sources.length > 0">
-                  <div class="rag-sources-title">Sources:</div>
-                  <ul>
-                    <li *ngFor="let source of message.ragInfo.sources">{{ source }}</li>
-                  </ul>
-                </div>
-              </div>
             </div>
           </div>
           

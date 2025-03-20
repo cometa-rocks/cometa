@@ -8,7 +8,6 @@ from django.core.management.base import BaseCommand, CommandError
 
 from backend.ee.modules.rag_system.document_processor import DocumentProcessor
 from backend.ee.modules.rag_system.vector_store import VectorStore
-from backend.ee.modules.rag_system.embeddings import get_embedder
 from backend.ee.modules.rag_system.models import Document, DocumentChunk
 
 logger = logging.getLogger(__name__)
@@ -61,14 +60,11 @@ class Command(BaseCommand):
         
         try:
             # Process document
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-                document.content = content
-                document.save()
+            document.content = processor.load_document(str(file_path), content_type)
+            document.save()
             
             # Create vector store and embedder
             vector_store = VectorStore()
-            embedder = get_embedder()
             
             # Process document and add to vector store
             chunks = processor.process_document(document)
@@ -76,9 +72,7 @@ class Command(BaseCommand):
             if chunks:
                 # Generate embeddings and add to vector store
                 texts = [chunk.content for chunk in chunks]
-                
-                # IMPORTANT: We need to use Chroma's own embedding system to ensure consistent dimensions
-                # Let's modify the process to pass text directly to the vector store
+
                 self.stdout.write("Adding documents to vector store...")
                 
                 # Create metadata

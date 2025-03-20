@@ -18,7 +18,6 @@ from bs4 import BeautifulSoup
 
 # Internal imports
 from .vector_store import VectorStore
-from .embeddings import EmbeddingModel, OllamaEmbedder, get_embedder
 from .models import DocumentChunk
 
 logger = logging.getLogger(__name__)
@@ -29,12 +28,11 @@ class DocumentProcessor:
     - Loading documents from various sources (PDF, Markdown, HTML, plain text)
     - Chunking documents into smaller pieces
     - Cleaning and normalizing text
-    - Generating embeddings and storing in vector database
+    - Adding documents to the vector database
     """
     
     def __init__(self, 
                  vector_store: Optional[VectorStore] = None,
-                 embedding_model: Optional[EmbeddingModel] = None,
                  chunk_size: int = 1000,
                  chunk_overlap: int = 200):
         """
@@ -42,12 +40,10 @@ class DocumentProcessor:
         
         Args:
             vector_store: VectorStore instance for storing document embeddings
-            embedding_model: Model for generating embeddings
             chunk_size: Target size of text chunks in characters
             chunk_overlap: Number of characters to overlap between chunks
         """
         self.vector_store = vector_store or VectorStore()
-        self.embedding_model = embedding_model or get_embedder()
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         
@@ -186,10 +182,10 @@ class DocumentProcessor:
     
     def chunk_text(self, text: str) -> List[str]:
         """
-        Split text into overlapping chunks.
+        Split text into semantic chunks respecting paragraph boundaries when possible.
         
         Args:
-            text: Text to chunk
+            text: Text to split into chunks
             
         Returns:
             List of text chunks
@@ -197,81 +193,197 @@ class DocumentProcessor:
         if not text:
             return []
             
-        # Clean the text first
-        text = self.clean_text(text)
+        # Remove excessive newlines and whitespace
+        text = re.sub(r'\n{3,}', '\n\n', text)
+        text = text.strip()
+        
+        # Try to split by paragraphs first (two newlines)
+        paragraphs = re.split(r'\n\s*\n', text)
+        paragraphs = [p.strip() for p in paragraphs if p.strip()]
         
         chunks = []
-        start = 0
+        current_chunk = []
+        current_size = 0
         
-        while start < len(text):
-            # Get a chunk of target size or remainder of text
-            end = min(start + self.chunk_size, len(text))
+        # Process paragraphs
+        for para in paragraphs:
+            para_size = len(para)
             
-            # If we're not at the end and this isn't the first chunk,
-            # try to find a natural break point
-            if end < len(text) and end - start == self.chunk_size:
-                # Look for paragraph, sentence, or word boundaries
-                # in reverse order from the end
+            # If adding this paragraph exceeds our chunk size and we already have content
+            if current_size + para_size > self.chunk_size and current_chunk:
+                # Join the current chunk and add it to our list
+                chunks.append('\n\n'.join(current_chunk))
+                # Start a new chunk with this paragraph
+                current_chunk = [para]
+                current_size = para_size
+            # If this single paragraph exceeds the chunk size, we need to split it
+            elif para_size > self.chunk_size:
+                # If we have an existing partial chunk, save it first
+                if current_chunk:
+                    chunks.append('\n\n'.join(current_chunk))
+                    current_chunk = []
                 
-                # Try to find paragraph break
-                paragraph_break = text.rfind('\n\n', start, end)
-                if paragraph_break != -1 and paragraph_break > start + self.chunk_size // 2:
-                    end = paragraph_break + 2  # Include the double newline
-                else:
-                    # Try to find sentence break (period + space)
-                    sentence_break = text.rfind('. ', start, end)
-                    if sentence_break != -1 and sentence_break > start + self.chunk_size // 2:
-                        end = sentence_break + 2  # Include the period and space
-                    else:
-                        # Fall back to word boundary (space)
-                        space = text.rfind(' ', start, end)
-                        if space != -1 and space > start + self.chunk_size // 2:
-                            end = space + 1  # Include the space
-            
-            # Extract the chunk
-            chunk = text[start:end].strip()
-            if chunk:  # Ensure we don't add empty chunks
-                chunks.append(chunk)
-            
-            # Move the start position, accounting for overlap
-            start = end - self.chunk_overlap if end - start > self.chunk_overlap else end
-            
-            # Avoid getting stuck in an infinite loop
-            if start >= end:
-                start = end
+                # Split the paragraph by sentences
+                sentences = re.split(r'(?<=[.!?])\s+', para)
+                sentence_chunks = self._chunk_by_size(sentences, self.chunk_size)
+                
+                # Add these sentence-based chunks
+                for sent_chunk in sentence_chunks:
+                    chunks.append(' '.join(sent_chunk))
+                
+                # Reset current chunk
+                current_chunk = []
+                current_size = 0
+            else:
+                # Add this paragraph to the current chunk
+                current_chunk.append(para)
+                current_size += para_size
+                
+                # Add separator size for calculations
+                if len(current_chunk) > 1:
+                    current_size += 2  # newline characters
         
+        # Add the final chunk if there's anything left
+        if current_chunk:
+            chunks.append('\n\n'.join(current_chunk))
+            
+        # Apply overlap if needed
+        if self.chunk_overlap > 0 and len(chunks) > 1:
+            chunks = self._apply_overlap(chunks)
+            
         return chunks
+        
+    def _chunk_by_size(self, items: List[str], max_size: int) -> List[List[str]]:
+        """Helper method to chunk a list of strings by size."""
+        chunks = []
+        current_chunk = []
+        current_size = 0
+        
+        for item in items:
+            item_size = len(item)
+            
+            if current_size + item_size > max_size and current_chunk:
+                chunks.append(current_chunk)
+                current_chunk = [item]
+                current_size = item_size
+            else:
+                current_chunk.append(item)
+                current_size += item_size
+                
+                # Add separator size for calculations (space between items)
+                if len(current_chunk) > 1:
+                    current_size += 1
+        
+        if current_chunk:
+            chunks.append(current_chunk)
+            
+        return chunks
+        
+    def _apply_overlap(self, chunks: List[str]) -> List[str]:
+        """Apply overlap between chunks to improve context continuity."""
+        if not chunks or len(chunks) <= 1:
+            return chunks
+            
+        result = []
+        overlap_size = min(self.chunk_overlap, self.chunk_size // 4)  # Limit overlap to 25% of chunk size
+        
+        for i, chunk in enumerate(chunks):
+            if i == 0:
+                # First chunk remains as is
+                result.append(chunk)
+            else:
+                # Get the end of the previous chunk to use as overlap
+                prev_chunk = chunks[i-1]
+                prev_words = prev_chunk.split()
+                
+                if len(prev_words) <= overlap_size:
+                    # Previous chunk is small, use it all for context
+                    overlap_text = prev_chunk
+                else:
+                    # Get the last N words from the previous chunk
+                    overlap_text = ' '.join(prev_words[-overlap_size:])
+                
+                # Add the current chunk with the overlap prepended
+                result.append(f"{overlap_text}... {chunk}")
+                
+        return result
     
-    def process_document(self, document):
+    def process_document(self, document) -> List:
         """
-        Process a document by chunking it and creating DocumentChunk objects.
+        Process a document and create chunks.
         
         Args:
-            document: A Document model instance
+            document: Document model instance
             
         Returns:
-            List of DocumentChunk objects
+            List of DocumentChunk instances created
         """
-        logger.info(f"Processing document: {document.title}")
+        logger.info(f"Processing document: {document.title} ({document.id})")
         
-        # Ensure we have clean text
-        clean_content = self.clean_text(document.content)
-        
-        # Chunk the document
-        chunks = self.chunk_text(clean_content)
-        logger.info(f"Document chunked into {len(chunks)} chunks")
-        
-        # Create DocumentChunk objects
-        document_chunks = []
-        for i, chunk_text in enumerate(chunks):
-            chunk = DocumentChunk.objects.create(
-                document=document,
-                content=chunk_text,
-                chunk_index=i
-            )
-            document_chunks.append(chunk)
+        if not document.content:
+            logger.warning(f"Document {document.id} has no content")
+            return []
             
-        return document_chunks
+        try:
+            # Clean the document content
+            text = self._clean_text(document.content)
+            
+            # Split into chunks
+            chunks = self.chunk_text(text)
+            logger.info(f"Created {len(chunks)} chunks from document {document.id}")
+            
+            # Create DocumentChunk instances
+            document_chunks = []
+            for i, chunk_text in enumerate(chunks):
+                chunk = DocumentChunk.objects.create(
+                    document=document,
+                    content=chunk_text,
+                    chunk_index=i
+                )
+                document_chunks.append(chunk)
+                
+            return document_chunks
+            
+        except Exception as e:
+            logger.error(f"Error processing document {document.id}: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return []
+            
+    def _clean_text(self, text: str) -> str:
+        """
+        Clean and normalize text.
+        
+        Args:
+            text: Raw text
+            
+        Returns:
+            Cleaned text
+        """
+        if not text:
+            return ""
+            
+        # If we're cleaning HTML content, strip tags
+        if text.strip().startswith('<') and '>' in text:
+            soup = BeautifulSoup(text, 'html.parser')
+            text = soup.get_text(separator=' ')
+            
+        # Replace repeated whitespace with a single space
+        text = re.sub(r'\s+', ' ', text)
+        
+        # Fix common entity encoding issues
+        text = html.unescape(text)
+        
+        # Remove very long sequences of non-alphanumeric characters
+        text = re.sub(r'[^a-zA-Z0-9\s.,;:!?()\[\]{}\-_=+\'"`~#$%^&*|/\\]{10,}', ' ', text)
+        
+        # Remove excessive punctuation repetition (like !!!!! or ????)
+        text = re.sub(r'([!?.]{2,})', lambda m: m.group(1)[0], text)
+        
+        # Normalize line endings
+        text = text.replace('\r\n', '\n').replace('\r', '\n')
+        
+        return text.strip()
     
     def add_document_to_vector_store(self, document):
         """
@@ -286,11 +398,8 @@ class DocumentProcessor:
         # Process the document into chunks
         chunks = self.process_document(document)
         
-        # Generate embeddings
+        # Prepare texts and metadata
         texts = [chunk.content for chunk in chunks]
-        embeddings = self.embedding_model.get_embeddings(texts)
-        
-        # Prepare data for the vector store
         ids = [str(chunk.id) for chunk in chunks]
         metadatas = [{
             'document_id': str(document.id),
@@ -299,10 +408,10 @@ class DocumentProcessor:
             'chunk_index': chunk.chunk_index
         } for chunk in chunks]
         
-        # Add to vector store
-        self.vector_store.add_documents(
+        # Add to vector store directly, letting ChromaDB handle embeddings internally
+        logger.info(f"Adding {len(ids)} chunks to vector store, letting ChromaDB handle embeddings")
+        self.vector_store.collection.add(
             documents=texts,
-            embeddings=embeddings,
             metadatas=metadatas,
             ids=ids
         )

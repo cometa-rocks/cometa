@@ -12,7 +12,6 @@ import numpy as np
 
 # Internal imports
 from .vector_store import VectorStore
-from .embeddings import EmbeddingModel, get_embedder
 
 logger = logging.getLogger(__name__)
 
@@ -20,18 +19,15 @@ class RAGEngine:
     
     def __init__(self, 
                  vector_store: Optional[VectorStore] = None,
-                 embedding_model: Optional[EmbeddingModel] = None,
                  top_k: int = 5):
         """
-        Initialize the RAG Engine.
+        Initialize the RAG engine.
         
         Args:
             vector_store: Vector store for document retrieval
-            embedding_model: Model for generating embeddings
-            top_k: Number of top documents to retrieve
+            top_k: Number of top results to retrieve
         """
         self.vector_store = vector_store or VectorStore()
-        self.embedding_model = embedding_model or get_embedder()
         self.top_k = top_k
         
         logger.info(f"Initialized RAGEngine with top_k={top_k}")
@@ -55,54 +51,30 @@ class RAGEngine:
         Retrieve relevant context from the vector store.
         
         Args:
-            query: User query
+            query: User query text
             
         Returns:
-            List of documents with their content and metadata
+            List of context documents with metadata and relevance scores
         """
         logger.info(f"Retrieving context for query: '{query}'")
         
-        # First check if we have any data
-        if not self.has_rag_data():
-            logger.warning("No documents in RAG system, returning empty context")
-            return []
-        
         try:
-            # Get embedding model info if possible
-            try:
-                embedding_model_name = getattr(self.embedding_model, 'model_name', 'Unknown model')
-                logger.info(f"Using embedding model: {embedding_model_name}")
-            except Exception as e:
-                logger.warning(f"Could not get embedding model info: {e}")
-                
+            # Query the vector store with a higher limit than needed to filter for quality
+            initial_k = max(10, self.top_k * 2)
+            
             # Log vector store collection info if possible
             try:
                 collection_name = getattr(self.vector_store, 'collection_name', 'Unknown')
                 collection_count = self.vector_store.get_collection_count()
                 logger.info(f"Using vector store collection: {collection_name} with {collection_count} documents")
-                
-                # Try to get collection dimension info
-                try:
-                    collection = self.vector_store.collection
-                    if collection:
-                        peek_results = collection.peek(limit=1)
-                        if peek_results and 'embeddings' in peek_results:
-                            if isinstance(peek_results['embeddings'], list) and len(peek_results['embeddings']) > 0:
-                                collection_dim = len(peek_results['embeddings'][0])
-                                logger.info(f"Collection embedding dimension from peek: {collection_dim}")
-                except Exception as peek_error:
-                    logger.warning(f"Could not determine collection dimensionality: {peek_error}")
             except Exception as vs_error:
                 logger.warning(f"Could not get vector store info: {vs_error}")
             
-            # IMPORTANT: Use text query directly instead of pre-generating embeddings
-            # This avoids embedding dimension mismatches by letting ChromaDB handle the embeddings internally
-            logger.info("Querying vector store for relevant documents using text query...")
-            
             # Query the vector store
+            logger.info(f"Querying vector store for {initial_k} relevant documents...")
             results = self.vector_store.query(
                 query_text=query,
-                n_results=self.top_k
+                n_results=initial_k
             )
             
             # Process the results
@@ -126,17 +98,27 @@ class RAGEngine:
                     logger.warning("Empty results returned from vector store")
                     return []
                     
-                # Extract information from results
+                # Extract information from results and convert distances to relevance scores
                 for i in range(docs_count):
-                    context_doc = {
-                        'id': ids[0][i] if ids and len(ids) > 0 and len(ids[0]) > i else f"unknown-{i}",
-                        'content': documents[0][i],
-                        'metadata': metadatas[0][i] if metadatas and len(metadatas) > 0 and len(metadatas[0]) > i else {},
-                        'relevance_score': 1.0 - distances[0][i] if distances and len(distances) > 0 and len(distances[0]) > i else 0.0
-                    }
-                    context_docs.append(context_doc)
+                    doc_id = ids[0][i] if ids and len(ids) > 0 and len(ids[0]) > i else f"unknown-{i}"
+                    distance = distances[0][i] if distances and len(distances) > 0 and len(distances[0]) > i else 1.0
+                    relevance_score = 1.0 - distance  # Convert distance to relevance (higher is better)
+                    
+                    # Only include if relevance score meets minimum threshold
+                    # This helps filter out irrelevant results even if they were returned
+                    if relevance_score >= 0.2:  # Minimum relevance threshold
+                        context_doc = {
+                            'id': doc_id,
+                            'content': documents[0][i],
+                            'metadata': metadatas[0][i] if metadatas and len(metadatas) > 0 and len(metadatas[0]) > i else {},
+                            'relevance_score': relevance_score
+                        }
+                        context_docs.append(context_doc)
+                
+                # Sort by relevance score (highest first) and limit to top_k
+                context_docs = sorted(context_docs, key=lambda x: x.get('relevance_score', 0), reverse=True)[:self.top_k]
             
-            logger.info(f"Retrieved {len(context_docs)} context documents")
+            logger.info(f"Retrieved and filtered to {len(context_docs)} context documents")
             return context_docs
             
         except Exception as e:
@@ -164,10 +146,12 @@ class RAGEngine:
             # Extract metadata for citation
             metadata = doc.get('metadata', {})
             source = metadata.get('source', 'Unknown Source')
-            title = metadata.get('title', 'Untitled')
-            
-            # Format the context entry
-            context_part = f"[Document {i+1}: {title} from {source}]\n{doc['content']}\n"
+            title = metadata.get('title', metadata.get('document_title', 'Untitled'))
+            relevance = doc.get('relevance_score', 0.0)
+
+            logger.info(f"Document {i+1}: {title} - Relevance: {relevance:.4f} - Source: {source}")
+
+            context_part = f"[Document {i+1}: {title}]\n{doc['content'].strip()}\n"
             context_parts.append(context_part)
             
         return "\n".join(context_parts)
@@ -200,12 +184,17 @@ class RAGEngine:
                 "Use the context to provide accurate, helpful and concise answers."
             )
         
-        # Create augmented system prompt with context
+        # Create augmented system prompt with context and improved instructions
         if context_str:
             augmented_system_prompt = (
                 f"{system_prompt}\n\n"
                 f"Context information is below. Use this information to answer the user's query.\n"
                 f"---BEGIN CONTEXT---\n{context_str}\n---END CONTEXT---\n\n"
+                f"When using the context to answer:\n"
+                f"1. Focus on the most relevant documents based on how well they match the query\n"
+                f"2. Synthesize information from multiple documents when needed\n"
+                f"3. Answer directly and concisely, citing specific information from the context\n"
+                f"4. If the context doesn't contain enough information, acknowledge the limitations\n"
                 f"Given this context, please provide a helpful response to the user's query."
             )
         else:
@@ -245,26 +234,10 @@ class RAGEngine:
             }
         
         try:
-            # Get embedding model info if possible
-            try:
-                embedding_model_name = getattr(self.embedding_model, 'model_name', 'Unknown model')
-                logger.info(f"Using embedding model: {embedding_model_name}")
-            except Exception as e:
-                logger.warning(f"Could not get embedding model info: {e}")
-            
             # Retrieve relevant context
             logger.info("Retrieving context documents...")
             context_docs = self.retrieve_context(query)
             logger.info(f"Retrieved {len(context_docs)} context documents")
-            
-            # Log context document information
-            if context_docs:
-                for i, doc in enumerate(context_docs[:3]):  # Log first 3 docs
-                    relevance = doc.get('relevance_score', 0)
-                    metadata = doc.get('metadata', {})
-                    source = metadata.get('source', 'Unknown')
-                    logger.info(f"Doc {i+1}: Relevance={relevance:.4f}, Source={source}, " +
-                               f"Content length={len(doc.get('content', ''))}")
             
             # Create augmented prompt
             logger.info("Creating augmented prompt...")

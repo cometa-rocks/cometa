@@ -3,11 +3,12 @@ Management command to diagnose RAG system issues, especially embedding dimension
 """
 import logging
 import json
+import requests
+import os
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db import models
-from backend.ee.modules.rag_system.vector_store import VectorStore
-from backend.ee.modules.rag_system.embeddings import get_embedder
+from backend.ee.modules.rag_system.vector_store import VectorStore, RAG_MODEL
 from backend.ee.modules.rag_system.rag_engine import RAGEngine
 from backend.ee.modules.rag_system.models import Document, DocumentChunk
 
@@ -86,30 +87,49 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Vector store is empty. No documents to check."))
             return
             
-        # Step 2: Check embedding model
+        # Step 2: Check embedding model using Ollama API directly
         self.stdout.write("\n2. Checking embedding model...")
         try:
-            embedder = get_embedder()
-            model_name = getattr(embedder, 'model_name', 'Unknown')
-            diagnostics["embedding_model"]["name"] = model_name
-            diagnostics["embedding_model"]["host"] = getattr(embedder, 'host', 'Unknown')
+            # Get Ollama host from environment variable or use default
+            ollama_host = os.environ.get('OLLAMA_HOST', 'http://cometa-ollama.ai-1:8083')
+            diagnostics["embedding_model"]["name"] = RAG_MODEL
+            diagnostics["embedding_model"]["host"] = ollama_host
             
-            self.stdout.write(f"Using embedding model: {model_name}")
-            self.stdout.write(f"Model host: {diagnostics['embedding_model']['host']}")
+            self.stdout.write(f"Using embedding model: {RAG_MODEL}")
+            self.stdout.write(f"Model host: {ollama_host}")
             
-            # Generate test embedding
+            # Generate test embedding directly from Ollama API
             self.stdout.write(f"Generating test embedding for query: '{test_query}'")
-            test_embedding = embedder.get_embedding(test_query)
-            embedding_dim = len(test_embedding)
-            diagnostics["embedding_model"]["embedding_dimension"] = embedding_dim
-            diagnostics["embedding_model"]["embedding_stats"] = {
-                "min": float(test_embedding.min()),
-                "max": float(test_embedding.max()),
-                "mean": float(test_embedding.mean())
-            }
             
-            self.stdout.write(f"Generated embedding with dimension: {embedding_dim}")
-            self.stdout.write(f"Embedding stats - Min: {test_embedding.min():.4f}, Max: {test_embedding.max():.4f}, Mean: {test_embedding.mean():.4f}")
+            try:
+                response = requests.post(
+                    f"{ollama_host}/api/embeddings",
+                    json={"model": RAG_MODEL, "prompt": test_query}
+                )
+                
+                if response.status_code != 200:
+                    raise Exception(f"Failed to get embedding: {response.text}")
+                    
+                data = response.json()
+                test_embedding = data.get('embedding', [])
+                
+                # Convert to numerical array for stats
+                import numpy as np
+                test_embedding = np.array(test_embedding, dtype=np.float32)
+                
+                embedding_dim = len(test_embedding)
+                diagnostics["embedding_model"]["embedding_dimension"] = embedding_dim
+                diagnostics["embedding_model"]["embedding_stats"] = {
+                    "min": float(test_embedding.min()),
+                    "max": float(test_embedding.max()),
+                    "mean": float(test_embedding.mean())
+                }
+                
+                self.stdout.write(f"Generated embedding with dimension: {embedding_dim}")
+                self.stdout.write(f"Embedding stats - Min: {test_embedding.min():.4f}, Max: {test_embedding.max():.4f}, Mean: {test_embedding.mean():.4f}")
+                
+            except Exception as e:
+                raise Exception(f"Error connecting to Ollama API: {str(e)}")
             
         except Exception as e:
             diagnostics["embedding_model"]["error"] = str(e)
@@ -178,19 +198,13 @@ class Command(BaseCommand):
             else:
                 diagnostics["recommendations"].append("Run this command with --fix to clear the vector store and reingest documents")
                 self.stdout.write("To fix this issue:")
-                self.stdout.write("1. Run this command with --fix to clear the vector store")
-                self.stdout.write("2. Reingest all documents with 'python manage.py ingest_documents'")
+                self.stdout.write("  1. Run 'python manage.py diagnose_rag --fix'")
+                self.stdout.write("  2. Run 'python manage.py ingest_documents' to reingest your documents")
         else:
-            if dimension_diagnostics["issues_found"]:
-                diagnostics["issues"].extend(dimension_diagnostics["issues_found"])
-                self.stdout.write(self.style.WARNING("Issues found:"))
-                for issue in dimension_diagnostics["issues_found"]:
-                    self.stdout.write(self.style.WARNING(f"- {issue}"))
-            else:
-                self.stdout.write(self.style.SUCCESS("No dimension mismatch issues detected"))
-                
-        # Step 5: Test RAG query
-        self.stdout.write("\n5. Testing RAG query...")
+            self.stdout.write(self.style.SUCCESS("No dimension mismatch detected"))
+            
+        # Step 5: Check RAG engine
+        self.stdout.write("\n5. Testing RAG engine...")
         try:
             rag_engine = RAGEngine()
             has_rag_data = rag_engine.has_rag_data()
@@ -228,22 +242,21 @@ class Command(BaseCommand):
             diagnostics["rag_engine"]["error"] = str(e)
             self.stdout.write(self.style.ERROR(f"Error initializing RAG engine: {e}"))
             
-        # Output final diagnostics
-        self.stdout.write("\n=== RAG System Diagnostics Summary ===")
+        # Output summary
+        self.stdout.write("\n=== Diagnostics Summary ===")
         if diagnostics["issues"]:
-            self.stdout.write(self.style.WARNING("\nIssues Found:"))
+            self.stdout.write(self.style.ERROR("Issues Found:"))
             for issue in diagnostics["issues"]:
-                self.stdout.write(f"- {issue}")
+                self.stdout.write(self.style.ERROR(f"- {issue}"))
         else:
-            self.stdout.write(self.style.SUCCESS("\nNo issues found!"))
+            self.stdout.write(self.style.SUCCESS("No issues detected. Your RAG system appears to be functioning properly."))
             
         if diagnostics["recommendations"]:
             self.stdout.write("\nRecommendations:")
             for rec in diagnostics["recommendations"]:
                 self.stdout.write(f"- {rec}")
                 
+        # Output as JSON if requested
         if as_json:
             self.stdout.write("\nDiagnostics as JSON:")
-            self.stdout.write(json.dumps(diagnostics, indent=2))
-            
-        self.stdout.write(self.style.SUCCESS("\nRAG diagnostics completed")) 
+            self.stdout.write(json.dumps(diagnostics, indent=2, default=str))

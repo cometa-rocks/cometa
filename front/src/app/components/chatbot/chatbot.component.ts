@@ -72,9 +72,8 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
     y: 20  // Reduced bottom offset from 80 to 20
   };
   
-  // RAG settings
+  // RAG is always enabled but debug info is never shown
   isRagEnabled = true;
-  isRagDebugEnabled = false;
   
   // Store the window position and size before maximizing
   private windowState = {
@@ -181,25 +180,6 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
           this.scrollToBottom();
         }, 100);
       })
-    );
-    
-    // Get RAG settings from store
-    this.subscriptions.push(
-      this.store.select(state => state.config.internal.chatbotUseRag)
-        .subscribe(useRag => {
-          if (useRag !== undefined) {
-            this.isRagEnabled = useRag;
-          }
-        })
-    );
-    
-    this.subscriptions.push(
-      this.store.select(state => state.config.internal.chatbotShowRagDebug)
-        .subscribe(showRagDebug => {
-          if (showRagDebug !== undefined) {
-            this.isRagDebugEnabled = showRagDebug;
-          }
-        })
     );
   }
   

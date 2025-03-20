@@ -19,12 +19,13 @@ The RAG system consists of the following components:
 - Uses ChromaDB for storing and retrieving document embeddings
 - Supports persistent storage of embeddings
 - Provides methods for adding, querying, and deleting documents
+- Lets ChromaDB handle embeddings internally to avoid dimension mismatches
 
 ### 2. Embedding Model
 
-- Uses IBM Granite Embedding model for generating embeddings
-- Handles batching and error recovery for efficient processing
-- Supports CPU and GPU inference
+- Uses Ollama with the `granite3.1-dense` model for ChromaDB's internal embeddings
+- No custom embedding generation is used - all embedding handled by ChromaDB
+- Consistent embedding generation across document ingestion and querying
 
 ### 3. Document Processor
 
@@ -38,12 +39,13 @@ The RAG system consists of the following components:
 - Retrieves relevant context based on user queries
 - Creates augmented prompts with retrieved context
 - Formats context for optimal LLM consumption
+- Consistently converts distance metrics to similarity/relevance scores
 
 ### 5. Django Integration
 
 - Models for tracking documents and chunks
 - Admin interface for managing documents
-- API endpoints for querying the RAG system
+- Integration with the Co.meta chat completion API
 - Management commands for ingesting documents
 
 ## Usage
@@ -75,58 +77,34 @@ Options:
 - `--top-k`: Number of results to retrieve (default: 5)
 - `--json`: Output as JSON
 
-### Using the RAG API
+### Using the Chat Completion API
 
-The RAG system exposes an API endpoint for querying:
+The RAG system is integrated directly into the chat completion API:
 
 ```
-POST /api/rag/query/
+POST /api/chat/completion/
 ```
 
 Request body:
 ```json
 {
-  "query": "How do I create a new test?",
-  "top_k": 5
+  "message": "How do I create a new test?",
+  "history": [
+    {"text": "Hello", "isUser": true},
+    {"text": "Hi there! How can I help you today?", "isUser": false}
+  ]
 }
 ```
 
-Response:
-```json
-{
-  "success": true,
-  "data": {
-    "query": "How do I create a new test?",
-    "has_context": true,
-    "system_prompt": "...",
-    "context_docs": [
-      {
-        "id": "...",
-        "content": "...",
-        "metadata": { ... },
-        "relevance_score": 0.95
-      },
-      ...
-    ]
-  }
-}
-```
-
-### Chatbot Integration
-
-The RAG system is integrated with the Co.meta chatbot. Users can control RAG features with the following commands:
-
-- `/rag on` or `/rag enable`: Enable RAG for enhanced responses
-- `/rag off` or `/rag disable`: Disable RAG
-- `/rag debug on`: Show RAG debug information with responses
-- `/rag debug off`: Hide RAG debug information
+The backend will automatically use RAG to enhance responses. The system handles document retrieval and context integration internally.
 
 ## Configuration
 
 The RAG system can be configured through environment variables:
 
 - `CHROMA_PERSIST_DIRECTORY`: Path to store ChromaDB data (default: `data/chromadb`)
-- `EMBEDDING_MODEL`: Name of the embedding model to use (default: `ibm/granite-embedding-base-v2`)
+- `OLLAMA_HOST`: Host for the Ollama API (default: `http://cometa-ollama.ai-1:8083`)
+- `OLLAMA_PORT`: Port for the Ollama API (default: `8083`)
 - `RAG_CHUNK_SIZE`: Default chunk size for documents (default: 1000)
 - `RAG_CHUNK_OVERLAP`: Default chunk overlap (default: 200)
 - `RAG_TOP_K`: Default number of results to retrieve (default: 5)
@@ -145,18 +123,19 @@ To add support for a new document type:
 
 To use a different embedding model:
 
-1. Create a new subclass of `EmbeddingModel`
-2. Implement the `get_embeddings` method
-3. Update the `get_embedder` factory function
+1. Update the `RAG_MODEL` constant in `embeddings.py`
+2. Ensure the model is available in your Ollama instance
+3. The system will automatically use the new model for all embedding operations
 
 ## Troubleshooting
 
 ### Common Issues
 
-- **Out of Memory Errors**: Reduce batch size or use a smaller embedding model
-- **Slow Queries**: Check index size and consider optimizing chunk size
+- **Dimension Mismatches**: The system uses ChromaDB's internal embedding handling to avoid dimension mismatches
+- **Slow Queries**: Check index size and consider optimizing chunk size or adjusting HNSW parameters
 - **Missing Context**: Ensure documents are properly ingested and chunked
+- **Ollama Connection Issues**: Verify that Ollama is running and the model is available
 
 ### Logs
 
-The RAG system logs information to the standard Django logger. Check the logs for detailed information about document processing, embedding generation, and query processing. 
+The RAG system logs detailed information to the standard Django logger. Check the logs for information about document processing, embedding generation, and query processing, including specific distance/similarity scores for retrieved documents. 
