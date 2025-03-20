@@ -7,9 +7,11 @@ import logging
 import os
 import socket
 import uuid
+import time
 
 # Import RAG system components
 from backend.ee.modules.rag_system.rag_engine import RAGEngine
+from backend.ee.modules.rag_system.vector_store import RAG_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -17,16 +19,19 @@ logger = logging.getLogger(__name__)
 @permission_classes([AllowAny])
 def chat_completion(request):
     """Proxy requests to Ollama API for chat completions with RAG enhancement"""
+    request_id = str(uuid.uuid4())[:8]
+    start_time = time.time()
+
+    logger.info(f"Request received: {request.data}")
+    
     try:
         # Extract user message and chat history
         data = request.data
         user_message = data.get('message', '')
         chat_history = data.get('history', [])
         
-        # Log the request
-        username = request.user.username if request.user.is_authenticated else 'anonymous'
-        logger.info(f"Chat request from user {username}: {user_message[:50]}...")
-        
+        logger.info(f"[{request_id}] Processing chat request: '{user_message[:50]}...' (if truncated)")
+
         # Base system prompt
         base_system_prompt = """You are Co.meta's AI assistant. Co.meta is a test automation platform.
         Help users with questions about test creation, execution, scheduling, and other platform features.
@@ -47,11 +52,11 @@ def chat_completion(request):
         
         try:
             # Initialize RAG engine
-            logger.info(f"[{str(uuid.uuid4())[:8]}] Initializing RAG engine...")
+            logger.info(f"[{request_id}] Initializing RAG engine...")
             rag_engine = RAGEngine(top_k=5)
             
             # Process query to get relevant documents
-            logger.info(f"[{str(uuid.uuid4())[:8]}] Using RAG for query: '{user_message}'")
+            logger.info(f"[{request_id}] Using RAG for query: '{user_message}'")
             rag_result = rag_engine.process_query(
                 query=user_message,
                 system_prompt=base_system_prompt
@@ -61,20 +66,20 @@ def chat_completion(request):
             if rag_result['has_context']:
                 augmented_prompt = rag_result['system']
                 rag_context = rag_result['context_docs']
-                logger.info(f"[{str(uuid.uuid4())[:8]}] Found {len(rag_context)} relevant documents for RAG")
+                logger.info(f"[{request_id}] Found {len(rag_context)} relevant documents for RAG")
                 if rag_context:
                     # Log a sample of the documents retrieved
                     for i, doc in enumerate(rag_context[:2]):  # Log just 2 docs
                         score = doc['relevance_score']
                         meta = doc['metadata']
                         source = meta.get('source', 'Unknown')
-                        logger.info(f"[{str(uuid.uuid4())[:8]}] Doc {i+1}: Score={score:.4f}, Source={source}")
+                        logger.info(f"[{request_id}] Doc {i+1}: Score={score:.4f}, Source={source}")
             else:
-                logger.info(f"[{str(uuid.uuid4())[:8]}] No relevant documents found for RAG")
+                logger.info(f"[{request_id}] No relevant documents found for RAG")
         except Exception as e:
-            logger.warning(f"[{str(uuid.uuid4())[:8]}] Error using RAG system: {str(e)}")
+            logger.warning(f"[{request_id}] Error using RAG system: {str(e)}")
             import traceback
-            logger.warning(f"[{str(uuid.uuid4())[:8]}] RAG traceback: {traceback.format_exc()}")
+            logger.warning(f"[{request_id}] RAG traceback: {traceback.format_exc()}")
             # Continue without RAG enhancement
             augmented_prompt = base_system_prompt
         
@@ -96,19 +101,22 @@ def chat_completion(request):
         
         try:
             # Call Ollama API
+            logger.info(f"[{request_id}] Calling Ollama API at {ollama_url}")
             ollama_response = requests.post(
                 ollama_url,
                 json={
-                    "model": "llama3.2",
+                    "model": RAG_MODEL,
                     "messages": messages,
                     "stream": False,
                     "options": {
-                        "temperature": 0.0,
-                        "top_p": 0.9,
-                        "max_tokens": 500
+                        "temperature": 0.1,
+                        "top_p": 0.95,
+                        "top_k": 100,
+                        "num_ctx": 4096,
+                        "num_predict": 1500,
                     }
                 },
-                timeout=30  # Set a timeout to prevent hanging requests
+                timeout=60  # Set a timeout to prevent hanging requests
             )
             
             # Process response
@@ -122,25 +130,11 @@ def chat_completion(request):
                     "success": True
                 }
                 
-                # Include RAG context if available and debug flag is on
-                include_rag_debug = data.get('include_rag_debug', True)
-                if include_rag_debug and rag_context:
-                    response_data["rag_debug"] = {
-                        "context_used": True,
-                        "document_count": len(rag_context),
-                        "documents": [
-                            {
-                                "content_preview": doc['content'][:200] + "..." if len(doc['content']) > 200 else doc['content'],
-                                "metadata": doc['metadata'],
-                                "relevance_score": doc['relevance_score']
-                            }
-                            for doc in rag_context
-                        ]
-                    }
-                
+                elapsed_time = time.time() - start_time
+                logger.info(f"[{request_id}] Request completed successfully in {elapsed_time:.2f}s")
                 return Response(response_data)
             else:
-                logger.error(f"Error from Ollama API: {ollama_response.status_code} - {ollama_response.text}")
+                logger.error(f"[{request_id}] Error from Ollama API: {ollama_response.status_code} - {ollama_response.text}")
                 return Response({
                     "message": "I'm sorry, but I'm having trouble processing your request right now. Please try again later.",
                     "success": False,
@@ -148,7 +142,7 @@ def chat_completion(request):
                 }, status=200)
         
         except requests.exceptions.Timeout:
-            logger.error(f"Timeout connecting to Ollama API at {ollama_url}")
+            logger.error(f"[{request_id}] Timeout connecting to Ollama API at {ollama_url}")
             return Response({
                 "message": "I'm sorry, but the AI service is taking too long to respond. Please try again later.",
                 "success": False,
@@ -156,7 +150,7 @@ def chat_completion(request):
             }, status=200)
             
         except requests.exceptions.ConnectionError as e:
-            logger.error(f"Connection error to Ollama API: {str(e)}")
+            logger.error(f"[{request_id}] Connection error to Ollama API: {str(e)}")
             return Response({
                 "message": "I'm sorry, but the AI service is currently unavailable. Our team has been notified of this issue. Please try again later.",
                 "success": False,
@@ -164,7 +158,7 @@ def chat_completion(request):
             }, status=200)
             
         except Exception as e:
-            logger.error(f"Error calling Ollama API: {str(e)}")
+            logger.error(f"[{request_id}] Error calling Ollama API: {str(e)}")
             return Response({
                 "message": "I'm sorry, but I encountered an unexpected error. Our team has been notified. Please try again later.",
                 "success": False,
@@ -172,7 +166,7 @@ def chat_completion(request):
             }, status=200)
             
     except socket.gaierror as e:
-        logger.error(f"DNS resolution error: {str(e)}")
+        logger.error(f"[{request_id}] DNS resolution error: {str(e)}")
         return Response({
             "message": "I'm sorry, but the AI service is currently unavailable due to a network issue. Our team has been notified.",
             "success": False,
@@ -180,7 +174,7 @@ def chat_completion(request):
         }, status=200)
         
     except Exception as e:
-        logger.error(f"Internal server error in chat_completion: {str(e)}")
+        logger.error(f"[{request_id}] Internal server error in chat_completion: {str(e)}")
         return Response({
             "message": "I'm sorry, but I encountered an unexpected error. Our team has been notified. Please try again later.",
             "success": False,
