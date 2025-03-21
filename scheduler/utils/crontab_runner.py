@@ -20,36 +20,42 @@ def get_schedules():
 
 
 def run_command(command: str):
-    # Start running feature with current browser
     try:
-
         if command.strip().startswith("curl"):
             parsed_info = parse_curl_command(command)
-            #
-            logger.debug(f"HTTP Method: {parsed_info.get('method')}")
-            logger.debug(f"URL: {parsed_info.get('url')}")
-            logger.debug(f"Data Payload: {parsed_info.get('data')}")
-            logger.debug(f"Headers: {parsed_info.get('headers')}")
+
+            request_body = parsed_info.get("data")
+            if request_body:
+                try:
+                    request_body = json.loads(request_body)
+                except json.JSONDecodeError:
+                    logger.warning("Data is not a valid JSON format. Sending as raw string.")
+            else:
+                request_body = None
 
             try:
-                response = requests.request(method=parsed_info.get("method"), data=parsed_info["data"], url=f'{get_django_server_url()}/exectest/',
-                                            headers=parsed_info["headers"])
-                logger.info(
-                    f"Sent HTTP request to {parsed_info['url']}, Response status : {response.status_code}, Response body : {response.text}")
-            except ConnectionError as e:
-                logger.exception("Exception while making http request to Django server",e)
+                response = requests.request(
+                    method=parsed_info.get("method"),
+                    json=request_body,
+                    url=parsed_info.get("url"),
+                    headers=parsed_info["headers"]
+                )
 
+                logger.info(
+                    f"Sent HTTP request to {parsed_info['url']}, Response status : {response.status_code}, Response body : {response.text}"
+                )
+            except ConnectionError as e:
+                logger.exception("Exception while making HTTP request to Django server", exc_info=e)
 
         else:
-                result = subprocess.run(command, shell=True, capture_output=True, text=True)
-                if result.returncode == 0:
-                    logger.info(result.stdout)
-                else:
-                    logger.error(f"Error occurred during the feature execution, please check the output:\n{result.stderr}")
-
+            result = subprocess.run(command, shell=True, capture_output=True, text=True)
+            if result.returncode == 0:
+                logger.info(result.stdout)
+            else:
+                logger.error(f"Error occurred during execution:\n{result.stderr}")
+                
     except Exception as e:
         logger.exception(f"Exception when running command {command}", exc_info=e)
-
 
 def update_jobs(scheduler, jobs, called_by="Scheduler"):
     """Updates the scheduler with new jobs from fetched schedules."""
