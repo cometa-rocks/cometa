@@ -8,14 +8,13 @@ from src.connections.redis_connection import (
 )
 from src.utility.common import get_logger
 from multiprocessing import Process
-
 logger = get_logger()
 
 
 def start_worker():
     REDIS_CONNECTION = connect_redis()
     with Connection(REDIS_CONNECTION):
-        queue = Queue(REDIS_IMAGE_ANALYSYS_QUEUE_NAME, connection=REDIS_CONNECTION)
+        queue = Queue(REDIS_IMAGE_ANALYSYS_QUEUE_NAME, connection=REDIS_CONNECTION, is_async=False)
         queue_browser_use = Queue(REDIS_BROWSER_USE_QUEUE_NAME, connection=REDIS_CONNECTION)
         worker = Worker([queue, queue_browser_use])
         worker.work()
