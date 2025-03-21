@@ -134,8 +134,9 @@ services:
       SCHEDULER_HOST: "crontab"
       SCHEDULER_PORT: "8080"
       DEBUG_LEVEL: 10
-    # volumes:
-    #   - ./scheduler:/app:rw
+    volumes:
+      - ./backend/scheduler:/app:rw
+    command: sleep infinity
     networks:
       - testing
     restart: always
