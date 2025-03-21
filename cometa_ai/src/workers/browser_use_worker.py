@@ -5,15 +5,7 @@ from src.utility.common import get_logger
 from langchain_openai import ChatOpenAI
 
 
-logger = get_logger()
-
-load_dotenv()
-
-DEFAULT_BROWSER_USE_MODEL = os.getenv("BROWSER_USE_MODEL", "gpt-4o")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
-
-def validate_openai_api_key():
+def validate_openai_api_key(OPENAI_API_KEY):
     """
     Validates OpenAI API key format and presence.
     Raises ValueError for invalid or missing keys.
@@ -50,8 +42,16 @@ async def execute_browser_use_action(prompt, browser_context=None):
         ValueError: For invalid configurations
         Exception: For general execution errors
     """
+
+        
+    logger = get_logger()
+
+    load_dotenv()
+
+    DEFAULT_BROWSER_USE_MODEL = os.getenv("BROWSER_USE_MODEL", "gpt-4o")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     # Ensure OpenAI API key is valid before proceeding
-    validate_openai_api_key()
+    validate_openai_api_key(OPENAI_API_KEY)
 
     try:
         # Validate required browser context

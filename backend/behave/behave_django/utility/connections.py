@@ -25,8 +25,8 @@ def connect_redis():
     )
     logger.debug(ConfigurationManager.get_configuration("REDIS_DB_TSL_SSL_ENABLED"))
     REDIS_DB_TSL_SSL_ENABLED = (
-        ConfigurationManager.get_configuration("REDIS_DB_TSL_SSL_ENABLED", "No")
-        == "Yes"
+        ConfigurationManager.get_configuration("REDIS_DB_TSL_SSL_ENABLED", "False")
+        == "True"
     )
     # REDIS_PASSWORD = os.getenv('REDIS_PASSWORD', "")
 
@@ -35,7 +35,7 @@ def connect_redis():
 
     logger.debug(f"Connecting to redis host {REDIS_HOST}:{REDIS_PORT}")
 
-    redis_connection_errors = {
+    redis_connection_details = {
         "host": REDIS_HOST,
         "port": REDIS_PORT,
         "db": REDIS_DB,
@@ -43,14 +43,14 @@ def connect_redis():
     }
 
     if REDIS_DB_TSL_SSL_ENABLED:
-        redis_connection_errors["ssl"] = REDIS_DB_TSL_SSL_ENABLED
-        redis_connection_errors["ssl_ca_certs"] = REDIS_CA_CERTIFICATE_FILE
+        redis_connection_details["ssl"] = REDIS_DB_TSL_SSL_ENABLED
+        redis_connection_details["ssl_ca_certs"] = REDIS_CA_CERTIFICATE_FILE
         logger.debug("Adding SSL")
 
-    logger.debug(redis_connection_errors)
+    logger.debug(redis_connection_details)
 
     # Creating Redis connection
-    REDIS_CONNECTION = redis.Redis(**redis_connection_errors)
+    REDIS_CONNECTION = redis.Redis(**redis_connection_details)
     # Testing the connection
     try:
         REDIS_CONNECTION.ping()
