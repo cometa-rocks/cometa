@@ -1,5 +1,5 @@
 #!/bin/bash
-
+cd ..
 # Check if a directory path is provided
 if [ -n "$1" ]; then
     BASE_DIR="$1"
