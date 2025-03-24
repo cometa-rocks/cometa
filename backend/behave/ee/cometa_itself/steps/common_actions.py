@@ -9,6 +9,7 @@ import sys, requests, re, json, traceback, html
 import pandas as pd
 import os
 import jq
+from faker import Faker
 
 from behave import step, use_step_matcher
 
@@ -217,3 +218,50 @@ def assert_imp(context, jq_pattern, variable_name, new_variable_name):
         raise CustomError(err)
 
 use_step_matcher("parse")
+
+
+def get_faker_public_methods():
+    fake = Faker()
+    methods = []
+    for attr_name in dir(fake):
+        # Skip private and special methods
+        if attr_name.startswith('_'):
+            continue
+        try:
+            attr = getattr(fake, attr_name)
+            if callable(attr):
+                methods.append(attr_name)
+        except Exception:
+            # Some attributes may raise errors (like deprecated .seed)
+            continue
+    return methods
+
+
+# Generates fake data using the Faker library and stores it in a runtime variable
+# Args:
+#     context: The behave context object containing test execution data
+#     information: The type of fake data to generate (e.g., 'name', 'email', 'address')
+#     variable: The name of the runtime variable to store the generated data
+# Returns:
+#     str: The generated fake data value#
+# Example:
+#     Generate fake "email" and store in "user_email"
+#     Generate fake "name" and store in "full_name"
+# Available Information types:
+# first_name, last_name, name, email, phone_number, address, city, state, country, postalcode, day_of_week, day_of_month, timezone, uid, etc
+@step(u'Generate random "{information}" and store in "{variable}"')
+@done(u'Generate random "{information}" and store in "{variable}"')
+def generate_fake_data_store_in_variable(context, information, variable):
+    fake = Faker()
+    if hasattr(fake, information):
+        method = getattr(fake, information)
+        if callable(method):
+            send_step_details(context, f"Generating {information}")
+            value = method()
+            addTestRuntimeVariable(context, variable, value)
+        else:
+            raise CustomError(f"'Information type : {information}' not available. Available types are {get_faker_public_methods()}")
+    else:
+        raise CustomError(f"'Information type : {information}' not available. Available types are {get_faker_public_methods()}")
+
+
