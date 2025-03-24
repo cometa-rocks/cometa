@@ -23,6 +23,7 @@ def register_ee_modules_urlpatterns(urlpatterns):
     urlpatterns = register_data_driven_urlpatterns(urlpatterns)
     urlpatterns = register_rest_api_urlpatterns(urlpatterns)
     urlpatterns = register_mobile_urlpatterns(urlpatterns)
+    
     return urlpatterns
     
 

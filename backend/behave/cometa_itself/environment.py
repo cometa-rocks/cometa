@@ -77,6 +77,10 @@ REDIS_IMAGE_ANALYSYS_QUEUE_NAME = ConfigurationManager.get_configuration(
     "REDIS_IMAGE_ANALYSYS_QUEUE_NAME", "image_analysis"
 )  # converting to seconds
 
+REDIS_BROWSER_USE_QUEUE_NAME = ConfigurationManager.get_configuration(
+     "REDIS_BROWSER_USE_QUEUE_NAME", "browser_use_queue"
+ ) 
+
 DEPARTMENT_DATA_PATH = "/data/department_data"
 
 
@@ -185,6 +189,7 @@ def before_all(context):
     if COMETA_AI_ENABLED:
         context.ai = AI(
             REDIS_IMAGE_ANALYSYS_QUEUE_NAME=REDIS_IMAGE_ANALYSYS_QUEUE_NAME,
+            REDIS_BROWSER_USE_QUEUE_NAME=REDIS_BROWSER_USE_QUEUE_NAME,
             logger=logger,
         )
 
@@ -342,7 +347,7 @@ def before_all(context):
     
     
     context.service_manager = ServiceManager()
-    
+    context.browser_hub_url = "cometa_selenoid"   
     if USE_COMETA_BROWSER_IMAGES:
         logger.debug(f"Using cometa browsers, Starting browser ")
         logger.debug(f"Browser_info : {context.browser_info}")
@@ -361,6 +366,7 @@ def before_all(context):
         context.browser_info["container_service"] = {"Id": service_details["Id"]}
         context.container_services.append(service_details)
         browser_hub_url = context.service_manager.get_service_name(service_details['Id'])
+        context.browser_hub_url = browser_hub_url
         connection_url = f"http://{browser_hub_url}:4444/wd/hub"
         status_check_connection_url = f"http://{browser_hub_url}:4444/status"
         context.service_manager.wait_for_selenium_hub_be_up(status_check_connection_url)
@@ -536,6 +542,7 @@ def before_all(context):
     capabilities = options.to_capabilities()
     logger.info("Options Summary (Capabilities):")
     logger.info(capabilities)
+    
     if USE_COMETA_BROWSER_IMAGES:
         context.browser = webdriver.Remote(command_executor=connection_url, options=options, keep_alive=True)
     else:
@@ -600,6 +607,10 @@ def after_all(context):
     del os.environ["current_step"]
     del os.environ["total_steps"]
     # check if any alertboxes are open before quiting the browser
+
+    if hasattr(context,"pw"):
+         context.pw.stop()
+
     try:
         while context.browser.switch_to.alert:
             logger.debug("Found an open alert before shutting down the browser...")
