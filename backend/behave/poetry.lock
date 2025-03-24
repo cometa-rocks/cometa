@@ -628,6 +628,21 @@ files = [
 ]
 
 [[package]]
+name = "faker"
+version = "37.0.2"
+description = "Faker is a Python package that generates fake data for you."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "faker-37.0.2-py3-none-any.whl", hash = "sha256:8955706c56c28099585e9e2b6f814eb0a3a227eb36a2ee3eb9ab577c4764eacc"},
+    {file = "faker-37.0.2.tar.gz", hash = "sha256:948bd27706478d3aa0b6f9f58b9f25207098f6ca79852c7b49c44a8ced2bc59b"},
+]
+
+[package.dependencies]
+tzdata = "*"
+
+[[package]]
 name = "google-auth"
 version = "2.38.0"
 description = "Google Authentication Library"
@@ -2732,7 +2747,6 @@ description = "Provider of IANA time zone data"
 optional = false
 python-versions = ">=2"
 groups = ["main"]
-markers = "sys_platform == \"win32\""
 files = [
     {file = "tzdata-2025.1-py2.py3-none-any.whl", hash = "sha256:7e127113816800496f027041c570f50bcd464a020098a3b6b199517772303639"},
     {file = "tzdata-2025.1.tar.gz", hash = "sha256:24894909e88cdb28bd1636c6887801df64cb485bd593f2fd83ef29075a81d694"},
@@ -2818,4 +2832,4 @@ h11 = ">=0.9.0,<1"
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "4fc5825619f76c7fc5894aa08fd0aa29763d795f6737cd265e177a8da4011ba7"
+content-hash = "6adffd05e5b92642c1fe94e259f5e255bed9fae2c912a8435675393bf71e1c80"
