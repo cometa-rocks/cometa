@@ -1396,7 +1396,102 @@ def parseBrowsers(request):
 
 @csrf_exempt
 def parseCometaBrowsers(request):
+    # https://hub.docker.com/v2/repositories/cometa/chrome/tags
+    # https://hub.docker.com/v2/repositories/cometa/firefox/tags
+    # https://hub.docker.com/v2/repositories/cometa/edge/tags
+    # call all 3 apis and save the data in 3 variables
+    # then parse the data in each variable into another variable
+    # that will have the structure of 
+    # append each browser found, to the cometa_browsers variable
+    # "browser_json": {
+    #     "os": "Generic",
+    #     "device": null,
+    #     "browser": "chrome",
+    #     "os_version": "Selenium",
+    #     "real_mobile": false,
+    #     "browser_version": "134.0",
+    #     "cloud": "local"
+    # }
+
+    #call the apis
+    # chrome_data = requests.get('https://hub.docker.com/v2/repositories/cometa/chrome/tags')
+    # firefox_data = requests.get('https://hub.docker.com/v2/repositories/cometa/firefox/tags')
+    # edge_data = requests.get('https://hub.docker.com/v2/repositories/cometa/edge/tags')
+
+    # # parse the data
+    # chrome_data = chrome_data.json()
+    # firefox_data = firefox_data.json()
+    # edge_data = edge_data.json()
+
+    # logger.debug(f"Chrome data: {chrome_data}")
+    # logger.debug(f"Firefox data: {firefox_data}")
+    # logger.debug(f"Edge data: {edge_data}")
+
+    # # create a new variable that will have the structure
+    # cometa_browsers = {
+    #     'chrome': [],
+    #     'firefox': [],
+    #     'edge': []
+    # }
+
+    # # iterate over the chrome data  
+    # for chrome_version in chrome_data['results']:   
+    #     cometa_browsers['chrome'].append({
+    #         "os": "Generic",    
+    #         "device": None,
+    #         "browser": "chrome",
+    #         "os_version": "Selenium",   
+    #         "real_mobile": False,
+    #         "browser_version": chrome_version['name'],
+    #         "cloud": "local"
+    #     })
+
+    # # iterate over the firefox data
+    # for firefox_version in firefox_data['results']:
+    #     cometa_browsers['firefox'].append({
+    #         "os": "Generic",
+    #         "device": None,
+    #         "browser": "firefox",
+    #         "os_version": "Selenium",
+    #         "real_mobile": False,
+    #         "browser_version": firefox_version['name'],
+    #         "cloud": "local"
+    #     })
+    
+    # # iterate over the edge data
+    # for edge_version in edge_data['results']:
+    #     cometa_browsers['edge'].append({
+    #         "os": "Generic",    
+    #         "device": None,
+    #         "browser": "edge",
+    #         "os_version": "Selenium",
+    #         "real_mobile": False,
+    #         "browser_version": edge_version['name'],
+    #         "cloud": "local"
+    #     })
+
+    # # Insert data into the Browser model
+    # # save browser object temporary
+    # browser_objects_before = Browser.objects.all()
+    # logger.info(f"Browser objects before: {list(browser_objects_before)}")
+    # # delete all browser objects
+    # Browser.objects.all().delete()
+
+    # # Insert new browser data
+    # for browser_type in cometa_browsers:
+    #     for browser_config in cometa_browsers[browser_type]:
+    #         Browser.objects.create(browser_json=browser_config)
+    
+    # logger.info(f"Browser objects after: {list(Browser.objects.all())}")
+
+    # # Notify websockets about the browser update
+    # requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+    #     'type': '[Browsers] Get All'
+    # })
+
+
     browsersFile = '/opt/code/defaults/cometa_browsers.json'
+
     
     # Check if the file exists
     if not os.path.exists(browsersFile):
