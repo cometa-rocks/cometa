@@ -30,6 +30,8 @@ import {
   KeyValuePipe,
 } from '@angular/common';
 import { LetDirective } from '../../directives/ng-let.directive';
+import { ChatbotService } from '../../services/chatbot.service';
+
 @Component({
   selector: 'header',
   templateUrl: './header.component.html',
@@ -77,7 +79,8 @@ export class HeaderComponent {
     public _sharedActions: SharedActionsService,
     private _store: Store,
     private inputFocusService: InputFocusService,
-    private whatsNewService: WhatsNewService
+    private whatsNewService: WhatsNewService,
+    private chatbotService: ChatbotService
   ) {
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
       this.inputFocus = isFocused;
@@ -156,5 +159,8 @@ export class HeaderComponent {
       default:
         break;
     }
+  }
+  toggleChatbot(): void {
+    this.chatbotService.toggleChat();
   }
 }
