@@ -9,7 +9,7 @@
                 "browser": "chrome",
                 "os_version": "Selenium",
                 "real_mobile": false,
-                "browser_version": "131.0",
+                "browser_version": "134.0",
                 "cloud": "local"
             }
         }
@@ -24,7 +24,7 @@
                 "browser": "chrome",
                 "os_version": "Selenium",
                 "real_mobile": false,
-                "browser_version": "130.0",
+                "browser_version": "133.0",
                 "cloud": "local"
             }
         }
@@ -39,7 +39,7 @@
                 "browser": "chrome",
                 "os_version": "Selenium",
                 "real_mobile": false,
-                "browser_version": "129.0",
+                "browser_version": "132.0",
                 "cloud": "local"
             }
         }
@@ -54,7 +54,7 @@
                 "browser": "firefox",
                 "os_version": "Selenium",
                 "real_mobile": false,
-                "browser_version": "133.0",
+                "browser_version": "136.0",
                 "cloud": "local"
             }
         }
@@ -69,7 +69,7 @@
                 "browser": "firefox",
                 "os_version": "Selenium",
                 "real_mobile": false,
-                "browser_version": "132.0",
+                "browser_version": "135.0",
                 "cloud": "local"
             }
         }
@@ -84,7 +84,7 @@
                 "browser": "firefox",
                 "os_version": "Selenium",
                 "real_mobile": false,
-                "browser_version": "131.0",
+                "browser_version": "134.0",
                 "cloud": "local"
             }
         }
@@ -99,7 +99,7 @@
                 "browser": "edge",
                 "os_version": "Selenium",
                 "real_mobile": false,
-                "browser_version": "131.0",
+                "browser_version": "133.0",
                 "cloud": "local"
             }
         }
@@ -114,7 +114,7 @@
                 "browser": "edge",
                 "os_version": "Selenium",
                 "real_mobile": false,
-                "browser_version": "130.0",
+                "browser_version": "132.0",
                 "cloud": "local"
             }
         }
@@ -129,7 +129,7 @@
                 "browser": "edge",
                 "os_version": "Selenium",
                 "real_mobile": false,
-                "browser_version": "129.0",
+                "browser_version": "131.0",
                 "cloud": "local"
             }
         }
