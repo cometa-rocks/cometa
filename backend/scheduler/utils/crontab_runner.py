@@ -4,6 +4,7 @@ import os
 from utils.common import get_django_server_url, logger, JOB_LIST_FILE_PATH
 from utils.curl_processor import parse_curl_command
 import requests
+import json
 from requests.exceptions import ConnectionError
 
 def get_schedules():
