@@ -1,5 +1,5 @@
 {
-  "version": "3.0.22",
+  "version": "3.0.24",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,26 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.24",
+      "date": "2025-03-20",
+      "features": [
+        {
+          "title": "Implemented Chatbot feature",
+          "description": "#5930 Implemented Chatbot feature in the Cometa for better user experience to help in designing the test cases."
+        }
+      ]
+    },
+    {
+      "version": "3.0.23",
+      "date": "2025-03-11",
+      "features": [
+        {
+          "title": "Button failed features | button Failed steps - #4694",
+          "description": "Added logic for button clicks to affect the feature result status and implemented matTooltip in step-view."
+        }
+      ]
+    },    
     {
       "version": "3.0.22",
       "date": "2025-03-07",

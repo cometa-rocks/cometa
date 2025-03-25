@@ -20,8 +20,8 @@
       <!-- INFORMATION -->
       <mat-expansion-panel
         [expanded]="data.mode == 'new' || (!config$.toggles.hideInformation && features[0].panels[0].expanded)"
-        (opened)="onExpansionChange(featureId, '1', true); setFocusOnFirstOpenPanel()"
-        (closed)="onExpansionChange(featureId, '1', false); setFocusOnFirstOpenPanel()">
+        (opened)="onExpansionChange(featureId, '1', true);"
+        (closed)="onExpansionChange(featureId, '1', false);">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Information</span>
@@ -204,8 +204,8 @@
           featureForm.value.send_mail && !featureForm.value.depends_on_others
         "
         [expanded]="!config$.toggles.hideSendMail && features[0].panels[1].expanded"
-        (opened)="onExpansionChange(featureId, '2', true); setFocusOnFirstOpenPanel()"
-        (closed)="onExpansionChange(featureId, '2', false); setFocusOnFirstOpenPanel()"
+        (opened)="onExpansionChange(featureId, '2', true); "
+        (closed)="onExpansionChange(featureId, '2', false); "
         >
         <mat-expansion-panel-header>
           <mat-panel-title>
@@ -372,8 +372,8 @@
       <mat-expansion-panel
         #uploadPanel
         [expanded]="!config$.toggles.hideUploadedFiles && features[0].panels[2].expanded"
-        (opened)="onExpansionChange(featureId, '3', true); setFocusOnFirstOpenPanel()"
-        (closed)="onExpansionChange(featureId, '3', false); setFocusOnFirstOpenPanel()">
+        (opened)="onExpansionChange(featureId, '3', true); "
+        (closed)="onExpansionChange(featureId, '3', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Files</span>
@@ -521,8 +521,8 @@
       <mat-expansion-panel
         *ngIf="!featureForm.value.depends_on_others"
         [expanded]="data.mode == 'new' || !config$.toggles.hideBrowsers && features[0].panels[3].expanded"
-        (opened)="onExpansionChange(featureId, '4', true); setFocusOnFirstOpenPanel()"
-        (closed)="onExpansionChange(featureId, '4', false); setFocusOnFirstOpenPanel()">
+        (opened)="onExpansionChange(featureId, '4', true); "
+        (closed)="onExpansionChange(featureId, '4', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Browser selection</span>
@@ -556,8 +556,8 @@
       <!-- STEPS -->
       <mat-expansion-panel 
         [expanded]="data.mode == 'new' || !config$.toggles.hideSteps && features[0].panels[4].expanded"
-        (opened)="onExpansionChange(featureId, '5', true); setFocusOnFirstOpenPanel()"
-        (closed)="onExpansionChange(featureId, '5', false); setFocusOnFirstOpenPanel()">
+        (opened)="onExpansionChange(featureId, '5', true); "
+        (closed)="onExpansionChange(featureId, '5', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Steps definition</span>
@@ -592,8 +592,8 @@
       <!-- SCHEDULE -->
       <mat-expansion-panel 
         [expanded]="!config$.toggles.hideSchedule && features[0].panels[5].expanded"
-        (opened)="onExpansionChange(featureId, '6', true); setFocusOnFirstOpenPanel()"
-        (closed)="onExpansionChange(featureId, '6', false); setFocusOnFirstOpenPanel()">
+        (opened)="onExpansionChange(featureId, '6', true); "
+        (closed)="onExpansionChange(featureId, '6', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Schedule</span>
