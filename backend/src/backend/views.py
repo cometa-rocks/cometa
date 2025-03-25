@@ -65,7 +65,7 @@ from sentry_sdk import capture_exception
 from backend.utility.uploadFile import UploadFile, decryptFile
 from backend.utility.config_handler import *
 # from silk.profiling.profiler import silk_profile
-from modules.container_service.service_manager import ServiceManager
+from modules.container_service.service_manager import DockerServiceManager, ServiceManager
 
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
@@ -1394,132 +1394,91 @@ def parseBrowsers(request):
     return JsonResponse({'success': True})
 
 
+def pull_images(images_to_pull):
+    docker_service_manager = DockerServiceManager()
+    for image in images_to_pull:
+        docker_service_manager.pull_image(image)
+
 @csrf_exempt
 def parseCometaBrowsers(request):
-    # https://hub.docker.com/v2/repositories/cometa/chrome/tags
-    # https://hub.docker.com/v2/repositories/cometa/firefox/tags
-    # https://hub.docker.com/v2/repositories/cometa/edge/tags
-    # call all 3 apis and save the data in 3 variables
-    # then parse the data in each variable into another variable
-    # that will have the structure of 
-    # append each browser found, to the cometa_browsers variable
-    # "browser_json": {
-    #     "os": "Generic",
-    #     "device": null,
-    #     "browser": "chrome",
-    #     "os_version": "Selenium",
-    #     "real_mobile": false,
-    #     "browser_version": "134.0",
-    #     "cloud": "local"
-    # }
+    # parses latest n (at the moment 3) versions of cometa browsers and saves them in the Browser model
+    # starts a thread to call the pull images script
+    # when thread finishes, this method returns success.
 
-    #call the apis
-    # chrome_data = requests.get('https://hub.docker.com/v2/repositories/cometa/chrome/tags')
-    # firefox_data = requests.get('https://hub.docker.com/v2/repositories/cometa/firefox/tags')
-    # edge_data = requests.get('https://hub.docker.com/v2/repositories/cometa/edge/tags')
+    # call the apis
+    chrome_data = requests.get('https://hub.docker.com/v2/repositories/cometa/chrome/tags')
+    firefox_data = requests.get('https://hub.docker.com/v2/repositories/cometa/firefox/tags')
+    edge_data = requests.get('https://hub.docker.com/v2/repositories/cometa/edge/tags')
 
-    # # parse the data
-    # chrome_data = chrome_data.json()
-    # firefox_data = firefox_data.json()
-    # edge_data = edge_data.json()
+    logger.info(f"Chrome Data: {chrome_data}")
+    logger.info(f"Firefox Data: {firefox_data}")
+    logger.info(f"Edge Data: {edge_data}")
 
-    # logger.debug(f"Chrome data: {chrome_data}")
-    # logger.debug(f"Firefox data: {firefox_data}")
-    # logger.debug(f"Edge data: {edge_data}")
+    # parse the data
+    chrome_data = chrome_data.json()
+    firefox_data = firefox_data.json()
+    edge_data = edge_data.json()
 
-    # # create a new variable that will have the structure
-    # cometa_browsers = {
-    #     'chrome': [],
-    #     'firefox': [],
-    #     'edge': []
-    # }
+    cometa_browsers = {
+        'chrome': [],
+        'firefox': [],
+        'edge': []
+    }
 
-    # # iterate over the chrome data  
-    # for chrome_version in chrome_data['results']:   
-    #     cometa_browsers['chrome'].append({
-    #         "os": "Generic",    
-    #         "device": None,
-    #         "browser": "chrome",
-    #         "os_version": "Selenium",   
-    #         "real_mobile": False,
-    #         "browser_version": chrome_version['name'],
-    #         "cloud": "local"
-    #     })
+    # iterate over the browser data and format to match cometa_browsers structure -- only the 3 latest versions
+    for chrome_version in chrome_data['results'][:3]:   
+        cometa_browsers['chrome'].append({
+            "os": "Generic",    
+            "device": None,
+            "browser": "chrome",
+            "os_version": "Selenium",   
+            "real_mobile": False,
+            "browser_version": chrome_version['name'],
+            "cloud": "local"
+        })
 
-    # # iterate over the firefox data
-    # for firefox_version in firefox_data['results']:
-    #     cometa_browsers['firefox'].append({
-    #         "os": "Generic",
-    #         "device": None,
-    #         "browser": "firefox",
-    #         "os_version": "Selenium",
-    #         "real_mobile": False,
-    #         "browser_version": firefox_version['name'],
-    #         "cloud": "local"
-    #     })
+    for firefox_version in firefox_data['results'][:3]:
+        cometa_browsers['firefox'].append({
+            "os": "Generic",
+            "device": None,
+            "browser": "firefox",
+            "os_version": "Selenium",
+            "real_mobile": False,
+            "browser_version": firefox_version['name'],
+            "cloud": "local"
+        })
     
-    # # iterate over the edge data
-    # for edge_version in edge_data['results']:
-    #     cometa_browsers['edge'].append({
-    #         "os": "Generic",    
-    #         "device": None,
-    #         "browser": "edge",
-    #         "os_version": "Selenium",
-    #         "real_mobile": False,
-    #         "browser_version": edge_version['name'],
-    #         "cloud": "local"
-    #     })
+    for edge_version in edge_data['results'][:3]:
+        cometa_browsers['edge'].append({
+            "os": "Generic",    
+            "device": None,
+            "browser": "edge",
+            "os_version": "Selenium",
+            "real_mobile": False,
+            "browser_version": edge_version['name'],
+            "cloud": "local"
+        })
 
-    # # Insert data into the Browser model
-    # # save browser object temporary
-    # browser_objects_before = Browser.objects.all()
-    # logger.info(f"Browser objects before: {list(browser_objects_before)}")
-    # # delete all browser objects
-    # Browser.objects.all().delete()
-
-    # # Insert new browser data
-    # for browser_type in cometa_browsers:
-    #     for browser_config in cometa_browsers[browser_type]:
-    #         Browser.objects.create(browser_json=browser_config)
-    
-    # logger.info(f"Browser objects after: {list(Browser.objects.all())}")
-
-    # # Notify websockets about the browser update
-    # requests.post(f'{get_cometa_socket_url()}/sendAction', json={
-    #     'type': '[Browsers] Get All'
-    # })
-
-
-    browsersFile = '/opt/code/defaults/cometa_browsers.json'
-
-    
-    # Check if the file exists
-    if not os.path.exists(browsersFile):
-        print(f"File {browsersFile} doesn't exist, please contact administrator")
-        return JsonResponse({'success': False, 'error': 'cometa_browsers.json not found'}, status=503)
-    
-    # Load JSON data from cometa_browsers.json
-    try:
-        with open(browsersFile, 'r') as file:
-            browsers_data = json.load(file)
-    except json.JSONDecodeError:
-        return JsonResponse({'success': False, 'error': 'cometa_browsers.json contains invalid JSON data'}, status=503)
-    
-    # Delete all previous browser objects
+    # delete all browser objects
     Browser.objects.all().delete()
-    
+
     # Insert data into the Browser model
-    for entry in browsers_data:
-        model = entry.get("model")
-        fields = entry.get("fields", {})
-        if model == "backend.Browser" and "browser_json" in fields:
-            Browser.objects.create(browser_json=fields["browser_json"])
-    
+    images_to_pull = []
+    for browser_type in cometa_browsers:
+        for browser_config in cometa_browsers[browser_type]:
+            Browser.objects.create(browser_json=browser_config)
+            images_to_pull.append(f'cometa/{browser_config["browser"]}:{browser_config["browser_version"]}')
+
     # Notify websockets about the browser update
     requests.post(f'{get_cometa_socket_url()}/sendAction', json={
         'type': '[Browsers] Get All'
     })
-    
+
+    logger.info("----------IMAGE PULLING THREAD STARTED----------")   
+    pull_browsers_thread = Thread(target=pull_images(images_to_pull), daemon=True)
+    pull_browsers_thread.start()
+    logger.info("----------IMAGE PULLING THREAD FINISHED----------")
+    # return success
     return JsonResponse({'success': True})
 
 
