@@ -64,4 +64,17 @@ downloadsPath=`pwd`
 popd &> /dev/null
 sed -i_template "s|<downloadsPath>|$downloadsPath|g" browsers.json
 
+# Run or update selenoid hub ## CHECK Maybe docker kill HUP is not enough, maybe force-recreate is needed CHECK ##
+if [ "$(docker ps -q -f name=cometa_selenoid)" ]; then
+    log_wfr "Selenoid docker is running, sending signal to hot update configuration ..."
+    # Selenoid is running
+    # Send signal to update configuration
+    docker kill -s HUP cometa_selenoid &> /dev/null && log_res "[done]" || log_res "[failed]"
+else
+    log_wfr "Selenoid docker was not found or exited, recreating docker ..."
+    # Run Selenoid
+    cd ..
+    docker-compose up -d --force-recreate selenoid &> /dev/null && log_res "[done]" || log_res "[failed]"
+fi
+
 popd &> /dev/null || true # adding true else script fails with exit code 1 in client01

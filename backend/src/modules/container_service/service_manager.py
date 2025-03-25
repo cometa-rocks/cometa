@@ -224,10 +224,16 @@ class DockerServiceManager:
             return False, str(e)
 
     def pull_image(self, image_name):
-        logger.info(f"Pulling the image : {image_name}")
         try:
-            # Pull the specified image
-            logger.info(f"Pulling image: {image_name}")
+            # Check if the image exists locally
+            image_list = self.docker_client.images.list()
+            for image in image_list:
+                if image_name in image.tags:
+                    logger.info(f"Image '{image_name}' is already available locally.")
+                    return True
+
+            # If the image is not found locally, pull it
+            logger.info(f"Image '{image_name}' not found locally. Pulling from Docker Hub...")
             self.docker_client.images.pull(image_name)
             logger.info(f"Image '{image_name}' pulled successfully.")
             return True
