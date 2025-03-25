@@ -22,7 +22,7 @@ class CometaLogger(logging.Logger):
             msg = re.sub(rf"(?:{words_to_mask})\b", '[MASKED]', str(msg))
         return msg
 
-    def _log(self, level, msg, args, exc_info = None, extra = {}, stack_info = False, stacklevel = 1):
+    def _log(self, level, msg, args, exc_info = None, extra = {}, stack_info = False, stacklevel = 2):
         msg = self.mask_values(msg)
         extra['feature_id'] = os.environ.get('feature_id', "n/a")
         extra['current_step'] = os.environ.get('current_step', "?")

@@ -3578,6 +3578,7 @@ if __name__ != 'actions':
     # logger.debug(f"COMETA_FEATURE_AI_ENABLED : {COMETA_FEATURE_AI_ENABLED}")
     if COMETA_FEATURE_AI_ENABLED:
         from ee.cometa_itself.steps import ai_actions
+        from ee.cometa_itself.steps import playwright_actions
         logger.debug("Importing ai_actions")        
 
 

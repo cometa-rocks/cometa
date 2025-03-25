@@ -265,6 +265,8 @@ export class MainViewComponent implements OnInit {
   archived: boolean = false;
   buttons: any[] = [];
   selectMobile: { [key: number]: any } = {};
+  showingFiltered: boolean = false;
+  buttonDisabled: boolean = false;
 
   query = {
     page: 0,
@@ -294,6 +296,7 @@ export class MainViewComponent implements OnInit {
   ) {}
 
   featureId$: Observable<number>;
+  originalResults: any[] = [];
 
   openContent(feature_result: FeatureResult) {
     // this.logger.msg("1", "CO-featResult", "main-view", feature_result);
@@ -322,12 +325,15 @@ export class MainViewComponent implements OnInit {
           .subscribe({
             next: (res: any) => {
               this.results = res.results;
+              this.originalResults = this.results;
               this.total = res.count;
               this.showPagination = this.total > 0 ? true : false;
-
+    
               // set latest feature id
               if (this.showPagination)
                 this.latestFeatureResultId = this.results[0].feature_result_id;
+
+              this.checkIfThereAreFailedSteps();
             },
             error: err => {
               console.error(err);
@@ -373,6 +379,7 @@ export class MainViewComponent implements OnInit {
   setResultStatus(results: FeatureResult, status: 'Success' | 'Failed' | '') {
     this._sharedActions.setResultStatus(results, status).subscribe(_ => {
       this.getResults();
+      this.checkIfThereAreFailedSteps(); 
     });
   }
 
@@ -414,6 +421,7 @@ export class MainViewComponent implements OnInit {
    * @returns void
    */
   clearRuns(clearing: ClearRunsType) {
+    this.buttonDisabled = true;
     // Open Loading Snack
     const loadingRef = this._snack.openFromComponent(LoadingSnack, {
       data: 'Clearing history...',
@@ -439,6 +447,7 @@ export class MainViewComponent implements OnInit {
           this._snack.open('History cleared', 'OK', {
             duration: 5000,
           });
+          this.buttonDisabled = false;
         },
       });
   }
@@ -480,7 +489,7 @@ export class MainViewComponent implements OnInit {
         this.getResults();
       });
       this.extractButtons();
-    }
+  }
 
   // Extract buttons from mtxgridCoumns
   extractButtons() {
@@ -494,4 +503,30 @@ export class MainViewComponent implements OnInit {
   returnToMain() {
     this._router.navigate(['/']);
   }
+
+  // Toggles the filter for displaying only failed results or all results
+  filteredByFailuresResults() {
+    // If currently showing filtered results, reset to the original results
+    if (this.showingFiltered) {
+      this.results = [...this.originalResults];
+    }
+    // Otherwise, filter results to only include those with a 'Failed' status
+    else {
+      this.results = this.results.filter(result => result.status === 'Failed');
+    }
+
+    // Toggle the filter flag to indicate whether filtered results are displayed
+    this.showingFiltered = !this.showingFiltered;
+
+    // Check if there are any failed steps in the results
+    this.checkIfThereAreFailedSteps();
+  }
+
+  // Checks if there are any results with a 'Failed' status and disables the button accordingly
+  checkIfThereAreFailedSteps() {
+    // Disable the button if no failed steps exist, enable if there are any
+    this.buttonDisabled = !this.results.some(result => result.status === 'Failed');
+  }
+
+  
 }
