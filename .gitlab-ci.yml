@@ -208,7 +208,7 @@ build:amvara8.build-1:
     #########################################################
     # BUILD IMAGES (Front, Behave, Django)
     ########################################################
-      - ./updateImages.sh
+      - ./scripts/updateImages.sh
  
 
 # build cometa browser images and push to docker hub 
