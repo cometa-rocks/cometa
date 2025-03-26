@@ -1,5 +1,5 @@
 {
-  "version": "3.0.24",
+  "version": "3.0.25",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.25",
+      "date": "2025-03-26",
+      "features": [
+        {
+          "title": "CICD execution with token based authentication ",
+          "description": "Execute testcases using the CICD pipeline with token based authentication. Token can be generated from Cometa admin Dashboard."
+        }
+      ]
+    },
     {
       "version": "3.0.24",
       "date": "2025-03-20",
