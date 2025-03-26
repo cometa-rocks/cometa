@@ -144,11 +144,9 @@ services:
       SCHEDULER_HOST: "crontab"
       SCHEDULER_PORT: "8080"
       DEBUG_LEVEL: 10
-    # volumes:
-    #   - ./scheduler:/app:rw
-    depends_on:
-      django:
-        condition: service_healthy
+    volumes:
+      - ./backend/scheduler:/app:rw
+    command: sleep infinity
     networks:
       - testing
     restart: always
