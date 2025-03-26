@@ -58,6 +58,10 @@ for i in "${!IMAGE_NAMES_SELENIUM[@]}"; do
       exit 1
     fi
 
+    # Cleanup Docker images (Remove unused images to free space)
+    echo "Cleaning up local Docker images $IMAGE_NAME:$BUILD_VERSION and $IMAGE_NAME:latest"
+    docker rmi "$IMAGE_NAME:$BUILD_VERSION" "$IMAGE_NAME:latest" --force
+
   else
     echo "ℹ️  $IMAGE_NAME_SELENIUM is up to date. No newer version than $LATEST_TAG_COMETA found."
   fi
