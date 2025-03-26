@@ -352,10 +352,21 @@ def before_all(context):
         logger.debug(f"Using cometa browsers, Starting browser ")
         logger.debug(f"Browser_info : {context.browser_info}")
 
+        
+        browser_container_labels = {
+            "feature_id": str(context.feature_info["feature_id"]),
+            "feature_name": context.feature_info["feature_name"],
+            "feature_result_id": str(os.environ["feature_result_id"]),
+            "department_name": context.feature_info["department_name"],
+            "environment_name": context.feature_info["environment_name"]
+        }
+        
         service_details = context.service_manager.prepare_browser_service_configuration(
             browser=context.browser_info["browser"],
-            version=context.browser_info["browser_version"]
+            version=context.browser_info["browser_version"],
+            labels=browser_container_labels
         )
+        
         service_created = context.service_manager.create_service()
         if not service_created:
             raise Exception("Error while starting browser, Please contact administrator")    

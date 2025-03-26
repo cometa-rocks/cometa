@@ -396,7 +396,7 @@ class ServiceManager(service_manager):
             pass
         return self.__service_configuration
 
-    def prepare_browser_service_configuration(self, browser="chrome", version="131.0"):
+    def prepare_browser_service_configuration(self, browser="chrome", version="131.0", labels={}):
         # Generate a random UUID
         random_uuid = str(uuid.uuid4())
         container_image = f"cometa/{browser}:{version}"
@@ -432,6 +432,8 @@ class ServiceManager(service_manager):
                 "restart_policy": {"Name": "unless-stopped"},
                 "volumes":[
                     f"{video_volume}:/video",
+                    # f"{video_volume}:/video",
+                    # f"{video_volume}:/video",
                     # FIXME this should relative path, adding this for the demo
                     # "/development/cometa/backend/browsers/scripts/video_recorder.sh:/opt/scripts/video_recorder.sh" 
 
@@ -442,8 +444,10 @@ class ServiceManager(service_manager):
                     "5900/tcp": None   # Expose VNC port without mapping to the host
                 },
                 "cpu_shares": browser_cpu*1024,  # Translate CPU request/limits to Docker's CPU shares
-                "mem_limit": f"{browser_memory}g"    # Set memory limit
+                "mem_limit": f"{browser_memory}g",   # Set memory limit
+                "labels": labels
             }
+            logger.debug(f"Browser Container Configuration {self.__service_configuration}")
             
         else:
             pod_name = self.get_pod_name(random_uuid)
@@ -451,7 +455,8 @@ class ServiceManager(service_manager):
             pod_selectors = {
                 "browser":browser,
                 "version": version,
-                "Id": random_uuid
+                "Id": random_uuid,
+                **labels
             }
         
             # Define the pod manifest
@@ -501,7 +506,7 @@ class ServiceManager(service_manager):
                                     "name": "cometa-volume",
                                     "mountPath": "/video",
                                     "subPath": "data/cometa/videos"
-                                }
+                                },
                             ]
                         }
                     ],
