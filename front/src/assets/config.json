@@ -1,5 +1,5 @@
 {
-  "version": "3.0.24",
+  "version": "3.0.25",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,12 +237,22 @@
   ],
   "changelog": [
     {
+      "version": "3.0.25",
+      "date": "2025-03-26",
+      "features": [
+        {
+          "title": "CICD execution with token based authentication ",
+          "description": "Execute testcases using the CICD pipeline with token based authentication. Token can be generated from Cometa admin Dashboard."
+        }
+      ]
+    },
+    {
       "version": "3.0.24",
       "date": "2025-03-20",
       "features": [
         {
           "title": "Implemented Chatbot feature",
-          "description": "#5930 Implemented Chatbot feature in the Cometa for better user experience to help in designing the test cases."
+          "description": "#5930 Implemented Chatbot feature in the Cometa for better user experience to help in designing the test cases. Recent feature page has been updated with a new all departments view. Also, fixed various shortcuts and visual bugs"
         }
       ]
     },
