@@ -4036,31 +4036,62 @@ def CometaUsage(request):
     # 4. number of succeded tests
     # 5. number of failed tests
     '''
-
 @csrf_exempt
-def get_backup_files(request, feature_id):
-    # This method is used to get the backup files for a specific feature stored in /code/backups/features/
-    logger.debug(f"Getting backup files for feature {feature_id}")
-    # Get all the backup files from the backups directory
-    backups_dir = os.path.join(settings.BASE_DIR, '/../../code/backups/features/')
-    
-    feature_id_str = str(feature_id)    
-    # Filter files that start with the feature_id
-    backup_files = []
+def get_backup_files_content(request, feature_id):
+    logger.debug(f"Getting backup files content for feature {feature_id}")
+
+    # Build the path to the feature's backup directory
+    backups_dir = os.path.abspath(os.path.join(settings.BASE_DIR, '../../code/backups/features/'))
+
+    file_contents = []
+
     try:
-        for file in os.listdir(backups_dir):
-            file_path = os.path.join(backups_dir, file)
-            # Append only if the file is a file and starts with the feature_id and does not end with _meta.json
-            if os.path.isfile(file_path) and file.startswith(feature_id_str): 
-                logger.debug(f"Found backup file: {file}")
-                backup_files.append(file)
-    except FileNotFoundError:
-        logger.error(f"Backup directory not found: {backups_dir}")
+        # Ensure the directory exists
+        if os.path.isdir(backups_dir):
+            for filename in os.listdir(backups_dir):
+                file_path = os.path.join(backups_dir, filename)
+                if os.path.isfile(file_path):
+                    with open(file_path, 'r', encoding='utf-8') as file:
+                        content = file.read()
+                        # Check if the feature_id is in the JSON content
+                        if f'"feature_id": {feature_id}' in content:
+                            file_contents.append({
+                                'filename': filename,
+                                'content': content
+                            })
+        else:
+            logger.warning(f"Backup directory does not exist: {backups_dir}")
+            return JsonResponse({'error': 'Backup directory not found'}, status=404)
+
     except Exception as e:
-        logger.error(f"Error reading backup files: {str(e)}")
+        logger.error(f"Error reading backup files: {e}")
+        return JsonResponse({'error': 'Failed to read backup files'}, status=500)
     
-    logger.debug(f"Found {len(backup_files)} backup files for feature {feature_id}")
-    return JsonResponse(backup_files, safe=False)
+    # order the files by the date and time
+    file_contents = sorted(file_contents, key=lambda x: extract_date_from_filename(x['filename']), reverse=True)
+
+    return JsonResponse({'files': file_contents})
+
+def extract_date_from_filename(filename):
+    TIMESTAMP_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})")
+    # the structure of the filename is a json :
+    #{
+    #   "files": [
+    #     {
+    #       "filename": "10_Api-COSAS-pero-en-X_2025-03-20_10-16-55_meta.json",
+    #       "content": "..."
+    #     },
+    #     ...
+    #   ]
+    #}
+    # we need to extract the date and time from the filename
+    # the filename is 10_Api-COSAS-pero-en-X_2025-03-20_10-16-55_meta.json
+    # we need to extract the date and time from the filename
+    # the date and time is 2025-03-20_10-16-55
+    # we need to return the date and time
+    return TIMESTAMP_PATTERN.search(filename).group(1)
+
+
 
 # import EE Modules
 from backend.ee.modules.data_driven.views import (

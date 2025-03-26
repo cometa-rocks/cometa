@@ -725,21 +725,20 @@
         <p>Feature History</p>
         
         <div class="feature-history-container">
-        <mat-form-field>
-          <mat-label>Backup Files</mat-label>
-          <mat-select 
-          (selectionChange)="getHowLongAgo($event.value)" 
-          [formControl]="selectedFile">
-            <mat-option *ngFor="let file of files" [value]="file">
-              {{file.replace('-', '/').replace('-', '/').replace('_', ' at ').replace('-', ':').replace('-', ':')}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-
-          <!-- Placeholder for the age text to prevent layout shifts -->
-          <span [style.visibility]="featureAge ? 'visible' : 'hidden'">
-            {{ featureAge || 0 }}
-          </span>
+          <mat-form-field>
+            <mat-label>Backup Files</mat-label>
+            <mat-select 
+            (selectionChange)="getHowLongAgo($event.value)" 
+            [formControl]="selectedFile">
+              <mat-option *ngFor="let file of files" [value]="file">
+                {{ file }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+            <!-- Placeholder for the age text to prevent layout shifts -->
+            <span [style.visibility]="featureAge ? 'visible' : 'hidden'">
+              {{ featureAge || 0 }}
+            </span>
         </div>
 
         <div class="feature-history-buttons">
