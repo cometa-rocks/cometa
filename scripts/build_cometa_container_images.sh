@@ -18,16 +18,43 @@ for i in "${!IMAGE_PATHS[@]}"; do
     echo "The latest version is already $BUILD_VERSION for $IMAGE_NAME. Skipping build and push."
   else
     cd $IMAGE_DIR
-    docker build . -f Dockerfile -t $IMAGE_NAME:$BUILD_VERSION
-    echo "$IMAGE_NAME:$BUILD_VERSION build successfully"
-    echo "Pushing $IMAGE_NAME:$BUILD_VERSION image to Docker $DOCKER_REGISTRY"
-    docker push $IMAGE_NAME:$BUILD_VERSION
-    echo "$IMAGE_NAME:$BUILD_VERSION image pushed"
-    echo "Converting $IMAGE_NAME:$BUILD_VERSION tag $IMAGE_NAME:latest"
-    docker tag $IMAGE_NAME:$BUILD_VERSION $IMAGE_NAME:latest
-    echo "Pushing $IMAGE_NAME:latest image to Docker $DOCKER_REGISTRY"
-    docker push $IMAGE_NAME:latest
-    echo "$IMAGE_NAME:latest image pushed"
-    cd -
+    
+    # Build the Docker image
+    echo "Building Docker image: $IMAGE_NAME:$BUILD_VERSION..."
+    if docker build . -f Dockerfile -t "$IMAGE_NAME:$BUILD_VERSION"; then
+        echo "$IMAGE_NAME:$BUILD_VERSION built successfully"
+    else
+        echo "Docker build failed. Exiting..."
+        exit 1
+    fi
+
+    # Push the built image to the Docker registry
+    echo "Pushing $IMAGE_NAME:$BUILD_VERSION to Docker registry: $DOCKER_REGISTRY..."
+    if docker push "$IMAGE_NAME:$BUILD_VERSION"; then
+        echo "$IMAGE_NAME:$BUILD_VERSION pushed successfully"
+    else
+        echo "Docker push failed. Exiting..."
+        exit 1
+    fi
+
+    # Tag the image as 'latest'
+    echo "Tagging $IMAGE_NAME:$BUILD_VERSION as $IMAGE_NAME:latest..."
+    if docker tag "$IMAGE_NAME:$BUILD_VERSION" "$IMAGE_NAME:latest"; then
+        echo "Tagging successful"
+    else
+        echo "Docker tag failed. Exiting..."
+        exit 1
+    fi
+
+    # Push the 'latest' tag to the registry
+    echo "Pushing $IMAGE_NAME:latest to Docker registry: $DOCKER_REGISTRY..."
+    if docker push "$IMAGE_NAME:latest"; then
+        echo "$IMAGE_NAME:latest pushed successfully"
+    else
+        echo "Docker push failed. Exiting..."
+        exit 1
+    fi
+    # Return to the previous directory
+    cd - 
   fi
 done
