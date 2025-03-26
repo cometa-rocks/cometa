@@ -1129,3 +1129,8 @@ interface Container {
   isTerminating?: boolean;
   department_id?: number;
 }
+
+interface BackupFile {
+  filename: string;
+  content: string;
+}

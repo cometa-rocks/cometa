@@ -883,10 +883,10 @@ export class ApiService {
   /**
    * Gets a list of backup files for a specific feature
    * @param featureId The ID of the feature to get backups for
-   * @returns Observable<string[]> List of backup filenames
+   * @returns Observable<{ files: BackupFile[] }> List of backup filenames
    */
-  getBackupFiles(feature_id: number): Observable<string[]> {
-    return this._http.get<string[]>(`${this.base}/get_backup_files/${feature_id}/`);
+  getBackupFiles(featureId: number): Observable<{ files: BackupFile[] }> {
+    return this._http.get<{ files: BackupFile[] }>(`${this.base}/get_backup_files_content/${featureId}/`);
   }
-
 }
+  
