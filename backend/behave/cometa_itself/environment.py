@@ -297,6 +297,13 @@ def before_all(context):
     # save the continue on failure for feature to the context
     context.feature_continue_on_failure = data.get("continue_on_failure", False)
 
+    devices_time_zone = context.browser_info.get("selectedTimeZone", "")
+
+    if not devices_time_zone or devices_time_zone.strip() == "":
+        devices_time_zone = "Etc/UTC"
+    
+    
+    
     payload = {
         "user_id": context.PROXY_USER["user_id"],
         "browser_info": os.environ["BROWSER_INFO"],
@@ -348,14 +355,28 @@ def before_all(context):
     
     context.service_manager = ServiceManager()
     context.browser_hub_url = "cometa_selenoid"   
+    context.USE_COMETA_BROWSER_IMAGES = USE_COMETA_BROWSER_IMAGES
+    
     if USE_COMETA_BROWSER_IMAGES:
         logger.debug(f"Using cometa browsers, Starting browser ")
         logger.debug(f"Browser_info : {context.browser_info}")
 
+        
+        browser_container_labels = {
+            "feature_id": str(context.feature_info["feature_id"]),
+            "feature_name": context.feature_info["feature_name"],
+            "feature_result_id": str(os.environ["feature_result_id"]),
+            "department_name": context.feature_info["department_name"],
+            "environment_name": context.feature_info["environment_name"]
+        }
+        
         service_details = context.service_manager.prepare_browser_service_configuration(
             browser=context.browser_info["browser"],
-            version=context.browser_info["browser_version"]
+            version=context.browser_info["browser_version"],
+            labels=browser_container_labels,
+            devices_time_zone = devices_time_zone
         )
+        
         service_created = context.service_manager.create_service()
         if not service_created:
             raise Exception("Error while starting browser, Please contact administrator")    
@@ -415,16 +436,14 @@ def before_all(context):
         browser_name='MicrosoftEdge'
     
     options.set_capability("browserName", browser_name)
+    options.set_capability("se:timeZone", devices_time_zone)
     
     if not IS_KUBERNETES_DEPLOYMENT:
         options.browser_version = context.browser_info["browser_version"]
     
     options.accept_insecure_certs = True
     # Get the chrome container timezone from browser_info
-    devices_time_zone = context.browser_info.get("selectedTimeZone", "")
 
-    if not devices_time_zone or devices_time_zone.strip() == "":
-        devices_time_zone = "Etc/UTC"
 
     context.mobile_capabilities['timezone'] = devices_time_zone
     logger.debug(f"Test is running in the timezone : {devices_time_zone}")
