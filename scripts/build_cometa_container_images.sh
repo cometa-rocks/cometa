@@ -21,7 +21,7 @@ for i in "${!IMAGE_PATHS[@]}"; do
     
     # Build the Docker image
     echo "Building Docker image: $IMAGE_NAME:$BUILD_VERSION..."
-    if docker build . -f Dockerfile -t "$IMAGE_NAME:$BUILD_VERSION"; then
+    if docker build . -f Dockerfile -t "$IMAGE_NAME:$BUILD_VERSION" --no-cache; then
         echo "$IMAGE_NAME:$BUILD_VERSION built successfully"
     else
         echo "Docker build failed. Exiting..."
@@ -54,6 +54,11 @@ for i in "${!IMAGE_PATHS[@]}"; do
         echo "Docker push failed. Exiting..."
         exit 1
     fi
+
+    # Cleanup Docker images (Remove unused images to free space)
+    echo "Cleaning up local Docker images $IMAGE_NAME:$BUILD_VERSION and $IMAGE_NAME:latest"
+    docker rmi "$IMAGE_NAME:$BUILD_VERSION" "$IMAGE_NAME:latest" --force
+
     # Return to the previous directory
     cd - 
   fi
