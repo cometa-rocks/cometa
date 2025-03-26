@@ -396,7 +396,7 @@ class ServiceManager(service_manager):
             pass
         return self.__service_configuration
 
-    def prepare_browser_service_configuration(self, browser="chrome", version="131.0", labels={}):
+    def prepare_browser_service_configuration(self, browser="chrome", version="131.0", labels={}, devices_time_zone=None):
         # Generate a random UUID
         random_uuid = str(uuid.uuid4())
         container_image = f"cometa/{browser}:{version}"
@@ -426,14 +426,15 @@ class ServiceManager(service_manager):
                     "AUTO_RECORD": "true",
                     "VIDEO_PATH": "/video",
                     "SE_VNC_NO_PASSWORD": "1",
-                    "SE_ENABLE_TRACING": "false"
+                    "SE_ENABLE_TRACING": "false",
+                    "SE_SESSION_REQUEST_TIMEOUT": "7200",
+                    "SE_NODE_SESSION_TIMEOUT": "7200",
+                    "SE_NODE_OVERRIDE_MAX_SESSIONS": "true",
                 },  # Set environment variables
                 "network": "cometa_testing",  # Attach the container to the 'cometa_testing' network
                 "restart_policy": {"Name": "unless-stopped"},
                 "volumes":[
                     f"{video_volume}:/video",
-                    # f"{video_volume}:/video",
-                    # f"{video_volume}:/video",
                     # FIXME this should relative path, adding this for the demo
                     # "/development/cometa/backend/browsers/scripts/video_recorder.sh:/opt/scripts/video_recorder.sh" 
 
@@ -447,6 +448,10 @@ class ServiceManager(service_manager):
                 "mem_limit": f"{browser_memory}g",   # Set memory limit
                 "labels": labels
             }
+            # Add timezone if timezone is provide
+            if devices_time_zone:
+                self.__service_configuration["environment"]["TZ"] = devices_time_zone
+                
             logger.debug(f"Browser Container Configuration {self.__service_configuration}")
             
         else:
@@ -490,18 +495,21 @@ class ServiceManager(service_manager):
                                 {"name": "AUTO_RECORD", "value": "true"},
                                 {"name": "VIDEO_PATH", "value": "/video"},
                                 {"name": "SE_VNC_NO_PASSWORD", "value": "1"},
-                                {"name": "SE_ENABLE_TRACING", "value": "false"}
+                                {"name": "SE_ENABLE_TRACING", "value": "false"},
+                                {"name": "SE_SESSION_REQUEST_TIMEOUT", "value": "7200"},
+                                {"name": "SE_NODE_SESSION_TIMEOUT", "value": "7200"},
+                                {"name": "SE_NODE_OVERRIDE_MAX_SESSIONS", "value": "true"}
                             ],
                             "ports": [
                                 {"containerPort": 4444, "protocol": "TCP"},
                                 {"containerPort": 5900, "protocol": "TCP"}
                             ],
                             "volumeMounts": [
-                                {
-                                    "name": "cometa-volume",
-                                    "mountPath": "/opt/scripts/video_recorder.sh",
-                                    "subPath": "./scripts/video_recorder.sh"
-                                }, 
+                                # {
+                                #     "name": "cometa-volume",
+                                #     "mountPath": "/opt/scripts/video_recorder.sh",
+                                #     "subPath": "./scripts/video_recorder.sh"
+                                # }, 
                                 {
                                     "name": "cometa-volume",
                                     "mountPath": "/video",
@@ -521,7 +529,11 @@ class ServiceManager(service_manager):
                     ]
                 }
             }
-
+            # Add timezone if timezone is provide
+            if devices_time_zone:
+                self.pod_manifest["spec"]["containers"][0]["env"].append({"name": "TZ", "value": devices_time_zone})
+            
+            
             # Define the service manifest
             self.pod_service_manifest = {
                 "apiVersion": "v1",
