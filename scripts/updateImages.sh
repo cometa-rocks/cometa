@@ -1,3 +1,4 @@
+cd ..
 IMAGE_PATHS=("front" "backend/behave" "backend/src")
 IMAGE_NAMES=("cometa/front" "cometa/behave" "cometa/django")
 VERSION_PATHS=("front/src/assets/config.json" "backend/behave/version.json" "backend/src/version.json")
