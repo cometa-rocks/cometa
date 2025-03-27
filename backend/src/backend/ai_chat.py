@@ -95,7 +95,7 @@ def chat_completion(request):
         messages.append({"role": "user", "content": user_message})
         
         # Get Ollama host from environment variable or use default
-        ollama_host = os.environ.get('OLLAMA_HOST', 'cometa-ollama.ai-1')
+        ollama_host = os.environ.get('OLLAMA_HOST', 'ollama.ai')
         ollama_port = os.environ.get('OLLAMA_PORT', '8083')
         ollama_url = f"http://{ollama_host}:{ollama_port}/api/chat"
         
