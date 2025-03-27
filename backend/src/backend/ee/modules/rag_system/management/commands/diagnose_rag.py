@@ -91,7 +91,7 @@ class Command(BaseCommand):
         self.stdout.write("\n2. Checking embedding model...")
         try:
             # Get Ollama host from environment variable or use default
-            ollama_host = os.environ.get('OLLAMA_HOST', 'http://cometa-ollama.ai-1:8083')
+            ollama_host = os.environ.get('OLLAMA_HOST', 'http://ollama.ai:8083')
             diagnostics["embedding_model"]["name"] = RAG_MODEL
             diagnostics["embedding_model"]["host"] = ollama_host
             

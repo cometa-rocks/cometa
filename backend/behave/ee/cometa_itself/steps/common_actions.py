@@ -26,7 +26,7 @@ from tools.common_functions import *
 # setup logging
 logger = logging.getLogger("FeatureExecution")
 
-
+use_step_matcher("parse")
 
 
 # This step displays the value of a variable_name at runtime and in the browser screen as well for a given seconds amount of time.
