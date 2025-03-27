@@ -251,13 +251,13 @@ class DockerServiceManager:
             traceback.print_exc()
             return False
 
-    def upload_file(self, service_name_or_id, file_path, decryptFile=True):
+    def upload_file(self, service_name_or_id, file_path, decrypt_file=True):
         container = self.docker_client.containers.get(service_name_or_id)
 
         # Destination path inside the container
         container_dest_path = "/tmp"  # Change as needed
         file_name = file_path.split("/")[-1]
-        if decryptFile:
+        if decrypt_file:
             file_path = decryptFile(file_path)
         # i.e decrypted_file /tmp/6oy2p464
         # Create the tar archive
@@ -268,7 +268,7 @@ class DockerServiceManager:
         if container.put_archive(container_dest_path, tar_stream):
             logger.debug("APK File copied to the container")
             # File was not decrypted then file will be copied to container with correct name 
-            if not decryptFile:
+            if not decrypt_file:
                 return file_name
             
             command = f"mv \"{file_path}\" \"/tmp/{file_name}\""
