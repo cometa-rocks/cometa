@@ -188,7 +188,7 @@ deploy:amvara3.prod:
 #  extends: .client04.prod
 
 
-# build cometa front image and push to docker hub
+# build cometa front, django and behave in amvara8 server  and push to docker hub
 build:amvara8.build-1:
   stage: build
   tags: # on what runners we'd like to run this job
@@ -208,7 +208,8 @@ build:amvara8.build-1:
     #########################################################
     # BUILD IMAGES (Front, Behave, Django)
     ########################################################
-      - ./updateImages.sh
+      - cd scripts
+      - ./build_cometa_container_images.sh
  
 
 # build cometa browser images and push to docker hub 
@@ -224,6 +225,6 @@ build:amvara8.build-2:
     #########################################################
     # BUILD BROWSER IMAGES (Chrome, Firefox and Edge)
     ########################################################
-      - ./backend/browsers/populateBrowsersJSON.sh
+      - ./backend/browsers/check_and_build_browser_image.sh ./backend/browsers
 
       

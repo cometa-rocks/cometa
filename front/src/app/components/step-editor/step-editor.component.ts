@@ -867,7 +867,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       enabled: true,
       continue_on_failure: false,
       timeout:
-        this.department.settings?.step_timeout ||
+        this.department?.settings?.step_timeout ||
         this._fb.control(
           60,
           Validators.compose([
