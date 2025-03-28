@@ -97,11 +97,7 @@ stages:
     - docker exec cometa_django poetry install
     - docker exec cometa_behave poetry install
     # Detect & Install Django migration
-    - docker exec cometa_django python manage.py makemigrations
-    - docker exec cometa_django python manage.py makemigrations security
-    - docker exec cometa_django python manage.py makemigrations housekeeping
-    - docker exec cometa_django python manage.py makemigrations configuration
-    - docker exec cometa_django python manage.py migrate
+    - docker exec cometa_django ./start_common.sh
     # Update steps in database
     - echo -e "\e[0Ksection_start:`date +%s`:parse_actions\r\e[0KParsing actions to update database"
     - docker exec cometa_django bash -c "curl http://localhost:8000/parseActions/ --silent --retry 5 --retry-delay 5"
@@ -130,7 +126,7 @@ stages:
         echo "Replace 'cometa/front:latest' with $COMETA_FRONT:$BUILD_VERSION in the docker-compose.yml file";
         sed -i "s#cometa/front:latest#"$COMETA_FRONT":"$BUILD_VERSION"#" docker-compose.yml;
         echo "Recrating cometa_front";
-        docker-compose up --force-recreate apache -d;
+        docker compose up --force-recreate apache -d;
         for FILE in ${COMETA_REPLACE_FAVICON_IN}; do docker exec cometa_front sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
       else
         echo "Front container is up to date, will not do deployment";
@@ -168,24 +164,19 @@ deploy:amvara3.prod:
   extends: .amvara3.prod
 
 # create a deploy job for client01 for branch prod
-#deploy:client01.int:
-#  <<: *deployment_script
-#  extends: .client01.int
+deploy:client01.int:
+ <<: *deployment_script
+ extends: .client01.int
 
 # create a deploy job for client01 for branch prod
-#deploy:client01.prod:
-#  <<: *deployment_script
-#  extends: .client01.prod
-
-# create a deploy job for client02 for branch prod
-# deploy:client02.prod:
-#  <<: *deployment_script
-#  extends: .client02.prod
+deploy:client01.prod:
+ <<: *deployment_script
+ extends: .client01.prod
 
 # create a deploy job for client04 for branch prod
-#deploy:client04.prod:
-#  <<: *deployment_script
-#  extends: .client04.prod
+deploy:client04.prod:
+ <<: *deployment_script
+ extends: .client04.prod
 
 
 # build cometa front, django and behave in amvara8 server  and push to docker hub
