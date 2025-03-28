@@ -39,7 +39,7 @@ def upload_file_to_appium_container(context, container_service_details_Id, file_
     file_name = service_manager.upload_file(
         service_name_or_id=container_service_details_Id,
         file_path=file_full_path,
-        decryptFile=False,
+        decrypt_file=False,
     )
     if not file_name:
         raise CustomError(f"Can not upload the file {file_full_path}")

@@ -8,7 +8,9 @@ import {
   OnDestroy,
   ChangeDetectorRef,
   Renderer2,
-  ɵɵtrustConstantResourceUrl
+  ɵɵtrustConstantResourceUrl,
+  ViewChildren,
+  QueryList
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
@@ -92,7 +94,7 @@ import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyOptionModule } from '@angular/material/legacy-core';
 import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatExpansionModule } from '@angular/material/expansion';
+import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { DraggableWindowModule } from '@modules/draggable-window.module'
 
@@ -147,6 +149,8 @@ export class EditFeature implements OnInit, OnDestroy {
     'created_on',
     'actions',
   ];
+  // Get all expansion panels
+  @ViewChildren(MatExpansionPanel) expansionPanels!: QueryList<MatExpansionPanel>;
 
   @ViewSelectSnapshot(ConfigState) config$!: Config;
   /**
@@ -192,6 +196,7 @@ export class EditFeature implements OnInit, OnDestroy {
 
   readonly separatorKeysCodes: number[] = [ENTER, COMMA];
 
+
   @ViewChild(StepEditorComponent, { static: false })
   stepEditor: StepEditorComponent;
 
@@ -214,6 +219,10 @@ export class EditFeature implements OnInit, OnDestroy {
 
   featureForm: UntypedFormGroup;
 
+  featureId: number;
+
+  features: any[] = [];
+
   constructor(
     public dialogRef: MatDialogRef<EditFeature>,
     @Inject(MAT_DIALOG_DATA) public data: IEditFeature,
@@ -227,6 +236,16 @@ export class EditFeature implements OnInit, OnDestroy {
     @Inject(API_URL) public api_url: string,
     private inputFocusService: InputFocusService,
   ) {
+
+    this.featureId = this.data.feature.feature_id;
+
+    this.features = [
+      {
+        id: this.featureId,
+        name: '',
+        panels: Array.from({ length: 6 }, (_, i) => ({ id: (i + 1).toString(), expanded: false }))
+      }
+    ];
 
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
       this.inputFocus = isFocused;
@@ -319,6 +338,79 @@ export class EditFeature implements OnInit, OnDestroy {
       this.parseSchedule({ minute, hour, day_month, month, day_week });
     });
   }
+
+  // Save the state of the expansion panel
+  savePanelState(featureId: number, panelId: string, isExpanded: boolean) {
+    const panelStates = JSON.parse(localStorage.getItem('matExpansionStates') || '{}');
+
+    if (!panelStates[featureId]) {
+      panelStates[featureId] = {};
+    }
+
+    // Save the state of the panel
+    panelStates[featureId][panelId] = isExpanded;
+    localStorage.setItem('matExpansionStates', JSON.stringify(panelStates));
+  }
+
+  // Load the state of the expansion panel
+  loadPanelStates() {
+    const savedStates = JSON.parse(localStorage.getItem('matExpansionStates') || '{}');
+
+    this.features.forEach(feature => {
+      if (!feature.id) return;
+      feature.panels.forEach(panel => {
+        panel.expanded = savedStates[feature.id]?.[panel.id] ?? false;
+      });
+    });
+  }
+
+  // When the expansion panel changes, save
+  onExpansionChange(featureId: number, panelId: string, isExpanded: boolean) {
+    this.savePanelState(featureId, panelId, isExpanded);
+
+    // Expand only one panel at a time
+    const feature = this.features.find(f => f.id === featureId);
+    if (feature) {
+      const panel = feature.panels.find(p => p.id === panelId);
+      if (panel) {
+        panel.expanded = isExpanded;
+      }
+    }
+  }
+
+
+  // // Check if the create button should be disabled
+  // ngAfterViewInit() {
+  //   setTimeout(() => {
+  //     this.expansionPanels.changes.subscribe(() => this.setFocusOnFirstOpenPanel());
+  //     this.setFocusOnFirstOpenPanel();
+  //   });
+  // }
+  
+  // Focus on the first input or textarea of the first open panel
+  //Unused
+  setFocusOnFirstOpenPanel() {
+    setTimeout(() => {
+      const firstOpenPanel = this.expansionPanels.find(panel => panel.expanded);
+  
+      if (firstOpenPanel) {
+        setTimeout(() => { 
+          const panelElement = firstOpenPanel._body?.nativeElement;
+  
+          if (panelElement) {
+            // Filter the input have type hidden and checkbox
+            const input = panelElement.querySelector('input:not([type="hidden"]):not([type="checkbox"]), textarea') as HTMLInputElement | HTMLTextAreaElement;
+  
+            if (input) {
+              // Focus on the first input or textarea
+              input.focus();
+            }
+          }
+        }, 50);
+      }
+    });
+  }
+  
 
   ngOnDestroy() {
     // When Edit Feature Dialog is closed, clear temporal steps
@@ -458,12 +550,11 @@ export class EditFeature implements OnInit, OnDestroy {
     event: KeyboardEvent
   ) {
     // If true... return | only execute switch case if input focus is false
-    if (this.inputFocus) return;
     let KeyPressed = event.keyCode;
     const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
     const startEmulatorOpen = document.querySelector('mobile-list') as HTMLElement;
 
-    if(!this.inputFocus && editVarOpen == null && startEmulatorOpen == null){
+    if(editVarOpen == null && startEmulatorOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
@@ -485,42 +576,60 @@ export class EditFeature implements OnInit, OnDestroy {
           }
           break;
         case KEY_CODES.V:
-          if(!event.ctrlKey){
-          // Edit variables
+          // Only trigger shortcut if not focused on input and not using Ctrl+V
+          if(!event.ctrlKey && !this.inputFocus){
+            console.log('V KEY PRESSED EDIT VARIABLES');
+            // Edit variables
             this.editVariables();
           }
           break;
         case KEY_CODES.D:
+          if(!this.inputFocus) {
             // Depends on other feature
             this.toggleDependsOnOthers(KeyPressed);
+          }
           break;
         case KEY_CODES.S:
+          if(!this.inputFocus) {
             // Open Emulator mobile
             this.openStartEmulatorScreen();
+          }
           break;
         case KEY_CODES.M:
+          if(!this.inputFocus) {
             // Send email
             this.toggleDependsOnOthers(KeyPressed);
+          }
           break;
         case KEY_CODES.R:
+          if(!this.inputFocus) {
             // Record video
             this.toggleDependsOnOthers(KeyPressed);
+          }
           break;
         case KEY_CODES.F:
+          if(!this.inputFocus) {
             // Continue on failure
             this.toggleDependsOnOthers(KeyPressed);
+          }
           break;
         case KEY_CODES.H:
+          if(!this.inputFocus) {
             // Need help
             this.toggleDependsOnOthers(KeyPressed);
+          }
           break;
         case KEY_CODES.N:
+          if(!this.inputFocus) {
             // Network loggings
             this.toggleDependsOnOthers(KeyPressed);
+          }
           break;
         case KEY_CODES.G:
+          if(!this.inputFocus) {
             // Generate dataset
             this.toggleDependsOnOthers(KeyPressed);
+          }
           break;
         default:
           break;
@@ -543,36 +652,37 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   toggleDependsOnOthers(KeyPressed) {
-    let checkboxValue = this.featureForm.get('send_mail').value;
-    let dependsOnOthers = this.featureForm.get('depends_on_others').value;
     if(KeyPressed === KEY_CODES.D) {
-      dependsOnOthers = this.featureForm.get('depends_on_others').value;
+      const dependsOnOthers = this.featureForm.get('depends_on_others').value;
       this.featureForm.get('depends_on_others').setValue(!dependsOnOthers);
     }
     else if (KeyPressed === KEY_CODES.F) {
-      checkboxValue = this.featureForm.get('continue_on_failure').value;
-      this.featureForm.get('continue_on_failure').setValue(!checkboxValue);
+      const continueOnFailure = this.featureForm.get('continue_on_failure').value;
+      this.featureForm.get('continue_on_failure').setValue(!continueOnFailure);
     }
     else if (KeyPressed === KEY_CODES.H) {
-      checkboxValue = this.featureForm.get('need_help').value;
-      this.featureForm.get('need_help').setValue(!checkboxValue);
+      const needHelp = this.featureForm.get('need_help').value;
+      this.featureForm.get('need_help').setValue(!needHelp);
     }
-    if(dependsOnOthers === false){
-      if(KeyPressed === KEY_CODES.M) {
-        checkboxValue = this.featureForm.get('send_mail').value;
-        this.featureForm.get('send_mail').setValue(!checkboxValue);
-      }
-      else if (KeyPressed === KEY_CODES.R) {
-        checkboxValue = this.featureForm.get('video').value;
-        this.featureForm.get('video').setValue(!checkboxValue);
-      }
-      else if (KeyPressed === KEY_CODES.N) {
-        checkboxValue = this.featureForm.get('network_logging').value;
-        this.featureForm.get('network_logging').setValue(!checkboxValue);
-      }
-      else if (KeyPressed === KEY_CODES.G) {
-        checkboxValue = this.featureForm.get('generate_dataset').value;
-        this.featureForm.get('generate_dataset').setValue(!checkboxValue);
+    else {
+      const dependsOnOthers = this.featureForm.get('depends_on_others').value;
+      if(dependsOnOthers === false) {
+        if(KeyPressed === KEY_CODES.M) {
+          const sendMail = this.featureForm.get('send_mail').value;
+          this.featureForm.get('send_mail').setValue(!sendMail);
+        }
+        else if (KeyPressed === KEY_CODES.R) {
+          const video = this.featureForm.get('video').value;
+          this.featureForm.get('video').setValue(!video);
+        }
+        else if (KeyPressed === KEY_CODES.N) {
+          const networkLogging = this.featureForm.get('network_logging').value;
+          this.featureForm.get('network_logging').setValue(!networkLogging);
+        }
+        else if (KeyPressed === KEY_CODES.G) {
+          const generateDataset = this.featureForm.get('generate_dataset').value;
+          this.featureForm.get('generate_dataset').setValue(!generateDataset);
+        }
       }
     }
   }
@@ -749,6 +859,8 @@ export class EditFeature implements OnInit, OnDestroy {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
+
+    this.loadPanelStates();
 
     this._api.getCometaConfigurations().subscribe(res => {
 

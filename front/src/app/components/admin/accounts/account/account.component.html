@@ -5,21 +5,27 @@
       spellcheck="false"
       disableAutocomplete
       disabled
-      [(value)]="account.name" />
+      [(value)]="account.name"
+      (focus)="onInputFocus()"
+      (blur)="onInputBlur()"/>
   </div>
   <div class="email">
     <input
       spellcheck="false"
       disableAutocomplete
       disabled
-      [(value)]="account.email" />
+      [(value)]="account.email"
+      (focus)="onInputFocus()"
+      (blur)="onInputBlur()"/>
   </div>
   <div class="permission_name">
     <input
       spellcheck="false"
       disableAutocomplete
       disabled
-      [(value)]="account.permission_name" />
+      [(value)]="account.permission_name"    
+      (focus)="onInputFocus()"
+      (blur)="onInputBlur()"/>
   </div>
   <div
     *ngIf="canEditAccount$ | async"

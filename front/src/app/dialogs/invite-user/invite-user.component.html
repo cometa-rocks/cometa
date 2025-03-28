@@ -16,7 +16,9 @@
           [matChipInputFor]="chipList"
           [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
           [matChipInputAddOnBlur]="true"
-          (matChipInputTokenEnd)="addAddress($event)" />
+          (matChipInputTokenEnd)="addAddress($event)" 
+          (focus)="onInputFocus()"
+          (blur)="onInputBlur()"/>
       </mat-chip-list>
     </mat-form-field>
     <mat-form-field appearance="fill" class="full-width">
@@ -34,7 +36,9 @@
       <textarea
         matInput
         spellcheck="false"
-        formControlName="custom_text"></textarea>
+        formControlName="custom_text"
+        (focus)="onInputFocus()"
+        (blur)="onInputBlur()"></textarea>
     </mat-form-field>
   </mat-dialog-content>
   <mat-dialog-actions>
