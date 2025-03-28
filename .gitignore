@@ -6,3 +6,4 @@ data/
 *_template
 
 .idea
+.env
