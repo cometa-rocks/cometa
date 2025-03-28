@@ -171,7 +171,7 @@ export class L1FeatureRecentListComponent {
   /**
    * Global variables
    */
-
+  showAllDepartments = "__ALLDEPARTMENTS__"
   isDropdownVisible = false;
   activeButton: string
   selected_department: string;
@@ -453,14 +453,19 @@ export class L1FeatureRecentListComponent {
   onDepartmentChange() {
     this._sharedActions.setSelectedDepartment(this.selected_department);
     //When switching options in the dropdown, we update the UI and call FutureState to sort by the new option.
-    for (const department of this.user.departments) {
-      if(department.department_name == this.selected_department){
-        localStorage.setItem('co_last_dpt',this.selected_department)
-        FeaturesState.static_setSelectedDepartment(department.department_id)
-        //refresh UI
-        this.toggleList('recent')
+    if(this.selected_department == this.showAllDepartments){
+          localStorage.setItem('co_last_dpt',this.selected_department)
+          FeaturesState.static_setSelectedDepartment(null)
+    } else {
+      for (const department of this.user.departments) {
+        if(department.department_name == this.selected_department){
+          localStorage.setItem('co_last_dpt',this.selected_department)
+          FeaturesState.static_setSelectedDepartment(department.department_id)
+        }
       }
     }
+    //refresh UI
+    this.toggleList('recent')
   }
 
   onInputFocus() {
@@ -481,6 +486,7 @@ export class L1FeatureRecentListComponent {
   getPreselectedDepartment(): string {
 
     // 1. localstorage -> last selected department
+    let departmentFound = false;
     const lastDept = localStorage.getItem('co_last_dpt');
     const userSettingsPreselectedDpt = this.user.settings.preselectDepartment
     if (lastDept) {
@@ -488,7 +494,12 @@ export class L1FeatureRecentListComponent {
         if (this.departments$[i].department_name === lastDept) {
           this.selected_department = this.departments$[i].department_name;
           FeaturesState.static_setSelectedDepartment(this.departments$[i].department_id);
+          departmentFound = true;
         }
+      }
+      if(!departmentFound){
+        this.selected_department = this.showAllDepartments
+        FeaturesState.static_setSelectedDepartment(null);
       }
     }
     // 2. personal preference

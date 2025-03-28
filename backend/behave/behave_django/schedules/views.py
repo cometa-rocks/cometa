@@ -160,7 +160,8 @@ def updated_step_actions(request):
             'cometa_itself/steps/validation_actions.py',
             'ee/cometa_itself/steps/rest_api.py',
             'ee/cometa_itself/steps/conditional_actions.py',
-            'ee/cometa_itself/steps/common_actions.py'
+            'ee/cometa_itself/steps/common_actions.py',
+            'ee/cometa_itself/steps/playwright_actions.py'
         ]
         
         COMETA_FEATURE_MOBILE_TEST_ENABLED = ConfigurationManager.get_configuration("COMETA_FEATURE_MOBILE_TEST_ENABLED","False")=="True"

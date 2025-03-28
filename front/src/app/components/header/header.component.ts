@@ -15,7 +15,7 @@ import { User } from '@store/actions/user.actions';
 import { Select, Store } from '@ngxs/store';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { DOCUMENT, NgIf } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { KEY_CODES } from '@others/enums';
 import { InputFocusService } from '../../services/inputFocus.service';
 import { TranslateModule } from '@ngx-translate/core'; 
@@ -30,6 +30,8 @@ import {
   KeyValuePipe,
 } from '@angular/common';
 import { LetDirective } from '../../directives/ng-let.directive';
+import { ChatbotService } from '../../services/chatbot.service';
+
 @Component({
   selector: 'header',
   templateUrl: './header.component.html',
@@ -67,31 +69,37 @@ export class HeaderComponent {
 
   /** Holds if the sidebar menu is opened or not */
   @ViewSelectSnapshot(CustomSelectors.GetConfigProperty('internal.openedMenu'))
-  openedMenu: boolean;
+  openedMenu: boolean = false;
   inputFocus: boolean = false;
 
   private inputFocusSubscription: Subscription;
 
   constructor(
+    private _router: Router,
     public _sharedActions: SharedActionsService,
     private _store: Store,
     private inputFocusService: InputFocusService,
-    private whatsNewService: WhatsNewService
+    private whatsNewService: WhatsNewService,
+    private chatbotService: ChatbotService
   ) {
     this.inputFocusService.inputFocus$.subscribe(isFocused => {
       this.inputFocus = isFocused;
     });
   }
 
-  closeMenu = () =>
+  closeMenu () {
     this._store.dispatch(
       new Configuration.SetProperty('internal.openedMenu', false)
     );
+    this.toggleMenu();
+  }
 
-  openMenu = () =>
+  openMenu() {
     this._store.dispatch(
       new Configuration.SetProperty('internal.openedMenu', true)
     );
+    this.toggleMenu();
+  }
 
   openWhatsNewDialog(): void {
     this.closeMenu();
@@ -100,10 +108,19 @@ export class HeaderComponent {
 
   logout = () => this._store.dispatch(new User.Logout());
 
+  // Control with manual click
+  toggleMenu() {
+    this.openedMenu = !this.openedMenu;
+  }
+
   // Handle keyboard keys
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
+
+    const mainPage = this._router.url.startsWith('/new');
+    const adminPage = this._router.url.startsWith('/admin');
+    const profilePage = this._router.url.startsWith('/my-account');
     const editFeatOpen = document.querySelector('edit-feature') as HTMLElement;
     // If true... return | only execute switch case if input focus is false
     if (this.inputFocus || event.ctrlKey) return;
@@ -118,7 +135,7 @@ export class HeaderComponent {
         }
         break;
       case KEY_CODES.F:
-        if(editFeatOpen == null){
+        if(editFeatOpen == null && mainPage){
           const featureDiv = document.querySelector('div.icon[aria-label="Create feature"]') as HTMLElement;
           if (featureDiv) {
             featureDiv.click();
@@ -126,15 +143,24 @@ export class HeaderComponent {
         }
         break;
       case KEY_CODES.M:
+        if (editFeatOpen == null) {
+          // Now open and close with the same shortcut
+          this.openedMenu = !this.openedMenu;
+        }
+        break;
+      case KEY_CODES.C:
         if(editFeatOpen == null){
-          const menuBackdrop = document.querySelector('div.fRight div.icon') as HTMLElement;
-          if (menuBackdrop) {
-            menuBackdrop.click();
+          const cometaDiv = document.querySelector('div.fLeft div.title') as HTMLElement;
+          if (cometaDiv) {
+            cometaDiv.click();
           }
         }
         break;
       default:
         break;
     }
+  }
+  toggleChatbot(): void {
+    this.chatbotService.toggleChat();
   }
 }

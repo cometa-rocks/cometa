@@ -56,6 +56,8 @@ mysqlclient = "^2.2.7"
 cryptography = "^44.0.0"
 orjson = "^3.10.15"
 ibm-db = "^3.2.5"
+playwright="^1.50.0"
+faker = "^37.0.2"
 
 [tool.poetry.dev-dependencies]
 
