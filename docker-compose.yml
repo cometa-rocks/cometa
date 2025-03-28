@@ -134,7 +134,7 @@ services:
   # Since this a deployment file, build image is used to start cometa_front 
   # n the build pipeline 
   apache:
-    image: "cometa/front:3.0.14"
+    image: "cometa/front:latest"
     container_name: cometa_front
     volumes:
       - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
