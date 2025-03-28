@@ -19,11 +19,13 @@
     #########################################################
     DOCKER_HTTP_PORT: 8081
     DOCKER_OPENIDC_CONFIG_EXT: "client01_int"
+    # FIXME Need to Checkon this
+    COMETA_DATA_FOLDER: "/data"
   before_script:    
     #########################################################
     # FRONTEND
     #########################################################
-    - sed -i 's|\.\/data|/data|g' docker-compose.yml
+    - sed -i 's|\.\/data|$COMETA_DATA_FOLDER|g' docker-compose.yml
     
     # Update Client01 related OIDC information
     - echo $COMETA_CLIENT01_INT_OIDC_SECRET > $COMETA_DATA_FOLDER/front/apache2/metadata/$COMETA_CLIENT01_OIDCHOST.client

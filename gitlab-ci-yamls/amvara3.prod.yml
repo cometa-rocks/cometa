@@ -24,7 +24,7 @@
     # remove port 443 from docker-compose since amvara servers use haproxy to loadbalance ssl requests
     - sed -i "/443:443/d" docker-compose.yml
     # Replace the data path
-    - sed -i 's|\.\/data|/data|g' docker-compose.yml
+    - sed -i 's|\.\/data|$COMETA_DATA_FOLDER|g' docker-compose.yml
     # Replace google client information
     - echo $COMETA_GOOGLE_OIDC_SECRET > $COMETA_DATA_FOLDER/front/apache2/metadata/accounts.google.com.client
     # Replace git client secret for access to git.amvara.de
