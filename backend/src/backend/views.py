@@ -1475,9 +1475,10 @@ def parseCometaBrowsers(request):
     })
 
     logger.info("----------IMAGE PULLING THREAD STARTED----------")   
-    pull_browsers_thread = Thread(target=pull_images(images_to_pull), daemon=True)
+    # Start thread as daemon so it runs independently
+    pull_browsers_thread = Thread(target=pull_images, args=(images_to_pull,), daemon=True)
     pull_browsers_thread.start()
-    logger.info("----------IMAGE PULLING THREAD FINISHED----------")
+    logger.info("----------IMAGE PULLING THREAD STARTED SUCCESSFULLY----------")
     # return success
     return JsonResponse({'success': True})
 
