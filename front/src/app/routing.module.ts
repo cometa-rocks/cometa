@@ -53,6 +53,14 @@ const routes: Routes = [
       import('@modules/newlanding.module').then(m => m.NewlandingModule),
   },
   {
+    path: 'chat-popup',
+    title: 'Support Chat',
+    loadComponent: () =>
+      import('./components/chatbot/chat-popup.component').then(
+        m => m.ChatPopupComponent
+      ),
+  },
+  {
     path: 'data-driven',
     loadComponent: () =>
       import('@components/data-driven/data-driven.component').then(

@@ -90,7 +90,6 @@
   flex-direction: column;
   justify-content: flex-start;
   margin: 15px 20px 0;
-  height: 85px;
   @include for-tablet-portrait-up-plus30 {
     flex-direction: row;
   }
@@ -316,11 +315,11 @@
       padding-right: 0;
     }
     &:nth-child(odd) {
-      background-color: #e6e6e6;
+      background-color: $white-grey-cell-bg;
       border-bottom: 2px solid rgba(black, 0.05);
     }
     &:nth-child(even) {
-      background-color: #f2f2f2;
+      background-color: $white-cell-bg;
       border-bottom: 2px solid rgba(black, 0.1);
     }
     &:hover .name {
@@ -401,7 +400,7 @@
       flex: 0 10%;
       max-width: 10%;
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-evenly;
       .option {
         flex: 0 40px;
       }

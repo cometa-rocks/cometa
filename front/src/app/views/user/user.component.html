@@ -20,7 +20,9 @@
           <div>Last login: </div><div class="extra-info">{{ account.last_login | amParse | amDateFormat: 'yyyy-MM-dd HH:mm a' }}</div>
         </div>
         <div class="user-options">
-          <button (click)="inviteUser()" class="see-again" mat-stroked-button>Invite to my team</button>
+          <button (click)="inviteUser()" class="see-again" mat-stroked-button>
+            Invite to my team
+          </button>
         </div>
         <ng-container *ngIf="account.stripe_customer_id">
           <h3>PAYMENTS</h3>
@@ -105,7 +107,9 @@
                 matInput
                 [value]="account.settings?.budget || 0"
                 (change)="handleAccountSetting($event, 'budget')"
-                type="number" />
+                type="number"
+                (focus)="onInputFocus()"
+                (blur)="onInputBlur()"/>
               <span matSuffix>EUR</span>
             </mat-form-field>
           </div>
@@ -145,9 +149,9 @@
         </p>
         <div class="reload-language">
           <button
+            mat-stroked-button
             (click)="reloadLang()"
-            class="reload-translations"
-            mat-stroked-button>
+            class="reload-translations">
             Reload language files
           </button>
         </div>
@@ -267,7 +271,7 @@
             </li>
           </ul>
         </div>
-      </div>  
+      </div>
       <h3>Feature Settings</h3>
       <div class="feature-settings">
         <p>

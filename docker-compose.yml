@@ -14,8 +14,8 @@ services:
 
   django:
     container_name: cometa_django
-    image: python:3.9
-    platform: linux/amd64  # <-- Force AMD64
+    image: python:3.11
+    platform: linux/amd64  #
     logging:
       driver: json-file
     command: bash start.sh
@@ -141,8 +141,8 @@ services:
   # Since this a deployment file, build image is used to start cometa_front 
   # n the build pipeline 
   apache:
-    image: "cometa/front:3.0.14"
-    platform: linux/amd64  # <-- Force AMD64
+    image: "cometa/front:latest"
+    platform: linux/amd64  
     container_name: cometa_front
     volumes:
       - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
@@ -154,6 +154,7 @@ services:
       - ./data/cometa/screenshots:/screenshots
       - ./data/cometa/videos:/videos
       - ./front/start_server.sh:/code/front/start_server.sh
+      - ./front/apache2:/code/front/apache2
       # Use below line to mount the company logo in the login page
       # - /share/front/apache2/icons/{{COMPANY}}.svg:/usr/local/apache2/htdocs/assets/icons/{{COMPANY}}.svg
 

@@ -1,0 +1,167 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-behave-deployment
+  namespace: cometa  # Specify the namespace
+  labels:
+    app: cometa-behave-pod
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cometa-behave-pod
+  template:
+    metadata:
+      labels:
+        app: cometa-behave-pod
+    spec:
+      serviceAccountName: pod-manager
+      tolerations:
+      - key: "architecture"
+        operator: "Equal"
+        value: "amd"
+        effect: "NoSchedule"
+        
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
+      
+      containers:
+      - name: cometa-behave-container
+        image: cometa/behave:10.0.1
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 472
+          runAsUser: 472
+          seccompProfile:
+            type: RuntimeDefault
+        ports:
+        - containerPort: 8001
+        volumeMounts:
+        - name: cometa-volume
+          mountPath: /data/screenshots
+          subPath: ./data/cometa/screenshots
+        - name: cometa-volume
+          mountPath: /data/department_data
+          subPath: ./data/department_data
+        - name: cometa-volume
+          mountPath: /code/config
+          subPath: ./data/cometa/config
+        - name: cometa-volume
+          mountPath: /opt/code/behave_django/start_pod.sh
+          subPath: ./data/cometa/start_pod.sh
+        - name: cometa-volume
+          mountPath: /data/test/html
+          subPath: ./data/html
+        - name: cometa-volume
+          mountPath: /data/test/downloads
+          subPath: ./data/cometa/downloads
+        - name: cometa-volume
+        # FIXME to mountPath : /data/uploads 
+          mountPath: /data/test/uploads
+          subPath: ./data/cometa/uploads
+        - name: cometa-volume
+          mountPath: /data/logs
+          subPath: ./share/code/behave/logs
+        - name: cometa-volume
+          mountPath: /share/certs
+          subPath: ./data/redis/certs
+        # command: ["/bin/bash","-c"]
+        # args: ['sleep infinity']
+
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: REDIS_SERVER
+          value: "cometa-redis-service"
+        - name: REDIS_PORT
+          value: "6379" 
+        - name: REDIS_WORKERS
+          value: "10"
+        - name: THREADS
+          value: "10"
+        - name: CRONTAB_SERVER_URL
+          value: "cometa-crontab-service"
+        - name: CRONTAB_SERVER_PORT
+          value: "8080"
+        - name: SOCKET_SERVER_URL
+          value: "cometa-socket-service"
+        - name: SOCKET_SERVER_PORT
+          value: "3001"
+        - name: DJANGO_SERVER_URL
+          value: "cometa-django-service"
+        - name: DJANGO_SERVER_PORT
+          value: "8000"
+        - name: BROWSERS
+          value: "40"
+        resources:
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+      hostAliases:
+      - ip: "172.29.57.233"
+        hostnames:
+          - "emprodev.mindeservices.com"
+      - ip: "172.29.55.176"
+        hostnames:
+          - "uatabani.motherson.com"
+      - ip: "172.29.57.207"
+        hostnames:
+          - "empro-dev.mindeservices.com"
+        
+      volumes:
+      - name: cometa-volume
+        persistentVolumeClaim:
+          claimName: cometa-data-volume-claim
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-behave-service
+  namespace: cometa  # Specify the namespace
+spec:
+  selector:
+    app: cometa-behave-pod
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: behave-allow-from-django
+  namespace: cometa  # Ensure this is applied within the 'cometa' namespace
+spec:
+  podSelector:
+    matchLabels:
+      app: cometa-behave-pod  # This selects the pods that the policy applies to
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: cometa-django-pod  # Only allow pods with this label
+      namespaceSelector:
+        matchLabels:
+          name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+
+    ports:
+    - protocol: TCP
+      port: 8001  # Assuming traffic comes on port 8001

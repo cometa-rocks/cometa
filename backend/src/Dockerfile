@@ -1,5 +1,5 @@
 # Use the specified Python base image
-FROM python:3.9
+FROM python:3.11
 
 LABEL AUTHOR="COMETA ROCKS S.L."
 

@@ -179,39 +179,43 @@ deploy:client04.prod:
  extends: .client04.prod
 
 
-# build cometa front image and push to docker hub
-build:amvara6.build:
+# build cometa front, django and behave in amvara8 server  and push to docker hub
+build:amvara8.build-1:
   stage: build
-  script:
+  tags: # on what runners we'd like to run this job
+    - build
+  only: # on what branch we'd like to run this job
+    refs:
+      - build
+  before_script:
     #########################################################
     # FRONTEND
+    #########################################################
+    # Get the version of build from front config.json
+    - BUILD_VERSION=$(jq -r '.version' "$CONFIG_FILE") # Extract versions
+    - echo "Build Versions -> $BUILD_VERSION"
+  
+  script:
+    #########################################################
+    # BUILD IMAGES (Front, Behave, Django)
     ########################################################
-    
-    - |
-      # Fetch the JSON response from Docker Hub
-      RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/cometa/front/tags/?page_size=2&ordering=last_updated")
+      - cd scripts
+      - ./build_cometa_container_images.sh
+ 
 
-      # Extract the latest tag using jq
-      LATEST_TAG=$(echo "$RESPONSE" | jq -r '.results[1].name')
+# build cometa browser images and push to docker hub 
+build:amvara8.build-2:
+  stage: build
+  
+  tags: # on what runners we'd like to run this job
+    - build
+  only: # Indicates this job is set to run on a schedule.
+    refs:
+      - schedules
+  script:
+    #########################################################
+    # BUILD BROWSER IMAGES (Chrome, Firefox and Edge)
+    ########################################################
+      - ./backend/browsers/check_and_build_browser_image.sh ./backend/browsers
 
-      echo "Latest tag from Docker Hub is: $LATEST_TAG"
-
-      # Compare the latest tag with the build version
-       if [ "$LATEST_TAG" == "$BUILD_VERSION" ]; then
-        echo "The latest version is already $BUILD_VERSION. Skipping build and push."
-      else
-        cd front
-        docker build . -f Dockerfile -t $COMETA_FRONT:$BUILD_VERSION
-        echo "$COMETA_FRONT:$BUILD_VERSION build successfully"
-        echo "Pushing $COMETA_FRONT:$BUILD_VERSION image to Docker $DOCKER_REGISTRY"
-        docker push $COMETA_FRONT:$BUILD_VERSION
-        echo "$COMETA_FRONT:$BUILD_VERSION image pushed"
-        echo "Converting $COMETA_FRONT:$BUILD_VERSION tag $COMETA_FRONT:latest"
-        docker tag $COMETA_FRONT:$BUILD_VERSION $COMETA_FRONT:latest
-        echo "Pushing $COMETA_FRONT:latest image to Docker $DOCKER_REGISTRY"     
-        docker push $COMETA_FRONT:latest   
-        echo "$COMETA_FRONT:latest image pushed"
-        cd -
-      fi
-    
-  extends: .amvara6.build
+      

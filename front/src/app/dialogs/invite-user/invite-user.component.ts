@@ -27,6 +27,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatIconModule } from '@angular/material/icon';
 import { NgFor, AsyncPipe } from '@angular/common';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
+import { InputFocusService } from '@services/inputFocus.service';
 
 @Component({
   selector: 'invite-user',
@@ -54,12 +55,14 @@ export class InviteUserDialog implements OnInit {
   departments: Department[];
 
   inviteForm: UntypedFormGroup;
+  inputFocus: boolean = false;
 
   constructor(
     private dialogRef: MatDialogRef<InviteUserDialog>,
     private _fb: UntypedFormBuilder,
     private _api: ApiService,
-    private _snackBar: MatSnackBar
+    private _snackBar: MatSnackBar,
+    private inputFocusService: InputFocusService
   ) {
     this.inviteForm = this._fb.group({
       email_show: [''],
@@ -121,5 +124,14 @@ export class InviteUserDialog implements OnInit {
       addresses = addresses.filter(addr => addr !== email);
       this.emails$.next(addresses);
     }
+  }
+
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocusService.setInputFocus(true);
+  }
+
+  onInputBlur() {
+    this.inputFocusService.setInputFocus(false);
   }
 }

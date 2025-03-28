@@ -1,0 +1,17 @@
+services:
+
+  selenoid-ui:
+    image: aerokube/selenoid-ui:latest-release
+    container_name: selenoid-ui
+    # network_mode: bridge
+    networks:
+      - cometa_testing
+    # links:
+    #   - selenoid
+    ports:
+      - "8080:8080"
+    command: ["--selenoid-uri", "http://selenoid:4444"]
+
+networks:
+  cometa_testing:
+    external: true

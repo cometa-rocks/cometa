@@ -15,7 +15,9 @@
         spellcheck="false"
         [type]="isSecret(data.word) ? 'password' : 'text'"
         matInput
-        placeholder="Value" />
+        placeholder="Value" 
+        (focus)="onInputFocus()"
+        (blur)="onInputBlur()"/>
     </mat-form-field>
   </mat-dialog-content>
   <mat-dialog-actions>

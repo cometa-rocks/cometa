@@ -32,9 +32,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyRadioModule } from '@angular/material/legacy-radio';
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacySlideToggleModule } from '@angular/material/legacy-slide-toggle';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import {
   NgIf,
   NgFor,
@@ -45,6 +43,10 @@ import {
   KeyValuePipe,
 } from '@angular/common';
 import { LetDirective } from '../../directives/ng-let.directive';
+import { InputFocusService } from '../../services/inputFocus.service';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'account-settings',
@@ -55,10 +57,8 @@ import { LetDirective } from '../../directives/ng-let.directive';
   imports: [
     LetDirective,
     NgIf,
-    MatLegacyButtonModule,
     NgFor,
     MatIconModule,
-    MatLegacySlideToggleModule,
     MatLegacyFormFieldModule,
     MatLegacyInputModule,
     MatLegacyRadioModule,
@@ -76,6 +76,9 @@ import { LetDirective } from '../../directives/ng-let.directive';
     UpperCasePipe,
     TitleCasePipe,
     KeyValuePipe,
+    MatSlideToggleModule,
+    MatButtonToggleModule,
+    MatButtonModule
   ],
 })
 export class UserComponent implements OnInit {
@@ -98,6 +101,10 @@ export class UserComponent implements OnInit {
   details$: Observable<UserDetails>;
   invoices$: Observable<UsageInvoice[]>;
 
+  inputFocus: boolean = false;
+
+  private inputFocusSubscription: Subscription;
+
   constructor(
     private _tours: Tours,
     private _tourService: TourService,
@@ -107,8 +114,14 @@ export class UserComponent implements OnInit {
     private _snack: MatSnackBar,
     private _store: Store,
     private _router: Router,
-    private _translate: TranslateService
+    private _translate: TranslateService,
+    private inputFocusService: InputFocusService,
   ) {
+
+    this.inputFocusService.inputFocus$.subscribe(isFocused => {
+      this.inputFocus = isFocused;
+    });
+
     this.tours$ = this.settings$.pipe(
       map(settings => {
         return (
@@ -142,6 +155,11 @@ export class UserComponent implements OnInit {
   }
 
   ngOnInit() {
+
+    // this.inputFocusSubscription = this.inputFocusService.inputFocus$.subscribe(isFocused => {
+    //   this.inputFocus = isFocused;
+    // });
+
     this.details$ = this._api.getUserDetails();
     this.invoices$ = this._api.getInvoices();
   }

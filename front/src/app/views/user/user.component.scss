@@ -28,15 +28,6 @@
   padding: 0 20px 0 20px;
 }
 
-.reload-language .reload-translations {
-  font-weight: bold;
-  line-height: 30px;
-  border: 1px solid rgba(black, 0.5);
-  @include for-phone-only {
-    width: 100%;
-  }
-}
-
 .edit-feature-toggles {
   margin-top: 15px;
 }
@@ -94,9 +85,29 @@
   }
   border: 1px solid rgba(black, 0.5);
   padding: 0 10px;
-  line-height: 30px;
+
   font-weight: bold;
-  width: 151.17px;
+  width: 190px;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.reload-language {
+  @include for-phone-only {
+    width: 100%;
+  }
+  .reload-translations {
+    // border: 1px solid rgba(black, 0.5);
+    padding: 0 10px;
+    font-weight: bold;   
+    width: 190px;
+    background-color: transparent;
+    cursor: pointer;
+  }
+}
+
+button {
+  border-radius: 5px;
 }
 
 .tour {
@@ -144,7 +155,7 @@ h4 {
   line-height: 40px;
   width: 100%;
   height: 100%;
-  font-size: 13pt;
+  font-size: 12pt;
   font-weight: bold;
   color: $primary-color;
   box-sizing: border-box;
@@ -208,6 +219,7 @@ ul {
 
 p {
   margin-bottom: 10px;
+  font-size: 15px;
 }
 
 @include for-phone-only {
@@ -354,3 +366,43 @@ p {
     text-align: center;
   }
 }
+
+// Toggle Slide
+
+mat-slide-toggle {
+  transform: scale(0.8);
+  // Moves the toggle to the left
+  transform-origin: left;
+}
+
+:host::ng-deep .mdc-switch__track::after {
+  background-color: $blue !important;
+}
+
+:host::ng-deep .mdc-switch__track::before {
+  background-color: $disabled-slide-toggle-track ;
+}
+
+:host::ng-deep .mdc-switch--selected .mdc-switch__handle {
+  background-color: $blue ;
+}
+
+:host::ng-deep .mdc-switch--selected .mdc-switch__shadow {
+  background-color: $blue ;
+}
+
+:host::ng-deep .mdc-switch__icon .mdc-switch__icon--off {
+  fill: $disabled-toggle-bg !important;
+}
+
+:host::ng-deep .mdc-form-field > label {
+  font-size: 19px;
+  margin-left: 10px;
+}
+
+
+
+
+
+
+

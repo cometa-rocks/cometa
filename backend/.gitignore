@@ -9,7 +9,7 @@
 db_data*/
 .tox/
 __pycache__
-.vscode
+# .vscode
 screenshots/
 html/
 db_data_bkp
