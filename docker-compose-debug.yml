@@ -3,8 +3,7 @@ services:
     container_name: cometa_postgres
     image: postgres:12.1
     volumes:
-      - ./backend:/code
-      - ./backend/db_data:/var/lib/postgresql/data
+      - ./data/db_data:/var/lib/postgresql/data
     expose:
       - "5532"
     networks:
@@ -13,18 +12,25 @@ services:
 
   django:
     container_name: cometa_django
-    image: python:3.9
+    image: python:3.11
     logging:
       driver: json-file
     command: bash start.sh -d
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/cometa/screenshots:/code/behave/screenshots
-      - ./data/cometa/videos:/code/behave/videos
+      - ./data/cometa:/data:rw
+      - ./data/cometa/screenshots:/data/screenshots
+      - ./data/cometa/videos:/data/videos
+      - ./data/cometa/pdf:/data/pdf
+      - ./data/cometa/downloads:/data/downloads:rw
+      - ./data/cometa/uploads:/data/uploads:rw
+      - ./data/department_data:/data/department_data:rw
+      - ./data/cometa/config:/code/config:rw
+      - ./data/django/migrations:/opt/code/migrations:rw
+      - ./data/django/logs:/opt/code/logs:rw
+      - ./data/django/clamav:/var/lib/clamav:rw
       - ./backend:/code
       - ./backend/src:/opt/code:rw
-      - ./data/cometa/config:/code/config:rw
-      - "./backend/crontabs/cometa_django_crontab:/etc/cron.d/crontab"
     working_dir: /opt/code
     environment:
       - PYTHONUNBUFFERED=1
@@ -33,8 +39,8 @@ services:
       - "8000:8000"
     depends_on:
       - db
-    links:
-      - behave:cometabehave.local
+    #links:
+    #  - behave:cometabehave.local
     networks:
      - testing
     restart: always
@@ -49,23 +55,29 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      django:
+        condition: service_healthy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/cometa/screenshots:/opt/code/screenshots
-      - ./data/cometa/videos:/opt/code/videos
+      - ./data/cometa/screenshots:/data/screenshots
+      - ./data/cometa/downloads:/data/test/downloads
+      - ./data/cometa/uploads:/data/test/uploads
+      - ./data/cometa/videos:/data/videos
+      - ./data/cometa/config:/code/config:rw
+      - ./data/department_data:/data/department_data
+      - ./data/redis/certs:/share/certs
+      - ./data/django/logs:/opt/code/logs
       - ./backend/behave:/opt/code:rw
       - ./backend:/code
-      - ./data/cometa/config:/code/config:rw
-      - ./data/redis/certs:/share/certs
-      - "./backend/behave/schedules/crontab:/etc/cron.d/crontab"
-    # command: "/opt/code/entry.sh -d"
     command: "/opt/code/behave_django/entry.sh"
+    # command:     sleep infinity
     working_dir: /opt/code/behave_django
     environment:
       PYTHONUNBUFFERED: 1
     networks:
      - testing
     restart: always
+
 
   ws:
     container_name: cometa_socket
@@ -132,11 +144,9 @@ services:
       SCHEDULER_HOST: "crontab"
       SCHEDULER_PORT: "8080"
       DEBUG_LEVEL: 10
-    # volumes:
-    #   - ./scheduler:/app:rw
-    depends_on:
-      django:
-        condition: service_healthy
+    volumes:
+      - ./backend/scheduler:/app:rw
+    command: sleep infinity
     networks:
       - testing
     restart: always

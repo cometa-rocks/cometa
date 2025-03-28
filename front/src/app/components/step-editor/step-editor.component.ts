@@ -256,7 +256,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           continue_on_failure: step.continue_on_failure,
           timeout:
             step.timeout ||
-            this.department.settings?.step_timeout ||
+            this.department?.settings?.step_timeout ||
             this._fb.control(
               60,
               Validators.compose([
@@ -837,6 +837,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
               res.interpreted,
               CustomValidators.StepAction.bind(this),
             ],
+            step_action: res.action_name || '',
             continue_on_failure: false,
             timeout: this.department.settings?.step_timeout ||
               this._fb.control(
@@ -866,7 +867,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       enabled: true,
       continue_on_failure: false,
       timeout:
-        this.department.settings?.step_timeout ||
+        this.department?.settings?.step_timeout ||
         this._fb.control(
           60,
           Validators.compose([
@@ -1115,7 +1116,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         step_action: '',
         continue_on_failure: false,
         timeout:
-          this.department.settings?.step_timeout ||
+          this.department?.settings?.step_timeout ||
           this._fb.control(
             60,
             Validators.compose([
