@@ -364,10 +364,9 @@ def before_all(context):
         
         browser_container_labels = {
             "feature_id": str(context.feature_info["feature_id"]),
-            "feature_name": context.feature_info["feature_name"],
             "feature_result_id": str(os.environ["feature_result_id"]),
-            "department_name": context.feature_info["department_name"],
-            "environment_name": context.feature_info["environment_name"]
+            "department_id": str(context.feature_info["department_id"]),
+            "environment_id": str(context.feature_info["environment_id"])
         }
         
         service_details = context.service_manager.prepare_browser_service_configuration(
