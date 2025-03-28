@@ -146,6 +146,7 @@ services:
       - ./data/cometa/screenshots:/screenshots
       - ./data/cometa/videos:/videos
       - ./front/start_server.sh:/code/front/start_server.sh
+      - ./front/apache2:/code/front/apache2
       # Use below line to mount the company logo in the login page
       # - /share/front/apache2/icons/{{COMPANY}}.svg:/usr/local/apache2/htdocs/assets/icons/{{COMPANY}}.svg
 
