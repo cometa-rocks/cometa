@@ -163,20 +163,20 @@ deploy:amvara3.prod:
   <<: *deployment_script
   extends: .amvara3.prod
 
-# create a deploy job for client01 for branch prod
-deploy:client01.int:
- <<: *deployment_script
- extends: .client01.int
+# # create a deploy job for client01 for branch prod
+# deploy:client01.int:
+#  <<: *deployment_script
+#  extends: .client01.int
 
-# create a deploy job for client01 for branch prod
-deploy:client01.prod:
- <<: *deployment_script
- extends: .client01.prod
+# # create a deploy job for client01 for branch prod
+# deploy:client01.prod:
+#  <<: *deployment_script
+#  extends: .client01.prod
 
-# create a deploy job for client04 for branch prod
-deploy:client04.prod:
- <<: *deployment_script
- extends: .client04.prod
+# # create a deploy job for client04 for branch prod
+# deploy:client04.prod:
+#  <<: *deployment_script
+#  extends: .client04.prod
 
 
 # build cometa front, django and behave in amvara8 server  and push to docker hub
