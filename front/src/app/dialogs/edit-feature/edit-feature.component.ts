@@ -353,16 +353,51 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Load the state of the expansion panel
-  loadPanelStates() {
-    const savedStates = JSON.parse(localStorage.getItem('matExpansionStates') || '{}');
 
-    this.features.forEach(feature => {
-      if (!feature.id) return;
-      feature.panels.forEach(panel => {
-        panel.expanded = savedStates[feature.id]?.[panel.id] ?? false;
+
+    getPanelSettingKey(panelId: number): string {
+      const panelMap: { [key: number]: string } = {
+        1: 'hideInformation',
+        2: 'hideSendEmail',
+        3: 'hideUploadedFiles',
+        4: 'hideBrowsers',
+        5: 'hideSteps',
+        6: 'hideSchedule'
+      };
+    
+      return panelMap[panelId];
+    }
+
+    loadPanelStates() {
+      const savedStates = JSON.parse(localStorage.getItem('matExpansionStates') || '{}');
+    
+      const userSettingsMap = {
+        'hideBrowsers': this.user.settings.hideBrowsers,
+        'hideInformation': this.user.settings.hideInformation,
+        'hideSendMail': this.user.settings.hideSendMail,
+        'hideSteps': this.user.settings.hideSteps,
+        'hideSchedule': this.user.settings.hideSchedule,
+        'hideUploadedFiles': this.user.settings.hideUploadedFiles,
+      };
+    
+      this.features.forEach(feature => {
+        if (!feature.id) return;
+    
+        feature.panels.forEach(panel => {
+          //map panel.id to the appropriate setting key:
+          const settingKey = this.getPanelSettingKey(panel.id);
+          const userSetting = userSettingsMap[settingKey];
+          // If setting is explicitly true, force it closed
+          if (userSetting === true) {
+            panel.expanded = false;
+          } else {
+            // otherwise, use saved state or default to open
+            panel.expanded = savedStates[feature.id]?.[panel.id] ?? true;
+          }
+        });
       });
-    });
-  }
+    }
+
 
   // When the expansion panel changes, save
   onExpansionChange(featureId: number, panelId: string, isExpanded: boolean) {
