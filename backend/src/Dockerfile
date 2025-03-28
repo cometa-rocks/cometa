@@ -1,5 +1,5 @@
 # Use the specified Python base image
-FROM python:3.9
+FROM python:3.11
 
 LABEL AUTHOR="COMETA ROCKS S.L."
 
@@ -110,6 +110,7 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi
 
 # Copy the entry script and ensure it's executable
+RUN chmod +x ./start_common.sh
 RUN chmod +x ./start_pod.sh
 
 # Expose the port Django will run on

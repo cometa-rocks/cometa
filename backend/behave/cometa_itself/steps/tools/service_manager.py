@@ -114,7 +114,7 @@ class KubernetesServiceManager:
             if not self.__create_pod_url():
                 # In case pod service creation fails delete the pod 
                 self.__delete_pod(pod_id = configuration['Id'])
-            
+                self.__service_configuration = configuration
             return True
         except Exception:
             logger.debug(f"Exception while creation Kubernetes service\n{configuration}")
@@ -139,7 +139,7 @@ class DockerServiceManager:
         logger.info(f"Creating container with configuration : {configuration}")
         container = self.docker_client.containers.run(**configuration)
         self.__service_configuration = container.attrs
-        return container.attrs
+        return True
 
     def get_service_name(self, uuid):
         return self.inspect_service(uuid)['Config']['Hostname']           
@@ -251,13 +251,13 @@ class DockerServiceManager:
             traceback.print_exc()
             return False
 
-    def upload_file(self, service_name_or_id, file_path, decryptFile=True):
+    def upload_file(self, service_name_or_id, file_path, decrypt_file=True):
         container = self.docker_client.containers.get(service_name_or_id)
 
         # Destination path inside the container
         container_dest_path = "/tmp"  # Change as needed
         file_name = file_path.split("/")[-1]
-        if decryptFile:
+        if decrypt_file:
             file_path = decryptFile(file_path)
         # i.e decrypted_file /tmp/6oy2p464
         # Create the tar archive
@@ -268,7 +268,7 @@ class DockerServiceManager:
         if container.put_archive(container_dest_path, tar_stream):
             logger.debug("APK File copied to the container")
             # File was not decrypted then file will be copied to container with correct name 
-            if not decryptFile:
+            if not decrypt_file:
                 return file_name
             
             command = f"mv \"{file_path}\" \"/tmp/{file_name}\""
@@ -396,7 +396,7 @@ class ServiceManager(service_manager):
             pass
         return self.__service_configuration
 
-    def prepare_browser_service_configuration(self, browser="chrome", version="131.0"):
+    def prepare_browser_service_configuration(self, browser="chrome", version="131.0", labels={}, devices_time_zone=None):
         # Generate a random UUID
         random_uuid = str(uuid.uuid4())
         container_image = f"cometa/{browser}:{version}"
@@ -416,7 +416,7 @@ class ServiceManager(service_manager):
             ]
             # Need to implement  this section
             logger.debug("Preparing service browser service configuration for docker")
-
+ 
             self.__service_configuration = {
                 "image": container_image,  # Replace with your desired image name
                 "detach": True,  # Run the container in the background
@@ -426,14 +426,17 @@ class ServiceManager(service_manager):
                     "AUTO_RECORD": "true",
                     "VIDEO_PATH": "/video",
                     "SE_VNC_NO_PASSWORD": "1",
-                    "SE_ENABLE_TRACING": "false"
+                    "SE_ENABLE_TRACING": "false",
+                    "SE_SESSION_REQUEST_TIMEOUT": "7200",
+                    "SE_NODE_SESSION_TIMEOUT": "7200",
+                    "SE_NODE_OVERRIDE_MAX_SESSIONS": "true",
                 },  # Set environment variables
                 "network": "cometa_testing",  # Attach the container to the 'cometa_testing' network
                 "restart_policy": {"Name": "unless-stopped"},
                 "volumes":[
                     f"{video_volume}:/video",
                     # FIXME this should relative path, adding this for the demo
-                    "/development/cometa/backend/browsers/scripts/video_recorder.sh:/opt/scripts/video_recorder.sh" 
+                    # "/development/cometa/backend/browsers/scripts/video_recorder.sh:/opt/scripts/video_recorder.sh" 
 
                 ],  # Mount volumes
                 "extra_hosts": extra_hosts,  # Add custom host mappings
@@ -442,8 +445,14 @@ class ServiceManager(service_manager):
                     "5900/tcp": None   # Expose VNC port without mapping to the host
                 },
                 "cpu_shares": browser_cpu*1024,  # Translate CPU request/limits to Docker's CPU shares
-                "mem_limit": f"{browser_memory}g"    # Set memory limit
+                "mem_limit": f"{browser_memory}g",   # Set memory limit
+                "labels": labels
             }
+            # Add timezone if timezone is provide
+            if devices_time_zone:
+                self.__service_configuration["environment"]["TZ"] = devices_time_zone
+                
+            logger.debug(f"Browser Container Configuration {self.__service_configuration}")
             
         else:
             pod_name = self.get_pod_name(random_uuid)
@@ -451,7 +460,8 @@ class ServiceManager(service_manager):
             pod_selectors = {
                 "browser":browser,
                 "version": version,
-                "Id": random_uuid
+                "Id": random_uuid,
+                **labels
             }
         
             # Define the pod manifest
@@ -485,23 +495,26 @@ class ServiceManager(service_manager):
                                 {"name": "AUTO_RECORD", "value": "true"},
                                 {"name": "VIDEO_PATH", "value": "/video"},
                                 {"name": "SE_VNC_NO_PASSWORD", "value": "1"},
-                                {"name": "SE_ENABLE_TRACING", "value": "false"}
+                                {"name": "SE_ENABLE_TRACING", "value": "false"},
+                                {"name": "SE_SESSION_REQUEST_TIMEOUT", "value": "7200"},
+                                {"name": "SE_NODE_SESSION_TIMEOUT", "value": "7200"},
+                                {"name": "SE_NODE_OVERRIDE_MAX_SESSIONS", "value": "true"}
                             ],
                             "ports": [
                                 {"containerPort": 4444, "protocol": "TCP"},
                                 {"containerPort": 5900, "protocol": "TCP"}
                             ],
                             "volumeMounts": [
-                                {
-                                    "name": "cometa-volume",
-                                    "mountPath": "/opt/scripts/video_recorder.sh",
-                                    "subPath": "./scripts/video_recorder.sh"
-                                }, 
+                                # {
+                                #     "name": "cometa-volume",
+                                #     "mountPath": "/opt/scripts/video_recorder.sh",
+                                #     "subPath": "./scripts/video_recorder.sh"
+                                # }, 
                                 {
                                     "name": "cometa-volume",
                                     "mountPath": "/video",
                                     "subPath": "data/cometa/videos"
-                                }
+                                },
                             ]
                         }
                     ],
@@ -516,7 +529,11 @@ class ServiceManager(service_manager):
                     ]
                 }
             }
-
+            # Add timezone if timezone is provide
+            if devices_time_zone:
+                self.pod_manifest["spec"]["containers"][0]["env"].append({"name": "TZ", "value": devices_time_zone})
+            
+            
             # Define the service manifest
             self.pod_service_manifest = {
                 "apiVersion": "v1",

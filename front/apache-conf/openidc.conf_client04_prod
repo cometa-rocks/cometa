@@ -5,8 +5,8 @@ Listen 443
 # Create virtual hosts for 443 just for SSL Certificate
 <VirtualHost *:443>
     SSLEngine on
-    SSLCertificateFile /etc/ssl/certs/apache-self-signed.crt
-    SSLCertificateKeyFile /etc/ssl/certs/apache-self-signed.key
+    SSLCertificateFile /share/apache2/certs/apache-self-signed.crt
+    SSLCertificateKeyFile /share/apache2/certs/apache-self-signed.key
 </VirtualHost>
 
 #error_page  404              /404.html;
@@ -34,7 +34,7 @@ ErrorDocument 504 /50x.html
 LoadModule auth_openidc_module modules/mod_auth_openidc.so
 
 # provide multiple providers data
-OIDCMetadataDir /code/front/apache-conf/metadata
+OIDCMetadataDir /usr/local/apache2/conf/metadata
 OIDCDiscoverURL /welcome.html
 
 OIDCXForwardedHeaders X-Forwarded-Proto

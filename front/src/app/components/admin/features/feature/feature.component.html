@@ -10,7 +10,9 @@
     spellcheck="false"
     disableAutocomplete
     disabled
-    [value]="feature.feature_name" />
+    [value]="feature.feature_name"
+    (focus)="onInputFocus()"
+    (blur)="onInputBlur()"/>
 </div>
 <div class="specs">
   <div

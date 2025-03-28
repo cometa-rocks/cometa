@@ -209,6 +209,15 @@ function updateCrontab() {
     fi
 }
 
+
+function initiate_config_dirs(){
+    debug "Init dirs"
+    ./init_dirs.sh
+    debug "Init dirs"
+}
+
+
+
 function get_cometa_up_and_running() {
 
     #
@@ -322,7 +331,7 @@ function get_cometa_up_and_running() {
     log_wfr "Waiting for frontend to compile angular typescript into executable code "
     retry "curl --fail --insecure https://localhost/ -o /dev/null  -s -L" && log_res "[done] Feeling happy " || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container front is not running"; }
 
-} # end of function get_cometA_up_and_running
+} # end of function get_cometa_up_and_running
 
 #
 # Show logfiles of docker containers
@@ -376,6 +385,7 @@ do
 done
 
 checkRequirements
+initiate_config_dirs
 get_cometa_up_and_running
 
 info "The test automation platform is ready to rumble at https://localhost/"
