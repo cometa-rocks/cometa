@@ -7,7 +7,9 @@
         matInput
         placeholder="Value"
         disableAutocomplete
-        formControlName="name" />
+        formControlName="name"   
+        (focus)="onInputFocus()"
+        (blur)="onInputBlur()"/>
     </mat-form-field>
     <mat-form-field class="move-right" appearance="outline">
       <mat-label>Email</mat-label>
@@ -15,7 +17,9 @@
         matInput
         placeholder="Value"
         type="email"
-        formControlName="email" />
+        formControlName="email"   
+        (focus)="onInputFocus()"
+        (blur)="onInputBlur()"/>
     </mat-form-field>
     <mat-form-field class="move-right" appearance="outline">
       <mat-label>User role</mat-label>

@@ -1,5 +1,5 @@
 {
-  "version": "3.0.18",
+  "version": "3.0.25",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,11 +237,97 @@
   ],
   "changelog": [
     {
+      "version": "3.0.25",
+      "date": "2025-03-26",
+      "features": [
+        {
+          "title": "CICD execution with token based authentication ",
+          "description": "Execute testcases using the CICD pipeline with token based authentication. Token can be generated from Cometa admin Dashboard."
+        }
+      ]
+    },
+    {
+      "version": "3.0.24",
+      "date": "2025-03-20",
+      "features": [
+        {
+          "title": "Implemented Chatbot feature",
+          "description": "#5930 Implemented Chatbot feature in the Cometa for better user experience to help in designing the test cases. Recent feature page has been updated with a new all departments view. Also, fixed various shortcuts and visual bugs"
+        }
+      ]
+    },
+    {
+      "version": "3.0.23",
+      "date": "2025-03-11",
+      "features": [
+        {
+          "title": "Button failed features | button Failed steps - #4694",
+          "description": "Added logic for button clicks to affect the feature result status and implemented matTooltip in step-view."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.22",
+      "date": "2025-03-07",
+      "features": [
+        {
+          "title": "Enhanced User Experience #4694",
+          "description": "Improved several Angular components to provide a smoother and more intuitive user experience."
+        },
+        {
+          "title": "Fixed Dialog Sizing in Edit-Feature #5868",
+          "description": "Adjusted the dialog size in edit-feature to ensure proper display across different screen resolutions."
+        },
+        {
+          "title": "Shortcut and Profile Page Improvements #4694",
+          "description": "The menu now toggles with the same shortcut, header shortcuts updated, and profile page styling improved."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.21",
+      "date": "2025-03-04",
+      "features": [
+        {
+          "title": "Focus on input or textarea when mat-expansion panels are opened #4694",
+          "description": "Implemented focus on the input or textarea when the mat-expansion panels are opened."
+        },
+        {
+          "title": "Retain the last opened state of mat-expansion panels per feature #4694",
+          "description": "Now each feature retains the last opened state of its panels, as set by the user."
+        },
+        {
+          "title": "Updated the shortcuts page #4694",
+          "description": "Updated the page with new and improved shortcuts for better user experience."
+        }
+      ]
+    },
+    {
+      "version": "3.0.20",
+      "date": "2025-02-27",
+      "features": [
+        {
+          "title": "Hotfix: Removed conflicting code in feature state #4694",
+          "description": "Resolved an issue by deleting conflicting code in the feature state."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.19",
+      "date": "2025-02-27",
+      "features": [
+        {
+          "title": "Shortcut behavior improvements #4694",
+          "description": "Updated shortcut behavior to prevent execution while focusing on inputs and textareas in profile and administration page. Changed the search shortcut."
+        }
+      ]
+    },    
+    {
       "version": "3.0.18",
       "date": "2025-02-26",
       "features": [
         {
-          "title": "Fix error when uploaded user is deleted",
+          "title": "Fix error when uploaded user is deleted #5831",
           "description": "Prevent errors in the file list when the user who uploaded a file is deleted. Now, it displays 'User no longer exists' instead of breaking the table."
         }
       ]

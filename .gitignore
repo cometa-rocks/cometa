@@ -1,8 +1,10 @@
 # ignore visual studio code directory
-.vscode/
+# .vscode/
 # ignore data directory incase cometa was created using cometa.sh script
 data/
 # ignore _template files
 *_template
 
 .idea
+
+.env
