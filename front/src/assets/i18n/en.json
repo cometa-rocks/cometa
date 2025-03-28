@@ -195,9 +195,25 @@
     "start_emulator": "Start the mobile emulator to test applications",
     "pause_emulator": "Pause the mobile emulator temporarily",
     "restart_emulator": "Restart the mobile emulator to reset its state",
-    "shared": "This emulator is shared with other users",
-    "not_shared": "This emulator is not shared with other users",
+    "shared": "This emulator is shared with other users\nClick to modify to unshare this mobile emulator",
+    "not_shared": "This emulator is not shared with other users\nClick to modify and share this mobile emulator",
     "modify_emulator_started": "Show and modify the emulator parameters",
     "modify_emulator_not_started": "The emulator must be starting to be modified"
+  },
+  "filter": {
+    "home": "Home shortcut: H",
+    "search": "Search shortcut: S",
+    "show-hide": "Show / hide folders",
+    "escape": "ESC",
+    "remove-filter": "Remove filter shotcut: Shift + Alt + X"
+  },
+  "networkPaginated": {
+    "allSteps": "Show only failed steps",
+    "failureSteps": "Show all steps",
+    "noFailureSteps": "No failed steps"
+  },
+  "mainView": {
+    "allResults": "Show all features",
+    "failureResults": "Show all failed features"
   }
 }
