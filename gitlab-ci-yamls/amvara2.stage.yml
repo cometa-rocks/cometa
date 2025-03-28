@@ -7,7 +7,7 @@
     #########################################################
     # BACKEND
     #########################################################
-    DEPLOY_BACKEND_FOLDER: "/home/amvara/projects/cometa/cometa"
+    DEPLOY_BACKEND_FOLDER: "/var/www/cometa/cometa"
     COMETA_TOTAL_BROWSER_VERSION: 3
     
     #########################################################
