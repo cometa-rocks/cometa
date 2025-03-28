@@ -730,7 +730,7 @@
             <mat-select 
             (selectionChange)="getHowLongAgo($event.value)" 
             [formControl]="selectedFile">
-              <mat-option *ngFor="let file of files" [value]="file">
+              <mat-option *ngFor="let file of prettyFiles" [value]="file">
                 {{ file }}
               </mat-option>
             </mat-select>

@@ -177,6 +177,8 @@ export class EditFeature implements OnInit, OnDestroy {
   backupFiles$!: Observable<BackupFile[]>;
   steps$: Observable<FeatureStep[]>;
   files: string[] = [];
+  prettyFiles: string[] = [];
+  fileContents: string[] = [];
   featureAge: string = '';
   selectedFile = new UntypedFormControl();
   // next runs an array of next executions
@@ -1449,8 +1451,9 @@ export class EditFeature implements OnInit, OnDestroy {
   
   loadBackupFiles() {
     const featureId = this.data.feature.feature_id;
-  
+    //Check if feature is not new
     if (featureId && featureId > 0) {
+      //Set up the pipe work to get the backup files
       this.backupFiles$ = this._api.getBackupFiles(featureId).pipe(
         map(response => response.files),
         catchError(error => {
@@ -1458,14 +1461,13 @@ export class EditFeature implements OnInit, OnDestroy {
           return of([]);
         })
       );
-  
+      //Subscribe to the backup files and get both filenames and contents
       this.backupFiles$.subscribe((files: BackupFile[]) => {  
-        const filenames = files.map(file => file.filename);
-        const contents = files.map(file => file.content);
-        this.files = filenames;
+        this.files = files.map(file => file.filename);
+        this.fileContents = files.map(file => file.content);
         //modify the files array to remove the _meta.json files and make the dates and time pretty
-        this.files = this.cleanNames(this.files);
-        console.log("Files:", this.files);
+        this.prettyFiles = this.files
+        this.prettyFiles = this.cleanNames(this.files);
       });
     } else {
       this.backupFiles$ = of([]);
@@ -1473,15 +1475,16 @@ export class EditFeature implements OnInit, OnDestroy {
     }
   }
 
+  //Clean the filenames to make the dates and time pretty
   cleanNames(files: string[]): string[] {
+    //return the files filtering out the _meta.json, then map the files to the pretty dates and times
     return files
       .filter(filename => !filename.includes('_meta.json')) // remove _meta.json files
       .map(filename => {
-        // Remove .json
         const noExt = filename.replace('.json', '');
   
         const parts = noExt.split('_');
-        if (parts.length < 4) return ''; // skip malformed names
+        if (parts.length < 4) return '';
   
         const datePart = parts[2];
         const timePart = parts[3];
@@ -1523,35 +1526,13 @@ export class EditFeature implements OnInit, OnDestroy {
     this.featureAge = output;
   }
   
-  // restoreFeature() {
-
-  //   //before restoring, open a dialog to ask the user if they are sure they want to restore the feature
-
-  //   const selectedValue = this.selectedFile.value;
-  //   console.log("Restoring feature from:", selectedValue);
-    
-  //   // Subscribe to get the full file names from the API
-  //   this.backupFiles$.subscribe(files => {
-  //     //print all inside backupFiles$
-  //     console.log("Backup files:", files);
-  //     // Find the files that contain the selected date/time string
-  //     const featureInfo = files.find(f => f.includes(selectedValue) && f.includes('_meta.json'));
-  //     const featureSteps = files.find(f => f.includes(selectedValue) && f.endsWith('.json') && !f.includes('_meta.json'));
-  //     let featureInfoArray: string[] = [];
-  //     let featureStepsArray: string[] = [];
-  //     console.log("Feature info:", featureInfo);
-  //     console.log("Feature steps:", featureSteps);
-  //     // //Now that we have the file names, we need to call the api to get the json content of the files
-  //     // this._sharedActions.loadingObservable(this._api.getFeatureSteps(this.featureId, {loading: 'translate:tooltips.loading_feature'}), 'translate:tooltips.loading_feature').subscribe(steps => {
-  //     //   this.stepEditor.setSteps(steps, true);
-  //     // });
-  //     // this._sharedActions.loadingObservable(this._api.getFeature(this.featureId, {loading: 'translate:tooltips.loading_feature'}), 'translate:tooltips.loading_feature').subscribe(info => {
-  //     //   this.featureForm.get('feature_name').setValue(info.feature_name);
-  //     //   this.featureForm.get('description').setValue(info.description);
-  //     //   this.featureForm.get('department_name').setValue(info.department_name);
-  //     //   this.featureForm.get('environment_name').setValue(info.environment_name);
-  //     //   this.featureForm.get('app_name').setValue(info.app_name);
-  //     // });
-  //   });
-  // }
+  restoreFeature() {
+    const selectedValue = this.selectedFile.value
+    console.log("Restoring feature number:", this.featureId, "from:", selectedValue);
+    //we now have the file names in this.files and the contents in this.fileContents
+    //Update feature info and steps using the contents of the selected file
+    const selectedFileIndex = this.files.indexOf(selectedValue);
+    const selectedFileContent = this.fileContents[selectedFileIndex];
+    console.log("Selected file content:", selectedFileContent);
+  }
 }
