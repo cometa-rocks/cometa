@@ -4,7 +4,7 @@ services:
     image: postgres:12.1
     volumes:
       - ./backend:/code
-      - ./backend/db_data:/var/lib/postgresql/data
+      - ./data/db_data:/var/lib/postgresql/data
     expose:
       - "5532"
     networks:
@@ -13,7 +13,7 @@ services:
 
   django:
     container_name: cometa_django
-    image: python:3.9
+    image: python:3.11
     logging:
       driver: json-file
     command: bash start.sh
@@ -24,6 +24,7 @@ services:
       - ./data/cometa/videos:/data/videos
       - ./data/cometa/pdf:/data/pdf
       - ./data/cometa/downloads:/data/downloads:rw
+      - ./data/cometa/uploads:/data/uploads:rw
       - ./data/department_data:/data/department_data:rw
       - ./data/cometa/config:/code/config:rw
       - ./data/django/migrations:/opt/code/migrations:rw
@@ -54,11 +55,15 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      # FIXME Add healthcheck for django, and remove circular dependency of django on behave
+      # django:
+      #   condition: service_healthy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa:/data:rw
       - ./data/cometa/screenshots:/data/screenshots
       - ./data/cometa/downloads:/data/test/downloads
+      - ./data/cometa/uploads:/data/test/uploads
       - ./data/cometa/videos:/data/videos
       - ./data/department_data:/data/department_data:rw
       - ./data/cometa/config:/code/config:rw
@@ -76,18 +81,12 @@ services:
 
   ws:
     container_name: cometa_socket
-    image: node:14
-    working_dir: /home/node/app
-    logging:
-      driver: json-file
+    image: cometa/socket:1.2
     environment:
       - NODE_ENV=production
       - NPM_CONFIG_LOGLEVEL=info
-    volumes:
-      - ./backend/ws-server:/home/node/app:rw
     expose:
       - "3001"
-    command: "npm run-script start"
     networks:
      - testing
     restart: always
@@ -135,7 +134,7 @@ services:
   # Since this a deployment file, build image is used to start cometa_front 
   # n the build pipeline 
   apache:
-    image: "cometa/front:3.0.7"
+    image: "cometa/front:latest"
     container_name: cometa_front
     volumes:
       - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
@@ -153,7 +152,7 @@ services:
     working_dir: /code/front
     privileged: true
     ports:
-      - "80:80"
+      - "<outside_port>:80"
       - "443:443"
     entrypoint: bash /code/front/start_server.sh
     environment:
