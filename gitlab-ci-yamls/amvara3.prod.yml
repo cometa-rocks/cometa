@@ -7,7 +7,7 @@
     #########################################################
     # BACKEND
     #########################################################
-    DEPLOY_BACKEND_FOLDER: "/home/amvara/projects/cometa"
+    DEPLOY_BACKEND_FOLDER: "/var/www/cometa"
     COMETA_DOMAIN: "prod.cometa.rocks"
     COMETA_DEBUG: "False"
     COMETA_PROXY: ''
