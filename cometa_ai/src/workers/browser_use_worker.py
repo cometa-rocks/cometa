@@ -31,6 +31,8 @@ async def execute_browser_use_action(prompt, browser_context=None):
             - cdp_endpoint: WebSocket endpoint for browser connection
             - session_id: Unique identifier for browser session
             - page_url: Current page URL (optional)
+            - config: Configuration dictionary containing:
+                - COMETA_OPENAI_API_KEY: OpenAI API key
     
     Returns:
         dict: Result containing:
@@ -48,8 +50,16 @@ async def execute_browser_use_action(prompt, browser_context=None):
 
     load_dotenv()
 
+    # Get configuration from browser_context if available
+    config = browser_context.get('config', {}) if browser_context else {}
+    
+    # Get OpenAI API key from config or fallback to environment variable
+    OPENAI_API_KEY = config.get('COMETA_OPENAI_API_KEY', os.getenv("COMETA_OPENAI_API_KEY", ""))
+    if OPENAI_API_KEY:
+        logger.debug("Using OpenAI API key from configuration")
+
     DEFAULT_BROWSER_USE_MODEL = os.getenv("BROWSER_USE_MODEL", "gpt-4o")
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
     # Ensure OpenAI API key is valid before proceeding
     validate_openai_api_key(OPENAI_API_KEY)
 

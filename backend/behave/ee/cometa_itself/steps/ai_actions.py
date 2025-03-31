@@ -11,6 +11,7 @@ sys.path.append("/opt/code/behave_django")
 sys.path.append("/opt/code/cometa_itself/steps")
 
 from utility.functions import *
+from utility.configurations import ConfigurationManager
 
 from tools.exceptions import *
 from tools.common import send_step_details
@@ -336,6 +337,14 @@ def execute_ai_action(context, prompt):
         logger.debug("Executing AI action")
         logger.debug(f"Prompt: {prompt}")
 
+        # Create config to pass to browser_use_worker
+        config = {
+            "COMETA_OPENAI_API_KEY": ConfigurationManager.get_configuration("COMETA_OPENAI_API_KEY", "")
+        }
+        
+        # Store configuration in context so it can be accessed by AI module
+        context.browser_use_config = config
+        
         # Update UI with current action status
         send_step_details(context, "Executing Browser-Use action")
         

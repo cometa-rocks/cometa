@@ -3,7 +3,6 @@ from langchain_openai import ChatOpenAI
 from browser_use import Agent
 import asyncio
 
-OPENAI_API_KEY = "***REMOVED***"
 
 load_dotenv()
 
