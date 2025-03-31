@@ -84,6 +84,7 @@ default_cometa_configurations = {
     # having password hardcoded does not create a security issue, because this communication is internal
     # this can be always changed to a more secure password
     "COMETA_BROWSER_VNC_PASSWORD":"secret",
+    "COMETA_OPENAI_API_KEY": "",
 }
 
 
