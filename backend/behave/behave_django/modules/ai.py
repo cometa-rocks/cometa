@@ -72,6 +72,7 @@ class AI:
             # Extract browser session information
             session_id = context.browser.session_id
             cdp_endpoint = f"ws://cometa_selenoid:4444/devtools/{session_id}"
+            step_timeout = context.step_data.get("timeout", 600)
 
             # Prepare browser context with session details
             browser_context = {
@@ -95,7 +96,8 @@ class AI:
             worker_job = browser_queue.enqueue(
                 self.__BROWSER_USE_WORKER_NAME, 
                 prompt, 
-                browser_context
+                browser_context,
+                job_timeout=step_timeout
             )
 
             # Monitor job progress and provide status updates
