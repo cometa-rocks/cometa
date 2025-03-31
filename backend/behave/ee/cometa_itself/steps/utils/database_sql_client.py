@@ -67,7 +67,7 @@ class SQLDatabaseClient(DatabaseClient):
             result = self.connection.execute(text_query)   
             
             query_lower = query.strip().lower()
-            if query_lower.startswith(("create ", "alter ", "drop ", "insert ")):
+            if query_lower.startswith(("create ", "alter ", "drop ", "insert ", "update ", "delete ")):
                 logger.info("DDL statement executed successfully.")
                 return {"message": "Query executed successfully"}
             

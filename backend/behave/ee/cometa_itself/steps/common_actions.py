@@ -37,7 +37,12 @@ use_step_matcher("parse")
 def show_variable_value(context, variable, seconds):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     # Assuming getVariable is a function that retrieves the variable value
-    variable_value = getVariable(context, variable) 
+    variable_value = None
+    try:
+        variable_value = getVariable(context, variable)
+    except Exception as e:
+        raise CustomError(f"variable '{variable}' not found")
+    
     send_step_details(context, f"{variable} : {variable_value}")    
     # Define the variable type (implement the logic as needed)
     variable_type = type(variable_value).__name__  # You can replace this with your own logic

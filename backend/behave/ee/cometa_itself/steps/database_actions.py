@@ -61,20 +61,20 @@ def connect_to_sql_database(context, connection_string, variable_name):
     send_step_details(context, "Connected to database")
     logger.info("Connected to database")
     
-    
-# - (?P<variable>.*?): Captures the name of the variable where the list of objects will be stored.
-# - (?: with "(?P<options>.*?)")?: This part is optional.
+
+# This step executes an SQL query and stores the result in a specified variable.
+# Parameters:
+# - query: The SQL query to be executed.
+# - variable_name: The name of the variable in which to store the result.
 # Example:
-# - Get list of visible objects in the current screen and store in "myObjects"
-# - Get list of visible objects in the current screen and store in "myObjects" with "visible_only"
-# The first usage stores the visible objects without any specific options, while the second one applies the "visible_only" option.
+# - Execute SQL query """SELECT * FROM users""" and store result in "user_data"    
+# - (and store result in "user_data") is optional.
 @step(u'Execute SQL query """{query}""" and store result in "{variable_name}"')
 @done(u'Execute SQL query """{query}""" and store result in "{variable_name}"')
 def execute_sql_query_get_answer_in_json(context, query, variable_name):
     context.STEP_TYPE = "DATABASE"
     database_feature_cannot_be_used_error(context)
     check_if_step_call_is_valid(context,"SQL")
-    
     result = context.database_connection.execute_query(context,query)
     addTestRuntimeVariable(context, variable_name, result, save_to_step_report=True)
     context.LAST_DB_QUERY_RESULT = result

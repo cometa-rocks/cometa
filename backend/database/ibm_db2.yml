@@ -1,0 +1,24 @@
+services:
+  db2:
+    image: ibmcom/db2:latest
+    container_name: db2_db
+    restart: unless-stopped
+    privileged: true  # Required for Db2 to run inside Docker
+    environment:
+      DB2INSTANCE: "db2inst1"
+      DB2INST1_PASSWORD: "testpassword"
+      LICENSE: "accept"
+      DATABASE_NAME: "organization"
+    ports:
+      - "50000:50000"
+    volumes:
+      - data_db2:/database
+    networks:
+      - cometa_testing
+
+volumes:
+  data_db2:
+
+networks:
+  cometa_testing:
+    external: true
