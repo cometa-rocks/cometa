@@ -31,7 +31,6 @@ logging.getLogger("browser_use").setLevel(logging.DEBUG)
 # load_dotenv()
 
 DEFAULT_BROWSER_USE_MODEL = os.getenv("BROWSER_USE_MODEL", "gpt-4o")
-OPENAI_API_KEY = "***REMOVED***"
 
 # options = webdriver.ChromeOptions()
 # options.add_argument("--headless")  # Optional

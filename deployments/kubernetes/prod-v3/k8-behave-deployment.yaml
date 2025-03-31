@@ -30,7 +30,7 @@ spec:
       
       containers:
       - name: cometa-behave-container
-        image: cometa/behave:1.12
+        image: cometa/behave:10.0.1
         imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
