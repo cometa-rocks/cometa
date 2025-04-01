@@ -95,6 +95,7 @@ export class L1FeatureItemListComponent implements OnInit {
   private hasHandledMouseOver = false;
   private hasHandledMouseOverFolder = false;
   finder: boolean = false;
+  isButtonDisabled: boolean = false;
 
   /**
    * Global variables
@@ -118,6 +119,12 @@ export class L1FeatureItemListComponent implements OnInit {
     // Subscribe to the running state comming from NGXS
     this.featureRunning$ = this._store.select(
       CustomSelectors.GetFeatureRunningStatus(this.feature_id)
+    ).pipe(
+      tap(running => {
+        if (!running) {
+          this.isButtonDisabled = false;
+        }
+      })
     );
     // Subscribe to the status message comming from NGXS
     this.featureStatus$ = this._store.select(
@@ -360,6 +367,12 @@ export class L1FeatureItemListComponent implements OnInit {
     }).catch(err => {
       console.error('Failed to copy text: ', err);
     });
+  }
+
+  onRunClick() {
+    if (this.isButtonDisabled) return;
+    this.isButtonDisabled = true;
+    this._sharedActions.run(this.item.id);
   }
 
 }

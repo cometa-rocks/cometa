@@ -1,5 +1,5 @@
 {
-  "version": "3.0.25",
+  "version": "3.0.26",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.26",
+      "date": "2025-04-01",
+      "features": [
+        {
+          "title": "Run and stop buttons",
+          "description": "Visual feedback when running or stopping a feature."
+        }
+      ]
+    },
     {
       "version": "3.0.25",
       "date": "2025-03-26",
