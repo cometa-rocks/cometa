@@ -4053,12 +4053,14 @@ def get_backup_files_content(request, feature_id):
                 if os.path.isfile(file_path):
                     with open(file_path, 'r', encoding='utf-8') as file:
                         content = file.read()
-                        # Check if the feature_id is in the JSON content
-                        if f'"feature_id": {feature_id}' in content:
+                        # Only append backup files that match the feature_id
+                        if filename.startswith(f"{feature_id}_"):
                             file_contents.append({
                                 'filename': filename,
                                 'content': content
                             })
+                            logger.debug(f"Backup filename: {filename}")
+                            logger.debug(f"Backup content: {content}")
         else:
             logger.warning(f"Backup directory does not exist: {backups_dir}")
             return JsonResponse({'error': 'Backup directory not found'}, status=404)
