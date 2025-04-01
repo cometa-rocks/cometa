@@ -243,6 +243,10 @@
         {
           "title": "Run and stop buttons",
           "description": "Visual feedback when running or stopping a feature."
+        },
+        {
+          "title": "Persist the last expansion state of panels in the Edit Feature dialog - #4694",
+          "description": "Implemented logic to remember the expansion state of panels in the Edit Feature dialog"
         }
       ]
     },
