@@ -26,3 +26,7 @@ browser-use==0.1.40
 langchain-community==0.3.18
 langchain-core==0.3.40
 nest-asyncio==1.6.0
+chromadb==0.6.3
+PyPDF2==3.0.1
+markdown==3.7.0
+beautifulsoup4==4.13.3
