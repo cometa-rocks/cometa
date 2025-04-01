@@ -21,6 +21,10 @@ from utility.common import *
 from utility.config_handler import *
 from utility.configurations import ConfigurationManager,load_configurations
 from behave_django.settings import BEHAVE_HOME_DIR 
+import sys
+sys.path.append("/opt/code")
+from modules.ai import AI
+from cometa_itself.environment import REDIS_IMAGE_ANALYSYS_QUEUE_NAME, REDIS_BROWSER_USE_QUEUE_NAME, REDIS_CHAT_COMPLETION_QUEUE_NAME
 
 logger = get_logger()
 
@@ -135,6 +139,88 @@ def kill_task(request, pid):
     subprocess.call("kill -15 %d" % int(pid), shell=True)   
     return JsonResponse({"success": True, "killed": pid})
 
+@require_http_methods(["POST"])
+@csrf_exempt
+@xframe_options_exempt
+def process_chat_completion(request):
+    """
+    API endpoint to process chat completion requests using AI class
+
+    POST parameters:
+    - message (str): User's message
+    - history (list, optional): Previous conversation history
+    - system_prompt (str, optional): System prompt for the AI
+
+    Returns:
+    - JSON response with message and success status
+    """
+    try:
+        # Parse request data
+        if request.content_type == 'application/json':
+            data = json.loads(request.body)
+        else:
+            data = request.POST.dict()
+
+        # Get required parameters
+        user_message = data.get('message', '')
+        chat_history = data.get('history', [])
+        system_prompt = data.get('system_prompt', None)
+
+        logger.info(f"Received chat completion request: '{user_message[:50]}...' (if truncated)")
+
+        # Format messages for the AI worker
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        
+        # Add chat history
+        for msg in chat_history:
+            role = "assistant" if not msg.get("isUser", True) else "user"
+            messages.append({"role": role, "content": msg.get("text", "")})
+        
+        # Add current user message
+        messages.append({"role": "user", "content": user_message})
+
+        # Prepare data for the chat completion worker
+        chat_data = {
+            'messages': messages,
+            'system_prompt': system_prompt,
+        }
+
+        # Initialize AI class
+        ai_instance = AI(
+            REDIS_IMAGE_ANALYSYS_QUEUE_NAME, 
+            REDIS_BROWSER_USE_QUEUE_NAME,
+            REDIS_CHAT_COMPLETION_QUEUE_NAME,
+            logger
+        )
+        
+        # Process the chat completion
+        logger.info("Enqueuing chat completion request")
+        success, assistant_message, error = ai_instance.process_chat_completion(chat_data)
+        
+        # Return the response
+        if success:
+            return JsonResponse({
+                "message": assistant_message,
+                "success": True
+            })
+        else:
+            logger.error(f"Error from chat completion worker: {error}")
+            return JsonResponse({
+                "message": "I'm sorry, but I'm having trouble processing your request right now. Please try again later.",
+                "success": False,
+                "error": error
+            })
+            
+    except Exception as e:
+        logger.error(f"Error in chat completion API: {str(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        return JsonResponse({
+            "message": "I'm sorry, but I encountered an unexpected error. Please try again later.",
+            "success": False,
+            "error": str(e)
+        }, status=500)
 
 @require_http_methods(["GET"])
 @csrf_exempt

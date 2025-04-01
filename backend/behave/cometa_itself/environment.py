@@ -81,6 +81,10 @@ REDIS_BROWSER_USE_QUEUE_NAME = ConfigurationManager.get_configuration(
      "REDIS_BROWSER_USE_QUEUE_NAME", "browser_use_queue"
  ) 
 
+REDIS_CHAT_COMPLETION_QUEUE_NAME = ConfigurationManager.get_configuration(
+    "REDIS_CHAT_COMPLETION_QUEUE_NAME", "chat_completion_queue"
+)
+
 DEPARTMENT_DATA_PATH = "/data/department_data"
 
 

@@ -19,14 +19,16 @@ class AI:
     # Taking REDIS_IMAGE_ANALYSYS_QUEUE_NAME from environment.py file as parameter
     # In future if we have more than 1 ai_containers runnting this will help to redirect the analysis request
 
-    def __init__(self, REDIS_IMAGE_ANALYSYS_QUEUE_NAME, REDIS_BROWSER_USE_QUEUE_NAME, logger):
+    def __init__(self, REDIS_IMAGE_ANALYSYS_QUEUE_NAME, REDIS_BROWSER_USE_QUEUE_NAME, REDIS_CHAT_COMPLETION_QUEUE_NAME, logger):
         self.logger = logger
         self.REDIS_IMAGE_ANALYSYS_QUEUE_NAME = REDIS_IMAGE_ANALYSYS_QUEUE_NAME
         self.REDIS_BROWSER_USE_QUEUE_NAME = REDIS_BROWSER_USE_QUEUE_NAME
+        self.REDIS_CHAT_COMPLETION_QUEUE_NAME = REDIS_CHAT_COMPLETION_QUEUE_NAME
         self.__REDIS_CONNECTION = connect_redis()
         # This variable is path of cometa_ai.src.workers....
         self.__IMAGE_ANALYST_WORKER_NAME = "src.workers.image_analyst.analyze_image"
         self.__BROWSER_USE_WORKER_NAME = "src.workers.browser_use_worker.execute_browser_use_action"
+        self.__CHAT_COMPLETION_WORKER_NAME = "src.workers.chat_completion_worker.process_chat_completion"
 
     def analyze_image(self, context, data):
         try:
@@ -133,3 +135,56 @@ class AI:
             error_msg = "Exception in browser-use action: %s"
             self.logger.error(error_msg, str(exception))
             return False, str(exception)
+
+    def process_chat_completion(self, data):
+        """
+        Process chat completion using Redis queue worker
+        
+        Args:
+            data (dict): Chat data containing messages, system prompt, etc.
+            
+        Returns:
+            tuple: (success, result) where result is the response or error message
+        """
+        try:
+            # Initialize Redis queue
+            queue = Queue(
+                self.REDIS_CHAT_COMPLETION_QUEUE_NAME, connection=self.__REDIS_CONNECTION
+            )
+            
+            # Enqueue the task
+            worker_job = queue.enqueue(self.__CHAT_COMPLETION_WORKER_NAME, data=data)
+            
+            start_time = time.time()
+            self.logger.debug(f"Chat completion task queued, job ID: {worker_job.id}")
+            
+            # Wait for the job to complete
+            while (
+                worker_job.is_queued or worker_job.is_scheduled or worker_job.is_started
+            ):
+                self.logger.debug(f"Chat completion in progress, status: {worker_job.get_status()}")
+                time.sleep(1)
+                
+            # Process the result
+            if worker_job.is_finished:
+                self.logger.debug(f"Chat completion completed in {time.time()-start_time:.2f}s")
+                result = worker_job.result
+                
+                if isinstance(result, dict):
+                    return result.get("success", False), result.get("message", ""), result.get("error", "")
+                else:
+                    return False, "", "Invalid response format from worker"
+                    
+            elif worker_job.is_failed:
+                self.logger.error(f"Chat completion failed: {worker_job.exc_info}")
+                return False, "", worker_job.exc_info.splitlines()[-1]
+                
+            else:
+                self.logger.error("Chat completion job terminated unexpectedly")
+                return False, "", "Job terminated unexpectedly"
+                
+        except Exception as e:
+            self.logger.error(f"Error in chat completion: {str(e)}")
+            import traceback
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
+            return False, "", str(e)

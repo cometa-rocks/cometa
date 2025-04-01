@@ -4,6 +4,7 @@ from src.connections.redis_connection import (
     connect_redis,
     REDIS_IMAGE_ANALYSYS_QUEUE_NAME,
     REDIS_BROWSER_USE_QUEUE_NAME,
+    REDIS_CHAT_COMPLETION_QUEUE_NAME,
     REDIS_NUMBER_OF_WORKERS,
 )
 from src.utility.common import get_logger
@@ -16,7 +17,8 @@ def start_worker():
     with Connection(REDIS_CONNECTION):
         queue = Queue(REDIS_IMAGE_ANALYSYS_QUEUE_NAME, connection=REDIS_CONNECTION, is_async=False)
         queue_browser_use = Queue(REDIS_BROWSER_USE_QUEUE_NAME, connection=REDIS_CONNECTION)
-        worker = Worker([queue, queue_browser_use])
+        queue_chat_completion = Queue(REDIS_CHAT_COMPLETION_QUEUE_NAME, connection=REDIS_CONNECTION)
+        worker = Worker([queue, queue_browser_use, queue_chat_completion])
         worker.work()
 
 
