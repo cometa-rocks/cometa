@@ -1462,9 +1462,12 @@ export class EditFeature implements OnInit, OnDestroy {
         })
       );
       //Subscribe to the backup files and get both filenames and contents
-      this.backupFiles$.subscribe((files: BackupFile[]) => {  
+      this.backupFiles$.subscribe((files: BackupFile[]) => {
+        console.log("Files1:", files);
         this.files = files.map(file => file.filename);
+        console.log("Files2:", this.files);
         this.fileContents = files.map(file => file.content);
+        console.log("File contents:", this.fileContents);
         //modify the files array to remove the _meta.json files and make the dates and time pretty
         this.prettyFiles = this.files
         this.prettyFiles = this.cleanNames(this.files);
@@ -1528,11 +1531,19 @@ export class EditFeature implements OnInit, OnDestroy {
   
   restoreFeature() {
     const selectedValue = this.selectedFile.value
-    console.log("Restoring feature number:", this.featureId, "from:", selectedValue);
-    //we now have the file names in this.files and the contents in this.fileContents
-    //Update feature info and steps using the contents of the selected file
-    const selectedFileIndex = this.files.indexOf(selectedValue);
-    const selectedFileContent = this.fileContents[selectedFileIndex];
-    console.log("Selected file content:", selectedFileContent);
+    console.log("Selected file:", selectedValue);
+    //modify selectedValue <yyy/mm/dd hh:mm:ss> to match file name like <feature_id>_<feature_name>_<yyyy-mm-dd>_<hh-mm-ss>.json
+    const featureName = this.feature.getValue().feature_name.replace(/ /g, '-');
+    const selectedFileNameSteps = `${this.featureId}_${featureName}_${selectedValue.replace(/\//g, '-').replace(/ /g, '_').replace(/:/g, '-')}.json`;
+    const selectedFileNameFeature = `${this.featureId}_${featureName}_${selectedValue.replace(/\//g, '-').replace(/ /g, '_').replace(/:/g, '-')}_meta.json`;
+    //find the index of the selected file name in the files array
+    const indexofSteps = this.files.indexOf(selectedFileNameSteps);
+    const indexofFeature = this.files.indexOf(selectedFileNameFeature);
+    console.log("Selected file index:", indexofSteps);
+    console.log("Selected file index:", indexofFeature);
+    //update the feature info and steps using the selected file content
+    this.featureForm.patchValue(JSON.parse(this.fileContents[indexofSteps]));
+    this.featureForm.patchValue(JSON.parse(this.fileContents[indexofFeature]));
+
   }
 }
