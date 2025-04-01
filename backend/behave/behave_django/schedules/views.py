@@ -132,7 +132,7 @@ def run_test(request):
 @csrf_exempt
 @xframe_options_exempt
 def kill_task(request, pid):
-    subprocess.call("kill -15 %d" % int(pid), shell=True)   
+    subprocess.Popen(["kill", "-15", str(pid)], shell=False)   
     return JsonResponse({"success": True, "killed": pid})
 
 
