@@ -115,6 +115,10 @@
           border-left: 15px solid transparent;
           border-bottom: 26px solid $blue;
         }
+        &.disabled {
+          cursor: not-allowed;
+          pointer-events: none;
+        }
       }
     }
     padding: 10px;
