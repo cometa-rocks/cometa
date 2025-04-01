@@ -7,7 +7,15 @@ from behave import (
     use_step_matcher
 )
 import sys, requests, re, json
-sys.path.append('/opt/code/cometa_itself/steps')
+sys.path.append("/opt/code/behave_django")
+sys.path.append("/opt/code/cometa_itself/steps")
+
+from utility.functions import *
+
+from tools.exceptions import *
+from tools.common import send_step_details, uploadFileTarget
+from tools.common_functions import *
+
 from actions import (
     done,
     logger,
@@ -59,6 +67,8 @@ def start_if(context, value1, condition, value2):
         condition_result = float(value1)==float(value2)
     elif condition == '!=':
         condition_result = float(value1)!=float(value2)
+        
+    addTestRuntimeVariable(context, "Condition Result", condition_result, save_to_step_report=True)
     
     condition = Condition(index=len(context.test_conditions_list))
     condition.set_condition(condition_result)
