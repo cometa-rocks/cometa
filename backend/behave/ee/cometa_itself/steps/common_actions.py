@@ -37,7 +37,12 @@ use_step_matcher("parse")
 def show_variable_value(context, variable, seconds):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     # Assuming getVariable is a function that retrieves the variable value
-    variable_value = getVariable(context, variable) 
+    variable_value = None
+    try:
+        variable_value = getVariable(context, variable)
+    except Exception as e:
+        raise CustomError(f"variable '{variable}' not found")
+    
     send_step_details(context, f"{variable} : {variable_value}")    
     # Define the variable type (implement the logic as needed)
     variable_type = type(variable_value).__name__  # You can replace this with your own logic
@@ -137,7 +142,7 @@ def read_excel_step(context, file_path, sheet_name, row_number, variable_name):
         json_data = json.dumps(row_data, ensure_ascii=False)
         logger.debug(json_data)
         # Store the JSON data in runtime variables
-        addTestRuntimeVariable(context, variable_name, json_data)
+        addTestRuntimeVariable(context, variable_name, json_data, save_to_step_report=True)
         
         logger.debug(f"Stored data from Excel row {row_number} into variable '{variable_name}': {row_data}")
 
@@ -212,7 +217,7 @@ def assert_imp(context, jq_pattern, variable_name, new_variable_name):
 
     try:
         parsed_value = jq.compile(jq_pattern).input(variable_value).text()
-        addTestRuntimeVariable(context, new_variable_name, parsed_value)
+        addTestRuntimeVariable(context, new_variable_name, parsed_value, save_to_step_report=True)
     except Exception as err:
         logger.error("Invalid JQ pattern", err)
         raise CustomError(err)
@@ -258,7 +263,7 @@ def generate_fake_data_store_in_variable(context, information, variable):
         if callable(method):
             send_step_details(context, f"Generating {information}")
             value = method()
-            addTestRuntimeVariable(context, variable, value)
+            addTestRuntimeVariable(context, variable, value, save_to_step_report=True)
         else:
             raise CustomError(f"'Information type : {information}' not available. Available types are {get_faker_public_methods()}")
     else:
