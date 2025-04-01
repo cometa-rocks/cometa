@@ -564,7 +564,9 @@ def done(*_args, **_kwargs):
 
 def saveToDatabase(
     step_name="", execution_time=0, pixel_diff=0, success=False, context=None
-):
+):  
+    start_time = time.time()  # Add timing start
+    
     status = context.CURRENT_STEP_STATUS 
     screenshots = os.environ["SCREENSHOTS"].split(".")
     compares = os.environ["COMPARES"].split(".")
@@ -754,6 +756,9 @@ def saveToDatabase(
             addTimestampToImage(
                 context.DB_CURRENT_SCREENSHOT, path=context.SCREENSHOTS_ROOT
             )
+            # Calculate and log total execution time
+        total_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+        logger.debug(f"saveToDatabase took {total_time:.2f}ms to execute")
     return step_id
 
 

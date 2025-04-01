@@ -1978,7 +1978,7 @@ def step_impl(context, css_selector, variable_name):
     result = result.replace('\n', " ")
 
     # add variable
-    addVariable(context, variable_name, result)
+    addVariable(context, variable_name, result, save_to_step_report=True)
 
 # Save string value to environment variable, environment variable value has a maximum value of 255 characters
 # Example: Save "123456" to environment variable "user_id"
@@ -1987,7 +1987,7 @@ def step_impl(context, css_selector, variable_name):
 def step_impl(context, value, variable_name):
     send_step_details(context, 'Saving value to environment variable')
     # add variable
-    addVariable(context, variable_name, value)
+    addVariable(context, variable_name, value, save_to_step_report=True)
 
 # Add a timestamp after the prefix to make it unique
 # Example: Add a timestamp to the "order" and save it to "order_id"
@@ -1996,7 +1996,7 @@ def step_impl(context, value, variable_name):
 def step_impl(context, prefix, variable_name):
     # create the unique text
     text = "%s-%.0f" % (prefix, time.time())
-    addVariable(context, variable_name, text)
+    addVariable(context, variable_name, text, save_to_step_report=True)
 
 # Create a sequence of random numbers of the specified size and save it to a variable
 # Example: Create a string of random "6" numbers and save to "pin_code"
@@ -2413,7 +2413,7 @@ def editFile(context, excelfile, variable_name, cell):
     logger.debug("Setting value value: %s to variable %s " % (sheet[cell].value, variable_name) )
 
     # add variable
-    addVariable(context, variable_name, sheet[cell].value)
+    addVariable(context, variable_name, sheet[cell].value, save_to_step_report=True)
 
 # get total cells from the cell ranges and
 def getTotalCells(sheet, cells, values=[]):
@@ -2643,7 +2643,7 @@ def imp(context, css_selector, variable_name):
     elements_list = ";".join(element_values)
 
     # add the variable
-    addVariable(context, variable_name, elements_list)
+    addVariable(context, variable_name, elements_list, save_to_step_report=True)
 
 # Make a request to Open Weather Map and get Weather information about specific City, using units specified at https://openweathermap.org/current and your API Key
 # Example: Weather temperature from Open Weather Map for "London" with "metric" using "your_api_key" and save to variable "weather_temp"
@@ -2698,7 +2698,7 @@ def step_imp(context, x, value, variable_name):
     import pyotp
     totp = pyotp.TOTP(value, digits=x)
     oneTimePassword = totp.now()
-    addVariable(context, variable_name, oneTimePassword, encrypted=True)
+    addVariable(context, variable_name, oneTimePassword, encrypted=True, save_to_step_report=True)
 
 def test_ibm_cognos_cube(context, all_or_partial, variable_name, prefix, suffix):
     # get the variables from the context
@@ -3339,7 +3339,7 @@ def step_impl(context, selector, variable_name, option):
 
     elements = waitSelector(context, "css", selector)
 
-    if not elements:
+    if not elements:    
         raise ValueError(f"No elements found for selector: {selector}")
 
     try:
@@ -3351,7 +3351,7 @@ def step_impl(context, selector, variable_name, option):
             tag_value = tag_value.strip()
 
         # Store the processed value in the variable
-        addVariable(context, variable_name, tag_value)
+        addVariable(context, variable_name, tag_value, save_to_step_report=True)
         send_step_details(context, f'Stored value "{tag_value}" in variable "{variable_name}".')
 
     except Exception as err:
@@ -3386,7 +3386,7 @@ def step_impl(context, attribute, selector, variable_name, option):
             attribute_value = attribute_value.strip()
 
         # Store the processed value in the variable
-        addVariable(context, variable_name, attribute_value)
+        addVariable(context, variable_name, attribute_value, save_to_step_report=True)
         send_step_details(context, f'Stored value "{attribute_value}" in variable "{variable_name}".')
 
     except Exception as err:
