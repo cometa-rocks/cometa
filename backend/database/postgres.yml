@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: test_postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: organization
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - data_postgres:/var/lib/postgresql/data
+    networks:
+      - cometa_testing
+
+volumes:
+  data_postgres:
+
+networks:
+  cometa_testing:
+    external: true
