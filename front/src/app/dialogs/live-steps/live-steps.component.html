@@ -199,8 +199,15 @@
       (click)="stopTest()"
       matTooltipPosition="after"
       matTooltip="Stops the current running process. This action can produce inconsistent step results!"
-      color="warn">
-      STOP EXECUTION
+      color="warn"
+      [disabled]="isLoading"
+      class="stop-button">
+      <div class="button-content">
+        <ng-container *ngIf="!isLoading">
+          STOP EXECUTION
+        </ng-container>
+        <mat-spinner *ngIf="isLoading" diameter="20" class="inline-spinner" color="warn"></mat-spinner>
+      </div>
     </button>
     <button mat-stroked-button color="primary" mat-dialog-close>Close</button>
   </mat-dialog-actions>

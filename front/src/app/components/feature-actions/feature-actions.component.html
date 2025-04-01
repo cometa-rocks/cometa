@@ -10,6 +10,7 @@
       <div
         matTooltip="Run Feature Now (SPACE)"
         (click)="runNow()"
+        [class.disabled]="isRunButtonDisabled"
         class="run">
       </div>
     </ng-template>
