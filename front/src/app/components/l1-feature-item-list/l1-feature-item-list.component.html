@@ -68,15 +68,15 @@ Author: dph000
             <span style="vertical-align: middle">{{ item.status }}</span>
           </ng-template>
         </div>
-        <div class="run" stopPropagation (click)="_sharedActions.run(item.id)">
+        <div 
+          class="run" 
+          stopPropagation 
+          (click)="onRunClick()"
+          [class.disabled]="isButtonDisabled">
           <div class="triangle"></div>
           <ng-container [ngSwitch]="running">
-            <mat-icon class="state-icon" *ngSwitchCase="true"
-              >remove_red_eye</mat-icon
-            >
-            <mat-icon class="state-icon" *ngSwitchCase="false"
-              >play_arrow</mat-icon
-            >
+            <mat-icon class="state-icon" *ngSwitchCase="true">remove_red_eye</mat-icon>
+            <mat-icon class="state-icon" *ngSwitchCase="false">play_arrow</mat-icon>
           </ng-container>
           <span style="vertical-align: middle">Run</span>
         </div>
