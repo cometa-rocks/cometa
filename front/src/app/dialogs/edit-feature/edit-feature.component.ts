@@ -354,67 +354,10 @@ export class EditFeature implements OnInit, OnDestroy {
     // Save the state of the panel
     panelStates[featureId][panelId] = isExpanded;
     localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
-    
-    // Save to database through API
-    this._api.saveUserPanelStates(this.user.user_id, panelStates).subscribe(
-      response => {
-        if (response.success) {
-          this.logger.msg('4', 'Panel State Updated', `Panel ${panelId} in feature ${featureId} is now ${isExpanded ? 'expanded' : 'collapsed'}`);
-        } else {
-          this.logger.msg('1', 'Error', 'Failed to save panel state to database');
-        }
-      },
-      error => {
-        this.logger.msg('1', 'Error', 'Failed to save panel state to database');
-      }
-    );
   }
 
   // Load the state of the expansion panel
-  loadPanelStates() {
-    // Load from database through API
-    this._api.getUserPanelStates(this.user.user_id).subscribe(
-      response => {
-        if (response.success) {
-          const savedStates = response.data || {};
-          
-          const userSettingsMap = {
-            'hideBrowsers': this.user.settings.hideBrowsers,
-            'hideInformation': this.user.settings.hideInformation,
-            'hideSendMail': this.user.settings.hideSendMail,
-            'hideSteps': this.user.settings.hideSteps,
-            'hideSchedule': this.user.settings.hideSchedule,
-            'hideUploadedFiles': this.user.settings.hideUploadedFiles,
-          };
-        
-          this.features.forEach(feature => {
-            if (!feature.id) return;
-        
-            feature.panels.forEach(panel => {
-              //map panel.id to the appropriate setting key:
-              const settingKey = this.getPanelSettingKey(panel.id);
-              const userSetting = userSettingsMap[settingKey];
-              // If setting is explicitly true, force it closed
-              if (userSetting === true) {
-                panel.expanded = false;
-              } else {
-                // otherwise, use saved state from database or default to open
-                panel.expanded = savedStates[feature.id]?.[panel.id] ?? true;
-              }
-            });
-          });
 
-          // Update localStorage with the states from database
-          localStorage.setItem('co_mat_expansion_states', JSON.stringify(savedStates));
-        } else {
-          this.logger.msg('1', 'Error', 'Failed to load panel states from database');
-        }
-      },
-      error => {
-        this.logger.msg('1', 'Error', 'Failed to load panel states from database');
-      }
-    );
-  }
 
   getPanelSettingKey(panelId: number): string {
     const panelMap: { [key: number]: string } = {
@@ -427,6 +370,36 @@ export class EditFeature implements OnInit, OnDestroy {
     };
   
     return panelMap[panelId];
+  }
+
+  loadPanelStates() {
+    const savedStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
+  
+    const userSettingsMap = {
+      'hideBrowsers': this.user.settings.hideBrowsers,
+      'hideInformation': this.user.settings.hideInformation,
+      'hideSendMail': this.user.settings.hideSendMail,
+      'hideSteps': this.user.settings.hideSteps,
+      'hideSchedule': this.user.settings.hideSchedule,
+      'hideUploadedFiles': this.user.settings.hideUploadedFiles,
+    };
+  
+    this.features.forEach(feature => {
+      if (!feature.id) return;
+  
+      feature.panels.forEach(panel => {
+        //map panel.id to the appropriate setting key:
+        const settingKey = this.getPanelSettingKey(panel.id);
+        const userSetting = userSettingsMap[settingKey];
+        // If setting is explicitly true, force it closed
+        if (userSetting === true) {
+          panel.expanded = false;
+        } else {
+          // otherwise, use saved state or default to open
+          panel.expanded = savedStates[feature.id]?.[panel.id] ?? true;
+        }
+      });
+    });
   }
 
   // When the expansion panel changes, save
@@ -443,6 +416,15 @@ export class EditFeature implements OnInit, OnDestroy {
     }
   }
 
+
+  // // Check if the create button should be disabled
+  // ngAfterViewInit() {
+  //   setTimeout(() => {
+  //     this.expansionPanels.changes.subscribe(() => this.setFocusOnFirstOpenPanel());
+  //     this.setFocusOnFirstOpenPanel();
+  //   });
+  // }
+  
   // Focus on the first input or textarea of the first open panel
   //Unused
   setFocusOnFirstOpenPanel() {
@@ -923,9 +905,11 @@ export class EditFeature implements OnInit, OnDestroy {
       }));
     }
 
-    // Show panel states to user
-    const panelStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
-    this.logger.msg('4', 'Panel States', `Current panel states: ${JSON.stringify(panelStates, null, 2)}`);
+    // Show panel expansion states from localstorage
+    this.logger.msg('4', 'Localstorage panel expansion states', localStorage.getItem('co_mat_expansion_states'));
+    
+    // Show panel states from user settings
+    this.logger.msg('4', 'Panel States', 'User current panel states:' + JSON.stringify(this.user.settings));
 
     this.loadPanelStates();
 
