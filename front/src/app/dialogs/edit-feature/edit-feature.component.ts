@@ -96,7 +96,8 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
-import { DraggableWindowModule } from '@modules/draggable-window.module'
+import { DraggableWindowModule } from '@modules/draggable-window.module';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'edit-feature',
@@ -235,6 +236,7 @@ export class EditFeature implements OnInit, OnDestroy {
     private fileUpload: FileUploadService,
     @Inject(API_URL) public api_url: string,
     private inputFocusService: InputFocusService,
+    private logger: LogService,
   ) {
 
     this.featureId = this.data.feature.feature_id;
@@ -341,7 +343,9 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // Save the state of the expansion panel
   savePanelState(featureId: number, panelId: string, isExpanded: boolean) {
-    const panelStates = JSON.parse(localStorage.getItem('matExpansionStates') || '{}');
+    // This object stores the expansion state of panels for each feature
+    // Format: { "comment": "Panel expansion states per feature", "featureId": { "panelId": boolean } }
+    const panelStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{"comment": "Panel expansion states per feature"}');
 
     if (!panelStates[featureId]) {
       panelStates[featureId] = {};
@@ -349,17 +353,51 @@ export class EditFeature implements OnInit, OnDestroy {
 
     // Save the state of the panel
     panelStates[featureId][panelId] = isExpanded;
-    localStorage.setItem('matExpansionStates', JSON.stringify(panelStates));
+    localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
   }
 
   // Load the state of the expansion panel
-  loadPanelStates() {
-    const savedStates = JSON.parse(localStorage.getItem('matExpansionStates') || '{}');
 
+
+  getPanelSettingKey(panelId: number): string {
+    const panelMap: { [key: number]: string } = {
+      1: 'hideInformation',
+      2: 'hideSendEmail',
+      3: 'hideUploadedFiles',
+      4: 'hideBrowsers',
+      5: 'hideSteps',
+      6: 'hideSchedule'
+    };
+  
+    return panelMap[panelId];
+  }
+
+  loadPanelStates() {
+    const savedStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
+  
+    const userSettingsMap = {
+      'hideBrowsers': this.user.settings.hideBrowsers,
+      'hideInformation': this.user.settings.hideInformation,
+      'hideSendMail': this.user.settings.hideSendMail,
+      'hideSteps': this.user.settings.hideSteps,
+      'hideSchedule': this.user.settings.hideSchedule,
+      'hideUploadedFiles': this.user.settings.hideUploadedFiles,
+    };
+  
     this.features.forEach(feature => {
       if (!feature.id) return;
+  
       feature.panels.forEach(panel => {
-        panel.expanded = savedStates[feature.id]?.[panel.id] ?? false;
+        //map panel.id to the appropriate setting key:
+        const settingKey = this.getPanelSettingKey(panel.id);
+        const userSetting = userSettingsMap[settingKey];
+        // If setting is explicitly true, force it closed
+        if (userSetting === true) {
+          panel.expanded = false;
+        } else {
+          // otherwise, use saved state or default to open
+          panel.expanded = savedStates[feature.id]?.[panel.id] ?? true;
+        }
       });
     });
   }
@@ -859,6 +897,19 @@ export class EditFeature implements OnInit, OnDestroy {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
+    // Initialize localStorage with a comment if it doesn't exist
+    if (!localStorage.getItem('co_mat_expansion_states')) {
+      localStorage.setItem('co_mat_expansion_states', JSON.stringify({
+        "comment": "Panel expansion states per feature",
+        "Default": {}
+      }));
+    }
+
+    // Show panel expansion states from localstorage
+    this.logger.msg('4', 'Localstorage panel expansion states', localStorage.getItem('co_mat_expansion_states'));
+    
+    // Show panel states from user settings
+    this.logger.msg('4', 'Panel States', 'User current panel states:' + JSON.stringify(this.user.settings));
 
     this.loadPanelStates();
 

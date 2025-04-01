@@ -1,5 +1,5 @@
 {
-  "version": "3.0.25",
+  "version": "3.0.26",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.26",
+      "date": "2025-04-01",
+      "features": [
+        {
+          "title": "Persist the last expansion state of panels in the Edit Feature dialog - #4694",
+          "description": "Implemented logic to remember the expansion state of panels in the Edit Feature dialog"
+        }
+      ]
+    },
     {
       "version": "3.0.25",
       "date": "2025-03-26",
