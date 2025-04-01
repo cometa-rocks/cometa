@@ -72,6 +72,7 @@ class AI:
             # Extract browser session information
             session_id = context.browser.session_id
             cdp_endpoint = f"ws://cometa_selenoid:4444/devtools/{session_id}"
+            step_timeout = context.step_data.get("timeout", 600)
 
             # Prepare browser context with session details
             browser_context = {
@@ -79,6 +80,11 @@ class AI:
                 'session_id': session_id,
                 'page_url': context.page.url if hasattr(context.page, 'url') else None
             }
+            
+            # Add configuration from context if available
+            if hasattr(context, 'browser_use_config'):
+                browser_context['config'] = context.browser_use_config
+                self.logger.debug(f"Passing configuration to browser_use_worker: {context.browser_use_config}")
 
             # Initialize Redis queue for job management
             browser_queue = Queue(
@@ -90,7 +96,8 @@ class AI:
             worker_job = browser_queue.enqueue(
                 self.__BROWSER_USE_WORKER_NAME, 
                 prompt, 
-                browser_context
+                browser_context,
+                job_timeout=step_timeout
             )
 
             # Monitor job progress and provide status updates

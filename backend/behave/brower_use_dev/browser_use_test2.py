@@ -3,7 +3,6 @@ from langchain_openai import ChatOpenAI
 from browser_use import Agent
 import asyncio
 
-OPENAI_API_KEY = "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"
 
 load_dotenv()
 

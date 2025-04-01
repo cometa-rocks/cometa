@@ -382,12 +382,22 @@ def featureRunning(request, feature_id, *args, **kwargs):
     """
     This view acts as a proxy for <sw_server>/featureStatus/:feature_id
     """
-    request_response = requests.get(f'{get_cometa_socket_url()}/featureStatus/%d' % int(feature_id))
+    # Changing this logic to read feature state from socket to Feature_task table
+    # Because while killing feature task it is done by deleting the Feature_task but when checking the isFeatureRunning state is checked from websocket connection
+    # which make it unstable in some cases
+    tasks = Feature_Task.objects.filter(feature_id=feature_id).select_related('feature_result_id')
+    
+    content = {"running":False}
+    
+    if len(tasks)>0:
+        content["running"]=True
+    
     django_response = HttpResponse(
-        content=request_response.content,
-        status=request_response.status_code,
-        content_type=request_response.headers['Content-Type']
+        content=json.dumps(content),
+        status=200,
+        content_type="application/json"
     )
+    
     return django_response
 
 
@@ -520,6 +530,7 @@ def removeTemplate(request, *args, **kwargs):
 
 def Screenshots(step_result_id):
     os.chdir('/data/screenshots/')
+
     screenshots = {}
     try:
         # FIXME: Dirty fix for getting correct current image
@@ -3391,18 +3402,43 @@ def UpdateTask(request):
     except Feature_result.DoesNotExist as exception:
         return JsonResponse({"success": True,'message':str(exception)})
 
-def remove_running_containers(feature_result):
-    for mobile in feature_result.mobile:
-        # While running mobile tests User have options to connect to already running mobile or start mobile during test
-        # If Mobile was started by the test then remove it after execution 
-        # If Mobile was started by the user and test only connected to it do not stop it
-        if mobile['is_started_by_test']:
-            ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
+# def remove_running_containers(feature_result):
+#     for mobile in feature_result.mobile:
+#         # While running mobile tests User have options to connect to already running mobile or start mobile during test
+#         # If Mobile was started by the test then remove it after execution 
+#         # If Mobile was started by the user and test only connected to it do not stop it
+#         if mobile['is_started_by_test']:
+#             ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
 
-    browser_container_info = feature_result.browser.get("container_service",False)
+#     browser_container_info = feature_result.browser.get("container_service",False)
     
-    if browser_container_info:
-        ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"]) 
+#     if browser_container_info:
+#         ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"]) 
+
+def remove_running_containers(feature_result:Feature_result):
+    def _remove_containers():
+        logger.debug(f"Removing containers for feature_result {feature_result.feature_result_id}")
+        for mobile in feature_result.mobile:
+            # While running mobile tests User have options to connect to already running mobile or start mobile during test
+            # If Mobile was started by the test then remove it after execution 
+            # If Mobile was started by the user and test only connected to it do not stop it
+            if mobile['is_started_by_test']:
+                logger.debug(f"Removing containers for feature_result {feature_result.feature_result_id}")
+                ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
+
+        browser_container_info = feature_result.browser.get("container_service",False)
+        if browser_container_info:
+            ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"])
+
+    try:
+        logger.debug(f"Starting a thread clean up the containers")
+        # Create and start thread to handle container removal
+        cleanup_thread = Thread(target=_remove_containers)
+        cleanup_thread.start()
+        logger.debug(f"Container cleanup thread {cleanup_thread.getName()} started")
+    except Exception:
+        logger.debug("Exception while cleaning up the containers")
+        traceback.print_exc()
 
 
 @csrf_exempt
@@ -3411,6 +3447,7 @@ def KillTask(request, feature_id):
     for task in tasks:
         remove_running_containers(task.feature_result_id)
         request = requests.get(f'{get_cometa_behave_url()}/kill_task/' + str(task.pid) + "/")
+        
         Feature_Task.objects.filter(pid=task.pid).delete()
     if len(tasks) > 0:
         # Force state of stopped for current feature in WebSocket Server
