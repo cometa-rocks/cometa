@@ -1,17 +1,26 @@
 <ng-container *ngIf="feature$ | async as feature">
   <ng-container *ngIf="!feature.depends_on_others">
-    <div
+    <mat-spinner
       matTooltip="Click to view current run (SPACE)"
       *ngIf="running$ | async; else run"
       (click)="runNow()"
+      color="primary"
+      diameter="28"
       class="running">
-    </div>
+    </mat-spinner>
     <ng-template #run>
       <div
         matTooltip="Run Feature Now (SPACE)"
         (click)="runNow()"
         [class.disabled]="isRunButtonDisabled"
         class="run">
+        <mat-spinner 
+          matTooltip="Waiting to run..."
+          *ngIf="isRunButtonDisabled" 
+          color="primary" 
+          diameter="28" 
+          class="run-spinner">
+        </mat-spinner>
       </div>
     </ng-template>
   </ng-container>
