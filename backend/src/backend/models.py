@@ -817,14 +817,35 @@ class Feature(models.Model):
     def __str__( self ):
         return f"{self.feature_name} ({self.feature_id})"
     def save(self, *args, **kwargs):
-        new_feature = True
+        new_feature = self.feature_id is None
         self.slug = slugify(self.feature_name)
         
-        # create backup only if feature is being modified
-        if self.feature_id is not None:
-            new_feature = False
-            # Backup feature info before saving
-            backup_feature_info(self)
+        # Check if the feature exists in the database
+        if not new_feature: 
+            # Retrieve the feature instance from the database
+            original = Feature.objects.get(pk=self.feature_id)
+
+            # Compare all relevant fields to detect if there's any change
+            modified = False
+            for field in self._meta.fields:
+                if field.name not in ['last_edited_date', 'info', 'last_edited', 'last_edited_by']:  # Exclude auto-updated fields
+                    current_value = getattr(self, field.name) or None
+                    original_value = getattr(original, field.name) or None
+                    comparison_result = current_value != original_value
+                    if comparison_result:
+                        modified = True
+            if modified:
+                logger.debug("Feature has been modified. Creating backup.")
+                backup_feature_info(self)
+            else:
+                logger.debug("Feature has not been modified. No backup needed.")
+
+
+        # # create backup only if feature is being modified
+        # if self.feature_id is not None:
+        #     new_feature = False
+        #     # Backup feature info before saving
+        #     backup_feature_info(self)
             
 
         # save to get the feature_id in case it is a new feature

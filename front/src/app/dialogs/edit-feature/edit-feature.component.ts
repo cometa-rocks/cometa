@@ -1534,16 +1534,35 @@ export class EditFeature implements OnInit, OnDestroy {
     console.log("Selected file:", selectedValue);
     //modify selectedValue <yyy/mm/dd hh:mm:ss> to match file name like <feature_id>_<feature_name>_<yyyy-mm-dd>_<hh-mm-ss>.json
     const featureName = this.feature.getValue().feature_name.replace(/ /g, '-');
-    const selectedFileNameSteps = `${this.featureId}_${featureName}_${selectedValue.replace(/\//g, '-').replace(/ /g, '_').replace(/:/g, '-')}.json`;
-    const selectedFileNameFeature = `${this.featureId}_${featureName}_${selectedValue.replace(/\//g, '-').replace(/ /g, '_').replace(/:/g, '-')}_meta.json`;
+    let selectedFileNameSteps = `${this.featureId}_${featureName}_${selectedValue.replace(/\//g, '-').replace(/ /g, '_').replace(/:/g, '-')}.json`;
+    let selectedFileNameFeature = `${this.featureId}_${featureName}_${selectedValue.replace(/\//g, '-').replace(/ /g, '_').replace(/:/g, '-')}_meta.json`;
+    console.log("Selected file name steps before sanitization:", selectedFileNameSteps);
+    console.log("Selected file name feature before sanitization:", selectedFileNameFeature);
+    selectedFileNameSteps = this.sanitizeFileNames(selectedFileNameSteps);
+    selectedFileNameFeature = this.sanitizeFileNames(selectedFileNameFeature);
+    console.log("Selected file name steps after sanitization:", selectedFileNameSteps);
+    console.log("Selected file name feature after sanitization:", selectedFileNameFeature);
     //find the index of the selected file name in the files array
     const indexofSteps = this.files.indexOf(selectedFileNameSteps);
     const indexofFeature = this.files.indexOf(selectedFileNameFeature);
     console.log("Selected file index:", indexofSteps);
     console.log("Selected file index:", indexofFeature);
     //update the feature info and steps using the selected file content
-    this.featureForm.patchValue(JSON.parse(this.fileContents[indexofSteps]));
+    //import step-editor.component.ts
+    this.stepEditor.setSteps(JSON.parse(this.fileContents[indexofSteps]));
     this.featureForm.patchValue(JSON.parse(this.fileContents[indexofFeature]));
 
+  }
+
+  sanitizeFileNames(fileContent: string) {
+    // Prohibited characters in file names (must be escaped for regex)
+    const prohibitedCharacters = [":", "*", "?", "|", "\\", "/", "<", ">", '"', "\n", "\r", "\t", "\f", "\v"];
+    // Escape each prohibited character for regex
+    const escapedCharacters = prohibitedCharacters.map(char => '\\' + char);
+    const pattern = new RegExp(escapedCharacters.join('|'), 'g');
+    
+    // Replace all prohibited characters with an underscore
+    const sanitizedFileName = fileContent.replace(pattern, '');
+    return sanitizedFileName;
   }
 }
