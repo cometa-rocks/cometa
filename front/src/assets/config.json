@@ -241,7 +241,7 @@
       "date": "2025-04-01",
       "features": [
         {
-          "title": "Run and stop buttons",
+          "title": "Run and stop buttons - #6017",
           "description": "Visual feedback when running or stopping a feature."
         }
       ]
