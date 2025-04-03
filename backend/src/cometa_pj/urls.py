@@ -109,6 +109,7 @@ urlpatterns = [
     url(r'^encrypt/', views.Encrypt),
     url(r'^parseActions/', views.parseActions),
     url(r'^get_backup_files_content/(?P<feature_id>[0-9]+)/', views.get_backup_files_content),
+    url(r'^purge_backup_files/', views.purge_backup_files),
     url(r'^parseBrowsers/', views.parseBrowsers),
     url(r'^parseCometaBrowsers/', views.parseCometaBrowsers),
     url(r'browsers/browserstack', cache_page(browserstackCacheTime)(views.GetBrowserStackBrowsers)),

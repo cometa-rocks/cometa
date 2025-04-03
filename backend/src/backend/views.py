@@ -66,7 +66,6 @@ from backend.utility.uploadFile import UploadFile, decryptFile
 from backend.utility.config_handler import *
 # from silk.profiling.profiler import silk_profile
 from modules.container_service.service_manager import DockerServiceManager, ServiceManager
-
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
 BROWSERSTACK_PASSWORD = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_PASSWORD', '')
@@ -4037,6 +4036,57 @@ def CometaUsage(request):
     # 5. number of failed tests
     '''
 @csrf_exempt
+def purge_backup_files(request):
+    logger.debug("---------Purging backup files------------")
+    backups_dir = os.path.abspath(os.path.join(settings.BASE_DIR, '../../code/backups/features/'))
+    # Ensure the directory exists
+    if not os.path.isdir(backups_dir):
+        logger.error("Backup directory not found")
+        return JsonResponse({'error': 'Backup directory not found'}, status=404)
+
+    # Dictionary to hold files for each feature
+    feature_files = {}
+
+    # Feature id is the first number of the filename, date can be extracted using extract_date_from_filename and outputs a string like 2025-04-03_12-00-00
+    # Iterate over files in the backup directory
+    for filename in os.listdir(backups_dir):
+        feature_id = filename.split('_')[0]
+        timestamp = extract_date_from_filename(filename)
+        file_path = os.path.join(backups_dir, filename)
+        # Add file to the feature's list
+        if feature_id not in feature_files:
+            feature_files[feature_id] = []
+        feature_files[feature_id].append((file_path, timestamp))
+
+    for feature_id, files in feature_files.items():
+        logger.debug(f"Processing feature ID: {feature_id}")
+        # Sort files by timestamp in descending order
+        try:
+            files.sort(
+                key=lambda x: datetime.datetime.strptime(x[1], "%Y-%m-%d_%H-%M-%S"),
+                reverse=True
+            )
+        except ValueError as e:
+            logger.error(f"Error sorting files for feature {feature_id}: {e}")
+            continue
+
+        # If more than 10 files, delete the older ones (20 file range because we include _meta.json files)
+        if len(files) > 20:
+            logger.debug(f"found {len(files)//2} files for feature {feature_id}, removing the oldest backups")
+            for file_path, _ in files[20:]:
+                try:
+                    os.remove(file_path)
+                except OSError as e:
+                    logger.error(f"Error removing file {file_path}: {e}")
+            logger.debug(f"Removed {(len(files) - 20)//2} files for feature {feature_id}")
+        else:
+            logger.debug(f"found {len(files)//2} backup files for feature {feature_id}, no need to remove any files")
+
+    return JsonResponse({'success': True}, status=200)
+
+
+
+@csrf_exempt
 def get_backup_files_content(request, feature_id):
     logger.debug(f"Getting backup files content for feature {feature_id}")
 
@@ -4076,21 +4126,6 @@ def get_backup_files_content(request, feature_id):
 
 def extract_date_from_filename(filename):
     TIMESTAMP_PATTERN = re.compile(r"(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2})")
-    # the structure of the filename is a json :
-    #{
-    #   "files": [
-    #     {
-    #       "filename": "10_Api-COSAS-pero-en-X_2025-03-20_10-16-55_meta.json",
-    #       "content": "..."
-    #     },
-    #     ...
-    #   ]
-    #}
-    # we need to extract the date and time from the filename
-    # the filename is 10_Api-COSAS-pero-en-X_2025-03-20_10-16-55_meta.json
-    # we need to extract the date and time from the filename
-    # the date and time is 2025-03-20_10-16-55
-    # we need to return the date and time
     return TIMESTAMP_PATTERN.search(filename).group(1)
 
 
