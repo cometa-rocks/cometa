@@ -839,6 +839,7 @@ class Feature(models.Model):
                 backup_feature_info(self)
             else:
                 logger.debug("Feature has not been modified. No backup needed.")
+                backup_feature_info(self)
 
 
         # # create backup only if feature is being modified
