@@ -1,14 +1,14 @@
 """
-Management command to ingest documents into the RAG system.
+Management command to ingest a document into the RAG system.
 """
 import os
 import logging
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 
-from backend.ee.modules.rag_system.document_processor import DocumentProcessor
-from backend.ee.modules.rag_system.vector_store import VectorStore
-from backend.ee.modules.rag_system.models import Document, DocumentChunk
+from chatbot.rag_system.document_processor import DocumentProcessor
+from chatbot.rag_system.vector_store import VectorStore
+from chatbot.rag_system.models import Document, DocumentChunk
 
 logger = logging.getLogger(__name__)
 

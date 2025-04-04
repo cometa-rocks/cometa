@@ -9,9 +9,7 @@ This module handles:
 import logging
 from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
-
-# Internal imports
-from .vector_store import VectorStore
+from chatbot.rag_system.vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -193,8 +191,12 @@ class RAGEngine:
                 f"When using the context to answer:\n"
                 f"1. Focus on the most relevant documents based on how well they match the query\n"
                 f"2. Synthesize information from multiple documents when needed\n"
-                f"3. Answer directly and concisely, citing specific information from the context\n"
+                f"3. Answer directly and concisely using the information from the context\n"
                 f"4. If the context doesn't contain enough information, acknowledge the limitations\n"
+                f"5. DO NOT reference document numbers or sources in your response\n"
+                f"6. DO NOT mention that your answer is based on provided context\n"
+                f"7. DO NOT include phrases like 'Based on the context' or 'According to the documents'\n"
+                f"8. Simply provide accurate information as if you already knew it\n"
                 f"Given this context, please provide a helpful response to the user's query."
             )
         else:

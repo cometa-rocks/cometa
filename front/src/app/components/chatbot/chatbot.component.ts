@@ -94,6 +94,9 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
   // Track the popup window
   private popupWindow: Window | null = null;
   
+  // Get current loading state
+  private isCurrentlyLoading = false;
+  
   @ViewChild('messagesContainer') messagesContainer: ElementRef;
   @ViewChild('chatWindow') chatWindow: ElementRef;
   @ViewChild('chatHeader') chatHeader: ElementRef;
@@ -145,6 +148,13 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         
         this.cdr.detectChanges();
+      })
+    );
+    
+    // Subscribe to loading state
+    this.subscriptions.push(
+      this.isLoading$.subscribe(isLoading => {
+        this.isCurrentlyLoading = isLoading;
       })
     );
     
@@ -469,13 +479,15 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 250);
   }
 
+  // Send a new message
   sendMessage(): void {
-    if (this.newMessage.trim() === '') return;
+    // Don't send if message is empty or if we're already loading a response
+    if (this.newMessage.trim() === '' || this.isCurrentlyLoading) return;
     
-    // Send message to service
+    // Send the message to service
     this.chatbotService.handleUserMessage(this.newMessage);
     
-    // Clear input
+    // Clear the input
     this.newMessage = '';
   }
 

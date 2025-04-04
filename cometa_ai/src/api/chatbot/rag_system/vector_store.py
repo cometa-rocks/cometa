@@ -6,17 +6,15 @@ import logging
 import shutil
 from typing import Optional, Dict, List, Any, Union
 import chromadb
-from chromadb.config import Settings
-from django.conf import settings
 import numpy as np
 
 # Model used for both embeddings and generation
-RAG_MODEL = "granite3.1-dense"
+RAG_MODEL = "granite3.2"
 
 logger = logging.getLogger(__name__)
 
 # Update the default path to use the Docker container's data directory
-DEFAULT_CHROMA_PATH = "/opt/code/data/chromadb"
+DEFAULT_CHROMA_PATH = "/app/data/chromadb"
 
 class VectorStore:
     """ChromaDB vector store for document embeddings."""
@@ -593,31 +591,3 @@ class VectorStore:
             diagnostics["issues_found"].append(f"Diagnostic error: {str(e)}")
             logger.info("========== DIMENSION MISMATCH DIAGNOSTICS FAILED ==========")
             return diagnostics
-
-# Singleton instance for app-wide use
-_vector_store_instance = None
-
-def get_vector_store(persistent_path: Optional[str] = None, 
-                     collection_name: str = "cometa_docs") -> VectorStore:
-    """
-    Get a singleton instance of the vector store.
-    
-    Args:
-        persistent_path: Path for persistent storage (only used if instance doesn't exist)
-        collection_name: Collection name (only used if instance doesn't exist)
-        
-    Returns:
-        VectorStore instance
-    """
-    logger.info(f"get_vector_store called with persistent_path={persistent_path}, collection_name={collection_name}")
-    global _vector_store_instance
-    if _vector_store_instance is None:
-        logger.info("Creating new vector store instance (singleton)")
-        _vector_store_instance = VectorStore(
-            persistent_path=persistent_path,
-            collection_name=collection_name
-        )
-        logger.info("Vector store singleton instance created")
-    else:
-        logger.info("Returning existing vector store singleton instance")
-    return _vector_store_instance

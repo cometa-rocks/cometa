@@ -64,7 +64,6 @@
       (keyup.enter)="sendMessage()"
       (focus)="onInputFocus()"
       (blur)="onInputBlur()"
-      [disabled]="isLoading$ | async"
       autofocus
     >
     <button mat-icon-button color="primary" (click)="sendMessage()" [disabled]="!newMessage.trim() || (isLoading$ | async)">

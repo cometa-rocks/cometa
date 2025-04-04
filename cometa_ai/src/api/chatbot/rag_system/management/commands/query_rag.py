@@ -5,8 +5,8 @@ import logging
 import json
 from django.core.management.base import BaseCommand, CommandError
 
-from backend.ee.modules.rag_system.rag_engine import RAGEngine
-from backend.ee.modules.rag_system.models import Document
+from chatbot.rag_system.rag_engine import RAGEngine
+from chatbot.rag_system.models import Document
 
 logger = logging.getLogger(__name__)
 
