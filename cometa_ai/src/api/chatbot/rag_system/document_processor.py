@@ -16,9 +16,8 @@ import PyPDF2
 import markdown
 from bs4 import BeautifulSoup
 
-# Internal imports
-from .vector_store import VectorStore
-from .models import DocumentChunk
+from chatbot.rag_system.vector_store import VectorStore
+from chatbot.rag_system.models import DocumentChunk
 
 logger = logging.getLogger(__name__)
 

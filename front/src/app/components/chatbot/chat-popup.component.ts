@@ -51,7 +51,6 @@ import { Observable, Subscription } from 'rxjs';
             [(ngModel)]="newMessage" 
             placeholder="Type your message..." 
             (keyup.enter)="sendMessage()"
-            [disabled]="isLoading$ | async"
             autofocus
           >
           <button mat-icon-button color="primary" (click)="sendMessage()" [disabled]="!newMessage.trim() || (isLoading$ | async)">
@@ -78,6 +77,7 @@ export class ChatPopupComponent implements OnInit, OnDestroy {
   newMessage = '';
   private subscriptions: Subscription[] = [];
   private beforeUnloadHandler: any;
+  private isCurrentlyLoading = false;
   
   @ViewChild('messagesContainer') messagesContainer: ElementRef;
   
@@ -99,6 +99,13 @@ export class ChatPopupComponent implements OnInit, OnDestroy {
     // Get messages and loading state from service
     this.messages$ = this.chatbotService.messages$;
     this.isLoading$ = this.chatbotService.isLoading$;
+    
+    // Subscribe to loading state
+    this.subscriptions.push(
+      this.isLoading$.subscribe(isLoading => {
+        this.isCurrentlyLoading = isLoading;
+      })
+    );
     
     // Open chat in service
     this.chatbotService.openChat();
@@ -186,7 +193,7 @@ export class ChatPopupComponent implements OnInit, OnDestroy {
   
   // Send a new message
   sendMessage(): void {
-    if (this.newMessage.trim() === '') return;
+    if (this.newMessage.trim() === '' || this.isCurrentlyLoading) return;
     
     // Send the message to service
     this.chatbotService.handleUserMessage(this.newMessage);

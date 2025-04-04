@@ -1,0 +1,73 @@
+[
+    {
+      "name": "README.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/README.md",
+      "description": "The main documentation file providing an overview of the Co.meta project."
+    },
+    {
+      "name": "CONTRIBUTORS.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/CONTRIBUTORS.md",
+      "description": "A list of individuals who have contributed to the Co.meta project."
+    },
+    {
+      "name": "LICENSE",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/LICENSE",
+      "description": "The license under which the Co.meta project is distributed."
+    },
+    {
+      "name": "SECURITY.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/SECURITY.md",
+      "description": "Guidelines and information on the security policies of the Co.meta project."
+    },
+    {
+      "name": "MFA_Authentication_preparation.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/MFA_Authentication_preparation.md",
+      "description": "Instructions on preparing for Multi-Factor Authentication with Co.meta."
+    },
+    {
+      "name": "MFA_Authentication_using_cometa.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/MFA_Authentication_using_cometa.md",
+      "description": "Steps on how to use Multi-Factor Authentication within Co.meta."
+    },
+    {
+      "name": "REST-API.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/REST-API.md",
+      "description": "Documentation detailing the REST API endpoints provided by Co.meta."
+    },
+    {
+      "name": "ai_feature.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/ai_feature.md",
+      "description": "Information about the AI features integrated into Co.meta."
+    },
+    {
+      "name": "browser_concurrency.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/browser_concurrency.md",
+      "description": "Details on handling browser concurrency within Co.meta."
+    },
+    {
+      "name": "cometa_actions.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/cometa_actions.md",
+      "description": "A comprehensive list and explanation of actions or steps that can be performed in Co.meta."
+    },
+    {
+      "name": "cometa_features.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/cometa_features.md",
+      "description": "An overview of the features offered by Co.meta."
+    },
+    {
+      "name": "css-xpath.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/css-xpath.md",
+      "description": "Guidelines on using CSS selectors and XPath within Co.meta."
+    },
+    {
+      "name": "mobile_feature.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/mobile_feature.md",
+      "description": "Documentation on the mobile features supported by Co.meta."
+    },
+    {
+      "name": "questions.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/questions.md",
+      "description": "A compilation of frequently asked questions about Co.meta."
+    }
+  ]
+  
