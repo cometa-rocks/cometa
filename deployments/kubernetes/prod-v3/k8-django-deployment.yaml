@@ -26,7 +26,8 @@ spec:
         runAsUser: 472
       containers:
       - name: cometa-django
-        image: cometa/django:10.0.1
+        image: cometa/django:latest
+        imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
