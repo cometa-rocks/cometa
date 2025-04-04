@@ -10,7 +10,6 @@ python manage.py makemigrations configuration
 python manage.py makemigrations container_service
 python manage.py makemigrations mobile
 python manage.py makemigrations token_authentication
-python manage.py makemigrations rag_system
 python manage.py migrate
 
 # if this is the first time initializing co.meta
