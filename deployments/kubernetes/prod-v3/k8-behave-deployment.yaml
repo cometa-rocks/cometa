@@ -30,7 +30,7 @@ spec:
       
       containers:
       - name: cometa-behave-container
-        image: cometa/behave:10.0.1
+        image: cometa/behave:latest
         imagePullPolicy: Always
         securityContext:
           allowPrivilegeEscalation: false
@@ -103,8 +103,8 @@ spec:
           value: "40"
         resources:
           limits:
-            cpu: "2"
-            memory: "2Gi"
+            cpu: "4"
+            memory: "4Gi"
           requests:
             cpu: "1"
             memory: "1Gi"
