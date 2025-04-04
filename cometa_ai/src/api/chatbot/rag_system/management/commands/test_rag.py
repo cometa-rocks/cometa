@@ -1,29 +1,29 @@
 """
-Django management command to test the RAG system.
+Management command to test the RAG system.
 """
-import json
 import logging
+import time
 from django.core.management.base import BaseCommand
-from django.conf import settings
 
-from backend.ee.modules.rag_system.rag_engine import RAGEngine
-from backend.ee.modules.rag_system.models import Document
-from chromadb.errors import InvalidDimensionException
+from chatbot.rag_system.vector_store import VectorStore
+from chatbot.rag_system.rag_engine import RAGEngine
+from chatbot.rag_system.document_processor import DocumentProcessor
+from chatbot.rag_system.models import Document
 
 logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
-    help = 'Test the RAG system with a query'
+    help = 'Test the RAG system with a sample query'
 
     def add_arguments(self, parser):
-        parser.add_argument('query', type=str, help='User query to test')
-        parser.add_argument('--top-k', type=int, default=5, help='Number of results to retrieve')
-        parser.add_argument('--json', action='store_true', help='Output as JSON')
+        parser.add_argument('query', type=str, help='Test query')
+        parser.add_argument('--top-k', type=int, default=5, help='Number of results to return')
+        parser.add_argument('--json', action='store_true', help='Output in JSON format')
 
     def handle(self, *args, **options):
         query = options['query']
-        top_k = options['top_k']
-        as_json = options['json']
+        top_k = options.get('top_k', 5)
+        output_json = options.get('json', False)
         
         self.stdout.write(f"Testing RAG system with query: {query}")
         self.stdout.write(f"Top K: {top_k}")
@@ -44,7 +44,7 @@ class Command(BaseCommand):
             result = rag_engine.process_query(query)
             
             # Output results
-            if as_json:
+            if output_json:
                 # Format for JSON output
                 output = {
                     'query': query,

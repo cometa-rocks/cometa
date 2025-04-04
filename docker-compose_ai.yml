@@ -55,9 +55,61 @@ services:
       - testing
     restart: always
 
+  db.ai:
+    image: postgres:17
+    container_name: cometa.db.ai
+    volumes:
+      - ai_postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"
+    networks:
+      - testing
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  django.api:
+    build:
+      context: ./cometa_ai/src/api
+      dockerfile: Dockerfile
+    container_name: cometa.django.ai
+    volumes:
+      - ./cometa_ai:/app
+      - ./data/redis/certs:/share/certs
+      - ./data/chromadb:/app/data/chromadb
+    ports:
+      - "8002:8000"
+    depends_on:
+      - db.ai
+      - redis.ai
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=cometa.db.ai
+      - POSTGRES_PORT=5432
+      - REDIS_HOST=redis.ai
+      - REDIS_PORT=6379
+      - REDIS_DB_TSL_SSL_ENABLED=Yes
+      - REDIS_CA_CERTIFICATE_FILE=/share/certs/ca-cert.pem
+      - PYTHONPATH=/app
+      - CHROMA_PATH=/app/data/chromadb
+    working_dir: /app
+    command: bash -c "cd /app/src/api && ./init_rag.sh && python manage.py runserver 0.0.0.0:8000"
+    networks:
+      - testing
+    restart: always
+
 networks:
   testing:
     driver: "bridge"
 
 volumes:
   redis_data:
+  ai_postgres_data:

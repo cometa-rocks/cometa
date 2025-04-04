@@ -9,7 +9,7 @@ class RagSystemConfig(AppConfig):
     Configuration for the RAG system Django app.
     """
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'backend.ee.modules.rag_system'
+    name = 'chatbot.rag_system'
     verbose_name = 'RAG System'
     
     def ready(self):
@@ -26,6 +26,6 @@ class RagSystemConfig(AppConfig):
 
         # Import signals to register them
         try:
-            import backend.ee.modules.rag_system.signals
+            import chatbot.rag_system.signals
         except ImportError:
             pass 

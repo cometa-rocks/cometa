@@ -8,9 +8,9 @@ import os
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db import models
-from backend.ee.modules.rag_system.vector_store import VectorStore, RAG_MODEL
-from backend.ee.modules.rag_system.rag_engine import RAGEngine
-from backend.ee.modules.rag_system.models import Document, DocumentChunk
+from chatbot.rag_system.vector_store import VectorStore, RAG_MODEL
+from chatbot.rag_system.rag_engine import RAGEngine
+from chatbot.rag_system.models import Document, DocumentChunk
 
 logger = logging.getLogger(__name__)
 
