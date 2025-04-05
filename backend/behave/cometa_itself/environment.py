@@ -77,6 +77,10 @@ REDIS_IMAGE_ANALYSYS_QUEUE_NAME = ConfigurationManager.get_configuration(
     "REDIS_IMAGE_ANALYSYS_QUEUE_NAME", "image_analysis"
 )  # converting to seconds
 
+REDIS_BROWSER_USE_QUEUE_NAME = ConfigurationManager.get_configuration(
+     "REDIS_BROWSER_USE_QUEUE_NAME", "browser_use_queue"
+ ) 
+
 DEPARTMENT_DATA_PATH = "/data/department_data"
 
 
@@ -185,6 +189,7 @@ def before_all(context):
     if COMETA_AI_ENABLED:
         context.ai = AI(
             REDIS_IMAGE_ANALYSYS_QUEUE_NAME=REDIS_IMAGE_ANALYSYS_QUEUE_NAME,
+            REDIS_BROWSER_USE_QUEUE_NAME=REDIS_BROWSER_USE_QUEUE_NAME,
             logger=logger,
         )
 
@@ -292,6 +297,13 @@ def before_all(context):
     # save the continue on failure for feature to the context
     context.feature_continue_on_failure = data.get("continue_on_failure", False)
 
+    devices_time_zone = context.browser_info.get("selectedTimeZone", "")
+
+    if not devices_time_zone or devices_time_zone.strip() == "":
+        devices_time_zone = "Etc/UTC"
+    
+    
+    
     payload = {
         "user_id": context.PROXY_USER["user_id"],
         "browser_info": os.environ["BROWSER_INFO"],
@@ -342,24 +354,39 @@ def before_all(context):
     
     
     context.service_manager = ServiceManager()
+    context.browser_hub_url = "cometa_selenoid"   
+    context.USE_COMETA_BROWSER_IMAGES = USE_COMETA_BROWSER_IMAGES
     
     if USE_COMETA_BROWSER_IMAGES:
         logger.debug(f"Using cometa browsers, Starting browser ")
         logger.debug(f"Browser_info : {context.browser_info}")
 
-        context.service_manager.prepare_browser_service_configuration(
+        
+        browser_container_labels = {
+            "feature_id": str(context.feature_info["feature_id"]),
+            "feature_result_id": str(os.environ["feature_result_id"]),
+            "department_id": str(context.feature_info["department_id"]),
+            "environment_id": str(context.feature_info["environment_id"])
+        }
+        
+        service_details = context.service_manager.prepare_browser_service_configuration(
             browser=context.browser_info["browser"],
-            version=context.browser_info["browser_version"]
+            version=context.browser_info["browser_version"],
+            labels=browser_container_labels,
+            devices_time_zone = devices_time_zone
         )
+        
         service_created = context.service_manager.create_service()
         if not service_created:
             raise Exception("Error while starting browser, Please contact administrator")    
         
-        service_details = context.service_manager.get_service_details()
+        if not IS_KUBERNETES_DEPLOYMENT:
+            service_details = context.service_manager.get_service_details()
         # Save container details in the browser_info, which then gets saved in the feature results browser 
         context.browser_info["container_service"] = {"Id": service_details["Id"]}
         context.container_services.append(service_details)
         browser_hub_url = context.service_manager.get_service_name(service_details['Id'])
+        context.browser_hub_url = browser_hub_url
         connection_url = f"http://{browser_hub_url}:4444/wd/hub"
         status_check_connection_url = f"http://{browser_hub_url}:4444/status"
         context.service_manager.wait_for_selenium_hub_be_up(status_check_connection_url)
@@ -408,16 +435,14 @@ def before_all(context):
         browser_name='MicrosoftEdge'
     
     options.set_capability("browserName", browser_name)
+    options.set_capability("se:timeZone", devices_time_zone)
     
     if not IS_KUBERNETES_DEPLOYMENT:
         options.browser_version = context.browser_info["browser_version"]
     
     options.accept_insecure_certs = True
     # Get the chrome container timezone from browser_info
-    devices_time_zone = context.browser_info.get("selectedTimeZone", "")
 
-    if not devices_time_zone or devices_time_zone.strip() == "":
-        devices_time_zone = "Etc/UTC"
 
     context.mobile_capabilities['timezone'] = devices_time_zone
     logger.debug(f"Test is running in the timezone : {devices_time_zone}")
@@ -495,7 +520,7 @@ def before_all(context):
     context.downloadDirectoryOutsideSelenium = r"/data/test/downloads/%s" % str(
         os.environ["feature_result_id"]
     )
-    context.uploadDirectoryOutsideSelenium = r"/code/behave/uploads/%s" % str(
+    context.uploadDirectoryOutsideSelenium = r"/data/test/uploads/%s" % str(
         context.department["department_id"]
     )
     os.makedirs(context.downloadDirectoryOutsideSelenium, exist_ok=True)
@@ -535,6 +560,7 @@ def before_all(context):
     capabilities = options.to_capabilities()
     logger.info("Options Summary (Capabilities):")
     logger.info(capabilities)
+    
     if USE_COMETA_BROWSER_IMAGES:
         context.browser = webdriver.Remote(command_executor=connection_url, options=options, keep_alive=True)
     else:
@@ -599,6 +625,10 @@ def after_all(context):
     del os.environ["current_step"]
     del os.environ["total_steps"]
     # check if any alertboxes are open before quiting the browser
+
+    if hasattr(context,"pw"):
+         context.pw.stop()
+
     try:
         while context.browser.switch_to.alert:
             logger.debug("Found an open alert before shutting down the browser...")
@@ -615,7 +645,7 @@ def after_all(context):
         # quit the browser since at this point feature has been executed
         context.browser.quit()
         
-        if context.cloud == "local":
+        if context.cloud == "local" and not context.USE_COMETA_BROWSER_IMAGES:
             url = f"http://cometa_selenoid:4444/sessions/{context.browser.session_id}"
             logger.debug(f"Requesting to delete the {url}")
             response = requests.delete(url)
@@ -838,7 +868,7 @@ def after_all(context):
 
     # do some cleanup and remove all the temp files generated during the feature
     logger.debug("Cleaning temp files: {}".format(pformat(context.tempfiles)))
-    for tempfile in context.tempfiles:
+    for tempfile in set(context.tempfiles):
         try:
             os.remove(tempfile)
         except Exception as err:

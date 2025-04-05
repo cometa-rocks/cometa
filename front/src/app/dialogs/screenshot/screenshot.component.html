@@ -1,2 +1,43 @@
 <i class="close" (click)="dialogRef.close()"></i>
-<div class="image" [style.backgroundImage]="image"></div>
+<i class="chat-icon" (click)="openChatWindow()"></i>
+<div [class]="isChatOpen ? 'image-with-chat-dialog':'image'" [style.backgroundImage]="image"></div>
+<div class="chatdiv" *ngIf="isChatOpen">
+    <div class="chat-container-div">
+        <form [formGroup]="chatForm">
+            <mat-form-field appearance="fill" class="full-width">
+                <mat-label>Chat with Cometa AI about this screenshot</mat-label>
+                <textarea matInput spellcheck="false" formControlName="chatText"></textarea>
+            </mat-form-field>
+            
+            <mat-dialog-actions>
+                <div class="right">
+                      <button
+                        color="primary"
+                        [disabled]="chatForm.invalid"
+                        mat-stroked-button
+                        class="mat-menu-trigger ng-tns-c169-1 status-box success"
+                        (click)="chat()">CHAT</button>
+                </div>
+            </mat-dialog-actions>
+    
+    
+    
+            <!-- <mat-dialog-actions>
+                <div class="right">
+                    <ng-container >    
+                            <button color="primary"
+                               mat-stroked-button
+                                class="submit"
+                                (click)="onSubmit()">Chat
+                            </button>
+                    </ng-container>
+                </div>
+            </mat-dialog-actions> -->
+        </form>
+    </div>
+    <div class="chat-response-container-div">
+        <p class="chat-response">
+           {{response}} 
+        </p>
+    </div>
+</div>

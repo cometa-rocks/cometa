@@ -7,15 +7,10 @@
     #########################################################
     # BACKEND
     #########################################################
-    DEPLOY_BACKEND_FOLDER: "/home/amvara/projects/cometa"
+    DEPLOY_BACKEND_FOLDER: "/var/www/cometa"
+    COMETA_DATA_FOLDER: "/data"
     COMETA_DOMAIN: "prod.cometa.rocks"
     COMETA_DEBUG: "False"
-    COMETA_EMAIL_HOST: 'mail.amvara.de'
-    COMETA_EMAIL_USER: 'tec_dev@amvara.de'
-    COMETA_EMAIL_PASSWORD: ${EMAIL_PASSWORD}
-    COMETA_EMAIL_PORT: 587
-    COMETA_EMAIL_TLS: 'True'
-    COMETA_PROXY_ENABLED: 'False'
     COMETA_PROXY: ''
     #########################################################
     # FRONTEND
@@ -28,14 +23,21 @@
     #########################################################
     # remove port 443 from docker-compose since amvara servers use haproxy to loadbalance ssl requests
     - sed -i "/443:443/d" docker-compose.yml
-    
-    # These changes are client specific it should not run in the all deployments 
+    # Replace the data path
+    - sed -i 's|\.\/data|$COMETA_DATA_FOLDER|g' docker-compose.yml
     # Replace google client information
-    - sed -i 's/@@COMETA_GOOGLE_CLIENTID@@/'$COMETA_GOOGLE_CLIENTID'/g' front/apache-conf/metadata/accounts.google.com.client
-    - sed -i 's/@@COMETA_GOOGLE_SECRETKEY@@/'$COMETA_GOOGLE_SECRETKEY'/g' front/apache-conf/metadata/accounts.google.com.client
+    - echo $COMETA_GOOGLE_OIDC_SECRET > $COMETA_DATA_FOLDER/front/apache2/metadata/accounts.google.com.client
     # Replace git client secret for access to git.amvara.de
-    - sed -i 's/@@GITCLIENTID@@/'$GITCLIENTID'/g' front/apache-conf/metadata/git.amvara.de.client
-    - sed -i 's/@@GITCLIENTSECRET@@/'$GITCLIENTSECRET'/g' front/apache-conf/metadata/git.amvara.de.client
+    - echo $GITLAB_OIDC_SECRETS > $COMETA_DATA_FOLDER/front/apache2/metadata/git.amvara.de.client
+  
+
+    # # These changes are client specific it should not run in the all deployments 
+    # # Replace google client information
+    # - sed -i 's/@@COMETA_GOOGLE_CLIENTID@@/'$COMETA_GOOGLE_CLIENTID'/g' front/apache-conf/metadata/accounts.google.com.client
+    # - sed -i 's/@@COMETA_GOOGLE_SECRETKEY@@/'$COMETA_GOOGLE_SECRETKEY'/g' front/apache-conf/metadata/accounts.google.com.client
+    # # Replace git client secret for access to git.amvara.de
+    # - sed -i 's/@@GITCLIENTID@@/'$GITCLIENTID'/g' front/apache-conf/metadata/git.amvara.de.client
+    # - sed -i 's/@@GITCLIENTSECRET@@/'$GITCLIENTSECRET'/g' front/apache-conf/metadata/git.amvara.de.client
 
 
   tags: # on what runners we'd like to run this job

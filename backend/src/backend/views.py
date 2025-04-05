@@ -65,7 +65,7 @@ from sentry_sdk import capture_exception
 from backend.utility.uploadFile import UploadFile, decryptFile
 from backend.utility.config_handler import *
 # from silk.profiling.profiler import silk_profile
-from modules.container_service.service_manager import ServiceManager
+from modules.container_service.service_manager import DockerServiceManager, ServiceManager
 
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
@@ -382,12 +382,22 @@ def featureRunning(request, feature_id, *args, **kwargs):
     """
     This view acts as a proxy for <sw_server>/featureStatus/:feature_id
     """
-    request_response = requests.get(f'{get_cometa_socket_url()}/featureStatus/%d' % int(feature_id))
+    # Changing this logic to read feature state from socket to Feature_task table
+    # Because while killing feature task it is done by deleting the Feature_task but when checking the isFeatureRunning state is checked from websocket connection
+    # which make it unstable in some cases
+    tasks = Feature_Task.objects.filter(feature_id=feature_id).select_related('feature_result_id')
+    
+    content = {"running":False}
+    
+    if len(tasks)>0:
+        content["running"]=True
+    
     django_response = HttpResponse(
-        content=request_response.content,
-        status=request_response.status_code,
-        content_type=request_response.headers['Content-Type']
+        content=json.dumps(content),
+        status=200,
+        content_type="application/json"
     )
+    
     return django_response
 
 
@@ -520,6 +530,7 @@ def removeTemplate(request, *args, **kwargs):
 
 def Screenshots(step_result_id):
     os.chdir('/data/screenshots/')
+
     screenshots = {}
     try:
         # FIXME: Dirty fix for getting correct current image
@@ -1394,37 +1405,92 @@ def parseBrowsers(request):
     return JsonResponse({'success': True})
 
 
+def pull_images(images_to_pull):
+    docker_service_manager = DockerServiceManager()
+    for image in images_to_pull:
+        docker_service_manager.pull_image(image)
+
 @csrf_exempt
 def parseCometaBrowsers(request):
-    browsersFile = '/opt/code/defaults/cometa_browsers.json'
+    # parses latest n (at the moment 3) versions of cometa browsers and saves them in the Browser model
+    # starts a thread to call the pull images script
+    # when thread finishes, this method returns success.
+
+    # call the apis
+    chrome_data = requests.get('https://hub.docker.com/v2/repositories/cometa/chrome/tags')
+    firefox_data = requests.get('https://hub.docker.com/v2/repositories/cometa/firefox/tags')
+    edge_data = requests.get('https://hub.docker.com/v2/repositories/cometa/edge/tags')
+
+    logger.info(f"Chrome Data: {chrome_data}")
+    logger.info(f"Firefox Data: {firefox_data}")
+    logger.info(f"Edge Data: {edge_data}")
+
+    # parse the data
+    chrome_data = chrome_data.json()
+    firefox_data = firefox_data.json()
+    edge_data = edge_data.json()
+
+    cometa_browsers = {
+        'chrome': [],
+        'firefox': [],
+        'edge': []
+    }
+
+    # iterate over the browser data and format to match cometa_browsers structure -- only the 3 latest versions
+    for chrome_version in chrome_data['results'][:3]:   
+        cometa_browsers['chrome'].append({
+            "os": "Generic",    
+            "device": None,
+            "browser": "chrome",
+            "os_version": "Selenium",   
+            "real_mobile": False,
+            "browser_version": chrome_version['name'],
+            "cloud": "local"
+        })
+
+    for firefox_version in firefox_data['results'][:3]:
+        cometa_browsers['firefox'].append({
+            "os": "Generic",
+            "device": None,
+            "browser": "firefox",
+            "os_version": "Selenium",
+            "real_mobile": False,
+            "browser_version": firefox_version['name'],
+            "cloud": "local"
+        })
     
-    # Check if the file exists
-    if not os.path.exists(browsersFile):
-        print(f"File {browsersFile} doesn't exist, please contact administrator")
-        return JsonResponse({'success': False, 'error': 'cometa_browsers.json not found'}, status=503)
-    
-    # Load JSON data from cometa_browsers.json
-    try:
-        with open(browsersFile, 'r') as file:
-            browsers_data = json.load(file)
-    except json.JSONDecodeError:
-        return JsonResponse({'success': False, 'error': 'cometa_browsers.json contains invalid JSON data'}, status=503)
-    
-    # Delete all previous browser objects
+    for edge_version in edge_data['results'][:3]:
+        cometa_browsers['edge'].append({
+            "os": "Generic",    
+            "device": None,
+            "browser": "edge",
+            "os_version": "Selenium",
+            "real_mobile": False,
+            "browser_version": edge_version['name'],
+            "cloud": "local"
+        })
+
+    # delete all browser objects
     Browser.objects.all().delete()
-    
+
     # Insert data into the Browser model
-    for entry in browsers_data:
-        model = entry.get("model")
-        fields = entry.get("fields", {})
-        if model == "backend.Browser" and "browser_json" in fields:
-            Browser.objects.create(browser_json=fields["browser_json"])
-    
+    images_to_pull = []
+    for browser_type in cometa_browsers:
+        for browser_config in cometa_browsers[browser_type]:
+            Browser.objects.create(browser_json=browser_config)
+            images_to_pull.append(f'cometa/{browser_config["browser"]}:{browser_config["browser_version"]}')
+
     # Notify websockets about the browser update
     requests.post(f'{get_cometa_socket_url()}/sendAction', json={
         'type': '[Browsers] Get All'
     })
-    
+
+    logger.info("----------IMAGE PULLING THREAD STARTED----------")   
+    # Start thread as daemon so it runs independently
+    pull_browsers_thread = Thread(target=pull_images, args=(images_to_pull,), daemon=True)
+    pull_browsers_thread.start()
+    logger.info("----------IMAGE PULLING THREAD STARTED SUCCESSFULLY----------")
+    # return success
     return JsonResponse({'success': True})
 
 
@@ -3336,18 +3402,43 @@ def UpdateTask(request):
     except Feature_result.DoesNotExist as exception:
         return JsonResponse({"success": True,'message':str(exception)})
 
-def remove_running_containers(feature_result):
-    for mobile in feature_result.mobile:
-        # While running mobile tests User have options to connect to already running mobile or start mobile during test
-        # If Mobile was started by the test then remove it after execution 
-        # If Mobile was started by the user and test only connected to it do not stop it
-        if mobile['is_started_by_test']:
-            ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
+# def remove_running_containers(feature_result):
+#     for mobile in feature_result.mobile:
+#         # While running mobile tests User have options to connect to already running mobile or start mobile during test
+#         # If Mobile was started by the test then remove it after execution 
+#         # If Mobile was started by the user and test only connected to it do not stop it
+#         if mobile['is_started_by_test']:
+#             ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
 
-    browser_container_info = feature_result.browser.get("container_service",False)
+#     browser_container_info = feature_result.browser.get("container_service",False)
     
-    if browser_container_info:
-        ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"]) 
+#     if browser_container_info:
+#         ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"]) 
+
+def remove_running_containers(feature_result:Feature_result):
+    def _remove_containers():
+        logger.debug(f"Removing containers for feature_result {feature_result.feature_result_id}")
+        for mobile in feature_result.mobile:
+            # While running mobile tests User have options to connect to already running mobile or start mobile during test
+            # If Mobile was started by the test then remove it after execution 
+            # If Mobile was started by the user and test only connected to it do not stop it
+            if mobile['is_started_by_test']:
+                logger.debug(f"Removing containers for feature_result {feature_result.feature_result_id}")
+                ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
+
+        browser_container_info = feature_result.browser.get("container_service",False)
+        if browser_container_info:
+            ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"])
+
+    try:
+        logger.debug(f"Starting a thread clean up the containers")
+        # Create and start thread to handle container removal
+        cleanup_thread = Thread(target=_remove_containers)
+        cleanup_thread.start()
+        logger.debug(f"Container cleanup thread {cleanup_thread.getName()} started")
+    except Exception:
+        logger.debug("Exception while cleaning up the containers")
+        traceback.print_exc()
 
 
 @csrf_exempt
@@ -3356,6 +3447,7 @@ def KillTask(request, feature_id):
     for task in tasks:
         remove_running_containers(task.feature_result_id)
         request = requests.get(f'{get_cometa_behave_url()}/kill_task/' + str(task.pid) + "/")
+        
         Feature_Task.objects.filter(pid=task.pid).delete()
     if len(tasks) > 0:
         # Force state of stopped for current feature in WebSocket Server

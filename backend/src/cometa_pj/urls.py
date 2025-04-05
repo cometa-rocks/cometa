@@ -134,6 +134,7 @@ urlpatterns = [
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
     
+    
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) 
 
 urlpatterns = register_ee_modules_urlpatterns(urlpatterns=urlpatterns)

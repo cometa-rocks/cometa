@@ -132,7 +132,7 @@ def run_test(request):
 @csrf_exempt
 @xframe_options_exempt
 def kill_task(request, pid):
-    subprocess.call("kill -15 %d" % int(pid), shell=True)   
+    subprocess.Popen(["kill", "-15", str(pid)], shell=False)   
     return JsonResponse({"success": True, "killed": pid})
 
 
@@ -160,7 +160,8 @@ def updated_step_actions(request):
             'cometa_itself/steps/validation_actions.py',
             'ee/cometa_itself/steps/rest_api.py',
             'ee/cometa_itself/steps/conditional_actions.py',
-            'ee/cometa_itself/steps/common_actions.py'
+            'ee/cometa_itself/steps/common_actions.py',
+            'ee/cometa_itself/steps/playwright_actions.py'
         ]
         
         COMETA_FEATURE_MOBILE_TEST_ENABLED = ConfigurationManager.get_configuration("COMETA_FEATURE_MOBILE_TEST_ENABLED","False")=="True"

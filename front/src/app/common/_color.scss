@@ -30,6 +30,64 @@ $good: #00a99d;
 $medium: #f97412;
 $bad: #d4145a;
 
+// MOBILE ##########################################
+
+/* Mobile and Feature */
+$bg-and-status: #f57c00;
+
+/* Mat-dialog-container */
+$bg-mat-dialog-container: #f7f7f7;
+
+/* Buttons (novnc-inspector) mobile */
+$bg-novnc-inspector: #F5F5F5;
+
+/* Toggle button shows if emulator is shared */
+$shared-emulator-toggle: $blue;
+
+/* Red */
+$red: #da4747;
+
+/* Disabled slide-toggle */
+$disabled-slide-toggle: #333;
+
+/* mobile-information */
+$smoth-black-text: rgba(0, 0, 0, 0.7);
+
+// END - MOBILE ##########################################
+
+
+// USER PROFILE ##########################################
+
+/* Toggle slide */
+
+$toggle-bg: $blue;
+
+$disabled-slide-toggle-track: #e0e0e0;
+
+$disabled-toggle-bg: #636363;
+
+// END - USER PROFILE ####################################
+
+// MAIN-VIEW #############################################
+
+$table-footer-bg: #F2F2F2;
+
+// END - MAIN-VIEW #######################################
+
+// STEP-VIEW #############################################
+
+$white-grey-cell-bg: #e6e6e6;
+
+$white-cell-bg: $table-footer-bg;
+
+// END - STEP-VIEW #######################################
+
+// LIVE-STEPS #############################################
+
+$live-steps-spinner-color: #f44336 ;
+
+// END - LIVE-STEPS #######################################
+
 /* Option Pages */
 $opt-bg-color: #e5b355;
 

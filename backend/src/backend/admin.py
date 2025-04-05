@@ -49,6 +49,7 @@ class AdminOIDCAccount(admin.ModelAdmin):
 # Account Department mapping to admin view
 class AdminAccount_role(admin.ModelAdmin):
     model = Account_role
+    list_filter = ('department',)
     search_fields = ['user__name', 'department__department_name']
     list_display = ('user', 'department')
 
@@ -131,6 +132,7 @@ class AdminFeature_result(admin.ModelAdmin):
 
 class AdminFolder(admin.ModelAdmin):
     model = Folder
+    list_filter = ('department',)
     search_fields = ['name', 'owner__name']
     list_display = ('folder_id', 'name', 'owner')
 
@@ -282,7 +284,7 @@ class AdminFile(admin.ModelAdmin):
     model = File
     search_fields = ['id', 'name', 'path', 'mime', 'department__department_name', 'uploaded_by__name']
     list_display = ('id', 'name', 'path', 'mime', 'uploaded_by', 'department', 'is_removed', 'fileExistsOnFS')
-    list_filter = ('department', 'created_on', 'is_removed')
+    list_filter = ('created_on', 'is_removed', 'department__department_name', 'department__department_id', )
 
     def get_queryset(self, request):
         return self.model.all_objects.get_queryset()
@@ -305,6 +307,15 @@ class ActionAdmin(admin.ModelAdmin):
     list_display = ("action_id", "action_name", "step_type")
     list_filter = ('step_type',)
 
+  
+class InviteAdmin(admin.ModelAdmin):
+    model = Invite
+    list_filter = ['departments',]
+
+class IntegrationAdmin(admin.ModelAdmin):
+    model = Integration
+    list_filter = ['department__department_id','department__department_name',"active"]
+
 admin.site.register(OIDCAccount, AdminOIDCAccount)
 admin.site.register(Account_role, AdminAccount_role)
 admin.site.register(Step, AdminStep)
@@ -326,8 +337,8 @@ admin.site.register(Permissions, AdminPermissions)
 admin.site.register(Cloud, AdminCloud)
 admin.site.register(AuthenticationProvider)
 admin.site.register(Schedule)
-admin.site.register(Invite)
-admin.site.register(Integration)
+admin.site.register(Invite, InviteAdmin)
+admin.site.register(Integration, IntegrationAdmin)
 admin.site.register(IntegrationPayload)
 admin.site.register(Subscription, AdminSubscription)
 admin.site.register(PaymentRequest, AdminPaymentRequest)

@@ -5,10 +5,10 @@
  *
  * @author dph000
  */
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
-import { Observable, switchMap, tap, map } from 'rxjs';
+import { Observable, switchMap, tap, map, filter, take } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { observableLast, Subscribe } from 'ngx-amvara-toolbox';
 import { NavigationService } from '@services/navigation.service';
@@ -83,7 +83,8 @@ export class L1FeatureItemListComponent implements OnInit {
     private _dialog: MatDialog,
     private _api: ApiService,
     private _snackBar: MatSnackBar,
-    private log: LogService
+    private log: LogService,
+    private cdr: ChangeDetectorRef    
   ) {}
 
   // Receives the item from the parent component
@@ -95,6 +96,7 @@ export class L1FeatureItemListComponent implements OnInit {
   private hasHandledMouseOver = false;
   private hasHandledMouseOverFolder = false;
   finder: boolean = false;
+  isButtonDisabled: boolean = false;
 
   /**
    * Global variables
@@ -109,6 +111,7 @@ export class L1FeatureItemListComponent implements OnInit {
 
   // NgOnInit
   ngOnInit() {
+
     this.log.msg('1', 'Initializing component...', 'feature-item-list');
 
     this.feature$ = this._store.select(
@@ -182,6 +185,7 @@ export class L1FeatureItemListComponent implements OnInit {
       data: {
         mode: 'edit',
         folder: folder,
+        featureId: this.item.id
       } as IEditFolder,
     });
   }
@@ -360,4 +364,18 @@ export class L1FeatureItemListComponent implements OnInit {
     });
   }
 
+  async onRunClick() {
+    if (this.isButtonDisabled) return;
+    
+    this.isButtonDisabled = true;
+  
+    try {
+      await this._sharedActions.run(this.item.id);
+    } catch (error) {
+      console.error('Error running feature:', error);
+    } finally {
+      this.isButtonDisabled = false;
+    }
+  }
+  
 }

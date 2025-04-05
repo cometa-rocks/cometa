@@ -235,3 +235,28 @@ mat-label {
 :host::ng-deep .mat-mdc-select-value {
   margin-right: 5px;
 }
+
+.stop-button {
+  min-width: 140px;
+  min-height: 32px;
+  position: relative;
+
+  
+  .button-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.inline-spinner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  ::ng-deep circle {
+    stroke: $live-steps-spinner-color !important;
+  }
+}
