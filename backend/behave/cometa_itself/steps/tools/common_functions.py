@@ -160,11 +160,27 @@ def is_valid_variable(value):
 
 def addStepVariableToContext(context, variable, save_to_step_report=False):
     """Assign variable to context only if variable_value is of an allowed type."""
-    
-    if is_valid_variable(variable["variable_value"]):
+    if is_valid_variable(variable.get("variable_value", None)):
+        value = variable.get("variable_value", None)
+        if save_to_step_report:        
+            new_variable = {
+                    "variable_name": variable['variable_name'],
+                    "variable_value": value,
+                    "variable_type" : type(value).__name__
+            }
+            if context.LAST_STEP_VARIABLE_AND_VALUE is not None and isinstance(context.LAST_STEP_VARIABLE_AND_VALUE, list):
+                context.LAST_STEP_VARIABLE_AND_VALUE.append(new_variable)
+            elif context.LAST_STEP_VARIABLE_AND_VALUE is not None:
+                context.LAST_STEP_VARIABLE_AND_VALUE = [
+                    context.LAST_STEP_VARIABLE_AND_VALUE,
+                    new_variable
+                ]
+            else:    
+                context.LAST_STEP_VARIABLE_AND_VALUE = new_variable
+            
+    elif isinstance(variable, list) or isinstance(variable, dict):
         if save_to_step_report:
             context.LAST_STEP_VARIABLE_AND_VALUE = variable
-            logger.debug(f"Assigned: {variable}")
     else:
         logger.warning(f"Warning: Skipping assignment. Value '{variable['variable_value']}' is not JSON-serializable.")
     
@@ -182,7 +198,7 @@ def addTestRuntimeVariable(context, variable_name, variable_value, save_to_step_
         index = index[0]
         logger.debug("Patching existing variable")
         env_variables[index]["variable_value"] = variable_value
-        addStepVariableToContext(context,env_variables[index], save_to_step_report)
+        addStepVariableToContext(context, env_variables[index], save_to_step_report)
 
     else:
         logger.debug("Adding new variable")
@@ -192,7 +208,7 @@ def addTestRuntimeVariable(context, variable_name, variable_value, save_to_step_
             "encrypted": False,
         }
         env_variables.append(new_variable)
-        addStepVariableToContext(context,new_variable, save_to_step_report)
+        addStepVariableToContext(context, new_variable, save_to_step_report)
 
     context.VARIABLES = json.dumps(env_variables)
 
@@ -564,7 +580,9 @@ def done(*_args, **_kwargs):
 
 def saveToDatabase(
     step_name="", execution_time=0, pixel_diff=0, success=False, context=None
-):
+):  
+    start_time = time.time()  # Add timing start
+    
     status = context.CURRENT_STEP_STATUS 
     screenshots = os.environ["SCREENSHOTS"].split(".")
     compares = os.environ["COMPARES"].split(".")
@@ -629,6 +647,10 @@ def saveToDatabase(
     except Exception as e:
         logger.error("An error occured: ")
         logger.error(str(e))
+        traceback.print_exc()
+        
+    if not step_id:
+        raise CustomError("Cannot connect to the backend to save the step result.")
 
     log_file.close()
     # Some steps shouldn't be allowed to take screenshots and compare, as some can cause errors
@@ -750,6 +772,9 @@ def saveToDatabase(
             addTimestampToImage(
                 context.DB_CURRENT_SCREENSHOT, path=context.SCREENSHOTS_ROOT
             )
+            # Calculate and log total execution time
+        total_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+        logger.debug(f"saveToDatabase took {total_time:.2f}ms to execute")
     return step_id
 
 

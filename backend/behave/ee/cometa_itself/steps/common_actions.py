@@ -9,6 +9,7 @@ import sys, requests, re, json, traceback, html
 import pandas as pd
 import os
 import jq
+from faker import Faker
 
 from behave import step, use_step_matcher
 
@@ -25,7 +26,7 @@ from tools.common_functions import *
 # setup logging
 logger = logging.getLogger("FeatureExecution")
 
-
+use_step_matcher("parse")
 
 
 # This step displays the value of a variable_name at runtime and in the browser screen as well for a given seconds amount of time.
@@ -36,7 +37,12 @@ logger = logging.getLogger("FeatureExecution")
 def show_variable_value(context, variable, seconds):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     # Assuming getVariable is a function that retrieves the variable value
-    variable_value = getVariable(context, variable) 
+    variable_value = None
+    try:
+        variable_value = getVariable(context, variable)
+    except Exception as e:
+        raise CustomError(f"variable '{variable}' not found")
+    
     send_step_details(context, f"{variable} : {variable_value}")    
     # Define the variable type (implement the logic as needed)
     variable_type = type(variable_value).__name__  # You can replace this with your own logic
@@ -131,12 +137,12 @@ def read_excel_step(context, file_path, sheet_name, row_number, variable_name):
 
         # Fetch the row as a dictionary (column_name -> value)
         row_data = df.iloc[row_number].to_dict()
-        logger.debug(row_data)
-        # Convert to JSON
-        json_data = json.dumps(row_data, ensure_ascii=False)
-        logger.debug(json_data)
+        # logger.debug(row_data)
+        # # Convert to JSON
+        # json_data = json.dumps(row_data, ensure_ascii=False)
+        # logger.debug(json_data)
         # Store the JSON data in runtime variables
-        addTestRuntimeVariable(context, variable_name, json_data)
+        addTestRuntimeVariable(context, variable_name, row_data, save_to_step_report=True)
         
         logger.debug(f"Stored data from Excel row {row_number} into variable '{variable_name}': {row_data}")
 
@@ -177,8 +183,7 @@ def read_excel_step(context, file_path, sheet_name, row_number):
         # Store each key-value pair in runtime variables except excluded ones
         for key, value in row_data.items():
             if key not in excluded_variables:  # Skip overriding feature_id and feature_name
-                addTestRuntimeVariable(context, key, str(value))  # Convert value to string
-                logger.debug(f"Stored {key}: {value}")
+                addTestRuntimeVariable(context, key, str(value), save_to_step_report=True)  # Convert value to string
             else:
                 logger.debug(f"Skipping variable: {key}, to prevent overriding.")
 
@@ -187,10 +192,64 @@ def read_excel_step(context, file_path, sheet_name, row_number):
         raise CustomError(f"Error reading Excel file: {err}")
 
 
+@step(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" considering header row "{header_row_number}" value row "{value_row_number}" and store in runtime variables')
+@done(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" considering header row "{header_row_number}" value row "{value_row_number}" and store in runtime variables')
+def read_excel_row_to_environment(context, file_path, sheet_name, header_row_number=None, value_row_number=None):
+    try:
+        send_step_details(context, f"Checking excel file path")    
+        excelFilePath = uploadFileTarget(context, file_path)
+        
+        logger.debug("Checking sheets in the excel")
+        xls = pd.ExcelFile(excelFilePath)
+        # Validate the sheet name
+        if sheet_name not in xls.sheet_names:
+            raise CustomError(f"Sheet name '{sheet_name}' not found in the Excel file. Available sheets: {xls.sheet_names}")
+
+        logger.debug(f"Reading excel sheet {sheet_name}")
+        # Read the specified sheet from the Excel file
+        send_step_details(context, f"Reading row")    
+        df = pd.read_excel(excelFilePath, sheet_name=sheet_name)
+        
+        # If specific row indices are provided, set header and select data row
+        if header_row_number is not None and value_row_number is not None:
+            # Ensure the row indices are within the DataFrame's range
+            table_rows = len(df)
+            header_row_number = int(header_row_number)
+            value_row_number = int(value_row_number)
+            
+            if not 0 < header_row_number < table_rows:
+                raise CustomError(f"Invalid header row index {header_row_number}, available rows are between 1 to {table_rows}")
+            
+            if not 0 < value_row_number < table_rows:
+                raise CustomError(f"Invalid header row index {value_row_number}, available rows are between 1 to {table_rows}")            
+
+        header_row_number = header_row_number - 2
+        value_row_number = value_row_number - 2
+        if header_row_number >= 0:
+            # Set the header using the specified header_row
+            df.columns = df.iloc[header_row_number]
+        # Select the specified value_row
+        df = df.loc[:, ~df.columns.isnull() & (df.columns != '')]
+        df = df.iloc[[value_row_number]]
+        df = df.fillna('')
+            
+        row_data = df.to_dict(orient='records')
+        # Variables to exclude from overriding
+        excluded_variables = {"feature_id", "feature_name"}
+        
+        # Store each key-value pair in runtime variables except excluded ones
+        for key, value in row_data[0].items():
+            if key not in excluded_variables:  # Skip overriding feature_id and feature_name
+                addTestRuntimeVariable(context, key, str(value), save_to_step_report=True)  # Convert value to string
+            else:
+                logger.debug(f"Skipping variable: {key}, to prevent overriding.")
+                        
+    except Exception as e:
+        logger.exception(e)
+        raise CustomError(e)
 
 
 use_step_matcher("re")
-
 
 # Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
 # jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
@@ -211,9 +270,58 @@ def assert_imp(context, jq_pattern, variable_name, new_variable_name):
 
     try:
         parsed_value = jq.compile(jq_pattern).input(variable_value).text()
-        addTestRuntimeVariable(context, new_variable_name, parsed_value)
+        logger.debug(type(parsed_value))
+        logger.debug(parsed_value)
+        addTestRuntimeVariable(context, new_variable_name, parsed_value, save_to_step_report=True)
     except Exception as err:
         logger.error("Invalid JQ pattern", err)
         raise CustomError(err)
 
 use_step_matcher("parse")
+
+
+def get_faker_public_methods():
+    fake = Faker()
+    methods = []
+    for attr_name in dir(fake):
+        # Skip private and special methods
+        if attr_name.startswith('_'):
+            continue
+        try:
+            attr = getattr(fake, attr_name)
+            if callable(attr):
+                methods.append(attr_name)
+        except Exception:
+            # Some attributes may raise errors (like deprecated .seed)
+            continue
+    return methods
+
+
+# Generates fake data using the Faker library and stores it in a runtime variable
+# Args:
+#     context: The behave context object containing test execution data
+#     information: The type of fake data to generate (e.g., 'name', 'email', 'address')
+#     variable: The name of the runtime variable to store the generated data
+# Returns:
+#     str: The generated fake data value#
+# Example:
+#     Generate fake "email" and store in "user_email"
+#     Generate fake "name" and store in "full_name"
+# Available Information types:
+# first_name, last_name, name, email, phone_number, address, city, state, country, postalcode, day_of_week, day_of_month, timezone, uid, etc
+@step(u'Generate random "{information}" and store in "{variable}"')
+@done(u'Generate random "{information}" and store in "{variable}"')
+def generate_fake_data_store_in_variable(context, information, variable):
+    fake = Faker()
+    if hasattr(fake, information):
+        method = getattr(fake, information)
+        if callable(method):
+            send_step_details(context, f"Generating {information}")
+            value = method()
+            addTestRuntimeVariable(context, variable, value, save_to_step_report=True)
+        else:
+            raise CustomError(f"'Information type : {information}' not available. Available types are {get_faker_public_methods()}")
+    else:
+        raise CustomError(f"'Information type : {information}' not available. Available types are {get_faker_public_methods()}")
+
+

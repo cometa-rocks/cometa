@@ -106,7 +106,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   status$: Observable<string>;
   feature$: Observable<Feature>;
   steps$: Observable<FeatureStep[]>;
-
+  isLoading: boolean = false;
 
   // Controls de auto scroll
   autoScroll = localStorage.getItem('live_steps_auto_scroll') === 'true';
@@ -224,14 +224,14 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
 
   }
 
-
   @Subscribe()
   stopTest() {
-    return this._api.stopRunningTask(this.feature_id).pipe(
-      tap(answer => {
-        if (answer.success) {
-          this._snack.open('Test stopped!', 'OK');
-          // Let the client clearly know it's stopped
+    this.isLoading = true;
+    this._api.stopRunningTask(this.feature_id).subscribe(
+      response => {
+        this.isLoading = false;
+        if (response.success) {
+          this._snack.open('Feature execution stopped', 'OK');
           this.dialogRef.close();
           // Get last runId
           const runId = this._store.selectSnapshot<number>(
@@ -242,9 +242,13 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
             new WebSockets.StoppedFeature(this.feature_id, runId)
           );
         } else {
-          this._snack.open('An error ocurred', 'OK');
+          this._snack.open('Error stopping feature execution', 'OK');
         }
-      })
+      },
+      error => {
+        this.isLoading = false;
+        this._snack.open('Error stopping feature execution', 'OK');
+      }
     );
   }
 

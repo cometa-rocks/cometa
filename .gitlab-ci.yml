@@ -97,11 +97,7 @@ stages:
     - docker exec cometa_django poetry install
     - docker exec cometa_behave poetry install
     # Detect & Install Django migration
-    - docker exec cometa_django python manage.py makemigrations
-    - docker exec cometa_django python manage.py makemigrations security
-    - docker exec cometa_django python manage.py makemigrations housekeeping
-    - docker exec cometa_django python manage.py makemigrations configuration
-    - docker exec cometa_django python manage.py migrate
+    - docker exec cometa_django ./start_common.sh
     # Update steps in database
     - echo -e "\e[0Ksection_start:`date +%s`:parse_actions\r\e[0KParsing actions to update database"
     - docker exec cometa_django bash -c "curl http://localhost:8000/parseActions/ --silent --retry 5 --retry-delay 5"
@@ -130,7 +126,7 @@ stages:
         echo "Replace 'cometa/front:latest' with $COMETA_FRONT:$BUILD_VERSION in the docker-compose.yml file";
         sed -i "s#cometa/front:latest#"$COMETA_FRONT":"$BUILD_VERSION"#" docker-compose.yml;
         echo "Recrating cometa_front";
-        docker-compose up --force-recreate apache -d;
+        docker compose up --force-recreate apache -d;
         for FILE in ${COMETA_REPLACE_FAVICON_IN}; do docker exec cometa_front sed -i 's/@@BRANCH@@/'$CI_COMMIT_BRANCH'/g' $FILE; done
       else
         echo "Front container is up to date, will not do deployment";
@@ -167,60 +163,59 @@ deploy:amvara3.prod:
   <<: *deployment_script
   extends: .amvara3.prod
 
-# create a deploy job for client01 for branch prod
-#deploy:client01.int:
+# # create a deploy job for client01 for branch prod
+# deploy:client01.int:
 #  <<: *deployment_script
 #  extends: .client01.int
 
-# create a deploy job for client01 for branch prod
-#deploy:client01.prod:
+# # create a deploy job for client01 for branch prod
+# deploy:client01.prod:
 #  <<: *deployment_script
 #  extends: .client01.prod
 
-# create a deploy job for client02 for branch prod
-# deploy:client02.prod:
-#  <<: *deployment_script
-#  extends: .client02.prod
-
-# create a deploy job for client04 for branch prod
-#deploy:client04.prod:
+# # create a deploy job for client04 for branch prod
+# deploy:client04.prod:
 #  <<: *deployment_script
 #  extends: .client04.prod
 
 
-# create a deploy job for client04 for branch build
-build:amvara6.build:
+# build cometa front, django and behave in amvara8 server  and push to docker hub
+build:amvara8.build-1:
   stage: build
-  script:
+  tags: # on what runners we'd like to run this job
+    - build
+  only: # on what branch we'd like to run this job
+    refs:
+      - build
+  before_script:
     #########################################################
     # FRONTEND
+    #########################################################
+    # Get the version of build from front config.json
+    - BUILD_VERSION=$(jq -r '.version' "$CONFIG_FILE") # Extract versions
+    - echo "Build Versions -> $BUILD_VERSION"
+  
+  script:
+    #########################################################
+    # BUILD IMAGES (Front, Behave, Django)
     ########################################################
-    
-    - |
-      # Fetch the JSON response from Docker Hub
-      RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/cometa/front/tags/?page_size=2&ordering=last_updated")
+      - cd scripts
+      - ./build_cometa_container_images.sh
+ 
 
-      # Extract the latest tag using jq
-      LATEST_TAG=$(echo "$RESPONSE" | jq -r '.results[1].name')
+# build cometa browser images and push to docker hub 
+build:amvara8.build-2:
+  stage: build
+  
+  tags: # on what runners we'd like to run this job
+    - build
+  only: # Indicates this job is set to run on a schedule.
+    refs:
+      - schedules
+  script:
+    #########################################################
+    # BUILD BROWSER IMAGES (Chrome, Firefox and Edge)
+    ########################################################
+      - ./backend/browsers/check_and_build_browser_image.sh ./backend/browsers
 
-      echo "Latest tag from Docker Hub is: $LATEST_TAG"
-
-      # Compare the latest tag with the build version
-       if [ "$LATEST_TAG" == "$BUILD_VERSION" ]; then
-        echo "The latest version is already $BUILD_VERSION. Skipping build and push."
-      else
-        cd front
-        docker build . -f Dockerfile -t $COMETA_FRONT:$BUILD_VERSION
-        echo "$COMETA_FRONT:$BUILD_VERSION build successfully"
-        echo "Pushing $COMETA_FRONT:$BUILD_VERSION image to Docker $DOCKER_REGISTRY"
-        docker push $COMETA_FRONT:$BUILD_VERSION
-        echo "$COMETA_FRONT:$BUILD_VERSION image pushed"
-        echo "Converting $COMETA_FRONT:$BUILD_VERSION tag $COMETA_FRONT:latest"
-        docker tag $COMETA_FRONT:$BUILD_VERSION $COMETA_FRONT:latest
-        echo "Pushing $COMETA_FRONT:latest image to Docker $DOCKER_REGISTRY"     
-        docker push $COMETA_FRONT:latest   
-        echo "$COMETA_FRONT:latest image pushed"
-        cd -
-      fi
-    
-  extends: .amvara6.build
+      
