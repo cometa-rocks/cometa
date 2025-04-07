@@ -7,12 +7,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { ChatbotService, ChatMessage } from '../../services/chatbot.service';
-import { Observable, Subscription, BehaviorSubject, fromEvent } from 'rxjs';
+import { Observable, Subscription, BehaviorSubject } from 'rxjs';
 import { InputFocusService } from '../../services/inputFocus.service';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { map, take, debounceTime } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
 import { Configuration } from '../../store/actions/config.actions';
+import { LogService } from '../../services/log.service';
 
 @Component({
   selector: 'cometa-chatbot',
@@ -23,21 +24,17 @@ import { Configuration } from '../../store/actions/config.actions';
     trigger('chatWindow', [
       state('closed', style({
         height: '0',
-        opacity: '0',
-        display: 'none'
+        opacity: '0'
       })),
       state('open', style({
-        opacity: '1',
-        display: 'flex'
+        opacity: '1'
       })),
       state('minimized', style({
         height: '0',
-        opacity: '0',
-        display: 'none'
+        opacity: '0'
       })),
       state('maximized', style({
-        opacity: '1',
-        display: 'flex'
+        opacity: '1'
       })),
       transition('closed <=> open', animate('250ms ease-in-out')),
       transition('open <=> minimized', animate('250ms ease-in-out')),
@@ -97,6 +94,10 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
   // Get current loading state
   private isCurrentlyLoading = false;
   
+  // Observable for AI feature status
+  isAiFeatureEnabled$: Observable<boolean>;
+  isAiFeatureEnabled = false;
+  
   @ViewChild('messagesContainer') messagesContainer: ElementRef;
   @ViewChild('chatWindow') chatWindow: ElementRef;
   @ViewChild('chatHeader') chatHeader: ElementRef;
@@ -109,14 +110,24 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
     private store: Store,
     private renderer: Renderer2,
     private cdr: ChangeDetectorRef,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: Document,
+    private log: LogService
   ) { }
 
   ngOnInit(): void {
-    console.log('[Chatbot] Initializing component');
+    this.log.msg('1', 'Initializing component', 'chatbot');
     this.isOpen$ = this.chatbotService.isOpen$;
     this.messages$ = this.chatbotService.messages$;
     this.isLoading$ = this.chatbotService.isLoading$;
+    this.isAiFeatureEnabled$ = this.chatbotService.isAiFeatureEnabled$;
+    
+    // Subscribe to AI feature status
+    this.subscriptions.push(
+      this.isAiFeatureEnabled$.subscribe(enabled => {
+        this.isAiFeatureEnabled = enabled;
+        this.log.msg('1', `AI feature is ${enabled ? 'enabled' : 'disabled'}`, 'chatbot');
+      })
+    );
     
     // Force closed state on init - explicitly set it in the store
     this.store.dispatch(new Configuration.SetProperty('internal.chatbotOpen', false));
@@ -133,7 +144,7 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
     // Subscribe to mobile state changes
     this.subscriptions.push(
       this.isMobile$.subscribe(isMobile => {
-        console.log('[Chatbot] Mobile state changed:', isMobile);
+        this.log.msg('1', 'Mobile state changed', 'chatbot', isMobile);
         this.isMobile = isMobile;
         this.isDraggable = !isMobile && !this.isMaximized;
         
@@ -161,7 +172,7 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
     // Subscribe to isOpen changes to scroll to bottom when chat opens
     this.subscriptions.push(
       this.isOpen$.subscribe(isOpen => {
-        console.log('[Chatbot] Open state changed:', isOpen);
+        this.log.msg('1', 'Open state changed', 'chatbot', isOpen);
         this.isOpenLocal = isOpen;
         if (isOpen) {
           // Reset minimized and maximized states when opening
@@ -194,14 +205,23 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   
   ngAfterViewInit(): void {
-    console.log('[Chatbot] After view init');
+    this.log.msg('1', 'After view init', 'chatbot');
     
     // Make sure initial state is correct
     if (!this.isOpenLocal && this.chatWindow && this.chatWindow.nativeElement) {
       const el = this.chatWindow.nativeElement;
-      el.style.display = 'none';
+      // Set initial display state
+      this.renderer.addClass(el, 'chat-closed');
+      this.renderer.removeClass(el, 'chat-open');
+      
+      // Set other styles
       el.style.opacity = '0';
       el.style.height = '0';
+    } else if (this.isOpenLocal && this.chatWindow && this.chatWindow.nativeElement) {
+      const el = this.chatWindow.nativeElement;
+      // Set initial display state
+      this.renderer.removeClass(el, 'chat-closed');
+      this.renderer.addClass(el, 'chat-open');
     }
     
     // Apply mobile-specific styling if needed
@@ -219,7 +239,7 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   
   ngOnDestroy(): void {
-    console.log('[Chatbot] Component destroying');
+    this.log.msg('1', 'Component destroying', 'chatbot');
     // Clean up subscriptions
     this.subscriptions.forEach(sub => sub.unsubscribe());
     
@@ -266,7 +286,7 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
         const initialLeft = rect.left;
         const initialTop = rect.top;
         
-        console.log('[Chatbot] Drag start - Initial position:', { left: initialLeft, top: initialTop });
+        this.log.msg('1', 'Drag start - Initial position', 'chatbot', { left: initialLeft, top: initialTop });
         
         // Add mousemove event listener to document
         const mousemoveListener = this.renderer.listen('document', 'mousemove', (mousemoveEvent: MouseEvent) => {
@@ -312,11 +332,11 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
           this.windowState.right = window.innerWidth - (finalRect.left + finalRect.width);
           this.windowState.bottom = window.innerHeight - (finalRect.top + finalRect.height);
           
-          console.log('[Chatbot] Drag end - Final position:', { 
-            right: this.windowState.right, 
-            bottom: this.windowState.bottom,
-            left: finalRect.left,
-            top: finalRect.top
+          this.log.msg('1', 'Drag end - Final position', 'chatbot', {
+            x: this.chatPosition.x,
+            y: this.chatPosition.y,
+            right: this.windowState.right,
+            bottom: this.windowState.bottom
           });
           
           // Remove event listeners
@@ -337,7 +357,7 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   toggleChat(): void {
-    console.log('[Chatbot] Toggle chat - current state:', this.isOpenLocal);
+    this.log.msg('1', 'Toggle chat - current state', 'chatbot', this.isOpenLocal);
     
     // Update local state first for immediate UI response
     this.isOpenLocal = !this.isOpenLocal;
@@ -349,6 +369,10 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
       // Set the initial position if this is the first open
       if (this.chatWindow && this.chatWindow.nativeElement) {
         const el = this.chatWindow.nativeElement;
+        
+        // Set display state
+        this.renderer.removeClass(el, 'chat-closed');
+        this.renderer.addClass(el, 'chat-open');
         
         // Apply mobile-specific styling if needed
         if (this.isMobile) {
@@ -368,6 +392,11 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     } else {
       this.chatbotService.closeChat();
+      
+      // Set display state
+      if (this.chatWindow && this.chatWindow.nativeElement) {
+        // Animation will handle this via the done callback
+      }
     }
     
     // Reset states when closing
@@ -380,7 +409,7 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   minimizeChat(event: MouseEvent): void {
-    console.log('[Chatbot] Minimize chat');
+    this.log.msg('1', 'Minimize chat', 'chatbot');
     event.stopPropagation();
     
     // Don't allow minimizing on mobile - should directly close instead
@@ -391,11 +420,18 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
     
     this.isMinimized = true;
     this.isMaximized = false;
+    
+    if (this.chatWindow && this.chatWindow.nativeElement) {
+      const el = this.chatWindow.nativeElement;
+      this.renderer.removeClass(el, 'chat-open');
+      // The animation callback will handle the rest
+    }
+    
     this.cdr.detectChanges();
   }
 
   maximizeChat(event: MouseEvent): void {
-    console.log('[Chatbot] Maximize chat');
+    this.log.msg('1', 'Maximize chat', 'chatbot');
     event.stopPropagation();
     
     if (this.isMaximized) {
@@ -443,7 +479,7 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
         this.windowState.right = window.innerWidth - (rect.left + rect.width);
         this.windowState.bottom = window.innerHeight - (rect.top + rect.height);
         
-        console.log('[Chatbot] Saved window state:', this.windowState);
+        this.log.msg('1', 'Saved window state', 'chatbot', this.windowState);
       }
       
       // Set maximized state and disable dragging
@@ -461,14 +497,18 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   restoreChat(): void {
-    console.log('[Chatbot] Restore chat');
+    this.log.msg('1', 'Restore chat', 'chatbot');
     this.isMinimized = false;
     
-    // Apply mobile-specific styling if needed
-    if (this.isMobile && this.chatWindow && this.chatWindow.nativeElement) {
+    if (this.chatWindow && this.chatWindow.nativeElement) {
       const el = this.chatWindow.nativeElement;
-      el.style.width = '100%';
-      el.style.maxWidth = '100%';
+      this.renderer.addClass(el, 'chat-open');
+      
+      // Apply mobile-specific styling if needed
+      if (this.isMobile) {
+        el.style.width = '100%';
+        el.style.maxWidth = '100%';
+      }
     }
     
     this.cdr.detectChanges();
@@ -481,8 +521,8 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Send a new message
   sendMessage(): void {
-    // Don't send if message is empty or if we're already loading a response
-    if (this.newMessage.trim() === '' || this.isCurrentlyLoading) return;
+    // Don't send if message is empty or if we're already loading a response or if AI is disabled
+    if (this.newMessage.trim() === '' || this.isCurrentlyLoading || !this.isAiFeatureEnabled) return;
     
     // Send the message to service
     this.chatbotService.handleUserMessage(this.newMessage);
@@ -493,10 +533,37 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Method to get current window state
   getChatWindowState(): string {
-    if (!this.isOpenLocal) return 'closed';
-    if (this.isMinimized) return 'minimized';
-    if (this.isMaximized) return 'maximized';
+    if (!this.isOpenLocal) {
+      return 'closed';
+    }
+    if (this.isMinimized) {
+      return 'minimized';
+    }
+    if (this.isMaximized) {
+      return 'maximized';
+    }
     return 'open';
+  }
+
+  // Handle animation done event
+  animationDone(event: any): void {
+    if (event.toState === 'closed' || event.toState === 'minimized') {
+      if (this.chatWindow && this.chatWindow.nativeElement) {
+        // Apply display none when animation is done to avoid UI issues
+        if (event.toState === 'closed') {
+          this.renderer.addClass(this.chatWindow.nativeElement, 'chat-closed');
+          this.renderer.removeClass(this.chatWindow.nativeElement, 'chat-open');
+        }
+      }
+    } else if (event.toState === 'open' || event.toState === 'maximized') {
+      if (this.chatWindow && this.chatWindow.nativeElement) {
+        // Apply display flex when opening
+        this.renderer.removeClass(this.chatWindow.nativeElement, 'chat-closed');
+        this.renderer.addClass(this.chatWindow.nativeElement, 'chat-open');
+      }
+    }
+    
+    this.log.msg('1', `Animation done: ${event.fromState} -> ${event.toState}`, 'chatbot');
   }
 
   private scrollToBottom(): void {
@@ -541,7 +608,7 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
   // Method to open chatbot in a new window
   openInNewWindow(event: MouseEvent): void {
     event.stopPropagation();
-    console.log('[Chatbot] Opening in new window');
+    this.log.msg('1', 'Opening in new window', 'chatbot');
     
     // Close the current chat
     if (this.isOpenLocal) {
@@ -567,8 +634,8 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
           // Set up listener for when popup is closed
           const checkIfClosed = setInterval(() => {
             if (this.popupWindow && this.popupWindow.closed) {
-              console.log('[Chatbot] Popup window was closed');
               clearInterval(checkIfClosed);
+              this.log.msg('1', 'Popup window was closed', 'chatbot');
               this.popupWindow = null;
             }
           }, 500);
@@ -579,7 +646,7 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
           // Listen for messages from the popup window
           const messageListener = (event: MessageEvent) => {
             if (event.data && event.data.type === 'chat-popup-closed') {
-              console.log('[Chatbot] Received close message from popup');
+              this.log.msg('1', 'Received close message from popup', 'chatbot');
               if (this.popupWindow) {
                 this.popupWindow = null;
               }
@@ -595,13 +662,13 @@ export class ChatbotComponent implements OnInit, AfterViewInit, OnDestroy {
             });
           }
         } else {
-          console.error('[Chatbot] Failed to open popup. Popup may be blocked by browser.');
+          this.log.msg('1', 'Failed to open popup. Popup may be blocked by browser.', 'chatbot');
           // If popup fails to open, reopen the chat
           this.chatbotService.openChat();
           this.isOpenLocal = true;
         }
       } catch (error) {
-        console.error('[Chatbot] Error opening popup:', error);
+        this.log.msg('1', 'Error opening popup', 'chatbot', error);
         // If error occurs, reopen the chat
         this.chatbotService.openChat();
         this.isOpenLocal = true;

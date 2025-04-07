@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { TranslateModule } from '@ngx-translate/core';
 import { ChatbotService, ChatMessage } from '../../services/chatbot.service';
 import { Observable, Subscription } from 'rxjs';
+import { LogService } from '@services/log.service';
 
 @Component({
   selector: 'cometa-chat-popup',
@@ -51,9 +52,10 @@ import { Observable, Subscription } from 'rxjs';
             [(ngModel)]="newMessage" 
             placeholder="Type your message..." 
             (keyup.enter)="sendMessage()"
+            [disabled]="!(isAiFeatureEnabled$ | async) || (isLoading$ | async)"
             autofocus
           >
-          <button mat-icon-button color="primary" (click)="sendMessage()" [disabled]="!newMessage.trim() || (isLoading$ | async)">
+          <button mat-icon-button color="primary" (click)="sendMessage()" [disabled]="!(isAiFeatureEnabled$ | async) || !newMessage.trim() || (isLoading$ | async)">
             <mat-icon *ngIf="!(isLoading$ | async)">send</mat-icon>
             <mat-icon *ngIf="isLoading$ | async" class="rotating">sync</mat-icon>
           </button>
@@ -74,21 +76,24 @@ import { Observable, Subscription } from 'rxjs';
 export class ChatPopupComponent implements OnInit, OnDestroy {
   messages$: Observable<ChatMessage[]>;
   isLoading$: Observable<boolean>;
+  isAiFeatureEnabled$: Observable<boolean>;
   newMessage = '';
   private subscriptions: Subscription[] = [];
   private beforeUnloadHandler: any;
   private isCurrentlyLoading = false;
+  private isAiFeatureEnabled = false;
   
   @ViewChild('messagesContainer') messagesContainer: ElementRef;
   
   constructor(
     private chatbotService: ChatbotService,
     @Inject(DOCUMENT) private document: Document,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private log: LogService
   ) { }
   
   ngOnInit(): void {
-    console.log('[ChatPopup] Initializing component');
+    this.log.msg('1', 'Initializing component', 'chat-popup');
     
     // Set the page title
     this.document.title = 'co.meta Support Chat';
@@ -99,6 +104,15 @@ export class ChatPopupComponent implements OnInit, OnDestroy {
     // Get messages and loading state from service
     this.messages$ = this.chatbotService.messages$;
     this.isLoading$ = this.chatbotService.isLoading$;
+    this.isAiFeatureEnabled$ = this.chatbotService.isAiFeatureEnabled$;
+    
+    // Subscribe to AI feature status
+    this.subscriptions.push(
+      this.isAiFeatureEnabled$.subscribe(enabled => {
+        this.isAiFeatureEnabled = enabled;
+        this.log.msg('1', `AI feature is ${enabled ? 'enabled' : 'disabled'}`, 'chat-popup');
+      })
+    );
     
     // Subscribe to loading state
     this.subscriptions.push(
@@ -125,7 +139,7 @@ export class ChatPopupComponent implements OnInit, OnDestroy {
   }
   
   ngOnDestroy(): void {
-    console.log('[ChatPopup] Component destroying');
+    this.log.msg('1', 'Component destroying', 'chat-popup');
     // Clean up subscriptions
     this.subscriptions.forEach(sub => sub.unsubscribe());
     
@@ -178,7 +192,7 @@ export class ChatPopupComponent implements OnInit, OnDestroy {
       try {
         window.opener.postMessage({ type: 'chat-popup-closed' }, this.document.location.origin);
       } catch (error) {
-        console.error('[ChatPopup] Error sending message to parent:', error);
+        this.log.msg('2', 'Error sending message to parent', 'chat-popup', error);
       }
     }
   }
@@ -193,7 +207,7 @@ export class ChatPopupComponent implements OnInit, OnDestroy {
   
   // Send a new message
   sendMessage(): void {
-    if (this.newMessage.trim() === '' || this.isCurrentlyLoading) return;
+    if (this.newMessage.trim() === '' || this.isCurrentlyLoading || !this.isAiFeatureEnabled) return;
     
     // Send the message to service
     this.chatbotService.handleUserMessage(this.newMessage);
