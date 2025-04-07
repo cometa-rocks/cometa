@@ -195,7 +195,7 @@ class RAGEngine:
                 f"4. If the context doesn't contain enough information, acknowledge the limitations\n"
                 f"5. DO NOT reference document numbers or sources in your response\n"
                 f"6. DO NOT mention that your answer is based on provided context\n"
-                f"7. DO NOT include phrases like 'Based on the context' or 'According to the documents'\n"
+                f"7. DO NOT mention source documents from extracted context'\n"
                 f"8. Simply provide accurate information as if you already knew it\n"
                 f"Given this context, please provide a helpful response to the user's query."
             )

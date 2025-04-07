@@ -9,6 +9,7 @@ import socket
 import uuid
 import time
 import re
+from backend.utility.config_handler import get_ollama_ai_api_url
 
 logger = logging.getLogger(__name__)
 
@@ -19,15 +20,13 @@ def chat_completion(request):
     request_id = str(uuid.uuid4())[:8]
     start_time = time.time()
 
-    logger.info(f"[{request_id}] Request received: {request.data}")
+    logger.debug(f"[{request_id}] Request received: {request.data}")
     
     try:
-        # Get django.ai service details from environment
-        django_api_host = os.environ.get('DJANGO_API_HOST', 'cometa.django.ai')
-        django_api_port = os.environ.get('DJANGO_API_PORT', '8000')
-        django_api_url = f"http://{django_api_host}:{django_api_port}/api/chat/"
+        # Get ollama.ai service URL from config handler
+        ollama_api_url = get_ollama_ai_api_url()
         
-        logger.info(f"[{request_id}] Forwarding request to django.ai service: {django_api_url}")
+        logger.debug(f"[{request_id}] Forwarding request to Ollama AI API: {ollama_api_url}")
         
         # Log the exact request being sent
         request_data = request.data.copy()
@@ -47,23 +46,23 @@ def chat_completion(request):
         
         # Always make request synchronous
         request_data['wait'] = True
-        logger.info(f"[{request_id}] Request data with history: {json.dumps(request_data)}")
+        logger.debug(f"[{request_id}] Request data with history: {json.dumps(request_data)}")
         
-        # Forward the request directly to django.ai
+        # Forward the request directly to Ollama AI API
         django_response = requests.post(
-            django_api_url,
+            ollama_api_url,
             json=request_data,
             timeout=60
         )
         
         # Log detailed response information
-        logger.info(f"[{request_id}] Received response from django.ai with status code: {django_response.status_code}")
+        logger.debug(f"[{request_id}] Received response from Ollama AI API with status code: {django_response.status_code}")
         
         try:
             response_content = django_response.json()
-            logger.info(f"[{request_id}] Response content: {json.dumps(response_content)}")
+            logger.debug(f"[{request_id}] Response content: {json.dumps(response_content)}")
             
-            # Extract the response message and success from the django.ai response
+            # Extract the response message and success from the ollama.ai response
             # and format it in the original expected structure
             response_message = "I'm sorry, I couldn't process your request. Please try again later."
             success = False
@@ -108,11 +107,11 @@ def chat_completion(request):
                 "success": success
             }
             
-            logger.info(f"[{request_id}] Formatted response: {json.dumps(response_data)}")
+            logger.debug(f"[{request_id}] Formatted response: {json.dumps(response_data)}")
             
             # Return the response in the original expected format
             elapsed_time = time.time() - start_time
-            logger.info(f"[{request_id}] Request completed in {elapsed_time:.2f}s")
+            logger.debug(f"[{request_id}] Request completed in {elapsed_time:.2f}s")
             
             return Response(response_data)
             
@@ -131,14 +130,14 @@ def chat_completion(request):
             })
         
     except requests.exceptions.Timeout:
-        logger.error(f"[{request_id}] Timeout connecting to django.ai service")
+        logger.error(f"[{request_id}] Timeout connecting to Ollama AI API")
         return Response({
             "message": "I'm sorry, the AI service is taking too long to respond. Please try again later.",
             "success": False
         })
         
     except requests.exceptions.ConnectionError as e:
-        logger.error(f"[{request_id}] Connection error to django.ai service: {str(e)}")
+        logger.error(f"[{request_id}] Connection error to Ollama AI API: {str(e)}")
         return Response({
             "message": "I'm sorry, the AI service is currently unavailable. Please try again later.",
             "success": False
