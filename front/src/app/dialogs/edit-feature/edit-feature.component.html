@@ -1,3 +1,4 @@
+
 <draggable-window></draggable-window>
 <form [formGroup]="featureForm">
   <ng-container *ngIf="data.mode === 'new'; else editTitle">
@@ -172,7 +173,7 @@
               </div>
             </ng-container>
             <ng-container>
-              <div *ngIf="configValueBoolean" class="checkbox-container move-right">
+              <div class="checkbox-container move-right">
                 <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
                   <div class="button-container">
                     <button
