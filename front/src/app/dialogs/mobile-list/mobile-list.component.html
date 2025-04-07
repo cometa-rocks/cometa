@@ -10,31 +10,60 @@
         <div class="containerContract">
           <img class="mobileContactImage" src="assets/img/contract_mobile_device.svg" alt="Image contract mobile device"/>
           <div class="containerExplanations">
+            <h2 class="license-title">Mobile Testing License</h2>
             <p class="license-text">
-              <mat-icon
-                class="license-icon"
-                [matTooltip]="'Please buy the license to use mobile testing. For assistance, contact support@cometa.rocks.'"
-                matTooltipPosition="above"
-                color="primary">
+              <mat-icon class="license-icon" [matTooltip]="'Please buy the license to use mobile testing. For assistance, contact support@cometa.rocks.'" matTooltipPosition="above" color="primary">
                 info
               </mat-icon>
-              Please buy the license to use mobile testing.
+              Unlock the full potential of mobile testing with our premium license
             </p>
-            <p class="contactMail">
-              <mat-icon class="email">
-                email
-              </mat-icon>
-              Contact mail:
-            </p>
-            <p class="mailTo">
-              <a href="mailto:support@cometa.rocks">support@cometa.rocks</a>
-            </p>
+            
+            <div class="features-list">
+              <div class="feature-item">
+                <mat-icon class="feature-icon">devices</mat-icon>
+                <span>Access to multiple Android devices and versions</span>
+              </div>
+              <div class="feature-item">
+                <mat-icon class="feature-icon">screen_share</mat-icon>
+                <span>Real-time device inspection and control</span>
+              </div>
+              <div class="feature-item">
+                <mat-icon class="feature-icon">security</mat-icon>
+                <span>Secure and isolated testing environments</span>
+              </div>
+              <div class="feature-item">
+                <mat-icon class="feature-icon">group</mat-icon>
+                <span>Team collaboration features</span>
+              </div>
+            </div>
+
+            <div class="contact-section">
+              <p class="contactMail">
+                <mat-icon class="license-icon">info</mat-icon>
+                Get in touch with our support team:
+              </p>
+              <p class="mailTo">
+                <mat-icon>mail</mat-icon>
+                <a href="mailto:support@cometa.rocks" class="support-link">   
+                  support@cometa.rocks
+                </a>
+              </p>
+              <p class="contactPhone">
+                <mat-icon>phone</mat-icon>
+                <a href="tel:+1234567890" class="phone-link">+1 (234) 567-890</a>
+              </p>
+            </div>
+
+            <mat-dialog-actions class="dialog-footer-nolicense">
+              <button mat-stroked-button color="warn" mat-dialog-close class="closeButton">
+                Close
+              </button>
+              <button mat-raised-button color="primary" class="contactButton" (click)="openContactForm()">
+                <mat-icon>contact_support</mat-icon>
+                Contact Sales
+              </button>
+            </mat-dialog-actions>
           </div>
-          <mat-dialog-actions class="dialog-footer-nolicense">
-            <button mat-stroked-button color="warn" mat-dialog-close class="closeButton">
-              Close
-            </button>
-          </mat-dialog-actions>
         </div>
       </div>
     </div>

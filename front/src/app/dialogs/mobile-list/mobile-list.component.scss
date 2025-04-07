@@ -85,9 +85,9 @@ h2, h3{
 .dialog-footer-nolicense {
   display: flex;
   flex-wrap: wrap;
-  width: 73%;
+  width: 63%;
   position: fixed;
-  bottom: 110px;
+  bottom: 130px;
 }
 
 mat-dialog-content {
@@ -613,28 +613,147 @@ mobile-list {
 }
 
 .license-info-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
+
   .containerContract {
-    height: 650px;
-    width: 30%;
     display: flex;
-    align-items: center;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 40px;
+
     .mobileContactImage {
-      height: 400px;
+      width: 500px;
+      height: auto;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .containerExplanations {
+      flex: 1;
+      text-align: left;
+      padding-left: 50px;
+      border-left: 1px solid #e0e0e0;
+
+      .license-title {
+        color: #1976d2;
+        margin-bottom: 16px;
+        font-size: 24px;
+        font-weight: 500;
+      }
+
+      .license-text {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 24px;
+        font-size: 16px;
+        color: #333;
+
+        .license-icon {
+          color: #1976d2;
+        }
+      }
+
+      .features-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+
+        .feature-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px;
+          background: #f5f5f5;
+          border-radius: 4px;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background: #e3f2fd;
+            transform: translateY(-2px);
+          }
+
+          .feature-icon {
+            color: #1976d2;
+          }
+
+          span {
+            font-size: 14px;
+            color: #333;
+          }
+        }
+      }
+
+      .contact-section {
+        margin-bottom: 24px;
+
+        .contactMail, .contactPhone {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 8px;
+          color: #666;
+
+          mat-icon {
+            color: #1976d2;
+          }
+        }
+
+        .mailTo, .contactPhone {
+          margin-bottom: 16px;
+
+          a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1976d2;
+            text-decoration: none;
+            transition: color 0.3s ease;
+
+            &:hover {
+              color: #0d47a1;
+              text-decoration: underline;
+            }
+
+            mat-icon {
+              font-size: 24px;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .dialog-footer-nolicense {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+
+    .closeButton {
+      min-width: 100px;
+    }
+
+    .contactButton {
+      min-width: 150px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
   }
 }
 
 .license-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 22px;
   cursor: pointer;
   margin-right: 5px;
 }
 
 .email {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 20px;
   cursor: pointer;
   margin-right: 5px;
@@ -651,7 +770,7 @@ mobile-list {
 }
 
 .license-text {
-  font-size: 14px;
+  font-size: 16px;
   color: $darker-step;
   line-height: 1.4;
   width: 600px;
@@ -664,7 +783,7 @@ mobile-list {
 
 .contactMail,
 .mailTo  {
-  font-size: 14px;
+  font-size: 16px;
   color: $darker-step;
   line-height: 1.4;
 }
