@@ -1,15 +1,18 @@
 <!-- Chat toggle button -->
-<div class="chat-toggle" [matTooltip]="'Chat Support'" matTooltipPosition="left" (click)="toggleChat()">
+<div class="chat-toggle" [matTooltip]="(isAiFeatureEnabled$ | async) ? 'Chat Support' : 'Chat Support'" matTooltipPosition="left" (click)="toggleChat()">
   <mat-icon>chat</mat-icon>
 </div>
 
 <!-- Chat window -->
 <div class="chat-window" 
      [@chatWindow]="getChatWindowState()"
+     (@chatWindow.done)="animationDone($event)"
      [class.maximized]="isMaximized"
      [class.minimized]="isMinimized"
      [class.mobile]="isMobile"
      [class.dragging]="isDragging"
+     [class.chat-closed]="!isOpenLocal"
+     [class.chat-open]="isOpenLocal && !isMinimized"
      (keydown)="handleKeyboardEvent($event)"
      #chatWindow>
   <div class="chat-header" #chatHeader>
@@ -64,9 +67,10 @@
       (keyup.enter)="sendMessage()"
       (focus)="onInputFocus()"
       (blur)="onInputBlur()"
+      [disabled]="!(isAiFeatureEnabled$ | async) || (isLoading$ | async)"
       autofocus
     >
-    <button mat-icon-button color="primary" (click)="sendMessage()" [disabled]="!newMessage.trim() || (isLoading$ | async)">
+    <button mat-icon-button color="primary" (click)="sendMessage()" [disabled]="!(isAiFeatureEnabled$ | async) || !newMessage.trim() || (isLoading$ | async)">
       <mat-icon *ngIf="!(isLoading$ | async)">send</mat-icon>
       <mat-icon *ngIf="isLoading$ | async" class="rotating">sync</mat-icon>
     </button>
