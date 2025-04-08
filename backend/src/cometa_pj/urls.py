@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
-from backend import views
+from backend import views, views_ee
+from backend.urls import register_backend_modules_urlpatterns
 from backend import payments
 from django.conf.urls import url, include
 from rest_framework import routers, serializers, viewsets
@@ -139,3 +140,4 @@ urlpatterns = [
 
 urlpatterns = register_ee_modules_urlpatterns(urlpatterns=urlpatterns)
 urlpatterns = register_modules_urlpatterns(urlpatterns=urlpatterns)
+urlpatterns = register_backend_modules_urlpatterns(urlpatterns=urlpatterns)
