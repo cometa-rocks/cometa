@@ -1,5 +1,5 @@
 {
-  "version": "3.0.27",
+  "version": "3.0.29",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,7 +237,7 @@
   ],
   "changelog": [
     {
-      "version": "3.0.27",
+      "version": "3.0.30",
       "date": "2025-04-09",
       "features": [
         {
@@ -247,11 +247,42 @@
       ]
     }, 
     {
+      "version": "3.0.29",
+      "date": "2025-04-08",
+      "features": [
+        {
+          "title": "Mobile license information - #6042",
+          "description": "Added a new dialog to display the mobile license information"
+        }
+      ]
+    },
+    {
+      "version": "3.0.28",
+      "date": "2025-04-06",
+      "features": [
+        {
+          "title": "Step editor improvements - #6041",
+          "description": "fixed a visual glitch in the step editor"
+        }
+      ]
+    },
+    {
+      "version": "3.0.27",
+      "date": "2025-04-05",
+      "features": [
+        {
+          "title": "See variables value in the feature step reports.",
+          "description": "Action steps reporting is enahanced to store variable values in the step reports notes section."
+        }
+      ]
+    },  
+>>>>>>> front/src/assets/config.json
+    {
       "version": "3.0.26",
       "date": "2025-04-01",
       "features": [
         {
-          "title": "Run and stop buttons",
+          "title": "Run and stop buttons - #6017",
           "description": "Visual feedback when running or stopping a feature."
         },
         {
