@@ -85,14 +85,14 @@ h2, h3{
 .dialog-footer-nolicense {
   display: flex;
   flex-wrap: wrap;
-  width: 63%;
-  position: fixed;
-  bottom: 130px;
+  // width: 67%;
+  // position: fixed;
+  // bottom: 135px;
 }
 
 mat-dialog-content {
   width: 100%;
-  height: 100%;
+  height: 700px;
 }
 
 .mobiles {
@@ -386,7 +386,7 @@ mat-dialog-content {
 }
 
 .scrollable-content {
-  max-height: 58vh;
+  max-height: 63vh;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
@@ -612,12 +612,26 @@ mobile-list {
   color: $primary-color;
 }
 
-.license-info-container {
+.license-info-container-not-dialog {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 
+  .containerContract {
+    .containerExplanations {
+      margin-top: 130px;
+    }
+  }
+}
+
+.license-info-container, .license-info-container-not-dialog {
+  width: 100%;
   .containerContract {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 40px;
 
     .mobileContactImage {
@@ -628,14 +642,14 @@ mobile-list {
     }
 
     .containerExplanations {
-      flex: 1;
       text-align: left;
       padding-left: 50px;
       border-left: 1px solid #e0e0e0;
 
       .license-title {
-        color: #1976d2;
-        margin-bottom: 16px;
+        color: $blue;
+        margin-bottom: 30px;
+        margin-left: 0;
         font-size: 24px;
         font-weight: 500;
       }
@@ -646,25 +660,35 @@ mobile-list {
         gap: 8px;
         margin-bottom: 24px;
         font-size: 16px;
-        color: #333;
+        color: $mobile-text-color;
 
         .license-icon {
+          color: $blue;
+        }
+      }
+
+      .contactMail, .contactPhone {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 24px;
+        color: $mobile-text-color;
+
+        mat-icon {
           color: #1976d2;
         }
       }
 
       .features-list {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-
+       
         .feature-item {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 15px;
           padding: 12px;
-          background: #f5f5f5;
           border-radius: 4px;
           transition: all 0.3s ease;
+          margin-bottom: 10px;
 
           &:hover {
             background: #e3f2fd;
@@ -672,28 +696,12 @@ mobile-list {
           }
 
           .feature-icon {
-            color: #1976d2;
+            color: $mobile-information-color;
           }
 
           span {
             font-size: 14px;
-            color: #333;
-          }
-        }
-      }
-
-      .contact-section {
-        margin-bottom: 24px;
-
-        .contactMail, .contactPhone {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 8px;
-          color: #666;
-
-          mat-icon {
-            color: #1976d2;
+            color: $mobile-text-color;
           }
         }
 
@@ -704,12 +712,12 @@ mobile-list {
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #1976d2;
+            color: $mobile-information-color;
             text-decoration: none;
             transition: color 0.3s ease;
 
             &:hover {
-              color: #0d47a1;
+              color: $link-color;
               text-decoration: underline;
             }
 
@@ -813,33 +821,33 @@ mobile-list {
   width: 81vw;
 }
 
-/* Para pantallas más pequeñas */
-@media (max-width: 1800px) {
-  .license-info-container {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+// /* Para pantallas más pequeñas */
+// @media (max-width: 1800px) {
+//   .license-info-container {
+//     width: 100%;
+//     display: flex;
+//     flex-direction: column;
+//     align-items: center;
+//   }
 
-  .containerContract {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    width: 100%;
-  }
+//   .containerContract {
+//     flex-direction: column;
+//     align-items: center;
+//     text-align: center;
+//     width: 100%;
+//   }
 
-  .mobileContactImage {
-    height: auto;
-    max-width: none;
-    margin-bottom: 20px;
-  }
+//   .mobileContactImage {
+//     height: auto;
+//     max-width: none;
+//     margin-bottom: 20px;
+//   }
 
-  .containerExplanations {
-    width: 100%;
-    padding: 10px;
-  }
-}
+//   .containerExplanations {
+//     width: 100%;
+//     padding: 10px;
+//   }
+// }
 
 // Landing mobile ( Not dialog)
 
@@ -1389,4 +1397,12 @@ mat-slide-toggle {
 
 :host::ng-deep .mdc-form-field {
   opacity: 0.7;
+}
+
+.dialog-actions-container {
+  display: flex;
+  justify-content: center !important;
+  padding: 16px;
+  width: 92%;
+  margin-bottom: -35px;
 }
