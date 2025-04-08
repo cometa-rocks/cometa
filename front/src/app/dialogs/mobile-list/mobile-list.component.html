@@ -3,68 +3,67 @@
     <div *ngIf="isDialog; else notDialog"
       [ngClass]="{ 'mobile-emulator-panel': !configValueBoolean, 'bought-license-panel': configValueBoolean }">
 
-        <div class="license-info-container">
-          <mat-dialog-content>
-            <div class="containerContract">
-              <img class="mobileContactImage" src="assets/img/contract_mobile_device.svg" alt="Image contract mobile device"/>
-              <div class="containerExplanations">
-                <h2 class="license-title">Mobile Testing License</h2>
-                <p class="license-text">
-                  Unlock the full potential of mobile testing with our premium license
-                </p>
-                
-                <div class="features-list">
-                  <div class="feature-item">
-                    <mat-icon class="feature-icon">devices</mat-icon>
-                    <span>Access to multiple Android devices and versions</span>
-                  </div>
-                  <div class="feature-item">
-                    <mat-icon class="feature-icon">screen_share</mat-icon>
-                    <span>Real-time device inspection and control</span>
-                  </div>
-                  <div class="feature-item">
-                    <mat-icon class="feature-icon">security</mat-icon>
-                    <span>Secure and isolated testing environments</span>
-                  </div>
-                  <div class="feature-item">
-                    <mat-icon class="feature-icon">group</mat-icon>
-                    <span>Team collaboration features</span>
-                  </div>
+      <div class="license-info-container">
+        <mat-dialog-content>
+          <div class="containerContract">
+            <img class="mobileContactImage" src="assets/img/contract_mobile_device.svg" alt="Image contract mobile device"/>
+            <div class="containerExplanations">
+              <h2 class="license-title">Mobile Testing License</h2>
+              <p class="license-text">
+                Unlock the full potential of mobile testing with our premium license
+              </p>
+              
+              <div class="features-list">
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">devices</mat-icon>
+                  <span>Access to multiple Android devices and versions</span>
                 </div>
-
-                <p class="contactMail">
-                  Get in touch with our support team:
-                </p>
-
-                <div class="features-list">
-                  <div class="feature-item">
-                    <mat-icon class="feature-icon">mail</mat-icon>
-                    <a href="mailto:support&#64;cometa.rocks" class="support-link">   
-                      support&#64;cometa.rocks
-                    </a>
-                  </div>
-                  <div class="feature-item">
-                    <mat-icon class="feature-icon">phone</mat-icon>
-                    <a href="tel:+1234567890" class="phone-link">
-                      +34 717 10 26 03
-                    </a>
-                  </div>
-                  <div class="feature-item">
-                    <mat-icon class="feature-icon">phone</mat-icon>
-                    <a href="tel:+1234567890" class="phone-link">
-                      +49 711 89 46 70 29
-                    </a>
-                  </div>
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">screen_share</mat-icon>
+                  <span>Real-time device inspection and control</span>
                 </div>
-
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">security</mat-icon>
+                  <span>Secure and isolated testing environments</span>
+                </div>
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">group</mat-icon>
+                  <span>Team collaboration features</span>
+                </div>
               </div>
-            </div>
-          </mat-dialog-content>
-          <mat-dialog-actions class="dialog-actions-container">
-            <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
-          </mat-dialog-actions>
-        </div>
 
+              <p class="contactMail">
+                Get in touch with our support team:
+              </p>
+
+              <div class="features-list">
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">mail</mat-icon>
+                  <a href="mailto:support&#64;cometa.rocks" class="support-link">   
+                    support&#64;cometa.rocks
+                  </a>
+                </div>
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">phone</mat-icon>
+                  <a href="tel:+1234567890" class="phone-link">
+                    +34 717 10 26 03
+                  </a>
+                </div>
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">phone</mat-icon>
+                  <a href="tel:+1234567890" class="phone-link">
+                    +49 711 89 46 70 29
+                  </a>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </mat-dialog-content>
+        <mat-dialog-actions class="dialog-actions-container">
+          <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
+        </mat-dialog-actions>
+      </div>
     </div>
     <ng-template #notDialog>
       <div class="license-info-container-not-dialog">
@@ -124,8 +123,6 @@
       </div>  
     </ng-template>
   </div>
-
-
 
   <ng-template #boughtLicense>
     <div *ngIf="isDialog; else notDialog">
