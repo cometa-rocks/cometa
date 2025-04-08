@@ -675,7 +675,7 @@ mobile-list {
         color: $mobile-text-color;
 
         mat-icon {
-          color: #1976d2;
+          color: $mobile-information-color;
         }
       }
 
@@ -691,7 +691,7 @@ mobile-list {
           margin-bottom: 10px;
 
           &:hover {
-            background: #e3f2fd;
+            background: $info-background-feature-item;
             transform: translateY(-2px);
           }
 
