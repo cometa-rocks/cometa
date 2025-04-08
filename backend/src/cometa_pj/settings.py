@@ -166,17 +166,28 @@ DATABASE_PORT = os.getenv("DATABASE_PORT",5432)
 # This is added because when passing PORT from k8 yaml file value need be passes as string format
 if type(DATABASE_PORT)=="<class 'str'>":
     DATABASE_PORT = int(DATABASE_PORT)
+    
+DATABASE_PASSWORD =  os.getenv("DATABASE_PASSWORD","")
+DATABASE_SERVER =  os.getenv("DATABASE_SERVER","db")
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': "postgres",
         'USER': 'postgres',
-        'PASSWORD': os.getenv("DATABASE_PASSWORD",""),
-        'HOST': os.getenv("DATABASE_SERVER","db"),
+        'PASSWORD': DATABASE_PASSWORD,
+        'HOST': DATABASE_SERVER,
         'PORT': DATABASE_PORT
     }
 }
+
+
+DATABASE_CONNECTION_URL = None
+
+if DATABASE_PASSWORD != "":
+    DATABASE_CONNECTION_URL = f'postgresql://postgres:{DATABASE_PASSWORD}@{DATABASE_SERVER}:{DATABASE_PORT}/postgres'
+else:
+    DATABASE_CONNECTION_URL = f'postgresql://postgres@{DATABASE_SERVER}:{DATABASE_PORT}/postgres'
 
 
 # Password validation
