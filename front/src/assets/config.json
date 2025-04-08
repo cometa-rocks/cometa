@@ -1,5 +1,5 @@
 {
-  "version": "3.0.26",
+  "version": "3.0.27",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.27",
+      "date": "2025-04-09",
+      "features": [
+        {
+          "title": "Step Execution over time",
+          "description": "#6025 See step execution over time graphs report with Pass/Fail ratios etc"
+        }
+      ]
+    }, 
     {
       "version": "3.0.26",
       "date": "2025-04-01",
