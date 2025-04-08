@@ -67,124 +67,132 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 import pandas as pd
 from datetime import datetime, timedelta
-
+import matplotlib
+matplotlib.use("Agg")  # Use non-GUI backend
 
 ENCRYPTION_START = ConfigurationManager.get_configuration('COMETA_ENCRYPTION_START', '')
+import matplotlib
+matplotlib.use('Agg')  # Set backend to non-GUI mode
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import base64
+from io import BytesIO
+import traceback
+
+
+def _plot_to_base64(x, y, title, xlabel, ylabel, marker='o', color='blue', figsize=(14, 4)):
+    """Helper to generate and encode a simple plot with actual Y-axis values."""
+    fig, ax = plt.subplots(figsize=figsize)
+    ax.plot(x, y, marker=marker, color=color)
+
+    ax.set(title=title, xlabel=xlabel, ylabel=ylabel)
+    ax.ticklabel_format(style='plain', axis='y')  # ← Disable scientific notation
+    import matplotlib.ticker as ticker
+    ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"{int(x):,}"))
+
+    ax.grid(True)
+    plt.tight_layout()
+    return _figure_to_base64(fig)
+
+
+def _figure_to_base64(fig):
+    """Helper to convert a matplotlib figure to base64."""
+    with BytesIO() as buffer:
+        fig.savefig(buffer, format='png', bbox_inches='tight')
+        buffer.seek(0)
+        encoded = base64.b64encode(buffer.read()).decode('utf-8')
+    plt.close(fig)
+    return f'data:image/png;base64,{encoded}'
+
 
 def convert_graph_to_blob_image(data_frame, group_by, figsize=(14, 4)):
     logger.debug(f"Starting convert_graph_to_blob_image with group_by: {group_by}")
-    logger.debug(f"Input dataframe shape: {data_frame.shape}")
+    logger.debug(f"Input DataFrame shape: {data_frame.shape}")
+    
+    graphs = []
     
     try:
-        import matplotlib.pyplot as plt
-        graphs = []
-            
-        group_by_mapping = {"Hours":"H","Day":"D","Week":"W","Month":"M","Hour":"H"}
-        logger.debug(f"Using group_by_mapping: {group_by_mapping}")
+        # Grouping frequency map
+        group_by_mapping = {"Hours": "H", "Hour": "H", "Day": "D", "Week": "W", "Month": "M"}
+        group_by_pattern = group_by_mapping.get(group_by)
+        logger.debug(f"Group by pattern resolved to: {group_by_pattern}")
 
-        group_by_pattern = group_by_mapping.get(group_by, "D")
-        logger.debug(f"Selected group_by_pattern: {group_by_pattern}")
-
-        # print(start_datetime, end_datetime, group_by_pattern)
-
-        logger.debug("Converting result_date to datetime")
-        data_frame['result_date'] = pd.to_datetime(data_frame['result_date'])	
-        #Convert to datetime
+        # Ensure 'result_date' is datetime
+        logger.debug("Converting 'result_date' to datetime and setting index")
+        data_frame['result_date'] = pd.to_datetime(data_frame['result_date'])
         data_frame = data_frame.set_index('result_date')
 
-        if group_by_pattern:
-            # Grouping by day
-            logger.debug(f"Resampling data with pattern: {group_by_pattern}")
-            graph_data = data_frame.resample(group_by_pattern)['execution_time'].sum()
-        else:
-            logger.debug("No resampling pattern found, using raw data")
-            graph_data = data_frame
+        # Prepare execution time data
+        graph_data = (
+            data_frame.resample(group_by_pattern)['execution_time'].sum()
+            if group_by_pattern else data_frame['execution_time']
+        )
 
-        # Create the graph
-        logger.debug("Creating execution time graph")
-        plt.figure(figsize=figsize)
-        graph_data.plot(title=f'Total Step Duration per {group_by}', marker='o', ylabel='Execution Time (ms)', 
-                        xlabel=f"Result Execution Dates ({group_by})", grid=True,  color='purple')
-        
-        # Convert plot to base64 string
-        buffer = BytesIO()
-        plt.savefig(buffer, format='png', bbox_inches='tight')
-        buffer.seek(0)
-        image_png = buffer.getvalue()
-        buffer.close()
-        plt.close()  # Close the plot to free memory
-        image_png = base64.b64encode(image_png).decode('utf-8')
-        logger.debug("Successfully created and encoded execution time graph")
+        # Graph 1: Execution Time over Time
+        logger.debug("Generating execution time graph")
         graphs.append({
-            'graphName':f'Step Execution time per {group_by}',
-            'graphBlob':f'data:image/png;base64,{image_png}'
+            'graphName': f'Step Execution Time per {group_by}',
+            'graphBlob': _plot_to_base64(
+                x=graph_data.index,
+                y=graph_data.values,
+                title=f'Total Step Duration per {group_by}',
+                xlabel=f"Result Execution Dates ({group_by})",
+                ylabel='Execution Time (ms)',
+                marker='o',
+                color='purple',
+                figsize=figsize
+            )
         })
-            
-        logger.debug("Creating test frequency graph")    
+
+        # Graph 2: Execution Frequency and Failures
+        logger.debug("Generating test frequency graph")
         totals = data_frame.resample('D').size()
         failed = data_frame[data_frame['success'] == False].resample('D').size()
-        logger.debug(f"Total tests: {len(totals)}, Failed tests: {len(failed)}")
 
-        plt.figure(figsize=figsize)
-        plt.plot(totals.index, totals, label=f'Total Step Executions ({group_by})', marker='o',  color='purple')
-        plt.plot(failed.index, failed, label=f'Failed Step Executions ({group_by})', marker='x', linestyle='--', color='red')
+        logger.debug(f"Total tests: {totals.sum()}, Failed tests: {failed.sum()}")
 
-        plt.title(f"Step Execution Frequency ({group_by}) with Failures")
-        plt.xlabel("Date")
-        plt.ylabel("Number of Executions")
-        plt.legend()
-        plt.grid(True)
+        fig, ax = plt.subplots(figsize=figsize)
+        ax.plot(totals.index, totals, label='Total Step Executions', marker='o', color='purple')
+        ax.plot(failed.index, failed, label='Failed Step Executions', marker='x', linestyle='--', color='red')
+        ax.set(title=f"Step Execution Frequency ({group_by}) with Failures",
+               xlabel="Date", ylabel="Number of Executions")
+        ax.legend()
+        ax.grid(True)
         plt.tight_layout()
-        # Convert plot to base64 string
-        buffer = BytesIO()
-        plt.savefig(buffer, format='png', bbox_inches='tight')
-        buffer.seek(0)
-        image_png = buffer.getvalue()
-        buffer.close()
-        plt.close()  # Close the plot to free memory
-        image_png = base64.b64encode(image_png).decode('utf-8')
-        logger.debug("Successfully created and encoded test frequency graph")
-        
+
         graphs.append({
-            'graphName':f'Test Session Frequency ({group_by}) with Failures',
-            'graphBlob':f'data:image/png;base64,{image_png}'
+            'graphName': f'Test Session Frequency ({group_by}) with Failures',
+            'graphBlob': _figure_to_base64(fig)
         })
-        
-        
-        
-        # Calculate failure ratio (NaNs from divide-by-zero will be handled)
-        failed_ratio = (failed / totals).fillna(0)  # or multiply by 100 for percentage
-        # Plot the failure ratio separately
-        plt.figure(figsize=figsize)
-        plt.plot(failed_ratio.index, failed_ratio * 100, label='Failure Rate (%)', color='orange', marker='s')
-        plt.title(f"Failure Ratio Over Time ({group_by})")
-        plt.xlabel("Date")
-        plt.ylabel("Failure Ratio (%)")
-        plt.grid(True)
-        plt.legend()
-        plt.tight_layout()
-        buffer = BytesIO()
-        plt.savefig(buffer, format='png', bbox_inches='tight')
-        buffer.seek(0)
-        image_png = buffer.getvalue()
-        buffer.close()
-        plt.close()  # Close the plot to free memory
-        image_png = base64.b64encode(image_png).decode('utf-8')
-        
+
+        # Graph 3: Failure Ratio
+        logger.debug("Generating failure ratio graph")
+        failed_ratio = (failed / totals).fillna(0) * 100
+
         graphs.append({
-            'graphName':f'Step Execution Failed Ratio',
-            'graphBlob':f'data:image/png;base64,{image_png}'
+            'graphName': 'Step Execution Failed Ratio',
+            'graphBlob': _plot_to_base64(
+                x=failed_ratio.index,
+                y=failed_ratio.values,
+                title=f"Failure Ratio Over Time ({group_by})",
+                xlabel="Date",
+                ylabel="Failure Ratio (%)",
+                marker='s',
+                color='orange',
+                figsize=figsize
+            )
         })
-        
+
         logger.info(f"Successfully generated {len(graphs)} graphs")
         return graphs
-        
-        
+
     except Exception as e:
         logger.error(f"Error in convert_graph_to_blob_image: {str(e)}")
         logger.error(traceback.format_exc())
         return []
-        
+
+
 
 @csrf_exempt
 def getStepResultsGraph(request, step_result_id):
@@ -219,7 +227,7 @@ def getStepResultsGraph(request, step_result_id):
     
     start_datetime = datetime.fromisoformat(filter_data.get("start_datetime")) if filter_data.get("start_datetime") else None
     end_datetime = datetime.fromisoformat(filter_data.get("end_datetime")) if filter_data.get("end_datetime") else None
-    group_by = filter_data.get("group_by")
+    # group_by = filter_data.get("group_by")
 
     # If not provided, default to: now - 30 days → now
     if not end_datetime:
@@ -231,7 +239,9 @@ def getStepResultsGraph(request, step_result_id):
     start_datetime = start_datetime.isoformat()
     end_datetime = end_datetime.isoformat()
             
-    group_by = filter_data.get("group_by","Day")
+    group_by = filter_data.get("group_by", "Day")
+    if not group_by:
+        group_by = "Day"
 
     # SQL query using full timestamps
     query = """
