@@ -826,24 +826,11 @@ mobile-list {
   .license-info-container-not-dialog {
     height: 1500px;
     .containerContract {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      gap: 40px;
-
-      .mobileContactImage {
-        width: 500px;
-        height: auto;
-        object-fit: contain;
-        flex-shrink: 0;
-      }
-
       .containerExplanations {
         text-align: left;
         padding-left: 50px;
         border-left: 0px;
       }
-
     }
   }
 }
