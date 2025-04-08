@@ -237,6 +237,16 @@
   ],
   "changelog": [
     {
+      "version": "3.0.30",
+      "date": "2025-04-09",
+      "features": [
+        {
+          "title": "Step Execution over time",
+          "description": "#6025 See step execution over time graphs report with Pass/Fail ratios etc"
+        }
+      ]
+    }, 
+    {
       "version": "3.0.29",
       "date": "2025-04-08",
       "features": [
@@ -266,6 +276,7 @@
         }
       ]
     },  
+>>>>>>> front/src/assets/config.json
     {
       "version": "3.0.26",
       "date": "2025-04-01",
