@@ -1,0 +1,77 @@
+@import 'breakpoints';
+.execution-stats-container {
+  width: 80%;
+  margin: 1% 10% 20% 10%;
+  /* background: #f9fafb; */
+  align-items: center;
+  text-align: center;
+  float: left;
+  padding-bottom: 300px;
+}
+
+mat-expansion-panel {
+  margin-top: 1% !important;
+}
+
+.filter-section {
+  margin: 1% 0% 0 3%;
+}
+
+.date-picker {
+  width: 28%;
+}
+
+.stats-grid {
+  width: 80%;
+  float: left;
+  margin: 1% 10%;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.3%;
+  align-items: center;
+
+  .stat-item {
+    background-color: #f2f0f0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid #bebebe;
+    border-radius: 5px;
+    height: 80px;
+    padding: 2%;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    strong {
+      color: #4b5563;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    div {
+      font-size: 1.25rem;
+      color: #1f2937;
+      font-weight: 600;
+    }
+  }
+}
+
+.graphs-container {
+  width: 100%;
+  float: left;
+}
+
+.graph-div{
+ background-color: #f8fafc;
+ transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.graph-div img {
+  width: 90%;
+  margin: 2% 3%;
+}
+.graph-div h3 {
+  line-height: 1;
+  font-size: 150%;
+}
