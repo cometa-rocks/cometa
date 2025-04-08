@@ -1,0 +1,138 @@
+<div class="execution-stats-container p-4 bg-white rounded-xl shadow-md">
+  <ng-container *ngIf="isLoaded else loader">
+
+    <div class="filter-section flex flex-wrap justify-center items-center gap-4">
+      <div class="date-picker">
+        <mat-form-field>
+          <mat-label>Start Date</mat-label>
+          <input matInput type="datetime-local" [(ngModel)]="startDateTime" name="startDateTime">
+        </mat-form-field>
+      </div>
+
+      <div class="date-picker">
+        <mat-form-field>
+          <mat-label>End Date</mat-label>
+          <input matInput type="datetime-local" [(ngModel)]="endDateTime" name="endDateTime">
+        </mat-form-field>
+      </div>
+
+      <div class="date-picker">
+        <mat-form-field>
+          <mat-label>Group By</mat-label>
+          <mat-select [(ngModel)]="groupBy" name="groupBy">
+            <mat-option [value]="">None</mat-option>
+            <mat-option [value]="'Hours'">Hours</mat-option>
+            <mat-option [value]="'Day'">Day</mat-option>
+            <mat-option [value]="'Week'">Week</mat-option>
+            <mat-option [value]="'Month'">Month</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="search-button">
+        <mat-dialog-actions>
+          <div class="right">
+            <!-- <ng-container *ngLet="saving$ | async as saving"> -->
+            <ng-container>
+              <button mat-stroked-button class="mat-stroked-button" (click)="onFilter()">
+                FILTER
+              </button>
+            </ng-container>
+          </div>
+        </mat-dialog-actions>
+      </div>
+    </div>
+
+    <mat-expansion-panel class="graph-div" [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <span>Step Execution Summary </span>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <mat-panel-description>
+        Between dates&nbsp;<b>{{this.filters.start_datetime |
+          cometa_date}}</b>&nbsp;and&nbsp;<b>{{this.filters.end_datetime | cometa_date}}</b>
+      </mat-panel-description>
+      <ng-template matExpansionPanelContent>
+        <div class="stats-grid grid grid-cols-1 md:grid-cols-3 gap-4" *ngIf="summary">
+          <div class="stat-item p-4 border rounded">
+            <strong>Total Executions</strong>
+            <div>{{ summary?.total_tests }}</div>
+          </div>
+          
+         
+          <div class="stat-item p-4 border rounded">
+            <strong>Failed Executions</strong>
+            <div>{{ summary?.failed_tests }}</div>
+          </div>
+          <div class="stat-item p-4 border rounded">
+            <strong>Passed Execution</strong>
+            <div>{{ summary?.status_distribution.Success }}</div>
+          </div>
+          <div class="stat-item p-4 border rounded">
+            <strong>Success Rate</strong>
+            <div>{{ summary?.success_rate }}%</div>
+          </div>
+          
+          <div class="stat-item p-4 border rounded">
+            <strong>Total Execution Time</strong>
+            <div>{{ summary?.total_execution_time }} ms</div>
+          </div>
+
+
+          <div class="stat-item p-4 border rounded">
+            <strong>Min Execution Time</strong>
+            <div>{{ summary?.min_execution_time }} ms</div>
+          </div>
+
+          <div class="stat-item p-4 border rounded">
+            <strong>Max Execution Time</strong>
+            <div>{{ summary?.max_execution_time }} ms</div>
+          </div>
+
+          <div class="stat-item p-4 border rounded">
+            <strong>Average Execution Time</strong>
+            <div>{{ summary?.average_execution_time }} ms</div>
+          </div>
+
+          <div class="stat-item p-4 border rounded">
+            <strong>Median Execution Time</strong>
+            <div>{{ summary?.median_execution_time }} ms</div>
+          </div>
+          
+          <div class="stat-item p-4 border rounded">
+            <strong>Standard Deviation Between Execution Time</strong>
+            <div>{{ summary?.standard_deviation }}</div>
+          </div>
+
+        </div>
+        <div *ngIf="!summary">
+          <p>Summary data not available, please contact administrator</p>
+        </div>
+      </ng-template>
+    </mat-expansion-panel>
+
+
+    <div class="graphs-container">
+      <!-- EMAIL -->
+      <mat-expansion-panel *ngFor="let graph of graphs" class="graph-div">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span> GRAPH OF {{graph.graphName}}</span>
+          </mat-panel-title>
+          <!-- <mat-panel-description>
+            Edit email address, subject and body
+          </mat-panel-description> -->
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <img *ngIf="graph.graphBlob" [src]="getImageSource(graph.graphBlob)" [alt]="graph.graphName" />
+        </ng-template>
+      </mat-expansion-panel>
+
+    </div>
+  </ng-container>
+  <ng-template #loader>
+    <mat-spinner class="loading" diameter="35" color="primary"></mat-spinner>
+  </ng-template>
+
+</div>
