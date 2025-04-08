@@ -1,5 +1,5 @@
 {
-  "version": "3.0.27",
+  "version": "3.0.29",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,26 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.29",
+      "date": "2025-04-08",
+      "features": [
+        {
+          "title": "Mobile license information - #6042",
+          "description": "Added a new dialog to display the mobile license information"
+        }
+      ]
+    },
+    {
+      "version": "3.0.28",
+      "date": "2025-04-06",
+      "features": [
+        {
+          "title": "Step editor improvements - #6041",
+          "description": "fixed a visual glitch in the step editor"
+        }
+      ]
+    },
     {
       "version": "3.0.27",
       "date": "2025-04-05",
