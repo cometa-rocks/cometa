@@ -85,7 +85,6 @@
   background-color: white;
   backface-visibility: hidden;
   transition: opacity 0.3s ease-in-out;
-  overflow-x: auto;
   @include for-tablet-portrait-up {
     flex-direction: row;
   }
