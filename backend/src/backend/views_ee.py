@@ -82,7 +82,7 @@ def convert_graph_to_blob_image(data_frame, group_by, figsize=(14, 4)):
         group_by_mapping = {"Hours":"H","Day":"D","Week":"W","Month":"M","Hour":"H"}
         logger.debug(f"Using group_by_mapping: {group_by_mapping}")
 
-        group_by_pattern = group_by_mapping.get(group_by, None)
+        group_by_pattern = group_by_mapping.get(group_by, "D")
         logger.debug(f"Selected group_by_pattern: {group_by_pattern}")
 
         # print(start_datetime, end_datetime, group_by_pattern)
@@ -103,7 +103,6 @@ def convert_graph_to_blob_image(data_frame, group_by, figsize=(14, 4)):
         # Create the graph
         logger.debug("Creating execution time graph")
         plt.figure(figsize=figsize)
-        
         graph_data.plot(title=f'Total Step Duration per {group_by}', marker='o', ylabel='Execution Time (ms)', 
                         xlabel=f"Result Execution Dates ({group_by})", grid=True,  color='purple')
         
@@ -126,9 +125,9 @@ def convert_graph_to_blob_image(data_frame, group_by, figsize=(14, 4)):
         failed = data_frame[data_frame['success'] == False].resample('D').size()
         logger.debug(f"Total tests: {len(totals)}, Failed tests: {len(failed)}")
 
-        plt.figure(figsize=(14, 5))
-        plt.plot(totals.index, totals, label=f'Total Tests ({group_by})', marker='o',  color='purple')
-        plt.plot(failed.index, failed, label=f'Failed Tests ({group_by})', marker='x', linestyle='--', color='red')
+        plt.figure(figsize=figsize)
+        plt.plot(totals.index, totals, label=f'Total Step Executions ({group_by})', marker='o',  color='purple')
+        plt.plot(failed.index, failed, label=f'Failed Step Executions ({group_by})', marker='x', linestyle='--', color='red')
 
         plt.title(f"Step Execution Frequency ({group_by}) with Failures")
         plt.xlabel("Date")
@@ -145,9 +144,35 @@ def convert_graph_to_blob_image(data_frame, group_by, figsize=(14, 4)):
         plt.close()  # Close the plot to free memory
         image_png = base64.b64encode(image_png).decode('utf-8')
         logger.debug("Successfully created and encoded test frequency graph")
-            
+        
         graphs.append({
             'graphName':f'Test Session Frequency ({group_by}) with Failures',
+            'graphBlob':f'data:image/png;base64,{image_png}'
+        })
+        
+        
+        
+        # Calculate failure ratio (NaNs from divide-by-zero will be handled)
+        failed_ratio = (failed / totals).fillna(0)  # or multiply by 100 for percentage
+        # Plot the failure ratio separately
+        plt.figure(figsize=figsize)
+        plt.plot(failed_ratio.index, failed_ratio * 100, label='Failure Rate (%)', color='orange', marker='s')
+        plt.title(f"Failure Ratio Over Time ({group_by})")
+        plt.xlabel("Date")
+        plt.ylabel("Failure Ratio (%)")
+        plt.grid(True)
+        plt.legend()
+        plt.tight_layout()
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png', bbox_inches='tight')
+        buffer.seek(0)
+        image_png = buffer.getvalue()
+        buffer.close()
+        plt.close()  # Close the plot to free memory
+        image_png = base64.b64encode(image_png).decode('utf-8')
+        
+        graphs.append({
+            'graphName':f'Step Execution Failed Ratio',
             'graphBlob':f'data:image/png;base64,{image_png}'
         })
         
