@@ -46,6 +46,7 @@ import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progres
 import { NgIf, NgClass, AsyncPipe } from '@angular/common';
 import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
 import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
+import { GraphViewComponent } from '../../views/detail-view/graph-view/graph-view.component';
 
 @Component({
   selector: 'detail-view',
@@ -125,6 +126,7 @@ import { FeatureTitlesComponent } from '../../components/feature-titles/feature-
     NumeralPipe,
     ScreenshotBgPipe,
     AsyncPipe,
+    GraphViewComponent,
   ],
 })
 export class DetailViewComponent implements OnInit {
