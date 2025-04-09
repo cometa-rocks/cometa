@@ -229,6 +229,9 @@ export class EditFeature implements OnInit, OnDestroy {
 
   features: any[] = [];
 
+  // Add this property to track updated fields
+  private updatedFields: Set<string> = new Set();
+
   constructor(
     public dialogRef: MatDialogRef<EditFeature>,
     @Inject(MAT_DIALOG_DATA) public data: IEditFeature,
@@ -420,6 +423,7 @@ export class EditFeature implements OnInit, OnDestroy {
   
 
   ngOnDestroy() {
+    this.clearVisualFeedback();
     // When Edit Feature Dialog is closed, clear temporal steps
     return this._store.dispatch(new StepDefinitions.ClearNewFeature());
     this.inputFocusSubscription.unsubscribe();
@@ -1532,9 +1536,24 @@ export class EditFeature implements OnInit, OnDestroy {
     this.featureAge = output;
   }
   
+  // Add this method to clear visual feedback
+  private clearVisualFeedback() {
+    this.updatedFields.forEach(key => {
+      const element = document.querySelector(`[formcontrolname="${key}"]`);
+      if (element) {
+        element.classList.remove('field-updated');
+      }
+    });
+    this.updatedFields.clear();
+  }
+
   restoreFeature() {
-    const selectedValue = this.selectedFile.value
+    const selectedValue = this.selectedFile.value;
     console.log("Selected file:", selectedValue);
+    
+    // Clear previous visual feedback
+    this.clearVisualFeedback();
+    
     //modify selectedValue <yyy/mm/dd hh:mm:ss> to match file name like <feature_id>_<feature_name>_<yyyy-mm-dd>_<hh-mm-ss>.json
     const featureName = this.feature.getValue().feature_name.replace(/ /g, '-');
     let selectedFileNameSteps = `${this.featureId}_${featureName}_${selectedValue.replace(/\//g, '-').replace(/ /g, '_').replace(/:/g, '-')}.json`;
@@ -1550,11 +1569,29 @@ export class EditFeature implements OnInit, OnDestroy {
     const indexofFeature = this.files.indexOf(selectedFileNameFeature);
     console.log("Selected file index:", indexofSteps);
     console.log("Selected file index:", indexofFeature);
-    //update the feature info and steps using the selected file content
-    //import step-editor.component.ts
-    this.stepEditor.setSteps(JSON.parse(this.fileContents[indexofSteps]));
-    this.featureForm.patchValue(JSON.parse(this.fileContents[indexofFeature]));
 
+    // Get the restored data
+    const restoredSteps = JSON.parse(this.fileContents[indexofSteps]);
+    const restoredFeature = JSON.parse(this.fileContents[indexofFeature]);
+
+    // Update steps with visual feedback
+    this.stepEditor.setSteps(restoredSteps);
+    
+    // Update feature form with visual feedback
+    Object.keys(restoredFeature).forEach(key => {
+      if (this.featureForm.get(key)) {
+        //if the element is different from the current value, add the class
+        if (this.featureForm.get(key).value !== restoredFeature[key]) {
+          const element = document.querySelector(`[formcontrolname="${key}"]`);
+          if (element) {
+            element.classList.add('field-updated');
+            this.updatedFields.add(key);
+          }
+          // Update the form value
+          this.featureForm.get(key).setValue(restoredFeature[key]);
+        }
+      }
+    });
   }
 
   sanitizeFileNames(fileContent: string) {

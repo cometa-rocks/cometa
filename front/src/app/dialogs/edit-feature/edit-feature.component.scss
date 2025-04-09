@@ -343,3 +343,8 @@ button {
   margin-top: 10px;
 }
 
+.field-updated {
+  border: 2px solid rgba(76, 175, 80, 0.5) !important;
+  transition: border-color 0.3s ease-in-out;
+}
+
