@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 
 from chatbot.rag_system.vector_store import VectorStore
 from chatbot.rag_system.models import DocumentChunk
+from chatbot.rag_system.config import CHUNK_SIZE, CHUNK_OVERLAP, MAX_OVERLAP_RATIO
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +33,8 @@ class DocumentProcessor:
     
     def __init__(self, 
                  vector_store: Optional[VectorStore] = None,
-                 chunk_size: int = 1000,
-                 chunk_overlap: int = 200):
+                 chunk_size: int = CHUNK_SIZE,
+                 chunk_overlap: int = CHUNK_OVERLAP):
         """
         Initialize the document processor.
         
@@ -284,7 +285,7 @@ class DocumentProcessor:
             return chunks
             
         result = []
-        overlap_size = min(self.chunk_overlap, self.chunk_size // 4)  # Limit overlap to 25% of chunk size
+        overlap_size = min(self.chunk_overlap, int(self.chunk_size * MAX_OVERLAP_RATIO))  # Limit overlap based on configured ratio
         
         for i, chunk in enumerate(chunks):
             if i == 0:

@@ -8,20 +8,24 @@ from typing import Optional, Dict, List, Any, Union
 import chromadb
 import numpy as np
 
-# Model used for both embeddings and generation
-RAG_MODEL = "granite3.2"
+from chatbot.rag_system.config import (
+    RAG_MODEL,
+    DEFAULT_CHROMA_PATH,
+    DEFAULT_COLLECTION_NAME,
+    HNSW_SPACE,
+    HNSW_CONSTRUCTION_EF,
+    HNSW_SEARCH_EF,
+    HNSW_M
+)
 
 logger = logging.getLogger(__name__)
-
-# Update the default path to use the Docker container's data directory
-DEFAULT_CHROMA_PATH = "/app/data/chromadb"
 
 class VectorStore:
     """ChromaDB vector store for document embeddings."""
     
     def __init__(self, 
                  persistent_path: Optional[str] = None, 
-                 collection_name: str = "cometa_docs"):
+                 collection_name: str = DEFAULT_COLLECTION_NAME):
         """
         Initialize the vector store.
         
@@ -30,12 +34,11 @@ class VectorStore:
             collection_name: Name of the collection to use.
         """
         logger.info(f"Initializing VectorStore with persistent_path={persistent_path}, collection_name={collection_name}")
-        self.persistent_path = persistent_path or os.environ.get('CHROMA_PATH', DEFAULT_CHROMA_PATH)
+        self.persistent_path = persistent_path or DEFAULT_CHROMA_PATH
         self.collection_name = collection_name
         self.client = None
         self.collection = None
         logger.info(f"Actual persistent_path set to: {self.persistent_path}")
-        print(f"Actual persistent_path set to: {self.persistent_path}")
         
         # Initialize ChromaDB
         self._initialize_client()
@@ -149,10 +152,10 @@ class VectorStore:
                 logger.info(f"Collection not found, creating new: {self.collection_name} (Error: {get_error})")
                 logger.info("Creating collection with the following settings:")
                 metadata = {
-                    "hnsw:space": "cosine",
-                    "hnsw:construction_ef": 128,
-                    "hnsw:search_ef": 96,
-                    "hnsw:M": 16,
+                    "hnsw:space": HNSW_SPACE,
+                    "hnsw:construction_ef": HNSW_CONSTRUCTION_EF,
+                    "hnsw:search_ef": HNSW_SEARCH_EF,
+                    "hnsw:M": HNSW_M,
                     "model_name": RAG_MODEL
                 }
                 logger.info(f"Collection metadata: {metadata}")

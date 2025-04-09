@@ -68,6 +68,11 @@
       "name": "questions.md",
       "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/main/questions.md",
       "description": "A compilation of frequently asked questions about Co.meta."
+    },
+    {
+      "name": "FAQ.md",
+      "url": "https://raw.githubusercontent.com/cometa-rocks/cometa_documentation/new-faq/FAQ.md",
+      "description": "A compilation of frequently asked questions about Co.meta."
     }
   ]
   
