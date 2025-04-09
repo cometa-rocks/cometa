@@ -1,5 +1,5 @@
 {
-  "version": "3.0.29",
+  "version": "3.0.31",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,20 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.31",
+      "date": "2025-04-09",
+      "features": [
+        {
+          "title": "Step execution enhancements - #6025",
+          "description": "Changes in the unit of measurement, image positioning, graph expansion..."
+        },
+        {
+          "title": "",
+          "description": ""
+        }
+      ]
+    }, 
     {
       "version": "3.0.30",
       "date": "2025-04-09",

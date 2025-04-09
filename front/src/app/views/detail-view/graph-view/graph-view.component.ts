@@ -157,10 +157,8 @@ export class GraphViewComponent implements OnInit {
 
     // Call the API with updated filters
     this._api.getStepSummaryGraph(this.stepResultId, filter_data).subscribe((response: StepSummaryResponse) => {
-      console.log('Response filters:', response.filters);
-      console.log('Start datetime:', response.filters.start_datetime);
-      console.log('End datetime:', response.filters.end_datetime);
-
+      // console.log('Full Response:', JSON.stringify(response, null, 2));
+      
       if (response.success != true) {
         let error_message = response.message ? response.message : "Error while fetching the graph data, please contact administrator";
         this.snack.open(error_message, 'Close', {
@@ -172,18 +170,10 @@ export class GraphViewComponent implements OnInit {
 
       this.summary = response.summary;
       this.graphs = response.graphs;
-      this.filters = response.filters
+      this.filters = response.filters;
       this.isLoaded = true;
+      
       this.cdr.detectChanges();
-      // Update in next tick to ensure change detection
-      // setTimeout(() => {
-      //   this.startDateTime = this.formatDateTime(response.filters.start_datetime);
-      //   this.endDateTime = this.formatDateTime(response.filters.end_datetime);
-      //   this.cdr.markForCheck();
-      // });
-
-      console.log('Updated startDateTime:', this.startDateTime);
-      console.log('Updated endDateTime:', this.endDateTime);
     },
       (error) => {
         console.error("Failed to load the data", error);
@@ -249,6 +239,33 @@ export class GraphViewComponent implements OnInit {
     if (!dateTimeStr) return '';
     // Ensure the datetime string is in the correct format for datetime-local input
     return dateTimeStr.replace(' ', 'T');
+  }
+
+  formatTime(ms: number): string {
+    if (!ms) return '0 ms';
+    
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const remainingMs = Math.floor(ms % 1000);
+    
+    if (seconds < 1) {
+      return `${ms}ms`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes % 60}m ${seconds % 60}s ${remainingMs}ms`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds % 60}s ${remainingMs}ms`;
+    } else {
+      return `${seconds}s ${remainingMs}ms`;
+    }
+  }
+
+  getFailurePercentage(): number {
+    if (!this.summary || !this.summary['total_tests'] || this.summary['total_tests'] === 0) {
+      return 0;
+    }
+    const failedTests = this.summary['failed_tests'] || 0;
+    return (failedTests / this.summary['total_tests']) * 100;
   }
 
 }
