@@ -1,12 +1,13 @@
 @import 'breakpoints';
+@import 'color';
+
 .execution-stats-container {
   width: 80%;
-  margin: 1% 10% 20% 10%;
-  /* background: #f9fafb; */
+  margin: 1% 10% 0% 10%;
   align-items: center;
   text-align: center;
   float: left;
-  padding-bottom: 300px;
+  padding-bottom: 20px;
 }
 
 mat-expansion-panel {
@@ -27,17 +28,17 @@ mat-expansion-panel {
   margin: 1% 10%;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 0.3%;
+  gap: 1%;
   align-items: center;
 
   .stat-item {
-    background-color: #f2f0f0;
+    background-color: $graph-view-stats-bg;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     border: 1px solid #bebebe;
     border-radius: 5px;
     height: 80px;
     padding: 2%;
-    margin-top: 1%;
+    margin-top: 3%;
 
     &:hover {
       transform: translateY(-2px);
@@ -45,14 +46,14 @@ mat-expansion-panel {
     }
 
     strong {
-      color: #4b5563;
+      color: $graph-view-stats-strong-text-color;
       display: block;
       margin-bottom: 0.5rem;
     }
 
     div {
       font-size: 1.25rem;
-      color: #1f2937;
+      color: $graph-view-stats-div-text-color;
       font-weight: 600;
     }
   }
@@ -64,7 +65,6 @@ mat-expansion-panel {
 }
 
 .graph-div{
- background-color: #f8fafc;
  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 

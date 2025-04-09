@@ -59,45 +59,45 @@
             <strong>Total Executions</strong>
             <div>{{ summary?.total_tests }}</div>
           </div>
-          
          
           <div class="stat-item p-4 border rounded">
             <strong>Failed Executions</strong>
-            <div>{{ summary?.failed_tests }}</div>
+            <div>({{ summary?.failed_tests }}) {{ getFailurePercentage() }}%</div> 
           </div>
+
           <div class="stat-item p-4 border rounded">
             <strong>Passed Execution</strong>
             <div>{{ summary?.status_distribution.Success }}</div>
           </div>
+
           <div class="stat-item p-4 border rounded">
             <strong>Success Rate</strong>
-            <div>{{ summary?.success_rate }}%</div>
+            <div>{{ summary?.success_rate }}%</div>  
           </div>
           
           <div class="stat-item p-4 border rounded">
             <strong>Total Execution Time</strong>
-            <div>{{ summary?.total_execution_time }} ms</div>
+            <div>{{ formatTime(summary?.total_execution_time) }}</div>
           </div>
-
 
           <div class="stat-item p-4 border rounded">
             <strong>Min Execution Time</strong>
-            <div>{{ summary?.min_execution_time }} ms</div>
+            <div>{{ formatTime(summary?.min_execution_time) }}</div>
           </div>
 
           <div class="stat-item p-4 border rounded">
             <strong>Max Execution Time</strong>
-            <div>{{ summary?.max_execution_time }} ms</div>
+            <div>{{ formatTime(summary?.max_execution_time) }}</div>
           </div>
 
           <div class="stat-item p-4 border rounded">
             <strong>Average Execution Time</strong>
-            <div>{{ summary?.average_execution_time }} ms</div>
+            <div>{{ formatTime(summary?.average_execution_time) }}</div>
           </div>
 
           <div class="stat-item p-4 border rounded">
             <strong>Median Execution Time</strong>
-            <div>{{ summary?.median_execution_time }} ms</div>
+            <div>{{ formatTime(summary?.median_execution_time) }}</div>
           </div>
           
           <div class="stat-item p-4 border rounded">
@@ -115,7 +115,7 @@
 
     <div class="graphs-container">
       <!-- EMAIL -->
-      <mat-expansion-panel *ngFor="let graph of graphs" class="graph-div">
+      <mat-expansion-panel *ngFor="let graph of graphs" class="graph-div" [expanded]="true">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span> GRAPH OF {{graph.graphName}}</span>
@@ -128,7 +128,6 @@
           <img *ngIf="graph.graphBlob" [src]="getImageSource(graph.graphBlob)" [alt]="graph.graphName" />
         </ng-template>
       </mat-expansion-panel>
-
     </div>
   </ng-container>
   <ng-template #loader>
