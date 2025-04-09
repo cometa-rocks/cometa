@@ -10,6 +10,7 @@ import logging
 from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
 from chatbot.rag_system.vector_store import VectorStore
+from chatbot.rag_system.config import DEFAULT_TOP_K, MIN_RELEVANCE_THRESHOLD, MIN_INITIAL_K, INITIAL_K_MULTIPLIER, DEFAULT_SYSTEM_PROMPT, DEFAULT_NUM_RESULTS
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ class RAGEngine:
     
     def __init__(self, 
                  vector_store: Optional[VectorStore] = None,
-                 top_k: int = 5):
+                 top_k: int = DEFAULT_TOP_K):
         """
         Initialize the RAG engine.
         
@@ -58,7 +59,7 @@ class RAGEngine:
         
         try:
             # Query the vector store with a higher limit than needed to filter for quality
-            initial_k = max(10, self.top_k * 2)
+            initial_k = max(MIN_INITIAL_K, self.top_k * INITIAL_K_MULTIPLIER)
             
             # Log vector store collection info if possible
             try:
@@ -104,7 +105,7 @@ class RAGEngine:
                     
                     # Only include if relevance score meets minimum threshold
                     # This helps filter out irrelevant results even if they were returned
-                    if relevance_score >= 0.2:  # Minimum relevance threshold
+                    if relevance_score >= MIN_RELEVANCE_THRESHOLD:  # Minimum relevance threshold
                         context_doc = {
                             'id': doc_id,
                             'content': documents[0][i],
@@ -174,30 +175,16 @@ class RAGEngine:
         
         # Default system prompt if none provided
         if system_prompt is None:
-            system_prompt = (
-                "You are a helpful AI assistant for Co.meta, a software testing platform. "
-                "Answer the user's question based on the context provided. "
-                "If you don't know the answer based on the context, say so - "
-                "DO NOT make up information. "
-                "Use the context to provide accurate, helpful and concise answers."
-            )
+            system_prompt = DEFAULT_SYSTEM_PROMPT
         
         # Create augmented system prompt with context and improved instructions
         if context_str:
             augmented_system_prompt = (
                 f"{system_prompt}\n\n"
-                f"Context information is below. Use this information to answer the user's query.\n"
+                f"Based on the following information, answer the user's query directly and concisely.\n"
                 f"---BEGIN CONTEXT---\n{context_str}\n---END CONTEXT---\n\n"
-                f"When using the context to answer:\n"
-                f"1. Focus on the most relevant documents based on how well they match the query\n"
-                f"2. Synthesize information from multiple documents when needed\n"
-                f"3. Answer directly and concisely using the information from the context\n"
-                f"4. If the context doesn't contain enough information, acknowledge the limitations\n"
-                f"5. DO NOT reference document numbers or sources in your response\n"
-                f"6. DO NOT mention that your answer is based on provided context\n"
-                f"7. DO NOT mention source documents from extracted context'\n"
-                f"8. Simply provide accurate information as if you already knew it\n"
-                f"Given this context, please provide a helpful response to the user's query."
+                f"When the context is insufficient to fully answer, acknowledge that limitation.\n"
+                f"You can use the context to answer the question, but you should not mention the context in your response.\n"
             )
         else:
             augmented_system_prompt = system_prompt
@@ -272,7 +259,7 @@ class RAGEngine:
                 "error": str(e)
             }
         
-    def query(self, query: str, num_results: int = 3) -> Dict[str, Any]:
+    def query(self, query: str, num_results: int = DEFAULT_NUM_RESULTS) -> Dict[str, Any]:
         """
         Query the RAG system to retrieve relevant documents.
         

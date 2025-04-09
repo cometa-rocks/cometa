@@ -6,17 +6,23 @@ from rq import Queue
 import os
 import json
 import time
+import logging
 
 # Import the Redis connection
 from src.connections.redis_connection import connect_redis
 
 # Import RAG system
 from chatbot.rag_system.rag_engine import RAGEngine
-from chatbot.rag_system.vector_store import VectorStore, RAG_MODEL
+from chatbot.rag_system.vector_store import VectorStore
+from chatbot.rag_system.config import DEFAULT_TOP_K
 
 # Define the Redis queue name for chatbot
 REDIS_CHATBOT_QUEUE_NAME = os.getenv("REDIS_CHATBOT_QUEUE_NAME", "chatbot_queue")
-LLM_MODEL = os.getenv("LLM_MODEL", "granite3.2")
+JOB_TIMEOUT = int(os.getenv("CHATBOT_JOB_TIMEOUT", "60"))
+MAX_WAIT_TIME = int(os.getenv("CHATBOT_MAX_WAIT_TIME", "30"))
+
+logger = logging.getLogger(__name__)
+
 class ChatbotView(APIView):
     """
     API endpoint for chatbot interactions using Redis queue and Ollama.
@@ -33,21 +39,29 @@ class ChatbotView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            # Use RAG to enhance the query with relevant context
+            # Default system prompt if not provided
+            system_prompt = request.data.get('system_prompt', None)
+            
+            # Attempt to enhance with RAG if available
+            has_context = False
             try:
-                rag_engine = RAGEngine(top_k=5)
+                rag_engine = RAGEngine(top_k=DEFAULT_TOP_K)
+                
+                # Process query with RAG
                 rag_result = rag_engine.process_query(
                     query=user_message,
                     system_prompt=None  # Use default system prompt
                 )
                 
-                # If RAG found relevant context, use the augmented prompt
-                if rag_result['has_context']:
+                # Extract relevant information
+                has_context = rag_result.get('has_context', False)
+                if has_context:
+                    system_prompt = rag_result.get('system', system_prompt)
                     # Use the augmented system prompt with context
-                    user_message = f"{rag_result['system']}\n\nUser query: {user_message}"
+                    user_message = f"{system_prompt}\n\nUser query: {user_message}"
             except Exception as rag_error:
                 # Log the error but continue without RAG enhancement
-                print(f"RAG enhancement failed: {rag_error}")
+                logger.error(f"RAG enhancement failed: {rag_error}")
             
             # Connect to Redis
             redis_conn = connect_redis()
@@ -59,20 +73,17 @@ class ChatbotView(APIView):
             job = chatbot_queue.enqueue(
                 'src.workers.chatbot_worker.process_chat', 
                 user_message, 
-                LLM_MODEL,
                 conversation_history,
-                job_timeout=60  # 60 seconds timeout
+                job_timeout=JOB_TIMEOUT
             )
             
             # Always wait for the response
-            # Maximum wait time in seconds
-            max_wait_time = 30
             start_time = time.time()
             
             # Poll the job status until it's finished or failed
             while job.is_queued or job.is_scheduled or job.is_started:
                 # Check if we've exceeded the maximum wait time
-                if time.time() - start_time > max_wait_time:
+                if time.time() - start_time > MAX_WAIT_TIME:
                     return Response({
                         'status': 'pending',
                         'message': 'Response taking longer than expected.'

@@ -72,8 +72,15 @@ class Command(BaseCommand):
                             # Recreate empty directory
                             os.makedirs(chroma_path, exist_ok=True)
                             self.stdout.write(self.style.SUCCESS(f'Completely reset ChromaDB directory'))
-                        except Exception as e:
-                            self.stderr.write(self.style.ERROR(f'Error forcibly clearing ChromaDB directory: {e}'))
+                        except OSError as e:
+                            if e.errno == 16:  # Device or resource busy
+                                self.stdout.write(self.style.WARNING(
+                                    f'Device or resource busy error detected. '
+                                    f'This is normal if ChromaDB directory is mounted as a volume. '
+                                    f'Will proceed with collection deletion instead.'
+                                ))
+                            else:
+                                self.stderr.write(self.style.ERROR(f'Error forcibly clearing ChromaDB directory: {e}'))
                 
                 # Now use the VectorStore's delete_collection method to properly clean up
                 vector_store = VectorStore()
