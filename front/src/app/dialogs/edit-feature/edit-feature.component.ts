@@ -866,7 +866,13 @@ export class EditFeature implements OnInit, OnDestroy {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
-
+    //Call purge backup files endpoint
+    this._api.purgeBackupFiles().subscribe(
+      () => console.log("Files Purged Successfully"),
+      error => console.error("Error purging files:", error)
+    );
+    
+    //Loads the panel states based on user settings and local storage
     this.loadPanelStates();
 
     // Load backup feature files only if mode is edit
@@ -1463,11 +1469,8 @@ export class EditFeature implements OnInit, OnDestroy {
       );
       //Subscribe to the backup files and get both filenames and contents
       this.backupFiles$.subscribe((files: BackupFile[]) => {
-        console.log("Files1:", files);
         this.files = files.map(file => file.filename);
-        console.log("Files2:", this.files);
         this.fileContents = files.map(file => file.content);
-        console.log("File contents:", this.fileContents);
         //modify the files array to remove the _meta.json files and make the dates and time pretty
         this.prettyFiles = this.files
         this.prettyFiles = this.cleanNames(this.files);

@@ -102,7 +102,7 @@ def backup_feature_steps(feature):
     backupsFolder = '/code/backups/features/'
     Path(backupsFolder).mkdir(parents=True, exist_ok=True)
     orig_file = path + file + '.json'
-    dest_file = backupsFolder + file + '_' + time + '_steps.json'
+    dest_file = backupsFolder + file + '_' + time + '.json'
     if os.path.exists(orig_file):
         shutil.copyfile(orig_file, dest_file)
         logger.debug('Created feature backup in %s' % dest_file)
@@ -131,14 +131,6 @@ def backup_feature_info(feature):
         logger.debug('Created meta file feature backup in %s' % dest_file)
     else:
         logger.debug('Feature meta file %s not found.' % orig_file)
-    # backup the JSON file with the step content
-    orig_file = path + file + '.json'
-    dest_file = backupsFolder + file + '_' + time + '.json'
-    if os.path.exists(orig_file):
-        shutil.copyfile(orig_file, dest_file)
-        logger.debug('Created json feature backup containing steps in %s' % dest_file)
-    else:
-        logger.debug('Feature json file %s not found.' % orig_file)
 
 def recursiveSubSteps(steps, feature_trace, analyzed_features, parent_department_id=None, recursive_step_level=0):
     # logger.debug(f"Analyzed feature length  {len(analyzed_features)} feature Trace > {feature_trace}")
@@ -817,38 +809,61 @@ class Feature(models.Model):
     def __str__( self ):
         return f"{self.feature_name} ({self.feature_id})"
     def save(self, *args, **kwargs):
+        # Check if this is a new feature or existing one
         new_feature = self.feature_id is None
+        
+        # If existing feature, get original state before changes
+        if not new_feature:
+            try:
+                original_feature = Feature.objects.get(pk=self.feature_id)
+                # Get current steps from database for comparison
+                original_steps = list(Step.objects.filter(feature_id=self.feature_id).order_by('id').values())
+                # Get new steps from kwargs or use original if not provided
+                new_steps = kwargs.get('steps', original_steps)
+                
+                # Compare steps using the same field comparison logic
+                steps_changed = len(original_steps) != len(new_steps)
+                if not steps_changed and original_steps:  # Only check if lengths match and we have steps
+                    step_fields = ['step_keyword', 'step_content', 'step_action', 'enabled', 
+                                 'screenshot', 'compare', 'continue_on_failure']
+                    for orig_step, new_step in zip(original_steps, new_steps):
+                        for field in step_fields:
+                            orig_value = orig_step[field] if field in orig_step else None
+                            new_value = new_step.get(field, None)
+                            if orig_value != new_value:
+                                logger.debug(f"Step field {field} changed from {orig_value} to {new_value}")
+                                steps_changed = True
+                                break
+                        if steps_changed:
+                            break
+
+                # Metadata fields that we want to ignore in the comparison
+                ignored_fields = {
+                    'feature_id', 'created_on', 'created_by', 
+                    'last_edited', 'last_edited_date', 'slug',
+                    'info'  # This is a related field that shouldn't affect backups
+                }
+                
+                # Check all fields except ignored ones for changes
+                feature_changed = False
+                for field in self._meta.fields:
+                    if field.name not in ignored_fields:
+                        original_value = getattr(original_feature, field.name)
+                        current_value = getattr(self, field.name)
+                        if original_value != current_value:
+                            logger.debug(f"Field {field.name} changed from {original_value} to {current_value}")
+                            feature_changed = True
+                            break
+                            
+                has_changes = steps_changed or feature_changed
+                
+            except Feature.DoesNotExist:
+                has_changes = False
+        else:
+            has_changes = False
+
         self.slug = slugify(self.feature_name)
         
-        # Check if the feature exists in the database
-        if not new_feature: 
-            # Retrieve the feature instance from the database
-            original = Feature.objects.get(pk=self.feature_id)
-
-            # Compare all relevant fields to detect if there's any change
-            modified = False
-            for field in self._meta.fields:
-                if field.name not in ['last_edited_date', 'info', 'last_edited', 'last_edited_by']:  # Exclude auto-updated fields
-                    current_value = getattr(self, field.name) or None
-                    original_value = getattr(original, field.name) or None
-                    comparison_result = current_value != original_value
-                    if comparison_result:
-                        modified = True
-            if modified:
-                logger.debug("Feature has been modified. Creating backup.")
-                backup_feature_info(self)
-            else:
-                logger.debug("Feature has not been modified. No backup needed.")
-                backup_feature_info(self)
-
-
-        # # create backup only if feature is being modified
-        # if self.feature_id is not None:
-        #     new_feature = False
-        #     # Backup feature info before saving
-        #     backup_feature_info(self)
-            
-
         # save to get the feature_id in case it is a new feature
         super(Feature, self).save(*args)
 
@@ -859,6 +874,7 @@ class Feature(models.Model):
             # Create / Update .feature and jsons whenever feature info is updated / created
             steps = kwargs.get('steps', list(Step.objects.filter(feature_id=self.feature_id).order_by('id').values()))
             logger.debug(f"Saving steps received from Front: {steps}")
+            
             # Create .feature
             response = create_feature_file(self, steps, featureFileName)
             logger.debug("Feature file created")
@@ -867,8 +883,8 @@ class Feature(models.Model):
                 if new_feature:
                     logger.debug("Creation of feature was not success. Abort")
                     self.delete()
-                return response # {"success": False, "error": "infinite loop found"}
-            
+                return response
+                
             # Create .json
             logger.debug(f"Creating Json file : {featureFileName}")
             create_json_file(self, steps, featureFileName)
@@ -876,6 +892,13 @@ class Feature(models.Model):
             logger.debug(f"Creating meta file : {featureFileName}")
             create_meta_file(self, featureFileName)
             logger.debug(f"meta file Created")
+            
+            # Only create backups if feature was modified (not new) and has changes
+            if not new_feature and has_changes:
+                logger.debug("Changes detected, creating backups")
+                backup_feature_info(self)
+                backup_feature_steps(self)
+                            
         return {"success": True}
     
     def delete(self, *args, **kwargs):

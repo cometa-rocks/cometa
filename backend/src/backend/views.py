@@ -4109,8 +4109,6 @@ def get_backup_files_content(request, feature_id):
                                 'filename': filename,
                                 'content': content
                             })
-                            logger.debug(f"Backup filename: {filename}")
-                            logger.debug(f"Backup content: {content}")
         else:
             logger.warning(f"Backup directory does not exist: {backups_dir}")
             return JsonResponse({'error': 'Backup directory not found'}, status=404)

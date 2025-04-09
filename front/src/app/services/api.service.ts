@@ -886,8 +886,12 @@ export class ApiService {
    * @returns Observable<{ files: BackupFile[] }> List of backup filenames
    */
   getBackupFiles(featureId: number): Observable<{ files: BackupFile[] }> {
-    return this._http.get<{ files: BackupFile[] }>(`${this.base}/get_backup_files_content/${featureId}/`);
+    return this._http.get<{ files: BackupFile[] }>(`${this.base}get_backup_files_content/${featureId}/`);
     //TODO HANDLE ERROR, IF HTTP REQUEST FAILS, small error message on the feature schedule mat-expansion-panel
       }
+  
+  purgeBackupFiles() {
+    return this._http.get(`${this.base}purge_backup_files/`);
+  }
 }
   
