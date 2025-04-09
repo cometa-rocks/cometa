@@ -1,19 +1,25 @@
 import ollama
 import os
 from src.utility.common import get_logger
+from src.api.chatbot.rag_system.config import (
+    CHATBOT_MODEL_NAME,
+    OLLAMA_TEMPERATURE,
+    OLLAMA_TOP_P,
+    OLLAMA_TOP_K,
+    OLLAMA_NUM_PREDICT,
+    OLLAMA_NUM_CTX
+)
 
 logger = get_logger()
 
-# Get the default model from environment variable or use llama3 as default
-CHATBOT_MODEL_NAME = os.getenv("CHATBOT_MODEL_NAME", "granite3.2")
+# Get the default model from environment variable or use the config value
 
-def process_chat(message, model=None, conversation_history=None):
+def process_chat(message, conversation_history=None):
     """
     Process a chat message using Ollama
     
     Args:
         message (str): The user's message
-        model (str, optional): The model to use for chat. Defaults to CHATBOT_MODEL_NAME.
         conversation_history (list, optional): Previous conversation history in the format
                                               [{"role": "user", "content": "..."},
                                                {"role": "assistant", "content": "..."}]
@@ -24,9 +30,8 @@ def process_chat(message, model=None, conversation_history=None):
     try:
         logger.debug(f"Processing chat message: {message}")
         
-        # Use specified model or default
-        model_name = model if model else CHATBOT_MODEL_NAME
-        logger.debug(f"Using model: {model_name}")
+        # Always use the configured model
+        logger.debug(f"Using model: {CHATBOT_MODEL_NAME}")
         
         # Create message format for Ollama
         messages = []
@@ -43,13 +48,14 @@ def process_chat(message, model=None, conversation_history=None):
         
         # Call Ollama API
         chat_response = ollama.chat(
-            model=model_name,
+            model=CHATBOT_MODEL_NAME,
             messages=messages,
             options={
-                    "temperature": 0.0,
-                    "top_p": 0.95,
-                    "top_k": 100,
-                    "num_predict": 1500,
+                    "temperature": OLLAMA_TEMPERATURE,
+                    "top_p": OLLAMA_TOP_P,
+                    "top_k": OLLAMA_TOP_K,
+                    "num_predict": OLLAMA_NUM_PREDICT,
+                    "num_ctx": OLLAMA_NUM_CTX
                 })
         
         # Extract and return the response content
@@ -59,7 +65,7 @@ def process_chat(message, model=None, conversation_history=None):
         return {
             "success": True,
             "response": response,
-            "model": model_name
+            "model": CHATBOT_MODEL_NAME
         }
         
     except Exception as e:
@@ -67,5 +73,5 @@ def process_chat(message, model=None, conversation_history=None):
         return {
             "success": False,
             "error": str(e),
-            "model": model_name if model else CHATBOT_MODEL_NAME
+            "model": CHATBOT_MODEL_NAME
         } 

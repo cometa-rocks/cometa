@@ -15,7 +15,7 @@ import { LogService } from '@services/log.service';
       <div class="chat-popup">
         <div class="chat-popup-header">
           <div class="chat-title">
-            <span class="secondary-color as-text">co.</span>meta Support
+            <span class="secondary-color as-text">Co.</span>Meta Support
           </div>
           <div class="window-controls">
             <button mat-icon-button (click)="closePopup()" class="close-button">
@@ -96,7 +96,7 @@ export class ChatPopupComponent implements OnInit, OnDestroy {
     this.log.msg('1', 'Initializing component', 'chat-popup');
     
     // Set the page title
-    this.document.title = 'co.meta Support Chat';
+    this.document.title = 'Co.Meta Support Chat';
     
     // Hide any other UI elements that might be present
     this.hideMainUI();
