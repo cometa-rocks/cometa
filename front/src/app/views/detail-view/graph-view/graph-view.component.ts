@@ -15,8 +15,8 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { GraphService } from '@services/graph.service';
 import { SafeStyle, DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { API_BASE } from 'app/tokens';
-import { Store } from '@ngxs/store';
+import { API_BASE, API_URL } from 'app/tokens';
+import { Select, Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -111,6 +111,7 @@ interface StepSummaryResponse {
     MatLegacyTooltipModule,
     MatLegacyButtonModule,
     MatExpansionModule
+
   ],
   providers: [
     GraphService
@@ -120,7 +121,7 @@ export class GraphViewComponent implements OnInit {
   ready = new BehaviorSubject<boolean>(false);
   featureResultId: number;
   stepResultId: number;
-  groupBy: string = '';
+  groupBy: string = 'Day';
   isLoaded: boolean = false;
 
   constructor(
@@ -132,16 +133,20 @@ export class GraphViewComponent implements OnInit {
     private _store: Store,
     private snack: MatSnackBar,
     private cdr: ChangeDetectorRef,  // Add ChangeDetectorRef
-    @Inject(API_BASE) private api_base: string
+    @Inject(API_BASE) private api_base: string,
+    @Inject(API_URL) private api_url: string
   ) { }
-
+  // startdate is created_on, call backend to get the feature creation date
+  // enddate is today
+  // get the feature creation date from the backend
+  featureCreationDate: string = '';
   startDateTime: string = '';
-  endDateTime: string = '';
+  endDateTime: string = new Date().toISOString().slice(0, 16);
 
   filters = {
     start_datetime: "",
     end_datetime: "",
-    group_by: "Month"
+    group_by: ""
   }
 
   summary!: {};
@@ -154,7 +159,7 @@ export class GraphViewComponent implements OnInit {
       end_datetime: this.endDateTime,
       group_by: this.groupBy
     }
-
+    console.log('filter_data', filter_data);
     // Call the API with updated filters
     this._api.getStepSummaryGraph(this.stepResultId, filter_data).subscribe((response: StepSummaryResponse) => {
       // console.log('Full Response:', JSON.stringify(response, null, 2));
@@ -213,10 +218,20 @@ export class GraphViewComponent implements OnInit {
       .pipe(
         map(params => {
           this.featureResultId = +params.get('feature_result_id');
+          // Fetch feature creation date
+          fetch(this.api_url + '/features/' + params.get('feature') + '/')
+            .then(response => response.json())
+            .then(data => {
+              this.featureCreationDate = data.results[0].created_on;
+              //remove all after '.'
+              this.featureCreationDate = this.featureCreationDate.split('.')[0];
+              this.startDateTime = this.featureCreationDate;
+            });
           return this.featureResultId;
         })
       )
       .subscribe();
+      
 
     // Get Step Result info
     this._acRouted.paramMap
