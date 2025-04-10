@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from backend.generatePDF import GeneratePDF
 from django.views.decorators.cache import cache_page
 from backend.common import *
+from backend import ai_chat
 import os
 from django.views.static import serve
 import re
@@ -134,7 +135,7 @@ urlpatterns = [
     url(r'^departments/(?P<department_id>[0-9]+)/updateStepTimeout/', views.UpdateStepTimeout),
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
-    
+    url(r'^api/chat/completion/', ai_chat.chat_completion),
     
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) 
 
