@@ -136,12 +136,10 @@ export class GraphViewComponent implements OnInit {
     @Inject(API_BASE) private api_base: string,
     @Inject(API_URL) private api_url: string
   ) { }
-  // startdate is created_on, call backend to get the feature creation date
-  // enddate is today
-  // get the feature creation date from the backend
+
   featureCreationDate: string = '';
   startDateTime: string = '';
-  endDateTime: string = new Date().toISOString().slice(0, 16);
+  endDateTime: string = '';
 
   filters = {
     start_datetime: "",
@@ -159,7 +157,6 @@ export class GraphViewComponent implements OnInit {
       end_datetime: this.endDateTime,
       group_by: this.groupBy
     }
-    console.log('filter_data', filter_data);
     // Call the API with updated filters
     this._api.getStepSummaryGraph(this.stepResultId, filter_data).subscribe((response: StepSummaryResponse) => {
       // console.log('Full Response:', JSON.stringify(response, null, 2));
@@ -206,13 +203,26 @@ export class GraphViewComponent implements OnInit {
   }
 
   onFilter() {
+    localStorage.setItem('co_startDateTime', this.startDateTime);
+    localStorage.setItem('co_endDateTime', this.endDateTime);
+
     if (!this.validateDates()) {
       return;
     }
+    
     this.getGraphAndSummary();
   }
 
   ngOnInit() {
+    //create localstorage variable, will save the startdate and edndate, if not exist, will save the current date
+    const exists_start = localStorage.getItem('co_startDateTime');
+    if (!exists_start) {
+      localStorage.setItem('co_startDateTime', '');
+    }
+    const exists_end = localStorage.getItem('co_endDateTime');
+    if (!exists_end) {
+      localStorage.setItem('co_endDateTime', '');
+    }
     // Get Feature Result info
     this._acRouted.paramMap
       .pipe(
@@ -225,7 +235,17 @@ export class GraphViewComponent implements OnInit {
               this.featureCreationDate = data.results[0].created_on;
               //remove all after '.'
               this.featureCreationDate = this.featureCreationDate.split('.')[0];
-              this.startDateTime = this.featureCreationDate;
+              //If no saved filter dates, set default dates
+              if(localStorage.getItem('co_startDateTime') == ''){
+                this.startDateTime = this.featureCreationDate;
+              } else {
+                this.startDateTime = localStorage.getItem('co_startDateTime');
+              }
+              if(localStorage.getItem('co_endDateTime') == ''){
+                this.endDateTime = new Date().toISOString().slice(0, 16);
+              } else {
+                this.endDateTime = localStorage.getItem('co_endDateTime');
+              }
             });
           return this.featureResultId;
         })
