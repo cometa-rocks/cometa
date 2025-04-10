@@ -102,26 +102,14 @@
 
   .readme-popup {
     position: absolute;
-    background: white;
+    z-index: 1000;
+    background-color: white;
     border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     padding: 16px;
     min-width: 300px;
     max-width: 400px;
-    z-index: 1000;
-
-    &:before {
-      content: '';
-      position: absolute;
-      left: 50%;
-      top: -8px;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 8px solid transparent;
-      border-right: 8px solid transparent;
-      border-bottom: 8px solid white;
-    }
+    border: 1px solid rgba(0, 0, 0, 0.1);
 
     .popup-content {
       display: flex;

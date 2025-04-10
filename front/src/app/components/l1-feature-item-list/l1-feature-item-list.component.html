@@ -151,25 +151,30 @@ Author: dph000
       </div>
       <!-- Feature ID -->
       <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
-      <div class="feature-id" stopPropagation>
-        <button
-          mat-icon-button
-          class="star-button"
-          [class.starred]="isStarred$ | async"
-          (click)="toggleStarred($event)"
-          [matTooltip]="((isStarred$ | async) ? 'Remove from' : 'Add to') + ' favorites'"
-          matTooltipPosition="above"
-          stopPropagation>
-          <mat-icon>{{ (isStarred$ | async) ? 'star' : 'star_border' }}</mat-icon>
-        </button>
-        <div class="id-section" (click)="copyToClipboard(item.id)">
-          <span class="icon-container-clipboard">
-            <mat-icon class="clipboard-icon">content_copy</mat-icon>
-          </span>
-          <span class="id-label">ID:</span>
-          <span class="id-container">{{ item.id }}</span>
+      <ng-container>
+        <div
+          class="star-feature-in-feature"
+          [matTooltip]="(isStarred$ | async) ? ('feature.starred' | translate) : ('feature.not_starred' | translate)"
+          matTooltipPosition="above">
+          <mat-icon>{{ (isStarred$ | async) ? 'star' : '' }}</mat-icon>
         </div>
+      </ng-container>
+
+      <!-- Feature ID -->
+      <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
+        <ng-container>
+          <p class="id-text">
+            <span class="icon-container-clipboard">
+              <mat-icon class="clipboard-icon">content_copy</mat-icon>
+            </span>
+            <span class="id-label">ID:</span>
+            <span class="id-container">
+              {{ item.id }}
+            </span>
+          </p>
+        </ng-container>
       </div>
+
 
 
 
@@ -228,6 +233,15 @@ Author: dph000
           </button>
           <mat-divider></mat-divider>
         </ng-container>
+        <!-- Star feature -->
+        <button
+          mat-menu-item
+          (click)="toggleStarred($event)"
+          class="star-feature">
+          <mat-icon>{{ (isStarred$ | async) ? 'star' : 'star_border' }}</mat-icon>
+          <span>{{ (isStarred$ | async) ? 'Starred' : 'Star' }}</span>
+        </button>
+        <mat-divider></mat-divider>
         <!-- Edit feature -->
         <button
           *ngIf="canEditFeature$ | async"

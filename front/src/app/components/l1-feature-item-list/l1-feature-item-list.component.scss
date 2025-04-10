@@ -31,13 +31,12 @@
   position: relative;
   .wrapper {
     height: 100%;
-    cursor: pointer;
     &.running {
-      .run:not(.run-disabled) span,
-      .run:not(.run-disabled) .run-test {
+      .run span,
+      .run .run-test {
         display: none;
       }
-      .run:not(.run-disabled):after {
+      .run:after {
         content: 'View';
         vertical-align: middle;
       }
@@ -72,9 +71,6 @@
             border-bottom-color: $medium;
           }
         }
-        &.state-disabled {
-          opacity: 0.7;
-        }
         padding: 3px 10px 3px 0;
         padding-right: 20px;
         display: inline-block;
@@ -102,7 +98,6 @@
         vertical-align: middle;
         font-size: 0.9rem;
         border-top-right-radius: 5px;
-        cursor: pointer;
         .run-test {
           height: 12px;
           width: 10px;
@@ -121,26 +116,13 @@
           border-bottom: 26px solid $blue;
         }
       }
-      .run-disabled {
-        pointer-events: default;
-        cursor: default;
-        opacity: 0.7;
-        &.running {
-          opacity: 1;
-          .triangle {
-            border-bottom-color: $blue;
-          }
-        }
-        .triangle {
-          border-bottom-color: rgba($blue, 0.7);
-        }
-      }
     }
     padding: 10px;
     box-sizing: border-box;
     position: relative;
     background-color: rgba(255, 255, 255, 0.4);
     border-radius: 3px;
+    cursor: pointer;
     transition: all 0.2s ease-in-out;
     box-shadow:
       0 3px 1px -2px rgba(0, 0, 0, 0.2),
@@ -154,19 +136,37 @@
     right: 0;
   }
   .name {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
     color: $blue;
     font-size: 18pt;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    width: 100%;
-    padding-right: 30px;
-    margin-top: 5px;
-    margin-left: 10px;
-    box-sizing: border-box;
+
+    .star-button {
+      margin-left: 8px;
+      width: 24px;
+      height: 24px;
+      line-height: 24px;
+      
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        line-height: 20px;
+        transition: color 0.2s ease;
+      }
+      
+      &:hover {
+        mat-icon {
+          color: $secondary-color;
+        }
+      }
+    }
+
   }
   .steps {
-    margin-top: 10px;
     margin-left: 10px;
     .stepsFolder {
       display: flex;
@@ -456,7 +456,6 @@ input {
   margin-left: 10px;
 }
 
-
 .feature-options {
   .star-feature {
     mat-icon {
@@ -485,13 +484,73 @@ input {
   font-weight: bold;
   bottom: 8px;
   right: 17px;
-  color: rgba(0, 0, 0, 0.35);
+  color: $dark;
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  max-width: 100%;
-}
+  gap: 4px;
 
+  .star-button {
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    margin: 0;
+    padding: 0;
+    
+    &.starred {
+      mat-icon {
+        color: #666;
+      }
+    } 
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+      transition: color 0.2s ease;
+      color: #666;
+    }
+
+    &:hover {
+      mat-icon {
+        color: $secondary-color;
+      }
+    }
+  }
+
+  .id-section {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 4px;
+
+    &:hover .icon-container-clipboard {
+      opacity: 1;
+    }
+
+    .icon-container-clipboard {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+  
+    .clipboard-icon {
+      font-size: 14px;
+      color: $dark;
+      opacity: 0.8;
+    }
+
+    .id-container {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  
+  
+  } 
+
+}
 
 .id-text {
   display: flex;
