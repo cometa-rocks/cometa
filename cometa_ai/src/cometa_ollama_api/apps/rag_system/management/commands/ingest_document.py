@@ -6,9 +6,9 @@ import logging
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 
-from chatbot.rag_system.document_processor import DocumentProcessor
-from chatbot.rag_system.vector_store import VectorStore
-from chatbot.rag_system.models import Document, DocumentChunk
+from apps.rag_system.document_processor import DocumentProcessor
+from apps.rag_system.vector_store import VectorStore
+from apps.rag_system.models import Document, DocumentChunk
 
 logger = logging.getLogger(__name__)
 

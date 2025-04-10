@@ -9,7 +9,7 @@ class RagSystemConfig(AppConfig):
     Configuration for the RAG system Django app.
     """
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'chatbot.rag_system'
+    name = 'apps.rag_system'
     verbose_name = 'RAG System'
     
     def ready(self):

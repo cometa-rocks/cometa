@@ -90,3 +90,4 @@ class DocumentChunk(models.Model):
         
     def __str__(self):
         return f"{self.document.title} - Chunk {self.chunk_index}" 
+    

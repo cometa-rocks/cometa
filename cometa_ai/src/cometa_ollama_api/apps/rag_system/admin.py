@@ -74,3 +74,4 @@ class DocumentChunkAdmin(admin.ModelAdmin):
     def document_title(self, obj):
         return obj.document.title
     document_title.short_description = "Document" 
+    

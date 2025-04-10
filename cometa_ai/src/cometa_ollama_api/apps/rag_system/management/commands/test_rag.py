@@ -5,10 +5,10 @@ import logging
 import time
 from django.core.management.base import BaseCommand
 
-from chatbot.rag_system.vector_store import VectorStore
-from chatbot.rag_system.rag_engine import RAGEngine
-from chatbot.rag_system.document_processor import DocumentProcessor
-from chatbot.rag_system.models import Document
+from apps.rag_system.vector_store import VectorStore
+from apps.rag_system.rag_engine import RAGEngine
+from apps.rag_system.document_processor import DocumentProcessor
+from apps.rag_system.models import Document
 
 logger = logging.getLogger(__name__)
 

@@ -45,8 +45,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'chatbot',
-    'chatbot.rag_system',
+    'apps.chatbot',
+    'apps.rag_system',
+    'apps.token_authentication',
 ]
 
 MIDDLEWARE = [
@@ -59,9 +60,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'middleware.token_validator.TokenValidator',
 ]
 
-ROOT_URLCONF = 'api.urls'
+ROOT_URLCONF = 'main.urls'
 
 TEMPLATES = [
     {
@@ -78,7 +80,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'api.wsgi.application'
+WSGI_APPLICATION = 'main.wsgi.application'
 
 
 # Database
@@ -90,7 +92,7 @@ DATABASES = {
         'NAME': os.environ.get('POSTGRES_NAME', 'postgres'),
         'USER': os.environ.get('POSTGRES_USER', 'postgres'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'postgres'),
-        'HOST': os.environ.get('POSTGRES_HOST', 'cometa.db.ai'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'cometa.db.ai.dev'),
         'PORT': os.environ.get('POSTGRES_PORT', '5432'),
         'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
     }
@@ -222,11 +224,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
-        'api': {
-            'handlers': ['console', 'file', 'error_file'],
-            'level': 'DEBUG',  # Show all API logs
-            'propagate': False,
-        },
+        # 'api': {
+        #     'handlers': ['console', 'file', 'error_file'],
+        #     'level': 'DEBUG',  # Show all API logs
+        #     'propagate': False,
+        # },
         'chatbot': {
             'handlers': ['console', 'file', 'error_file'],
             'level': 'DEBUG',

@@ -8,7 +8,7 @@ from typing import Optional, Dict, List, Any, Union
 import chromadb
 import numpy as np
 
-from chatbot.rag_system.config import (
+from apps.rag_system.config import (
     RAG_MODEL,
     DEFAULT_CHROMA_PATH,
     DEFAULT_COLLECTION_NAME,

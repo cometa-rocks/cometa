@@ -6,8 +6,8 @@ import os
 import shutil
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from chatbot.rag_system.models import Document, DocumentChunk
-from chatbot.rag_system.vector_store import VectorStore, DEFAULT_CHROMA_PATH
+from apps.rag_system.models import Document, DocumentChunk
+from apps.rag_system.vector_store import VectorStore, DEFAULT_CHROMA_PATH
 import logging
 
 logger = logging.getLogger(__name__)
