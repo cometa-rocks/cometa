@@ -151,19 +151,26 @@ Author: dph000
       </div>
       <!-- Feature ID -->
       <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
-      <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
-        <ng-container>
-          <p class="id-text">
-            <span class="icon-container-clipboard">
-              <mat-icon class="clipboard-icon">content_copy</mat-icon>
-            </span>
-            <span class="id-label">ID:</span>
-            <span class="id-container">
-              {{ item.id }}
-            </span>
-          </p>
-        </ng-container>
+      <div class="feature-id" stopPropagation>
+        <button
+          mat-icon-button
+          class="star-button"
+          [class.starred]="isStarred$ | async"
+          (click)="toggleStarred($event)"
+          [matTooltip]="((isStarred$ | async) ? 'Remove from' : 'Add to') + ' favorites'"
+          matTooltipPosition="above"
+          stopPropagation>
+          <mat-icon>{{ (isStarred$ | async) ? 'star' : 'star_border' }}</mat-icon>
+        </button>
+        <div class="id-section" (click)="copyToClipboard(item.id)">
+          <span class="icon-container-clipboard">
+            <mat-icon class="clipboard-icon">content_copy</mat-icon>
+          </span>
+          <span class="id-label">ID:</span>
+          <span class="id-container">{{ item.id }}</span>
+        </div>
       </div>
+
 
 
       <!-- Feature browser -->
