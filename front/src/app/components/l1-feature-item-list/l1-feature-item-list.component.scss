@@ -457,6 +457,29 @@ input {
 }
 
 
+.feature-options {
+  .star-feature {
+    mat-icon {
+      color: #666;
+    }
+
+    &:hover mat-icon {
+      color: $secondary-color;
+    }
+  }
+}
+
+.star-feature-in-feature {
+  display: flex;
+  position: absolute;
+  right: 65px;
+  bottom: 8px;
+  mat-icon {
+    color: #666;
+    font-size: 18px;
+  }
+}
+
 .feature-id {
   position: absolute;
   font-weight: bold;
@@ -468,6 +491,7 @@ input {
   align-items: center;
   max-width: 100%;
 }
+
 
 .id-text {
   display: flex;
