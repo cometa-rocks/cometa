@@ -1,45 +1,48 @@
 <div class="execution-stats-container p-4 bg-white rounded-xl shadow-md">
   <ng-container *ngIf="isLoaded else loader">
 
-    <div class="filter-section flex flex-wrap justify-center items-center gap-4">
-      <div class="date-picker">
-        <mat-form-field>
-          <mat-label>Start Date</mat-label>
-          <input matInput type="datetime-local" [(ngModel)]="startDateTime" name="startDateTime">
-        </mat-form-field>
-      </div>
-
-      <div class="date-picker">
-        <mat-form-field>
-          <mat-label>End Date</mat-label>
-          <input matInput type="datetime-local" [(ngModel)]="endDateTime" name="endDateTime">
-        </mat-form-field>
-      </div>
-
-      <div class="date-picker">
-        <mat-form-field>
-          <mat-label>Group By</mat-label>
-          <mat-select [(ngModel)]="groupBy" name="groupBy">
-            <mat-option [value]="">None</mat-option>
-            <mat-option [value]="'Hours'">Hours</mat-option>
-            <mat-option [value]="'Day'">Day</mat-option>
-            <mat-option [value]="'Week'">Week</mat-option>
-            <mat-option [value]="'Month'">Month</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-
-      <div class="search-button">
-        <mat-dialog-actions>
-          <div class="right">
-            <!-- <ng-container *ngLet="saving$ | async as saving"> -->
-            <ng-container>
-              <button mat-stroked-button class="mat-stroked-button" (click)="onFilter()">
-                FILTER
-              </button>
-            </ng-container>
+    <div class="filter-section">
+      <div class="filter-container">
+        <div class="inputs-row">
+          <div class="date-range-group">
+            <span class="date-range-label">From:</span>
+            <div class="date-picker">
+              <mat-form-field>
+                <mat-label>Date</mat-label>
+                <input matInput type="datetime-local" [(ngModel)]="startDateTime" name="startDateTime">
+              </mat-form-field>
+            </div>
           </div>
-        </mat-dialog-actions>
+
+          <div class="date-range-group">
+            <span class="date-range-label">To:</span>
+            <div class="date-picker">
+              <mat-form-field>
+                <mat-label>Date</mat-label>
+                <input matInput type="datetime-local" [(ngModel)]="endDateTime" name="endDateTime">
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="date-picker">
+            <mat-form-field>
+              <mat-label>Group By</mat-label>
+              <mat-select [(ngModel)]="groupBy" name="groupBy">
+                <mat-option [value]="">None</mat-option>
+                <mat-option [value]="'Hours'">Hours</mat-option>
+                <mat-option [value]="'Day'">Day</mat-option>
+                <mat-option [value]="'Week'">Week</mat-option>
+                <mat-option [value]="'Month'">Month</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="search-button">
+          <button mat-stroked-button class="mat-stroked-button" (click)="onFilter()">
+            FILTER
+          </button>
+        </div>
       </div>
     </div>
 
