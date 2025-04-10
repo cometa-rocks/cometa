@@ -265,7 +265,7 @@ export class GraphViewComponent implements OnInit {
       return 0;
     }
     const failedTests = this.summary['failed_tests'] || 0;
-    return (failedTests / this.summary['total_tests']) * 100;
+    return Math.round((failedTests / this.summary['total_tests']) * 100);
   }
 
 }
