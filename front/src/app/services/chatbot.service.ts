@@ -68,18 +68,18 @@ export class ChatbotService {
   
   // Multilingual greetings
   private greetings = {
-    'en': '# Welcome to Co.meta Support! 👋\n\nHow can I help you today? You can ask me about:\n\n- Creating and running tests\n- Browser configurations\n- Scheduling tests\n- Mobile testing\n- API testing',
-    'de': '# Willkommen beim Co.meta Support! 👋\n\nWie kann ich Ihnen heute helfen? Sie können mich zu folgenden Themen befragen:\n\n- Erstellen und Ausführen von Tests\n- Browser-Konfigurationen\n- Testplanung\n- Mobile Tests\n- API-Tests',
-    'es': '# ¡Bienvenido al soporte de Co.meta! 👋\n\n¿Cómo puedo ayudarte hoy? Puedes preguntarme sobre:\n\n- Creación y ejecución de pruebas\n- Configuraciones de navegador\n- Programación de pruebas\n- Pruebas móviles\n- Pruebas de API',
-    'fr': '# Bienvenue dans le support Co.meta ! 👋\n\nComment puis-je vous aider aujourd\'hui ? Vous pouvez me poser des questions sur :\n\n- Création et exécution de tests\n- Configurations de navigateur\n- Planification des tests\n- Tests mobiles\n- Tests d\'API',
-    'ja': '# Co.metaサポートへようこそ！ 👋\n\n今日はどのようにお手伝いできますか？以下についてお尋ねいただけます：\n\n- テストの作成と実行\n- ブラウザの設定\n- テストのスケジューリング\n- モバイルテスト\n- APIテスト',
-    'pt': '# Bem-vindo ao suporte da Co.meta! 👋\n\nComo posso ajudá-lo hoje? Você pode me perguntar sobre:\n\n- Criação e execução de testes\n- Configurações de navegador\n- Agendamento de testes\n- Testes móveis\n- Testes de API',
-    'ar': '# مرحباً بك في دعم Co.meta! 👋\n\nكيف يمكنني مساعدتك اليوم؟ يمكنك أن تسألني عن:\n\n- إنشاء وتشغيل الاختبارات\n- إعدادات المتصفح\n- جدولة الاختبارات\n- اختبارات الجوال\n- اختبارات API',
-    'cs': '# Vítejte v podpoře Co.meta! 👋\n\nJak vám mohu dnes pomoci? Můžete se mě zeptat na:\n\n- Vytváření a spouštění testů\n- Konfigurace prohlížeče\n- Plánování testů\n- Mobilní testování\n- Testování API',
-    'it': '# Benvenuto al supporto Co.meta! 👋\n\nCome posso aiutarti oggi? Puoi chiedermi informazioni su:\n\n- Creazione ed esecuzione di test\n- Configurazioni del browser\n- Pianificazione dei test\n- Test mobili\n- Test API',
-    'ko': '# Co.meta 지원에 오신 것을 환영합니다! 👋\n\n오늘 어떻게 도와드릴까요? 다음에 대해 질문하실 수 있습니다:\n\n- 테스트 생성 및 실행\n- 브라우저 구성\n- 테스트 일정 관리\n- 모바일 테스트\n- API 테스트',
-    'nl': '# Welkom bij Co.meta Support! 👋\n\nHoe kan ik u vandaag helpen? U kunt me vragen stellen over:\n\n- Tests maken en uitvoeren\n- Browserconfiguraties\n- Tests plannen\n- Mobiel testen\n- API-testen',
-    'zh': '# 欢迎使用 Co.meta 支持！👋\n\n今天我能帮您什么？您可以询问我关于：\n\n- 创建和运行测试\n- 浏览器配置\n- 测试调度\n- 移动测试\n- API测试'
+    'en': '# Welcome to Co.Meta Support! 👋\n\nHow can I help you today? You can ask me about:\n\n- Creating and running tests\n- Browser configurations\n- Scheduling tests\n- Mobile testing\n- API testing',
+    'de': '# Willkommen beim Co.Meta Support! 👋\n\nWie kann ich Ihnen heute helfen? Sie können mich zu folgenden Themen befragen:\n\n- Erstellen und Ausführen von Tests\n- Browser-Konfigurationen\n- Testplanung\n- Mobile Tests\n- API-Tests',
+    'es': '# ¡Bienvenido al soporte de Co.Meta! 👋\n\n¿Cómo puedo ayudarte hoy? Puedes preguntarme sobre:\n\n- Creación y ejecución de pruebas\n- Configuraciones de navegador\n- Programación de pruebas\n- Pruebas móviles\n- Pruebas de API',
+    'fr': '# Bienvenue dans le support Co.Meta ! 👋\n\nComment puis-je vous aider aujourd\'hui ? Vous pouvez me poser des questions sur :\n\n- Création et exécution de tests\n- Configurations de navigateur\n- Planification des tests\n- Tests mobiles\n- Tests d\'API',
+    'ja': '# Co.Metaサポートへようこそ！ 👋\n\n今日はどのようにお手伝いできますか？以下についてお尋ねいただけます：\n\n- テストの作成と実行\n- ブラウザの設定\n- テストのスケジューリング\n- モバイルテスト\n- APIテスト',
+    'pt': '# Bem-vindo ao suporte da Co.Meta! 👋\n\nComo posso ajudá-lo hoje? Você pode me perguntar sobre:\n\n- Criação e execução de testes\n- Configurações de navegador\n- Agendamento de testes\n- Testes móveis\n- Testes de API',
+    'ar': '# مرحباً بك في دعم Co.Meta! 👋\n\nكيف يمكنني مساعدتك اليوم؟ يمكنك أن تسألني عن:\n\n- إنشاء وتشغيل الاختبارات\n- إعدادات المتصفح\n- جدولة الاختبارات\n- اختبارات الجوال\n- اختبارات API',
+    'cs': '# Vítejte v podpoře Co.Meta! 👋\n\nJak vám mohu dnes pomoci? Můžete se mě zeptat na:\n\n- Vytváření a spouštění testů\n- Konfigurace prohlížeče\n- Plánování testů\n- Mobilní testování\n- Testování API',
+    'it': '# Benvenuto al supporto Co.Meta! 👋\n\nCome posso aiutarti oggi? Puoi chiedermi informazioni su:\n\n- Creazione ed esecuzione di test\n- Configurazioni del browser\n- Pianificazione dei test\n- Test mobili\n- Test API',
+    'ko': '# Co.Meta 지원에 오신 것을 환영합니다! 👋\n\n오늘 어떻게 도와드릴까요? 다음에 대해 질문하실 수 있습니다:\n\n- 테스트 생성 및 실행\n- 브라우저 구성\n- 테스트 일정 관리\n- 모바일 테스트\n- API 테스트',
+    'nl': '# Welkom bij Co.Meta Support! 👋\n\nHoe kan ik u vandaag helpen? U kunt me vragen stellen over:\n\n- Tests maken en uitvoeren\n- Browserconfiguraties\n- Tests plannen\n- Mobiel testen\n- API-testen',
+    'zh': '# 欢迎使用 Co.Meta 支持！👋\n\n今天我能帮您什么？您可以询问我关于：\n\n- 创建和运行测试\n- 浏览器配置\n- 测试调度\n- 移动测试\n- API测试'
   };
   
   // AI disabled messages

@@ -12,9 +12,9 @@ import logging
 from src.connections.redis_connection import connect_redis
 
 # Import RAG system
-from chatbot.rag_system.rag_engine import RAGEngine
-from chatbot.rag_system.vector_store import VectorStore
-from chatbot.rag_system.config import DEFAULT_TOP_K
+from apps.rag_system.rag_engine import RAGEngine
+from apps.rag_system.vector_store import VectorStore
+from apps.rag_system.config import DEFAULT_TOP_K
 
 # Define the Redis queue name for chatbot
 REDIS_CHATBOT_QUEUE_NAME = os.getenv("REDIS_CHATBOT_QUEUE_NAME", "chatbot_queue")
@@ -28,6 +28,8 @@ class ChatbotView(APIView):
     API endpoint for chatbot interactions using Redis queue and Ollama.
     """
     def post(self, request):
+        
+      
         try:
             # Get message from request data
             user_message = request.data.get('message', '')

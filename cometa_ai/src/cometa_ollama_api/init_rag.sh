@@ -2,7 +2,7 @@
 set -e
 
 echo "Initializing RAG system for Co.meta..."
-cd /app/src/api
+cd /app/src/cometa_ollama_api
 
 # Wait for the database to be ready
 echo "Waiting for database to be ready..."
@@ -20,7 +20,7 @@ retries = 0
 dbname = 'postgres'
 user = 'postgres'
 password = 'postgres'
-host = 'cometa.db.ai'
+host = 'cometa.db.ai.dev'
 port = '5432'
 
 while retries < max_retries:
@@ -47,6 +47,6 @@ python manage.py migrate
 
 # Clear existing RAG data and ingest documents from JSON
 echo "Ingesting documentation into RAG system..."
-python manage.py ingest_from_json --clear chatbot/rag_system/ingestion_documents.json
+python manage.py ingest_from_json --clear apps/rag_system/ingestion_documents.json
 
 echo "RAG system initialization complete!" 
