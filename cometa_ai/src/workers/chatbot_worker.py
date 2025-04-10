@@ -1,7 +1,7 @@
 import ollama
 import os
 from src.utility.common import get_logger
-from src.api.chatbot.rag_system.config import (
+from src.cometa_ollama_api.apps.rag_system.config import (
     CHATBOT_MODEL_NAME,
     OLLAMA_TEMPERATURE,
     OLLAMA_TOP_P,
