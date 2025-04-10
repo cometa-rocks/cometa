@@ -1,0 +1,23 @@
+services:
+  cometa.monitoring:
+    build: ./cometa_ai
+    expose:
+      - "8083"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./monitoring:/app
+      
+    working_dir: /app 
+    # entrypoint: ./start.sh   
+    environment:
+      # OLLAMA_HOST: "0.0.0.0:8083"
+    networks:
+      - testing
+    restart: always
+
+networks:
+  testing:
+    driver: "bridge"
+
+volumes:
+  redis_data:
