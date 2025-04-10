@@ -229,12 +229,12 @@ LOGGING = {
         #     'level': 'DEBUG',  # Show all API logs
         #     'propagate': False,
         # },
-        'chatbot': {
+        'apps.chatbot': {
             'handlers': ['console', 'file', 'error_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
-        'chatbot.rag_system': {
+        'apps.rag_system': {
             'handlers': ['console', 'file', 'error_file'],
             'level': 'DEBUG',
             'propagate': False,
