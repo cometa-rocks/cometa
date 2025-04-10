@@ -16,9 +16,9 @@ import PyPDF2
 import markdown
 from bs4 import BeautifulSoup
 
-from apps.chatbot.rag_system.vector_store import VectorStore
-from apps.chatbot.rag_system.models import DocumentChunk
-from apps.chatbot.rag_system.config import CHUNK_SIZE, CHUNK_OVERLAP, MAX_OVERLAP_RATIO
+from apps.rag_system.vector_store import VectorStore
+from apps.rag_system.models import DocumentChunk
+from apps.rag_system.config import CHUNK_SIZE, CHUNK_OVERLAP, MAX_OVERLAP_RATIO
 
 logger = logging.getLogger(__name__)
 
