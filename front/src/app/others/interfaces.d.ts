@@ -1129,3 +1129,19 @@ interface Container {
   isTerminating?: boolean;
   department_id?: number;
 }
+
+interface FeatureData {
+  id: string;
+  name: string;
+  type: 'feature' | 'folder';
+  department: string;
+  reference: Feature;
+  browsers: BrowserstackBrowser[];
+  date?: string;
+  status?: string;
+  time?: number;
+  total?: number;
+  help?: boolean;
+  depends_on_others?: boolean;
+  schedule?: string;
+}
