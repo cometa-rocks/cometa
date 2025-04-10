@@ -9,8 +9,8 @@ This module handles:
 import logging
 from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
-from chatbot.rag_system.vector_store import VectorStore
-from chatbot.rag_system.config import DEFAULT_TOP_K, MIN_RELEVANCE_THRESHOLD, MIN_INITIAL_K, INITIAL_K_MULTIPLIER, DEFAULT_SYSTEM_PROMPT, DEFAULT_NUM_RESULTS
+from apps.rag_system.vector_store import VectorStore
+from apps.rag_system.config import DEFAULT_TOP_K, MIN_RELEVANCE_THRESHOLD, MIN_INITIAL_K, INITIAL_K_MULTIPLIER, DEFAULT_SYSTEM_PROMPT, DEFAULT_NUM_RESULTS
 
 logger = logging.getLogger(__name__)
 

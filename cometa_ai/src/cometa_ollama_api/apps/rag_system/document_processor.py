@@ -16,9 +16,9 @@ import PyPDF2
 import markdown
 from bs4 import BeautifulSoup
 
-from chatbot.rag_system.vector_store import VectorStore
-from chatbot.rag_system.models import DocumentChunk
-from chatbot.rag_system.config import CHUNK_SIZE, CHUNK_OVERLAP, MAX_OVERLAP_RATIO
+from apps.chatbot.rag_system.vector_store import VectorStore
+from apps.chatbot.rag_system.models import DocumentChunk
+from apps.chatbot.rag_system.config import CHUNK_SIZE, CHUNK_OVERLAP, MAX_OVERLAP_RATIO
 
 logger = logging.getLogger(__name__)
 
@@ -418,3 +418,7 @@ class DocumentProcessor:
         
         logger.info(f"Added {len(ids)} chunks to vector store")
         return chunks 
+    
+    
+    
+ 

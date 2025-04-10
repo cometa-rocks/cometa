@@ -10,6 +10,7 @@ import uuid
 import time
 import re
 from backend.utility.config_handler import get_ollama_ai_api_url
+from backend.utility.configurations import ConfigurationManager
 
 logger = logging.getLogger(__name__)
 
@@ -47,11 +48,12 @@ def chat_completion(request):
         # Always make request synchronous
         request_data['wait'] = True
         logger.debug(f"[{request_id}] Request data with history: {json.dumps(request_data)}")
-        
+        authorization_header = f"{ConfigurationManager.get_configuration('OLLAMA_AI_SECRET_ID',)}==={ConfigurationManager.get_configuration('OLLAMA_AI_SECRET_KEY')}"
         # Forward the request directly to Ollama AI API
         django_response = requests.post(
             ollama_api_url,
             json=request_data,
+            headers={ "Authorization": authorization_header },
             timeout=60
         )
         
@@ -64,7 +66,7 @@ def chat_completion(request):
             
             # Extract the response message and success from the ollama.ai response
             # and format it in the original expected structure
-            response_message = "I'm sorry, I couldn't process your request. Please try again later."
+            response_message = response_content 
             success = False
             
             if django_response.status_code == 200:

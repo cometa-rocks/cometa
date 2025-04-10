@@ -11,7 +11,7 @@ import os
 from django.core.asgi import get_asgi_application
 from asgiref.compatibility import guarantee_single_callable
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'api.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
 
 # Initialize Django ASGI application
 django_application = get_asgi_application()
