@@ -265,6 +265,7 @@ export class FeatureActionsComponent implements OnInit {
       // Notify WebSocket Server to send me last websockets of feature
       this._sharedActions.retrieveLastFeatureSockets(this.getFeatureId());
       this.openLiveSteps(featureStore.feature_id);
+      this.isRunButtonDisabled = false;
     } else {
       // Check if the feature has at least 1 browser selected, if not, show a warning
       if (featureStore.browsers.length > 0) {
@@ -295,15 +296,16 @@ export class FeatureActionsComponent implements OnInit {
             err => {
               this._snack.open('An error ocurred', 'OK');
             }
+            
           );
       } else {
         this._snack.open("This feature doesn't have browsers selected.", 'OK');
       }
+      this.isRunButtonDisabled = false;
     }
   }
 
   openLiveSteps(feature_id: number) {
-    this.isRunButtonDisabled = false;
     this._dialog.open(LiveStepsComponent, {
       data: feature_id,
       panelClass: 'live-steps-panel',

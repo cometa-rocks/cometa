@@ -645,7 +645,7 @@ def after_all(context):
         # quit the browser since at this point feature has been executed
         context.browser.quit()
         
-        if context.cloud == "local":
+        if context.cloud == "local" and not context.USE_COMETA_BROWSER_IMAGES:
             url = f"http://cometa_selenoid:4444/sessions/{context.browser.session_id}"
             logger.debug(f"Requesting to delete the {url}")
             response = requests.delete(url)
@@ -868,7 +868,7 @@ def after_all(context):
 
     # do some cleanup and remove all the temp files generated during the feature
     logger.debug("Cleaning temp files: {}".format(pformat(context.tempfiles)))
-    for tempfile in context.tempfiles:
+    for tempfile in set(context.tempfiles):
         try:
             os.remove(tempfile)
         except Exception as err:

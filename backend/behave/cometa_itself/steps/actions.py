@@ -2984,6 +2984,13 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
 def assert_imp(context, value_one, value_two):
     assert_failed_error = f"{value_one} does not match {value_two}"
     assert_failed_error = logger.mask_values(assert_failed_error)
+    addStepVariableToContext(context,                             
+                            {
+                                "value_one":value_one,
+                                "value_two":value_two,
+                            }, 
+                            save_to_step_report=True)
+    
     assert value_one == value_two, assert_failed_error
 
 # This step checks if one string contains another. If the second string is not found within the first string, an error will be raised
@@ -2993,6 +3000,12 @@ def assert_imp(context, value_one, value_two):
 def assert_imp(context, value_one, value_two):
     assert_failed_error = f"{value_one} does not contain {value_two}"
     assert_failed_error = logger.mask_values(assert_failed_error)
+    addStepVariableToContext(context,{
+                                    "value_one":value_one,
+                                    "value_two":value_two,
+                                    }, 
+                            save_to_step_report=True)
+
     assert value_two in value_one, assert_failed_error
 
 # This step initiates a loop that runs a specific number of times, starting from a given index

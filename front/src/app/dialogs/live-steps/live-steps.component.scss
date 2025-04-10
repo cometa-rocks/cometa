@@ -257,6 +257,6 @@ mat-label {
   top: 50%;
   transform: translate(-50%, -50%);
   ::ng-deep circle {
-    stroke: #f44336 !important;
+    stroke: $live-steps-spinner-color !important;
   }
 }

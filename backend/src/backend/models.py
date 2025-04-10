@@ -771,7 +771,6 @@ class Step(models.Model):
                     {'step_action': f"Action with name '{self.step_action}' does not exist."}
                 )
                 
-                
 class Feature(models.Model):
     feature_id = models.AutoField(primary_key=True)
     feature_name = models.CharField(max_length=255)
@@ -1077,8 +1076,6 @@ class Account_role(models.Model):
     class Meta:
         ordering = ['account_role_id']
         verbose_name_plural = "Account Roles"
-
-
 
 class Action(models.Model):
     action_id = models.AutoField(primary_key=True)

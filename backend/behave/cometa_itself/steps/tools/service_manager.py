@@ -1,4 +1,4 @@
-import docker, os, sys, logging, time, traceback, uuid
+import docker, os, sys, logging, time, traceback, uuid, threading
 from docker.errors import NullResource, NotFound
 from kubernetes import client, config
 from kubernetes.client import ApiException
@@ -580,13 +580,23 @@ class ServiceManager(service_manager):
             time.sleep(interval)
 
 
-    def remove_all_service(self,container_services):
-        # Delete all the services which were started during test
-        for service in container_services:
-            logger.debug(f"Deleting container service with ID : {service['Id']}")
-            service_manager = ServiceManager()
-            service_manager.delete_service(
-                service_name_or_id=service['Id']
-            )
+    def remove_all_service(self, container_services):
+        try:
+            def remove_services():
+                # Delete all the services which were started during test
+                for service in container_services:
+                    logger.debug(f"Deleting container service with ID : {service['Id']}")
+                    service_manager = ServiceManager()
+                    service_manager.delete_service(
+                        service_name_or_id=service['Id']
+                    )
 
-    
+            # Create a thread to run the remove_services function
+            thread = threading.Thread(target=remove_services)
+            thread.start()  # Start the thread without blocking the main thread
+        
+        except Exception as e:
+            logger.error("Exception while deleting the services")
+            # FIXME trigger the mail when this happens otherwise it may cause resource outage in the server
+            traceback.print_exc()
+            

@@ -67,13 +67,21 @@
   background-size: contain;
   transform: scale(1);
   transition: transform 0.2s ease-in-out;
+  position: relative;
   &:hover:not(.disabled) {
     transform: scale(1.1);
   }
   &.disabled {
-    opacity: 0.5;
+    background: none;
     cursor: not-allowed;
     pointer-events: none;
+  }
+  .run-spinner {
+    opacity: 0.5;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -127,10 +135,12 @@
 }
 
 .running {
-  height: 40px;
-  width: 40px;
-  background: url(^assets/running_loading_blue.svg) no-repeat;
-  background-size: contain;
+  cursor: pointer;
+  pointer-events: auto;
+  position: relative;
+  left: -6%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .notification {

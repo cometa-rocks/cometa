@@ -5,10 +5,10 @@
  *
  * @author dph000
  */
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
-import { Observable, switchMap, tap, map } from 'rxjs';
+import { Observable, switchMap, tap, map, filter, take } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { observableLast, Subscribe } from 'ngx-amvara-toolbox';
 import { NavigationService } from '@services/navigation.service';
@@ -83,7 +83,8 @@ export class L1FeatureItemListComponent implements OnInit {
     private _dialog: MatDialog,
     private _api: ApiService,
     private _snackBar: MatSnackBar,
-    private log: LogService
+    private log: LogService,
+    private cdr: ChangeDetectorRef    
   ) {}
 
   // Receives the item from the parent component
@@ -119,12 +120,6 @@ export class L1FeatureItemListComponent implements OnInit {
     // Subscribe to the running state comming from NGXS
     this.featureRunning$ = this._store.select(
       CustomSelectors.GetFeatureRunningStatus(this.feature_id)
-    ).pipe(
-      tap(running => {
-        if (!running) {
-          this.isButtonDisabled = false;
-        }
-      })
     );
     // Subscribe to the status message comming from NGXS
     this.featureStatus$ = this._store.select(
@@ -369,10 +364,18 @@ export class L1FeatureItemListComponent implements OnInit {
     });
   }
 
-  onRunClick() {
+  async onRunClick() {
     if (this.isButtonDisabled) return;
+    
     this.isButtonDisabled = true;
-    this._sharedActions.run(this.item.id);
+  
+    try {
+      await this._sharedActions.run(this.item.id);
+    } catch (error) {
+      console.error('Error running feature:', error);
+    } finally {
+      this.isButtonDisabled = false;
+    }
   }
-
+  
 }
