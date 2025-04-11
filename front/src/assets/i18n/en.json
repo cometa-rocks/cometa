@@ -215,5 +215,10 @@
   "mainView": {
     "allResults": "Show all features",
     "failureResults": "Show all failed features"
+  },
+  "feature": {
+    "starred": "This feature is in your favorites",
+    "not_starred": "Add to favorites"
   }
+
 }
