@@ -151,11 +151,21 @@ Author: dph000
       </div>
       <!-- Feature ID -->
       <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
+      <ng-container>
+        <div
+          class="star-feature-in-feature"
+          [matTooltip]="(isStarred$ | async) ? ('feature.starred' | translate) : ('feature.not_starred' | translate)"
+          matTooltipPosition="above">
+          <i class="material-icons">{{ (isStarred$ | async) ? 'star' : '' }}</i>
+        </div>
+      </ng-container>
+
+      <!-- Feature ID -->
       <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
         <ng-container>
           <p class="id-text">
             <span class="icon-container-clipboard">
-              <mat-icon class="clipboard-icon">content_copy</mat-icon>
+              <i class="material-icons clipboard-icon">content_copy</i>
             </span>
             <span class="id-label">ID:</span>
             <span class="id-container">
@@ -164,6 +174,8 @@ Author: dph000
           </p>
         </ng-container>
       </div>
+
+
 
 
       <!-- Feature browser -->
@@ -221,6 +233,15 @@ Author: dph000
           </button>
           <mat-divider></mat-divider>
         </ng-container>
+        <!-- Star feature -->
+        <button
+          mat-menu-item
+          (click)="toggleStarred($event)"
+          class="star-feature">
+          <mat-icon>{{ (isStarred$ | async) ? 'star' : 'star_border' }}</mat-icon>
+          <span>{{ (isStarred$ | async) ? 'Starred' : 'Star' }}</span>
+        </button>
+        <mat-divider></mat-divider>
         <!-- Edit feature -->
         <button
           *ngIf="canEditFeature$ | async"
