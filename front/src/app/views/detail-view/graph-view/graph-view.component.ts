@@ -59,6 +59,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansion';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 interface StepSummaryResponse {
   summary: {
     total_execution_time: number;
@@ -110,8 +111,8 @@ interface StepSummaryResponse {
     MatIconModule,
     MatLegacyTooltipModule,
     MatLegacyButtonModule,
-    MatExpansionModule
-
+    MatExpansionModule,
+    MatCheckboxModule
   ],
   providers: [
     GraphService
@@ -149,13 +150,14 @@ export class GraphViewComponent implements OnInit {
 
   summary!: {};
   graphs!: any;
-
+  removeOutliers: boolean = false;
   getGraphAndSummary() {
     this.isLoaded = false;
     let filter_data = {
       start_datetime: this.startDateTime,
       end_datetime: this.endDateTime,
-      group_by: this.groupBy
+      group_by: this.groupBy,
+      remove_outliers: this.removeOutliers
     }
     // Call the API with updated filters
     this._api.getStepSummaryGraph(this.stepResultId, filter_data).subscribe((response: StepSummaryResponse) => {
@@ -169,6 +171,7 @@ export class GraphViewComponent implements OnInit {
           verticalPosition: 'bottom'
         });
       }
+      console.log('response', response);
 
       this.summary = response.summary;
       this.graphs = response.graphs;
@@ -233,19 +236,24 @@ export class GraphViewComponent implements OnInit {
             .then(response => response.json())
             .then(data => {
               this.featureCreationDate = data.results[0].created_on;
-              //remove all after '.'
-              this.featureCreationDate = this.featureCreationDate.split('.')[0];
-              //If no saved filter dates, set default dates
-              if(localStorage.getItem('co_startDateTime') == ''){
-                this.startDateTime = this.featureCreationDate;
-              } else {
-                this.startDateTime = localStorage.getItem('co_startDateTime');
+              this.featureCreationDate = this.featureCreationDate.split('.')[0].slice(0, -3);
+          
+              // Only decide default or stored *after* featureCreationDate is ready
+              const savedStart = localStorage.getItem('co_startDateTime');
+              const savedEnd = localStorage.getItem('co_endDateTime');
+          
+              this.startDateTime = savedStart && savedStart !== '' ? savedStart : this.featureCreationDate;
+              this.endDateTime = savedEnd && savedEnd !== '' ? savedEnd : new Date().toISOString().slice(0, 16);
+          
+              // Optional: store defaults in localStorage
+              if (!savedStart || savedStart === '') {
+                localStorage.setItem('co_startDateTime', this.startDateTime);
               }
-              if(localStorage.getItem('co_endDateTime') == ''){
-                this.endDateTime = new Date().toISOString().slice(0, 16);
-              } else {
-                this.endDateTime = localStorage.getItem('co_endDateTime');
+              if (!savedEnd || savedEnd === '') {
+                localStorage.setItem('co_endDateTime', this.endDateTime);
               }
+          
+              this.onFilter();
             });
           return this.featureResultId;
         })
@@ -262,8 +270,7 @@ export class GraphViewComponent implements OnInit {
         })
       )
       .subscribe();
-
-    this.getGraphAndSummary();
+      
   };
 
   getImageSource(blob: string): SafeUrl {

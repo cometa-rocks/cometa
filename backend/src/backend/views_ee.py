@@ -106,13 +106,28 @@ def _figure_to_base64(fig):
     return f'data:image/png;base64,{encoded}'
 
 
-def convert_graph_to_blob_image(data_frame, group_by, figsize=(14, 4)):
+def _remove_outliers(data_frame, column='execution_time', lower_percentile=5, upper_percentile=95):
+    logger.debug(f"Removing outliers from DataFrame for column: {column}")
+    lower = data_frame[column].quantile(lower_percentile / 100)
+    upper = data_frame[column].quantile(upper_percentile / 100)
+    logger.debug(f"Outlier threshold for {column}: lower={lower}, upper={upper}")
+    return data_frame[(data_frame[column] >= lower) & (data_frame[column] <= upper)].copy()
+
+
+
+def convert_graph_to_blob_image(data_frame, group_by, remove_outliers, figsize=(14, 4)):
     logger.debug(f"Starting convert_graph_to_blob_image with group_by: {group_by}")
     logger.debug(f"Input DataFrame shape: {data_frame.shape}")
     
     graphs = []
-    
+    logger.debug(f"Execution time range before filtering: min={data_frame['execution_time'].min()}, max={data_frame['execution_time'].max()}")
     try:
+        if remove_outliers:
+            original_count = len(data_frame)
+            data_frame = _remove_outliers(data_frame)
+            logger.debug(f"Filtered outliers: {original_count - len(data_frame)} rows removed")
+        
+        logger.debug(f"Execution time range after filtering: min={data_frame['execution_time'].min()}, max={data_frame['execution_time'].max()}")
         # Grouping frequency map
         group_by_mapping = {"Hours": "H", "Hour": "H", "Day": "D", "Week": "W", "Month": "M"}
         group_by_pattern = group_by_mapping.get(group_by)
@@ -120,7 +135,8 @@ def convert_graph_to_blob_image(data_frame, group_by, figsize=(14, 4)):
 
         # Ensure 'result_date' is datetime
         logger.debug("Converting 'result_date' to datetime and setting index")
-        data_frame['result_date'] = pd.to_datetime(data_frame['result_date'])
+        # data_frame['result_date'] = pd.to_datetime(data_frame['result_date'])
+        data_frame.loc[:, 'result_date'] = pd.to_datetime(data_frame['result_date'])
         data_frame = data_frame.set_index('result_date')
 
         # Prepare execution time data
@@ -240,6 +256,9 @@ def getStepResultsGraph(request, step_result_id):
     end_datetime = end_datetime.isoformat()
             
     group_by = filter_data.get("group_by", "Day")
+    remove_outliers = filter_data.get("remove_outliers", False)
+    logger.debug(f"Remove outliers: {remove_outliers}")
+    
     if not group_by:
         group_by = "Day"
 
@@ -282,7 +301,7 @@ def getStepResultsGraph(request, step_result_id):
     }
     logger.debug("Calculated summary statistics")
 
-    graphs = convert_graph_to_blob_image(data_frame=df, group_by=group_by)
+    graphs = convert_graph_to_blob_image(data_frame=df, group_by=group_by, remove_outliers=remove_outliers)
     logger.debug(f"Generated {len(graphs)} graphs")
 
     # Convert the graph data to a format suitable for JSON response
