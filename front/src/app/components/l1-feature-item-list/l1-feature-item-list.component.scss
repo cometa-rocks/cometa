@@ -472,8 +472,8 @@ input {
   display: flex;
   position: absolute;
   left: 19px;
-  bottom: 8px;
-  mat-icon {
+  bottom: 13px;
+  i {
     color: #666;
     font-size: 18px;
   }
@@ -482,7 +482,7 @@ input {
 .feature-id {
   position: absolute;
   font-weight: bold;
-  bottom: 8px;
+  bottom: 11px;
   right: 17px;
   color: $dark;
   display: flex;
@@ -529,7 +529,7 @@ input {
     }
 
     &:hover {
-      mat-icon {
+      i {
         color: $secondary-color;
       }
     }
@@ -573,8 +573,8 @@ input {
 .feature-id:hover .icon-container-clipboard {
   opacity: 1;
   position: relative;
-  right: -5px;
-  top: 7px;
+  right: 5px;
+  top: 2px;
 }
 
 .clipboard-icon {
