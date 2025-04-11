@@ -2,7 +2,10 @@
 
 // Scss file for the starred features list
 
-// Author: dph000
+// Author: Redouan
+
+@import 'color';
+@import 'breakpoints';
 
 .container {
   height: 90vh;
@@ -12,5 +15,225 @@
     display: inline-block;
     vertical-align: middle;
     line-height: normal;
+  }
+}
+
+.starred-features-container {
+  .header-container {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+    background-color: $body-bg-color;
+
+    .readme-button {
+      background-color: transparent;
+      color: $blue;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 16px;
+      height: 36px;
+      border: 1px solid $blue;
+      border-radius: 4px;
+      cursor: pointer;
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      &:hover {
+        background-color: rgba($blue, 0.04);
+      }
+    }
+
+    .department-selector {
+      margin: 0;
+      mat-form-field {
+        width: 300px;
+        ::ng-deep {
+          .mat-form-field-wrapper {
+            padding-bottom: 0;
+          }
+          .mat-form-field-flex {
+            height: 50px;
+            align-items: center;
+          }
+          .mat-form-field-infix {
+            padding: 0;
+            border-top: 0;
+            display: flex;
+            align-items: center;
+          }
+          .mat-select-value {
+            line-height: 50px;
+            display: flex;
+            align-items: center;
+          }
+          .mat-form-field-underline {
+            bottom: 0;
+          }
+          .mat-form-field-label-wrapper {
+            top: -1.25em;
+          }
+          .mat-form-field-label {
+            display: flex;
+            align-items: center;
+          }
+        }
+        mat-icon {
+          color: $starred-color-deparment;
+          margin-right: 8px;
+          font-size: 20px;
+          height: 20px;
+          width: 20px;
+          line-height: 20px;
+        }
+      }
+    }
+  }
+
+  .readme-popup {
+    position: absolute;
+    z-index: 1000;
+    background-color: $body-bg-color;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 16px;
+    min-width: 300px;
+    max-width: 400px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+
+    .popup-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+
+      .device-icon {
+        font-size: 32px;
+        width: 32px;
+        height: 32px;
+        color: $blue;
+        flex-shrink: 0;
+      }
+
+      .popup-text {
+        margin: 0;
+        font-size: 14px;
+        color: $darker-step;
+        line-height: 1.4;
+      }
+    }
+  }
+
+  .department-selector {
+    margin: 0;
+    mat-form-field {
+      width: 300px;
+      ::ng-deep {
+        .mat-form-field-wrapper {
+          padding-bottom: 0;
+        }
+        .mat-form-field-flex {
+          height: 50px;
+          align-items: center;
+        }
+        .mat-form-field-infix {
+          padding: 0;
+          border-top: 0;
+          display: flex;
+          align-items: center;
+        }
+        .mat-select-value {
+          line-height: 50px;
+          display: flex;
+          align-items: center;
+        }
+        .mat-form-field-underline {
+          bottom: 0;
+        }
+        .mat-form-field-label-wrapper {
+          top: -1.25em;
+        }
+        .mat-form-field-label {
+          display: flex;
+          align-items: center;
+        }
+      }
+      mat-icon {
+        color: $starred-color-deparment;
+        margin-right: 8px;
+        font-size: 20px;
+        height: 20px;
+        width: 20px;
+        line-height: 20px;
+      }
+    }
+  }
+  .departments-container {
+    display: flex;
+    flex-direction: column;
+    .department-header {
+      display: flex;
+      align-items: center;
+      margin-left: 10px;
+      margin-bottom: 20px;
+    }
+  }
+}
+
+.starred-list {
+  .no-starred {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 40px;
+    margin-top: 40px;
+    color: $darker-step;
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+    }
+    p {
+      font-size: 16px;
+      margin: 0;
+      .department-name {
+        color: $blue;
+        font-weight: 500;
+      }
+    }
+  }
+  .department-section {
+    margin: 20px 0 40px 10px;
+    
+    &:last-child {
+      margin-bottom: 120px;
+    }
+    mat-icon {
+      color: $starred-color-deparment;
+      font-size: 24px;
+    }
+    .department-title {
+      color: $blue;
+      font-size: 20px;
+      font-weight: 500;
+      margin: 0 0 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .features-grid {
+      margin-right: 10px;
+    }
   }
 }

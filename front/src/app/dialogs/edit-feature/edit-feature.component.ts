@@ -98,6 +98,9 @@ import { MatExpansionModule, MatExpansionPanel } from '@angular/material/expansi
 import { NgIf, NgFor, AsyncPipe } from '@angular/common';
 import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { LogService } from '@services/log.service';
+import { MatSortModule, MatSort } from '@angular/material/sort';
+import { MatTableDataSource } from '@angular/material/table';
+
 
 @Component({
   selector: 'edit-feature',
@@ -223,6 +226,9 @@ export class EditFeature implements OnInit, OnDestroy {
   featureId: number;
 
   features: any[] = [];
+
+  // Original files Upload Files 
+  originalFiles: UploadedFile[] = [];
 
   constructor(
     public dialogRef: MatDialogRef<EditFeature>,
@@ -897,6 +903,36 @@ export class EditFeature implements OnInit, OnDestroy {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
+
+    // Initialize department if there's already a value in the form
+    if (this.featureForm.get('department_name').value) {
+      this.allDepartments$.subscribe(data => {
+        this.department = data.find(
+          dep => dep.department_name === this.featureForm.get('department_name').value
+        );
+        if (this.department?.files) {
+          this.originalFiles = [...this.department.files];
+        }
+        this.cdr.detectChanges();
+      });
+    }
+
+    // Subscribe to department name changes
+    this.featureForm
+      .get('department_name')
+      .valueChanges.subscribe(department_name => {
+        this.allDepartments$.subscribe(data => {
+          this.department = data.find(
+            dep => dep.department_name === department_name
+          );
+          if (this.department?.files) {
+            this.originalFiles = [...this.department.files];
+          }
+          this.fileUpload.validateFileUploadStatus(this.department);
+          this.cdr.detectChanges();
+        });
+      });
+
     // Initialize localStorage with a comment if it doesn't exist
     if (!localStorage.getItem('co_mat_expansion_states')) {
       localStorage.setItem('co_mat_expansion_states', JSON.stringify({
@@ -1469,4 +1505,23 @@ export class EditFeature implements OnInit, OnDestroy {
       this.isExpanded = false;
     }
   }
+
+  // Filter files in the upload files section
+  filterFiles(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value.toLowerCase();
+  
+    if (value === '') {
+      // If the input is empty, show all files
+      this.department.files = [...this.originalFiles];
+    } else {
+      // If there is text, filter the files
+      this.department.files = this.originalFiles.filter(file => 
+        file.name.toLowerCase().includes(value)
+      );
+    }
+    // Force change detection
+    this.cdr.detectChanges();
+  }
+
 }

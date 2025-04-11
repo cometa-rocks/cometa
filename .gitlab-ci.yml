@@ -103,9 +103,9 @@ stages:
     - docker exec cometa_django bash -c "curl http://localhost:8000/parseActions/ --silent --retry 5 --retry-delay 5"
     - echo -e "\e[0Ksection_end:`date +%s`:parse_actions\r\e[0K"
     # Update selenoid browsers in database
-    - echo -e "\e[0Ksection_start:`date +%s`:parse_browsers\r\e[0KParsing selenoid browsers to update database"
-    - docker exec cometa_django bash -c "curl http://localhost:8000/parseBrowsers/ --silent --retry 5 --retry-delay 5"
-    - echo -e "\e[0Ksection_end:`date +%s`:parse_browsers\r\e[0K"
+    # - echo -e "\e[0Ksection_start:`date +%s`:parse_browsers\r\e[0KParsing selenoid browsers to update database"
+    # - docker exec cometa_django bash -c "curl http://localhost:8000/parseBrowsers/ --silent --retry 5 --retry-delay 5"
+    # - echo -e "\e[0Ksection_end:`date +%s`:parse_browsers\r\e[0K"
 
     #########################################################
     # FRONTEND
