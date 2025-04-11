@@ -1,5 +1,5 @@
 {
-  "version": "3.0.29",
+  "version": "3.0.31",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,20 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.31",
+      "date": "2025-04-11",
+      "features": [
+        {
+          "title": "Chatbot improvements",
+          "description": "Browser language is now detected and used to answer questions in the chatbot. (Supported languages: English, German, Spanish, French, Japanese, Portuguese, Arabic, Czech, Italian, Korean, Dutch, and Chinese."
+        },
+        {
+          "title": "Favorites Feature Implementation #4694",
+          "description": "Introduced a new functionality allowing users to add features to their favorites for easier access."
+        }
+      ]
+    },    
     {
       "version": "3.0.30",
       "date": "2025-04-09",

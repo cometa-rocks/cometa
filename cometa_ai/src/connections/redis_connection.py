@@ -26,6 +26,7 @@ REDIS_IMAGE_ANALYSYS_QUEUE_NAME = os.getenv(
 REDIS_BROWSER_USE_QUEUE_NAME = os.getenv(
      "REDIS_BROWSER_USE_QUEUE_NAME", "browser_use_queue"
  )
+REDIS_CHATBOT_QUEUE_NAME = os.getenv("REDIS_CHATBOT_QUEUE_NAME", "chatbot_queue")
 REDIS_NUMBER_OF_WORKERS = int(os.getenv("REDIS_NUMBER_OF_WORKERS", 1))
 
 logger.debug(f"Connecting to redis host {REDIS_HOST}:{REDIS_PORT}")
