@@ -22,7 +22,7 @@ import {
   tap,
   catchError,
 } from 'rxjs/operators';
-import { ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FeaturesState } from '@store/features.state';
 import { SafeUrl, DomSanitizer } from '@angular/platform-browser';
 import { API_BASE } from 'app/tokens';
@@ -69,6 +69,7 @@ export class FeatureActionsComponent implements OnInit {
     private _ac: ActivatedRoute,
     private _sanitizer: DomSanitizer,
     public _sharedActions: SharedActionsService,
+    private _router: Router,
     @Inject(API_BASE) private _api_base: string
   ) {
     // Get feature id from URL params
@@ -141,6 +142,9 @@ export class FeatureActionsComponent implements OnInit {
     // - S: Schedule test
     // - N: Toggle notifications
     // Only if no dialog is opened
+    const testResultsPage = /^\/Default\/Default\/\d+$/.test(this._router.url);
+    console.log('this._router.url', this._router.url);
+    console.log('testResultsPage', testResultsPage);
     const isAnyDialogOpened =
       document.querySelectorAll('.mat-dialog-container').length > 0;
     if (!isAnyDialogOpened && !this._sharedActions.dialogActive) {
@@ -153,7 +157,9 @@ export class FeatureActionsComponent implements OnInit {
           }
           break;
         case KEY_CODES.C:
-          this.downloadCSV();
+          if(testResultsPage){
+            this.downloadCSV();
+          }
           break;
         case KEY_CODES.E:
           // this._sharedActions.dialogActive = true;

@@ -194,8 +194,8 @@ export class GraphViewComponent implements OnInit {
     const startDate = new Date(this.startDateTime);
     const endDate = new Date(this.endDateTime);
 
-    if (startDate > endDate) {
-      this.snack.open('Start date cannot be greater than end date', 'Close', {
+    if (startDate >= endDate) {
+      this.snack.open('Start date cannot be greater or equal than end date', 'Close', {
         duration: 4000,
         horizontalPosition: 'center',
         verticalPosition: 'bottom'
@@ -226,6 +226,12 @@ export class GraphViewComponent implements OnInit {
     if (!exists_end) {
       localStorage.setItem('co_endDateTime', '');
     }
+    //validate dates
+    if ( localStorage.getItem('co_startDateTime') >= localStorage.getItem('co_endDateTime') ) {
+      localStorage.setItem('co_startDateTime', '');
+      localStorage.setItem('co_endDateTime', '');
+    }
+
     // Get Feature Result info
     this._acRouted.paramMap
       .pipe(
@@ -270,7 +276,7 @@ export class GraphViewComponent implements OnInit {
         })
       )
       .subscribe();
-      
+
   };
 
   getImageSource(blob: string): SafeUrl {

@@ -169,22 +169,29 @@ export class DetailViewComponent implements OnInit {
     }
   }
 
-  @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
-    event: KeyboardEvent
-  ) {
-    // Handle keyboard arrows, for navigation of steps
-    // Only if user is not in zoom image view
-    if (this._dialog.openDialogs.length === 0) {
-      switch (event.keyCode) {
-        case KEY_CODES.RIGHT_ARROW:
-          this.next();
-          break;
-        case KEY_CODES.LEFT_ARROW:
-          this.previous();
-          break;
-        default:
-          break;
-      }
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    const activeElement = document.activeElement as HTMLElement;
+  
+    // Skip if a dialog is open
+    if (this._dialog.openDialogs.length > 0) return;
+  
+    // Skip if user is focused on an input/textarea/select
+    const isTyping =
+      activeElement.tagName === 'INPUT' ||
+      activeElement.tagName === 'TEXTAREA' ||
+      activeElement.tagName === 'SELECT' ||
+      activeElement.getAttribute('contenteditable') === 'true';
+    if (isTyping) return;
+  
+    // If not in focus, trigger shortcuts
+    switch (event.keyCode) {
+      case KEY_CODES.RIGHT_ARROW:
+        this.next();
+        break;
+      case KEY_CODES.LEFT_ARROW:
+        this.previous();
+        break;
     }
   }
 
