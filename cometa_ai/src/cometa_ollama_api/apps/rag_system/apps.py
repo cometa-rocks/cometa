@@ -26,6 +26,6 @@ class RagSystemConfig(AppConfig):
 
         # Import signals to register them
         try:
-            import chatbot.rag_system.signals
+            import apps.rag_system.signals
         except ImportError:
             pass 
