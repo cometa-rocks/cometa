@@ -123,7 +123,7 @@ export class HeaderComponent {
     const profilePage = this._router.url.startsWith('/my-account');
     const editFeatOpen = document.querySelector('edit-feature') as HTMLElement;
     // If true... return | only execute switch case if input focus is false
-    if (this.inputFocus || event.ctrlKey) return;
+    if (this.inputFocus || event.ctrlKey || event.metaKey) return;
 
     switch (event.keyCode) {
       case KEY_CODES.P:
