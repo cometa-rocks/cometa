@@ -127,9 +127,7 @@ export class L1FeatureItemListComponent implements OnInit {
       CustomSelectors.GetFeatureStatus(this.feature_id)
     ).pipe(
       tap(status => {
-        console.log('Feature status changed:', status);
         if (status === 'Feature completed' || status === 'completed' || status === 'success' || status === 'failed' || status === 'canceled') {
-          console.log('Feature completed, resetting states');
           this.isButtonDisabled = false;
           this.cdr.detectChanges();
         }
@@ -144,12 +142,7 @@ export class L1FeatureItemListComponent implements OnInit {
       CustomSelectors.GetFeatureRunningStatus(this.feature_id)
     ).pipe(
       tap(running => {
-        console.log('Feature running state changed:', running, 'Current states:', {
-          isButtonDisabled: this.isButtonDisabled
-        });
-        
         if (!running) {
-          console.log('Feature stopped running, resetting states');
           this.isButtonDisabled = false;
           this.cdr.detectChanges();
         }
