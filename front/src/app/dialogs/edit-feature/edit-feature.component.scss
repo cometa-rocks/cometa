@@ -320,3 +320,21 @@ button {
   flex-grow: 1; 
   max-height: calc(91dvh - 64px);
 }
+
+.search-field{
+  width: 100%;
+}
+
+.no-files-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-radius: 4px;
+  color: $blue;
+
+  mat-icon {
+    margin-right: 8px;
+    color: $blue;
+  }
+}
