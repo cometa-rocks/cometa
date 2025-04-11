@@ -133,7 +133,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/staticfiles/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
@@ -229,12 +229,12 @@ LOGGING = {
         #     'level': 'DEBUG',  # Show all API logs
         #     'propagate': False,
         # },
-        'chatbot': {
+        'apps.chatbot': {
             'handlers': ['console', 'file', 'error_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
-        'chatbot.rag_system': {
+        'apps.rag_system': {
             'handlers': ['console', 'file', 'error_file'],
             'level': 'DEBUG',
             'propagate': False,
