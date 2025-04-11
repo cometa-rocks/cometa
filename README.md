@@ -3,7 +3,7 @@
 <p  align="center">
 <h1  align="center">Cometa</h1>
 <p  align="center">
-Open source is the future. Co.Meta is an advanced & evolving meta-test product that has been made with ❤️ for DevOps and QA Engineers. <a  href="https://cometa.rocks/"><strong>Learn more</strong></a>
+Open source is the future. Co.Meta is an advanced & evolving meta-test product that has been made with ❤️ for DevOps and QA Engineers.
 <br>
 <br>
 <a  href="https://cometa.rocks/support/">Support</a>
