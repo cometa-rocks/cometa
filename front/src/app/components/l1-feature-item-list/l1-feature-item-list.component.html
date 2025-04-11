@@ -156,7 +156,7 @@ Author: dph000
           class="star-feature-in-feature"
           [matTooltip]="(isStarred$ | async) ? ('feature.starred' | translate) : ('feature.not_starred' | translate)"
           matTooltipPosition="above">
-          <mat-icon>{{ (isStarred$ | async) ? 'star' : '' }}</mat-icon>
+          <i class="material-icons">{{ (isStarred$ | async) ? 'star' : '' }}</i>
         </div>
       </ng-container>
 
@@ -165,7 +165,7 @@ Author: dph000
         <ng-container>
           <p class="id-text">
             <span class="icon-container-clipboard">
-              <mat-icon class="clipboard-icon">content_copy</mat-icon>
+              <i class="material-icons clipboard-icon">content_copy</i>
             </span>
             <span class="id-label">ID:</span>
             <span class="id-container">
