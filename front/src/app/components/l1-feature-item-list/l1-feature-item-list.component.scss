@@ -471,9 +471,9 @@ input {
 .star-feature-in-feature {
   display: flex;
   position: absolute;
-  right: 65px;
-  bottom: 8px;
-  mat-icon {
+  left: 19px;
+  bottom: 13px;
+  i {
     color: #666;
     font-size: 18px;
   }
@@ -482,12 +482,29 @@ input {
 .feature-id {
   position: absolute;
   font-weight: bold;
-  bottom: 8px;
+  bottom: 11px;
   right: 17px;
   color: $dark;
   display: flex;
   align-items: center;
   gap: 4px;
+  max-width: calc(100% - 50px);
+
+  .id-text {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: nowrap;
+    font-size: 15px;
+    max-width: 100%;
+  }
+
+  .id-container {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
 
   .star-button {
     width: 28px;
@@ -541,33 +558,12 @@ input {
       opacity: 0.8;
     }
 
-    .id-container {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-  
-  
   } 
 
 }
 
-.id-text {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  flex-wrap: nowrap;
-  font-size: 15px;
-}
-
 .id-label {
   margin-right: 3px;
-}
-
-.id-container {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .icon-container-clipboard {
@@ -577,8 +573,8 @@ input {
 .feature-id:hover .icon-container-clipboard {
   opacity: 1;
   position: relative;
-  right: -5px;
-  top: 7px;
+  right: 5px;
+  top: 2px;
 }
 
 .clipboard-icon {
