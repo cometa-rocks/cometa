@@ -6,7 +6,7 @@
 Open source is the future. Co.Meta is an advanced & evolving meta-test product that has been made with ❤️ for DevOps and QA Engineers.
 <br>
 <br>
-<a  href="https://cometa.rocks/support/">Support</a>
+<a  href="https://discord.gg/8z6dZvBz">Support</a>
 
 </p>
 
