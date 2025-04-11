@@ -127,9 +127,7 @@ export class L1FeatureItemListComponent implements OnInit {
       CustomSelectors.GetFeatureStatus(this.feature_id)
     ).pipe(
       tap(status => {
-        console.log('Feature status changed:', status);
         if (status === 'Feature completed' || status === 'completed' || status === 'success' || status === 'failed' || status === 'canceled') {
-          console.log('Feature completed, resetting states');
           this.isButtonDisabled = false;
           this.cdr.detectChanges();
         }
@@ -144,12 +142,7 @@ export class L1FeatureItemListComponent implements OnInit {
       CustomSelectors.GetFeatureRunningStatus(this.feature_id)
     ).pipe(
       tap(running => {
-        console.log('Feature running state changed:', running, 'Current states:', {
-          isButtonDisabled: this.isButtonDisabled
-        });
-        
         if (!running) {
-          console.log('Feature stopped running, resetting states');
           this.isButtonDisabled = false;
           this.cdr.detectChanges();
         }
@@ -416,6 +409,18 @@ export class L1FeatureItemListComponent implements OnInit {
   toggleStarred(event: Event): void {
     event.stopPropagation();
     this.starredService.toggleStarred(this.feature_id);
+    this.starredService.starredChanges$.pipe(
+      filter(event => event?.featureId === this.feature_id),
+      take(1)
+    ).subscribe(event => {
+      this._snackBar.open(
+        event?.action === 'add' 
+          ? `Feature ${this.item.id} (${this.item.name}) added to favorites` 
+          : `Feature ${this.item.id} (${this.item.name}) removed from favorites`,
+        'OK',
+        { duration: 2000 }
+      );
+    });
   }
 
 }
