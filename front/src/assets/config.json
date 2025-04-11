@@ -1,5 +1,5 @@
 {
-  "version": "3.0.31",
+  "version": "3.0.32",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,20 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.32",
+      "date": "2025-04-11",
+      "features": [
+        {
+          "title": "Filter files in Edit Feature dialog - #4694",
+          "description": "Added a file filter to the upload expansion panel within the Edit Feature dialog."
+        },
+        {
+          "title": "Upload Files section - #6070",
+          "description": "You can now see the files in the Upload Files section, as long as the other expansion panels are collapsed."
+        }
+      ]
+    },    
     {
       "version": "3.0.31",
       "date": "2025-04-11",
