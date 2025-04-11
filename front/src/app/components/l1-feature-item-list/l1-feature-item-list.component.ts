@@ -416,6 +416,18 @@ export class L1FeatureItemListComponent implements OnInit {
   toggleStarred(event: Event): void {
     event.stopPropagation();
     this.starredService.toggleStarred(this.feature_id);
+    this.starredService.starredChanges$.pipe(
+      filter(event => event?.featureId === this.feature_id),
+      take(1)
+    ).subscribe(event => {
+      this._snackBar.open(
+        event?.action === 'add' 
+          ? `Feature ${this.item.id} (${this.item.name}) added to favorites` 
+          : `Feature ${this.item.id} (${this.item.name}) removed from favorites`,
+        'OK',
+        { duration: 2000 }
+      );
+    });
   }
 
 }
