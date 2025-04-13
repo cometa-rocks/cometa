@@ -483,6 +483,16 @@
 
 .mobile-mat-icon-replay {
   font-size: 24px;
+  position: relative;
+  
+  .nested-videocam {
+    position: absolute;
+    font-size: 12px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 255, 255, 0.8);
+  }
 }
 
 .mobile-selector {
