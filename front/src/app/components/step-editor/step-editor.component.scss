@@ -111,12 +111,7 @@
     }
   }
   .prefix {
-    @include for-tablet-portrait-up {
-      margin-left: 125px;
-      margin-right: 25px;
-    }
-    flex: 0 0 50px;
-    margin-left: 60px;
+    flex: 0 0 80px;
     height: 50px;
     display: flex;
     align-items: center;
@@ -169,7 +164,7 @@
   }
   .step_content {
     padding: 12px 10px;
-    flex: 1;
+    flex: 0 0 760px;
     display: flex;
     position: relative;
 
@@ -398,7 +393,6 @@
 }
 
 .stepDescription {
-  // margin-left: -670px;
   text-align: left;
   letter-spacing: 0.7px;
   .stepDescriptionPar {
@@ -407,23 +401,11 @@
     word-wrap: break-word;
     word-break: break-word;
   }
-  .stepDescriptionPar:last-of-type {
-
-  }
 }
 .bluetext {
   color: $blue;
   font-weight: bold;
 }
-
-
-.cdk-overlay-container {
-  position: relative;
-}
-
-// :host::ng-deep .cdk-overlay-pane {
-//   position: fixed !important;
-// }
 
 ::ng-deep .mat-autocomplete-panel {
   position: absolute !important;
