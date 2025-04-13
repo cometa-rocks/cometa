@@ -19,7 +19,7 @@
   }
   @include for-tablet-landscape-up {
     width: 50%;
-    margin-bottom: 20px;
+    margin-bottom: 40px;
   }
   @include for-desktop-up {
     width: 33.333333%;
@@ -30,7 +30,7 @@
   float: left;
   position: relative;
   .wrapper {
-    height: 100%;
+    height: 115%;
     &.running {
       .run span,
       .run .run-test {
