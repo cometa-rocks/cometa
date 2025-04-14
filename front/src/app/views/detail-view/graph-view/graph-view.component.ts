@@ -141,7 +141,7 @@ export class GraphViewComponent implements OnInit {
   featureCreationDate: string = '';
   startDateTime: string = '';
   endDateTime: string = '';
-
+  
   filters = {
     start_datetime: "",
     end_datetime: "",
@@ -218,6 +218,14 @@ export class GraphViewComponent implements OnInit {
 
   ngOnInit() {
     //create localstorage variable, will save the startdate and edndate, if not exist, will save the current date
+    const exists_current_feature = localStorage.getItem('co_current_feature');
+    if(!exists_current_feature) {
+      localStorage.setItem('co_current_feature', this._acRouted.snapshot.params['feature']);
+    } else if(localStorage.getItem('co_current_feature') != this._acRouted.snapshot.params['feature']) {
+      localStorage.setItem('co_startDateTime', '');
+      localStorage.setItem('co_endDateTime', '');
+      localStorage.setItem('co_current_feature', this._acRouted.snapshot.params['feature']);
+    }
     const exists_start = localStorage.getItem('co_startDateTime');
     if (!exists_start) {
       localStorage.setItem('co_startDateTime', '');
@@ -226,6 +234,7 @@ export class GraphViewComponent implements OnInit {
     if (!exists_end) {
       localStorage.setItem('co_endDateTime', '');
     }
+    console.log("CURRENT FEATURE",localStorage.getItem('co_current_feature'));
     //validate dates
     if ( localStorage.getItem('co_startDateTime') >= localStorage.getItem('co_endDateTime') ) {
       localStorage.setItem('co_startDateTime', '');
