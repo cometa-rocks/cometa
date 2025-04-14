@@ -119,7 +119,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div>  
       </div>  
     </ng-template>
   </div>
@@ -358,7 +358,7 @@
                           </div>
                           <div
                             class="emulator-info"
-                            *ngIf="runningContainer">
+                            *ngIf="runningContainer; else noCodeTemplate">
                             <i class="material-icons">code</i>
                             <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
                             <i
@@ -369,6 +369,13 @@
                               content_copy
                             </i>
                           </div>
+
+                          <ng-template #noCodeTemplate>
+                            <div class="emulator-info">
+                              <i class="material-icons">code</i>
+                              <strong>Mobile Code:</strong> Click on 'Start' to see the device code
+                            </div>
+                          </ng-template>
 
                           <div class="emulator-info">
                             <button
@@ -425,20 +432,6 @@
                               Number installed Apps
 
                             </p>
-                              <!-- <mat-form-field class="select-app">
-                                <mat-label>Select App (extension <strong>.apk</strong>)</mat-label>
-                                <mat-select
-                                  [disabled]="!runningContainer"
-                                  id="apkFileSelectBox_{{ mobile.mobile_id }}"
-                                  [(value)]="selectedApps[mobile.mobile_id]"
-                                  (selectionChange)="updateAPKSelection($event, mobile, runningContainer)">
-                                  <mat-option
-                                    *ngFor="let apk_file of this.apkFiles"
-                                    [value]="apk_file.id">
-                                    {{ apk_file.name }}
-                                  </mat-option>
-                                </mat-select>
-                              </mat-form-field> -->
                           </div>
                         </div>
                       </div>
@@ -450,8 +443,9 @@
                         color="primary"
                         [ngClass]="{'disabled-toggle': runningContainer?.shared || !runningContainer?.shared}"
                         [disableRipple]="runningContainer?.shared || !runningContainer?.shared"
-                        (change)="preventToggle($event, runningContainer?.shared)"
+                        (change)="updateSharedStatus({checked: $event.checked}, mobile, runningContainer).subscribe()"
                         id="isShared_{{ mobile.mobile_id }}"
+                        [disabled]="runningContainer?.isTerminating || (runningContainer?.service_status !== 'Running' && runningContainer?.service_status !== 'Stopped')"
                         [checked]="runningContainer?.shared">
                       </mat-slide-toggle>
                     </div>
@@ -885,7 +879,7 @@
                           </div>
                           <div
                             class="emulator-info"
-                            *ngIf="runningContainer">
+                            *ngIf="runningContainer; else noCodeTemplate">
                             <i class="material-icons">code</i>
                             <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
                             <i
@@ -896,6 +890,13 @@
                               content_copy
                             </i>
                           </div>
+
+                          <ng-template #noCodeTemplate>
+                            <div class="emulator-info">
+                              <i class="material-icons">code</i>
+                              <strong>Mobile Code:</strong> Click on 'Start' to see the device code
+                            </div>
+                          </ng-template>
 
                           <div class="emulator-info">
                             <button
@@ -939,7 +940,6 @@
                             class="emulator-info">
                             <mat-icon
                               [matBadge]="runningContainer?.apk_file?.length"
-
                               class="get-app"
                               [matTooltip]="'mobile_list.apk_file' | translate"
                               matTooltipPosition="above">
@@ -952,20 +952,6 @@
                               Number installed Apps
 
                             </p>
-                              <!-- <mat-form-field class="select-app">
-                                <mat-label>Select App (extension <strong>.apk</strong>)</mat-label>
-                                <mat-select
-                                  [disabled]="!runningContainer"
-                                  id="apkFileSelectBox_{{ mobile.mobile_id }}"
-                                  [(value)]="selectedApps[mobile.mobile_id]"
-                                  (selectionChange)="updateAPKSelection($event, mobile, runningContainer)">
-                                  <mat-option
-                                    *ngFor="let apk_file of this.apkFiles"
-                                    [value]="apk_file.id">
-                                    {{ apk_file.name }}
-                                  </mat-option>
-                                </mat-select>
-                              </mat-form-field> -->
                           </div>
                         </div>
                       </div>
@@ -977,8 +963,9 @@
                           color="primary"
                           [ngClass]="{'disabled-toggle': runningContainer?.shared || !runningContainer?.shared}"
                           [disableRipple]="runningContainer?.shared || !runningContainer?.shared"
-                          (change)="preventToggle($event, runningContainer?.shared)"
+                          (change)="updateSharedStatus({checked: $event.checked}, mobile, runningContainer).subscribe()"                     
                           id="isShared_{{ mobile.mobile_id }}"
+                          [disabled]="runningContainer?.isTerminating || (runningContainer?.service_status !== 'Running' && runningContainer?.service_status !== 'Stopped')"
                           [checked]="runningContainer?.shared">
                         </mat-slide-toggle>
                       </div>
@@ -1084,8 +1071,6 @@
 
                           <mat-menu #moreInfo="matMenu">
                             <mat-menu-item class="pop-up-info">
-
-
                               <mat-menu-item>
                                 <i class="material-icons">info</i>
                                 <strong>Device Name:</strong> {{ container.image.mobile_json.deviceName }}

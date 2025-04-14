@@ -4,6 +4,7 @@ import {
   ChangeDetectorRef,
   OnInit,
   Inject,
+  OnDestroy,
 } from '@angular/core';
 
 import {
@@ -15,7 +16,7 @@ import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { BrowserFavouritedPipe } from '@pipes/browser-favourited.pipe';
 import { PlatformSortPipe } from '@pipes/platform-sort.pipe';
-import { map, Observable, Subject } from 'rxjs';
+import { catchError, map, Observable, Subject, throwError } from 'rxjs';
 import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslateModule } from '@ngx-translate/core';
 import { SortByPipe } from '@pipes/sort-by.pipe';
@@ -606,12 +607,14 @@ export class MobileListComponent implements OnInit {
           runningContainer
         },
         panelClass: 'mobile-emulator-panel-dialog',
-        disableClose: true,
+        disableClose: false,
       })
       .afterClosed()
       .subscribe(result => {
         if (result?.updatedContainer) {
+          // Update both shared status and apk_file
           runningContainer.shared = result.updatedContainer.shared;
+          runningContainer.apk_file = result.updatedContainer.apk_file;
           this._cdr.detectChanges();
         }
     });
@@ -727,10 +730,38 @@ export class MobileListComponent implements OnInit {
     return null;
   }
 
-
-
   compareDepartments(d1: any, d2: any): boolean {
     return d1 && d2 ? d1.id === d2.id : d1 === d2;
   }
+
+  // #########################################
+  // # BOTH DIALOG AND NOT DIALOG            #
+  // #########################################
+
+  updateSharedStatus(isShared: any, mobile: IMobile, container): Observable<any> {
+    let updateData = { shared: isShared.checked };
+
+    return this._api.updateMobile(container.id, updateData).pipe(
+      map((response: any) => {
+        if (response?.containerservice) {
+          container.shared = response.containerservice.shared;
+          this.snack.open(
+            `Mobile ${isShared.checked ? 'shared' : 'unshared'} with other users in this department`,
+            'OK'
+          );
+          this._cdr.detectChanges();
+          return container;
+        } else {
+          this.snack.open(response.message, 'OK');
+          throw new Error(response.message);
+        }
+      }),
+      catchError(error => {
+        return throwError(error);
+      })
+    );
+  }
+
+
 
 }
