@@ -3,7 +3,7 @@ import time
 import logging
 import json
 import sys
-import sys, requests, re, json
+import sys, requests, re, json, rstr
 import sys, requests, re, json, traceback, html
 
 import pandas as pd
@@ -213,15 +213,18 @@ def read_excel_row_to_environment(context, file_path, sheet_name, header_row_num
         # If specific row indices are provided, set header and select data row
         if header_row_number is not None and value_row_number is not None:
             # Ensure the row indices are within the DataFrame's range
-            table_rows = len(df)
+            table_rows = len(df)+1
             header_row_number = int(header_row_number)
             value_row_number = int(value_row_number)
             
-            if not 0 < header_row_number < table_rows:
+            if not 0 < header_row_number <= table_rows:
                 raise CustomError(f"Invalid header row index {header_row_number}, available rows are between 1 to {table_rows}")
             
-            if not 0 < value_row_number < table_rows:
-                raise CustomError(f"Invalid header row index {value_row_number}, available rows are between 1 to {table_rows}")            
+            if not 0 < value_row_number <= table_rows:
+                raise CustomError(f"Invalid header row index {value_row_number}, available rows are between 1 to {table_rows}")    
+            
+            if header_row_number >= value_row_number:
+                raise CustomError(f"header_row_number should be less then the value_row_number")    
 
         header_row_number = header_row_number - 2
         value_row_number = value_row_number - 2
@@ -325,3 +328,34 @@ def generate_fake_data_store_in_variable(context, information, variable):
         raise CustomError(f"'Information type : {information}' not available. Available types are {get_faker_public_methods()}")
 
 
+
+@step(u'Generate random string based on "{regex_pattern}" and store in "{variable}"')
+@done(u'Generate random string based on "{regex_pattern}" and store in "{variable}"')
+def generate_random_string(context, regex_pattern, variable):
+    send_step_details(context, f"Generating value based on given regex")
+    def safe_generate(pattern, validator_pattern=None):
+            
+        try:
+            generated = rstr.xeger(pattern)
+            if validator_pattern:
+                if re.fullmatch(validator_pattern, generated):
+                    return generated
+            else:
+                return generated
+        except re.error as e:
+            print(f"[Regex Error] Invalid pattern: {pattern}")
+            raise  CustomError(f"[Regex Error] Invalid pattern: {pattern}")
+    
+    try:
+        generated = safe_generate(regex_pattern)
+        value = generated
+        addTestRuntimeVariable(context, variable, value, save_to_step_report=True)
+    except Exception as e:
+        # logger.exception(e)
+        raise CustomError(f"'Exception while processing regex, {str(e)}")
+    
+
+        
+    
+    
+    
