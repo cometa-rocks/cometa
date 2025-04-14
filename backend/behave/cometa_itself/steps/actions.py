@@ -1557,6 +1557,38 @@ def step_impl(context, xpath):
     if not click_on_element(elem[0]):
         raise CustomError("Unable to click on element with XPATH %s" % xpath)
 
+# Use this step when a message or popup disappears so quickly 
+# Examples: 
+#   1. click on "//button[text()="save"]" and assert element "//p[contains(text(),'success')]" to "appeared"
+#   1. click on "//button[text()="save"]" and assert element "//p[contains(text(),'success')]" to "present"
+@step(u'click on "{click_element}" and assert element "{wait_element}" to "{appeared_or_present}"')
+@done(u'click on "{click_element}" and assert element "{wait_element}" to "{appeared_or_present}"')
+def step_impl(context, click_element, wait_element, appeared_or_present):
+    send_step_details(context, 'Looking for xpath element')
+    elem = waitSelector(context, "css", click_element)
+    if not click_on_element(elem[0]):
+        raise CustomError("Unable to click on element %s" % click_element)
+    
+    if appeared_or_present not in ["present","appeared"]:
+        raise CustomError("'appear_or_present' value can be 'present' or 'appeared' ")
+    
+    send_step_details(context, f"Validating if selector '{wait_element}' is {appeared_or_present}")
+        # Use waitSelector to get the element
+    element = waitSelector(context, "css", wait_element)
+    if type(element) == list:
+        element = element[0]
+    if not element:
+        raise CustomError("Element is not present")
+    if appeared_or_present == 'appeared':
+        send_step_details(context, f"Element is present, checking for visiblity")
+        while True:
+            if element.is_displayed():
+               break
+            time.sleep(1)
+            
+    send_step_details(context, f"Selector '{wait_element}' is {appeared_or_present}")
+    
+    
 # Scroll to an element using a CSS Selector
 # Example: Scroll to element with css selector "#submit-button"
 @step(u'Scroll to element with css selector "{selector}"')
