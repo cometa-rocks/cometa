@@ -403,11 +403,16 @@ export class StepViewComponent implements OnInit {
   }
 
   openStepNotes(item) {
-    this._dialog.open(StepNotesComponent, {
-      data: item.notes,
+    const content = JSON.parse(item.notes.content);
+    this._dialog.open(JsonViewerComponent, {
+      data: {
+        responses: content,
+        stepNameVar: item.step_name
+      },
       width: '100vw',
-      maxHeight: '80vh',
-      maxWidth: '75vw',
+      maxHeight: '90vh',
+      maxWidth: '85vw',
+      panelClass: 'rest-api-panel',
     });
   }
 }
