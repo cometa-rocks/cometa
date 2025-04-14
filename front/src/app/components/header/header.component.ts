@@ -148,7 +148,7 @@ export class HeaderComponent {
           this.openedMenu = !this.openedMenu;
         }
         break;
-      case KEY_CODES.C:
+      case KEY_CODES.H:
         if(editFeatOpen == null){
           const cometaDiv = document.querySelector('div.fLeft div.title') as HTMLElement;
           if (cometaDiv) {
