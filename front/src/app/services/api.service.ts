@@ -180,7 +180,7 @@ export class ApiService {
       .pipe(map(res => res.result));
   }
 
-  // Parse JQ
+  // Parse JQ, if content is a rest api id
   getParsedJQFilter(filter: string, rest_id: number) {
     return this._http.post<Success>(
       `${this.base}compile_jq/`,
@@ -196,6 +196,24 @@ export class ApiService {
       }
     );
   }
+
+
+    // Parse JQ, if content is a json or string
+    getParsedJQFilter_content(filter: string, content: any) {
+      return this._http.post<Success>(
+        `${this.base}compile_jq/`,
+        {
+          pattern: filter,
+          content: content,
+        },
+        {
+          params: new InterceptorParams({
+            skipInterceptor: true,
+            silent: true,
+          }),
+        }
+      );
+    }
 
   /**
    * Retrieves the requested step result object by ID
