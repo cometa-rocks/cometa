@@ -379,26 +379,39 @@ def getStepResultParents(step_result_id):
 
 @csrf_exempt
 def featureRunning(request, feature_id, *args, **kwargs):
+    
+    
     """
     This view acts as a proxy for <sw_server>/featureStatus/:feature_id
     """
-    # Changing this logic to read feature state from socket to Feature_task table
-    # Because while killing feature task it is done by deleting the Feature_task but when checking the isFeatureRunning state is checked from websocket connection
-    # which make it unstable in some cases
-    tasks = Feature_Task.objects.filter(feature_id=feature_id).select_related('feature_result_id')
-    
-    content = {"running":False}
-    
-    if len(tasks)>0:
-        content["running"]=True
-    
+    request_response = requests.get(f'{get_cometa_socket_url()}/featureStatus/%d' % int(feature_id))
     django_response = HttpResponse(
-        content=json.dumps(content),
-        status=200,
-        content_type="application/json"
+        content=request_response.content,
+        status=request_response.status_code,
+        content_type=request_response.headers['Content-Type']
     )
-    
     return django_response
+
+    # """
+    # This view acts as a proxy for <sw_server>/featureStatus/:feature_id
+    # """
+    # # Changing this logic to read feature state from socket to Feature_task table
+    # # Because while killing feature task it is done by deleting the Feature_task but when checking the isFeatureRunning state is checked from websocket connection
+    # # which make it unstable in some cases
+    # tasks = Feature_Task.objects.filter(feature_id=feature_id).select_related('feature_result_id')
+    
+    # content = {"running":False}
+    
+    # if len(tasks)>0:
+    #     content["running"]=True
+    
+    # django_response = HttpResponse(
+    #     content=json.dumps(content),
+    #     status=200,
+    #     content_type="application/json"
+    # )
+    
+    # return django_response
 
 
 @csrf_exempt
@@ -3449,9 +3462,10 @@ def KillTask(request, feature_id):
         request = requests.get(f'{get_cometa_behave_url()}/kill_task/' + str(task.pid) + "/")
         
         Feature_Task.objects.filter(pid=task.pid).delete()
-    if len(tasks) > 0:
+    # if len(tasks) > 0:
         # Force state of stopped for current feature in WebSocket Server
-        request = requests.get(f'{get_cometa_socket_url()}/feature/%s/killed' % feature_id)
+    requests.get(f'{get_cometa_socket_url()}/feature/%s/killed' % feature_id)
+    
     return JsonResponse({"success": True, "tasks": len(tasks)}, status=200)
 
 @csrf_exempt
