@@ -122,7 +122,7 @@ export class GraphViewComponent implements OnInit {
   ready = new BehaviorSubject<boolean>(false);
   featureResultId: number;
   stepResultId: number;
-  groupBy: string = 'Day';
+  groupBy: string = 'None';
   isLoaded: boolean = false;
 
   constructor(
@@ -267,7 +267,20 @@ export class GraphViewComponent implements OnInit {
               if (!savedEnd || savedEnd === '') {
                 localStorage.setItem('co_endDateTime', this.endDateTime);
               }
-          
+              //sets the groupby to the closest time frame depending on the time difference between start and end date only if groupby is None
+              const time_difference = new Date(this.endDateTime).getTime() - new Date(this.startDateTime).getTime();
+              if(this.groupBy == 'None') {
+                if(time_difference > 12 * 30 * 24 * 60 * 60 * 1000) {
+                  this.groupBy = 'Month';
+                } else if(time_difference > 7 * 24 * 60 * 60 * 1000) {
+                  this.groupBy = 'Week';
+                } else if(time_difference > 24 * 60 * 60 * 1000) {
+                  this.groupBy = 'Day';
+                } else {
+                  this.groupBy = 'Hours';
+                }
+              }
+
               this.onFilter();
             });
           return this.featureResultId;
