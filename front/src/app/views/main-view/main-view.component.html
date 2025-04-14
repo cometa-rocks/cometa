@@ -153,7 +153,7 @@
               [matBadge]="row.mobile.length > 1 ? row.mobile.length : null"
               matBadgeSize="small">
               tablet_mac
-              <mat-icon class="nested-videocam">videocam</mat-icon>
+              <i class="nested-videocam material-icons">videocam</i>
             </mat-icon>
             <ng-container *ngIf="row.mobile && row.mobile.length > 1 && button.class === 'replay-button-2'">
               <mat-select
@@ -247,11 +247,11 @@
       [checked]="archived$ | async"
       (click)="handleArchived()">
     <ng-container *ngIf="archived; else showIcon">
-      <mat-icon>visibility_off</mat-icon>
+      <i class="material-icons">visibility_off</i>
       Hide archived items
     </ng-container>
     <ng-template #showIcon>
-      <mat-icon>visibility</mat-icon>
+      <i class="material-icons">visibility</i>
       Show archived items
     </ng-template>
     </button>

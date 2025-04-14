@@ -170,12 +170,13 @@ export class ModifyEmulatorDialogComponent {
       this.logger.msg("1", "App-seleccionada:", "modify-emulator", selectedApp);
       this.updateSharedStatus({ checked: isShared }, this.data.mobile, this.data.runningContainer)
         .subscribe((updatedContainer: any) => {
-
           // for each apk
           this.selectedApks.forEach(apk => {
             this.installAPK(apk.id, updatedContainer);
           });
 
+          // Update the container's apk_file array with the new APKs
+          updatedContainer.apk_file = this.selectedApks.map(apk => apk.id);
           this.dialogRef.close({ updatedContainer });
         });
     } else {
@@ -184,6 +185,8 @@ export class ModifyEmulatorDialogComponent {
         this.installAPK(apk.id, this.data.runningContainer);
       });
 
+      // Update the container's apk_file array with the new APKs
+      this.data.runningContainer.apk_file = this.selectedApks.map(apk => apk.id);
       this.dialogRef.close({ updatedContainer: this.data.runningContainer });
     }
   }
