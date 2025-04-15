@@ -58,6 +58,7 @@ import { KEY_CODES } from '@others/enums';
 import { ElementRef, HostListener } from '@angular/core';
 import { InputFocusService } from '@services/inputFocus.service';
 import { TranslateModule } from '@ngx-translate/core';
+import { ApiTestingComponent } from '../api-testing/api-testing.component';
 
 @UntilDestroy()
 @Component({
@@ -121,7 +122,8 @@ import { TranslateModule } from '@ngx-translate/core';
     L1FeatureTrashbinListComponent,
     MobileListComponent,
     AsyncPipe,
-    TranslateModule
+    TranslateModule,
+    ApiTestingComponent
   ],
 })
 export class L1LandingComponent implements OnInit {
