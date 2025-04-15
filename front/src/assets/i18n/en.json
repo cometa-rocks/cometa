@@ -182,6 +182,10 @@
     "last-run": "Last run: ",
     "no-last-run": "Last run: No runs have been made yet"
   },
+  "api_testing": {
+    "api_testing": "API Testing",
+    "api_testing_presentation": "Run API tests based on an endpoint and a set of parameters"
+  },
   "mobile_list": {
     "emulator_options": "Emulator options",
     "mobile_presentation": "Run mobile tests based on automation configurations",

@@ -260,6 +260,15 @@ Author: dph000
       <mobile-list></mobile-list>
     </ng-container>
 
+
+    <!-- Opens the API Testing page -->
+    <ng-container *ngIf="(aciveList$ | async) == 'api-testing'">
+      <cometa-l1-filter
+      class="filter-bar"
+      [filters$]="filters$ | async"></cometa-l1-filter>
+      <cometa-api-testing></cometa-api-testing>
+    </ng-container>
+
     <!-- List of the Department variables -->
     <!-- DEPARTMENT VARIABLES -->
     <ng-container *ngIf="(aciveList$ | async) == 'variables'">
