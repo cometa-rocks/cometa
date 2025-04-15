@@ -19,7 +19,7 @@
   }
   @include for-tablet-landscape-up {
     width: 50%;
-    margin-bottom: 40px;
+    margin-bottom: 55px;
   }
   @include for-desktop-up {
     width: 33.333333%;
@@ -128,6 +128,11 @@
       0 3px 1px -2px rgba(0, 0, 0, 0.2),
       0 2px 2px 0 rgba(0, 0, 0, 0.14),
       0 1px 5px 0 rgba(0, 0, 0, 0.12);
+
+    &:hover,
+    &.menu-open {
+      box-shadow: 0 1px 2.5px;
+    }
   }
   .options {
     position: absolute;
@@ -212,7 +217,7 @@
   }
   // Rear part of the folder
   .folder-behind {
-    margin-top: -170px;
+    margin-top: -195px;
     background-color: $folder-back;
     box-shadow: none;
     height: calc(100% + 20px);
@@ -260,10 +265,10 @@ input {
   pointer-events: none;
   &.visible {
     opacity: 1;
-    left: -1.5px;
+    left: 0px;
     pointer-events: initial;
   }
-  top: -27px;
+  top: -25px;
   width: 100%;
   max-width: 50%;
   overflow: hidden;
