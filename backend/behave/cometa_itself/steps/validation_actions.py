@@ -70,7 +70,10 @@ def validate_element_visibility(context, selector, time, variable):
         element = waitSelector(context, "css", selector, max_timeout=int(time))
         if type(element) == list:
             element = element[0]
+            
+        logger.debug(f"{selector} element is present, checking for visibility")
         result = element.is_displayed()  # Check if the element is visible
+        logger.debug(f"{selector} element is visible")
         send_step_details(context, f"Selector '{selector}' appeared: {result}")
     except Exception as e:
         result = False  # If an exception occurs, the element is not visible
