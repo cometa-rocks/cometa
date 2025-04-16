@@ -197,12 +197,16 @@ export class ModifyEmulatorDialogComponent {
       return;
     }
     let updateData = { apk_file: apk_id};
+    console.log("Update data", updateData);
     this._api.updateMobile(this.data.runningContainer.id, updateData).subscribe(
 
       (response: any) => {
+        console.log("Response", response);
+        console.log("Response containerservice", response.containerservice);
         if (response && response.containerservice) {
           container = response.containerservice;
-          this.logger.msg("1", "container inside: ", "", container);
+          console.log("Container", container);
+          // this.logger.msg("1", "container inside: ", "", container);
           this.snack.open(
             `APK Installed in the mobile ${this.data.mobile.mobile_image_name}`,
             'OK'
