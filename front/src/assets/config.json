@@ -1,5 +1,5 @@
 {
-  "version": "3.0.32",
+  "version": "3.0.34",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,8 +237,32 @@
   ],
   "changelog": [
     {
+      "version": "3.0.34",
+      "date": "2025-04-17",
+      "features": [
+        {
+          "title": "#6074 Browser-use integration for AI browsers",
+          "description": "Use AI with browser to perform automate the webapplication by providing the prompts"
+        },
+        {
+          "title": "Feature run button improvements",
+          "description": "Prevent clicks when button is disabled and feature is not running"
+        }
+      ]
+    },  
+    {
+      "version": "3.0.33",
+      "date": "2025-04-14",
+      "features": [
+        {
+          "title": "Feature variables dialog improved - #6025",
+          "description": "Added a better json view to the feature variables dialog, this view comes with a jq assertion field to filter the json content."
+        }
+      ]
+    },    
+    {
       "version": "3.0.32",
-      "date": "2025-04-11",
+      "date": "2025-04-14",
       "features": [
         {
           "title": "Filter files in Edit Feature dialog - #4694",

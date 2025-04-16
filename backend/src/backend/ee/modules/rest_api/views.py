@@ -90,10 +90,11 @@ def compileJQ(request):
         content = data.get('content')
 
     pattern = data.get('pattern')
-    try:
-        content = json.loads(content)
-    except Exception as err:
-        logger.exception(err)
+    if isinstance(content, str):
+        try:
+            content = json.loads(content)
+        except Exception as err:
+            logger.exception("Failed to parse content JSON string", err)
     
     try:
         import jq

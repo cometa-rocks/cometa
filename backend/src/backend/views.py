@@ -379,26 +379,39 @@ def getStepResultParents(step_result_id):
 
 @csrf_exempt
 def featureRunning(request, feature_id, *args, **kwargs):
+    
+    
     """
     This view acts as a proxy for <sw_server>/featureStatus/:feature_id
     """
-    # Changing this logic to read feature state from socket to Feature_task table
-    # Because while killing feature task it is done by deleting the Feature_task but when checking the isFeatureRunning state is checked from websocket connection
-    # which make it unstable in some cases
-    tasks = Feature_Task.objects.filter(feature_id=feature_id).select_related('feature_result_id')
-    
-    content = {"running":False}
-    
-    if len(tasks)>0:
-        content["running"]=True
-    
+    request_response = requests.get(f'{get_cometa_socket_url()}/featureStatus/%d' % int(feature_id))
     django_response = HttpResponse(
-        content=json.dumps(content),
-        status=200,
-        content_type="application/json"
+        content=request_response.content,
+        status=request_response.status_code,
+        content_type=request_response.headers['Content-Type']
     )
-    
     return django_response
+
+    # """
+    # This view acts as a proxy for <sw_server>/featureStatus/:feature_id
+    # """
+    # # Changing this logic to read feature state from socket to Feature_task table
+    # # Because while killing feature task it is done by deleting the Feature_task but when checking the isFeatureRunning state is checked from websocket connection
+    # # which make it unstable in some cases
+    # tasks = Feature_Task.objects.filter(feature_id=feature_id).select_related('feature_result_id')
+    
+    # content = {"running":False}
+    
+    # if len(tasks)>0:
+    #     content["running"]=True
+    
+    # django_response = HttpResponse(
+    #     content=json.dumps(content),
+    #     status=200,
+    #     content_type="application/json"
+    # )
+    
+    # return django_response
 
 
 @csrf_exempt
@@ -1353,8 +1366,7 @@ def CheckBrowserstackVideo(request):
     return django_response
 
 
-@csrf_exempt
-def parseBrowsers(request):
+def __selenoid_browsers(request): 
     browsersFile = '/code/selenoid/browsers.json'
     emulatedBrowsersFile = '/code/selenoid/mobile_browsers.json'
     # Check if browser.json file exists
@@ -1410,8 +1422,8 @@ def pull_images(images_to_pull):
     for image in images_to_pull:
         docker_service_manager.pull_image(image)
 
-@csrf_exempt
-def parseCometaBrowsers(request):
+
+def __parseCometaBrowsers(request):
     # parses latest n (at the moment 3) versions of cometa browsers and saves them in the Browser model
     # starts a thread to call the pull images script
     # when thread finishes, this method returns success.
@@ -1492,6 +1504,18 @@ def parseCometaBrowsers(request):
     logger.info("----------IMAGE PULLING THREAD STARTED SUCCESSFULLY----------")
     # return success
     return JsonResponse({'success': True})
+
+
+@csrf_exempt
+def parseBrowsers(request):
+    
+    if ConfigurationManager.get_configuration("USE_COMETA_BROWSER_IMAGES")=="True":
+        logger.debug(f"Value of USE_COMETA_BROWSER_IMAGES is 'True', Updating cometa browser images")
+        return __parseCometaBrowsers(request=request)
+    else:
+        logger.debug(f"Value of USE_COMETA_BROWSER_IMAGES is 'False', Updating cometa browser images")
+        return __selenoid_browsers(request=request)
+    
 
 
 @csrf_exempt
@@ -3449,9 +3473,10 @@ def KillTask(request, feature_id):
         request = requests.get(f'{get_cometa_behave_url()}/kill_task/' + str(task.pid) + "/")
         
         Feature_Task.objects.filter(pid=task.pid).delete()
-    if len(tasks) > 0:
+    # if len(tasks) > 0:
         # Force state of stopped for current feature in WebSocket Server
-        request = requests.get(f'{get_cometa_socket_url()}/feature/%s/killed' % feature_id)
+    requests.get(f'{get_cometa_socket_url()}/feature/%s/killed' % feature_id)
+    
     return JsonResponse({"success": True, "tasks": len(tasks)}, status=200)
 
 @csrf_exempt
