@@ -98,9 +98,9 @@ export class L1FeatureItemListComponent implements OnInit {
   private hasHandledMouseOver = false;
   private hasHandledMouseOverFolder = false;
   finder: boolean = false;
-  isButtonDisabled: boolean = false;
   running: boolean = false;
-  hasBackendConfirmation: boolean = false;
+  isButtonDisabled: boolean = false;
+  running$: Observable<boolean>;
 
   /**
    * Global variables
@@ -113,6 +113,7 @@ export class L1FeatureItemListComponent implements OnInit {
   isAnyFeatureRunning$: Observable<boolean>;
   departmentFolders$: Observable<Folder[]>;
   isStarred$: Observable<boolean>;
+  
 
   // NgOnInit
   ngOnInit() {
@@ -142,7 +143,9 @@ export class L1FeatureItemListComponent implements OnInit {
       CustomSelectors.GetFeatureRunningStatus(this.feature_id)
     ).pipe(
       tap(running => {
+        
         if (!running) {
+          // console.log('Feature stopped running, resetting states');
           this.isButtonDisabled = false;
           this.cdr.detectChanges();
         }
@@ -394,13 +397,23 @@ export class L1FeatureItemListComponent implements OnInit {
   }
 
   async onRunClick() {
+    // Prevent clicks when button is disabled and feature is not running
+    if (this.isButtonDisabled && !this.running) {
+      return;
+    }
+
+    // Check if feature has browsers selected
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      this._snackBar.open("This feature doesn't have browsers selected.", 'OK');
+      return;
+    }
+
     this.isButtonDisabled = true;
     this.cdr.detectChanges();
 
     try {
       await this._sharedActions.run(this.item.id);
     } catch (error) {
-      console.error('Error running feature:', error);
       this.isButtonDisabled = false;
       this.cdr.detectChanges();
     }
