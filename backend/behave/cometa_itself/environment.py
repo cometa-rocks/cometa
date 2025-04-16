@@ -233,6 +233,8 @@ def before_all(context):
     # get the connection URL for the browser
     connection_url = os.environ["CONNECTION_URL"]
     context.connection_url = os.environ["CONNECTION_URL"]
+    context.websocket_url = None
+    context.playwright_browser = None
     # set loop settings
     context.insideLoop = False  # meaning we are inside a loop
     context.jumpLoopIndex = (
