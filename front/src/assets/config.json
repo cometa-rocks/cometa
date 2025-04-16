@@ -237,6 +237,16 @@
   ],
   "changelog": [
     {
+      "version": "3.0.34",
+      "date": "2025-04-17",
+      "features": [
+        {
+          "title": "#6074 Browser-use integration for AI browsers",
+          "description": "Use AI with browser to perform automate the webapplication by providing the prompts"
+        }
+      ]
+    },
+    {
       "version": "3.0.33",
       "date": "2025-04-14",
       "features": [
