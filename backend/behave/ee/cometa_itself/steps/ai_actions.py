@@ -465,8 +465,6 @@ def start_execution_of_browser_use_action(context, prompt):
         logger.debug(f"CDP endpoint: {context.websocket_url}")
         logger.debug(f"Step timeout: {step_timeout} seconds")
 
-        get_cdp_endpoint(context)
-        
         # Prepare browser context with session details
         browser_context = {
             'cdp_endpoint': context.websocket_url,
