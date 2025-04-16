@@ -231,8 +231,8 @@ export class SharedActionsService {
                   `Feature ${feature.feature_name} is running...`,
                   'OK'
                 );
-                // Make view live steps popup optional
-                // this.openLiveSteps();
+                // Open live steps dialog after starting the feature
+                this.openLiveSteps(featureId);
               },
               err => {
                 this._snackBar.open('An error ocurred', 'OK');
