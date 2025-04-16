@@ -16,7 +16,7 @@ import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { BrowserFavouritedPipe } from '@pipes/browser-favourited.pipe';
 import { PlatformSortPipe } from '@pipes/platform-sort.pipe';
-import { catchError, map, Observable, Subject, throwError } from 'rxjs';
+import { catchError, map, Observable, Subject, throwError, BehaviorSubject, Subscription } from 'rxjs';
 import { UntilDestroy } from '@ngneat/until-destroy';
 import { TranslateModule } from '@ngx-translate/core';
 import { SortByPipe } from '@pipes/sort-by.pipe';
@@ -68,6 +68,8 @@ import {
   Validators,
   UntypedFormBuilder,
 } from '@angular/forms';
+import { takeUntil } from 'rxjs/operators';
+import { interval } from 'rxjs';
 
 
 /**
@@ -125,8 +127,13 @@ import {
     MatBadgeModule,
   ],
 })
-export class MobileListComponent implements OnInit {
+export class MobileListComponent implements OnInit, OnDestroy {
   featureForm: UntypedFormGroup;
+  private destroy$ = new Subject<void>();
+  private updateInterval = 5000; // 5 seconds
+  private intervalSubscription: Subscription;
+  private containersSubscription: Subscription;
+
   constructor(
     private _dialog: MatDialog,
     private _api: ApiService,
@@ -164,7 +171,6 @@ export class MobileListComponent implements OnInit {
   };
 
   departments$: Department[] = [];
-  destroy$ = new Subject<void>();
   departments: Department[] = [];
   apkFiles: any[] = [];
   configValueBoolean: boolean = false;
@@ -174,19 +180,16 @@ export class MobileListComponent implements OnInit {
   preselectDepartment: number;
 
   ngOnInit(): void {
+    this.cleanupSubscriptions();
     this.departments = this.user.departments;
-
     this.isDialog = this.data?.department_id ? true : false;
+    this.sharedMobileContainers = [];
 
     if(!this.isDialog ){
       if (this.user && this.user.departments) {
-
-        // User preselect department
         this.preselectDepartment = this.user.settings?.preselectDepartment;
-
         let selected = this.departments.find(department => department.department_id === this.preselectDepartment);
 
-        // Si no hay preselectDepartment o no se encuentra, tomar el primero de la lista
         if (!selected && this.departments.length > 0) {
           selected = this.departments[0];
         }
@@ -202,15 +205,13 @@ export class MobileListComponent implements OnInit {
       this.selectedDepartment = { id: selected.department_id, name: selected.department_name };
     }
 
-
     this._api.getCometaConfigurations().subscribe(res => {
-
       const config_feature_mobile = res.find((item: any) => item.configuration_name === 'COMETA_FEATURE_MOBILE_TEST_ENABLED');
       if (config_feature_mobile) {
         this.configValueBoolean = !!JSON.parse(config_feature_mobile.configuration_value.toLowerCase());
       }
       this.isLoading = false;
-    })
+    });
 
     const terminatingContainerIds = JSON.parse(localStorage.getItem('terminatingContainers') || '[]');
     terminatingContainerIds.forEach((containerId: number) => {
@@ -296,6 +297,32 @@ export class MobileListComponent implements OnInit {
     if(!this.isDialog){
       this.selectedDepartment = this.getPreselectedDepartment();
     }
+
+    // Configurar la actualización periódica de la lista
+    this.intervalSubscription = interval(this.updateInterval)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        // if (!this.isFirstLoad) {
+          this.loadSharedContainers();
+        // }
+      });
+
+  }
+
+  private cleanupSubscriptions() {
+    if (this.intervalSubscription) {
+      this.intervalSubscription.unsubscribe();
+    }
+    if (this.containersSubscription) {
+      this.containersSubscription.unsubscribe();
+    }
+    this.sharedMobileContainers = [];
+  }
+
+  ngOnDestroy(): void {
+    this.cleanupSubscriptions();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   showSpinnerFor(containerId: number): void {
@@ -566,8 +593,7 @@ export class MobileListComponent implements OnInit {
 
 
   onDepartmentSelect($event){
-    this.loadSharedContainers();
-
+    // No necesitamos cargar aquí porque el intervalo ya lo hará
     if (!this.selectedDepartment || !this.selectedDepartment.id) {
       this.selectionsDisabled = false;
       return;
@@ -630,23 +656,34 @@ export class MobileListComponent implements OnInit {
   }
 
   loadSharedContainers() {
+    // Limpiar la lista actual antes de cargar nuevos contenedores
     this.sharedMobileContainers = [];
 
-    this._api.getContainersList().subscribe((containers: Container[]) => {
-      this.sharedMobileContainers = containers.filter(container =>
+    // Cancelar la suscripción anterior si existe
+    if (this.containersSubscription) {
+      this.containersSubscription.unsubscribe();
+    }
+
+    this.containersSubscription = this._api.getContainersList().subscribe((containers: Container[]) => {
+      const currentSharedContainers = containers.filter(container =>
         container.shared &&
         container.department_id === this.selectedDepartment.id &&
         container.created_by !== this.user.user_id
       );
 
+      // Asignar los nuevos contenedores compartidos
+      this.sharedMobileContainers = currentSharedContainers;
+      
+      // Asignar la imagen correspondiente a cada contenedor de forma segura
       this.sharedMobileContainers.forEach(container => {
-        container.image = this.mobiles.find(m => m.mobile_id === container.image);
+        const foundImage = this.mobiles.find(m => m.mobile_id === container.image);
+        if (foundImage) {
+          container.image = foundImage;
+        }
       });
 
       this._cdr.detectChanges();
     });
-
-    this.onDepartmentChange()
   }
 
   onDepartmentChange() {
@@ -740,7 +777,6 @@ export class MobileListComponent implements OnInit {
 
   updateSharedStatus(isShared: any, mobile: IMobile, container): Observable<any> {
     let updateData = { shared: isShared.checked };
-
     return this._api.updateMobile(container.id, updateData).pipe(
       map((response: any) => {
         if (response?.containerservice) {
@@ -762,6 +798,9 @@ export class MobileListComponent implements OnInit {
     );
   }
 
-
+  // Función trackBy para evitar renderizados innecesarios
+  trackByContainerId(index: number, container: Container): number {
+    return container.id;
+  }
 
 }
