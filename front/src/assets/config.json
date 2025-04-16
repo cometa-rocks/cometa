@@ -1,5 +1,5 @@
 {
-  "version": "3.0.33",
+  "version": "3.0.34",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.34",
+      "date": "2025-04-16",
+      "features": [
+        {
+          "title": "Feature run button improvements",
+          "description": "Prevent clicks when button is disabled and feature is not running"
+        }
+      ]
+    },  
     {
       "version": "3.0.33",
       "date": "2025-04-14",
