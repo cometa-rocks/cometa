@@ -1366,8 +1366,7 @@ def CheckBrowserstackVideo(request):
     return django_response
 
 
-@csrf_exempt
-def parseBrowsers(request):
+def __selenoid_browsers(request): 
     browsersFile = '/code/selenoid/browsers.json'
     emulatedBrowsersFile = '/code/selenoid/mobile_browsers.json'
     # Check if browser.json file exists
@@ -1423,8 +1422,8 @@ def pull_images(images_to_pull):
     for image in images_to_pull:
         docker_service_manager.pull_image(image)
 
-@csrf_exempt
-def parseCometaBrowsers(request):
+
+def __parseCometaBrowsers(request):
     # parses latest n (at the moment 3) versions of cometa browsers and saves them in the Browser model
     # starts a thread to call the pull images script
     # when thread finishes, this method returns success.
@@ -1505,6 +1504,18 @@ def parseCometaBrowsers(request):
     logger.info("----------IMAGE PULLING THREAD STARTED SUCCESSFULLY----------")
     # return success
     return JsonResponse({'success': True})
+
+
+@csrf_exempt
+def parseBrowsers(request):
+    
+    if ConfigurationManager.get_configuration("USE_COMETA_BROWSER_IMAGES")=="True":
+        logger.debug(f"Value of USE_COMETA_BROWSER_IMAGES is 'True', Updating cometa browser images")
+        return __parseCometaBrowsers(request=request)
+    else:
+        logger.debug(f"Value of USE_COMETA_BROWSER_IMAGES is 'False', Updating cometa browser images")
+        return __selenoid_browsers(request=request)
+    
 
 
 @csrf_exempt
