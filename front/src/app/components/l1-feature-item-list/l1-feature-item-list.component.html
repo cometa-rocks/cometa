@@ -42,58 +42,58 @@ Author: dph000
       </ng-container>
       <!-- Run feature button -->
       <div class="top-buttons-container" *ngIf="!item.depends_on_others">
-          <div
-            *ngIf="item.date"
-            class="state"
-            [class.state-disabled]="isButtonDisabled"
-            stopPropagation
-            [class.running]="running"
-            [ngClass]="!running && (item.status | lowercase)">
-            <div class="triangle"></div>
-            <mat-spinner
-              class="item-loader"
-              diameter="18"
-              *ngIf="running; else showState"></mat-spinner>
-            <ng-template #showState>
-              <ng-container [ngSwitch]="item.status | lowercase">
-                <mat-icon class="state-icon" *ngSwitchCase="'success'"
-                  >done</mat-icon
-                >
-                <mat-icon class="state-icon" *ngSwitchCase="'canceled'"
-                  >remove_circle</mat-icon
-                >
-                <mat-icon class="state-icon" *ngSwitchCase="'failed'"
-                  >error</mat-icon
-                >
-              </ng-container>
-              <span style="vertical-align: middle">{{ item.status }}</span>
-            </ng-template>
-          </div>
-          <div 
-            class="run" 
-            [class.run-disabled]="isButtonDisabled"
-            [class.running]="running || (isButtonDisabled && item.status === 'success')"
-            stopPropagation 
-            (click)="onRunClick()">
-            <div class="triangle"></div>
-            <ng-container *ngIf="!isButtonDisabled">
-              <ng-container [ngSwitch]="running">
-                <mat-icon class="state-icon" *ngSwitchCase="true">remove_red_eye</mat-icon>
-                <mat-icon class="state-icon" *ngSwitchCase="false">play_arrow</mat-icon>
-              </ng-container>
+        <div
+          *ngIf="item.date"
+          class="state"
+          [class.state-disabled]="isButtonDisabled && !running"
+          stopPropagation
+          [class.running]="running"
+          [ngClass]="!running && (item.status | lowercase)">
+          <div class="triangle"></div>
+          <mat-spinner
+            class="item-loader"
+            diameter="18"
+            *ngIf="running; else showState"></mat-spinner>
+          <ng-template #showState>
+            <ng-container [ngSwitch]="item.status | lowercase">
+              <mat-icon class="state-icon" *ngSwitchCase="'success'"
+                >done</mat-icon
+              >
+              <mat-icon class="state-icon" *ngSwitchCase="'canceled'"
+                >remove_circle</mat-icon
+              >
+              <mat-icon class="state-icon" *ngSwitchCase="'failed'"
+                >error</mat-icon
+              >
             </ng-container>
-            <ng-container *ngIf="isButtonDisabled && !running">
-              <mat-icon class="state-icon">hourglass_empty</mat-icon>
+            <span style="vertical-align: middle">{{ item.status }}</span>
+          </ng-template>
+        </div>
+        <div 
+          class="run" 
+          [class.run-disabled]="isButtonDisabled"
+          [class.running]="running"
+          stopPropagation 
+          (click)="isButtonDisabled && running ? _sharedActions.openLiveSteps(item.id) : onRunClick()">
+          <div class="triangle"></div>
+          <ng-container *ngIf="!isButtonDisabled">
+            <ng-container [ngSwitch]="running">
+              <mat-icon class="state-icon" *ngSwitchCase="true">remove_red_eye</mat-icon>
+              <mat-icon class="state-icon" *ngSwitchCase="false">play_arrow</mat-icon>
             </ng-container>
-            <ng-container *ngIf="isButtonDisabled && running">
-              <mat-icon class="state-icon">remove_red_eye</mat-icon>
-            </ng-container>
-            <span style="vertical-align: middle">
-              <ng-container *ngIf="!isButtonDisabled">Run</ng-container>
-              <ng-container *ngIf="isButtonDisabled && !running">Wait...</ng-container>
-              <ng-container *ngIf="isButtonDisabled && running">View</ng-container>
-            </span>
-          </div>
+          </ng-container>
+          <ng-container *ngIf="isButtonDisabled && !running">
+            <mat-icon class="state-icon">hourglass_empty</mat-icon>
+          </ng-container>
+          <ng-container *ngIf="isButtonDisabled && running">
+            <mat-icon class="state-icon">remove_red_eye</mat-icon>
+          </ng-container>
+          <span style="vertical-align: middle">
+            <ng-container *ngIf="!isButtonDisabled && !running">Run</ng-container>
+            <ng-container *ngIf="isButtonDisabled && !running">Wait...</ng-container>
+            <ng-container *ngIf="isButtonDisabled && running">View</ng-container>
+          </span>
+        </div>
       <!-- Feature go to folder -->
       </div>
         <div
