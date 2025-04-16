@@ -59,6 +59,8 @@ ibm-db = "^3.2.5"
 playwright="^1.50.0"
 faker = "^37.0.2"
 rstr = "^3.2.2"
+browser-use = "^0.1.40"
+langchain_openai = "^0.3.1"
 
 [tool.poetry.dev-dependencies]
 

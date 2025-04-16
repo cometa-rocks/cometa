@@ -4,8 +4,13 @@ import logging
 import json
 import sys, requests, re, json, traceback, html
 import jq
+import asyncio
+import concurrent.futures
+import threading
 
 from behave import step, use_step_matcher
+from browser_use import Agent, Browser, BrowserConfig, Controller
+from langchain_openai import ChatOpenAI
 
 sys.path.append("/opt/code/behave_django")
 sys.path.append("/opt/code/cometa_itself/steps")
@@ -326,49 +331,135 @@ def get_information_from_current_screen_based_on_prompt(context, prompt, variabl
 @step(u'Execute AI agent action "(?P<prompt>[\s\S]*?)"')
 @done(u'Execute AI agent action "{prompt}"')
 def execute_ai_action(context, prompt):
-     
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
      
     try:
         # Verify AI features are enabled in the environment
         if not context.COMETA_AI_ENABLED:
-            feature_cannot_be_used_error()
+            ai_feature_cannot_be_used_error()
 
         logger.debug("Executing AI action")
         logger.debug(f"Prompt: {prompt}")
+        send_step_details(context, "Executing Browser-Use action with prompt: " + prompt)
 
-        # Create config to pass to browser_use_worker
-        config = {
-            "COMETA_OPENAI_API_KEY": ConfigurationManager.get_configuration("COMETA_OPENAI_API_KEY", "")
-        }
+        controller = Controller()
+
+        # Get the CDP URL based on browser connection mode
+        if context.USE_COMETA_BROWSER_IMAGES:
+            logger.debug("Using custom Cometa browser image mode")
+            # Need to query the browser status endpoint to get the CDP URL
+            status_check_connection_url = f"http://{context.browser_hub_url}:4444/status"
+            logger.debug(f"Checking browser status at: {status_check_connection_url}")
+            
+            response = requests.get(status_check_connection_url)
+            if response.status_code != 200:
+                raise CustomError("Error while fetching the CDP URL")
+                
+            response_json = response.json()
+            nodes = response_json['value']['nodes']
+            if len(nodes) == 0:
+                raise CustomError("Browser selenium session was closed")
+                
+            cdp_url = nodes[0]['slots'][0]['session']['capabilities']['se:cdp']
+            logger.debug(f"Retrieved CDP URL from browser capabilities: {cdp_url}")
+        else:
+            logger.debug("Using standard Selenoid browser image mode")
+            cdp_url = f"ws://{context.browser_hub_url}:4444/devtools/{context.browser.session_id}"
+            logger.debug(f"Constructed CDP URL using session ID: {cdp_url}")
+
+        # Create the browser with the appropriate CDP URL
+        browser_config = BrowserConfig(
+            cdp_url=cdp_url,
+        )
+        browser = Browser(config=browser_config)
+
+        # Get OpenAI API key from configuration
+        COMETA_OPENAI_API_KEY = ConfigurationManager.get_configuration("COMETA_OPENAI_API_KEY", "")
+
+        if COMETA_OPENAI_API_KEY is None:
+            raise ValueError("OpenAI API key is not set in environment variables")
+        if not isinstance(COMETA_OPENAI_API_KEY, str):
+            raise ValueError("OpenAI API key must be a string")
+        if not COMETA_OPENAI_API_KEY.strip():
+            raise ValueError("OpenAI API key cannot be empty or whitespace")
+        if not COMETA_OPENAI_API_KEY.startswith("sk-"):
+            raise ValueError("Invalid OpenAI API key format (should start with 'sk-')")
+
+        step_timeout = context.step_data.get("timeout", 600)
+
+        # Create the agent
+        agent = Agent(
+            task=prompt,
+            llm=ChatOpenAI(
+                model="gpt-4o",
+                temperature=0.0,
+                api_key=COMETA_OPENAI_API_KEY,
+            ), 
+            browser=browser,
+            controller=controller,
+            use_vision=False,
+        )
         
-        # Store configuration in context so it can be accessed by AI module
-        context.browser_use_config = config
+        # Create a new event loop in a separate thread to run the agent
+        def run_agent_in_thread(agent, max_steps):
+            # Create a new event loop for this thread
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            try:
+                # Run the agent in this new loop
+                return loop.run_until_complete(agent.run(max_steps=max_steps))
+            finally:
+                loop.close()
         
-        # Update UI with current action status
-        send_step_details(context, "Executing Browser-Use action")
+        # Run the agent in a separate thread
+        logger.debug("Running agent in a separate thread")
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future = executor.submit(run_agent_in_thread, agent, 25)
+            try:
+                # Wait for the agent to complete with a timeout
+                result = future.result(timeout=step_timeout)
+                logger.debug(f"Agent execution completed: {result}")
+            except concurrent.futures.TimeoutError:
+                logger.error("Agent execution timed out after timeout: " + str(step_timeout))
+                raise TimeoutError("Browser-use agent timed out")
         
-        # Execute the AI action and get results
-        is_success, response = context.ai.execute_browser_use_action(context, prompt)
+        # Process the results
+        logger.debug("Received agent response: %s", result)
+        logger.debug(f"Agent response type: {type(result)}")
         
-        # Log response and relevant context for debugging
-        logger.debug("Response: %s", response)
-        logger.debug(f"Context attributes:")
-        logger.debug(f"- Browser session ID: {getattr(context.browser, 'session_id', 'Not available')}")
-        logger.debug(f"- Page URL: {getattr(context.page, 'url', 'Not available')}")
-        logger.debug(f"- AI enabled: {getattr(context, 'COMETA_AI_ENABLED', False)}")
+        if hasattr(result, "model_outputs"):
+            logger.debug(f"Model outputs: {result.model_outputs()}")
+        if hasattr(result, "action_results"):
+            logger.debug(f"Action results: {result.action_results()}")
+        if hasattr(result, "errors"):
+            logger.debug(f"Errors: {result.errors()}")
         
-        logger.debug("AI action executed")
- 
-        # Handle errors if the action fails
-        if not is_success:
-            error_msg = f'The AI server could not complete the analysis and failed with the error: "{response}"'
-            logger.error(error_msg)
-            raise AssertionError(error_msg)
+        if hasattr(result, "is_done") and result.is_done():
+            final_result = result.final_result() if hasattr(result, "final_result") else None
+            if final_result:
+                logger.debug("Browser-use task completed successfully with result: %s", final_result)
+                return {"success": True, "result": final_result}
+            else:
+                logger.error("Task completed but no final result was returned")
+                return {"success": False, "error": "Task completed but no final result was returned."}
+        else:
+            model_outputs = result.model_outputs() if hasattr(result, "model_outputs") else []
+            action_results = result.action_results() if hasattr(result, "action_results") else []
+            logger.debug(f"##################3 result: {result}")
+            if not action_results and not model_outputs:
+                error_details = "Agent failed to execute any actions"
+                logger.error(error_details)
+            else:
+                error_details = result.errors() if hasattr(result, "errors") else "Unknown error"
+                logger.error(error_details)
+            raise AssertionError(error_details)
+    
     except Exception as e:
         # Log any unexpected errors and store for reporting
         logger.exception("Exception while executing browser-use step: %s", str(e))
         context.STEP_ERROR = str(e)
+        send_step_details(context, f"Error: {str(e)}")
         raise
 
 
