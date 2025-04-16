@@ -238,8 +238,12 @@
   "changelog": [
     {
       "version": "3.0.34",
-      "date": "2025-04-16",
+      "date": "2025-04-17",
       "features": [
+        {
+          "title": "#6074 Browser-use integration for AI browsers",
+          "description": "Use AI with browser to perform automate the webapplication by providing the prompts"
+        },
         {
           "title": "Feature run button improvements",
           "description": "Prevent clicks when button is disabled and feature is not running"
