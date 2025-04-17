@@ -86,7 +86,7 @@ default_cometa_configurations = {
     "COMETA_BROWSER_VNC_PASSWORD":"secret",
     "COMETA_OPENAI_API_KEY": "",
     "OLLAMA_AI_TLS_SSL_ENABLED":"False",
-    "OLLAMA_AI_HOST":"ollama.ai.dev",
+    "OLLAMA_AI_HOST":"ollama.ai",
     "OLLAMA_AI_PORT":"8002",
     "OLLAMA_AI_SECRET_ID":"",
     "OLLAMA_AI_SECRET_KEY":""
