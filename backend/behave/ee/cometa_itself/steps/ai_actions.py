@@ -6,7 +6,7 @@ import sys, requests, re, json, traceback, html
 import jq
 
 import os, logging
-from browser_use import Agent, Browser, BrowserConfig, Controller
+
 from langchain_openai import ChatOpenAI
 
 
@@ -338,7 +338,8 @@ def validate_openai_api_key(OPENAI_API_KEY):
         raise ValueError("Invalid OpenAI API key format (should start with 'sk-')")
 
 
-async def execute_browser_use_action(context,prompt, browser_context=None):
+async def execute_browser_use_action(context, prompt, browser_context=None):
+    from browser_use import Agent, Browser, BrowserConfig, Controller
     """
     Execute a browser-use action by initializing and running a Browser Use Agent.
     
@@ -452,9 +453,11 @@ async def execute_browser_use_action(context,prompt, browser_context=None):
 
 
 def start_execution_of_browser_use_action(context, prompt):
-    # This is imported at function level to avaid the errors faced during while implementation 
-    # in future this might can be moved to globle import
+    # This is imported at function level to avoid the errors faced during while implementation 
+    # in future this might can be moved to globe import
     import asyncio, nest_asyncio
+    # IMPORTANT : This import should be done at the function level to avoid conflict with the behave 
+    from browser_use import Agent, Browser, BrowserConfig, Controller
         
     try:
         # Extract browser session information
