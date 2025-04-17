@@ -20,7 +20,7 @@ def get_cometa_backend_url():
 
 def get_ollama_ai_api_url():
     ssl_enabled = ConfigurationManager.get_configuration('OLLAMA_AI_TLS_SSL_ENABLED', 'False')=='True'
-    host = ConfigurationManager.get_configuration('OLLAMA_AI_HOST', 'ollama.ai.dev')
+    host = ConfigurationManager.get_configuration('OLLAMA_AI_HOST', 'ollama.ai')
     port = ConfigurationManager.get_configuration('OLLAMA_AI_PORT', '8002')
     
     protocol = 'https' if ssl_enabled else 'http'
@@ -40,7 +40,7 @@ def get_all_cometa_environments():
         "BEHAVE_SERVER_PORT":get_config("BEHAVE_SERVER_PORT","8001"),
         "DJANGO_SERVER_URL":get_config("DJANGO_SERVER_URL","django"),
         "DJANGO_SERVER_PORT": get_config("DJANGO_SERVER_PORT","8000"),
-        "OLLAMA_AI_HOST": get_config("OLLAMA_AI_HOST", "ollama.ai.dev"),
+        "OLLAMA_AI_HOST": get_config("OLLAMA_AI_HOST", "ollama.ai"),
         "OLLAMA_AI_PORT": get_config("OLLAMA_AI_PORT", "8002"),
         "VIDEO_EXTENSION": get_config("VIDEO_EXTENSION","mp4")
     }
