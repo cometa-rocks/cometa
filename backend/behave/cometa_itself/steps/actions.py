@@ -2012,15 +2012,6 @@ def step_impl(context, css_selector, variable_name):
     # add variable
     addVariable(context, variable_name, result, save_to_step_report=True)
 
-# Save string value to environment variable, environment variable value has a maximum value of 255 characters
-# Example: Save "123456" to environment variable "user_id"
-@step(u'Save "{value}" to environment variable "{variable_name}"')
-@done(u'Save "{value}" to environment variable "{variable_name}"')
-def step_impl(context, value, variable_name):
-    send_step_details(context, 'Saving value to environment variable')
-    # add variable
-    addVariable(context, variable_name, value, save_to_step_report=True)
-
 # Add a timestamp after the prefix to make it unique
 # Example: Add a timestamp to the "order" and save it to "order_id"
 @step(u'Add a timestamp to the "{prefix}" and save it to "{variable_name}"')
@@ -3053,16 +3044,18 @@ def step_loop(context, x, index):
     subStepIndex = 0
     # get all the sub steps from text
     steps = context.text
+    logger.debug(f"Steps to be executed {steps}")
     # set context.insideLoop to true
     context.insideLoop = True
     # set executedStepsInLoop value
     context.executedStepsInLoop = 0
     # match regexp to find steps and step descriptions
     steps = list(filter(None, re.findall(r".*\n?(?:\t'''(?:.|\n)+?'''\n?)?", steps)))
-
+    logger.debug(f"list of test_steps : {steps}")
     try:
         logger.debug("Steps: {}".format(steps))
         for i in range(int(index), int(x) + int(index)):
+            logger.debug(f"With in the loop-Step {i}")
             # update subStepIndex to currentStepIndex
             subStepIndex = currentStepIndex
             # add a index variable to context.JOB_PARAMETERS
@@ -3083,10 +3076,20 @@ def step_loop(context, x, index):
                 send_step_details(context, "Executing step '%s' inside loop." % step.split('\n')[0])
                 # execute the step
                 context.execute_steps(step)
+                
+                if context.break_loop:
+                    logger.debug("Breaking step loop")
+                    break
+
+            if context.break_loop:
+                logger.debug("Breaking iteration loop")
+                break
+                
     except Exception as error:
         err = True
         err_msg = error
 
+    context.break_loop = False
     # update current step index to Loop again
     context.counters['index'] = currentStepIndex
     # set jumpLoop value to steps count
@@ -3117,6 +3120,14 @@ def step_endLoop(context):
     context.jumpLoopIndex = 0
     # reset executedStepsInLoop
     context.executedStepsInLoop = 0
+    
+# Example: Break the loop execution
+@step(u'Break Loop')
+@done(u'Break Loop')
+def step_break_loop(context):
+    send_step_details(context, "Breaking execution loop")
+    context.break_loop = True
+    
 
 
 # This step tests if a list of elements selected via a CSS selector contains all or partial values derived from one or more variables

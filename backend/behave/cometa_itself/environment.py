@@ -223,7 +223,7 @@ def before_all(context):
     context.department = json.loads(os.environ["department"])
     # environment variables for the testcase
     context.VARIABLES = execution_data["VARIABLES"]
-    logger.debug(context.VARIABLES)
+    # logger.debug(context.VARIABLES)
     # job parameters if executed using schedule step
     context.PARAMETERS = os.environ["PARAMETERS"]
     # context.browser_info contains '{"os": "Windows", "device": null, "browser": "edge", "os_version": "10", "real_mobile": false, "browser_version": "84.0.522.49"}'
@@ -237,6 +237,8 @@ def before_all(context):
     context.playwright_browser = None
     # set loop settings
     context.insideLoop = False  # meaning we are inside a loop
+    context.break_loop = False
+    context.current_loop = None
     context.jumpLoopIndex = (
         0  # meaning how many indexes we need to jump after loop is finished
     )
@@ -1046,7 +1048,6 @@ def after_step(context, step):
             )
     except Exception as e:
         logger.exception(e)
-
     # get step error
     step_error = None
     if (
