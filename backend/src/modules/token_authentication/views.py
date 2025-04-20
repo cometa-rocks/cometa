@@ -110,7 +110,7 @@ def login_start_test(request):
                 "department_id": 1,
                 "recursive": True,
             },
-            "explanation":["'test_info.department_id' and 'test_info.recursive=true/false' is required when there execution_type is 'folder'"]
+            "explanation":["'test_info.department_id' and 'test_info.recursive=true/false' is only required when there execution_type is 'folder'"]
         }
     }
     response_manager = ResponseManager("integration_v2")
@@ -178,11 +178,13 @@ def login_start_test(request):
                 return response_manager.response(response_body)
             
             elif execution_type == "folder":
-                body = {
-                    "folder_id": id,
-                    "department_id": department_id,
-                    "recursive": recursive
-                }
+                body = {"recursive": recursive}
+                if department_id: 
+                    body['department_id'] = department_id
+                
+                if id:
+                    body['folder_id'] = id
+                
                 response = requests.post(f"{get_cometa_backend_url()}/exec_batch/", data=json.dumps(body), headers=headers)
                 logger.debug(f"Response from Cometa: {response.text}")
                 
