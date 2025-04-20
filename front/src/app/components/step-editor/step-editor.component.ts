@@ -28,7 +28,7 @@ import {
   MatLegacyDialogRef as MatDialogRef,
 } from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
-import { Store } from '@ngxs/store';
+import { Select, Store } from '@ngxs/store';
 import { ActionsState } from '@store/actions.state';
 import { ClipboardService } from 'ngx-clipboard';
 import { ImportJSONComponent } from '@dialogs/import-json/import-json.component';
@@ -37,6 +37,7 @@ import {
   debounceTime,
   distinctUntilChanged,
   forkJoin,
+  Observable,
   of,
 } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -89,6 +90,8 @@ import { LogService } from '@services/log.service';
 import { MatAutocompleteActivatedEvent } from '@angular/material/autocomplete';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DepartmentsState } from '@store/departments.state';
+import { FeaturesState } from '@store/features.state';
 
 
 
@@ -168,6 +171,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     super();
     this.stepsForm = this._fb.array([]);
   }
+
+  @ViewSelectSnapshot(UserState.RetrieveUserDepartments) 
+
+  // departments$ = this._store.select(UserState.RetrieveUserDepartments);
+  departments$!: Department[];
+  @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
+  @Select(FeaturesState.GetFeaturesAsArray) allFeatures$: Observable<Feature[]>;
 
   // Shortcut emitter to parent component
   sendTextareaFocusToParent(isFocused: boolean, index?: number): void {
@@ -279,6 +289,20 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // @ts-ignore
     if (!this.feature) this.feature = { feature_id: 0 };
     const featureId = this.mode === 'clone' ? 0 : this.feature.feature_id;
+    
+    this.allFeatures$.subscribe(features => {
+      console.log('=== Features Information ===');
+      console.log('Total Features:', features.length);
+      console.log('Features Details:');
+      features.forEach(feature => {
+        console.log(`Feature ID: ${feature.feature_id}`);
+        console.log(`Name: ${feature.feature_name}`);
+        console.log(`Department: ${feature.department_name}`);
+      
+        console.log('------------------------');
+      });
+    });
+    
     this.subs.sink = this._store
       .select(CustomSelectors.GetFeatureSteps(featureId))
       .subscribe(steps => this.setSteps(steps));
@@ -436,11 +460,37 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.displayedVariables = [];
   }
 
+
   onStepChange(event, index: number) {
     this.displayedVariables = [];
     this.stepVariableData = {};
 
     const textareaValue = (event.target as HTMLTextAreaElement).value.trim();
+    console.log('Step content:', textareaValue);
+
+    // Check if step starts with "Run feature with id"
+    if (textareaValue.startsWith('Run feature with id')) {
+      // Extract content between quotes
+      const match = textareaValue.match(/"([^"]+)"/);
+      if (match && match[1]) {
+        const featureId = parseInt(match[1], 10);
+        if (!isNaN(featureId)) {
+          // Subscribe to allFeatures$ to find the matching feature
+          this.allFeatures$.subscribe(features => {
+            const matchingFeature = features.find(f => f.feature_id === featureId);
+            if (matchingFeature) {
+              console.log('=== Matching Feature Information ===');
+              console.log(`Feature ID: ${matchingFeature.feature_id}`);
+              console.log(`Name: ${matchingFeature.feature_name}`);
+              console.log(`Department: ${matchingFeature.department_name}`);
+              console.log('------------------------');
+            } else {
+              console.log(`No feature found with ID: ${featureId}`);
+            }
+          });
+        }
+      }
+    }
 
     if (!textareaValue) {
       this.stepsDocumentation[index] = {
