@@ -151,6 +151,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   displayedVariables: (VariablePair | string)[] = [];
   stepVariableData = <VariableInsertionData>{};
+    snack: any;
 
   constructor(
     private _dialog: MatDialog,
@@ -279,6 +280,58 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         })
       );
     });
+
+    // Process links for all steps after they are loaded
+    setTimeout(() => {
+      this.stepsForm.controls.forEach((control, index) => {
+        const stepContent = control.get('step_content')?.value;
+        if (stepContent && stepContent.startsWith('Run feature with id')) {
+          const match = stepContent.match(/"([^"]+)"/);
+          if (match && match[1]) {
+            const featureId = parseInt(match[1], 10);
+            if (!isNaN(featureId)) {
+              this.allFeatures$.subscribe(features => {
+                const matchingFeature = features.find(f => f.feature_id === featureId);
+                if (matchingFeature) {
+                  const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
+                  if (textarea) {
+                    // Create link icon
+                    const linkIcon = document.createElement('i');
+                    linkIcon.className = 'material-icons';
+                    linkIcon.textContent = 'link';
+                    linkIcon.style.position = 'absolute';
+                    linkIcon.style.right = '5px';
+                    linkIcon.style.top = '50%';
+                    linkIcon.style.transform = 'translateY(-50%)';
+                    linkIcon.style.cursor = 'pointer';
+                    linkIcon.style.color = 'rgb(33, 150, 243)';
+                    linkIcon.onclick = (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      this._sharedActions.goToFeature(featureId, true);
+                      return false;
+                    };
+
+                    // Add the icon to the textarea container
+                    const textareaContainer = textarea.parentElement;
+                    if (textareaContainer) {
+                      // Remove any existing link icon
+                      const existingIcon = textareaContainer.querySelector('.material-icons');
+                      if (existingIcon) {
+                        existingIcon.remove();
+                      }
+                      textareaContainer.style.position = 'relative';
+                      textareaContainer.appendChild(linkIcon);
+                    }
+                  }
+                }
+              });
+            }
+          }
+        }
+      });
+    });
+
     this._cdr.detectChanges();
   }
 
@@ -470,73 +523,38 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     const textareaValue = textarea.value.trim();
     console.log('Step content:', textareaValue);
 
-    // Check if step starts with "Run feature with id"
-    if (textareaValue.startsWith('Run feature with id')) {
+    // Check if step starts with "Run feature with id" or "Run feature with name"
+    if (textareaValue.startsWith('Run feature with id') || textareaValue.startsWith('Run feature with name')) {
       // Extract content between quotes
       const match = textareaValue.match(/"([^"]+)"/);
       if (match && match[1]) {
-        const featureId = parseInt(match[1], 10);
-        if (!isNaN(featureId)) {
+        const searchValue = match[1];
+        let featureId: number | null = null;
+
+        if (textareaValue.startsWith('Run feature with id')) {
+          // If it's an ID, parse it directly
+          featureId = parseInt(searchValue, 10);
+        } else {
+          // If it's a name, search for the feature by name
           this.allFeatures$.subscribe(features => {
-            const matchingFeature = features.find(f => f.feature_id === featureId);
+            const matchingFeature = features.find(f => f.feature_name === searchValue);
             if (matchingFeature) {
-              // Create link icon
-              const linkIcon = document.createElement('i');
-              linkIcon.className = 'material-icons';
-              linkIcon.textContent = 'link';
-              linkIcon.style.position = 'absolute';
-              linkIcon.style.right = '5px';
-              linkIcon.style.top = '50%';
-              linkIcon.style.transform = 'translateY(-50%)';
-              linkIcon.style.cursor = 'pointer';
-              linkIcon.style.color = 'rgb(33, 150, 243)';
-              linkIcon.onclick = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this._sharedActions.goToFeature(featureId);
-                return false;
-              };
-
-              // Add the icon to the textarea container
-              const textareaContainer = textarea.parentElement;
-              if (textareaContainer) {
-                // Remove any existing link icon
-                const existingIcon = textareaContainer.querySelector('.material-icons');
-                if (existingIcon) {
-                  existingIcon.remove();
-                }
-                textareaContainer.style.position = 'relative';
-                textareaContainer.appendChild(linkIcon);
-              }
-
-              // Show a tooltip
-              this.snack.open(`Click the link icon to open feature ${featureId}`, 'OK', {
-                duration: 2000,
-                horizontalPosition: 'center',
-                verticalPosition: 'top'
-              });
+              featureId = matchingFeature.feature_id;
+              this.processFeatureLink(textarea, featureId, matchingFeature.feature_name);
             } else {
-              // Remove link icon if feature doesn't exist
-              const textareaContainer = textarea.parentElement;
-              if (textareaContainer) {
-                const existingIcon = textareaContainer.querySelector('.material-icons');
-                if (existingIcon) {
-                  existingIcon.remove();
-                }
-              }
+              this.removeLinkIcon(textarea);
             }
           });
         }
-      }
-    } else {
-      // Remove link icon if text doesn't match pattern
-      const textareaContainer = textarea.parentElement;
-      if (textareaContainer) {
-        const existingIcon = textareaContainer.querySelector('.material-icons');
-        if (existingIcon) {
-          existingIcon.remove();
+
+        if (featureId && !isNaN(featureId)) {
+          this.processFeatureLink(textarea, featureId);
+        } else {
+          this.removeLinkIcon(textarea);
         }
       }
+    } else {
+      this.removeLinkIcon(textarea);
     }
 
     if (!textareaValue) {
@@ -584,7 +602,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
     if (this.stepVariableData.strWithoutQuotes.includes('$')) {
-      // const strWithoutDollar = this.stepVariableData.strWithoutQuotes.replace('$','')
       const filteredVariables = this.variables.filter(item =>
         item.variable_name.includes(
           this.stepVariableData.strWithoutQuotes.replace('$', '')
@@ -601,7 +618,62 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         this.renderer.addClass(firstVariableRef, 'selected');
       }, 0);
     }
+  }
 
+  private processFeatureLink(textarea: HTMLTextAreaElement, featureId: number, featureName?: string) {
+    this.allFeatures$.subscribe(features => {
+      const matchingFeature = features.find(f => f.feature_id === featureId);
+      if (matchingFeature) {
+        // Create link icon
+        const linkIcon = document.createElement('i');
+        linkIcon.className = 'material-icons';
+        linkIcon.textContent = 'link';
+        linkIcon.style.position = 'absolute';
+        linkIcon.style.right = '5px';
+        linkIcon.style.top = '50%';
+        linkIcon.style.transform = 'translateY(-50%)';
+        linkIcon.style.cursor = 'pointer';
+        linkIcon.style.color = 'rgb(33, 150, 243)';
+        linkIcon.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this._sharedActions.goToFeature(featureId, true);
+          return false;
+        };
+
+        // Add the icon to the textarea container
+        const textareaContainer = textarea.parentElement;
+        if (textareaContainer) {
+          // Remove any existing link icon
+          const existingIcon = textareaContainer.querySelector('.material-icons');
+          if (existingIcon) {
+            existingIcon.remove();
+          }
+          textareaContainer.style.position = 'relative';
+          textareaContainer.appendChild(linkIcon);
+        }
+
+        // Show a tooltip with either the feature name or ID
+        const displayName = featureName || matchingFeature.feature_name || featureId;
+        this.snack.open(`Click the link icon to open feature ${displayName}`, 'OK', {
+          duration: 2000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top'
+        });
+      } else {
+        this.removeLinkIcon(textarea);
+      }
+    });
+  }
+
+  private removeLinkIcon(textarea: HTMLTextAreaElement) {
+    const textareaContainer = textarea.parentElement;
+    if (textareaContainer) {
+      const existingIcon = textareaContainer.querySelector('.material-icons');
+      if (existingIcon) {
+        existingIcon.remove();
+      }
+    }
   }
 
   // returns the index of nearest left $ and nearest right " char in string, taking received startIndex as startpoint reference
