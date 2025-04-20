@@ -847,6 +847,24 @@ def step_iml(context, text, selector):
             logger.error("Element was not clickable or value was unable to set, will try again.")
     raise CustomError("Unable to set set the value, maybe there is another element in front?")
 
+# Set a value on an element, normally used for inputs but when user do not want to verify the value from input box
+# Example: Set value "Rock&Roll" on "(//input[@formcontrolname="address_to_add"])[1]" and do not check the value
+@step(u'Set value "{text}" on "{selector}" and do not check the value')
+@done(u'Set value "{text}" on "{selector}" and do not check the value')
+def step_iml(context, text, selector):
+    send_step_details(context, 'Looking for selector')
+    element = waitSelector(context, "css", selector)
+    try:
+        elementInteractable = WebDriverWait(context.browser, 10).until(CEC.element_to_be_interactable(element[0]))
+        if elementInteractable:
+            send_step_details(context, 'Setting value')
+            element[0].send_keys(text)
+            return True
+    except ElementNotInteractableException as err:
+        logger.error("Element is not interactable yet will wait.")
+    except TimeoutException as err:
+        logger.error("Element was not interactable or value was unable to set, will try again.")
+
 # Send any keys, this simulates the keys pressed by the keyboard
 # Example: Send keys "F5"
 @step(u'Send keys "{keys}"')

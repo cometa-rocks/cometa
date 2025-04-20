@@ -42,6 +42,19 @@ def check_if_step_call_is_valid(context,database_type):
 use_step_matcher("parse")
 
 
+def check_for_restricted_host_names(connection_string):
+    # Regular expression to extract the hostname
+    match = re.search(r'@([^:/]+)', connection_string)
+
+    if match:
+        hostname = match.group(1)
+        if hostname in ['cometa_postgres', 'db', 'postgres-service']:
+            raise CustomError(f"Connection Error : '{hostname}' host not found")
+        logger.debug("database hostname looks good")
+    else:
+        raise CustomError(f"Invalid connection string {connection_string} ")
+
+
 # This step connects to an SQL database using the provided connection string and stores the connection in the specified variable.
 # Parameters:
 # - connection_string: The connection string used to connect to the SQL database.
@@ -52,8 +65,8 @@ use_step_matcher("parse")
 @done(u'Connect to SQL database using "{connection_string}" and store connection in "{variable_name}"')
 def connect_to_sql_database(context, connection_string, variable_name):
     context.STEP_TYPE = "DATABASE"
-   
     database_feature_cannot_be_used_error(context)
+    check_for_restricted_host_names(connection_string=connection_string)
         
     connection = SQLDatabaseClient(context, connection_string, variable_name)  # Database auto-selected
     context.database_connections[variable_name] = connection
@@ -95,6 +108,7 @@ def connect_to_sql_database(context, connection_string, variable_name):
     context.STEP_TYPE = "DATABASE"
    
     database_feature_cannot_be_used_error(context)
+    check_for_restricted_host_names(connection_string=connection_string)
         
     connection = MongoDBClient(context, connection_string, variable_name)  # Database auto-selected
     context.database_connections[variable_name] = connection
