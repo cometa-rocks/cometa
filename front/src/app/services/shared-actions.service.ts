@@ -120,15 +120,24 @@ export class SharedActionsService {
   }
   // #3397 ------------------------------------end
 
-  goToFeature(featureId: number) {
+  goToFeature(featureId: number, openInNewWindow: boolean = false) {
     const feature = this._store.selectSnapshot<Feature>(
       CustomSelectors.GetFeatureInfo(featureId)
     );
-    this._router.navigate([
-      '/' + feature.app_name,
-      feature.environment_name,
-      feature.feature_id,
-    ]);
+    // openInNewWindow = false
+    const url = `/debug/#/${feature.app_name}/${feature.environment_name}/${feature.feature_id}`;
+    
+    if (openInNewWindow) {
+      window.open(url, '_blank');
+    }
+    else {
+      this._router.navigate([
+        '/',
+        feature.app_name,
+        feature.environment_name,
+        feature.feature_id,
+      ]);
+    }
 
     // #3397 -----------------------------------start
     // remove search filter when acceding to any features
