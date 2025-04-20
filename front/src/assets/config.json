@@ -1,5 +1,5 @@
 {
-  "version": "3.0.34",
+  "version": "3.0.35",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.35",
+      "date": "2025-04-20",
+      "features": [
+        {
+          "title": "#5812: Improved CI/CD to support feature execution within specified folders.",
+          "description": "Enhanced the CI/CD feature to support folder-wise execution, using an API with token-based authentication for executing grouped feature sets"
+        }
+      ]
+    }, 
     {
       "version": "3.0.34",
       "date": "2025-04-17",
