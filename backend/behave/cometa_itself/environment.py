@@ -675,7 +675,6 @@ def after_all(context):
         except Exception as err:
             logger.error(f"Unable to stop the mobile session, Mobile details : {mobile['driver']}")
             logger.error(str(err))
-
     # testcase has finished, send websocket about processing data
     request = requests.get(f'{get_cometa_socket_url()}/feature/%s/processing' % context.feature_id, data={
         "user_id": context.PROXY_USER['user_id'],
@@ -684,10 +683,10 @@ def after_all(context):
         "run_id": os.environ['feature_run'],
         "datetime": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
     })
-
+    logger.debug("Removing all services started by test")
     # Delete all the services which were started during test
     ServiceManager().remove_all_service(context.container_services)
-
+    logger.debug("Removed all services started by test")
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None
     if context.record_video:
@@ -726,7 +725,7 @@ def after_all(context):
                 # video_extension = os.getenv("VIDEO_EXTENSION", "mp4")
                 bsVideoURL = f"/videos/{context.browser.session_id}.mp4"
                 logger.debug(f"Video path {bsVideoURL}" )
-                
+    
     # load feature into data
     data = json.loads(os.environ["FEATURE_DATA"])
     # junit file path for the executed testcase
