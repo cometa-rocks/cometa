@@ -92,6 +92,7 @@ import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { DepartmentsState } from '@store/departments.state';
 import { FeaturesState } from '@store/features.state';
+import { SharedActionsService } from '@services/shared-actions.service';
 
 
 
@@ -166,7 +167,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
     private logger: LogService,
-    private snack: MatSnackBar
+    private _sharedActions: SharedActionsService
   ) {
     super();
     this.stepsForm = this._fb.array([]);
@@ -465,7 +466,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.displayedVariables = [];
     this.stepVariableData = {};
 
-    const textareaValue = (event.target as HTMLTextAreaElement).value.trim();
+    const textarea = event.target as HTMLTextAreaElement;
+    const textareaValue = textarea.value.trim();
     console.log('Step content:', textareaValue);
 
     // Check if step starts with "Run feature with id"
@@ -475,19 +477,64 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       if (match && match[1]) {
         const featureId = parseInt(match[1], 10);
         if (!isNaN(featureId)) {
-          // Subscribe to allFeatures$ to find the matching feature
           this.allFeatures$.subscribe(features => {
             const matchingFeature = features.find(f => f.feature_id === featureId);
             if (matchingFeature) {
-              console.log('=== Matching Feature Information ===');
-              console.log(`Feature ID: ${matchingFeature.feature_id}`);
-              console.log(`Name: ${matchingFeature.feature_name}`);
-              console.log(`Department: ${matchingFeature.department_name}`);
-              console.log('------------------------');
+              // Create link icon
+              const linkIcon = document.createElement('i');
+              linkIcon.className = 'material-icons';
+              linkIcon.textContent = 'link';
+              linkIcon.style.position = 'absolute';
+              linkIcon.style.right = '5px';
+              linkIcon.style.top = '50%';
+              linkIcon.style.transform = 'translateY(-50%)';
+              linkIcon.style.cursor = 'pointer';
+              linkIcon.style.color = 'rgb(33, 150, 243)';
+              linkIcon.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this._sharedActions.goToFeature(featureId);
+                return false;
+              };
+
+              // Add the icon to the textarea container
+              const textareaContainer = textarea.parentElement;
+              if (textareaContainer) {
+                // Remove any existing link icon
+                const existingIcon = textareaContainer.querySelector('.material-icons');
+                if (existingIcon) {
+                  existingIcon.remove();
+                }
+                textareaContainer.style.position = 'relative';
+                textareaContainer.appendChild(linkIcon);
+              }
+
+              // Show a tooltip
+              this.snack.open(`Click the link icon to open feature ${featureId}`, 'OK', {
+                duration: 2000,
+                horizontalPosition: 'center',
+                verticalPosition: 'top'
+              });
             } else {
-              console.log(`No feature found with ID: ${featureId}`);
+              // Remove link icon if feature doesn't exist
+              const textareaContainer = textarea.parentElement;
+              if (textareaContainer) {
+                const existingIcon = textareaContainer.querySelector('.material-icons');
+                if (existingIcon) {
+                  existingIcon.remove();
+                }
+              }
             }
           });
+        }
+      }
+    } else {
+      // Remove link icon if text doesn't match pattern
+      const textareaContainer = textarea.parentElement;
+      if (textareaContainer) {
+        const existingIcon = textareaContainer.querySelector('.material-icons');
+        if (existingIcon) {
+          existingIcon.remove();
         }
       }
     }
