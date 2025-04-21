@@ -125,7 +125,7 @@ export class SharedActionsService {
       CustomSelectors.GetFeatureInfo(featureId)
     );
     // openInNewWindow = false
-    const url = `/debug/#/${feature.app_name}/${feature.environment_name}/${feature.feature_id}`;
+    const url = `/#/${feature.app_name}/${feature.environment_name}/${feature.feature_id}`;
     
     if (openInNewWindow) {
       window.open(url, '_blank');

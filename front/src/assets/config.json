@@ -1,5 +1,5 @@
 {
-  "version": "3.0.34",
+  "version": "3.0.35",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.35",
+      "date": "2025-04-20",
+      "features": [
+        {
+          "title": "Add functionality to 'Run Feature' step",
+          "description": "Added a new icon to the 'Run Feature' step that opens the main view of the indicated feature in a new tab."
+        }
+      ]
+    },      
     {
       "version": "3.0.34",
       "date": "2025-04-17",

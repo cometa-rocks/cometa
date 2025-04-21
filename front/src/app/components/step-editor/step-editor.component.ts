@@ -14,6 +14,8 @@ import {
   Output,
   EventEmitter,
   HostListener,
+  ViewContainerRef,
+  ComponentFactoryResolver
 } from '@angular/core';
 import {
   CdkDragDrop,
@@ -93,8 +95,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { DepartmentsState } from '@store/departments.state';
 import { FeaturesState } from '@store/features.state';
 import { SharedActionsService } from '@services/shared-actions.service';
+import { MatTooltip } from '@angular/material/tooltip';
 
-
+interface StepState {
+  showLinkIcon: boolean;
+  featureId: number | null;
+}
 
 @Component({
   selector: 'cometa-step-editor',
@@ -168,7 +174,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
     private logger: LogService,
-    private _sharedActions: SharedActionsService
+    private _sharedActions: SharedActionsService,
   ) {
     super();
     this.stepsForm = this._fb.array([]);
@@ -195,7 +201,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       this.stepVisible[index] = true;
 
       const stepFormGroup = this.stepsForm.at(index) as FormGroup;
-      // console.log(stepFormGroup);
 
       const stepAction = stepFormGroup.get('step_action')?.value;
       const stepContent = stepFormGroup.get('step_content')?.value;
@@ -246,8 +251,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         this.stepVisible[index] = false;
       }
     }
-
-    // console.log("stepVisible: ", this.stepVisible[index]);
   }
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
@@ -285,47 +288,37 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     setTimeout(() => {
       this.stepsForm.controls.forEach((control, index) => {
         const stepContent = control.get('step_content')?.value;
-        if (stepContent && stepContent.startsWith('Run feature with id')) {
+        if (stepContent && (stepContent.startsWith('Run feature with id') || stepContent.startsWith('Run feature with name'))) {
           const match = stepContent.match(/"([^"]+)"/);
           if (match && match[1]) {
-            const featureId = parseInt(match[1], 10);
-            if (!isNaN(featureId)) {
+            const searchValue = match[1];
+            let featureId: number | null = null;
+
+            if (stepContent.startsWith('Run feature with id')) {
+              featureId = parseInt(searchValue, 10);
+            } else {
               this.allFeatures$.subscribe(features => {
-                const matchingFeature = features.find(f => f.feature_id === featureId);
+                const matchingFeature = features.find(f => f.feature_name === searchValue);
                 if (matchingFeature) {
+                  featureId = matchingFeature.feature_id;
                   const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
                   if (textarea) {
-                    // Create link icon
-                    const linkIcon = document.createElement('i');
-                    linkIcon.className = 'material-icons';
-                    linkIcon.textContent = 'link';
-                    linkIcon.style.position = 'absolute';
-                    linkIcon.style.right = '5px';
-                    linkIcon.style.top = '50%';
-                    linkIcon.style.transform = 'translateY(-50%)';
-                    linkIcon.style.cursor = 'pointer';
-                    linkIcon.style.color = 'rgb(33, 150, 243)';
-                    linkIcon.onclick = (e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      this._sharedActions.goToFeature(featureId, true);
-                      return false;
-                    };
-
-                    // Add the icon to the textarea container
-                    const textareaContainer = textarea.parentElement;
-                    if (textareaContainer) {
-                      // Remove any existing link icon
-                      const existingIcon = textareaContainer.querySelector('.material-icons');
-                      if (existingIcon) {
-                        existingIcon.remove();
-                      }
-                      textareaContainer.style.position = 'relative';
-                      textareaContainer.appendChild(linkIcon);
-                    }
+                    this.processFeatureLink(textarea, featureId, index, matchingFeature?.feature_name);
                   }
                 }
               });
+            }
+
+            if (featureId && !isNaN(featureId)) {
+              const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
+              if (textarea) {
+                this.processFeatureLink(textarea, featureId, index, undefined);
+              }
+            } else {
+              const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
+              if (textarea) {
+                this.removeLinkIcon(textarea, index);
+              }
             }
           }
         }
@@ -343,19 +336,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // @ts-ignore
     if (!this.feature) this.feature = { feature_id: 0 };
     const featureId = this.mode === 'clone' ? 0 : this.feature.feature_id;
-    
-    this.allFeatures$.subscribe(features => {
-      console.log('=== Features Information ===');
-      console.log('Total Features:', features.length);
-      console.log('Features Details:');
-      features.forEach(feature => {
-        console.log(`Feature ID: ${feature.feature_id}`);
-        console.log(`Name: ${feature.feature_name}`);
-        console.log(`Department: ${feature.department_name}`);
-      
-        console.log('------------------------');
-      });
-    });
     
     this.subs.sink = this._store
       .select(CustomSelectors.GetFeatureSteps(featureId))
@@ -474,7 +454,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   // inserts variable into step when clicked
   onClickVariable(variable_name: string, index: number) {
-    // console.log("Clicado elinput: ", variable_name)
     if (!variable_name) return;
 
     let step = this.stepsForm.at(index).get('step_content');
@@ -521,40 +500,47 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     const textarea = event.target as HTMLTextAreaElement;
     const textareaValue = textarea.value.trim();
-    console.log('Step content:', textareaValue);
 
     // Check if step starts with "Run feature with id" or "Run feature with name"
     if (textareaValue.startsWith('Run feature with id') || textareaValue.startsWith('Run feature with name')) {
       // Extract content between quotes
-      const match = textareaValue.match(/"([^"]+)"/);
-      if (match && match[1]) {
+      const match = textareaValue.match(/"([^"]*)"/);
+      if (match) {
         const searchValue = match[1];
         let featureId: number | null = null;
 
         if (textareaValue.startsWith('Run feature with id')) {
           // If it's an ID, parse it directly
-          featureId = parseInt(searchValue, 10);
+          featureId = searchValue ? parseInt(searchValue, 10) : null;
         } else {
           // If it's a name, search for the feature by name
           this.allFeatures$.subscribe(features => {
             const matchingFeature = features.find(f => f.feature_name === searchValue);
             if (matchingFeature) {
               featureId = matchingFeature.feature_id;
-              this.processFeatureLink(textarea, featureId, matchingFeature.feature_name);
+              this.processFeatureLink(textarea, featureId, index, matchingFeature?.feature_name);
             } else {
-              this.removeLinkIcon(textarea);
+              this.removeLinkIcon(textarea, index);
             }
           });
         }
 
         if (featureId && !isNaN(featureId)) {
-          this.processFeatureLink(textarea, featureId);
+          const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
+          if (textarea) {
+            this.processFeatureLink(textarea, featureId, index, undefined);
+          }
         } else {
-          this.removeLinkIcon(textarea);
+          const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
+          if (textarea) {
+            this.removeLinkIcon(textarea, index);
+          }
         }
+      } else {
+        this.removeLinkIcon(textarea, index);
       }
     } else {
-      this.removeLinkIcon(textarea);
+      this.removeLinkIcon(textarea, index);
     }
 
     if (!textareaValue) {
@@ -620,60 +606,31 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
   }
 
-  private processFeatureLink(textarea: HTMLTextAreaElement, featureId: number, featureName?: string) {
+  private processFeatureLink(textarea: HTMLTextAreaElement, featureId: number, index: number, featureName?: string) {
     this.allFeatures$.subscribe(features => {
       const matchingFeature = features.find(f => f.feature_id === featureId);
       if (matchingFeature) {
-        // Create link icon
-        const linkIcon = document.createElement('i');
-        linkIcon.className = 'material-icons';
-        linkIcon.textContent = 'link';
-        linkIcon.style.position = 'absolute';
-        linkIcon.style.right = '5px';
-        linkIcon.style.top = '50%';
-        linkIcon.style.transform = 'translateY(-50%)';
-        linkIcon.style.cursor = 'pointer';
-        linkIcon.style.color = 'rgb(33, 150, 243)';
-        linkIcon.onclick = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          this._sharedActions.goToFeature(featureId, true);
-          return false;
+        this.stepStates[index] = {
+          featureId: featureId,
+          showLinkIcon: true
         };
-
-        // Add the icon to the textarea container
-        const textareaContainer = textarea.parentElement;
-        if (textareaContainer) {
-          // Remove any existing link icon
-          const existingIcon = textareaContainer.querySelector('.material-icons');
-          if (existingIcon) {
-            existingIcon.remove();
-          }
-          textareaContainer.style.position = 'relative';
-          textareaContainer.appendChild(linkIcon);
-        }
-
-        // Show a tooltip with either the feature name or ID
-        const displayName = featureName || matchingFeature.feature_name || featureId;
-        this.snack.open(`Click the link icon to open feature ${displayName}`, 'OK', {
-          duration: 2000,
-          horizontalPosition: 'center',
-          verticalPosition: 'top'
-        });
+        this._cdr.detectChanges();
       } else {
-        this.removeLinkIcon(textarea);
+        this.stepStates[index] = {
+          showLinkIcon: false,
+          featureId: null
+        };
+        this._cdr.detectChanges();
       }
     });
   }
 
-  private removeLinkIcon(textarea: HTMLTextAreaElement) {
-    const textareaContainer = textarea.parentElement;
-    if (textareaContainer) {
-      const existingIcon = textareaContainer.querySelector('.material-icons');
-      if (existingIcon) {
-        existingIcon.remove();
-      }
-    }
+  private removeLinkIcon(textarea: HTMLTextAreaElement, index: number) {
+    this.stepStates[index] = {
+      showLinkIcon: false,
+      featureId: null
+    };
+    this._cdr.detectChanges();
   }
 
   // returns the index of nearest left $ and nearest right " char in string, taking received startIndex as startpoint reference
@@ -713,7 +670,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepVisible[index] = true;
 
     const cleanedStep = step.replace(/Parameters:([\s\S]*?)Example:/gs, '').trim();
-    // console.log("Prueba: ", cleanedStep);
 
     // Usamos una expresión regular para extraer el nombre de la acción y la variable
     const matchResult = step.match(/^(.*?)\s*"(.*?)"/);
@@ -798,7 +754,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           this.descriptionText = parts[0].trim();
           this.examplesText = parts[1]?.trim() || '';
 
-          // console.log("Example text:", this.examplesText);
         } else {
           this.descriptionText = this.selectedActionDescription;
           this.examplesText = '';
@@ -837,11 +792,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   stepVisible: boolean[] = [];
 
   closeAutocomplete(index?: number) {
-    // console.log("El evento: ", event.value.step_content)
-    // console.log("El index: ", index)
     const stepFormGroup = this.stepsForm.at(index) as FormGroup;
     const stepContent = stepFormGroup.get('step_content')?.value;
-    // console.log('Step Content:', stepContent);
     if (stepContent == '') {
       this.stepsDocumentation[index] = {
         description: '',
@@ -873,7 +825,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   onAutocompleteOpened(index?: number) {
     this.stepVisible[index] = true;
-    // console.log("FocusedIndex: ", index)
     this.isAutocompleteOpened = true;
 
     setTimeout(() => {
@@ -883,10 +834,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   updateIconPosition() {
     const overlayElement = document.querySelector('.cdk-overlay-pane');
-    // console.log("Overlay:", overlayElement)
     if (overlayElement) {
       const rect = overlayElement.getBoundingClientRect();
-      // console.log("rect:", rect)
       this.iconPosition = {
         top: rect.top,
         left: rect.left + rect.width,
@@ -1124,7 +1073,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     const panel = document.querySelector('.stepContainer');
     if (panel) {
       this.renderer.removeChild(document.body, panel);
-      // console.log('Autocomplete panel eliminado');
     }
 
     const control = this.stepsForm.controls[event.previousIndex];
@@ -1318,4 +1266,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
   }
 
+  showLinkIcon: boolean = false;
+  featureId: number | null = null;
+
+  navigateToFeature(featureId: number) {
+    if (featureId) {
+      this._sharedActions.goToFeature(featureId, true);
+    }
+  }
+
+  stepStates: { [key: number]: StepState } = {};
 }
