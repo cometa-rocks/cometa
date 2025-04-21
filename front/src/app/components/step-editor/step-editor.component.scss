@@ -577,3 +577,15 @@ mat-autocomplete {
   gap: 10px;
   margin-top: 3px;
 }
+
+/* Estilos para el icono de enlace del feature */
+.feature-link-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: $blue;
+  font-size: 20px;
+  z-index: 1;
+}

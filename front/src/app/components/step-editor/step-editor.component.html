@@ -151,6 +151,14 @@
                 placeholder="Step Code"
                 (focus)="sendTextareaFocusToParent(true, i)">
               </textarea>
+              <i 
+                class="material-icons feature-link-icon" 
+                [style.display]="(step.get('step_content').value?.includes('Run feature with') && stepStates[i]?.showLinkIcon && stepStates[i]?.featureId) ? 'block' : 'none'"
+                [matTooltip]="'step_editor.feature_link_tooltip' | translate"
+                matTooltipPosition="above"
+                (click)="navigateToFeature(stepStates[i]?.featureId)">
+                link
+              </i>
               <mat-list
                 class="var_name_autoComplete"
                 [ngStyle]="{
