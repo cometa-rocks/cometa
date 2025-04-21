@@ -121,12 +121,12 @@ def end_if(context):
 @step(u'Calculate "(?P<value1>.+?)" "(?P<operation>.+?)" "(?P<value2>.+?)" and store in the "(?P<variable>.+?)"')
 @done(u'Calculate "{value1}" "{operation}" "{value2}" and store in the "{variable}"')
 def arthmatic_calculations(context, value1, operation, value2, variable):
-    except_operations =  ["+","-","*","/","//","**"]
+    except_operations =  ["+","-","*","/","//","**", "%"]
     operation = operation.strip()
     
     try:
         if not operation in except_operations:
-            raise CustomError(f"Invalid operation selected, please use {','.join(except_operations)}")
+            raise CustomError(f"Invalid operation selected, please use any of {', '.join(except_operations)}")
         
         calculation = None
         if "." in value1 or "." in value2:
