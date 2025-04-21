@@ -77,3 +77,74 @@ class Condition:
             \n is_else_section_active: {self._is_else_section_active}, \
                 \n is_condition_over: {self._is_condition_over}, \
                     \n count_of_sub_conditions: {len(self._sub_conditions)}"
+   
+
+# Not in use as of now, Implementation In progress        # 
+class ForLoop:
+    def __init__(self, start_index, end_index, increment_decrement):
+        self.start_index = start_index
+        self.end_index = end_index
+        self.increment_decrement = increment_decrement
+        self.active_step_index = 0
+        self.__inner_steps = []
+        self.__sub_loops: list[Condition] = []
+        self.__is_loop_breaked = False
+        self.__is_loop_continued = False
+        self.__is_loop_over = False
+    
+    # Insert records of steps to have list of steps executed
+    def add_step(self, step):
+        self.__inner_steps.append(step)
+
+    def get_current_step(self):
+        return self.__inner_steps[self.active_step_index]
+
+    def get_all_steps(self):
+        return self.__inner_steps
+
+    def get_total_steps(self):
+        return len(self.__inner_steps)
+    
+    # This method increases the index for the active indexs
+    def increment_active_step_index(self):
+        self.active_step_index = self.active_step_index + 1
+
+    # set the step iteration to 0 to start the steps execution again
+    def start_step_iteration(self):
+        self.active_step_index = 0
+                
+    def break_loop(self):
+        self.__is_loop_breaked = True
+
+    def is_loop_breaked(self):
+        return self.__is_loop_breaked 
+        
+    # To continue the loop set the __active_step_index to the last step with in the loop
+    def continue_loop(self):
+        self.__is_loop_continued = True
+        self.active_step_index = len(self.__inner_steps)-1
+
+    def is_loop_continued(self):
+        return self.__is_loop_continued
+
+    def loop_not_continued_for_next_iteration(self):
+        self.__is_loop_continued = False
+        
+    def close_loop(self):
+        self.__is_loop_over = True
+
+    def is_flow_with_in_loop(self):
+        return self.__is_loop_over
+
+    def change_index(self, increment_decrement):
+        self.start_index = self.start_index + increment_decrement
+    
+    def apply_increment_decrement(self):
+        self.start_index = self.start_index + self.increment_decrement
+        
+    def is_loop_condition_valid(self):
+        return self.start_index <= self.end_index and not self.is_loop_breaked() and not self.is_loop_continued()
+    
+    def __str__(self) -> str:
+        return f"""start_index {self.start_index},  end_index {self.end_index}, increment_decrement {self.increment_decrement},
+                     active_step_index {self.active_step_index}, total_steps {self.get_total_steps()}, continued {self.is_loop_continued()}, break {self.is_loop_breaked()}, loop_condition_valid {self.is_loop_condition_valid()}"""

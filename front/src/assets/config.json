@@ -1,5 +1,5 @@
 {
-  "version": "3.0.35",
+  "version": "3.0.36",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,16 +236,26 @@
     "{Code is Poetry}"
   ],
   "changelog": [
-    {
-      "version": "3.0.35",
-      "date": "2025-04-20",
+      {
+      "version": "3.0.36",
+      "date": "2025-04-21",
       "features": [
         {
           "title": "Add functionality to 'Run Feature' step",
           "description": "Added a new icon to the 'Run Feature' step that opens the main view of the indicated feature in a new tab."
         }
       ]
-    },      
+    }, 
+    {
+      "version": "3.0.35",
+      "date": "2025-04-20",
+      "features": [
+        {
+          "title": "#5812: Improved CI/CD to support feature execution within specified folders.",
+          "description": "Enhanced the CI/CD feature to support folder-wise execution, using an API with token-based authentication for executing grouped feature sets"
+        }
+      ]
+    }, 
     {
       "version": "3.0.34",
       "date": "2025-04-17",
