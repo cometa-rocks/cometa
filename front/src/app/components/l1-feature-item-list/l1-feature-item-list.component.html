@@ -176,9 +176,6 @@ Author: dph000
         </ng-container>
       </div>
 
-
-
-
       <!-- Feature browser -->
       <div class="browser" *ngIf="item.browsers[0] as browser">
         <i class="my-icons" [ngClass]="browser.browser"></i>
@@ -316,7 +313,7 @@ Author: dph000
 </ng-container>
 <ng-template #folderItem>
   <!-- Folder item container -->
-  <div class="folder-container" (click)="goFolder(item.route)">
+  <div class="folder-container" [class.menu-open]="isMenuOpen">
     <div class="wrapper folder">
       <div
         *ngIf="finder"
@@ -366,7 +363,9 @@ Author: dph000
         stopPropagation
         class="options"
         mat-icon-button
-        [matMenuTriggerFor]="folderOptions">
+        [matMenuTriggerFor]="folderOptions"
+        (menuOpened)="isMenuOpen = true"
+        (menuClosed)="isMenuOpen = false">
         <mat-icon>more_vert</mat-icon>
       </button>
       <!-- Menu to manage folder -->
@@ -381,20 +380,20 @@ Author: dph000
           class="item-loader"
           diameter="18"></mat-spinner>
         <span> Features running </span>
-      </div>
-      <ng-template #showRunAllButton>
-        <button
-          (click)="_sharedActions.runAllFeatures(item.reference)"
-          class="run-feature"
-          [matTooltip]="'tooltips.run_all_features' | translate"
-          matTooltipPosition="after"
-          mat-menu-item>
-          <mat-icon>play_circle_filled</mat-icon>
-          <span>Run all features</span>
-        </button>
-      </ng-template>
-      <mat-divider></mat-divider>
-      <!-- Next update 2.8.77 config.json -->
+        </div>
+        <ng-template #showRunAllButton>
+          <button
+            (click)="_sharedActions.runAllFeatures(item.reference)"
+            class="run-feature"
+            [matTooltip]="'tooltips.run_all_features' | translate"
+            matTooltipPosition="after"
+            mat-menu-item>
+            <mat-icon>play_circle_filled</mat-icon>
+            <span>Run all features</span>
+          </button>
+        </ng-template>
+        <mat-divider></mat-divider>
+        <!-- Next update 2.8.77 config.json -->
         <!-- <button
         (click)="_sharedActions.cancelAllFeatures(item.reference)"
         class="cancel-feature"

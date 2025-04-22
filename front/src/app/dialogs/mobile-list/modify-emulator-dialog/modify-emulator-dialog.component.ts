@@ -42,7 +42,7 @@ import { DraggableWindowModule } from '@modules/draggable-window.module'
 import { MatExpansionModule } from '@angular/material/expansion';
 import { LogService } from '@services/log.service';
 import { ApiService } from '@services/api.service';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { catchError, map, Observable, throwError, of, concatMap } from 'rxjs';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { MatCardModule } from '@angular/material/card';
@@ -170,59 +170,76 @@ export class ModifyEmulatorDialogComponent {
       this.logger.msg("1", "App-seleccionada:", "modify-emulator", selectedApp);
       this.updateSharedStatus({ checked: isShared }, this.data.mobile, this.data.runningContainer)
         .subscribe((updatedContainer: any) => {
-          // for each apk
-          this.selectedApks.forEach(apk => {
-            this.installAPK(apk.id, updatedContainer);
-          });
+          // Install APKs sequentially
+          const installApks = this.selectedApks.reduce((obs, apk) => {
+            return obs.pipe(
+              concatMap(() => this.installAPK(apk.id, updatedContainer))
+            );
+          }, of(null));
 
-          // Update the container's apk_file array with the new APKs
-          updatedContainer.apk_file = this.selectedApks.map(apk => apk.id);
-          this.dialogRef.close({ updatedContainer });
+          installApks.subscribe({
+            next: () => {
+              // Update apk_file list after all installations
+              updatedContainer.apk_file = this.selectedApks.map(apk => apk.id);
+              this.dialogRef.close({ updatedContainer });
+            },
+            error: (error) => {
+              console.error('Error installing APKs:', error);
+              this.snack.open("Error installing one or more APKs", "OK");
+            }
+          });
         });
     } else {
-      // for each apk
-      this.selectedApks.forEach(apk => {
-        this.installAPK(apk.id, this.data.runningContainer);
-      });
+      // Install APKs sequentially
+      const installApks = this.selectedApks.reduce((obs, apk) => {
+        return obs.pipe(
+          concatMap(() => this.installAPK(apk.id, this.data.runningContainer))
+        );
+      }, of(null));
 
-      // Update the container's apk_file array with the new APKs
-      this.data.runningContainer.apk_file = this.selectedApks.map(apk => apk.id);
-      this.dialogRef.close({ updatedContainer: this.data.runningContainer });
+      installApks.subscribe({
+        next: () => {
+          // Update apk_file list after all installations
+          this.data.runningContainer.apk_file = this.selectedApks.map(apk => apk.id);
+          this.dialogRef.close({ updatedContainer: this.data.runningContainer });
+        },
+        error: (error) => {
+          console.error('Error installing APKs:', error);
+          this.snack.open("Error installing one or more APKs", "OK");
+        }
+      });
     }
   }
 
-  installAPK(apk_id, container): void {
+  installAPK(apk_id, container): Observable<any> {
     if (!this.selectedApks.length) {
       this.snack.open("Please select at least one APK before installing.", "OK");
-      return;
+      return throwError(() => new Error("No APKs selected"));
     }
-    let updateData = { apk_file: apk_id};
+    let updateData = { apk_file: apk_id };
     console.log("Update data", updateData);
-    this._api.updateMobile(this.data.runningContainer.id, updateData).subscribe(
-
-      (response: any) => {
-        console.log("Response", response);
-        console.log("Response containerservice", response.containerservice);
+    console.log("Container", this.data.runningContainer);
+    return this._api.updateMobile(this.data.runningContainer.id, updateData).pipe(
+      map((response: any) => {
         if (response && response.containerservice) {
           container = response.containerservice;
           console.log("Container", container);
-          // this.logger.msg("1", "container inside: ", "", container);
           this.snack.open(
             `APK Installed in the mobile ${this.data.mobile.mobile_image_name}`,
             'OK'
           );
           this._cdr.detectChanges();
+          return response;
         } else {
           this.snack.open(response.message, 'OK');
+          throw new Error(response.message);
         }
-      },
-      error => {
-        // Handle any errors
-        console.error(
-          'An error occurred while fetching the mobile list',
-          error
-        );
-      }
+      }),
+      catchError(error => {
+        console.error('An error occurred while installing APK', error);
+        this.snack.open('Failed to install APK', 'OK');
+        return throwError(() => error);
+      })
     );
   }
 
