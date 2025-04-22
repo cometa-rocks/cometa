@@ -289,7 +289,8 @@
   .more-vert,
   .enable,
   .screenshot,
-  .compare {
+  .compare,
+  .warnings {
     @include for-tablet-portrait-up {
       flex: 0 0 80px;
     }
@@ -576,4 +577,13 @@ mat-autocomplete {
   display: flex;
   gap: 10px;
   margin-top: 3px;
+}
+
+textarea {
+  resize: vertical; 
+}
+
+.warnings {
+  width: 100px;
+  text-align: center;
 }
