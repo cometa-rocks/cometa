@@ -89,6 +89,7 @@ import { LogService } from '@services/log.service';
 import { MatAutocompleteActivatedEvent } from '@angular/material/autocomplete';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ApiTestingComponent } from '@components/api-testing/api-testing.component';
 
 
 
@@ -1147,6 +1148,32 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     else if (event.key == 'ArrowUp'){
       this.copyItem(i, 'up');
     }
+  }
+
+  isApiCallStep(item: number): boolean {
+    const content = this.stepsForm.controls[item]?.get('step_content')?.value;
+    console.log('content', content);
+    return content?.includes('Make an API call');
+  }
+
+
+  editApiCall(item: any){
+
+    if (!this.isApiCallStep(item)) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    
+    //get step content
+    const stepContent = item.step_content;
+    //open dialog
+    const dialogRef = this._dialog.open(ApiTestingComponent, {
+      data: { stepContent }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('result', result);
+    });
   }
 
 }

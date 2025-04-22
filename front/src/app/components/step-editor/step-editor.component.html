@@ -55,6 +55,22 @@
     </div>
   </ng-template>
   <ng-template contextMenuItem let-item>
+    <div 
+      *ngIf="!isApiCallStep(item)"
+      [matTooltip]="'Only available for API call steps'"
+      (click)="editApiCall($event, item)">
+      <mat-icon class="edit">edit</mat-icon>
+      <span>Edit API Call</span>
+    </div>
+    <div 
+      *ngIf="isApiCallStep(item)"
+      (click)="editApiCall($event, item)"
+      [matTooltip]="'Only available for API call steps'">
+      <mat-icon class="edit">edit</mat-icon>
+      <span>Edit API Call</span>
+    </div>
+  </ng-template>
+  <ng-template contextMenuItem let-item>
     <div (click)="deleteStep(item)">
       <mat-icon class="delete">delete</mat-icon>
       <span>Delete</span>

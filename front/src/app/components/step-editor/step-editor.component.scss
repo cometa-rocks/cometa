@@ -577,3 +577,16 @@ mat-autocomplete {
   gap: 10px;
   margin-top: 3px;
 }
+
+.disabled-menu-item {
+  pointer-events: none;      /* disables clicks and hovers */
+  color: #999;               /* grey text */
+  cursor: default;           /* default arrow cursor */
+  display: flex;             /* keep layout similar */
+  align-items: center;
+  padding: 4px 8px;          /* match normal context menu padding */
+  opacity: 0.6;              /* visual dimming */
+}
+.disabled-menu-item mat-icon {
+  color: #999;               /* ensure icon is also greyed out */
+}
