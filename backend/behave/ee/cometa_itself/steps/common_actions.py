@@ -111,7 +111,28 @@ def show_variable_value(context, variable, seconds):
         
     time.sleep(int(seconds))
 
-        
+
+
+# Save string value to environment variable, environment variable value has a maximum value of 255 characters
+# Example: Save "123456" to environment variable "user_id"
+@step(u'Save "{value}" to environment variable "{variable_name}"')
+@done(u'Save "{value}" to environment variable "{variable_name}"')
+def step_impl(context, value, variable_name):
+    send_step_details(context, 'Saving value to environment variable')
+    # add variable
+    addVariable(context, variable_name, value, save_to_step_report=True)
+
+
+# Save string value to environment variable, environment variable value has a maximum value of 255 characters
+# Example: Save "123456" to environment variable "user_id"
+@step(u'Save "{value}" to runtime variable "{variable_name}"')
+@done(u'Save "{value}" to runtime variable "{variable_name}"')
+def step_impl(context, value, variable_name):
+    logger.debug("Saving value to runtime variable")
+    send_step_details(context, 'Saving value to runtime variable')
+    # add variable
+    addTestRuntimeVariable(context, variable_name, value, save_to_step_report=True)
+
 
 # Reads data from an Excel file for a given sheet and row number, 
 # then stores the row's data as a dictionary in a runtime variable.  
