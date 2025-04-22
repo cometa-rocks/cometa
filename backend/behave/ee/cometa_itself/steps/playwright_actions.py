@@ -31,8 +31,8 @@ use_step_matcher("re")
 def launch_playwright_browser(context):
     
         context.pw = sync_playwright().start()
-        send_step_details(context, 'Launching Browser')
-        logger.debug("Starting browser")
+        send_step_details(context, 'Connecting to Browser')
+        logger.debug("Connecting to browser")
         
         if context.USE_COMETA_BROWSER_IMAGES:
             status_check_connection_url = f"http://{context.browser_hub_url}:4444/status"
@@ -44,17 +44,31 @@ def launch_playwright_browser(context):
             nodes = response_json['value']['nodes']
             if len(nodes)==0:
                 raise CustomError("Browser selenium session was closed")
-            websocket_url = nodes[0]['slots'][0]['session']['capabilities']['se:cdp']            
+            websocket_url = nodes[0]['slots'][0]['session']['capabilities']['se:cdp']  
+            context.websocket_url = websocket_url
+            
         else:
-            websocket_url = f"ws://{context.browser_hub_url}:4444/devtools/{context.browser.session_id}"
-        # Connect to existing Chrome instance in Selenoid via CDP
-        # browser = context.pw.chromium.connect_over_cdp(f"ws://{context.browser_hub_url}:4444/devtools/{context.browser.session_id}")
-        logger.debug(f"Connecting to browser with Playwright using CDP url : {websocket_url}")
-        browser = context.pw.chromium.connect_over_cdp(websocket_url)
+            context.websocket_url = f"ws://{context.browser_hub_url}:4444/devtools/{context.browser.session_id}"        
+        logger.debug(f"Connecting to browser with Playwright using CDP url : {context.websocket_url}")
+        context.playwright_browser = context.pw.chromium.connect_over_cdp(context.websocket_url)
         logger.debug("Browser started")
-        time.sleep(5)
+        time.sleep(2)
         logger.debug("Getting page")
         # Get the first page from the browser context
-        context.page = browser.contexts[0].pages[0] 
         
+        context.page = context.playwright_browser.contexts[0].pages[0] 
         
+
+# When browser is connected to playwright CDP connection, after that if you are facing any issue with selenium steps, 
+# Use this fucntion to release the CDP connection from browser
+@step(u'Switch back to selenium browser')
+@done(u'Switch back to selenium browser')
+def switch_back_to_selenium(context):
+    # Once done with browser-use, release it:
+    send_step_details(context, "Swithcing back to selenium")
+    logger.debug("Release the playwright page")
+    context.page.context.close()
+    context.page.close()
+    logger.debug("Close the playwright browser")
+    context.playwright_browser.close()  
+    # Releases CDP control

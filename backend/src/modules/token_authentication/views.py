@@ -105,9 +105,12 @@ def login_start_test(request):
                 "secret_key":"************ secret_key ***********"
             },
             "test_info":{
-                "execution_type":"feature | datadriven", 
-                "id":5 
-            }
+                "execution_type":"feature | datadriven | folder", 
+                "id":1, 
+                "department_id": 1,
+                "recursive": True,
+            },
+            "explanation":["'test_info.department_id' and 'test_info.recursive=true/false' is only required when there execution_type is 'folder'"]
         }
     }
     response_manager = ResponseManager("integration_v2")
@@ -142,6 +145,8 @@ def login_start_test(request):
 
             id = test_info.get("id", None)
             execution_type = test_info.get("execution_type", None)
+            department_id = test_info.get("department_id", None)
+            recursive = test_info.get("recursive", False)
             
             if id is None or execution_type is None:
                 return response_manager.validation_error_response({
@@ -167,6 +172,20 @@ def login_start_test(request):
             elif execution_type == "datadriven":
                 body = {"file_id": id}
                 response = requests.post(f"{get_cometa_backend_url()}/exec_data_driven/", data=json.dumps(body), headers=headers)
+                logger.debug(f"Response from Cometa: {response.text}")
+                
+                response_body = response.json()
+                return response_manager.response(response_body)
+            
+            elif execution_type == "folder":
+                body = {"recursive": recursive}
+                if department_id: 
+                    body['department_id'] = department_id
+                
+                if id:
+                    body['folder_id'] = id
+                
+                response = requests.post(f"{get_cometa_backend_url()}/exec_batch/", data=json.dumps(body), headers=headers)
                 logger.debug(f"Response from Cometa: {response.text}")
                 
                 response_body = response.json()
