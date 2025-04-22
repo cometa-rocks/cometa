@@ -199,6 +199,21 @@
 // Folder item
 .folder-container {
   height: 100%;
+  
+  &.menu-open,
+  &:hover {
+    .folder {
+      box-shadow: 0 1px 2.5px;
+    }
+    .folder-behind {
+      .folder-top-container {
+        .current-step {
+          box-shadow: 0 1px 2.5px;
+        }
+      }
+    }
+  }
+
   // Main folder
   .folder {
     background-color: $folder;
@@ -220,7 +235,7 @@
     margin-top: -195px;
     background-color: $folder-back;
     box-shadow: none;
-    height: calc(100% + 20px);
+    height: 25px;
     // Element above the folder
     .folder-top-container {
       .current-step {
