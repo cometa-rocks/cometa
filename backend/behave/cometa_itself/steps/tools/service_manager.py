@@ -560,7 +560,7 @@ class ServiceManager(service_manager):
     
     def wait_for_selenium_hub_be_up(self,hub_url,timeout=120):
         start_time = time.time()
-        interval = 1
+        interval = 0.1
         logger.debug(f"Waiting for selenium hub {hub_url} to available")
         while True:
             try:
