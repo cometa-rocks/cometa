@@ -1157,22 +1157,28 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
 
-  editApiCall(item: any){
-
+  editApiCall(item: any) {
     if (!this.isApiCallStep(item)) {
-      event.preventDefault();
-      event.stopPropagation();
       return;
     }
     
-    //get step content
-    const stepContent = item.step_content;
-    //open dialog
+    // Get step content
+    const stepContent = this.stepsForm.controls[item].get('step_content').value;
+    
+    // Open dialog
     const dialogRef = this._dialog.open(ApiTestingComponent, {
-      data: { stepContent }
+      data: { stepContent },
+      width: '800px',
+      maxHeight: '90vh',
+      panelClass: 'api-testing-dialog'
     });
+
     dialogRef.afterClosed().subscribe(result => {
-      console.log('result', result);
+      if (result) {
+        // Update the step content with the new API call data
+        this.stepsForm.controls[item].get('step_content').setValue(result);
+        this._cdr.detectChanges();
+      }
     });
   }
 
