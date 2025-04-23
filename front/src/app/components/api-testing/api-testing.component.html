@@ -5,9 +5,109 @@ Component containing the api testing page
 Author: Nico
 
 -->
-<div class="container">
-    <h2>
-      <mat-icon>format_paint</mat-icon>
-      Upcoming feature! Please, come again later.
-    </h2>
-  </div>
+<draggable-window></draggable-window>
+<div class="api-testing-container">
+  <h2 mat-dialog-title>API Call Editor</h2>
+  
+  <mat-dialog-content>
+    <div class="method-endpoint-row">
+      <mat-form-field appearance="outline" class="method-select">
+        <mat-label>HTTP Method</mat-label>
+        <mat-select [(ngModel)]="selectedMethod">
+          <mat-option *ngFor="let method of httpMethods" [value]="method">
+            {{method}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="endpoint-input">
+        <mat-label>Endpoint URL</mat-label>
+        <input matInput [(ngModel)]="endpoint" placeholder="https://api.example.com/endpoint">
+      </mat-form-field>
+    </div>
+
+    <div class="preview-url" *ngIf="getFormattedEndpoint()">
+      <span class="preview-label">Preview URL:</span>
+      <span class="preview-value">{{getFormattedEndpoint()}}</span>
+    </div>
+
+    <mat-tab-group>
+      <mat-tab label="Parameters">
+        <div class="parameters-container">
+          <div class="parameter-row" *ngFor="let param of parameters; let i = index">
+            <mat-form-field appearance="outline" class="param-key">
+              <mat-label>Key</mat-label>
+              <input matInput [(ngModel)]="param.key" placeholder="Parameter name">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="param-value">
+              <mat-label>Value</mat-label>
+              <input matInput [(ngModel)]="param.value" placeholder="Parameter value">
+            </mat-form-field>
+
+            <mat-checkbox [(ngModel)]="param.enabled" class="param-enabled">
+              Include
+            </mat-checkbox>
+
+            <button mat-icon-button color="warn" (click)="removeParameter(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+
+          <button mat-stroked-button (click)="addParameter()" class="add-button">
+            <mat-icon>add</mat-icon>
+            Add Parameter
+          </button>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Headers">
+        <div class="headers-container">
+          <div class="header-row" *ngFor="let header of headers; let i = index">
+            <mat-form-field appearance="outline" class="header-key">
+              <mat-label>Key</mat-label>
+              <input matInput [(ngModel)]="header.key" placeholder="Header name">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="header-value">
+              <mat-label>Value</mat-label>
+              <input matInput [(ngModel)]="header.value" placeholder="Header value">
+            </mat-form-field>
+
+            <mat-checkbox [(ngModel)]="header.enabled" class="header-enabled">
+              Include
+            </mat-checkbox>
+
+            <button mat-icon-button color="warn" (click)="removeHeader(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+
+          <button mat-stroked-button (click)="addHeader()" class="add-button">
+            <mat-icon>add</mat-icon>
+            Add Header
+          </button>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Body">
+        <div class="body-container">
+          <mat-form-field appearance="outline" class="body-input">
+            <mat-label>JSON Body</mat-label>
+            <textarea matInput [(ngModel)]="jsonBody" rows="10" placeholder="Enter JSON body"></textarea>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="body-input">
+            <mat-label>Raw Body</mat-label>
+            <textarea matInput [(ngModel)]="rowBody" rows="10" placeholder="Enter raw body"></textarea>
+          </mat-form-field>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="onSave()">Save</button>
+  </mat-dialog-actions>
+</div>

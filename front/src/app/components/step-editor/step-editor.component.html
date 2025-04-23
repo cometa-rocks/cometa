@@ -56,16 +56,19 @@
   </ng-template>
   <ng-template contextMenuItem let-item>
     <div 
-      *ngIf="!isApiCallStep(item)"
-      [matTooltip]="'Only available for API call steps'"
-      (click)="editApiCall($event, item)">
+      *ngIf="isApiCallStep(item)"
+      [matTooltip]="'Edit current API Call'"
+      matTooltipPosition="right"
+      (click)="editApiCall(item)">
       <mat-icon class="edit">edit</mat-icon>
       <span>Edit API Call</span>
     </div>
     <div 
-      *ngIf="isApiCallStep(item)"
-      (click)="editApiCall($event, item)"
-      [matTooltip]="'Only available for API call steps'">
+      *ngIf="!isApiCallStep(item)"
+      (click)="editApiCall(item)"
+      [matTooltip]="'Only available for API call steps'"
+      matTooltipPosition="right"
+      class="disabled-menu-item">
       <mat-icon class="edit">edit</mat-icon>
       <span>Edit API Call</span>
     </div>
