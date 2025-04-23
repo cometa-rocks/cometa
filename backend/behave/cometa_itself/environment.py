@@ -30,7 +30,7 @@ from modules.ai import AI
 from tools.models import Condition
 # from tools.kubernetes_service import KubernetesServiceManager
 
-LOGGER_FORMAT = "\33[96m[%(asctime)s][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s"
+LOGGER_FORMAT = "\33[96m[%(asctime)s.%(msecs)03d][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s"
 
 load_configurations()
 
