@@ -56,12 +56,21 @@ function setRunningStatus(featureId, running) {
  * Sets the current status for a given data driven run ID 
  * @param dataDrivenRunID Feature ID
  * @param running Whether or not the feature is running
+ * @param metrics Additional metrics to store
  */
-function setDataDrivenRunningStatus(dataDrivenRunID, running) {
+function setDataDrivenRunningStatus(dataDrivenRunID, running, metrics = {}) {
   if (!dataDrivenRunStatus.hasOwnProperty(dataDrivenRunID)) {
     dataDrivenRunStatus[dataDrivenRunID] = {};
   }
   dataDrivenRunStatus[dataDrivenRunID].running = running;
+  
+  // Store additional metrics if provided
+  if (metrics) {
+    dataDrivenRunStatus[dataDrivenRunID] = {
+      ...dataDrivenRunStatus[dataDrivenRunID],
+      ...metrics
+    };
+  }
 }
 
 /**
@@ -417,10 +426,39 @@ app.get('/dataDrivenStatus/:dataDrivenRunID', (req, res) => {
 
 /* WS Endpoint: Updating Data Driven running status */
 app.post('/dataDrivenStatus/:dataDrivenRunID', (req, res) => {
-  console.log(req.body.running)
-  setDataDrivenRunningStatus(+req.params.dataDrivenRunID, req.body.running=='True');
-  console.log('Updating Data Driven', req.params.dataDrivenRunID)
-  res.status(200).json({ success: true })
+  const runId = +req.params.dataDrivenRunID;
+  const isRunning = req.body.running === true || req.body.running === 'True';
+
+  console.log('Received dataDrivenStatus update:', runId, 'Running:', isRunning, 'Body:', req.body);
+  
+  // Extract metrics from request body if available
+  const metrics = {
+    status: req.body.status,
+    total: req.body.total,
+    ok: req.body.ok,
+    fails: req.body.fails,
+    skipped: req.body.skipped,
+    execution_time: req.body.execution_time,
+    pixel_diff: req.body.pixel_diff
+  };
+  
+  // Update internal status with all available metrics
+  setDataDrivenRunningStatus(runId, isRunning, metrics);
+
+  // Construct payload for frontend clients
+  const payload = {
+    type: '[WebSockets] DataDrivenStatusUpdate', // Define a clear type
+    run_id: runId,
+    running: isRunning,
+    // Include all available metrics
+    ...metrics
+  };
+
+  // Emit the message to all connected clients
+  io.emit('message', payload);
+  console.log('Emitted DataDrivenStatusUpdate to clients:', payload);
+
+  res.status(200).json({ success: true });
 })
 
 /* WS Endpoint: Reload actions in front */
