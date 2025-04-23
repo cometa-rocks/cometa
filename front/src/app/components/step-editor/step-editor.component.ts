@@ -14,6 +14,8 @@ import {
   Output,
   EventEmitter,
   HostListener,
+  ViewContainerRef,
+  ComponentFactoryResolver
 } from '@angular/core';
 import {
   CdkDragDrop,
@@ -28,7 +30,7 @@ import {
   MatLegacyDialogRef as MatDialogRef,
 } from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
-import { Store } from '@ngxs/store';
+import { Select, Store } from '@ngxs/store';
 import { ActionsState } from '@store/actions.state';
 import { ClipboardService } from 'ngx-clipboard';
 import { ImportJSONComponent } from '@dialogs/import-json/import-json.component';
@@ -37,6 +39,7 @@ import {
   debounceTime,
   distinctUntilChanged,
   forkJoin,
+  Observable,
   of,
 } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -89,8 +92,15 @@ import { LogService } from '@services/log.service';
 import { MatAutocompleteActivatedEvent } from '@angular/material/autocomplete';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DepartmentsState } from '@store/departments.state';
+import { FeaturesState } from '@store/features.state';
+import { SharedActionsService } from '@services/shared-actions.service';
+import { MatTooltip } from '@angular/material/tooltip';
 
-
+interface StepState {
+  showLinkIcon: boolean;
+  featureId: number | null;
+}
 
 @Component({
   selector: 'cometa-step-editor',
@@ -147,6 +157,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   displayedVariables: (VariablePair | string)[] = [];
   stepVariableData = <VariableInsertionData>{};
+  snack: any;
 
   constructor(
     private _dialog: MatDialog,
@@ -163,11 +174,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
     private logger: LogService,
-    private snack: MatSnackBar
+    private _sharedActions: SharedActionsService,
   ) {
     super();
     this.stepsForm = this._fb.array([]);
   }
+
+  @ViewSelectSnapshot(UserState.RetrieveUserDepartments) 
+
+  // departments$ = this._store.select(UserState.RetrieveUserDepartments);
+  departments$!: Department[];
+  @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
+  @Select(FeaturesState.GetFeaturesAsArray) allFeatures$: Observable<Feature[]>;
 
   // Shortcut emitter to parent component
   sendTextareaFocusToParent(isFocused: boolean, index?: number): void {
@@ -183,7 +201,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       this.stepVisible[index] = true;
 
       const stepFormGroup = this.stepsForm.at(index) as FormGroup;
-      // console.log(stepFormGroup);
 
       const stepAction = stepFormGroup.get('step_action')?.value;
       const stepContent = stepFormGroup.get('step_content')?.value;
@@ -234,8 +251,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         this.stepVisible[index] = false;
       }
     }
-
-    // console.log("stepVisible: ", this.stepVisible[index]);
   }
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
@@ -268,6 +283,48 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         })
       );
     });
+
+    // Process links for all steps after they are loaded
+    setTimeout(() => {
+      this.stepsForm.controls.forEach((control, index) => {
+        const stepContent = control.get('step_content')?.value;
+        if (stepContent && (stepContent.startsWith('Run feature with id') || stepContent.startsWith('Run feature with name'))) {
+          const match = stepContent.match(/"([^"]+)"/);
+          if (match && match[1]) {
+            const searchValue = match[1];
+            let featureId: number | null = null;
+
+            if (stepContent.startsWith('Run feature with id')) {
+              featureId = parseInt(searchValue, 10);
+            } else {
+              this.allFeatures$.subscribe(features => {
+                const matchingFeature = features.find(f => f.feature_name === searchValue);
+                if (matchingFeature) {
+                  featureId = matchingFeature.feature_id;
+                  const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
+                  if (textarea) {
+                    this.processFeatureLink(textarea, featureId, index, matchingFeature?.feature_name);
+                  }
+                }
+              });
+            }
+
+            if (featureId && !isNaN(featureId)) {
+              const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
+              if (textarea) {
+                this.processFeatureLink(textarea, featureId, index, undefined);
+              }
+            } else {
+              const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
+              if (textarea) {
+                this.removeLinkIcon(textarea, index);
+              }
+            }
+          }
+        }
+      });
+    });
+
     this._cdr.detectChanges();
   }
 
@@ -279,6 +336,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // @ts-ignore
     if (!this.feature) this.feature = { feature_id: 0 };
     const featureId = this.mode === 'clone' ? 0 : this.feature.feature_id;
+    
     this.subs.sink = this._store
       .select(CustomSelectors.GetFeatureSteps(featureId))
       .subscribe(steps => this.setSteps(steps));
@@ -396,7 +454,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   // inserts variable into step when clicked
   onClickVariable(variable_name: string, index: number) {
-    // console.log("Clicado elinput: ", variable_name)
     if (!variable_name) return;
 
     let step = this.stepsForm.at(index).get('step_content');
@@ -436,11 +493,55 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.displayedVariables = [];
   }
 
+
   onStepChange(event, index: number) {
     this.displayedVariables = [];
     this.stepVariableData = {};
 
-    const textareaValue = (event.target as HTMLTextAreaElement).value.trim();
+    const textarea = event.target as HTMLTextAreaElement;
+    const textareaValue = textarea.value.trim();
+
+    // Check if step starts with "Run feature with id" or "Run feature with name"
+    if (textareaValue.startsWith('Run feature with id') || textareaValue.startsWith('Run feature with name')) {
+      // Extract content between quotes
+      const match = textareaValue.match(/"([^"]*)"/);
+      if (match) {
+        const searchValue = match[1];
+        let featureId: number | null = null;
+
+        if (textareaValue.startsWith('Run feature with id')) {
+          // If it's an ID, parse it directly
+          featureId = searchValue ? parseInt(searchValue, 10) : null;
+        } else {
+          // If it's a name, search for the feature by name
+          this.allFeatures$.subscribe(features => {
+            const matchingFeature = features.find(f => f.feature_name === searchValue);
+            if (matchingFeature) {
+              featureId = matchingFeature.feature_id;
+              this.processFeatureLink(textarea, featureId, index, matchingFeature?.feature_name);
+            } else {
+              this.removeLinkIcon(textarea, index);
+            }
+          });
+        }
+
+        if (featureId && !isNaN(featureId)) {
+          const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
+          if (textarea) {
+            this.processFeatureLink(textarea, featureId, index, undefined);
+          }
+        } else {
+          const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
+          if (textarea) {
+            this.removeLinkIcon(textarea, index);
+          }
+        }
+      } else {
+        this.removeLinkIcon(textarea, index);
+      }
+    } else {
+      this.removeLinkIcon(textarea, index);
+    }
 
     if (!textareaValue) {
       this.stepsDocumentation[index] = {
@@ -487,7 +588,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
     if (this.stepVariableData.strWithoutQuotes.includes('$')) {
-      // const strWithoutDollar = this.stepVariableData.strWithoutQuotes.replace('$','')
       const filteredVariables = this.variables.filter(item =>
         item.variable_name.includes(
           this.stepVariableData.strWithoutQuotes.replace('$', '')
@@ -504,7 +604,33 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         this.renderer.addClass(firstVariableRef, 'selected');
       }, 0);
     }
+  }
 
+  private processFeatureLink(textarea: HTMLTextAreaElement, featureId: number, index: number, featureName?: string) {
+    this.allFeatures$.subscribe(features => {
+      const matchingFeature = features.find(f => f.feature_id === featureId);
+      if (matchingFeature) {
+        this.stepStates[index] = {
+          featureId: featureId,
+          showLinkIcon: true
+        };
+        this._cdr.detectChanges();
+      } else {
+        this.stepStates[index] = {
+          showLinkIcon: false,
+          featureId: null
+        };
+        this._cdr.detectChanges();
+      }
+    });
+  }
+
+  private removeLinkIcon(textarea: HTMLTextAreaElement, index: number) {
+    this.stepStates[index] = {
+      showLinkIcon: false,
+      featureId: null
+    };
+    this._cdr.detectChanges();
   }
 
   // returns the index of nearest left $ and nearest right " char in string, taking received startIndex as startpoint reference
@@ -544,7 +670,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepVisible[index] = true;
 
     const cleanedStep = step.replace(/Parameters:([\s\S]*?)Example:/gs, '').trim();
-    // console.log("Prueba: ", cleanedStep);
 
     // Usamos una expresión regular para extraer el nombre de la acción y la variable
     const matchResult = step.match(/^(.*?)\s*"(.*?)"/);
@@ -629,7 +754,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           this.descriptionText = parts[0].trim();
           this.examplesText = parts[1]?.trim() || '';
 
-          // console.log("Example text:", this.examplesText);
         } else {
           this.descriptionText = this.selectedActionDescription;
           this.examplesText = '';
@@ -668,11 +792,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   stepVisible: boolean[] = [];
 
   closeAutocomplete(index?: number) {
-    // console.log("El evento: ", event.value.step_content)
-    // console.log("El index: ", index)
     const stepFormGroup = this.stepsForm.at(index) as FormGroup;
     const stepContent = stepFormGroup.get('step_content')?.value;
-    // console.log('Step Content:', stepContent);
     if (stepContent == '') {
       this.stepsDocumentation[index] = {
         description: '',
@@ -704,7 +825,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   onAutocompleteOpened(index?: number) {
     this.stepVisible[index] = true;
-    // console.log("FocusedIndex: ", index)
     this.isAutocompleteOpened = true;
 
     setTimeout(() => {
@@ -714,10 +834,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   updateIconPosition() {
     const overlayElement = document.querySelector('.cdk-overlay-pane');
-    // console.log("Overlay:", overlayElement)
     if (overlayElement) {
       const rect = overlayElement.getBoundingClientRect();
-      // console.log("rect:", rect)
       this.iconPosition = {
         top: rect.top,
         left: rect.left + rect.width,
@@ -955,7 +1073,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     const panel = document.querySelector('.stepContainer');
     if (panel) {
       this.renderer.removeChild(document.body, panel);
-      // console.log('Autocomplete panel eliminado');
     }
 
     const control = this.stepsForm.controls[event.previousIndex];
@@ -1149,4 +1266,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
   }
 
+  showLinkIcon: boolean = false;
+  featureId: number | null = null;
+
+  navigateToFeature(featureId: number) {
+    if (featureId) {
+      this._sharedActions.goToFeature(featureId, true);
+    }
+  }
+
+  stepStates: { [key: number]: StepState } = {};
 }
