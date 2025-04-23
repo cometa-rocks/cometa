@@ -221,7 +221,8 @@
     "not_starred": "Add to favorites"
   },
   "step_editor": {
-    "feature_link_tooltip": "Click to navigate to the feature"
+    "feature_link_tooltip": "Click to navigate to the feature",
+    "feature_link_not_found": "Feature not found"
   }
 
 }

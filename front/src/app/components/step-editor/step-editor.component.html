@@ -153,8 +153,9 @@
               </textarea>
               <i 
                 class="material-icons feature-link-icon" 
-                [style.display]="(step.get('step_content').value?.includes('Run feature with') && stepStates[i]?.showLinkIcon && stepStates[i]?.featureId) ? 'block' : 'none'"
-                [matTooltip]="'step_editor.feature_link_tooltip' | translate"
+                [style.display]="step.get('step_content').value?.includes('Run feature with') ? 'block' : 'none'"
+                [style.opacity]="stepStates[i]?.showLinkIcon && stepStates[i]?.featureId ? '1' : '0.5'"
+                [matTooltip]="(stepStates[i]?.showLinkIcon && stepStates[i]?.featureId) ? ('step_editor.feature_link_tooltip' | translate) : ('step_editor.feature_link_not_found' | translate)"
                 matTooltipPosition="above"
                 (click)="navigateToFeature(stepStates[i]?.featureId)">
                 link
