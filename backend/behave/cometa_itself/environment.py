@@ -30,7 +30,7 @@ from modules.ai import AI
 from tools.models import Condition
 # from tools.kubernetes_service import KubernetesServiceManager
 
-LOGGER_FORMAT = "\33[96m[%(asctime)s][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s"
+LOGGER_FORMAT = "\33[96m[%(asctime)s.%(msecs)03d][%(feature_id)s][%(current_step)s/%(total_steps)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s"
 
 load_configurations()
 
@@ -300,16 +300,18 @@ def before_all(context):
     context.feature_id = str(data["feature_id"])
     # save the continue on failure for feature to the context
     context.feature_continue_on_failure = data.get("continue_on_failure", False)
-
+    
+    # FIXME add this timezone information to the context
+    # FIXME add context.devices_time_zone
     devices_time_zone = context.browser_info.get("selectedTimeZone", "")
 
     if not devices_time_zone or devices_time_zone.strip() == "":
         devices_time_zone = "Etc/UTC"
     
     
-    
     payload = {
         "user_id": context.PROXY_USER["user_id"],
+        # FIXME do not store the browser information at this stage
         "browser_info": os.environ["BROWSER_INFO"],
         "feature_result_id": os.environ["feature_result_id"],
         "run_id": os.environ["feature_run"],
@@ -356,7 +358,7 @@ def before_all(context):
         "cloud", "browserstack"
     )  # default it back to browserstack incase it is not set.
     
-    
+    # FIXME move this logic to browser creation file and window
     context.service_manager = ServiceManager()
     context.browser_hub_url = "cometa_selenoid"   
     context.USE_COMETA_BROWSER_IMAGES = USE_COMETA_BROWSER_IMAGES
@@ -575,6 +577,9 @@ def before_all(context):
     # set headers for the request
     headers = {"Content-type": "application/json", "Host": "cometa.local"}
     # set payload for the request
+    # FIXME do not store the session_id at this level
+    # FIXME create the context.browser = {}
+    # FIXME create the context.browser_info = {}
     data = {
         "feature_result_id": os.environ["feature_result_id"],
         "session_id": context.browser.session_id,
@@ -600,6 +605,7 @@ def before_all(context):
 
     os.environ["total_steps"] = str(context.counters["total"])
 
+    # FIXME Need to understand how Live screen will behave when the browser information is not send to socket
     # send a websocket request about that feature has been started
     request = requests.get(f'{get_cometa_socket_url()}/feature/%s/started' % context.feature_id, data={
         "user_id": context.PROXY_USER['user_id'],
@@ -928,6 +934,7 @@ def before_step(context, step):
     #         pass # just incase if no url has been searched at the time
 
     # send websocket to front to let front know about the step
+    # FIXME Understand why browser_info needs to be send here
     requests.post(f'{get_cometa_socket_url()}/feature/%s/stepBegin' % context.feature_id, data={
         "user_id": context.PROXY_USER["user_id"],
         "feature_result_id": os.environ["feature_result_id"],
@@ -1061,7 +1068,8 @@ def after_step(context, step):
     logger.debug("Running Mobiles")
     hostnames = [{'hostname':mobile['container_service_details']["Id"], 'name': mobile_name} for mobile_name, mobile in context.mobiles.items()]
     logger.debug(hostnames)
-                 
+    
+    # FIXME understand why do we need to send the browser_info with this step
     requests.post(
         f'{get_cometa_socket_url()}/feature/%s/stepFinished' % context.feature_id,
         json={
