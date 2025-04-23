@@ -1,4 +1,122 @@
+<mat-accordion multi>
+  <!-- Information Panel -->
+  <mat-expansion-panel 
+    [expanded]="panelConfig.informationPanel" 
+    (afterExpand)="togglePanel('informationPanel', true)" 
+    (afterCollapse)="togglePanel('informationPanel', false)">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <span>Filters</span>
+      </mat-panel-title>
+      <mat-panel-description>Select a filter to apply</mat-panel-description>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <div class="edit-data-driven-test">
+        <mat-form-field appearance="fill" class="edit-dep">
+          <mat-label>Department</mat-label>
+          <mat-select
+            [(ngModel)]="department_id"
+            (selectionChange)="changeDepartment()">
+            <mat-option
+              *ngFor="let dep of userDepartments$ | sortBy: 'department_name'"
+              [value]="dep.department_id">
+              {{ dep.department_name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <mat-form-field appearance="fill" class="edit-file" *ngIf="department?.files">
+          <mat-label>File Filter</mat-label>
+          <mat-select
+            [(value)]="displayFilterValue"
+            (selectionChange)="onFilterSelectionChange($event)">
+            <mat-option value="all_with_deleted">
+              All Files (Deleted included)
+            </mat-option>
+            <mat-option value="active_only">
+              All Files (Active Only)
+            </mat-option>
+            <mat-divider></mat-divider>
+            <mat-option
+              *ngFor="let file of department.files | availableFiles"
+              [value]="['specific_file', file.id]">
+              {{ file.id }} - {{ file.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div
+        *ngIf="
+          department?.department_name === 'Default' &&
+          userDepartments$.length > 1
+        "
+        class="department-warning">
+        <mat-icon>warning</mat-icon>
+        <span>Selecting <strong>Default</strong> department will make all the
+          files you upload visible to everyone, use it with caution!</span>
+      </div>
+    </ng-template>
+  </mat-expansion-panel>
+
+  <!-- Files Panel -->
+  <mat-expansion-panel 
+    [expanded]="panelConfig.executePanel" 
+    (afterExpand)="togglePanel('executePanel', true)" 
+    (afterCollapse)="togglePanel('executePanel', false)">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <span>Files</span>
+      </mat-panel-title>
+      <mat-panel-description>Upload/Manage Department Files</mat-panel-description>
+    </mat-expansion-panel-header>
+    
+    <ng-template matExpansionPanelContent>
+      <div class="table-container">
+        <mtx-grid
+          *ngIf="department?.files"
+          [data]="department?.files | availableFiles"
+          [columns]="fileColumns"
+          [sortOnFront]="true"
+          sortActive="date_time"
+          sortDirection="desc"
+          [sortDisableClear]="true"
+          [sortDisabled]="false"
+          [showToolbar]="true"
+          [showColumnMenuButton]="true"
+          [columnMenuButtonType]="'stroked'"
+          [columnMenuButtonIcon]="'view_column'"
+          [pageOnFront]="true"
+          [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
+          [cellTemplate]="{
+            size: sizeTpl,
+            created_on: dateTpl
+          }"
+          [showPaginator]="showPagination"
+          [noResultTemplate]="noFilesTpl"
+          [toolbarTemplate]="fileToolbarTpl"
+          (page)="updateFilePagination($event, $event.rowData)"
+          [expandable]="true"
+          [expansionTemplate]="expansionTpl"
+          (expansionChange)="expand($event)">
+        </mtx-grid>
+      </div>
+    </ng-template>
+  </mat-expansion-panel>
+
+  <!-- Results Panel -->
+  <mat-expansion-panel 
+    [expanded]="panelConfig.resultsPanel"
+    (afterExpand)="togglePanel('resultsPanel', true)"
+    (afterCollapse)="togglePanel('resultsPanel', false)">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <span>Results</span>
+      </mat-panel-title>
+      <mat-panel-description>Data Driven Test Results</mat-panel-description>
+    </mat-expansion-panel-header>
+    
 <mtx-grid
+  *ngIf="results"
   [data]="results"
   [columns]="columns"
   [sortOnFront]="true"
@@ -11,7 +129,6 @@
   [columnMenuButtonType]="'stroked'"
   [columnMenuButtonIcon]="'view_column'"
   [length]="total"
-  [loading]="isLoading"
   [pageOnFront]="false"
   [pageIndex]="query.page"
   [pageSize]="query.size"
@@ -26,26 +143,35 @@
   [noResultTemplate]="noResultTpl"
   [showPaginator]="showPagination"
   [toolbarTemplate]="toolbarTpl"
-  (page)="updateData($event)">
+  (page)="updateResultsPagination($event)">
 </mtx-grid>
+  </mat-expansion-panel>
+</mat-accordion>
 
 <!-- ROW TEMPLATES -->
 <ng-template #statusTpl let-row let-index="index" let-col="colDef">
-  <div
-    class="cell status"
-    *ngLet="row.status == 'Success' || row.status == 'Passed' as passed">
-    <!-- Status box -->
-    <div class="status-box passed" stopPropagation *ngIf="passed; else failed">
+  <div class="cell status">
+    <!-- Running state -->
+    <div>
+      <div class="status-box running" stopPropagation *ngIf="row.running; else checkPassed">
+        Running
+      </div>
+      
+      <ng-template #checkPassed>
+        <!-- Passed state -->
+        <div class="status-box passed" stopPropagation *ngIf="row.status === 'Success' || row.status === 'Passed'; else failed">
       Passed
     </div>
+        
+        <!-- Failed state -->
     <ng-template #failed>
-      <div
-        class="status-box failed"
-        stopPropagation
-        [matMenuTriggerFor]="runStatus">
-        Failed
+          <div class="status-box failed" stopPropagation [matMenuTriggerFor]="runStatus">
+            {{ row.status || 'Failed' }}
       </div>
     </ng-template>
+      </ng-template>
+    </div>
+    
     <!-- Override feature result status -->
     <mat-menu #runStatus="matMenu">
       <div class="menu-header">Override run status:</div>
@@ -64,9 +190,10 @@
 </ng-template>
 
 <ng-template #dateTpl let-row let-index="index" let-col="colDef">
-  <span>{{
-    row.date_time | amParse | amDateFormat: 'MMMM d yyyy, HH:mm'
+  <span *ngIf="row && row[col.field]">{{ 
+    row[col.field] | amParse | amDateFormat: 'MMMM d yyyy, HH:mm'
   }}</span>
+  <span *ngIf="!row || !row[col.field]">-</span>
 </ng-template>
 
 <ng-template #timeTpl let-row let-index="index" let-col="colDef">
@@ -74,7 +201,7 @@
 </ng-template>
 
 <ng-template #pixelTpl let-row let-index="index" let-col="colDef">
-  <span>{{ row.pixel_diff | pixelDifference }}</span>
+  <span>{{ row.pixel_diff > 0 ? (row.pixel_diff | pixelDifference) : '-' }}</span>
 </ng-template>
 
 <!-- TOOLBAR TEMPLATE -->
@@ -86,14 +213,6 @@
         <span class="blue">{{ total }}</span> Data Driven Runs
       </span>
     </div>
-    <div class="button-container" [matTooltip]="'data_driven.data_driven_button' | translate" matTooltipPosition="above">
-      <button 
-        mat-flat-button color="primary" (click)="openNewDataDrivenRun()">
-        <span class="mdc-button__label">
-          Data Driven Test
-        </span>
-      </button>
-    </div>
   </div>
 </ng-template>
 
@@ -101,4 +220,62 @@
 <ng-template #noResultTpl>
   There are no Data Driven Tests as of now, please create a new Data Driven
   test.
+</ng-template>
+
+<!-- Templates for file section -->
+<ng-template #sizeTpl let-row let-index="index" let-col="colDef">
+  <span>{{ row.size | humanizeBytes }}</span>
+</ng-template>
+
+<!-- TOOLBAR TEMPLATE for files -->
+<ng-template #fileToolbarTpl>
+  <input
+    type="file"
+    multiple="true"
+    (change)="onUploadFile($event)"
+    #file
+    style="display: none" />
+  <div class="custom_toolbar file-toolbar">
+    <div>
+      Found
+      <span>
+        <span class="blue">{{ (department?.files | availableFiles)?.length || 0 }}</span> Files
+      </span>
+    </div>
+    <div style="flex-grow: 1;"></div>
+    <button
+      mat-flat-button
+      color="primary"
+      stopPropagation
+      (click)="file.click()">
+      <mat-icon>add_box</mat-icon>
+      <span class="mdc-button__label">Upload File</span>
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #expansionTpl let-row>
+  <mtx-grid
+    [data]="file_data[row.id]?.file_data"
+    [columns]="file_data[row.id]?.columns"
+    [sortOnFront]="true"
+    sortDirection="desc"
+    [sortDisableClear]="true"
+    [sortDisabled]="false"
+    [pageOnFront]="false"
+    [pageIndex]="file_data[row.id]?.params ? file_data[row.id].params.page : 0"
+    [pageSize]="file_data[row.id]?.params ? file_data[row.id].params.size : 10"
+    [length]="file_data[row.id]?.total"
+    [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
+    [noResultTemplate]="noFileDataTpl"
+    [showPaginator]="file_data[row.id]?.showPagination"
+    (page)="updateFilePagination($event, row)">
+  </mtx-grid>
+</ng-template>
+
+<!-- No Results templates for files -->
+<ng-template #noFileDataTpl>No Data Found.</ng-template>
+
+<ng-template #noFilesTpl>
+  <p>Currently this department has no files, upload one by clicking upload button.</p>
 </ng-template>
