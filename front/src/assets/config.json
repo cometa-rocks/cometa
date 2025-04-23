@@ -237,6 +237,16 @@
   ],
   "changelog": [
     {
+      "version": "3.0.36",
+      "date": "2025-04-23",
+      "features": [
+        {
+          "title": "Improved UI dialog behaviour on slow networks - #6124",
+          "description": "When creating a new folder on a slow network, the user is now notified with a message"
+        }
+      ]
+    },
+    {
       "version": "3.0.35",
       "date": "2025-04-20",
       "features": [
