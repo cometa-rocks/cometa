@@ -8,6 +8,62 @@
   box-sizing: border-box;
 }
 
+// Accordion styles
+mat-accordion {
+  margin-bottom: 20px;
+  
+  mat-expansion-panel {
+    margin-bottom: 16px;
+    border-radius: 5px;
+    
+    mat-expansion-panel-header {
+      padding: 0 24px;
+      
+      mat-panel-title {
+        color: $dark;
+        font-weight: 500;
+      }
+      
+      mat-panel-description {
+        color: rgba($dark, 0.7);
+      }
+    }
+  }
+  
+  .filter-content {
+    padding: 8px 0;
+  }
+}
+
+// Execute panel styles
+.edit-data-driven-test {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 15px;
+
+  .edit-dep, .edit-file {
+    min-width: 250px;
+    flex: 1;
+  }
+}
+
+.department-warning {
+  display: flex;
+  align-items: center;
+  color: #f57c00;
+  margin-bottom: 15px;
+  
+  mat-icon {
+    margin-right: 10px;
+  }
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
 .blue {
   color: $blue;
   font-weight: bold;
@@ -139,5 +195,80 @@
     td:last-of-type {
       padding-right: 5px;
     }
+  }
+
+  // Override row cursor to default, allow specific elements to be pointers
+  .mdc-data-table__row {
+    cursor: default;
+  }
+
+  .mtx-grid-toggle {
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    margin-right: 8px !important;
+    cursor: pointer; // Explicitly set pointer for the toggle
+  }
+  
+  tr.no-expand .mtx-grid-toggle {
+    visibility: hidden !important;
+    width: 0 !important;
+    margin-right: 0 !important;
+    cursor: default; // No pointer if not expandable
+  }
+
+  // Ensure buttons within cells also get pointer
+  .mdc-data-table__cell button {
+    cursor: pointer;
+  }
+}
+
+.cell.status {
+  min-width: 90px;
+}
+
+// Styles for the flattened execute panel sections
+.execute-section {
+  margin-bottom: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+  overflow: hidden;
+
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 24px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+
+    h3 {
+      margin: 0;
+      font-weight: 500;
+      font-size: 16px;
+      color: $dark;
+    }
+
+    .section-description {
+      margin: 0;
+      color: rgba($dark, 0.7);
+      font-size: 14px;
+    }
+  }
+
+  .section-content {
+    padding: 16px 24px;
+  }
+}
+
+.file-toolbar {
+  justify-content: flex-end !important;
+}
+
+// Custom styling for snackbars
+::ng-deep .data-driven-custom-snackbar {
+  .mat-mdc-snack-bar-actions .mdc-button {
+    color: $secondary-color !important; 
   }
 }

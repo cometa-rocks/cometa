@@ -257,6 +257,16 @@
       ]
     },
     {
+      "version": "3.0.36",
+      "date": "2025-04-23",
+      "features": [
+        {
+          "title": "Improvements to Data Driven section.",
+          "description": "Enhanced results filtering by department and file, pre-run validation was added to prevent executions referencing non-existent features. UI was restructured using expansion panels and enabled detailed real-time status progress updates during test runs."
+        }
+      ]
+    },
+    {
       "version": "3.0.35",
       "date": "2025-04-20",
       "features": [
