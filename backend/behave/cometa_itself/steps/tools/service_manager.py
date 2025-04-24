@@ -593,10 +593,19 @@ class ServiceManager(service_manager):
 
             # Create a thread to run the remove_services function
             thread = threading.Thread(target=remove_services)
+            
             thread.start()  # Start the thread without blocking the main thread
         
         except Exception as e:
             logger.error("Exception while deleting the services")
             # FIXME trigger the mail when this happens otherwise it may cause resource outage in the server
             traceback.print_exc()
+            
+
+
+    def remove_all_service_with_django(self, container_services):    
+        for service in container_services:        
+            logger.debug(f"Deleting container service with ID : {service['id']}")
+            requests.delete(f'{get_cometa_backend_url()}/api/container_service/{service["id"]}/', headers={'Host': 'cometa.local'})
+          
             
