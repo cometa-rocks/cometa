@@ -551,9 +551,9 @@ def done(*_args, **_kwargs):
                     )
                     logger.exception(err)
 
-                    # check if feature was aborted
-                    aborted = str(err) == "'aborted'"
-                    logger.debug("Checking if feature was aborted: " + str(aborted))
+                # check if feature was aborted
+                aborted = str(err) == "'aborted'"
+                logger.debug("Checking if feature was aborted: " + str(aborted))
 
                 # check the continue on failure hierarchy
                 continue_on_failure = False  # default value
