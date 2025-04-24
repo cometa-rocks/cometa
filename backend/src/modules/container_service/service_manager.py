@@ -101,7 +101,7 @@ class KubernetesServiceManager:
         except ApiException as e:
             logger.debug(f"Exception occurred while deleting service: {e}")
 
-    def create_service(self, configuration):
+    def create_service(self,configuration):
         try:
             self.__create_pod_and_wait_to_running()
             if not self.__create_pod_url():
@@ -112,15 +112,15 @@ class KubernetesServiceManager:
             pod = self.v1.read_namespaced_pod(name=self.pod_manifest['metadata']['name'], namespace=self.namespace)
             return {
                         'Id':configuration['Id'],
-                        'service_status': pod.status.phase,
+                        'service_status':pod.status.phase,
                         'information':{
-                                    'Config':{
-                                        'Hostname':self.get_service_name(configuration['Id'])}
-                                    ,
-                                    'State':{
-                                        'Running':pod.status.phase
-                                    }
+                            'Config':{
+                                'Hostname':self.get_service_name(configuration['Id'])
                                 },
+                                'State':{
+                                    'Running':pod.status.phase
+                                }
+                            },
                 }
         except Exception:
             logger.debug(f"Exception while creation Kubernetes service\n{configuration}")
