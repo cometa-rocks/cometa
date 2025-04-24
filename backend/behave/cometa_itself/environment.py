@@ -72,7 +72,7 @@ if IS_KUBERNETES_DEPLOYMENT:
     USE_COMETA_BROWSER_IMAGES = True
 
 logger.debug(f'##################### Deployment environment {ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker")} ##############################')
-# FIXME to take this value from department information
+# FIXME to take this value from department information.
 REDIS_IMAGE_ANALYSYS_QUEUE_NAME = ConfigurationManager.get_configuration(
     "REDIS_IMAGE_ANALYSYS_QUEUE_NAME", "image_analysis"
 )  # converting to seconds
@@ -99,14 +99,40 @@ def error_handling(*_args, **_kwargs):
                 or os.environ["FEATURE_FAILED"] != "True"
             ):
                 try:
+                    logger.debug(f"Decorated function: {fn.__name__} with args: {args} and kwargs: {kwargs}")
+                    # if args and isinstance(args[0], object):
+                    #     context_obj = args[0]
+                    #     # Log all attributes of the Context object
+                    #     context_attrs = {attr: getattr(context_obj, attr) for attr in dir(context_obj) if not attr.startswith('_')}
+                    #     logger.debug(f"Context object attributes: {context_attrs}")
+                        
+                    #     # Log more detailed information about complex attributes
+                    #     for attr, value in context_attrs.items():
+                    #         if hasattr(value, "__dict__"):
+                    #             try:
+                    #                 attr_dict = value.__dict__
+                    #                 logger.debug(f"Details of {attr}: {attr_dict}")
+                    #             except:
+                    #                 pass
+                    #         # For specific attributes you're interested in, add more detailed logging
+                    #         # For example, if you want to inspect a specific attribute in detail:
+                    #         if attr in ["BEHAVE", "USER"]:
+                    #             logger.debug(f"Detailed inspection of {attr}: {repr(value)}")
+                        
+                    #     # If you want to see properties or other instance data:
+                    #     if hasattr(context_obj, "__dict__"):
+                    #         logger.debug(f"Context __dict__: {context_obj.__dict__}")
+                        
                     result = fn(*args, **kwargs)
                     return result
                 except Exception as err:
                     # print the traceback
+                    logger.exception(err)
                     logger.debug(
                         "Found an error @%s function, please check the traceback: "
                         % (fn.__name__)
                     )
+                    logger.error(f"Error in {fn.__name__}: {str(err)}")
                     traceback.print_exc()
                     
                     # Delete the pod and service in case of any error in the before_all and after_all methods
@@ -921,18 +947,6 @@ def before_step(context, step):
     # in video show as a message which step is being executed
     # only works in local video and not in browserstack
 
-    # Throws exception on Daimler testcase to add filter in QS page
-    # https://cometa.destr.corpintra.net/#/Cognos%2011.1%20R5/Testing/177
-    # FIXME or DELETE ME
-    # if context.cloud == "local":
-    #     try:
-    #         context.browser.add_cookie({
-    #             'name': 'zaleniumMessage',
-    #             'value': step_name
-    #         })
-    #     except:
-    #         pass # just incase if no url has been searched at the time
-
     # send websocket to front to let front know about the step
     # FIXME Understand why browser_info needs to be send here
     requests.post(f'{get_cometa_socket_url()}/feature/%s/stepBegin' % context.feature_id, data={
@@ -1070,6 +1084,8 @@ def after_step(context, step):
     logger.debug(hostnames)
     
     # FIXME understand why do we need to send the browser_info with this step
+    logger.debug(f"Sending websocket to front to let front know about the step {step_name} Status: [{context.CURRENT_STEP_STATUS}]")
+    time.sleep(1.5)
     requests.post(
         f'{get_cometa_socket_url()}/feature/%s/stepFinished' % context.feature_id,
         json={
@@ -1091,7 +1107,7 @@ def after_step(context, step):
             "mobiles_info": hostnames
         },
     )
-
+    logger.debug(f"Sent websocket to front to let front know about the step {step_name}")
     # update countes
     if context.jumpLoopIndex == 0:
         context.counters["index"] += 1
@@ -1100,7 +1116,7 @@ def after_step(context, step):
         # update total value
         context.counters["total"] += context.executedStepsInLoop
     # if step was executed successfully update the OK counter
-    if json.loads(step_result)["success"]:
+    if step_error is None:
         context.counters["ok"] += 1
     else:
         context.counters["nok"] += 1
