@@ -2177,12 +2177,12 @@ class StepResultViewSet(viewsets.ModelViewSet):
         
         logger.debug(f"Saving Step {data['step_name']}")
         logger.debug("Checking for last step")
-        last_step = Step_result.objects.filter(feature_result_id = data['feature_result_id']).order_by('-step_result_id').first()
+        last_step = Step_result.objects.filter(feature_result_id = data['feature_result_id']).order_by('-step_result_id')
         logger.debug("Last step result checked")
         if last_step:
             # This will execute if it is not the report of the execution
             logger.debug("Found last step relative calculating time")
-            data['relative_execution_time'] = last_step.relative_execution_time + data['execution_time']
+            data['relative_execution_time'] = last_step[0].relative_execution_time + data['execution_time']
         else:
             # This will execute if it is a first step report of the execution
             logger.debug("Relative time Initated")
@@ -2190,7 +2190,9 @@ class StepResultViewSet(viewsets.ModelViewSet):
         logger.debug("Starting to save data to Step_result")
         step_result = Step_result.objects.create(**data)
         logger.debug("Data saved to Step_result")
-        return JsonResponse(StepResultSerializer(step_result, many=False).data)
+        response = StepResultSerializer(step_result, many=False).data
+        logger.debug(f"Response: {response}")
+        return JsonResponse(response)
 
     def patch(self, request, *args, **kwargs):
         # Get StepResult ID from the passed URL
@@ -4111,3 +4113,4 @@ from backend.ee.modules.data_driven.views import (
     DataDrivenFileViewset,
     DataDrivenResultsViewset
 )
+
