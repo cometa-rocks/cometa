@@ -243,6 +243,10 @@
         {
           "title": "Bugfixes in edit feature + added 'Status' column to Step Editor.",
           "description": "Fixed issues in the Edit Features filter and added a new 'Status' column to the Step Editor."
+        },
+        {
+          "title": "'Standby Browsers' Reduce the test execution time #6126",
+          "description": "Keep your preferred browsers running to minimize test execution time during the test design phase."
         }
       ]
     }, 
