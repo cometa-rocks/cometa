@@ -2190,7 +2190,9 @@ class StepResultViewSet(viewsets.ModelViewSet):
         logger.debug("Starting to save data to Step_result")
         step_result = Step_result.objects.create(**data)
         logger.debug("Data saved to Step_result")
-        return JsonResponse(StepResultSerializer(step_result, many=False).data)
+        response = StepResultSerializer(step_result, many=False).data
+        logger.debug(f"Response: {response}")
+        return JsonResponse(response)
 
     def patch(self, request, *args, **kwargs):
         # Get StepResult ID from the passed URL
