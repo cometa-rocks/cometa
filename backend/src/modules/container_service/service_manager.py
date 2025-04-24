@@ -111,14 +111,16 @@ class KubernetesServiceManager:
                 
             pod = self.v1.read_namespaced_pod(name=self.pod_manifest['metadata']['name'], namespace=self.namespace)
             return {
-                        'service_id':configuration['Id'],
-                        'service_status':configuration['service_status'],
+                        'Id':configuration['Id'],
+                        'service_status':pod.status.phase,
                         'information':{
-                                    'hostname':self.get_service_name(),
-                                    'State':{
-                                        'Running':pod.status.phase
-                                    }
+                            'Config':{
+                                'Hostname':self.get_service_name(configuration['Id'])
                                 },
+                                'State':{
+                                    'Running':pod.status.phase
+                                }
+                            },
                 }
         except Exception:
             logger.debug(f"Exception while creation Kubernetes service\n{configuration}")
@@ -126,9 +128,13 @@ class KubernetesServiceManager:
             return False      
     
     def delete_service(self, service_name_or_id):
-        self.__delete_pod(pod_id = service_name_or_id)
-        self.__delete_pod_url(pod_url_id = service_name_or_id)
-        pass
+        try:
+            self.__delete_pod(pod_id = service_name_or_id)
+            self.__delete_pod_url(pod_url_id = service_name_or_id)
+            return True, "Container removed"
+        except Exception as e:
+            traceback.print_exc()
+            return False, str(e)
 
 class DockerServiceManager:
     deployment_type = "docker"
