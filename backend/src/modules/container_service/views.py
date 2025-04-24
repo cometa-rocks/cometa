@@ -101,6 +101,7 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
                     logger.debug("Container Deleted by thread")
 
                 except Exception as e:
+                    traceback.print_exc()
                     # FIXME send and notification that the container was not deleted
                     # This needs to be done in the cometa_monitorig server
                     logger.error(f"Error deleting container {kwargs['pk']}: {str(e)}")
@@ -276,8 +277,3 @@ def get_running_browser(request):
             container_service.save()
             serializer = ContainerServiceSerializer(container_service, many=False)
             return response_manager.created_response(serializer.data)    
-
-            
-            
-            
-    
