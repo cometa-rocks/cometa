@@ -113,14 +113,13 @@ class KubernetesServiceManager:
             return {
                         'Id':configuration['Id'],
                         'service_status':pod.status.phase,
-                        'information':{
-                            'Config':{
-                                'Hostname':self.get_service_name(configuration['Id'])
-                                },
-                                'State':{
-                                    'Running':pod.status.phase
-                                }
-                            },
+                        'Config':{
+                            'Hostname':self.get_service_name(configuration['Id'])
+                        },
+                        'State':{
+                            'Running':pod.status.phase
+                        }
+                     
                 }
         except Exception:
             logger.debug(f"Exception while creation Kubernetes service\n{configuration}")
