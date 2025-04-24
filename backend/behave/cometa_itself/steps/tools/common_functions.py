@@ -20,6 +20,7 @@ import logging
 import traceback
 import urllib.parse
 import random
+from concurrent.futures import ThreadPoolExecutor
 
 # import PIL
 from subprocess import call, run
@@ -67,10 +68,22 @@ SCREENSHOT_PREFIX = ConfigurationManager.get_configuration(
     "COMETA_SCREENSHOT_PREFIX", ""
 )
 
+# initialize a thread‐pool for background HTTP posts
+_executor = ThreadPoolExecutor(max_workers=4)
+
+def _async_post(url, headers=None, json=None):
+    def _task():
+        try:
+            logger.debug(f"Async POST to {url} with headers: {headers} and json: {json}")
+            requests.post(url, headers=headers, json=json)
+        except Exception as e:
+            logger.error(f"Async POST to {url} failed: {e}")
+    _executor.submit(_task)
+
 #
 # some usefull functions
 #
-def takeScreenshot(context, step_id):
+def takeScreenshot(context):
     # prepare a screenshot name
     logger.debug("Taking screenshot")
     start_time = time.time()  # prepare a screenshot name
@@ -584,6 +597,7 @@ def saveToDatabase(
     start_time = time.time()  # Add timing start
     logger.debug("Starting execution of saveToDatabase")
     status = context.CURRENT_STEP_STATUS 
+    logger.debug(f"Step Status: {status}")
     screenshots = os.environ["SCREENSHOTS"].split(".")
     compares = os.environ["COMPARES"].split(".")
     feature_id = context.feature_id
@@ -633,7 +647,7 @@ def saveToDatabase(
     log_file.write("\n")
     logger.debug("Saving data to feature_result")
     try:
-        response = requests.post(
+        _async_post(
             f"{get_cometa_backend_url()}/api/feature_results/"
             + str(feature_id)
             + "/step_results/"
@@ -642,38 +656,47 @@ def saveToDatabase(
             headers={"Host": "cometa.local"},
             json=data,
         )
+<<<<<<< backend/behave/cometa_itself/steps/tools/common_functions.py
         logger.debug(f"feature_result backend request completed")
         context.step_result = json.dumps(response.json())
         step_id = response.json()["step_result_id"]
         context.previous_step_relative_time = response.json()['relative_execution_time']
         log_file.write("Response Content: " + str(response.content))
+=======
+        logger.debug("feature_result async request enqueued")
+        step_id = 999
+        log_file.write("Async request enqueued\n")
+        log_file.close()
+>>>>>>> backend/behave/cometa_itself/steps/tools/common_functions.py
         json_success = {"success": success}
         logger.debug("feature result response writen in the log_file")
 
     except Exception as e:
-        logger.error("An error occured: ")
+        logger.error("*** An error occurred: ")
         logger.error(str(e))
         traceback.print_exc()
         
-    if not step_id:
-        raise CustomError("Cannot connect to the backend to save the step result.")
+    # if not step_id:
+    #     raise CustomError("Cannot connect to the backend to save the step result.")
 
-    log_file.close()
     # Some steps shouldn't be allowed to take screenshots and compare, as some can cause errors
     excluded = ["Close the browser"]
     # Exclude banned steps
     if step_name not in excluded:
         # Construct current step result path
         context.SCREENSHOTS_STEP_PATH = context.SCREENSHOTS_PATH + str(step_id) + "/"
-        # Create current step result folder
-        Path(context.SCREENSHOTS_STEP_PATH).mkdir(parents=True, exist_ok=True)
         # Check if feature needs screenshot - see #3014 for change to webp format
         if context.step_data["screenshot"] or not success:
+            # Create current step result folder ... only create, if needed
+            Path(context.SCREENSHOTS_STEP_PATH).mkdir(parents=True, exist_ok=True)
             # Take actual screenshot
-            takeScreenshot(context, step_id)
+            logger.debug(f"Taking screenshot for step {step_id}")
+            takeScreenshot(context)
+            logger.debug(f"Screenshot taken for step {step_id}")
             # Take actual HTML
             # takeHTMLSnapshot(context, step_id)
         # Check if feature needs compare
+<<<<<<< backend/behave/cometa_itself/steps/tools/common_functions.py
         import threading
         def handle_screen_shot():
             # Delete all the services which were started during test
@@ -686,6 +709,87 @@ def saveToDatabase(
                 logger.debug("Starting the image comparision")
                 context.COMPARE_IMAGE = (
                     context.SCREENSHOTS_STEP_PATH + context.SCREENSHOT_FILE
+=======
+        if context.step_data["compare"]:
+            # --------------------
+            # Compare images
+            # --------------------
+            # Construct current screenshot path
+            logger.debug("Starting the image comparision")
+            context.COMPARE_IMAGE = (
+                context.SCREENSHOTS_STEP_PATH + context.SCREENSHOT_FILE
+            ).replace(".png", ".webp")
+            # Construct template screenshot path
+            context.STYLE_IMAGE = (
+                context.TEMPLATES_PATH
+                + SCREENSHOT_PREFIX
+                + "template_%d.webp" % context.counters["index"]
+            )
+            # Construct the style copy image path only for the user to see it
+            context.STYLE_IMAGE_COPY_TO_SHOW = (
+                context.SCREENSHOTS_STEP_PATH + SCREENSHOT_PREFIX + "style.webp"
+            )
+            # Construct difference image path
+            context.DIFF_IMAGE = (
+                context.SCREENSHOTS_STEP_PATH + SCREENSHOT_PREFIX + "difference.png"
+            )
+            # Migrate old style images in disk
+            migrateOldStyles(context)
+            # Check if the style image already exists or not, if not, the current screenshot will be copied and used as style
+            if not os.path.isfile(context.STYLE_IMAGE):
+                # Check if we have
+                logger.debug(
+                    "StyleImage is not there ... copying %s to %s"
+                    % (context.COMPARE_IMAGE, context.STYLE_IMAGE)
+                )
+                shutil.copy2(context.COMPARE_IMAGE, context.STYLE_IMAGE)
+            # Check if the template to show is there ... if not copy it
+            if not os.path.isfile(context.STYLE_IMAGE_COPY_TO_SHOW):
+                # shutil.copy2(context.COMPARE_IMAGE, context.STYLE_IMAGE_COPY_TO_SHOW) # this is the old value for show image it copies the actual images and saves it as the comparable image which results in on front end we see the same image on actual and the style image
+                logger.debug(
+                    "StyleImageToShow is not there - copying %s to %s"
+                    % (context.STYLE_IMAGE, context.STYLE_IMAGE_COPY_TO_SHOW)
+                )
+                shutil.copy2(context.STYLE_IMAGE, context.STYLE_IMAGE_COPY_TO_SHOW)
+            # Compare the screenshots ... will results in AMVARA_difference.png in png format
+            logger.debug("Comparing image")
+            pixel_diff = compareImage(context)
+            # Check compare image was successful
+            if pixel_diff is None:
+                raise CustomError("Compare tool returned NoneType")
+
+            # Convert difference image to WebP
+            toWebP(context.DIFF_IMAGE)
+            logger.debug("Compared the image, sending request to /steps/")
+
+            data = {"pixel_diff": str(pixel_diff)}
+            # Save Pixel Difference for calculating Total in after_all
+            context.counters["pixel_diff"] += int(float(pixel_diff))
+            logger.debug("Saveing pixel difference %s to database" % str(pixel_diff))
+            _async_post(
+                f"{get_cometa_backend_url()}/steps/{step_id}/update/",
+                headers={"Host": "cometa.local"},
+                json={"pixel_diff": str(pixel_diff)},
+            )
+            logger.debug("Image comparision result saved")
+
+        # Format screenshots
+        context.DB_CURRENT_SCREENSHOT = (
+            removePrefix(context.COMPARE_IMAGE, context.SCREENSHOTS_ROOT).replace(
+                ".png", ".webp"
+            )
+            if hasattr(context, "COMPARE_IMAGE")
+            else ""
+        )
+        context.DB_STYLE_SCREENSHOT = ""
+        context.DB_DIFFERENCE_SCREENSHOT = ""
+        context.DB_TEMPLATE = ""
+        
+        if context.DB_CURRENT_SCREENSHOT:
+            context.DB_STYLE_SCREENSHOT = (
+                removePrefix(
+                    context.STYLE_IMAGE_COPY_TO_SHOW, context.SCREENSHOTS_ROOT
+>>>>>>> backend/behave/cometa_itself/steps/tools/common_functions.py
                 ).replace(".png", ".webp")
                 # Construct template screenshot path
                 context.STYLE_IMAGE = (
@@ -749,6 +853,7 @@ def saveToDatabase(
                 if hasattr(context, "COMPARE_IMAGE")
                 else ""
             )
+<<<<<<< backend/behave/cometa_itself/steps/tools/common_functions.py
             context.DB_STYLE_SCREENSHOT = ""
             context.DB_DIFFERENCE_SCREENSHOT = ""
             context.DB_TEMPLATE = ""
@@ -805,6 +910,33 @@ def saveToDatabase(
         
         
     return step_id
+=======
+            context.DB_TEMPLATE = (
+                removePrefix(context.STYLE_IMAGE, context.SCREENSHOTS_ROOT)
+                if hasattr(context, "STYLE_IMAGE")
+                else ""
+            )
+            data = {
+                "screenshot_current": context.DB_CURRENT_SCREENSHOT,
+                "screenshot_style": context.DB_STYLE_SCREENSHOT,
+                "screenshot_difference": context.DB_DIFFERENCE_SCREENSHOT,
+                "screenshot_template": context.DB_TEMPLATE,
+            }
+            logger.debug("Writing data %s to database" % json.dumps(data))
+            _async_post(
+                f"{get_cometa_backend_url()}/setScreenshots/{step_id}/",
+                headers={"Host": "cometa.local"},
+                json=data,
+            )
+            logger.debug("Screenshot information updated")
+            addTimestampToImage(
+                context.DB_CURRENT_SCREENSHOT, path=context.SCREENSHOTS_ROOT
+            )
+            # Calculate and log total execution time
+        total_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+        logger.debug(f"saveToDatabase took {total_time:.2f}ms to execute")
+    return 0
+>>>>>>> backend/behave/cometa_itself/steps/tools/common_functions.py
 
 
 # add timestamp to the image using the imagemagic cli
@@ -845,7 +977,7 @@ def migrateOldStyles(context):
         shutil.move(old_style_1, context.STYLE_IMAGE)
 
 
-# -----------
+# ----------- 
 # Function to automatically take an HTML Snapshot of current page source
 # and save it to HTML file with current step index
 # -----------
