@@ -4,11 +4,14 @@ from .service_manager import ServiceManager
 from backend.ee.modules.mobile.models import Mobile
 from django.core.exceptions import ValidationError
 from django.db.models import UniqueConstraint
-# File Status
+
 from backend.utility.functions import getLogger
 
 logger = getLogger()
 
+
+
+# File Status
 service_type = (
     (
         "Emulator",
@@ -100,6 +103,7 @@ class ContainerService(models.Model):
             self.service_id = service_details["Id"]
             self.service_status = "Running"
             self.information = service_details["information"]
+   
             return super(ContainerService, self).save()
 
         else:
