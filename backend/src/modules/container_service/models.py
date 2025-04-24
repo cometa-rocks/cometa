@@ -84,10 +84,11 @@ class ContainerService(models.Model):
                 service_manager.prepare_emulator_service_configuration(image=image)
             else:
                 image = f"{self.image_name}:{self.image_version}"
-                service_details = service_manager.prepare_browser_service_configuration(
+                service_manager.prepare_browser_service_configuration(
                     browser=self.image_name,
                     version=self.image_version,
-                    labels={},
+                    labels=self.labels if self.labels else {},
+                    devices_time_zone=self.devices_time_zone if self.devices_time_zone else '',
                 )
                 
             service_details = service_manager.create_service()
