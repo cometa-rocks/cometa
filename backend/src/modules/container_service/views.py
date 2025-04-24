@@ -103,6 +103,7 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
                 except Exception as e:
                     # FIXME send and notification that the container was not deleted
                     # This needs to be done in the cometa_monitorig server
+                    traceback.print_exc()
                     logger.error(f"Error deleting container {kwargs['pk']}: {str(e)}")
 
             # Start the deletion in a background thread

@@ -5,6 +5,10 @@ from backend.ee.modules.mobile.models import Mobile
 from django.core.exceptions import ValidationError
 from django.db.models import UniqueConstraint
 # File Status
+from backend.utility.functions import getLogger
+
+logger = getLogger()
+
 service_type = (
     (
         "Emulator",
@@ -92,9 +96,10 @@ class ContainerService(models.Model):
                 )
                 
             service_details = service_manager.create_service()
+            logger.debug(service_details)
             self.service_id = service_details["Id"]
             self.service_status = "Running"
-            self.information = service_details
+            self.information = service_details["information"]
             return super(ContainerService, self).save()
 
         else:
