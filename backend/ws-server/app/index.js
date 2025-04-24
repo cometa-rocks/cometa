@@ -233,6 +233,7 @@ app.post('/feature/:feature_id/stepDetail', (req, res) => {
   // Add message to history
   const messages = constructRun(+req.params.feature_id, +req.body.run_id)
   messages.push(payload);
+  console.log('WS step detailed info', +req.params.feature_id, 'Run ID', +req.body.run_id, 'Payload', payload)
   res.status(200).json({ success: true })
 })
 
@@ -277,6 +278,7 @@ app.post('/feature/:feature_id/stepFinished', (req, res) => {
   // Add message to history
   const messages = constructRun(+req.params.feature_id, +req.body.run_id)
   messages.push(payload);
+  console.log('WS finished step', +req.params.feature_id, 'Run ID', +req.body.run_id, 'Payload', payload)
   res.status(200).json({ success: true })
 })
 
@@ -332,6 +334,7 @@ app.post('/feature/:feature_id/finished', (req, res) => {
   // Add message to history
   const messages = constructRun(+req.params.feature_id, +req.body.run_id)
   messages.push(payload);
+  console.log('WS finished feature', +req.params.feature_id, 'Run ID', +req.body.run_id)
   res.status(200).json({ success: true })
 })
 
