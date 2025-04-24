@@ -515,12 +515,15 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         } else {
           // If it's a name, search for the feature by name
           this.allFeatures$.subscribe(features => {
-            // Filter features by current user
-            const currentUserId = this.user.user_id;
+            // Get user's departments
+            const userDepartments = this.user.departments.map(dept => dept.department_id);
+            
+            // Filter features by name and user's departments
             const matchingFeature = features.find(f => 
               f.feature_name === searchValue && 
-              f.last_edited?.user_id === currentUserId
+              userDepartments.includes(f.department_id)
             );
+            
             if (matchingFeature) {
               featureId = matchingFeature.feature_id;
               this.processFeatureLink(textarea, featureId, index, matchingFeature?.feature_name);
@@ -531,12 +534,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         }
 
         if (featureId && !isNaN(featureId)) {
-          // Verify that the feature belongs to the current user
+          // Verify that the feature belongs to one of user's departments
           this.allFeatures$.subscribe(features => {
-            const currentUserId = this.user.user_id;
+            const userDepartments = this.user.departments.map(dept => dept.department_id);
             const feature = features.find(f => 
               f.feature_id === featureId && 
-              f.last_edited?.user_id === currentUserId
+              userDepartments.includes(f.department_id)
             );
             if (feature) {
               this.processFeatureLink(textarea, featureId, index, feature?.feature_name);
