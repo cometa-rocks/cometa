@@ -198,6 +198,7 @@ def parseVariables(text, variables):
 
 @error_handling()
 def before_all(context):
+    context.start_time = time.time()  # Add timing start
     # Create a logger for file handler
     fileHandle = logging.FileHandler(
         f"/code/src/logs/{os.environ['feature_result_id']}.log"
@@ -401,27 +402,46 @@ def before_all(context):
             "department_id": str(context.feature_info["department_id"]),
             "environment_id": str(context.feature_info["environment_id"])
         }
+        container_configuration = {
+            "image_name":context.browser_info["browser"],
+            "image_version":context.browser_info["browser_version"],
+            "service_type": "Browser",
+            "labels": browser_container_labels,
+            "devices_time_zone" : devices_time_zone
+        }
         
-        service_details = context.service_manager.prepare_browser_service_configuration(
-            browser=context.browser_info["browser"],
-            version=context.browser_info["browser_version"],
-            labels=browser_container_labels,
-            devices_time_zone = devices_time_zone
-        )
+        # service_details = context.service_manager.prepare_browser_service_configuration(
+        #     browser=context.browser_info["browser"],
+        #     version=context.browser_info["browser_version"],
+        #     labels=browser_container_labels,
+        #     devices_time_zone = devices_time_zone
+        # )
         
-        service_created = context.service_manager.create_service()
-        if not service_created:
+        # service_created = context.service_manager.create_service()
+        
+        response = requests.post(f'{get_cometa_backend_url()}/get_browser_container', headers={'Host': 'cometa.local'},
+                             data=json.dumps(container_configuration))
+        logger.debug(response.json())
+        if not response or not response.json()['success'] == True:
             raise Exception("Error while starting browser, Please contact administrator")    
         
-        if not IS_KUBERNETES_DEPLOYMENT:
-            service_details = context.service_manager.get_service_details()
+        # service_id = response.json()['containerservice']['hostname']
+        data = response.json()['containerservice']
+        container_information = {
+            'id': data['id'],
+            'service_url': data['hostname'],
+            'service_type': 'Browser',
+        }        
+        
+        # if not IS_KUBERNETES_DEPLOYMENT:
+        #     service_details = context.service_manager.get_service_details()
+
         # Save container details in the browser_info, which then gets saved in the feature results browser 
-        context.browser_info["container_service"] = {"Id": service_details["Id"]}
-        context.container_services.append(service_details)
-        browser_hub_url = context.service_manager.get_service_name(service_details['Id'])
-        context.browser_hub_url = browser_hub_url
-        connection_url = f"http://{browser_hub_url}:4444/wd/hub"
-        status_check_connection_url = f"http://{browser_hub_url}:4444/status"
+        # context.browser_info["container_service"] = {"Id": service_details["Id"]}
+        context.container_services.append(container_information)
+        context.browser_hub_url = container_information['service_url']
+        connection_url = f"http://{context.browser_hub_url}:4444/wd/hub"
+        status_check_connection_url = f"http://{context.browser_hub_url}:4444/status"
         context.service_manager.wait_for_selenium_hub_be_up(status_check_connection_url)
     
     # video recording on or off
@@ -718,7 +738,7 @@ def after_all(context):
     })
     logger.debug("Removing all services started by test")
     # Delete all the services which were started during test
-    ServiceManager().remove_all_service(context.container_services)
+    ServiceManager().remove_all_service_with_django(context.container_services)
     logger.debug("Removed all services started by test")
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None
@@ -892,27 +912,37 @@ def after_all(context):
         else:
             # logger.debug(f"Error while saving Vulnerability Headers : {json.dumps(response.json())}")
             logger.debug(f"Error while saving Vulnerability Headers : {response}")
-    # send mail
-    sendemail = requests.get(f'{get_cometa_backend_url()}/pdf/?feature_result_id=%s' % os.environ['feature_result_id'],
-                             headers={'Host': 'cometa.local'})
-    logger.debug('SendEmail status: ' + str(sendemail.status_code))
-    # remove download folder if no files where downloaded during the testcase
-    downloadedFiles = glob.glob(context.downloadDirectoryOutsideSelenium + "/*")
-    if len(downloadedFiles) == 0:
-        if os.path.exists(context.downloadDirectoryOutsideSelenium):
-            os.rmdir(context.downloadDirectoryOutsideSelenium)
+    
+    import threading       
+    # FIXME This code seems not working need to verify
+    def clean_up_and_mail():
+        # send mail
+        sendemail = requests.get(f'{get_cometa_backend_url()}/pdf/?feature_result_id=%s' % os.environ['feature_result_id'],
+                                headers={'Host': 'cometa.local'})
+        logger.debug('SendEmail status: ' + str(sendemail.status_code))
+        # remove download folder if no files where downloaded during the testcase
+        downloadedFiles = glob.glob(context.downloadDirectoryOutsideSelenium + "/*")
+        if len(downloadedFiles) == 0:
+            if os.path.exists(context.downloadDirectoryOutsideSelenium):
+                os.rmdir(context.downloadDirectoryOutsideSelenium)
 
-    # do some cleanup and remove all the temp files generated during the feature
-    logger.debug("Cleaning temp files: {}".format(pformat(context.tempfiles)))
-    for tempfile in set(context.tempfiles):
-        try:
-            os.remove(tempfile)
-        except Exception as err:
-            logger.error(
-                f"Something went wrong while trying to delete temp file: {tempfile}"
-            )
-            logger.exception(err)
-
+        # do some cleanup and remove all the temp files generated during the feature
+        logger.debug("Cleaning temp files: {}".format(pformat(context.tempfiles)))
+        for tempfile in set(context.tempfiles):
+            try:
+                os.remove(tempfile)
+            except Exception as err:
+                logger.error(
+                    f"Something went wrong while trying to delete temp file: {tempfile}"
+                )
+                logger.exception(err)
+       
+    
+    # Create a thread to run the remove_services function
+    thread = threading.Thread(target=clean_up_and_mail)
+    thread.daemon = True
+    thread.start() 
+    
     # call update task to delete a task with pid.
     task = {
         "action": "delete",
@@ -922,7 +952,10 @@ def after_all(context):
         "pid": str(os.getpid()),
     }
     response = requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
-                             data=json.dumps(task))
+                            data=json.dumps(task))
+
+    total_time = (time.time() - context.start_time) * 1000  # Convert to milliseconds
+    logger.debug(f"Step execution took {total_time:.2f}ms to execute")
 
 @error_handling()
 def before_step(context, step):
