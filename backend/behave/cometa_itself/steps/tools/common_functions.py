@@ -582,7 +582,7 @@ def saveToDatabase(
     step_name="", execution_time=0, pixel_diff=0, success=False, context=None
 ):  
     start_time = time.time()  # Add timing start
-    
+    logger.debug("Starting execution of saveToDatabase")
     status = context.CURRENT_STEP_STATUS 
     screenshots = os.environ["SCREENSHOTS"].split(".")
     compares = os.environ["COMPARES"].split(".")
@@ -630,6 +630,7 @@ def saveToDatabase(
     log_file.write("Data -> ")
     log_file.write(str(data))
     log_file.write("\n")
+    logger.debug("Saving data to feature_result")
     try:
         response = requests.post(
             f"{get_cometa_backend_url()}/api/feature_results/"
@@ -640,10 +641,13 @@ def saveToDatabase(
             headers={"Host": "cometa.local"},
             json=data,
         )
+        logger.debug("feature_result backend request completed")
         context.step_result = json.dumps(response.json())
         step_id = response.json()["step_result_id"]
         log_file.write("Response Content: " + str(response.content))
         json_success = {"success": success}
+        logger.debug("feature result response writen in the log_file")
+
     except Exception as e:
         logger.error("An error occured: ")
         logger.error(str(e))
@@ -673,6 +677,7 @@ def saveToDatabase(
             # Compare images
             # --------------------
             # Construct current screenshot path
+            logger.debug("Starting the image comparision")
             context.COMPARE_IMAGE = (
                 context.SCREENSHOTS_STEP_PATH + context.SCREENSHOT_FILE
             ).replace(".png", ".webp")
@@ -717,6 +722,7 @@ def saveToDatabase(
 
             # Convert difference image to WebP
             toWebP(context.DIFF_IMAGE)
+            logger.debug("Compared the image, sending request to /steps/")
 
             data = {"pixel_diff": str(pixel_diff)}
             # Save Pixel Difference for calculating Total in after_all
@@ -727,6 +733,7 @@ def saveToDatabase(
                 json=data,
                 headers={"Host": "cometa.local"},
             )
+            logger.debug("Image comparision result saved")
 
         # Format screenshots
         context.DB_CURRENT_SCREENSHOT = (
@@ -736,39 +743,43 @@ def saveToDatabase(
             if hasattr(context, "COMPARE_IMAGE")
             else ""
         )
-        context.DB_STYLE_SCREENSHOT = (
-            removePrefix(
-                context.STYLE_IMAGE_COPY_TO_SHOW, context.SCREENSHOTS_ROOT
-            ).replace(".png", ".webp")
-            if hasattr(context, "STYLE_IMAGE_COPY_TO_SHOW")
-            else ""
-        )
-        context.DB_DIFFERENCE_SCREENSHOT = (
-            removePrefix(context.DIFF_IMAGE, context.SCREENSHOTS_ROOT).replace(
-                ".png", ".webp"
-            )
-            if hasattr(context, "DIFF_IMAGE")
-            else ""
-        )
-        context.DB_TEMPLATE = (
-            removePrefix(context.STYLE_IMAGE, context.SCREENSHOTS_ROOT)
-            if hasattr(context, "STYLE_IMAGE")
-            else ""
-        )
-        data = {
-            "screenshot_current": context.DB_CURRENT_SCREENSHOT,
-            "screenshot_style": context.DB_STYLE_SCREENSHOT,
-            "screenshot_difference": context.DB_DIFFERENCE_SCREENSHOT,
-            "screenshot_template": context.DB_TEMPLATE,
-        }
-        logger.debug("Writing data %s to database" % json.dumps(data))
-        requests.post(
-            f"{get_cometa_backend_url()}/setScreenshots/%s/" % str(step_id),
-            json=data,
-            headers={"Host": "cometa.local"},
-        )
-        # add timestamps to the current image
+        context.DB_STYLE_SCREENSHOT = ""
+        context.DB_DIFFERENCE_SCREENSHOT = ""
+        context.DB_TEMPLATE = ""
+        
         if context.DB_CURRENT_SCREENSHOT:
+            context.DB_STYLE_SCREENSHOT = (
+                removePrefix(
+                    context.STYLE_IMAGE_COPY_TO_SHOW, context.SCREENSHOTS_ROOT
+                ).replace(".png", ".webp")
+                if hasattr(context, "STYLE_IMAGE_COPY_TO_SHOW")
+                else ""
+            )
+            context.DB_DIFFERENCE_SCREENSHOT = (
+                removePrefix(context.DIFF_IMAGE, context.SCREENSHOTS_ROOT).replace(
+                    ".png", ".webp"
+                )
+                if hasattr(context, "DIFF_IMAGE")
+                else ""
+            )
+            context.DB_TEMPLATE = (
+                removePrefix(context.STYLE_IMAGE, context.SCREENSHOTS_ROOT)
+                if hasattr(context, "STYLE_IMAGE")
+                else ""
+            )
+            data = {
+                "screenshot_current": context.DB_CURRENT_SCREENSHOT,
+                "screenshot_style": context.DB_STYLE_SCREENSHOT,
+                "screenshot_difference": context.DB_DIFFERENCE_SCREENSHOT,
+                "screenshot_template": context.DB_TEMPLATE,
+            }
+            logger.debug("Writing data %s to database" % json.dumps(data))
+            requests.post(
+                f"{get_cometa_backend_url()}/setScreenshots/%s/" % str(step_id),
+                json=data,
+                headers={"Host": "cometa.local"},
+            )
+            logger.debug("Screenshot information updated")
             addTimestampToImage(
                 context.DB_CURRENT_SCREENSHOT, path=context.SCREENSHOTS_ROOT
             )
