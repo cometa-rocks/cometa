@@ -93,7 +93,37 @@ class DataDrivenViewset(viewsets.ModelViewSet):
                 'result': DataDrivenRunsSerializer(ddr, many=False).data
             })
 
-        ddrs = DataDriven_Runs.objects.filter(file__department_id__in=user_departments).order_by('-date_time', '-run_id')
+        # This part handles requests for the list of runs
+        ddrs = DataDriven_Runs.objects.filter(file__department_id__in=user_departments)
+
+        # Get department_id from query parameters
+        department_id = request.GET.get('department_id', None)
+        if department_id:
+            try:
+                # Attempt to convert to integer and filter
+                department_id_int = int(department_id)
+                ddrs = ddrs.filter(file__department_id=department_id_int)
+            except (ValueError, TypeError):
+                return JsonResponse({'success': False, 'error': 'Invalid department_id parameter.'}, status=400)
+
+        # Get file_id from query parameters
+        file_id = request.GET.get('file_id', None)
+        if file_id:
+            try:
+                # Attempt to convert to integer and filter
+                file_id_int = int(file_id)
+                ddrs = ddrs.filter(file_id=file_id_int)
+            except (ValueError, TypeError):
+                return JsonResponse({'success': False, 'error': 'Invalid file_id parameter.'}, status=400)
+        
+        # Filter by active files only if requested
+        active_files_only = request.GET.get('active_files_only', None)
+        if active_files_only == 'true':
+            ddrs = ddrs.filter(file__is_removed=False)
+
+        # Apply ordering after filtering
+        ddrs = ddrs.order_by('-date_time', '-run_id')
+
         # get the amount of data per page using the queryset
         page = self.paginate_queryset(DataDrivenRunsSerializer.setup_eager_loading(ddrs))
         # serialize the data
@@ -233,6 +263,23 @@ def dataDrivenExecution(request, row, ddr: DataDriven_Runs):
             ddr.execution_time += fr.execution_time
             ddr.save()
 
+            # Send incremental progress update to WebSocket
+            try:
+                progress_response = requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}',{
+                    "running": True,
+                    "status": "Running",
+                    "total": ddr.total,
+                    "ok": ddr.ok,
+                    "fails": ddr.fails,
+                    "skipped": ddr.skipped,
+                    "execution_time": ddr.execution_time,
+                    "pixel_diff": ddr.pixel_diff
+                })
+                if progress_response.status_code != 200:
+                    logger.error(f"Failed to send incremental progress update for run {ddr.run_id}")
+            except Exception as e:
+                logger.error(f"Exception sending incremental progress update: {e}")
+
 def startDataDrivenRun(request, rows: list[FileData], ddr: DataDriven_Runs):
     user = request.session['user']
     logger.info(f"Starting Data Driven Test {user['name']}")
@@ -265,11 +312,22 @@ def startDataDrivenRun(request, rows: list[FileData], ddr: DataDriven_Runs):
         logger.exception(exception)
     
     # Update when test completed (If stopped or completed in both cases) 
+    ddr.refresh_from_db()
     ddr.running = False
-    ddr.status = 'Failed' if ddr.fails > 0 else 'Passed'
+    if ddr.status != 'Terminated': 
+        ddr.status = 'Failed' if ddr.fails > 0 else 'Passed'
     ddr.save()
     # Update to cometa Socket
-    response = requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}',{"running":False})
+    response = requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}',{
+        "running": False,
+        "status": ddr.status,
+        "total": ddr.total,
+        "ok": ddr.ok,
+        "fails": ddr.fails,
+        "skipped": ddr.skipped,
+        "execution_time": ddr.execution_time,
+        "pixel_diff": ddr.pixel_diff
+    })
     if response.status_code != 200 :
         raise Exception("Not able to connect cometa_socket")
 
@@ -304,10 +362,57 @@ def runDataDriven(request, *args, **kwargs):
             "error": "No rows found for selected data driven file."
         }, status=400)
     
+    # --- BEGIN VALIDATION --- 
+    missing_features = []
+    for index, row_data_obj in enumerate(file_data):
+        row_content = row_data_obj.data
+        feature_id = row_content.get('feature_id', None)
+        feature_name = row_content.get('feature_name', None)
+
+        if not feature_id and not feature_name:
+            return JsonResponse({
+                'success': False,
+                'error': f'Row {index + 1}: Missing \'feature_id\' or \'feature_name\'.'
+            }, status=400)
+        
+        feature_exists = False
+        try:
+            if feature_id:
+                if Feature.objects.filter(pk=feature_id).exists():
+                    feature_exists = True
+            if not feature_exists and feature_name: # Check name only if ID didn't exist or wasn't provided
+                 if Feature.objects.filter(feature_name=feature_name).exists():
+                     feature_exists = True
+        except Exception as e: # Catch potential errors during lookup (e.g., invalid ID format)
+             logger.warning(f"Error looking up feature in row {index + 1}: {e}")
+             # Treat lookup errors as missing features for safety
+             feature_exists = False 
+
+        if not feature_exists:
+            missing_identifier = feature_id if feature_id else feature_name
+            missing_features.append(f"Row {index + 1} (Feature: '{missing_identifier}')")
+
+    if missing_features:
+        error_message = "File cannot be executed. The following referenced features do not exist: " + ", ".join(missing_features)
+        return JsonResponse({
+            'success': False,
+            'error': error_message
+        }, status=400)
+    # --- END VALIDATION ---
+
     try:
         ddr = DataDriven_Runs(file_id=file_id, running=True, status="Running")
         ddr.save()
-        requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}',{"running":True})
+        requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{ddr.run_id}',{
+            "running": True,
+            "status": "Running",
+            "total": 0,
+            "ok": 0,
+            "fails": 0,
+            "skipped": 0,
+            "execution_time": 0,
+            "pixel_diff": 0
+        })
         # Spawn thread to launch feature run
         t = Thread(target=startDataDrivenRun, args=(request, file_data, ddr))
         t.start()
@@ -356,7 +461,16 @@ def stop_data_driven_test(request, *args, **kwargs):
         
         if len(tasks) > 0:
             # Force state of stopped for current feature in WebSocket Server
-            response = requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{run_id}',{"running":False})
+            response = requests.post(f'{get_cometa_socket_url()}/dataDrivenStatus/{run_id}',{
+                "running": False,
+                "status": "Terminated",
+                "total": data_driven_run.total,
+                "ok": data_driven_run.ok,
+                "fails": data_driven_run.fails,
+                "skipped": data_driven_run.skipped,
+                "execution_time": data_driven_run.execution_time,
+                "pixel_diff": data_driven_run.pixel_diff
+            })
             if response.status_code != 200 :
                 raise Exception("Not able to connect cometa_socket")
 
