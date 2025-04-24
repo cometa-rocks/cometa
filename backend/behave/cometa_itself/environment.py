@@ -15,6 +15,7 @@ import hashlib
 import os, pickle
 from selenium.common.exceptions import InvalidCookieDomainException
 import copy
+from concurrent.futures import ThreadPoolExecutor
 
 sys.path.append("/opt/code/behave_django")
 sys.path.append("/opt/code/cometa_itself/steps")
@@ -197,7 +198,6 @@ def parseVariables(text, variables):
 
 @error_handling()
 def before_all(context):
-    context.start_time = time.time()  # Add timing start
     # Create a logger for file handler
     fileHandle = logging.FileHandler(
         f"/code/src/logs/{os.environ['feature_result_id']}.log"
@@ -266,7 +266,6 @@ def before_all(context):
     context.insideLoop = False  # meaning we are inside a loop
     context.break_loop = False
     context.current_loop = None
-    context.previous_step_relative_time = 0
     context.jumpLoopIndex = (
         0  # meaning how many indexes we need to jump after loop is finished
     )
@@ -403,52 +402,31 @@ def before_all(context):
             "environment_id": str(context.feature_info["environment_id"])
         }
         
-        container_configuration = {
-            "image_name":context.browser_info["browser"],
-            "image_version":context.browser_info["browser_version"],
-            "service_type": "Browser",
-            "labels": browser_container_labels,
-            "devices_time_zone" : devices_time_zone
-        }
+        service_details = context.service_manager.prepare_browser_service_configuration(
+            browser=context.browser_info["browser"],
+            version=context.browser_info["browser_version"],
+            labels=browser_container_labels,
+            devices_time_zone = devices_time_zone
+        )
         
-        # service_details = context.service_manager.prepare_browser_service_configuration(
-        #     browser=context.browser_info["browser"],
-        #     version=context.browser_info["browser_version"],
-        #     labels=browser_container_labels,
-        #     devices_time_zone = devices_time_zone
-        # )
-        
-        # service_created = context.service_manager.create_service()
-        
-        response = requests.post(f'{get_cometa_backend_url()}/get_browser_container', headers={'Host': 'cometa.local'},
-                             data=json.dumps(container_configuration))
-        logger.debug(response.json())
-        if not response or not response.json()['success'] == True:
+        service_created = context.service_manager.create_service()
+        if not service_created:
             raise Exception("Error while starting browser, Please contact administrator")    
         
-        # service_id = response.json()['containerservice']['hostname']
-        data = response.json()['containerservice']
-        container_information = {
-            'id': data['id'],
-            'service_url': data['hostname'],
-            'service_type': 'Browser',
-        }        
-        
-        # if not IS_KUBERNETES_DEPLOYMENT:
-        #     service_details = context.service_manager.get_service_details()
-
+        if not IS_KUBERNETES_DEPLOYMENT:
+            service_details = context.service_manager.get_service_details()
         # Save container details in the browser_info, which then gets saved in the feature results browser 
-        # context.browser_info["container_service"] = {"Id": service_details["Id"]}
-        context.container_services.append(container_information)
-        context.browser_hub_url = container_information['service_url']
-        connection_url = f"http://{context.browser_hub_url}:4444/wd/hub"
-        status_check_connection_url = f"http://{context.browser_hub_url}:4444/status"
+        context.browser_info["container_service"] = {"Id": service_details["Id"]}
+        context.container_services.append(service_details)
+        browser_hub_url = context.service_manager.get_service_name(service_details['Id'])
+        context.browser_hub_url = browser_hub_url
+        connection_url = f"http://{browser_hub_url}:4444/wd/hub"
+        status_check_connection_url = f"http://{browser_hub_url}:4444/status"
         context.service_manager.wait_for_selenium_hub_be_up(status_check_connection_url)
     
     # video recording on or off
     context.record_video = data["video"] if "video" in data else True
     logger.debug(f"context.record_video {context.record_video }")
-    
     # create the options based on the browser name
     if context.browser_info["browser"] == "firefox":
         options = FirefoxOptions()
@@ -740,7 +718,7 @@ def after_all(context):
     })
     logger.debug("Removing all services started by test")
     # Delete all the services which were started during test
-    ServiceManager().remove_all_service_with_django(context.container_services)
+    ServiceManager().remove_all_service(context.container_services)
     logger.debug("Removed all services started by test")
     # get the recorded video if in browserstack and record video is set to true
     bsVideoURL = None
@@ -873,7 +851,6 @@ def after_all(context):
     # get the final result for the feature_result
     request_info = requests.get(f"{get_cometa_backend_url()}/api/feature_results/%s" % os.environ['feature_result_id'],
                                 headers=headers)
-    
     requests.post(f'{get_cometa_socket_url()}/feature/%s/finished' % context.feature_id, data={
         "user_id": context.PROXY_USER['user_id'],
         "browser_info": json.dumps(context.browser_info),
@@ -915,37 +892,27 @@ def after_all(context):
         else:
             # logger.debug(f"Error while saving Vulnerability Headers : {json.dumps(response.json())}")
             logger.debug(f"Error while saving Vulnerability Headers : {response}")
-    
-    import threading       
-    # FIXME This code seems not working need to verify
-    def clean_up_and_mail():
-        # send mail
-        sendemail = requests.get(f'{get_cometa_backend_url()}/pdf/?feature_result_id=%s' % os.environ['feature_result_id'],
-                                headers={'Host': 'cometa.local'})
-        logger.debug('SendEmail status: ' + str(sendemail.status_code))
-        # remove download folder if no files where downloaded during the testcase
-        downloadedFiles = glob.glob(context.downloadDirectoryOutsideSelenium + "/*")
-        if len(downloadedFiles) == 0:
-            if os.path.exists(context.downloadDirectoryOutsideSelenium):
-                os.rmdir(context.downloadDirectoryOutsideSelenium)
+    # send mail
+    sendemail = requests.get(f'{get_cometa_backend_url()}/pdf/?feature_result_id=%s' % os.environ['feature_result_id'],
+                             headers={'Host': 'cometa.local'})
+    logger.debug('SendEmail status: ' + str(sendemail.status_code))
+    # remove download folder if no files where downloaded during the testcase
+    downloadedFiles = glob.glob(context.downloadDirectoryOutsideSelenium + "/*")
+    if len(downloadedFiles) == 0:
+        if os.path.exists(context.downloadDirectoryOutsideSelenium):
+            os.rmdir(context.downloadDirectoryOutsideSelenium)
 
-        # do some cleanup and remove all the temp files generated during the feature
-        logger.debug("Cleaning temp files: {}".format(pformat(context.tempfiles)))
-        for tempfile in set(context.tempfiles):
-            try:
-                os.remove(tempfile)
-            except Exception as err:
-                logger.error(
-                    f"Something went wrong while trying to delete temp file: {tempfile}"
-                )
-                logger.exception(err)
-       
-    
-    # Create a thread to run the remove_services function
-    thread = threading.Thread(target=clean_up_and_mail)
-    thread.daemon = True
-    thread.start() 
-    
+    # do some cleanup and remove all the temp files generated during the feature
+    logger.debug("Cleaning temp files: {}".format(pformat(context.tempfiles)))
+    for tempfile in set(context.tempfiles):
+        try:
+            os.remove(tempfile)
+        except Exception as err:
+            logger.error(
+                f"Something went wrong while trying to delete temp file: {tempfile}"
+            )
+            logger.exception(err)
+
     # call update task to delete a task with pid.
     task = {
         "action": "delete",
@@ -955,11 +922,7 @@ def after_all(context):
         "pid": str(os.getpid()),
     }
     response = requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
-                            data=json.dumps(task))
-
-    total_time = (time.time() - context.start_time) * 1000  # Convert to milliseconds
-    logger.debug(f"Step execution took {total_time:.2f}ms to execute")
-
+                             data=json.dumps(task))
 
 @error_handling()
 def before_step(context, step):
@@ -1123,28 +1086,35 @@ def after_step(context, step):
     
     # FIXME understand why do we need to send the browser_info with this step
     logger.debug(f"Sending websocket to front to let front know about the step {step_name} Status: [{context.CURRENT_STEP_STATUS}]")
-    time.sleep(1.5)
-    requests.post(
-        f'{get_cometa_socket_url()}/feature/%s/stepFinished' % context.feature_id,
-        json={
-            "user_id": context.PROXY_USER["user_id"],
-            "feature_result_id": os.environ["feature_result_id"],
-            "browser_info": json.dumps(context.browser_info),
-            "run_id": os.environ["feature_run"], 
-            "step_name": step_name,
-            "step_index": index,
-            "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "step_result_info": step_result,
-            "step_time": step.duration,
-            "error": step_error,
-            "status": context.CURRENT_STEP_STATUS,
-            "belongs_to": context.step_data["belongs_to"],
-            "screenshots": json.dumps(screenshots),  # load screenshots object
-            "vulnerable_headers_count": vulnerable_headers_count,
-            "step_type": context.STEP_TYPE,
-            "mobiles_info": hostnames
-        },
-    )
+
+    # Create payload for the request
+    payload = {
+        "user_id": context.PROXY_USER["user_id"],
+        "feature_result_id": os.environ["feature_result_id"],
+        "browser_info": json.dumps(context.browser_info),
+        "run_id": os.environ["feature_run"], 
+        "step_name": step_name,
+        "step_index": index,
+        "datetime": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "step_result_info": step_result,
+        "step_time": step.duration,
+        "error": step_error,
+        "status": context.CURRENT_STEP_STATUS,
+        "belongs_to": context.step_data["belongs_to"],
+        "screenshots": json.dumps(screenshots),  # load screenshots object
+        "vulnerable_headers_count": vulnerable_headers_count,
+        "step_type": context.STEP_TYPE,
+        "mobiles_info": hostnames
+    }
+    
+    # Execute the request asynchronously
+    with ThreadPoolExecutor() as executor:
+        executor.submit(
+            requests.post,
+            f'{get_cometa_socket_url()}/feature/%s/stepFinished' % context.feature_id,
+            json=payload
+        )
+    
     logger.debug(f"Sent websocket to front to let front know about the step {step_name}")
     # update countes
     if context.jumpLoopIndex == 0:

@@ -658,7 +658,9 @@ def saveToDatabase(
         )
         logger.debug(f"feature_result backend request completed")
         context.step_result = json.dumps({"success": success})
-        # context.step_result = json.dumps(response.json())
+        context.step_result = json.dumps({"success": success})
+        logger.debug(f"Step Result Context: {context.step_result}")
+
         # step_id = response.json()["step_result_id"]
         # context.previous_step_relative_time = response.json()['relative_execution_time']
         # log_file.write("Response Content: " + str(response.content))
@@ -805,8 +807,8 @@ def saveToDatabase(
             addTimestampToImage(
                 context.DB_CURRENT_SCREENSHOT, path=context.SCREENSHOTS_ROOT
             )
-
-            # Calculate and log total execution time
+        
+        # Calculate and log total execution time
         total_time = (time.time() - start_time) * 1000  # Convert to milliseconds
         logger.debug(f"saveToDatabase took {total_time:.2f}ms to execute")
     return 0
