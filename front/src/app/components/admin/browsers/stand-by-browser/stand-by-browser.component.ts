@@ -1,14 +1,15 @@
 import { Component, Input, ChangeDetectionStrategy, Output, EventEmitter } from '@angular/core';
 import { BrowserComboTextPipe } from '../../../../pipes/browser-combo-text.pipe';
+import { StandByBrowserComboTextPipe } from '../../../../pipes/stand-by-browser-combo-text.pipe';
 import { DisableAutocompleteDirective } from '../../../../directives/disable-autocomplete.directive';
 import { InputFocusService } from '@services/inputFocus.service';
- import { ApiService } from '@services/api.service';
+import { ApiService } from '@services/api.service';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import { Store, Select } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { BehaviorSubject, Observable } from 'rxjs';
-// import { Applications } from '@store/actions/applications.actions';
+import { Applications } from '@store/actions/applications.actions';
 import {
   AreYouSureData,
   AreYouSureDialog,
@@ -17,13 +18,15 @@ import { NgIf, NgClass, AsyncPipe } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'browser',
-  templateUrl: './browser.component.html',
-  styleUrls: ['./browser.component.scss'],
+  selector: 'stand-by-browser',
+  templateUrl: './stand-by-browser.component.html',
+  styleUrls: ['./stand-by-browser.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [DisableAutocompleteDirective,
+  imports: [
+    DisableAutocompleteDirective,
     BrowserComboTextPipe,
+    StandByBrowserComboTextPipe,
     ReactiveFormsModule,
     DisableAutocompleteDirective,
     FormsModule,
@@ -32,13 +35,10 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
     AsyncPipe,
   ],
 })
-export class BrowserComponent {
-  @Input() browser: BrowserstackBrowser;
+export class StandByBrowserComponent {
+  @Input() stand_by_browser: Container;
   inputFocus: boolean = false;
-  
-  // @Output() browserAdded = new EventEmitter<Container>();
-  @Output() browserAdded = new EventEmitter<Container>();
-
+  @Output() browserRemoved = new EventEmitter<number>();
 
   constructor(
     private inputFocusService: InputFocusService,
@@ -46,7 +46,6 @@ export class BrowserComponent {
     private _snack: MatSnackBar,
     private _dialog: MatDialog,
     private _store: Store,
-
   ) {}
 
   // Check if focused on input or textarea
@@ -58,27 +57,17 @@ export class BrowserComponent {
     this.inputFocusService.setInputFocus(false); 
   }
 
-  
-  startBrowserContainer(browser: BrowserstackBrowser) {
-    let body = {
-      "image_name":browser.browser,
-      "image_version":browser.browser_version,
-      "service_type":"Browser",
-      "shared": false,
-      "department_id": 1
-    }
-  
-    this._api.startContainerServices(body).subscribe(
-      (res:Container)=> {
-        console.log("res", res)
-        if (res) {
-          this.browserAdded.emit(res);
-          this._snack.open('Browser started successfully!', 'OK');
+
+  removeBrowserContainer(id: number) {
+    this._api.deleteContainerServices(id).subscribe(
+      (res:any)=> {
+        if (res.success) {
+          this.browserRemoved.emit(id);
+          this._snack.open('Browser stopped successfully!', 'OK');
         }
       },
       err => this._snack.open('An error ocurred', 'OK')
     );
   }
-
 
 }
