@@ -515,7 +515,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         } else {
           // If it's a name, search for the feature by name
           this.allFeatures$.subscribe(features => {
-            const matchingFeature = features.find(f => f.feature_name === searchValue);
+            // Filter features by current user
+            const currentUserId = this.user.user_id;
+            const matchingFeature = features.find(f => 
+              f.feature_name === searchValue && 
+              f.last_edited?.user_id === currentUserId
+            );
             if (matchingFeature) {
               featureId = matchingFeature.feature_id;
               this.processFeatureLink(textarea, featureId, index, matchingFeature?.feature_name);
@@ -526,15 +531,21 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         }
 
         if (featureId && !isNaN(featureId)) {
-          const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
-          if (textarea) {
-            this.processFeatureLink(textarea, featureId, index, undefined);
-          }
+          // Verify that the feature belongs to the current user
+          this.allFeatures$.subscribe(features => {
+            const currentUserId = this.user.user_id;
+            const feature = features.find(f => 
+              f.feature_id === featureId && 
+              f.last_edited?.user_id === currentUserId
+            );
+            if (feature) {
+              this.processFeatureLink(textarea, featureId, index, feature?.feature_name);
+            } else {
+              this.removeLinkIcon(textarea, index);
+            }
+          });
         } else {
-          const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
-          if (textarea) {
-            this.removeLinkIcon(textarea, index);
-          }
+          this.removeLinkIcon(textarea, index);
         }
       } else {
         this.removeLinkIcon(textarea, index);
