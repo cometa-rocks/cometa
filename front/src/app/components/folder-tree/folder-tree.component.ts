@@ -55,6 +55,23 @@ export class FolderTreeComponent implements OnInit {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
+    this.route$.subscribe(route => {
+      console.log('Route', JSON.stringify(route, null, 2));
+      
+      // Sort folders alphabetically
+      if (route && route.length > 0) {
+        route.forEach(department => {
+          if (department.folders) {
+            department.folders.sort((a, b) => {
+              const nameA = a.name.toLowerCase();
+              const nameB = b.name.toLowerCase();
+              return nameA.localeCompare(nameB);
+            });
+          }
+        });
+      }
+    });
+
     this._sharedActions.config$.subscribe(configValue => {
       this.configValueBoolean = configValue;
       this.cdr.detectChanges(); 
