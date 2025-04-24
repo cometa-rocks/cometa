@@ -4,11 +4,11 @@
     spellcheck="false"
     readonly
     disableAutocomplete
-    [value]="browser | browserComboText"
+    [value]="stand_by_browser | standByBrowserComboText"
     (focus)="onInputFocus()"
     (blur)="onInputBlur()"/>
 </div>
 <div
-  class="start"
-  (click)="startBrowserContainer(browser)">
-</div>
+  (click)="removeBrowserContainer(stand_by_browser.id)"
+  class="remove"></div>
+
