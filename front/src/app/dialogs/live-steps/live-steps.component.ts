@@ -254,6 +254,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
 
   live(feature_result_id) {
     let url;
+    let window_name
 
     if(this.docker_kubernetes_name == "docker"){
       url = `/live-session/vnc.html?autoconnect=true&path=feature_result_id/${feature_result_id}`;
@@ -261,7 +262,8 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     else if(this.docker_kubernetes_name == "kubernetes"){
       url = `/live-session/vnc.html?autoconnect=true&path=feature_result_id/${feature_result_id}&deployment=kubernetes`;
     }
-    window.open(url, '_blank').focus();
+    window_name = `cometa_vnc_${feature_result_id}`;
+    window.open(url, window_name).focus();
   }
 
   noVNCMobile(selectedMobile) {
