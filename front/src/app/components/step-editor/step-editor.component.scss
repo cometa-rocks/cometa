@@ -594,3 +594,27 @@ mat-autocomplete {
   height: 100vh;
   width: 100vw;
 }
+
+.collapsed-api-call {
+  padding: 12px 10px;
+  flex: 1;
+  display: flex;
+  position: relative;
+  cursor: pointer;
+  font-family: 'Segoe UI', 'CorpoS';
+  font-size: 1rem;
+  line-height: 25px;
+  background-color: transparent;
+  border: 0;
+  outline: 0;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 25px;
+  max-height: 125px;
+  overflow-y: auto;
+
+  .collapsed-body {
+    color: #666;
+    font-style: italic;
+  }
+}
