@@ -120,13 +120,13 @@ export class SharedActionsService {
   }
   // #3397 ------------------------------------end
 
-  goToFeature(featureId: number, openInNewWindow: boolean = false) {
+  goToFeature(featureId: number, openInNewWindow: boolean = false){
     const feature = this._store.selectSnapshot<Feature>(
       CustomSelectors.GetFeatureInfo(featureId)
     );
     // openInNewWindow = false
     const url = `/#/${feature.app_name}/${feature.environment_name}/${feature.feature_id}`;
-    
+        
     if (openInNewWindow) {
       window.open(url, '_blank');
     }
@@ -616,4 +616,6 @@ export class SharedActionsService {
   updateConfigValue(configValue: boolean) {
     this.configSubject.next(configValue);
   }
+
+
 }
