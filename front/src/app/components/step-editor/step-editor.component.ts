@@ -149,6 +149,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   displayedVariables: (VariablePair | string)[] = [];
   stepVariableData = <VariableInsertionData>{};
 
+  private editingApiCallIndex: number | null = null;
+
   constructor(
     private _dialog: MatDialog,
     private _api: ApiService,
@@ -379,13 +381,26 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepVariableData.currentStepIndex = null;
   }
 
-  // removes variable flyout if clicked target on focusout event is not one of the variables
-  onStepFocusOut(event: FocusEvent) {
-    event.preventDefault();
+  onStepFocusOut(event: FocusEvent): void {
+    // Use a timeout to allow the textarea's focus event to trigger first
+    setTimeout(() => {
+      const relatedTarget = event.relatedTarget as HTMLElement;
+      const focusedInside = relatedTarget?.closest('.step_content');
+      if (!focusedInside) {
+        this.editingApiCallIndex = null;
+        this._cdr.detectChanges();
+      }
+    }, 10); // Small enough delay to not be noticeable
+  }
+  
 
-    const ev = event as any;
-    if (!ev.relatedTarget?.attributes.id)
-      this.stepVariableData.currentStepIndex = null;
+  onTextareaFocus(event: FocusEvent, index: number): void {
+    // If this is an API call step, expand it for editing
+    if (this.isApiCallStep(index)) {
+      this.editingApiCallIndex = index;
+      this._cdr.detectChanges();
+    }
+    this.sendTextareaFocusToParent(true, index);
   }
 
   // removes variable flyout on current step row, when keydown TAB event is fired
@@ -1150,12 +1165,49 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
   }
 
-  isApiCallStep(item: number): boolean {
-    const content = this.stepsForm.controls[item]?.get('step_content')?.value;
-    console.log('content', content);
+  isApiCallStep(index: number): boolean {
+    const content = this.stepsForm.controls[index]?.get('step_content')?.value;
     return content?.includes('Make an API call');
   }
 
+  isEditingApiCall(index: number): boolean {
+    return this.editingApiCallIndex === index;
+  }
+
+  expandApiCall(index: number): void {
+    this.editingApiCallIndex = index;
+    this._cdr.detectChanges();
+  }
+
+  getCollapsedApiCall(index: number): string {
+    const content = this.stepsForm.controls[index]?.get('step_content')?.value;
+    if (!content) return '';
+
+    // Find the body part
+    const bodyMatch = content.match(/body:(\{[\s\S]*?\})"/);
+    if (!bodyMatch) return content;
+
+    // Create a shortened version of the body
+    const body = bodyMatch[1];
+    try {
+      const jsonObj = JSON.parse(body);
+      if (typeof jsonObj === 'object' && Object.keys(jsonObj).length > 3) {
+        const shortened = Object.entries(jsonObj)
+          .slice(0, 3)
+          .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+          }, {} as any);
+        shortened['...'] = '...';
+        const shortenedBody = JSON.stringify(shortened);
+        return content.replace(body, shortenedBody);
+      }
+    } catch (e) {
+      // If parsing fails, just return the original content
+      return content;
+    }
+    return content;
+  }
 
   editApiCall(item: any) {
     if (!this.isApiCallStep(item)) {

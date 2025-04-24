@@ -147,7 +147,14 @@
               (focusout)="onStepFocusOut($event)"
               (keydown.esc)="onStepEscape($event)"
               (keydown.Tab)="onTextareaTab(i)">
+              <div 
+                *ngIf="isApiCallStep(i) && !isEditingApiCall(i)"
+                class="collapsed-api-call"
+                (click)="expandApiCall(i)">
+                {{ getCollapsedApiCall(i) }}
+              </div>
               <textarea
+                *ngIf="!isApiCallStep(i) || isEditingApiCall(i)"
                 (input)="onStepChange($event, i)"
                 (blur)="fixStep($event, i)"
                 (click)="
@@ -168,7 +175,7 @@
                 formControlName="step_content"
                 [matAutocomplete]="stepHelp"
                 placeholder="Step Code"
-                (focus)="sendTextareaFocusToParent(true, i)">
+                (focus)="onTextareaFocus($event, i)">
               </textarea>
               <mat-list
                 class="var_name_autoComplete"
