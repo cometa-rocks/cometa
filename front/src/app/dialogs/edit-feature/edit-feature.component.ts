@@ -922,13 +922,18 @@ export class EditFeature implements OnInit, OnDestroy {
       .get('department_name')
       .valueChanges.subscribe(department_name => {
         this.allDepartments$.subscribe(data => {
+          if (!data) return;
+          
           this.department = data.find(
             dep => dep.department_name === department_name
           );
-          if (this.department?.files) {
-            this.originalFiles = [...this.department.files];
+          
+          if (this.department) {
+            if (this.department.files) {
+              this.originalFiles = [...this.department.files];
+            }
+            this.fileUpload.validateFileUploadStatus(this.department);
           }
-          this.fileUpload.validateFileUploadStatus(this.department);
           this.cdr.detectChanges();
         });
       });

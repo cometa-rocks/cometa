@@ -157,7 +157,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   displayedVariables: (VariablePair | string)[] = [];
   stepVariableData = <VariableInsertionData>{};
-    snack: any;
+  snack: any;
 
   constructor(
     private _dialog: MatDialog,
@@ -515,7 +515,15 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         } else {
           // If it's a name, search for the feature by name
           this.allFeatures$.subscribe(features => {
-            const matchingFeature = features.find(f => f.feature_name === searchValue);
+            // Get user's departments
+            const userDepartments = this.user.departments.map(dept => dept.department_id);
+            
+            // Filter features by name and user's departments
+            const matchingFeature = features.find(f => 
+              f.feature_name === searchValue && 
+              userDepartments.includes(f.department_id)
+            );
+            
             if (matchingFeature) {
               featureId = matchingFeature.feature_id;
               this.processFeatureLink(textarea, featureId, index, matchingFeature?.feature_name);
@@ -526,15 +534,21 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         }
 
         if (featureId && !isNaN(featureId)) {
-          const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
-          if (textarea) {
-            this.processFeatureLink(textarea, featureId, index, undefined);
-          }
+          // Verify that the feature belongs to one of user's departments
+          this.allFeatures$.subscribe(features => {
+            const userDepartments = this.user.departments.map(dept => dept.department_id);
+            const feature = features.find(f => 
+              f.feature_id === featureId && 
+              userDepartments.includes(f.department_id)
+            );
+            if (feature) {
+              this.processFeatureLink(textarea, featureId, index, feature?.feature_name);
+            } else {
+              this.removeLinkIcon(textarea, index);
+            }
+          });
         } else {
-          const textarea = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLTextAreaElement;
-          if (textarea) {
-            this.removeLinkIcon(textarea, index);
-          }
+          this.removeLinkIcon(textarea, index);
         }
       } else {
         this.removeLinkIcon(textarea, index);
