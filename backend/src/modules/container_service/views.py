@@ -236,6 +236,7 @@ def emulator_proxy_view(request, emulator_id, remaining_path):
         logger.error(f"Internal server error: {str(e)}")
         return JsonResponse({"error": "Internal server error"}, status=500)
 
+
 import json
 # #########
 @csrf_exempt
