@@ -6,7 +6,7 @@ DEBUG_LEVEL = int(os.getenv('DEBUG_LEVEL', '20'))
 LOGGER_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 from utils.cometa_logger import CometaLogger
 
-LOGGER_FORMAT = '\33[96m[%(asctime)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s'
+LOGGER_FORMAT = '\33[96m[%(asctime)s.%(msecs)03d][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s'
 # setup logging
 logging.setLoggerClass(CometaLogger)
 logger = logging.getLogger('FeatureExecution')
