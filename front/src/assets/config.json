@@ -1,5 +1,5 @@
 {
-  "version": "3.0.36",
+  "version": "3.0.37",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,7 +236,17 @@
     "{Code is Poetry}"
   ],
   "changelog": [
-      {
+    {
+      "version": "3.0.37",
+      "date": "2025-04-24",
+      "features": [
+        {
+          "title": "'Standby Browsers' Reduce the test execution time #6126",
+          "description": "Keep your preferred browsers running to minimize test execution time during the test design phase."
+        }
+      ]
+    }, 
+    {
       "version": "3.0.36",
       "date": "2025-04-21",
       "features": [

@@ -11,6 +11,7 @@ import uuid, time, sys, json
 from kubernetes import client, config
 from kubernetes.client import ApiException
 
+# src container/django container service_manager.py 
 
 class KubernetesServiceManager:
     
@@ -38,9 +39,11 @@ class KubernetesServiceManager:
     
     def get_service_name(self, uuid):
         return f"service-{uuid}"
-        
+
+    def get_service_details(self):
+        return self.__service_configuration
      
-    def __create_pod_and_wait_to_running(self, timeout=60):
+    def __create_pod_and_wait_to_running(self, timeout=300):
         logger.debug(f"Creating pod '{self.pod_manifest['metadata']['name']}'")
         try:
             # Create the pod
@@ -80,6 +83,7 @@ class KubernetesServiceManager:
         pod_name = self.get_pod_name(pod_id)
         logger.debug(f"Deleting Pod '{pod_name}'")
         try:
+            # Define the body of the delete options with the grace period
             delete_options = client.V1DeleteOptions(
                 grace_period_seconds=60
             )
@@ -103,23 +107,34 @@ class KubernetesServiceManager:
             if not self.__create_pod_url():
                 # In case pod service creation fails delete the pod 
                 self.__delete_pod(pod_id = configuration['Id'])
-            
-            return True
+                self.__service_configuration = configuration
+                
+            pod = self.v1.read_namespaced_pod(name=self.pod_manifest['metadata']['name'], namespace=self.namespace)
+            return {
+                        'service_id':configuration['Id'],
+                        'service_status':configuration['service_status'],
+                        'information':{
+                                    'hostname':self.get_service_name(),
+                                    'State':{
+                                        'Running':pod.status.phase
+                                    }
+                                },
+                }
         except Exception:
             logger.debug(f"Exception while creation Kubernetes service\n{configuration}")
             traceback.print_exc()
-            return False
-
+            return False      
+    
     def delete_service(self, service_name_or_id):
         self.__delete_pod(pod_id = service_name_or_id)
         self.__delete_pod_url(pod_url_id = service_name_or_id)
         pass
 
-
 class DockerServiceManager:
     deployment_type = "docker"
 
     def __init__(self):
+        self.__service_configuration = None
         # Initialize Docker client using the Docker socket
         self.docker_client = docker.DockerClient(base_url="unix://var/run/docker.sock")
 
@@ -130,7 +145,10 @@ class DockerServiceManager:
         return container.attrs
 
     def get_service_name(self, uuid):
-        return self.inspect_service(uuid)['Config']['Hostname']             
+        return self.inspect_service(uuid)['Config']['Hostname']           
+    
+    def get_service_details(self):
+        return self.__service_configuration
 
     # This method will create the container base on the environment
     def wait_for_service_to_be_running(
@@ -269,9 +287,9 @@ class DockerServiceManager:
                 logger.debug(f"APK File moved from file {tar_stream} to the {file_name}")
                 return file_name
             else:
-                raise Exception(output)
+                raise CustomError(output)
         else:
-            raise Exception("Error while uploading apk file to server")
+            raise CustomError("Error while uploading apk file to server")
     
     def install_apk(self,service_name_or_id, apk_file_name):
         container = self.docker_client.containers.get(service_name_or_id)
@@ -281,14 +299,13 @@ class DockerServiceManager:
         # Run the tar extraction command in the container
         exit_code, output = container.exec_run(command)
         if exit_code == 0:
-            return True, f"App {apk_file_name} installed in the emulator container {service_name_or_id}"
+            return True, f"App {apk_file_name} installed in the mobile container {service_name_or_id}"
         else:
-            return False, f"Error while installing app in the emulator container {service_name_or_id}\n{output}"
+            return False, f"Error while installing app in the mobile container {service_name_or_id}\n{output}"
+
 
     def inspect_service(self,service_name_or_id):
         return self.docker_client.containers.get(service_name_or_id).attrs
-
-
 
 # Select ServiceManager Parent class based on the deployment 
 service_manager = DockerServiceManager
@@ -307,7 +324,7 @@ class ServiceManager(service_manager):
         super().__init__(*args, **kwargs)
 
     # This method will create the container base on the environment
-    def create_service(self, *args, **kwargs):
+    def create_service(self, *args, **kwargs):    
         if not self.__service_configuration:
             raise Exception("Please prepare service_configuration configuration first")
         return super().create_service(
@@ -333,7 +350,7 @@ class ServiceManager(service_manager):
 
     def inspect_service(self, service_name_or_id,  *args, **kwargs):
         return super().inspect_service(service_name_or_id,  *args, **kwargs)
-
+    
     def get_host_name_mapping(self):
         # Load the host file mappings
         try:
@@ -553,7 +570,7 @@ class ServiceManager(service_manager):
     
     def wait_for_selenium_hub_be_up(self,hub_url,timeout=120):
         start_time = time.time()
-        interval = 1
+        interval = 0.1
         logger.debug(f"Waiting for selenium hub {hub_url} to available")
         while True:
             try:

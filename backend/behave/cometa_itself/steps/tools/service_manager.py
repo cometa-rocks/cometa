@@ -19,6 +19,7 @@ from utility.config_handler import *
 # setup logging
 logger = logging.getLogger("FeatureExecution")
 
+# src behave container service_manager.py 
 
 class KubernetesServiceManager:
     
@@ -190,7 +191,7 @@ class DockerServiceManager:
     # This method will create the container base on the environment
     def stop_service(self, service_name_or_id, *args, **kwargs):
         logger.info(
-            f"Deleting service with container_name_or_id : {service_name_or_id}"
+            f"Stopping service with container_name_or_id : {service_name_or_id}"
         )
         try:
             # Find the container
@@ -239,10 +240,16 @@ class DockerServiceManager:
             return False, str(e)
 
     def pull_image(self, image_name):
-        logger.info(f"Pulling the image : {image_name}")
         try:
-            # Pull the specified image
-            logger.info(f"Pulling image: {image_name}")
+            # Check if the image exists locally
+            image_list = self.docker_client.images.list()
+            for image in image_list:
+                if image_name in image.tags:
+                    logger.info(f"Image '{image_name}' is already available locally.")
+                    return True
+
+            # If the image is not found locally, pull it
+            logger.info(f"Image '{image_name}' not found locally. Pulling from Docker Hub...")
             self.docker_client.images.pull(image_name)
             logger.info(f"Image '{image_name}' pulled successfully.")
             return True
