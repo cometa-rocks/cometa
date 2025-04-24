@@ -4,6 +4,13 @@ from .service_manager import ServiceManager
 from backend.ee.modules.mobile.models import Mobile
 from django.core.exceptions import ValidationError
 from django.db.models import UniqueConstraint
+
+from backend.utility.functions import getLogger
+
+logger = getLogger()
+
+
+
 # File Status
 service_type = (
     (
@@ -35,6 +42,9 @@ class ContainerService(models.Model):
     image = models.ForeignKey(
         Mobile, blank=True, on_delete=models.DO_NOTHING, null=True, default=None
     )  # mobile_id
+    image_name =  models.CharField(max_length=50,blank=True, null=True, default="")# mobile_id
+    image_version =models.CharField(max_length=15, blank=True, null=True,default="") # mobile_id
+    in_use =models.BooleanField(default=False) # mobile_id
     service_id = models.TextField(blank=False, unique=True)
     service_status = models.CharField(
         choices=service_status, max_length=15, default="Exited"
@@ -57,6 +67,8 @@ class ContainerService(models.Model):
         related_name="container_created_by",
     )
     department_id = models.IntegerField(default=1)
+    labels = models.JSONField(default=dict, null=False, blank=False)
+    devices_time_zone = models.CharField(max_length=50, blank=True, null=True, default="")
 
     class Meta:
         ordering = ["created_on"]
@@ -73,13 +85,25 @@ class ContainerService(models.Model):
     def save(self, *args, **kwargs):
         service_manager = ServiceManager()
         if not self.id:
-            # Perform delete and return true
-            image = self.image.mobile_json["image"]
-            service_manager.prepare_emulator_service_configuration(image=image)
+            if service_type == "Emulator":
+                # Perform delete and return true
+                image = self.image.mobile_json["image"]
+                service_manager.prepare_emulator_service_configuration(image=image)
+            else:
+                image = f"{self.image_name}:{self.image_version}"
+                service_manager.prepare_browser_service_configuration(
+                    browser=self.image_name,
+                    version=self.image_version,
+                    labels=self.labels if self.labels else {},
+                    devices_time_zone=self.devices_time_zone if self.devices_time_zone else '',
+                )
+                
             service_details = service_manager.create_service()
+            logger.debug(service_details)
             self.service_id = service_details["Id"]
             self.service_status = "Running"
             self.information = service_details
+   
             return super(ContainerService, self).save()
 
         else:
