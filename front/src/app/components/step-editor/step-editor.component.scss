@@ -687,3 +687,44 @@ textarea {
   }
 
 }
+
+.disabled-menu-item {
+  color: #999;               /* grey text */
+  cursor: default;           /* default arrow cursor */
+  pointer-events: none;      /* disables clicks and hovers */
+  display: flex;             /* keep layout similar */
+  align-items: center;
+  opacity: 0.6;              /* visual dimming */
+}
+.disabled-menu-item mat-icon {
+  color: #999;               /* ensure icon is also greyed out */
+}
+
+.api-testing-dialog {
+  height: 100vh;
+  width: 100vw;
+}
+
+.collapsed-api-call {
+  padding: 12px 10px;
+  flex: 1;
+  display: flex;
+  position: relative;
+  cursor: pointer;
+  font-family: 'Segoe UI', 'CorpoS';
+  font-size: 1rem;
+  line-height: 25px;
+  background-color: transparent;
+  border: 0;
+  outline: 0;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 25px;
+  max-height: 125px;
+  overflow-y: auto;
+
+  .collapsed-body {
+    color: #666;
+    font-style: italic;
+  }
+}
