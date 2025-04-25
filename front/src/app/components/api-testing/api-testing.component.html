@@ -8,8 +8,8 @@ Author: Nico
 <draggable-window></draggable-window>
 <div class="api-testing-container">
   <h2 mat-dialog-title>API Call Editor</h2>
-  
-  <mat-dialog-content>
+  <div class="dialog-content-wrapper">
+    <mat-dialog-content class="dialog-body">
     <div class="method-endpoint-row">
       <mat-form-field appearance="outline" class="method-select">
         <mat-label>HTTP Method</mat-label>
@@ -104,10 +104,14 @@ Author: Nico
         </div>
       </mat-tab>
     </mat-tab-group>
-  </mat-dialog-content>
+    </mat-dialog-content>
 
-  <mat-dialog-actions align="end">
-    <button mat-button (click)="onCancel()">Cancel</button>
-    <button mat-raised-button color="primary" (click)="onSave()">Save</button>
-  </mat-dialog-actions>
+    <mat-dialog-actions align="end" class="dialog-footer">
+      <button color="warn" (click)="onCancel()" mat-stroked-button mat-dialog-close>CANCEL</button>
+  
+      <button color="primary" mat-stroked-button (click)="onSave()">
+        SAVE
+      </button>
+    </mat-dialog-actions>
+  </div>
 </div>
