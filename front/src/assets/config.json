@@ -1,5 +1,5 @@
 {
-  "version": "3.0.35",
+  "version": "3.0.38",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -243,6 +243,50 @@
         {
           "title": "Edit API Call Dialog",
           "description": "Added a new dialog to edit API calls. Allows the user to edit in a confortable way the API call parameters, headers and body."
+        }
+      ]
+    },
+    {
+      "version": "3.0.37",
+      "date": "2025-04-24",
+      "features": [
+        {
+          "title": "Bugfixes in edit feature + added 'Status' column to Step Editor.",
+          "description": "Fixed issues in the Edit Features filter and added a new 'Status' column to the Step Editor."
+        },
+        {
+          "title": "'Standby Browsers' Reduce the test execution time #6126",
+          "description": "Keep your preferred browsers running to minimize test execution time during the test design phase."
+        }
+      ]
+    }, 
+    {
+      "version": "3.0.36",
+      "date": "2025-04-21",
+      "features": [
+        {
+          "title": "Add functionality to 'Run Feature' step",
+          "description": "Added a new icon to the 'Run Feature' step that opens the main view of the indicated feature in a new tab."
+        }
+      ]
+    }, 
+    {
+      "version": "3.0.36",
+      "date": "2025-04-23",
+      "features": [
+        {
+          "title": "Improved UI dialog behaviour on slow networks - #6124",
+          "description": "When creating a new folder on a slow network, the user is now notified with a message"
+        }
+      ]
+    },
+    {
+      "version": "3.0.36",
+      "date": "2025-04-23",
+      "features": [
+        {
+          "title": "Improvements to Data Driven section.",
+          "description": "Enhanced results filtering by department and file, pre-run validation was added to prevent executions referencing non-existent features. UI was restructured using expansion panels and enabled detailed real-time status progress updates during test runs."
         }
       ]
     },

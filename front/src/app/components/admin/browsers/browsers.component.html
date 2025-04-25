@@ -1,4 +1,22 @@
 <h2>Manage browsers</h2>
 <browser
   [browser]="browser"
-  *ngFor="let browser of browsers$ | async; trackBy: trackByFn"></browser>
+  *ngFor="let browser of browsers$ | async; trackBy: trackByFn"
+  (browserAdded)="addStandByBrowser($event)"
+  ></browser>
+
+<h2>Manage Stand By browsers</h2>
+
+<div *ngIf="isLoading">
+  Loading...
+</div>
+<div *ngIf="!isLoading">
+  <div *ngIf="stand_by_browsers.length === 0">
+    Please start your favourite browser to speed up your testing
+  </div>
+  <stand-by-browser
+    [stand_by_browser]="stand_by_browser"
+    *ngFor="let stand_by_browser of stand_by_browsers"
+    (browserRemoved)="removeStandByBrowser($event)"
+  ></stand-by-browser>
+</div>
