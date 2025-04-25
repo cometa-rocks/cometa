@@ -56,8 +56,15 @@ export class ApiTestingComponent implements OnInit {
   endpoint: string = '';
   parameters: { key: string; value: string; enabled: boolean }[] = [];
   headers: { key: string; value: string; enabled: boolean }[] = [];
-  jsonBody: string = '';
-  rowBody: string = '';
+  bodyContent: string = '';
+  selectedBodyType: 'raw' | 'json' | 'html' | 'xml' = 'raw';
+
+  private readonly contentTypeMap = {
+    raw: 'text/plain',
+    json: 'application/json',
+    html: 'text/html',
+    xml: 'application/xml'
+  };
 
   constructor(
     public dialogRef: MatDialogRef<ApiTestingComponent>,
@@ -66,21 +73,29 @@ export class ApiTestingComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.data?.stepContent) {
-      // Parse the step content to extract API call details
       const content = this.data.stepContent;
+      console.log('Step content:', content); // Debug log
+
       const methodMatch = content.match(/with "([^"]+)"/);
       const endpointMatch = content.match(/to "([^"]+)"/);
       const paramsMatch = content.match(/params:([^"]+)"/);
       const headersMatch = content.match(/headers:([^"]+)"/);
-      const bodyMatch = content.match(/body:(\{[\s\S]*?\})"/);
-      const rowBodyMatch = content.match(/row_body:([^"]+)"/);
+      
+      // Find the last quote in the string
+      const bodyStart = content.indexOf('body:');
+      if (bodyStart !== -1) {
+        const lastQuoteIndex = content.lastIndexOf('"');
+        if (lastQuoteIndex > bodyStart) {
+          this.bodyContent = content.substring(bodyStart + 5, lastQuoteIndex);
+          console.log('Extracted body content:', this.bodyContent); // Debug log
+        }
+      }
 
       if (methodMatch) this.selectedMethod = methodMatch[1];
       if (endpointMatch) this.endpoint = endpointMatch[1];
       
       if (paramsMatch) {
         try {
-          // Parse semicolon-separated key-value pairs
           const paramsStr = paramsMatch[1];
           const params = paramsStr.split(';').reduce((acc, pair) => {
             const [key, value] = pair.split('=');
@@ -102,7 +117,6 @@ export class ApiTestingComponent implements OnInit {
 
       if (headersMatch) {
         try {
-          // Parse semicolon-separated key-value pairs
           const headersStr = headersMatch[1];
           const headers = headersStr.split(';').reduce((acc, pair) => {
             const [key, value] = pair.split('=');
@@ -117,25 +131,37 @@ export class ApiTestingComponent implements OnInit {
             value: value as string,
             enabled: true
           }));
+
+          // Set initial body type based on content-type header
+          const contentTypeHeader = this.headers.find(h => h.key.toLowerCase() === 'content-type');
+          if (contentTypeHeader) {
+            const contentType = contentTypeHeader.value.toLowerCase();
+            if (contentType.includes('json')) this.selectedBodyType = 'json';
+            else if (contentType.includes('html')) this.selectedBodyType = 'html';
+            else if (contentType.includes('xml')) this.selectedBodyType = 'xml';
+            else this.selectedBodyType = 'raw';
+          }
         } catch (e) {
           console.error('Error parsing headers:', e);
         }
       }
+    }
+  }
 
-      if (bodyMatch) {
-        try {
-          // Store the raw JSON body string
-          this.jsonBody = bodyMatch[1];
-          // Try to parse it to validate, but keep the original string
-          JSON.parse(this.jsonBody);
-        } catch (e) {
-          console.error('Error parsing JSON body:', e);
-        }
-      }
-
-      if (rowBodyMatch) {
-        this.rowBody = rowBodyMatch[1];
-      }
+  onBodyTypeChange(): void {
+    const contentType = this.contentTypeMap[this.selectedBodyType];
+    const existingContentTypeIndex = this.headers.findIndex(h => h.key.toLowerCase() === 'content-type');
+    
+    if (existingContentTypeIndex >= 0) {
+      // Update existing content-type header
+      this.headers[existingContentTypeIndex].value = contentType;
+    } else {
+      // Add new content-type header
+      this.headers.push({
+        key: 'Content-Type',
+        value: contentType,
+        enabled: true
+      });
     }
   }
 
@@ -167,7 +193,6 @@ export class ApiTestingComponent implements OnInit {
   }
 
   onSave(): void {
-    // Format parameters and headers as semicolon-separated key-value pairs
     const formattedParams = this.parameters
       .filter(p => p.enabled && p.key && p.value)
       .map(p => `${p.key}=${p.value}`)
@@ -178,51 +203,32 @@ export class ApiTestingComponent implements OnInit {
       .map(h => `${h.key}=${h.value}`)
       .join(';');
 
-    // Build the step content parts
     const parts: string[] = [];
-    
-    // Always include method and endpoint
     parts.push(`Make an API call with "${this.selectedMethod}" to "${this.endpoint}"`);
     
-    // Collect all additional parts
     const additionalParts: string[] = [];
     
-    // Add parameters if they exist
     if (formattedParams) {
       additionalParts.push(`"params:${formattedParams}"`);
     }
     
-    // Add headers if they exist
     if (formattedHeaders) {
       additionalParts.push(`"headers:${formattedHeaders}"`);
     }
     
-    // Add JSON body if it exists
-    if (this.jsonBody && this.jsonBody !== '{json_body}') {
-      additionalParts.push(`"body:${this.jsonBody}"`);
+    if (this.bodyContent && this.bodyContent !== '{json_body}') {
+      additionalParts.push(`"body:${this.bodyContent}"`);
     }
     
-    // Add raw body if it exists
-    if (this.rowBody && this.rowBody !== '{row_body}') {
-      additionalParts.push(`"row_body:${this.rowBody}"`);
-    }
-    
-    // Add the first part with "with" if there are any additional parts
     if (additionalParts.length > 0) {
       parts.push(`with ${additionalParts[0]}`);
     }
     
-    // Add remaining parts with "and"
     for (let i = 1; i < additionalParts.length; i++) {
       parts.push(`and ${additionalParts[i]}`);
     }
     
-    // Join all parts
     const stepContent = parts.join(' ');
-    
-    console.log('Saving step with content:', stepContent);
-    console.log('JSON Body:', this.jsonBody);
-    
     this.dialogRef.close(stepContent);
   }
 

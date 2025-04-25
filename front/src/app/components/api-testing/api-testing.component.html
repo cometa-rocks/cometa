@@ -92,14 +92,19 @@ Author: Nico
 
       <mat-tab label="Body">
         <div class="body-container">
-          <mat-form-field appearance="outline" class="body-input">
-            <mat-label>JSON Body</mat-label>
-            <textarea matInput [(ngModel)]="jsonBody" rows="10" placeholder="Enter JSON body"></textarea>
+          <mat-form-field appearance="outline" class="body-type-select">
+            <mat-label>Body Type</mat-label>
+            <mat-select [(ngModel)]="selectedBodyType" (selectionChange)="onBodyTypeChange()">
+              <mat-option value="raw">Raw Text</mat-option>
+              <mat-option value="json">JSON</mat-option>
+              <mat-option value="html">HTML</mat-option>
+              <mat-option value="xml">XML</mat-option>
+            </mat-select>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="body-input">
-            <mat-label>Raw Body</mat-label>
-            <textarea matInput [(ngModel)]="rowBody" rows="10" placeholder="Enter raw body"></textarea>
+            <mat-label>Body Content</mat-label>
+            <textarea matInput [(ngModel)]="bodyContent" rows="10" placeholder="Enter body content"></textarea>
           </mat-form-field>
         </div>
       </mat-tab>
