@@ -65,6 +65,7 @@ import {
 } from '@angular/common';
 import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
 import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
+import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
 
 @Component({
   selector: 'step-view',
@@ -198,6 +199,7 @@ import { FeatureTitlesComponent } from '../../components/feature-titles/feature-
     JsonPipe,
     DownloadLinkPipe,
     DownloadNamePipe,
+    TruncateApiBodyPipe,
   ],
 })
 export class StepViewComponent implements OnInit {

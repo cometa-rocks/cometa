@@ -32,13 +32,14 @@ import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { ScreenshotComponent } from '@dialogs/screenshot/screenshot.component';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@modules/shared.module';
+import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
 
 @Component({
   selector: 'data-driven-step-view',
   templateUrl: './data-driven-steps.component.html',
   styleUrls: ['./data-driven-steps.component.scss'],
   standalone: true,
-  imports: [CommonModule, SharedModule],
+  imports: [CommonModule, SharedModule, TruncateApiBodyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('progressIn', [
