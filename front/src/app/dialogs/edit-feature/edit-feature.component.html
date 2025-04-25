@@ -161,7 +161,7 @@
             <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
               <div class="checkbox-container move-right">
                 <span class="edit-variables" [matTooltip]="'tooltips.variables_requires' | translate" [matTooltipDisabled]="!disableVariables">
-                  <button 
+                  <button
                     type="button"
                     color="primary"
                     [disabled]="disableVariables"
