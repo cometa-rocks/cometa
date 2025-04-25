@@ -620,5 +620,21 @@ export class SharedActionsService {
     this.configSubject.next(configValue);
   }
 
-
+  toggleStarred(event: Event, featureId: number, featureName: string): void {
+    event.stopPropagation();
+    this.starredService.toggleStarred(featureId);
+    this.starredService.starredChanges$.pipe(
+      filter(event => event?.featureId === featureId),
+      take(1)
+    ).subscribe(event => {
+      this._snackBar.open(
+        event?.action === 'add' 
+          ? `Feature ${featureId} (${featureName}) added to favorites` 
+          : `Feature ${featureId} (${featureName}) removed from favorites`,
+        'OK',
+        { duration: 2000 }
+      );
+    });
+  }
+  
 }
