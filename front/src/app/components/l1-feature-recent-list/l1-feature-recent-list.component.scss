@@ -15,7 +15,7 @@
 .table_container {
   overflow: auto;
   width: 100%;
-  padding: 20px 0;
+  padding: 20px 10px;
 }
 
 :host ::ng-deep .mtx-grid table {
@@ -190,10 +190,6 @@
   align-items: center;
 }
 
-.mat-form-field-flex {
-  
-}
-
 :host::ng-deep .mtx-grid-toolbar {
   padding: 8px 0px;
 }
@@ -207,3 +203,8 @@
   transform-origin: right;
   margin-top: 20px;
 }
+
+::ng-deep .mat-option-text {
+  font-size: 16px;
+}
+

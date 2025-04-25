@@ -180,11 +180,57 @@
   .departments-container {
     display: flex;
     flex-direction: column;
-    .department-header {
-      display: flex;
-      align-items: center;
-      margin-left: 10px;
-      margin-bottom: 20px;
+    position: relative;
+    
+    .department-section {
+      margin: 20px 0 40px 10px;
+      position: relative;
+      
+      &:last-child {
+        margin-bottom: 120px;
+      }
+
+      .department-header {
+        display: flex;
+        align-items: center;
+        margin-left: 10px;
+        margin-bottom: 20px;
+        position: sticky;
+        top: 85px;
+        z-index: 5;
+        background-color: $body-bg-color;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        margin-right: 20px;
+        
+        
+        &.sticky {
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          margin-top: -8px;
+          padding-top: 20px;
+        }
+      }
+
+      mat-icon {
+        color: $starred-color-deparment;
+        font-size: 24px;
+      }
+
+      .department-title {
+        color: $blue;
+        font-size: 20px;
+        font-weight: 500;
+        margin: 0 0 0 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .features-grid {
+        margin-right: 10px;
+        padding-top: 8px;
+      }
     }
   }
 }
