@@ -19,7 +19,7 @@
   }
   @include for-tablet-landscape-up {
     width: 50%;
-    margin-bottom: 20px;
+    margin-bottom: 55px;
   }
   @include for-desktop-up {
     width: 33.333333%;
@@ -30,7 +30,7 @@
   float: left;
   position: relative;
   .wrapper {
-    height: 100%;
+    height: 115%;
     cursor: pointer;
     &.running {
       .run:not(.run-disabled) span,
@@ -147,6 +147,11 @@
       0 3px 1px -2px rgba(0, 0, 0, 0.2),
       0 2px 2px 0 rgba(0, 0, 0, 0.14),
       0 1px 5px 0 rgba(0, 0, 0, 0.12);
+
+    &:hover,
+    &.menu-open {
+      box-shadow: 0 1px 2.5px;
+    }
   }
   .options {
     position: absolute;
@@ -195,6 +200,21 @@
 // Folder item
 .folder-container {
   height: 100%;
+  
+  &.menu-open,
+  &:hover {
+    .folder {
+      box-shadow: 0 1px 2.5px;
+    }
+    .folder-behind {
+      .folder-top-container {
+        .current-step {
+          box-shadow: 0 1px 2.5px;
+        }
+      }
+    }
+  }
+
   // Main folder
   .folder {
     background-color: $folder;
@@ -213,10 +233,10 @@
   }
   // Rear part of the folder
   .folder-behind {
-    margin-top: -170px;
+    margin-top: -195px;
     background-color: $folder-back;
     box-shadow: none;
-    height: calc(100% + 20px);
+    height: 25px;
     // Element above the folder
     .folder-top-container {
       .current-step {
@@ -261,10 +281,10 @@ input {
   pointer-events: none;
   &.visible {
     opacity: 1;
-    left: -1.5px;
+    left: 0px;
     pointer-events: initial;
   }
-  top: -27px;
+  top: -25px;
   width: 100%;
   max-width: 50%;
   overflow: hidden;

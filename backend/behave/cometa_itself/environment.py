@@ -428,7 +428,7 @@ def before_all(context):
         # service_id = response.json()['containerservice']['hostname']
         data = response.json()['containerservice']
         container_information = {
-            'id': data['id'],
+            'id': data['service_id'],
             'service_url': data['hostname'],
             'service_type': 'Browser',
         }        
@@ -437,7 +437,7 @@ def before_all(context):
         #     service_details = context.service_manager.get_service_details()
 
         # Save container details in the browser_info, which then gets saved in the feature results browser 
-        # context.browser_info["container_service"] = {"Id": service_details["Id"]}
+        context.browser_info["container_service"] = {"Id": container_information["service_url"]}
         context.container_services.append(container_information)
         context.browser_hub_url = container_information['service_url']
         connection_url = f"http://{context.browser_hub_url}:4444/wd/hub"
