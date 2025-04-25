@@ -1220,7 +1220,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // Open dialog
     const dialogRef = this._dialog.open(ApiTestingComponent, {
       data: { stepContent },
-      width: '800px',
+      width: '1400px',
+      height: '850px',
       maxHeight: '90vh',
       panelClass: 'api-testing-dialog'
     });
