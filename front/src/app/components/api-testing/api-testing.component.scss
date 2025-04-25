@@ -15,13 +15,19 @@
     }
   }
   
-.api-testing-container {
-  padding: 20px;
-  min-width: 800px;
-  //max-width: 1200px;
-  //max-height: 80vh;
-  display: flex;
-  flex-direction: column;
+  .api-testing-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    height: 700px;
+    padding: 50px;
+    box-sizing: border-box;
+  }
+  
+
+h2 {
+  margin: 0 0 16px 0;
 }
 
 .method-endpoint-row {
@@ -56,8 +62,39 @@
   }
 }
 
+mat-dialog-content {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  display: contents;
+}
+
+::ng-deep mat-tab-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+::ng-deep mat-tab-group,
+::ng-deep .mat-tab-body-wrapper,
+::ng-deep .mat-tab-body,
+::ng-deep .mat-tab-body-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+
 .parameters-container,
-.headers-container {
+.headers-container,
+.body-container {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
   padding: 16px 0;
 
   .parameter-row,
@@ -86,10 +123,19 @@
 
 .body-container {
   padding: 16px 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 
   .body-input {
     width: 100%;
+    flex: 1;
     margin-bottom: 16px;
+
+    textarea {
+      height: 100%;
+      min-height: 200px;
+    }
   }
 }
 
@@ -98,15 +144,70 @@
 }
 
 mat-dialog-actions {
-  margin-top: 16px;
-  padding: 0;
-}  
+  padding: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
 
 ::ng-deep .mat-dialog-container {
   resize: both;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
 }
 
 ::ng-deep .api-testing-dialog {
-  height: 100vh;
+  height: 90vh;
   width: 90vw !important;
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .mat-mdc-dialog-container {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .mat-mdc-dialog-content {
+  max-height: none;
+  flex: 1;
+  overflow: auto;
+}
+
+::ng-deep mat-tab-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.dialog-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 290px;
+}
+
+.dialog-body {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
+.dialog-footer {
+  margin-top: auto;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 16px;
+  display: flex;
+  justify-content: flex-end;
 }
