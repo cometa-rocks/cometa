@@ -129,7 +129,7 @@
                     From feature: {{ item.belongs_to.feature_name }}
                   </div>
                 </ng-container>
-                <div class="step-name">{{ item?.step_name }}</div>
+                <div class="step-name">{{ item?.step_name | truncateApiBody }}</div>
                 <small *ngIf="item?.error" class="step-error" [id]="'row-' + item.step_result_id" #stepError>
                   Custom error: {{ item?.error }}
                 </small>                                       
