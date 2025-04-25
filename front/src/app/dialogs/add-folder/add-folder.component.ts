@@ -27,6 +27,7 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { NgIf, NgFor } from '@angular/common';
 import { InputFocusService } from '@services/inputFocus.service';
 import { Subject } from 'rxjs';
+import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 
 @Component({
   selector: 'add-folder',
@@ -45,6 +46,7 @@ import { Subject } from 'rxjs';
     NgFor,
     MatLegacyOptionModule,
     MatLegacyButtonModule,
+    MatLegacyTooltipModule,
     SortByPipe,
   ],
 })
@@ -63,6 +65,8 @@ export class AddFolderComponent {
   selected_department: number;
   // Know if the input is focused 
   inputFocus: boolean = false;
+  // Loading state to prevent multiple submissions
+  isSubmitting: boolean = false;
 
   constructor(
     private dialogRef: MatDialogRef<AddFolderComponent>,
@@ -116,6 +120,11 @@ export class AddFolderComponent {
   rForm: UntypedFormGroup;
 
   submit(values) {
+    // Set loading state to prevent multiple submissions
+    this.isSubmitting = true;
+    // Disable the form while submitting
+    this.rForm.disable();
+
     if (this.data.mode === 'new') {
       this._api
         .createFolder(
@@ -138,6 +147,10 @@ export class AddFolderComponent {
             this.dialogRef.close(false);
           } else {
             this._snackBar.open('An error ocurred.', 'OK');
+            // Reset loading state if there's an error
+            this.isSubmitting = false;
+            // Re-enable the form
+            this.rForm.enable();
           }
         });
     } else {
@@ -148,9 +161,17 @@ export class AddFolderComponent {
           department: values.department,
         })
         .pipe(switchMap(_ => this._store.dispatch(new Features.GetFolders())))
-        .subscribe(_ => {
-          this._snackBar.open('Folder modified', 'OK');
-          this.dialogRef.close(true);
+        .subscribe({
+          next: (_) => {
+            this._snackBar.open('Folder modified', 'OK');
+            this.dialogRef.close(true);
+          },
+          error: (_) => {
+            // Reset loading state if there's an error
+            this.isSubmitting = false;
+            // Re-enable the form
+            this.rForm.enable();
+          }
         });
     }
   }

@@ -167,58 +167,62 @@
         "mobile_description": "This will stop the emulator and active processes."
     },
 
-    "integrations": {
-        "add": "Add integration",
-        "send_on": "Send on",
-        "title": "Integrations",
-        "edit": "Edit",
-        "delete": "Delete"
-    },
-    "send_on": {
-        "after_test_execution": "Always",
-        "after_test_execution_failed": "On error"
-    },
-    "schedule": {
-        "last-run": "Last run: ",
-        "no-last-run": "Last run: No runs have been made yet"
-    },
-    "mobile_list": {
-        "emulator_options": "Emulator options",
-        "mobile_presentation": "Run mobile tests based on automation configurations",
-        "emulator_mobile": "Run mobile tests using specified automation configurations",
-        "apk_file": "Upload apk files in the upload section of edit feature screen and select apk from here to install in the mobile",
-        "close_emulator": "Stop the mobile emulator",
-        "inspect_novnc": "Open a noVNC viewer to interact with the mobile emulator in real-time",
-        "inspect_emulator": "Inspect the mobile emulator screen for testing and monitoring",
-        "inspect_novnc_shared": "Open a noVNC viewer to interact with the shared mobile emulator in real-time",
-        "inspect_emulator_shared": "Inspect the shared mobile emulator screen for collaborative testing and monitoring",
-        "start_emulator": "Start the mobile emulator to test applications",
-        "pause_emulator": "Pause the mobile emulator temporarily",
-        "restart_emulator": "Restart the mobile emulator to reset its state",
-        "shared": "This emulator is shared with other users\n",
-        "not_shared": "This emulator is not shared with other users\nStart it to enable the toggle",
-        "modify_emulator_started": "Show and modify the emulator parameters",
-        "modify_emulator_not_started": "The emulator must be starting to be modified"
-    },
-    "filter": {
-        "home": "Home shortcut: H",
-        "search": "Search shortcut: S",
-        "show-hide": "Show / hide folders",
-        "escape": "ESC",
-        "remove-filter": "Remove filter shotcut: Shift + Alt + X"
-    },
-    "networkPaginated": {
-        "allSteps": "Show only failed steps",
-        "failureSteps": "Show all steps",
-        "noFailureSteps": "No failed steps"
-    },
-    "mainView": {
-        "allResults": "Show all features",
-        "failureResults": "Show all failed features"
-    },
-    "feature": {
-        "starred": "This feature has been added to your favorites. You can view it in the 'Starred' section",
-        "not_starred": "Add to favorites"
-    }
+  "integrations": {
+    "add": "Add integration",
+    "send_on": "Send on",
+    "title": "Integrations",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "send_on": {
+    "after_test_execution": "Always",
+    "after_test_execution_failed": "On error"
+  },
+  "schedule": {
+    "last-run": "Last run: ",
+    "no-last-run": "Last run: No runs have been made yet"
+  },
+  "mobile_list": {
+    "emulator_options": "Emulator options",
+    "mobile_presentation": "Run mobile tests based on automation configurations",
+    "emulator_mobile": "Run mobile tests using specified automation configurations",
+    "apk_file": "Upload apk files in the upload section of edit feature screen and select apk from here to install in the mobile",
+    "close_emulator": "Stop the mobile emulator",
+    "inspect_novnc": "Open a noVNC viewer to interact with the mobile emulator in real-time",
+    "inspect_emulator": "Inspect the mobile emulator screen for testing and monitoring",
+    "inspect_novnc_shared": "Open a noVNC viewer to interact with the shared mobile emulator in real-time.",
+    "inspect_emulator_shared": "Inspect the shared mobile emulator screen for collaborative testing and monitoring.",
+    "start_emulator": "Start the mobile emulator to test applications",
+    "pause_emulator": "Pause the mobile emulator temporarily",
+    "restart_emulator": "Restart the mobile emulator to reset its state",
+    "shared": "This emulator is shared with other users\nClick to modify to unshare this mobile emulator",
+    "not_shared": "This emulator is not shared with other users\nClick to modify and share this mobile emulator",
+    "modify_emulator_started": "Show and modify the emulator parameters",
+    "modify_emulator_not_started": "The emulator must be starting to be modified"
+  },
+  "filter": {
+    "home": "Home shortcut: H",
+    "search": "Search shortcut: S",
+    "show-hide": "Show / hide folders",
+    "escape": "ESC",
+    "remove-filter": "Remove filter shotcut: Shift + Alt + X"
+  },
+  "networkPaginated": {
+    "allSteps": "Show only failed steps",
+    "failureSteps": "Show all steps",
+    "noFailureSteps": "No failed steps"
+  },
+  "mainView": {
+    "allResults": "Show all features",
+    "failureResults": "Show all failed features"
+  },
+  "feature": {
+    "starred": "This feature has been added to your favorites. You can view it in the 'Starred' section",
+    "not_starred": "Add to favorites"
+  },
+  "step_editor": {
+    "feature_link_tooltip": "Click to navigate to the feature",
+    "feature_link_not_found": "Feature not found"
+  }
 
 }

@@ -22,7 +22,7 @@ export class ApiService {
 
   /**
    * @description Save favourite browsers on the Backend for the current logged user
-   * @author Alex Barba
+   * @author Alex Barba 
    * @usedIn UserState
    */
   saveBrowserFavourites(
@@ -180,7 +180,7 @@ export class ApiService {
       .pipe(map(res => res.result));
   }
 
-  // Parse JQ
+  // Parse JQ, if content is a rest api id
   getParsedJQFilter(filter: string, rest_id: number) {
     return this._http.post<Success>(
       `${this.base}compile_jq/`,
@@ -196,6 +196,24 @@ export class ApiService {
       }
     );
   }
+
+
+    // Parse JQ, if content is a json or string
+    getParsedJQFilter_content(filter: string, content: any) {
+      return this._http.post<Success>(
+        `${this.base}compile_jq/`,
+        {
+          pattern: filter,
+          content: content,
+        },
+        {
+          params: new InterceptorParams({
+            skipInterceptor: true,
+            silent: true,
+          }),
+        }
+      );
+    }
 
   /**
    * Retrieves the requested step result object by ID
@@ -795,6 +813,12 @@ export class ApiService {
       .pipe(map(response => response.results));
   }
 
+  getStandByBrowsers(): Observable<Configuration[]> {
+    return this._http
+      .get<{ results: Configuration[] }>(`${this.api}configuration/`)
+      .pipe(map(response => response.results));
+  }
+
   updateConfigurations(body) {
     return this._http.post<any>(`${this.api}configuration/`,body);
   }
@@ -878,6 +902,19 @@ export class ApiService {
    */
   updateMobile(container_id, body) {
     return this._http.put(`${this.api}container_service/${container_id}/`, body);
+  }
+
+
+  getContainerServices() {
+    return this._http.get(`${this.api}container_service/`);
+  }
+
+  deleteContainerServices(id:number) {
+    return this._http.delete(`${this.api}container_service/${id}/`);
+  }
+
+  startContainerServices(body:any) {
+    return this._http.post(`${this.api}container_service/`,body);
   }
 
 }
