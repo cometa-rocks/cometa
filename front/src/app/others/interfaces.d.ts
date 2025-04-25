@@ -1114,6 +1114,8 @@ interface IMobile {
 interface Container {
   id: number;
   image: number | IMobile;
+  image_name?: string;
+  image_version?: string;
   service_id: string;
   service_status: string;
   service_type: string;
@@ -1128,6 +1130,11 @@ interface Container {
   isPaused?: boolean;
   isTerminating?: boolean;
   department_id?: number;
+}
+
+interface ContainerServiceResponse {
+  success: boolean;
+  containerservices: Container[];
 }
 
 interface FeatureData {
