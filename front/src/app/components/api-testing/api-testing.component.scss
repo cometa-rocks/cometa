@@ -20,7 +20,7 @@
     flex-direction: column;
     flex: 1;
     min-height: 0;
-    height: 700px;
+    height: 650px;
     padding: 50px;
     box-sizing: border-box;
   }
@@ -127,6 +127,11 @@ mat-dialog-content {
   display: flex;
   flex-direction: column;
 
+  .body-type-select {
+    width: 200px;
+    margin-bottom: 16px;
+  }
+
   .body-input {
     width: 100%;
     flex: 1;
@@ -151,7 +156,7 @@ mat-dialog-actions {
   gap: 8px;
 }
 
-::ng-deep .mat-dialog-container {
+.mat-dialog-container {
   resize: both;
   display: flex;
   flex-direction: column;
@@ -160,7 +165,7 @@ mat-dialog-actions {
   height: 100%;
 }
 
-::ng-deep .api-testing-dialog {
+.api-testing-dialog {
   height: 90vh;
   width: 90vw !important;
   max-width: 1200px;
@@ -168,7 +173,7 @@ mat-dialog-actions {
   flex-direction: column;
 }
 
-::ng-deep .mat-mdc-dialog-container {
+ .mat-mdc-dialog-container {
   padding: 0;
   display: flex;
   flex-direction: column;
