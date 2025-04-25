@@ -101,6 +101,8 @@ export class L1FeatureItemListComponent implements OnInit {
   running: boolean = false;
   isButtonDisabled: boolean = false;
   running$: Observable<boolean>;
+  private lastClickTime: number = 0;
+  private readonly CLICK_DEBOUNCE_TIME: number = 1000; // 1 second debounce time
 
   /**
    * Global variables
@@ -128,7 +130,7 @@ export class L1FeatureItemListComponent implements OnInit {
       CustomSelectors.GetFeatureStatus(this.feature_id)
     ).pipe(
       tap(status => {
-        if (status === 'Feature completed' || status === 'completed' || status === 'success' || status === 'failed' || status === 'canceled') {
+        if (status === 'Feature completed' || status === 'completed' || status === 'success' || status === 'failed' || status === 'canceled' || status === 'stopped') {
           this.isButtonDisabled = false;
           this.cdr.detectChanges();
         }
@@ -397,6 +399,17 @@ export class L1FeatureItemListComponent implements OnInit {
   }
 
   async onRunClick() {
+    const now = Date.now();
+    const timeSinceLastClick = now - this.lastClickTime;
+
+    // Prevent clicks when button is disabled and feature is not running
+    if (timeSinceLastClick < this.CLICK_DEBOUNCE_TIME) {
+      return;
+    }
+
+    // Update the last click time
+    this.lastClickTime = now;
+
     // Prevent clicks when button is disabled and feature is not running
     if (this.isButtonDisabled && !this.running) {
       return;

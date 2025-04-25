@@ -1123,6 +1123,9 @@ export class EditFeature implements OnInit, OnDestroy {
    * @returns
    */
   async editOrCreate() {
+    // Reset search before proceeding
+    this.resetSearch();
+    
     // Get current steps from Store
     let currentSteps = [];
     if (this.stepEditor) {
@@ -1527,6 +1530,16 @@ export class EditFeature implements OnInit, OnDestroy {
     }
     // Force change detection
     this.cdr.detectChanges();
+  }
+
+  // Reset search input and file list
+  resetSearch() {
+    // Reset the file list to original state without forcing change detection
+    if (this.department && this.originalFiles) {
+      setTimeout(() => {
+        this.department.files = [...this.originalFiles];
+      }, 1000);
+    }
   }
 
 }
