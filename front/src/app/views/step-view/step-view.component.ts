@@ -6,10 +6,6 @@ import {
   ViewChildren,
   QueryList,
   ElementRef,
-  ChangeDetectorRef,
-  Renderer2,
-  Output,
-  EventEmitter
 } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import {
@@ -216,10 +212,7 @@ export class StepViewComponent implements OnInit {
     private _store: Store,
     private _api: ApiService,
     public _sharedActions: SharedActionsService,
-    private _cdr: ChangeDetectorRef,
     private _dialog: MatDialog,
-    private hostElement: ElementRef,
-    private renderer: Renderer2
   ) {}
 
   featureId$: Observable<number>;
@@ -253,71 +246,8 @@ export class StepViewComponent implements OnInit {
           `feature_results/${featureId}/step_results/${resultId}/`
       )
     );
-
-    this.scrollToError();
   }
-
-  errorCount: number = 0;
-  ngAfterViewInit() {
-    setTimeout(() => {
-      this._cdr.detectChanges();
-      this.updateErrorCount();
-    }, 500);
-  }
-
-  @Output() errorCountChanged: EventEmitter<number> = new EventEmitter<number>();
-
-  private updateErrorCount() {
-    this.errorCount = 0;
-
-    if (this.stepErrorElements && this.stepErrorElements.length > 0) {
-      this.stepErrorElements.forEach((stepErrorElement) => {
-        const errorText = stepErrorElement.nativeElement.textContent.trim();
-        if (errorText) {
-          this.errorCount++;
-        }
-      });
-    }
-    this.errorCountChanged.emit(this.errorCount);
-    this._cdr.detectChanges();
-  }
-
-  @ViewChildren('stepError') stepErrorElements!: QueryList<ElementRef>;
-  @ViewChildren('nameElement') nameElements!: QueryList<ElementRef>;
-  errorRows: HTMLElement[] = [];
-
-  scrollToError() {
-    this.errorRows = [];
-    setTimeout(() => {
-      if (this.stepErrorElements && this.stepErrorElements.length > 0) {
-        const firstErrorElement = this.stepErrorElements.first.nativeElement;
-        if (firstErrorElement) {
-          firstErrorElement.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-          });
-        } else {
-          console.error('No error elements found in ViewChildren');
-        }
-      }
-      this.stepErrorElements.forEach((stepErrorElement) => {
-        const errorText = stepErrorElement.nativeElement.textContent.trim();
-        if (errorText) {
-          const parentRow = stepErrorElement.nativeElement.closest('.step-row');
-          this.errorRows.push(parentRow);
-          if (parentRow) {
-            this.renderer.addClass(parentRow, 'error-border');
-            setTimeout(() => {
-              this.renderer.removeClass(parentRow, 'error-border');
-            }, 3000);
-          } else {
-            console.error('No parent with class "step-row" found for:', stepErrorElement.nativeElement);
-          }
-        }
-      });
-    }, 500);
-  }
-
+ 
   getFeatureResult = resultId =>
     this._store.dispatch(new FeatureResults.GetFeatureResult(resultId, true));
 

@@ -50,14 +50,6 @@
   line-height: 38px !important;
   font-weight: bold !important;
   color: rgba(0, 0, 0, 0.6) !important;
-  /*
-    .mat-icon {
-        margin-right: 10px !important;
-    }
-    .mat-checkbox-inner-container {
-        margin-right: 16px !important;
-    }
-    */
 }
 
 .father-block {
@@ -72,6 +64,7 @@
 .first-block {
   display: flex;
   flex-direction: row;
+  flex: 0 0 auto;
 }
 
 .second-block {
@@ -117,16 +110,17 @@
     }
   }
   .prefix {
-    @include for-tablet-portrait-up {
-      margin-left: 125px;
-      margin-right: 25px;
-    }
-    flex: 0 0 50px;
-    margin-left: 60px;
+    // @include for-tablet-portrait-up {
+    //   margin-left: 125px;
+    //   margin-right: 25px;
+    // }
+    flex: 0 0 80px;
     height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: 115px;
+    margin-right: 40px;
     &::ng-deep .mat-select-value {
       font-size: 1rem;
     }
@@ -178,6 +172,7 @@
     flex: 1;
     display: flex;
     position: relative;
+    min-width: 0;
 
     .var_name_autoComplete {
       position: absolute;
@@ -243,6 +238,7 @@
       font-family: 'Segoe UI', 'CorpoS';
       flex-direction: column;
       min-height: 25px;
+      width: 100%;
     }
   }
   
@@ -419,14 +415,6 @@
   flex: 0.2;
 }
 
-// .stepDescriptionExample{
-//   width: 80%;
-// }
-
-// .stepDocumentationIcons {
-//   width: 20%;
-// }
-
 .columnOfIcons {
   color: $blue;
   display: flex;
@@ -435,44 +423,49 @@
 }
 
 .stepDescription {
-  // margin-left: -670px;
   text-align: left;
   letter-spacing: 0.7px;
   .stepDescriptionPar {
-
     width: 100%;
     word-wrap: break-word;
     word-break: break-word;
   }
-  .stepDescriptionPar:last-of-type {
-
-  }
 }
+
 .bluetext {
   color: $blue;
   font-weight: bold;
 }
 
-
-.cdk-overlay-container {
-  position: relative;
-}
-
-// :host::ng-deep .cdk-overlay-pane {
-//   position: fixed !important;
+// .cdk-overlay-container {
+//   position: relative;
 // }
 
-::ng-deep .mat-autocomplete-panel {
-  position: absolute !important;
-  bottom: 100% !important;
-  top: auto !important;
-  transform: translateY(-40px);
-  z-index: 1000;
-}
+// ::ng-deep .mat-autocomplete-panel {
+//   position: absolute !important;
+//   bottom: 100% !important;
+//   top: auto !important;
+//   transform: translateY(-40px);
+//   z-index: 1000;
+// }
+
+// .autocomplete-container {
+//   display: flex;
+//   align-items: center;
+// }
 
 .autocomplete-container {
-  display: flex;
-  align-items: center;
+  position: relative;
+  overflow-y: auto;  
+  max-height: 300px;
+}
+
+.fixed-autocomplete {
+  position: relative !important;
+  width: 100% !important;
+  z-index: 9999; 
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .icon-container {
@@ -492,20 +485,6 @@
 
 mat-icon {
   font-size: 24px;
-}
-
-// .autocomplete-wrapper {
-//   transition: opacity 0.3s ease;
-// }
-
-.is-transparent {
-  opacity: 0.3;
-  transition: opacity 1s ease-in-out;
-}
-
-mat-autocomplete {
-  opacity: 1;
-  transition: opacity 1s ease-in-out;
 }
 
 
@@ -565,7 +544,7 @@ mat-autocomplete {
 
 .containerVisibility {
   display: flex;
-  align-items: center !important;
+  align-items: center;
   width: 100%;
   height: 100%;
   border-radius: 50%;
@@ -612,7 +591,10 @@ mat-autocomplete {
 .columnOfIcons {
   display: flex;
   gap: 10px;
-  margin-top: 3px;
+}
+
+mat-select[formcontrolname="step_keyword"] {
+  width: 60px;
 }
 
 textarea {
