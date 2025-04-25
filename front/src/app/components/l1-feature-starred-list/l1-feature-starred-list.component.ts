@@ -150,4 +150,30 @@ export class L1FeatureStarredListComponent implements OnInit {
       this.showReadme = false;
     }
   }
+
+  /**
+   * Handles scroll events to manage sticky headers
+   * @param event - The scroll event
+   */
+  @HostListener('window:scroll', ['$event'])
+  onScroll(event: Event) {
+    const headers = document.querySelectorAll('.department-header');
+    headers.forEach((header, index) => {
+      const nextHeader = headers[index + 1];
+      const headerRect = header.getBoundingClientRect();
+      const nextHeaderRect = nextHeader?.getBoundingClientRect();
+      
+      // Add sticky class when header is at the top
+      if (headerRect.top <= 80) {
+        header.classList.add('sticky');
+      } else {
+        header.classList.remove('sticky');
+      }
+      
+      // Remove sticky class when next header is about to push it up
+      if (nextHeader && nextHeaderRect.top <= 80 + headerRect.height) {
+        header.classList.remove('sticky');
+      }
+    });
+  }
 }
