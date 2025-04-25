@@ -22,7 +22,7 @@ services:
     build: ./cometa_ai
     # container_name: cometa.ollama.ai
     ports:
-      - "8083:8083"  # Ollama port
+      # - "8083:8083"  # Ollama port
       - "8002:8000"  # Django port
     volumes:
       - ./cometa_ai:/app
@@ -58,7 +58,7 @@ services:
       POSTGRES_NAME: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_HOST: cometa.db.ai
+      POSTGRES_HOST: db.ai
       POSTGRES_PORT: 5432
       PYTHONPATH: /app
       CHROMA_PATH: /app/data/chromadb
