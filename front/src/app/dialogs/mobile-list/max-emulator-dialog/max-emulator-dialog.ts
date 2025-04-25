@@ -48,9 +48,6 @@ export class MaxEmulatorDialogComponent {
     // Asignamos los datos recibidos a las propiedades
     this.departments = this.data.departments;
     this.emulatorsByDepartment = this.data.emulatorsByDepartment;
-
-    console.log('Departments:', this.departments);
-    console.log('Emulators by department:', this.emulatorsByDepartment);
   }
 
   closeDialog() {
