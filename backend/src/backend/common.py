@@ -25,7 +25,7 @@ BEHAVE_DEBUG_LEVEL = 10
 # more options can be found at https://docs.python.org/3/library/logging.html#logrecord-attributes
 # Full logger example: 
 # LOGGER_FORMAT = '[%(asctime)s][%(name)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) - %(message)s'
-LOGGER_FORMAT = '\33[96m[%(asctime)s][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s'
+LOGGER_FORMAT = '\33[96m[%(asctime)s.%(msecs)03d][%(levelname)s][%(filename)s:%(lineno)d](%(funcName)s) -\33[0m %(message)s'
 LOGGER_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 # Folders MAX drill down level
 MAX_FOLDER_HIERARCHY=20
