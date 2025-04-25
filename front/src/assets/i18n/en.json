@@ -223,6 +223,10 @@
   "feature": {
     "starred": "This feature has been added to your favorites. You can view it in the 'Starred' section",
     "not_starred": "Add to favorites"
+  },
+  "step_editor": {
+    "feature_link_tooltip": "Click to navigate to the feature",
+    "feature_link_not_found": "Feature not found"
   }
 
 }
