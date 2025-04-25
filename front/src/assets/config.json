@@ -237,6 +237,16 @@
   ],
   "changelog": [
     {
+      "version": "3.0.38",
+      "date": "2025-04-25",
+      "features": [
+        {
+          "title": "Edit API Call Dialog",
+          "description": "Added a new dialog to edit API calls. Allows the user to edit in a confortable way the API call parameters, headers and body."
+        }
+      ]
+    },
+    {
       "version": "3.0.35",
       "date": "2025-04-20",
       "features": [
