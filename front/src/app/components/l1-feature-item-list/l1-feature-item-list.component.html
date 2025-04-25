@@ -176,6 +176,9 @@ Author: dph000
         </ng-container>
       </div>
 
+
+
+
       <!-- Feature browser -->
       <div class="browser" *ngIf="item.browsers[0] as browser">
         <i class="my-icons" [ngClass]="browser.browser"></i>
@@ -327,7 +330,7 @@ Author: dph000
 </ng-container>
 <ng-template #folderItem>
   <!-- Folder item container -->
-  <div class="folder-container" [class.menu-open]="isMenuOpen">
+  <div class="folder-container" (click)="goFolder(item.route)" [class.menu-open]="isMenuOpen">
     <div class="wrapper folder">
       <div
         *ngIf="finder"

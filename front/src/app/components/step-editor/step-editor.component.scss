@@ -64,6 +64,7 @@
 .first-block {
   display: flex;
   flex-direction: row;
+  flex: 0 0 auto;
 }
 
 .second-block {
@@ -118,6 +119,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: 115px;
+    margin-right: 40px;
     &::ng-deep .mat-select-value {
       font-size: 1rem;
     }
@@ -166,9 +169,10 @@
   }
   .step_content {
     padding: 12px 10px;
-    flex: 0 0 760px;
+    flex: 1;
     display: flex;
     position: relative;
+    min-width: 0;
 
     .var_name_autoComplete {
       position: absolute;
@@ -234,6 +238,7 @@
       font-family: 'Segoe UI', 'CorpoS';
       flex-direction: column;
       min-height: 25px;
+      width: 100%;
     }
   }
   
