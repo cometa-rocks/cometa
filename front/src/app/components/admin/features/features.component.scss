@@ -1,5 +1,5 @@
 h2 {
-  margin: 50px 0 40px;
+  // margin: 50px 0 40px;
   font-size: 12pt;
   text-transform: uppercase;
 }
@@ -12,7 +12,7 @@ h2 {
 ::ng-deep button.add-item {
   font-size: 16px !important;
   font-weight: bold !important;
-  margin-top: 20px !important;
+  // margin-top: 20px !important;
 }
 
 .export-features {
@@ -29,7 +29,7 @@ h2 {
 .select-all {
   font-size: 16px !important;
   font-weight: bold !important;
-  margin-left: 20px;
+  // margin-left: 20px;
 }
 
 ::ng-deep .mat-icon {
@@ -45,4 +45,18 @@ feature:nth-child(2n + 2) {
 .mat-spinner {
   display: block;
   margin: 0 auto;
+}
+
+.header-container {
+  position: sticky;
+  top: -45px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+  background-color: #e5b355;
+  padding: 0 25px 0 25px;
+  height: 80px;
 }
