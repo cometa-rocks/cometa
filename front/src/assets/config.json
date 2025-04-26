@@ -1,5 +1,5 @@
 {
-  "version": "3.0.38",
+  "version": "3.0.39",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.39",
+      "date": "2025-04-26",
+      "features": [
+        {
+          "title": "Administration buttons improvements - #6149",
+          "description": "Changes to Administration buttons and fix in Account component button."
+        }
+      ]
+    },
     {
       "version": "3.0.38",
       "date": "2025-04-25",
