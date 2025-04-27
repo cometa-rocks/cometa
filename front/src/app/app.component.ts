@@ -100,6 +100,8 @@ export class CometaComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Migration of localStorage keys (compatibility 6 months)
+    this.migrateLocalStorage();
     // Start create feature tour
     this._tourService.startTour('CreateFeature');
     // Load config 
@@ -112,5 +114,56 @@ export class CometaComponent implements OnInit {
       'text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000',
     ];
     console.log('%c co.meta loves developers', styles.join(';'));
+  }
+
+  /**
+   * Migration of localStorage keys (compatibility 6 months)
+   */
+  migrateLocalStorage() {
+    const migrations = [
+      { oldKey: 'live_steps_auto_scroll', newKey: 'co_live_steps_auto_scroll' },
+      { oldKey: 'terminatingContainers', newKey: 'co_terminatingContainers' },
+      { oldKey: 'Variable_Sort_State', newKey: 'co_Variable_Sort_State' },
+      { oldKey: 'filters', newKey: 'co_filters' },
+      { oldKey: 'search_sorting', newKey: 'co_search_sorting' },
+      { oldKey: 'lang', newKey: 'co_lang' },
+      { oldKey: 'da', newKey: 'co_da' },
+      { oldKey: 'ViewMode', newKey: 'co_ViewMode' },
+      { oldKey: 'configuration_Sort_State', newKey: 'co_configuration_Sort_State' },
+      { oldKey: 'feedback_mail', newKey: 'co_feedback_mail' },
+      { oldKey: 'notifications', newKey: 'co_notifications' },
+    ];
+    migrations.forEach(({ oldKey, newKey }) => {
+      let value = localStorage.getItem(newKey);
+      if (value) {
+        console.log(`[co_migration] Ya existe '${newKey}' en localStorage:`, value);
+      } else {
+        const oldValue = localStorage.getItem(oldKey);
+        if (oldValue) {
+          localStorage.setItem(newKey, oldValue);
+          console.log(`[co_migration] Migrado '${oldKey}' -> '${newKey}'. Valor:`, oldValue);
+        } else {
+          console.log(`[co_migration] No existe ni '${oldKey}' ni '${newKey}' en localStorage.`);
+        }
+      }
+    });
+    // Migrate dynamic pagination keys
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('pagination.')) {
+        const newKey = 'co_' + key;
+        if (!localStorage.getItem(newKey)) {
+          const value = localStorage.getItem(key);
+          if (value !== null) {
+            localStorage.setItem(newKey, value);
+            console.log(`[co_migration] Migrado '${key}' -> '${newKey}'. Valor:`, value);
+          }
+        }
+      }
+    });
+    // Final log in console
+    migrations.forEach(({ newKey }) => {
+      const value = localStorage.getItem(newKey);
+      console.log(`[co_migration] Estado final '${newKey}':`, value);
+    });
   }
 }
