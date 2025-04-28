@@ -227,6 +227,9 @@
   "step_editor": {
     "feature_link_tooltip": "Click to navigate to the feature",
     "feature_link_not_found": "Feature not found"
+  },
+  "live_steps": {
+    "button_stop": "Stops the current running process. This action can produce inconsistent step results!",
+    "button_when_starting": "Wait until the feature is started"
   }
-
 }
