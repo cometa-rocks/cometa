@@ -12,7 +12,8 @@ Author: dph000
     <div
       class="wrapper"
       (click)="_sharedActions.goToFeature(item.id)"
-      [class.running]="running">
+      [class.running]="running"
+      [class.menu-open]="isMenuOpen">
       <!-- Need help box -->
       <div
         class="top-left-container"
@@ -214,7 +215,9 @@ Author: dph000
         stopPropagation
         class="options"
         mat-icon-button
-        [matMenuTriggerFor]="featureOptions">
+        [matMenuTriggerFor]="featureOptions"
+        (menuOpened)="isMenuOpen = true"
+        (menuClosed)="isMenuOpen = false">
         <mat-icon>more_vert</mat-icon>
       </button>
       <mat-menu
@@ -327,7 +330,7 @@ Author: dph000
 </ng-container>
 <ng-template #folderItem>
   <!-- Folder item container -->
-  <div class="folder-container" (click)="goFolder(item.route)">
+  <div class="folder-container" (click)="goFolder(item.route)" [class.menu-open]="isMenuOpen">
     <div class="wrapper folder">
       <div
         *ngIf="finder"
@@ -378,7 +381,9 @@ Author: dph000
         stopPropagation
         class="options"
         mat-icon-button
-        [matMenuTriggerFor]="folderOptions">
+        [matMenuTriggerFor]="folderOptions"
+        (menuOpened)="isMenuOpen = true"
+        (menuClosed)="isMenuOpen = false">
         <mat-icon>more_vert</mat-icon>
       </button>
       <!-- Menu to manage folder -->

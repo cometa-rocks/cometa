@@ -7,7 +7,7 @@
     matTooltipPosition="above"></div>
   <div class="text" [matTooltip]="step.step_content" matTooltipPosition="above">
     <div class="step-content">
-      {{ step.step_keyword }} {{ step.step_content }}
+      {{ step.step_keyword }} {{ step.step_content | truncateApiBody }}
     </div>
     <div
       class="step-detail"
