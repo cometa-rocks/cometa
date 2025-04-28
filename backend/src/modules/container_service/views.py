@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-10-14
+
 # Import all models and all the utility methods
 
 from rest_framework.renderers import JSONRenderer

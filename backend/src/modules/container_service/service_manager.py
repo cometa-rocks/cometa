@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-10-14
+
 import docker, os, requests
 import time, traceback
 from backend.utility.functions import getLogger, create_tarball
