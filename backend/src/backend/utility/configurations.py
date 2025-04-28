@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-08-17
+
 from psycopg2 import sql
 import psycopg2
 import importlib
