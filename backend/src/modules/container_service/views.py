@@ -93,10 +93,12 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         logger.debug("Container Delete request received")
         try:
+            # When deleting Container services from cometa_front is uses id (int) to delete the container,
+            # when deleting Container which was started by the behave container it uses container ID (long hash string) to delete the container
             try:
                 container = ContainerService.objects.get(id=int(kwargs['pk']))
             except Exception:
-                container = ContainerService.objects.get(service_id=kwargs['pk'] )
+                container = ContainerService.objects.get(service_id=kwargs['pk'])
             # Start deletion in background thread
             def delete_container():
                 try:
