@@ -215,7 +215,7 @@ def assert_imp(context, variable_name, condition, value):
 #     [
 #         {
 #             "content": "
-#               Explain everything that you see in the image." if not options else f"focus on {options}.
+#               Explain everything that you see in the image." if not options else focus on {options}.
 #               prepare a list of object names and provide the answer in JSON list, JSON list should be in the form of [object_name1, object_name2, object_name3, ...]           
 #               ",
 #             "images": [image1, image2, ...],
@@ -227,16 +227,16 @@ def assert_imp(context, variable_name, condition, value):
 # - options: (String) (Optional) Modifies how the analysis result is processed. For example, if 'Output JSON' is provided,
 #     the result will be converted to a JSON format before being stored.
 # Example: Get information based on the input message and store it in a variable.
-# Get information based on """
+# Get information based on "
 # [
 #     {
 #         "content": "Explain everything you see in the image.",
 #         "images": ["screenshot1"]
 #     }
 # ]
-# """ and store in the "analysis_result"
-@step(u'Get information based on """(?P<user_message_to_ai>[\s\S]*?)""" and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
-@done(u'Get information based on """{user_message_to_ai}""" and store in the "{variable}" with "{option}"')
+# " and store in the "analysis_result"
+@step(u'Get information based on "(?P<user_message_to_ai>[\s\S]*?)" and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
+@done(u'Get information based on "{user_message_to_ai}" and store in the "{variable}" with "{option}"')
 def ai_analyze(context, user_message_to_ai, variable, option):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
@@ -280,11 +280,11 @@ def ai_analyze(context, user_message_to_ai, variable, option):
 # - option: (String) (Optional) Modifies how the analysis result is processed. For example, if 'Output JSON' is provided,
 #            if option "Output JSON" is provided the result will be converted to a JSON format before it is stored in the variable.
 # Example: Get information from the screen and store it in a variable.
-# Get information based on """
+# Get information based on "
 # Explain everything that you see in the image.
-# """ from current screen and store in the "screen_analysis"
-@step(u'Get information based on """(?P<prompt>[\s\S]*?)""" from current screen and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
-@done(u'Get information based on """{prompt}""" from current screen and store in the "{variable}" with "{option}"')
+# " from current screen and store in the "screen_analysis"
+@step(u'Get information based on "(?P<prompt>[\s\S]*?)" from current screen and store in the "(?P<variable>.*?)"(?: with "(?P<option>.*?)")?')
+@done(u'Get information based on "{prompt}" from current screen and store in the "{variable}" with "{option}"')
 def get_information_from_current_screen_based_on_prompt(context, prompt, variable, option):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     if not context.COMETA_AI_ENABLED:
