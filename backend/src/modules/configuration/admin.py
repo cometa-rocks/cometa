@@ -5,8 +5,8 @@ from .models import *
 class ConfigurationAdmin(admin.ModelAdmin):
     model = Configuration
     search_fields = ['id','configuration_name']
-    list_display = ('id', 'configuration_name','encrypted','can_be_deleted','can_be_edited','created_by','updated_by','created_on','updated_on')
-    list_filter = ('encrypted',)
+    list_display = ('id', 'configuration_name','configuration_type','encrypted','can_be_deleted','can_be_edited','created_by','updated_by','created_on','updated_on')
+    list_filter = ('encrypted','configuration_type')
     readonly_fields = ('created_by', 'updated_by','created_on','updated_on')
 
 
