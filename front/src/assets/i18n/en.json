@@ -1,171 +1,171 @@
 {
-  "header": {
-    "profile": "Your profile (P)",
-    "upload": "Create a new feature (F)",
-    "menu": "Menu (M)"
-  },
-  "menu": {
-    "order_intake": "Order Intake",
-    "production_program": "Production Program",
-    "allocation": "Allocation",
-    "plant_stock": "Plant Stock",
-    "about": "About",
-    "help": "Help"
-  },
-  "MAIN_VIEW": {
-    "DATE": "DATE"
-  },
-  "sidenav_page": {
-    "add": "Button with options to create a folder or feature. (+)",
-    "folder": "Create a new folder to organize your features. (B)",
-    "feature": "Click to define a new feature for your application. (F)",
-    "home": "We have on this section the co.meta tutorial, help and documentation.",
-    "data_driven_sidenav": "Execution of tests based on the variables provided by the excel sheet",
-    "variables_sidenav": "In this section, we can add or edit variables among other functionalities",
-    "team_drives": "Upcoming feature",
-    "recent": "The last tests you have run",
-    "starred": "Upcoming feature",
-    "trash_bin": "Upcoming feature"
-  },
-  "data_driven": {
-    "data_driven_button": "Execution of tests based on the variables provided by the excel sheet. (T)"
-  },
-  "recent":{
-    "my_features":"Display recent features modified by you",
-    "sort_by_department":"Display recent features from a selected department"
-  },
-  "edit_feature":{
-    "depends_on_other_feature": "If enabled, only a third feature can run this feature",
-    "send_mail": "If enabled, a new section will be displayed for sending the results to the desired email address.",
-    "record_video": "Every time the feature is executed, a video will be recorded",
-    "network_logging": "Enable this option to record network responses, including analysis of vulnerable headers",
-    "generate_dataset": "Create a dataset from your web application",
-    "continue_on_failure_global": "If enabled, the feature's steps will continue even in the presence of errors; if disabled, individual step settings take precedence",
-    "explanation": "Enabling this option allows other users to help you on this feature",
-    "edit_variable": "In this section, we can add or edit variables among other functionalities",
-    "default_template": "If Checked, then please provide your custom email template, which can be used for creating customized e-Mails, e.g. only containing screenshot. The default is false - to not change the actual behavior customers are using",
-    "maximum_notification_on_error": "If checked, please set the number of consecutive failure emails you want to receive. This option helps to avoid continuous failure notifications, so the user is not bombarded with excessive emails.",
-    "attach_pdf": "If Checked, PDF test result will be attached within the email, Other wise email without PDF will be sent. Useful when sending email with customized template"
-  },
-  "step-definition": {
-    "insert-new-above": "CTRL + UP",
-    "insert-new-below": "CTRL + DOWN",
-    "copy-new-above": "CTRL + ALT + UP",
-    "copy-new-below": "CTRL + ALT + DOWN"
-  },
-  "headers": {
-    "status": "Status",
-    "date": "Date",
-    "steps": "# Steps",
-    "ok": "# Ok",
-    "nok": "# Nok",
-    "skipped": "# Skipped",
-    "time": "Execution time",
-    "browser": "Browser",
-    "pixel": "Pixel difference"
-  },
-  "need_help": {
-    "filter": "Asking for help",
-    "poster": "Needs help",
-    "ask_for": "Ask for help",
-    "can_help": "Enabling this option allows you to assist on features marked with \"Ask for help\"",
-    "tooltip": "This feature is asking for help",
-    "explanation": "Enabling this option allows other users to help you on this feature"
-  },
-  "whats_new": {
-    "title": "What's new",
-    "new_features": "New features",
-    "bugfixes": "Bugfixes",
-    "close": "CLOSE"
-  },
-  "websockets": {
-    "Initializing": "Initializing feature",
-    "Timeout": "Timed out searching for container with browser context.",
-    "Completed": "Feature completed"
-  },
-  "user": {
-    "tour_description": "In co.meta you can learn about features interactive using the virtual tour guide. The virtual tour guide will show you around and explain step by step the how's and where's. Move your mouse over the tour buttons to see a short description.",
-    "webhooks_desc": "Integrating co.meta with your preferred tools empowers you to optimize your development process. By seamlessly connecting co.meta, you can accelerate project completion, implement continuous testing practices, and effectively share quality updates with your entire department."
-  },
-  "connected": "Connected",
-  "not_connected": "Not connected",
-  "plandate": "Plandate",
-  "region": "Region",
-  "product": "Product",
-  "regions": "Regions",
-  "products": "Products",
-  "continue_on_failure": {
-    "tooltip": "This checkbox is disabled because Continue on failure is already enabled on a top item."
-  },
-  "save": "Marks the current item as saved.",
-  "unsave": "Unmarks the current item as saved.",
-  "production_program": {
-    "customer": "Customer",
-    "plan": "Plan",
-    "total": "Total",
-    "reserve": "Reserve"
-  },
-  "allocation": {
-    "program": "Program",
-    "allocation": "Allocation"
-  },
-  "about": {
-    "shortcut": "Shortcuts",
-    "config": "Config",
-    "sponsor": "Sponsor",
-    "credits": "Credits",
-    "thanks": "Thank you",
-    "software": "Software",
-    "licenses": "Licenses",
-    "technical_information": "Technical Information",
-    "changelog": "Changelog"
-  },
-  "tooltips": {
-    "delete_templates_with_features": "If checked, the template images of each result will also be deleted",
-    "variables_requires": "Please select a department and environment to edit variables",
-    "run_feature": "Run feature",
-    "run_all_features": "Run all features",
-    "runnning_all_features": "Running all the features",
-    "edit_schedule": "Edit schedule",
-    "edit_feature": "Edit feature",
-    "loading_feature": "Loading feature",
-    "saving_feature": "Saving feature",
-    "creating_feature": "Creating feature",
-    "deleting_feature": "Deleting feature",
-    "latest_browser": "The latest stable version of this browser will be used automatically",
-    "invalid_edit_form": "We found errors in the form, please fix them before saving",
+    "header": {
+        "profile": "Your profile (P)",
+        "upload": "Create a new feature (F)",
+        "menu": "Menu (M)"
+    },
+    "menu": {
+        "order_intake": "Order Intake",
+        "production_program": "Production Program",
+        "allocation": "Allocation",
+        "plant_stock": "Plant Stock",
+        "about": "About",
+        "help": "Help"
+    },
+    "MAIN_VIEW": {
+        "DATE": "DATE"
+    },
+    "sidenav_page": {
+        "add": "Button with options to create a folder or feature. (+)",
+        "folder": "Create a new folder to organize your features. (B)",
+        "feature": "Click to define a new feature for your application. (F)",
+        "home": "We have on this section the co.meta tutorial, help and documentation.",
+        "data_driven_sidenav": "Execution of tests based on the variables provided by the excel sheet",
+        "variables_sidenav": "In this section, we can add or edit variables among other functionalities",
+        "team_drives": "Upcoming feature",
+        "recent": "The last tests you have run",
+        "starred": "Upcoming feature",
+        "trash_bin": "Upcoming feature"
+    },
+    "data_driven": {
+        "data_driven_button": "Execution of tests based on the variables provided by the excel sheet. (T)"
+    },
+    "recent":{
+        "my_features":"Display recent features modified by you",
+        "sort_by_department":"Display recent features from a selected department"
+    },
+    "edit_feature":{
+        "depends_on_other_feature": "If enabled, only a third feature can run this feature",
+        "send_mail": "If enabled, a new section will be displayed for sending the results to the desired email address.",
+        "record_video": "Every time the feature is executed, a video will be recorded",
+        "network_logging": "Enable this option to record network responses, including analysis of vulnerable headers",
+        "generate_dataset": "Create a dataset from your web application",
+        "continue_on_failure_global": "If enabled, the feature's steps will continue even in the presence of errors; if disabled, individual step settings take precedence",
+        "explanation": "Enabling this option allows other users to help you on this feature",
+        "edit_variable": "In this section, we can add or edit variables among other functionalities",
+        "default_template": "If Checked, then please provide your custom email template, which can be used for creating customized e-Mails, e.g. only containing screenshot. The default is false - to not change the actual behavior customers are using",
+        "maximum_notification_on_error": "If checked, please set the number of consecutive failure emails you want to receive. This option helps to avoid continuous failure notifications, so the user is not bombarded with excessive emails.",
+        "attach_pdf": "If Checked, PDF test result will be attached within the email, Other wise email without PDF will be sent. Useful when sending email with customized template"
+    },
+    "step-definition": {
+        "insert-new-above": "CTRL + UP",
+        "insert-new-below": "CTRL + DOWN",
+        "copy-new-above": "CTRL + ALT + UP",
+        "copy-new-below": "CTRL + ALT + DOWN"
+    },
+    "headers": {
+        "status": "Status",
+        "date": "Date",
+        "steps": "# Steps",
+        "ok": "# Ok",
+        "nok": "# Nok",
+        "skipped": "# Skipped",
+        "time": "Execution time",
+        "browser": "Browser",
+        "pixel": "Pixel difference"
+    },
+    "need_help": {
+        "filter": "Asking for help",
+        "poster": "Needs help",
+        "ask_for": "Ask for help",
+        "can_help": "Enabling this option allows you to assist on features marked with \"Ask for help\"",
+        "tooltip": "This feature is asking for help",
+        "explanation": "Enabling this option allows other users to help you on this feature"
+    },
+    "whats_new": {
+        "title": "What's new",
+        "new_features": "New features",
+        "bugfixes": "Bugfixes",
+        "close": "CLOSE"
+    },
+    "websockets": {
+        "Initializing": "Initializing feature",
+        "Timeout": "Timed out searching for container with browser context.",
+        "Completed": "Feature completed"
+    },
+    "user": {
+        "tour_description": "In co.meta you can learn about features interactive using the virtual tour guide. The virtual tour guide will show you around and explain step by step the how's and where's. Move your mouse over the tour buttons to see a short description.",
+        "webhooks_desc": "Integrating co.meta with your preferred tools empowers you to optimize your development process. By seamlessly connecting co.meta, you can accelerate project completion, implement continuous testing practices, and effectively share quality updates with your entire department."
+    },
+    "connected": "Connected",
+    "not_connected": "Not connected",
+    "plandate": "Plandate",
+    "region": "Region",
+    "product": "Product",
+    "regions": "Regions",
+    "products": "Products",
+    "continue_on_failure": {
+        "tooltip": "This checkbox is disabled because Continue on failure is already enabled on a top item."
+    },
+    "save": "Marks the current item as saved.",
+    "unsave": "Unmarks the current item as saved.",
+    "production_program": {
+        "customer": "Customer",
+        "plan": "Plan",
+        "total": "Total",
+        "reserve": "Reserve"
+    },
+    "allocation": {
+        "program": "Program",
+        "allocation": "Allocation"
+    },
+    "about": {
+        "shortcut": "Shortcuts",
+        "config": "Config",
+        "sponsor": "Sponsor",
+        "credits": "Credits",
+        "thanks": "Thank you",
+        "software": "Software",
+        "licenses": "Licenses",
+        "technical_information": "Technical Information",
+        "changelog": "Changelog"
+    },
+    "tooltips": {
+        "delete_templates_with_features": "If checked, the template images of each result will also be deleted",
+        "variables_requires": "Please select a department and environment to edit variables",
+        "run_feature": "Run feature",
+        "run_all_features": "Run all features",
+        "runnning_all_features": "Running all the features",
+        "edit_schedule": "Edit schedule",
+        "edit_feature": "Edit feature",
+        "loading_feature": "Loading feature",
+        "saving_feature": "Saving feature",
+        "creating_feature": "Creating feature",
+        "deleting_feature": "Deleting feature",
+        "latest_browser": "The latest stable version of this browser will be used automatically",
+        "invalid_edit_form": "We found errors in the form, please fix them before saving",
 
-    "_comment": "// Tooltips for step options",
-    "step_timeout_ignored": "Timeout is ignored for this step.",
-    "step_timeout": "Set maximum timeout after which this step will be forced to stop.",
-    "step_delete": "Delete this step."
-  },
-  "paginator": {
-    "items": "Items per page",
-    "next": "Next page",
-    "previous": "Previous page",
-    "first": "First page",
-    "last": "Last page",
-    "range": "{{startIndex}} - {{endIndex}} of {{length}}"
-  },
-  "you_sure": {
-    "delete_item_title": "Are you sure you want to delete this item?",
-    "delete_item_desc": "This operation cannot be reversed.",
-    "quit_title": "Are you sure you want to quit?",
-    "quit_desc": "You have unsaved changes.",
-    "remove_all_title": "Remove everything",
-    "remove_all": "Are you sure you want to remove all the steps?",
-    "decrypt_title": "Are you sure you want to decrypt this variable?",
-    "decrypt_desc": "Decrypting a variable will reset the environment variable value.",
-    "budget_exceeded_title": "Budget exceed",
-    "budget_exceeded_desc": "The feature you are about to run will exceed your configured budget. Do you want to continue?",
-    "budget_ahead_title": "Low budget",
-    "budget_ahead_desc": "The feature you are about to run will likely exceed your configured budget. Do you want to continue?",
-    "move_feature_title": "Move feature",
-    "move_feature": "You are attempting to move feature to different department, environment variables that the feature in question is currently using, will no longer be usable. Do you want to continue?",
-    "mobile_title": "Are you sure to close the container?",
-    "mobile_description": "This will stop the emulator and active processes."
-  },
+        "_comment": "// Tooltips for step options",
+        "step_timeout_ignored": "Timeout is ignored for this step.",
+        "step_timeout": "Set maximum timeout after which this step will be forced to stop.",
+        "step_delete": "Delete this step."
+    },
+    "paginator": {
+        "items": "Items per page",
+        "next": "Next page",
+        "previous": "Previous page",
+        "first": "First page",
+        "last": "Last page",
+        "range": "{{startIndex}} - {{endIndex}} of {{length}}"
+    },
+    "you_sure": {
+        "delete_item_title": "Are you sure you want to delete this item?",
+        "delete_item_desc": "This operation cannot be reversed.",
+        "quit_title": "Are you sure you want to quit?",
+        "quit_desc": "You have unsaved changes.",
+        "remove_all_title": "Remove everything",
+        "remove_all": "Are you sure you want to remove all the steps?",
+        "decrypt_title": "Are you sure you want to decrypt this variable?",
+        "decrypt_desc": "Decrypting a variable will reset the environment variable value.",
+        "budget_exceeded_title": "Budget exceed",
+        "budget_exceeded_desc": "The feature you are about to run will exceed your configured budget. Do you want to continue?",
+        "budget_ahead_title": "Low budget",
+        "budget_ahead_desc": "The feature you are about to run will likely exceed your configured budget. Do you want to continue?",
+        "move_feature_title": "Move feature",
+        "move_feature": "You are attempting to move feature to different department, environment variables that the feature in question is currently using, will no longer be usable. Do you want to continue?",
+        "mobile_title": "Are you sure to close the container?",
+        "mobile_description": "This will stop the emulator and active processes."
+    },
 
   "integrations": {
     "add": "Add integration",
@@ -182,6 +182,10 @@
     "last-run": "Last run: ",
     "no-last-run": "Last run: No runs have been made yet"
   },
+  "api_testing": {
+    "api_testing": "API Testing",
+    "api_testing_presentation": "Run API tests based on an endpoint and a set of parameters"
+  },
   "mobile_list": {
     "emulator_options": "Emulator options",
     "mobile_presentation": "Run mobile tests based on automation configurations",
@@ -195,8 +199,8 @@
     "start_emulator": "Start the mobile emulator to test applications",
     "pause_emulator": "Pause the mobile emulator temporarily",
     "restart_emulator": "Restart the mobile emulator to reset its state",
-    "shared": "This emulator is shared with other users\nClick to modify to unshare this mobile emulator",
-    "not_shared": "This emulator is not shared with other users\nClick to modify and share this mobile emulator",
+    "shared": "This emulator is shared with other users",
+    "not_shared": "This emulator is not shared with other users\nStart emulator to share it",
     "modify_emulator_started": "Show and modify the emulator parameters",
     "modify_emulator_not_started": "The emulator must be starting to be modified"
   },
