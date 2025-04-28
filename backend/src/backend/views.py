@@ -436,7 +436,10 @@ def noVNCProxy(request, feature_result_id, *args, **kwargs):
                 session_id = feature_result.session_id
                 vnc_path = f"vnc/{session_id}"
             else:
-                session_id = ServiceManager().get_service_name(container_details['Id'])
+                session_id = container_details['Id']
+                if 'service' not in session_id:
+                    session_id = ServiceManager().get_service_name(session_id)
+                    
                 vnc_path = f"vnc_cometa_browser/{session_id}"
             
             # having password hardcoded does not create a security issue, because this communication is internal
