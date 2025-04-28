@@ -93,7 +93,10 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         logger.debug("Container Delete request received")
         try:
-            container = ContainerService.objects.get(id=int(kwargs['pk']), )
+            try:
+                container = ContainerService.objects.get(id=int(kwargs['pk']))
+            except Exception:
+                container = ContainerService.objects.get(service_id=kwargs['pk'] )
             # Start deletion in background thread
             def delete_container():
                 try:

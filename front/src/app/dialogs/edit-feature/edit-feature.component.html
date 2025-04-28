@@ -1,4 +1,3 @@
-
 <draggable-window></draggable-window>
 <form [formGroup]="featureForm">
   <ng-container *ngIf="data.mode === 'new'; else editTitle">
@@ -758,7 +757,7 @@
           color="warn"
           [disabled]="saving"
           mat-stroked-button
-          mat-dialog-close>
+          (click)="resetSearch(); dialogRef.close()">
           CANCEL
         </button>
         <span
