@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-02-01
+
 import traceback
 
 from django.http import JsonResponse

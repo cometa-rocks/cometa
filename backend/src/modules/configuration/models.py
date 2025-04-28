@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-08-09
+
 from django.db import models
 
 # Create your models here.
@@ -10,6 +14,11 @@ from backend.utility.configurations import ConfigurationManager
 from backend.utility.config_handler import get_cometa_behave_url
 from backend.utility.functions import getLogger
 
+configuration_type_choices = (
+    ('all','all'), # configuration holing type = all will be visible to all services of cometa 
+    ('backend','backend'), # configuration holing type = backend will be only used in only backend services
+)
+
 logger = getLogger()
 class Configuration(models.Model):
     id = models.AutoField(primary_key=True)
@@ -17,6 +26,7 @@ class Configuration(models.Model):
     configuration_value = models.TextField(default="")
     default_value = models.TextField(default="",blank=True)
     encrypted = models.BooleanField(default=False)
+    configuration_type = models.CharField(choices=configuration_type_choices ,max_length=30, default='backend', blank=False)
     can_be_deleted = models.BooleanField(default=False)
     can_be_edited = models.BooleanField(default=False)
     created_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, related_name="create_by_user", null=True)
@@ -34,7 +44,7 @@ class Configuration(models.Model):
         conf = ConfigurationManager()
         conf.create_db_connection() 
         conf.load_configuration_from_db()
-        logger.info("Updating the configuration is the behave")
+        logger.info("Updating the configuration in the behave")
         requests.get(f'{get_cometa_behave_url()}/update_configurations')
         return return_data
     
