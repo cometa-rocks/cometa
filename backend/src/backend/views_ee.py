@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2025-04-09
+
 # Import all models and all the utility methods
 from itertools import islice
 
@@ -9,52 +13,23 @@ from backend.serializers import *
 # import django exceptions
 from django.core.exceptions import *
 # Import permissions related methods
-from backend.utility.decorators import require_permissions, hasPermission, require_subscription
-from backend.templatetags.humanize import _humanize
-# Needed rest_framework import
-from rest_framework.renderers import JSONRenderer
-from rest_framework.response import Response
-from rest_framework import viewsets, filters, generics, status
-# Django Imports
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.db.utils import IntegrityError
-from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
-from django.core.validators import validate_email
 from django.core import serializers
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse, Http404, HttpResponseBadRequest
-from django.shortcuts import redirect, render
-from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_exempt
-from backend.payments import SubscriptionPublicSerializer, ForbiddenBrowserCloud, check_browser_access, \
-    get_browsers_by_cloud, get_requires_payment, has_subscription_by_cloud, get_subscriptions_from_request, \
-    get_user_usage_money, BudgetAhead, check_user_will_exceed_budget, check_enabled_budget
 # Basic Imports
 # Request related imports
 import requests
 # Text Encrpytion imports
-from backend.utility.encryption import encrypt, decrypt
 from backend.utility.functions import *
 # Other imports
-from pathlib import Path
-from urllib.parse import unquote
-from shutil import copyfile, move
-from django.views.generic import View
 from io import BytesIO
-from pprint import pprint
-from functools import wraps
 from backend.common import *
-from slugify import slugify
-from django.db.models import Q
-from django.db.models import Avg, Sum  # needed for CometaUsage calcs
-from django.db import connection
 import base64
-from threading import Thread
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import json
 
 from backend.templatetags.humanize import *
-from backend.utility.uploadFile import UploadFile, decryptFile
 from backend.utility.config_handler import *
 from backend.utility.response_manager import ResponseManager
 import traceback
@@ -298,3 +273,40 @@ def getStepResultsGraph(request, step_result_id):
     }
 
     return JsonResponse(response_data)
+
+def get_backend_version():
+    with open('version.json', 'r') as f:
+        return json.load(f).get('version')
+
+def get_behave_version():
+    # FIXME this needs to be implemented
+    pass
+
+
+@csrf_exempt
+def get_versions(request):
+    try:
+        versions = {
+            "backend": get_backend_version(),
+            "behave": get_behave_version()
+        }
+        return JsonResponse({
+            'success': True,
+            'version': versions
+        })
+    except FileNotFoundError:
+        return JsonResponse({
+            'success': False,
+            'message': 'version.json file not found'
+        }, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'message': 'Invalid JSON in version.json'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error reading version: {str(e)}'
+        }, status=500)
+    
