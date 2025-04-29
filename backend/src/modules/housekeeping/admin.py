@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-07-11
+
 from django.contrib import admin
 from .models import *
 

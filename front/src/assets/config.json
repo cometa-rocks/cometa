@@ -1,5 +1,5 @@
 {
-  "version": "3.0.41",
+  "version": "3.0.42",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,11 +237,21 @@
   ],
   "changelog": [
     {
+      "version": "3.0.42",
+      "date": "2025-04-29",
+      "features": [
+        {
+          "title": "Sorted folders alphabetically - #4694",
+          "description": "Sorted folders alphabetically in the folder tree."
+        }
+      ]
+    },
+    {
       "version": "3.0.41",
       "date": "2025-04-29",
       "features": [
         {
-          "title": "Add more new local storage keys",
+          "title": "Add more new local storage keys - #6150",
           "description": "Added more new local storage keys to store the user preferences."
         }
       ]

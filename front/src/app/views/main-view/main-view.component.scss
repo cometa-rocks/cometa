@@ -565,4 +565,8 @@
   align-items: center;
 }
 
-
+// Paginator overflow hidden auto
+::ng-deep .mat-mdc-select-panel.mdc-menu-surface--open {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
