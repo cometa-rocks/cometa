@@ -61,6 +61,7 @@ faker = "^37.0.2"
 rstr = "^3.2.2"
 browser-use = "^0.1.40"
 nest-asyncio = "^1.6.0"
+opencv-python = "^4.11.0.86"
 
 [tool.poetry.dev-dependencies]
 
