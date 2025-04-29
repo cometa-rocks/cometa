@@ -36,7 +36,7 @@
 
                 <div *ngIf="configuration_value_boolean && mobiles[feature_result_id]?.length > 0" class="father-mobile-container">
                   <ng-container>
-                    <span class="separator-text"></span> Mobile
+                    <span class="separator-text"></span>
                     <mat-label>
                       <mat-icon
                         class="browser-icon live_preview_mobile"
@@ -51,8 +51,8 @@
                         play_arrow
                       </mat-icon>
                     </mat-label>
-
-                    <mat-select
+                    Mobile
+                    <!-- <mat-select
                       placeholder="Select mobile"
                       [(value)]="selectedMobile"
                       (selectionChange)="noVNCMobile(selectedMobile)"
@@ -60,7 +60,7 @@
                       <mat-option *ngFor="let mobile of mobiles[feature_result_id]" [value]="mobile.hostname">
                         {{ mobile.name }}
                       </mat-option>
-                    </mat-select>
+                    </mat-select> -->
                   </ng-container>
                 </div>
               </ng-template>
