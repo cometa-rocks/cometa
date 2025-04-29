@@ -597,8 +597,8 @@ export class EditFeature implements OnInit, OnDestroy {
     let KeyPressed = event.keyCode;
     const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
     const startEmulatorOpen = document.querySelector('mobile-list') as HTMLElement;
-
-    if(editVarOpen == null && startEmulatorOpen == null){
+    const apiScreenOpen = document.querySelector('.api-testing-container') as HTMLElement;
+    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
