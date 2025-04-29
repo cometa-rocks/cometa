@@ -25,7 +25,7 @@ done
 # sh -c service rsyslog start; tail -f /dev/null # FIXME: This fails every time
 # Install requirements
 apt update
-apt install --no-install-recommends -y rsyslog vim jq nano supervisor psmisc
+apt install --no-install-recommends -y rsyslog vim jq nano supervisor psmisc libgl1
 service rsyslog start
 apt-get purge -y exim*
 # Upgrade PIP
