@@ -156,14 +156,10 @@ export class CometaComponent implements OnInit {
     migrations.forEach(({ oldKey, newKey }) => {
       let value = localStorage.getItem(newKey);
       if (value) {
-        console.log(`[co_migration] Ya existe '${newKey}' en localStorage:`, value);
       } else {
         const oldValue = localStorage.getItem(oldKey);
         if (oldValue) {
           localStorage.setItem(newKey, oldValue);
-          console.log(`[co_migration] Migrado '${oldKey}' -> '${newKey}'. Valor:`, oldValue);
-        } else {
-          console.log(`[co_migration] No existe ni '${oldKey}' ni '${newKey}' en localStorage.`);
         }
       }
     });
@@ -175,15 +171,9 @@ export class CometaComponent implements OnInit {
           const value = localStorage.getItem(key);
           if (value !== null) {
             localStorage.setItem(newKey, value);
-            console.log(`[co_migration] Migrado '${key}' -> '${newKey}'. Valor:`, value);
           }
         }
       }
-    });
-    // Final log in console
-    migrations.forEach(({ newKey }) => {
-      const value = localStorage.getItem(newKey);
-      console.log(`[co_migration] Estado final '${newKey}':`, value);
     });
   }
 }
