@@ -86,6 +86,22 @@ export class FolderItemTreeComponent implements OnInit {
     if (isFolderInRoute) {
       this.expanded$.next(true);
     }
+
+    // Sort folders alphabetically if they exist
+    if (this.folder.folders && this.folder.folders.length > 0) {
+      this.sortFoldersAlphabetically();
+    }
+  }
+
+  /**
+   * Sorts folders alphabetically by name
+   */
+  private sortFoldersAlphabetically(): void {
+    this.folder.folders.sort((a, b) => {
+      const nameA = a.name.toLowerCase();
+      const nameB = b.name.toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
   }
 
   /**
