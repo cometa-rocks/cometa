@@ -132,6 +132,26 @@ export class CometaComponent implements OnInit {
       { oldKey: 'configuration_Sort_State', newKey: 'co_configuration_Sort_State' },
       { oldKey: 'feedback_mail', newKey: 'co_feedback_mail' },
       { oldKey: 'notifications', newKey: 'co_notifications' },
+      { oldKey: 'active_list', newKey: 'co_active_list' },
+      { oldKey: 'features_pagination', newKey: 'co_features_pagination' },
+      { oldKey: 'first_time_cometa', newKey: 'co_first_time_cometa' },
+      { oldKey: 'logWebsockets', newKey: 'co_logWebsockets' },
+      { oldKey: 'percentMode', newKey: 'co_percentMode' },
+      { oldKey: 'hideInformation', newKey: 'co_hideInformation' },
+      { oldKey: 'hideBrowsers', newKey: 'co_hideBrowsers' },
+      { oldKey: 'hideUploadedFiles', newKey: 'co_hideUploadedFiles' },
+      { oldKey: 'hideSteps', newKey: 'co_hideSteps' },
+      { oldKey: 'hideSchedule', newKey: 'co_hideSchedule' },
+      { oldKey: 'hideSendMail', newKey: 'co_hideSendMail' },
+      { oldKey: 'useNewDashboard', newKey: 'co_useNewDashboard' },
+      { oldKey: 'search_sorting_reverse', newKey: 'co_search_sorting_reverse' },
+      { oldKey: 'hideInformationMobile', newKey: 'co_hideInformationMobile' },
+      { oldKey: 'hideInstallAPKSMobile', newKey: 'co_hideInstallAPKSMobile' },
+      { oldKey: 'hideInstalledAPKSMobile', newKey: 'co_hideInstalledAPKSMobile' },
+      { oldKey: 'hideSharedMobile', newKey: 'co_hideSharedMobile' },
+      { oldKey: 'dd_panel_executePanel', newKey: 'co_dd_panel_executePanel' },
+      { oldKey: 'dd_panel_resultsPanel', newKey: 'co_dd_panel_resultsPanel' },
+      { oldKey: 'dd_panel_filtersPanel', newKey: 'co_dd_panel_filtersPanel' }
     ];
     migrations.forEach(({ oldKey, newKey }) => {
       let value = localStorage.getItem(newKey);
