@@ -21,6 +21,8 @@ import traceback
 import urllib.parse
 import random
 from concurrent.futures import ThreadPoolExecutor
+import cv2
+import numpy as np
 
 # import PIL
 from subprocess import call, run
@@ -85,13 +87,10 @@ def _async_post(url, headers=None, json=None):
 #
 def takeScreenshot(context):
     # prepare a screenshot name
-    logger.debug("Taking screenshot")
-    start_time = time.time()  # prepare a screenshot name
-    DATETIMESTRING = time.strftime("%Y%m%d-%H%M%S")  # LOOKS LIKE IS NOT USED
     context.SCREENSHOT_FILE = SCREENSHOT_PREFIX + "current.png"
     context.MOBILE_SCREENSHOT_FILE = "Mobile_"+SCREENSHOT_PREFIX + "current.png"
     logger.debug("Screenshot filename: %s" % context.SCREENSHOT_FILE)
-    final_screenshot_file = context.SCREENSHOTS_STEP_PATH + context.SCREENSHOT_FILE
+    final_screenshot_file = os.path.join(context.SCREENSHOTS_STEP_PATH, context.SCREENSHOT_FILE)
     logger.debug("Final screenshot filename and path: %s" % final_screenshot_file)
 
     # check if an alert box exists
@@ -120,6 +119,7 @@ def takeScreenshot(context):
     logger.debug("Converting %s to webP" % context.SCREENSHOT_FILE)
     # Convert screenshot to WebP
     toWebP(final_screenshot_file)
+    context.DB_CURRENT_SCREENSHOT = final_screenshot_file
     logger.debug("Converting screenshot done")
     return final_screenshot_file
 
@@ -630,6 +630,15 @@ def saveToDatabase(
         "current_step_variables_value": context.LAST_STEP_VARIABLE_AND_VALUE,
     }
 
+    try:
+        values = take_screenshot_and_process(context=context,step_name=step_name,success=success)
+        logger.debug("updating the values after processing the screenshot")
+        data.update(values)
+        
+    except Exception as e:
+        logger.exception("Exception while processing the screenshots",e)
+        traceback.print_exc()
+        
     # add custom error if exists
     if "custom_error" in context.step_data:
         data["error"] = context.step_data["custom_error"]
@@ -658,43 +667,42 @@ def saveToDatabase(
         )
         logger.debug(f"feature_result backend request completed")
         context.step_result = json.dumps({"success": success})
-        context.step_result = json.dumps({"success": success})
         logger.debug(f"Step Result Context: {context.step_result}")
 
-        # step_id = response.json()["step_result_id"]
-        # context.previous_step_relative_time = response.json()['relative_execution_time']
-        # log_file.write("Response Content: " + str(response.content))
         logger.debug("feature_result async request enqueued")
-        step_id = 999
         log_file.write("Async request enqueued\n")
         log_file.close()
-        json_success = {"success": success}
         logger.debug("feature result response writen in the log_file")
-
-    except Exception as e:
-        logger.error("*** An error occurred: ")
-        logger.error(str(e))
-        traceback.print_exc()
         
-    # if not step_id:
-    #     raise CustomError("Cannot connect to the backend to save the step result.")
+    except Exception as e:
+        logger.exception("*** An error occurred: ")
+        logger.exception(str(e))
+        traceback.print_exc()
 
+        # Calculate and log total execution time
+    total_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+    logger.debug(f"saveToDatabase took {total_time:.2f}ms to execute")
+
+
+def take_screenshot_and_process(context, step_name, success):
     # Some steps shouldn't be allowed to take screenshots and compare, as some can cause errors
     excluded = ["Close the browser"]
+    data_to_be_returned = {}
     # Exclude banned steps
     if step_name not in excluded:
-        # Construct current step result path
-        context.SCREENSHOTS_STEP_PATH = context.SCREENSHOTS_PATH + str(step_id) + "/"
+        
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")  # Format: YYYYMMDD_HHMMSS_microseconds
+        context.SCREENSHOTS_STEP_PATH = os.path.join(context.SCREENSHOTS_PATH, timestamp)
+        
         # Check if feature needs screenshot - see #3014 for change to webp format
         if context.step_data["screenshot"] or not success:
             # Create current step result folder ... only create, if needed
             Path(context.SCREENSHOTS_STEP_PATH).mkdir(parents=True, exist_ok=True)
             # Take actual screenshot
-            logger.debug(f"Taking screenshot for step {step_id}")
+            logger.debug(f"Taking screenshot for step")
             takeScreenshot(context)
-            logger.debug(f"Screenshot taken for step {step_id}")
-            # Take actual HTML
-            # takeHTMLSnapshot(context, step_id)
+            logger.debug(f"Screenshot taken for step")
+
         # Check if feature needs compare
         if context.step_data["compare"]:
             # --------------------
@@ -702,9 +710,7 @@ def saveToDatabase(
             # --------------------
             # Construct current screenshot path
             logger.debug("Starting the image comparision")
-            context.COMPARE_IMAGE = (
-                context.SCREENSHOTS_STEP_PATH + context.SCREENSHOT_FILE
-            ).replace(".png", ".webp")
+            context.COMPARE_IMAGE = os.path.join(context.SCREENSHOTS_STEP_PATH, context.SCREENSHOT_FILE).replace(".png", ".webp")
             # Construct template screenshot path
             context.STYLE_IMAGE = (
                 context.TEMPLATES_PATH
@@ -712,13 +718,8 @@ def saveToDatabase(
                 + "template_%d.webp" % context.counters["index"]
             )
             # Construct the style copy image path only for the user to see it
-            context.STYLE_IMAGE_COPY_TO_SHOW = (
-                context.SCREENSHOTS_STEP_PATH + SCREENSHOT_PREFIX + "style.webp"
-            )
-            # Construct difference image path
-            context.DIFF_IMAGE = (
-                context.SCREENSHOTS_STEP_PATH + SCREENSHOT_PREFIX + "difference.png"
-            )
+            context.STYLE_IMAGE_COPY_TO_SHOW = os.path.join(context.SCREENSHOTS_STEP_PATH, SCREENSHOT_PREFIX + "style.webp")
+            context.DIFF_IMAGE = os.path.join(context.SCREENSHOTS_STEP_PATH, SCREENSHOT_PREFIX + "difference.png")
             # Migrate old style images in disk
             migrateOldStyles(context)
             # Check if the style image already exists or not, if not, the current screenshot will be copied and used as style
@@ -739,25 +740,19 @@ def saveToDatabase(
                 shutil.copy2(context.STYLE_IMAGE, context.STYLE_IMAGE_COPY_TO_SHOW)
             # Compare the screenshots ... will results in AMVARA_difference.png in png format
             logger.debug("Comparing image")
-            pixel_diff = compareImage(context)
+            # Example usage
+            pixel_diff = highlight_pixel_differences(context.COMPARE_IMAGE, context.STYLE_IMAGE, context.DIFF_IMAGE)
+                    
             # Check compare image was successful
             if pixel_diff is None:
                 raise CustomError("Compare tool returned NoneType")
 
             # Convert difference image to WebP
             toWebP(context.DIFF_IMAGE)
-            logger.debug("Compared the image, sending request to /steps/")
 
-            data = {"pixel_diff": str(pixel_diff)}
+            data_to_be_returned["pixel_diff"]  = pixel_diff
             # Save Pixel Difference for calculating Total in after_all
-            context.counters["pixel_diff"] += int(float(pixel_diff))
-            logger.debug("Saveing pixel difference %s to database" % str(pixel_diff))
-            _async_post(
-                f"{get_cometa_backend_url()}/steps/{step_id}/update/",
-                headers={"Host": "cometa.local"},
-                json={"pixel_diff": str(pixel_diff)},
-            )
-            logger.debug("Image comparision result saved")
+            context.counters["pixel_diff"] += pixel_diff
 
         # Format screenshots
         context.DB_CURRENT_SCREENSHOT = (
@@ -767,51 +762,46 @@ def saveToDatabase(
             if hasattr(context, "COMPARE_IMAGE")
             else ""
         )
-        context.DB_STYLE_SCREENSHOT = ""
-        context.DB_DIFFERENCE_SCREENSHOT = ""
-        context.DB_TEMPLATE = ""
+        
+        logger.debug(f"DB_CURRENT_SCREENSHOT {context.DB_CURRENT_SCREENSHOT}")
+        
+        context.websocket_screen_shot_details = {}
         
         if context.DB_CURRENT_SCREENSHOT:
-            context.DB_STYLE_SCREENSHOT = (
+            data_to_be_returned["screenshot_current"] = context.DB_CURRENT_SCREENSHOT          
+            context.websocket_screen_shot_details['current'] = context.DB_CURRENT_SCREENSHOT
+             
+            data_to_be_returned["screenshot_style"] = (
                 removePrefix(
                     context.STYLE_IMAGE_COPY_TO_SHOW, context.SCREENSHOTS_ROOT
                 ).replace(".png", ".webp")
                 if hasattr(context, "STYLE_IMAGE_COPY_TO_SHOW")
                 else ""
             )
-            context.DB_DIFFERENCE_SCREENSHOT = (
+            
+            data_to_be_returned["screenshot_difference"] = (
                 removePrefix(context.DIFF_IMAGE, context.SCREENSHOTS_ROOT).replace(
                     ".png", ".webp"
                 )
                 if hasattr(context, "DIFF_IMAGE")
                 else ""
             )
-            context.DB_TEMPLATE = (
+            context.websocket_screen_shot_details['difference'] = data_to_be_returned["screenshot_difference"]
+            
+            data_to_be_returned["screenshot_template"] =  (
                 removePrefix(context.STYLE_IMAGE, context.SCREENSHOTS_ROOT)
                 if hasattr(context, "STYLE_IMAGE")
                 else ""
             )
-            data = {
-                "screenshot_current": context.DB_CURRENT_SCREENSHOT,
-                "screenshot_style": context.DB_STYLE_SCREENSHOT,
-                "screenshot_difference": context.DB_DIFFERENCE_SCREENSHOT,
-                "screenshot_template": context.DB_TEMPLATE,
-            }
-            logger.debug("Writing data %s to database" % json.dumps(data))
-            _async_post(
-                f"{get_cometa_backend_url()}/setScreenshots/{step_id}/",
-                headers={"Host": "cometa.local"},
-                json=data,
-            )
-            logger.debug("Screenshot information updated")
+            context.websocket_screen_shot_details['template'] = data_to_be_returned["screenshot_template"]
+            
             addTimestampToImage(
                 context.DB_CURRENT_SCREENSHOT, path=context.SCREENSHOTS_ROOT
             )
-        
-        # Calculate and log total execution time
-        total_time = (time.time() - start_time) * 1000  # Convert to milliseconds
-        logger.debug(f"saveToDatabase took {total_time:.2f}ms to execute")
-    return 0
+            
+            
+        logger.debug(f"data_to_be_returned : {data_to_be_returned}")
+    return data_to_be_returned
 
 
 # add timestamp to the image using the imagemagic cli
@@ -921,6 +911,44 @@ def compareHTML(params):
         logger.info("Something went wrong while comparing HTML snapshots.")
         logger.error(str(err))
 
+# -----------
+# Function to compare HTML differences between previous state and current,
+# it first makes sure the previous state exists (by clonning current),
+# then executes the comparison and finally return if they are different
+# -----------
+def highlight_pixel_differences(image1_path, image2_path, output_path):
+    img1 = cv2.imread(image1_path)
+    img2 = cv2.imread(image2_path)
+
+    # Resize if needed
+    if img1.shape != img2.shape:
+        img2 = cv2.resize(img2, (img1.shape[1], img1.shape[0]))
+
+    # Compute absolute pixel differences
+    diff = cv2.absdiff(img1, img2)
+
+    # Convert the diff to grayscale
+    gray_diff = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
+
+    # Threshold to detect actual changes
+    _, mask = cv2.threshold(gray_diff, 30, 255, cv2.THRESH_BINARY)
+
+    # Count the number of different pixels
+    diff_pixel_count = cv2.countNonZero(mask)
+    print(f"Number of different pixels: {diff_pixel_count}")
+
+    # Create a copy of the first image for visualization
+    highlighted = img1.copy()
+
+    # Apply red color where there are differences
+    highlighted[mask == 255] = [0, 0, 255]  # Red color (BGR)
+
+    # Save the highlighted output
+    cv2.imwrite(output_path, highlighted)
+    print(f"Highlighted difference image saved as: {output_path}")
+
+    return diff_pixel_count
+
 
 def compareImage(context):
     try:
@@ -928,7 +956,7 @@ def compareImage(context):
         see https://stackoverflow.com/questions/25198558/matching-image-to-images-collection
         magick compare -verbose screenshots/images/style-guide/search-result/search-result/chrome~ref.png screenshots/style-guide/search-result/search-result/chrome.png diff.png
         """
-        start_time = time.time()
+     
         # Retrieve image vars from context
         actimg = context.COMPARE_IMAGE
         styleimg = context.STYLE_IMAGE
@@ -974,7 +1002,7 @@ def compareImage(context):
                 return 111968
         # Parse Diff number
         lines = waitMetric(metricFile)
-        return str(float(lines[0]))
+        return int(lines[0])
         for line in lines:
             if "all" in line:
                 reg = re.compile("all: (.*) ?(?:.*)?")
@@ -983,6 +1011,7 @@ def compareImage(context):
                 return str(float(diff))
     except Exception as e:
         logger.error(str(e))
+        traceback.print_exc()
 
 
 # @timeout("Unable to retrieve compare metric content in <seconds> seconds.")
