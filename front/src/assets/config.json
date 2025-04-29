@@ -1,5 +1,5 @@
 {
-  "version": "3.0.38",
+  "version": "3.0.41",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,36 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.41",
+      "date": "2025-04-29",
+      "features": [
+        {
+          "title": "Add more new local storage keys",
+          "description": "Added more new local storage keys to store the user preferences."
+        }
+      ]
+    },
+    {
+      "version": "3.0.40",
+      "date": "2025-04-28",
+      "features": [
+        {
+          "title": "Stop execution wait for ID - #4694",
+          "description": "The stop execution button now properly waits for the backend to provide an ID, enabling it to perform the stop action."
+        }
+      ]
+    },
+    {
+      "version": "3.0.39",
+      "date": "2025-04-26",
+      "features": [
+        {
+          "title": "Administration buttons improvements - #6149",
+          "description": "Changes to Administration buttons and fix in Account component button."
+        }
+      ]
+    },
     {
       "version": "3.0.38",
       "date": "2025-04-25",
