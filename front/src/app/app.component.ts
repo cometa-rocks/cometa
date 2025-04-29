@@ -100,6 +100,8 @@ export class CometaComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Migration of localStorage keys (compatibility 6 months)
+    this.migrateLocalStorage();
     // Start create feature tour
     this._tourService.startTour('CreateFeature');
     // Load config 
@@ -112,5 +114,66 @@ export class CometaComponent implements OnInit {
       'text-shadow: 2px 0 0 #000, -2px 0 0 #000, 0 2px 0 #000, 0 -2px 0 #000, 1px 1px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000',
     ];
     console.log('%c co.meta loves developers', styles.join(';'));
+  }
+
+  /**
+   * Migration of localStorage keys (compatibility 6 months)
+   */
+  migrateLocalStorage() {
+    const migrations = [
+      { oldKey: 'live_steps_auto_scroll', newKey: 'co_live_steps_auto_scroll' },
+      { oldKey: 'terminatingContainers', newKey: 'co_terminatingContainers' },
+      { oldKey: 'Variable_Sort_State', newKey: 'co_Variable_Sort_State' },
+      { oldKey: 'filters', newKey: 'co_filters' },
+      { oldKey: 'search_sorting', newKey: 'co_search_sorting' },
+      { oldKey: 'lang', newKey: 'co_lang' },
+      { oldKey: 'da', newKey: 'co_da' },
+      { oldKey: 'ViewMode', newKey: 'co_ViewMode' },
+      { oldKey: 'configuration_Sort_State', newKey: 'co_configuration_Sort_State' },
+      { oldKey: 'feedback_mail', newKey: 'co_feedback_mail' },
+      { oldKey: 'notifications', newKey: 'co_notifications' },
+      { oldKey: 'active_list', newKey: 'co_active_list' },
+      { oldKey: 'features_pagination', newKey: 'co_features_pagination' },
+      { oldKey: 'first_time_cometa', newKey: 'co_first_time_cometa' },
+      { oldKey: 'logWebsockets', newKey: 'co_logWebsockets' },
+      { oldKey: 'percentMode', newKey: 'co_percentMode' },
+      { oldKey: 'hideInformation', newKey: 'co_hideInformation' },
+      { oldKey: 'hideBrowsers', newKey: 'co_hideBrowsers' },
+      { oldKey: 'hideUploadedFiles', newKey: 'co_hideUploadedFiles' },
+      { oldKey: 'hideSteps', newKey: 'co_hideSteps' },
+      { oldKey: 'hideSchedule', newKey: 'co_hideSchedule' },
+      { oldKey: 'hideSendMail', newKey: 'co_hideSendMail' },
+      { oldKey: 'useNewDashboard', newKey: 'co_useNewDashboard' },
+      { oldKey: 'search_sorting_reverse', newKey: 'co_search_sorting_reverse' },
+      { oldKey: 'hideInformationMobile', newKey: 'co_hideInformationMobile' },
+      { oldKey: 'hideInstallAPKSMobile', newKey: 'co_hideInstallAPKSMobile' },
+      { oldKey: 'hideInstalledAPKSMobile', newKey: 'co_hideInstalledAPKSMobile' },
+      { oldKey: 'hideSharedMobile', newKey: 'co_hideSharedMobile' },
+      { oldKey: 'dd_panel_executePanel', newKey: 'co_dd_panel_executePanel' },
+      { oldKey: 'dd_panel_resultsPanel', newKey: 'co_dd_panel_resultsPanel' },
+      { oldKey: 'dd_panel_filtersPanel', newKey: 'co_dd_panel_filtersPanel' }
+    ];
+    migrations.forEach(({ oldKey, newKey }) => {
+      let value = localStorage.getItem(newKey);
+      if (value) {
+      } else {
+        const oldValue = localStorage.getItem(oldKey);
+        if (oldValue) {
+          localStorage.setItem(newKey, oldValue);
+        }
+      }
+    });
+    // Migrate dynamic pagination keys
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('pagination.')) {
+        const newKey = 'co_' + key;
+        if (!localStorage.getItem(newKey)) {
+          const value = localStorage.getItem(key);
+          if (value !== null) {
+            localStorage.setItem(newKey, value);
+          }
+        }
+      }
+    });
   }
 }
