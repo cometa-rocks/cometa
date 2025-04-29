@@ -100,7 +100,7 @@ def error_handling(*_args, **_kwargs):
                 or os.environ["FEATURE_FAILED"] != "True"
             ):
                 try:
-                    logger.debug(f"Decorated function: {fn.__name__} with args: {args} and kwargs: {kwargs}")
+                    # logger.debug(f"Decorated function: {fn.__name__} with args: {args} and kwargs: {kwargs}")
                     # if args and isinstance(args[0], object):
                     #     context_obj = args[0]
                     #     # Log all attributes of the Context object
@@ -267,6 +267,7 @@ def before_all(context):
     context.insideLoop = False  # meaning we are inside a loop
     context.break_loop = False
     context.current_loop = None
+    context.websocket_screen_shot_details = {}
     context.jumpLoopIndex = (
         0  # meaning how many indexes we need to jump after loop is finished
     )
@@ -1083,16 +1084,16 @@ def after_step(context, step):
     # step result this contains the execution time, success and name
     step_result = context.step_result if hasattr(context, "step_result") else None
     # create screenshots dictionary to dinamically assign available images
-    screenshots = {}
-    # check current image of running browser
-    if hasattr(context, "DB_CURRENT_SCREENSHOT"):
-        screenshots["current"] = context.DB_CURRENT_SCREENSHOT
-    # check if template file is assigned
-    if hasattr(context, "DB_STYLE_SCREENSHOT"):
-        screenshots["template"] = context.DB_STYLE_SCREENSHOT
-    # check if difference file is assigned
-    if hasattr(context, "DB_DIFFERENCE_SCREENSHOT"):
-        screenshots["difference"] = context.DB_DIFFERENCE_SCREENSHOT
+    # screenshots = {}
+    # # check current image of running browser
+    # if hasattr(context, "DB_CURRENT_SCREENSHOT"):
+    #     screenshots["current"] = context.DB_CURRENT_SCREENSHOT
+    # # check if template file is assigned
+    # if hasattr(context, "DB_STYLE_SCREENSHOT"):
+    #     screenshots["template"] = context.DB_STYLE_SCREENSHOT
+    # # check if difference file is assigned
+    # if hasattr(context, "DIFF_IMAGE"):
+    #     screenshots["difference"] = context.DB_DIFFERENCE_SCREENSHOT
     vulnerable_headers_count = 0
     try:
         if context.network_logging_enabled:
@@ -1134,7 +1135,7 @@ def after_step(context, step):
         "error": step_error,
         "status": context.CURRENT_STEP_STATUS,
         "belongs_to": context.step_data["belongs_to"],
-        "screenshots": json.dumps(screenshots),  # load screenshots object
+        "screenshots": json.dumps(context.websocket_screen_shot_details),  # load screenshots object
         "vulnerable_headers_count": vulnerable_headers_count,
         "step_type": context.STEP_TYPE,
         "mobiles_info": hostnames
