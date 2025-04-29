@@ -1,3 +1,8 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2025-03-07
+
+
 from .configuration.views import ConfigurationViewSet 
 from .housekeeping.views import HouseKeepingViewSet 
 from .token_authentication.views import OIDCUserAppSecretViewSet, login_start_test
