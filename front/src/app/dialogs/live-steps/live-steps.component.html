@@ -34,7 +34,7 @@
                   *ngIf="showLiveIcon(browser)"
                   >live_tv</mat-icon>
 
-                <div *ngIf="configuration_value_boolean && mobiles[feature_result_id]?.length > 0" class="father-mobile-container">
+                <div class="father-mobile-container">
                   <ng-container>
                     <span class="separator-text"></span>
                     <mat-label>
@@ -47,20 +47,43 @@
                         tablet_mac
                       </mat-icon>
                       <mat-icon
-                        class="browser-icon live_preview_mobile_play_more">
+                        class="browser-icon live_preview_mobile_play_more"
+                        (click)="noVNCMobile(selectedMobile)"
+                        [matTooltip]="'Connect to mobile device'"
+                        [class.disabled]="!selectedMobile">
                         play_arrow
                       </mat-icon>
                     </mat-label>
-                    Mobile
-                    <!-- <mat-select
-                      placeholder="Select mobile"
-                      [(value)]="selectedMobile"
-                      (selectionChange)="noVNCMobile(selectedMobile)"
-                      class="mobiles">
-                      <mat-option *ngFor="let mobile of mobiles[feature_result_id]" [value]="mobile.hostname">
-                        {{ mobile.name }}
-                      </mat-option>
-                    </mat-select> -->
+                    <div class="mobile-selection-container">
+                      <!-- <span class="mobile-label">Mobile</span> -->
+                      <mat-select
+                        placeholder="Select mobile"
+                        [(value)]="selectedMobile"
+                        (selectionChange)="noVNCMobile(selectedMobile)"
+                        class="mobiles"
+                        [matTooltip]="'Select a mobile device to connect'">
+                        <mat-option *ngFor="let mobile of mobiles[feature_result_id]" [value]="mobile">
+                          <div class="mobile-option">
+                            <mat-icon class="mobile-icon">smartphone</mat-icon>
+                            <span class="mobile-name">{{ mobile.name || mobile.hostname }}</span>
+                            <span class="mobile-status" *ngIf="mobile.status">
+                              <mat-icon [class]="mobile.status.toLowerCase()">fiber_manual_record</mat-icon>
+                              {{ mobile.status }}
+                            </span>
+                          </div>
+                        </mat-option>
+                      </mat-select>
+                      <div class="mobile-info" *ngIf="selectedMobile">
+                        <span class="info-item">
+                          <mat-icon>info</mat-icon>
+                          {{ selectedMobile.name || selectedMobile.hostname }}
+                        </span>
+                        <span class="info-item" *ngIf="selectedMobile.status">
+                          <mat-icon>fiber_manual_record</mat-icon>
+                          {{ selectedMobile.status }}
+                        </span>
+                      </div>
+                    </div>
                   </ng-container>
                 </div>
               </ng-template>
