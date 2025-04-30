@@ -378,3 +378,49 @@ mat-label {
     }
   }
 }
+
+.single-mobile-info {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+  margin: 4px 0;
+  
+  .mobile-icon {
+    margin-right: 8px;
+    color: rgba(0, 0, 0, 0.54);
+  }
+
+  .mobile-name {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.87);
+    margin-right: 8px;
+  }
+
+  .mobile-status {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.54);
+
+    mat-icon {
+      font-size: 12px;
+      height: 12px;
+      width: 12px;
+      margin-right: 4px;
+
+      &.online {
+        color: #4caf50;
+      }
+
+      &.offline {
+        color: #f44336;
+      }
+
+      &.busy {
+        color: #ff9800;
+      }
+    }
+  }
+}
