@@ -12,7 +12,7 @@ import {
   MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
-import { Store, Actions, ofActionCompleted } from '@ngxs/store';
+import { Store, Actions, ofActionCompleted, ofActionDispatched } from '@ngxs/store';
 import { Subscribe } from 'app/custom-decorators';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import {
@@ -231,13 +231,14 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
       });
 
       this.status$.subscribe(status => {
+        console.log("Los status: ", status);
         this.canStop = !this.disabledStatuses.includes(status);
         this._cdr.markForCheck();
       });
 
   }
 
-  @Subscribe()
+
   stopTest() {
     this.isLoading = true;
     this._api.stopRunningTask(this.feature_id).subscribe(
