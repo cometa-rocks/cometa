@@ -1,5 +1,4 @@
-<!-- TOOLBAR TEMPLATE -->
-<div class="custom_toolbar">
+<div class="custom_toolbar" *ngIf="showToolbar">
   <button 
     [disabled]="buttonDisabled" 
     [matTooltip]="buttonDisabled ? ('networkPaginated.noFailureSteps' | translate) : (showingFiltered ? ('networkPaginated.failureSteps' | translate) : ('networkPaginated.allSteps' | translate))"
