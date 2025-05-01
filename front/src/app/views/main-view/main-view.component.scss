@@ -539,12 +539,11 @@
   }
 }
 
-
-::ng-deep .mat-mdc-option {
+.mat-mdc-option {
   width: 100%;
 }
 
-::ng-deep .mobile-selector mat-option {
+.mobile-selector ::ng-deep mat-option {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

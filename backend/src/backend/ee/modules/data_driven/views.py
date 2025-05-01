@@ -41,6 +41,11 @@ import time, json
 from django.views.decorators.http import require_http_methods
 import requests
 from backend.utility.config_handler import *
+from rest_framework.response import Response
+import tempfile
+import os
+import subprocess
+from django.db import transaction
 
 class DataDrivenResultsViewset(viewsets.ModelViewSet):
     queryset = DataDriven_Runs.objects.none()
@@ -199,9 +204,235 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
         page = self.paginate_queryset(file_data)
         # serialize the paginated data
         serialized_data = FileDataSerializer(page, many=True).data
-        # return data to the user
-        return self.get_paginated_response(serialized_data)
-    
+        # Get the paginated response
+        paginated_response = self.get_paginated_response(serialized_data)
+        # Add the columns_ordered field to the response data
+        response_data = paginated_response.data
+        # Include the column_order field from the file model if available
+        if hasattr(file, 'column_order') and file.column_order:
+            response_data['columns_ordered'] = [h.lower().replace(' ', '_') for h in file.column_order]
+        # Return the modified response
+        return Response(response_data)
+        
+    @csrf_exempt
+    @require_subscription()
+    @require_permissions("run_feature")
+    def put(self, request, *args, **kwargs):
+        file_id = kwargs.get('file_id', None)
+        
+        # Verify body can be parsed as JSON
+        try:
+            request_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({ 'success': False, 'error': 'Unable to parse request body.' }, status=400)
+            
+        # Get the data array from the request
+        file_data_rows = request_data.get('data', None)
+        if not file_data_rows:
+            return JsonResponse({ 'success': False, 'error': 'Missing data in request.' }, status=400)
+        
+        try:
+            # Get the file and check permissions
+            user_departments = GetUserDepartments(request)
+            file = File.objects.get(pk=file_id, department_id__in=user_departments)
+        except File.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "error": "File not found or you don't have access to it."
+            }, status=404)
+        
+        try:
+            import pandas as pd
+            import os
+            import tempfile
+            import subprocess
+            from backend.utility.config_handler import get_cometa_socket_url
+            from backend.utility.configurations import ConfigurationManager
+            
+            # Make everything atomic - both file and database update must succeed together
+            with transaction.atomic():
+                # Create a pandas DataFrame from the updated data
+                df = pd.DataFrame(file_data_rows)
+                
+                # Log DataFrame info for debugging
+                logger.info(f"DataFrame columns: {df.columns.tolist()}")
+                logger.info(f"DataFrame shape: {df.shape}")
+                
+                # Convert any problematic data types (like complex objects) to strings
+                for col in df.columns:
+                    # Check for nested objects or lists that might cause issues
+                    if df[col].apply(lambda x: isinstance(x, (dict, list))).any():
+                        logger.info(f"Converting column '{col}' from complex type to string")
+                        df[col] = df[col].apply(lambda x: str(x) if x is not None else '')
+                
+                # Ensure feature_id is numeric if present (avoid type issues)
+                if 'feature_id' in df.columns:
+                    logger.info("Ensuring feature_id is properly formatted")
+                    df['feature_id'] = pd.to_numeric(df['feature_id'], errors='coerce').fillna(0).astype(int)
+                
+                # Get the original column names if available
+                original_columns = file.column_order
+                
+                # If there are original columns, reorder to match them
+                if original_columns:
+                    # Create a dict to map lowercase_no_spaces to original
+                    column_mapping = {col.lower().replace(' ', '_'): col for col in original_columns}
+                    
+                    # Rename columns back to their original format for the file output
+                    df_columns = df.columns
+                    rename_dict = {}
+                    for col in df_columns:
+                        if col in column_mapping:
+                            rename_dict[col] = column_mapping[col]
+                    
+                    if rename_dict:
+                        df = df.rename(columns=rename_dict)
+                
+                # Create a temporary file with the correct extension
+                # Determine original file extension to save in same format
+                original_name = file.name.lower()
+                if original_name.endswith('.csv'):
+                    file_extension = '.csv'
+                elif original_name.endswith('.xlsx'):
+                    file_extension = '.xlsx'
+                elif original_name.endswith('.xls'):
+                    file_extension = '.xls'
+                else:
+                    # Default to CSV if unknown format
+                    file_extension = '.csv'
+                
+                # Create a temporary file with the correct extension
+                with tempfile.NamedTemporaryFile(suffix=file_extension, delete=False) as temp_file:
+                    temp_path = temp_file.name
+                
+                # Log the temporary file path for debugging
+                logger.info(f"Created temporary file: {temp_path}")
+                
+                # Double-check that the file has the correct extension
+                if not temp_path.endswith(file_extension):
+                    logger.warning(f"Temporary file doesn't have proper extension. Adding {file_extension}")
+                    # If tempfile didn't add the extension correctly, add it manually
+                    os.rename(temp_path, temp_path + file_extension)
+                    temp_path = temp_path + file_extension
+                
+                # Save in the correct format based on extension
+                if file_extension == '.csv':
+                    logger.info(f"Saving updated file to CSV format: {temp_path}")
+                    df.to_csv(temp_path, index=False)
+                else:
+                    # Make sure we have the necessary dependencies for Excel
+                    try:
+                        logger.info(f"Attempting to save as Excel format: {temp_path}")
+                        # Try importing openpyxl first to check if it's available
+                        import openpyxl
+                        
+                        # Check what Excel engines are available
+                        import pandas
+                        available_engines = pandas.io.excel._base.get_writer
+                        logger.info(f"Available Excel engines: {str(available_engines)}")
+                        
+                        # Explicitly specify engine for excel export
+                        df.to_excel(temp_path, index=False, engine='openpyxl')
+                        logger.info("Successfully saved Excel file with openpyxl engine")
+                    except ImportError as ie:
+                        # Fall back to CSV if openpyxl not available
+                        logger.warning(f"Excel dependency missing: {str(ie)}")
+                        logger.warning("openpyxl not available. Falling back to CSV format.")
+                        temp_path = temp_path.replace(file_extension, '.csv')
+                        df.to_csv(temp_path, index=False)
+                    except Exception as excel_err:
+                        # If any other error occurs during Excel export, fall back to CSV
+                        logger.error(f"Error saving Excel file: {str(excel_err)}")
+                        logger.exception(excel_err)
+                        logger.warning("Falling back to CSV format due to Excel error.")
+                        temp_path = temp_path.replace(file_extension, '.csv')
+                        df.to_csv(temp_path, index=False)
+                
+                # Get encryption passphrase
+                COMETA_UPLOAD_ENCRYPTION_PASSPHRASE = ConfigurationManager.get_configuration('COMETA_UPLOAD_ENCRYPTION_PASSPHRASE','')
+                
+                # Encrypt the updated file - THIS MUST SUCCEED OR THE TRANSACTION WILL ROLLBACK
+                try:
+                    # Check if the encryption passphrase is set
+                    if not COMETA_UPLOAD_ENCRYPTION_PASSPHRASE:
+                        raise Exception("Encryption passphrase is not configured")
+                    
+                    # Check if the temp file exists
+                    if not os.path.exists(temp_path):
+                        raise Exception(f"Temporary file {temp_path} not found")
+                    
+                    # Check if the target directory exists
+                    target_dir = os.path.dirname(file.path)
+                    if not os.path.exists(target_dir):
+                        logger.info(f"Creating target directory: {target_dir}")
+                        os.makedirs(target_dir, exist_ok=True)
+                        
+                    # Use the same encryption method as in UploadFile.encrypt
+                    encryption_cmd = f"gpg --output {file.path} --batch --yes --passphrase {COMETA_UPLOAD_ENCRYPTION_PASSPHRASE} --symmetric --cipher-algo AES256 {temp_path}"
+                    logger.info(f"Running encryption command (sensitive data redacted)")
+                    
+                    result = subprocess.run(["bash", "-c", encryption_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+                    
+                    # If we get here, encryption succeeded, now update the database
+                    # Delete existing file data
+                    FileData.objects.filter(file=file).delete()
+                    
+                    # Create new file data objects
+                    new_file_data = []
+                    for row_data in file_data_rows:
+                        new_file_data.append(FileData(file=file, data=row_data))
+                    
+                    # Bulk create the new data
+                    created_data = FileData.objects.bulk_create(new_file_data)
+                    
+                    # Update file extras to ensure it's marked as data-driven-ready
+                    file.extras['ddr'] = {
+                        'data-driven-ready': True
+                    }
+                    file.save()
+                    
+                    logger.info(f"Successfully updated both database and file: {file.name}")
+                    
+                except subprocess.CalledProcessError as e:
+                    stderr_output = e.stderr.decode('utf-8') if e.stderr else "No error output"
+                    stdout_output = e.stdout.decode('utf-8') if e.stdout else "No standard output"
+                    logger.error(f"GPG encryption command failed with code {e.returncode}")
+                    logger.error(f"Error output: {stderr_output}")
+                    logger.error(f"Standard output: {stdout_output}")
+                    raise Exception(f"Failed to encrypt file: {stderr_output}")
+                finally:
+                    # Always clean up the temp file
+                    if os.path.exists(temp_path):
+                        try:
+                            os.remove(temp_path)
+                            logger.info(f"Removed temporary file: {temp_path}")
+                        except Exception as cleanup_err:
+                            logger.warning(f"Failed to remove temporary file: {cleanup_err}")
+                
+                # Send a websocket message to indicate the file was updated
+                try:
+                    requests.post(f'{get_cometa_socket_url()}/sendAction', json={
+                        "type": "[Files] Updated",
+                        "file": FileSerializer(file, many=False).data
+                    })
+                except Exception as ws_err:
+                    logger.warning(f"Failed to send websocket notification: {ws_err}")
+            
+            # Outside the transaction.atomic() block, but we only get here if everything succeeded
+            return JsonResponse({
+                "success": True,
+                "message": f"Successfully updated {len(created_data)} rows in file '{file.name}'.",
+                "rows_updated": len(created_data)
+            })
+                    
+        except Exception as err:
+            logger.error(f"Error occurred while updating file data: {err}")
+            logger.exception(err)
+            return JsonResponse({
+                "success": False,
+                "error": str(err)
+            }, status=500)
+
 def dataDrivenExecution(request, row, ddr: DataDriven_Runs):
     data = row.data
     feature_id = data.get('feature_id', None)
@@ -399,7 +630,7 @@ def runDataDriven(request, *args, **kwargs):
             'error': error_message
         }, status=400)
     # --- END VALIDATION ---
-
+    
     try:
         ddr = DataDriven_Runs(file_id=file_id, running=True, status="Running")
         ddr.save()

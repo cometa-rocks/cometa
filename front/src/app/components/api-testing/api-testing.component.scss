@@ -1,33 +1,242 @@
+// // api-testing.component.scss
+
+// // Scss file fo 
+
+// // Author: Nico
+// .container {
+//     height: 100%;
+//     width: 100%;
+//     line-height: 90vh;
+//     text-align: center;
+//     h2 {
+//       display: inline-block;
+//       vertical-align: middle;
+//       line-height: normal;
+//     }
+//   }
+  
+// .api-testing-container {
+//   display: flex;
+//   flex-direction: column;
+//   flex: 1;
+//   min-height: 0;
+//   height: 650px;
+//   padding: 50px;
+//   box-sizing: border-box;
+//   }
+
+  
+
+// h2 {
+//   margin: 0 0 16px 0;
+// }
+
+// .method-endpoint-row {
+//   display: flex;
+//   gap: 16px;
+//   margin-bottom: 16px;
+
+//   .method-select {
+//     width: 150px;
+//   }
+
+//   .endpoint-input {
+//     flex: 1;
+//   }
+// }
+
+// .preview-url {
+//   background-color: #f5f5f5;
+//   padding: 8px 16px;
+//   border-radius: 4px;
+//   margin-bottom: 16px;
+//   font-family: monospace;
+//   word-break: break-all;
+
+//   .preview-label {
+//     font-weight: 500;
+//     margin-right: 8px;
+//   }
+
+//   .preview-value {
+//     color: #666;
+//   }
+// }
+
+// mat-dialog-content {
+//   flex: 1;
+//   overflow: auto;
+//   display: flex;
+//   flex-direction: column;
+// }
+
+// ::ng-deep mat-tab-group {
+//   flex: 1;
+//   display: flex;
+//   flex-direction: column;
+//   height: 100%;
+// }
+
+// ::ng-deep mat-tab-group,
+// ::ng-deep .mat-tab-body-wrapper,
+// ::ng-deep .mat-tab-body,
+// ::ng-deep .mat-tab-body-content {
+//   flex: 1;
+//   display: flex;
+//   flex-direction: column;
+//   min-height: 0;
+// }
+
+
+// .parameters-container,
+// .headers-container,
+// .body-container {
+//   flex: 1;
+//   overflow: auto;
+//   display: flex;
+//   flex-direction: column;
+//   padding: 16px 0;
+
+//   .parameter-row,
+//   .header-row {
+//     display: flex;
+//     gap: 16px;
+//     align-items: center;
+//     margin-bottom: 16px;
+
+//     .param-key,
+//     .header-key {
+//       width: 200px;
+//     }
+
+//     .param-value,
+//     .header-value {
+//       flex: 1;
+//     }
+
+//     .param-enabled,
+//     .header-enabled {
+//       margin: 0 8px;
+//     }
+//   }
+// }
+
+// .body-container {
+//   padding: 16px 0;
+//   flex: 1;
+//   display: flex;
+//   flex-direction: column;
+
+//   .body-type-select {
+//     width: 200px;
+//     margin-bottom: 16px;
+//   }
+
+//   .body-input {
+//     width: 100%;
+//     flex: 1;
+//     margin-bottom: 16px;
+
+//     textarea {
+//       height: 100%;
+//       min-height: 200px;
+//     }
+//   }
+// }
+
+// .add-button {
+//   margin-top: 16px;
+// }
+
+// .mat-dialog-container {
+//   resize: both;
+//   display: flex;
+//   flex-direction: column;
+//   padding: 0;
+//   overflow: hidden;
+//   height: 100%;
+// }
+
+//  .mat-mdc-dialog-container {
+//   padding: 0;
+//   display: flex;
+//   flex-direction: column;
+// }
+
+// ::ng-deep .mat-mdc-dialog-content {
+//   flex: 1 1 auto;
+//   overflow: auto;
+// }
+
+// ::ng-deep mat-tab-group {
+//   flex: 1;
+//   display: flex;
+//   flex-direction: column;
+//   min-height: 0;
+// }
+
+// .dialog-content-wrapper {
+//   display: flex;
+//   flex-direction: column;
+//   flex: 1;
+// }
+
+// .dialog-body {
+//   flex: 1;
+//   overflow: auto;
+//   display: flex;
+//   flex-direction: column;
+//   min-height: 0;
+//   width: 100%;
+// }
+
+// .dialog-footer {
+//   margin-top: auto;
+//   border-top: 1px solid rgba(0, 0, 0, 0.12);
+//   padding: 16px;
+//   display: flex;
+//   justify-content: flex-end;
+// }
+
 // api-testing.component.scss
 
-// Scss file fo 
-
 // Author: Nico
+
 .container {
-    height: 100%;
-    width: 100%;
-    line-height: 90vh;
-    text-align: center;
-    h2 {
-      display: inline-block;
-      vertical-align: middle;
-      line-height: normal;
-    }
+  height: 100%;
+  width: 100%;
+  line-height: 90vh;
+  text-align: center;
+
+  h2 {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: normal;
   }
-  
-  .api-testing-container {
+}
+
+.api-testing-container {
+  display: flex;
+  flex-direction: column;
+  height: 650px;
+  padding: 24px;
+  box-sizing: border-box;
+
+  > h2 {
+    flex: 0 0 auto;
+    margin: 0 0 16px 0;
+  }
+
+  > .dialog-content-wrapper {
+    flex: 1 1 0;
     display: flex;
     flex-direction: column;
-    flex: 1;
     min-height: 0;
-    height: 650px;
-    padding: 50px;
-    box-sizing: border-box;
   }
-  
 
-h2 {
-  margin: 0 0 16px 0;
+  > mat-dialog-actions {
+    flex: 0 0 auto;
+  }
 }
 
 .method-endpoint-row {
@@ -50,7 +259,7 @@ h2 {
   border-radius: 4px;
   margin-bottom: 16px;
   font-family: monospace;
-  word-break: break-all;
+  word-break: break-word;
 
   .preview-label {
     font-weight: 500;
@@ -63,11 +272,11 @@ h2 {
 }
 
 mat-dialog-content {
-  flex: 1;
+  flex: 1 1 auto;
   overflow: auto;
   display: flex;
   flex-direction: column;
-  display: contents;
+  width: 100%;
 }
 
 ::ng-deep mat-tab-group {
@@ -86,7 +295,6 @@ mat-dialog-content {
   flex-direction: column;
   min-height: 0;
 }
-
 
 .parameters-container,
 .headers-container,
@@ -148,60 +356,36 @@ mat-dialog-content {
   margin-top: 16px;
 }
 
-mat-dialog-actions {
-  padding: 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
 .mat-dialog-container {
-  resize: both;
   display: flex;
   flex-direction: column;
   padding: 0;
+  height: auto;
+  max-height: 90vh;
   overflow: hidden;
-  height: 100%;
+  resize: both;
 }
 
-.api-testing-dialog {
-  height: 90vh;
-  width: 90vw !important;
-  max-width: 1200px;
+.mat-mdc-dialog-container {
   display: flex;
   flex-direction: column;
-}
-
- .mat-mdc-dialog-container {
   padding: 0;
-  display: flex;
-  flex-direction: column;
 }
 
 ::ng-deep .mat-mdc-dialog-content {
-  max-height: none;
-  flex: 1;
+  flex: 1 1 auto;
   overflow: auto;
-}
-
-::ng-deep mat-tab-group {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
 }
 
 .dialog-content-wrapper {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 1 1 0;
   min-height: 0;
-  height: 290px;
 }
 
 .dialog-body {
-  flex: 1;
+  flex: 1 1 auto;
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -210,7 +394,6 @@ mat-dialog-actions {
 }
 
 .dialog-footer {
-  margin-top: auto;
   border-top: 1px solid rgba(0, 0, 0, 0.12);
   padding: 16px;
   display: flex;

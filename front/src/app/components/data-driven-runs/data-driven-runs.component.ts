@@ -5,6 +5,9 @@ import {
   ChangeDetectorRef,
   OnInit,
   OnDestroy,
+  ViewChild,
+  ElementRef,
+  TemplateRef,
 } from '@angular/core';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { PageEvent } from '@angular/material/paginator';
@@ -27,7 +30,7 @@ import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
 import { StopPropagationDirective } from '../../directives/stop-propagation.directive';
 import { NgIf, NgFor } from '@angular/common';
 import { LetDirective } from '../../directives/ng-let.directive';
-import { ElementRef, HostListener } from '@angular/core';
+import { HostListener } from '@angular/core';
 import { KEY_CODES } from '@others/enums';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
@@ -54,6 +57,12 @@ import { finalize, take, filter } from 'rxjs/operators';
 import { SureRemoveFileComponent } from '@dialogs/sure-remove-file/sure-remove-file.component';
 import { SureRemoveRunComponent } from '@dialogs/sure-remove-run/sure-remove-run.component';
 import { MatSelectChange } from '@angular/material/select';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { LoadingSpinnerComponent } from '@components/loading-spinner/loading-spinner.component';
+import { LiveStepsComponent } from '@dialogs/live-steps/live-steps.component';
+import { CommonModule } from '@angular/common';
+import * as _ from 'lodash';
+import { LogService } from '@services/log.service';
 
 // Add interfaces to fix type errors
 interface Department {
@@ -73,6 +82,7 @@ interface UploadedFile {
       'data-driven-ready'?: boolean;
     };
   };
+  mime?: string;
 }
 
 interface DataDrivenRun {
@@ -124,6 +134,9 @@ interface UserInfo {
     AvailableFilesPipe,
     HumanizeBytesPipe,
     SortByPipe,
+    MatProgressSpinnerModule,
+    LoadingSpinnerComponent,
+    CommonModule,
   ],
 })
 export class DataDrivenRunsComponent implements OnInit, OnDestroy {
@@ -135,6 +148,9 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
     resultsPanel: true,
     filtersPanel: false
   };
+  
+  // Store expanded state for all file rows
+  expandedFileIds: Set<number> = new Set<number>();
   
   // Properties from DataDrivenExecution component
   @ViewSelectSnapshot(UserState.RetrieveUserDepartments)
@@ -149,11 +165,33 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
   department_id: number;
   department: Department;
   file_data: Record<string, any> = {};
-  selected_file_id: number | null = null;
-  active_files_only: boolean = false;
-  filterType = 'active_only';
-  displayFilterValue: any = 'active_only';
+  selected_file_id: number | null = (() => {
+    const savedFileId = localStorage.getItem('co_selected_file_id');
+    const savedFilterType = localStorage.getItem('co_filter_type');
+    return (savedFilterType === 'specific_file' && savedFileId) ? 
+      parseInt(savedFileId, 10) : null;
+  })();
+  active_files_only: boolean = localStorage.getItem('co_filter_type') === 'active_only';
+  filterType = localStorage.getItem('co_filter_type') || 'active_only';
+  displayFilterValue: any = (() => {
+    const savedFilterType = localStorage.getItem('co_filter_type');
+    const savedFileId = localStorage.getItem('co_selected_file_id');
+    return (savedFilterType === 'specific_file' && savedFileId) ? 
+      ['specific_file', parseInt(savedFileId, 10)] : 
+      (savedFilterType || 'active_only');
+  })();
   
+  // Add properties for inline editing
+  editingCell: { fileId: number, rowIndex: number, columnField: string } | null = null;
+  editValue: any = null;
+  originalCellValue: any = null; // To store cell value on edit start
+  @ViewChild('editInput') editInput: ElementRef;
+  @ViewChild('dynamicEditableCellTpl') dynamicEditableCellTpl: TemplateRef<any>;
+
+  // Properties for Save/Cancel All
+  original_file_data: Record<number, any[]> = {}; // Store original data per file
+  isDirty: Record<number, boolean> = {}; // Track dirty state per file
+
   // File columns definition
   fileColumns: MtxGridColumn[] = [
     {
@@ -166,8 +204,8 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
       header: 'Status',
       field: 'status',
       showExpand: true,
-      class: (row: UploadedFile, col: MtxGridColumn) => {
-        return this.showDataChecks(row) ? '' : 'no-expand';
+      class: (rowData: UploadedFile, colDef?: MtxGridColumn) => {
+        return this.showDataChecks(rowData) ? '' : 'no-expand';
       },
     },
     { header: 'File Name', field: 'name', sortable: true, class: 'name' },
@@ -191,6 +229,16 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
           },
           iif: row =>
             this.showDataChecks(row) && this.dataDrivenExecutable(row),
+        },
+        {
+          type: 'icon',
+          text: 'cloud_download',
+          icon: 'cloud_download',
+          tooltip: 'Download file',
+          click: (result: UploadedFile) => {
+            this.onDownloadFile(result);
+          },
+          iif: row => row.status === 'Done' && !row.is_removed,
         },
         {
           type: 'icon',
@@ -218,7 +266,8 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
     private fileUpload: FileUploadService,
     private _snackBar: MatSnackBar,
     private _store: Store,
-    private actions$: Actions
+    private actions$: Actions,
+    private log: LogService
   ) {
 
     this.focusSubscription = this.inputFocusService.inputFocus$.subscribe((inputFocused) => {
@@ -284,6 +333,15 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
       buttons: [
         {
           type: 'icon',
+          icon: 'visibility',
+          tooltip: 'View Run Details',
+          click: (row: DataDrivenRun) => {
+            this.openContent(row);
+          },
+          iif: (row: DataDrivenRun) => !!row.running,
+        },
+        {
+          type: 'icon',
           text: 'Stop',
           icon: 'stop',
           tooltip: 'Stop Execution',
@@ -310,6 +368,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
   results: DataDrivenRun[] = [];
   total = 0;
   isLoading = true;
+  isLoadingFiles = true;
   showPagination = true;
   latestFeatureResultId: number = 0;
   inputFocus = false;
@@ -330,11 +389,49 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
   }
 
   openContent(run: DataDrivenRun) {
-    this._router.navigate(['data-driven', run.run_id]);
+    if (run.running) {
+      // For running tests, we need to get the feature_id associated with this run
+      this._http.get(`/backend/api/data_driven/results/${run.run_id}/`)
+        .subscribe({
+          next: (response: any) => {
+            if (response && response.results && response.results.length > 0) {
+              const featureResult = response.results[0];
+              const featureId = featureResult.feature_id;
+              
+              // Now open LiveStepsComponent with the feature_id
+              this._dialog.open(LiveStepsComponent, {
+                disableClose: false,
+                panelClass: 'live-steps-panel',
+                width: '95vw',
+                maxWidth: '95vw',
+                height: '95vh',
+                maxHeight: '95vh',
+                data: featureId
+              });
+            } else {
+              this._snackBar.open('No feature results found for this run', 'OK', {
+                duration: 5000,
+                panelClass: ['data-driven-custom-snackbar']
+              });
+            }
+          },
+          error: (err) => {
+            this.log.msg('2', 'Error loading live steps for this run', 'API', err);
+            this._snackBar.open('Error loading live steps for this run', 'OK', {
+              duration: 5000,
+              panelClass: ['data-driven-custom-snackbar']
+            });
+          }
+        });
+    } else {
+      // For completed tests, navigate to the details page
+      this._router.navigate(['data-driven', run.run_id]);
+    }
   }
 
   getResults() {
     this.isLoading = true;
+    this.cdRef.markForCheck();
 
     // Prepare parameters, including department_id if it exists
     const requestParams = { ...this.params };
@@ -414,12 +511,15 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
           // Always trigger change detection
           this.cdRef.detectChanges();
         },
-        error: err => {
-          // TODO: Handle error
+        error: (err) => {
+          this.log.msg('2', 'Error fetching data-driven runs', 'API', err);
+          this.isLoading = false;
+          this.cdRef.markForCheck();
         },
         complete: () => {
           this.isLoading = false;
-        },
+          this.cdRef.markForCheck();
+        }
       });
   }
 
@@ -444,12 +544,12 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
       localStorage.setItem('co_file_page_size', e.pageSize.toString());
     } else {
       // Update results grid pagination
-      this.query.page = e.pageIndex;
-      this.query.size = e.pageSize;
-      this.getResults();
+    this.query.page = e.pageIndex;
+    this.query.size = e.pageSize;
+    this.getResults();
 
       // Store in localStorage for results grid
-      localStorage.setItem('co_results_page_size', e.pageSize.toString());
+    localStorage.setItem('co_results_page_size', e.pageSize.toString());
     }
   }
 
@@ -462,19 +562,40 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
   }
   
   updateFilePagination(e: PageEvent, row: any) {
-    // Ensure row parameter is valid
-    if (!row || !row.id || !this.file_data[row.id]) {
-      console.error('Invalid row parameter in updateFilePagination', row);
+    this.log.msg('4', 'UpdateFilePagination Event:', 'Pagination', {e, row});
+    
+    // First check if row is passed directly
+    if (row && row.id && this.file_data[row.id]) {
+      // Row is directly passed and valid
+      const fileData = this.file_data[row.id];
+      fileData.params.page = e.pageIndex;
+      fileData.params.size = e.pageSize;
+      this.getFileData(fileData);
+      
+      // Store in localStorage for file grid
+      localStorage.setItem('co_file_page_size', e.pageSize.toString());
       return;
     }
     
-    // Update file data grid pagination
-    const fileData = this.file_data[row.id];
-    fileData.params.page = e.pageIndex;
-    fileData.params.size = e.pageSize;
-    this.getFileData(fileData);
+    // If row is not directly passed, try to get it from the event
+    if (e && e['rowData'] && e['rowData'].id) {
+      const rowId = e['rowData'].id;
+      if (this.file_data[rowId]) {
+        const fileData = this.file_data[rowId];
+        fileData.params.page = e.pageIndex;
+        fileData.params.size = e.pageSize;
+        this.getFileData(fileData);
+        
+        // Store in localStorage for file grid
+        localStorage.setItem('co_file_page_size', e.pageSize.toString());
+        return;
+      }
+    }
     
-    // Store in localStorage for file grid
+    // If we get here, we couldn't find a valid row
+    this.log.msg('2', 'Invalid row parameter in updateFilePagination', 'Pagination', {row, e});
+    
+    // As a fallback, at least save the page size preference
     localStorage.setItem('co_file_page_size', e.pageSize.toString());
   }
 
@@ -484,15 +605,27 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
    * @param state The new state
    */
   togglePanel(panel: string, state: boolean) {
-    this.panelConfig[panel] = state;
-    localStorage.setItem(`dd_panel_${panel}`, state ? 'true' : 'false');
+    if (this.panelConfig[panel] !== state) {
+      this.panelConfig[panel] = state;
+      localStorage.setItem(`dd_panel_${panel}`, state ? 'true' : 'false');
+      this.log.msg('4', `Saved panel state: ${panel} = ${state}`, 'LocalStorage');
+    }
   }
 
   ngOnInit(): void {
     // Load saved page size
     const storedPageSize = localStorage.getItem('co_results_page_size');
     this.query.size = storedPageSize ? parseInt(storedPageSize, 10) : 10;
-    
+
+    // Load saved department ID first
+    const savedDepartmentId = localStorage.getItem('co_selected_department_id');
+    if (savedDepartmentId) {
+        this.department_id = parseInt(savedDepartmentId, 10);
+        this.log.msg('4', `Loaded department ID from localStorage: ${this.department_id}`, 'Init');
+    } else {
+        this.log.msg('4', 'No department ID found in localStorage.', 'Init');
+    }
+
     // Load saved panel states
     const savedInformationPanel = localStorage.getItem('dd_panel_informationPanel');
     const savedExecutePanel = localStorage.getItem('dd_panel_executePanel');
@@ -502,7 +635,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
     if (savedInformationPanel !== null) {
       this.panelConfig.informationPanel = savedInformationPanel === 'true';
     }
-
+    
     if (savedExecutePanel !== null) {
       this.panelConfig.executePanel = savedExecutePanel === 'true';
     }
@@ -513,6 +646,19 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
     
     if (savedFiltersPanel !== null) {
       this.panelConfig.filtersPanel = savedFiltersPanel === 'true';
+    }
+    
+    // Load saved expanded file IDs
+    const savedExpandedFileIds = localStorage.getItem('dd_expanded_file_ids');
+    if (savedExpandedFileIds) {
+      try {
+        const fileIds = JSON.parse(savedExpandedFileIds);
+        if (Array.isArray(fileIds)) {
+          this.expandedFileIds = new Set(fileIds);
+        }
+      } catch (e) {
+        this.log.msg('2', 'Error parsing saved expanded file IDs', 'LocalStorage', e);
+      }
     }
     
     // Load saved filter preferences
@@ -540,7 +686,25 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
       }
     }
     
+    // Ensure isLoadingFiles is true during initialization
+    this.isLoadingFiles = true;
+    this.cdRef.markForCheck();
+    
     this.fillDropdownsOnInit(); // Initialize data-driven execution panel
+    
+    // Subscribe to departments to update loading state
+    this.departments$.pipe(take(1)).subscribe({
+      next: () => {
+        setTimeout(() => {
+          this.isLoadingFiles = false;
+          this.cdRef.markForCheck();
+        }, 300); // Small delay for better UX
+      },
+      error: () => {
+        this.isLoadingFiles = false;
+        this.cdRef.markForCheck();
+      }
+    });
   }
 
   // Stop data driven test
@@ -602,6 +766,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
   }
 
   fillDropdownsOnInit(mode: string = 'new') {
+    this.log.msg('4', `Mode: ${mode}`, 'Init');
     switch (mode) {
       case 'new':
         this.preSelectedOrDefaultOptions();
@@ -612,63 +777,109 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
   }
 
   preSelectedOrDefaultOptions() {
-    // Only set default if department_id is not already set
-    if (this.department_id === undefined || this.department_id === null) {
-      this.departments$.pipe(take(1)).subscribe(departments => { // Use take(1) to prevent memory leaks
-        if (departments && departments.length > 0) {
-          let defaultDept = departments.find(d => d.selected === true);
-          if (!defaultDept) {
-            // Fallback to user setting or first department if no default found
-            const { preselectDepartment } = this.user?.settings || {};
-            defaultDept = departments.find(d => d.department_id == preselectDepartment) || departments[0];
-          }
-          
-          if (defaultDept) {
-            this.department = defaultDept;
-            this.department_id = defaultDept.department_id;
-            this.generateFileData();
-            this.getResults();
-            this.cdRef.detectChanges();
-          }
-        }
-      });
+    // Check if department_id was loaded from localStorage
+    if (this.department_id !== undefined && this.department_id !== null) {
+        this.departments$.pipe(take(1)).subscribe(departments => {
+            const foundDept = departments?.find(d => d.department_id === this.department_id);
+            if (foundDept) {
+                this.department = foundDept;
+                this.log.msg('4', `Found department from localStorage ID: ${this.department_id}`, 'Init');
+                this.generateFileData();
+                this.getResults();
+                this.isLoadingFiles = false;
+                this.cdRef.detectChanges();
+            } else {
+                // Saved ID is invalid, clear it and proceed to default logic
+                this.log.msg('3', `Department ID ${this.department_id} from localStorage not found in current departments. Resetting.`, 'Init');
+                this.department_id = null; // Reset to trigger default logic below
+                localStorage.removeItem('co_selected_department_id');
+                this.preSelectedOrDefaultOptions(); // Re-run default logic
+            }
+        });
+    } else {
+        // No department_id from localStorage, apply default logic
+        this.departments$.pipe(take(1)).subscribe(departments => { // Use take(1) to prevent memory leaks
+            if (departments && departments.length > 0) {
+                let defaultDept = departments.find(d => d.selected === true);
+                if (!defaultDept) {
+                    // Fallback to user setting or first department if no default found
+                    const { preselectDepartment } = this.user?.settings || {};
+                    defaultDept = departments.find(d => d.department_id == preselectDepartment) || departments[0];
+                }
+
+                if (defaultDept) {
+                    this.department = defaultDept;
+                    this.department_id = defaultDept.department_id;
+                    // Save the determined default/preselected department ID
+                    localStorage.setItem('co_selected_department_id', this.department_id.toString());
+                    this.log.msg('4', `Set and saved default department ID: ${this.department_id}`, 'Init');
+                    this.generateFileData();
+                    this.getResults();
+                    this.isLoadingFiles = false;
+                    this.cdRef.detectChanges();
+                } else {
+                    this.isLoadingFiles = false; // No departments available
+                    this.log.msg('3', 'No departments found to select a default.', 'Init');
+                }
+            } else {
+                this.isLoadingFiles = false; // No departments available
+                this.log.msg('3', 'Department list is empty or undefined.', 'Init');
+            }
+        });
     }
-  }
+}
 
   changeDepartment() {
     this.isLoading = true;
+    this.isLoadingFiles = true;
+    this.cdRef.markForCheck();
     
     this.departments$.pipe(take(1)).subscribe({
       next: departments => {
-        if (departments && departments.length > 0) {
-          const selectedDept = departments.find(d => d.department_id === this.department_id);
-          if (selectedDept) {
-            this.department = selectedDept;
+      if (departments && departments.length > 0) {
+        const selectedDept = departments.find(d => d.department_id === this.department_id);
+        if (selectedDept) {
+          this.department = selectedDept;
             
-            this.generateFileData();
-            
-            const newFilterType = this.filterType === 'active_only' ? 'active_only' : 'all_with_deleted';
-            this.filterType = newFilterType;
-            this.displayFilterValue = newFilterType;
+          // Save the newly selected department ID to local storage
+          localStorage.setItem('co_selected_department_id', this.department_id.toString());
+          this.log.msg('4', `Saved selected department ID: ${this.department_id}`, 'Department');
+
+          this.generateFileData();
+          
+          // Preserve filter type, only reset specific file selection
+          if (this.filterType === 'specific_file') {
+            // When switching departments, revert to general filter view
+            this.filterType = localStorage.getItem('co_filter_type_previous') || 'active_only';
+            this.displayFilterValue = this.filterType;
             this.selected_file_id = null;
-            
-            localStorage.setItem('co_filter_type', this.filterType);
             localStorage.removeItem('co_selected_file_id');
-            
-            setTimeout(() => {
-              this.isLoading = false;
-              this.getResults();
-              this.cdRef.detectChanges();
-            }, 0);
-          } else {
-            this.isLoading = false;
           }
+          
+          // Save current filter type to localStorage
+          localStorage.setItem('co_filter_type', this.filterType);
+          
+          setTimeout(() => {
+            this.isLoading = false;
+            this.isLoadingFiles = false;
+            this.getResults();
+            this.cdRef.detectChanges();
+          }, 0);
         } else {
           this.isLoading = false;
+          this.isLoadingFiles = false;
+          this.cdRef.markForCheck();
         }
+      } else {
+        this.isLoading = false;
+        this.isLoadingFiles = false;
+        this.cdRef.markForCheck();
+      }
       },
       error: () => {
         this.isLoading = false;
+        this.isLoadingFiles = false;
+        this.cdRef.markForCheck();
       }
     });
   }
@@ -708,7 +919,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
       .afterClosed()
       .pipe(filter(result => result === true)) // Only proceed if confirmed
       .subscribe(() => {
-        this.fileUpload.deleteFile(file.id).subscribe(res => {
+    this.fileUpload.deleteFile(file.id).subscribe(res => {
           if (res.success) {
             this.fileUpload.updateFileState(file, this.department as any);
             this._snackBar.open(`File "${file.name}" deleted successfully.`, 'OK', { 
@@ -718,7 +929,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
             this.cdRef.markForCheck(); // Ensure UI updates
           }
         });
-      });
+    });
   }
 
   showDataChecks(row: UploadedFile) {
@@ -757,7 +968,18 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
             isLoading: false,
             showPagination: false,
             fetched: false,
+            // Store if file should be expanded based on saved state
+            expanded: this.expandedFileIds.has(file.id)
           };
+          
+          // If this file is marked for auto-expansion, pre-fetch its data
+          if (this.expandedFileIds.has(file.id)) {
+            this.log.msg('4', `Auto-expanding file ID: ${file.id}`, 'FileData');
+            // Use setTimeout to ensure UI is rendered before fetching data
+            setTimeout(() => {
+              this.getFileData(this.file_data[file.id]);
+            }, 100);
+          }
         }
       });
     }
@@ -779,7 +1001,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res: any) => {
           try {
-            res = JSON.parse(res);
+          res = JSON.parse(res);
           } catch (e) {
              parent._snackBar.open('Error starting execution: Invalid response from server.', 'OK', { 
                duration: 10000,
@@ -833,49 +1055,84 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
           } else if (err.message) {
               errorDetail = err.message;
           }
-          parent._snackBar.open(
+            parent._snackBar.open(
             `Execution failed: ${errorDetail}`,
-            'OK',
-            {
+              'OK',
+              {
               duration: 15000,
               panelClass: ['data-driven-custom-snackbar']
-            }
-          );
+              }
+            );
         },
       });
   }
 
   expand(event) {
-    if (event.expanded) {
-      if (event.data && event.data.id) {
-        const rowId = event.data.id;
-        // Initialize the file_data entry if it doesn't exist
-        if (!this.file_data[rowId]) {
-          this.file_data[rowId] = {
-            id: rowId,
-            file_data: [],
-            columns: [],
-            params: {
-              page: 0,
-              size: 10,
-            },
-            total: 0,
-            isLoading: false,
-            showPagination: false,
-            fetched: false
-          };
-        }
-        
-        const row = this.file_data[rowId];
-        if (!row.fetched) {
-          // fetch data
-          this.getFileData(row);
-        }
-      }
+    const rowId = event.data && event.data.id;
+    if (!rowId) {
+      this.log.msg('3', 'Missing data or ID in row', 'Expand', event);
+      return;
     }
+
+    if (event.expanded) {
+      this.log.msg('4', `Expanding row with ID: ${rowId}`, 'Expand', event.data);
+      
+      // Track this file as expanded
+      this.expandedFileIds.add(rowId);
+      this.log.msg('4', 'Expanded files:', 'Expand', Array.from(this.expandedFileIds));
+      
+      // Save expanded file IDs to localStorage
+      this.saveExpandedFileIds();
+        
+      // Initialize the file_data entry if it doesn't exist
+      if (!this.file_data[rowId]) {
+        this.log.msg('4', `Initializing file_data for ID: ${rowId}`, 'Expand');
+        this.file_data[rowId] = {
+          id: rowId,
+          file_data: [],
+          columns: [],
+          params: {
+            page: 0,
+            size: 10,
+          },
+          total: 0,
+          isLoading: false,
+          showPagination: false,
+          fetched: false
+        };
+      } else {
+        this.log.msg('4', `File data already exists for ID: ${rowId}`, 'Expand', this.file_data[rowId]);
+      }
+      
+      const row = this.file_data[rowId];
+      if (!row.fetched) {
+        // fetch data
+        this.log.msg('4', `Fetching data for ID: ${rowId}`, 'Expand');
+        this.getFileData(row);
+      } else {
+        this.log.msg('4', `Data already fetched for ID: ${rowId}`, 'Expand', row);
+      }
+    } else {
+      // Log collapsing event
+      this.log.msg('4', `Collapsing row with ID: ${rowId}`, 'Expand');
+      // Remove from expanded files tracking
+      this.expandedFileIds.delete(rowId);
+      this.log.msg('4', 'Expanded files after collapse:', 'Expand', Array.from(this.expandedFileIds));
+      
+      // Save expanded file IDs to localStorage
+      this.saveExpandedFileIds();
+    }
+  }
+  
+  /**
+   * Save expanded file IDs to localStorage
+   */
+  private saveExpandedFileIds(): void {
+    localStorage.setItem('dd_expanded_file_ids', JSON.stringify(Array.from(this.expandedFileIds)));
   }
 
   getFileData(row) {
+    this.log.msg('4', `Starting data fetch for file ID: ${row.id}`, 'FileData');
     row.isLoading = true;
     this._http
       .get(`/backend/api/data_driven/file/${row.id}`, {
@@ -893,6 +1150,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
         finalize(() => {
           row.isLoading = false;
           row.fetched = true;
+          this.log.msg('4', `Fetch completed for file ID: ${row.id}`, 'FileData');
           this.cdRef.detectChanges();
         })
       )
@@ -901,32 +1159,61 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
           try {
             res = typeof res === 'string' ? JSON.parse(res) : res;
           } catch (e) {
+            this.log.msg('2', `Error parsing response for file ID: ${row.id}`, 'FileData', e);
             row.file_data = [];
             row.total = 0;
             row.showPagination = false;
             return;
           }
           
-          row.file_data = res.results ? res.results.map(d => d.data) : []; 
+          const fetchedData = res.results ? res.results.map(d => d.data) : [];
+          this.log.msg('4', `Fetched ${fetchedData.length} rows for file ID: ${row.id}`, 'FileData', { sample: fetchedData.length > 0 ? fetchedData[0] : 'No data'});
+                     
+          row.file_data = _.cloneDeep(fetchedData); // Use deep clone for working copy
+          this.original_file_data[row.id] = _.cloneDeep(fetchedData); // Store deep clone of original
+          this.isDirty[row.id] = false; // Reset dirty state on fetch
           row.total = res.count || 0;
           row.showPagination = row.total > 0 ? true : false;
 
-          if (row.file_data.length > 0) {
+          // Create a common data context for all columns in this file
+          const fileContext = {
+            fileId: row.id,
+            fileRowId: row.id, // Add a separate property to make debugging easier
+            fileName: res.file_name || `File #${row.id}`
+          };
+
+          // Use the ordered columns from the API response if available
+          if (res.columns_ordered && Array.isArray(res.columns_ordered)) {
+            this.log.msg('4', `Using ordered columns from API for file ID: ${row.id}`, 'FileData', res.columns_ordered);
+            row.columns = res.columns_ordered.map(key => ({
+              header: key,
+              field: key,
+              cellTemplate: this.dynamicEditableCellTpl,
+              // Add custom data with dedicated file context
+              customData: fileContext
+            }));
+          } else if (row.file_data.length > 0) {
+            // Fallback to potentially unordered keys from the first row (existing behavior)
             const d = row.file_data[0];
             const keys = Object.keys(d);
-
-            row.columns = [];
-            keys.forEach(key => {
-              row.columns.push({
+            this.log.msg('4', `Using keys from first row for file ID: ${row.id}`, 'FileData', keys);
+            row.columns = keys.map(key => ({ 
                 header: key,
                 field: key,
-              });
-            });
+                cellTemplate: this.dynamicEditableCellTpl,
+                // Add custom data with dedicated file context
+                customData: fileContext
+            }));
           } else {
+             this.log.msg('3', `No data/columns for file ID: ${row.id}`, 'FileData');
              row.columns = [];
           }
+          // Ensure change detection runs after columns are set
+          this.cdRef.detectChanges(); 
         },
         error: (err) => {
+          this.log.msg('2', `Error fetching data for file ID: ${row.id}`, 'FileData', err);
+          
           if (err.status >= 400 && err.status < 500 && err.error) {
             try {
               const error = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
@@ -949,6 +1236,10 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
             row.columns = [];
             row.showPagination = false;
           }
+          // Reset states in case of error
+          delete this.original_file_data[row.id];
+          delete this.isDirty[row.id];
+          this.cdRef.detectChanges(); 
         },
       });
   }
@@ -966,7 +1257,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
-          console.error(err);
+          this.log.msg('2', 'Error setting result status', 'API', err);
         },
       });
   }
@@ -1055,6 +1346,22 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
 
   // Update setFilterType to check if department and files exist before triggering updates
   setFilterType(type: 'all_with_deleted' | 'active_only' | 'specific_file', fileId: number | null = null) {
+    // Only proceed if there's a change in filter settings
+    const isNewType = this.filterType !== type;
+    const isNewFileId = type === 'specific_file' && this.selected_file_id !== fileId;
+    
+    if (!isNewType && !isNewFileId) {
+      this.log.msg('4', `No change in filter settings. Type: ${type}, FileId: ${fileId}`, 'Filter');
+      return;
+    }
+    
+    // Save the previous filter type before changing to a new type
+    // This will be used when switching from specific_file back to a general filter
+    if (isNewType && this.filterType !== 'specific_file') {
+      localStorage.setItem('co_filter_type_previous', this.filterType);
+      this.log.msg('4', `Saved previous filter type: ${this.filterType}`, 'Filter');
+    }
+    
     this.filterType = type;
     
     this.query.page = 0;
@@ -1075,11 +1382,14 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
       this.getResults();
     }
     
+    // Save filter preferences to localStorage
     localStorage.setItem('co_filter_type', this.filterType);
     if (this.selected_file_id !== null) {
       localStorage.setItem('co_selected_file_id', this.selected_file_id.toString());
+      this.log.msg('4', `Saved specific file ID: ${this.selected_file_id}`, 'Filter');
     } else {
       localStorage.removeItem('co_selected_file_id');
+      this.log.msg('4', 'Removed specific file ID from storage', 'Filter');
     }
     
     if (!this.isLoading) {
@@ -1111,11 +1421,372 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Save any final state before component is destroyed
+    this.saveExpandedFileIds();
+    
+    // Unsubscribe from all subscriptions
     if (this.focusSubscription) {
       this.focusSubscription.unsubscribe();
     }
     if (this.actionsSubscription) {
       this.actionsSubscription.unsubscribe();
     }
+  }
+
+  // --- Inline Editing Methods ---
+
+  /**
+   * Check if the current cell is being edited.
+   * @param fileId The ID of the file (from the outer grid row).
+   * @param rowIndex The index of the data row within the inner grid's current page.
+   * @param columnField The field name of the column.
+   * @returns True if the cell is being edited, false otherwise.
+   */
+  isEditing(fileId: number, rowIndex: number, columnField: string): boolean {
+    // We'll still log detailed debug info but only when truly needed
+    const isLoggingNeeded = this.editingCell && (
+      fileId === this.editingCell.fileId || 
+      rowIndex === this.editingCell.rowIndex
+    );
+    
+    // Look at the customData from the column definition to get the correct file ID
+    const isEditing = (
+      this.editingCell?.fileId === fileId &&
+      this.editingCell?.rowIndex === rowIndex &&
+      this.editingCell?.columnField === columnField
+    );
+    
+    if (isLoggingNeeded) {
+      this.log.msg('4', `Edit Check - File:${fileId}, Row:${rowIndex}, Col:${columnField}, Editing:${isEditing}`, 'Edit', { currentEditingCell: this.editingCell });
+    }
+    
+    return isEditing;
+  }
+
+  /**
+   * Starts editing a specific cell.
+   * @param fileId The ID of the file (from the outer grid row).
+   * @param rowIndex The index of the data row within the inner grid's current page.
+   * @param columnField The field name of the column.
+   * @param currentValue The current value of the cell.
+   */
+  startEdit(fileId: number, rowIndex: number, columnField: string, currentValue: any): void {
+    this.log.msg('4', `Start Edit - File:${fileId}, Row:${rowIndex}, Col:${columnField}`, 'Edit', { value: currentValue, fileExists: !!this.file_data[fileId], rowExists: !!this.file_data[fileId]?.file_data?.[rowIndex] });
+
+    // Validate that we're working with a file that has data
+    if (!this.file_data[fileId] || !this.file_data[fileId].file_data || !this.file_data[fileId].file_data[rowIndex]) {
+      this.log.msg('2', `Start Edit ERROR - Invalid file/row data for fileId:${fileId}, rowIndex:${rowIndex}`, 'Edit');
+      
+      // Try to find an alternative file ID that has data
+      const filesWithData = Object.keys(this.file_data)
+        .filter(id => this.file_data[Number(id)]?.file_data?.length > 0)
+        .map(Number);
+        
+      this.log.msg('4', 'Start Edit - Available files with data:', 'Edit', filesWithData);
+      
+      if (filesWithData.length > 0 && filesWithData[0] !== fileId) {
+        const correctFileId = filesWithData[0];
+        this.log.msg('3', `Start Edit - File ID mismatch! Using correct file ID:${correctFileId} instead of ${fileId}`, 'Edit');
+        fileId = correctFileId;
+      } else {
+        this.log.msg('2', 'Start Edit - Cannot find valid file data. Aborting edit.', 'Edit');
+        return;
+      }
+    }
+    
+    if (this.editingCell) {
+      // If already editing, save the previous cell first
+      this.log.msg('4', 'Start Edit - Already editing another cell. Saving first:', 'Edit', this.editingCell);
+      this.saveEdit(this.editingCell.fileId, this.editingCell.rowIndex, this.editingCell.columnField);
+    }
+
+    this.editingCell = { fileId, rowIndex, columnField };
+    this.editValue = currentValue;
+    this.originalCellValue = currentValue; // Store original value
+    this.log.msg('4', 'Start Edit - New editing cell:', 'Edit', { editingCell: this.editingCell, originalValue: this.originalCellValue });
+    this.cdRef.detectChanges();
+
+    setTimeout(() => {
+      this.editInput?.nativeElement.focus();
+    }, 0);
+  }
+
+  /**
+   * Saves the edited value and exits edit mode.
+   * @param fileId The ID of the file (from the outer grid row).
+   * @param rowIndex The index of the data row within the inner grid's current page.
+   * @param columnField The field name of the column.
+   */
+  saveEdit(fileId: number, rowIndex: number, columnField: string): void {
+    if (!this.isEditing(fileId, rowIndex, columnField)) {
+      this.log.msg('4', `Save Edit - Not currently editing cell. File:${fileId}, Row:${rowIndex}, Col:${columnField}`, 'Edit');
+      return;
+    }
+
+    this.log.msg('4', `Save Edit - Saving edit for File:${fileId}, Row:${rowIndex}, Col:${columnField}`, 'Edit', { currentValue: this.editValue, originalValue: this.originalCellValue });
+
+    // Validate file data exists and file ID is correct
+    if (!this.file_data[fileId] || !this.file_data[fileId].file_data) {
+      this.log.msg('2', `Save Edit ERROR - Invalid file data for fileId:${fileId}`, 'Edit');
+      
+      // Try to find an alternative file ID that has data
+      const filesWithData = Object.keys(this.file_data)
+        .filter(id => this.file_data[Number(id)]?.file_data?.length > 0)
+        .map(Number);
+        
+      this.log.msg('4', 'Save Edit - Available files with data:', 'Edit', filesWithData);
+      
+      if (filesWithData.length > 0 && filesWithData[0] !== fileId) {
+        const correctFileId = filesWithData[0];
+        this.log.msg('3', `Save Edit - File ID mismatch! Using correct file ID:${correctFileId} instead of ${fileId}`, 'Edit');
+        fileId = correctFileId;
+      } else {
+        this.log.msg('2', 'Save Edit - Cannot find valid file data. Aborting save.', 'Edit');
+        this.editingCell = null;
+        this.editValue = null;
+        this.originalCellValue = null;
+        this.cdRef.detectChanges();
+        return;
+      }
+    }
+    
+    // Also validate row exists
+    if (!this.file_data[fileId].file_data[rowIndex]) {
+      this.log.msg('2', `Save Edit ERROR - Row ${rowIndex} does not exist in file_data for fileId ${fileId}`, 'Edit');
+      this.log.msg('4', 'Save Edit - Available rows:', 'Edit', this.file_data[fileId].file_data.length);
+      
+      if (this.file_data[fileId].file_data.length > 0 && rowIndex >= this.file_data[fileId].file_data.length) {
+        rowIndex = 0; // Fallback to first row if row index is invalid
+        this.log.msg('3', 'Save Edit - Invalid row index! Using first row instead.', 'Edit');
+      } else {
+        this.log.msg('2', 'Save Edit - Cannot find valid row. Aborting save.', 'Edit');
+        this.editingCell = null;
+        this.editValue = null;
+        this.originalCellValue = null;
+        this.cdRef.detectChanges();
+        return;
+      }
+    }
+
+    // Now save the edit
+    const fileDataRecord = this.file_data[fileId];
+    if (fileDataRecord && fileDataRecord.file_data && fileDataRecord.file_data[rowIndex]) {
+      if (this.editValue !== this.originalCellValue) {
+        const oldValue = fileDataRecord.file_data[rowIndex][columnField];
+        fileDataRecord.file_data[rowIndex][columnField] = this.editValue;
+        this.isDirty[fileId] = true; // Mark as dirty
+        this.log.msg('4', `Save Edit - Marked dirty: File:${fileId}, Row:${rowIndex}, Col:${columnField}`, 'Edit', { from: oldValue, to: this.editValue });
+      } else {
+        this.log.msg('4', `Save Edit - No change, value unchanged: ${this.editValue}`, 'Edit');
+      }
+    } else {
+      this.log.msg('2', 'Save Edit ERROR - File record undefined or invalid after validation checks!', 'Edit');
+    }
+
+    this.editingCell = null;
+    this.editValue = null;
+    this.originalCellValue = null;
+    this.cdRef.detectChanges();
+  }
+
+  /**
+   * Cancels the current edit without saving.
+   */
+  cancelEdit(): void {
+    if (this.editingCell) {
+      // Optionally, revert the single cell being cancelled, 
+      // but cancelAllChanges will handle full revert anyway.
+      // Let's keep it simple and just exit edit mode.
+       this.log.msg('4', 'Cancel single cell edit', 'Edit');
+    }
+    this.editingCell = null;
+    this.editValue = null;
+    this.originalCellValue = null;
+    this.cdRef.detectChanges();
+  }
+
+
+  /**
+   * Saves all changes for a specific file to the backend.
+   * @param fileId The ID of the file to save.
+   */
+  saveAllChanges(fileId: number): void {
+    if (!this.isDirty[fileId]) {
+      this.log.msg('4', `No changes to save for fileId: ${fileId}`, 'Edit');
+      return;
+    }
+
+    const fileRecord = this.file_data[fileId];
+    const dataToSave = fileRecord?.file_data;
+
+    if (!fileRecord || !dataToSave) {
+      this.log.msg('2', `Could not find data or record to save for fileId: ${fileId}`, 'Edit');
+      return;
+    }
+
+    this.log.msg('4', `Saving changes for fileId: ${fileId}`, 'Edit', dataToSave);
+    
+    // Show loading indicator
+    fileRecord.isLoading = true;
+    this.cdRef.detectChanges();
+    
+    // Use the API service method instead of direct HTTP call
+    this._api.updateDataDrivenFile(fileId, dataToSave)
+      .subscribe({
+        next: (response: any) => {
+          this.log.msg('4', `Save successful for fileId: ${fileId}`, 'API', response);
+          
+          try {
+            // Parse the response if it's a string
+            const result = typeof response === 'string' ? JSON.parse(response) : response;
+            
+            if (result.success) {
+              // Update the original data to reflect saved state
+              this.original_file_data[fileId] = _.cloneDeep(dataToSave);
+              this.isDirty[fileId] = false; // Reset dirty flag
+              this._snackBar.open('Changes saved successfully!', 'OK', { 
+                duration: 3000,
+                panelClass: ['data-driven-custom-snackbar']
+              });
+            } else {
+              // Handle error in success response
+              const errorMessage = result.error || 'Unknown error occurred during save.';
+              this._snackBar.open(`Error: ${errorMessage}`, 'OK', { 
+                duration: 5000,
+                panelClass: ['data-driven-custom-snackbar']
+              });
+            }
+          } catch (e) {
+            // Handle parsing error
+            this.log.msg('2', 'Error parsing save response', 'API', e);
+            this._snackBar.open('Error saving changes: Invalid response from server.', 'OK', { 
+              duration: 5000,
+              panelClass: ['data-driven-custom-snackbar']
+            });
+          }
+        },
+        error: (err) => {
+          this.log.msg('2', `Save error for fileId: ${fileId}`, 'API', err);
+          
+          // Format detailed error message
+          let errorDetail = 'An unexpected server error occurred.';
+          if (err.status >= 400 && err.status < 500 && err.error) {
+            // Try to parse client-side errors
+            try {
+              const error = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+              errorDetail = error.error || JSON.stringify(error); 
+            } catch(e) {
+              errorDetail = err.error; // Use raw error if parsing fails
+            }
+          } else if (err.message) {
+            errorDetail = err.message;
+          }
+          
+          this._snackBar.open(`Failed to save changes: ${errorDetail}`, 'OK', {
+            duration: 5000,
+            panelClass: ['data-driven-custom-snackbar']
+          });
+        },
+        complete: () => {
+          fileRecord.isLoading = false;
+          this.cdRef.detectChanges();
+        }
+      });
+  }
+
+  /**
+   * Cancels all changes made to a specific file's data since last save/load.
+   * @param fileId The ID of the file to revert.
+   */
+  cancelAllChanges(fileId: number): void {
+    this.log.msg('4', `Cancelling changes for fileId: ${fileId}`, 'Edit');
+    if (this.original_file_data[fileId]) {
+      // Revert working copy to original using deep clone
+      this.file_data[fileId].file_data = _.cloneDeep(this.original_file_data[fileId]);
+      this.isDirty[fileId] = false; // Reset dirty flag
+      this.editingCell = null; // Ensure we exit any active cell edit
+      this.editValue = null;
+      this.originalCellValue = null;
+      this.cdRef.detectChanges();
+      this._snackBar.open('Changes cancelled.', 'OK', {
+        duration: 3000,
+        panelClass: ['data-driven-custom-snackbar']
+       });
+    } else {
+      this.log.msg('3', `Could not find original data to cancel changes for fileId: ${fileId}`, 'Edit');
+    }
+  }
+
+  /**
+   * Download a file
+   * @param file The file to download
+   */
+  onDownloadFile(file: UploadedFile) {
+    // return if file is still uploading
+    if (file.status.toLowerCase() !== 'done') {
+      return;
+    }
+
+    const downloading = this._snackBar.open(
+      'Generating file to download, please be patient.',
+      'OK',
+      { duration: 10000, panelClass: ['data-driven-custom-snackbar'] }
+    );
+
+    this.fileUpload.downloadFile(file.id).subscribe({
+      next: res => {
+        // Handle case where res.body could be null
+        if (!res.body) {
+          downloading.dismiss();
+          this._snackBar.open('Download failed: Empty response', 'OK', {
+             duration: 5000,
+             panelClass: ['data-driven-custom-snackbar']
+             });
+          return;
+        }
+        
+        const blob = new Blob([this.base64ToArrayBuffer(res.body)], {
+          type: file.mime || 'application/octet-stream', // Provide fallback mime type
+        });
+        this.fileUpload.downloadFileBlob(blob, file);
+        downloading.dismiss();
+      },
+      error: err => {
+        downloading.dismiss();
+        if (err.error) {
+          try {
+            const errors = typeof err.error === 'string' ? JSON.parse(err.error) : err.error;
+            this._snackBar.open(errors.error || 'Download failed', 'OK', {
+               duration: 5000,
+               panelClass: ['data-driven-custom-snackbar']
+               });
+          } catch {
+            this._snackBar.open('Download failed', 'OK', {
+               duration: 5000,
+               panelClass: ['data-driven-custom-snackbar']
+               });
+          }
+        } else {
+          this._snackBar.open('Download failed', 'OK', {
+             duration: 5000,
+             panelClass: ['data-driven-custom-snackbar']
+             });
+        }
+      },
+    });
+  }
+
+  /**
+   * Convert base64 string to array buffer
+   * Used for file download
+   */
+  base64ToArrayBuffer(data: string) {
+    const byteArray = atob(data);
+    const uint = new Uint8Array(byteArray.length);
+    for (let i = 0; i < byteArray.length; i++) {
+      let ascii = byteArray.charCodeAt(i);
+      uint[i] = ascii;
+    }
+    return uint;
   }
 }

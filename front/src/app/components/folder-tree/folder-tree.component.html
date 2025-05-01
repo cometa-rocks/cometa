@@ -27,12 +27,6 @@ Author: dph000
   <span> Mobile Devices</span>
 </div>
 
-<!-- API Testing -->
-<div class="container-wrapper" (click)="toggleList('api-testing')" [class.selected]="(activeList$ | async) === 'api-testing'" [matTooltip]="'api_testing.api_testing_presentation' | translate" matTooltipPosition="right">
-  <mat-icon class="api-testing">http</mat-icon>
-  <span> API Testing</span>
-</div>
-
 <!-- Variables list button -->
 <div (click)="toggleList('variables')" [class.selected]="(activeList$ | async) === 'variables'" [matTooltip]="'sidenav_page.variables_sidenav' | translate" matTooltipPosition="right">
   <mat-icon>settings_input_component</mat-icon>
