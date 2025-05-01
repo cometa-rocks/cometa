@@ -1,5 +1,5 @@
 {
-  "version": "3.0.42",
+  "version": "3.0.44",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,6 +237,26 @@
   ],
   "changelog": [
     {
+      "version": "3.0.44",
+      "date": "2025-04-30",
+      "features": [
+        {
+          "title": "Hot fixes (sorted folders in landing, stop execution wait for ID) - #4694",
+          "description": "Fixed issues in the landing page and the stop execution button."
+        }
+      ]
+    },
+    {
+      "version": "3.0.43",
+      "date": "2025-04-29",
+      "features": [
+        {
+          "title": "Data Driven Enhancements - #6091",
+          "description": "View live execution status of data driven runs, edit data driven files and download them."
+        }
+      ]
+    },
+    {
       "version": "3.0.42",
       "date": "2025-04-29",
       "features": [
@@ -325,7 +345,7 @@
       "date": "2025-04-23",
       "features": [
         {
-          "title": "Improvements to Data Driven section.",
+          "title": "Improvements to Data Driven section",
           "description": "Enhanced results filtering by department and file, pre-run validation was added to prevent executions referencing non-existent features. UI was restructured using expansion panels and enabled detailed real-time status progress updates during test runs."
         }
       ]
