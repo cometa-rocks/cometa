@@ -58,8 +58,6 @@ import { KEY_CODES } from '@others/enums';
 import { ElementRef, HostListener } from '@angular/core';
 import { InputFocusService } from '@services/inputFocus.service';
 import { TranslateModule } from '@ngx-translate/core';
-import { ApiTestingComponent } from '../api-testing/api-testing.component';
-
 @UntilDestroy()
 @Component({
   selector: 'cometa-l1-landing',
@@ -122,8 +120,7 @@ import { ApiTestingComponent } from '../api-testing/api-testing.component';
     L1FeatureTrashbinListComponent,
     MobileListComponent,
     AsyncPipe,
-    TranslateModule,
-    ApiTestingComponent
+    TranslateModule
   ],
 })
 export class L1LandingComponent implements OnInit {
