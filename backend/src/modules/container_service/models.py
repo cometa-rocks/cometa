@@ -89,7 +89,7 @@ class ContainerService(models.Model):
     def save(self, *args, **kwargs):
         service_manager = ServiceManager()
         if not self.id:
-            if service_type == "Emulator":
+            if self.service_type == "Emulator":
                 # Perform delete and return true
                 image = self.image.mobile_json["image"]
                 service_manager.prepare_emulator_service_configuration(image=image)
