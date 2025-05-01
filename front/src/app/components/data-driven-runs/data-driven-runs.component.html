@@ -1,5 +1,5 @@
 <mat-accordion multi>
-  <!-- Information Panel -->
+  <!-- Filters Panel -->
   <mat-expansion-panel 
     [expanded]="panelConfig.informationPanel" 
     (afterExpand)="togglePanel('informationPanel', true)" 
@@ -72,8 +72,13 @@
     
     <ng-template matExpansionPanelContent>
       <div class="table-container">
+        <app-loading-spinner 
+          [isVisible]="isLoadingFiles && (!department || !department.files)" 
+          [message]="'Loading files, please wait...'"
+        ></app-loading-spinner>
+
         <mtx-grid
-          *ngIf="department?.files"
+          *ngIf="department?.files && !isLoadingFiles"
           [data]="department?.files | availableFiles"
           [columns]="fileColumns"
           [sortOnFront]="true"
@@ -94,7 +99,7 @@
           [showPaginator]="showPagination"
           [noResultTemplate]="noFilesTpl"
           [toolbarTemplate]="fileToolbarTpl"
-          (page)="updateFilePagination($event, $event.rowData)"
+          (page)="updateFilePagination($event, row)"
           [expandable]="true"
           [expansionTemplate]="expansionTpl"
           (expansionChange)="expand($event)">
@@ -115,36 +120,41 @@
       <mat-panel-description>Data Driven Test Results</mat-panel-description>
     </mat-expansion-panel-header>
     
-<mtx-grid
-  *ngIf="results"
-  [data]="results"
-  [columns]="columns"
-  [sortOnFront]="true"
-  sortActive="date_time"
-  sortDirection="desc"
-  [sortDisableClear]="true"
-  [sortDisabled]="false"
-  [showToolbar]="true"
-  [showColumnMenuButton]="true"
-  [columnMenuButtonType]="'stroked'"
-  [columnMenuButtonIcon]="'view_column'"
-  [length]="total"
-  [pageOnFront]="false"
-  [pageIndex]="query.page"
-  [pageSize]="query.size"
-  [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
-  (rowClick)="openContent($event.rowData)"
-  [cellTemplate]="{
-    status: statusTpl,
-    date_time: dateTpl,
-    execution_time: timeTpl,
-    pixel_diff: pixelTpl
-  }"
-  [noResultTemplate]="noResultTpl"
-  [showPaginator]="showPagination"
-  [toolbarTemplate]="toolbarTpl"
-  (page)="updateResultsPagination($event)">
-</mtx-grid>
+    <app-loading-spinner 
+      [isVisible]="isLoading" 
+      [message]="'Data is loading, please wait...'"
+    ></app-loading-spinner>
+
+    <mtx-grid
+      *ngIf="!isLoading && results"
+      [data]="results"
+      [columns]="columns"
+      [sortOnFront]="true"
+      sortActive="date_time"
+      sortDirection="desc"
+      [sortDisableClear]="true"
+      [sortDisabled]="false"
+      [showToolbar]="true"
+      [showColumnMenuButton]="true"
+      [columnMenuButtonType]="'stroked'"
+      [columnMenuButtonIcon]="'view_column'"
+      [length]="total"
+      [pageOnFront]="false"
+      [pageIndex]="query.page"
+      [pageSize]="query.size"
+      [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
+      (rowClick)="openContent($event.rowData)"
+      [cellTemplate]="{
+        status: statusTpl,
+        date_time: dateTpl,
+        execution_time: timeTpl,
+        pixel_diff: pixelTpl
+      }"
+      [noResultTemplate]="noResultTpl"
+      [showPaginator]="showPagination"
+      [toolbarTemplate]="toolbarTpl"
+      (page)="updateResultsPagination($event)">
+    </mtx-grid>
   </mat-expansion-panel>
 </mat-accordion>
 
@@ -255,22 +265,60 @@
 </ng-template>
 
 <ng-template #expansionTpl let-row>
-  <mtx-grid
-    [data]="file_data[row.id]?.file_data"
-    [columns]="file_data[row.id]?.columns"
-    [sortOnFront]="true"
-    sortDirection="desc"
-    [sortDisableClear]="true"
-    [sortDisabled]="false"
-    [pageOnFront]="false"
-    [pageIndex]="file_data[row.id]?.params ? file_data[row.id].params.page : 0"
-    [pageSize]="file_data[row.id]?.params ? file_data[row.id].params.size : 10"
-    [length]="file_data[row.id]?.total"
-    [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
-    [noResultTemplate]="noFileDataTpl"
-    [showPaginator]="file_data[row.id]?.showPagination"
-    (page)="updateFilePagination($event, row)">
-  </mtx-grid>
+  <div class="expansion-content">
+    <app-loading-spinner 
+      [isVisible]="file_data[row.id]?.isLoading"
+      [message]="file_data[row.id]?.isLoading ? 'Saving changes...' : 'Loading file data...'"
+      [paddingTop]="20"
+      [paddingBottom]="20"
+    ></app-loading-spinner>
+
+    <!-- Buttons Container - Shown only when data is dirty -->
+    <div *ngIf="isDirty[row.id] && !file_data[row.id]?.isLoading" class="action-buttons-container" style="padding: 10px 0; text-align: right;">
+        <button mat-stroked-button color="warn" (click)="cancelAllChanges(row.id)" style="margin-right: 8px;">
+            <mat-icon>cancel</mat-icon>
+            Cancel Changes
+        </button>
+        <button mat-flat-button color="primary" (click)="saveAllChanges(row.id)">
+            <mat-icon>save</mat-icon>
+            Save Changes
+        </button>
+    </div>
+
+    <ng-template #dynamicEditableCellTpl let-dataItem let-col="colDef" let-index="index">
+       <div (dblclick)="!isEditing((col.customData?.fileId || row.id), index, col.field) && startEdit((col.customData?.fileId || row.id), index, col.field, dataItem[col.field])" style="min-height: 22px; width: 100%; cursor: text; padding: 2px 5px;">
+         <span *ngIf="!isEditing((col.customData?.fileId || row.id), index, col.field)">
+           {{ dataItem[col.field] }}
+         </span>
+         <input #editInput *ngIf="isEditing((col.customData?.fileId || row.id), index, col.field)" 
+                type="text" 
+                [(ngModel)]="editValue" 
+                (focus)="inputFocusService.setInputFocus(true)" 
+                (blur)="inputFocusService.setInputFocus(false); saveEdit((col.customData?.fileId || row.id), index, col.field)" 
+                (keydown.enter)="saveEdit((col.customData?.fileId || row.id), index, col.field); $event.stopPropagation()" 
+                (keydown.escape)="cancelEdit(); $event.stopPropagation()"
+                style="width: 95%; padding: 1px; border: 1px solid #ccc; border-radius: 3px;">
+       </div>
+     </ng-template>
+
+    <mtx-grid
+      *ngIf="!file_data[row.id]?.isLoading"
+      [data]="file_data[row.id]?.file_data"
+      [columns]="file_data[row.id]?.columns"
+      [sortOnFront]="true"
+      sortDirection="desc"
+      [sortDisableClear]="true"
+      [sortDisabled]="false"
+      [pageOnFront]="false"
+      [pageIndex]="file_data[row.id]?.params ? file_data[row.id].params.page : 0"
+      [pageSize]="file_data[row.id]?.params ? file_data[row.id].params.size : 10"
+      [length]="file_data[row.id]?.total"
+      [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
+      [noResultTemplate]="noFileDataTpl"
+      [showPaginator]="file_data[row.id]?.showPagination"
+      (page)="updateFilePagination($event, row)">
+    </mtx-grid>
+  </div>
 </ng-template>
 
 <!-- No Results templates for files -->
