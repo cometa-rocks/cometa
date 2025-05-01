@@ -82,9 +82,16 @@ def getFileContent(file: File):
     import pandas as pd
     try:
         df = pd.read_csv(targetPath, header=0, skipinitialspace=True, skip_blank_lines=True)
+        
+        # Preserve original column order before any modifications
+        original_columns = list(df.columns)
+        file.column_order = original_columns
     except ValueError:
         try:
             df = pd.read_excel(targetPath, header=0)
+            
+            original_columns = list(df.columns)
+            file.column_order = original_columns
         except:
             logger.info("saving data...")
             file.extras['ddr'] = {

@@ -12,7 +12,7 @@ import {
   MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
-import { Store, Actions, ofActionCompleted } from '@ngxs/store';
+import { Store, Actions, ofActionCompleted, ofActionDispatched } from '@ngxs/store';
 import { Subscribe } from 'app/custom-decorators';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import {
@@ -107,6 +107,7 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   feature$: Observable<Feature>;
   steps$: Observable<FeatureStep[]>;
   isLoading: boolean = false;
+  canStop: boolean = false;
 
   // Controls de auto scroll
   autoScroll = localStorage.getItem('live_steps_auto_scroll') === 'true';
@@ -151,6 +152,13 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   mobiles = {}
   configuration_value_boolean: boolean = false;
   docker_kubernetes_name: string = ''
+
+  disabledStatuses = [
+    'Queued',
+    'Feature Queued',
+    'Initializing feature',
+  ];
+  
 
   ngOnInit() {
     this._api.getCometaConfigurations().subscribe(res => {
@@ -222,9 +230,15 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
         }
       });
 
+      this.status$.subscribe(status => {
+        console.log("Los status: ", status);
+        this.canStop = !this.disabledStatuses.includes(status);
+        this._cdr.markForCheck();
+      });
+
   }
 
-  @Subscribe()
+
   stopTest() {
     this.isLoading = true;
     this._api.stopRunningTask(this.feature_id).subscribe(
