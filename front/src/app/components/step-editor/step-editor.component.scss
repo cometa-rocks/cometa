@@ -671,15 +671,15 @@ textarea {
 }
 
 .disabled-menu-item {
-  color: #999;               /* grey text */
-  cursor: default;           /* default arrow cursor */
-  pointer-events: none;      /* disables clicks and hovers */
-  display: flex;             /* keep layout similar */
+  color: #999;               
+  cursor: default;           
+  pointer-events: none;      
+  display: flex;             
   align-items: center;
-  opacity: 0.6;              /* visual dimming */
+  opacity: 0.6;              
 }
 .disabled-menu-item mat-icon {
-  color: #999;               /* ensure icon is also greyed out */
+  color: #999;               
 }
 
 .api-testing-dialog {
