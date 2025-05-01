@@ -59,6 +59,25 @@
     </div>
   </ng-template>
   <ng-template contextMenuItem let-item>
+    <div 
+      *ngIf="isApiCallStep(item)"
+      [matTooltip]="'Edit current API Call'"
+      matTooltipPosition="right"
+      (click)="editApiCall(item)">
+      <mat-icon class="edit">edit</mat-icon>
+      <span>Edit API Call</span>
+    </div>
+    <div 
+      *ngIf="!isApiCallStep(item)"
+      (click)="editApiCall(item)"
+      [matTooltip]="'Only available for API call steps'"
+      matTooltipPosition="right"
+      class="disabled-menu-item">
+      <mat-icon class="edit">edit</mat-icon>
+      <span>Edit API Call</span>
+    </div>
+  </ng-template>
+  <ng-template contextMenuItem let-item>
     <div (click)="deleteStep(item)">
       <mat-icon class="delete">delete</mat-icon>
       <span>Delete</span>
@@ -133,7 +152,14 @@
             (focusout)="onStepFocusOut($event)"
             (keydown.esc)="onStepEscape($event)"
             (keydown.Tab)="onTextareaTab(i)">
+            <div 
+                *ngIf="isApiCallStep(i) && !isEditingApiCall(i)"
+                class="collapsed-api-call"
+                (click)="expandApiCall(i)">
+                {{ getCollapsedApiCall(i) }}
+            </div>
             <textarea
+              *ngIf="!isApiCallStep(i) || isEditingApiCall(i)"
               (input)="onStepChange($event, i)"
               (blur)="fixStep($event, i)"
               (click)="
@@ -154,7 +180,7 @@
               formControlName="step_content"
               [matAutocomplete]="stepHelp"
               placeholder="Step Code"
-              (focus)="sendTextareaFocusToParent(true, i)">
+              (focus)="sendTextareaFocusToParent(true, i) && onTextareaFocus($event, i)">
             </textarea>
             <mat-list
               class="var_name_autoComplete"
