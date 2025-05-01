@@ -44,6 +44,8 @@ import { LetDirective } from '../../directives/ng-let.directive';
 export class FolderItemTreeComponent implements OnInit {
   // stores state for each folder in hierarchy
   folderState = {};
+  // Local state for sorted folders
+  sortedFolders: Folder[] = [];
 
   constructor(
     private _store: Store,
@@ -97,11 +99,20 @@ export class FolderItemTreeComponent implements OnInit {
    * Sorts folders alphabetically by name
    */
   private sortFoldersAlphabetically(): void {
-    this.folder.folders.sort((a, b) => {
-      const nameA = a.name.toLowerCase();
-      const nameB = b.name.toLowerCase();
-      return nameA.localeCompare(nameB);
-    });
+    if (this.folder.folders) {
+      this.sortedFolders = [...this.folder.folders].sort((a, b) => {
+        const nameA = a.name.toLowerCase();
+        const nameB = b.name.toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
+    }
+  }
+
+  /**
+   * Helper method to get the folders to display
+   */
+  getFolders(): Folder[] {
+    return this.sortedFolders.length > 0 ? this.sortedFolders : (this.folder.folders || []);
   }
 
   /**
