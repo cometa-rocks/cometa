@@ -786,6 +786,24 @@ export class ApiService {
     return this._http.delete<any>(`${this.api}data_driven/${run_id}/`);
   }
 
+  /**
+   * Updates the data in a data-driven file
+   * @param fileId The ID of the file to update
+   * @param data The updated data rows array
+   * @returns An observable with the response from the server
+   */
+  updateDataDrivenFile(fileId: number, data: any[]) {
+    return this._http.put<any>(
+      `${this.api}data_driven/file/${fileId}/`,
+      { data },
+      {
+        params: new InterceptorParams({
+          skipInterceptor: true,
+        })
+      }
+    );
+  }
+
   downloadFile(file_id: number) {
     return this._http.get(`${this.api}uploads/${file_id}/`, {
       params: new InterceptorParams({
