@@ -1,0 +1,27 @@
+@import 'color';
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+}
+
+.loading-text {
+  margin-top: 16px;
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.7);
+  text-align: center;
+  font-weight: normal;
+}
+
+// Override Material spinner color
+::ng-deep {
+  .mat-spinner circle,
+  .mat-progress-spinner circle,
+  .mdc-circular-progress__determinate-circle,
+  .mdc-circular-progress__indeterminate-circle-graphic {
+    stroke: $blue !important;
+  }
+} 
