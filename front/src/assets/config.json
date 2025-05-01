@@ -1,5 +1,5 @@
 {
-  "version": "3.0.42",
+  "version": "3.0.44",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.44",
+      "date": "2025-04-30",
+      "features": [
+        {
+          "title": "Hot fixes (sorted folders in landing, stop execution wait for ID) - #4694",
+          "description": "Fixed issues in the landing page and the stop execution button."
+        }
+      ]
+    },
     {
       "version": "3.0.43",
       "date": "2025-04-29",
