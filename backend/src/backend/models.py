@@ -1540,6 +1540,7 @@ class File(SoftDeletableModel):
     status = models.CharField(max_length=10, choices=file_status, default="Unknown")
     uploaded_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True)
     extras = models.JSONField(default=dict)
+    column_order = models.JSONField(default=list, null=True, help_text='Original column order from the file')
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
 
     def restore(self, using=None):
