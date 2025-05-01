@@ -1,20 +1,23 @@
-<h2>Manage accounts</h2>
-<mat-form-field appearance="fill">
-  <mat-label>Search user</mat-label>
-  <input 
-  type="search" 
-  disableAutocomplete 
-  [formControl]="search" 
-  matInput 
-  (focus)="onInputFocus()"
-  (blur)="onInputBlur()"/>
-</mat-form-field>
+<div class="header-container">
+  <h2>Manage accounts</h2>
+  <mat-form-field appearance="fill" class="centered-input">
+    <mat-label>Search user</mat-label>
+    <input 
+    type="search" 
+    disableAutocomplete 
+    [formControl]="search" 
+    matInput 
+    (focus)="onInputFocus()"
+    (blur)="onInputBlur()"/>
+  </mat-form-field>
+</div>
 <network-paginated-list
   listId="admin_accounts"
   [endpointUrl]="accountsUrl$ | async"
   [noItemsTemplate]="noItemsFound"
   [injectIndex]="true"
-  [itemTemplate]="listItem">
+  [itemTemplate]="listItem"
+  [showToolbar]="false">
   <ng-template #listItem let-item>
     <account [account]="item"></account>
   </ng-template>

@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-10-14
+
 from django.db import models
 from backend.models import OIDCAccount, File
 from .service_manager import ServiceManager
@@ -85,7 +89,7 @@ class ContainerService(models.Model):
     def save(self, *args, **kwargs):
         service_manager = ServiceManager()
         if not self.id:
-            if service_type == "Emulator":
+            if self.service_type == "Emulator":
                 # Perform delete and return true
                 image = self.image.mobile_json["image"]
                 service_manager.prepare_emulator_service_configuration(image=image)

@@ -8,6 +8,25 @@
   box-sizing: border-box;
 }
 
+// Expansion panel content styling
+:host ::ng-deep {
+  // Target the expanded content area
+  .mtx-grid-expansion-detail {
+    width: 100%;
+    
+    app-loading-spinner {
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+  }
+}
+
+.mat-mdc-option {
+  font-size: 14px !important;
+  font-family: CorpoS,sans-serif !important;
+}
+
 // Accordion styles
 mat-accordion {
   margin-bottom: 20px;
@@ -44,7 +63,6 @@ mat-accordion {
 
   .edit-dep, .edit-file {
     min-width: 250px;
-    flex: 1;
   }
 }
 
@@ -271,4 +289,25 @@ mat-accordion {
   .mat-mdc-snack-bar-actions .mdc-button {
     color: $secondary-color !important; 
   }
+}
+
+// expansion content
+.expansion-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  
+  // Make the grid take full width
+  mtx-grid {
+    width: 100%;
+    
+    ::ng-deep td {
+      font-weight: normal !important;
+    }
+  }
+}
+
+:host ::ng-deep .mat-mdc-select-panel {
+  overflow-x: hidden !important;
 }
