@@ -598,7 +598,10 @@ export class EditFeature implements OnInit, OnDestroy {
     const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
     const startEmulatorOpen = document.querySelector('mobile-list') as HTMLElement;
     const apiScreenOpen = document.querySelector('.api-testing-container') as HTMLElement;
-    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null){
+    const emailTemplateHelpOpen = document.querySelector('cometa-email-template-help') as HTMLElement;
+    const scheduleHelpOpen = document.querySelector('schedule-help') as HTMLElement;
+    
+    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
@@ -1095,7 +1098,14 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   openEmailHelp() {
-    this._dialog.open(EmailTemplateHelp);
+    // this._dialog.open(EmailTemplateHelp);
+
+    // Close help dialog when pressing escape, but keep edit dialog open
+    const dialogRef = this._dialog.open(EmailTemplateHelp);
+    dialogRef.afterClosed().subscribe(() => {
+      // Dialog closed
+    });
+
   }
 
   /**

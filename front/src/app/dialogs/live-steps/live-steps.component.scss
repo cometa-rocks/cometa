@@ -178,15 +178,11 @@ h2 {
     }
     .mat-dialog-container {
       max-width: calc(100vw - 30px) !important;
-      // max-height: calc(100vh - 30px) !important;
-      // min-width: 800px;
       width: 100%;
       @include for-tablet-portrait-up {
         width: 900px;
         min-width: 900px;
       }
-      // min-height: 300px;
-      resize: horizontal;
     }
   }
 }
