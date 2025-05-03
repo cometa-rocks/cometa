@@ -22,5 +22,7 @@ import { MatIconModule } from '@angular/material/icon';
 export class L1FeatureTrashbinListComponent implements OnInit {
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    
+  }
 }
