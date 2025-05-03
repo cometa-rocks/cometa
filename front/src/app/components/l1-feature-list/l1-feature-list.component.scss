@@ -205,3 +205,28 @@
 :host::ng-deep .exec-feature-loading {
   margin: 0 auto;
 }
+
+.deletion-countdown {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: rgba(255, 0, 0, 0.1);
+  color: #d32f2f;
+  font-size: 14px;
+  
+  mat-icon {
+    margin-right: 8px;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .cancel-deletion {
+    margin-left: auto;
+    color: #d32f2f;
+    
+    &:hover {
+      background-color: rgba(211, 47, 47, 0.1);
+    }
+  }
+}

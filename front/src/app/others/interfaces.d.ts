@@ -1152,3 +1152,9 @@ interface FeatureData {
   depends_on_others?: boolean;
   schedule?: string;
 }
+
+interface FeatureDeletionStatus {
+  feature_id: number;
+  deletion_date: string; // ISO date string
+  deleted_by: number; // user_id
+}

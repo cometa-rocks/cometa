@@ -135,14 +135,30 @@ Author: dph000
     <!-- Delete feature -->
     <button
       *ngIf="row.id | hasPermission: 'delete_feature' | async"
-      (click)="SAdeleteFeature(row.id)"
-      matTooltip="Delete feature {{ row.name }}"
+      (click)="scheduleDeletion(row.id)"
+      matTooltip="Schedule deletion of {{ row.name }}"
       matTooltipPosition="before"
       class="delete-feature"
       mat-menu-item>
       <mat-icon>delete</mat-icon>
-      <span>Delete</span>
+      <span>Schedule Deletion</span>
     </button>
+    <!-- Show deletion countdown if feature is scheduled for deletion -->
+    <ng-container *ngIf="deletionStatusMap.get(row.id) | async as deletionStatus">
+      <div *ngIf="deletionStatus" class="deletion-countdown">
+        <mat-icon>timer</mat-icon>
+        <span>{{ getDaysRemaining(deletionStatus.deletion_date) }} days until deletion</span>
+        <button
+          (click)="cancelDeletion(row.id)"
+          matTooltip="Cancel deletion"
+          matTooltipPosition="before"
+          class="cancel-deletion"
+          mat-menu-item>
+          <mat-icon>undo</mat-icon>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </ng-container>
   </mat-menu>
   <!-- Menu to manage folder -->
   <mat-menu class="folderOptionsMenu" #folderOptions="matMenu">
