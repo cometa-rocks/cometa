@@ -5,9 +5,31 @@ Component containing the list with the features inside of the trash bin
 Author: dph000
 
 -->
-<div class="container">
-  <h2>
-    <mat-icon>format_paint</mat-icon>
-    Upcoming feature! Please, come again later.
-  </h2>
+<div class="trashbin-container">
+  <div class="trashbin-header">
+    <h2>Trash Bin</h2>
+    <p>Features marked for deletion will be permanently removed after 30 days.</p>
+  </div>
+
+  <div class="features-list" *ngIf="markedFeatures$ | async as features">
+    <div class="feature-item" *ngFor="let feature of features">
+      <div class="feature-info">
+        <span class="feature-name">{{ feature.feature_name }}</span>
+        <span class="feature-id">ID: {{ feature.feature_id }}</span>
+      </div>
+      <div class="feature-actions">
+        <button mat-icon-button color="primary" (click)="restoreFeature(feature.feature_id)" matTooltip="Restore feature">
+          <mat-icon>restore</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="deleteFeature(feature.feature_id)" matTooltip="Delete permanently">
+          <mat-icon>delete_forever</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="(markedFeatures$ | async)?.length === 0">
+    <mat-icon>delete_outline</mat-icon>
+    <p>No features marked for deletion</p>
+  </div>
 </div>

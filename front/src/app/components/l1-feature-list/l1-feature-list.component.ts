@@ -64,8 +64,6 @@ import { MtxGridModule } from '@ng-matero/extensions/grid';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { map } from 'rxjs/operators';
 import { StarredService } from '@services/starred.service';
-import { FeatureDeletionService } from '@services/feature-deletion.service';
-import { FeatureDeletionStatus } from '@others/interfaces';
 
 
 @Component({
@@ -114,7 +112,6 @@ export class L1FeatureListComponent implements OnInit {
     private _snackBar: MatSnackBar,
     private log: LogService,
     private _starred: StarredService,
-    private featureDeletionService: FeatureDeletionService
   ) {}
 
   @Input() data$: any; // Contains the new structure of the features / folders
@@ -195,7 +192,6 @@ export class L1FeatureListComponent implements OnInit {
   isStarred$: Observable<boolean>;
   public isStarredMap: Map<number, Observable<boolean>> = new Map();
 
-  deletionStatusMap = new Map<number, Observable<FeatureDeletionStatus | null>>();
 
   ngOnInit() {
     this.log.msg('1', 'Initializing component...', 'feature-list');
@@ -224,31 +220,6 @@ export class L1FeatureListComponent implements OnInit {
       }
     });
 
-    this.initializeDeletionStatusMap();
-  }
-
-  private initializeDeletionStatusMap() {
-    this.data$.subscribe(data => {
-      if (data?.rows) {
-        data.rows.forEach(row => {
-          if (row.type === 'feature') {
-            this.deletionStatusMap.set(row.id, this.featureDeletionService.getDeletionStatus(row.id));
-          }
-        });
-      }
-    });
-  }
-
-  scheduleDeletion(featureId: number) {
-    this.featureDeletionService.scheduleDeletion(featureId);
-  }
-
-  cancelDeletion(featureId: number) {
-    this.featureDeletionService.cancelDeletion(featureId);
-  }
-
-  getDaysRemaining(deletionDate: string): number {
-    return this.featureDeletionService.getDaysRemaining(deletionDate);
   }
 
   /**

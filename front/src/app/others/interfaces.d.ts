@@ -225,6 +225,7 @@ interface Feature {
   continue_on_failure?: boolean;
   need_help: boolean;
   current_folder_id?: number;
+  marked_for_deletion?: boolean;
 }
 
 interface FeatureRun {
@@ -1153,8 +1154,3 @@ interface FeatureData {
   schedule?: string;
 }
 
-interface FeatureDeletionStatus {
-  feature_id: number;
-  deletion_date: string; // ISO date string
-  deleted_by: number; // user_id
-}

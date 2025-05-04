@@ -10,19 +10,42 @@
  * @author: dph000
  */
 import { Component, OnInit } from '@angular/core';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { Observable } from 'rxjs';
+import { SharedActionsService } from '@services/shared-actions.service';
 
 @Component({
   selector: 'cometa-l1-feature-trashbin-list',
   templateUrl: './l1-feature-trashbin-list.component.html',
   styleUrls: ['./l1-feature-trashbin-list.component.scss'],
   standalone: true,
-  imports: [MatIconModule],
+  imports: [
+    CommonModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+    AsyncPipe
+  ]
 })
 export class L1FeatureTrashbinListComponent implements OnInit {
-  constructor() {}
+  markedFeatures$: Observable<any[]>;
+
+  constructor(private _sharedActions: SharedActionsService) {
+    this.markedFeatures$ = this._sharedActions.getMarkedForDeletionFeatures();
+  }
 
   ngOnInit(): void {
-    
+    // Inicialización adicional si es necesaria
+  }
+
+  restoreFeature(featureId: number): void {
+    this._sharedActions.restoreFeature(featureId);
+  }
+
+  deleteFeature(featureId: number): void {
+    this._sharedActions.deleteFeature(featureId);
   }
 }

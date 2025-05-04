@@ -637,4 +637,49 @@ export class SharedActionsService {
     });
   }
   
+  scheduleDeletion(featureId: number) {
+    return this._api.patchFeature(featureId, {
+      marked_for_deletion: true
+    }, {
+      loading: 'Scheduling feature for deletion'
+    }).subscribe(
+      () => {
+        // Opcional: Mostrar un mensaje de éxito
+        this._snack.open('Feature scheduled for deletion', 'Close', {
+          duration: 3000
+        });
+      },
+      error => {
+        // Opcional: Mostrar un mensaje de error
+        this._snack.open('Error scheduling feature for deletion', 'Close', {
+          duration: 3000
+        });
+      }
+    );
+  }
+
+  getMarkedForDeletionFeatures() {
+    return this._api.getFeatures().pipe(
+      map(response => response.results.filter(feature => feature.marked_for_deletion))
+    );
+  }
+
+  restoreFeature(featureId: number) {
+    return this._api.patchFeature(featureId, {
+      marked_for_deletion: false
+    }, {
+      loading: 'Restoring feature'
+    }).subscribe(
+      () => {
+        this._snack.open('Feature restored successfully', 'Close', {
+          duration: 3000
+        });
+      },
+      error => {
+        this._snack.open('Error restoring feature', 'Close', {
+          duration: 3000
+        });
+      }
+    );
+  }
 }
