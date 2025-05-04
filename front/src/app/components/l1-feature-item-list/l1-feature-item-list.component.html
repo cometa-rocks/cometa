@@ -296,7 +296,7 @@ Author: dph000
         <button
           type="button"
           *ngIf="canDeleteFeature$ | async"
-          (click)="_sharedActions.deleteFeature(item.id)"
+          (click)="openDeleteConfirmationDialog(item)"
           matTooltip="Delete feature {{ item.name }}"
           matTooltipPosition="before"
           class="delete-feature"

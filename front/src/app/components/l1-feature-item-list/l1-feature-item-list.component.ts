@@ -45,6 +45,8 @@ import {
   LowerCasePipe,
 } from '@angular/common';
 import { StarredService } from '@services/starred.service';
+import { DeleteConfirmationDialogComponent } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
+// import { Feature } from '../../others/interfaces';
 
 @Component({
   selector: 'cometa-l1-feature-item-list',
@@ -449,5 +451,18 @@ export class L1FeatureItemListComponent implements OnInit {
     });
   }
 
+  openDeleteConfirmationDialog(feature: any) {
+    const dialogRef = this._dialog.open(DeleteConfirmationDialogComponent, {
+      width: '400px',
+      data: { feature }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Marcar el feature para eliminación
+        this._sharedActions.scheduleDeletion(feature.feature_id);
+      }
+    });
+  }
 }
 

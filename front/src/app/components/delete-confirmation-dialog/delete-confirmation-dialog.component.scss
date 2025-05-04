@@ -1,0 +1,29 @@
+@import 'color';
+
+:host {
+  display: block;
+  padding: 24px;
+}
+
+.dialog-title {
+  color: $blue;
+  margin-bottom: 20px;
+  font-size: 1.2em;
+  font-weight: 500;
+}
+
+.dialog-content {
+  margin-bottom: 20px;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+mat-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 0;
+  
+  button {
+    font-weight: 500;
+  }
+} 
