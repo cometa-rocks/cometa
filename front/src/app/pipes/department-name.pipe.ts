@@ -12,7 +12,8 @@ export class DepartmentNamePipe implements PipeTransform {
 
   @memo()
   transform(departmentId: number): string {
-    return this.departments.find(dept => dept.department_id === departmentId)
-      .department_name;
+    if (!departmentId || !this.departments) return '';
+    const department = this.departments.find(dept => dept.department_id === departmentId);
+    return department ? department.department_name : '';
   }
 }

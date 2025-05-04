@@ -112,7 +112,10 @@ export class L1FeatureListComponent implements OnInit {
     private _snackBar: MatSnackBar,
     private log: LogService,
     private _starred: StarredService,
-  ) {}
+  ) {
+    // Ensure we only get active features (not marked for deletion)
+    this.data$ = this._sharedActions.getActiveFeatures();
+  }
 
   @Input() data$: any; // Contains the new structure of the features / folders
   // Initializes the sorting and pagination variables
@@ -457,5 +460,10 @@ export class L1FeatureListComponent implements OnInit {
   toggleStarred(event: Event, featureId: number, featureName: string): void {
     event.stopPropagation();
     this._sharedActions.toggleStarred(event, featureId, featureName);
+  }
+
+  scheduleDeletion(featureId: number) {
+    console.log('[L1FeatureList] Llamando a scheduleDeletion para featureId:', featureId);
+    this._sharedActions.scheduleDeletion(featureId);
   }
 }

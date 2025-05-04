@@ -532,4 +532,16 @@ export class CustomSelectors {
       }
     );
   }
+
+  static GetMarkedForDeletionFeatures() {
+    return createSelector([FeaturesState], (state: IFeaturesState) => {
+      return Object.values(state.details).filter(feature => feature.marked_for_deletion === true);
+    });
+  }
+
+  static GetActiveFeatures() {
+    return createSelector([FeaturesState], (state: IFeaturesState) => {
+      return Object.values(state.details).filter(feature => feature.marked_for_deletion !== true);
+    });
+  }
 }

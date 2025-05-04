@@ -638,18 +638,23 @@ export class SharedActionsService {
   }
   
   scheduleDeletion(featureId: number) {
+    console.log('=== Schedule Deletion Debug ===');
+    console.log('Scheduling deletion for feature ID:', featureId);
+    
     return this._api.patchFeature(featureId, {
       marked_for_deletion: true
     }, {
       loading: 'Scheduling feature for deletion'
     }).subscribe(
-      () => {
+      (response) => {
+        console.log('Feature marked for deletion response:', response);
         // Opcional: Mostrar un mensaje de éxito
         this._snack.open('Feature scheduled for deletion', 'Close', {
           duration: 3000
         });
       },
       error => {
+        console.error('Error marking feature for deletion:', error);
         // Opcional: Mostrar un mensaje de error
         this._snack.open('Error scheduling feature for deletion', 'Close', {
           duration: 3000
@@ -659,8 +664,39 @@ export class SharedActionsService {
   }
 
   getMarkedForDeletionFeatures() {
-    return this._api.getFeatures().pipe(
-      map(response => response.results.filter(feature => feature.marked_for_deletion))
+    return this._store.select(CustomSelectors.GetMarkedForDeletionFeatures()).pipe(
+      map(features => features.map(feature => ({
+        ...feature,
+        type: 'feature',
+        marked_for_deletion: true,
+        id: feature.feature_id,
+        name: feature.feature_name,
+        description: feature.description || '',
+        browsers: feature.browsers || [],
+        status: feature.info?.status || '',
+        date: feature.info?.result_date || '',
+        time: feature.info?.execution_time || 0,
+        total: feature.info?.total || 0,
+        help: feature.need_help || false,
+        depends_on_others: feature.depends_on_others || false,
+        schedule: feature.schedule || '',
+        department: feature.department_name || '',
+        reference: feature
+      })))
+    );
+  }
+
+  getActiveFeatures() {
+    return this._store.select(CustomSelectors.GetActiveFeatures()).pipe(
+      map(features => {
+        return features.map(feature => ({
+          type: 'feature',
+          id: feature.feature_id,
+          name: feature.feature_name,
+          reference: feature,
+          marked_for_deletion: false
+        }));
+      })
     );
   }
 

@@ -8,24 +8,32 @@ Author: dph000
 <div class="trashbin-container">
   <div class="trashbin-header">
     <h2>Trash Bin</h2>
-    <p>Features marked for deletion will be permanently removed after 30 days.</p>
+    <p>Features marked for deletion will appear here</p>
   </div>
 
-  <div class="features-list" *ngIf="markedFeatures$ | async as features">
-    <div class="feature-item" *ngFor="let feature of features">
-      <div class="feature-info">
-        <span class="feature-name">{{ feature.feature_name }}</span>
-        <span class="feature-id">ID: {{ feature.feature_id }}</span>
-      </div>
-      <div class="feature-actions">
-        <button mat-icon-button color="primary" (click)="restoreFeature(feature.feature_id)" matTooltip="Restore feature">
+  <div class="features-grid" *ngIf="markedFeatures$ | async as features">
+    <cometa-l1-feature-item-list
+      *ngFor="let item of features"
+      [item]="item"
+      [feature_id]="item.feature_id"
+      class="feature-item">
+      <div class="trashbin-actions">
+        <button
+          mat-button
+          color="primary"
+          (click)="restoreFeature(item.feature_id)">
           <mat-icon>restore</mat-icon>
+          Restore
         </button>
-        <button mat-icon-button color="warn" (click)="deleteFeature(feature.feature_id)" matTooltip="Delete permanently">
+        <button
+          mat-button
+          color="warn"
+          (click)="deleteFeature(item.feature_id)">
           <mat-icon>delete_forever</mat-icon>
+          Delete Permanently
         </button>
       </div>
-    </div>
+    </cometa-l1-feature-item-list>
   </div>
 
   <div class="empty-state" *ngIf="(markedFeatures$ | async)?.length === 0">

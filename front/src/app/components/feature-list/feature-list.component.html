@@ -229,13 +229,13 @@
                 *ngIf="
                   info.feature_id | hasPermission: 'delete_feature' | async
                 "
-                (click)="_sharedActions.deleteFeature(info.feature_id)"
-                matTooltip="Delete feature {{ info.feature_name }}"
+                (click)="_sharedActions.scheduleDeletion(info.feature_id)"
+                matTooltip="Schedule deletion of {{ info.feature_name }}"
                 matTooltipPosition="before"
                 class="delete-feature"
                 mat-menu-item>
                 <mat-icon>delete</mat-icon>
-                <span>Delete</span>
+                <span>Schedule Deletion</span>
               </button>
             </mat-menu>
             <!-- <mat-menu #integrations="matMenu" xPosition="after">

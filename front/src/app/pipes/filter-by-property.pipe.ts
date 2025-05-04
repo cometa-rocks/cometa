@@ -2,10 +2,22 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'filterByProperty',
-  standalone: true,
+  standalone: true
 })
 export class FilterByPropertyPipe implements PipeTransform {
-  transform(array: any[], prop: string, value: any) {
-    return array.filter(el => el[prop] === value);
+  transform(array: any[], filter: { [key: string]: any }): any[] {
+    if (!array || !filter) {
+      return array;
+    }
+
+    return array.filter(item => {
+      // Si el item no tiene la propiedad marked_for_deletion, lo mostramos
+      if (!('marked_for_deletion' in item)) {
+        return true;
+      }
+      
+      // Si tiene la propiedad, solo mostramos si es false
+      return item.marked_for_deletion === false;
+    });
   }
 }

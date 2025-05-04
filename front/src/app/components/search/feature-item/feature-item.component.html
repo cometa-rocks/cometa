@@ -160,13 +160,13 @@
       <mat-divider></mat-divider>
       <button
         *ngIf="canDeleteFeature$ | async"
-        (click)="_sharedActions.deleteFeature(feat.feature_id)"
-        matTooltip="Delete feature {{ feat.feature_name }}"
+        (click)="_sharedActions.scheduleDeletion(feat.feature_id)"
+        matTooltip="Schedule deletion of {{ feat.feature_name }}"
         matTooltipPosition="before"
         class="delete-feature"
         mat-menu-item>
         <mat-icon>delete</mat-icon>
-        <span>Delete</span>
+        <span>Schedule Deletion</span>
       </button>
     </mat-menu>
     <!-- Integrations menu -->
