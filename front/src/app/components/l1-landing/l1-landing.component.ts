@@ -58,6 +58,7 @@ import { KEY_CODES } from '@others/enums';
 import { ElementRef, HostListener } from '@angular/core';
 import { InputFocusService } from '@services/inputFocus.service';
 import { TranslateModule } from '@ngx-translate/core';
+import { FilterByPropertyPipe } from '@pipes/filter-by-property.pipe';
 @UntilDestroy()
 @Component({
   selector: 'cometa-l1-landing',
@@ -120,7 +121,8 @@ import { TranslateModule } from '@ngx-translate/core';
     L1FeatureTrashbinListComponent,
     MobileListComponent,
     AsyncPipe,
-    TranslateModule
+    TranslateModule,
+    FilterByPropertyPipe
   ],
 })
 export class L1LandingComponent implements OnInit {
@@ -199,10 +201,16 @@ export class L1LandingComponent implements OnInit {
   keyboardEventActive = false;
 
   ngOnInit() {    
-
     this.data$.subscribe(
       (data) => {
+        console.log('=== Landing Component Data Debug ===');
         if (data && data.rows) {
+          data.rows.forEach(item => {
+            console.log(`Feature: ${item.name || item.feature_name || item.id}, marked_for_deletion:`, item.marked_for_deletion);
+          });
+          console.log('Total rows:', data.rows.length);
+          console.log('Features marked for deletion:', data.rows.filter(item => item.marked_for_deletion).length);
+          
           this.table_of_items = data.rows;
           this.table_of_items.sort((itemA, itemB) => {
             const nameA = itemA.name.toLowerCase();

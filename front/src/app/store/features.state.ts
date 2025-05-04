@@ -1259,4 +1259,16 @@ export class FeaturesState {
         return features;
     }
   }
+
+  @Selector()
+  @ImmutableSelector()
+  static GetMarkedForDeletionFeatures(state: IFeaturesState): Feature[] {
+    return Object.values(state.details).filter(feature => feature.marked_for_deletion === true);
+  }
+
+  @Selector()
+  @ImmutableSelector()
+  static GetActiveFeatures(state: IFeaturesState): Feature[] {
+    return Object.values(state.details).filter(feature => feature.marked_for_deletion !== true);
+  }
 }

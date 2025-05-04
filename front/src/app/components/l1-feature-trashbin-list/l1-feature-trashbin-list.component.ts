@@ -16,6 +16,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Observable } from 'rxjs';
 import { SharedActionsService } from '@services/shared-actions.service';
+import { L1FeatureItemListComponent } from '../l1-feature-item-list/l1-feature-item-list.component';
 
 @Component({
   selector: 'cometa-l1-feature-trashbin-list',
@@ -27,7 +28,8 @@ import { SharedActionsService } from '@services/shared-actions.service';
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,
-    AsyncPipe
+    AsyncPipe,
+    L1FeatureItemListComponent
   ]
 })
 export class L1FeatureTrashbinListComponent implements OnInit {
@@ -38,7 +40,7 @@ export class L1FeatureTrashbinListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Inicialización adicional si es necesaria
+    // Additional initialization if needed
   }
 
   restoreFeature(featureId: number): void {

@@ -46,7 +46,7 @@ import {
 } from '@angular/common';
 import { StarredService } from '@services/starred.service';
 import { DeleteConfirmationDialogComponent } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
-// import { Feature } from '../../others/interfaces';
+
 
 @Component({
   selector: 'cometa-l1-feature-item-list',
@@ -55,14 +55,14 @@ import { DeleteConfirmationDialogComponent } from '../delete-confirmation-dialog
   standalone: true,
   imports: [
     NgIf,
-    LetDirective,
-    MatLegacyTooltipModule,
     NgClass,
-    MatIconModule,
-    StopPropagationDirective,
-    MatLegacyProgressSpinnerModule,
     NgSwitch,
     NgSwitchCase,
+    AsyncPipe,
+    LowerCasePipe,
+    LetDirective,
+    MatIconModule,
+    MatLegacyTooltipModule,
     MatLegacyButtonModule,
     MatLegacyMenuModule,
     MatDividerModule,
@@ -74,8 +74,8 @@ import { DeleteConfirmationDialogComponent } from '../delete-confirmation-dialog
     BrowserComboTextPipe,
     DepartmentNamePipe,
     FeatureRunningPipe,
-    AsyncPipe,
-    LowerCasePipe,
+    StopPropagationDirective,
+    MatLegacyProgressSpinnerModule,
   ],
 })
 export class L1FeatureItemListComponent implements OnInit {
@@ -451,16 +451,18 @@ export class L1FeatureItemListComponent implements OnInit {
     });
   }
 
-  openDeleteConfirmationDialog(feature: any) {
+  openDeleteConfirmationDialog() {
     const dialogRef = this._dialog.open(DeleteConfirmationDialogComponent, {
       width: '400px',
-      data: { feature }
+      data: {
+        title: 'Schedule Deletion',
+        message: `Are you sure you want to schedule the deletion of feature "${this.item.name}"?`,
+      },
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        // Marcar el feature para eliminación
-        this._sharedActions.scheduleDeletion(feature.feature_id);
+        this._sharedActions.scheduleDeletion(this.item.id);
       }
     });
   }

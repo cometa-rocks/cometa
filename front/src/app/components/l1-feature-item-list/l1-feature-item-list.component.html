@@ -8,206 +8,333 @@ Author: dph000
 <ng-container
   class="items-container"
   *ngIf="item.type === 'feature'; else folderItem">
-  <ng-container *ngLet="item.id | featureRunning | async as running">
-    <div
-      class="wrapper"
-      (click)="_sharedActions.goToFeature(item.id)"
-      [class.running]="running"
-      [class.menu-open]="isMenuOpen">
-      <!-- Need help box -->
+  <ng-container *ngIf="item.marked_for_deletion !== true; else markedForDeletion">
+    <ng-container *ngLet="item.id | featureRunning | async as running">
       <div
-        class="top-left-container"
-        [matTooltip]="'need_help.tooltip' | translate"
-        matTooltipPosition="above"
-        [ngClass]="{ visible: item.help && !running }">
-        <div class="current-step">
-          <div class="triangle"></div>
-          <mat-icon class="state-icon">help</mat-icon>
-          <span>{{ 'need_help.poster' | translate }}</span>
-        </div>
-      </div>
-      <!-- Running steps box -->
-      <ng-container *ngLet="featureStatus$ | async as status">
-        <!-- Feature status -->
+        class="wrapper"
+        (click)="_sharedActions.goToFeature(item.id)"
+        [class.running]="running"
+        [class.menu-open]="isMenuOpen">
+        <!-- Need help box -->
         <div
           class="top-left-container"
-          [ngClass]="{ visible: running }"
-          [matTooltipDisabled]="!status"
-          [matTooltip]="status"
-          matTooltipPosition="above">
+          [matTooltip]="'need_help.tooltip' | translate"
+          matTooltipPosition="above"
+          [ngClass]="{ visible: item.help && !running }">
           <div class="current-step">
             <div class="triangle"></div>
-            <span>{{ status }}</span>
+            <mat-icon class="state-icon">help</mat-icon>
+            <span>{{ 'need_help.poster' | translate }}</span>
           </div>
         </div>
-      </ng-container>
-      <!-- Run feature button -->
-      <div class="top-buttons-container" *ngIf="!item.depends_on_others">
-        <div
-          *ngIf="item.date"
-          class="state"
-          [class.state-disabled]="isButtonDisabled && !running"
-          stopPropagation
-          [class.running]="running"
-          [ngClass]="!running && (item.status | lowercase)">
-          <div class="triangle"></div>
-          <mat-spinner
-            class="item-loader"
-            diameter="18"
-            *ngIf="running; else showState"></mat-spinner>
-          <ng-template #showState>
-            <ng-container [ngSwitch]="item.status | lowercase">
-              <mat-icon class="state-icon" *ngSwitchCase="'success'"
-                >done</mat-icon
-              >
-              <mat-icon class="state-icon" *ngSwitchCase="'canceled'"
-                >remove_circle</mat-icon
-              >
-              <mat-icon class="state-icon" *ngSwitchCase="'failed'"
-                >error</mat-icon
-              >
+        <!-- Running steps box -->
+        <ng-container *ngLet="featureStatus$ | async as status">
+          <!-- Feature status -->
+          <div
+            class="top-left-container"
+            [ngClass]="{ visible: running }"
+            [matTooltipDisabled]="!status"
+            [matTooltip]="status"
+            matTooltipPosition="above">
+            <div class="current-step">
+              <div class="triangle"></div>
+              <span>{{ status }}</span>
+            </div>
+          </div>
+        </ng-container>
+        <!-- Run feature button -->
+        <div class="top-buttons-container" *ngIf="!item.depends_on_others">
+          <div
+            *ngIf="item.date"
+            class="state"
+            [class.state-disabled]="isButtonDisabled && !running"
+            stopPropagation
+            [class.running]="running"
+            [ngClass]="!running && (item.status | lowercase)">
+            <div class="triangle"></div>
+            <mat-spinner
+              class="item-loader"
+              diameter="18"
+              *ngIf="running; else showState"></mat-spinner>
+            <ng-template #showState>
+              <ng-container [ngSwitch]="item.status | lowercase">
+                <mat-icon class="state-icon" *ngSwitchCase="'success'"
+                  >done</mat-icon
+                >
+                <mat-icon class="state-icon" *ngSwitchCase="'canceled'"
+                  >remove_circle</mat-icon
+                >
+                <mat-icon class="state-icon" *ngSwitchCase="'failed'"
+                  >error</mat-icon
+                >
+              </ng-container>
+              <span style="vertical-align: middle">{{ item.status }}</span>
+            </ng-template>
+          </div>
+          <div 
+            class="run" 
+            [class.run-disabled]="isButtonDisabled"
+            [class.running]="running"
+            stopPropagation 
+            (click)="isButtonDisabled && running ? _sharedActions.openLiveSteps(item.id) : onRunClick()">
+            <div class="triangle"></div>
+            <ng-container *ngIf="!isButtonDisabled">
+              <ng-container [ngSwitch]="running">
+                <mat-icon class="state-icon" *ngSwitchCase="true">remove_red_eye</mat-icon>
+                <mat-icon class="state-icon" *ngSwitchCase="false">play_arrow</mat-icon>
+              </ng-container>
             </ng-container>
-            <span style="vertical-align: middle">{{ item.status }}</span>
-          </ng-template>
-        </div>
-        <div 
-          class="run" 
-          [class.run-disabled]="isButtonDisabled"
-          [class.running]="running"
-          stopPropagation 
-          (click)="isButtonDisabled && running ? _sharedActions.openLiveSteps(item.id) : onRunClick()">
-          <div class="triangle"></div>
-          <ng-container *ngIf="!isButtonDisabled">
-            <ng-container [ngSwitch]="running">
-              <mat-icon class="state-icon" *ngSwitchCase="true">remove_red_eye</mat-icon>
-              <mat-icon class="state-icon" *ngSwitchCase="false">play_arrow</mat-icon>
+            <ng-container *ngIf="isButtonDisabled && !running">
+              <mat-icon class="state-icon">hourglass_empty</mat-icon>
             </ng-container>
-          </ng-container>
-          <ng-container *ngIf="isButtonDisabled && !running">
-            <mat-icon class="state-icon">hourglass_empty</mat-icon>
-          </ng-container>
-          <ng-container *ngIf="isButtonDisabled && running">
-            <mat-icon class="state-icon">remove_red_eye</mat-icon>
-          </ng-container>
-          <span style="vertical-align: middle">
-            <ng-container *ngIf="!isButtonDisabled && !running">Run</ng-container>
-            <ng-container *ngIf="isButtonDisabled && !running">Wait...</ng-container>
-            <ng-container *ngIf="isButtonDisabled && running">View</ng-container>
-          </span>
+            <ng-container *ngIf="isButtonDisabled && running">
+              <mat-icon class="state-icon">remove_red_eye</mat-icon>
+            </ng-container>
+            <span style="vertical-align: middle">
+              <ng-container *ngIf="!isButtonDisabled && !running">Run</ng-container>
+              <ng-container *ngIf="isButtonDisabled && !running">Wait...</ng-container>
+              <ng-container *ngIf="isButtonDisabled && running">View</ng-container>
+            </span>
+          </div>
+        <!-- Feature go to folder -->
         </div>
-      <!-- Feature go to folder -->
-      </div>
-        <div
-        *ngIf="finder"
-        class="parent-container"
-        (mouseover)="handleMouseOver($event)">
-        <div
-          class="cont-fath-folder"
-          stopPropagation>
-          <div class="cont-son-folder">
-            <div class="absolute-path">
-              <div class="circle-domainIcon-2">
-                <mat-icon class="domainIcon-2"
-                (click)="goToDomain(item.reference.department_id)">domain</mat-icon>
+          <div
+          *ngIf="finder"
+          class="parent-container"
+          (mouseover)="handleMouseOver($event)">
+          <div
+            class="cont-fath-folder"
+            stopPropagation>
+            <div class="cont-son-folder">
+              <div class="absolute-path">
+                <div class="circle-domainIcon-2">
+                  <mat-icon class="domainIcon-2"
+                  (click)="goToDomain(item.reference.department_id)">domain</mat-icon>
+                </div>
+                <span (click)="goToDomain(item.reference.department_id)"> {{ item.department }} </span>
+                <mat-icon class="chevron">chevron_right</mat-icon>
+                <span> ... </span>
+                <mat-icon class="chevron">chevron_right</mat-icon>
+                <div class="circle-domainIcon-2">
+                  <i
+                  class="folder-go-to"
+                  (click)="featuresGoToFolder(item.id, '', true)"></i>
+                </div>
+                <span (click)="featuresGoToFolder(item.id, '', true)">
+                  {{ folderName }}
+                </span>
               </div>
-              <span (click)="goToDomain(item.reference.department_id)"> {{ item.department }} </span>
-              <mat-icon class="chevron">chevron_right</mat-icon>
-              <span> ... </span>
-              <mat-icon class="chevron">chevron_right</mat-icon>
-              <div class="circle-domainIcon-2">
-                <i
-                class="folder-go-to"
-                (click)="featuresGoToFolder(item.id, '', true)"></i>
-              </div>
-              <span (click)="featuresGoToFolder(item.id, '', true)">
-                {{ folderName }}
-              </span>
             </div>
           </div>
         </div>
-      </div>
-      <!-- Feature name -->
-      <div class="name">
-        <ng-container *ngIf="item.reference.description; else noDescription">
-          <span [matTooltip]="('Description: ' | translate) + '' + item.reference.description" matTooltipPosition="above">
-            <span>{{ item.name }}</span>
-          </span>
-        </ng-container>
+        <!-- Feature name -->
+        <div class="name">
+          <ng-container *ngIf="item.reference.description; else noDescription">
+            <span [matTooltip]="('Description: ' | translate) + '' + item.reference.description" matTooltipPosition="above">
+              <span>{{ item.name }}</span>
+            </span>
+          </ng-container>
 
-        <ng-template #noDescription>
-          <span [matTooltip]="'Description: No description available'" matTooltipPosition="above">
-            <span>{{ item.name }}</span>
-          </span>
-        </ng-template>
-      </div>
-      <div class="steps">
-        <!-- Feature total amount of steps, execution time and date of execution -->
-        <i class="my-icons clipboard"></i>
-        <span class="exec_time"
-          >{{ item.total }} steps | {{ item.time | secondsToHumanReadable }} |
-          <ng-container *ngIf="item.date as date">{{
-            item.date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm a'
-          }}</ng-container></span
-        >
-      </div>
-      <!-- Feature ID -->
-      <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
-      <ng-container>
-        <div
-          class="star-feature-in-feature"
-          [matTooltip]="(isStarred$ | async) ? ('feature.starred' | translate) : ('feature.not_starred' | translate)"
-          matTooltipPosition="above">
-          <i class="material-icons">{{ (isStarred$ | async) ? 'star' : '' }}</i>
+          <ng-template #noDescription>
+            <span [matTooltip]="'Description: No description available'" matTooltipPosition="above">
+              <span>{{ item.name }}</span>
+            </span>
+          </ng-template>
         </div>
-      </ng-container>
-
-      <!-- Feature ID -->
-      <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
+        <div class="steps">
+          <!-- Feature total amount of steps, execution time and date of execution -->
+          <i class="my-icons clipboard"></i>
+          <span class="exec_time"
+            >{{ item.total }} steps | {{ item.time | secondsToHumanReadable }} |
+            <ng-container *ngIf="item.date as date">{{
+              item.date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm a'
+            }}</ng-container></span
+          >
+        </div>
+        <!-- Feature ID -->
+        <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
         <ng-container>
-          <p class="id-text">
-            <span class="icon-container-clipboard">
-              <i class="material-icons clipboard-icon">content_copy</i>
-            </span>
-            <span class="id-label">ID:</span>
-            <span class="id-container">
-              {{ item.id }}
-            </span>
-          </p>
+          <div
+            class="star-feature-in-feature"
+            [matTooltip]="(isStarred$ | async) ? ('feature.starred' | translate) : ('feature.not_starred' | translate)"
+            matTooltipPosition="above">
+            <i class="material-icons">{{ (isStarred$ | async) ? 'star' : '' }}</i>
+          </div>
         </ng-container>
-      </div>
 
-
-
-
-      <!-- Feature browser -->
-      <div class="browser" *ngIf="item.browsers[0] as browser">
-        <i class="my-icons" [ngClass]="browser.browser"></i>
-        <span>{{ browser | browserComboText }}</span>
-      </div>
-      <div class="schedule-container">
-        <div class="schedule-data">
-          <p *ngIf="item.schedule" class="schedule-active">
-            <ng-container *ngIf="item.date; else noRuns">
-              <span [matTooltip]="( 'schedule.last-run' | translate ) + ' ' + (item.date | amParse | amDateFormat: 'hh:mm a')"
-                    matTooltipPosition="above">
-                <img alt="schedule url not found" class="my-icons schedule-image" src="assets/icons/calendar.svg">
-                <span>Schedule:&nbsp;</span>
-                <span>{{ item.schedule }}</span>
+        <!-- Feature ID -->
+        <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
+          <ng-container>
+            <p class="id-text">
+              <span class="icon-container-clipboard">
+                <i class="material-icons clipboard-icon">content_copy</i>
               </span>
-            </ng-container>
-
-            <ng-template #noRuns>
-              <span [matTooltip]="'schedule.no-last-run' | translate"
-              matTooltipPosition="above" class="schedule-active">
-                <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
-                <span>Schedule:&nbsp;</span>
-                <span>{{ item.schedule }}</span>
+              <span class="id-label">ID:</span>
+              <span class="id-container">
+                {{ item.id }}
               </span>
-            </ng-template>
-          </p>
+            </p>
+          </ng-container>
         </div>
+
+
+
+
+        <!-- Feature browser -->
+        <div class="browser" *ngIf="item.browsers[0] as browser">
+          <i class="my-icons" [ngClass]="browser.browser"></i>
+          <span>{{ browser | browserComboText }}</span>
+        </div>
+        <div class="schedule-container">
+          <div class="schedule-data">
+            <p *ngIf="item.schedule" class="schedule-active">
+              <ng-container *ngIf="item.date; else noRuns">
+                <span [matTooltip]="( 'schedule.last-run' | translate ) + ' ' + (item.date | amParse | amDateFormat: 'hh:mm a')"
+                      matTooltipPosition="above">
+                  <img alt="schedule url not found" class="my-icons schedule-image" src="assets/icons/calendar.svg">
+                  <span>Schedule:&nbsp;</span>
+                  <span>{{ item.schedule }}</span>
+                </span>
+              </ng-container>
+
+              <ng-template #noRuns>
+                <span [matTooltip]="'schedule.no-last-run' | translate"
+                matTooltipPosition="above" class="schedule-active">
+                  <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
+                  <span>Schedule:&nbsp;</span>
+                  <span>{{ item.schedule }}</span>
+                </span>
+              </ng-template>
+            </p>
+          </div>
+        </div>
+        <!-- Feature options button -->
+        <button
+          type="button"
+          matTooltip="Feature options"
+          matTooltipPosition="above"
+          stopPropagation
+          class="options"
+          mat-icon-button
+          [matMenuTriggerFor]="featureOptions"
+          (menuOpened)="isMenuOpen = true"
+          (menuClosed)="isMenuOpen = false">
+          <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu
+          class="feature-options"
+          #featureOptions="matMenu"
+          xPosition="after">
+          <ng-container *ngIf="!item.depends_on_others">
+            <!-- Run feature button -->
+            <button
+              type="button"
+              (click)="_sharedActions.run(item.id)"
+              class="run-feature"
+              [matTooltip]="'tooltips.run_feature' | translate"
+              matTooltipPosition="after"
+              mat-menu-item>
+              <mat-icon>play_circle_filled</mat-icon>
+              <span>Run</span>
+            </button>
+            <mat-divider></mat-divider>
+          </ng-container>
+          <!-- Star feature -->
+          <button
+            type="button"
+            mat-menu-item
+            (click)="toggleStarred($event)"
+            class="star-feature">
+            <mat-icon>{{ (isStarred$ | async) ? 'star' : 'star_border' }}</mat-icon>
+            <span>{{ (isStarred$ | async) ? 'Starred' : 'Star' }}</span>
+          </button>
+          <mat-divider></mat-divider>
+          <!-- Edit feature -->
+          <button
+            type="button"
+            *ngIf="canEditFeature$ | async"
+            (click)="_sharedActions.openEditFeature(item.id, 'edit')"
+            matTooltip="Edit {{ item.name }} steps"
+            matTooltipPosition="before"
+            class="modify-feature"
+            mat-menu-item>
+            <mat-icon>edit</mat-icon>
+            <span>Modify</span>
+          </button>
+          <!-- Clone feature -->
+          <button
+            type="button"
+            *ngIf="canCreateFeature"
+            (click)="_sharedActions.openEditFeature(item.id, 'clone')"
+            matTooltip="Clone {{ item.name }}"
+            matTooltipPosition="before"
+            class="modify-feature"
+            mat-menu-item>
+            <mat-icon>content_copy</mat-icon>
+            <span>Clone</span>
+          </button>
+          <!-- Move feature -->
+          <button
+            type="button"
+            (click)="SAmoveFeature(item.reference)"
+            matTooltip="Move {{ item.name }}"
+            matTooltipPosition="before"
+            class="move-feature"
+            mat-menu-item>
+            <mat-icon>folder</mat-icon>
+            <span>Move</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button
+            type="button"
+            mat-menu-item
+            [matMenuTriggerFor]="otherOptions">
+            <mat-icon>settings</mat-icon>
+            <span>Settings</span>
+          </button>
+          <mat-divider></mat-divider>
+          <!-- Delete feature -->
+          <button
+            type="button"
+            *ngIf="canDeleteFeature$ | async"
+            (click)="openDeleteConfirmationDialog(item)"
+            matTooltip="Schedule deletion of {{ item.name }}"
+            matTooltipPosition="before"
+            class="delete-feature"
+            mat-menu-item>
+            <mat-icon>delete</mat-icon>
+            <span>Schedule Deletion</span>
+          </button>
+        </mat-menu>
+        <!-- Settings Menu -->
+        <mat-menu #otherOptions="matMenu" xPosition="after">
+          <!-- Ask for Help option -->
+          <button
+            type="button"
+            stopPropagation
+            mat-menu-item
+            *ngIf="canEditFeature$ | async">
+            <mat-checkbox
+              [checked]="item.help"
+              (change)="
+                _sharedActions.handleSetting(item.id, 'need_help', $event)
+              "
+              color="primary"
+              [matTooltip]="'need_help.explanation' | translate"
+              matTooltipPosition="after"
+              >{{ 'need_help.ask_for' | translate }}</mat-checkbox
+            >
+          </button>
+        </mat-menu>
       </div>
-      <!-- Feature options button -->
+    </ng-container>
+  </ng-container>
+  <ng-template #markedForDeletion>
+    <div class="wrapper marked-for-deletion">
+      <div class="name">
+        <span>{{ item.name }}</span>
+      </div>
+      <div class="feature-id">ID: {{ item.id }}</div>
       <button
         type="button"
         matTooltip="Feature options"
@@ -224,109 +351,24 @@ Author: dph000
         class="feature-options"
         #featureOptions="matMenu"
         xPosition="after">
-        <ng-container *ngIf="!item.depends_on_others">
-          <!-- Run feature button -->
-          <button
-            type="button"
-            (click)="_sharedActions.run(item.id)"
-            class="run-feature"
-            [matTooltip]="'tooltips.run_feature' | translate"
-            matTooltipPosition="after"
-            mat-menu-item>
-            <mat-icon>play_circle_filled</mat-icon>
-            <span>Run</span>
-          </button>
-          <mat-divider></mat-divider>
-        </ng-container>
-        <!-- Star feature -->
         <button
           type="button"
-          mat-menu-item
-          (click)="toggleStarred($event)"
-          class="star-feature">
-          <mat-icon>{{ (isStarred$ | async) ? 'star' : 'star_border' }}</mat-icon>
-          <span>{{ (isStarred$ | async) ? 'Starred' : 'Star' }}</span>
-        </button>
-        <mat-divider></mat-divider>
-        <!-- Edit feature -->
-        <button
-          type="button"
-          *ngIf="canEditFeature$ | async"
-          (click)="_sharedActions.openEditFeature(item.id, 'edit')"
-          matTooltip="Edit {{ item.name }} steps"
-          matTooltipPosition="before"
-          class="modify-feature"
+          (click)="_sharedActions.restoreFeature(item.id)"
           mat-menu-item>
-          <mat-icon>edit</mat-icon>
-          <span>Modify</span>
-        </button>
-        <!-- Clone feature -->
-        <button
-          type="button"
-          *ngIf="canCreateFeature"
-          (click)="_sharedActions.openEditFeature(item.id, 'clone')"
-          matTooltip="Clone {{ item.name }}"
-          matTooltipPosition="before"
-          class="modify-feature"
-          mat-menu-item>
-          <mat-icon>content_copy</mat-icon>
-          <span>Clone</span>
-        </button>
-        <!-- Move feature -->
-        <button
-          type="button"
-          (click)="SAmoveFeature(item.reference)"
-          matTooltip="Move {{ item.name }}"
-          matTooltipPosition="before"
-          class="move-feature"
-          mat-menu-item>
-          <mat-icon>folder</mat-icon>
-          <span>Move</span>
+          <mat-icon>restore</mat-icon>
+          <span>Restore</span>
         </button>
         <mat-divider></mat-divider>
         <button
           type="button"
-          mat-menu-item
-          [matMenuTriggerFor]="otherOptions">
-          <mat-icon>settings</mat-icon>
-          <span>Settings</span>
-        </button>
-        <mat-divider></mat-divider>
-        <!-- Delete feature -->
-        <button
-          type="button"
-          *ngIf="canDeleteFeature$ | async"
-          (click)="openDeleteConfirmationDialog(item)"
-          matTooltip="Delete feature {{ item.name }}"
-          matTooltipPosition="before"
-          class="delete-feature"
+          (click)="_sharedActions.deleteFeature(item.id)"
           mat-menu-item>
-          <mat-icon>delete</mat-icon>
-          <span>Delete</span>
-        </button>
-      </mat-menu>
-      <!-- Settings Menu -->
-      <mat-menu #otherOptions="matMenu" xPosition="after">
-        <!-- Ask for Help option -->
-        <button
-          type="button"
-          stopPropagation
-          mat-menu-item
-          *ngIf="canEditFeature$ | async">
-          <mat-checkbox
-            [checked]="item.help"
-            (change)="
-              _sharedActions.handleSetting(item.id, 'need_help', $event)
-            "
-            color="primary"
-            [matTooltip]="'need_help.explanation' | translate"
-            matTooltipPosition="after"
-            >{{ 'need_help.ask_for' | translate }}</mat-checkbox
-          >
+          <mat-icon>delete_forever</mat-icon>
+          <span>Delete Permanently</span>
         </button>
       </mat-menu>
     </div>
-  </ng-container>
+  </ng-template>
 </ng-container>
 <ng-template #folderItem>
   <!-- Folder item container -->
