@@ -36,7 +36,7 @@ class ConfigurationViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, args, kwargs)
 
-    @require_permissions("view_feature")
+    # @require_permissions("view_feature")
     def list(self, request, *args, **kwargs):
         # This logic is required to have security over configuration variables,
         # configuration values should be visible based on the user access levels
@@ -45,10 +45,10 @@ class ConfigurationViewSet(viewsets.ModelViewSet):
         if len(user)==0:
             return super().list(request, args, kwargs)
         user = user[0]
-        if user.user_permissions.permission_name == "SUPERUSER": 
+        if user.user_permissions.permission_power >= 80: 
             return super().list(request, args, kwargs)
-        elif user.user_permissions.permission_name in ["ANONYMOUS", "ANALYSIS", "DEVOPS"]:
-            query_result = self.queryset.filter(configuration_type="all")
+        
+        query_result = self.queryset.filter(configuration_type="all")
 
         data = self.serializer_class(query_result, many=True).data
         response = {
