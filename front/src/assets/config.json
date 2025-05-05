@@ -1,5 +1,5 @@
 {
-  "version": "3.0.44",
+  "version": "3.0.46",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,26 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.46",
+      "date": "2025-05-05",
+      "features": [
+        {
+          "title": "Add variable based on default value - #6176",
+          "description": "When adding a new variable, default based on value is now department. When selecting another based on value, choice is remembered."
+        }
+      ]
+    },
+    {
+      "version": "3.0.45",
+      "date": "2025-05-05",
+      "features": [
+        {
+          "title": "Dialogs close, resize dialogs, step-view improvements, etc - #6178",
+          "description": "Fixes related to dialogs, resizing, step-view improvements, sync button redirect too results."
+        }
+      ]
+    },
     {
       "version": "3.0.44",
       "date": "2025-04-30",
