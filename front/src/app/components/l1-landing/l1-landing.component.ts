@@ -205,11 +205,12 @@ export class L1LandingComponent implements OnInit {
       (data) => {
         console.log('=== Landing Component Data Debug ===');
         if (data && data.rows) {
-          data.rows.forEach(item => {
-            console.log(`Feature: ${item.name || item.feature_name || item.id}, marked_for_deletion:`, item.marked_for_deletion);
+          // Filter out items marked for deletion
+          const filteredRows = data.rows.filter(item => !item.reference?.marked_for_deletion);
+          
+          filteredRows.forEach(item => {
+            console.log('item', JSON.stringify(item, null, 2));
           });
-          console.log('Total rows:', data.rows.length);
-          console.log('Features marked for deletion:', data.rows.filter(item => item.marked_for_deletion).length);
           
           this.table_of_items = data.rows;
           this.table_of_items.sort((itemA, itemB) => {
