@@ -41,7 +41,7 @@ done
 # Make sure log folder exists
 mkdir -p /opt/code/logs || true
 # Install requirements
-apt update && apt install -y rsyslog jq nano vim clamav-daemon
+apt update && apt install -y rsyslog jq nano vim clamav-daemon libgl1-mesa-glx
 service rsyslog start
 # Install poetry package manager
 curl -sSL https://install.python-poetry.org | python3 -

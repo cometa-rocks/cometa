@@ -66,7 +66,10 @@ import {
 import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
 import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
 import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
-
+import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
+import { UserState } from '@store/user.state';
+import { Select } from '@ngxs/store';
+import { ChangeDetectorRef} from '@angular/core';
 @Component({
   selector: 'step-view',
   templateUrl: './step-view.component.html',
@@ -206,6 +209,9 @@ export class StepViewComponent implements OnInit {
   clickStepResult: number = null;
   test$: Observable<FeatureResult>;
 
+  @Select(UserState.GetPermission('change_step_result_status'))
+  canChangeStepResultStatus$: Observable<boolean>;
+ 
   stepResultsUrl$: Observable<string>;
 
   constructor(
@@ -215,6 +221,7 @@ export class StepViewComponent implements OnInit {
     private _api: ApiService,
     public _sharedActions: SharedActionsService,
     private _dialog: MatDialog,
+    private _cdr: ChangeDetectorRef,
   ) {}
 
   featureId$: Observable<number>;
@@ -287,14 +294,18 @@ export class StepViewComponent implements OnInit {
           if (res.success) {
             // Get current steps in view
             const currentSteps = this.paginatedList.pagination$.getValue();
-            // Get modifying step index
-            const stepIndex = currentSteps.results.findIndex(
-              step => step.step_result_id === item.step_result_id
+            // Create a new array with the updated step
+            const updatedResults = currentSteps.results.map(step => 
+              step.step_result_id === item.step_result_id 
+                ? { ...step, status } 
+                : step
             );
-            // Update status value
-            currentSteps.results[stepIndex].status = status;
-            // Update view
-            this.paginatedList.pagination$.next(currentSteps);
+            // Update view with new object
+            this.paginatedList.pagination$.next({
+              ...currentSteps,
+              results: updatedResults
+            });
+            this._cdr.detectChanges();
           }
         });
     }
