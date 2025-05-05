@@ -100,6 +100,9 @@ import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { LogService } from '@services/log.service';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { MtxGridColumn } from '@ng-matero/extensions/grid';
+import { FilesManagementComponent } from '@components/files-management/files-management.component';
+import { PageEvent } from '@angular/material/paginator';
 
 
 @Component({
@@ -141,12 +144,14 @@ import { MatTableDataSource } from '@angular/material/table';
     HumanizeBytesPipe,
     TranslateModule,
     DraggableWindowModule,
-    MobileListComponent
+    MobileListComponent,
+    FilesManagementComponent
   ],
 })
 export class EditFeature implements OnInit, OnDestroy {
   displayedColumns: string[] = [
     'name',
+    'type',
     'mime',
     'size',
     'uploaded_by.name',
@@ -229,6 +234,91 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // Original files Upload Files 
   originalFiles: UploadedFile[] = [];
+
+  // File columns for files-management component
+  fileColumns: MtxGridColumn[] = [
+    {
+      header: 'ID',
+      field: 'id',
+      sortable: true,
+      class: 'name' 
+    },
+    {
+      header: 'Status',
+      field: 'status',
+      showExpand: true,
+      class: (rowData: UploadedFile, colDef?: MtxGridColumn) => {
+        return rowData.status === 'Done' ? '' : 'no-expand';
+      },
+    },
+    { header: 'File Name', field: 'name', sortable: true, class: 'name' },
+    { header: 'Type', field: 'type', sortable: true, hide: true },
+    { header: 'MIME Type', field: 'mime', sortable: true, hide: true },
+    { header: 'Size', field: 'size', sortable: true },
+    { header: 'Uploaded By', field: 'uploaded_by.name', sortable: true },
+    { header: 'Uploaded On', field: 'created_on', sortable: true },
+    {
+      header: 'Options',
+      field: 'options',
+      right: '0px',
+      type: 'button',
+      buttons: [
+        {
+          type: 'icon',
+          text: 'content_copy',
+          icon: 'content_copy',
+          tooltip: 'Copy upload path',
+          click: (result: UploadedFile) => {
+            // Use the file's name directly as the path
+            const filePath = `uploads/${result.name}`;
+            
+            // Use the modern Clipboard API
+            navigator.clipboard.writeText(filePath)
+              .then(() => {
+                // Notify user on success
+                this.onFilePathCopy(true);
+              })
+              .catch(err => {
+                this.logger.msg('2', 'Could not copy path', 'Clipboard', err);
+                this.onFilePathCopy(false);
+              });
+          },
+          iif: row => row.status === 'Done' && !row.is_removed,
+        },
+        {
+          type: 'icon',
+          text: 'cloud_download',
+          icon: 'cloud_download',
+          tooltip: 'Download file',
+          click: (result: UploadedFile) => {
+            this.onFileDownloaded(result);
+          },
+          iif: row => row.status === 'Done' && !row.is_removed,
+        },
+        {
+          type: 'icon',
+          text: 'delete',
+          icon: 'delete',
+          tooltip: 'Delete file',
+          color: 'warn',
+          click: (result: UploadedFile) => {
+            this.onFileDeleted(result);
+          },
+          iif: row => !row.is_removed && row.status === 'Done',
+        },
+        {
+          type: 'icon',
+          text: 'restore',
+          icon: 'restore',
+          tooltip: 'Restore file',
+          click: (result: UploadedFile) => {
+            this.onRestoreFile(result);
+          },
+          iif: row => row.is_removed && row.status === 'Done',
+        }
+      ]
+    }
+  ];
 
   constructor(
     public dialogRef: MatDialogRef<EditFeature>,
@@ -1090,7 +1180,7 @@ export class EditFeature implements OnInit, OnDestroy {
       // Auto focus to it
       element.focus();
     } catch (err) {
-      console.log(`Couldn\'t focus on ${name} control.`);
+      this.logger.msg('2', 'Failed to focus on control', 'UI');
     }
   }
 
@@ -1163,7 +1253,7 @@ export class EditFeature implements OnInit, OnDestroy {
                 .querySelector<HTMLTextAreaElement>('.invalid-step textarea')
                 .focus();
             } catch (err) {
-              console.log('Failed to focus on step input');
+              this.logger.msg('2', 'Failed to focus on step input', 'UI');
             }
             return;
           }
@@ -1405,44 +1495,13 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // adds each selected file into formControl array
   onUploadFile(ev) {
-    let formData: FormData = new FormData();
-    let files = ev.target.files;
-
-    for (let file of files) {
-      formData.append('files', file);
-    }
-    formData.append('department_id', this.department.department_id);
-
-    this.fileUpload.startUpload(files, formData, this.department, this.user);
+    // This is now handled by the files-management component
+    this.logger.msg('4', 'File upload handled by files-management component', 'Upload');
   }
 
   onDownloadFile(file: UploadedFile) {
-    // return if file is still uploading
-    if (file.status.toLocaleLowerCase() != 'done') {
-      return;
-    }
-
-    const downloading = this._snackBar.open(
-      'Generating file to download, please be patient.',
-      'OK',
-      { duration: 10000 }
-    );
-
-    this.fileUpload.downloadFile(file.id).subscribe({
-      next: res => {
-        const blob = new Blob([this.base64ToArrayBuffer(res.body)], {
-          type: file.mime,
-        });
-        this.fileUpload.downloadFileBlob(blob, file);
-        downloading.dismiss();
-      },
-      error: err => {
-        if (err.error) {
-          const errors = JSON.parse(err.error);
-          this._snackBar.open(errors.error, 'OK');
-        }
-      },
-    });
+    // Delegate to the new method
+    this.onFileDownloaded(file);
   }
 
   base64ToArrayBuffer(data: string) {
@@ -1456,17 +1515,37 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   onDeleteFile(file: UploadedFile) {
-    this.fileUpload.deleteFile(file.id).subscribe(res => {
-      if (res.success) this.fileUpload.updateFileState(file, this.department);
-    });
+    // Delegate to the new method
+    this.onFileDeleted(file);
   }
 
   onRestoreFile(file: UploadedFile) {
+    this.logger.msg('4', `Processing file restoration for ${file.name} (ID: ${file.id})`, 'Restore');
+    
     let formData: FormData = new FormData();
     formData.append('restore', String(file.is_removed));
 
-    this.fileUpload.restoreFile(file.id, formData).subscribe(res => {
-      if (res.success) this.fileUpload.updateFileState(file, this.department);
+    this.fileUpload.restoreFile(file.id, formData).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.fileUpload.updateFileState(file, this.department);
+          
+          // Show success message
+          this._snackBar.open(`File "${file.name}" restored successfully`, 'OK', { 
+            duration: 5000
+          });
+        } else {
+          this._snackBar.open('Error restoring file', 'OK', { 
+            duration: 5000
+          });
+        }
+      },
+      error: (error) => {
+        this.logger.msg('2', `Error restoring file: ${file.name}`, 'Restore', error);
+        this._snackBar.open('Error restoring file', 'OK', { 
+          duration: 5000
+        });
+      }
     });
   }
 
@@ -1561,6 +1640,126 @@ export class EditFeature implements OnInit, OnDestroy {
         this.department.files = [...this.originalFiles];
       }, 1000);
     }
+  }
+
+  // Event handlers for files-management component
+  onFilesUploaded(files: UploadedFile[]): void {
+    // Process files to add type field if not already set
+    files.forEach(file => {
+      if (!file.type && file.name) {
+        const lastDotIndex = file.name.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+          file.type = file.name.substring(lastDotIndex + 1).toUpperCase();
+        } else {
+          file.type = 'Unknown';
+        }
+      }
+    });
+    
+    this.cdr.markForCheck();
+  }
+
+  onFileDeleted(file: UploadedFile): void {
+    // Handle auto-setting type field for files being deleted
+    if (!file.type && file.name) {
+      const lastDotIndex = file.name.lastIndexOf('.');
+      if (lastDotIndex > 0) {
+        file.type = file.name.substring(lastDotIndex + 1).toUpperCase();
+      } else {
+        file.type = 'Unknown';
+      }
+    }
+    
+    this.fileUpload.deleteFile(file.id).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.logger.msg('4', `File deleted successfully: ${file.name}`, 'Delete');
+          this.fileUpload.updateFileState(file, this.department);
+          
+          // Show success message
+          this._snackBar.open(`File "${file.name}" deleted successfully`, 'OK', { 
+            duration: 5000
+          });
+        } else {
+          this._snackBar.open('Error deleting file', 'OK', { 
+            duration: 5000
+          });
+        }
+      },
+      error: (error) => {
+        this.logger.msg('2', `Error deleting file: ${file.name}`, 'Delete', error);
+        this._snackBar.open('Error deleting file', 'OK', { 
+          duration: 5000
+        });
+      }
+    });
+  }
+
+  onFileDownloaded(file: UploadedFile): void {
+    this.logger.msg('4', `Processing file download for ${file.name} (ID: ${file.id})`, 'Download');
+    
+    // Check if file is ready
+    if (file.status.toLowerCase() !== 'done') {
+      this._snackBar.open('File is not ready for download', 'Close', {
+        duration: 3000
+      });
+      return;
+    }
+    
+    const downloading = this._snackBar.open(
+      'Generating file to download, please be patient.',
+      'OK',
+      { duration: 10000 }
+    );
+    
+    // Use fileUpload service to download the file
+    this.fileUpload.downloadFile(file.id).subscribe({
+      next: (res: any) => {
+        downloading.dismiss();
+        
+        // Check if we have a response body
+        if (!res.body) {
+          this._snackBar.open('Download failed: Empty response', 'OK', {
+            duration: 5000
+          });
+          return;
+        }
+        
+        try {
+          // Create a blob from the base64 response
+          const blob = new Blob([this.base64ToArrayBuffer(res.body)], {
+            type: file.mime || 'application/octet-stream'
+          });
+          
+          // Use the fileUpload service to handle the download
+          this.fileUpload.downloadFileBlob(blob, file);
+        } catch (error) {
+          this.logger.msg('2', `Error processing download response for ${file.name}`, 'Download', error);
+          this._snackBar.open('Error processing download', 'Close', {
+            duration: 5000
+          });
+        }
+      },
+      error: (error) => {
+        downloading.dismiss();
+        this.logger.msg('2', `Download error for ${file.name}`, 'Download', error);
+        this._snackBar.open('Error downloading file', 'Close', {
+          duration: 5000
+        });
+      }
+    });
+  }
+
+  // Handle panel toggle events from files-management component
+  onFilePanelToggled(isExpanded: boolean): void {
+    // Update panel state if needed
+    this.onExpansionChange(this.featureId, '3', isExpanded);
+  }
+  
+  // Handle pagination events from files-management component
+  onFilePaginationChanged(event: {event: PageEvent, file?: UploadedFile}): void {
+    this.logger.msg('4', `File pagination changed: ${JSON.stringify(event.event)}`, 'Pagination');
+    // No additional action needed
   }
 
 }
