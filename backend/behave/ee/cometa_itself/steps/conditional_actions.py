@@ -90,7 +90,8 @@ def start_if(context, value1, condition, value2):
 def start_else(context):
     if len(context.test_conditions_list)==0:
         raise CustomError("Flow is not with in the If Condition")
-
+    # Activate the last if condition else section
+    # This done this way becase in future we want to have nested if conditions block, preparing list is a good idea for it
     context.test_conditions_list[-1].activate_else_section()    
 
 
@@ -108,8 +109,10 @@ def start_else(context):
 def end_if(context):
     if len(context.test_conditions_list)==0:
         raise CustomError("Flow is not with in the If Condition")
-        
-    last_condition = context.test_conditions_list.pop()
+    logger.debug("Closing the if condition")
+    last_condition = context.test_conditions_list.pop()    
+    context.CURRENT_STEP_STATUS  = last_condition.get_condition_step_status("End If")
+    # logger.debug(f"Step Status updated to {context.CURRENT_STEP_STATUS}")
     last_condition.close_condition()
     
 
