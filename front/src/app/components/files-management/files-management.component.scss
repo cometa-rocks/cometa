@@ -1,0 +1,442 @@
+@import 'color';
+@import 'breakpoints';
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+// Expansion panel content styling
+:host ::ng-deep {
+  // Target the expanded content area
+  .mtx-grid-expansion-detail {
+    width: 100%;
+    
+    app-loading-spinner {
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+  }
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.blue {
+  color: $blue;
+  font-weight: bold;
+}
+
+// File toolbar styles
+.file-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  button {
+    &.active {
+      background-color: rgba(0, 0, 0, 0.12);
+    }
+  }
+}
+
+// Add this new section for button spacing and consistency
+:host ::ng-deep {
+  .mtx-grid-toolbar {
+    // Add space between toolbar content and actions
+    display: flex;
+    gap: 8px;
+    
+    .mtx-grid-toolbar-content {
+      .file-toolbar {
+        // Add space between "Files found" text and Upload button
+        button {
+          margin-left: 8px;
+        }
+      }
+    }
+    
+    // Make buttons consistent in size
+    button.mat-flat-button,
+    button.mat-stroked-button {
+      min-width: 120px;
+      height: 36px;
+      
+      // Improve vertical alignment
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      
+      // Align icons and text in buttons
+      .mat-icon {
+        margin-right: 4px;
+        font-size: 14px;
+        height: 14px;
+        width: 14px;
+        line-height: 14px;
+      }
+      
+      .mdc-button__label {
+        display: inline-flex;
+        align-items: center;
+        line-height: 1;
+        font-weight: bold;
+      }
+      
+      .mat-button-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+    }
+  }
+  
+  // Also make menu button (Columns Shown) text bold
+  .mtx-grid-column-menu button {
+    font-weight: bold;
+    
+    .mdc-button__label {
+      font-weight: bold;
+    }
+  }
+  
+  // Make action buttons (Cancel Changes, Save Changes) text bold
+  .action-buttons-container button {
+    font-weight: bold;
+    background-color: white;
+    
+    .mat-button-wrapper {
+      font-weight: bold;
+    }
+  }
+
+  .removed-file-row {
+    background-color: rgba(244, 67, 54, 0.05);
+    text-decoration: line-through;
+    color: rgba(0, 0, 0, 0.6);
+  }
+  
+  /* Make this rule more specific with !important to override table cell styles */
+  .status-deleted,
+  td.mtx-cell .status-deleted,
+  .mtx-grid td.status-deleted,
+  .mtx-grid span.status-deleted {
+    color: $remove !important; /* Use the variable */
+    font-weight: bold;
+  }
+  
+  /* Fallback with direct color value in case the variable isn't working */
+  .mtx-grid .status-deleted {
+    color: #c62828 !important; /* Direct value of $remove */
+  }
+
+  // Ensure no-expand class overrides default expand icon visibility
+  .no-expand {
+    .mtx-grid-cell-expand-icon {
+      visibility: hidden;
+    }
+  }
+}
+
+.mtx-grid-cell {
+  font-size: 14px !important;
+  color: #000000de !important;
+}
+
+// Expansion content styles
+.expansion-content {
+  width: 100%;
+}
+
+.action-buttons-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 5px;
+}
+
+:host ::ng-deep .mtx-grid {
+  padding-bottom: 10px !important;
+  .mtx-grid-toolbar {
+    padding: 0;
+  }
+  .mtx-grid-toolbar-content {
+    flex-grow: 1;
+    .custom_toolbar {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+
+      button {
+        &.active {
+          background-color: rgba(0, 0, 0, 0.12);
+        }
+      }
+      
+      .blue {
+        color: #1976d2;
+        font-weight: bold;
+      }
+      
+      .red {
+        color: #f44336;
+        font-weight: bold;
+      }
+    }
+    /*button {
+      mat-icon {
+        font-size: 1.125rem;
+        width: 1.125rem;
+        height: 1.125rem;
+        margin-left: -4px;
+        margin-right: 8px;
+        display: inline-block;
+      }
+    }*/
+  }
+  table {
+    margin-top: 5px;
+    border-radius: 5px;
+    background-color: $table-background-opaque;
+    border-spacing: 0;
+    box-shadow:
+      0 3px 1px -2px $table-low-shadow,
+      0 2px 2px 0 $table-medium-shadow,
+      0 1px 5px 0 $table-high-shadow;
+    thead tr {
+      height: 55px;
+      z-index: 10;
+      th {
+        white-space: nowrap;
+        font-size: 12px !important;
+        font-weight: 400 !important;
+        color: #0000008a;
+        z-index: 4 !important;
+        &:not(:first-child):not(:last-child):hover {
+          background-color: $high-black-opaque;
+          cursor: pointer;
+        }
+        &.name {
+          border-right: none !important;
+        }
+        mat-icon {
+          display: none;
+        }
+        &:nth-child(3) {
+          z-index: 5 !important;
+        }
+      }
+    }
+    tbody tr {
+      height: 45px;
+      cursor: pointer;
+      &:nth-child(2n + 2) {
+        background-color: $low-black-opaque;
+      }
+      &:hover {
+        background-color: $high-black-opaque;
+      }
+      &.selected {
+        background-color: $selected-black-opaque;
+        td {
+          &.name {
+            color: $blue;
+          }
+        }
+      }
+    }
+
+    td {
+      font-weight: normal;
+      color: #000000de;
+      /* text-align: center; */
+      &.name {
+        text-align: left;
+        border-right: none !important;
+        & > div {
+          display: flex;
+          align-items: center;
+          .mat-icon {
+            margin-right: 5px;
+            font-size: 24px;
+            line-height: 24px;
+            height: 24px;
+            width: 24px;
+          }
+        }
+      }
+    }
+    th,
+    td {
+      padding: 0 5px;
+      border-bottom-width: 1px;
+      border-bottom-style: solid;
+      border-bottom-color: $table-low-shadow;
+    }
+    th:first-of-type,
+    td:first-of-type {
+      padding-left: 5px;
+      &.running {
+        width: 40px;
+        &.disabled {
+          width: 5px;
+        }
+      }
+      .mat-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 25px;
+        line-height: 30px;
+      }
+    }
+    th:last-of-type,
+    td:last-of-type {
+      padding-right: 5px;
+    }
+  }
+
+  // Override row cursor to default, allow specific elements to be pointers
+  .mdc-data-table__row {
+    cursor: default;
+  }
+
+  // New toggle button styles
+  .mtx-grid-row-expand-button {
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    margin-right: 8px !important;
+    cursor: pointer;
+  }
+  // Hide toggle when row has no-expand class
+  .no-expand .mtx-grid-row-expand-button {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    margin-right: 0 !important;
+    cursor: default;
+  }
+
+  // Ensure buttons within cells also get pointer
+  .mdc-data-table__cell button {
+    cursor: pointer;
+  }
+
+  // Center the expand icon inside its button
+  .mtx-grid-row-expand-button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+  .mtx-grid-row-expand-button .mtx-grid-icon {
+    display: inline-block !important;
+    margin: auto !important;
+  }
+}
+
+.no-data-message {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+// Enhanced cell editing styling
+.editable-cell {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  position: relative !important;
+  max-width: 100% !important;
+  
+  .cell-content {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    display: block !important;
+    width: 100% !important;
+  }
+  
+  .edit-input-container {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important;
+    padding: 0 5px !important;
+    box-sizing: border-box !important;
+    
+    .cell-edit-input {
+      max-width: 100% !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      transition: none !important;
+      font-size: inherit !important;
+      overflow: hidden !important;
+      height: 28px !important;
+      padding: 4px 6px !important;
+      border: 1px solid #ccc !important;
+      border-radius: 3px !important;
+    }
+  }
+}
+
+// Additional override to prevent column resizing
+:host ::ng-deep {
+  .mtx-grid {
+    table {
+      table-layout: fixed !important;
+    }
+  }
+  
+  .mtx-grid-column {
+    width: auto !important;
+    max-width: none !important;
+    min-width: auto !important;
+  }
+  
+  td.mtx-cell {
+    max-width: 200px !important; // Set a reasonable max width
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  
+  // Force input to respect cell dimensions
+  td.mtx-cell .editable-cell {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
+// Custom styling for snackbars
+::ng-deep .file-management-custom-snackbar {
+  .mat-mdc-snack-bar-actions .mdc-button {
+    color: $secondary-color !important; 
+  }
+}
+
+/* Style for the cell containing deleted status */
+.status-deleted-cell {
+  /* Added to ensure the cell itself has some styling */
+  font-weight: bold;
+}
+
+/* Make this rule more specific with !important to override table cell styles */
