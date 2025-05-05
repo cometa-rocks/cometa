@@ -137,6 +137,8 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     name_environment: '',
   };
 
+  defaultBasedValue: string = 'department';
+
   @ViewChild('tableWrapper') tableWrapper: ElementRef;
   @ViewChild(MatSort) sort: MatSort;
   @Select(VariablesState) variableState$: Observable<VariablePair[]>;
@@ -168,6 +170,12 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     const storedColumns = JSON.parse(
       localStorage.getItem('co_edit_variable_displayed_columns')
     );
+
+    // Load default based value from localStorage
+    const storedBased = localStorage.getItem('co_edit_variable_default_based');
+    if (storedBased) {
+      this.defaultBasedValue = storedBased;
+    }
 
     // if result is not null, load columns from localstorage, else load default columns
     storedColumns != null
@@ -502,7 +510,7 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     new_var.variable_name = '';
     new_var.variable_value = '';
     new_var.encrypted = false;
-    new_var.based = this.data.feature_id === 0 ? 'department' : 'feature';
+    new_var.based = this.defaultBasedValue;
     new_var.in_use = [];
     new_var.disabled = false;
 
@@ -609,11 +617,17 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
     new_var.variable_name = '';
     new_var.variable_value = '';
     new_var.encrypted = false;
-    new_var.based = this.selectedFeature.id === 0 ? 'department' : 'feature';
+    new_var.based = this.defaultBasedValue;
     new_var.in_use = [];
     new_var.disabled = false;
 
     this._store.dispatch(new Variables.UpdateOrCreateVariable(new_var));
     this.isEditing = true;
+  }
+
+  // Add new method to update the default based value
+  updateDefaultBasedValue(value: string) {
+    this.defaultBasedValue = value;
+    localStorage.setItem('co_edit_variable_default_based', value);
   }
 }
