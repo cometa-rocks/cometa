@@ -2,6 +2,8 @@ services:
   db:
     container_name: cometa_postgres
     image: postgres:12.1
+    # platform hint for running on apple silicon
+    platform: linux/amd64
     volumes:
       - ./data/db_data:/var/lib/postgresql/data
     expose:
@@ -13,6 +15,8 @@ services:
   django:
     container_name: cometa_django
     image: python:3.11
+    # platform hint for running on apple silicon
+    platform: linux/amd64
     logging:
       driver: json-file
     command:  sleep infinity
@@ -49,6 +53,8 @@ services:
   behave:
     container_name: cometa_behave
     image: python:3.11
+    # platform hint for running on apple silicon
+    platform: linux/amd64
     logging:
       driver: json-file
     ports:
@@ -82,6 +88,8 @@ services:
   ws:
     container_name: cometa_socket
     image: node:14
+    # platform hint for running on apple silicon
+    platform: linux/amd64
     working_dir: /home/node/app
     logging:
       driver: json-file
@@ -100,6 +108,8 @@ services:
   selenoid:
     # Please use ./selenoid/deploy_selenoid.sh to create necessary files of Selenoid
     image: aerokube/selenoid:1.11.2
+    # platform hint for running on apple silicon
+    platform: linux/amd64
     container_name: cometa_selenoid
     logging:
       driver: json-file
@@ -120,6 +130,7 @@ services:
 
   novnc:
     image: cometa/novnc:1.6
+    platform: linux/amd64
     container_name: cometa_novnc
     networks:
       - testing
@@ -127,6 +138,8 @@ services:
   
   crontab:
     image: cometa/scheduler:latest
+    # platform hint for running on apple silicon
+    platform: linux/amd64
     container_name: cometa_crontab
     environment:
       CRONTAB_SERVER_URL: "crontab"
@@ -147,6 +160,8 @@ services:
   # After that appium.inspector should be removed 
   appium.inspector:
     image: node:20
+    # platform hint for running on apple silicon
+    platform: linux/amd64
     volumes:
       - ./front/appium-inspector-build:/app
       - ./front:/front
@@ -157,6 +172,8 @@ services:
 
   apache:
     image: "httpd:2.4.48"
+    # platform hint for running on apple silicon
+    platform: linux/amd64
     container_name: cometa_front
     volumes:
       - ./:/code
@@ -187,6 +204,8 @@ services:
 
   redis:
     image: redis:7.2.0-alpine
+    # platform hint for running on apple silicon
+    platform: linux/amd64
     container_name: cometa_redis
     volumes:
       - redis_data:/data
