@@ -2196,7 +2196,8 @@ class StepResultViewSet(viewsets.ModelViewSet):
         response = StepResultSerializer(step_result, many=False).data
         logger.debug(f"Response: {response}")
         return JsonResponse(response)
-
+    
+    @require_permissions("change_step_result_status")
     def patch(self, request, *args, **kwargs):
         # Get StepResult ID from the passed URL
         step_result_id = self.kwargs.get('step_result_id', None)
