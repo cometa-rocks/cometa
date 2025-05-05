@@ -1118,6 +1118,27 @@ export class EditFeature implements OnInit, OnDestroy {
       });
   }
 
+  async handleCancel() {
+    // Check if form has been modified before closing
+    if (this.hasChanged()) {
+      const dialogRef = this._dialog.open(AreYouSureDialog, {
+        data: {
+          title: 'translate:you_sure.quit_title',
+          description: 'translate:you_sure.quit_desc',
+        } as AreYouSureData,
+      });
+
+      const result = await dialogRef.afterClosed().toPromise();
+      if (result) {
+        this.resetSearch();
+        this.dialogRef.close();
+      }
+    } else {
+      this.resetSearch();
+      this.dialogRef.close();
+    }
+  }
+
   /**
    * Creates a new feature or edits an existing one. It executes whenever the user clicks on the create / save button in the feature dialog
    * @returns
