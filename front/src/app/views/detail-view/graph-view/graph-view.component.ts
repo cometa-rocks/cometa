@@ -174,9 +174,6 @@ export class GraphViewComponent implements OnInit {
       this.filters = response.filters;
       this.isLoaded = true;
       this.cdr.detectChanges();
-
-      console.log('Updated startDateTime:', this.startDateTime);
-      console.log('Updated endDateTime:', this.endDateTime);
     },
       (error) => {
         console.error("Failed to load the data", error);
