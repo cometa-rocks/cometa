@@ -1,5 +1,5 @@
 {
-  "version": "3.0.45",
+  "version": "3.0.46",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.46",
+      "date": "2025-05-06",
+      "features": [
+        {
+          "title": "Fixed issue with file upload Path",
+          "description": "Issue fixed"
+        }
+      ]
+    },
     {
       "version": "3.0.45",
       "date": "2025-05-05",
