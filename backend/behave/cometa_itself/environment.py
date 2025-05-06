@@ -78,10 +78,6 @@ REDIS_IMAGE_ANALYSYS_QUEUE_NAME = ConfigurationManager.get_configuration(
     "REDIS_IMAGE_ANALYSYS_QUEUE_NAME", "image_analysis"
 )  # converting to seconds
 
-REDIS_BROWSER_USE_QUEUE_NAME = ConfigurationManager.get_configuration(
-     "REDIS_BROWSER_USE_QUEUE_NAME", "browser_use_queue"
- ) 
-
 DEPARTMENT_DATA_PATH = "/data/department_data"
 
 
@@ -217,7 +213,6 @@ def before_all(context):
     if COMETA_AI_ENABLED:
         context.ai = AI(
             REDIS_IMAGE_ANALYSYS_QUEUE_NAME=REDIS_IMAGE_ANALYSYS_QUEUE_NAME,
-            REDIS_BROWSER_USE_QUEUE_NAME=REDIS_BROWSER_USE_QUEUE_NAME,
             logger=logger,
         )
 
