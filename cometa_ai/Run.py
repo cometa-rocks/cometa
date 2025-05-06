@@ -3,7 +3,6 @@ from rq import Worker, Queue, Connection
 from src.connections.redis_connection import (
     connect_redis,
     REDIS_IMAGE_ANALYSYS_QUEUE_NAME,
-    REDIS_BROWSER_USE_QUEUE_NAME,
     REDIS_CHATBOT_QUEUE_NAME,
     REDIS_NUMBER_OF_WORKERS,
 )
@@ -17,7 +16,6 @@ def start_worker():
     with Connection(REDIS_CONNECTION):
         queues = [
             Queue(REDIS_IMAGE_ANALYSYS_QUEUE_NAME, connection=REDIS_CONNECTION, is_async=False),
-            Queue(REDIS_BROWSER_USE_QUEUE_NAME, connection=REDIS_CONNECTION),
             Queue(REDIS_CHATBOT_QUEUE_NAME, connection=REDIS_CONNECTION)
         ]
         worker = Worker(queues)
