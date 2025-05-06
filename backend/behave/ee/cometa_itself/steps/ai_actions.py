@@ -401,11 +401,13 @@ async def execute_browser_use_action(context, prompt, browser_context=None):
         )
         browser = Browser(config=browser_config)
 
+        os.environ["OPENAI_API_KEY"] = COMETA_OPENAI_API_KEY
+
         # Initialize AI agent with OpenAI LLM
         agent = Agent(
             task=prompt,
             llm=ChatOpenAI(
-                model="gpt-4o",
+                model=DEFAULT_BROWSER_USE_MODEL,
                 temperature=0.0,
                 api_key=COMETA_OPENAI_API_KEY,
             ), 
