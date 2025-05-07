@@ -96,6 +96,13 @@ default_cometa_configurations = {
     "OLLAMA_AI_SECRET_KEY":""
 }
 
+public_configuraion_values = [
+    "COMETA_FEATURE_AI_ENABLED", 
+    "COMETA_FEATURE_DATABASE_ENABLED", 
+    "COMETA_FEATURE_MOBILE_TEST_ENABLED",
+    "COMETA_DEPLOYMENT_ENVIRONMENT"
+]
+
 
 def generate_passphrase_and_secrets():
 
@@ -219,6 +226,10 @@ class ConfigurationManager:
             configuration_value,
         ) in default_cometa_configurations.items():
             # Filter out built-in attributes
+            configuration_type = "backend"
+            
+            if configuration_name in public_configuraion_values:
+                configuration_type = "all"
 
             query = f"""
                 SELECT EXISTS (
@@ -243,7 +254,7 @@ class ConfigurationManager:
             created_by = 1
             updated_by = 1
 
-            string_query = f"INSERT INTO configuration_configuration (configuration_name, configuration_value, default_value, encrypted, can_be_deleted, can_be_edited, created_on, updated_on) VALUES ('{configuration_name}', '{configuration_value}', '{default_value}', {encrypted}, {can_be_deleted}, {can_be_edited}, '{created_on}', '{updated_on}');"
+            string_query = f"INSERT INTO configuration_configuration (configuration_name, configuration_value, default_value, configuration_type, encrypted, can_be_deleted, can_be_edited, created_on, updated_on) VALUES ('{configuration_name}', '{configuration_value}', '{default_value}', '{configuration_type}', {encrypted}, {can_be_deleted}, {can_be_edited}, '{created_on}', '{updated_on}');"
             # Generate the SQL query
             query = sql.SQL(string_query)
             # Execute the query
