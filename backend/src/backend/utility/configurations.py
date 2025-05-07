@@ -264,7 +264,7 @@ class ConfigurationManager:
             # Define the values to be inserted
         created_on = datetime.datetime.utcnow()
         updated_on = datetime.datetime.utcnow()
-        string_query = f"INSERT INTO configuration_configuration (configuration_name, configuration_value, default_value, encrypted, can_be_deleted, can_be_edited, created_on, updated_on) VALUES ('LOADED_FROM_SECRET_FILE', 'True', '',  {encrypted}, {can_be_deleted}, {can_be_edited}, '{created_on}', '{updated_on}');"
+        string_query = f"INSERT INTO configuration_configuration (configuration_name, configuration_value, configuration_type, default_value, encrypted, can_be_deleted, can_be_edited, created_on, updated_on) VALUES ('LOADED_FROM_SECRET_FILE', 'True','backend', '',  {encrypted}, {can_be_deleted}, {can_be_edited}, '{created_on}', '{updated_on}');"
         # Generate the SQL query
         query = sql.SQL(string_query)
         # Execute the query
