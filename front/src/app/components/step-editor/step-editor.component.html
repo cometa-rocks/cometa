@@ -5,18 +5,37 @@
     <span class="desktop"></span>
     <span class="mobile"><i></i></span>
   </div>
-  <div class="index">#</div>
+  <div class="index">
+    <span>#</span>
+    <span class="select-all-text">Select all</span>
+  </div>
   <div class="enable">
     <span class="desktop">Enable</span>
     <span class="mobile"><i></i></span>
+    <mat-checkbox
+      (change)="selectAllEnable($event)"
+      [checked]="isAllEnabled()"
+      color="primary"
+      class="select-all checkbox-blue"></mat-checkbox>
   </div>
   <div class="screenshot">
     <span class="desktop">Screenshot</span>
     <span class="mobile"><i></i></span>
+    <mat-checkbox
+      (change)="selectAllScreenshot($event)"
+      [checked]="isAllScreenshot()"
+      color="primary"
+      class="select-all checkbox-blue"></mat-checkbox>
   </div>
   <div class="compare">
     <span class="desktop">Compare</span>
     <span class="mobile"><i></i></span>
+    <mat-checkbox
+      (change)="selectAllCompare($event)"
+      [checked]="isAllCompare()"
+      [disabled]="!isAllScreenshot()"
+      color="primary"
+      class="select-all checkbox-blue"></mat-checkbox>
   </div>
   <div class="step">Step Description</div>
   <div class="warnings">

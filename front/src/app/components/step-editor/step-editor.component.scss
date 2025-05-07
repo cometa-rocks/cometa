@@ -3,6 +3,8 @@
 
 :host {
   display: block;
+  height: 100%;
+  overflow: hidden;
 }
 
 :host::ng-deep .mat-progress-spinner {
@@ -295,6 +297,13 @@
   width: 100%;
   color: $blue;
   line-height: 40px;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+
   .index {
     @include for-tablet-portrait-up {
       flex: 0 0 40px;
@@ -302,6 +311,15 @@
     flex: 0 0 20px;
     text-align: center;
     font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    .select-all-text {
+      font-size: 12px;
+      color: $blue;
+    }
   }
   .move-row, .more-vert-step{
     @include for-tablet-portrait-up {
@@ -354,6 +372,17 @@
   }
   .options {
     flex: 0 0 40px;
+  }
+
+  .enable, .screenshot, .compare {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    .select-all {
+      margin-top: 0;
+    }
   }
 }
 
@@ -709,4 +738,10 @@ textarea {
     color: #666;
     font-style: italic;
   }
+}
+
+.DragDropContainer {
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+  position: relative;
 }
