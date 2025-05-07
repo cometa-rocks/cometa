@@ -1,4 +1,12 @@
 #!/bin/bash
+
+#
+# source our nice logger
+#
+HELPERS="helpers"
+# source logger function if not sourced already
+test `command -v log_wfr` || source "${HELPERS}/logger.sh" || exit
+
 cd ..
 # Check if a directory path is provided
 if [ -n "$1" ]; then

@@ -11,7 +11,7 @@ RUN npx ng build -c production
 # Stage 1: This stage to download the appium inspector and build the code to get html files
 FROM node:20 AS appium_inspector_build
 
-RUN apt install git
+RUN apt-get install git
 # Set the working directory inside the container
 WORKDIR /app
 
@@ -21,7 +21,7 @@ RUN git clone https://github.com/AMVARA-CONSULTING/appium-inspector.git
 WORKDIR /app/appium-inspector
 
 # Install dependencies
-RUN npm i
+RUN npm ci
 
 # Build the Angular application
 RUN npm run build:browser
