@@ -231,7 +231,6 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
       });
 
       this.status$.subscribe(status => {
-        console.log("Los status: ", status);
         this.canStop = !this.disabledStatuses.includes(status);
         this._cdr.markForCheck();
       });

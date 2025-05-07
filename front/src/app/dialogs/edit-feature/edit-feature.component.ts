@@ -270,7 +270,7 @@ export class EditFeature implements OnInit, OnDestroy {
           tooltip: 'Copy upload path',
           click: (result: UploadedFile) => {
             // Use the file's name directly as the path
-            const filePath = `uploads/${result.name}`;
+            const filePath = `${result.uploadPath}`;
             
             // Use the modern Clipboard API
             navigator.clipboard.writeText(filePath)
