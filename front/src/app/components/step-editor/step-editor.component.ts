@@ -968,7 +968,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       if (addStepInstance) {
         addStepInstance.textareaFocus.subscribe((isFocused: boolean) => {
           this.inputFocusService.setInputFocus(isFocused);
-
         });
       }
     });
@@ -980,7 +979,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
             enabled: true,
             screenshot: res.screenshot,
             step_keyword: 'Given',
-            compare: res.compare,
+            compare: false,
             step_content: [
               res.interpreted,
               CustomValidators.StepAction.bind(this),
@@ -1378,6 +1377,51 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         this._cdr.detectChanges();
       }
     });
+  }
+
+  // Select All methods
+  selectAllEnable(event: MatCheckboxChange) {
+    const checked = event.checked;
+    this.stepsForm.controls.forEach(control => {
+      control.get('enabled')?.setValue(checked);
+    });
+    this._cdr.detectChanges();
+  }
+
+  selectAllScreenshot(event: MatCheckboxChange) {
+    const checked = event.checked;
+    this.stepsForm.controls.forEach(control => {
+      control.get('screenshot')?.setValue(checked);
+      if (!checked) {
+        control.get('compare')?.setValue(false);
+      }
+    });
+    this._cdr.detectChanges();
+  }
+
+  selectAllCompare(event: MatCheckboxChange) {
+    const checked = event.checked;
+    this.stepsForm.controls.forEach(control => {
+      if (control.get('screenshot')?.value) {
+        control.get('compare')?.setValue(checked);
+      }
+    });
+    this._cdr.detectChanges();
+  }
+
+  // Check if all items are selected
+  isAllEnabled(): boolean {
+    return this.stepsForm.controls.every(control => control.get('enabled')?.value);
+  }
+
+  isAllScreenshot(): boolean {
+    return this.stepsForm.controls.every(control => control.get('screenshot')?.value);
+  }
+
+  isAllCompare(): boolean {
+    return this.stepsForm.controls.every(control => 
+      !control.get('screenshot')?.value || control.get('compare')?.value
+    );
   }
 
 }
