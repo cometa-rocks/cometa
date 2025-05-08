@@ -349,10 +349,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   onTextareaArrowKey(event: Event, direction: string, step) {
     event.preventDefault();
 
-    // Limpiar cualquier popup existente antes de mostrar uno nuevo
-    this.displayedVariables = [];
-    this.stepVariableData.currentStepIndex = null;
-
     setTimeout(() => {
       const varlistItems = this.varlistItems.toArray();
 
@@ -399,8 +395,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   onStepEscape(event: Event) {
     event.stopImmediatePropagation();
     this.stepVariableData.currentStepIndex = null;
-    this.displayedVariables = [];
-    this._cdr.detectChanges();
   }
 
   onStepFocusOut(event: FocusEvent): void {
