@@ -1,5 +1,5 @@
 {
-  "version": "3.0.46",
+  "version": "3.0.47",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.47",
+      "date": "2025-05-07",
+      "features": [
+        {
+          "title": "Searchbar added for files section - #6210",
+          "description": "Browse files within the feature and data driven files section"
+        }
+      ]
+    },
     {
       "version": "3.0.46",
       "date": "2025-05-06",
