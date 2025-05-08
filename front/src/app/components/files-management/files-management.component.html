@@ -24,6 +24,28 @@
 
 <!-- Template with the actual content -->
 <ng-template #contentTemplate>
+  <mat-form-field appearance="fill" class="search-field">
+    <mat-label>Search files</mat-label>
+    <input 
+      matInput 
+      [(ngModel)]="fileSearchTerm"
+      (ngModelChange)="onSearchTermChange()" 
+      placeholder="Type to search files..."
+      (focus)="onSearchInputFocus()"
+      (blur)="onSearchInputBlur()"
+      #fileSearchInputCtrl 
+    />
+    <button mat-icon-button matSuffix *ngIf="fileSearchTerm" (click)="clearFileSearch(); fileSearchInputCtrl.focus()">
+      <mat-icon>close</mat-icon>
+    </button>
+    <mat-icon matSuffix *ngIf="!fileSearchTerm">search</mat-icon>
+  </mat-form-field>
+
+  <div *ngIf="fileSearchTerm && displayFiles?.length === 0 && allCurrentlyRelevantFiles?.length > 0" class="no-files-message">
+    <mat-icon>info</mat-icon>
+    <span>No files found matching your search</span>
+  </div>
+
   <div class="table-container">
     <app-loading-spinner 
       [isVisible]="isLoadingFiles && (!displayFiles || !displayFiles.length)" 
@@ -31,7 +53,7 @@
     ></app-loading-spinner>
 
     <mtx-grid
-      *ngIf="displayFiles && !isLoadingFiles"
+      *ngIf="displayFiles?.length > 0"
       [data]="displayFiles"
       [columns]="fileColumns"
       [sortOnFront]="true"
@@ -56,7 +78,8 @@
       (page)="updateFilePagination($event)"
       [expandable]="true"
       [expansionTemplate]="expansionTpl"
-      (expansionChange)="expand($event)">
+      (expansionChange)="expand($event)"
+      (columnChange)="saveColumnVisibilitySettings($event)">
     </mtx-grid>
   </div>
 </ng-template>
@@ -159,7 +182,8 @@
       [cellTemplate]="{
         actions: actionsColumnTpl
       }"
-      (page)="updateFilePagination($event, row)">
+      (page)="updateFilePagination($event, row)"
+      (columnChange)="saveNestedColumnVisibilitySettings($event, row.id)">
     </mtx-grid>
   </div>
 </ng-template>
