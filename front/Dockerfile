@@ -58,6 +58,9 @@ WORKDIR /code/front
 
 # Copy the Angular build output to the Nginx HTML directory
 COPY --from=build /app/dist/ /usr/local/apache2/htdocs
+COPY ./apache2/conf /code/front/apache2/cometa_conf
+COPY ./apache2/metadata /code/front/apache2/metadata
+COPY ./apache2/modules /code/front/apache2/modules
 
 RUN mkdir -p /usr/local/apache2/htdocs/mobile/inspector
 # Copy appium Inspector code from inspector build
