@@ -38,8 +38,7 @@
     <mat-checkbox
       (change)="selectAllCompare($event)"
       [checked]="isAllCompare()"
-      [disabled]="!isAllScreenshot()"
-      [matTooltip]="!isAllScreenshot() ? ('step_editor.screenshot_disabled' | translate) : ('step_editor.all_compare' | translate)"
+      [matTooltip]="'step_editor.all_compare' | translate"
       matTooltipPosition="above"
       color="primary"
       class="select-all checkbox-blue"></mat-checkbox>
@@ -146,14 +145,16 @@
                 aria-label="Screenshot"
                 color="primary"
                 class="screenshot checkbox-blue"
-                (change)="screenshotChange($event, i)"></mat-checkbox>
+                (change)="screenshotChange($event, i)"
+                [matTooltip]="'step_editor.screenshot_disabled' | translate"
+                matTooltipPosition="above"></mat-checkbox>
               <mat-checkbox
                 formControlName="compare"
                 aria-label="Compare"
                 color="primary"
                 class="compare checkbox-blue"
-                [disabled]="!step.get('screenshot').value"
-                [matTooltip]="!step.get('screenshot').value ? ('step_editor.screenshot_disabled' | translate) : ''"
+                (change)="onCompareChange($event, i)"
+                [matTooltip]="'step_editor.compare_enabled' | translate"
                 matTooltipPosition="above"></mat-checkbox>
             </div>
             <div class="prefix">
