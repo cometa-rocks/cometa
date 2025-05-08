@@ -4,6 +4,7 @@
 :host {
   display: block;
   width: 100%;
+  margin-bottom: 16px;
 }
 
 // Expansion panel content styling
@@ -74,11 +75,11 @@
       
       // Align icons and text in buttons
       .mat-icon {
-        margin-right: 4px;
-        font-size: 14px;
-        height: 14px;
-        width: 14px;
-        line-height: 14px;
+        margin-right: 4px !important;
+        font-size: 14px !important;
+        height: 14px !important;
+        width: 14px !important;
+        line-height: 14px !important;
       }
       
       .mdc-button__label {
@@ -137,10 +138,16 @@
   }
 
   // Ensure no-expand class overrides default expand icon visibility
-  .no-expand {
-    .mtx-grid-cell-expand-icon {
-      visibility: hidden;
-    }
+  .mtx-grid .mtx-row .no-expand button[mtx-grid-expansion-toggle],
+  .mtx-grid td.no-expand button[mtx-grid-expansion-toggle],
+  .no-expand button[mtx-grid-expansion-toggle],
+  .no-expand .mtx-grid-row-expand-button {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
   }
 }
 
@@ -280,6 +287,7 @@
       border-bottom-width: 1px;
       border-bottom-style: solid;
       border-bottom-color: $table-low-shadow;
+      vertical-align: middle;
     }
     th:first-of-type,
     td:first-of-type {
@@ -424,6 +432,11 @@
     max-width: 100% !important;
     width: 100% !important;
   }
+
+  .mat-column-options,
+  .cdk-column-options {
+    min-width: 180px !important;
+  }
 }
 
 // Custom styling for snackbars
@@ -439,4 +452,23 @@
   font-weight: bold;
 }
 
-/* Make this rule more specific with !important to override table cell styles */
+// Add styles for the search field and no-files message
+.search-field {
+  width: 100%;
+  font-size: 14px;
+}
+
+.no-files-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-radius: 4px;
+  color: $blue;
+  margin-bottom: 10px;
+
+  mat-icon {
+    margin-right: 8px;
+    color: $blue;
+  }
+}

@@ -386,6 +386,7 @@
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
           <app-files-management
+            *ngIf="department"
             [department]="department"
             [isExpanded]="true"
             [showPagination]="true"
@@ -395,7 +396,8 @@
             (fileDeleted)="onFileDeleted($event)"
             (fileDownloaded)="onFileDownloaded($event)"
             (panelToggled)="onFilePanelToggled($event)"
-            (paginationChanged)="onFilePaginationChanged($event)">
+            (paginationChanged)="onFilePaginationChanged($event)"
+            (searchFocusChange)="onSearchFocusChanged($event)">
           </app-files-management>
         </ng-template>
       </mat-expansion-panel>
