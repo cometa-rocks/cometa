@@ -1,5 +1,5 @@
 {
-  "version": "3.0.46",
+  "version": "3.0.47",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.47",
+      "date": "2025-05-08",
+      "features": [
+        {
+          "title": "Step editor improvements",
+          "description": "Added new funtionality to select all (Enable, Screenshot, Compare) in step editor"
+        }
+      ]
+    },
     {
       "version": "3.0.46",
       "date": "2025-05-06",
