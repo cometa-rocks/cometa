@@ -638,6 +638,7 @@ def saveToDatabase(
     }
     
     try:
+        logger.debug("Processing in a screenshot")
         values = take_screenshot_and_process(context=context,step_name=step_name,success=success)
         logger.debug("updating the values after processing the screenshot")
         data.update(values)
