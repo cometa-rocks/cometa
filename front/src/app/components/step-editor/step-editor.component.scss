@@ -302,7 +302,7 @@
   background-color: white;
   z-index: 1000;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 8px 0;
+  padding: 8px 0 15px 0;
 
   .index {
     @include for-tablet-portrait-up {
@@ -314,12 +314,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
 
-    .select-all-text {
-      font-size: 12px;
-      color: $blue;
-    }
+
+    // .all-text, .select-text {
+    //   color: $blue;
+    //   font-size: 14px;
+    // }
+
   }
   .move-row, .more-vert-step{
     @include for-tablet-portrait-up {
@@ -344,6 +345,20 @@
       flex: 0 0 40px;
     }
     flex: 0 0 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    .desktop, .mobile {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    // .select-text {
+    //   margin-top: 32px;
+    // }
   }
   .enable {
     @include for-tablet-portrait-up {
@@ -378,7 +393,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    // gap: 4px;
 
     .select-all {
       margin-top: 0;
@@ -738,10 +753,4 @@ textarea {
     color: #666;
     font-style: italic;
   }
-}
-
-.DragDropContainer {
-  height: calc(100vh - 200px);
-  overflow-y: auto;
-  position: relative;
 }

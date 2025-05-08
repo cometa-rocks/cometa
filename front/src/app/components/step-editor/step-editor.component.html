@@ -4,10 +4,11 @@
   <div class="more-vert">
     <span class="desktop"></span>
     <span class="mobile"><i></i></span>
+    <!-- <span class="select-text">Select</span> -->
   </div>
   <div class="index">
     <span>#</span>
-    <span class="select-all-text">Select all</span>
+    <!-- <span class="all-text"> all</span> -->
   </div>
   <div class="enable">
     <span class="desktop">Enable</span>
@@ -15,6 +16,8 @@
     <mat-checkbox
       (change)="selectAllEnable($event)"
       [checked]="isAllEnabled()"
+      [matTooltip]="'step_editor.all_steps' | translate"
+      matTooltipPosition="above"
       color="primary"
       class="select-all checkbox-blue"></mat-checkbox>
   </div>
@@ -24,6 +27,8 @@
     <mat-checkbox
       (change)="selectAllScreenshot($event)"
       [checked]="isAllScreenshot()"
+      [matTooltip]="'step_editor.all_screenshots' | translate"
+      matTooltipPosition="above"
       color="primary"
       class="select-all checkbox-blue"></mat-checkbox>
   </div>
@@ -34,6 +39,8 @@
       (change)="selectAllCompare($event)"
       [checked]="isAllCompare()"
       [disabled]="!isAllScreenshot()"
+      [matTooltip]="!isAllScreenshot() ? ('step_editor.screenshot_disabled' | translate) : ('step_editor.all_compare' | translate)"
+      matTooltipPosition="above"
       color="primary"
       class="select-all checkbox-blue"></mat-checkbox>
   </div>
@@ -145,7 +152,9 @@
                 aria-label="Compare"
                 color="primary"
                 class="compare checkbox-blue"
-                [disabled]="!step.get('screenshot').value"></mat-checkbox>
+                [disabled]="!step.get('screenshot').value"
+                [matTooltip]="!step.get('screenshot').value ? ('step_editor.screenshot_disabled' | translate) : ''"
+                matTooltipPosition="above"></mat-checkbox>
             </div>
             <div class="prefix">
               <mat-select formControlName="step_keyword">
