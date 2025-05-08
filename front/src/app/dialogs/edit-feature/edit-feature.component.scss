@@ -326,3 +326,31 @@ button {
   height: 24px !important;
   font-size: 24px !important;
 }
+
+.error-highlight {
+  ::ng-deep .mat-form-field-flex {
+    position: relative;
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(#ef5350, 0.2);
+      animation: fadeOut 1.5s ease-in-out forwards;
+    }
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+  }
+}
