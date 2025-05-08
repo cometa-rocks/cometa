@@ -176,12 +176,10 @@ services:
     platform: linux/amd64
     container_name: cometa_front
     volumes:
-      - ./:/code
+      - ./front:/code/front
       - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
-      - ./data/front/apache2/conf/httpd.conf:/usr/local/apache2/conf/httpd.conf
-      - ./data/front/apache2/conf/openidc.conf:/usr/local/apache2/conf/openidc.conf
-      - ./data/front/apache2/conf/paths.conf:/usr/local/apache2/conf/paths.conf
-      - ./data/front/apache2/modules/mod_auth_openidc.so:/usr/local/apache2/modules/mod_auth_openidc.so
+      - ./data/front/apache2/conf:/usr/local/apache2/cometa_conf
+      - ./data/front/apache2/certs:/share/apache2/certs
       - ./data/front/apache2/certs:/share/apache2/certs
       - ./data/cometa/screenshots:/screenshots
       - ./data/cometa/videos:/videos

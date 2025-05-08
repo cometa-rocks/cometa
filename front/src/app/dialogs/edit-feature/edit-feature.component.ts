@@ -232,9 +232,6 @@ export class EditFeature implements OnInit, OnDestroy {
 
   features: any[] = [];
 
-  // Original files Upload Files 
-  originalFiles: UploadedFile[] = [];
-
   // File columns for files-management component
   fileColumns: MtxGridColumn[] = [
     {
@@ -779,13 +776,10 @@ export class EditFeature implements OnInit, OnDestroy {
     this.inputFocus = isFocused;
   }
 
-  // Check if focused on input or textarea
-  onInputFocus() {
-    this.inputFocus = true;
-  }
-
-  onInputBlur() {
-    this.inputFocus = false;
+  // New method to handle focus change from files-management search input
+  onSearchFocusChanged(isFocused: boolean) {
+    this.inputFocus = isFocused;
+    this.cdr.markForCheck();
   }
 
   toggleDependsOnOthers(KeyPressed) {
@@ -1003,9 +997,6 @@ export class EditFeature implements OnInit, OnDestroy {
         this.department = data.find(
           dep => dep.department_name === this.featureForm.get('department_name').value
         );
-        if (this.department?.files) {
-          this.originalFiles = [...this.department.files];
-        }
         this.cdr.detectChanges();
       });
     }
@@ -1022,9 +1013,6 @@ export class EditFeature implements OnInit, OnDestroy {
           );
           
           if (this.department) {
-            if (this.department.files) {
-              this.originalFiles = [...this.department.files];
-            }
             this.fileUpload.validateFileUploadStatus(this.department);
           }
           this.cdr.detectChanges();
@@ -1230,11 +1218,9 @@ export class EditFeature implements OnInit, OnDestroy {
 
       const result = await dialogRef.afterClosed().toPromise();
       if (result) {
-        this.resetSearch();
         this.dialogRef.close();
       }
     } else {
-      this.resetSearch();
       this.dialogRef.close();
     }
   }
@@ -1245,7 +1231,6 @@ export class EditFeature implements OnInit, OnDestroy {
    */
   async editOrCreate() {
     // Reset search before proceeding
-    this.resetSearch();
     
     // Get current steps from Store
     let currentSteps = [];
@@ -1624,47 +1609,38 @@ export class EditFeature implements OnInit, OnDestroy {
     }
   }
 
-  // Filter files in the upload files section
-  filterFiles(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const value = input.value.toLowerCase();
-  
-    if (value === '') {
-      // If the input is empty, show all files
-      this.department.files = [...this.originalFiles];
-    } else {
-      // If there is text, filter the files
-      this.department.files = this.originalFiles.filter(file => 
-        file.name.toLowerCase().includes(value)
-      );
-    }
-    // Force change detection
-    this.cdr.detectChanges();
-  }
-
-  // Reset search input and file list
-  resetSearch() {
-    // Reset the file list to original state without forcing change detection
-    if (this.department && this.originalFiles) {
-      setTimeout(() => {
-        this.department.files = [...this.originalFiles];
-      }, 1000);
-    }
-  }
-
   // Event handlers for files-management component
   onFilesUploaded(files: UploadedFile[]): void {
-    // Process files to add type field if not already set
-    files.forEach(file => {
-      if (!file.type && file.name) {
-        const lastDotIndex = file.name.lastIndexOf('.');
+    // Create new file objects instead of modifying existing ones
+    const processedFiles = files.map(file => {
+      // Create a shallow copy of the file object
+      const newFile = { ...file };
+      
+      // Add type if not already set
+      if (!newFile.type && newFile.name) {
+        const lastDotIndex = newFile.name.lastIndexOf('.');
         if (lastDotIndex > 0) {
-          file.type = file.name.substring(lastDotIndex + 1).toUpperCase();
+          newFile.type = newFile.name.substring(lastDotIndex + 1).toUpperCase();
         } else {
-          file.type = 'Unknown';
+          newFile.type = 'Unknown';
         }
       }
+      
+      return newFile;
     });
+    
+    // Update original files if needed
+    if (this.department && this.department.files) {
+      // Create a new department object with updated files
+      this.department = {
+        ...this.department,
+        files: this.department.files.map(existingFile => {
+          // Find if this file was processed in the new batch
+          const updatedFile = processedFiles.find(f => f.id === existingFile.id);
+          return updatedFile || existingFile;
+        })
+      };
+    }
     
     this.cdr.markForCheck();
   }
