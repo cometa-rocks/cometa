@@ -231,5 +231,11 @@
   "live_steps": {
     "button_stop": "Stops the current running process. This action can produce inconsistent step results!",
     "button_when_starting": "Wait until the feature is started"
+  },
+  "step_editor": {
+    "all_steps": "Select all steps",
+    "all_screenshots": "Select all screenshots",
+    "all_compare": "Select all compare",
+    "screenshot_disabled": "You must enable the screenshot checkbox to use compare"
   }
 }
