@@ -1,4 +1,4 @@
-    #!/bin/bash
+#!/bin/bash
 
 HTTPD_FILE_SOURCE="/code/front/apache2/conf/httpd.conf"
 HTTPD_FILE_DESTINATION="/usr/local/apache2/cometa_conf/httpd.conf"
@@ -55,7 +55,6 @@ else
     echo "Successfully copied $MODULES_SOURCE to $MODULES_DESTINATION"
 fi
 
-#!/bin/bash
 
 METADATA_SOURCE="/code/front/apache2/metadata"
 METADATA_DESTINATION="/usr/local/apache2/conf/metadata"
