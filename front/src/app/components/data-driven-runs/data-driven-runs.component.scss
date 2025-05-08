@@ -67,13 +67,14 @@ mat-accordion {
 }
 
 .department-warning {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  color: #f57c00;
+  color: $blue;
   margin-bottom: 15px;
-  
-  mat-icon {
-    margin-right: 10px;
+  .mat-icon {
+    font-size: 20px;
+    height: 20px;
+    margin-right: 5px;
   }
 }
 
