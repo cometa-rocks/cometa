@@ -236,6 +236,7 @@
     "all_steps": "Select all steps",
     "all_screenshots": "Select all screenshots",
     "all_compare": "Select all compare",
-    "screenshot_disabled": "You must enable the screenshot checkbox to use compare"
+    "compare_enabled": "Enabling compare automatically activates screenshot",
+    "screenshot_disabled": "Disabling this checkbox implies disabling the compare checkbox"
   }
 }
