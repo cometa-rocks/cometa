@@ -320,7 +320,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
       // pinned: 'right',
       right: '0px',
       type: 'button',
-      width: '130px',
+      width: '180px',
       buttons: [
         {
           type: 'icon',
@@ -1241,5 +1241,11 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
       bytes[i] = binaryString.charCodeAt(i);
     }
     return bytes.buffer;
+  }
+
+  onSearchFocusChanged(isFocused: boolean): void {
+    this.inputFocus = isFocused;
+    this.inputFocusService.setInputFocus(isFocused);
+    this.cdRef.markForCheck();
   }
 }
