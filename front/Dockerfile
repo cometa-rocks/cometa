@@ -82,6 +82,7 @@ RUN touch /usr/local/apache2/logs/error_log /usr/local/apache2/logs/access.log \
 
 
 COPY start_server.sh start_server.sh
+COPY s_apache_conf.sh s_apache_conf.sh
 
 RUN chown -R www-data:www-data /usr/local/apache2/logs
 RUN chmod -R 777 /usr/local/apache2/logs
@@ -91,6 +92,7 @@ RUN touch /usr/local/apache2/logs/access.log
 
 # # Ensure start.sh has execution permissions and run it
 RUN chmod +x ./start_server.sh
+RUN chmod +x ./s_apache_conf.sh
 # Expose port 80
 EXPOSE 80
 
