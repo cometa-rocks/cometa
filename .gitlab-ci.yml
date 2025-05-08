@@ -134,7 +134,7 @@ stages:
 
     - if [ "$OLD_FRONT_IMAGE_TAG" != "$COMETA_FRONT:$BUILD_VERSION" ]; then
         echo "Removing old $OLD_FRONT_IMAGE_TAG image from docker";
-        docker rmi $OLD_FRONT_IMAGE_TAG;
+        docker rmi -f $OLD_FRONT_IMAGE_TAG;
       fi
 
     # - echo "Checking if cometa_front is already running else start it..."
