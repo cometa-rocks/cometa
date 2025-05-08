@@ -69,7 +69,6 @@
     </div>
     <div 
       *ngIf="!isApiCallStep(item)"
-      (click)="editApiCall(item)"
       [matTooltip]="'Only available for API call steps'"
       matTooltipPosition="right"
       class="disabled-menu-item">
