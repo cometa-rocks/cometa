@@ -238,8 +238,12 @@
   "changelog": [
     {
       "version": "3.0.47",
-      "date": "2025-05-07",
+      "date": "2025-05-08",
       "features": [
+        {
+          "title": "Step editor improvements - #6224",
+          "description": "Added new funtionality to select all (Enable, Screenshot, Compare) in step editor"
+        },
         {
           "title": "Searchbar added for files section - #6210",
           "description": "Browse files within the feature and data driven files section"
