@@ -241,7 +241,7 @@
       "date": "2025-05-08",
       "features": [
         {
-          "title": "Step editor improvements",
+          "title": "Step editor improvements - #6224",
           "description": "Added new funtionality to select all (Enable, Screenshot, Compare) in step editor"
         }
       ]
