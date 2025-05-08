@@ -274,9 +274,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         timeout: step.timeout || this.department?.settings?.step_timeout || 60
       });
 
-      if (!step.screenshot) {
-        formGroup.get('compare').disable();
-      }
+
 
       this.stepsForm.push(formGroup);
     });
@@ -284,7 +282,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   getSteps(): FeatureStep[] {
-    return this.stepsForm.controls.map(control => control.value);
+    return this.stepsForm.controls.map(control => control.getRawValue());
   }
 
   ngOnInit() {
@@ -351,6 +349,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   onTextareaArrowKey(event: Event, direction: string, step) {
     event.preventDefault();
 
+    // Limpiar cualquier popup existente antes de mostrar uno nuevo
+    this.displayedVariables = [];
+    this.stepVariableData.currentStepIndex = null;
+
     setTimeout(() => {
       const varlistItems = this.varlistItems.toArray();
 
@@ -397,6 +399,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   onStepEscape(event: Event) {
     event.stopImmediatePropagation();
     this.stepVariableData.currentStepIndex = null;
+    this.displayedVariables = [];
+    this._cdr.detectChanges();
   }
 
   onStepFocusOut(event: FocusEvent): void {
@@ -977,8 +981,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       timeout: [this.department?.settings?.step_timeout || 60]
     });
 
-    // Ensure compare is disabled initially since screenshot is false
-    template.get('compare').disable();
+
 
     if (index >= 0) {
       this.stepsForm.insert(index, template);
@@ -1013,10 +1016,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       timeout: stepToCopy.value.timeout,
     });
 
-    // Ensure compare is disabled if screenshot is false
-    if (!stepToCopy.value.screenshot) {
-      newStepToCopy.get('compare')?.disable();
-    }
+
 
     this.stepsForm.insert(index, newStepToCopy);
 
@@ -1211,7 +1211,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (!event.checked) {
       // If screenshot is unchecked, disable compare and set it to false
       compareControl?.setValue(false);
-      compareControl?.disable();
+
     } else {
       // If screenshot is checked, enable compare but keep its current value
       compareControl?.enable();
@@ -1222,21 +1222,19 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   insertDefaultStep() {
     const defaultStep = this._fb.group({
-      enabled: true,
-      screenshot: false,
-      step_keyword: 'Given',
-      compare: false,
+      enabled: [true],
+      screenshot: [false],
+      step_keyword: ['Given'],
+      compare: [false],
       step_content: [
         'StartBrowser and call URL "{url}"',
         CustomValidators.StepAction.bind(this),
       ],
-      step_action: '',
-      continue_on_failure: false,
-      timeout: this.department?.settings?.step_timeout || 60
+      step_action: [''],
+      continue_on_failure: [false],
+      timeout: [this.department?.settings?.step_timeout || 60]
     });
 
-    // Ensure compare is disabled initially since screenshot is false
-    defaultStep.get('compare')?.disable();
 
     this.stepsForm.push(defaultStep);
   }
@@ -1368,8 +1366,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   selectAllCompare(event: MatCheckboxChange) {
     const checked = event.checked;
     this.stepsForm.controls.forEach(control => {
-      if (control.get('screenshot')?.value) {
-        control.get('compare')?.setValue(checked);
+      control.get('compare')?.setValue(checked);
+      if (checked) {
+        // If compare is checked, ensure screenshot is also checked
+        control.get('screenshot')?.setValue(true);
       }
     });
     this._cdr.detectChanges();
@@ -1385,9 +1385,25 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   isAllCompare(): boolean {
+    const totalSteps = this.stepsForm.controls.length;
     const stepsWithScreenshot = this.stepsForm.controls.filter(control => control.get('screenshot')?.value);
+    const stepsWithCompare = this.stepsForm.controls.filter(control => control.get('compare')?.value === true);
+
+    // If there are no steps with screenshot, return false
     if (stepsWithScreenshot.length === 0) return false;
-    return stepsWithScreenshot.every(control => control.get('compare')?.value === true);
+    
+    // The "Select All" checkbox is marked as true only if the number of steps with compare is equal to the total number of steps
+    return stepsWithCompare.length === totalSteps;
+  }
+
+  onCompareChange(event: MatCheckboxChange, i: number) {
+    const stepFormGroup = this.stepsForm.at(i) as FormGroup;
+    if (event.checked) {
+      // If the user marks compare, also mark screenshot        
+      stepFormGroup.get('screenshot')?.setValue(true);
+    }
+    // We don't unmark screenshot if compare is unchecked, only activate it when marking compare
+    this._cdr.detectChanges();
   }
 
 }
