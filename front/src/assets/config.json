@@ -243,6 +243,10 @@
         {
           "title": "Searchbar added for files section - #6210",
           "description": "Browse files within the feature and data driven files section"
+        },
+        {
+          "title": "Buttons improvements",
+          "description": "Fixed button sizes in edit-dialog"
         }
       ]
     },
