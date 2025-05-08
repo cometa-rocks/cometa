@@ -22,8 +22,8 @@ import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
 import { InputFocusService } from '@services/inputFocus.service';
 import { LogService } from '@services/log.service';
-import { Subscription } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { Subscription, Subject } from 'rxjs';
+import { finalize, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { SureRemoveFileComponent } from '@dialogs/sure-remove-file/sure-remove-file.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -40,6 +40,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
+import { MatInputModule } from '@angular/material/input';
 
 // Directives
 import { StopPropagationDirective } from '@directives/stop-propagation.directive';
@@ -115,6 +116,7 @@ interface FileUploadDepartment {
     AmParsePipe,
     AmDateFormatPipe,
     LoadingSpinnerComponent,
+    MatInputModule,
   ]
 })
 export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
@@ -132,6 +134,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   @Output() fileExecute = new EventEmitter<UploadedFile>();
   @Output() panelToggled = new EventEmitter<boolean>();
   @Output() paginationChanged = new EventEmitter<{event: PageEvent, file?: UploadedFile}>();
+  @Output() searchFocusChange = new EventEmitter<boolean>();
   
   // View children for templates
   @ViewChild('editInput') editInput: ElementRef;
@@ -154,7 +157,14 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   // Local copy of files for display
   displayFiles: UploadedFile[] = [];
   
+  // Properties for file search
+  fileSearchTerm: string = '';
+  searchInputFocused: boolean = false;
+  private allCurrentlyRelevantFiles: UploadedFile[] = [];
+  private searchTerms = new Subject<string>();
+  
   private focusSubscription: Subscription;
+  private searchSubscription: Subscription;
   
   constructor(
     private cdRef: ChangeDetectorRef,
@@ -183,6 +193,14 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       }
     });
     
+    // Set up debounced search
+    this.searchSubscription = this.searchTerms.pipe(
+      debounceTime(250), // Wait 250ms after last keystroke
+      distinctUntilChanged() // Only emit if value changed
+    ).subscribe(() => {
+      this._applySearchFilter();
+    });
+    
     // Initialize default file columns if none provided
     if (!this.fileColumns || this.fileColumns.length === 0) {
       this.initializeFileColumns();
@@ -196,6 +214,9 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       if (statusColumn) {
         statusColumn.showExpand = true;
         statusColumn.class = (rowData: UploadedFile, colDef?: MtxGridColumn) => {
+          if (rowData?.status !== 'Done' || rowData?.is_removed) {
+            return 'no-expand';
+          }
           const name = (rowData?.name ?? '').toLowerCase();
           const extOk = name.endsWith('.csv') || name.endsWith('.xls') || name.endsWith('.xlsx');
           return this.showDataChecks(rowData) && extOk ? '' : 'no-expand';
@@ -203,8 +224,10 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
 
+    this.loadColumnVisibilitySettings();
+
     // Load saved expanded file IDs from localStorage
-    const savedIds = localStorage.getItem('expanded_file_ids');
+    const savedIds = localStorage.getItem('co_expanded_file_ids');
     if (savedIds) {
       try {
         const parsedIds = JSON.parse(savedIds);
@@ -224,6 +247,9 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   ngOnDestroy(): void {
     if (this.focusSubscription) {
       this.focusSubscription.unsubscribe();
+    }
+    if (this.searchSubscription) {
+      this.searchSubscription.unsubscribe();
     }
   }
   
@@ -324,6 +350,52 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   onUploadFile(event: any): void {
     if (!event.target.files || event.target.files.length === 0) {
       return;
+    }
+
+    // Validate file name lengths to avoid backend path truncation errors
+    const MAX_NAME_LENGTH = 220;
+    const filesArray: File[] = Array.from(event.target.files);
+    const overlong = filesArray.filter(f => f.name.length > MAX_NAME_LENGTH);
+    if (overlong.length > 0) {
+      this._snackBar.open(
+        `File name too long. Max ${MAX_NAME_LENGTH} characters allowed.`,
+        'OK',
+        {
+          duration: 5000,
+          panelClass: ['file-management-custom-snackbar']
+        }
+      );
+
+      event.target.value = '';
+      return;
+    }
+    
+    // Check for duplicate files
+    if (this.department && this.department.files) {
+      const existingFilenames = this.department.files
+        .filter(f => !f.is_removed)
+        .map(f => f.name.toLowerCase());
+      
+      const duplicates = filesArray.filter(f => 
+        existingFilenames.includes(f.name.toLowerCase())
+      );
+      
+      if (duplicates.length > 0) {
+        const message = duplicates.length === 1 
+          ? `File "${duplicates[0].name}" already exists.` 
+          : `${duplicates.length} files already exist.`;
+          
+        this._snackBar.open(message, 'OK', {
+          duration: 5000,
+          panelClass: ['file-management-custom-snackbar']
+        });
+        
+        // If all files are duplicates, clear the input and return
+        if (duplicates.length === filesArray.length) {
+          event.target.value = '';
+          return;
+        }
+      }
     }
     
     this.isLoadingFiles = true;
@@ -592,6 +664,8 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
               this.isDirty[fileId] = false;
               
               this.log.msg('4', `Updated file_data for file ${fileId}`, 'GetData');
+              
+              this.loadNestedColumnVisibilitySettings(fileId);
             } else {
               this.log.msg('3', `No data found for file ${fileId}`, 'GetData');
               
@@ -880,6 +954,9 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         if (rowData.is_removed) {
           return 'status-deleted-cell'; // Class for the cell itself
         }
+        if (rowData?.status !== 'Done') {
+          return 'no-expand';
+        }
         // Check expandability for non-deleted files (similar to initializeFileColumns)
         const name = (rowData?.name ?? '').toLowerCase();
         const extOk = name.endsWith('.csv') || name.endsWith('.xls') || name.endsWith('.xlsx');
@@ -897,8 +974,30 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
 
   // Update displayFiles when department changes
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['department'] && this.department) {
-      this.updateDisplayFiles();
+    if (changes.department) {
+      // When department changes, update internal lists and re-apply search
+      this._updateInternalFileLists();
+    }
+    // Ensure columns are initialized or updated if they change
+    if (changes.fileColumns && !changes.fileColumns.firstChange) {
+        if (!this.fileColumns || this.fileColumns.length === 0) {
+            this.initializeFileColumns();
+        } else {
+            this.ensureActionButtonsUseComponentMethods();
+             const statusColumn = this.fileColumns.find(col => col.field === 'status');
+            if (statusColumn) {
+                statusColumn.showExpand = true;
+                statusColumn.class = (rowData: UploadedFile, colDef?: MtxGridColumn) => {
+                    if (rowData.status !== 'Done' || rowData.is_removed) {
+                        return 'no-expand';
+                    }
+                    const name = (rowData?.name ?? '').toLowerCase();
+                    const extOk = name.endsWith('.csv') || name.endsWith('.xls') || name.endsWith('.xlsx');
+                    return this.showDataChecks(rowData) && extOk ? '' : 'no-expand';
+                };
+            }
+        }
+        this.loadColumnVisibilitySettings(); // Reload column settings if columns input changes
     }
   }
 
@@ -1117,39 +1216,157 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
 
   toggleShowRemovedFiles(): void {
     this.showRemovedFiles = !this.showRemovedFiles;
-    this.updateDisplayFiles();
-    this.log.msg('4', `Toggled show removed files: ${this.showRemovedFiles}`, 'Files');
-    this.cdRef.markForCheck();
+    this._updateInternalFileLists(); // Update lists and re-apply search
   }
   
   private updateDisplayFiles(): void {
-    if (this.department && this.department.files) {
-      // If showRemovedFiles is true, show all files, otherwise filter out removed ones
-      const files = this.showRemovedFiles 
-        ? [...this.department.files]
-        : [...this.department.files.filter(file => !file.is_removed)];
-      
-      // Ensure all files have type and mime fields set appropriately
-      files.forEach(file => {
-        // Set type field based on file extension if not already present
-        if (!file.type && file.name) {
-          const lastDotIndex = file.name.lastIndexOf('.');
-          if (lastDotIndex > 0) {
-            file.type = file.name.substring(lastDotIndex + 1).toUpperCase();
-          } else {
-            file.type = 'Unknown';
-          }
-        }
-        
-        // Ensure mime has a display value if not present
-        if (!file.mime) {
-          file.mime = 'application/octet-stream';
+    this._updateInternalFileLists();
+  }
+
+  // New methods for search functionality
+  private _updateInternalFileLists(): void {
+    if (!this.department || !this.department.files) {
+      this.allCurrentlyRelevantFiles = [];
+    } else {
+      if (this.showRemovedFiles) {
+        this.allCurrentlyRelevantFiles = [...this.department.files];
+      } else {
+        this.allCurrentlyRelevantFiles = this.department.files.filter(file => !file.is_removed);
+      }
+    }
+    this._applySearchFilter();
+  }
+
+  private _applySearchFilter(): void {
+    if (!this.fileSearchTerm) {
+      this.displayFiles = [...this.allCurrentlyRelevantFiles];
+    } else {
+      const searchTermLower = this.fileSearchTerm.toLowerCase();
+      this.displayFiles = this.allCurrentlyRelevantFiles.filter(file =>
+        file.name.toLowerCase().includes(searchTermLower)
+      );
+    }
+    this.cdRef.markForCheck();
+  }
+
+  onSearchTermChange(): void {
+    this.searchTerms.next(this.fileSearchTerm);
+  }
+
+  clearFileSearch(): void {
+    this.fileSearchTerm = '';
+    this._applySearchFilter();
+  }
+
+  onSearchInputFocus(): void {
+    this.searchInputFocused = true;
+    this.searchFocusChange.emit(true);
+  }
+
+  onSearchInputBlur(): void {
+    this.searchInputFocused = false;
+    this.searchFocusChange.emit(false);
+  }
+  
+  // Method to save column visibility settings for the main grid
+  saveColumnVisibilitySettings(event: any): void {
+    this.log.msg('4', 'Saving column visibility settings to localStorage', 'ColumnVisibility');
+    
+    // Store column visibility state
+    if (event && Array.isArray(event)) {
+      localStorage.setItem('co_file_columns_selection', JSON.stringify(event));
+        event.forEach(eventColumn => {
+        // Find the corresponding column in fileColumns
+        const column = this.fileColumns.find(col => col.field === eventColumn.field);
+        if (column) {
+          // Update the hide property based on the event
+          column.hide = !eventColumn.show;
         }
       });
       
-      this.displayFiles = files;
+      this.cdRef.markForCheck();
+    }
+  }
+
+  loadColumnVisibilitySettings(): void {
+    this.log.msg('4', 'Loading column visibility settings from localStorage', 'ColumnVisibility');
+    
+    // Get saved column settings
+    const savedColumns = localStorage.getItem('co_file_columns_selection');
+    if (savedColumns) {
+      try {
+        const columnSettings = JSON.parse(savedColumns);
+        
+        // Apply saved column visibility to current fileColumns
+        if (Array.isArray(columnSettings) && this.fileColumns && this.fileColumns.length > 0) {
+          columnSettings.forEach(savedColumn => {
+            // Find the corresponding column in fileColumns
+            const column = this.fileColumns.find(col => col.field === savedColumn.field);
+            if (column) {
+              column.hide = !savedColumn.show;
+            }
+          });
+          
+          this.log.msg('4', 'Applied saved column visibility settings', 'ColumnVisibility');
+        }
+      } catch (error) {
+        this.log.msg('2', 'Failed to parse saved column visibility settings', 'ColumnVisibility', error);
+      }
     } else {
-      this.displayFiles = [];
+      this.log.msg('4', 'No saved column visibility settings found', 'ColumnVisibility');
+    }
+  }
+
+  saveNestedColumnVisibilitySettings(event: any, fileId: number): void {
+    this.log.msg('4', `Saving nested column visibility settings for file ${fileId} to localStorage`, 'ColumnVisibility');
+    
+    // Store column visibility state for this specific file
+    if (event && Array.isArray(event) && fileId) {
+      // Save columns with visibility settings using file-specific key
+      localStorage.setItem(`co_file_data_columns_${fileId}`, JSON.stringify(event));
+      
+      // Update file_data column settings with new visibility
+      if (this.file_data[fileId] && this.file_data[fileId].columns) {
+        event.forEach(eventColumn => {
+          // Find the corresponding column in file_data columns
+          const column = this.file_data[fileId].columns.find(col => col.field === eventColumn.field);
+          if (column) {
+            // Update the hide property based on the event
+            column.hide = !eventColumn.show;
+          }
+        });
+        
+        // Trigger change detection
+        this.cdRef.markForCheck();
+      }
+    }
+  }
+
+  loadNestedColumnVisibilitySettings(fileId: number): void {
+    this.log.msg('4', `Loading nested column visibility settings for file ${fileId} from localStorage`, 'ColumnVisibility');
+    
+    // Get saved column settings for this specific file
+    const savedColumns = localStorage.getItem(`co_file_data_columns_${fileId}`);
+    if (savedColumns && this.file_data[fileId] && this.file_data[fileId].columns) {
+      try {
+        const columnSettings = JSON.parse(savedColumns);
+        
+        // Apply saved column visibility to current file_data columns
+        if (Array.isArray(columnSettings)) {
+          columnSettings.forEach(savedColumn => {
+            // Find the corresponding column in file_data columns
+            const column = this.file_data[fileId].columns.find(col => col.field === savedColumn.field);
+            if (column) {
+              // Apply the visibility setting
+              column.hide = !savedColumn.show;
+            }
+          });
+          
+          this.log.msg('4', `Applied saved nested column visibility settings for file ${fileId}`, 'ColumnVisibility');
+        }
+      } catch (error) {
+        this.log.msg('2', `Failed to parse saved nested column visibility settings for file ${fileId}`, 'ColumnVisibility', error);
+      }
     }
   }
 } 
