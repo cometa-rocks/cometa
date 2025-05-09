@@ -74,6 +74,12 @@ interface UploadedFile {
   type?: string;
 }
 
+// Add interface for sheet information
+interface FileSheetInfo {
+  names: string[];
+  current: string;
+}
+
 interface Department {
   department_id: number;
   department_name: string;
@@ -234,6 +240,23 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         if (Array.isArray(parsedIds)) {
           this.expandedFileIds = new Set(parsedIds);
           this.log.msg('4', `Loaded expanded file IDs from localStorage: ${parsedIds.length}`, 'Init');
+          
+          // Save the expanded file IDs back to localStorage to ensure consistency
+          this.saveExpandedFileIds();
+          
+          // Initialize file data for each expanded file
+          if (this.displayFiles && this.displayFiles.length > 0) {
+            // Use setTimeout to ensure this runs after the component is fully initialized
+            setTimeout(() => {
+              Array.from(this.expandedFileIds).forEach(fileId => {
+                const file = this.displayFiles.find(f => f.id === fileId);
+                if (file) {
+                  this.log.msg('4', `Auto-loading data for expanded file: ${fileId}`, 'Init');
+                  this.getFileData(file);
+                }
+              });
+            }, 0);
+          }
         }
       } catch (error) {
         this.log.msg('2', 'Failed to parse saved expanded file IDs', 'Init', error);
@@ -519,6 +542,8 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     if (event.expanded) {
       this.log.msg('4', `Expanding file ID: ${fileId}`, 'Expand');
       this.expandedFileIds.add(fileId);
+      
+      // Load file data if it's not already loaded
       if (!this.file_data[fileId] || !this.file_data[fileId].file_data) {
         this.getFileData(event.data);
       }
@@ -541,6 +566,14 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     }
     
     const fileId = file.id;
+    const isExcel = this.isExcelFile(file.name);
+    
+    // Try to get the saved sheet for Excel files
+    let savedSheet = null;
+    if (isExcel) {
+      savedSheet = localStorage.getItem(`co_excel_sheet_${fileId}`);
+      this.log.msg('4', `Looking for saved sheet for file ${fileId}: ${savedSheet || 'none found'}`, 'GetData');
+    }
     
     if (!this.file_data[fileId]) {
       this.file_data[fileId] = { 
@@ -552,24 +585,46 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           size: 10
         },
         showPagination: true,
-        fileId: fileId // Store file ID directly at creation time
+        fileId: fileId, // Store file ID directly at creation time
+        sheets: {
+          names: [],
+          current: isExcel && savedSheet ? savedSheet : ''
+        }
       };
     } else {
       this.file_data[fileId].isLoading = true;
       this.file_data[fileId].fileId = fileId; // Ensure fileId is set
+      
+      // Make sure we preserve any saved sheet preference
+      if (isExcel && savedSheet && (!this.file_data[fileId].sheets || !this.file_data[fileId].sheets.current)) {
+        if (!this.file_data[fileId].sheets) {
+          this.file_data[fileId].sheets = { names: [], current: savedSheet };
+        } else {
+          this.file_data[fileId].sheets.current = savedSheet;
+        }
+      }
     }
     
     this.log.msg('4', `Getting data for file ID: ${fileId}, File name: ${file.name}`, 'GetData');
     this.cdRef.markForCheck();
     
-    // Use HTTP directly since ApiService doesn't have getFileData
+    // Add sheet parameter to the request if this is an Excel file and a sheet is selected
+    const params: any = {
+      size: this.file_data[fileId].params.size,
+      page: this.file_data[fileId].params.page + 1,
+    };
+    
+    // If this is an Excel file and we have a selected sheet, include it in the request
+    if (isExcel && this.file_data[fileId].sheets && this.file_data[fileId].sheets.current) {
+      params.sheet = this.file_data[fileId].sheets.current;
+      this.log.msg('4', `Using sheet parameter for Excel file ${fileId}: ${params.sheet}`, 'GetData');
+    }
+    
+    const apiUrl = `/api/data_driven/file/${file.id}`;
+    this.log.msg('4', `Fetching file data from ${apiUrl} with params: ${JSON.stringify(params)}`, 'GetData');
+    
     this._http
-      .get(`/backend/api/data_driven/file/${file.id}`, {
-        params: {
-          size: this.file_data[fileId].params.size,
-          page: this.file_data[fileId].params.page + 1,
-        }
-      })
+      .get(apiUrl, { params })
       .pipe(
         finalize(() => {
           this.file_data[fileId].isLoading = false;
@@ -593,6 +648,17 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
             
             // Debug the response structure
             this.log.msg('4', `Response structure for file ${fileId}: hasResults=${resp && !!resp.results}, hasData=${resp && !!resp.data}`, 'GetData');
+            
+            // Store sheet names if available
+            if (resp && resp.sheet_names && Array.isArray(resp.sheet_names) && resp.sheet_names.length > 0) {
+              this.log.msg('4', `Excel sheet names found for file ${fileId}: ${resp.sheet_names.join(', ')}`, 'GetData');
+              
+              this.file_data[fileId].sheets = {
+                names: resp.sheet_names,
+                // If no current sheet is set, default to the first one
+                current: this.file_data[fileId].sheets.current || resp.sheet_names[0]
+              };
+            }
             
             // For direct CSV API response that might provide 'data' instead of 'results'
             let results = [];
@@ -649,6 +715,9 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
                 });
               });
               
+              // Apply Excel-style row numbers and column letters
+              this.processFileDataForExcel(fileId, fetchedData, columns);
+              
               this.file_data[fileId] = {
                 ...this.file_data[fileId],
                 columns: columns,
@@ -656,7 +725,8 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
                 total: resp && resp.count ? resp.count : fetchedData.length,
                 isLoading: false,
                 showPagination: (resp && resp.count ? resp.count : fetchedData.length) > 10,
-                fileId: fileId // Ensure file ID is stored in the data object
+                fileId: fileId, // Ensure file ID is stored in the data object
+                sheets: this.file_data[fileId].sheets
               };
               
               // Store original data for comparison
@@ -676,7 +746,8 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
                 total: 0,
                 isLoading: false,
                 showPagination: false,
-                fileId: fileId // Ensure file ID is stored
+                fileId: fileId, // Ensure file ID is stored
+                sheets: this.file_data[fileId].sheets
               };
             }
           } catch (e) {
@@ -764,8 +835,174 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     this.file_data[fileId].isLoading = true;
     this.cdRef.markForCheck();
     
+    // Get the file from department data to check file type
+    const file = this.department?.files?.find(f => f.id === fileId);
+    if (!file) {
+      this._snackBar.open('Error: Could not find file information', 'Close', {
+        duration: 5000,
+        panelClass: ['file-management-custom-snackbar']
+      });
+      this.file_data[fileId].isLoading = false;
+      this.cdRef.markForCheck();
+      return;
+    }
+    
+    // Check if this is an Excel file and has a current sheet selected
+    const isExcel = this.isExcelFile(file.name);
+    const currentSheet = isExcel ? this.getCurrentSheet(fileId) : null;
+    
+    // Validate the current sheet
+    if (isExcel) {
+      const sheetNames = this.getSheetNames(fileId);
+      
+      if (currentSheet && sheetNames.includes(currentSheet)) {
+        this.log.msg('4', `Saving changes to Excel file ${fileId}, sheet: ${currentSheet}`, 'SaveChanges');
+      } else if (sheetNames.length > 0) {
+        // If no valid sheet is selected but we have sheets, use the first one
+        const firstSheet = sheetNames[0];
+        this.log.msg('3', `Excel file ${fileId} has invalid or missing sheet selection. Using first sheet: ${firstSheet}`, 'SaveChanges');
+        this.file_data[fileId].sheets.current = firstSheet;
+        localStorage.setItem(`co_excel_sheet_${fileId}`, firstSheet);
+      } else {
+        this.log.msg('2', `Excel file ${fileId} has no sheet names available`, 'SaveChanges');
+      }
+    }
+    
+    // Create request parameters with optional sheet parameter
+    let params: any = {};
+    if (isExcel) {
+      if (currentSheet) {
+        params.sheet = currentSheet;
+        this.log.msg('4', `Adding sheet parameter for Excel file: sheet=${params.sheet}`, 'SaveChanges');
+      } else {
+        this.log.msg('3', `Excel file ${fileId} but no current sheet found, using default sheet`, 'SaveChanges');
+        // If it's an Excel file but no sheet is selected, we might still want to 
+        // send a sheet parameter if we know the available sheets
+        const sheetNames = this.getSheetNames(fileId);
+        if (sheetNames && sheetNames.length > 0) {
+          params.sheet = sheetNames[0]; // Use first sheet as default
+          this.log.msg('4', `Using first available sheet: ${params.sheet}`, 'SaveChanges');
+        }
+      }
+    } else {
+      this.log.msg('4', `Saving changes to non-Excel file ${fileId}`, 'SaveChanges');
+    }
+    
+    // If we only have a subset of data due to pagination, retrieve all data for the current sheet
+    if (this.file_data[fileId].showPagination && this.file_data[fileId].total > this.file_data[fileId].file_data.length) {
+      this.log.msg('4', `File has pagination with total ${this.file_data[fileId].total} rows but only ${this.file_data[fileId].file_data.length} loaded. Retrieving full data...`, 'SaveChanges');
+      
+      // Create temp params to get all data for this sheet/file
+      const retrieveParams = { ...params };
+      retrieveParams.page = 1;
+      retrieveParams.size = this.file_data[fileId].total; // Request all rows
+      
+      // Temporarily fetch all data for this sheet
+      this._http.get(`/api/data_driven/file/${fileId}`, { params: retrieveParams })
+        .pipe(
+          finalize(() => {
+            this.file_data[fileId].isLoading = false;
+            this.cdRef.markForCheck();
+          })
+        )
+        .subscribe({
+          next: (resp: any) => {
+            let allData = [];
+            
+            if (resp) {
+              if (Array.isArray(resp)) {
+                allData = resp;
+              } else if (resp.results && Array.isArray(resp.results)) {
+                allData = resp.results;
+              } else if (resp.data && Array.isArray(resp.data)) {
+                allData = resp.data;
+              }
+            }
+            
+            const allFetchedData = Array.isArray(allData) ? 
+              (allData.length > 0 && allData[0] && allData[0].data ? allData.map(d => d.data) : allData) : 
+              [];
+            
+            // Apply the edits from the current data to the full data set
+            const editedData = this.file_data[fileId].file_data;
+            const currentPageParams = this.file_data[fileId].params;
+            
+            // If there are no rows to update, just save what we have (unlikely)
+            if (allFetchedData.length === 0 || editedData.length === 0) {
+              this.log.msg('3', 'No complete data retrieved or no edited data. Saving current data only.', 'SaveChanges');
+              this._saveFileData(fileId, editedData, params);
+              return;
+            }
+            
+            // Calculate start index based on current page and page size
+            const pageSize = currentPageParams.size;
+            const pageIndex = currentPageParams.page; 
+            const startIdx = pageIndex * pageSize;
+            
+            this.log.msg('4', `Current page ${pageIndex}, page size ${pageSize}, starting at index ${startIdx}`, 'SaveChanges');
+            
+            // Create a copy of the full dataset to modify
+            const fullDatasetWithEdits = [...allFetchedData];
+            
+            // Apply edits from current view to the full dataset
+            for (let i = 0; i < editedData.length; i++) {
+                const editedRowIndex = startIdx + i;
+                
+                // Only apply if we're within bounds of the full dataset
+                if (editedRowIndex < fullDatasetWithEdits.length) {
+                    const originalRow = fullDatasetWithEdits[editedRowIndex];
+                    const editedRow = editedData[i];
+                    
+                    // Get all keys from both objects to ensure we don't miss any
+                    const allKeys = new Set([
+                        ...Object.keys(originalRow || {}), 
+                        ...Object.keys(editedRow || {})
+                    ]);
+                    
+                    // Apply edited values to the original row
+                    allKeys.forEach(key => {
+                        if (editedRow && key in editedRow) {
+                            // Only update if the edited row has this key
+                            originalRow[key] = editedRow[key];
+                        }
+                    });
+                    
+                    this.log.msg('4', `Applied edits to row ${editedRowIndex}`, 'SaveChanges');
+                }
+            }
+            
+            // Now save the complete dataset with edits applied
+            this.log.msg('4', `Retrieved all ${fullDatasetWithEdits.length} rows, applied edits from page ${pageIndex}, and saving.`, 'SaveChanges');
+            this._saveFileData(fileId, fullDatasetWithEdits, params);
+          },
+          error: (error) => {
+            this.log.msg('2', 'Error retrieving complete data, saving only current page', 'SaveChanges', error);
+            // Fall back to saving just the current data
+            this._saveFileData(fileId, this.file_data[fileId].file_data, params);
+          }
+        });
+    } else {
+      // No pagination or all data already loaded, save as is
+      this._saveFileData(fileId, this.file_data[fileId].file_data, params);
+    }
+  }
+  
+  // Helper method to perform the actual save operation
+  private _saveFileData(fileId: number, data: any[], params: any): void {
+    // Clone and clean the data to avoid modifying the original
+    const dataToSave = JSON.parse(JSON.stringify(data)).map(row => {
+      // Create a new object without UI-specific fields
+      const cleanRow = {...row};
+      
+      // Remove Excel UI fields
+      delete cleanRow.rowNumber;
+      delete cleanRow._rowIndex;
+      
+      return cleanRow;
+    });
+    
     // Use the API service's updateDataDrivenFile method
-    this._api.updateDataDrivenFile(fileId, this.file_data[fileId].file_data)
+    this._api.updateDataDrivenFile(fileId, dataToSave, params)
       .subscribe({
         next: (response) => {
           this._snackBar.open('File data updated successfully', 'Close', {
@@ -780,7 +1017,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           this.cdRef.markForCheck();
         },
         error: (error) => {
-          this.log.msg('2', 'Error updating file data', 'GetData', error);
+          this.log.msg('2', 'Error updating file data', 'SaveChanges', error);
           this._snackBar.open('Error updating file data', 'Close', {
             duration: 5000,
             panelClass: ['file-management-custom-snackbar']
@@ -1368,5 +1605,147 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         this.log.msg('2', `Failed to parse saved nested column visibility settings for file ${fileId}`, 'ColumnVisibility', error);
       }
     }
+  }
+
+  // Add method to check if a file is an Excel file
+  isExcelFile(filename: string): boolean {
+    if (!filename) return false;
+    const lowerName = filename.toLowerCase();
+    return lowerName.endsWith('.xls') || lowerName.endsWith('.xlsx');
+  }
+
+  // Update the switchSheet method to save the selected sheet to localStorage
+  switchSheet(fileId: number, sheetName: string): void {
+    if (!this.file_data[fileId] || !this.file_data[fileId].sheets) {
+      this.log.msg('2', `Cannot switch sheet, file data or sheets not found for file ${fileId}`, 'Sheets');
+      return;
+    }
+
+    // Only switch if it's a different sheet
+    if (this.file_data[fileId].sheets.current !== sheetName) {
+      this.log.msg('4', `Switching sheet for file ${fileId} from ${this.file_data[fileId].sheets.current} to ${sheetName}`, 'Sheets');
+      
+      // Update the current sheet
+      this.file_data[fileId].sheets.current = sheetName;
+      
+      // Save selected sheet to localStorage
+      localStorage.setItem(`co_excel_sheet_${fileId}`, sheetName);
+      this.log.msg('4', `Saved current sheet '${sheetName}' to localStorage for file ${fileId}`, 'Sheets');
+      
+      // If there are unsaved changes, warn the user
+      if (this.isDirty[fileId]) {
+        this._snackBar.open('Warning: You have unsaved changes that will be lost when switching sheets', 'Dismiss', {
+          duration: 5000,
+          panelClass: ['file-management-custom-snackbar']
+        });
+      }
+      
+      // Find the original file to reload data
+      const file = this.department?.files?.find(f => f.id === fileId);
+      if (file) {
+        // Reset pagination to first page when switching sheets
+        if (this.file_data[fileId].params) {
+          this.file_data[fileId].params.page = 0;
+        }
+        
+        // Reload the file data with the new sheet
+        this.getFileData(file);
+      } else {
+        this.log.msg('2', `Cannot find original file with ID ${fileId} to reload sheet data`, 'Sheets');
+      }
+    } else {
+      this.log.msg('4', `Already on sheet '${sheetName}' for file ${fileId}, no need to switch`, 'Sheets');
+    }
+  }
+
+  // Add helper to check if a file has multiple sheets
+  hasMultipleSheets(fileId: number): boolean {
+    return this.file_data[fileId]?.sheets?.names?.length > 1;
+  }
+
+  // Add helper to get sheet names for a file
+  getSheetNames(fileId: number): string[] {
+    return this.file_data[fileId]?.sheets?.names || [];
+  }
+
+  // Add helper to get current sheet for a file
+  getCurrentSheet(fileId: number): string {
+    return this.file_data[fileId]?.sheets?.current || '';
+  }
+  
+  // Clear file error message
+  clearFileError(fileId: number): void {
+    if (this.file_data[fileId]) {
+      delete this.file_data[fileId].error;
+      this.cdRef.markForCheck();
+    }
+  }
+
+  // Helper function to convert number to Excel-style column letter (1=A, 26=Z, 27=AA, etc.)
+  private getExcelColumnName(index: number): string {
+    let columnName = '';
+    while (index > 0) {
+      const modulo = (index - 1) % 26;
+      columnName = String.fromCharCode(65 + modulo) + columnName;
+      index = Math.floor((index - modulo) / 26);
+    }
+    return columnName;
+  }
+
+  // Process file data and add Excel-style row numbers and column letters
+  private processFileDataForExcel(fileId: number, fetchedData: any[], columns: MtxGridColumn[]): void {
+    if (!fetchedData || !columns) return;
+    
+    this.log.msg('4', `Adding Excel-style row numbers and column letters for file ${fileId}`, 'Excel');
+    
+    // Add row number column as the first column (before actions column)
+    const rowNumberColumn: MtxGridColumn = {
+      header: '#',
+      field: 'rowNumber',
+      width: '60px',
+      sortable: false,
+      formatter: (rowData: any, colDef?: MtxGridColumn) => {
+        // For paginated data, we need to account for the current page
+        const pageIndex = this.file_data[fileId]?.params?.page || 0;
+        const pageSize = this.file_data[fileId]?.params?.size || 10;
+        const startRowNumber = pageIndex * pageSize;
+        
+        // Return 1-based row number adjusted for pagination
+        // Use rowData._rowIndex which we set below instead of the rowIndex parameter
+        const rowIndex = rowData._rowIndex !== undefined ? 
+          (rowData._rowIndex - startRowNumber) : 
+          (this.file_data[fileId]?.data?.indexOf(rowData) || 0);
+        
+        return `${startRowNumber + rowIndex + 1}`;
+      },
+      class: 'excel-row-number'
+    };
+    
+    // Add row number column as first column (before actions)
+    columns.unshift(rowNumberColumn);
+    
+    // Update column headers to include Excel-style column letters (A, B, C, etc.)
+    // Skip row number column (index 0) and actions column (index 1)
+    for (let i = 2; i < columns.length; i++) {
+      const colIndex = i - 1; // Adjust for the row number column
+      const excelColName = this.getExcelColumnName(colIndex);
+      // Keep the original header but prefix with the Excel column letter
+      if (columns[i].header) {
+        columns[i].header = `${excelColName}: ${columns[i].header}`;
+      } else {
+        columns[i].header = excelColName;
+      }
+    }
+    
+    // Add row numbers to the data
+    const pageIndex = this.file_data[fileId]?.params?.page || 0;
+    const pageSize = this.file_data[fileId]?.params?.size || 10;
+    const startRowNumber = pageIndex * pageSize;
+    
+    fetchedData.forEach((row, idx) => {
+      // Store both display row number (1-based) and actual row index for reference
+      row.rowNumber = startRowNumber + idx + 1; // 1-based row numbers like Excel
+      row._rowIndex = startRowNumber + idx; // 0-based index for internal reference
+    });
   }
 } 
