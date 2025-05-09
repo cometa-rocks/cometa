@@ -318,7 +318,7 @@ export class EditFeature implements OnInit, OnDestroy {
   ];
 
   // Add new property for tooltip control
-  showNameTooltip = false;
+  highlightInput = false;
 
   constructor(
     public dialogRef: MatDialogRef<EditFeature>,
@@ -1327,9 +1327,8 @@ export class EditFeature implements OnInit, OnDestroy {
     }
     // Check Feature Name
     if (!this.featureForm.get('feature_name').valid) {
-      this.showNameTooltip = false; // Reset first
       setTimeout(() => {
-        this.showNameTooltip = true;
+        this.highlightInput = true;
         this.focusFormControl('feature_name');
         this._snackBar.open('Feature info is incomplete: missing name', 'OK');
       }, 0);
@@ -1757,12 +1756,14 @@ export class EditFeature implements OnInit, OnDestroy {
 
   handleCreate() {
     if (!this.featureForm.get('feature_name').valid) {
-      this.showNameTooltip = true;
+      this.highlightInput = true;
       this.focusFormControl('feature_name');
-      this._snackBar.open('Feature info is incomplete: missing name', 'OK');
-      // Hide tooltip after 3 seconds
+      this._snackBar.open('Feature info is incomplete: missing name', 'OK', {
+        duration: 5000
+      });
+      // Hide tooltip and highlight after 3 seconds
       setTimeout(() => {
-        this.showNameTooltip = false;
+        this.highlightInput = false;
         this.cdr.detectChanges();
       }, 3000);
       return;
