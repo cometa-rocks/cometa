@@ -337,8 +337,8 @@ button {
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: rgba(#ef5350, 0.2);
-      animation: fadeOut 1.5s ease-in-out forwards;
+      background-color: rgba($bad, 0.2);
+      animation: fadeOut 3s ease-in-out forwards;
     }
   }
 }
