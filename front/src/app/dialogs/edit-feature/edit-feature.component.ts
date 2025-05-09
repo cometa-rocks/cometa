@@ -712,55 +712,54 @@ export class EditFeature implements OnInit, OnDestroy {
         case KEY_CODES.V:
           // Only trigger shortcut if not focused on input and not using Ctrl+V
           if(!event.ctrlKey && !this.inputFocus){
-            console.log('V KEY PRESSED EDIT VARIABLES');
             // Edit variables
             this.editVariables();
           }
           break;
         case KEY_CODES.D:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Depends on other feature
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.S:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Open Emulator mobile
             this.openStartEmulatorScreen();
           }
           break;
         case KEY_CODES.M:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Send email
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.R:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Record video
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.F:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Continue on failure
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.H:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Need help
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.N:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Network loggings
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.G:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Generate dataset
             this.toggleDependsOnOthers(KeyPressed);
           }
