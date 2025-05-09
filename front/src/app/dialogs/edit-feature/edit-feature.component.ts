@@ -712,7 +712,6 @@ export class EditFeature implements OnInit, OnDestroy {
         case KEY_CODES.V:
           // Only trigger shortcut if not focused on input and not using Ctrl+V
           if(!event.ctrlKey && !this.inputFocus){
-            console.log('V KEY PRESSED EDIT VARIABLES');
             // Edit variables
             this.editVariables();
           }
