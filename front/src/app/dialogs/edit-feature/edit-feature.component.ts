@@ -317,6 +317,9 @@ export class EditFeature implements OnInit, OnDestroy {
     }
   ];
 
+  // Add new property for tooltip control
+  highlightInput = false;
+
   constructor(
     public dialogRef: MatDialogRef<EditFeature>,
     @Inject(MAT_DIALOG_DATA) public data: IEditFeature,
@@ -773,6 +776,15 @@ export class EditFeature implements OnInit, OnDestroy {
   // Shortcut emitter to parent component
   receiveDataFromChild(isFocused: boolean) {
     this.inputFocus = isFocused;
+  }
+
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocus = true;
+  }
+
+  onInputBlur() {
+    this.inputFocus = false;
   }
 
   // New method to handle focus change from files-management search input
@@ -1323,77 +1335,80 @@ export class EditFeature implements OnInit, OnDestroy {
     }
     // Check Feature Name
     if (!this.featureForm.get('feature_name').valid) {
-      this.focusFormControl('feature_name');
-      this._snackBar.open(`${incompletePrefix}: missing name`);
-      return;
-    }
-    const fValues = this.featureForm.value;
-    // Create FormData for sending XHR
-    const dataToSend = {
-      ...this.featureForm.value,
-      steps: steps,
-      environment_id: environmentId,
-      app_id: appId,
-      department_id: departmentId,
-      browsers: this.browserstackBrowsers.getValue(),
-    };
-    // Construct schedule for sending
-    if (fValues.run_now) {
-      dataToSend.schedule = [
-        fValues.minute,
-        fValues.hour,
-        fValues.day_month,
-        fValues.month,
-        fValues.day_week,
-      ].join(' ');
+      setTimeout(() => {
+        this.highlightInput = true;
+        this.focusFormControl('feature_name');
+        this._snackBar.open('Feature info is incomplete: missing name', 'OK');
+      }, 0);
     } else {
-      dataToSend.schedule = '';
-    }
+      const fValues = this.featureForm.value;
+      // Create FormData for sending XHR
+      const dataToSend = {
+        ...this.featureForm.value,
+        steps: steps,
+        environment_id: environmentId,
+        app_id: appId,
+        department_id: departmentId,
+        browsers: this.browserstackBrowsers.getValue(),
+      };
+      // Construct schedule for sending
+      if (fValues.run_now) {
+        dataToSend.schedule = [
+          fValues.minute,
+          fValues.hour,
+          fValues.day_month,
+          fValues.month,
+          fValues.day_week,
+        ].join(' ');
+      } else {
+        dataToSend.schedule = '';
+      }
 
-    // --------------------------------------------
-    // Save XHR
-    // ... now dataToSend has been prepared and we can send it to Backend
-    // ... Different for save & clone and create
-    // ... create dialog asks if you want to run it now
-    // ... data.mode can be 'new', 'clone', 'edit'
-    // -------------------------------------------------
-    // Special code for when editing or clonning feature
-    // -------------------------------------------------
-    dataToSend.feature_id = this.data.feature.feature_id;
-    dataToSend.cloud = this.feature.getValue().cloud;
-    if (this._browserSelection) {
-      dataToSend.cloud = this._browserSelection.testing_cloud.value;
-    }
-    if (this.data.mode === 'clone' || this.data.mode === 'new') {
-      dataToSend.feature_id = 0;
-    }
-    this.saving$.next(true);
-    this._api
-      .patchFeature(dataToSend.feature_id, dataToSend, {
-        loading: 'translate:tooltips.saving_feature',
-      })
-      .pipe(finalize(() => this.saving$.next(false)))
-      .subscribe(res => {
-        // res.info contains the feature data
-        // res.success contains true or false
+      // --------------------------------------------
+      // Save XHR
+      // ... now dataToSend has been prepared and we can send it to Backend
+      // ... Different for save & clone and create
+      // ... create dialog asks if you want to run it now
+      // ... data.mode can be 'new', 'clone', 'edit'
+      // -------------------------------------------------
+      // Special code for when editing or clonning feature
+      // -------------------------------------------------
+      dataToSend.feature_id = this.data.feature.feature_id;
+      dataToSend.cloud = this.feature.getValue().cloud;
+      if (this._browserSelection) {
+        dataToSend.cloud = this._browserSelection.testing_cloud.value;
+      }
+      if (this.data.mode === 'clone' || this.data.mode === 'new') {
+        dataToSend.feature_id = 0;
+      }
+      this.saving$.next(true);
+      this._api
+        .patchFeature(dataToSend.feature_id, dataToSend, {
+          loading: 'translate:tooltips.saving_feature',
+        })
+        .pipe(finalize(() => this.saving$.next(false)))
+        .subscribe(res => {
+          // res.info contains the feature data
+          // res.success contains true or false
 
-        // After sending the XHR we have received the result in "res"
-        // Checking for success and not
-        // .... show snackBar
-        // .... move feature to folder, if necesarry
-        // .... show dialog according to new or clone & save/edit
-        if (res.success) {
-          // If XHR was ok
-          this._snackBar.open('Feature saved.', 'OK');
-          this._store.dispatch(new Features.UpdateFeatureOffline(res.info));
-          // Toggles the welcome to false, meaning that the user is no longer new in co.meta
-          this.toggleWelcome();
-          this.manageFeatureDialogData(res, dataToSend);
-        } else {
-          // If XHR was ok
-          this._snackBar.open('An error occurred.', 'OK');
-        }
-      });
+          // After sending the XHR we have received the result in "res"
+          // Checking for success and not
+          // .... show snackBar
+          // .... move feature to folder, if necesarry
+          // .... show dialog according to new or clone & save/edit
+          if (res.success) {
+            // If XHR was ok
+            this._snackBar.open('Feature saved.', 'OK');
+            this._store.dispatch(new Features.UpdateFeatureOffline(res.info));
+            // Toggles the welcome to false, meaning that the user is no longer new in co.meta
+            this.toggleWelcome();
+            this.manageFeatureDialogData(res, dataToSend);
+          } else {
+            // If XHR was ok
+            this._snackBar.open('An error occurred.', 'OK');
+          }
+        });
+    }
   }
 
   /**
@@ -1745,6 +1760,23 @@ export class EditFeature implements OnInit, OnDestroy {
   onFilePaginationChanged(event: {event: PageEvent, file?: UploadedFile}): void {
     this.logger.msg('4', `File pagination changed: ${JSON.stringify(event.event)}`, 'Pagination');
     // No additional action needed
+  }
+
+  handleCreate() {
+    if (!this.featureForm.get('feature_name').valid) {
+      this.highlightInput = true;
+      this.focusFormControl('feature_name');
+      this._snackBar.open('Feature info is incomplete: missing name', 'OK', {
+        duration: 5000
+      });
+      // Hide tooltip and highlight after 3 seconds
+      setTimeout(() => {
+        this.highlightInput = false;
+        this.cdr.detectChanges();
+      }, 3000);
+      return;
+    }
+    this.editOrCreate();
   }
 
 }
