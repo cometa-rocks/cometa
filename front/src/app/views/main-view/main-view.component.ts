@@ -270,7 +270,7 @@ export class MainViewComponent implements OnInit {
 
   query = {
     page: 0,
-    size: 10,
+    size: 500,
   };
   get params() {
     const p = { ...this.query };
@@ -476,7 +476,7 @@ export class MainViewComponent implements OnInit {
       map(params => +params.get('feature'))
     );
     this.query.size =
-      parseInt(localStorage.getItem('co_results_page_size')) || 10;
+      parseInt(localStorage.getItem('co_results_page_size')) || 500;
     this.getResults();
 
     // Reload current page of runs whenever a feature run completes

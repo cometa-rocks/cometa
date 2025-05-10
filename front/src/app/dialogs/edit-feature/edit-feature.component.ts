@@ -720,49 +720,49 @@ export class EditFeature implements OnInit, OnDestroy {
           }
           break;
         case KEY_CODES.D:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Depends on other feature
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.S:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Open Emulator mobile
             this.openStartEmulatorScreen();
           }
           break;
         case KEY_CODES.M:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Send email
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.R:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Record video
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.F:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Continue on failure
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.H:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Need help
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.N:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Network loggings
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.G:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Generate dataset
             this.toggleDependsOnOthers(KeyPressed);
           }
