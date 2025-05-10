@@ -237,6 +237,16 @@
   ],
   "changelog": [
     {
+      "version": "3.0.49",
+      "date": "2025-05-09",
+      "features": [
+        {
+          "title": "Adjustments to feature result, dialogs, step result pagination, and chatbot - #6233",
+          "description": "Set default 500 on feature result, added keyboard shortcuts to dialogs, adjusted items per page size in step result to match production, and fixed chatbot display in the screenshot component."
+        }
+      ]
+    },
+    {
       "version": "3.0.48",
       "date": "2025-05-09",
       "features": [
