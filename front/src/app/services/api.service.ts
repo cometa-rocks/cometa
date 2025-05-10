@@ -790,16 +790,42 @@ export class ApiService {
    * Updates the data in a data-driven file
    * @param fileId The ID of the file to update
    * @param data The updated data rows array
+   * @param params Optional parameters, including sheet name for Excel files
    * @returns An observable with the response from the server
    */
-  updateDataDrivenFile(fileId: number, data: any[]) {
+  updateDataDrivenFile(fileId: number, data: any[], params?: any) {
+    // Create base params with skipInterceptor
+    const apiParams = new InterceptorParams({
+      skipInterceptor: true,
+    });
+    
+    // Build the URL with query parameters if necessary
+    let url = `${this.api}data_driven/file/${fileId}/`;
+    
+    // If sheet parameter is provided, add it to the URL
+    if (params && params.sheet) {
+      url += `?sheet=${encodeURIComponent(params.sheet)}`;
+      
+      // Add any other params except 'sheet' to apiParams
+      Object.keys(params).forEach(key => {
+        if (key !== 'sheet') {
+          apiParams.set(key, params[key]);
+        }
+      });
+    } else {
+      // Merge all params if no sheet parameter
+    if (params) {
+      Object.keys(params).forEach(key => {
+        apiParams.set(key, params[key]);
+      });
+      }
+    }
+    
     return this._http.put<any>(
-      `${this.api}data_driven/file/${fileId}/`,
+      url,
       { data },
       {
-        params: new InterceptorParams({
-          skipInterceptor: true,
-        })
+        params: apiParams
       }
     );
   }
