@@ -778,6 +778,15 @@ export class EditFeature implements OnInit, OnDestroy {
     this.inputFocus = isFocused;
   }
 
+  // Check if focused on input or textarea
+  onInputFocus() {
+    this.inputFocus = true;
+  }
+
+  onInputBlur() {
+    this.inputFocus = false;
+  }
+
   // New method to handle focus change from files-management search input
   onSearchFocusChanged(isFocused: boolean) {
     this.inputFocus = isFocused;
