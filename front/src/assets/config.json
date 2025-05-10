@@ -1,9 +1,5 @@
 {
-<<<<<<< front/src/assets/config.json
   "version": "3.0.48",
-=======
-  "version": "3.0.49",
->>>>>>> front/src/assets/config.json
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
