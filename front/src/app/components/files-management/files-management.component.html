@@ -35,7 +35,7 @@
       (blur)="onSearchInputBlur()"
       #fileSearchInputCtrl 
     />
-    <button mat-icon-button matSuffix *ngIf="fileSearchTerm" (click)="clearFileSearch(); fileSearchInputCtrl.focus()">
+    <button type="button" mat-icon-button matSuffix *ngIf="fileSearchTerm" (click)="clearFileSearch(); fileSearchInputCtrl.focus()">
       <mat-icon>close</mat-icon>
     </button>
     <mat-icon matSuffix *ngIf="!fileSearchTerm">search</mat-icon>
@@ -53,7 +53,6 @@
     ></app-loading-spinner>
 
     <mtx-grid
-      *ngIf="displayFiles?.length > 0"
       [data]="displayFiles"
       [columns]="fileColumns"
       [sortOnFront]="true"
@@ -116,6 +115,7 @@
     </div>
     <div style="flex-grow: 1;"></div>
     <button
+    type="button"
       mat-stroked-button
       color="accent"
       stopPropagation
@@ -125,6 +125,7 @@
       <span class="mdc-button__label">{{ showRemovedFiles ? 'Hide Removed' : 'Show Removed' }}</span>
     </button>
     <button
+      type="button"
       mat-stroked-button
       color="primary"
       stopPropagation
@@ -185,6 +186,31 @@
       (page)="updateFilePagination($event, row)"
       (columnChange)="saveNestedColumnVisibilitySettings($event, row.id)">
     </mtx-grid>
+
+    <!-- Excel Sheet Navigation - Only shown for Excel files with multiple sheets -->
+    <div *ngIf="isExcelFile(row.name) && hasMultipleSheets(row.id)" class="excel-sheet-tabs">
+      
+      <!-- Error message display for Excel operations -->
+      <div *ngIf="file_data[row.id]?.error" class="sheet-error-message">
+        <mat-icon>error</mat-icon>
+        <span>{{ file_data[row.id].error }}</span>
+        <button mat-icon-button (click)="clearFileError(row.id)">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="sheet-tabs-container">
+        <ng-container *ngFor="let sheetName of getSheetNames(row.id)">
+          <button 
+            mat-button 
+            class="sheet-tab" 
+            [class.active]="getCurrentSheet(row.id) === sheetName"
+            (click)="switchSheet(row.id, sheetName)">
+            {{ sheetName }}
+          </button>
+        </ng-container>
+      </div>
+    </div>
   </div>
 </ng-template>
 
