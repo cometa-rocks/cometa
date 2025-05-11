@@ -4,6 +4,7 @@
 :host {
   display: block;
   width: 100%;
+  margin-bottom: 16px;
 }
 
 // Expansion panel content styling
@@ -74,11 +75,11 @@
       
       // Align icons and text in buttons
       .mat-icon {
-        margin-right: 4px;
-        font-size: 14px;
-        height: 14px;
-        width: 14px;
-        line-height: 14px;
+        margin-right: 4px !important;
+        font-size: 14px !important;
+        height: 14px !important;
+        width: 14px !important;
+        line-height: 14px !important;
       }
       
       .mdc-button__label {
@@ -137,10 +138,16 @@
   }
 
   // Ensure no-expand class overrides default expand icon visibility
-  .no-expand {
-    .mtx-grid-cell-expand-icon {
-      visibility: hidden;
-    }
+  .mtx-grid .mtx-row .no-expand button[mtx-grid-expansion-toggle],
+  .mtx-grid td.no-expand button[mtx-grid-expansion-toggle],
+  .no-expand button[mtx-grid-expansion-toggle],
+  .no-expand .mtx-grid-row-expand-button {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
   }
 }
 
@@ -152,6 +159,85 @@
 // Expansion content styles
 .expansion-content {
   width: 100%;
+}
+
+// Excel sheet tabs styling
+.excel-sheet-tabs {
+  display: flex;
+  width: 100%;
+  padding: 0;
+  margin: 10px 0 0 0;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f5f5f5;
+  flex-direction: column;
+  
+  .sheet-error-message {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background-color: #ffebee;
+    border-radius: 4px;
+    margin: 8px 8px 0 8px;
+    font-size: 13px;
+    color: #b71c1c;
+    
+    mat-icon {
+      margin-right: 8px;
+      font-size: 18px;
+      color: #f44336;
+    }
+    
+    button {
+      margin-left: auto;
+    }
+  }
+  
+  .sheet-tabs-container {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    
+    &::-webkit-scrollbar {
+      height: 5px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+    
+    .sheet-tab {
+      padding: 4px 16px;
+      min-width: 80px;
+      height: 32px;
+      line-height: 24px;
+      font-size: 12px;
+      text-align: center;
+      border-right: 1px solid #e0e0e0;
+      border-bottom: 1px solid #e0e0e0;
+      border-radius: 0;
+      margin: 0;
+      text-transform: none;
+      
+      &.active {
+        background-color: white;
+        border-bottom: 2px solid #2196f3;
+        font-weight: 500;
+      }
+      
+      mat-icon {
+        font-size: 14px;
+        height: 14px;
+        width: 14px;
+        margin-right: 4px;
+      }
+    }
+  }
 }
 
 .action-buttons-container {
@@ -280,6 +366,7 @@
       border-bottom-width: 1px;
       border-bottom-style: solid;
       border-bottom-color: $table-low-shadow;
+      vertical-align: middle;
     }
     th:first-of-type,
     td:first-of-type {
@@ -424,6 +511,11 @@
     max-width: 100% !important;
     width: 100% !important;
   }
+
+  .mat-column-options,
+  .cdk-column-options {
+    min-width: 180px !important;
+  }
 }
 
 // Custom styling for snackbars
@@ -439,4 +531,79 @@
   font-weight: bold;
 }
 
-/* Make this rule more specific with !important to override table cell styles */
+// Add styles for the search field and no-files message
+.search-field {
+  width: 100%;
+  font-size: 14px;
+}
+
+.no-files-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border-radius: 4px;
+  color: $blue;
+  margin-bottom: 10px;
+
+  mat-icon {
+    margin-right: 8px;
+    color: $blue;
+  }
+}
+
+// Excel-style row numbers and column headers
+.excel-row-number {
+  background-color: #f5f5f5;
+  color: #666;
+  font-weight: 500;
+  text-align: center;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  border-right: 1px solid #e0e0e0;
+}
+
+// Style for Excel-like column headers
+::ng-deep .mtx-grid-header-cell {
+  &:first-child {
+    background-color: #f5f5f5;
+    border-right: 1px solid #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  &:not(:first-child) {
+    background-color: #e6e6e6;
+    font-weight: 500;
+    color: #333;
+  }
+}
+
+// Highlight rows and cells on hover/focus
+::ng-deep .mtx-grid-row {
+  &:hover {
+    background-color: #f0f7ff !important;
+  }
+  
+  &:focus-within {
+    background-color: #e6f2ff !important;
+  }
+}
+
+::ng-deep .mtx-grid-cell {
+  &:focus-within {
+    outline: 2px solid #1976d2;
+    outline-offset: -2px;
+    z-index: 1;
+  }
+}
+
+.mat-mdc-header-cell {
+  z-index: 5 !important;
+}
+
+.mat-mdc-row {
+  z-index: 5 !important;
+}
+
+

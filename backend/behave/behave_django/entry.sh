@@ -24,9 +24,9 @@ done
 
 # sh -c service rsyslog start; tail -f /dev/null # FIXME: This fails every time
 # Install requirements
-apt update
-apt install --no-install-recommends -y rsyslog vim jq nano supervisor psmisc libgl1
-service rsyslog start
+apt-get update
+apt-get install --no-install-recommends -y rsyslog vim jq nano supervisor psmisc libgl1
+service rsyslog start || echo "----------------\nrsyslog failed to start\n----------------"
 apt-get purge -y exim*
 # Upgrade PIP
 python -m pip install -U pip

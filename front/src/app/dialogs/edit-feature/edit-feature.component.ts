@@ -232,9 +232,6 @@ export class EditFeature implements OnInit, OnDestroy {
 
   features: any[] = [];
 
-  // Original files Upload Files 
-  originalFiles: UploadedFile[] = [];
-
   // File columns for files-management component
   fileColumns: MtxGridColumn[] = [
     {
@@ -270,7 +267,7 @@ export class EditFeature implements OnInit, OnDestroy {
           tooltip: 'Copy upload path',
           click: (result: UploadedFile) => {
             // Use the file's name directly as the path
-            const filePath = `uploads/${result.name}`;
+            const filePath = `${result.uploadPath}`;
             
             // Use the modern Clipboard API
             navigator.clipboard.writeText(filePath)
@@ -319,6 +316,9 @@ export class EditFeature implements OnInit, OnDestroy {
       ]
     }
   ];
+
+  // Add new property for tooltip control
+  highlightInput = false;
 
   constructor(
     public dialogRef: MatDialogRef<EditFeature>,
@@ -715,55 +715,54 @@ export class EditFeature implements OnInit, OnDestroy {
         case KEY_CODES.V:
           // Only trigger shortcut if not focused on input and not using Ctrl+V
           if(!event.ctrlKey && !this.inputFocus){
-            console.log('V KEY PRESSED EDIT VARIABLES');
             // Edit variables
             this.editVariables();
           }
           break;
         case KEY_CODES.D:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Depends on other feature
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.S:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Open Emulator mobile
             this.openStartEmulatorScreen();
           }
           break;
         case KEY_CODES.M:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Send email
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.R:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Record video
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.F:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Continue on failure
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.H:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Need help
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.N:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Network loggings
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.G:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Generate dataset
             this.toggleDependsOnOthers(KeyPressed);
           }
@@ -786,6 +785,12 @@ export class EditFeature implements OnInit, OnDestroy {
 
   onInputBlur() {
     this.inputFocus = false;
+  }
+
+  // New method to handle focus change from files-management search input
+  onSearchFocusChanged(isFocused: boolean) {
+    this.inputFocus = isFocused;
+    this.cdr.markForCheck();
   }
 
   toggleDependsOnOthers(KeyPressed) {
@@ -1003,9 +1008,6 @@ export class EditFeature implements OnInit, OnDestroy {
         this.department = data.find(
           dep => dep.department_name === this.featureForm.get('department_name').value
         );
-        if (this.department?.files) {
-          this.originalFiles = [...this.department.files];
-        }
         this.cdr.detectChanges();
       });
     }
@@ -1022,9 +1024,6 @@ export class EditFeature implements OnInit, OnDestroy {
           );
           
           if (this.department) {
-            if (this.department.files) {
-              this.originalFiles = [...this.department.files];
-            }
             this.fileUpload.validateFileUploadStatus(this.department);
           }
           this.cdr.detectChanges();
@@ -1230,11 +1229,9 @@ export class EditFeature implements OnInit, OnDestroy {
 
       const result = await dialogRef.afterClosed().toPromise();
       if (result) {
-        this.resetSearch();
         this.dialogRef.close();
       }
     } else {
-      this.resetSearch();
       this.dialogRef.close();
     }
   }
@@ -1245,7 +1242,6 @@ export class EditFeature implements OnInit, OnDestroy {
    */
   async editOrCreate() {
     // Reset search before proceeding
-    this.resetSearch();
     
     // Get current steps from Store
     let currentSteps = [];
@@ -1339,77 +1335,80 @@ export class EditFeature implements OnInit, OnDestroy {
     }
     // Check Feature Name
     if (!this.featureForm.get('feature_name').valid) {
-      this.focusFormControl('feature_name');
-      this._snackBar.open(`${incompletePrefix}: missing name`);
-      return;
-    }
-    const fValues = this.featureForm.value;
-    // Create FormData for sending XHR
-    const dataToSend = {
-      ...this.featureForm.value,
-      steps: steps,
-      environment_id: environmentId,
-      app_id: appId,
-      department_id: departmentId,
-      browsers: this.browserstackBrowsers.getValue(),
-    };
-    // Construct schedule for sending
-    if (fValues.run_now) {
-      dataToSend.schedule = [
-        fValues.minute,
-        fValues.hour,
-        fValues.day_month,
-        fValues.month,
-        fValues.day_week,
-      ].join(' ');
+      setTimeout(() => {
+        this.highlightInput = true;
+        this.focusFormControl('feature_name');
+        this._snackBar.open('Feature info is incomplete: missing name', 'OK');
+      }, 0);
     } else {
-      dataToSend.schedule = '';
-    }
+      const fValues = this.featureForm.value;
+      // Create FormData for sending XHR
+      const dataToSend = {
+        ...this.featureForm.value,
+        steps: steps,
+        environment_id: environmentId,
+        app_id: appId,
+        department_id: departmentId,
+        browsers: this.browserstackBrowsers.getValue(),
+      };
+      // Construct schedule for sending
+      if (fValues.run_now) {
+        dataToSend.schedule = [
+          fValues.minute,
+          fValues.hour,
+          fValues.day_month,
+          fValues.month,
+          fValues.day_week,
+        ].join(' ');
+      } else {
+        dataToSend.schedule = '';
+      }
 
-    // --------------------------------------------
-    // Save XHR
-    // ... now dataToSend has been prepared and we can send it to Backend
-    // ... Different for save & clone and create
-    // ... create dialog asks if you want to run it now
-    // ... data.mode can be 'new', 'clone', 'edit'
-    // -------------------------------------------------
-    // Special code for when editing or clonning feature
-    // -------------------------------------------------
-    dataToSend.feature_id = this.data.feature.feature_id;
-    dataToSend.cloud = this.feature.getValue().cloud;
-    if (this._browserSelection) {
-      dataToSend.cloud = this._browserSelection.testing_cloud.value;
-    }
-    if (this.data.mode === 'clone' || this.data.mode === 'new') {
-      dataToSend.feature_id = 0;
-    }
-    this.saving$.next(true);
-    this._api
-      .patchFeature(dataToSend.feature_id, dataToSend, {
-        loading: 'translate:tooltips.saving_feature',
-      })
-      .pipe(finalize(() => this.saving$.next(false)))
-      .subscribe(res => {
-        // res.info contains the feature data
-        // res.success contains true or false
+      // --------------------------------------------
+      // Save XHR
+      // ... now dataToSend has been prepared and we can send it to Backend
+      // ... Different for save & clone and create
+      // ... create dialog asks if you want to run it now
+      // ... data.mode can be 'new', 'clone', 'edit'
+      // -------------------------------------------------
+      // Special code for when editing or clonning feature
+      // -------------------------------------------------
+      dataToSend.feature_id = this.data.feature.feature_id;
+      dataToSend.cloud = this.feature.getValue().cloud;
+      if (this._browserSelection) {
+        dataToSend.cloud = this._browserSelection.testing_cloud.value;
+      }
+      if (this.data.mode === 'clone' || this.data.mode === 'new') {
+        dataToSend.feature_id = 0;
+      }
+      this.saving$.next(true);
+      this._api
+        .patchFeature(dataToSend.feature_id, dataToSend, {
+          loading: 'translate:tooltips.saving_feature',
+        })
+        .pipe(finalize(() => this.saving$.next(false)))
+        .subscribe(res => {
+          // res.info contains the feature data
+          // res.success contains true or false
 
-        // After sending the XHR we have received the result in "res"
-        // Checking for success and not
-        // .... show snackBar
-        // .... move feature to folder, if necesarry
-        // .... show dialog according to new or clone & save/edit
-        if (res.success) {
-          // If XHR was ok
-          this._snackBar.open('Feature saved.', 'OK');
-          this._store.dispatch(new Features.UpdateFeatureOffline(res.info));
-          // Toggles the welcome to false, meaning that the user is no longer new in co.meta
-          this.toggleWelcome();
-          this.manageFeatureDialogData(res, dataToSend);
-        } else {
-          // If XHR was ok
-          this._snackBar.open('An error occurred.', 'OK');
-        }
-      });
+          // After sending the XHR we have received the result in "res"
+          // Checking for success and not
+          // .... show snackBar
+          // .... move feature to folder, if necesarry
+          // .... show dialog according to new or clone & save/edit
+          if (res.success) {
+            // If XHR was ok
+            this._snackBar.open('Feature saved.', 'OK');
+            this._store.dispatch(new Features.UpdateFeatureOffline(res.info));
+            // Toggles the welcome to false, meaning that the user is no longer new in co.meta
+            this.toggleWelcome();
+            this.manageFeatureDialogData(res, dataToSend);
+          } else {
+            // If XHR was ok
+            this._snackBar.open('An error occurred.', 'OK');
+          }
+        });
+    }
   }
 
   /**
@@ -1624,47 +1623,38 @@ export class EditFeature implements OnInit, OnDestroy {
     }
   }
 
-  // Filter files in the upload files section
-  filterFiles(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const value = input.value.toLowerCase();
-  
-    if (value === '') {
-      // If the input is empty, show all files
-      this.department.files = [...this.originalFiles];
-    } else {
-      // If there is text, filter the files
-      this.department.files = this.originalFiles.filter(file => 
-        file.name.toLowerCase().includes(value)
-      );
-    }
-    // Force change detection
-    this.cdr.detectChanges();
-  }
-
-  // Reset search input and file list
-  resetSearch() {
-    // Reset the file list to original state without forcing change detection
-    if (this.department && this.originalFiles) {
-      setTimeout(() => {
-        this.department.files = [...this.originalFiles];
-      }, 1000);
-    }
-  }
-
   // Event handlers for files-management component
   onFilesUploaded(files: UploadedFile[]): void {
-    // Process files to add type field if not already set
-    files.forEach(file => {
-      if (!file.type && file.name) {
-        const lastDotIndex = file.name.lastIndexOf('.');
+    // Create new file objects instead of modifying existing ones
+    const processedFiles = files.map(file => {
+      // Create a shallow copy of the file object
+      const newFile = { ...file };
+      
+      // Add type if not already set
+      if (!newFile.type && newFile.name) {
+        const lastDotIndex = newFile.name.lastIndexOf('.');
         if (lastDotIndex > 0) {
-          file.type = file.name.substring(lastDotIndex + 1).toUpperCase();
+          newFile.type = newFile.name.substring(lastDotIndex + 1).toUpperCase();
         } else {
-          file.type = 'Unknown';
+          newFile.type = 'Unknown';
         }
       }
+      
+      return newFile;
     });
+    
+    // Update original files if needed
+    if (this.department && this.department.files) {
+      // Create a new department object with updated files
+      this.department = {
+        ...this.department,
+        files: this.department.files.map(existingFile => {
+          // Find if this file was processed in the new batch
+          const updatedFile = processedFiles.find(f => f.id === existingFile.id);
+          return updatedFile || existingFile;
+        })
+      };
+    }
     
     this.cdr.markForCheck();
   }
@@ -1770,6 +1760,23 @@ export class EditFeature implements OnInit, OnDestroy {
   onFilePaginationChanged(event: {event: PageEvent, file?: UploadedFile}): void {
     this.logger.msg('4', `File pagination changed: ${JSON.stringify(event.event)}`, 'Pagination');
     // No additional action needed
+  }
+
+  handleCreate() {
+    if (!this.featureForm.get('feature_name').valid) {
+      this.highlightInput = true;
+      this.focusFormControl('feature_name');
+      this._snackBar.open('Feature info is incomplete: missing name', 'OK', {
+        duration: 5000
+      });
+      // Hide tooltip and highlight after 3 seconds
+      setTimeout(() => {
+        this.highlightInput = false;
+        this.cdr.detectChanges();
+      }, 3000);
+      return;
+    }
+    this.editOrCreate();
   }
 
 }
