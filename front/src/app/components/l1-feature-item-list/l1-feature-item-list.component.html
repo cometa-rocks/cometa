@@ -8,7 +8,7 @@ Author: dph000
 <ng-container
   class="items-container"
   *ngIf="item.type === 'feature'; else folderItem">
-  <ng-container *ngIf="item.marked_for_deletion !== true; else markedForDeletion">
+  <ng-container>
     <ng-container *ngLet="item.id | featureRunning | async as running">
       <div
         class="wrapper"
@@ -73,6 +73,7 @@ Author: dph000
           </div>
           <div 
             class="run" 
+            *ngIf="!isTrashbin"
             [class.run-disabled]="isButtonDisabled"
             [class.running]="running"
             stopPropagation 
@@ -162,6 +163,22 @@ Author: dph000
           </div>
         </ng-container>
 
+        <ng-container *ngIf="isTrashbin">
+          <div
+            class="star-feature-in-feature"
+            [ngClass]="{
+              'days-safe': (30 - getDaysSinceMarked(item.marked_for_deletion_date)) > 20,
+              'days-warning': (30 - getDaysSinceMarked(item.marked_for_deletion_date)) <= 20 && (30 - getDaysSinceMarked(item.marked_for_deletion_date)) > 10,
+              'days-danger': (30 - getDaysSinceMarked(item.marked_for_deletion_date)) <= 10 && (30 - getDaysSinceMarked(item.marked_for_deletion_date)) > 5,
+              'days-critical': (30 - getDaysSinceMarked(item.marked_for_deletion_date)) <= 5
+            }"
+            [matTooltip]="'trashbin.deletion_countdown' | translate:{ days: (30 - getDaysSinceMarked(item.marked_for_deletion_date)) }"
+            matTooltipPosition="above">
+            <i class="material-icons">timer</i>
+            <span class="days-remaining">{{ 30 - getDaysSinceMarked(item.marked_for_deletion_date) }} days remaining</span>
+          </div>
+        </ng-container>
+
         <!-- Feature ID -->
         <div class="feature-id" (click)="copyToClipboard(item.id)" stopPropagation>
           <ng-container>
@@ -225,29 +242,50 @@ Author: dph000
           class="feature-options"
           #featureOptions="matMenu"
           xPosition="after">
-          <ng-container *ngIf="!item.depends_on_others">
-            <!-- Run feature button -->
+          <ng-container *ngIf="!isTrashbin">
+            <ng-container *ngIf="!item.depends_on_others">
+              <!-- Run feature button -->
+              <button
+                type="button"
+                (click)="_sharedActions.run(item.id)"
+                class="run-feature"
+                [matTooltip]="'tooltips.run_feature' | translate"
+                matTooltipPosition="after"
+                mat-menu-item>
+                <mat-icon>play_circle_filled</mat-icon>
+                <span>Run</span>
+              </button>
+              <mat-divider></mat-divider>
+            </ng-container>
+            <!-- Star feature -->
             <button
               type="button"
-              (click)="_sharedActions.run(item.id)"
-              class="run-feature"
-              [matTooltip]="'tooltips.run_feature' | translate"
-              matTooltipPosition="after"
-              mat-menu-item>
-              <mat-icon>play_circle_filled</mat-icon>
-              <span>Run</span>
+              mat-menu-item
+              (click)="toggleStarred($event)"
+              class="star-feature">
+              <mat-icon>{{ (isStarred$ | async) ? 'star' : 'star_border' }}</mat-icon>
+              <span>{{ (isStarred$ | async) ? 'Starred' : 'Star' }}</span>
+            </button>
+          </ng-container>
+          <ng-container *ngIf="isTrashbin">
+            <button
+              type="button"
+              (click)="restoreFeature(item.id)"
+              mat-menu-item
+              class="restore-feature">
+              <mat-icon class="success-icon">restore</mat-icon>
+              <span class="success-text">Restore Feature</span>
             </button>
             <mat-divider></mat-divider>
+            <button
+              type="button"
+              (click)="deleteFeature(item.id)"
+              mat-menu-item
+              class="delete-feature">
+              <mat-icon class="remove-icon">delete_forever</mat-icon>
+              <span class="remove-text">Delete Permanently</span>
+            </button>
           </ng-container>
-          <!-- Star feature -->
-          <button
-            type="button"
-            mat-menu-item
-            (click)="toggleStarred($event)"
-            class="star-feature">
-            <mat-icon>{{ (isStarred$ | async) ? 'star' : 'star_border' }}</mat-icon>
-            <span>{{ (isStarred$ | async) ? 'Starred' : 'Star' }}</span>
-          </button>
           <mat-divider></mat-divider>
           <!-- Edit feature -->
           <button
@@ -264,7 +302,7 @@ Author: dph000
           <!-- Clone feature -->
           <button
             type="button"
-            *ngIf="canCreateFeature"
+            *ngIf="canCreateFeature && !isTrashbin"
             (click)="_sharedActions.openEditFeature(item.id, 'clone')"
             matTooltip="Clone {{ item.name }}"
             matTooltipPosition="before"
@@ -275,6 +313,7 @@ Author: dph000
           </button>
           <!-- Move feature -->
           <button
+            *ngIf="!isTrashbin"
             type="button"
             (click)="SAmoveFeature(item.reference)"
             matTooltip="Move {{ item.name }}"
@@ -296,7 +335,7 @@ Author: dph000
           <!-- Delete feature -->
           <button
             type="button"
-            *ngIf="canDeleteFeature$ | async"
+            *ngIf="(canDeleteFeature$ | async) && !isTrashbin"
             (click)="openDeleteConfirmationDialog(item)"
             matTooltip="Schedule deletion of {{ item.name }}"
             matTooltipPosition="before"
@@ -329,46 +368,6 @@ Author: dph000
       </div>
     </ng-container>
   </ng-container>
-  <ng-template #markedForDeletion>
-    <div class="wrapper marked-for-deletion">
-      <div class="name">
-        <span>{{ item.name }}</span>
-      </div>
-      <div class="feature-id">ID: {{ item.id }}</div>
-      <button
-        type="button"
-        matTooltip="Feature options"
-        matTooltipPosition="above"
-        stopPropagation
-        class="options"
-        mat-icon-button
-        [matMenuTriggerFor]="featureOptions"
-        (menuOpened)="isMenuOpen = true"
-        (menuClosed)="isMenuOpen = false">
-        <mat-icon>more_vert</mat-icon>
-      </button>
-      <mat-menu
-        class="feature-options"
-        #featureOptions="matMenu"
-        xPosition="after">
-        <button
-          type="button"
-          (click)="_sharedActions.restoreFeature(item.id)"
-          mat-menu-item>
-          <mat-icon>restore</mat-icon>
-          <span>Restore</span>
-        </button>
-        <mat-divider></mat-divider>
-        <button
-          type="button"
-          (click)="_sharedActions.deleteFeature(item.id)"
-          mat-menu-item>
-          <mat-icon>delete_forever</mat-icon>
-          <span>Delete Permanently</span>
-        </button>
-      </mat-menu>
-    </div>
-  </ng-template>
 </ng-container>
 <ng-template #folderItem>
   <!-- Folder item container -->

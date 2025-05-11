@@ -46,6 +46,7 @@ import {
 } from '@angular/common';
 import { StarredService } from '@services/starred.service';
 import { DeleteConfirmationDialogComponent } from '../delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { RestoreConfirmationDialogComponent } from '../restore-confirmation-dialog/restore-confirmation-dialog.component';
 
 
 @Component({
@@ -96,6 +97,7 @@ export class L1FeatureItemListComponent implements OnInit {
   @ViewSelectSnapshot(UserState.GetPermission('create_feature'))
   canCreateFeature: boolean;
   @Input() feature_id: number;
+  @Input() isTrashbin: boolean = false;
   folderName: string | null = null;
   private hasHandledMouseOver = false;
   private hasHandledMouseOverFolder = false;
@@ -451,20 +453,64 @@ export class L1FeatureItemListComponent implements OnInit {
     });
   }
 
-  openDeleteConfirmationDialog() {
+  openDeleteConfirmationDialog(item: any) {
     const dialogRef = this._dialog.open(DeleteConfirmationDialogComponent, {
       width: '400px',
       data: {
         title: 'Schedule Deletion',
-        message: `Are you sure you want to schedule the deletion of feature "${this.item.name}"?`,
+        message: `Are you sure you want to schedule the deletion of feature "${item.name}"?`,
       },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this._sharedActions.scheduleDeletion(this.item.id);
+        // Si el feature está en favoritos, lo quitamos
+        this.isStarred$.pipe(take(1)).subscribe(isStarred => {
+          if (isStarred) {
+            this.toggleStarred({} as Event);
+          }
+        });
+        
+        // Programar la eliminación usando el servicio
+        this._sharedActions.scheduleDeletion(item.id);
+        this._snackBar.open('Feature scheduled for deletion', 'OK', { duration: 2000 });
       }
     });
+  }
+
+  restoreFeature(featureId: number) {
+    const dialogRef = this._dialog.open(RestoreConfirmationDialogComponent, {
+      width: '400px'
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        try {
+          this._sharedActions.restoreFeature(featureId);
+          this._snackBar.open('Feature restored successfully', 'OK', { duration: 2000 });
+        } catch (error) {
+          console.error('Error restoring feature:', error);
+          this._snackBar.open('Error restoring feature', 'OK', { duration: 2000 });
+        }
+      }
+    });
+  }
+
+  deleteFeature(featureId: number) {
+    try {
+      this._sharedActions.deleteFeature(featureId);
+    } catch (error) {
+      console.error('Error deleting feature:', error);
+      this._snackBar.open('Error deleting feature', 'OK', { duration: 2000 });
+    }
+  }
+
+  getDaysSinceMarked(date: string): number {
+    if (!date) return 0;
+    const markedDate = new Date(date);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - markedDate.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 }
 

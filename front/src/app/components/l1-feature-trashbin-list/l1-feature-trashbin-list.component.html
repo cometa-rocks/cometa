@@ -6,37 +6,77 @@ Author: dph000
 
 -->
 <div class="trashbin-container">
-  <div class="trashbin-header">
+  <!-- <div class="trashbin-header">
     <h2>Trash Bin</h2>
     <p>Features marked for deletion will appear here</p>
+  </div> -->
+
+  <!-- Department selector -->
+  <div class="header-container">
+    <div class="department-selector">
+      <mat-form-field appearance="fill">
+        <mat-label>Select Department</mat-label>
+        <mat-select [(ngModel)]="selectedDepartment" (selectionChange)="onDepartmentChange($event.value)">
+          <mat-option value="All Departments">All Departments</mat-option>
+          <mat-option *ngFor="let dept of departments" [value]="dept">
+            {{ dept }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
   </div>
 
-  <div class="features-grid" *ngIf="markedFeatures$ | async as features">
-    <cometa-l1-feature-item-list
-      *ngFor="let item of features"
-      [item]="item"
-      [feature_id]="item.feature_id"
-      class="feature-item">
-      <div class="trashbin-actions">
-        <button
-          mat-button
-          color="primary"
-          (click)="restoreFeature(item.feature_id)">
-          <mat-icon>restore</mat-icon>
-          Restore
-        </button>
-        <button
-          mat-button
-          color="warn"
-          (click)="deleteFeature(item.feature_id)">
-          <mat-icon>delete_forever</mat-icon>
-          Delete Permanently
-        </button>
-      </div>
-    </cometa-l1-feature-item-list>
+  <div class="departments-container">
+    <ng-container *ngIf="data$ && data$.length > 0">
+      <!-- Show all departments when "All Departments" is selected -->
+      <ng-container *ngIf="selectedDepartment === 'All Departments'">
+        <div *ngFor="let department of getDepartments()" class="department-section">
+          <div class="department-header">
+            <mat-icon class="department-icon">domain</mat-icon>
+            <h3 class="department-title">{{ department }}</h3>
+          </div>
+          <div class="features-grid" *ngIf="getFeaturesByDepartment(department).length > 0">
+            <cometa-l1-feature-item-list
+              *ngFor="let item of getFeaturesByDepartment(department)"
+              [item]="item"
+              [feature_id]="item.id"
+              [isTrashbin]="true"
+              class="feature-item">
+            </cometa-l1-feature-item-list>
+          </div>
+          <div class="empty-department" *ngIf="getFeaturesByDepartment(department).length === 0">
+            <mat-icon>delete_outline</mat-icon>
+            <p>No features marked for deletion in {{ department }}</p>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Show only selected department when specific department is selected -->
+      <ng-container *ngIf="selectedDepartment !== 'All Departments'">
+        <div class="department-section">
+          <div class="department-header">
+            <mat-icon class="department-icon">domain</mat-icon>
+            <h3 class="department-title">{{ selectedDepartment }}</h3>
+          </div>
+          <div class="features-grid" *ngIf="getFeaturesByDepartment(selectedDepartment).length > 0">
+            <cometa-l1-feature-item-list
+              *ngFor="let item of getFeaturesByDepartment(selectedDepartment)"
+              [item]="item"
+              [feature_id]="item.id"
+              [isTrashbin]="true"
+              class="feature-item">
+            </cometa-l1-feature-item-list>
+          </div>
+          <div class="empty-department" *ngIf="getFeaturesByDepartment(selectedDepartment).length === 0">
+            <mat-icon>delete_outline</mat-icon>
+            <p>No features marked for deletion in {{ selectedDepartment }}</p>
+          </div>
+        </div>
+      </ng-container>
+    </ng-container>
   </div>
 
-  <div class="empty-state" *ngIf="(markedFeatures$ | async)?.length === 0">
+  <div class="empty-state" *ngIf="!data$ || data$.length === 0">
     <mat-icon>delete_outline</mat-icon>
     <p>No features marked for deletion</p>
   </div>

@@ -199,20 +199,27 @@ export class L1LandingComponent implements OnInit {
   inputFocus = false;
   focusSubscription: Subscription;
   keyboardEventActive = false;
+  markedFeatures: any[] = [];
 
   ngOnInit() {    
     this.data$.subscribe(
       (data) => {
         console.log('=== Landing Component Data Debug ===');
         if (data && data.rows) {
-          // Filter out items marked for deletion
-          const filteredRows = data.rows.filter(item => !item.reference?.marked_for_deletion);
+          // Get features marked for deletion
+          this.markedFeatures = data.rows.filter(item => 
+            item.reference?.marked_for_deletion === true || 
+            item.marked_for_deletion === true
+          );
+          console.log('Marked for deletion:', this.markedFeatures);
+
+          // Filter out items marked for deletion for the main view
+          const filteredRows = data.rows.filter(item => 
+            !(item.reference?.marked_for_deletion === true || 
+              item.marked_for_deletion === true)
+          );
           
-          filteredRows.forEach(item => {
-            console.log('item', JSON.stringify(item, null, 2));
-          });
-          
-          this.table_of_items = data.rows;
+          this.table_of_items = filteredRows;
           this.table_of_items.sort((itemA, itemB) => {
             const nameA = itemA.name.toLowerCase();
             const nameB = itemB.name.toLowerCase();
