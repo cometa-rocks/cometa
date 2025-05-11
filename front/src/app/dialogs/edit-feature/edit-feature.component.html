@@ -75,7 +75,7 @@
                 </mat-option>
               </mat-select>
             </mat-form-field>
-            <mat-form-field appearance="fill" class="edit-name">
+            <mat-form-field appearance="fill" class="edit-name" [class.error-highlight]="highlightInput">
               <mat-label>Name</mat-label>
               <input
                 matInput
@@ -83,6 +83,8 @@
                 formControlName="feature_name"
                 (focus)="onInputFocus()"
                 (blur)="onInputBlur()"
+                [matTooltip]="'Please enter a name to create/save the feature'"
+                matTooltipPosition="above"
                 />
             </mat-form-field>
             <mat-form-field appearance="fill" class="edit-description">
@@ -386,6 +388,7 @@
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
           <app-files-management
+            *ngIf="department"
             [department]="department"
             [isExpanded]="true"
             [showPagination]="true"
@@ -395,7 +398,8 @@
             (fileDeleted)="onFileDeleted($event)"
             (fileDownloaded)="onFileDownloaded($event)"
             (panelToggled)="onFilePanelToggled($event)"
-            (paginationChanged)="onFilePaginationChanged($event)">
+            (paginationChanged)="onFilePaginationChanged($event)"
+            (searchFocusChange)="onSearchFocusChanged($event)">
           </app-files-management>
         </ng-template>
       </mat-expansion-panel>
@@ -617,24 +621,18 @@
           (click)="handleCancel()">
           CANCEL
         </button>
-        <span
-          style="margin-left: 8px"
-          matTooltipPosition="above"
-          [matTooltip]="'tooltips.invalid_edit_form' | translate"
-          [matTooltipDisabled]="featureForm.valid">
-          <button
-            type="button"
-            color="primary"
-            [disabled]="saving || featureForm.invalid"
-            mat-stroked-button
-            class="submit"
-            (click)="editOrCreate()">
-            <ng-container *ngIf="data.mode === 'new'; else editText"
-              >CREATE</ng-container
-            >
-            <ng-template #editText>SAVE</ng-template>
-          </button>
-        </span>
+        <button
+          type="button"
+          color="primary"
+          [disabled]="saving"
+          mat-stroked-button
+          class="submit"
+          (click)="data.mode === 'new' ? handleCreate() : editOrCreate()">
+          <ng-container *ngIf="data.mode === 'new'; else editText"
+            >CREATE</ng-container
+          >
+          <ng-template #editText>SAVE</ng-template>
+        </button>
       </ng-container>
     </div>
   </mat-dialog-actions>

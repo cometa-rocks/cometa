@@ -1,5 +1,5 @@
 {
-  "version": "3.0.45",
+  "version": "3.0.48",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,58 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.49",
+      "date": "2025-05-09",
+      "features": [
+        {
+          "title": "Adjustments to feature result, dialogs, step result pagination, and chatbot - #6233",
+          "description": "Set default 500 on feature result, added keyboard shortcuts to dialogs, adjusted items per page size in step result to match production, and fixed chatbot display in the screenshot component."
+        }
+      ]
+    },
+    {
+      "version": "3.0.48",
+      "date": "2025-05-09",
+      "features": [
+        {
+          "title": "Fixed Tours Section - #6232",
+          "description": "Fixed some steps on the tour where the dialogs were not pointing to the correct elements as well as some dialogs not fitting to the screen."
+        },
+        {
+          "title": "Improved feedback on Create/Save actions - #4694",
+          "description": "Added feedback when the user clicks the Create or Save button. If the name input is required but not filled, the page will automatically scroll to the input and a snackbar notification will inform the user."
+        }
+      ]
+    },
+    {
+      "version": "3.0.47",
+      "date": "2025-05-08",
+      "features": [
+        {
+          "title": "Step editor improvements - #6224",
+          "description": "Added new funtionality to select all (Enable, Screenshot, Compare) in step editor"
+        },
+        {
+          "title": "Searchbar added for files section - #6210",
+          "description": "Browse files within the feature and data driven files section"
+        },
+        {
+          "title": "Buttons improvements",
+          "description": "Fixed button sizes in edit-dialog"
+        }
+      ]
+    },
+    {
+      "version": "3.0.46",
+      "date": "2025-05-06",
+      "features": [
+        {
+          "title": "Fixed issue with file upload Path",
+          "description": "Issue fixed"
+        }
+      ]
+    },
     {
       "version": "3.0.45",
       "date": "2025-05-05",

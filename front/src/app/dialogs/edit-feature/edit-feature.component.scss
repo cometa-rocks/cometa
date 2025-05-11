@@ -321,26 +321,36 @@ button {
   max-height: calc(91dvh - 64px);
 }
 
-.search-field{
-  width: 100%;
-}
-
-.no-files-message {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  border-radius: 4px;
-  color: $blue;
-
-  mat-icon {
-    margin-right: 8px;
-    color: $blue;
-  }
-}
-
 :host::ng-deep .mtx-grid-icon {
   width: 24px !important;
   height: 24px !important;
   font-size: 24px !important;
+}
+
+.error-highlight {
+  ::ng-deep .mat-form-field-flex {
+    position: relative;
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba($bad, 0.2);
+      animation: fadeOut 3s ease-in-out forwards;
+    }
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+  }
 }
