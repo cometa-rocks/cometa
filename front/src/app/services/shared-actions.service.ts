@@ -638,25 +638,27 @@ export class SharedActionsService {
   }
   
   scheduleDeletion(featureId: number) {
-    console.log('=== Schedule Deletion Debug ===');
-    console.log('Scheduling deletion for feature ID:', featureId);
-    
     return this._api.patchFeature(featureId, {
       marked_for_deletion: true
     }, {
       loading: 'Scheduling feature for deletion'
-    }).subscribe(
-      (response) => {
-        console.log('Feature marked for deletion response:', response);
-        // Opcional: Mostrar un mensaje de éxito
-        this._snack.open('Feature scheduled for deletion', 'Close', {
-          duration: 3000
-        });
-      },
+    }).pipe(
+      tap(response => {
+        if (response.success) {
+          // Actualizar el estado del feature en el store
+          this._store.dispatch(new Features.UpdateFeature(featureId));
+          // Forzar una actualización de los features
+          this._store.dispatch(new Features.GetFeatures());
+          this._snackBar.open('Feature scheduled for deletion', 'OK', {
+            duration: 3000
+          });
+        }
+      })
+    ).subscribe(
+      () => {},
       error => {
-        console.error('Error marking feature for deletion:', error);
-        // Opcional: Mostrar un mensaje de error
-        this._snack.open('Error scheduling feature for deletion', 'Close', {
+        console.error('Error scheduling feature for deletion:', error);
+        this._snackBar.open('Error scheduling feature for deletion', 'OK', {
           duration: 3000
         });
       }

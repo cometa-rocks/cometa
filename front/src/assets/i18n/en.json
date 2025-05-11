@@ -231,5 +231,8 @@
   "live_steps": {
     "button_stop": "Stops the current running process. This action can produce inconsistent step results!",
     "button_when_starting": "Wait until the feature is started"
+  },
+  "trashbin": {
+    "deletion_countdown": "This feature will be permanently deleted in {{days}} days remaining"
   }
 }

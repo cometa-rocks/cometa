@@ -130,11 +130,14 @@ Author: dph000
             <ng-container *ngIf="table?.rows?.length > 0; else noFeaturesFound">
               <!-- Feature list with item view -->
               <ng-container *ngIf="itemsViewWith === 'tiles'; else listView">
-                <cometa-l1-feature-item-list
-                  [item]="item"
-                  class="feature-item"
-                  [feature_id]="item.id"
-                  *ngFor="let item of table.rows | filterByProperty: {marked_for_deletion: false}"></cometa-l1-feature-item-list>
+                <ng-container *ngFor="let item of table.rows">
+                  <cometa-l1-feature-item-list
+                    *ngIf="!item.reference?.marked_for_deletion"
+                    [item]="item"
+                    class="feature-item"
+                    [feature_id]="item.id">
+                  </cometa-l1-feature-item-list>
+                </ng-container>
               </ng-container>
               <!-- Feature list with list view -->
               <ng-template #listView>
@@ -307,9 +310,11 @@ Author: dph000
     <ng-container *ngIf="(aciveList$ | async) == 'trashbin'">
       <cometa-l1-filter
         class="filter-bar"
-        [filters$]="filters$ | async"></cometa-l1-filter>
+        [filters$]="filters$ | async">
+      </cometa-l1-filter>
       <cometa-l1-feature-trashbin-list
-        [data$]="table"></cometa-l1-feature-trashbin-list>
+        [data$]="markedFeatures">
+      </cometa-l1-feature-trashbin-list>
     </ng-container>
   </div>
 </div>

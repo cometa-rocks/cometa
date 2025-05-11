@@ -463,7 +463,7 @@ export class L1FeatureListComponent implements OnInit {
   }
 
   scheduleDeletion(featureId: number) {
-    console.log('[L1FeatureList] Llamando a scheduleDeletion para featureId:', featureId);
+    this.log.msg('1', 'Scheduling feature for deletion...', 'feature-list', featureId);
     this._sharedActions.scheduleDeletion(featureId);
   }
 }

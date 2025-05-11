@@ -493,10 +493,40 @@ input {
   display: flex;
   position: absolute;
   left: 19px;
-  bottom: 13px;
+  bottom: 14px;
+  align-items: center;
+  gap: 4px;
+  
   i {
-    color: #666;
     font-size: 18px;
+  }
+
+  .days-remaining {
+    font-size: 14px;
+  }
+
+  &.days-safe {
+    i, .days-remaining {
+      color: $days-safe-color;
+    }
+  }
+
+  &.days-warning {
+    i, .days-remaining {
+      color: $days-warning-color;
+    }
+  }
+
+  &.days-danger {
+    i, .days-remaining {
+      color: $days-danger-color;
+    }
+  }
+
+  &.days-critical {
+    i, .days-remaining {
+      color: $days-critical-color;
+    }
   }
 }
 
@@ -602,4 +632,37 @@ input {
   font-size: 14px;
   color: #555;
   opacity: 0.8;
+}
+
+.restore-feature {
+  .success-icon, .success-text {
+    color: $success !important;
+  }
+}
+
+.delete-feature {
+  .remove-icon, .remove-text {
+    color: $remove !important;
+  }
+}
+
+.deletion-countdown {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background-color: rgba(255, 193, 7, 0.1);
+  border-radius: 4px;
+  margin-left: 8px;
+
+  .material-icons {
+    color: #ffc107;
+    font-size: 18px;
+  }
+
+  .days-remaining {
+    color: #ffc107;
+    font-size: 14px;
+    font-weight: 500;
+  }
 }

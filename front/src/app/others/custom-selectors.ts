@@ -535,7 +535,10 @@ export class CustomSelectors {
 
   static GetMarkedForDeletionFeatures() {
     return createSelector([FeaturesState], (state: IFeaturesState) => {
-      return Object.values(state.details).filter(feature => feature.marked_for_deletion === true);
+      return Object.values(state.details).filter(feature => 
+        feature.marked_for_deletion === true || 
+        feature.reference?.marked_for_deletion === true
+      );
     });
   }
 
