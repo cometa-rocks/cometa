@@ -1,16 +1,22 @@
-<div class="dialog-container">
-  <div class="dialog-header">
-    <mat-icon class="warning-icon">restore</mat-icon>
-    <h2 mat-dialog-title>Restore Feature</h2>
-  </div>
-  <mat-dialog-content>
-    <p>Are you sure you want to restore this feature? This feature will be permanently deleted in 30 days.</p>
-  </mat-dialog-content>
-  <mat-dialog-actions align="end">
-    <button mat-button (click)="onCancel()">Cancel</button>
-    <button mat-raised-button color="primary" (click)="onConfirm()">
-      <mat-icon>restore</mat-icon>
-      Restore
-    </button>
-  </mat-dialog-actions>
-</div> 
+
+<h2 mat-dialog-title>Restore Feature</h2>
+<mat-dialog-content>
+  <!-- <mat-icon class="warning-icon">restore</mat-icon> -->
+  <p>Are you sure you want to restore this feature? This feature will be permanently deleted in 30 days.</p>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button
+    mat-stroked-button
+    color="warn"
+    mat-dialog-close
+    (click)="onCancel()">
+    Cancel
+  </button>
+  <button
+    mat-stroked-button
+    color="primary" 
+    (click)="onConfirm()">
+    <mat-icon>restore</mat-icon>
+    Restore
+  </button>
+</mat-dialog-actions>
