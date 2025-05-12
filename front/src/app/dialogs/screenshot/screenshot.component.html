@@ -6,7 +6,13 @@
         <form [formGroup]="chatForm">
             <mat-form-field appearance="fill" class="full-width">
                 <mat-label>Chat with Cometa AI about this screenshot</mat-label>
-                <textarea matInput spellcheck="false" formControlName="chatText"></textarea>
+                <textarea 
+                    matInput 
+                    spellcheck="false"
+                    formControlName="chatText"
+                    (input)="onInputChange($event)"
+                    >
+                </textarea>
             </mat-form-field>
             
             <mat-dialog-actions>

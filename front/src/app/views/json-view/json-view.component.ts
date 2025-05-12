@@ -47,7 +47,7 @@ export class JsonViewerComponent implements OnInit {
         distinctUntilChanged(),
         switchMap(value => {
           if (value) {
-            if (this.data.rest_api) {
+            if (this.data.id !== undefined) {
               return this._api.getParsedJQFilter(value, this.data.id);
             } else {
               return this._api.getParsedJQFilter_content(value, this.data.responses);

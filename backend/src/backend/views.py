@@ -2196,7 +2196,8 @@ class StepResultViewSet(viewsets.ModelViewSet):
         response = StepResultSerializer(step_result, many=False).data
         logger.debug(f"Response: {response}")
         return JsonResponse(response)
-
+    
+    @require_permissions("change_step_result_status")
     def patch(self, request, *args, **kwargs):
         # Get StepResult ID from the passed URL
         step_result_id = self.kwargs.get('step_result_id', None)
@@ -3130,7 +3131,7 @@ class FolderViewset(viewsets.ModelViewSet):
         # get the departments from the session user
         departments = tuple([x['department_id'] for x in request.session['user']['departments']])
         logger.debug("Departments for FolderViewset %s", departments)
-        logger.debug("User object %s", request.session['user'])
+        # logger.debug("User object %s", request.session['user'])
         logger.debug("UserID: %s", request.session['user']['user_id'])
 
         # return empty array if user does not belong to any department
@@ -3215,10 +3216,10 @@ class FolderViewset(viewsets.ModelViewSet):
 
         # make a raw query to folders table
         results = Folder.objects.raw(query, [MAX_FOLDER_HIERARCHY, departments, departments, departments])
-        logger.debug("Query: %s" % results)
+        # logger.debug("Query: %s" % results)
         # serialize raw data to JSON
         folders = self.serializeResultsFromRawQuery(results)
-        logger.debug("Folders: %s" % folders)
+        # logger.debug("Folders: %s" % folders)
 
         # add features with parent none to final_dict.features
         if None in folders:
@@ -3525,9 +3526,13 @@ class VariablesViewSet(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer,)
 
     def list(self, request, *args, **kwargs):
+        start_time = time.time()
         user_departments = GetUserDepartments(request)
         result = Variable.objects.filter(department__department_id__in=user_departments)
         data = VariablesSerializer(VariablesSerializer.fast_loader(result), many=True).data
+        total_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+        logger.debug(f"Fetching Variable list took {total_time:.2f}ms to execute")
+
         return JsonResponse(data, safe=False)
 
     def validator(self, data, key, obj=None):

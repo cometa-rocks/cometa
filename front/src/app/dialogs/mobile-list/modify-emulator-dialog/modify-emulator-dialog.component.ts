@@ -217,13 +217,10 @@ export class ModifyEmulatorDialogComponent {
       return throwError(() => new Error("No APKs selected"));
     }
     let updateData = { apk_file: apk_id };
-    console.log("Update data", updateData);
-    console.log("Container", this.data.runningContainer);
     return this._api.updateMobile(this.data.runningContainer.id, updateData).pipe(
       map((response: any) => {
         if (response && response.containerservice) {
           container = response.containerservice;
-          console.log("Container", container);
           this.snack.open(
             `APK Installed in the mobile ${this.data.mobile.mobile_image_name}`,
             'OK'

@@ -117,7 +117,7 @@ export class NetworkPaginatedListComponent implements OnChanges {
   @Input() endpointUrl: string = '';
 
   /** Size of each page, default is 5 */
-  @Input() pageSize = 10;
+  @Input() pageSize = 500;
 
   /** Whether or not to inject index property into each item */
   @Input() injectIndex: boolean = false;

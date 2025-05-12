@@ -125,7 +125,7 @@
     <ng-container *ngFor="let button of buttons">
       <div *ngIf="button.class != 'replay-button-2'">
         <button
-          stopPropagation
+          [stopPropagation]="button.icon !== 'sync' && button.icon !== 'sync_problem'"
           mat-icon-button
           *ngIf="!button.iif || button.iif(row)"
           (click)="button.click && button.click(row)"

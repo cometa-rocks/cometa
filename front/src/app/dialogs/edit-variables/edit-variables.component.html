@@ -172,6 +172,7 @@
             <mat-select
             [(value)]="element.based"
             [disabled]="element.disabled"
+            (selectionChange)="updateDefaultBasedValue($event.value)"
             aria-label="var_basedOn">
             <mat-option
             *ngFor="let base of bases"

@@ -59,7 +59,7 @@ import sys
 
 from utility.functions import toWebP
 from utility.encryption import *
-from tools.models import check_if_step_should_execute
+from tools.models import check_if_step_should_execute, get_step_status
 
 # setup logging
 logger = logging.getLogger("FeatureExecution")
@@ -510,12 +510,20 @@ def done(*_args, **_kwargs):
                 args[0].browser.set_page_load_timeout(step_timeout)
                 # run the requested function
                 # Check if step should execute, It should not lies in the If else conditions    
-                should_execute_the_step = check_if_step_should_execute(args[0])     
+                should_execute_the_step = check_if_step_should_execute(args[0])   
+                # logger.debug(f"should_execute_the_step '{should_execute_the_step}'")  
                 result = None
-
+                # condition_step_status is required to handle edge cases i.e
+                # 1. condition is False but else section is not active yet and if step need to be marked as skipped
+                # 2. condition is True but else section is active and else step need to marked as skipped
                 if should_execute_the_step:
                     result = func(*args, **kwargs)
-                    args[0].CURRENT_STEP_STATUS = "Success"
+                    # context.CURRENT_STEP_STATUS = Skipped is assigned by the step 'End If' 
+                    # CURRENT_STEP_STATUS is already set to Skipped then do not change it
+                    if not args[0].CURRENT_STEP_STATUS == "Skipped":
+                        condition_step_status = get_step_status(args[0])
+                        # logger.debug(f"condition_step_status '{condition_step_status}'")
+                        args[0].CURRENT_STEP_STATUS = condition_step_status
                 else:
                     args[0].CURRENT_STEP_STATUS = "Skipped"
                     logger.debug(f"######################### Skipping the step \" {args[0].CURRENT_STEP.name} \"#########################") 
@@ -596,8 +604,7 @@ def saveToDatabase(
 ):  
     start_time = time.time()  # Add timing start
     logger.debug("Starting execution of saveToDatabase")
-    status = context.CURRENT_STEP_STATUS 
-    logger.debug(f"Step Status: {status}")
+    logger.debug(f"Step Status: {context.CURRENT_STEP_STATUS}")
     screenshots = os.environ["SCREENSHOTS"].split(".")
     compares = os.environ["COMPARES"].split(".")
     feature_id = context.feature_id
@@ -622,15 +629,16 @@ def saveToDatabase(
         "execution_time": int(execution_time),
         "pixel_diff": float(pixel_diff),
         "success": success,
-        "status": status,
+        "status": context.CURRENT_STEP_STATUS,
         "belongs_to": context.step_data["belongs_to"],
         "rest_api_id": context.step_data.get("rest_api", None),
         "notes": notes_data,
         "database_query_result": context.LAST_STEP_DB_QUERY_RESULT,
         "current_step_variables_value": context.LAST_STEP_VARIABLE_AND_VALUE,
     }
-
+    
     try:
+        logger.debug("Processing in a screenshot")
         values = take_screenshot_and_process(context=context,step_name=step_name,success=success)
         logger.debug("updating the values after processing the screenshot")
         data.update(values)

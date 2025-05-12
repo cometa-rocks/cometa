@@ -74,7 +74,6 @@ export class ApiTestingComponent implements OnInit {
   ngOnInit(): void {
     if (this.data?.stepContent) {
       const content = this.data.stepContent;
-      console.log('Step content:', content); // Debug log
 
       const methodMatch = content.match(/with "([^"]+)"/);
       const endpointMatch = content.match(/to "([^"]+)"/);
@@ -87,7 +86,6 @@ export class ApiTestingComponent implements OnInit {
         const lastQuoteIndex = content.lastIndexOf('"');
         if (lastQuoteIndex > bodyStart) {
           this.bodyContent = content.substring(bodyStart + 5, lastQuoteIndex);
-          console.log('Extracted body content:', this.bodyContent); // Debug log
         }
       }
 

@@ -111,9 +111,18 @@ EOF
     minimum_disk_space=28
 
     # Get available disk space in gigabytes (using awk to extract the relevant information)
-    available_disk_space=$(df -h /var/lib/docker | awk 'NR==2 { print $4 }' | sed 's/G//')
-
-    info "Available disk space: $available_disk_space GB."
+    # Get available disk space in gigabytes (using awk to extract the relevant information)
+    if [[ "$(uname)" == "Darwin" ]]; then
+        # macOS: check root disk
+        available_disk_space=$(df -h / | awk 'NR==2 { print $4 }' | sed 's/G//')
+    else
+        # Linux: check Docker's storage location
+        available_disk_space=$(df -h /var/lib/docker | awk 'NR==2 { print $4 }' | sed 's/G//')
+    fi
+    # Extract only the numeric part (including decimal point)
+    available_disk_space=$(echo "$available_disk_space" | sed 's/[^0-9.]//g')
+    
+    info "Available disk space: $available_gb GB."
 
     # Check if available disk space is less than the minimum required
     if (( available_disk_space < minimum_disk_space )); then
@@ -177,18 +186,33 @@ function checkDiskSpace() {
 }
 
 function checkCPUCores() {
+    num_cores=$(getconf _NPROCESSORS_ONLN)
+    info "Your CPU has $num_cores cores."
     # Checks the total number of CPU's. If too low sends a warning.
-    if [[ $(getconf _NPROCESSORS_ONLN) < 8 ]]; then
+    if [[ $num_cores -lt 8 ]]; then
         info "Compared your CPU's core number to be at least 8."
         info "Your CPU has less than 8 cores. Cometa may perform slower than usual."
+    else
+        info "Cometa will run smoothly."
     fi
 }
 
 function checkRAMSpace() {
-    # Checks the total RAM memory Gb. If too low sends a warning.
-    if [[ $(free --si -g | awk '/^Mem/ {print $2}') < 8 ]]; then
+    if [[ "$(uname)" == "Darwin" ]]; then
+        # macOS: get total memory in bytes, convert to GB
+        total_mem_bytes=$(sysctl -n hw.memsize)
+        total_mem_gb=$((total_mem_bytes / 1024 / 1024 / 1024))
+    else
+        # Linux: get total memory in GB
+        total_mem_gb=$(free -g | awk '/^Mem/ {print $2}')
+    fi
+
+    info "Your system has $total_mem_gb GB of RAM."
+    if [[ $total_mem_gb -lt 8 ]]; then
         info "Compared your RAM memory to be at least 8Gb."
         info "Your RAM memory is lower than 8Gb. Cometa may run into performance issues."
+    else
+        info "Cometa will run smoothly."
     fi
 }
 

@@ -2,7 +2,7 @@
 FROM python:3.11-slim
 
 # Update package list and install necessary tools
-RUN apt update && apt install curl procps supervisor libpq5 libpq-dev gcc python3-dev -y
+RUN apt-get update && apt-get install curl procps supervisor libpq5 libpq-dev gcc python3-dev -y
 
 # Create a non-root user `cometa`
 RUN useradd -ms /bin/bash cometa

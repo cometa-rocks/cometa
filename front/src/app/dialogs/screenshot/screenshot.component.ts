@@ -67,4 +67,16 @@ export class ScreenshotComponent {
   //   console.log('Chat text:', this.chatForm.get('chatText').value);
   //   this.chat();
   // }
+
+  isInputFocused(): boolean {
+    const active = document.activeElement;
+    if (!active) return false;
+    const tag = active.tagName.toLowerCase();
+    return (
+      tag === 'input' ||
+      tag === 'textarea' ||
+      (active as HTMLElement).isContentEditable
+    );
+  }
+
 }

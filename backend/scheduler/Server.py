@@ -29,8 +29,11 @@ def run_server():
 # Setup the scheduler
 scheduler = BackgroundScheduler()
 scheduler.start()
-#
-# # Initially fetch schedules and setup jobs
+
+# Create tmp directory if it doesn't exist
+os.makedirs('/app/tmp/', exist_ok=True)
+
+# Initially fetch schedules and setup jobs
 jobs = get_schedules()
 update_jobs(scheduler, jobs, called_by="Server start")
 

@@ -184,6 +184,13 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
                 "error": "You do not have access to this object."
             }, status=403)
         
+        # Check if a specific sheet was requested for Excel files
+        sheet_name = request.GET.get('sheet', None)
+        
+        # Determine if it's an Excel file by extension
+        file_name = file.name.lower()
+        is_excel = file_name.endswith('.xls') or file_name.endswith('.xlsx')
+        
         # file.all() comes from the reverse relation between FileData and File model.
         file_data = file.file.all()
 
@@ -192,12 +199,29 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
             file_data.delete()
             try:
                 # parse file data
-                file_data = getFileContent(file)
+                file_data = getFileContent(file, sheet_name=sheet_name if is_excel else None)
                 file.save()
             except Exception as err:
                 return JsonResponse({
                     "success": False,
                     "error": str(err) 
+                }, status=400)
+        elif is_excel and sheet_name:
+            # For Excel files with a specified sheet, we need to reparse with the selected sheet
+            # when not already doing a reparse
+            logger.info(f"Fetching specific sheet '{sheet_name}' for Excel file {file_id}")
+            try:
+                # For Excel files with selected sheet, we'll get data for that sheet only
+                # We don't delete existing data here as we're not doing a full reparse
+                temp_data = getFileContent(file, sheet_name=sheet_name)
+                
+                # We don't save the file here, just return the sheet data
+                # The data here is temporary just for this response
+                file_data = temp_data
+            except Exception as err:
+                return JsonResponse({
+                    "success": False,
+                    "error": f"Error parsing sheet '{sheet_name}': {str(err)}" 
                 }, status=400)
         
         # paginate the queryset
@@ -211,6 +235,8 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
         # Include the column_order field from the file model if available
         if hasattr(file, 'column_order') and file.column_order:
             response_data['columns_ordered'] = [h.lower().replace(' ', '_') for h in file.column_order]
+        if hasattr(file, 'sheet_names') and file.sheet_names:
+            response_data['sheet_names'] = file.sheet_names
         # Return the modified response
         return Response(response_data)
         
@@ -219,6 +245,10 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
     @require_permissions("run_feature")
     def put(self, request, *args, **kwargs):
         file_id = kwargs.get('file_id', None)
+        
+        # Get the sheet parameter if provided (for Excel files)
+        sheet_name = request.GET.get('sheet', None)
+        logger.info(f"PUT request for file {file_id}, sheet parameter: {sheet_name}")
         
         # Verify body can be parsed as JSON
         try:
@@ -248,6 +278,10 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
             import subprocess
             from backend.utility.config_handler import get_cometa_socket_url
             from backend.utility.configurations import ConfigurationManager
+            
+            # Check if it's an Excel file
+            file_name = file.name.lower()
+            is_excel = file_name.endswith('.xls') or file_name.endswith('.xlsx')
             
             # Make everything atomic - both file and database update must succeed together
             with transaction.atomic():
@@ -320,19 +354,87 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
                     logger.info(f"Saving updated file to CSV format: {temp_path}")
                     df.to_csv(temp_path, index=False)
                 else:
-                    # Make sure we have the necessary dependencies for Excel
+                    # For Excel files, we need to handle sheet updates differently
                     try:
                         logger.info(f"Attempting to save as Excel format: {temp_path}")
-                        # Try importing openpyxl first to check if it's available
                         import openpyxl
                         
-                        # Check what Excel engines are available
-                        import pandas
-                        available_engines = pandas.io.excel._base.get_writer
-                        logger.info(f"Available Excel engines: {str(available_engines)}")
-                        
-                        # Explicitly specify engine for excel export
-                        df.to_excel(temp_path, index=False, engine='openpyxl')
+                        # If this is an update to a specific sheet in an Excel file
+                        if is_excel and sheet_name:
+                            logger.info(f"Updating specific sheet '{sheet_name}' in Excel file")
+                            
+                            # First, we need to decrypt the original file to read all sheets
+                            from backend.utility.uploadFile import decryptFile
+                            original_file_path = decryptFile(file.path)
+                            
+                            try:
+                                # Read all sheets from the original Excel file
+                                with pd.ExcelFile(original_file_path) as xls:
+                                    sheet_names = xls.sheet_names
+                                    logger.info(f"Original file has sheets: {sheet_names}")
+                                    
+                                    # Create a new Excel writer
+                                    with pd.ExcelWriter(temp_path, engine='openpyxl') as writer:
+                                        # Copy all sheets from the original file
+                                        for original_sheet in sheet_names:
+                                            if original_sheet == sheet_name:
+                                                # For the sheet being updated, write new data
+                                                logger.info(f"Writing updated data to sheet: {sheet_name}")
+                                                df.to_excel(writer, sheet_name=sheet_name, index=False)
+                                            else:
+                                                # For other sheets, copy original data
+                                                logger.info(f"Copying original data from sheet: {original_sheet}")
+                                                sheet_df = pd.read_excel(xls, sheet_name=original_sheet)
+                                                sheet_df.to_excel(writer, sheet_name=original_sheet, index=False)
+                            finally:
+                                # Clean up the decrypted original file
+                                if os.path.exists(original_file_path):
+                                    try:
+                                        os.remove(original_file_path)
+                                    except Exception as cleanup_err:
+                                        logger.warning(f"Failed to remove temporary original file: {cleanup_err}")
+                        else:
+                            # If no specific sheet is specified but it's an Excel file,
+                            # we should still try to preserve all sheets
+                            if is_excel and hasattr(file, 'sheet_names') and len(file.sheet_names) > 0:
+                                # Similar approach as above, but if no sheet_name specified, use first sheet as default
+                                logger.info(f"No specific sheet specified, but preserving all sheets in Excel file")
+                                default_sheet = file.sheet_names[0] if file.sheet_names else 'Sheet1'
+                                
+                                # Decrypt the original file
+                                from backend.utility.uploadFile import decryptFile
+                                original_file_path = decryptFile(file.path)
+                                
+                                try:
+                                    # Read all sheets from the original file
+                                    with pd.ExcelFile(original_file_path) as xls:
+                                        sheet_names = xls.sheet_names
+                                        logger.info(f"Original file has sheets: {sheet_names}")
+                                        
+                                        # Create a new Excel writer
+                                        with pd.ExcelWriter(temp_path, engine='openpyxl') as writer:
+                                            # Copy all sheets from the original file
+                                            for original_sheet in sheet_names:
+                                                if original_sheet == default_sheet:
+                                                    # For the default sheet, write new data
+                                                    logger.info(f"Writing updated data to default sheet: {default_sheet}")
+                                                    df.to_excel(writer, sheet_name=default_sheet, index=False)
+                                                else:
+                                                    # For other sheets, copy original data
+                                                    logger.info(f"Copying original data from sheet: {original_sheet}")
+                                                    sheet_df = pd.read_excel(xls, sheet_name=original_sheet)
+                                                    sheet_df.to_excel(writer, sheet_name=original_sheet, index=False)
+                                finally:
+                                    # Clean up
+                                    if os.path.exists(original_file_path):
+                                        try:
+                                            os.remove(original_file_path)
+                                        except Exception as cleanup_err:
+                                            logger.warning(f"Failed to remove temporary original file: {cleanup_err}")
+                            else:
+                                # If not a multi-sheet Excel file or no sheet_names attribute, just save directly
+                                df.to_excel(temp_path, index=False, engine='openpyxl')
+                            
                         logger.info("Successfully saved Excel file with openpyxl engine")
                     except ImportError as ie:
                         # Fall back to CSV if openpyxl not available
@@ -374,13 +476,51 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
                     result = subprocess.run(["bash", "-c", encryption_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
                     
                     # If we get here, encryption succeeded, now update the database
-                    # Delete existing file data
-                    FileData.objects.filter(file=file).delete()
-                    
-                    # Create new file data objects
-                    new_file_data = []
-                    for row_data in file_data_rows:
-                        new_file_data.append(FileData(file=file, data=row_data))
+                    if is_excel and sheet_name:
+                        # For Excel sheet updates, only update the relevant data
+                        # First, delete existing file data for this sheet if it exists
+                        if 'sheet' in request_data and request_data['sheet'] == sheet_name:
+                            # If we're updating a specific sheet, only delete that sheet's data
+                            logger.info(f"Deleting data for sheet '{sheet_name}' in Excel file {file_id}")
+                            sheet_data_count = FileData.objects.filter(file=file, sheet=sheet_name).count()
+                            logger.info(f"Found {sheet_data_count} rows to delete in sheet '{sheet_name}'")
+                            FileData.objects.filter(file=file, sheet=sheet_name).delete()
+                        else:
+                            logger.info(f"Sheet name not explicitly provided in request, using URL parameter '{sheet_name}'")
+                            sheet_data_count = FileData.objects.filter(file=file, sheet=sheet_name).count()
+                            logger.info(f"Found {sheet_data_count} rows to delete in sheet '{sheet_name}'")
+                            FileData.objects.filter(file=file, sheet=sheet_name).delete()
+                            
+                        # Create new file data objects with sheet info
+                        new_file_data = []
+                        for row_data in file_data_rows:
+                            new_file_data.append(FileData(file=file, data=row_data, sheet=sheet_name))
+                        
+                        logger.info(f"Creating {len(new_file_data)} new rows for sheet '{sheet_name}'")
+                    else:
+                        # For CSV or entire Excel file updates, we need to handle this differently
+                        # First, let's retrieve all existing data for this file
+                        if is_excel and sheet_name:
+                            # For Excel files with a specific sheet, only delete and update that sheet
+                            logger.info(f"Excel file with sheet '{sheet_name}': deleting only data for this sheet")
+                            FileData.objects.filter(file=file, sheet=sheet_name).delete()
+                            
+                            # Create new file data objects only for the specified sheet
+                            new_file_data = []
+                            for row_data in file_data_rows:
+                                new_file_data.append(FileData(file=file, data=row_data, sheet=sheet_name))
+                        else:
+                            # For CSV or entire Excel file without specific sheet, replace all
+                            logger.info(f"Replacing all file data for file ID {file_id}")
+                            
+                            # For non-Excel files or Excel files without sheet specification
+                            # We delete all existing data and replace with the new data
+                        FileData.objects.filter(file=file).delete()
+                        
+                        # Create new file data objects
+                        new_file_data = []
+                        for row_data in file_data_rows:
+                            new_file_data.append(FileData(file=file, data=row_data))
                     
                     # Bulk create the new data
                     created_data = FileData.objects.bulk_create(new_file_data)

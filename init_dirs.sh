@@ -1,4 +1,11 @@
 #!/bin/bash
+#
+# source our nice logger
+#
+HELPERS="helpers"
+# source logger function if not sourced already
+test `command -v log_wfr` || source "${HELPERS}/logger.sh" || exit
+
 cd ..
 # Check if a directory path is provided
 if [ -n "$1" ]; then
@@ -39,6 +46,10 @@ done
 
 # Copy files to their respective locations
 # Copy httpd.conf
+if [ -d "./front/apache2/conf/httpd.conf" ]; then
+    rm -rf "./front/apache2/conf/httpd.conf"
+    echo "Removed directory: ./front/apache2/conf/httpd.conf"
+fi
 if [ -f "./front/apache2/conf/httpd.conf" ]; then
     cp "./front/apache2/conf/httpd.conf" "$BASE_DIR/front/apache2/conf/httpd.conf"
     echo "Copied: ./front/apache2/conf/httpd.conf -> $BASE_DIR/front/apache2/conf/httpd.conf"
@@ -47,6 +58,10 @@ else
 fi
 
 # Copy openidc.conf
+if [ -d "./front/apache2/conf/openidc.conf" ]; then
+    rm -rf "./front/apache2/conf/openidc.conf"
+    echo "Removed directory: ./front/apache2/conf/openidc.conf"
+fi
 if [ -f "./front/apache2/conf/openidc.conf" ]; then
     cp "./front/apache2/conf/openidc.conf" "$BASE_DIR/front/apache2/conf/openidc.conf"
     echo "Copied: ./front/apache2/conf/openidc.conf -> $BASE_DIR/front/apache2/conf/openidc.conf"
@@ -55,6 +70,10 @@ else
 fi
 
 # Copy paths.conf
+if [ -d "./front/apache2/conf/paths.conf" ]; then
+    rm -rf "./front/apache2/conf/paths.conf"
+    echo "Removed directory: ./front/apache2/conf/paths.conf"
+fi
 if [ -f "./front/apache2/conf/paths.conf" ]; then
     cp "./front/apache2/conf/paths.conf" "$BASE_DIR/front/apache2/conf/paths.conf"
     echo "Copied: ./front/apache2/conf/paths.conf -> $BASE_DIR/front/apache2/conf/paths.conf"
@@ -63,6 +82,10 @@ else
 fi
 
 # Copy mod_auth_openidc.so
+if [ -d "./front/apache2/modules/mod_auth_openidc.so" ]; then
+    rm -rf "./front/apache2/modules/mod_auth_openidc.so"
+    echo "Removed directory: ./front/apache2/modules/mod_auth_openidc.so"
+fi
 if [ -f "./front/apache2/modules/mod_auth_openidc.so" ]; then
     cp "./front/apache2/modules/mod_auth_openidc.so" "$BASE_DIR/front/apache2/modules/mod_auth_openidc.so"
     echo "Copied: ./front/apache2/modules/mod_auth_openidc.so -> $BASE_DIR/front/apache2/modules/mod_auth_openidc.so"

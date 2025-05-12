@@ -127,7 +127,7 @@ export class HeaderComponent {
 
     switch (event.keyCode) {
       case KEY_CODES.P:
-        if(editFeatOpen == null){
+        if(editFeatOpen == null && mainPage){
           const profileDiv = document.querySelector('div.icon[aria-label="Open profile"]') as HTMLElement;
           if (profileDiv) {
             profileDiv.click();
@@ -143,13 +143,13 @@ export class HeaderComponent {
         }
         break;
       case KEY_CODES.M:
-        if (editFeatOpen == null) {
+        if (editFeatOpen == null && mainPage) {
           // Now open and close with the same shortcut
           this.openedMenu = !this.openedMenu;
         }
         break;
       case KEY_CODES.C:
-        if(editFeatOpen == null){
+        if(editFeatOpen == null && mainPage){
           const cometaDiv = document.querySelector('div.fLeft div.title') as HTMLElement;
           if (cometaDiv) {
             cometaDiv.click();

@@ -75,25 +75,64 @@ def decryptFile(source):
     except Exception as err:
         raise Exception(str(err))
 
-def getFileContent(file: File):
+def getFileContent(file: File, sheet_name=None):
     # decrypt file
     targetPath = decryptFile(file.path)
 
     import pandas as pd
     try:
-        df = pd.read_csv(targetPath, header=0, skipinitialspace=True, skip_blank_lines=True)
-        
-        # Preserve original column order before any modifications
-        original_columns = list(df.columns)
-        file.column_order = original_columns
-    except ValueError:
+        if file.name.lower().endswith('.csv'):
+            df = pd.read_csv(targetPath, header=0, skipinitialspace=True, skip_blank_lines=True)
+            
+            # Preserve original column order before any modifications
+            original_columns = list(df.columns)
+            file.column_order = original_columns
+        else:
+            # For Excel, first get sheet names, then read the data
+            try:
+                xls = pd.ExcelFile(targetPath)
+                
+                # Store all sheet names
+                sheet_names = xls.sheet_names
+                file.sheet_names = sheet_names
+                
+                # Use requested sheet if specified and available, otherwise use first sheet
+                if sheet_name and sheet_name in sheet_names:
+                    logger.info(f"Reading Excel file with specified sheet: {sheet_name}")
+                    df = pd.read_excel(xls, sheet_name=sheet_name, header=0)
+                else:
+                    # If no sheet specified or specified sheet not found, use first sheet
+                    selected_sheet = sheet_names[0] if sheet_names else 0
+                    logger.info(f"Reading Excel file with first sheet: {selected_sheet}")
+                    df = pd.read_excel(xls, sheet_name=selected_sheet, header=0)
+                
+                original_columns = list(df.columns)
+                file.column_order = original_columns
+            except Exception as e_excel:
+                logger.error(f"Error parsing Excel file: {e_excel}")
+                file.extras['ddr'] = {
+                    'data-driven-ready': False,
+                    'reason': 'Unable to parse Excel file, please upload a valid Excel file.'
+                }
+                file.save()
+                raise Exception(f"Unable to parse Excel file: {str(e_excel)}")
+    except ValueError as e_csv:
+        logger.error(f"Error parsing file as CSV: {e_csv}")
         try:
-            df = pd.read_excel(targetPath, header=0)
+            # Try again as Excel in case it was misidentified
+            xls = pd.ExcelFile(targetPath)
+            file.sheet_names = xls.sheet_names
+            
+            # Use requested sheet if specified and available
+            if sheet_name and sheet_name in xls.sheet_names:
+                df = pd.read_excel(xls, sheet_name=sheet_name, header=0)
+            else:
+                df = pd.read_excel(xls, header=0)
             
             original_columns = list(df.columns)
             file.column_order = original_columns
-        except:
-            logger.info("saving data...")
+        except Exception as e_excel:
+            logger.error(f"Error parsing file as Excel after CSV parsing failed: {e_excel}")
             file.extras['ddr'] = {
                 'data-driven-ready': False,
                 'reason': 'Unable to parse Excel or CSV file, please upload a valid Excel or CSV file.'

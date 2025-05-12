@@ -594,6 +594,7 @@ class Permissions(models.Model):
     
     # Step_result related
     remove_screenshot = models.BooleanField(default=False)
+    change_step_result_status = models.BooleanField(default=False)
     
     # Feature_result related
     remove_feature_result = models.BooleanField(default=False)
@@ -619,6 +620,7 @@ class Permissions(models.Model):
     # Folder related
     create_folder = models.BooleanField(default=False)
     delete_folder = models.BooleanField(default=False)
+
     
     # environment variables
     create_variable = models.BooleanField(default=False)
@@ -1544,6 +1546,7 @@ class File(SoftDeletableModel):
     uploaded_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True)
     extras = models.JSONField(default=dict)
     column_order = models.JSONField(default=list, null=True, help_text='Original column order from the file')
+    sheet_names = models.JSONField(default=list, null=True, blank=True, help_text='List of sheet names in the file')
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
 
     def restore(self, using=None):
@@ -1573,6 +1576,7 @@ class FileData(SoftDeletableModel):
     file = models.ForeignKey(File, on_delete=models.CASCADE, related_name="file")
     data = models.JSONField(default=dict)
     extras = models.JSONField(default=dict)
+    sheet = models.CharField(max_length=255, blank=True, null=True, help_text='Sheet name for Excel files')
     created_on = models.DateTimeField(default=datetime.datetime.utcnow, editable=True, null=False, blank=False, help_text='When was created')
 
     class Meta:

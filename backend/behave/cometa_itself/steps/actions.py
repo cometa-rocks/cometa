@@ -2724,6 +2724,7 @@ def step_imp(context, value_one, value_two, variance):
 @done(u'Create one-time password of "{x}" digits using pairing-key "{value}" and save it to crypted variable "{variable_name}"')
 def step_imp(context, x, value, variable_name):
     x = x.strip()
+    value = re.sub(r"\s+", "", value)
     try:
         x = int(x)
     except:

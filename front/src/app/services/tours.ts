@@ -41,7 +41,7 @@ export class Tours {
         name: 'create_feature_btn',
         title: 'Create feature',
         description: 'Use this button to create a feature.',
-        attachTo: '.action-buttons .icon:nth-child(2)',
+        attachTo: '.action-buttons .icon:nth-child(3)',
         position: 'bottom',
         previousFn: emptyFn,
         nextFn: () => this._sharedActions.openEditFeature(),
@@ -86,7 +86,7 @@ export class Tours {
         nextFn: emptyFn,
         previousFn: emptyFn,
         position: 'bottom',
-        attachTo: '.edit-feature-panel .upload-file',
+        attachTo: '.edit-feature-panel .mat-expansion-panel:nth-child(2)',
       },
       // Explain to select which browsers to run the feature with
       {
@@ -96,7 +96,7 @@ export class Tours {
           'There you mark which browsers you want to run this feature with.',
         nextFn: emptyFn,
         previousFn: emptyFn,
-        position: 'top',
+        position: 'center',
         attachTo: '.edit-feature-panel .mat-expansion-panel:nth-child(3)',
       },
       // Explain to fill the steps

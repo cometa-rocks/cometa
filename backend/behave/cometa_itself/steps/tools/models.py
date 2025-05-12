@@ -19,12 +19,13 @@ def check_if_step_should_execute(context):
         logger.debug(f"Current condition values : {current_condition}")
         # Check if current step is not conditional statement
         if not is_step_conditional_statement(step):
-            logger.debug(f"Step {step.name} is with in the if condition")
+            logger.debug(f"Step \"{step.name}\" is with in the if condition")
             
             # When a condition is true and current step lies with in the If section then execute the current step
             if current_condition.is_condition_true() and not current_condition.is_else_section_active():
                 logger.debug(f"Step \"{step.name}\" will be executed with in the if section")
                 should_execute_step = True
+                
             # When a condition is false and current step lies with in the If section then skip the current step execution
             elif not current_condition.is_condition_true() and not current_condition.is_else_section_active():
                 logger.debug(f"Step \"{step.name}\" will be skipped with in the if section")
@@ -34,15 +35,26 @@ def check_if_step_should_execute(context):
             elif not current_condition.is_condition_true() and current_condition.is_else_section_active():
                 logger.debug(f"Step \"{step.name}\" will be executed with in the else section")
                 should_execute_step = True
+                
             # When condition is true and current step lies with in the else condition then skip the current step execution
             elif current_condition.is_condition_true() and current_condition.is_else_section_active():
                 logger.debug(f"Step \"{step.name}\" will be skipped with in the else section")
                 should_execute_step = False
         else:
             logger.debug("Executing step without any condition check")
-            should_execute_step = True        
+            should_execute_step = True
     
     return should_execute_step
+
+
+def get_step_status(context):
+    # Check if test flow is with in the condition
+    if len(context.test_conditions_list) > 0:
+        current_condition = context.test_conditions_list[-1]
+        # logger.debug("Checking for the condition status")
+        return current_condition.get_condition_step_status(context.CURRENT_STEP.name)
+    return "Success"
+            
 
 class Condition:
     def __init__(self, index):
@@ -56,6 +68,24 @@ class Condition:
         
     def set_condition(self, condition_result):
         self._is_condition_true = condition_result
+    
+    # get the step status based on the conditions
+    def get_condition_step_status(self, current_step_name):
+        if self._is_condition_true and not self._is_else_section_active:
+            # False and True = False
+            return "Success" 
+        elif not self._is_condition_true and self._is_else_section_active:
+            # True and False
+            return "Success"
+        elif self._is_condition_true and current_step_name == "End If":
+            return "Success"
+        else:
+        # for exmple 
+        # 1. self._is_condition_true is false but self._is_else_section_active=False else section is not active yet
+        # 2. self._is_condition_true is True but self._is_else_section_active=True, else section is active
+            return "Skipped"
+        
+            
                 
     def is_condition_true(self):
         return self._is_condition_true

@@ -135,9 +135,17 @@
                 </small>                                       
               </div>
             </div>
-            <div class="status">
+            <div class="status"  >
               <!-- Status Box -->
+              <div *ngIf="!(canChangeStepResultStatus$ | async)"
+                class="status-box {{item.status.toLowerCase()}}"
+                #statusBar
+                stopPropagation
+                >
+                {{ item.status=='Success'?'Passed':item.status }}
+              </div>
               <div
+                *ngIf="canChangeStepResultStatus$ | async"
                 class="status-box {{item.status.toLowerCase()}}"
                 #statusBar
                 stopPropagation
@@ -153,6 +161,9 @@
                 </button>
                 <button (click)="setStepStatus(item, 'Failed')" mat-menu-item>
                   <div class="status-option failed">Failed</div>
+                </button>
+                <button (click)="setStepStatus(item, 'Skipped')" mat-menu-item>
+                  <div class="status-option skipped">Skipped</div>
                 </button>
                 <mat-divider></mat-divider>
                 <button (click)="setStepStatus(item, 'Default')" mat-menu-item>

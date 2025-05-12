@@ -4,19 +4,44 @@
   <div class="more-vert">
     <span class="desktop"></span>
     <span class="mobile"><i></i></span>
+    <!-- <span class="select-text">Select</span> -->
   </div>
-  <div class="index">#</div>
+  <div class="index">
+    <span>#</span>
+    <!-- <span class="all-text"> all</span> -->
+  </div>
   <div class="enable">
     <span class="desktop">Enable</span>
     <span class="mobile"><i></i></span>
+    <mat-checkbox
+      (change)="selectAllEnable($event)"
+      [checked]="isAllEnabled()"
+      [matTooltip]="'step_editor.all_steps' | translate"
+      matTooltipPosition="above"
+      color="primary"
+      class="select-all checkbox-blue"></mat-checkbox>
   </div>
   <div class="screenshot">
     <span class="desktop">Screenshot</span>
     <span class="mobile"><i></i></span>
+    <mat-checkbox
+      (change)="selectAllScreenshot($event)"
+      [checked]="isAllScreenshot()"
+      [matTooltip]="'step_editor.all_screenshots' | translate"
+      matTooltipPosition="above"
+      color="primary"
+      class="select-all checkbox-blue"></mat-checkbox>
   </div>
   <div class="compare">
     <span class="desktop">Compare</span>
     <span class="mobile"><i></i></span>
+    <mat-checkbox
+      (change)="selectAllCompare($event)"
+      [checked]="isAllCompare()"
+      [matTooltip]="'step_editor.all_compare' | translate"
+      matTooltipPosition="above"
+      color="primary"
+      class="select-all checkbox-blue"></mat-checkbox>
   </div>
   <div class="step">Step Description</div>
   <div class="warnings">
@@ -69,7 +94,6 @@
     </div>
     <div 
       *ngIf="!isApiCallStep(item)"
-      (click)="editApiCall(item)"
       [matTooltip]="'Only available for API call steps'"
       matTooltipPosition="right"
       class="disabled-menu-item">
@@ -120,13 +144,17 @@
                 aria-label="Screenshot"
                 color="primary"
                 class="screenshot checkbox-blue"
-                (change)="screenshotChange($event, i)"></mat-checkbox>
+                (change)="screenshotChange($event, i)"
+                [matTooltip]="'step_editor.screenshot_disabled' | translate"
+                matTooltipPosition="above"></mat-checkbox>
               <mat-checkbox
                 formControlName="compare"
                 aria-label="Compare"
                 color="primary"
                 class="compare checkbox-blue"
-                [disabled]="!step.get('screenshot').value"></mat-checkbox>
+                (change)="onCompareChange($event, i)"
+                [matTooltip]="'step_editor.compare_enabled' | translate"
+                matTooltipPosition="above"></mat-checkbox>
             </div>
             <div class="prefix">
               <mat-select formControlName="step_keyword">

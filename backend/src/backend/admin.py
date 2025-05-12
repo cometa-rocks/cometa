@@ -181,7 +181,7 @@ class AdminPermissions(admin.ModelAdmin):
         }),
         ('Step Results', {
             'fields': (
-                ('remove_screenshot'),
+                ('remove_screenshot', 'change_step_result_status'),
                 )
         }),
         ('Feature Results', {
