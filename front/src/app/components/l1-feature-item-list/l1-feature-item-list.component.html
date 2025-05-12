@@ -31,6 +31,7 @@ Author: dph000
         <ng-container *ngLet="featureStatus$ | async as status">
           <!-- Feature status -->
           <div
+            *ngIf="!isTrashbin"
             class="top-left-container"
             [ngClass]="{ visible: running }"
             [matTooltipDisabled]="!status"
@@ -45,7 +46,7 @@ Author: dph000
         <!-- Run feature button -->
         <div class="top-buttons-container" *ngIf="!item.depends_on_others">
           <div
-            *ngIf="item.date"
+            *ngIf="item.date && !isTrashbin"
             class="state"
             [class.state-disabled]="isButtonDisabled && !running"
             stopPropagation
@@ -156,6 +157,7 @@ Author: dph000
         <!-- <div class="feature-id">ID: {{ item.id }}</div> -->
         <ng-container>
           <div
+            *ngIf="!isTrashbin"
             class="star-feature-in-feature"
             [matTooltip]="(isStarred$ | async) ? ('feature.starred' | translate) : ('feature.not_starred' | translate)"
             matTooltipPosition="above">
@@ -286,11 +288,11 @@ Author: dph000
               <span class="remove-text">Delete Permanently</span>
             </button>
           </ng-container>
-          <mat-divider></mat-divider>
+          <mat-divider *ngIf="!isTrashbin"></mat-divider>
           <!-- Edit feature -->
           <button
             type="button"
-            *ngIf="canEditFeature$ | async"
+            *ngIf="(canEditFeature$ | async) && !isTrashbin"
             (click)="_sharedActions.openEditFeature(item.id, 'edit')"
             matTooltip="Edit {{ item.name }} steps"
             matTooltipPosition="before"
@@ -323,15 +325,16 @@ Author: dph000
             <mat-icon>folder</mat-icon>
             <span>Move</span>
           </button>
-          <mat-divider></mat-divider>
+          <mat-divider *ngIf="!isTrashbin"></mat-divider>
           <button
+            *ngIf="!isTrashbin"
             type="button"
             mat-menu-item
             [matMenuTriggerFor]="otherOptions">
             <mat-icon>settings</mat-icon>
             <span>Settings</span>
           </button>
-          <mat-divider></mat-divider>
+          <mat-divider *ngIf="!isTrashbin"></mat-divider>
           <!-- Delete feature -->
           <button
             type="button"
@@ -342,7 +345,7 @@ Author: dph000
             class="delete-feature"
             mat-menu-item>
             <mat-icon>delete</mat-icon>
-            <span>Schedule Deletion</span>
+            <span>Move to trashbin</span>
           </button>
         </mat-menu>
         <!-- Settings Menu -->

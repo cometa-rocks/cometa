@@ -85,7 +85,9 @@ export class L1FeatureStarredListComponent implements OnInit {
           const isStarred = starredIds.has(featureId);
           // When "All Departments" is selected, we only check if it's starred
           const matchesDepartment = selectedDept === 'All Departments' || !selectedDept || feature.department === selectedDept;
-          return feature.type === 'feature' && isStarred && matchesDepartment;
+          // Exclude features marked for deletion
+          const notMarkedForDeletion = !(feature.reference?.marked_for_deletion === true || feature.marked_for_deletion === true);
+          return feature.type === 'feature' && isStarred && matchesDepartment && notMarkedForDeletion;
         });
         return filtered;
       })
