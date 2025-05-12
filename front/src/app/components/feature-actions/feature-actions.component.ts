@@ -58,6 +58,7 @@ export class FeatureActionsComponent implements OnInit {
   featureId$: Observable<number>;
   featureResultId$: Observable<number>;
   running$: Observable<boolean>;
+  isTrashbin$: Observable<boolean>;
 
   @Input() latestFeatureResultId: number = 0;
 
@@ -91,6 +92,11 @@ export class FeatureActionsComponent implements OnInit {
     this.feature$ = this.featureId$.pipe(
       switchMap(id => this._store.select(CustomSelectors.GetFeatureInfo(id)))
     );
+
+    this.isTrashbin$ = this.feature$.pipe(
+      map(feature => feature?.marked_for_deletion === true)
+    );
+
     this.running$ = this.featureId$.pipe(
       switchMap(id =>
         this._store.select(CustomSelectors.GetFeatureRunningStatus(id))
@@ -143,7 +149,7 @@ export class FeatureActionsComponent implements OnInit {
     // Only if no dialog is opened
     const isAnyDialogOpened =
       document.querySelectorAll('.mat-dialog-container').length > 0;
-    if (!isAnyDialogOpened && !this._sharedActions.dialogActive) {
+    if (!isAnyDialogOpened && !this._sharedActions.dialogActive && !this.isTrashbin$) {
       let hotkeyFound = true;
       switch (event.keyCode) {
         case KEY_CODES.SPACE:
