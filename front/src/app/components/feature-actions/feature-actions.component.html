@@ -1,4 +1,4 @@
-<ng-container *ngIf="feature$ | async as feature">
+<ng-container *ngIf="!(isTrashbin$ | async) && feature$ | async as feature">
   <ng-container *ngIf="!feature.depends_on_others">
     <mat-spinner
       matTooltip="Click to view current run (SPACE)"
