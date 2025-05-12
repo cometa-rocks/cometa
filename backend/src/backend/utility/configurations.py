@@ -96,6 +96,13 @@ default_cometa_configurations = {
     "OLLAMA_AI_SECRET_KEY":""
 }
 
+public_configuraion_values = [
+    "COMETA_FEATURE_AI_ENABLED", 
+    "COMETA_FEATURE_DATABASE_ENABLED", 
+    "COMETA_FEATURE_MOBILE_TEST_ENABLED",
+    "COMETA_DEPLOYMENT_ENVIRONMENT"
+]
+
 
 def generate_passphrase_and_secrets():
 
@@ -195,8 +202,10 @@ class ConfigurationManager:
     # Only runs for the first time for old cometa installation, those installation in which configuration were stored in the secret_variables.py
     def load_configuration_from_secret_file_to_db(self):
         if self.__is_configuration_loaded():
-            logger.info("Configurations are present in the database")
+            # logger.info("Configurations are present in the database")
             return
+
+        logger.info("Configurations are not present in the database, initiating configuration values")
         # This method generates new passphrase_and_secrets for new cometa_configurations
         generate_passphrase_and_secrets()
 
@@ -217,6 +226,10 @@ class ConfigurationManager:
             configuration_value,
         ) in default_cometa_configurations.items():
             # Filter out built-in attributes
+            configuration_type = "backend"
+            
+            if configuration_name in public_configuraion_values:
+                configuration_type = "all"
 
             query = f"""
                 SELECT EXISTS (
@@ -241,7 +254,7 @@ class ConfigurationManager:
             created_by = 1
             updated_by = 1
 
-            string_query = f"INSERT INTO configuration_configuration (configuration_name, configuration_value, default_value, encrypted, can_be_deleted, can_be_edited, created_on, updated_on) VALUES ('{configuration_name}', '{configuration_value}', '{default_value}', {encrypted}, {can_be_deleted}, {can_be_edited}, '{created_on}', '{updated_on}');"
+            string_query = f"INSERT INTO configuration_configuration (configuration_name, configuration_value, default_value, configuration_type, encrypted, can_be_deleted, can_be_edited, created_on, updated_on) VALUES ('{configuration_name}', '{configuration_value}', '{default_value}', '{configuration_type}', {encrypted}, {can_be_deleted}, {can_be_edited}, '{created_on}', '{updated_on}');"
             # Generate the SQL query
             query = sql.SQL(string_query)
             # Execute the query
@@ -251,7 +264,7 @@ class ConfigurationManager:
             # Define the values to be inserted
         created_on = datetime.datetime.utcnow()
         updated_on = datetime.datetime.utcnow()
-        string_query = f"INSERT INTO configuration_configuration (configuration_name, configuration_value, default_value, encrypted, can_be_deleted, can_be_edited, created_on, updated_on) VALUES ('LOADED_FROM_SECRET_FILE', 'True', '',  {encrypted}, {can_be_deleted}, {can_be_edited}, '{created_on}', '{updated_on}');"
+        string_query = f"INSERT INTO configuration_configuration (configuration_name, configuration_value, configuration_type, default_value, encrypted, can_be_deleted, can_be_edited, created_on, updated_on) VALUES ('LOADED_FROM_SECRET_FILE', 'True','backend', '',  {encrypted}, {can_be_deleted}, {can_be_edited}, '{created_on}', '{updated_on}');"
         # Generate the SQL query
         query = sql.SQL(string_query)
         # Execute the query
@@ -261,6 +274,7 @@ class ConfigurationManager:
     # Load configuration from db to memory which is later used in the entire cometa_backend
     def load_configuration_from_db(self):
         logger.info("Loading configurations from the database to memory")
+        
         # Define the SQL query to load all configurations
         query = """
             SELECT configuration_name, configuration_value, default_value, encrypted
@@ -323,16 +337,16 @@ class ConfigurationManager:
 def load_configurations():
 
     if len(sys.argv) > 1:
-        try:
-            # Load secret_variables as a module
-            global secret_variables
-            secret_variables = load_module_from_file(
-                "secret_variables", "/code/secret_variables.py"
-            )
-        except Exception as exception:
-            logger.info(
-                "Did not find secret_variables.py, Not to worry this is only required for old Cometa setups"
-            )
+        # try:
+        #     # Load secret_variables as a module
+        #     global secret_variables
+        #     secret_variables = load_module_from_file(
+        #         "secret_variables", "/code/secret_variables.py"
+        #     )
+        # except Exception as exception:
+        #     logger.info(
+        #         "Did not find secret_variables.py, Not to worry this is only required for old Cometa setups"
+        #     )
 
         # Load secret_variables as a module
         conf = ConfigurationManager()
@@ -340,7 +354,7 @@ def load_configurations():
         load_configuration_from_db = False
 
         if conf.is_migration_done():
-            logger.info("Initial DB Migration is done")
+            # logger.info("Initial DB Migration is done")
             try:
                 conf.load_configuration_from_secret_file_to_db()
                 load_configuration_from_db = True

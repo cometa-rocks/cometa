@@ -1,0 +1,286 @@
+<!-- Show expansion panel only if showPanel is true -->
+<ng-container *ngIf="showPanel">
+  <mat-expansion-panel 
+    [expanded]="isExpanded" 
+    (afterExpand)="togglePanel(true)" 
+    (afterCollapse)="togglePanel(false)">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <span>Files</span>
+      </mat-panel-title>
+      <mat-panel-description>Upload/Manage Department Files</mat-panel-description>
+    </mat-expansion-panel-header>
+    
+    <ng-template matExpansionPanelContent>
+      <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
+    </ng-template>
+  </mat-expansion-panel>
+</ng-container>
+
+<!-- Show content directly if showPanel is false -->
+<ng-container *ngIf="!showPanel">
+  <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
+</ng-container>
+
+<!-- Template with the actual content -->
+<ng-template #contentTemplate>
+  <mat-form-field appearance="fill" class="search-field">
+    <mat-label>Search files</mat-label>
+    <input 
+      matInput 
+      [(ngModel)]="fileSearchTerm"
+      (ngModelChange)="onSearchTermChange()" 
+      placeholder="Type to search files..."
+      (focus)="onSearchInputFocus()"
+      (blur)="onSearchInputBlur()"
+      #fileSearchInputCtrl 
+    />
+    <button type="button" mat-icon-button matSuffix *ngIf="fileSearchTerm" (click)="clearFileSearch(); fileSearchInputCtrl.focus()">
+      <mat-icon>close</mat-icon>
+    </button>
+    <mat-icon matSuffix *ngIf="!fileSearchTerm">search</mat-icon>
+  </mat-form-field>
+
+  <div *ngIf="fileSearchTerm && displayFiles?.length === 0 && allCurrentlyRelevantFiles?.length > 0" class="no-files-message">
+    <mat-icon>info</mat-icon>
+    <span>No files found matching your search</span>
+  </div>
+
+  <div class="table-container">
+    <app-loading-spinner 
+      [isVisible]="isLoadingFiles && (!displayFiles || !displayFiles.length)" 
+      [message]="'Loading files, please wait...'"
+    ></app-loading-spinner>
+
+    <mtx-grid
+      [data]="displayFiles"
+      [columns]="fileColumns"
+      [sortOnFront]="true"
+      sortActive="created_on"
+      sortDirection="desc"
+      [sortDisableClear]="true"
+      [sortDisabled]="false"
+      [showToolbar]="true"
+      [showColumnMenuButton]="true"
+      [columnMenuButtonType]="'stroked'"
+      [columnMenuButtonIcon]="'view_column'"
+      [pageOnFront]="true"
+      [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
+      [cellTemplate]="{
+        size: sizeTpl,
+        created_on: dateTpl
+      }"
+      [rowClassFormatter]="getRowClass"
+      [showPaginator]="showPagination"
+      [noResultTemplate]="noFilesTpl"
+      [toolbarTemplate]="fileToolbarTpl"
+      (page)="updateFilePagination($event)"
+      [expandable]="true"
+      [expansionTemplate]="expansionTpl"
+      (expansionChange)="expand($event)"
+      (columnChange)="saveColumnVisibilitySettings($event)">
+    </mtx-grid>
+  </div>
+</ng-template>
+
+<!-- ROW TEMPLATES -->
+<ng-template #sizeTpl let-row let-index="index" let-col="colDef">
+  <span>{{ row.size | humanizeBytes }}</span>
+</ng-template>
+
+<ng-template #dateTpl let-row let-index="index" let-col="colDef">
+  <span *ngIf="row && row[col.field]">{{ 
+    row[col.field] | amParse | amDateFormat: 'MMMM d yyyy, HH:mm'
+  }}</span>
+  <span *ngIf="!row || !row[col.field]">-</span>
+</ng-template>
+
+<!-- TOOLBAR TEMPLATE for files -->
+<ng-template #fileToolbarTpl>
+  <input
+    type="file"
+    multiple="true"
+    (change)="onUploadFile($event)"
+    #file
+    style="display: none" />
+  <div class="custom_toolbar file-toolbar">
+    <div>
+      Found
+      <span>
+        <span class="blue">{{ displayFiles?.length || 0 }}</span> Files
+        <span *ngIf="showRemovedFiles && hasRemovedFiles(displayFiles)">
+          (including <span class="red">{{ getRemovedFilesCount(displayFiles) }}</span> removed)
+        </span>
+      </span>
+    </div>
+    <div style="flex-grow: 1;"></div>
+    <button
+    type="button"
+      mat-stroked-button
+      color="accent"
+      stopPropagation
+      [class.active]="showRemovedFiles"
+      (click)="toggleShowRemovedFiles()">
+      <mat-icon>{{ showRemovedFiles ? 'visibility_off' : 'visibility' }}</mat-icon>
+      <span class="mdc-button__label">{{ showRemovedFiles ? 'Hide Removed' : 'Show Removed' }}</span>
+    </button>
+    <button
+      type="button"
+      mat-stroked-button
+      color="primary"
+      stopPropagation
+      (click)="file.click()"
+      style="margin-left: 8px;">
+      <mat-icon>add_box</mat-icon>
+      <span class="mdc-button__label">Upload File</span>
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #expansionTpl let-row>
+  <div class="expansion-content">
+    <!-- Loading Spinner -->
+    <app-loading-spinner 
+      [isVisible]="file_data[row.id]?.isLoading"
+      [message]="file_data[row.id]?.isLoading ? 'Loading file data...' : 'Processing...'"
+      [paddingTop]="20"
+      [paddingBottom]="20"
+    ></app-loading-spinner>
+
+    <!-- Buttons Container - Shown only when data is dirty -->
+    <div *ngIf="isDirty[row.id] && !file_data[row.id]?.isLoading" class="action-buttons-container" style="padding: 10px 0; text-align: right;">
+        <button mat-stroked-button color="warn" (click)="cancelAllChanges(row.id)" style="margin-right: 8px;">
+            <mat-icon>cancel</mat-icon>
+            Cancel Changes
+        </button>
+        <button mat-stroked-button color="primary" (click)="saveAllChanges(row.id)">
+            <mat-icon>save</mat-icon>
+            Save Changes
+        </button>
+    </div>
+    
+    <!-- No Data Message -->
+    <div *ngIf="!file_data[row.id]?.isLoading && (!file_data[row.id]?.file_data || file_data[row.id]?.file_data.length === 0)" class="no-data-message">
+      <p>No data found for this file. The file may be empty or in an unsupported format.</p>
+    </div>
+
+    <!-- Data Grid - Only shown when we have data and not loading -->
+    <mtx-grid
+      *ngIf="!file_data[row.id]?.isLoading && file_data[row.id]?.file_data && file_data[row.id]?.file_data.length > 0"
+      [data]="file_data[row.id]?.file_data"
+      [columns]="file_data[row.id]?.columns"
+      [sortOnFront]="true"
+      sortDirection="desc"
+      [sortDisableClear]="true"
+      [sortDisabled]="false"
+      [pageOnFront]="true"
+      [pageIndex]="file_data[row.id]?.params ? file_data[row.id].params.page : 0"
+      [pageSize]="file_data[row.id]?.params ? file_data[row.id].params.size : 10"
+      [length]="file_data[row.id]?.total"
+      [pageSizeOptions]="[10, 25, 50, 100, 200, 500]"
+      [noResultTemplate]="noFileDataTpl"
+      [showPaginator]="file_data[row.id]?.showPagination"
+      [cellTemplate]="{
+        actions: actionsColumnTpl
+      }"
+      (page)="updateFilePagination($event, row)"
+      (columnChange)="saveNestedColumnVisibilitySettings($event, row.id)">
+    </mtx-grid>
+
+    <!-- Excel Sheet Navigation - Only shown for Excel files with multiple sheets -->
+    <div *ngIf="isExcelFile(row.name) && hasMultipleSheets(row.id)" class="excel-sheet-tabs">
+      
+      <!-- Error message display for Excel operations -->
+      <div *ngIf="file_data[row.id]?.error" class="sheet-error-message">
+        <mat-icon>error</mat-icon>
+        <span>{{ file_data[row.id].error }}</span>
+        <button mat-icon-button (click)="clearFileError(row.id)">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      
+      <div class="sheet-tabs-container">
+        <ng-container *ngFor="let sheetName of getSheetNames(row.id)">
+          <button 
+            mat-button 
+            class="sheet-tab" 
+            [class.active]="getCurrentSheet(row.id) === sheetName"
+            (click)="switchSheet(row.id, sheetName)">
+            {{ sheetName }}
+          </button>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<!-- Dynamic Editable Cell Template -->
+<ng-template #dynamicEditableCellTpl let-dataItem let-col="colDef" let-index="index">
+   <!-- Use the new extractFileIdFromClass method -->
+   <div class="editable-cell" 
+        (dblclick)="startEdit(extractFileIdFromClass(col.class), index, col.field, dataItem[col.field])" 
+        style="min-height: 28px; width: 100%; cursor: text; padding: 2px 5px; overflow: hidden;">
+     <!-- Show display text if not editing -->
+     <span *ngIf="!isEditing(extractFileIdFromClass(col.class), index, col.field)" class="cell-content">
+       {{ dataItem[col.field] }}
+     </span>
+     
+     <!-- Show edit input if editing -->
+     <div *ngIf="isEditing(extractFileIdFromClass(col.class), index, col.field)" class="edit-input-container">
+       <input #editInput 
+              type="text" 
+              [(ngModel)]="editValue" 
+              (focus)="inputFocusService.setInputFocus(true)" 
+              (blur)="inputFocusService.setInputFocus(false); saveEdit(extractFileIdFromClass(col.class), index, col.field)" 
+              (keydown.enter)="saveEdit(extractFileIdFromClass(col.class), index, col.field); $event.stopPropagation()" 
+              (keydown)="handleKeyDown($event, extractFileIdFromClass(col.class), index, col.field)"
+              (keydown.escape)="cancelEdit(); $event.stopPropagation()"
+              class="cell-edit-input">
+     </div>
+   </div>
+</ng-template>
+
+<!-- Actions Column Template -->
+<ng-template #actionsColumnTpl let-dataItem let-col="colDef" let-index="index">
+  <button 
+    type="button" 
+    mat-icon-button 
+    [matMenuTriggerFor]="rowActionsMenu" 
+    aria-label="row actions">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+  <mat-menu #rowActionsMenu="matMenu">
+    <button 
+      type="button" 
+      mat-menu-item 
+      (click)="addRowAbove(extractFileIdFromClass(col.class), index)">
+      <mat-icon>add_circle_outline</mat-icon>
+      <span>Add Row Above</span>
+    </button>
+    <button 
+      type="button" 
+      mat-menu-item 
+      (click)="addRowBelow(extractFileIdFromClass(col.class), index)">
+      <mat-icon>add_circle</mat-icon>
+      <span>Add Row Below</span>
+    </button>
+    <button 
+      type="button" 
+      mat-menu-item 
+      (click)="deleteRow(extractFileIdFromClass(col.class), index)">
+      <mat-icon>delete</mat-icon>
+      <span>Delete Row</span>
+    </button>
+  </mat-menu>
+</ng-template>
+
+<!-- No Results templates for files -->
+<ng-template #noFileDataTpl>
+  <div class="no-data-message">
+    <p>No data available. The file may be empty or in an unsupported format.</p>
+  </div>
+</ng-template>
+
+<ng-template #noFilesTpl>
+  <p>Currently this department has no files, upload one by clicking upload button.</p>
+</ng-template> 

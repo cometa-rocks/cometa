@@ -100,6 +100,9 @@ import { DraggableWindowModule } from '@modules/draggable-window.module';
 import { LogService } from '@services/log.service';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { MtxGridColumn } from '@ng-matero/extensions/grid';
+import { FilesManagementComponent } from '@components/files-management/files-management.component';
+import { PageEvent } from '@angular/material/paginator';
 
 
 @Component({
@@ -141,12 +144,14 @@ import { MatTableDataSource } from '@angular/material/table';
     HumanizeBytesPipe,
     TranslateModule,
     DraggableWindowModule,
-    MobileListComponent
+    MobileListComponent,
+    FilesManagementComponent
   ],
 })
 export class EditFeature implements OnInit, OnDestroy {
   displayedColumns: string[] = [
     'name',
+    'type',
     'mime',
     'size',
     'uploaded_by.name',
@@ -227,8 +232,93 @@ export class EditFeature implements OnInit, OnDestroy {
 
   features: any[] = [];
 
-  // Original files Upload Files 
-  originalFiles: UploadedFile[] = [];
+  // File columns for files-management component
+  fileColumns: MtxGridColumn[] = [
+    {
+      header: 'ID',
+      field: 'id',
+      sortable: true,
+      class: 'name' 
+    },
+    {
+      header: 'Status',
+      field: 'status',
+      showExpand: true,
+      class: (rowData: UploadedFile, colDef?: MtxGridColumn) => {
+        return rowData.status === 'Done' ? '' : 'no-expand';
+      },
+    },
+    { header: 'File Name', field: 'name', sortable: true, class: 'name' },
+    { header: 'Type', field: 'type', sortable: true, hide: true },
+    { header: 'MIME Type', field: 'mime', sortable: true, hide: true },
+    { header: 'Size', field: 'size', sortable: true },
+    { header: 'Uploaded By', field: 'uploaded_by.name', sortable: true },
+    { header: 'Uploaded On', field: 'created_on', sortable: true },
+    {
+      header: 'Options',
+      field: 'options',
+      right: '0px',
+      type: 'button',
+      buttons: [
+        {
+          type: 'icon',
+          text: 'content_copy',
+          icon: 'content_copy',
+          tooltip: 'Copy upload path',
+          click: (result: UploadedFile) => {
+            // Use the file's name directly as the path
+            const filePath = `${result.uploadPath}`;
+            
+            // Use the modern Clipboard API
+            navigator.clipboard.writeText(filePath)
+              .then(() => {
+                // Notify user on success
+                this.onFilePathCopy(true);
+              })
+              .catch(err => {
+                this.logger.msg('2', 'Could not copy path', 'Clipboard', err);
+                this.onFilePathCopy(false);
+              });
+          },
+          iif: row => row.status === 'Done' && !row.is_removed,
+        },
+        {
+          type: 'icon',
+          text: 'cloud_download',
+          icon: 'cloud_download',
+          tooltip: 'Download file',
+          click: (result: UploadedFile) => {
+            this.onFileDownloaded(result);
+          },
+          iif: row => row.status === 'Done' && !row.is_removed,
+        },
+        {
+          type: 'icon',
+          text: 'delete',
+          icon: 'delete',
+          tooltip: 'Delete file',
+          color: 'warn',
+          click: (result: UploadedFile) => {
+            this.onFileDeleted(result);
+          },
+          iif: row => !row.is_removed && row.status === 'Done',
+        },
+        {
+          type: 'icon',
+          text: 'restore',
+          icon: 'restore',
+          tooltip: 'Restore file',
+          click: (result: UploadedFile) => {
+            this.onRestoreFile(result);
+          },
+          iif: row => row.is_removed && row.status === 'Done',
+        }
+      ]
+    }
+  ];
+
+  // Add new property for tooltip control
+  highlightInput = false;
 
   constructor(
     public dialogRef: MatDialogRef<EditFeature>,
@@ -598,7 +688,10 @@ export class EditFeature implements OnInit, OnDestroy {
     const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
     const startEmulatorOpen = document.querySelector('mobile-list') as HTMLElement;
     const apiScreenOpen = document.querySelector('.api-testing-container') as HTMLElement;
-    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null){
+    const emailTemplateHelpOpen = document.querySelector('cometa-email-template-help') as HTMLElement;
+    const scheduleHelpOpen = document.querySelector('schedule-help') as HTMLElement;
+    
+    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
@@ -622,55 +715,54 @@ export class EditFeature implements OnInit, OnDestroy {
         case KEY_CODES.V:
           // Only trigger shortcut if not focused on input and not using Ctrl+V
           if(!event.ctrlKey && !this.inputFocus){
-            console.log('V KEY PRESSED EDIT VARIABLES');
             // Edit variables
             this.editVariables();
           }
           break;
         case KEY_CODES.D:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Depends on other feature
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.S:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Open Emulator mobile
             this.openStartEmulatorScreen();
           }
           break;
         case KEY_CODES.M:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Send email
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.R:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Record video
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.F:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Continue on failure
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.H:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Need help
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.N:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Network loggings
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
         case KEY_CODES.G:
-          if(!this.inputFocus) {
+          if(!event.ctrlKey && !this.inputFocus) {
             // Generate dataset
             this.toggleDependsOnOthers(KeyPressed);
           }
@@ -693,6 +785,12 @@ export class EditFeature implements OnInit, OnDestroy {
 
   onInputBlur() {
     this.inputFocus = false;
+  }
+
+  // New method to handle focus change from files-management search input
+  onSearchFocusChanged(isFocused: boolean) {
+    this.inputFocus = isFocused;
+    this.cdr.markForCheck();
   }
 
   toggleDependsOnOthers(KeyPressed) {
@@ -910,9 +1008,6 @@ export class EditFeature implements OnInit, OnDestroy {
         this.department = data.find(
           dep => dep.department_name === this.featureForm.get('department_name').value
         );
-        if (this.department?.files) {
-          this.originalFiles = [...this.department.files];
-        }
         this.cdr.detectChanges();
       });
     }
@@ -929,9 +1024,6 @@ export class EditFeature implements OnInit, OnDestroy {
           );
           
           if (this.department) {
-            if (this.department.files) {
-              this.originalFiles = [...this.department.files];
-            }
             this.fileUpload.validateFileUploadStatus(this.department);
           }
           this.cdr.detectChanges();
@@ -1090,12 +1182,19 @@ export class EditFeature implements OnInit, OnDestroy {
       // Auto focus to it
       element.focus();
     } catch (err) {
-      console.log(`Couldn\'t focus on ${name} control.`);
+      this.logger.msg('2', 'Failed to focus on control', 'UI');
     }
   }
 
   openEmailHelp() {
-    this._dialog.open(EmailTemplateHelp);
+    // this._dialog.open(EmailTemplateHelp);
+
+    // Close help dialog when pressing escape, but keep edit dialog open
+    const dialogRef = this._dialog.open(EmailTemplateHelp);
+    dialogRef.afterClosed().subscribe(() => {
+      // Dialog closed
+    });
+
   }
 
   /**
@@ -1118,13 +1217,31 @@ export class EditFeature implements OnInit, OnDestroy {
       });
   }
 
+  async handleCancel() {
+    // Check if form has been modified before closing
+    if (this.hasChanged()) {
+      const dialogRef = this._dialog.open(AreYouSureDialog, {
+        data: {
+          title: 'translate:you_sure.quit_title',
+          description: 'translate:you_sure.quit_desc',
+        } as AreYouSureData,
+      });
+
+      const result = await dialogRef.afterClosed().toPromise();
+      if (result) {
+        this.dialogRef.close();
+      }
+    } else {
+      this.dialogRef.close();
+    }
+  }
+
   /**
    * Creates a new feature or edits an existing one. It executes whenever the user clicks on the create / save button in the feature dialog
    * @returns
    */
   async editOrCreate() {
     // Reset search before proceeding
-    this.resetSearch();
     
     // Get current steps from Store
     let currentSteps = [];
@@ -1142,7 +1259,7 @@ export class EditFeature implements OnInit, OnDestroy {
                 .querySelector<HTMLTextAreaElement>('.invalid-step textarea')
                 .focus();
             } catch (err) {
-              console.log('Failed to focus on step input');
+              this.logger.msg('2', 'Failed to focus on step input', 'UI');
             }
             return;
           }
@@ -1218,77 +1335,80 @@ export class EditFeature implements OnInit, OnDestroy {
     }
     // Check Feature Name
     if (!this.featureForm.get('feature_name').valid) {
-      this.focusFormControl('feature_name');
-      this._snackBar.open(`${incompletePrefix}: missing name`);
-      return;
-    }
-    const fValues = this.featureForm.value;
-    // Create FormData for sending XHR
-    const dataToSend = {
-      ...this.featureForm.value,
-      steps: steps,
-      environment_id: environmentId,
-      app_id: appId,
-      department_id: departmentId,
-      browsers: this.browserstackBrowsers.getValue(),
-    };
-    // Construct schedule for sending
-    if (fValues.run_now) {
-      dataToSend.schedule = [
-        fValues.minute,
-        fValues.hour,
-        fValues.day_month,
-        fValues.month,
-        fValues.day_week,
-      ].join(' ');
+      setTimeout(() => {
+        this.highlightInput = true;
+        this.focusFormControl('feature_name');
+        this._snackBar.open('Feature info is incomplete: missing name', 'OK');
+      }, 0);
     } else {
-      dataToSend.schedule = '';
-    }
+      const fValues = this.featureForm.value;
+      // Create FormData for sending XHR
+      const dataToSend = {
+        ...this.featureForm.value,
+        steps: steps,
+        environment_id: environmentId,
+        app_id: appId,
+        department_id: departmentId,
+        browsers: this.browserstackBrowsers.getValue(),
+      };
+      // Construct schedule for sending
+      if (fValues.run_now) {
+        dataToSend.schedule = [
+          fValues.minute,
+          fValues.hour,
+          fValues.day_month,
+          fValues.month,
+          fValues.day_week,
+        ].join(' ');
+      } else {
+        dataToSend.schedule = '';
+      }
 
-    // --------------------------------------------
-    // Save XHR
-    // ... now dataToSend has been prepared and we can send it to Backend
-    // ... Different for save & clone and create
-    // ... create dialog asks if you want to run it now
-    // ... data.mode can be 'new', 'clone', 'edit'
-    // -------------------------------------------------
-    // Special code for when editing or clonning feature
-    // -------------------------------------------------
-    dataToSend.feature_id = this.data.feature.feature_id;
-    dataToSend.cloud = this.feature.getValue().cloud;
-    if (this._browserSelection) {
-      dataToSend.cloud = this._browserSelection.testing_cloud.value;
-    }
-    if (this.data.mode === 'clone' || this.data.mode === 'new') {
-      dataToSend.feature_id = 0;
-    }
-    this.saving$.next(true);
-    this._api
-      .patchFeature(dataToSend.feature_id, dataToSend, {
-        loading: 'translate:tooltips.saving_feature',
-      })
-      .pipe(finalize(() => this.saving$.next(false)))
-      .subscribe(res => {
-        // res.info contains the feature data
-        // res.success contains true or false
+      // --------------------------------------------
+      // Save XHR
+      // ... now dataToSend has been prepared and we can send it to Backend
+      // ... Different for save & clone and create
+      // ... create dialog asks if you want to run it now
+      // ... data.mode can be 'new', 'clone', 'edit'
+      // -------------------------------------------------
+      // Special code for when editing or clonning feature
+      // -------------------------------------------------
+      dataToSend.feature_id = this.data.feature.feature_id;
+      dataToSend.cloud = this.feature.getValue().cloud;
+      if (this._browserSelection) {
+        dataToSend.cloud = this._browserSelection.testing_cloud.value;
+      }
+      if (this.data.mode === 'clone' || this.data.mode === 'new') {
+        dataToSend.feature_id = 0;
+      }
+      this.saving$.next(true);
+      this._api
+        .patchFeature(dataToSend.feature_id, dataToSend, {
+          loading: 'translate:tooltips.saving_feature',
+        })
+        .pipe(finalize(() => this.saving$.next(false)))
+        .subscribe(res => {
+          // res.info contains the feature data
+          // res.success contains true or false
 
-        // After sending the XHR we have received the result in "res"
-        // Checking for success and not
-        // .... show snackBar
-        // .... move feature to folder, if necesarry
-        // .... show dialog according to new or clone & save/edit
-        if (res.success) {
-          // If XHR was ok
-          this._snackBar.open('Feature saved.', 'OK');
-          this._store.dispatch(new Features.UpdateFeatureOffline(res.info));
-          // Toggles the welcome to false, meaning that the user is no longer new in co.meta
-          this.toggleWelcome();
-          this.manageFeatureDialogData(res, dataToSend);
-        } else {
-          // If XHR was ok
-          this._snackBar.open('An error occurred.', 'OK');
-        }
-      });
+          // After sending the XHR we have received the result in "res"
+          // Checking for success and not
+          // .... show snackBar
+          // .... move feature to folder, if necesarry
+          // .... show dialog according to new or clone & save/edit
+          if (res.success) {
+            // If XHR was ok
+            this._snackBar.open('Feature saved.', 'OK');
+            this._store.dispatch(new Features.UpdateFeatureOffline(res.info));
+            // Toggles the welcome to false, meaning that the user is no longer new in co.meta
+            this.toggleWelcome();
+            this.manageFeatureDialogData(res, dataToSend);
+          } else {
+            // If XHR was ok
+            this._snackBar.open('An error occurred.', 'OK');
+          }
+        });
+    }
   }
 
   /**
@@ -1384,44 +1504,13 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // adds each selected file into formControl array
   onUploadFile(ev) {
-    let formData: FormData = new FormData();
-    let files = ev.target.files;
-
-    for (let file of files) {
-      formData.append('files', file);
-    }
-    formData.append('department_id', this.department.department_id);
-
-    this.fileUpload.startUpload(files, formData, this.department, this.user);
+    // This is now handled by the files-management component
+    this.logger.msg('4', 'File upload handled by files-management component', 'Upload');
   }
 
   onDownloadFile(file: UploadedFile) {
-    // return if file is still uploading
-    if (file.status.toLocaleLowerCase() != 'done') {
-      return;
-    }
-
-    const downloading = this._snackBar.open(
-      'Generating file to download, please be patient.',
-      'OK',
-      { duration: 10000 }
-    );
-
-    this.fileUpload.downloadFile(file.id).subscribe({
-      next: res => {
-        const blob = new Blob([this.base64ToArrayBuffer(res.body)], {
-          type: file.mime,
-        });
-        this.fileUpload.downloadFileBlob(blob, file);
-        downloading.dismiss();
-      },
-      error: err => {
-        if (err.error) {
-          const errors = JSON.parse(err.error);
-          this._snackBar.open(errors.error, 'OK');
-        }
-      },
-    });
+    // Delegate to the new method
+    this.onFileDownloaded(file);
   }
 
   base64ToArrayBuffer(data: string) {
@@ -1435,17 +1524,37 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   onDeleteFile(file: UploadedFile) {
-    this.fileUpload.deleteFile(file.id).subscribe(res => {
-      if (res.success) this.fileUpload.updateFileState(file, this.department);
-    });
+    // Delegate to the new method
+    this.onFileDeleted(file);
   }
 
   onRestoreFile(file: UploadedFile) {
+    this.logger.msg('4', `Processing file restoration for ${file.name} (ID: ${file.id})`, 'Restore');
+    
     let formData: FormData = new FormData();
     formData.append('restore', String(file.is_removed));
 
-    this.fileUpload.restoreFile(file.id, formData).subscribe(res => {
-      if (res.success) this.fileUpload.updateFileState(file, this.department);
+    this.fileUpload.restoreFile(file.id, formData).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.fileUpload.updateFileState(file, this.department);
+          
+          // Show success message
+          this._snackBar.open(`File "${file.name}" restored successfully`, 'OK', { 
+            duration: 5000
+          });
+        } else {
+          this._snackBar.open('Error restoring file', 'OK', { 
+            duration: 5000
+          });
+        }
+      },
+      error: (error) => {
+        this.logger.msg('2', `Error restoring file: ${file.name}`, 'Restore', error);
+        this._snackBar.open('Error restoring file', 'OK', { 
+          duration: 5000
+        });
+      }
     });
   }
 
@@ -1514,32 +1623,160 @@ export class EditFeature implements OnInit, OnDestroy {
     }
   }
 
-  // Filter files in the upload files section
-  filterFiles(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const value = input.value.toLowerCase();
-  
-    if (value === '') {
-      // If the input is empty, show all files
-      this.department.files = [...this.originalFiles];
-    } else {
-      // If there is text, filter the files
-      this.department.files = this.originalFiles.filter(file => 
-        file.name.toLowerCase().includes(value)
-      );
+  // Event handlers for files-management component
+  onFilesUploaded(files: UploadedFile[]): void {
+    // Create new file objects instead of modifying existing ones
+    const processedFiles = files.map(file => {
+      // Create a shallow copy of the file object
+      const newFile = { ...file };
+      
+      // Add type if not already set
+      if (!newFile.type && newFile.name) {
+        const lastDotIndex = newFile.name.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+          newFile.type = newFile.name.substring(lastDotIndex + 1).toUpperCase();
+        } else {
+          newFile.type = 'Unknown';
+        }
+      }
+      
+      return newFile;
+    });
+    
+    // Update original files if needed
+    if (this.department && this.department.files) {
+      // Create a new department object with updated files
+      this.department = {
+        ...this.department,
+        files: this.department.files.map(existingFile => {
+          // Find if this file was processed in the new batch
+          const updatedFile = processedFiles.find(f => f.id === existingFile.id);
+          return updatedFile || existingFile;
+        })
+      };
     }
-    // Force change detection
-    this.cdr.detectChanges();
+    
+    this.cdr.markForCheck();
   }
 
-  // Reset search input and file list
-  resetSearch() {
-    // Reset the file list to original state without forcing change detection
-    if (this.department && this.originalFiles) {
-      setTimeout(() => {
-        this.department.files = [...this.originalFiles];
-      }, 1000);
+  onFileDeleted(file: UploadedFile): void {
+    // Handle auto-setting type field for files being deleted
+    if (!file.type && file.name) {
+      const lastDotIndex = file.name.lastIndexOf('.');
+      if (lastDotIndex > 0) {
+        file.type = file.name.substring(lastDotIndex + 1).toUpperCase();
+      } else {
+        file.type = 'Unknown';
+      }
     }
+    
+    this.fileUpload.deleteFile(file.id).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.logger.msg('4', `File deleted successfully: ${file.name}`, 'Delete');
+          this.fileUpload.updateFileState(file, this.department);
+          
+          // Show success message
+          this._snackBar.open(`File "${file.name}" deleted successfully`, 'OK', { 
+            duration: 5000
+          });
+        } else {
+          this._snackBar.open('Error deleting file', 'OK', { 
+            duration: 5000
+          });
+        }
+      },
+      error: (error) => {
+        this.logger.msg('2', `Error deleting file: ${file.name}`, 'Delete', error);
+        this._snackBar.open('Error deleting file', 'OK', { 
+          duration: 5000
+        });
+      }
+    });
+  }
+
+  onFileDownloaded(file: UploadedFile): void {
+    this.logger.msg('4', `Processing file download for ${file.name} (ID: ${file.id})`, 'Download');
+    
+    // Check if file is ready
+    if (file.status.toLowerCase() !== 'done') {
+      this._snackBar.open('File is not ready for download', 'Close', {
+        duration: 3000
+      });
+      return;
+    }
+    
+    const downloading = this._snackBar.open(
+      'Generating file to download, please be patient.',
+      'OK',
+      { duration: 10000 }
+    );
+    
+    // Use fileUpload service to download the file
+    this.fileUpload.downloadFile(file.id).subscribe({
+      next: (res: any) => {
+        downloading.dismiss();
+        
+        // Check if we have a response body
+        if (!res.body) {
+          this._snackBar.open('Download failed: Empty response', 'OK', {
+            duration: 5000
+          });
+          return;
+        }
+        
+        try {
+          // Create a blob from the base64 response
+          const blob = new Blob([this.base64ToArrayBuffer(res.body)], {
+            type: file.mime || 'application/octet-stream'
+          });
+          
+          // Use the fileUpload service to handle the download
+          this.fileUpload.downloadFileBlob(blob, file);
+        } catch (error) {
+          this.logger.msg('2', `Error processing download response for ${file.name}`, 'Download', error);
+          this._snackBar.open('Error processing download', 'Close', {
+            duration: 5000
+          });
+        }
+      },
+      error: (error) => {
+        downloading.dismiss();
+        this.logger.msg('2', `Download error for ${file.name}`, 'Download', error);
+        this._snackBar.open('Error downloading file', 'Close', {
+          duration: 5000
+        });
+      }
+    });
+  }
+
+  // Handle panel toggle events from files-management component
+  onFilePanelToggled(isExpanded: boolean): void {
+    // Update panel state if needed
+    this.onExpansionChange(this.featureId, '3', isExpanded);
+  }
+  
+  // Handle pagination events from files-management component
+  onFilePaginationChanged(event: {event: PageEvent, file?: UploadedFile}): void {
+    this.logger.msg('4', `File pagination changed: ${JSON.stringify(event.event)}`, 'Pagination');
+    // No additional action needed
+  }
+
+  handleCreate() {
+    if (!this.featureForm.get('feature_name').valid) {
+      this.highlightInput = true;
+      this.focusFormControl('feature_name');
+      this._snackBar.open('Feature info is incomplete: missing name', 'OK', {
+        duration: 5000
+      });
+      // Hide tooltip and highlight after 3 seconds
+      setTimeout(() => {
+        this.highlightInput = false;
+        this.cdr.detectChanges();
+      }, 3000);
+      return;
+    }
+    this.editOrCreate();
   }
 
 }
