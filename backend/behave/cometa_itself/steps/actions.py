@@ -847,6 +847,24 @@ def step_iml(context, text, selector):
             logger.error("Element was not clickable or value was unable to set, will try again.")
     raise CustomError("Unable to set set the value, maybe there is another element in front?")
 
+# Set a value on an element, normally used for inputs but when user do not want to verify the value from input box
+# Example: Set value "Rock&Roll" on "(//input[@formcontrolname="address_to_add"])[1]" and do not check the value
+@step(u'Set value "{text}" on "{selector}" and do not check the value')
+@done(u'Set value "{text}" on "{selector}" and do not check the value')
+def step_iml(context, text, selector):
+    send_step_details(context, 'Looking for selector')
+    element = waitSelector(context, "css", selector)
+    try:
+        elementInteractable = WebDriverWait(context.browser, 10).until(CEC.element_to_be_interactable(element[0]))
+        if elementInteractable:
+            send_step_details(context, 'Setting value')
+            element[0].send_keys(text)
+            return True
+    except ElementNotInteractableException as err:
+        logger.error("Element is not interactable yet will wait.")
+    except TimeoutException as err:
+        logger.error("Element was not interactable or value was unable to set, will try again.")
+
 # Send any keys, this simulates the keys pressed by the keyboard
 # Example: Send keys "F5"
 @step(u'Send keys "{keys}"')
@@ -1557,6 +1575,38 @@ def step_impl(context, xpath):
     if not click_on_element(elem[0]):
         raise CustomError("Unable to click on element with XPATH %s" % xpath)
 
+# Use this step when a message or popup disappears so quickly 
+# Examples: 
+#   1. click on "//button[text()="save"]" and assert element "//p[contains(text(),'success')]" to "appeared"
+#   1. click on "//button[text()="save"]" and assert element "//p[contains(text(),'success')]" to "present"
+@step(u'click on "{click_element}" and assert element "{wait_element}" to "{appeared_or_present}"')
+@done(u'click on "{click_element}" and assert element "{wait_element}" to "{appeared_or_present}"')
+def step_impl(context, click_element, wait_element, appeared_or_present):
+    send_step_details(context, 'Looking for xpath element')
+    elem = waitSelector(context, "css", click_element)
+    if not click_on_element(elem[0]):
+        raise CustomError("Unable to click on element %s" % click_element)
+    
+    if appeared_or_present not in ["present","appeared"]:
+        raise CustomError("'appear_or_present' value can be 'present' or 'appeared' ")
+    
+    send_step_details(context, f"Validating if selector '{wait_element}' is {appeared_or_present}")
+        # Use waitSelector to get the element
+    element = waitSelector(context, "css", wait_element)
+    if type(element) == list:
+        element = element[0]
+    if not element:
+        raise CustomError("Element is not present")
+    if appeared_or_present == 'appeared':
+        send_step_details(context, f"Element is present, checking for visiblity")
+        while True:
+            if element.is_displayed():
+               break
+            time.sleep(1)
+            
+    send_step_details(context, f"Selector '{wait_element}' is {appeared_or_present}")
+    
+    
 # Scroll to an element using a CSS Selector
 # Example: Scroll to element with css selector "#submit-button"
 @step(u'Scroll to element with css selector "{selector}"')
@@ -1978,16 +2028,7 @@ def step_impl(context, css_selector, variable_name):
     result = result.replace('\n', " ")
 
     # add variable
-    addVariable(context, variable_name, result)
-
-# Save string value to environment variable, environment variable value has a maximum value of 255 characters
-# Example: Save "123456" to environment variable "user_id"
-@step(u'Save "{value}" to environment variable "{variable_name}"')
-@done(u'Save "{value}" to environment variable "{variable_name}"')
-def step_impl(context, value, variable_name):
-    send_step_details(context, 'Saving value to environment variable')
-    # add variable
-    addVariable(context, variable_name, value)
+    addVariable(context, variable_name, result, save_to_step_report=True)
 
 # Add a timestamp after the prefix to make it unique
 # Example: Add a timestamp to the "order" and save it to "order_id"
@@ -1996,7 +2037,7 @@ def step_impl(context, value, variable_name):
 def step_impl(context, prefix, variable_name):
     # create the unique text
     text = "%s-%.0f" % (prefix, time.time())
-    addVariable(context, variable_name, text)
+    addVariable(context, variable_name, text, save_to_step_report=True)
 
 # Create a sequence of random numbers of the specified size and save it to a variable
 # Example: Create a string of random "6" numbers and save to "pin_code"
@@ -2413,7 +2454,7 @@ def editFile(context, excelfile, variable_name, cell):
     logger.debug("Setting value value: %s to variable %s " % (sheet[cell].value, variable_name) )
 
     # add variable
-    addVariable(context, variable_name, sheet[cell].value)
+    addVariable(context, variable_name, sheet[cell].value, save_to_step_report=True)
 
 # get total cells from the cell ranges and
 def getTotalCells(sheet, cells, values=[]):
@@ -2643,7 +2684,7 @@ def imp(context, css_selector, variable_name):
     elements_list = ";".join(element_values)
 
     # add the variable
-    addVariable(context, variable_name, elements_list)
+    addVariable(context, variable_name, elements_list, save_to_step_report=True)
 
 # Make a request to Open Weather Map and get Weather information about specific City, using units specified at https://openweathermap.org/current and your API Key
 # Example: Weather temperature from Open Weather Map for "London" with "metric" using "your_api_key" and save to variable "weather_temp"
@@ -2683,6 +2724,7 @@ def step_imp(context, value_one, value_two, variance):
 @done(u'Create one-time password of "{x}" digits using pairing-key "{value}" and save it to crypted variable "{variable_name}"')
 def step_imp(context, x, value, variable_name):
     x = x.strip()
+    value = re.sub(r"\s+", "", value)
     try:
         x = int(x)
     except:
@@ -2698,7 +2740,7 @@ def step_imp(context, x, value, variable_name):
     import pyotp
     totp = pyotp.TOTP(value, digits=x)
     oneTimePassword = totp.now()
-    addVariable(context, variable_name, oneTimePassword, encrypted=True)
+    addVariable(context, variable_name, oneTimePassword, encrypted=True, save_to_step_report=True)
 
 def test_ibm_cognos_cube(context, all_or_partial, variable_name, prefix, suffix):
     # get the variables from the context
@@ -2984,6 +3026,13 @@ def step_test(context, css_selector, all_or_partial, variable_names, prefix, suf
 def assert_imp(context, value_one, value_two):
     assert_failed_error = f"{value_one} does not match {value_two}"
     assert_failed_error = logger.mask_values(assert_failed_error)
+    addStepVariableToContext(context,                             
+                            {
+                                "value_one":value_one,
+                                "value_two":value_two,
+                            }, 
+                            save_to_step_report=True)
+    
     assert value_one == value_two, assert_failed_error
 
 # This step checks if one string contains another. If the second string is not found within the first string, an error will be raised
@@ -2993,6 +3042,12 @@ def assert_imp(context, value_one, value_two):
 def assert_imp(context, value_one, value_two):
     assert_failed_error = f"{value_one} does not contain {value_two}"
     assert_failed_error = logger.mask_values(assert_failed_error)
+    addStepVariableToContext(context,{
+                                    "value_one":value_one,
+                                    "value_two":value_two,
+                                    }, 
+                            save_to_step_report=True)
+
     assert value_two in value_one, assert_failed_error
 
 # This step initiates a loop that runs a specific number of times, starting from a given index
@@ -3008,16 +3063,18 @@ def step_loop(context, x, index):
     subStepIndex = 0
     # get all the sub steps from text
     steps = context.text
+    logger.debug(f"Steps to be executed {steps}")
     # set context.insideLoop to true
     context.insideLoop = True
     # set executedStepsInLoop value
     context.executedStepsInLoop = 0
     # match regexp to find steps and step descriptions
     steps = list(filter(None, re.findall(r".*\n?(?:\t'''(?:.|\n)+?'''\n?)?", steps)))
-
+    logger.debug(f"list of test_steps : {steps}")
     try:
         logger.debug("Steps: {}".format(steps))
         for i in range(int(index), int(x) + int(index)):
+            logger.debug(f"With in the loop-Step {i}")
             # update subStepIndex to currentStepIndex
             subStepIndex = currentStepIndex
             # add a index variable to context.JOB_PARAMETERS
@@ -3038,10 +3095,20 @@ def step_loop(context, x, index):
                 send_step_details(context, "Executing step '%s' inside loop." % step.split('\n')[0])
                 # execute the step
                 context.execute_steps(step)
+                
+                if context.break_loop:
+                    logger.debug("Breaking step loop")
+                    break
+
+            if context.break_loop:
+                logger.debug("Breaking iteration loop")
+                break
+                
     except Exception as error:
         err = True
         err_msg = error
 
+    context.break_loop = False
     # update current step index to Loop again
     context.counters['index'] = currentStepIndex
     # set jumpLoop value to steps count
@@ -3072,6 +3139,14 @@ def step_endLoop(context):
     context.jumpLoopIndex = 0
     # reset executedStepsInLoop
     context.executedStepsInLoop = 0
+    
+# Example: Break the loop execution
+@step(u'Break Loop')
+@done(u'Break Loop')
+def step_break_loop(context):
+    send_step_details(context, "Breaking execution loop")
+    context.break_loop = True
+    
 
 
 # This step tests if a list of elements selected via a CSS selector contains all or partial values derived from one or more variables
@@ -3339,7 +3414,7 @@ def step_impl(context, selector, variable_name, option):
 
     elements = waitSelector(context, "css", selector)
 
-    if not elements:
+    if not elements:    
         raise ValueError(f"No elements found for selector: {selector}")
 
     try:
@@ -3351,7 +3426,7 @@ def step_impl(context, selector, variable_name, option):
             tag_value = tag_value.strip()
 
         # Store the processed value in the variable
-        addVariable(context, variable_name, tag_value)
+        addVariable(context, variable_name, tag_value, save_to_step_report=True)
         send_step_details(context, f'Stored value "{tag_value}" in variable "{variable_name}".')
 
     except Exception as err:
@@ -3386,7 +3461,7 @@ def step_impl(context, attribute, selector, variable_name, option):
             attribute_value = attribute_value.strip()
 
         # Store the processed value in the variable
-        addVariable(context, variable_name, attribute_value)
+        addVariable(context, variable_name, attribute_value, save_to_step_report=True)
         send_step_details(context, f'Stored value "{attribute_value}" in variable "{variable_name}".')
 
     except Exception as err:

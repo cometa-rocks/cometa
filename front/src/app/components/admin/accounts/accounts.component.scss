@@ -1,5 +1,5 @@
 h2 {
-  margin: 50px 0 20px;
+  // margin: 50px 0 20px;
   font-size: 12pt;
   text-transform: uppercase;
 }
@@ -27,7 +27,7 @@ account:nth-child(2n + 2) {
 ::ng-deep button.add-item {
   font-size: 16px !important;
   font-weight: bold !important;
-  margin-top: 20px !important;
+  // margin-top: 20px !important;
 }
 
 ::ng-deep .mat-icon {
@@ -39,3 +39,29 @@ account:nth-child(2n + 2) {
   display: block;
   margin: 0 auto;
 }
+
+
+.header-container {
+  position: sticky;
+  top: -45px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+  background-color: #e5b355;
+  padding: 0 25px 0 25px;
+  height: 90px;
+
+  .centered-input {
+    width: 80%;
+    margin-top: 20px;
+  }
+
+  h2 {
+    text-align: center;
+  }
+}
+

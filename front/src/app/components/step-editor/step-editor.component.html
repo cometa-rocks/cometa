@@ -4,21 +4,50 @@
   <div class="more-vert">
     <span class="desktop"></span>
     <span class="mobile"><i></i></span>
+    <!-- <span class="select-text">Select</span> -->
   </div>
-  <div class="index">#</div>
+  <div class="index">
+    <span>#</span>
+    <!-- <span class="all-text"> all</span> -->
+  </div>
   <div class="enable">
     <span class="desktop">Enable</span>
     <span class="mobile"><i></i></span>
+    <mat-checkbox
+      (change)="selectAllEnable($event)"
+      [checked]="isAllEnabled()"
+      [matTooltip]="'step_editor.all_steps' | translate"
+      matTooltipPosition="above"
+      color="primary"
+      class="select-all checkbox-blue"></mat-checkbox>
   </div>
   <div class="screenshot">
     <span class="desktop">Screenshot</span>
     <span class="mobile"><i></i></span>
+    <mat-checkbox
+      (change)="selectAllScreenshot($event)"
+      [checked]="isAllScreenshot()"
+      [matTooltip]="'step_editor.all_screenshots' | translate"
+      matTooltipPosition="above"
+      color="primary"
+      class="select-all checkbox-blue"></mat-checkbox>
   </div>
   <div class="compare">
     <span class="desktop">Compare</span>
     <span class="mobile"><i></i></span>
+    <mat-checkbox
+      (change)="selectAllCompare($event)"
+      [checked]="isAllCompare()"
+      [matTooltip]="'step_editor.all_compare' | translate"
+      matTooltipPosition="above"
+      color="primary"
+      class="select-all checkbox-blue"></mat-checkbox>
   </div>
   <div class="step">Step Description</div>
+  <div class="warnings">
+    <div class="desktop">Status</div>
+    <div class="mobile"><i></i></div>
+  </div>
 </div>
 <!-- Right click menu -->
 <context-menu menuClass="step-contect-menu" #basicMenu>
@@ -55,6 +84,24 @@
     </div>
   </ng-template>
   <ng-template contextMenuItem let-item>
+    <div 
+      *ngIf="isApiCallStep(item)"
+      [matTooltip]="'Edit current API Call'"
+      matTooltipPosition="right"
+      (click)="editApiCall(item)">
+      <mat-icon class="edit">edit</mat-icon>
+      <span>Edit API Call</span>
+    </div>
+    <div 
+      *ngIf="!isApiCallStep(item)"
+      [matTooltip]="'Only available for API call steps'"
+      matTooltipPosition="right"
+      class="disabled-menu-item">
+      <mat-icon class="edit">edit</mat-icon>
+      <span>Edit API Call</span>
+    </div>
+  </ng-template>
+  <ng-template contextMenuItem let-item>
     <div (click)="deleteStep(item)">
       <mat-icon class="delete">delete</mat-icon>
       <span>Delete</span>
@@ -79,7 +126,9 @@
         <div class="father-block">
           <div class="first-block">
             <div class="move-row" cdkDragHandle></div>
-            <button class="more-vert-step" mat-icon-button [matMenuTriggerFor]="stepOptions">
+            <button
+              type="button"
+              class="more-vert-step" mat-icon-button [matMenuTriggerFor]="stepOptions">
               <mat-icon>more_vert</mat-icon>
             </button>
             <div class="step-extras">
@@ -95,13 +144,17 @@
                 aria-label="Screenshot"
                 color="primary"
                 class="screenshot checkbox-blue"
-                (change)="screenshotChange($event, i)"></mat-checkbox>
+                (change)="screenshotChange($event, i)"
+                [matTooltip]="'step_editor.screenshot_disabled' | translate"
+                matTooltipPosition="above"></mat-checkbox>
               <mat-checkbox
                 formControlName="compare"
                 aria-label="Compare"
                 color="primary"
                 class="compare checkbox-blue"
-                [disabled]="!step.get('screenshot').value"></mat-checkbox>
+                (change)="onCompareChange($event, i)"
+                [matTooltip]="'step_editor.compare_enabled' | translate"
+                matTooltipPosition="above"></mat-checkbox>
             </div>
             <div class="prefix">
               <mat-select formControlName="step_keyword">
@@ -121,94 +174,123 @@
             /> -->
             <input matInput type="hidden" formControlName="step_action" />
           </div>
-          <div class="second-block">
-            <div
-              class="step_content"
-              tabindex="0"
-              (focusout)="onStepFocusOut($event)"
-              (keydown.esc)="onStepEscape($event)"
-              (keydown.Tab)="onTextareaTab(i)">
-              <textarea
-                (input)="onStepChange($event, i)"
-                (blur)="fixStep($event, i)"
-                (click)="
-                  stepVariableData['currentStepIndex'] === i
-                    ? (stepVariableData.currentStepIndex = i)
-                    : (stepVariableData.currentStepIndex = null)"
-                (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
-                (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
-                (keydown.enter)="onTextareaEnter($event, i)"
-                (keydown.control.arrowup)="insertStep($event, i)"
-                (keydown.control.arrowdown)="insertStep($event, i)"
-                (keydown.alt.control.arrowup)="copyStep($event, i)"
-                (keydown.alt.control.arrowdown)="copyStep($event, i)"
-                class="code"
-                spellcheck="false"
-                cdkTextareaAutosize
-                autocomplete="off"
-                formControlName="step_content"
-                [matAutocomplete]="stepHelp"
-                placeholder="Step Code"
-                (focus)="sendTextareaFocusToParent(true, i)">
-              </textarea>
-              <mat-list
-                class="var_name_autoComplete"
-                [ngStyle]="{
-                  'bottom.px':
-                    displayedVariables.length > 4
-                      ? -118
-                      : -displayedVariables.length * 30 + 2
-                }"
-                *ngIf="
-                  stepVariableData.currentStepIndex == i &&
-                  displayedVariables.length > 0
-                "
-                role="list">
-                <mat-list-item
-                  id="{{ variable.id }}"
-                  tabindex="0"
-                  *ngFor="let variable of displayedVariables"
-                  (click)="onClickVariable(variable.variable_name, i)">
-                  <div
-                    class="variable-wrapper"
-                    *ngIf="variable.variable_name; else noVariable">
-                    <span class="var_name">${{ variable.variable_name }}</span>
-                    <span class="var_value">={{ variable.variable_value }}</span>
-                  </div>
-                  <ng-template #noVariable>
-                    <div class="variable-wrapper">
-                      <span class="no-variable">No variable with this name</span>
-                    </div>
-                  </ng-template>
-                </mat-list-item>
-              </mat-list>
+          <div
+            class="step_content"
+            tabindex="0"
+            (focusout)="onStepFocusOut($event)"
+            (keydown.esc)="onStepEscape($event)"
+            (keydown.Tab)="onTextareaTab(i)">
+            <div 
+                *ngIf="isApiCallStep(i) && !isEditingApiCall(i)"
+                class="collapsed-api-call"
+                (click)="expandApiCall(i)">
+                {{ getCollapsedApiCall(i) }}
             </div>
+            <textarea
+              *ngIf="!isApiCallStep(i) || isEditingApiCall(i)"
+              (input)="onStepChange($event, i)"
+              (blur)="fixStep($event, i)"
+              (click)="
+                stepVariableData['currentStepIndex'] === i
+                  ? (stepVariableData.currentStepIndex = i)
+                  : (stepVariableData.currentStepIndex = null)"
+              (keydown.arrowdown)="onTextareaArrowKey($event, 'down', variable)"
+              (keydown.arrowup)="onTextareaArrowKey($event, 'up')"
+              (keydown.enter)="onTextareaEnter($event, i)"
+              (keydown.control.arrowup)="insertStep($event, i)"
+              (keydown.control.arrowdown)="insertStep($event, i)"
+              (keydown.alt.control.arrowup)="copyStep($event, i)"
+              (keydown.alt.control.arrowdown)="copyStep($event, i)"
+              class="code"
+              spellcheck="false"
+              cdkTextareaAutosize
+              autocomplete="off"
+              formControlName="step_content"
+              [matAutocomplete]="stepHelp"
+              placeholder="Step Code"
+              (focus)="sendTextareaFocusToParent(true, i) && onTextareaFocus($event, i)">
+            </textarea>
+            <mat-list
+              class="var_name_autoComplete"
+              [ngStyle]="{
+                'bottom.px':
+                  displayedVariables.length > 4
+                    ? -118
+                    : -displayedVariables.length * 30 + 2
+              }"
+              *ngIf="
+                stepVariableData.currentStepIndex == i &&
+                displayedVariables.length > 0
+              "
+              role="list">
+              <mat-list-item
+                id="{{ variable.id }}"
+                tabindex="0"
+                *ngFor="let variable of displayedVariables"
+                (click)="onClickVariable(variable.variable_name, i)">
+                <div
+                  class="variable-wrapper"
+                  *ngIf="variable.variable_name; else noVariable">
+                  <span class="var_name">${{ variable.variable_name }}</span>
+                  <span class="var_value">={{ variable.variable_value }}</span>
+                </div>
+                <ng-template #noVariable>
+                  <div class="variable-wrapper">
+                    <span class="no-variable">No variable with this name</span>
+                  </div>
+                </ng-template>
+              </mat-list-item>
+            </mat-list>
           </div>
         </div>
-        <i
-          *ngIf="step.get('step_content').errors?.invalidStep"
-          class="invalid-sign"
-          matTooltip="Invalid step definition"
-          matTooltipPosition="above"></i>
-        <i
-          *ngIf="step.get('timeout').errors?.max"
-          class="invalid-sign"
-          matTooltip="Step timeout is invalid, maximum value for timeout is 7200."
-          matTooltipPosition="above"></i>
-        <ng-container *ngIf="importsSteps$ | async as importedSteps">
+        <div class="status-container">
           <i
-            *ngIf="
-              importedSteps.length > 0 && step.value.step_content
-                | checkDuplicate: importedSteps
-            "
-            class="duplicate-step-sign"
-            matTooltip="This step definition has been found inside an import"
-            matTooltipPosition="above"></i>
-        </ng-container>
-
+            *ngIf="step.get('step_content').errors?.invalidStep"
+            class="invalid-sign"
+            matTooltip="Invalid step definition"
+            matTooltipPosition="above">
+            <div class="little-icon">
+              <i class="material-icons">error</i>
+            </div>
+          </i>
+          <i
+            *ngIf="step.get('timeout').errors?.max"
+            class="invalid-sign"
+            matTooltip="Step timeout is invalid, maximum value for timeout is 7200."
+            matTooltipPosition="above">
+            <div class="little-icon">
+              <i class="material-icons">watch_later</i>
+            </div>
+          </i>
+          <ng-container *ngIf="importsSteps$ | async as importedSteps">
+            <i
+              *ngIf="
+                importedSteps.length > 0 && step.value.step_content
+                  | checkDuplicate: importedSteps
+              "
+              class="duplicate-step-sign"
+              matTooltip="This step definition has been found inside an import"
+              matTooltipPosition="above">  
+              <div class="little-icon">
+                <i class="material-icons">pin</i>
+              </div>
+            </i>
+          </ng-container>
+          <i 
+            class="feature-link-sign material-icons"
+            [style.display]="step.get('step_content').value?.includes('Run feature with') ? 'flex' : 'none'"
+            [style.opacity]="stepStates[i]?.showLinkIcon && stepStates[i]?.featureId ? '1' : '0.5'"
+            [matTooltip]="(stepStates[i]?.showLinkIcon && stepStates[i]?.featureId) ? ('step_editor.feature_link_tooltip' | translate) : ('step_editor.feature_link_not_found' | translate)"
+            matTooltipPosition="above"
+            (click)="navigateToFeature(stepStates[i]?.featureId)">
+            link
+          </i>
+        </div>
         <!-- Step Options Menu -->
         <mat-menu class="step-options-menu" #stepOptions="matMenu">
-          <button mat-menu-item stopPropagation>
+          <button 
+            type="button"
+            mat-menu-item stopPropagation>
             <ng-container
               *ngLet="
                 (_editFeature.departmentSettings$ | async)
@@ -228,6 +310,7 @@
             </ng-container>
           </button>
           <button
+            type="button"
             class="custom-timeout"
             mat-menu-item
             stopPropagation
@@ -251,6 +334,7 @@
             <span>seconds</span>
           </button>
           <button
+            type="button"
             mat-menu-item
             (click)="deleteStep(i)"
             [matTooltip]="'tooltips.step_delete' | translate"
@@ -261,14 +345,12 @@
         <div class="autocomplete-container">
           <div class="autocomplete-wrapper">
             <mat-autocomplete
-              class="edit-feature-step-suggestions"
               #stepHelp="matAutocomplete"
               (opened)="onAutocompleteOpened(i)"
               (optionSelected)="selectFirstVariable($event, i)"
               (optionActivated)="onOptionActivated($event, i)"
-              (closed)="closeAutocomplete(i)"
-              [panelClass]="'autocomplete-above'"
-              [ngClass]="{ 'is-transparent': isTransparent }">
+              (closed)="closeAutocomplete(i)">
+          
 
               <mat-option *ngFor="let action of actions | filterStep: step.value.step_content : false" [value]="action.action_name">
                 {{ action.action_name }}
@@ -294,7 +376,6 @@
             </div>
             <div class="stepDocumentationIcons">
               <p class="stepByStep">Step Documentation</p>
-
             </div>
             <div class="columnOfIcons">
               <div class="contentCopy">
@@ -342,6 +423,7 @@
 <div class="button-actions">
   <div class="left">
     <button
+      type="button"
       color="primary"
       [matMenuTriggerFor]="importJSON"
       mat-stroked-button
@@ -349,6 +431,7 @@
       IMPORT JSON
     </button>
     <button
+      type="button"
       color="primary"
       [matMenuTriggerFor]="exportJSON"
       mat-stroked-button
@@ -363,36 +446,46 @@
       accept="application/json"
       #file />
     <mat-menu #importJSON="matMenu" yPosition="above">
-      <button (click)="importClipboard()" mat-menu-item>
+      <button
+       type="button"
+       (click)="importClipboard()" mat-menu-item>
         <mat-icon>content_copy</mat-icon>From Clipboard
       </button>
-      <button (click)="file.click()" mat-menu-item>
+      <button 
+        type="button"
+        (click)="file.click()" mat-menu-item>
         <mat-icon>attach_file</mat-icon>From file
       </button>
     </mat-menu>
     <mat-menu #exportJSON="matMenu" yPosition="above">
-      <button (click)="exportClipboard()" mat-menu-item>
+      <button 
+        type="button"
+        (click)="exportClipboard()" mat-menu-item>
         <mat-icon>content_copy</mat-icon>To Clipboard
       </button>
-      <button (click)="export()" mat-menu-item>
+      <button 
+        type="button"
+        (click)="export()" mat-menu-item>
         <mat-icon>attach_file</mat-icon>To file
       </button>
     </mat-menu>
   </div>
   <div class="right">
     <button
-    color="primary"
-    (click)="toggleShowHideDoc()"
-    mat-stroked-button
-    class="remove_all"
-    matTooltip="{{ showHideStepDocumentation ? 'Show the step documentation' : 'Hide the step documentation' }}"
-    matTooltipPosition="above">
+      type="button"
+      color="primary"
+      (click)="toggleShowHideDoc()"
+      mat-stroked-button
+      class="remove_all"
+      matTooltip="{{ showHideStepDocumentation ? 'Show the step documentation' : 'Hide the step documentation' }}"
+      matTooltipPosition="above">
       <span class="button-content">
-        <mat-icon class="icon-left">{{ showHideStepDocumentation ? 'visibility_off' : 'visibility' }}</mat-icon>
+        <i class="material-icons icon-left">{{ showHideStepDocumentation ? 'visibility' : 'visibility_off' }}</i>
         <span>Documentation</span>
       </span>
     </button>
     <button
+      type="button"
       color="primary"
       (click)="removeAll()"
       mat-stroked-button
@@ -400,6 +493,7 @@
       REMOVE ALL STEPS
     </button>
     <button
+      type="button"
       color="primary"
       [matMenuTriggerFor]="addStep"
       mat-stroked-button
@@ -407,10 +501,14 @@
       ADD STEP
     </button>
     <mat-menu #addStep="matMenu" yPosition="below">
-      <button (click)="addEmpty()" mat-menu-item>
+      <button 
+        type="button"
+        (click)="addEmpty()" mat-menu-item>
         <mat-icon>chat_bubble</mat-icon>Empty
       </button>
-      <button (click)="add()" mat-menu-item>
+      <button 
+        type="button"
+        (click)="add()" mat-menu-item>
         <mat-icon>chat</mat-icon>From Template
       </button>
     </mat-menu>

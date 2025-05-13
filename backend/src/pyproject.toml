@@ -36,13 +36,9 @@ jq = "^1.6.0"
 pytz = "^2023.4"
 docker = "^7.1.0"
 kubernetes = "31.0.0"
-protobuf = ">=3.20.0,<4.0.0"
-chromadb = "^0.6.3"
-sentencepiece = "^0.2.0"
-accelerate = "^1.4.0"
-PyPDF2 = "^3.0.1"
-markdown = "^3.7.0"
-beautifulsoup4 = "^4.13.3"
+matplotlib = "^3.10.1"
+seaborn = "^0.13.2"
+sqlalchemy = "^2.0.40"
 
 [tool.poetry.dev-dependencies]
 

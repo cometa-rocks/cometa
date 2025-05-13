@@ -125,7 +125,7 @@
     <ng-container *ngFor="let button of buttons">
       <div *ngIf="button.class != 'replay-button-2'">
         <button
-          stopPropagation
+          [stopPropagation]="button.icon !== 'sync' && button.icon !== 'sync_problem'"
           mat-icon-button
           *ngIf="!button.iif || button.iif(row)"
           (click)="button.click && button.click(row)"
@@ -136,6 +136,7 @@
         </button>
       </div>
 
+      <!-- Mobile Replay Button -->
       <div *ngIf="button.class == 'replay-button-2'" class="mobile-container">
         <div class="custom-context">
           <button
@@ -151,7 +152,8 @@
               class="mobile-mat-icon-replay"
               [matBadge]="row.mobile.length > 1 ? row.mobile.length : null"
               matBadgeSize="small">
-              {{ button.icon }}
+              tablet_mac
+              <i class="nested-videocam material-icons">videocam</i>
             </mat-icon>
             <ng-container *ngIf="row.mobile && row.mobile.length > 1 && button.class === 'replay-button-2'">
               <mat-select
@@ -203,7 +205,7 @@
     class="browser-icon aligned-center"
     [attr.data-browser-version]="row.browser.browser_version"
     matTooltipPosition="above"
-    [matTooltip]="row.browser.browser | titlecase"
+    [matTooltip]="row.browser.browser + ' ' + row.browser.browser_version | titlecase"
     [style.backgroundImage]="row.browser.browser | browserIcon"></i>
 </ng-template>
 
@@ -245,11 +247,11 @@
       [checked]="archived$ | async"
       (click)="handleArchived()">
     <ng-container *ngIf="archived; else showIcon">
-      <mat-icon>visibility_off</mat-icon>
+      <i class="material-icons">visibility_off</i>
       Hide archived items
     </ng-container>
     <ng-template #showIcon>
-      <mat-icon>visibility</mat-icon>
+      <i class="material-icons">visibility</i>
       Show archived items
     </ng-template>
     </button>

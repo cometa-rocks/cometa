@@ -5,10 +5,10 @@
  *
  * @author dph000
  */
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
-import { Observable, switchMap, tap, map } from 'rxjs';
+import { Observable, switchMap, tap, map, filter, take } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import { observableLast, Subscribe } from 'ngx-amvara-toolbox';
 import { NavigationService } from '@services/navigation.service';
@@ -44,6 +44,7 @@ import {
   AsyncPipe,
   LowerCasePipe,
 } from '@angular/common';
+import { StarredService } from '@services/starred.service';
 
 @Component({
   selector: 'cometa-l1-feature-item-list',
@@ -83,7 +84,9 @@ export class L1FeatureItemListComponent implements OnInit {
     private _dialog: MatDialog,
     private _api: ApiService,
     private _snackBar: MatSnackBar,
-    private log: LogService
+    private log: LogService,
+    private cdr: ChangeDetectorRef,
+    private starredService: StarredService
   ) {}
 
   // Receives the item from the parent component
@@ -95,6 +98,11 @@ export class L1FeatureItemListComponent implements OnInit {
   private hasHandledMouseOver = false;
   private hasHandledMouseOverFolder = false;
   finder: boolean = false;
+  running: boolean = false;
+  isButtonDisabled: boolean = false;
+  running$: Observable<boolean>;
+  private lastClickTime: number = 0;
+  private readonly CLICK_DEBOUNCE_TIME: number = 1000; // 1 second debounce time
 
   /**
    * Global variables
@@ -106,23 +114,49 @@ export class L1FeatureItemListComponent implements OnInit {
   canDeleteFeature$: Observable<boolean>;
   isAnyFeatureRunning$: Observable<boolean>;
   departmentFolders$: Observable<Folder[]>;
+  isStarred$: Observable<boolean>;
+  
 
   // NgOnInit
   ngOnInit() {
-
     this.log.msg('1', 'Initializing component...', 'feature-item-list');
 
     this.feature$ = this._store.select(
       CustomSelectors.GetFeatureInfo(this.feature_id)
     );
-    // Subscribe to the running state comming from NGXS
-    this.featureRunning$ = this._store.select(
-      CustomSelectors.GetFeatureRunningStatus(this.feature_id)
-    );
+
     // Subscribe to the status message comming from NGXS
     this.featureStatus$ = this._store.select(
       CustomSelectors.GetFeatureStatus(this.feature_id)
+    ).pipe(
+      tap(status => {
+        if (status === 'Feature completed' || status === 'completed' || status === 'success' || status === 'failed' || status === 'canceled' || status === 'stopped') {
+          this.isButtonDisabled = false;
+          this.cdr.detectChanges();
+        }
+      })
     );
+
+    // Nos aseguramos de que el observable esté suscrito
+    this.featureStatus$.subscribe();
+
+    // También actualizamos el estado cuando el feature deja de estar en ejecución
+    this.featureRunning$ = this._store.select(
+      CustomSelectors.GetFeatureRunningStatus(this.feature_id)
+    ).pipe(
+      tap(running => {
+        
+        if (!running) {
+          // console.log('Feature stopped running, resetting states');
+          this.isButtonDisabled = false;
+          this.cdr.detectChanges();
+        }
+      })
+    );
+
+    // Nos aseguramos de que el observable esté suscrito
+    this.featureRunning$.subscribe();
+
     this.canEditFeature$ = this._store.select(
       CustomSelectors.HasPermission('edit_feature', this.feature_id)
     );
@@ -139,6 +173,8 @@ export class L1FeatureItemListComponent implements OnInit {
     this._sharedActions.filterState$.subscribe(isActive => {
       this.finder = isActive;
     });
+
+    this.isStarred$ = this.starredService.isStarred(this.feature_id);
   }
 
   async goLastRun() {
@@ -362,4 +398,56 @@ export class L1FeatureItemListComponent implements OnInit {
     });
   }
 
+  async onRunClick() {
+    const now = Date.now();
+    const timeSinceLastClick = now - this.lastClickTime;
+
+    // Prevent clicks when button is disabled and feature is not running
+    if (timeSinceLastClick < this.CLICK_DEBOUNCE_TIME) {
+      return;
+    }
+
+    // Update the last click time
+    this.lastClickTime = now;
+
+    // Prevent clicks when button is disabled and feature is not running
+    if (this.isButtonDisabled && !this.running) {
+      return;
+    }
+
+    // Check if feature has browsers selected
+    if (!this.item.browsers || this.item.browsers.length === 0) {
+      this._snackBar.open("This feature doesn't have browsers selected.", 'OK');
+      return;
+    }
+
+    this.isButtonDisabled = true;
+    this.cdr.detectChanges();
+
+    try {
+      await this._sharedActions.run(this.item.id);
+    } catch (error) {
+      this.isButtonDisabled = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  toggleStarred(event: Event): void {
+    event.stopPropagation();
+    this.starredService.toggleStarred(this.feature_id);
+    this.starredService.starredChanges$.pipe(
+      filter(event => event?.featureId === this.feature_id),
+      take(1)
+    ).subscribe(event => {
+      this._snackBar.open(
+        event?.action === 'add' 
+          ? `Feature ${this.item.id} (${this.item.name}) added to favorites` 
+          : `Feature ${this.item.id} (${this.item.name}) removed from favorites`,
+        'OK',
+        { duration: 2000 }
+      );
+    });
+  }
+
 }
+

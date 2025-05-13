@@ -1,4 +1,4 @@
-import docker, os, sys, logging, time, traceback, uuid
+import docker, os, sys, logging, time, traceback, uuid, threading
 from docker.errors import NullResource, NotFound
 from kubernetes import client, config
 from kubernetes.client import ApiException
@@ -19,6 +19,7 @@ from utility.config_handler import *
 # setup logging
 logger = logging.getLogger("FeatureExecution")
 
+# src behave container service_manager.py 
 
 class KubernetesServiceManager:
     
@@ -190,7 +191,7 @@ class DockerServiceManager:
     # This method will create the container base on the environment
     def stop_service(self, service_name_or_id, *args, **kwargs):
         logger.info(
-            f"Deleting service with container_name_or_id : {service_name_or_id}"
+            f"Stopping service with container_name_or_id : {service_name_or_id}"
         )
         try:
             # Find the container
@@ -239,10 +240,16 @@ class DockerServiceManager:
             return False, str(e)
 
     def pull_image(self, image_name):
-        logger.info(f"Pulling the image : {image_name}")
         try:
-            # Pull the specified image
-            logger.info(f"Pulling image: {image_name}")
+            # Check if the image exists locally
+            image_list = self.docker_client.images.list()
+            for image in image_list:
+                if image_name in image.tags:
+                    logger.info(f"Image '{image_name}' is already available locally.")
+                    return True
+
+            # If the image is not found locally, pull it
+            logger.info(f"Image '{image_name}' not found locally. Pulling from Docker Hub...")
             self.docker_client.images.pull(image_name)
             logger.info(f"Image '{image_name}' pulled successfully.")
             return True
@@ -251,13 +258,13 @@ class DockerServiceManager:
             traceback.print_exc()
             return False
 
-    def upload_file(self, service_name_or_id, file_path, decryptFile=True):
+    def upload_file(self, service_name_or_id, file_path, decrypt_file=True):
         container = self.docker_client.containers.get(service_name_or_id)
 
         # Destination path inside the container
         container_dest_path = "/tmp"  # Change as needed
         file_name = file_path.split("/")[-1]
-        if decryptFile:
+        if decrypt_file:
             file_path = decryptFile(file_path)
         # i.e decrypted_file /tmp/6oy2p464
         # Create the tar archive
@@ -268,7 +275,7 @@ class DockerServiceManager:
         if container.put_archive(container_dest_path, tar_stream):
             logger.debug("APK File copied to the container")
             # File was not decrypted then file will be copied to container with correct name 
-            if not decryptFile:
+            if not decrypt_file:
                 return file_name
             
             command = f"mv \"{file_path}\" \"/tmp/{file_name}\""
@@ -560,7 +567,7 @@ class ServiceManager(service_manager):
     
     def wait_for_selenium_hub_be_up(self,hub_url,timeout=120):
         start_time = time.time()
-        interval = 1
+        interval = 0.1
         logger.debug(f"Waiting for selenium hub {hub_url} to available")
         while True:
             try:
@@ -580,13 +587,32 @@ class ServiceManager(service_manager):
             time.sleep(interval)
 
 
-    def remove_all_service(self,container_services):
-        # Delete all the services which were started during test
-        for service in container_services:
-            logger.debug(f"Deleting container service with ID : {service['Id']}")
-            service_manager = ServiceManager()
-            service_manager.delete_service(
-                service_name_or_id=service['Id']
-            )
+    def remove_all_service(self, container_services):
+        try:
+            def remove_services():
+                # Delete all the services which were started during test
+                for service in container_services:
+                    logger.debug(f"Deleting container service with ID : {service['Id']}")
+                    service_manager = ServiceManager()
+                    service_manager.delete_service(
+                        service_name_or_id=service['Id']
+                    )
 
-    
+            # Create a thread to run the remove_services function
+            thread = threading.Thread(target=remove_services)
+            
+            thread.start()  # Start the thread without blocking the main thread
+        
+        except Exception as e:
+            logger.error("Exception while deleting the services")
+            # FIXME trigger the mail when this happens otherwise it may cause resource outage in the server
+            traceback.print_exc()
+            
+
+
+    def remove_all_service_with_django(self, container_services):    
+        for service in container_services:        
+            logger.debug(f"Deleting container service with ID : {service['id']}")
+            requests.delete(f'{get_cometa_backend_url()}/api/container_service/{service["id"]}/', headers={'Host': 'cometa.local'})
+          
+            

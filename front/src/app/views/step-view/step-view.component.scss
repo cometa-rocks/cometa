@@ -248,59 +248,36 @@
     box-sizing: border-box;
     padding-right: 10px;
 
-    // commented because breaks syncronization between table header and table rows, column names do not coincide with their corresponding values
-    // @include for-tablet-portrait-up {
-    //     padding-right: 85px;
-    // }
-  }
-  .name {
-    // commented because breaks syncronization between table header and table rows, column names do not coincide with their corresponding values
-    // flex: 0 60%;
-    // max-width: 60%;
-    // @include for-tablet-portrait-up {
-    flex: 0 40%;
-    max-width: 40%;
-    // }
-  }
-
-  .time{
-    flex: 0 20%;
-    max-width: 20%;
-    text-align: center;
-  }
-
-  .difference {
-    flex: 0 10%;
-    max-width: 10%;
-    text-align: center;
-  }
-
-  .status
-  {
-    flex: 0 12%;
-    max-width: 20%;
-    text-align: center;
-  }
-  .difference-desktop {
-    flex: 0 15%;
-    max-width: 15%;
-    text-align: center;
-    display: none;
-    @include for-tablet-portrait-up {
-      display: initial;
+    .name {
+      flex: 0 40%;
+      max-width: 40%;
+      text-align: center;
+      padding-left: 0;
     }
-  }
-  .difference-mobile {
-    flex: 0 10%;
-    max-width: 10%;
-    // @include for-tablet-portrait-up-plus30 {
-    //     display: none;
-    // }
-  }
 
-  .options{
-    flex: 0 10% !important;
-    width: 10% !important;
+    .status {
+      flex: 0 12%;
+      max-width: 12%;
+      text-align: center;
+    }
+
+    .time {
+      flex: 0 20%;
+      max-width: 20%;
+      text-align: center;
+    }
+
+    .difference-mobile {
+      flex: 0 10%;
+      max-width: 10%;
+      text-align: center;
+    }
+
+    .options {
+      flex: 0 10%;
+      max-width: 10%;
+      text-align: center;
+    }
   }
 
   .step-row {
@@ -325,6 +302,7 @@
     &:hover .name {
       color: $blue;
     }
+
     .status-bar {
       flex: 0 5px;
       max-width: 5px;
@@ -342,15 +320,17 @@
         display: none;
       }
     }
+
     .name {
-      padding-left: 10px;
+      flex: 0 40%;
+      max-width: 40%;
+      padding-left: 20px;
       box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: flex-start;
       font-size: 0.9rem;
       @include for-tablet-portrait-up {
-        padding-left: 20px;
         font-size: 1rem;
       }
       .step-index {
@@ -365,7 +345,6 @@
       }
       .step-content {
         max-width: 100%;
-        // padding: 10px 0; prevents step row from increasing its height when custom error message has to be displayed, thus causing content overflow
         .feature-reference,
         .step-error {
           font-size: 0.8rem;
@@ -394,18 +373,11 @@
         }
       }
     }
-    .item-options {
-      // margin-right: 10px;
-      // width: 80px;
-      flex: 0 10%;
-      max-width: 10%;
-      display: flex;
-      justify-content: space-evenly;
-      .option {
-        flex: 0 40px;
-      }
-    }
+
     .status {
+      flex: 0 12%;
+      max-width: 12%;
+      text-align: center;
       display: none;
       @include for-tablet-portrait-up {
         display: initial;
@@ -417,35 +389,40 @@
         color: $medium;
       }
     }
+
     .time {
+      flex: 0 20%;
+      max-width: 20%;
+      text-align: center;
       color: $bad;
     }
-    .item-options {
-      display: none;
-      @include for-tablet-portrait-up {
-        display: flex;
-      }
-    }
-   
 
-    .screenshots-wrapper {
-      width: 24px;
-      height: 24px;
-      transform: translateX(150%);
+    .difference {
+      flex: 0 10%;
+      max-width: 10%;
+      text-align: center;
     }
-  }
-  .header {
-    .status {
-      display: none;
-      @include for-tablet-portrait-up {
-        display: initial;
+
+    .item-options {
+      margin-right: 10px;
+      flex: 0 10%;
+      max-width: 10%;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      .option {
+        display: flex;
+        align-items: center;
+      }
+      button, a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
     }
-  }
-  .pagination {
-    // @include pagination-mobile {
-    //     margin-top: 37px;
-    // }
   }
 }
 

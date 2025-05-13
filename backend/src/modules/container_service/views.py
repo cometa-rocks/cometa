@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-10-14
+
 # Import all models and all the utility methods
 
 from rest_framework.renderers import JSONRenderer
@@ -16,6 +20,8 @@ import os, requests, traceback
 import time
 from datetime import datetime, timedelta
 from django.views.decorators.csrf import csrf_exempt
+import threading
+from threading import Thread
 
 
 logger = getLogger()
@@ -86,22 +92,43 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
     # @require_permissions("manage_house_keeping_logs")
     def create(self, request, *args, **kwargs):
         request.data["created_by"] = request.session["user"]["user_id"]
-        # request.data['image_id'] = mobile_id=request.data['image']
-        # request.data['user_id'] = request.session['user']['user_id']
-        # serializer = self.serializer_class(data=request.data)
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return self.response_manager.created_response(data=serializer.data)
-        # else:
-        #     return self.response_manager.validation_error_response(error_data=serializer.errors)
         return super().create(request, args, kwargs)
 
     def destroy(self, request, *args, **kwargs):
+        logger.debug("Container Delete request received")
         try:
-            ContainerService.objects.get(id=int(kwargs['pk'])).delete()
+            # When deleting Container services from cometa_front is uses id (int) to delete the container,
+            # when deleting Container which was started by the behave container it uses container ID (long hash string) to delete the container
+            try:
+                container = ContainerService.objects.get(id=int(kwargs['pk']))
+            except Exception:
+                container = ContainerService.objects.get(service_id=kwargs['pk'])
+            # Start deletion in background thread
+            def delete_container():
+                try:
+                    container.delete()
+                    logger.debug("Container Deleted by thread")
+
+                except Exception as e:
+                    traceback.print_exc()
+                    # FIXME send and notification that the container was not deleted
+                    # This needs to be done in the cometa_monitorig server
+                    logger.error(f"Error deleting container {kwargs['pk']}: {str(e)}")
+
+            # Start the deletion in a background thread
+            thread = threading.Thread(target=delete_container)
+            thread.daemon = True  # This ensures the thread will be killed when the main program exits
+            thread.start()
+            logger.debug("Delete Thread Started")
+            # Return success response immediately
+            logger.debug("Return the response")
             return self.response_manager.deleted_response(id=kwargs['pk'])
+        except ContainerService.DoesNotExist:
+            return self.response_manager.id_not_found_error_response(kwargs['pk'])
         except Exception as e:
-            return self.response_manager.can_not_be_deleted_response(id=kwargs['pk'])
+            traceback.print_exc()
+            return self.response_manager.can_not_be_deleted_response(kwargs['pk'])
+            
             
 
 # #########
@@ -218,3 +245,44 @@ def emulator_proxy_view(request, emulator_id, remaining_path):
     except Exception as e:
         logger.error(f"Internal server error: {str(e)}")
         return JsonResponse({"error": "Internal server error"}, status=500)
+
+
+import json
+# #########
+@csrf_exempt
+def get_running_browser(request):
+        response_manager = ResponseManager("ContainerService")
+        data = json.loads(request.body)
+        
+        image_name=data['image_name']
+        image_version=data['image_version']
+        filters = {'service_type':'Browser', 'image_name': image_name, 'image_version': image_version, 'in_use':False}
+        container_service = ContainerService.objects.filter(**filters).first()
+            
+        if container_service:
+                        
+            def create_container_service(data):
+                ContainerService.objects.create(**data)
+                logger.debug("Standby container created")
+                
+            logger.debug("Starting a thread to start the standby container")
+            # Create a new thread and start it
+            thread = Thread(target=create_container_service, args=(data,))
+            thread.daemon = True
+            thread.start()    
+         
+            logger.debug("Updating container state to in_use=True")
+            container_service.in_use = True
+            container_service.save()
+            serializer = ContainerServiceSerializer(container_service, many=False)
+            return response_manager.get_response(serializer.data)
+        
+        else:            
+            logger.debug("Requested container configuration did not find will use recent one")
+            # Start a container with requested configuration
+            container_service = ContainerService.objects.create(**data)
+            logger.debug("Updating container state to in_use=True")
+            container_service.in_use = True
+            container_service.save()
+            serializer = ContainerServiceSerializer(container_service, many=False)
+            return response_manager.created_response(serializer.data)    

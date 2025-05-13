@@ -19,7 +19,7 @@
   }
   @include for-tablet-landscape-up {
     width: 50%;
-    margin-bottom: 20px;
+    margin-bottom: 55px;
   }
   @include for-desktop-up {
     width: 33.333333%;
@@ -30,13 +30,14 @@
   float: left;
   position: relative;
   .wrapper {
-    height: 100%;
+    height: 115%;
+    cursor: pointer;
     &.running {
-      .run span,
-      .run .run-test {
+      .run:not(.run-disabled) span,
+      .run:not(.run-disabled) .run-test {
         display: none;
       }
-      .run:after {
+      .run:not(.run-disabled):after {
         content: 'View';
         vertical-align: middle;
       }
@@ -71,6 +72,9 @@
             border-bottom-color: $medium;
           }
         }
+        &.state-disabled {
+          opacity: 0;
+        }
         padding: 3px 10px 3px 0;
         padding-right: 20px;
         display: inline-block;
@@ -98,6 +102,7 @@
         vertical-align: middle;
         font-size: 0.9rem;
         border-top-right-radius: 5px;
+        cursor: pointer;
         .run-test {
           height: 12px;
           width: 10px;
@@ -116,18 +121,37 @@
           border-bottom: 26px solid $blue;
         }
       }
+      .run-disabled {
+        pointer-events: default;
+        cursor: default;
+        opacity: 0.7;
+        &.running {
+          opacity: 1;
+          cursor: pointer;
+          .triangle {
+            border-bottom-color: $blue;
+          }
+        }
+        .triangle {
+          border-bottom-color: rgba($blue, 1);
+        }
+      }
     }
     padding: 10px;
     box-sizing: border-box;
     position: relative;
     background-color: rgba(255, 255, 255, 0.4);
     border-radius: 3px;
-    cursor: pointer;
     transition: all 0.2s ease-in-out;
     box-shadow:
       0 3px 1px -2px rgba(0, 0, 0, 0.2),
       0 2px 2px 0 rgba(0, 0, 0, 0.14),
       0 1px 5px 0 rgba(0, 0, 0, 0.12);
+
+    &:hover,
+    &.menu-open {
+      box-shadow: 0 1px 2.5px;
+    }
   }
   .options {
     position: absolute;
@@ -176,6 +200,21 @@
 // Folder item
 .folder-container {
   height: 100%;
+  
+  &.menu-open,
+  &:hover {
+    .folder {
+      box-shadow: 0 1px 2.5px;
+    }
+    .folder-behind {
+      .folder-top-container {
+        .current-step {
+          box-shadow: 0 1px 2.5px;
+        }
+      }
+    }
+  }
+
   // Main folder
   .folder {
     background-color: $folder;
@@ -194,10 +233,10 @@
   }
   // Rear part of the folder
   .folder-behind {
-    margin-top: -170px;
+    margin-top: -195px;
     background-color: $folder-back;
     box-shadow: none;
-    height: calc(100% + 20px);
+    height: 25px;
     // Element above the folder
     .folder-top-container {
       .current-step {
@@ -242,10 +281,10 @@ input {
   pointer-events: none;
   &.visible {
     opacity: 1;
-    left: -1.5px;
+    left: 0px;
     pointer-events: initial;
   }
-  top: -27px;
+  top: -25px;
   width: 100%;
   max-width: 50%;
   overflow: hidden;
@@ -438,35 +477,114 @@ input {
   margin-left: 10px;
 }
 
+.feature-options {
+  .star-feature {
+    mat-icon {
+      color: #666;
+    }
+
+    &:hover mat-icon {
+      color: $secondary-color;
+    }
+  }
+}
+
+.star-feature-in-feature {
+  display: flex;
+  position: absolute;
+  left: 19px;
+  bottom: 13px;
+  i {
+    color: #666;
+    font-size: 18px;
+  }
+}
 
 .feature-id {
   position: absolute;
   font-weight: bold;
-  bottom: 8px;
+  bottom: 11px;
   right: 17px;
-  color: rgba(0, 0, 0, 0.35);
+  color: $dark;
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  max-width: 100%;
-}
+  gap: 4px;
+  max-width: calc(100% - 50px);
 
-.id-text {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  flex-wrap: nowrap;
-  font-size: 15px;
+  .id-text {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: nowrap;
+    font-size: 15px;
+    max-width: 100%;
+  }
+
+  .id-container {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
+
+  .star-button {
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    margin: 0;
+    padding: 0;
+    
+    &.starred {
+      mat-icon {
+        color: #666;
+      }
+    } 
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+      transition: color 0.2s ease;
+      color: #666;
+    }
+
+    &:hover {
+      i {
+        color: $secondary-color;
+      }
+    }
+  }
+
+  .id-section {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    font-size: 15px;
+    padding: 4px;
+
+    &:hover .icon-container-clipboard {
+      opacity: 1;
+    }
+
+    .icon-container-clipboard {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+  
+    .clipboard-icon {
+      font-size: 14px;
+      color: $dark;
+      opacity: 0.8;
+    }
+
+  } 
+
 }
 
 .id-label {
   margin-right: 3px;
-}
-
-.id-container {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .icon-container-clipboard {
@@ -476,8 +594,8 @@ input {
 .feature-id:hover .icon-container-clipboard {
   opacity: 1;
   position: relative;
-  right: -5px;
-  top: 7px;
+  right: 5px;
+  top: 2px;
 }
 
 .clipboard-icon {

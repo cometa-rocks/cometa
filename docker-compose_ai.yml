@@ -21,14 +21,15 @@ services:
   ollama.ai:
     build: ./cometa_ai
     # container_name: cometa.ollama.ai
-    expose:
-      - "8083"
+    ports:
+      # - "8083:8083"  # Ollama port
+      - "8002:8000"  # Django port
     volumes:
       - ./cometa_ai:/app
       - ./data/ollama:/home/cometa/.ollama/models
       - ./data/redis/certs:/share/certs
-    working_dir: /app 
-    # entrypoint: ./start.sh 
+      - ./data/chromadb:/app/data/chromadb
+    working_dir: /app
     deploy:
       resources:
         reservations:
@@ -40,20 +41,49 @@ services:
     runtime: nvidia  # Use NVIDIA's runtime
     depends_on:
       - redis.ai
+      - db.ai
     environment:
       OLLAMA_HOST: "0.0.0.0:8083"
       # IMAGE_ANALYZER_MODEL_NAME: "llava:13b" #Not working
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
       NAME: ollama
+
       REDIS_HOST: "cometa.redis.ai"
       REDIS_PORT: 6379
       REDIS_DB: 0
       REDIS_DB_TSL_SSL_ENABLED: Yes
       REDIS_NUMBER_OF_WORKERS: 1
+
+      POSTGRES_NAME: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: db.ai
+      POSTGRES_PORT: 5432
+      PYTHONPATH: /app
+      CHROMA_PATH: /app/data/chromadb
     networks:
       - testing
     restart: always
+
+  db.ai:
+    image: postgres:17
+    container_name: cometa.db.ai
+    volumes:
+      - ai_postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"
+    networks:
+      - testing
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   testing:
@@ -61,3 +91,4 @@ networks:
 
 volumes:
   redis_data:
+  ai_postgres_data:

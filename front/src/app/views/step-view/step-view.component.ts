@@ -6,10 +6,6 @@ import {
   ViewChildren,
   QueryList,
   ElementRef,
-  ChangeDetectorRef,
-  Renderer2,
-  Output,
-  EventEmitter
 } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import {
@@ -69,7 +65,11 @@ import {
 } from '@angular/common';
 import { FeatureActionsComponent } from '../../components/feature-actions/feature-actions.component';
 import { FeatureTitlesComponent } from '../../components/feature-titles/feature-titles.component';
-
+import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
+import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
+import { UserState } from '@store/user.state';
+import { Select } from '@ngxs/store';
+import { ChangeDetectorRef} from '@angular/core';
 @Component({
   selector: 'step-view',
   templateUrl: './step-view.component.html',
@@ -202,12 +202,16 @@ import { FeatureTitlesComponent } from '../../components/feature-titles/feature-
     JsonPipe,
     DownloadLinkPipe,
     DownloadNamePipe,
+    TruncateApiBodyPipe,
   ],
 })
 export class StepViewComponent implements OnInit {
   clickStepResult: number = null;
   test$: Observable<FeatureResult>;
 
+  @Select(UserState.GetPermission('change_step_result_status'))
+  canChangeStepResultStatus$: Observable<boolean>;
+ 
   stepResultsUrl$: Observable<string>;
 
   constructor(
@@ -216,10 +220,8 @@ export class StepViewComponent implements OnInit {
     private _store: Store,
     private _api: ApiService,
     public _sharedActions: SharedActionsService,
-    private _cdr: ChangeDetectorRef,
     private _dialog: MatDialog,
-    private hostElement: ElementRef,
-    private renderer: Renderer2
+    private _cdr: ChangeDetectorRef,
   ) {}
 
   featureId$: Observable<number>;
@@ -253,71 +255,8 @@ export class StepViewComponent implements OnInit {
           `feature_results/${featureId}/step_results/${resultId}/`
       )
     );
-
-    this.scrollToError();
   }
-
-  errorCount: number = 0;
-  ngAfterViewInit() {
-    setTimeout(() => {
-      this._cdr.detectChanges();
-      this.updateErrorCount();
-    }, 500);
-  }
-
-  @Output() errorCountChanged: EventEmitter<number> = new EventEmitter<number>();
-
-  private updateErrorCount() {
-    this.errorCount = 0;
-
-    if (this.stepErrorElements && this.stepErrorElements.length > 0) {
-      this.stepErrorElements.forEach((stepErrorElement) => {
-        const errorText = stepErrorElement.nativeElement.textContent.trim();
-        if (errorText) {
-          this.errorCount++;
-        }
-      });
-    }
-    this.errorCountChanged.emit(this.errorCount);
-    this._cdr.detectChanges();
-  }
-
-  @ViewChildren('stepError') stepErrorElements!: QueryList<ElementRef>;
-  @ViewChildren('nameElement') nameElements!: QueryList<ElementRef>;
-  errorRows: HTMLElement[] = [];
-
-  scrollToError() {
-    this.errorRows = [];
-    setTimeout(() => {
-      if (this.stepErrorElements && this.stepErrorElements.length > 0) {
-        const firstErrorElement = this.stepErrorElements.first.nativeElement;
-        if (firstErrorElement) {
-          firstErrorElement.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-          });
-        } else {
-          console.error('No error elements found in ViewChildren');
-        }
-      }
-      this.stepErrorElements.forEach((stepErrorElement) => {
-        const errorText = stepErrorElement.nativeElement.textContent.trim();
-        if (errorText) {
-          const parentRow = stepErrorElement.nativeElement.closest('.step-row');
-          this.errorRows.push(parentRow);
-          if (parentRow) {
-            this.renderer.addClass(parentRow, 'error-border');
-            setTimeout(() => {
-              this.renderer.removeClass(parentRow, 'error-border');
-            }, 3000);
-          } else {
-            console.error('No parent with class "step-row" found for:', stepErrorElement.nativeElement);
-          }
-        }
-      });
-    }, 500);
-  }
-
+ 
   getFeatureResult = resultId =>
     this._store.dispatch(new FeatureResults.GetFeatureResult(resultId, true));
 
@@ -355,14 +294,18 @@ export class StepViewComponent implements OnInit {
           if (res.success) {
             // Get current steps in view
             const currentSteps = this.paginatedList.pagination$.getValue();
-            // Get modifying step index
-            const stepIndex = currentSteps.results.findIndex(
-              step => step.step_result_id === item.step_result_id
+            // Create a new array with the updated step
+            const updatedResults = currentSteps.results.map(step => 
+              step.step_result_id === item.step_result_id 
+                ? { ...step, status } 
+                : step
             );
-            // Update status value
-            currentSteps.results[stepIndex].status = status;
-            // Update view
-            this.paginatedList.pagination$.next(currentSteps);
+            // Update view with new object
+            this.paginatedList.pagination$.next({
+              ...currentSteps,
+              results: updatedResults
+            });
+            this._cdr.detectChanges();
           }
         });
     }
@@ -403,11 +346,16 @@ export class StepViewComponent implements OnInit {
   }
 
   openStepNotes(item) {
-    this._dialog.open(StepNotesComponent, {
-      data: item.notes,
+    const content = JSON.parse(item.notes.content);
+    this._dialog.open(JsonViewerComponent, {
+      data: {
+        responses: content,
+        stepNameVar: item.step_name
+      },
       width: '100vw',
-      maxHeight: '80vh',
-      maxWidth: '75vw',
+      maxHeight: '90vh',
+      maxWidth: '85vw',
+      panelClass: 'rest-api-panel',
     });
   }
 }

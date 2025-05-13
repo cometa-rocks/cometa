@@ -517,27 +517,41 @@ h3 {
   --ngx-contextmenu-text-disabled-color: #8a909a;
   --ngx-contextmenu-max-height: 100vh;
   --ngx-contextmenu-item-background-hover-color: ##0000000d;
+  --ngx-contextmenu-item-padding: 6px 0 !important;
+
+  li > [role='menuitem'] {
+    padding: 6px 0 !important;
+  }
 
   li button {
     text-decoration: none;
     height: 40px;
     color: black;
     display: block;
-    padding: 0 15px;
+    padding: 0;
     cursor: pointer;
     box-sizing: border-box;
+    width: 100%;
 
     div {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      
       mat-icon {
         color: $blue;
+        margin-left: 15px;
         &.delete {
           color: $remove;
         }
       }
       span {
         display: inline-block;
-        vertical-align: super;
+        vertical-align: middle;
         margin-left: 10px;
+        margin-right: 15px; /* Add visual padding on the right side of the text */
       }
     }
   }
@@ -629,6 +643,17 @@ h3 {
   }
 }
 
+.api-testing-dialog {
+  min-width: 95%;
+  min-height: 70%;
+  .mat-dialog-container {   
+    resize: both;
+    overflow: auto;
+  }
+  height: 90%;
+  display: flex;
+  flex-direction: column;
+}
 .mobile-emulator-panel {
   width: 80vw;
   height: 81vh;
@@ -724,7 +749,7 @@ h3 {
   display: inline-flex;
   font-weight: normal;
   width: 100%;
-  max-width: 60px;
+  max-width: 75px;
   min-height: 25px;
   font-size: 0.9rem;
   justify-content: center;
@@ -736,6 +761,10 @@ h3 {
   &.failed {
     background-color: $remove;
     border-bottom: 4px solid darken($remove, 10);
+  }
+  &.running {
+    background-color: $blue;
+    border-bottom: 4px solid darken($blue, 10);
   }
 }
 
@@ -1069,3 +1098,6 @@ mat-dialog-container draggable-window{
   display: block;
 }
 
+.mat-dialog-container {
+  resize: both;
+}

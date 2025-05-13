@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
-from backend import views
+from backend import views, views_ee
+from backend.urls import register_backend_modules_urlpatterns
 from backend import payments
 from django.conf.urls import url, include
 from rest_framework import routers, serializers, viewsets
@@ -9,10 +10,10 @@ from django.views.decorators.csrf import csrf_exempt
 from backend.generatePDF import GeneratePDF
 from django.views.decorators.cache import cache_page
 from backend.common import *
+from backend import ai_chat
 import os
 from django.views.static import serve
 import re
-from backend import ai_chat
 from django.urls import re_path
 from modules.urls import register_modules_routers, register_modules_urlpatterns
 from backend.ee.modules.urls import register_ee_modules_routers, register_ee_modules_urlpatterns
@@ -111,7 +112,7 @@ urlpatterns = [
     url(r'^get_backup_files_content/(?P<feature_id>[0-9]+)/', views.get_backup_files_content),
     url(r'^purge_backup_files/', views.purge_backup_files),
     url(r'^parseBrowsers/', views.parseBrowsers),
-    url(r'^parseCometaBrowsers/', views.parseCometaBrowsers),
+    # url(r'^parseCometaBrowsers/', views.parseCometaBrowsers),
     url(r'browsers/browserstack', cache_page(browserstackCacheTime)(views.GetBrowserStackBrowsers)),
     url(r'browsers/lyrid', cache_page(browserstackCacheTime)(views.get_lyrid_browsers)),
     url(r'^feature_results/(?P<feature_result_id>[0-9]+)/log', views.getLog),
@@ -136,11 +137,10 @@ urlpatterns = [
     url(r'^departments/(?P<department_id>[0-9]+)/updateStepTimeout/', views.UpdateStepTimeout),
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
-    # AI Chat endpoint
     url(r'^api/chat/completion/', ai_chat.chat_completion),
-    
     
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) 
 
 urlpatterns = register_ee_modules_urlpatterns(urlpatterns=urlpatterns)
 urlpatterns = register_modules_urlpatterns(urlpatterns=urlpatterns)
+urlpatterns = register_backend_modules_urlpatterns(urlpatterns=urlpatterns)

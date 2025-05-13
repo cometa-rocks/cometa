@@ -6,3 +6,7 @@ data/
 *_template
 
 .idea
+
+.env
+cometa_ai/src/api/staticfiles/admin/
+cometa_ai/src/api/staticfiles/rest_framework/

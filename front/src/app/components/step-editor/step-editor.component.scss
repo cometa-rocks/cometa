@@ -3,6 +3,8 @@
 
 :host {
   display: block;
+  height: 100%;
+  overflow: hidden;
 }
 
 :host::ng-deep .mat-progress-spinner {
@@ -25,6 +27,12 @@
   opacity: 0.7;
   &:hover {
     opacity: 1;
+    .little-icon {
+      i {
+        transition: font-size 0.3s ease-in-out;
+        font-size: 17px;
+      }
+    }
   }
   will-change: transform;
   animation: scaleIn 0.25s cubic-bezier(0.205, -0.305, 0.34, 1.65);
@@ -44,14 +52,6 @@
   line-height: 38px !important;
   font-weight: bold !important;
   color: rgba(0, 0, 0, 0.6) !important;
-  /*
-    .mat-icon {
-        margin-right: 10px !important;
-    }
-    .mat-checkbox-inner-container {
-        margin-right: 16px !important;
-    }
-    */
 }
 
 .father-block {
@@ -66,6 +66,7 @@
 .first-block {
   display: flex;
   flex-direction: row;
+  flex: 0 0 auto;
 }
 
 .second-block {
@@ -85,7 +86,6 @@
   background-color: white;
   backface-visibility: hidden;
   transition: opacity 0.3s ease-in-out;
-  overflow-x: auto;
   @include for-tablet-portrait-up {
     flex-direction: row;
   }
@@ -112,16 +112,17 @@
     }
   }
   .prefix {
-    @include for-tablet-portrait-up {
-      margin-left: 125px;
-      margin-right: 25px;
-    }
-    flex: 0 0 50px;
-    margin-left: 60px;
+    // @include for-tablet-portrait-up {
+    //   margin-left: 125px;
+    //   margin-right: 25px;
+    // }
+    flex: 0 0 80px;
     height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: 115px;
+    margin-right: 40px;
     &::ng-deep .mat-select-value {
       font-size: 1rem;
     }
@@ -173,6 +174,7 @@
     flex: 1;
     display: flex;
     position: relative;
+    min-width: 0;
 
     .var_name_autoComplete {
       position: absolute;
@@ -230,14 +232,6 @@
       margin-bottom: 15px;
       line-height: $lineHeight;
       max-height: $lineHeight * 5;
-      @include for-tablet-portrait-up {
-        flex: 1;
-        margin-bottom: 0;
-        max-width: 100%;
-      }
-      @include for-tablet-portrait-only {
-        max-width: 130px;
-      }
       box-sizing: border-box;
       border: 0;
       outline: 0;
@@ -245,6 +239,36 @@
       font-size: 1rem;
       font-family: 'Segoe UI', 'CorpoS';
       flex-direction: column;
+      min-height: 25px;
+      width: 100%;
+    }
+  }
+  
+  .warnings {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    min-width: 40px;
+    flex: 0 0 40px;
+    @include for-tablet-portrait-up {
+      flex: 0 0 40px;
+    }
+  }
+
+  .little-icon {
+    position: absolute;
+    bottom: 8px;
+    right: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    i {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: $bad;
     }
   }
 }
@@ -273,6 +297,13 @@
   width: 100%;
   color: $blue;
   line-height: 40px;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 8px 0 15px 0;
+
   .index {
     @include for-tablet-portrait-up {
       flex: 0 0 40px;
@@ -280,6 +311,16 @@
     flex: 0 0 20px;
     text-align: center;
     font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+
+    // .all-text, .select-text {
+    //   color: $blue;
+    //   font-size: 14px;
+    // }
+
   }
   .move-row, .more-vert-step{
     @include for-tablet-portrait-up {
@@ -290,7 +331,8 @@
   .more-vert,
   .enable,
   .screenshot,
-  .compare {
+  .compare,
+  .warnings {
     @include for-tablet-portrait-up {
       flex: 0 0 80px;
     }
@@ -303,6 +345,20 @@
       flex: 0 0 40px;
     }
     flex: 0 0 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    .desktop, .mobile {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    // .select-text {
+    //   margin-top: 32px;
+    // }
   }
   .enable {
     @include for-tablet-portrait-up {
@@ -320,8 +376,28 @@
       display: block;
     }
   }
+  .warnings {
+    @include for-tablet-portrait-up {
+      flex: 0 0 100px;
+      text-align: center;
+    }
+    flex: 0 0 75px;
+    text-align: center;
+    font-weight: bold;
+  }
   .options {
     flex: 0 0 40px;
+  }
+
+  .enable, .screenshot, .compare {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    // gap: 4px;
+
+    .select-all {
+      margin-top: 0;
+    }
   }
 }
 
@@ -367,7 +443,7 @@
 }
 
 .stepDescriptionExample{
-  flex: 4;
+  flex: 3;
   margin-left: 325px;
 }
 
@@ -383,14 +459,6 @@
   flex: 0.2;
 }
 
-// .stepDescriptionExample{
-//   width: 80%;
-// }
-
-// .stepDocumentationIcons {
-//   width: 20%;
-// }
-
 .columnOfIcons {
   color: $blue;
   display: flex;
@@ -399,44 +467,49 @@
 }
 
 .stepDescription {
-  // margin-left: -670px;
   text-align: left;
   letter-spacing: 0.7px;
   .stepDescriptionPar {
-
     width: 100%;
     word-wrap: break-word;
     word-break: break-word;
   }
-  .stepDescriptionPar:last-of-type {
-
-  }
 }
+
 .bluetext {
   color: $blue;
   font-weight: bold;
 }
 
-
-.cdk-overlay-container {
-  position: relative;
-}
-
-// :host::ng-deep .cdk-overlay-pane {
-//   position: fixed !important;
+// .cdk-overlay-container {
+//   position: relative;
 // }
 
-::ng-deep .mat-autocomplete-panel {
-  position: absolute !important;
-  bottom: 100% !important;
-  top: auto !important;
-  transform: translateY(-40px);
-  z-index: 1000;
-}
+// ::ng-deep .mat-autocomplete-panel {
+//   position: absolute !important;
+//   bottom: 100% !important;
+//   top: auto !important;
+//   transform: translateY(-40px);
+//   z-index: 1000;
+// }
+
+// .autocomplete-container {
+//   display: flex;
+//   align-items: center;
+// }
 
 .autocomplete-container {
-  display: flex;
-  align-items: center;
+  position: relative;
+  overflow-y: auto;  
+  max-height: 300px;
+}
+
+.fixed-autocomplete {
+  position: relative !important;
+  width: 100% !important;
+  z-index: 9999; 
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .icon-container {
@@ -456,20 +529,6 @@
 
 mat-icon {
   font-size: 24px;
-}
-
-// .autocomplete-wrapper {
-//   transition: opacity 0.3s ease;
-// }
-
-.is-transparent {
-  opacity: 0.3;
-  transition: opacity 1s ease-in-out;
-}
-
-mat-autocomplete {
-  opacity: 1;
-  transition: opacity 1s ease-in-out;
 }
 
 
@@ -529,7 +588,7 @@ mat-autocomplete {
 
 .containerVisibility {
   display: flex;
-  align-items: center !important;
+  align-items: center;
   width: 100%;
   height: 100%;
   border-radius: 50%;
@@ -576,5 +635,122 @@ mat-autocomplete {
 .columnOfIcons {
   display: flex;
   gap: 10px;
-  margin-top: 3px;
+}
+
+mat-select[formcontrolname="step_keyword"] {
+  width: 60px;
+}
+
+textarea {
+  resize: vertical; 
+  opacity: 1;
+}
+
+.warnings {
+  width: 100px;
+  text-align: center;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  position: relative;
+  flex: 0 0 100px;
+  min-height: 64px;
+
+  .invalid-sign,
+  .duplicate-step-sign,
+  .feature-link-sign {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: 0 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    position: relative;
+    font-size: 16px;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    .little-icon {
+      position: relative;
+      bottom: -8px;
+      right: -8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      
+      i {
+        font-size: 18px;
+        width: 20px;
+        height: 20px;
+        color: $bad;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+
+  .duplicate-step-sign,
+  .feature-link-sign {
+    .little-icon i {
+      color: $blue;
+    }
+  }
+
+  .feature-link-sign {
+    color: $blue;
+  }
+
+}
+
+.disabled-menu-item {
+  color: #999;               
+  cursor: default;           
+  pointer-events: none;      
+  display: flex;             
+  align-items: center;
+  opacity: 0.6;              
+}
+.disabled-menu-item mat-icon {
+  color: #999;               
+}
+
+.api-testing-dialog {
+  height: 100vh;
+  width: 100vw;
+}
+
+.collapsed-api-call {
+  padding: 12px 10px;
+  flex: 1;
+  display: flex;
+  position: relative;
+  cursor: pointer;
+  font-family: 'Segoe UI', 'CorpoS';
+  font-size: 1rem;
+  line-height: 25px;
+  background-color: transparent;
+  border: 0;
+  outline: 0;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 25px;
+  max-height: 125px;
+  overflow-y: auto;
+
+  .collapsed-body {
+    color: #666;
+    font-style: italic;
+  }
 }

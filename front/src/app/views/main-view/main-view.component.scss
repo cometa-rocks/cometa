@@ -32,6 +32,14 @@
           margin-right: 8px;
           display: inline-block;
         }
+        i {
+          font-size: 1.125rem;
+          width: 1.125rem;
+          height: 1.125rem;
+          margin-left: -4px;
+          margin-right: 8px;
+          display: inline-block;
+        }
       }
       .failedFeatures {
         width: 175px;
@@ -483,6 +491,15 @@
 
 .mobile-mat-icon-replay {
   font-size: 24px;
+  position: relative;
+  
+  .nested-videocam {
+    position: absolute;
+    font-size: 16px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
 }
 
 .mobile-selector {
@@ -522,12 +539,11 @@
   }
 }
 
-
-::ng-deep .mat-mdc-option {
+.mat-mdc-option {
   width: 100%;
 }
 
-::ng-deep .mobile-selector mat-option {
+.mobile-selector ::ng-deep mat-option {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -548,4 +564,8 @@
   align-items: center;
 }
 
-
+// Paginator overflow hidden auto
+::ng-deep .mat-mdc-select-panel.mdc-menu-surface--open {
+  overflow-x: hidden;
+  overflow-y: auto;
+}

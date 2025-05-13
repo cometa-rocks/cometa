@@ -12,7 +12,7 @@ import {
   MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
-import { Store, Actions, ofActionCompleted } from '@ngxs/store';
+import { Store, Actions, ofActionCompleted, ofActionDispatched } from '@ngxs/store';
 import { Subscribe } from 'app/custom-decorators';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
 import {
@@ -106,7 +106,8 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   status$: Observable<string>;
   feature$: Observable<Feature>;
   steps$: Observable<FeatureStep[]>;
-
+  isLoading: boolean = false;
+  canStop: boolean = false;
 
   // Controls de auto scroll
   autoScroll = localStorage.getItem('live_steps_auto_scroll') === 'true';
@@ -151,6 +152,13 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
   mobiles = {}
   configuration_value_boolean: boolean = false;
   docker_kubernetes_name: string = ''
+
+  disabledStatuses = [
+    'Queued',
+    'Feature Queued',
+    'Initializing feature',
+  ];
+  
 
   ngOnInit() {
     this._api.getCometaConfigurations().subscribe(res => {
@@ -222,16 +230,21 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
         }
       });
 
+      this.status$.subscribe(status => {
+        this.canStop = !this.disabledStatuses.includes(status);
+        this._cdr.markForCheck();
+      });
+
   }
 
 
-  @Subscribe()
   stopTest() {
-    return this._api.stopRunningTask(this.feature_id).pipe(
-      tap(answer => {
-        if (answer.success) {
-          this._snack.open('Test stopped!', 'OK');
-          // Let the client clearly know it's stopped
+    this.isLoading = true;
+    this._api.stopRunningTask(this.feature_id).subscribe(
+      response => {
+        this.isLoading = false;
+        if (response.success) {
+          this._snack.open('Feature execution stopped', 'OK');
           this.dialogRef.close();
           // Get last runId
           const runId = this._store.selectSnapshot<number>(
@@ -242,14 +255,19 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
             new WebSockets.StoppedFeature(this.feature_id, runId)
           );
         } else {
-          this._snack.open('An error ocurred', 'OK');
+          this._snack.open('Error stopping feature execution', 'OK');
         }
-      })
+      },
+      error => {
+        this.isLoading = false;
+        this._snack.open('Error stopping feature execution', 'OK');
+      }
     );
   }
 
   live(feature_result_id) {
     let url;
+    let window_name
 
     if(this.docker_kubernetes_name == "docker"){
       url = `/live-session/vnc.html?autoconnect=true&path=feature_result_id/${feature_result_id}`;
@@ -257,7 +275,8 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
     else if(this.docker_kubernetes_name == "kubernetes"){
       url = `/live-session/vnc.html?autoconnect=true&path=feature_result_id/${feature_result_id}&deployment=kubernetes`;
     }
-    window.open(url, '_blank').focus();
+    window_name = `cometa_vnc_${feature_result_id}`;
+    window.open(url, window_name).focus();
   }
 
   noVNCMobile(selectedMobile) {

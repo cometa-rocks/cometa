@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-02-01
+
 import traceback
 
 from django.http import JsonResponse
@@ -121,7 +125,13 @@ class ResponseManager:
                 {"success": True, self.__app_name.lower() + "s": list_data},
                 status=status.HTTP_200_OK,
             )
-
+            
+    def not_found(self, message):
+            return JsonResponse(
+                {"success": False, 'message': message},
+                status=404,
+            )
+        
     def response(self, dict_data: dict = None, list_data: list = None):
         if dict_data is not None:
             return JsonResponse(dict_data, status=status.HTTP_200_OK)

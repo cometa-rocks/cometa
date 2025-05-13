@@ -45,6 +45,8 @@ import { ApiService } from './api.service';
 import { SocketService } from './socket.service';
 import { Console } from 'console';
 import { ImmutableSelector } from '@ngxs-labs/immer-adapter';
+import { StarredService } from '@services/starred.service';
+import { take } from 'rxjs/operators';
 
 
 /**
@@ -84,7 +86,8 @@ export class SharedActionsService {
     private _router: Router,
     private _location: Location,
     private _snack: MatSnackBar,
-    private _socket: SocketService
+    private _socket: SocketService,
+    private starredService: StarredService
   ) {
     this._store
       .select(CustomSelectors.RetrieveResultHeaders(false))
@@ -120,15 +123,24 @@ export class SharedActionsService {
   }
   // #3397 ------------------------------------end
 
-  goToFeature(featureId: number) {
+  goToFeature(featureId: number, openInNewWindow: boolean = false){
     const feature = this._store.selectSnapshot<Feature>(
       CustomSelectors.GetFeatureInfo(featureId)
     );
-    this._router.navigate([
-      '/' + feature.app_name,
-      feature.environment_name,
-      feature.feature_id,
-    ]);
+    // openInNewWindow = false
+    const url = `/#/${feature.app_name}/${feature.environment_name}/${feature.feature_id}`;
+        
+    if (openInNewWindow) {
+      window.open(url, '_blank');
+    }
+    else {
+      this._router.navigate([
+        '/',
+        feature.app_name,
+        feature.environment_name,
+        feature.feature_id,
+      ]);
+    }
 
     // #3397 -----------------------------------start
     // remove search filter when acceding to any features
@@ -231,8 +243,8 @@ export class SharedActionsService {
                   `Feature ${feature.feature_name} is running...`,
                   'OK'
                 );
-                // Make view live steps popup optional
-                // this.openLiveSteps();
+                // Open live steps dialog after starting the feature
+                this.openLiveSteps(featureId);
               },
               err => {
                 this._snackBar.open('An error ocurred', 'OK');
@@ -607,4 +619,22 @@ export class SharedActionsService {
   updateConfigValue(configValue: boolean) {
     this.configSubject.next(configValue);
   }
+
+  toggleStarred(event: Event, featureId: number, featureName: string): void {
+    event.stopPropagation();
+    this.starredService.toggleStarred(featureId);
+    this.starredService.starredChanges$.pipe(
+      filter(event => event?.featureId === featureId),
+      take(1)
+    ).subscribe(event => {
+      this._snackBar.open(
+        event?.action === 'add' 
+          ? `Feature ${featureId} (${featureName}) added to favorites` 
+          : `Feature ${featureId} (${featureName}) removed from favorites`,
+        'OK',
+        { duration: 2000 }
+      );
+    });
+  }
+  
 }

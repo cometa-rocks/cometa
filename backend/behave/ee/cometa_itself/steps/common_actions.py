@@ -3,7 +3,7 @@ import time
 import logging
 import json
 import sys
-import sys, requests, re, json
+import sys, requests, re, json, rstr
 import sys, requests, re, json, traceback, html
 
 import pandas as pd
@@ -26,7 +26,7 @@ from tools.common_functions import *
 # setup logging
 logger = logging.getLogger("FeatureExecution")
 
-
+use_step_matcher("parse")
 
 
 # This step displays the value of a variable_name at runtime and in the browser screen as well for a given seconds amount of time.
@@ -37,7 +37,12 @@ logger = logging.getLogger("FeatureExecution")
 def show_variable_value(context, variable, seconds):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
     # Assuming getVariable is a function that retrieves the variable value
-    variable_value = getVariable(context, variable) 
+    variable_value = None
+    try:
+        variable_value = getVariable(context, variable)
+    except Exception as e:
+        raise CustomError(f"variable '{variable}' not found")
+    
     send_step_details(context, f"{variable} : {variable_value}")    
     # Define the variable type (implement the logic as needed)
     variable_type = type(variable_value).__name__  # You can replace this with your own logic
@@ -106,7 +111,28 @@ def show_variable_value(context, variable, seconds):
         
     time.sleep(int(seconds))
 
-        
+
+
+# Save string value to environment variable, environment variable value has a maximum value of 255 characters
+# Example: Save "123456" to environment variable "user_id"
+@step(u'Save "{value}" to environment variable "{variable_name}"')
+@done(u'Save "{value}" to environment variable "{variable_name}"')
+def step_impl(context, value, variable_name):
+    send_step_details(context, 'Saving value to environment variable')
+    # add variable
+    addVariable(context, variable_name, value, save_to_step_report=True)
+
+
+# Save string value to environment variable, environment variable value has a maximum value of 255 characters
+# Example: Save "123456" to environment variable "user_id"
+@step(u'Save "{value}" to runtime variable "{variable_name}"')
+@done(u'Save "{value}" to runtime variable "{variable_name}"')
+def step_impl(context, value, variable_name):
+    logger.debug("Saving value to runtime variable")
+    send_step_details(context, 'Saving value to runtime variable')
+    # add variable
+    addTestRuntimeVariable(context, variable_name, value, save_to_step_report=True)
+
 
 # Reads data from an Excel file for a given sheet and row number, 
 # then stores the row's data as a dictionary in a runtime variable.  
@@ -132,12 +158,12 @@ def read_excel_step(context, file_path, sheet_name, row_number, variable_name):
 
         # Fetch the row as a dictionary (column_name -> value)
         row_data = df.iloc[row_number].to_dict()
-        logger.debug(row_data)
-        # Convert to JSON
-        json_data = json.dumps(row_data, ensure_ascii=False)
-        logger.debug(json_data)
+        # logger.debug(row_data)
+        # # Convert to JSON
+        # json_data = json.dumps(row_data, ensure_ascii=False)
+        # logger.debug(json_data)
         # Store the JSON data in runtime variables
-        addTestRuntimeVariable(context, variable_name, json_data)
+        addTestRuntimeVariable(context, variable_name, row_data, save_to_step_report=True)
         
         logger.debug(f"Stored data from Excel row {row_number} into variable '{variable_name}': {row_data}")
 
@@ -178,8 +204,7 @@ def read_excel_step(context, file_path, sheet_name, row_number):
         # Store each key-value pair in runtime variables except excluded ones
         for key, value in row_data.items():
             if key not in excluded_variables:  # Skip overriding feature_id and feature_name
-                addTestRuntimeVariable(context, key, str(value))  # Convert value to string
-                logger.debug(f"Stored {key}: {value}")
+                addTestRuntimeVariable(context, key, str(value), save_to_step_report=True)  # Convert value to string
             else:
                 logger.debug(f"Skipping variable: {key}, to prevent overriding.")
 
@@ -188,10 +213,67 @@ def read_excel_step(context, file_path, sheet_name, row_number):
         raise CustomError(f"Error reading Excel file: {err}")
 
 
+@step(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" considering header row "{header_row_number}" value row "{value_row_number}" and store in runtime variables')
+@done(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" considering header row "{header_row_number}" value row "{value_row_number}" and store in runtime variables')
+def read_excel_row_to_environment(context, file_path, sheet_name, header_row_number=None, value_row_number=None):
+    try:
+        send_step_details(context, f"Checking excel file path")    
+        excelFilePath = uploadFileTarget(context, file_path)
+        
+        logger.debug("Checking sheets in the excel")
+        xls = pd.ExcelFile(excelFilePath)
+        # Validate the sheet name
+        if sheet_name not in xls.sheet_names:
+            raise CustomError(f"Sheet name '{sheet_name}' not found in the Excel file. Available sheets: {xls.sheet_names}")
+
+        logger.debug(f"Reading excel sheet {sheet_name}")
+        # Read the specified sheet from the Excel file
+        send_step_details(context, f"Reading row")    
+        df = pd.read_excel(excelFilePath, sheet_name=sheet_name)
+        
+        # If specific row indices are provided, set header and select data row
+        if header_row_number is not None and value_row_number is not None:
+            # Ensure the row indices are within the DataFrame's range
+            table_rows = len(df)+1
+            header_row_number = int(header_row_number)
+            value_row_number = int(value_row_number)
+            
+            if not 0 < header_row_number <= table_rows:
+                raise CustomError(f"Invalid header row index {header_row_number}, available rows are between 1 to {table_rows}")
+            
+            if not 0 < value_row_number <= table_rows:
+                raise CustomError(f"Invalid header row index {value_row_number}, available rows are between 1 to {table_rows}")    
+            
+            if header_row_number >= value_row_number:
+                raise CustomError(f"header_row_number should be less then the value_row_number")    
+
+        header_row_number = header_row_number - 2
+        value_row_number = value_row_number - 2
+        if header_row_number >= 0:
+            # Set the header using the specified header_row
+            df.columns = df.iloc[header_row_number]
+        # Select the specified value_row
+        df = df.loc[:, ~df.columns.isnull() & (df.columns != '')]
+        df = df.iloc[[value_row_number]]
+        df = df.fillna('')
+            
+        row_data = df.to_dict(orient='records')
+        # Variables to exclude from overriding
+        excluded_variables = {"feature_id", "feature_name"}
+        
+        # Store each key-value pair in runtime variables except excluded ones
+        for key, value in row_data[0].items():
+            if key not in excluded_variables:  # Skip overriding feature_id and feature_name
+                addTestRuntimeVariable(context, key, str(value), save_to_step_report=True)  # Convert value to string
+            else:
+                logger.debug(f"Skipping variable: {key}, to prevent overriding.")
+                        
+    except Exception as e:
+        logger.exception(e)
+        raise CustomError(e)
 
 
 use_step_matcher("re")
-
 
 # Assert api request and response data using JQ patterns. Please refer JQ documentation https://jqlang.github.io/jq/manual/
 # jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
@@ -212,7 +294,9 @@ def assert_imp(context, jq_pattern, variable_name, new_variable_name):
 
     try:
         parsed_value = jq.compile(jq_pattern).input(variable_value).text()
-        addTestRuntimeVariable(context, new_variable_name, parsed_value)
+        logger.debug(type(parsed_value))
+        logger.debug(parsed_value)
+        addTestRuntimeVariable(context, new_variable_name, parsed_value, save_to_step_report=True)
     except Exception as err:
         logger.error("Invalid JQ pattern", err)
         raise CustomError(err)
@@ -258,10 +342,41 @@ def generate_fake_data_store_in_variable(context, information, variable):
         if callable(method):
             send_step_details(context, f"Generating {information}")
             value = method()
-            addTestRuntimeVariable(context, variable, value)
+            addTestRuntimeVariable(context, variable, value, save_to_step_report=True)
         else:
             raise CustomError(f"'Information type : {information}' not available. Available types are {get_faker_public_methods()}")
     else:
         raise CustomError(f"'Information type : {information}' not available. Available types are {get_faker_public_methods()}")
 
 
+
+@step(u'Generate random string based on "{regex_pattern}" and store in "{variable}"')
+@done(u'Generate random string based on "{regex_pattern}" and store in "{variable}"')
+def generate_random_string(context, regex_pattern, variable):
+    send_step_details(context, f"Generating value based on given regex")
+    def safe_generate(pattern, validator_pattern=None):
+            
+        try:
+            generated = rstr.xeger(pattern)
+            if validator_pattern:
+                if re.fullmatch(validator_pattern, generated):
+                    return generated
+            else:
+                return generated
+        except re.error as e:
+            print(f"[Regex Error] Invalid pattern: {pattern}")
+            raise  CustomError(f"[Regex Error] Invalid pattern: {pattern}")
+    
+    try:
+        generated = safe_generate(regex_pattern)
+        value = generated
+        addTestRuntimeVariable(context, variable, value, save_to_step_report=True)
+    except Exception as e:
+        # logger.exception(e)
+        raise CustomError(f"'Exception while processing regex, {str(e)}")
+    
+
+        
+    
+    
+    

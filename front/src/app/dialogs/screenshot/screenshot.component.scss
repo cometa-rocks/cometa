@@ -1,3 +1,12 @@
+@import 'color';
+
+:host {
+  display: block;
+  height: 100%;
+  padding: 70px 10vw;
+  box-sizing: border-box;
+}
+
 :host {
   display: block;
   height: 100%;
@@ -26,6 +35,27 @@
   }
 }
 
+.chat-icon {
+  display: block;
+  position: absolute;
+  top: 150px;
+  right: 50px;
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  background-color: rgba(white, 0.2);
+  border-radius: 50%;
+  background-image: url(^assets/icons/chat.svg);
+  background-repeat: no-repeat;
+  background-size: 26px;
+  background-position: center;
+  transform: scale(1);
+  transition: all 0.15s ease-in-out;
+  &:hover {
+    transform: scale(1.2);
+  }
+}
+
 .image {
   display: block;
   width: 100%;
@@ -33,4 +63,60 @@
   background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+.image-with-chat-dialog {
+  display: block;
+  width: 80%;
+  height: 95%;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  float: left;
+}
+
+.chatdiv {
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  float: left;
+  display: block;
+  width: 48%;
+  background-color: $body-bg-color;
+  min-height: 80%;
+  // background-size: contain;
+  // background-position: center;
+  background-repeat: no-repeat;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  margin-right: 20px;
+  min-height: 330px;
+  width: 450px;
+}
+
+.right {
+  width: 300px;
+  text-align: right;
+}
+
+
+.chat-container-div {
+  padding: 20px;
+}
+
+.chat-response-container-div {
+  padding: 20px;
+}
+
+.chat-response{
+  color: $darker-step;
+  padding: 10px;
+  background-color: $screenshot-bg-color;
+  min-height: 300px;
+  border-radius: 5px;
+  border: 1px solid gray
+}
+
+textarea.mat-input-element {
+  max-height: 200px;
 }
