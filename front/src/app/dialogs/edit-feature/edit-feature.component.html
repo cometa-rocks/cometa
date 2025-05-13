@@ -611,7 +611,12 @@
         <ng-template matExpansionPanelContent>
         <p>Feature History</p>
         
-        <div class="feature-history-container">
+
+        <div *ngIf="prettyFiles.length === 0">
+          No backup files available for this feature.
+        </div>
+
+        <div class="feature-history-container" *ngIf="prettyFiles.length > 0">
           <mat-form-field>
             <mat-label>Backup Files</mat-label>
             <mat-select 
@@ -628,7 +633,7 @@
             </span>
         </div>
 
-        <div class="feature-history-buttons">
+        <div class="feature-history-buttons" *ngIf="prettyFiles.length > 0">
           <!-- This button will call method restoreFeature, and pass the value from mat-form-field selected file -->   
           <button color="primary" (click)="restoreFeature()" mat-stroked-button>
             Restore Feature
