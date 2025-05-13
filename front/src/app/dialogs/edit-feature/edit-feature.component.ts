@@ -106,6 +106,7 @@ import { PageEvent } from '@angular/material/paginator';
 
 import { SureRemoveFeatureComponent } from '@dialogs/sure-remove-feature/sure-remove-feature.component';
 import { SharedActionsService } from '@services/shared-actions.service';
+import { isArray } from 'highcharts';
 
 @Component({
   selector: 'edit-feature',
@@ -1821,32 +1822,139 @@ export class EditFeature implements OnInit, OnDestroy {
   }
   
   loadBackupFiles() {
+    // const featureId = this.data.feature.feature_id;
+    // //Check if feature is not new
+    // if (featureId && featureId > 0) {
+    //   //Set up the pipe work to get the backup files
+    //   this.backupFiles$ = this._api.getBackupFiles(featureId).pipe(
+    //     map(response => response.files),
+    //     catchError(error => {
+    //       this._snackBar.open('Failed to load backup files', 'OK', { duration: 5000 });
+    //       return of([]);
+    //     })
+    //   );
+    //   //Subscribe to the backup files and get both filenames and contents
+    //   this.backupFiles$.subscribe((files: BackupFile[]) => {
+    //     this.files = files.map(file => file.filename);
+    //     this.fileContents = files.map(file => file.content);
+    //     //modify the files array to remove the _meta.json files and make the dates and time pretty
+    //     this.prettyFiles = this.files
+    //     this.prettyFiles = this.cleanNames(this.files);
+    //   });
+    // } else {
+    //   this.backupFiles$ = of([]);
+    //   this.files = [];
+    // }
     const featureId = this.data.feature.feature_id;
-    //Check if feature is not new
-    if (featureId && featureId > 0) {
-      //Set up the pipe work to get the backup files
+
+    //checking if feature is not new
+    if(featureId && featureId > 0){
+      //start by setting up the pipe to get the backup files
       this.backupFiles$ = this._api.getBackupFiles(featureId).pipe(
         map(response => response.files),
         catchError(error => {
           this._snackBar.open('Failed to load backup files', 'OK', { duration: 5000 });
+          this.logger.msg('2', `Error loading backup files for feature ${featureId}`, 'Backup files');
           return of([]);
         })
       );
-      //Subscribe to the backup files and get both filenames and contents
-      this.backupFiles$.subscribe((files: BackupFile[]) => {
-        this.files = files.map(file => file.filename);
-        this.fileContents = files.map(file => file.content);
-        //modify the files array to remove the _meta.json files and make the dates and time pretty
-        this.prettyFiles = this.files
-        this.prettyFiles = this.cleanNames(this.files);
-      });
-    } else {
+      
+      // Subscribe to the backup files and process with error handling
+      this.backupFiles$.subscribe({
+        next: (files: BackupFile[]) => {
+        try {
+          //verify if the files exist and has a correct structure
+          if(!files || !Array.isArray(files)){
+            throw new Error('Invalid backup files format received');
+          }
+
+          //check for empty files
+          if(files.length === 0){
+            this.files = [];
+            this.fileContents = [];
+            this.prettyFiles = [];
+
+            //update the ui
+            return;
+          }
+          
+          //process the files
+          this.files = files.map(file => {
+            if(!file.filename) {
+              this.logger.msg('2', 'File missing filename', 'Backup');
+              return '';
+            }
+            return file.filename;
+          }).filter(Boolean); // this removes any empty strings
+
+          this.fileContents = files.map(file => {
+            if(!file.content) {
+              this.logger.msg('2', 'File missing content', 'Backup');
+              return '';
+            }
+
+            //validate the json content (we parse it and try to stringify it)
+            try{
+              JSON.parse(file.content);
+              return file.content;
+            } catch (parseError) {
+              this.logger.msg('2', `Invalid JSON in file ${file.filename}: ${parseError}`, 'Backup');
+              return '';
+            }
+          }).filter(Boolean); // this removes any empty strings
+
+          //if we have lost files during validation, ensure arrays maintain the same length
+          if (this.files.length !== this.fileContents.length) {
+            // Synchronize arrays if needed - only keep files with valid content
+            const validFiles = [];
+            const validContents = [];
+            
+            for (let i = 0; i < this.files.length; i++) {
+              if (this.fileContents[i]) {
+                validFiles.push(this.files[i]);
+                validContents.push(this.fileContents[i]);
+              }
+            }
+            
+            this.files = validFiles;
+            this.fileContents = validContents;
+          }
+          
+
+          // Generate pretty file names
+          this.prettyFiles = this.cleanNames(this.files);
+          
+          // Log backup file count
+          this.logger.msg('4', `Loaded ${this.prettyFiles.length} backup files`, 'Backup');
+        } catch (error) {
+          this._snackBar.open('Error processing backup files', 'OK', { duration: 5000 });
+          this.logger.msg('2', `Error processing backup files: ${error}`, 'Backup');
+          
+          // Reset arrays to a safe state
+          this.files = [];
+          this.fileContents = [];
+          this.prettyFiles = [];
+        }
+      },
+      error: (error) => {
+        this._snackBar.open('Error loading backup files', 'OK', { duration: 5000 });
+        this.logger.msg('2', `Error in backup files subscription: ${error}`, 'Backup');
+        
+        // Reset arrays to a safe state
+        this.files = [];
+        this.fileContents = [];
+        this.prettyFiles = [];
+      }
+    });
+  } else {
       this.backupFiles$ = of([]);
       this.files = [];
+      this.fileContents = [];
+      this.prettyFiles = [];
     }
   }
 
-  //Clean the filenames to make the dates and time pretty
+  //clean the filenames to make the dates and time pretty
   cleanNames(files: string[]): string[] {
     //return the files filtering out the _meta.json, then map the files to the pretty dates and times
     return files
@@ -1872,29 +1980,60 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   getHowLongAgo(file: string) {
-    
-    // get the date and time from the file name 
-    // the format of the file name is [YEAR]-[MONTH]-[DAY]_[HOUR]-[MINUTE]-[SECOND]
-    const dateTime = file.split('_')[0];
-    const dateTimeObj = new Date(dateTime);
-    const currentDateTime = new Date();
-    const difference = currentDateTime.getTime() - dateTimeObj.getTime();
-    
-    // Calculate time differences
-    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+    try {
+      // Parse the date string that is in the format 'YYYY/MM/DD HH:MM:SS'
+      const dateParts = file.match(/(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+      console.log("Date parts:", dateParts);
+      if (!dateParts) {
+        this.logger.msg('2', `Failed to parse date from string: ${file}`, 'Date parsing');
+        this.featureAge = 'Unknown date';
+        return;
+      }
+      
+      // Extract date components
+      const [_, year, month, day, hour, minute, second] = dateParts;
+      
+      // Create date object
+      // month is -1 because jan = 0.
+      const dateTimeObj = new Date(
+        parseInt(year), 
+        parseInt(month) - 1, 
+        parseInt(day), 
+        parseInt(hour), 
+        parseInt(minute), 
+        parseInt(second)
+      );
+      
+      // Ensure valid date was created
+      if (isNaN(dateTimeObj.getTime())) {
+        this.logger.msg('2', `Invalid date created from: ${file}`, 'Date parsing');
+        this.featureAge = 'Unknown date';
+        return;
+      }
+      
+      const currentDateTime = new Date();
+      const difference = currentDateTime.getTime() - dateTimeObj.getTime();
+      
+      // Calculate time differences
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
-    // Build output string
-    let output = 'From ';
-    if (days > 1) output += `${days} days `;
-    else if (days == 1) output += `${days} day `;
-    else if (hours > 0) output += `${hours} hours `;
-    else if (minutes > 0) output += `${minutes} minutes `;
-    else if (seconds > 0) output += `${seconds} seconds `;
-    output += 'ago';
-    this.featureAge = output;
+      // Build output string
+      let output = 'From ';
+      if (days > 1) output += `${days} days `;
+      else if (days == 1) output += `${days} day `;
+      else if (hours > 0) output += `${hours} hours `;
+      else if (minutes > 0) output += `${minutes} minutes `;
+      else if (seconds > 0) output += `${seconds} seconds `;
+      else output += 'moments '; // Handle case where difference is less than a second
+      output += 'ago';
+      this.featureAge = output;
+    } catch (error) {
+      this.logger.msg('2', `Error calculating time difference: ${error}`, 'Date parsing');
+      this.featureAge = 'Unknown date';
+    }
   }
   
   // Add this method to clear visual feedback
@@ -1963,7 +2102,7 @@ export class EditFeature implements OnInit, OnDestroy {
     const pattern = new RegExp(escapedCharacters.join('|'), 'g');
     
     // Replace all prohibited characters with an underscore
-    const sanitizedFileName = fileContent.replace(pattern, '');
+    const sanitizedFileName = fileContent.replace(pattern, '_');
     return sanitizedFileName;
   }
 }
