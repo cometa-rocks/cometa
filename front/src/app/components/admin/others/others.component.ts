@@ -83,7 +83,7 @@ export class AdminOthersComponent implements OnInit {
 
   // Update the mobile list
   updateMobilesList() {
-    fetch('https://localhost/backend/parse_mobiles/')
+    fetch('/backend/parse_mobiles/')
       .then(res => res.json()) 
       .then(data => {
         // Update the mobiles list
@@ -98,7 +98,7 @@ export class AdminOthersComponent implements OnInit {
   
   // Update the cometa browsers
   updateCometaBrowsers() {
-    fetch('https://localhost/backend/parseCometaBrowsers/')
+    fetch('/backend/parseCometaBrowsers/')
       .then(res => res.json())
       .then(success => { 
         // Boolean value to check if the update was successful

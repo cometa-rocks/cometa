@@ -2,74 +2,127 @@
   <div *ngIf="!configValueBoolean; else boughtLicense">
     <div *ngIf="isDialog; else notDialog"
       [ngClass]="{ 'mobile-emulator-panel': !configValueBoolean, 'bought-license-panel': configValueBoolean }">
-      <!-- <div class="containerFather">
-        <span> Contract Mobile Device </span>
-        <mat-icon>card_membership</mat-icon>
-      </div> -->
+
       <div class="license-info-container">
-        <div class="containerContract">
-          <img class="mobileContactImage" src="assets/img/contract_mobile_device.svg" alt="Image contract mobile device"/>
-          <div class="containerExplanations">
-            <p class="license-text">
-              <mat-icon
-                class="license-icon"
-                [matTooltip]="'Please buy the license to use mobile testing. For assistance, contact support@cometa.rocks.'"
-                matTooltipPosition="above"
-                color="primary">
-                info
-              </mat-icon>
-              Please buy the license to use mobile testing.
-            </p>
-            <p class="contactMail">
-              <mat-icon class="email">
-                email
-              </mat-icon>
-              Contact mail:
-            </p>
-            <p class="mailTo">
-              <a href="mailto:support@cometa.rocks">support@cometa.rocks</a>
-            </p>
+        <mat-dialog-content>
+          <div class="containerContract">
+            <img class="mobileContactImage" src="assets/img/contract_mobile_device.svg" alt="Image contract mobile device"/>
+            <div class="containerExplanations">
+              <h2 class="license-title">Mobile Testing License</h2>
+              <p class="license-text">
+                Unlock the full potential of mobile testing with our premium license
+              </p>
+              
+              <div class="features-list">
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">devices</mat-icon>
+                  <span>Access to multiple Android devices and versions</span>
+                </div>
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">screen_share</mat-icon>
+                  <span>Real-time device inspection and control</span>
+                </div>
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">security</mat-icon>
+                  <span>Secure and isolated testing environments</span>
+                </div>
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">group</mat-icon>
+                  <span>Team collaboration features</span>
+                </div>
+              </div>
+
+              <p class="contactMail">
+                Get in touch with our support team:
+              </p>
+
+              <div class="features-list">
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">mail</mat-icon>
+                  <a href="mailto:support&#64;cometa.rocks" class="support-link">   
+                    support&#64;cometa.rocks
+                  </a>
+                </div>
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">phone</mat-icon>
+                  <a href="tel:+1234567890" class="phone-link">
+                    +34 717 10 26 03
+                  </a>
+                </div>
+                <div class="feature-item">
+                  <mat-icon class="feature-icon">phone</mat-icon>
+                  <a href="tel:+1234567890" class="phone-link">
+                    +49 711 89 46 70 29
+                  </a>
+                </div>
+              </div>
+
+            </div>
           </div>
-          <mat-dialog-actions class="dialog-footer-nolicense">
-            <button mat-stroked-button color="warn" mat-dialog-close class="closeButton">
-              Close
-            </button>
-          </mat-dialog-actions>
-        </div>
+        </mat-dialog-content>
+        <mat-dialog-actions class="dialog-actions-container">
+          <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
+        </mat-dialog-actions>
       </div>
     </div>
     <ng-template #notDialog>
-      <!-- <p>Hola</p> -->
-      <div class="info-section">
-        <div class="content-wrapper">
-          <img class="image-large" src="assets/img/contract_mobile_device.svg" alt="Image contract mobile device" />
-          <div class="text-column">
-            <p class="text-row">
-              <mat-icon
-                class="icon-tooltip"
-                [matTooltip]="'Please buy the license to use mobile testing. For assistance, contact support@cometa.rocks.'"
-                matTooltipPosition="above"
-                color="primary">
-                info
-              </mat-icon>
-              Please buy the license to use mobile testing.
+      <div class="license-info-container-not-dialog">
+        <div class="containerContract">
+          <img class="mobileContactImage" src="assets/img/contract_mobile_device.svg" alt="Image contract mobile device"/>
+          <div class="containerExplanations">
+            <h2 class="license-title">Mobile Testing License</h2>
+            <p class="license-text">
+              Unlock the full potential of mobile testing with our premium license
             </p>
-            <p class="text-row">
-              <mat-icon class="icon-email">
-                email
-              </mat-icon>
-              Contact mail:
+            
+            <div class="features-list">
+              <div class="feature-item">
+                <mat-icon class="feature-icon">devices</mat-icon>
+                <span>Access to multiple Android devices and versions</span>
+              </div>
+              <div class="feature-item">
+                <mat-icon class="feature-icon">screen_share</mat-icon>
+                <span>Real-time device inspection and control</span>
+              </div>
+              <div class="feature-item">
+                <mat-icon class="feature-icon">security</mat-icon>
+                <span>Secure and isolated testing environments</span>
+              </div>
+              <div class="feature-item">
+                <mat-icon class="feature-icon">group</mat-icon>
+                <span>Team collaboration features</span>
+              </div>
+            </div>
+
+            <p class="contactMail">
+              Get in touch with our support team:
             </p>
-            <p class="email-link">
-              <a href="mailto:support@cometa.rocks">support@cometa.rocks</a>
-            </p>
+
+            <div class="features-list">
+              <div class="feature-item">
+                <mat-icon class="feature-icon">mail</mat-icon>
+                <a href="mailto:support&#64;cometa.rocks" class="support-link">   
+                  support&#64;cometa.rocks
+                </a>
+              </div>
+              <div class="feature-item">
+                <mat-icon class="feature-icon">phone</mat-icon>
+                <a href="tel:+1234567890" class="phone-link">
+                  +34 717 10 26 03
+                </a>
+              </div>
+              <div class="feature-item">
+                <mat-icon class="feature-icon">phone</mat-icon>
+                <a href="tel:+1234567890" class="phone-link">
+                  +49 711 89 46 70 29
+                </a>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </div>  
+      </div>  
     </ng-template>
   </div>
-
-
 
   <ng-template #boughtLicense>
     <div *ngIf="isDialog; else notDialog">
@@ -305,7 +358,7 @@
                           </div>
                           <div
                             class="emulator-info"
-                            *ngIf="runningContainer">
+                            *ngIf="runningContainer; else noCodeTemplate">
                             <i class="material-icons">code</i>
                             <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
                             <i
@@ -316,6 +369,13 @@
                               content_copy
                             </i>
                           </div>
+
+                          <ng-template #noCodeTemplate>
+                            <div class="emulator-info">
+                              <i class="material-icons">code</i>
+                              <strong>Mobile Code:</strong> Click on 'Start' to see the device code
+                            </div>
+                          </ng-template>
 
                           <div class="emulator-info">
                             <button
@@ -372,20 +432,6 @@
                               Number installed Apps
 
                             </p>
-                              <!-- <mat-form-field class="select-app">
-                                <mat-label>Select App (extension <strong>.apk</strong>)</mat-label>
-                                <mat-select
-                                  [disabled]="!runningContainer"
-                                  id="apkFileSelectBox_{{ mobile.mobile_id }}"
-                                  [(value)]="selectedApps[mobile.mobile_id]"
-                                  (selectionChange)="updateAPKSelection($event, mobile, runningContainer)">
-                                  <mat-option
-                                    *ngFor="let apk_file of this.apkFiles"
-                                    [value]="apk_file.id">
-                                    {{ apk_file.name }}
-                                  </mat-option>
-                                </mat-select>
-                              </mat-form-field> -->
                           </div>
                         </div>
                       </div>
@@ -397,8 +443,9 @@
                         color="primary"
                         [ngClass]="{'disabled-toggle': runningContainer?.shared || !runningContainer?.shared}"
                         [disableRipple]="runningContainer?.shared || !runningContainer?.shared"
-                        (change)="preventToggle($event, runningContainer?.shared)"
+                        (change)="updateSharedStatus({checked: $event.checked}, mobile, runningContainer).subscribe()"
                         id="isShared_{{ mobile.mobile_id }}"
+                        [disabled]="runningContainer?.isTerminating || (runningContainer?.service_status !== 'Running' && runningContainer?.service_status !== 'Stopped')"
                         [checked]="runningContainer?.shared">
                       </mat-slide-toggle>
                     </div>
@@ -414,7 +461,7 @@
             </div>
             <div class="mobiles">
               <!-- Iterate over shared containers list -->
-              <div class="mobile" *ngFor="let container of sharedMobileContainers">
+              <div class="mobile" *ngFor="let container of sharedMobileContainers; trackBy: trackByContainerId">
                 <div *ngLet="container.service_status == 'Running' as isRunning">
                   <p> {{ conatiner }}</p>
                   <!-- Shared device details -->
@@ -832,7 +879,7 @@
                           </div>
                           <div
                             class="emulator-info"
-                            *ngIf="runningContainer">
+                            *ngIf="runningContainer; else noCodeTemplate">
                             <i class="material-icons">code</i>
                             <strong>Mobile Code:</strong> {{ runningContainer.hostname }}
                             <i
@@ -843,6 +890,13 @@
                               content_copy
                             </i>
                           </div>
+
+                          <ng-template #noCodeTemplate>
+                            <div class="emulator-info">
+                              <i class="material-icons">code</i>
+                              <strong>Mobile Code:</strong> Click on 'Start' to see the device code
+                            </div>
+                          </ng-template>
 
                           <div class="emulator-info">
                             <button
@@ -886,7 +940,6 @@
                             class="emulator-info">
                             <mat-icon
                               [matBadge]="runningContainer?.apk_file?.length"
-
                               class="get-app"
                               [matTooltip]="'mobile_list.apk_file' | translate"
                               matTooltipPosition="above">
@@ -899,20 +952,6 @@
                               Number installed Apps
 
                             </p>
-                              <!-- <mat-form-field class="select-app">
-                                <mat-label>Select App (extension <strong>.apk</strong>)</mat-label>
-                                <mat-select
-                                  [disabled]="!runningContainer"
-                                  id="apkFileSelectBox_{{ mobile.mobile_id }}"
-                                  [(value)]="selectedApps[mobile.mobile_id]"
-                                  (selectionChange)="updateAPKSelection($event, mobile, runningContainer)">
-                                  <mat-option
-                                    *ngFor="let apk_file of this.apkFiles"
-                                    [value]="apk_file.id">
-                                    {{ apk_file.name }}
-                                  </mat-option>
-                                </mat-select>
-                              </mat-form-field> -->
                           </div>
                         </div>
                       </div>
@@ -924,8 +963,9 @@
                           color="primary"
                           [ngClass]="{'disabled-toggle': runningContainer?.shared || !runningContainer?.shared}"
                           [disableRipple]="runningContainer?.shared || !runningContainer?.shared"
-                          (change)="preventToggle($event, runningContainer?.shared)"
+                          (change)="updateSharedStatus({checked: $event.checked}, mobile, runningContainer).subscribe()"                     
                           id="isShared_{{ mobile.mobile_id }}"
+                          [disabled]="runningContainer?.isTerminating || (runningContainer?.service_status !== 'Running' && runningContainer?.service_status !== 'Stopped')"
                           [checked]="runningContainer?.shared">
                         </mat-slide-toggle>
                       </div>
@@ -942,7 +982,7 @@
                 </div>
                 <div class="mobiles">
                   <!-- Iterate over shared containers list -->
-                  <div class="mobile" *ngFor="let container of sharedMobileContainers">
+                  <div class="mobile" *ngFor="let container of sharedMobileContainers; trackBy: trackByContainerId">
                     <div *ngLet="container.service_status == 'Running' as isRunning">
                       <!-- Shared device details -->
                       <div class="mobile-details-shared">
@@ -992,7 +1032,7 @@
                               content_copy
                             </i>
                           </div>
-                          <div class="emulator-info" *ngIf="isRunning">
+                          <div class="emulator-info">
                             <i class="material-icons">code</i>
                             <strong>Device Code:</strong>
                             {{ container.hostname }}
@@ -1031,8 +1071,6 @@
 
                           <mat-menu #moreInfo="matMenu">
                             <mat-menu-item class="pop-up-info">
-
-
                               <mat-menu-item>
                                 <i class="material-icons">info</i>
                                 <strong>Device Name:</strong> {{ container.image.mobile_json.deviceName }}

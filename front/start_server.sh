@@ -3,6 +3,13 @@
 # AMVARA CONSULTING S.L. - 2024
 # #########################################
 
+source ./s_apache_conf.sh
+
+if [ $? -ne 0 ]; then
+  echo "ERROR: Failed to execute apache configurations check"
+  exit 1
+fi
+
 
 mkdir -p /usr/local/apache2/htdocs/infra
 
@@ -70,13 +77,13 @@ function check_ssl_certificate() {
 }
 
 
-# check_ssl_certificate
+check_ssl_certificate
 
 echo -e "\e[32mSuccessful\e[0m"
 
 # #########################################
 # Restart apache server
 # #########################################
-httpd -k start
+httpd -f /usr/local/apache2/cometa_conf/httpd.conf -k start
 
 find /proc -mindepth 2 -maxdepth 2 -name exe -exec ls -lh {} \; 2>/dev/null  | grep -q "/usr/bin/tail" || tail -f /usr/local/apache2/logs/error_log /usr/local/apache2/logs/access.log

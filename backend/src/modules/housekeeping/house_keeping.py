@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-07-11
+
 from threading import Thread
 from django.http import JsonResponse
 from backend.models import Department, Feature_result, Step_result
@@ -14,7 +18,7 @@ logger = getLogger()
 # This class is responsible to select all files which should be delete based on it's department day's policy
 class HouseKeepingThread(LogCommand, Thread):
     screenshot_file_path = "/data/screenshots"
-    video_directory_path = "/code/behave"
+    video_directory_path = "/data/videos"
     pdf_report_file_path = "/code/behave/pdf"
 
     def __init__(self, house_keeping_logs: HouseKeepingLogs):

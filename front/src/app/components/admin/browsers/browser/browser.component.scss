@@ -53,7 +53,7 @@
   }
 }
 
-.modify {
+.start {
   flex: 0 0 40px;
   padding: 0 10px;
   box-sizing: border-box;
@@ -75,12 +75,12 @@
     opacity: 0.8;
     transition: transform 0.2s ease-in-out;
     transform: scale(1);
-    background-image: url(^assets/edit.svg);
+    background-image: url(^assets/play-button.svg);
     background-size: contain;
     background-repeat: no-repeat;
   }
   &.validate:after {
-    background-image: url(^assets/validate.svg);
+    background-image: url(^assets/pause.svg);
   }
 }
 

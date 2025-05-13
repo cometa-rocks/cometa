@@ -1,10 +1,14 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef} from '@angular/core';
 import { ChangeDetectionStrategy } from '@angular/core';
 import { Select } from '@ngxs/store';
 import { BrowsersState } from '@store/browsers.state';
 import { Observable } from 'rxjs';
 import { BrowserComponent } from './browser/browser.component';
-import { NgFor, AsyncPipe } from '@angular/common';
+import { StandByBrowserComponent } from './stand-by-browser/stand-by-browser.component';
+import { NgFor, AsyncPipe, NgIf } from '@angular/common';
+import { ApiService } from '@services/api.service';
+
+
 
 @Component({
   selector: 'admin-browsers',
@@ -12,14 +16,40 @@ import { NgFor, AsyncPipe } from '@angular/common';
   styleUrls: ['./browsers.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [NgFor, BrowserComponent, AsyncPipe],
+  imports: [NgFor, NgIf, BrowserComponent, StandByBrowserComponent, AsyncPipe],
 })
-export class BrowsersComponent {
+export class BrowsersComponent  implements OnInit {
   @Select(BrowsersState.getBrowserJsons) browsers$: Observable<
     BrowserstackBrowser[]
   >;
 
+  stand_by_browsers: Container[] = [];
+  isLoading = true;
+
+  constructor(private _api: ApiService,private _cdr: ChangeDetectorRef,) {}
+
   trackByFn(index, item: BrowserResult) {
     return item.browser_id;
+  }
+
+  ngOnInit() {
+    this._api.getContainerServices().subscribe((res: ContainerServiceResponse) => {
+      if (res.success) {
+        this.stand_by_browsers = res.containerservices;
+      }
+      this.isLoading = false;
+      this._cdr.detectChanges();
+    });
+  }
+
+  removeStandByBrowser(id: number) {
+    this.stand_by_browsers = this.stand_by_browsers.filter(browser => browser.id !== id);
+    this._cdr.detectChanges();
+  }
+
+  addStandByBrowser(browserContainer: Container) {
+    this.stand_by_browsers.push(browserContainer);
+    console.log(this.stand_by_browsers);
+    this._cdr.detectChanges();
   }
 }

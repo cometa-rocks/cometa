@@ -27,6 +27,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatTooltipModule } from '@angular/material/tooltip';
+
 /**
  * This component is used to display an array of items in a paginated fashion using network.
  * More details in component code
@@ -116,7 +117,7 @@ export class NetworkPaginatedListComponent implements OnChanges {
   @Input() endpointUrl: string = '';
 
   /** Size of each page, default is 5 */
-  @Input() pageSize = 10;
+  @Input() pageSize = 500;
 
   /** Whether or not to inject index property into each item */
   @Input() injectIndex: boolean = false;
@@ -146,6 +147,8 @@ export class NetworkPaginatedListComponent implements OnChanges {
 
   // Boolean enable disable button failure steps
   buttonDisabled: boolean = false;
+
+  @Input() showToolbar: boolean = true;
 
   constructor(
     private _acRouted: ActivatedRoute,

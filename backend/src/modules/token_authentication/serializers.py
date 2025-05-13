@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2025-03-07
+
 from .models import OIDCUserAppSecret
 from rest_framework import serializers
 

@@ -1,13 +1,83 @@
 <!-- l1-feature-starred-list.component.html
 
-Component containing the list with the starred features
+Component containing the starred features list
 
-Author: dph000
+Author: Redouan
 
 -->
-<div class="container">
-  <h2>
-    <mat-icon>format_paint</mat-icon>
-    Upcoming feature! Please, come again later.
-  </h2>
+<div class="starred-features-container">
+  <!-- Department selector and readme button -->
+  <div class="header-container">
+    <div class="department-selector">
+      <mat-form-field appearance="fill">
+        <mat-label> Select Department</mat-label>
+        <mat-select [(ngModel)]="selectedDepartment" (selectionChange)="onDepartmentChange($event.value)">
+          <mat-option *ngFor="let dept of departments" [value]="dept">
+            {{ dept }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <button mat-button class="readme-button" (click)="toggleReadme()" #readmeButton>
+      <mat-icon>info</mat-icon>
+      README
+    </button>
+
+    <div class="readme-popup" *ngIf="showReadme" [style.left]="popupPosition.x + 'px'" [style.top]="popupPosition.y + 'px'">
+      <div class="popup-content">
+        <mat-icon class="device-icon">devices</mat-icon>
+        <p class="popup-text">This data is stored locally on your device. If you use another device, you won't be able to see your starred features.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="starred-list">
+    <ng-container *ngIf="(groupedFeatures$ | async) as groupedFeatures">
+      <div *ngIf="groupedFeatures.size === 0" class="no-starred">
+        <mat-icon>star_border</mat-icon>
+        <p>No starred features in <span class="department-name">{{ selectedDepartment || 'selected' }}</span> department</p>
+      </div>
+      
+      <!-- Show all departments when "All Departments" is selected -->
+      <ng-container *ngIf="selectedDepartment === 'All Departments'">
+        <div class="departments-container">
+          <div *ngFor="let department of groupedFeatures | keyvalue" class="department-section">
+            <div class="department-header">
+              <mat-icon class="department-icon">domain</mat-icon>
+              <h3 class="department-title">{{ department.key }}</h3>
+            </div>
+            <div class="features-grid">
+              <cometa-l1-feature-item-list
+                *ngFor="let item of department.value"
+                [item]="item"
+                [feature_id]="+item.id"
+                class="feature-item">
+              </cometa-l1-feature-item-list>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Show only selected department features when specific department is selected -->
+      <ng-container *ngIf="selectedDepartment !== 'All Departments'">
+        <div class="departments-container">
+          <div *ngFor="let department of groupedFeatures | keyvalue" class="department-section">
+            <div class="department-header">
+              <mat-icon class="department-icon">domain</mat-icon>
+              <h3 class="department-title">{{ department.key }}</h3>
+            </div>
+            <div class="features-grid">
+              <cometa-l1-feature-item-list
+                *ngFor="let item of department.value"
+                [item]="item"
+                [feature_id]="+item.id"
+                class="feature-item">
+              </cometa-l1-feature-item-list>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </ng-container>
+  </div>
 </div>

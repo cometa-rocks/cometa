@@ -1,8 +1,12 @@
 import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+// import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog'; // Remove non-legacy imports
 import { Router } from '@angular/router';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
+import { 
+  MatLegacyDialogModule, 
+  MatLegacyDialogRef, 
+  MAT_LEGACY_DIALOG_DATA
+} from '@angular/material/legacy-dialog';
 
 @Component({
   selector: 'data-driven-executed',
@@ -14,8 +18,8 @@ import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 })
 export class DataDrivenTestExecuted {
   constructor(
-    public dialogRef: MatDialogRef<DataDrivenTestExecuted>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
+    public dialogRef: MatLegacyDialogRef<DataDrivenTestExecuted>,
+    @Inject(MAT_LEGACY_DIALOG_DATA) public data: any,
     private router: Router
   ) {}
 

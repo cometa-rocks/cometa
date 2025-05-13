@@ -6,8 +6,6 @@ WORKDIR /app
 USER root
 # Create a user named 'cometa' to run the application
 # Avoid running the application as the root user for security reasons
-# RUN apt update
-# RUN apt install -y curl
 
 RUN groupadd -g 472 cometa && \
     useradd -u 472 -g cometa -m cometa -s /bin/bash

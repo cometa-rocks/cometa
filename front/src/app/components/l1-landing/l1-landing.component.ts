@@ -58,7 +58,6 @@ import { KEY_CODES } from '@others/enums';
 import { ElementRef, HostListener } from '@angular/core';
 import { InputFocusService } from '@services/inputFocus.service';
 import { TranslateModule } from '@ngx-translate/core';
-
 @UntilDestroy()
 @Component({
   selector: 'cometa-l1-landing',
@@ -236,11 +235,16 @@ export class L1LandingComponent implements OnInit {
         this._store.dispatch(new Features.SetMoreOrLessSteps(value));
       });
 
-    this.aciveList$.pipe(untilDestroyed(this)).subscribe(value => {
-      this.log.msg('l1-landing','setting co_active_list:'+value,'238-','')
-      localStorage.setItem('co_active_list', value); // Initialize the recentList_active variable in the local storage
+    this.aciveList$.pipe(untilDestroyed(this)).subscribe(activeList => {
+      this.log.msg('l1-landing', `Active list changed to: ${activeList}`, '238-', '');
+      localStorage.setItem('co_active_list', activeList);
+      
+      // When switching to starred view, ensure we have the latest data
+      if (activeList === 'starred') {
+        this._store.dispatch(new Features.GetFeatures());
+      }
     });
-    
+
   }
 
   /**
@@ -447,6 +451,11 @@ export class L1LandingComponent implements OnInit {
         break;
       }
     }
+  }
+
+  // Add method to switch to starred view
+  showStarredFeatures() {
+    this._store.dispatch(new Configuration.SetProperty('co_active_list', 'starred', true));
   }
 
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ###########################################################################
-# A  test integration with gitlab CI to run cometa tests and receive results
+# A test integration with gitlab CI to run cometa tests and receive results
 # ###########################################################################
 #
 # @Author: Arslan Sohail

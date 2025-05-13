@@ -36,6 +36,7 @@ import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { ErrorDialog } from '@dialogs/error/error.dialog';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
 import { NgIf, AsyncPipe } from '@angular/common';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @UntilDestroy()
 @Component({
@@ -44,13 +45,15 @@ import { NgIf, AsyncPipe } from '@angular/common';
   styleUrls: ['./feature-actions.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [NgIf, MatLegacyTooltipModule, AsyncPipe],
+  imports: [NgIf, MatLegacyTooltipModule, AsyncPipe, MatProgressSpinnerModule],
 })
 export class FeatureActionsComponent implements OnInit {
   notificationEnabled$: Observable<boolean>;
   canEditFeature$: Observable<boolean>;
   pdfLink$: Observable<SafeUrl>;
   csvLink$: Observable<SafeUrl>;
+  isRunning: boolean = false;
+  isRunButtonDisabled: boolean = false;
 
   featureId$: Observable<number>;
   featureResultId$: Observable<number>;
@@ -249,6 +252,8 @@ export class FeatureActionsComponent implements OnInit {
   }
 
   async runNow() {
+    if (this.isRunButtonDisabled) return;
+    this.isRunButtonDisabled = true;
     const featureStore = this._store.selectSnapshot(
       FeaturesState.GetFeatureInfo
     )(this.getFeatureId());
@@ -260,6 +265,7 @@ export class FeatureActionsComponent implements OnInit {
       // Notify WebSocket Server to send me last websockets of feature
       this._sharedActions.retrieveLastFeatureSockets(this.getFeatureId());
       this.openLiveSteps(featureStore.feature_id);
+      this.isRunButtonDisabled = false;
     } else {
       // Check if the feature has at least 1 browser selected, if not, show a warning
       if (featureStore.browsers.length > 0) {
@@ -290,10 +296,12 @@ export class FeatureActionsComponent implements OnInit {
             err => {
               this._snack.open('An error ocurred', 'OK');
             }
+            
           );
       } else {
         this._snack.open("This feature doesn't have browsers selected.", 'OK');
       }
+      this.isRunButtonDisabled = false;
     }
   }
 
@@ -301,6 +309,8 @@ export class FeatureActionsComponent implements OnInit {
     this._dialog.open(LiveStepsComponent, {
       data: feature_id,
       panelClass: 'live-steps-panel',
+    }).afterClosed().subscribe(() => {
+      this.isRunning = false;
     });
   }
 

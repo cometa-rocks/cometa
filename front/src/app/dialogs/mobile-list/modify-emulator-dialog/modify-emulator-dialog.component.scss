@@ -96,7 +96,7 @@
 }
 
 ::ng-deep .mat-dialog-container {
-  // overflow: hidden;
+  resize: both;
 }
 
 :host::ng-deep .mat-expansion-panel-header {

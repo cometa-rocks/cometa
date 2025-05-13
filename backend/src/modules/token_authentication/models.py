@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2025-03-07
+
 from django.db import models
 from backend.models import OIDCAccount, Permissions
 from django.core.exceptions import ValidationError

@@ -10,6 +10,16 @@
             "django": true,
             "justMyCode": true,
             "python": "/usr/local/bin/python3"
+        },
+        {
+            "name": "StepReport",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/backend/views_ee.py",
+            "args": [],
+            "django": true,
+            "justMyCode": true,
+            "python": "/usr/local/bin/python3"
         }
     ]
 }

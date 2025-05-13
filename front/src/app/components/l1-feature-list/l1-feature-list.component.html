@@ -38,6 +38,7 @@ Author: dph000
       (sortChange)="saveSort($event)"
       [cellTemplate]="{
         orderType: runningTpl,
+        starred: starredTpl,
         id: idTpl,
         name: nameTpl,
         status: statusTpl,
@@ -84,6 +85,16 @@ Author: dph000
       <mat-icon>edit</mat-icon>
       <span>Modify</span>
     </button>
+    <mat-divider></mat-divider>
+    <!-- Star feature -->
+    <button
+      mat-menu-item
+      (click)="toggleStarred($event, row.id, row.name)"
+      class="star-feature">
+      <mat-icon>{{ (isStarredMap.get(row.id) | async) ? 'star' : 'star_border' }}</mat-icon>
+      <span>{{ (isStarredMap.get(row.id) | async) ? 'Starred' : 'Star' }}</span>
+    </button>
+    <mat-divider></mat-divider>
     <!-- Clone feature -->
     <button
       *ngIf="row.id | hasPermission: 'create_feature' | async"
@@ -182,6 +193,18 @@ Author: dph000
   </mat-menu>
 </ng-template>
 
+<!-- Starred status -->
+<ng-template #starredTpl let-row let-index="index" let-col="colDef">
+  <ng-container *ngIf="row.type === 'feature'">
+    <button
+      stopPropagation
+      (click)="toggleStarred($event, row.id, row.name)"
+      mat-icon-button>
+      <mat-icon [class.starred]="isStarredMap.get(row.id) | async">{{ (isStarredMap.get(row.id) | async) ? 'star' : 'star_border' }}</mat-icon>
+    </button>
+  </ng-container>
+</ng-template>
+
 <!-- Feature execution status / folder icon -->
 <ng-template #runningTpl let-row let-index="index" let-col="colDef">
   <ng-container *ngIf="row.type === 'feature'; else folderIcon">
@@ -216,11 +239,11 @@ Author: dph000
 
 <!-- Folder / feature ID -->
 <ng-template #idTpl let-row let-index="index" let-col="colDef">
-  <ng.container>
+  <ng-container>
     <div (click)="openContent(row)">
       {{ row.id }}
     </div>
-  </ng.container>
+  </ng-container>
 </ng-template>
 
 <!-- Folder / feature name -->

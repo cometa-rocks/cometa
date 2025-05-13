@@ -16,7 +16,7 @@ Author: dph000
     *ngLet="lastFolder$ | async as lastFolder"
     [class.selected]="lastFolder === folder.folder_id">
     <!-- Arrow to show / hide the folder -->
-    <mat-icon class="arrow" [class.hidden]="folder.folders.length === 0">
+    <mat-icon class="arrow" [class.hidden]="getFolders().length === 0">
       keyboard_arrow_right</mat-icon
     >
     <!-- Folder icon and name -->
@@ -28,8 +28,8 @@ Author: dph000
       <mat-icon *ngIf="department === true; else folderIcon">domain</mat-icon>
       <ng-template #folderIcon>
         <div class="icon-relative">
-          <ng-container *ngIf="folder.features.length > 0 && folder.folders.length === 0; else checkFolders">
-            <mat-icon>folder</mat-icon>
+          <ng-container *ngIf="folder.features.length > 0 && getFolders().length === 0; else checkFolders">
+            <mat-icon class="material-icons">folder</mat-icon>
             <span class="feature-run-text">Run</span>
             <div class="feature-run"></div>
             <div class="feature-sheet"></div>
@@ -40,10 +40,10 @@ Author: dph000
           </ng-container>
       
           <ng-template #checkFolders>
-            <ng-container *ngIf="folder.folders.length > 0 && folder.features.length === 0; else checkFeatAndFold">
-              <mat-icon>folder</mat-icon>
-              <mat-icon class="little-folder">folder</mat-icon>
-              <mat-icon class="second-little-folder">folder</mat-icon>
+            <ng-container *ngIf="getFolders().length > 0 && folder.features.length === 0; else checkFeatAndFold">
+              <mat-icon class="material-icons">folder</mat-icon>
+              <mat-icon class="little-folder material-icons">folder</mat-icon>
+              <mat-icon class="second-little-folder material-icons">folder</mat-icon>
               <div class="sec-folder-title"></div>
               <div class="sec-folder-line"></div>
               <div class="sec-folder-line-two"></div>
@@ -51,15 +51,15 @@ Author: dph000
           </ng-template>
       
           <ng-template #checkFeatAndFold>
-            <ng-container *ngIf="folder.folders.length > 0 && folder.features.length > 0; else emptyTemplate">
-              <mat-icon>folder</mat-icon>
+            <ng-container *ngIf="getFolders().length > 0 && folder.features.length > 0; else emptyTemplate">
+              <mat-icon class="material-icons">folder</mat-icon>
               <span class="both-feature-run-text">Run</span>
               <div class="both-feature-run"></div>
               <div class="both-feature-sheet"></div>
               <div class="both-feature-sheet-line"></div>
               <div class="both-feature-sheet-line-two"></div>
-              <mat-icon class="both-little-folder">folder</mat-icon>
-              <mat-icon class="both-second-little-folder">folder</mat-icon>
+              <mat-icon class="both-little-folder material-icons">folder</mat-icon>
+              <mat-icon class="both-second-little-folder material-icons">folder</mat-icon>
               <div class="both-sec-folder-title"></div>
               <div class="both-sec-folder-line"></div>
               <div class="both-sec-folder-line-two"></div>
@@ -67,7 +67,7 @@ Author: dph000
           </ng-template>
       
           <ng-template #emptyTemplate>
-            <mat-icon>folder</mat-icon>
+            <mat-icon class="material-icons">folder</mat-icon>
             <div class="both-sec-folder-line"></div>
             <div class="both-sec-folder-line-two"></div>
           </ng-template>
@@ -85,7 +85,7 @@ Author: dph000
       [parent]="parent.concat(folder)"
       [level]="level + 1"
       [folder]="folder"
-      *ngFor="let folder of folder.folders">
+      *ngFor="let folder of getFolders()">
     </cometa-folder-item-tree>
   </div>
 </ng-container>

@@ -1,0 +1,4 @@
+<div class="loading-container" *ngIf="isVisible" [style.padding-top.px]="paddingTop" [style.padding-bottom.px]="paddingBottom">
+  <mat-spinner [diameter]="size" [color]="'primary'" style="margin: 0 auto"></mat-spinner>
+  <p class="loading-text" *ngIf="message">{{ message }}</p>
+</div> 

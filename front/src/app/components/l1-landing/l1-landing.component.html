@@ -298,7 +298,8 @@ Author: dph000
         class="filter-bar"
         [filters$]="filters$ | async"></cometa-l1-filter>
       <cometa-l1-feature-starred-list
-        [data$]="table"></cometa-l1-feature-starred-list>
+        [data$]="data$">
+      </cometa-l1-feature-starred-list>
     </ng-container>
 
     <!-- List of the features in the trash bin -->

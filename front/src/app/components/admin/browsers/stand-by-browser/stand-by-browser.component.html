@@ -1,0 +1,14 @@
+<div class="icon"></div>
+<div class="name">
+  <input
+    spellcheck="false"
+    readonly
+    disableAutocomplete
+    [value]="stand_by_browser | standByBrowserComboText"
+    (focus)="onInputFocus()"
+    (blur)="onInputBlur()"/>
+</div>
+<div
+  (click)="removeBrowserContainer(stand_by_browser.id)"
+  class="remove"></div>
+

@@ -378,6 +378,8 @@ def getStepResultParents(step_result_id):
 
 @csrf_exempt
 def featureRunning(request, feature_id, *args, **kwargs):
+    
+    
     """
     This view acts as a proxy for <sw_server>/featureStatus/:feature_id
     """
@@ -388,6 +390,27 @@ def featureRunning(request, feature_id, *args, **kwargs):
         content_type=request_response.headers['Content-Type']
     )
     return django_response
+
+    # """
+    # This view acts as a proxy for <sw_server>/featureStatus/:feature_id
+    # """
+    # # Changing this logic to read feature state from socket to Feature_task table
+    # # Because while killing feature task it is done by deleting the Feature_task but when checking the isFeatureRunning state is checked from websocket connection
+    # # which make it unstable in some cases
+    # tasks = Feature_Task.objects.filter(feature_id=feature_id).select_related('feature_result_id')
+    
+    # content = {"running":False}
+    
+    # if len(tasks)>0:
+    #     content["running"]=True
+    
+    # django_response = HttpResponse(
+    #     content=json.dumps(content),
+    #     status=200,
+    #     content_type="application/json"
+    # )
+    
+    # return django_response
 
 
 @csrf_exempt
@@ -412,7 +435,10 @@ def noVNCProxy(request, feature_result_id, *args, **kwargs):
                 session_id = feature_result.session_id
                 vnc_path = f"vnc/{session_id}"
             else:
-                session_id = ServiceManager().get_service_name(container_details['Id'])
+                session_id = container_details['Id']
+                if 'service' not in session_id:
+                    session_id = ServiceManager().get_service_name(session_id)
+                    
                 vnc_path = f"vnc_cometa_browser/{session_id}"
             
             # having password hardcoded does not create a security issue, because this communication is internal
@@ -519,6 +545,7 @@ def removeTemplate(request, *args, **kwargs):
 
 def Screenshots(step_result_id):
     os.chdir('/data/screenshots/')
+
     screenshots = {}
     try:
         # FIXME: Dirty fix for getting correct current image
@@ -1341,8 +1368,7 @@ def CheckBrowserstackVideo(request):
     return django_response
 
 
-@csrf_exempt
-def parseBrowsers(request):
+def __selenoid_browsers(request): 
     browsersFile = '/code/selenoid/browsers.json'
     emulatedBrowsersFile = '/code/selenoid/mobile_browsers.json'
     # Check if browser.json file exists
@@ -1398,8 +1424,8 @@ def pull_images(images_to_pull):
     for image in images_to_pull:
         docker_service_manager.pull_image(image)
 
-@csrf_exempt
-def parseCometaBrowsers(request):
+
+def __parseCometaBrowsers(request):
     # parses latest n (at the moment 3) versions of cometa browsers and saves them in the Browser model
     # starts a thread to call the pull images script
     # when thread finishes, this method returns success.
@@ -1474,11 +1500,24 @@ def parseCometaBrowsers(request):
     })
 
     logger.info("----------IMAGE PULLING THREAD STARTED----------")   
-    pull_browsers_thread = Thread(target=pull_images(images_to_pull), daemon=True)
+    # Start thread as daemon so it runs independently
+    pull_browsers_thread = Thread(target=pull_images, args=(images_to_pull,), daemon=True)
     pull_browsers_thread.start()
-    logger.info("----------IMAGE PULLING THREAD FINISHED----------")
+    logger.info("----------IMAGE PULLING THREAD STARTED SUCCESSFULLY----------")
     # return success
     return JsonResponse({'success': True})
+
+
+@csrf_exempt
+def parseBrowsers(request):
+    
+    if ConfigurationManager.get_configuration("USE_COMETA_BROWSER_IMAGES")=="True":
+        logger.debug(f"Value of USE_COMETA_BROWSER_IMAGES is 'True', Updating cometa browser images")
+        return __parseCometaBrowsers(request=request)
+    else:
+        logger.debug(f"Value of USE_COMETA_BROWSER_IMAGES is 'False', Updating cometa browser images")
+        return __selenoid_browsers(request=request)
+    
 
 
 @csrf_exempt
@@ -2133,24 +2172,31 @@ class StepResultViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         # get data from request
+        logger.debug(f"Create method started")
         data = json.loads(request.body)
         if not isinstance(data['files'], list):
             data['files'] = json.loads(data['files'])
         
+        logger.debug(f"Saving Step {data['step_name']}")
         logger.debug("Checking for last step")
-        last_step = Step_result.objects.filter(feature_result_id = data['feature_result_id']).order_by('-step_result_id').first()
+        last_step = Step_result.objects.filter(feature_result_id = data['feature_result_id']).order_by('-step_result_id')
+        logger.debug("Last step result checked")
         if last_step:
             # This will execute if it is not the report of the execution
             logger.debug("Found last step relative calculating time")
-            data['relative_execution_time'] = last_step.relative_execution_time + data['execution_time']
+            data['relative_execution_time'] = last_step[0].relative_execution_time + data['execution_time']
         else:
             # This will execute if it is a first step report of the execution
             logger.debug("Relative time Initated")
             data['relative_execution_time'] = data['execution_time']
-
+        logger.debug("Starting to save data to Step_result")
         step_result = Step_result.objects.create(**data)
-        return JsonResponse(StepResultSerializer(step_result, many=False).data)
-
+        logger.debug("Data saved to Step_result")
+        response = StepResultSerializer(step_result, many=False).data
+        logger.debug(f"Response: {response}")
+        return JsonResponse(response)
+    
+    @require_permissions("change_step_result_status")
     def patch(self, request, *args, **kwargs):
         # Get StepResult ID from the passed URL
         step_result_id = self.kwargs.get('step_result_id', None)
@@ -3084,7 +3130,7 @@ class FolderViewset(viewsets.ModelViewSet):
         # get the departments from the session user
         departments = tuple([x['department_id'] for x in request.session['user']['departments']])
         logger.debug("Departments for FolderViewset %s", departments)
-        logger.debug("User object %s", request.session['user'])
+        # logger.debug("User object %s", request.session['user'])
         logger.debug("UserID: %s", request.session['user']['user_id'])
 
         # return empty array if user does not belong to any department
@@ -3169,10 +3215,10 @@ class FolderViewset(viewsets.ModelViewSet):
 
         # make a raw query to folders table
         results = Folder.objects.raw(query, [MAX_FOLDER_HIERARCHY, departments, departments, departments])
-        logger.debug("Query: %s" % results)
+        # logger.debug("Query: %s" % results)
         # serialize raw data to JSON
         folders = self.serializeResultsFromRawQuery(results)
-        logger.debug("Folders: %s" % folders)
+        # logger.debug("Folders: %s" % folders)
 
         # add features with parent none to final_dict.features
         if None in folders:
@@ -3389,18 +3435,43 @@ def UpdateTask(request):
     except Feature_result.DoesNotExist as exception:
         return JsonResponse({"success": True,'message':str(exception)})
 
-def remove_running_containers(feature_result):
-    for mobile in feature_result.mobile:
-        # While running mobile tests User have options to connect to already running mobile or start mobile during test
-        # If Mobile was started by the test then remove it after execution 
-        # If Mobile was started by the user and test only connected to it do not stop it
-        if mobile['is_started_by_test']:
-            ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
+# def remove_running_containers(feature_result):
+#     for mobile in feature_result.mobile:
+#         # While running mobile tests User have options to connect to already running mobile or start mobile during test
+#         # If Mobile was started by the test then remove it after execution 
+#         # If Mobile was started by the user and test only connected to it do not stop it
+#         if mobile['is_started_by_test']:
+#             ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
 
-    browser_container_info = feature_result.browser.get("container_service",False)
+#     browser_container_info = feature_result.browser.get("container_service",False)
     
-    if browser_container_info:
-        ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"]) 
+#     if browser_container_info:
+#         ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"]) 
+
+def remove_running_containers(feature_result:Feature_result):
+    def _remove_containers():
+        logger.debug(f"Removing containers for feature_result {feature_result.feature_result_id}")
+        for mobile in feature_result.mobile:
+            # While running mobile tests User have options to connect to already running mobile or start mobile during test
+            # If Mobile was started by the test then remove it after execution 
+            # If Mobile was started by the user and test only connected to it do not stop it
+            if mobile['is_started_by_test']:
+                logger.debug(f"Removing containers for feature_result {feature_result.feature_result_id}")
+                ServiceManager().delete_service(service_name_or_id = mobile["container_service_details"]["Id"])   
+
+        browser_container_info = feature_result.browser.get("container_service",False)
+        if browser_container_info:
+            ServiceManager().delete_service(service_name_or_id = browser_container_info["Id"])
+
+    try:
+        logger.debug(f"Starting a thread clean up the containers")
+        # Create and start thread to handle container removal
+        cleanup_thread = Thread(target=_remove_containers)
+        cleanup_thread.start()
+        logger.debug(f"Container cleanup thread {cleanup_thread.getName()} started")
+    except Exception:
+        logger.debug("Exception while cleaning up the containers")
+        traceback.print_exc()
 
 
 @csrf_exempt
@@ -3409,10 +3480,12 @@ def KillTask(request, feature_id):
     for task in tasks:
         remove_running_containers(task.feature_result_id)
         request = requests.get(f'{get_cometa_behave_url()}/kill_task/' + str(task.pid) + "/")
+        
         Feature_Task.objects.filter(pid=task.pid).delete()
-    if len(tasks) > 0:
+    # if len(tasks) > 0:
         # Force state of stopped for current feature in WebSocket Server
-        request = requests.get(f'{get_cometa_socket_url()}/feature/%s/killed' % feature_id)
+    requests.get(f'{get_cometa_socket_url()}/feature/%s/killed' % feature_id)
+    
     return JsonResponse({"success": True, "tasks": len(tasks)}, status=200)
 
 @csrf_exempt
@@ -3452,9 +3525,13 @@ class VariablesViewSet(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer,)
 
     def list(self, request, *args, **kwargs):
+        start_time = time.time()
         user_departments = GetUserDepartments(request)
         result = Variable.objects.filter(department__department_id__in=user_departments)
         data = VariablesSerializer(VariablesSerializer.fast_loader(result), many=True).data
+        total_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+        logger.debug(f"Fetching Variable list took {total_time:.2f}ms to execute")
+
         return JsonResponse(data, safe=False)
 
     def validator(self, data, key, obj=None):
@@ -4134,3 +4211,4 @@ from backend.ee.modules.data_driven.views import (
     DataDrivenFileViewset,
     DataDrivenResultsViewset
 )
+

@@ -169,5 +169,10 @@
   "schedule": {
     "last-run": "Última ejecución:",
     "no-last-run": "Última ejecución: Aún no se ha realizado ninguna ejecución"
+  },
+  "feature": {
+    "starred": "Esta funcionalidad está en tus favoritos",
+    "not_starred": "Añadir a favoritos"
   }
+
 }

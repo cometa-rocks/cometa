@@ -925,7 +925,7 @@ def get_current_device_orientation(context, variable):
     logger.debug("Getting current device orientation")
     try:
         orientation = context.mobile["driver"].orientation
-        addTestRuntimeVariable(context, variable, orientation)
+        addTestRuntimeVariable(context, variable, orientation, save_to_step_report=True)
         send_step_details(context, f"Current device orientation is {orientation}")
         return orientation
     except Exception as e:
@@ -1236,7 +1236,7 @@ def fetch_mobile_device_details(context, variable):
     logger.debug("Fetching mobile device details")
     try:
         device_details = context.mobile["driver"].desired_capabilities
-        addTestRuntimeVariable(context, variable, device_details)
+        addTestRuntimeVariable(context, variable, device_details, save_to_step_report=True)
         send_step_details(context, f"Mobile device details: {device_details}")
         return device_details
     except Exception as e:

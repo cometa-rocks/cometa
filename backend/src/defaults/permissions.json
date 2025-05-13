@@ -44,7 +44,8 @@
             "edit_variable": true,
             "delete_variable": true,            
             "manage_house_keeping_logs": true,
-            "manage_configurations": true
+            "manage_configurations": true,
+            "change_step_result_status": true
         }
     },
     {
@@ -59,7 +60,9 @@
             "view_feature": true,
             "create_variable": true,
             "edit_variable": true,
-            "download_result_files": true
+            "download_result_files": true,
+            "create_folder":true,
+            "delete_folder":true
         }
     },
     {
@@ -69,9 +72,14 @@
             "permission_name": "ANALYSIS",
             "permission_power": 0,
             "create_feature": true,
+            "edit_feature": true,
             "run_feature": true,
             "view_feature": true,
-            "download_result_files": true
+            "create_variable": true,
+            "edit_variable": true,
+            "download_result_files": true,
+            "create_folder":true,
+            "delete_folder":true
         }
     },
     {
@@ -86,6 +94,24 @@
             "view_feature": true,
             "create_variable": true,
             "edit_variable": true
+        }
+    },
+    {
+        "model": "backend.Permissions",
+        "pk": 5,
+        "fields": {
+            "permission_name": "MANAGER",
+            "permission_power": 30,
+            "create_feature": true,
+            "edit_feature": true,
+            "run_feature": true,
+            "view_feature": true,
+            "create_variable": true,
+            "edit_variable": true,
+            "download_result_files": true,
+            "create_folder":true,
+            "delete_folder":true,
+            "change_step_result_status":true
         }
     }
 ]

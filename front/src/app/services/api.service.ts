@@ -22,7 +22,7 @@ export class ApiService {
 
   /**
    * @description Save favourite browsers on the Backend for the current logged user
-   * @author Alex Barba
+   * @author Alex Barba 
    * @usedIn UserState
    */
   saveBrowserFavourites(
@@ -180,7 +180,7 @@ export class ApiService {
       .pipe(map(res => res.result));
   }
 
-  // Parse JQ
+  // Parse JQ, if content is a rest api id
   getParsedJQFilter(filter: string, rest_id: number) {
     return this._http.post<Success>(
       `${this.base}compile_jq/`,
@@ -196,6 +196,24 @@ export class ApiService {
       }
     );
   }
+
+
+    // Parse JQ, if content is a json or string
+    getParsedJQFilter_content(filter: string, content: any) {
+      return this._http.post<Success>(
+        `${this.base}compile_jq/`,
+        {
+          pattern: filter,
+          content: content,
+        },
+        {
+          params: new InterceptorParams({
+            skipInterceptor: true,
+            silent: true,
+          }),
+        }
+      );
+    }
 
   /**
    * Retrieves the requested step result object by ID
@@ -768,6 +786,50 @@ export class ApiService {
     return this._http.delete<any>(`${this.api}data_driven/${run_id}/`);
   }
 
+  /**
+   * Updates the data in a data-driven file
+   * @param fileId The ID of the file to update
+   * @param data The updated data rows array
+   * @param params Optional parameters, including sheet name for Excel files
+   * @returns An observable with the response from the server
+   */
+  updateDataDrivenFile(fileId: number, data: any[], params?: any) {
+    // Create base params with skipInterceptor
+    const apiParams = new InterceptorParams({
+      skipInterceptor: true,
+    });
+    
+    // Build the URL with query parameters if necessary
+    let url = `${this.api}data_driven/file/${fileId}/`;
+    
+    // If sheet parameter is provided, add it to the URL
+    if (params && params.sheet) {
+      url += `?sheet=${encodeURIComponent(params.sheet)}`;
+      
+      // Add any other params except 'sheet' to apiParams
+      Object.keys(params).forEach(key => {
+        if (key !== 'sheet') {
+          apiParams.set(key, params[key]);
+        }
+      });
+    } else {
+      // Merge all params if no sheet parameter
+    if (params) {
+      Object.keys(params).forEach(key => {
+        apiParams.set(key, params[key]);
+      });
+      }
+    }
+    
+    return this._http.put<any>(
+      url,
+      { data },
+      {
+        params: apiParams
+      }
+    );
+  }
+
   downloadFile(file_id: number) {
     return this._http.get(`${this.api}uploads/${file_id}/`, {
       params: new InterceptorParams({
@@ -790,6 +852,12 @@ export class ApiService {
   }
 
   getCometaConfigurations(): Observable<Configuration[]> {
+    return this._http
+      .get<{ results: Configuration[] }>(`${this.api}configuration/`)
+      .pipe(map(response => response.results));
+  }
+
+  getStandByBrowsers(): Observable<Configuration[]> {
     return this._http
       .get<{ results: Configuration[] }>(`${this.api}configuration/`)
       .pipe(map(response => response.results));
@@ -878,6 +946,19 @@ export class ApiService {
    */
   updateMobile(container_id, body) {
     return this._http.put(`${this.api}container_service/${container_id}/`, body);
+  }
+
+
+  getContainerServices() {
+    return this._http.get(`${this.api}container_service/`);
+  }
+
+  deleteContainerServices(id:number) {
+    return this._http.delete(`${this.api}container_service/${id}/`);
+  }
+
+  startContainerServices(body:any) {
+    return this._http.post(`${this.api}container_service/`,body);
   }
 
   /**

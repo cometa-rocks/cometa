@@ -18,7 +18,7 @@ else
     echo "Certificates files not found. Generating new certificates and redis secret key..."
 
     # Install OpenSSL if not already installed
-    apt update && apt install openssl -y
+    apt-get update && apt-get install openssl -y
 
 
     # Create the certs directory if it doesn't exist

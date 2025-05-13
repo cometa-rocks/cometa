@@ -134,6 +134,9 @@ p.inuse {
   display: inline;
   color: $bad;
   font-weight: bold;
+  position: absolute;
+  left: -1px;
+  font-size: 17px;
 }
 
 .container-father {
@@ -186,7 +189,7 @@ p.inuse {
   height: 14px;
 }
 
-::ng-deep .mat-stroked-button.mat-warn {
-  margin-top: 4px;
-  height: 40px;
-}
+// ::ng-deep .mat-stroked-button.mat-warn {
+//   margin-top: 4px;
+//   height: 40px;
+// }

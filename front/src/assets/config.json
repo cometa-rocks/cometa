@@ -1,5 +1,5 @@
 {
-  "version": "3.0.25",
+  "version": "3.0.48",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,314 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.49",
+      "date": "2025-05-09",
+      "features": [
+        {
+          "title": "Adjustments to feature result, dialogs, step result pagination, and chatbot - #6233",
+          "description": "Set default 500 on feature result, added keyboard shortcuts to dialogs, adjusted items per page size in step result to match production, and fixed chatbot display in the screenshot component."
+        }
+      ]
+    },
+    {
+      "version": "3.0.48",
+      "date": "2025-05-09",
+      "features": [
+        {
+          "title": "Fixed Tours Section - #6232",
+          "description": "Fixed some steps on the tour where the dialogs were not pointing to the correct elements as well as some dialogs not fitting to the screen."
+        },
+        {
+          "title": "Improved feedback on Create/Save actions - #4694",
+          "description": "Added feedback when the user clicks the Create or Save button. If the name input is required but not filled, the page will automatically scroll to the input and a snackbar notification will inform the user."
+        }
+      ]
+    },
+    {
+      "version": "3.0.47",
+      "date": "2025-05-08",
+      "features": [
+        {
+          "title": "Step editor improvements - #6224",
+          "description": "Added new funtionality to select all (Enable, Screenshot, Compare) in step editor"
+        },
+        {
+          "title": "Searchbar added for files section - #6210",
+          "description": "Browse files within the feature and data driven files section"
+        },
+        {
+          "title": "Buttons improvements",
+          "description": "Fixed button sizes in edit-dialog"
+        }
+      ]
+    },
+    {
+      "version": "3.0.46",
+      "date": "2025-05-06",
+      "features": [
+        {
+          "title": "Fixed issue with file upload Path",
+          "description": "Issue fixed"
+        }
+      ]
+    },
+    {
+      "version": "3.0.45",
+      "date": "2025-05-05",
+      "features": [
+        {
+          "title": "Dialogs close, resize dialogs, step-view improvements, etc - #6178",
+          "description": "Fixes related to dialogs, resizing, step-view improvements, sync button redirect too results."
+        },
+        {
+          "title": "Cancel button in Edit Feature dialog - #6178",
+          "description": "Added a cancel button to the Edit Feature dialog."
+        },
+        {
+          "title": "Add variable based on default value - #6176",
+          "description": "When adding a new variable, default based on value is now department. When selecting another based on value, choice is remembered."
+        },
+        {
+          "title": "If else step reporting improved - #6115",
+          "description": "Step reporting of if and else step improved to marked as skipped in case of other is true"   
+        },
+        {
+          "title": "Status report should editable by assigned user only - #6175",
+          "description": "Added permission to have control over step report status changes"
+        }
+      ]
+    },
+    {
+      "version": "3.0.44",
+      "date": "2025-04-30",
+      "features": [
+        {
+          "title": "Hot fixes (sorted folders in landing, stop execution wait for ID) - #4694",
+          "description": "Fixed issues in the landing page and the stop execution button."
+        }
+      ]
+    },
+    {
+      "version": "3.0.43",
+      "date": "2025-04-29",
+      "features": [
+        {
+          "title": "Data Driven Enhancements - #6091",
+          "description": "View live execution status of data driven runs, edit data driven files and download them."
+        }
+      ]
+    },
+    {
+      "version": "3.0.42",
+      "date": "2025-04-29",
+      "features": [
+        {
+          "title": "Sorted folders alphabetically - #4694",
+          "description": "Sorted folders alphabetically in the folder tree."
+        }
+      ]
+    },
+    {
+      "version": "3.0.41",
+      "date": "2025-04-29",
+      "features": [
+        {
+          "title": "Add more new local storage keys - #6150",
+          "description": "Added more new local storage keys to store the user preferences."
+        }
+      ]
+    },
+    {
+      "version": "3.0.40",
+      "date": "2025-04-28",
+      "features": [
+        {
+          "title": "Stop execution wait for ID - #4694",
+          "description": "The stop execution button now properly waits for the backend to provide an ID, enabling it to perform the stop action."
+        }
+      ]
+    },
+    {
+      "version": "3.0.39",
+      "date": "2025-04-26",
+      "features": [
+        {
+          "title": "Administration buttons improvements - #6149",
+          "description": "Changes to Administration buttons and fix in Account component button."
+        }
+      ]
+    },
+    {
+      "version": "3.0.38",
+      "date": "2025-04-25",
+      "features": [
+        {
+          "title": "Edit API Call Dialog",
+          "description": "Added a new dialog to edit API calls. Allows the user to edit in a confortable way the API call parameters, headers and body."
+        }
+      ]
+    },
+    {
+      "version": "3.0.37",
+      "date": "2025-04-24",
+      "features": [
+        {
+          "title": "Bugfixes in edit feature + added 'Status' column to Step Editor.",
+          "description": "Fixed issues in the Edit Features filter and added a new 'Status' column to the Step Editor."
+        },
+        {
+          "title": "'Standby Browsers' Reduce the test execution time #6126",
+          "description": "Keep your preferred browsers running to minimize test execution time during the test design phase."
+        }
+      ]
+    }, 
+    {
+      "version": "3.0.36",
+      "date": "2025-04-21",
+      "features": [
+        {
+          "title": "Add functionality to 'Run Feature' step",
+          "description": "Added a new icon to the 'Run Feature' step that opens the main view of the indicated feature in a new tab."
+        }
+      ]
+    }, 
+    {
+      "version": "3.0.36",
+      "date": "2025-04-23",
+      "features": [
+        {
+          "title": "Improved UI dialog behaviour on slow networks - #6124",
+          "description": "When creating a new folder on a slow network, the user is now notified with a message"
+        }
+      ]
+    },
+    {
+      "version": "3.0.36",
+      "date": "2025-04-23",
+      "features": [
+        {
+          "title": "Improvements to Data Driven section",
+          "description": "Enhanced results filtering by department and file, pre-run validation was added to prevent executions referencing non-existent features. UI was restructured using expansion panels and enabled detailed real-time status progress updates during test runs."
+        }
+      ]
+    },
+    {
+      "version": "3.0.35",
+      "date": "2025-04-20",
+      "features": [
+        {
+          "title": "#5812: Improved CI/CD to support feature execution within specified folders.",
+          "description": "Enhanced the CI/CD feature to support folder-wise execution, using an API with token-based authentication for executing grouped feature sets"
+        }
+      ]
+    }, 
+    {
+      "version": "3.0.34",
+      "date": "2025-04-17",
+      "features": [
+        {
+          "title": "#6074 Browser-use integration for AI browsers",
+          "description": "Use AI with browser to perform automate the webapplication by providing the prompts"
+        },
+        {
+          "title": "Feature run button improvements",
+          "description": "Prevent clicks when button is disabled and feature is not running"
+        }
+      ]
+    },  
+    {
+      "version": "3.0.33",
+      "date": "2025-04-14",
+      "features": [
+        {
+          "title": "Feature variables dialog improved - #6025",
+          "description": "Added a better json view to the feature variables dialog, this view comes with a jq assertion field to filter the json content."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.32",
+      "date": "2025-04-14",
+      "features": [
+        {
+          "title": "Filter files in Edit Feature dialog - #4694",
+          "description": "Added a file filter to the upload expansion panel within the Edit Feature dialog."
+        },
+        {
+          "title": "Upload Files section - #6070",
+          "description": "You can now see the files in the Upload Files section, as long as the other expansion panels are collapsed."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.31",
+      "date": "2025-04-11",
+      "features": [
+        {
+          "title": "Chatbot improvements",
+          "description": "Browser language is now detected and used to answer questions in the chatbot. (Supported languages: English, German, Spanish, French, Japanese, Portuguese, Arabic, Czech, Italian, Korean, Dutch, and Chinese."
+        },
+        {
+          "title": "Favorites Feature Implementation #4694",
+          "description": "Introduced a new functionality allowing users to add features to their favorites for easier access."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.30",
+      "date": "2025-04-09",
+      "features": [
+        {
+          "title": "Step Execution over time",
+          "description": "#6025 See step execution over time graphs report with Pass/Fail ratios etc"
+        }
+      ]
+    }, 
+    {
+      "version": "3.0.29",
+      "date": "2025-04-08",
+      "features": [
+        {
+          "title": "Mobile license information - #6042",
+          "description": "Added a new dialog to display the mobile license information"
+        }
+      ]
+    },
+    {
+      "version": "3.0.28",
+      "date": "2025-04-06",
+      "features": [
+        {
+          "title": "Step editor improvements - #6041",
+          "description": "fixed a visual glitch in the step editor"
+        }
+      ]
+    },
+    {
+      "version": "3.0.27",
+      "date": "2025-04-05",
+      "features": [
+        {
+          "title": "See variables value in the feature step reports.",
+          "description": "Action steps reporting is enahanced to store variable values in the step reports notes section."
+        }
+      ]
+    },  
+    {
+      "version": "3.0.26",
+      "date": "2025-04-01",
+      "features": [
+        {
+          "title": "Run and stop buttons - #6017",
+          "description": "Visual feedback when running or stopping a feature."
+        },
+        {
+          "title": "Persist the last expansion state of panels in the Edit Feature dialog - #4694",
+          "description": "Implemented logic to remember the expansion state of panels in the Edit Feature dialog"
+        }
+      ]
+    },
     {
       "version": "3.0.25",
       "date": "2025-03-26",

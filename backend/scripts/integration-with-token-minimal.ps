@@ -1,0 +1,13 @@
+$body = @{
+    secret = @{
+        secret_id = "<<<SECRET_ID>>>"
+        secret_key = "<<<SECRET_KEY>>>"
+    }
+    test_info = @{
+        execution_type = "folder"
+        id = 317
+        recursive = $false
+    }
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri 'https://cometa.motherson.com/backend/integrations/v2/execute' -Method Post -ContentType 'application/json' -Body $body

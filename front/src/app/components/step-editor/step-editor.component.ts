@@ -14,6 +14,8 @@ import {
   Output,
   EventEmitter,
   HostListener,
+  ViewContainerRef,
+  ComponentFactoryResolver
 } from '@angular/core';
 import {
   CdkDragDrop,
@@ -28,7 +30,7 @@ import {
   MatLegacyDialogRef as MatDialogRef,
 } from '@angular/material/legacy-dialog';
 import { ApiService } from '@services/api.service';
-import { Store } from '@ngxs/store';
+import { Select, Store } from '@ngxs/store';
 import { ActionsState } from '@store/actions.state';
 import { ClipboardService } from 'ngx-clipboard';
 import { ImportJSONComponent } from '@dialogs/import-json/import-json.component';
@@ -37,6 +39,7 @@ import {
   debounceTime,
   distinctUntilChanged,
   forkJoin,
+  Observable,
   of,
 } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
@@ -89,8 +92,16 @@ import { LogService } from '@services/log.service';
 import { MatAutocompleteActivatedEvent } from '@angular/material/autocomplete';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { DepartmentsState } from '@store/departments.state';
+import { FeaturesState } from '@store/features.state';
+import { SharedActionsService } from '@services/shared-actions.service';
+import { MatTooltip } from '@angular/material/tooltip';
+import { ApiTestingComponent } from '@components/api-testing/api-testing.component';
 
-
+interface StepState {
+  showLinkIcon: boolean;
+  featureId: number | null;
+}
 
 @Component({
   selector: 'cometa-step-editor',
@@ -147,6 +158,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   displayedVariables: (VariablePair | string)[] = [];
   stepVariableData = <VariableInsertionData>{};
+  snack: any;
+
+  private editingApiCallIndex: number | null = null;
 
   constructor(
     private _dialog: MatDialog,
@@ -163,11 +177,18 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
     private logger: LogService,
-    private snack: MatSnackBar
+    private _sharedActions: SharedActionsService,
   ) {
     super();
     this.stepsForm = this._fb.array([]);
   }
+
+  @ViewSelectSnapshot(UserState.RetrieveUserDepartments) 
+
+  // departments$ = this._store.select(UserState.RetrieveUserDepartments);
+  departments$!: Department[];
+  @Select(DepartmentsState) allDepartments$: Observable<Department[]>;
+  @Select(FeaturesState.GetFeaturesAsArray) allFeatures$: Observable<Feature[]>;
 
   // Shortcut emitter to parent component
   sendTextareaFocusToParent(isFocused: boolean, index?: number): void {
@@ -183,7 +204,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       this.stepVisible[index] = true;
 
       const stepFormGroup = this.stepsForm.at(index) as FormGroup;
-      // console.log(stepFormGroup);
 
       const stepAction = stepFormGroup.get('step_action')?.value;
       const stepContent = stepFormGroup.get('step_content')?.value;
@@ -234,54 +254,53 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         this.stepVisible[index] = false;
       }
     }
-
-    // console.log("stepVisible: ", this.stepVisible[index]);
   }
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
     if (clear) this.stepsForm.clear();
     steps.forEach(step => {
-      this.stepsForm.push(
-        this._fb.group({
-          enabled: step.enabled,
-          screenshot: step.screenshot,
-          step_keyword: step.step_keyword,
-          compare: step.compare,
-          step_content: [
-            step.step_content,
-            CustomValidators.StepAction.bind(this),
-          ],
-          step_action: step.step_action || '',
-          step_type: step.step_type,
-          continue_on_failure: step.continue_on_failure,
-          timeout:
-            step.timeout ||
-            this.department?.settings?.step_timeout ||
-            this._fb.control(
-              60,
-              Validators.compose([
-                Validators.min(1),
-                Validators.max(7205),
-                Validators.maxLength(4),
-              ])
-            ),
-        })
-      );
+      const formGroup = this._fb.group({
+        enabled: step.enabled,
+        screenshot: step.screenshot,
+        step_keyword: step.step_keyword,
+        compare: step.screenshot ? step.compare : false,
+        step_content: [
+          step.step_content,
+          CustomValidators.StepAction.bind(this),
+        ],
+        step_action: step.step_action || '',
+        step_type: step.step_type,
+        continue_on_failure: step.continue_on_failure,
+        timeout: step.timeout || this.department?.settings?.step_timeout || 60
+      });
+
+
+
+      this.stepsForm.push(formGroup);
     });
     this._cdr.detectChanges();
   }
 
   getSteps(): FeatureStep[] {
-    return this.stepsForm.controls.map(control => control.value);
+    return this.stepsForm.controls.map(control => control.getRawValue());
   }
 
   ngOnInit() {
     // @ts-ignore
     if (!this.feature) this.feature = { feature_id: 0 };
     const featureId = this.mode === 'clone' ? 0 : this.feature.feature_id;
+    
     this.subs.sink = this._store
       .select(CustomSelectors.GetFeatureSteps(featureId))
-      .subscribe(steps => this.setSteps(steps));
+      .subscribe(steps => {
+        // Ensure compare is disabled initially
+        const stepsWithCompareDisabled = steps.map(step => ({
+          ...step,
+          compare: step.screenshot ? step.compare : false // Only allow compare if there is screenshot
+        }));
+        this.setSteps(stepsWithCompareDisabled);
+      });
+
     // When steps$ is changed do the rollup of duplicated steps
     this.subs.sink = this.stepsForm.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged())
@@ -378,13 +397,26 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepVariableData.currentStepIndex = null;
   }
 
-  // removes variable flyout if clicked target on focusout event is not one of the variables
-  onStepFocusOut(event: FocusEvent) {
-    event.preventDefault();
+  onStepFocusOut(event: FocusEvent): void {
+    // Use a timeout to allow the textarea's focus event to trigger first
+    setTimeout(() => {
+      const relatedTarget = event.relatedTarget as HTMLElement;
+      const focusedInside = relatedTarget?.closest('.step_content');
+      if (!focusedInside) {
+        this.editingApiCallIndex = null;
+        this._cdr.detectChanges();
+      }
+    }, 10); // Small enough delay to not be noticeable
+  }
+  
 
-    const ev = event as any;
-    if (!ev.relatedTarget?.attributes.id)
-      this.stepVariableData.currentStepIndex = null;
+  onTextareaFocus(event: FocusEvent, index: number): void {
+    // If this is an API call step, expand it for editing
+    if (this.isApiCallStep(index)) {
+      this.editingApiCallIndex = index;
+      this._cdr.detectChanges();
+    }
+    this.sendTextareaFocusToParent(true, index);
   }
 
   // removes variable flyout on current step row, when keydown TAB event is fired
@@ -396,7 +428,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   // inserts variable into step when clicked
   onClickVariable(variable_name: string, index: number) {
-    // console.log("Clicado elinput: ", variable_name)
     if (!variable_name) return;
 
     let step = this.stepsForm.at(index).get('step_content');
@@ -436,11 +467,69 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.displayedVariables = [];
   }
 
+
   onStepChange(event, index: number) {
     this.displayedVariables = [];
     this.stepVariableData = {};
 
-    const textareaValue = (event.target as HTMLTextAreaElement).value.trim();
+    const textarea = event.target as HTMLTextAreaElement;
+    const textareaValue = textarea.value.trim();
+
+    // Check if step starts with "Run feature with id" or "Run feature with name"
+    if (textareaValue.startsWith('Run feature with id') || textareaValue.startsWith('Run feature with name')) {
+      // Extract content between quotes
+      const match = textareaValue.match(/"([^"]*)"/);
+      if (match) {
+        const searchValue = match[1];
+        let featureId: number | null = null;
+
+        if (textareaValue.startsWith('Run feature with id')) {
+          // If it's an ID, parse it directly
+          featureId = searchValue ? parseInt(searchValue, 10) : null;
+        } else {
+          // If it's a name, search for the feature by name
+          this.allFeatures$.subscribe(features => {
+            // Get user's departments
+            const userDepartments = this.user.departments.map(dept => dept.department_id);
+            
+            // Filter features by name and user's departments
+            const matchingFeature = features.find(f => 
+              f.feature_name === searchValue && 
+              userDepartments.includes(f.department_id)
+            );
+            
+            if (matchingFeature) {
+              featureId = matchingFeature.feature_id;
+              this.processFeatureLink(textarea, featureId, index, matchingFeature?.feature_name);
+            } else {
+              this.removeLinkIcon(textarea, index);
+            }
+          });
+        }
+
+        if (featureId && !isNaN(featureId)) {
+          // Verify that the feature belongs to one of user's departments
+          this.allFeatures$.subscribe(features => {
+            const userDepartments = this.user.departments.map(dept => dept.department_id);
+            const feature = features.find(f => 
+              f.feature_id === featureId && 
+              userDepartments.includes(f.department_id)
+            );
+            if (feature) {
+              this.processFeatureLink(textarea, featureId, index, feature?.feature_name);
+            } else {
+              this.removeLinkIcon(textarea, index);
+            }
+          });
+        } else {
+          this.removeLinkIcon(textarea, index);
+        }
+      } else {
+        this.removeLinkIcon(textarea, index);
+      }
+    } else {
+      this.removeLinkIcon(textarea, index);
+    }
 
     if (!textareaValue) {
       this.stepsDocumentation[index] = {
@@ -487,7 +576,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
     if (this.stepVariableData.strWithoutQuotes.includes('$')) {
-      // const strWithoutDollar = this.stepVariableData.strWithoutQuotes.replace('$','')
       const filteredVariables = this.variables.filter(item =>
         item.variable_name.includes(
           this.stepVariableData.strWithoutQuotes.replace('$', '')
@@ -504,7 +592,33 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         this.renderer.addClass(firstVariableRef, 'selected');
       }, 0);
     }
+  }
 
+  private processFeatureLink(textarea: HTMLTextAreaElement, featureId: number, index: number, featureName?: string) {
+    this.allFeatures$.subscribe(features => {
+      const matchingFeature = features.find(f => f.feature_id === featureId);
+      if (matchingFeature) {
+        this.stepStates[index] = {
+          featureId: featureId,
+          showLinkIcon: true
+        };
+        this._cdr.detectChanges();
+      } else {
+        this.stepStates[index] = {
+          showLinkIcon: false,
+          featureId: null
+        };
+        this._cdr.detectChanges();
+      }
+    });
+  }
+
+  private removeLinkIcon(textarea: HTMLTextAreaElement, index: number) {
+    this.stepStates[index] = {
+      showLinkIcon: false,
+      featureId: null
+    };
+    this._cdr.detectChanges();
   }
 
   // returns the index of nearest left $ and nearest right " char in string, taking received startIndex as startpoint reference
@@ -537,39 +651,38 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
    * @param index Index of the current step
    */
   selectFirstVariable(event: MatAutocompleteSelectedEvent, index: number) {
-    // Obtener el valor del paso seleccionado
+    // Obtain the value of the selected step
     const step = event.option.value;
 
-    // Hacer que el paso sea visible en la UI para el índice especificado
+    // Make the step visible in the UI for the specified index
     this.stepVisible[index] = true;
 
     const cleanedStep = step.replace(/Parameters:([\s\S]*?)Example:/gs, '').trim();
-    // console.log("Prueba: ", cleanedStep);
 
-    // Usamos una expresión regular para extraer el nombre de la acción y la variable
+    // We use a regular expression to extract the action name and the variable
     const matchResult = step.match(/^(.*?)\s*"(.*?)"/);
     if (matchResult) {
       const actionName = matchResult[1].trim();
 
-      // Buscar la acción correspondiente usando el nombre de la acción
+      // Search for the corresponding action using the action name
       const activatedAction = this.actions.find(action =>
         action.action_name.split('"')[0].trim() === actionName
       );
 
-      // Acceder al FormGroup específico para este paso en la lista de formularios
+      // Access the specific FormGroup for this step in the list of forms
       const stepFormGroup = this.stepsForm.at(index) as FormGroup;
 
-      // Actualizar el valor de "step_action" en el FormGroup
+      // Update the value of "step_action" in the FormGroup
       stepFormGroup.patchValue({ step_action: activatedAction.action_name });
 
-      // Actualizar la documentación para este paso
+      // Update the documentation for this step
       this.selectedActionTitle = activatedAction.action_name;
       this.selectedActionDescription = activatedAction.description;
 
-      // Limpiar las etiquetas <br> de la descripción
+      // Clean the <br> tags from the description
       this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
 
-      // Separar la descripción y los ejemplos si es necesario
+      // Separate the description and examples if necessary
       if (this.selectedActionDescription.includes("Example")) {
         const parts = this.selectedActionDescription.split("Example:");
         this.descriptionText = parts[0].trim();
@@ -579,7 +692,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         this.examplesText = '';
       }
 
-      // Almacenar la documentación para el paso actual
+      // Store the documentation for the current step
       this.stepsDocumentation[index] = {
         description: this.descriptionText,
         examples: this.examplesText
@@ -588,7 +701,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       this._cdr.detectChanges();
     }
 
-    // Obtener el textarea correspondiente y seleccionar el primer parámetro
+    // Get the corresponding textarea and select the first parameter
     const input = this._elementRef.nativeElement.querySelectorAll('textarea.code')[index] as HTMLInputElement;
     const parameterRegex = /\{[a-z\d\-_\s]+\}/i;
     const match = parameterRegex.exec(step);
@@ -629,7 +742,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           this.descriptionText = parts[0].trim();
           this.examplesText = parts[1]?.trim() || '';
 
-          // console.log("Example text:", this.examplesText);
         } else {
           this.descriptionText = this.selectedActionDescription;
           this.examplesText = '';
@@ -668,11 +780,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   stepVisible: boolean[] = [];
 
   closeAutocomplete(index?: number) {
-    // console.log("El evento: ", event.value.step_content)
-    // console.log("El index: ", index)
     const stepFormGroup = this.stepsForm.at(index) as FormGroup;
     const stepContent = stepFormGroup.get('step_content')?.value;
-    // console.log('Step Content:', stepContent);
     if (stepContent == '') {
       this.stepsDocumentation[index] = {
         description: '',
@@ -704,7 +813,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   onAutocompleteOpened(index?: number) {
     this.stepVisible[index] = true;
-    // console.log("FocusedIndex: ", index)
     this.isAutocompleteOpened = true;
 
     setTimeout(() => {
@@ -714,10 +822,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   updateIconPosition() {
     const overlayElement = document.querySelector('.cdk-overlay-pane');
-    // console.log("Overlay:", overlayElement)
     if (overlayElement) {
       const rect = overlayElement.getBoundingClientRect();
-      // console.log("rect:", rect)
       this.iconPosition = {
         top: rect.top,
         left: rect.left + rect.width,
@@ -820,7 +926,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       if (addStepInstance) {
         addStepInstance.textareaFocus.subscribe((isFocused: boolean) => {
           this.inputFocusService.setInputFocus(isFocused);
-
         });
       }
     });
@@ -832,7 +937,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
             enabled: true,
             screenshot: res.screenshot,
             step_keyword: 'Given',
-            compare: res.compare,
+            compare: false,
             step_content: [
               res.interpreted,
               CustomValidators.StepAction.bind(this),
@@ -857,37 +962,32 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
 
-  addEmpty(index: number = null) {
+  addEmpty(index: number = -1) {
     const template = this._fb.group({
-      compare: false,
-      screenshot: false,
-      step_keyword: 'Given',
-      step_content: ['', CustomValidators.StepAction.bind(this)],
-      step_action: '',
-      enabled: true,
-      continue_on_failure: false,
-      timeout:
-        this.department?.settings?.step_timeout ||
-        this._fb.control(
-          60,
-          Validators.compose([
-            Validators.min(1),
-            Validators.max(7205),
-            Validators.maxLength(4),
-          ])
-        ),
+      enabled: [true],
+      screenshot: [false],
+      step_keyword: ['Given'],
+      compare: [false],
+      step_content: ['', [Validators.required]],
+      step_action: [''],
+      step_type: [''],
+      continue_on_failure: [false],
+      timeout: [this.department?.settings?.step_timeout || 60]
     });
-    if (index !== null) {
+
+
+
+    if (index >= 0) {
       this.stepsForm.insert(index, template);
     } else {
       this.stepsForm.push(template);
     }
+
     this._cdr.detectChanges();
-    if (index !== null) {
-      this.focusStep(index);
-    } else {
-      this.focusStep(this.stepsForm.length - 1);
-    }
+    
+    // Focus the new step
+    const stepIndex = index >= 0 ? index : this.stepsForm.length - 1;
+    this.focusStep(stepIndex);
   }
 
   copyItem(index: number, position: string) {
@@ -897,7 +997,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         : this.stepsForm.controls[index - 1];
     // Recreate step, if process is not done, copied steps would be synced by reference
     const newStepToCopy = this._fb.group({
-      compare: stepToCopy.value.compare,
+      compare: stepToCopy.value.screenshot ? stepToCopy.value.compare : false,
       screenshot: stepToCopy.value.screenshot,
       step_keyword: stepToCopy.value.step_keyword,
       step_content: [
@@ -909,6 +1009,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       continue_on_failure: stepToCopy.value.continue_on_failure,
       timeout: stepToCopy.value.timeout,
     });
+
+
+
     this.stepsForm.insert(index, newStepToCopy);
 
     const stepFormGroup = this.stepsForm.at(index) as FormGroup;
@@ -955,7 +1058,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     const panel = document.querySelector('.stepContainer');
     if (panel) {
       this.renderer.removeChild(document.body, panel);
-      // console.log('Autocomplete panel eliminado');
     }
 
     const control = this.stepsForm.controls[event.previousIndex];
@@ -1097,36 +1199,38 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   screenshotChange(event: MatCheckboxChange, i: number) {
+    const stepFormGroup = this.stepsForm.at(i) as FormGroup;
+    const compareControl = stepFormGroup.get('compare');
+    
     if (!event.checked) {
-      this.stepsForm.at(i).get('compare').setValue(false);
+      // If screenshot is unchecked, disable compare and set it to false
+      compareControl?.setValue(false);
+
+    } else {
+      // If screenshot is checked, enable compare but keep its current value
+      compareControl?.enable();
     }
+    
+    this._cdr.detectChanges();
   }
 
   insertDefaultStep() {
-    this.stepsForm.push(
-      this._fb.group({
-        enabled: true,
-        screenshot: false,
-        step_keyword: 'Given',
-        compare: false,
-        step_content: [
-          'StartBrowser and call URL "{url}"',
-          CustomValidators.StepAction.bind(this),
-        ],
-        step_action: '',
-        continue_on_failure: false,
-        timeout:
-          this.department?.settings?.step_timeout ||
-          this._fb.control(
-            60,
-            Validators.compose([
-              Validators.min(1),
-              Validators.max(7205),
-              Validators.maxLength(4),
-            ])
-          ),
-      })
-    );
+    const defaultStep = this._fb.group({
+      enabled: [true],
+      screenshot: [false],
+      step_keyword: ['Given'],
+      compare: [false],
+      step_content: [
+        'StartBrowser and call URL "{url}"',
+        CustomValidators.StepAction.bind(this),
+      ],
+      step_action: [''],
+      continue_on_failure: [false],
+      timeout: [this.department?.settings?.step_timeout || 60]
+    });
+
+
+    this.stepsForm.push(defaultStep);
   }
 
   insertStep(event: KeyboardEvent, i: number){
@@ -1147,6 +1251,153 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     else if (event.key == 'ArrowUp'){
       this.copyItem(i, 'up');
     }
+  }
+
+  showLinkIcon: boolean = false;
+  featureId: number | null = null;
+
+  navigateToFeature(featureId: number) {
+    if (featureId) {
+      this._sharedActions.goToFeature(featureId, true);
+    }
+  }
+
+  stepStates: { [key: number]: StepState } = {};
+  isApiCallStep(index: number): boolean {
+    const content = this.stepsForm.controls[index]?.get('step_content')?.value;
+    return content?.includes('Make an API call');
+  }
+
+  isEditingApiCall(index: number): boolean {
+    return this.editingApiCallIndex === index;
+  }
+
+  expandApiCall(index: number): void {
+    this.editingApiCallIndex = index;
+    this._cdr.detectChanges();
+  }
+
+  getCollapsedApiCall(index: number): string {
+    const content = this.stepsForm.controls[index]?.get('step_content')?.value;
+    if (!content) return '';
+
+    // Find the body part
+    const bodyMatch = content.match(/body:(\{[\s\S]*?\})"/);
+    if (!bodyMatch) return content;
+
+    // Create a shortened version of the body
+    const body = bodyMatch[1];
+    try {
+      const jsonObj = JSON.parse(body);
+      if (typeof jsonObj === 'object' && Object.keys(jsonObj).length > 3) {
+        const shortened = Object.entries(jsonObj)
+          .slice(0, 3)
+          .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+          }, {} as any);
+        shortened['...'] = '...';
+        const shortenedBody = JSON.stringify(shortened);
+        return content.replace(body, shortenedBody);
+      }
+    } catch (e) {
+      // If parsing fails, just return the original content
+      return content;
+    }
+    return content;
+  }
+
+  editApiCall(item: any) {
+    if (!this.isApiCallStep(item)) {
+      return;
+    }
+    
+    // Get step content
+    const stepContent = this.stepsForm.controls[item].get('step_content').value;
+    
+    // Open dialog
+    // const dialogRef = this._dialog.open(ApiTestingComponent, {
+    //   data: { stepContent },
+    //   width: '1400px',
+    //   height: '850px',
+    //   maxHeight: '90vh',
+    //   panelClass: 'api-testing-dialog'
+    // });
+   const dialogRef = this._dialog.open(ApiTestingComponent, {
+      data: { stepContent },
+      panelClass: 'api-testing-dialog'
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Update the step content with the new API call data
+        this.stepsForm.controls[item].get('step_content').setValue(result);
+        this._cdr.detectChanges();
+      }
+    });
+  }
+
+  // Select All methods
+  selectAllEnable(event: MatCheckboxChange) {
+    const checked = event.checked;
+    this.stepsForm.controls.forEach(control => {
+      control.get('enabled')?.setValue(checked);
+    });
+    this._cdr.detectChanges();
+  }
+
+  selectAllScreenshot(event: MatCheckboxChange) {
+    const checked = event.checked;
+    this.stepsForm.controls.forEach(control => {
+      control.get('screenshot')?.setValue(checked);
+      if (!checked) {
+        // control.get('compare')?.setValue(false);
+      }
+    });
+    this._cdr.detectChanges();
+  }
+
+  selectAllCompare(event: MatCheckboxChange) {
+    const checked = event.checked;
+    this.stepsForm.controls.forEach(control => {
+      control.get('compare')?.setValue(checked);
+      if (checked) {
+        // If compare is checked, ensure screenshot is also checked
+        control.get('screenshot')?.setValue(true);
+      }
+    });
+    this._cdr.detectChanges();
+  }
+
+  // Check if all items are selected
+  isAllEnabled(): boolean {
+    return this.stepsForm.controls.every(control => control.get('enabled')?.value);
+  }
+
+  isAllScreenshot(): boolean {
+    return this.stepsForm.controls.every(control => control.get('screenshot')?.value);
+  }
+
+  isAllCompare(): boolean {
+    const totalSteps = this.stepsForm.controls.length;
+    const stepsWithScreenshot = this.stepsForm.controls.filter(control => control.get('screenshot')?.value);
+    const stepsWithCompare = this.stepsForm.controls.filter(control => control.get('compare')?.value === true);
+
+    // If there are no steps with screenshot, return false
+    if (stepsWithScreenshot.length === 0) return false;
+    
+    // The "Select All" checkbox is marked as true only if the number of steps with compare is equal to the total number of steps
+    return stepsWithCompare.length === totalSteps;
+  }
+
+  onCompareChange(event: MatCheckboxChange, i: number) {
+    const stepFormGroup = this.stepsForm.at(i) as FormGroup;
+    if (event.checked) {
+      // If the user marks compare, also mark screenshot        
+      stepFormGroup.get('screenshot')?.setValue(true);
+    }
+    // We don't unmark screenshot if compare is unchecked, only activate it when marking compare
+    this._cdr.detectChanges();
   }
 
 }

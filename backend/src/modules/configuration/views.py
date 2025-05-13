@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-08-09
+
 from django.shortcuts import render
 
 # Create your views here.
@@ -6,13 +10,14 @@ from django.shortcuts import render
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework import viewsets, mixins
-
+from django.http import JsonResponse 
 # Django Imports
 from .models import Configuration
 from .serializers import ConfigurationSerializer
 from backend.utility.response_manager import ResponseManager
 from backend.utility.functions import getLogger
 from backend.utility.decorators import require_permissions
+from backend.models import OIDCAccount
 import os
 
 import traceback, json
@@ -31,9 +36,28 @@ class ConfigurationViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, args, kwargs)
 
-    # @require_permissions("manage_configurations")
+    # @require_permissions("view_feature")
     def list(self, request, *args, **kwargs):
-        return super().list(request, args, kwargs)
+        # This logic is required to have security over configuration variables,
+        # configuration values should be visible based on the user access levels
+        user_id = request.session['user']['user_id']
+        user = OIDCAccount.objects.filter(user_id=user_id)
+        if len(user)==0:
+            return super().list(request, args, kwargs)
+        user = user[0]
+        if user.user_permissions.permission_power >= 80: 
+            return super().list(request, args, kwargs)
+        
+        query_result = self.queryset.filter(configuration_type="all")
+
+        data = self.serializer_class(query_result, many=True).data
+        response = {
+            "count": len(data),
+            "results": data
+        }
+        return JsonResponse(response, status=200, safe=False)
+
+        
 
     @require_permissions("manage_configurations")
     def destroy(self, request, *args, **kwargs):

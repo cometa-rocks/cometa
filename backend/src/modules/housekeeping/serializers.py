@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-07-11
+
 from .models import HouseKeepingLogs
 from rest_framework import serializers
 

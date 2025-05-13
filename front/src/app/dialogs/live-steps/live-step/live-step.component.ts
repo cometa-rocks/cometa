@@ -27,6 +27,7 @@ import { JsonViewerComponent } from 'app/views/json-view/json-view.component';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LetDirective } from '../../../directives/ng-let.directive';
+import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
 
 @UntilDestroy()
 @Component({
@@ -62,6 +63,7 @@ import { LetDirective } from '../../../directives/ng-let.directive';
     NgStyle,
     AsyncPipe,
     TitleCasePipe,
+    TruncateApiBodyPipe,
   ],
 })
 export class LiveStepComponent implements OnInit {

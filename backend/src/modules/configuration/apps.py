@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-08-09
+
 from django.apps import AppConfig
 
 

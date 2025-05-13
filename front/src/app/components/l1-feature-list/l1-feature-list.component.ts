@@ -17,7 +17,7 @@ import {
 } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { BehaviorSubject, Observable, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, switchMap, tap, filter, take } from 'rxjs';
 import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
 import { MatLegacyPaginator as MatPaginator } from '@angular/material/legacy-paginator';
 import { MatSort } from '@angular/material/sort';
@@ -63,6 +63,7 @@ import {
 import { MtxGridModule } from '@ng-matero/extensions/grid';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { map } from 'rxjs/operators';
+import { StarredService } from '@services/starred.service';
 
 
 @Component({
@@ -109,7 +110,8 @@ export class L1FeatureListComponent implements OnInit {
     private _dialog: MatDialog,
     private _api: ApiService,
     private _snackBar: MatSnackBar,
-    private log: LogService
+    private log: LogService,
+    private _starred: StarredService
   ) {}
 
   @Input() data$: any; // Contains the new structure of the features / folders
@@ -138,6 +140,7 @@ export class L1FeatureListComponent implements OnInit {
   columns = [
     { header: 'Options', field: 'reference' },
     { header: 'Type / Run', field: 'orderType', sortable: true },
+    { header: 'Starred', field: 'starred', sortable: true },
     { header: 'ID', field: 'id', sortable: true },
     {
       header: 'Name',
@@ -186,6 +189,8 @@ export class L1FeatureListComponent implements OnInit {
   isAnyFeatureRunning$: Observable<boolean>;
   public isAnyFeatureRunningMap: Map<number, Observable<boolean>> = new Map();
 
+  isStarred$: Observable<boolean>;
+  public isStarredMap: Map<number, Observable<boolean>> = new Map();
 
   ngOnInit() {
     this.log.msg('1', 'Initializing component...', 'feature-list');
@@ -207,8 +212,12 @@ export class L1FeatureListComponent implements OnInit {
       );
   
       this.isAnyFeatureRunningMap.set(folderId, isRunning$);
-    });
 
+      // Initialize isStarred$ for each row
+      if (row.type === 'feature') {
+        this.isStarredMap.set(row.id, this._starred.isStarred(row.id));
+      }
+    });
   }
 
   /**
@@ -441,5 +450,10 @@ export class L1FeatureListComponent implements OnInit {
   SAmoveFolder(folder: Folder) {
     this.log.msg('1', 'Moving folder...', 'feature-recent-list', folder);
     this._sharedActions.moveFolder(folder);
+  }
+
+  toggleStarred(event: Event, featureId: number, featureName: string): void {
+    event.stopPropagation();
+    this._sharedActions.toggleStarred(event, featureId, featureName);
   }
 }

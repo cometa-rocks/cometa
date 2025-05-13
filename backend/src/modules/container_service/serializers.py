@@ -1,3 +1,7 @@
+# author : Anand Kushwaha
+# version : 10.0.0
+# date : 2024-10-14
+
 from .models import ContainerService
 from rest_framework import serializers
 class ContainerServiceSerializer(serializers.ModelSerializer):
@@ -9,11 +13,13 @@ class ContainerServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContainerService
         # fields = '__all__'
-        fields = ['id', 'image', 'service_id', 'service_type', 'service_status', 'shared','apk_file', 'created_by',
-                  'hostname', 'capabilities','running','department_id','created_by_name' ]
+        fields = ['id', 'image', 'service_id','image_name','image_version', 'service_type', 'service_status', 'shared','apk_file', 'created_by',
+                  'hostname', 'capabilities','running','department_id', 'created_by_name', 'in_use' ]
         extra_kwargs = {
-            'image': {'required': True},
+            'image': {'required': False},
             'service_id': {'required': False},
+            'image_name': {'required': False},
+            'image_version': {'required': False},
             'service_type': {'required': True},
             'information': {'required': False},
             'created_by': {'required': True},

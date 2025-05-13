@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     nano \
     telnet \
     supervisor \
+    libgl1 \
     && apt-get purge -y --auto-remove exim* \
     && rm -rf /var/lib/apt/lists/*
 
