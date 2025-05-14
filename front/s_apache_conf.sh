@@ -25,36 +25,48 @@ else
 fi
 
 
-OPENIDC_TARGET="/usr/local/apache2/cometa_conf/openidc.conf"
 OPENIDC_SOURCE="/code/front/apache2/conf/openidc.conf"
+OPENIDC_DESTINATION="/usr/local/apache2/cometa_conf/openidc.conf"
 
-if [ ! -f "$OPENIDC_TARGET" ]; then
-  echo "\e[1;33m$OPENIDC_TARGET not found. Attempting to copy from $OPENIDC_SOURCE...\e[0m"
+if [ ! -f "$OPENIDC_DESTINATION" ]; then
+  echo "\e[1;33m$OPENIDC_DESTINATION not found. Attempting to copy from $OPENIDC_SOURCE...\e[0m"
 
-  cp "$OPENIDC_SOURCE" "$OPENIDC_TARGET"
+  cp "$OPENIDC_SOURCE" "$OPENIDC_DESTINATION"
   if [ $? -ne 0 ]; then
-    echo -e "\e[31mERROR: Failed to copy $OPENIDC_SOURCE to $OPENIDC_TARGET\e[0m"
+    echo -e "\e[31mERROR: Failed to copy $OPENIDC_SOURCE to $OPENIDC_DESTINATION\e[0m"
     exit 1
   else
-    echo "Successfully copied $OPENIDC_SOURCE to $OPENIDC_TARGET"
+    echo "Successfully copied $OPENIDC_SOURCE to $OPENIDC_DESTINATION"
   fi
 else
-  echo "$OPENIDC_TARGET already exists."
+  echo "$OPENIDC_DESTINATION already exists."
 fi
 
+#!/bin/bash
 
+MODULES_SOURCE="/code/front/apache2/modules/mod_auth_openidc.so"
+MODULES_DESTINATION="/usr/local/apache2/modules/mod_auth_openidc.so"
 
-MODULES_SOURCE="/code/front/apache2/modules"
-MODULES_DESTINATION="/usr/local/apache2/modules/"
+if [ ! -f "$MODULES_DESTINATION" ]; then
+    echo -e "\e[1;33m$MODULES_DESTINATION not found. Attempting to copy from $MODULES_SOURCE...\e[0m"
 
-cp -r "$MODULES_SOURCE"/* "$MODULES_DESTINATION/"
-if [ $? -ne 0 ]; then
-    echo -e "\e[31mERROR: Failed to copy apache modules from $MODULES_SOURCE to $MODULES_DESTINATION\e[0m"
-    exit 1
+    # Ensure source file exists and is not empty
+    if [ ! -s "$MODULES_SOURCE" ]; then
+        echo -e "\e[31mERROR: Source module $MODULES_SOURCE does not exist or is empty.\e[0m"
+        exit 1
+    fi
+
+    # Copy the single .so file
+    cp "$MODULES_SOURCE" "$MODULES_DESTINATION"
+    if [ $? -ne 0 ]; then
+        echo -e "\e[31mERROR: Failed to copy Apache module from $MODULES_SOURCE to $MODULES_DESTINATION\e[0m"
+        exit 1
+    else
+        echo -e "\e[32mSuccessfully copied $MODULES_SOURCE to $MODULES_DESTINATION\e[0m"
+    fi
 else
-    echo "Successfully copied $MODULES_SOURCE to $MODULES_DESTINATION"
+    echo -e "\e[32m$MODULES_DESTINATION already exists. Skipping copy.\e[0m"
 fi
-
 
 METADATA_SOURCE="/code/front/apache2/metadata"
 METADATA_DESTINATION="/usr/local/apache2/conf/metadata"
