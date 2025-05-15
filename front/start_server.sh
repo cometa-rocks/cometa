@@ -33,48 +33,57 @@ EOF
 # #########
 function check_ssl_certificate() {
 
-        echo -e "\e[37mChecking SSL certificate...\e[0m"
+    echo -e "\e[37mChecking SSL certificate...\e[0m"
 
-        # set cert file
-        CERTFILE="/share/apache2/certs/apache-self-signed.crt"
-        # set privkey file
-        PRIVKEY="/share/apache2/certs/apache-self-signed.key"
+    # set cert file
+    CERTFILE="/share/apache2/certs/apache-self-signed.crt"
+    # set privkey file
+    PRIVKEY="/share/apache2/certs/apache-self-signed.key"
+    # get directory path
+    CERTDIR=$(dirname "$CERTFILE")
 
-        # check if all three files exist
-        test ! -f ${CERTFILE} && CREATE_NEW=TRUE
-        test ! -f ${PRIVKEY} && CREATE_NEW=TRUE
+    # check if certificate directory is writable
+    if [ ! -w "$CERTDIR" ]; then
+        echo -e "\e[31mError: Directory '$CERTDIR' is not writable. Cannot proceed.\e[0m"
+        exit 1
+    fi
 
-        # check if we need to create a new SSL certificate
-        if [[ "${CREATE_NEW:-FALSE}" == "FALSE" ]]; then
-                echo "SSL certificate exists ... checking expiration date"
+    # check if cert/key files exist
+    CREATE_NEW=FALSE
+    [ ! -f "$CERTFILE" ] && CREATE_NEW=TRUE
+    [ ! -f "$PRIVKEY" ] && CREATE_NEW=TRUE
 
-                # check the expiration date for the cert file
-                EXPIRATION_DATE_CERT=`date --date="$(openssl x509 -enddate -noout -in $CERTFILE |cut -d= -f 2)" +"%s"`
-                # get current date
-                CURRENT_DATE=`date +"%s"`
-                # date difference between two dates
-                DIFFERENCE_BETWEEN=$(($EXPIRATION_DATE_CERT-$CURRENT_DATE))
+    if [[ "$CREATE_NEW" == "FALSE" ]]; then
+        echo "SSL certificate exists ... checking expiration date"
 
-                echo "SSL certificate expires on:" $(date -d @${EXPIRATION_DATE_CERT} +"%Y-%m-%d")
+        EXPIRATION_DATE_CERT=$(date --date="$(openssl x509 -enddate -noout -in "$CERTFILE" | cut -d= -f2)" +"%s")
+        CURRENT_DATE=$(date +"%s")
+        DIFFERENCE_BETWEEN=$((EXPIRATION_DATE_CERT - CURRENT_DATE))
 
-                # number of days difference before considering it exipired
-                DAYS_DIFFERENCE="10"
-                # days difference in seconds
-                DAYS_DIFFERENCE_SECONDS=$(($DAYS_DIFFERENCE*24*60*60))
-                # check if certificate is valid
-                if [[ $DIFFERENCE_BETWEEN -gt $DAYS_DIFFERENCE_SECONDS ]]; then
-                        echo "SSL Certificate is valid ... meaning it's not expiring in ${DAYS_DIFFERENCE} days."
-                        # do nothing certificate is valid
-                        return
-                fi
+        echo "SSL certificate expires on:" $(date -d @"$EXPIRATION_DATE_CERT" +"%Y-%m-%d")
+
+        DAYS_DIFFERENCE=10
+        DAYS_DIFFERENCE_SECONDS=$((DAYS_DIFFERENCE * 24 * 60 * 60))
+
+        if [[ $DIFFERENCE_BETWEEN -gt $DAYS_DIFFERENCE_SECONDS ]]; then
+            echo "SSL Certificate is valid ... meaning it's not expiring in $DAYS_DIFFERENCE days."
+            return
         fi
+    fi
 
-        echo "Generating a new certificate..."
-        # generate a new certificate
-        openssl req -days 365 -nodes -x509 -newkey rsa:4096 -keyout ${PRIVKEY} -out ${CERTFILE} -sha256 -days 365 -subj '/CN=localhost'
+    echo "Generating a new certificate..."
+    openssl req -days 365 -nodes -x509 -newkey rsa:4096 \
+        -keyout "$PRIVKEY" -out "$CERTFILE" -sha256 \
+        -subj "/CN=localhost"
 
-        echo -e "\e[32mOK\e[0m"
+    if [[ $? -eq 0 ]]; then
+        echo -e "\e[32mCertificate generation successful.\e[0m"
+    else
+        echo -e "\e[31mFailed to generate certificate.\e[0m"
+        exit 1
+    fi
 }
+
 
 
 check_ssl_certificate

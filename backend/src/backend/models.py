@@ -1001,6 +1001,7 @@ step_type_choices = (
 class Step_result(models.Model):
     step_result_id = models.AutoField(primary_key=True)
     feature_result_id = models.IntegerField()
+    step_execution_sequence = models.IntegerField(default=0)
     step_name = models.TextField()
     execution_time = models.IntegerField(default=0)
     relative_execution_time = models.IntegerField(default=0)
@@ -1532,6 +1533,12 @@ class UsageInvoice(models.Model):
     modified_on = models.DateTimeField(auto_now=True, editable=True, null=False, blank=False, help_text='When was the latest modification')
     error = models.TextField(help_text='If there was an error during payment, it will appear here')
 
+file_types = (
+    ('datadriven','datadriven'),
+    ('normal','normal')
+    # ('property','property') 
+    )
+
 # stores uploaded files data
 class File(SoftDeletableModel):
     id = models.AutoField(primary_key=True)
@@ -1544,6 +1551,7 @@ class File(SoftDeletableModel):
     md5sum = models.CharField(max_length=255)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="files")
     status = models.CharField(max_length=10, choices=file_status, default="Unknown")
+    file_type = models.CharField(max_length=20, choices=file_types, default="normal")
     uploaded_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True)
     extras = models.JSONField(default=dict)
     column_order = models.JSONField(default=list, null=True, help_text='Original column order from the file')

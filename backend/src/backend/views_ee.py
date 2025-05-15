@@ -310,3 +310,13 @@ def get_versions(request):
             'message': f'Error reading version: {str(e)}'
         }, status=500)
     
+    
+# /api/check_and_update_file_type
+@csrf_exempt
+def check_and_update_file_type():
+    # FIXME need to implement this method based on given comments
+    pass
+    # Iterate over the all of the excel files, read the sheet and look for column,
+    # if column name contains the feature_id, feature_name then mark file_type fields as a 'datadriven' otherwise normal file
+    # check for all sheets in the all excel files
+    # any othertype of file which is not excel, file_type should be marked as 'normal'
