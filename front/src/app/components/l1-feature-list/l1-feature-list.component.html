@@ -144,7 +144,7 @@ Author: dph000
       <span>Schedule Deletion</span>
     </button>
     <!-- Show deletion countdown if feature is scheduled for deletion -->
-    <ng-container *ngIf="deletionStatusMap.get(row.id) | async as deletionStatus">
+    <!-- <ng-container *ngIf="deletionStatusMap.get(row.id) | async as deletionStatus">
       <div *ngIf="deletionStatus" class="deletion-countdown">
         <mat-icon>timer</mat-icon>
         <span>{{ getDaysRemaining(deletionStatus.deletion_date) }} days until deletion</span>
@@ -158,7 +158,7 @@ Author: dph000
           <span>Cancel</span>
         </button>
       </div>
-    </ng-container>
+    </ng-container> -->
   </mat-menu>
   <!-- Menu to manage folder -->
   <mat-menu class="folderOptionsMenu" #folderOptions="matMenu">

@@ -219,7 +219,9 @@ export class L1LandingComponent implements OnInit {
               item.marked_for_deletion === true)
           );
           
-          this.table_of_items = filteredRows;
+          this.table_of_items = filteredRows; 
+
+          
           this.table_of_items.sort((itemA, itemB) => {
             const nameA = itemA.name.toLowerCase();
             const nameB = itemB.name.toLowerCase();
@@ -238,6 +240,7 @@ export class L1LandingComponent implements OnInit {
         console.error('Error fetching data:', error);
       }
     );
+
 
     this.log.msg('1', 'Initializing component...', 'landing');
     // #3414 -------------------------------------------------start
