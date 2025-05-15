@@ -226,6 +226,7 @@ interface Feature {
   need_help: boolean;
   current_folder_id?: number;
   marked_for_deletion?: boolean;
+  marked_for_deletion_date?: string;
 }
 
 interface FeatureRun {

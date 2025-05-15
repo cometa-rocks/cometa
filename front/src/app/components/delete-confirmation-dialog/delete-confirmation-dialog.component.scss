@@ -3,6 +3,8 @@
 :host {
   display: block;
   padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .dialog-title {
@@ -15,6 +17,14 @@
 .dialog-content {
   margin-bottom: 20px;
   color: rgba(0, 0, 0, 0.87);
+  width: 100%;
+  box-sizing: border-box;
+
+  .warning-text {
+    display: flex;
+    align-items: center;
+    margin-top: 16px;
+  }
 }
 
 mat-dialog-actions {
@@ -22,8 +32,24 @@ mat-dialog-actions {
   justify-content: flex-end;
   gap: 8px;
   padding: 8px 0;
+  width: 100%;
+  box-sizing: border-box;
   
   button {
     font-weight: 500;
+    
+    mat-icon {
+      margin-right: 8px;
+      vertical-align: middle;
+    }
   }
+}
+
+.warning-icon {
+  color: $remove;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  margin-right: 8px;
 } 

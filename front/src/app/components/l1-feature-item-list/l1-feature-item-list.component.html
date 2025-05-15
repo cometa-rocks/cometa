@@ -169,15 +169,15 @@ Author: dph000
           <div
             class="star-feature-in-feature"
             [ngClass]="{
-              'days-safe': (30 - getDaysSinceMarked(item.marked_for_deletion_date)) > 20,
-              'days-warning': (30 - getDaysSinceMarked(item.marked_for_deletion_date)) <= 20 && (30 - getDaysSinceMarked(item.marked_for_deletion_date)) > 10,
-              'days-danger': (30 - getDaysSinceMarked(item.marked_for_deletion_date)) <= 10 && (30 - getDaysSinceMarked(item.marked_for_deletion_date)) > 5,
-              'days-critical': (30 - getDaysSinceMarked(item.marked_for_deletion_date)) <= 5
+              'days-safe': getDaysSinceMarked(item.marked_for_deletion_date) > 20,
+              'days-warning': getDaysSinceMarked(item.marked_for_deletion_date) <= 20 && getDaysSinceMarked(item.marked_for_deletion_date) > 10,
+              'days-danger': getDaysSinceMarked(item.marked_for_deletion_date) <= 10 && getDaysSinceMarked(item.marked_for_deletion_date) > 5,
+              'days-critical': getDaysSinceMarked(item.marked_for_deletion_date) <= 5
             }"
-            [matTooltip]="'trashbin.deletion_countdown' | translate:{ days: (30 - getDaysSinceMarked(item.marked_for_deletion_date)) }"
+            [matTooltip]="'trashbin.deletion_countdown' | translate:{ days: getDaysSinceMarked(item.marked_for_deletion_date) }"
             matTooltipPosition="above">
             <i class="material-icons">timer</i>
-            <span class="days-remaining">{{ 30 - getDaysSinceMarked(item.marked_for_deletion_date) }} days remaining</span>
+            <span class="days-remaining">{{ getDaysSinceMarked(item.marked_for_deletion_date) }} days remaining</span>
           </div>
         </ng-container>
 

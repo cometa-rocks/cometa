@@ -32,7 +32,10 @@ export class RestoreConfirmationDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<RestoreConfirmationDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
-  ) {}
+  ) {
+    // Set dialog width
+    dialogRef.updateSize('600px');
+  }
 
   onConfirm(): void {
     this.dialogRef.close(true);
