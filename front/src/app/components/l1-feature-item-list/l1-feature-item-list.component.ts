@@ -471,6 +471,11 @@ export class L1FeatureItemListComponent implements OnInit {
           }
         });
         
+        // Actualizar el item localmente
+        if (item.reference) {
+          item.reference.marked_for_deletion = true;
+        }
+        
         // Programar la eliminación usando el servicio
         this._sharedActions.scheduleDeletion(item.id);
         this._snackBar.open('Feature scheduled for deletion', 'OK', { duration: 2000 });
@@ -486,6 +491,12 @@ export class L1FeatureItemListComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         try {
+          // Actualizar el estado local del item
+          if (this.item.reference) {
+            this.item.reference.marked_for_deletion = false;
+            this.item.reference.marked_for_deletion_date = null;
+          }
+          
           this._sharedActions.restoreFeature(featureId);
           this._snackBar.open('Feature restored successfully', 'OK', { duration: 2000 });
         } catch (error) {
@@ -506,11 +517,55 @@ export class L1FeatureItemListComponent implements OnInit {
   }
 
   getDaysSinceMarked(date: string): number {
-    if (!date) return 0;
-    const markedDate = new Date(date);
-    const today = new Date();
-    const diffTime = Math.abs(today.getTime() - markedDate.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    // Si no estamos en el trashbin, retornamos 0 sin hacer cálculos
+    if (!this.isTrashbin) {
+      return 0;
+    }
+
+    // console.log('getDaysSinceMarked called with date:', date);
+    // console.log('Current item:', JSON.stringify(this.item, null, 2));
+    
+    // Usar marked_for_deletion_date del item si está disponible
+    const deletionDate = this.item.reference.marked_for_deletion_date || date;
+
+    console.log('deletionDate:', deletionDate);
+    
+    if (!deletionDate) {
+      console.log('No date provided, returning 0');
+      return 0;
+    }
+    
+    try {
+      const markedDate = new Date(deletionDate);
+      const today = new Date();
+      
+      // Validate if the date is valid
+      if (isNaN(markedDate.getTime())) {
+        console.error('Invalid date provided:', deletionDate);
+        return 0;
+      }
+      
+      // Ajustar las fechas para que solo consideren el día (sin horas/minutos/segundos)
+      markedDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      
+      const diffTime = today.getTime() - markedDate.getTime();
+      const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      console.log('days:', days);
+      const remainingDays = Math.max(0, 30 - days); // Período normal de 30 días
+      
+      console.log('Días transcurridos:', days, 'Días restantes:', remainingDays);
+      
+      // Si los días restantes son 0, ejecutar la eliminación permanente
+      if (remainingDays <= 0) {
+        this.deleteFeature(this.item.id);
+      }
+      
+      return remainingDays;
+    } catch (error) {
+      console.error('Error calculating days:', error);
+      return 0;
+    } 
   }
 }
 

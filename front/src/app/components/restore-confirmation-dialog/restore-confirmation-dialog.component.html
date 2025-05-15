@@ -1,8 +1,7 @@
-
-<h2 mat-dialog-title>Restore Feature</h2>
-<mat-dialog-content>
+<h2 mat-dialog-title class="dialog-title">Restore Feature</h2>
+<mat-dialog-content class="dialog-content">
   <!-- <mat-icon class="warning-icon">restore</mat-icon> -->
-  <p>Are you sure you want to restore this feature? This feature will be permanently deleted in 30 days.</p>
+  <p>Are you sure you want to restore this feature? This will cancel the scheduled deletion and make the feature available again.</p>
 </mat-dialog-content>
 <mat-dialog-actions>
   <button
@@ -16,7 +15,7 @@
     mat-stroked-button
     color="primary" 
     (click)="onConfirm()">
-    <mat-icon>restore</mat-icon>
+    <mat-icon class="warning-icon">restore</mat-icon>
     Restore
   </button>
 </mat-dialog-actions>

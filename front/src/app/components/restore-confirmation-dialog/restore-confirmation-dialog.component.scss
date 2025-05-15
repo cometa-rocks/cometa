@@ -1,13 +1,48 @@
 @import 'color';
 
-.warning-icon {
-  color: $blue;
-  margin-right: 10px;
-  font-size: 24px;
-  width: 24px;
-  height: 24px;
+:host {
+  display: block;
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-::ng-deep .cdk-overlay-pane {
-  width: 600px !important;
+.dialog-title {
+  color: $blue;
+  margin-bottom: 20px;
+  font-size: 1.2em;
+  font-weight: 500;
+}
+
+.dialog-content {
+  margin-bottom: 20px;
+  color: rgba(0, 0, 0, 0.87);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+mat-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px 0;
+  width: 100%;
+  box-sizing: border-box;
+  
+  button {
+    font-weight: 500;
+    
+    mat-icon {
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+  }
+}
+
+.warning-icon {
+  color: $blue;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
 }

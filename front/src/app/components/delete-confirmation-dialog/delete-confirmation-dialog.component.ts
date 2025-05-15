@@ -30,6 +30,9 @@ export class DeleteConfirmationDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private _translate: TranslateService
   ) {
+    // Set dialog width
+    dialogRef.updateSize('600px');
+
     // Check if passed data needs to be translated
     if (this.data) {
       for (const key in this.data) {

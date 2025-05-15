@@ -814,6 +814,7 @@ class Feature(models.Model):
     continue_on_failure = models.BooleanField(default=False)
     need_help = models.BooleanField(default=False)
     marked_for_deletion = models.BooleanField(default=False)
+    marked_for_deletion_date = models.DateTimeField(null=True, blank=True, default=datetime.datetime.utcnow)
     info = models.ForeignKey('Feature_Runs', on_delete=models.SET_NULL, null=True, default=None, related_name='info')
     readonly_fields=('feature_id',)
 
