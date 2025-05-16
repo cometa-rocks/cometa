@@ -735,7 +735,8 @@ export class SharedActionsService {
 
   restoreFeature(featureId: number) {
     return this._api.patchFeature(featureId, {
-      marked_for_deletion: false
+      marked_for_deletion: false,
+      marked_for_deletion_date: null
     }, {
       loading: 'Restoring feature'
     }).pipe(
