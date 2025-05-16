@@ -23,6 +23,7 @@ import { SharedActionsService } from '@services/shared-actions.service';
 import { L1FeatureItemListComponent } from '../l1-feature-item-list/l1-feature-item-list.component';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'cometa-l1-feature-trashbin-list',
@@ -50,7 +51,7 @@ export class L1FeatureTrashbinListComponent implements OnInit {
 
   constructor(
     private _sharedActions: SharedActionsService,
-    private store: Store
+    private store: Store,
   ) {}
 
   ngOnInit(): void {
