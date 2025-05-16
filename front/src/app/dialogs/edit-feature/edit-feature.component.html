@@ -627,7 +627,7 @@
           [disabled]="saving"
           mat-stroked-button
           class="submit"
-          (click)="data.mode === 'new' ? handleCreate() : editOrCreate()">
+          (click)="editOrCreate()">
           <ng-container *ngIf="data.mode === 'new'; else editText"
             >CREATE</ng-container
           >
