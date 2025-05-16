@@ -31,7 +31,7 @@ import { ViewSelectSnapshot } from '@ngxs-labs/select-snapshot';
 import { Configuration } from '@store/actions/config.actions';
 import { UntilDestroy, untilDestroyed } from '@ngneat/until-destroy';
 import { SharedActionsService } from '@services/shared-actions.service';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, BehaviorSubject } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { LogService } from '@services/log.service';
 import { User } from '@store/actions/user.actions';
@@ -201,46 +201,28 @@ export class L1LandingComponent implements OnInit {
   keyboardEventActive = false;
   markedFeatures: any[] = [];
 
+  // Add this property
+  tableData$ = new BehaviorSubject<any>({ rows: [] });
+  markedFeatures$ = this._sharedActions.getMarkedForDeletionFeatures();
+
   ngOnInit() {    
-    this.data$.subscribe(
-      (data) => {
-        console.log('=== Landing Component Data Debug ===');
-        if (data && data.rows) {
-          // Get features marked for deletion
-          this.markedFeatures = data.rows.filter(item => 
-            item.reference?.marked_for_deletion === true || 
-            item.marked_for_deletion === true
-          );
-          console.log('Marked for deletion:', this.markedFeatures);
-
-          // Filter out items marked for deletion for the main view
-          const filteredRows = data.rows.filter(item => 
-            !(item.reference?.marked_for_deletion === true || 
-              item.marked_for_deletion === true)
-          );
-          
-          this.table_of_items = filteredRows; 
-
-          
-          this.table_of_items.sort((itemA, itemB) => {
-            const nameA = itemA.name.toLowerCase();
-            const nameB = itemB.name.toLowerCase();
-            // if feature types are the same, sort
-            if(itemA.type === itemB.type){
-              return nameA.localeCompare(nameB); 
-            }
-            else{
-              // When all is sorted, we sort first features f'e'.. first f'o'..second
-              return itemA.type === "feature" ? -1 : 1;
-            }
+    this.data$.subscribe(data => {
+      console.log('=== Landing Component Data Debug ===');
+      console.log('Data received:', data);
+      if (data?.rows) {
+        console.log('Number of rows:', data.rows.length);
+        data.rows.forEach(row => {
+          console.log('Row:', {
+            name: row.name,
+            id: row.id,
+            type: row.type,
+            reference: row.reference,
+            marked_for_deletion: row.reference?.marked_for_deletion
           });
-        }
-      },
-      (error) => {
-        console.error('Error fetching data:', error);
+        });
       }
-    );
-
+      this.tableData$.next(data);
+    });
 
     this.log.msg('1', 'Initializing component...', 'landing');
     // #3414 -------------------------------------------------start

@@ -144,7 +144,8 @@ Author: dph000
                 <ng-container *ngIf="itemsViewWith === 'list'; else treeView">
                   <cometa-l1-feature-list
                     (closeAdd)="closeAdd()"
-                    [data$]="table"></cometa-l1-feature-list>
+                    [data$]="tableData$">
+                  </cometa-l1-feature-list>
                 </ng-container>
               </ng-template>
               <!-- Feature list with tree view -->
@@ -313,7 +314,7 @@ Author: dph000
         [filters$]="filters$ | async">
       </cometa-l1-filter>
       <cometa-l1-feature-trashbin-list
-        [data$]="markedFeatures">
+        [data$]="markedFeatures$ | async">
       </cometa-l1-feature-trashbin-list>
     </ng-container>
   </div>

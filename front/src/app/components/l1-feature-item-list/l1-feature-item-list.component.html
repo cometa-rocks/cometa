@@ -339,7 +339,7 @@ Author: dph000
           <button
             type="button"
             *ngIf="(canDeleteFeature$ | async) && !isTrashbin"
-            (click)="openDeleteConfirmationDialog(item)"
+            (click)="_sharedActions.openDeleteConfirmationDialog(item)"
             matTooltip="Schedule deletion of {{ item.name }}"
             matTooltipPosition="before"
             class="delete-feature"
