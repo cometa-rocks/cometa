@@ -5,7 +5,7 @@
  *
  * @author dph000
  */
-import { Component, OnInit, Input, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Input, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Store } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { Observable, switchMap, tap, map, filter, take } from 'rxjs';
@@ -79,7 +79,7 @@ import { RestoreConfirmationDialogComponent } from '../restore-confirmation-dial
     MatLegacyProgressSpinnerModule,
   ],
 })
-export class L1FeatureItemListComponent implements OnInit {
+export class L1FeatureItemListComponent implements OnInit, OnDestroy {
   constructor(
     private _router: NavigationService,
     private _store: Store,
@@ -120,6 +120,10 @@ export class L1FeatureItemListComponent implements OnInit {
   departmentFolders$: Observable<Folder[]>;
   isStarred$: Observable<boolean>;
   
+  private deletionCheckInterval: any;
+  private readonly CHECK_INTERVAL = 1000; // Check every second
+  private readonly WARNING_THRESHOLD = 5; // Show warning when less than 5 seconds remaining
+  private readonly EXPIRATION_TIME = 10; // Feature will be deleted after 10 seconds
 
   // NgOnInit
   ngOnInit() {
@@ -179,6 +183,51 @@ export class L1FeatureItemListComponent implements OnInit {
     });
 
     this.isStarred$ = this.starredService.isStarred(this.feature_id);
+
+    // Start periodic check for expired features
+    if (this.isTrashbin) {
+      this.startDeletionCheck();
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.deletionCheckInterval) {
+      clearInterval(this.deletionCheckInterval);
+    }
+  }
+
+  private startDeletionCheck() {
+    // Initial check
+    this.checkFeatureExpiration();
+    
+    // Set up periodic check
+    this.deletionCheckInterval = setInterval(() => {
+      this.checkFeatureExpiration();
+    }, this.CHECK_INTERVAL);
+  }
+
+  private checkFeatureExpiration() {
+    if (!this.isTrashbin || !this.item) {
+      console.log('[Expiration Check] Skipping - isTrashbin:', this.isTrashbin, 'item exists:', !!this.item);
+      return;
+    }
+    
+    const remainingSeconds = this.getDaysSinceMarked(this.item.marked_for_deletion_date);
+    console.log('[Expiration Check] Remaining seconds:', remainingSeconds);
+    
+    // Mostrar notificación cuando queden pocos segundos
+    if (remainingSeconds <= 0) {
+      console.log('[Expiration Check] Feature has expired, triggering deletion:', this.item.id);
+      this._snackBar.open(`Feature ${this.item.name} (ID: ${this.item.id}) will be deleted in 5 seconds...`, 'OK', { duration: 5000 });
+      
+      // Esperar 5 segundos antes de eliminar para que el usuario pueda ver la notificación
+      setTimeout(() => {
+        this.checkAndDeleteExpiredFeature();
+      }, 5000);
+    } else if (remainingSeconds <= this.WARNING_THRESHOLD) {
+      // Mostrar advertencia cuando queden pocos segundos
+      this._snackBar.open(`Feature ${this.item.name} (ID: ${this.item.id}) will be deleted in ${remainingSeconds} seconds`, 'OK', { duration: 1000 });
+    }
   }
 
   async goLastRun() {
@@ -523,19 +572,19 @@ export class L1FeatureItemListComponent implements OnInit {
   getDaysSinceMarked(date: string): number {
     // Si no estamos en el trashbin, retornamos 0 sin hacer cálculos
     if (!this.isTrashbin) {
+      console.log('[Days Calculation] Not in trashbin, returning 0');
       return 0;
     }
-
-    // console.log('getDaysSinceMarked called with date:', date);
-    // console.log('Current item:', JSON.stringify(this.item, null, 2));
     
-    // Usar marked_for_deletion_date del item si está disponible
-    const deletionDate = this.item.reference.marked_for_deletion_date || date;
-
-    // console.log('deletionDate:', deletionDate);
+    // Intentar obtener la fecha de diferentes ubicaciones posibles
+    const deletionDate = this.item?.marked_for_deletion_date || 
+                        this.item?.reference?.marked_for_deletion_date || 
+                        date;
+    
+    console.log('[Days Calculation] Using deletion date:', deletionDate);
     
     if (!deletionDate) {
-      // console.log('No date provided, returning 0');
+      console.log('[Days Calculation] No deletion date found for feature:', this.item?.id);
       return 0;
     }
     
@@ -545,31 +594,74 @@ export class L1FeatureItemListComponent implements OnInit {
       
       // Validate if the date is valid
       if (isNaN(markedDate.getTime())) {
-        console.error('Invalid date provided:', deletionDate);
+        console.error('[Days Calculation] Invalid date provided:', deletionDate);
         return 0;
       }
       
-      // Ajustar las fechas para que solo consideren el día (sin horas/minutos/segundos)
-      markedDate.setHours(0, 0, 0, 0);
-      today.setHours(0, 0, 0, 0);
-      
+      // Calcular la diferencia en segundos en lugar de días
       const diffTime = today.getTime() - markedDate.getTime();
-      const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      // console.log('days:', days);
-      const remainingDays = Math.max(0, 30 - days); // Período normal de 30 días
+      const seconds = Math.ceil(diffTime / 1000);
+      const remainingSeconds = Math.max(0, this.EXPIRATION_TIME - seconds); // Período de 10 segundos
       
-      // console.log('Días transcurridos:', days, 'Días restantes:', remainingDays);
+      console.log('[Days Calculation] Results:', {
+        markedDate: markedDate.toISOString(),
+        today: today.toISOString(),
+        secondsPassed: seconds,
+        remainingSeconds: remainingSeconds
+      });
       
-      // Si los días restantes son 0, ejecutar la eliminación permanente
-      if (remainingDays <= 0) {
-        this.deleteFeature(this.item.id);
-      }
-      
-      return remainingDays;
+      return remainingSeconds;
     } catch (error) {
-      console.error('Error calculating days:', error);
+      console.error('[Days Calculation] Error calculating time for feature:', this.item?.id, error);
       return 0;
     } 
+  }
+
+  private isDeleting = false;
+
+  private checkAndDeleteExpiredFeature() {
+    // Evitar múltiples llamadas simultáneas
+    if (this.isDeleting) {
+      console.log('[Delete Check] Feature deletion already in progress:', this.item?.id);
+      return;
+    }
+
+    this.isDeleting = true;
+    console.log('[Delete Check] Starting deletion process for feature:', this.item?.id);
+    
+    // Verificar que el feature aún existe y está marcado para eliminación
+    if (this.item?.reference?.marked_for_deletion) {
+      console.log('[Delete Check] Feature is marked for deletion, proceeding with deletion:', this.item?.id);
+      
+      try {
+        // Llamar directamente al API para eliminar el feature sin mostrar diálogo
+        console.log('[Delete Check] Calling API to delete feature:', this.item?.id);
+        this._api.deleteFeature(this.item.id).subscribe(
+          () => {
+            console.log('[Delete Check] API call successful, feature deleted:', this.item?.id);
+            this._snackBar.open(`Feature ${this.item.name} (ID: ${this.item.id}) has been deleted`, 'OK', { duration: 3000 });
+            // Actualizar la lista de features
+            console.log('[Delete Check] Dispatching GetFeatures to refresh the list');
+            this._store.dispatch(new Features.GetFeatures());
+          },
+          error => {
+            console.error('[Delete Check] API call failed to delete feature:', this.item?.id, error);
+            this._snackBar.open(`Error deleting feature ${this.item.name} (ID: ${this.item.id})`, 'OK', { duration: 3000 });
+          },
+          () => {
+            console.log('[Delete Check] API call completed, resetting isDeleting flag');
+            this.isDeleting = false;
+          }
+        );
+      } catch (error) {
+        console.error('[Delete Check] Exception while trying to delete feature:', this.item?.id, error);
+        this._snackBar.open(`Error deleting feature ${this.item.name} (ID: ${this.item.id})`, 'OK', { duration: 3000 });
+        this.isDeleting = false;
+      }
+    } else {
+      console.log('[Delete Check] Feature is not marked for deletion or reference is missing:', this.item?.id);
+      this.isDeleting = false;
+    }
   }
 }
 
