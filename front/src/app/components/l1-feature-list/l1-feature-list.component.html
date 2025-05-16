@@ -6,424 +6,413 @@ Author: dph000
 
 -->
 <!-- Newer datatable -->
-<ng-container *ngLet="data$ as table">
-  <div class="table_container">
-    <!-- 
-      Mtx-grid datatable template
-      Old rowClick:
-         (rowClick)="closeAddButtons($event.rowData)"
-    -->
-    <mtx-grid
-      [data]="table.rows"
-      [columns]="columns"
-      [showToolbar]="true"
-      [sortOnFront]="true"
-      [sortDisableClear]="true"
-      [sortDisabled]="false"
-      [pageSize]="featuresPagination$ | async"
-      [sortActive]="getSavedSort('active')"
-      [sortDirection]="getSavedSort('direction')"
-      [multiSelectable]="multiSelectable"
-      [rowSelectable]="rowSelectable"
-      [columnHideable]="columnHideable"
-      [columnHideableChecked]="columnHideableChecked"
-      [hideRowSelectionCheckbox]="hideRowSelectionCheckbox"
-      [columnMovable]="columnMovable"
-      [showColumnMenuHeader]="true"
-      [columnMenuHeaderText]="'Columns Settings'"
-      (columnChange)="saveColumnSettings($event)"
-      sortStart="asc"
-      (rowClick)="openContent($event.rowData)"
-      (page)="storePagination($event)"
-      (sortChange)="saveSort($event)"
-      [cellTemplate]="{
-        orderType: runningTpl,
-        starred: starredTpl,
-        id: idTpl,
-        name: nameTpl,
-        status: statusTpl,
-        date: dateTpl,
-        time: timeTpl,
-        total: totalTpl,
-        ok: okTpl,
-        fails: failsTpl,
-        department: departmentTpl,
-        app: applicationTpl,
-        environment: environmentTpl,
-        browsers: browsersTpl,
-        schedule: scheduleTpl,
-        reference: optionsTpl
-      }"
-      [pageSizeOptions]="[10, 25, 50, 100, 200]">
-    </mtx-grid>
-  </div>
-</ng-container>
-
-<!-- List of templates for each column used in mtx-grid -->
-
-<!-- Options button for the feature -->
-<ng-template #optionsTpl let-row let-index="index" let-col="colDef">
-  <!-- Button to open folder / feature manage menu -->
-  <button
-    stopPropagation
-    [matMenuTriggerFor]="
-      row.type === 'feature' ? featureOptions : folderOptions
-    "
-    mat-icon-button>
-    <mat-icon>more_vert</mat-icon>
-  </button>
-  <!-- Menu to manage feature -->
-  <mat-menu class="feature-options" #featureOptions="matMenu" xPosition="after">
-    <!-- Edit feature -->
-    <button
-      *ngIf="row.id | hasPermission: 'edit_feature' | async"
-      (click)="SAopenEditFeature(row.id, 'edit')"
-      matTooltip="Edit {{ row.name }} steps"
-      matTooltipPosition="before"
-      class="modify-feature"
-      mat-menu-item>
-      <mat-icon>edit</mat-icon>
-      <span>Modify</span>
-    </button>
-    <mat-divider></mat-divider>
-    <!-- Star feature -->
-    <button
-      mat-menu-item
-      (click)="toggleStarred($event, row.id, row.name)"
-      class="star-feature">
-      <mat-icon>{{ (isStarredMap.get(row.id) | async) ? 'star' : 'star_border' }}</mat-icon>
-      <span>{{ (isStarredMap.get(row.id) | async) ? 'Starred' : 'Star' }}</span>
-    </button>
-    <mat-divider></mat-divider>
-    <!-- Clone feature -->
-    <button
-      *ngIf="row.id | hasPermission: 'create_feature' | async"
-      (click)="SAopenEditFeature(row.id, 'clone')"
-      matTooltip="Clone {{ row.name }}"
-      matTooltipPosition="before"
-      class="modify-feature"
-      mat-menu-item>
-      <mat-icon>content_copy</mat-icon>
-      <span>Clone</span>
-    </button>
-    <!-- Move feature -->
-    <button
-      (click)="SAmoveFeature(row.reference)"
-      matTooltip="Move {{ row.name }}"
-      matTooltipPosition="before"
-      class="move-feature"
-      mat-menu-item>
-      <mat-icon>folder</mat-icon>
-      <span>Move</span>
-    </button>
-    <mat-divider></mat-divider>
-    <!-- Ask for help checkbox -->
-    <button
-      stopPropagation
-      mat-menu-item
-      *ngIf="row.id | hasPermission: 'create_feature' | async">
-      <mat-checkbox
-        [checked]="row.help"
-        (change)="SAhandleSetting(row.id, 'need_help', $event)"
-        color="primary"
-        [matTooltip]="'need_help.explanation' | translate"
-        matTooltipPosition="after"
-        >{{ 'need_help.ask_for' | translate }}</mat-checkbox
-      >
-    </button>
-    <mat-divider></mat-divider>
-    <!-- Delete feature -->
-    <button
-      *ngIf="row.id | hasPermission: 'delete_feature' | async"
-      (click)="scheduleDeletion(row.id)"
-      matTooltip="Schedule deletion of {{ row.name }}"
-      matTooltipPosition="before"
-      class="delete-feature"
-      mat-menu-item>
-      <mat-icon>delete</mat-icon>
-      <span>Schedule Deletion</span>
-    </button>
-    <!-- Show deletion countdown if feature is scheduled for deletion -->
-    <!-- <ng-container *ngIf="deletionStatusMap.get(row.id) | async as deletionStatus">
-      <div *ngIf="deletionStatus" class="deletion-countdown">
-        <mat-icon>timer</mat-icon>
-        <span>{{ getDaysRemaining(deletionStatus.deletion_date) }} days until deletion</span>
-        <button
-          (click)="cancelDeletion(row.id)"
-          matTooltip="Cancel deletion"
-          matTooltipPosition="before"
-          class="cancel-deletion"
-          mat-menu-item>
-          <mat-icon>undo</mat-icon>
-          <span>Cancel</span>
-        </button>
-      </div>
-    </ng-container> -->
-  </mat-menu>
-  <!-- Menu to manage folder -->
-  <mat-menu class="folderOptionsMenu" #folderOptions="matMenu">
-    <!-- Run all features -->
-    <div
-      *ngIf="isAnyFeatureRunningMap.get(row.reference.folder_id) | async; else showRunAllButton"
-      class="folder-running"
-      [matTooltip]="'tooltips.run_feature' | translate"
-      matTooltipPosition="after"
-      stopPropagation>
-      <mat-spinner
-        class="item-loader"
-        diameter="18"></mat-spinner>
-      <span> Features running </span>
-    </div>
-    <ng-template #showRunAllButton>
-      <button
-        (click)="_sharedActions.runAllFeatures(row.reference)"
-        class="run-feature"
-        [matTooltip]="'tooltips.run_all_features' | translate"
-        matTooltipPosition="after"
-        mat-menu-item>
-        <mat-icon>play_circle_filled</mat-icon>
-        <span>Run all features</span>
-      </button>
-    </ng-template>
-    <mat-divider></mat-divider>
-    <!-- Open the folder -->
-    <button (click)="goFolder(row.reference, row.route)" mat-menu-item>
-      <mat-icon>folder_open</mat-icon>
-      <span>Open</span>
-    </button>
-    <!-- Edit folder -->
-    <button (click)="modify(row.reference)" mat-menu-item>
-      <mat-icon>edit</mat-icon>
-      <span>Modify</span>
-    </button>
-    <!-- Move folder -->
-    <button (click)="SAmoveFolder(row.reference)" mat-menu-item>
-      <mat-icon>folder</mat-icon>
-      <span>Move</span>
-    </button>
-    <!-- Delete folder -->
-    <button (click)="delete(row.reference)" class="remove" mat-menu-item>
-      <mat-icon>delete</mat-icon>
-      <span>Delete</span>
-    </button>
-  </mat-menu>
-</ng-template>
-
-<!-- Starred status -->
-<ng-template #starredTpl let-row let-index="index" let-col="colDef">
-  <ng-container *ngIf="row.type === 'feature'">
-    <button
-      stopPropagation
-      (click)="toggleStarred($event, row.id, row.name)"
-      mat-icon-button>
-      <mat-icon [class.starred]="isStarredMap.get(row.id) | async">{{ (isStarredMap.get(row.id) | async) ? 'star' : 'star_border' }}</mat-icon>
-    </button>
-  </ng-container>
-</ng-template>
-
-<!-- Feature execution status / folder icon -->
-<ng-template #runningTpl let-row let-index="index" let-col="colDef">
-  <ng-container *ngIf="row.type === 'feature'; else folderIcon">
-    <mat-spinner
-      class="exec-feature-loading"
-      diameter="20"
-      color="primary"
-      *ngIf="row.id | loading | async; else runButtons"></mat-spinner>
-    <ng-template #runButtons>
-      <div *ngLet="row.id | featureRunning | async as running">
-        <button
-          stopPropagation
-          *ngIf="!row.depends_on_others"
-          (click)="SArunFeature(row.id)"
-          mat-icon-button>
-          <mat-icon color="primary">
-            <ng-container *ngIf="running; else runIcon"
-              >remove_red_eye</ng-container
-            >
-            <ng-template #runIcon>play_circle_filled</ng-template>
-          </mat-icon>
-        </button>
-      </div>
-    </ng-template>
-  </ng-container>
-  <!-- Folder icon -->
-  <ng-template #folderIcon class="items-container">
-    <i class="folderIcon"></i>
-  </ng-template>
-</ng-template>
-
-
-<!-- Folder / feature ID -->
-<ng-template #idTpl let-row let-index="index" let-col="colDef">
-  <ng-container>
-    <div (click)="openContent(row)">
-      {{ row.id }}
-    </div>
-  </ng-container>
-</ng-template>
-
-<!-- Folder / feature name -->
-<ng-template #nameTpl let-row let-index="index" let-col="colDef">
-  <ng-container>
-    <div (click)="openContent(row)">
-      <mat-icon
-        *ngIf="row.help"
-        [matTooltip]="'need_help.tooltip' | translate"
-        matTooltipPosition="above"
-        >help</mat-icon
-      >
-      {{ row.name }}
-    </div>
-  </ng-container>
-</ng-template>
-
-<!-- Feature status -->
-<ng-template #statusTpl let-row let-index="index" let-col="colDef">
-  <div *ngLet="row.id | featureRunning | async as running">
-    <ng-container *ngIf="row.orderType == 2 && running; else showState">
-      <!--
-        OrderType = 1 # Folder
-        OrderType = 2 # Feature that can be executed
-        OrderType = 3 # Feature that cannot be executed (depends on others)
+<ng-container *ngLet="filteredData$ | async as table">
+    <div class="table_container">
+      <!-- 
+        Mtx-grid datatable template
+        Old rowClick:
+           (rowClick)="closeAddButtons($event.rowData)"
       -->
-      <div [matTooltip]="row.status" class="state running">
-        <mat-spinner class="item-loader" diameter="20"></mat-spinner>
-        <span>Running</span>
+      <mtx-grid
+        [data]="table.rows"
+        [columns]="columns"
+        [showToolbar]="true"
+        [sortOnFront]="true"
+        [sortDisableClear]="true"
+        [sortDisabled]="false"
+        [pageSize]="featuresPagination$ | async"
+        [sortActive]="getSavedSort('active')"
+        [sortDirection]="getSavedSort('direction')"
+        [multiSelectable]="multiSelectable"
+        [rowSelectable]="rowSelectable"
+        [columnHideable]="columnHideable"
+        [columnHideableChecked]="columnHideableChecked"
+        [hideRowSelectionCheckbox]="hideRowSelectionCheckbox"
+        [columnMovable]="columnMovable"
+        [showColumnMenuHeader]="true"
+        [columnMenuHeaderText]="'Columns Settings'"
+        (columnChange)="saveColumnSettings($event)"
+        sortStart="asc"
+        (rowClick)="openContent($event.rowData)"
+        (page)="storePagination($event)"
+        (sortChange)="saveSort($event)"
+        [cellTemplate]="{
+          orderType: runningTpl,
+          starred: starredTpl,
+          id: idTpl,
+          name: nameTpl,
+          status: statusTpl,
+          date: dateTpl,
+          time: timeTpl,
+          total: totalTpl,
+          ok: okTpl,
+          fails: failsTpl,
+          department: departmentTpl,
+          app: applicationTpl,
+          environment: environmentTpl,
+          browsers: browsersTpl,
+          schedule: scheduleTpl,
+          reference: optionsTpl
+        }"
+        [pageSizeOptions]="[10, 25, 50, 100, 200]">
+      </mtx-grid>
+    </div>
+  </ng-container>
+  
+  <!-- List of templates for each column used in mtx-grid -->
+  
+  <!-- Options button for the feature -->
+  <ng-template #optionsTpl let-row let-index="index" let-col="colDef">
+    <!-- Button to open folder / feature manage menu -->
+    <button
+      stopPropagation
+      [matMenuTriggerFor]="
+        row.type === 'feature' ? featureOptions : folderOptions
+      "
+      mat-icon-button>
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <!-- Menu to manage feature -->
+    <mat-menu class="feature-options" #featureOptions="matMenu" xPosition="after">
+      <!-- Edit feature -->
+      <button
+        *ngIf="row.id | hasPermission: 'edit_feature' | async"
+        (click)="SAopenEditFeature(row.id, 'edit')"
+        matTooltip="Edit {{ row.name }} steps"
+        matTooltipPosition="before"
+        class="modify-feature"
+        mat-menu-item>
+        <mat-icon>edit</mat-icon>
+        <span>Modify</span>
+      </button>
+      <mat-divider></mat-divider>
+      <!-- Star feature -->
+      <button
+        mat-menu-item
+        (click)="toggleStarred($event, row.id, row.name)"
+        class="star-feature">
+        <mat-icon>{{ (isStarredMap.get(row.id) | async) ? 'star' : 'star_border' }}</mat-icon>
+        <span>{{ (isStarredMap.get(row.id) | async) ? 'Starred' : 'Star' }}</span>
+      </button>
+      <mat-divider></mat-divider>
+      <!-- Clone feature -->
+      <button
+        *ngIf="row.id | hasPermission: 'create_feature' | async"
+        (click)="SAopenEditFeature(row.id, 'clone')"
+        matTooltip="Clone {{ row.name }}"
+        matTooltipPosition="before"
+        class="modify-feature"
+        mat-menu-item>
+        <mat-icon>content_copy</mat-icon>
+        <span>Clone</span>
+      </button>
+      <!-- Move feature -->
+      <button
+        (click)="SAmoveFeature(row.reference)"
+        matTooltip="Move {{ row.name }}"
+        matTooltipPosition="before"
+        class="move-feature"
+        mat-menu-item>
+        <mat-icon>folder</mat-icon>
+        <span>Move</span>
+      </button>
+      <mat-divider></mat-divider>
+      <!-- Ask for help checkbox -->
+      <button
+        stopPropagation
+        mat-menu-item
+        *ngIf="row.id | hasPermission: 'create_feature' | async">
+        <mat-checkbox
+          [checked]="row.help"
+          (change)="SAhandleSetting(row.id, 'need_help', $event)"
+          color="primary"
+          [matTooltip]="'need_help.explanation' | translate"
+          matTooltipPosition="after"
+          >{{ 'need_help.ask_for' | translate }}</mat-checkbox
+        >
+      </button>
+      <mat-divider></mat-divider>
+      <!-- Delete feature -->
+      <ng-container *ngIf="row.id | hasPermission: 'delete_feature' | async">
+        <button
+          *ngIf="!isTrashbin"
+          (click)="_sharedActions.openDeleteConfirmationDialog(row)"
+          matTooltip="Schedule deletion of {{ row.name }}"
+          matTooltipPosition="before"
+          class="delete-feature"
+          mat-menu-item>
+          <mat-icon>delete</mat-icon>
+          <span>Move to trashbin</span>
+        </button>
+      </ng-container>
+    </mat-menu>
+    <!-- Menu to manage folder -->
+    <mat-menu class="folderOptionsMenu" #folderOptions="matMenu">
+      <!-- Run all features -->
+      <div
+        *ngIf="isAnyFeatureRunningMap.get(row.reference.folder_id) | async; else showRunAllButton"
+        class="folder-running"
+        [matTooltip]="'tooltips.run_feature' | translate"
+        matTooltipPosition="after"
+        stopPropagation>
+        <mat-spinner
+          class="item-loader"
+          diameter="18"></mat-spinner>
+        <span> Features running </span>
+      </div>
+      <ng-template #showRunAllButton>
+        <button
+          (click)="_sharedActions.runAllFeatures(row.reference)"
+          class="run-feature"
+          [matTooltip]="'tooltips.run_all_features' | translate"
+          matTooltipPosition="after"
+          mat-menu-item>
+          <mat-icon>play_circle_filled</mat-icon>
+          <span>Run all features</span>
+        </button>
+      </ng-template>
+      <mat-divider></mat-divider>
+      <!-- Open the folder -->
+      <button (click)="goFolder(row.reference, row.route)" mat-menu-item>
+        <mat-icon>folder_open</mat-icon>
+        <span>Open</span>
+      </button>
+      <!-- Edit folder -->
+      <button (click)="modify(row.reference)" mat-menu-item>
+        <mat-icon>edit</mat-icon>
+        <span>Modify</span>
+      </button>
+      <!-- Move folder -->
+      <button (click)="SAmoveFolder(row.reference)" mat-menu-item>
+        <mat-icon>folder</mat-icon>
+        <span>Move</span>
+      </button>
+      <!-- Delete folder -->
+      <button (click)="delete(row.reference)" class="remove" mat-menu-item>
+        <mat-icon>delete</mat-icon>
+        <span>Delete</span>
+      </button>
+    </mat-menu>
+  </ng-template>
+  
+  <!-- Starred status -->
+  <ng-template #starredTpl let-row let-index="index" let-col="colDef">
+    <ng-container *ngIf="row.type === 'feature'">
+      <button
+        stopPropagation
+        (click)="toggleStarred($event, row.id, row.name)"
+        mat-icon-button>
+        <mat-icon [class.starred]="isStarredMap.get(row.id) | async">
+          {{ (isStarredMap.get(row.id) | async) ? 'star' : 'star_border' }}
+        </mat-icon>
+      </button>
+    </ng-container>
+  </ng-template>
+  
+  <!-- Feature execution status / folder icon -->
+  <ng-template #runningTpl let-row let-index="index" let-col="colDef">
+    <ng-container *ngIf="row.type === 'feature'; else folderIcon">
+      <mat-spinner
+        class="exec-feature-loading"
+        diameter="20"
+        color="primary"
+        *ngIf="row.id | loading | async; else runButtons"></mat-spinner>
+      <ng-template #runButtons>
+        <div *ngLet="row.id | featureRunning | async as running">
+          <button
+            stopPropagation
+            *ngIf="!row.depends_on_others"
+            (click)="SArunFeature(row.id)"
+            mat-icon-button>
+            <mat-icon color="primary">
+              <ng-container *ngIf="running; else runIcon"
+                >remove_red_eye</ng-container
+              >
+              <ng-template #runIcon>play_circle_filled</ng-template>
+            </mat-icon>
+          </button>
+        </div>
+      </ng-template>
+    </ng-container>
+    <!-- Folder icon -->
+    <ng-template #folderIcon class="items-container">
+      <i class="folderIcon"></i>
+    </ng-template>
+  </ng-template>
+  
+  
+  <!-- Folder / feature ID -->
+  <ng-template #idTpl let-row let-index="index" let-col="colDef">
+    <ng-container>
+      <div (click)="openContent(row)">
+        {{ row.id }}
       </div>
     </ng-container>
-    <ng-template #showState>
-      <div
-        *ngIf="row.status"
-        class="state"
-        [ngClass]="!running && (row.status | lowercase)">
-        <ng-container [ngSwitch]="row.status | lowercase">
-          <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon>
-          <mat-icon class="state-icon" *ngSwitchCase="'canceled'"
-            >remove_circle</mat-icon
-          >
-          <mat-icon class="state-icon" *ngSwitchCase="'failed'">close</mat-icon>
-          <span style="text-align: right" *ngSwitchDefault>-</span>
-        </ng-container>
-        <span style="vertical-align: middle">{{ row.status }}</span>
+  </ng-template>
+  
+  <!-- Folder / feature name -->
+  <ng-template #nameTpl let-row let-index="index" let-col="colDef">
+    <ng-container>
+      <div (click)="openContent(row)">
+        <mat-icon
+          *ngIf="row.help"
+          [matTooltip]="'need_help.tooltip' | translate"
+          matTooltipPosition="above"
+          >help</mat-icon
+        >
+        {{ row.name }}
       </div>
-    </ng-template>
-  </div>
-</ng-template>
-
-<!-- Date of last feature execution -->
-<ng-template #dateTpl let-row let-index="index" let-col="colDef">
-  <ng-container *ngIf="row.date as date; else emptyField">
-    <div>
-      {{ date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm' }}
-    </div>
-  </ng-container>
-</ng-template>
-
-<!-- Duration of last feature execution -->
-<ng-template #timeTpl let-row let-index="index" let-col="colDef">
-  <ng-container *ngIf="row.time as time; else emptyField">
-    <div class="time">
-      {{ time | secondsToHumanReadable }}
-    </div>
-  </ng-container>
-</ng-template>
-
-<!-- Feature's total amount of steps -->
-<ng-template #totalTpl let-row let-index="index" let-col="colDef">
-  <ng.container>
-    <div>
-      {{ row.total }}
-    </div>
-  </ng.container>
-</ng-template>
-
-<!-- #3427 -------------------------------------------------------- start -->
-<!-- Feature's amount of successful steps -->
-<ng-template #okTpl let-row let-index="index" let-col="colDef">
-  <ng.container>
-    <div>
-      {{ row.ok }}
-    </div>
-  </ng.container>
-</ng-template>
-<!-- #3427 -------------------------------------------------------- end -->
-
-<!-- #3427 -------------------------------------------------------- start -->
-<!-- Feature's amount of failed steps -->
-<ng-template #failsTpl let-row let-index="index" let-col="colDef">
-  <ng.container>
-    <div>
-      {{ row.fails }}
-    </div>
-  </ng.container>
-</ng-template>
-<!-- #3427 -------------------------------------------------------- end -->
-
-<!-- Feature / folder department name -->
-<ng-template #departmentTpl let-row let-index="index" let-col="colDef">
-  <!-- Show feature department if the object type is feature -->
-  <ng-container *ngIf="row.type === 'feature'; else folderDepartment">
-    <div>
-      {{ row.department }}
-    </div>
-  </ng-container>
-  <!-- Show folder department if the object type is folder -->
-  <ng-template #folderDepartment>
-    <div>
-      {{ row.department | departmentName }}
+    </ng-container>
+  </ng-template>
+  
+  <!-- Feature status -->
+  <ng-template #statusTpl let-row let-index="index" let-col="colDef">
+    <div *ngLet="row.id | featureRunning | async as running">
+      <ng-container *ngIf="row.orderType == 2 && running; else showState">
+        <!--
+          OrderType = 1 # Folder
+          OrderType = 2 # Feature that can be executed
+          OrderType = 3 # Feature that cannot be executed (depends on others)
+        -->
+        <div [matTooltip]="row.status" class="state running">
+          <mat-spinner class="item-loader" diameter="20"></mat-spinner>
+          <span>Running</span>
+        </div>
+      </ng-container>
+      <ng-template #showState>
+        <div
+          *ngIf="row.status"
+          class="state"
+          [ngClass]="!running && (row.status | lowercase)">
+          <ng-container [ngSwitch]="row.status | lowercase">
+            <mat-icon class="state-icon" *ngSwitchCase="'success'">done</mat-icon>
+            <mat-icon class="state-icon" *ngSwitchCase="'canceled'"
+              >remove_circle</mat-icon
+            >
+            <mat-icon class="state-icon" *ngSwitchCase="'failed'">close</mat-icon>
+            <span style="text-align: right" *ngSwitchDefault>-</span>
+          </ng-container>
+          <span style="vertical-align: middle">{{ row.status }}</span>
+        </div>
+      </ng-template>
     </div>
   </ng-template>
-</ng-template>
-
-<!-- Name of the feature's application -->
-<ng-template #applicationTpl let-row let-index="index" let-col="colDef">
-  <ng.container>
-    <div>
-      {{ row.app }}
+  
+  <!-- Date of last feature execution -->
+  <ng-template #dateTpl let-row let-index="index" let-col="colDef">
+    <ng-container *ngIf="row.date as date; else emptyField">
+      <div>
+        {{ date | amParse | amDateFormat: 'dd.MM.yyyy HH:mm' }}
+      </div>
+    </ng-container>
+  </ng-template>
+  
+  <!-- Duration of last feature execution -->
+  <ng-template #timeTpl let-row let-index="index" let-col="colDef">
+    <ng-container *ngIf="row.time as time; else emptyField">
+      <div class="time">
+        {{ time | secondsToHumanReadable }}
+      </div>
+    </ng-container>
+  </ng-template>
+  
+  <!-- Feature's total amount of steps -->
+  <ng-template #totalTpl let-row let-index="index" let-col="colDef">
+    <ng.container>
+      <div>
+        {{ row.total }}
+      </div>
+    </ng.container>
+  </ng-template>
+  
+  <!-- #3427 -------------------------------------------------------- start -->
+  <!-- Feature's amount of successful steps -->
+  <ng-template #okTpl let-row let-index="index" let-col="colDef">
+    <ng.container>
+      <div>
+        {{ row.ok }}
+      </div>
+    </ng.container>
+  </ng-template>
+  <!-- #3427 -------------------------------------------------------- end -->
+  
+  <!-- #3427 -------------------------------------------------------- start -->
+  <!-- Feature's amount of failed steps -->
+  <ng-template #failsTpl let-row let-index="index" let-col="colDef">
+    <ng.container>
+      <div>
+        {{ row.fails }}
+      </div>
+    </ng.container>
+  </ng-template>
+  <!-- #3427 -------------------------------------------------------- end -->
+  
+  <!-- Feature / folder department name -->
+  <ng-template #departmentTpl let-row let-index="index" let-col="colDef">
+    <!-- Show feature department if the object type is feature -->
+    <ng-container *ngIf="row.type === 'feature'; else folderDepartment">
+      <div>
+        {{ row.department }}
+      </div>
+    </ng-container>
+    <!-- Show folder department if the object type is folder -->
+    <ng-template #folderDepartment>
+      <div>
+        {{ row.department | departmentName }}
+      </div>
+    </ng-template>
+  </ng-template>
+  
+  <!-- Name of the feature's application -->
+  <ng-template #applicationTpl let-row let-index="index" let-col="colDef">
+    <ng.container>
+      <div>
+        {{ row.app }}
+      </div>
+    </ng.container>
+  </ng-template>
+  
+  <!-- Name of the feature's environment -->
+  <ng-template #environmentTpl let-row let-index="index" let-col="colDef">
+    <ng.container>
+      <div>
+        {{ row.environment }}
+      </div>
+    </ng.container>
+  </ng-template>
+  
+  <!-- Browsers of the feature -->
+  <ng-template #browsersTpl let-row let-index="index" let-col="colDef">
+    <div class="browsers">
+      <i
+        class="my-icons"
+        [matTooltip]="browser | browserComboText"
+        *ngFor="let browser of row.browsers; trackBy: trackBrowser"
+        [style.backgroundImage]="browser.browser | browserIcon"></i>
     </div>
-  </ng.container>
-</ng-template>
-
-<!-- Name of the feature's environment -->
-<ng-template #environmentTpl let-row let-index="index" let-col="colDef">
-  <ng.container>
-    <div>
-      {{ row.environment }}
-    </div>
-  </ng.container>
-</ng-template>
-
-<!-- Browsers of the feature -->
-<ng-template #browsersTpl let-row let-index="index" let-col="colDef">
-  <div class="browsers">
-    <i
-      class="my-icons"
-      [matTooltip]="browser | browserComboText"
-      *ngFor="let browser of row.browsers; trackBy: trackBrowser"
-      [style.backgroundImage]="browser.browser | browserIcon"></i>
-  </div>
-</ng-template>
-
-<!-- Schedule of the features -->
-<ng-template #scheduleTpl let-row let-index="index" let-col="colDef">
-  <div
-    class="cursorPointer schedule schedule-active"
-    stopPropagation
-    (click)="SAeditSchedule(row.id)"
-    [matTooltip]="'tooltips.edit_schedule' | translate"
-    matTooltipPosition="below"
-    *ngIf="row.schedule"
-    >
-    {{ row.schedule}}
-    <!-- Old code checkbox -->
-    <!-- <mat-checkbox
+  </ng-template>
+  
+  <!-- Schedule of the features -->
+  <ng-template #scheduleTpl let-row let-index="index" let-col="colDef">
+    <div
+      class="cursorPointer schedule schedule-active"
+      stopPropagation
+      (click)="SAeditSchedule(row.id)"
+      [matTooltip]="'tooltips.edit_schedule' | translate"
+      matTooltipPosition="below"
       *ngIf="row.schedule"
-      class="noPointerEvents"
-      [checked]="row.schedule.length > 0"
-      color="primary"></mat-checkbox> -->
-  </div>
-</ng-template>
-
-
-<!-- Template to use whenever the field value is null -->
-<ng-template #emptyField>-</ng-template>
+      >
+      {{ row.schedule}}
+      <!-- Old code checkbox -->
+      <!-- <mat-checkbox
+        *ngIf="row.schedule"
+        class="noPointerEvents"
+        [checked]="row.schedule.length > 0"
+        color="primary"></mat-checkbox> -->
+    </div>
+  </ng-template>
+  
+  
+  <!-- Template to use whenever the field value is null -->
+  <ng-template #emptyField>-</ng-template>
+  

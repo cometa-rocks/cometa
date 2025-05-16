@@ -117,7 +117,48 @@ export class L1FeatureListComponent implements OnInit {
     this.data$ = this._sharedActions.getActiveFeatures();
   }
 
-  @Input() data$: any; // Contains the new structure of the features / folders
+  @Input() set data$(value: Observable<any>) {
+    if (value) {
+      this.filteredData$ = value.pipe(
+        map((data: any) => {
+          console.log('=== Feature List Component Data Debug ===');
+          console.log('Raw data received:', data);
+          if (!data || !data.rows) {
+            console.log('No data or rows found');
+            return { rows: [] };
+          }
+          console.log('Number of rows before filtering:', data.rows.length);
+          const filteredRows = data.rows.filter(row => !row.reference?.marked_for_deletion);
+          console.log('Number of rows after filtering:', filteredRows.length);
+          
+          // Initialize isStarredMap for each feature
+          filteredRows.forEach(row => {
+            if (row.type === 'feature') {
+              this.isStarredMap.set(row.id, this._starred.isStarred(row.id));
+            }
+          });
+
+          // Sort the filtered rows
+          filteredRows.sort((itemA, itemB) => {
+            const nameA = itemA.name.toLowerCase();
+            const nameB = itemB.name.toLowerCase();
+            if (itemA.type === itemB.type) {
+              return nameA.localeCompare(nameB);
+            } else {
+              return itemA.type === 'feature' ? -1 : 1;
+            }
+          });
+
+          // Update the table data source
+          const tableData = new MatTableDataSource(filteredRows);
+          this.tableValues.next(tableData);
+          
+          return { ...data, rows: filteredRows };
+        })
+      );
+    }
+  }
+  @Input() isTrashbin: boolean = false;
   // Initializes the sorting and pagination variables
   @ViewChild(MatSort, { static: false }) sort: MatSort;
   @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -202,37 +243,10 @@ export class L1FeatureListComponent implements OnInit {
 
     this.getSavedColumnSettings();
 
-    this.filteredData$ = this.data$.pipe(
-      map((data: any) => {
-        if (!data || !data.rows) return { rows: [] };
-        // --- Aquí reemplazas el filtro por la línea siguiente ---
-        const filteredRows = data.rows; // <-- SIN FILTRAR
-        // --- El resto igual ---
-        filteredRows.sort((itemA, itemB) => {
-          const nameA = itemA.name.toLowerCase();
-          const nameB = itemB.name.toLowerCase();
-          if (itemA.type === itemB.type) {
-            return nameA.localeCompare(nameB);
-          } else {
-            return itemA.type === 'feature' ? -1 : 1;
-          }
-        });
-        filteredRows.forEach(row => {
-          const folderId = row.reference.folder_id;
-          const isRunning$ = this._sharedActions.folderRunningStates.asObservable().pipe(
-            map(runningStates => runningStates.get(folderId) || false)
-          );
-          this.isAnyFeatureRunningMap.set(folderId, isRunning$);
-          if (row.type === 'feature') {
-            this.isStarredMap.set(row.id, this._starred.isStarred(row.id));
-          }
-        });
-        return { ...data, rows: filteredRows };
-      })
-    );
-
     this.filteredData$.subscribe(data => {
       console.log('DATA FILTRADA', data);
+      console.log('Table container exists:', !!document.querySelector('.table_container'));
+      console.log('Mtx-grid exists:', !!document.querySelector('mtx-grid'));
     });
 
     // Initialize the co_features_pagination variable in the local storage
@@ -241,27 +255,8 @@ export class L1FeatureListComponent implements OnInit {
       localStorage.setItem('co_features_pagination', value)
     );
 
-    // // load column settings
+    // load column settings
     this.getSavedColumnSettings();
-
-    // this.data$.rows.forEach(row => {
-    //   const folderId = row.reference.folder_id;
-  
-    //   const isRunning$ = this._sharedActions.folderRunningStates.asObservable().pipe(
-    //     map(runningStates => runningStates.get(folderId) || false)
-    //   );
-  
-    //   this.isAnyFeatureRunningMap.set(folderId, isRunning$);
-
-    //   // Initialize isStarred$ for each row
-    //   if (row.type === 'feature') {
-    //     this.isStarredMap.set(row.id, this._starred.isStarred(row.id));
-    //   }
-    // });
-
-    this.data$.subscribe(data => {
-      console.log('DATA ORIGINAL', data);
-    });
   }
 
   /**

@@ -47,6 +47,7 @@ import { Console } from 'console';
 import { ImmutableSelector } from '@ngxs-labs/immer-adapter';
 import { StarredService } from '@services/starred.service';
 import { take } from 'rxjs/operators';
+import { DeleteConfirmationDialogComponent } from '@components/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
 
 /**
@@ -346,6 +347,36 @@ export class SharedActionsService {
         feature_name: feature.feature_name,
         feature_id: feature.feature_id,
       },
+    });
+  }
+
+  openDeleteConfirmationDialog(item: any) {
+    const dialogRef = this._dialog.open(DeleteConfirmationDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Schedule Deletion',
+        message: `Are you sure you want to schedule the deletion of feature "${item.name}"?`,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // Si el feature está en favoritos, lo quitamos
+        this.starredService.isStarred(item.id).pipe(take(1)).subscribe(isStarred => {
+          if (isStarred) {
+            this.toggleStarred({} as Event, item.id, item.name);
+          }
+        });
+        
+        // Actualizar el item localmente
+        if (item.reference) {
+          item.reference.marked_for_deletion = true;
+        }
+        
+        // Programar la eliminación usando el servicio
+        this.scheduleDeletion(item.id);
+        this._snackBar.open('Feature scheduled for deletion', 'OK', { duration: 2000 });
+      }
     });
   }
 
