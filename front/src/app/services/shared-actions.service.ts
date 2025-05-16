@@ -738,17 +738,16 @@ export class SharedActionsService {
       marked_for_deletion: false
     }, {
       loading: 'Restoring feature'
-    }).subscribe(
-      () => {
-        this._snack.open('Feature restored successfully', 'Close', {
-          duration: 3000
-        });
-      },
-      error => {
-        this._snack.open('Error restoring feature', 'Close', {
-          duration: 3000
-        });
-      }
+    }).pipe(
+      tap(response => {
+        if (response.success) {
+          this._snack.open('Feature restored successfully', 'Close', {
+            duration: 3000
+          });
+          // Refresh the features list after successful restoration
+          this._store.dispatch(new Features.GetFeatures());
+        }
+      })
     );
   }
 }
