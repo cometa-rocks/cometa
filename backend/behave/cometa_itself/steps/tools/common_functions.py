@@ -536,32 +536,41 @@ def done(*_args, **_kwargs):
                 )
                 # return True meaning everything went as expected
                 return result
+            except CometaTimeoutException as err: # Catch CometaTimeoutException specifically
+                args[0].CURRENT_STEP_STATUS = "Failed"
+                signal.alarm(0)
+                
+                error_message_for_step = str(err)
+                if hasattr(args[0], "last_selector_error_detail") and args[0].last_selector_error_detail:
+                    error_message_for_step += f" - {args[0].last_selector_error_detail}"
+                    args[0].last_selector_error_detail = None # Clear after use
+                
+                logger.error(f"Timeout Error: {error_message_for_step}")
+                args[0].step_error = logger.mask_values(error_message_for_step)
+                
+                save_failed_step_to_db(args, save_message, start_time)
+                raise AssertionError(error_message_for_step)
+
             except Exception as err:
                 args[0].CURRENT_STEP_STATUS = "Failed"
                 # reset timeout incase of exception in function
                 signal.alarm(0)
                 # print stack trace
                 logger.exception(err, stack_info=True)
-                # set the error message to the step_error inside context so we can pass it through websockets!
-                args[0].step_error = logger.mask_values(str(err))
-                try:
-                    # save the result to databse as False since the step failed
-                    saveToDatabase(
-                        save_message,
-                        (time.time() - start_time) * 1000,
-                        0,
-                        False,
-                        args[0]
-                    )
-                except Exception as err:
-                    logger.error(
-                        "Exception raised while trying to save step data to database."
-                    )
-                    logger.exception(err)
+                
+                error_message_for_step = str(err)
+                if hasattr(args[0], "last_selector_error_detail") and args[0].last_selector_error_detail:
+                    error_message_for_step += f" - {args[0].last_selector_error_detail}"
+                    args[0].last_selector_error_detail = None # Clear after use
+
+                args[0].step_error = logger.mask_values(error_message_for_step)
+                
+                save_failed_step_to_db(args, save_message, start_time)
 
                 # check if feature was aborted
                 aborted = str(err) == "'aborted'"
-                logger.debug("Checking if feature was aborted: " + str(aborted))
+                if aborted:
+                    logger.debug("Checking if feature was aborted: " + str(aborted))
 
                 # check the continue on failure hierarchy
                 continue_on_failure = False  # default value
@@ -587,7 +596,7 @@ def done(*_args, **_kwargs):
                     logger.error("Error: %s" % str(err))
                 else:
                     # fail the feature
-                    raise AssertionError(str(err))
+                    raise AssertionError(error_message_for_step)
             finally:
                 # reset element highligh is any
                 reset_element_highlight(args[0])
@@ -650,7 +659,7 @@ def saveToDatabase(
     # add custom error if exists
     if "custom_error" in context.step_data:
         data["error"] = context.step_data["custom_error"]
-    elif hasattr(context, "step_error"):
+    elif hasattr(context, "step_error") and context.step_error:
         data["error"] = context.step_error
     # add files
     try:
@@ -1096,3 +1105,19 @@ def getVariableType(variable):
         # Remove prefix
         variable = variable[6:]
     return variable
+
+def save_failed_step_to_db(args, save_message, start_time):
+    try:
+        # save the result to databse as False since the step failed
+        saveToDatabase(
+            save_message,
+            (time.time() - start_time) * 1000,
+            0,
+            False,
+            args[0]
+        )
+    except Exception as err_db:
+        logger.error(
+            "Exception raised while trying to save step data to database after a failure."
+        )
+        logger.exception(err_db)
