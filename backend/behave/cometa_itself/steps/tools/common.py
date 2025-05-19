@@ -97,6 +97,8 @@ def timeout(*_args, **_kwargs):
 def waitSelector(context, selector_type, selector, max_timeout=None):
     # set the start time for the step
     start_time = time.time()
+    # Initialize last selector error detail
+    context.last_selector_error_detail = None
     # 2288 - Split : id values into a valid css selector
     # example: "#hello:world" --> [id*=hello][id*=world]
     selectorWords = selector.split(" ")
@@ -166,10 +168,12 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
                 # Max retries exceeded, raise error
                 raise
             except InvalidSelectorException as err:
+                context.last_selector_error_detail = f"Invalid Selector Exception: Selector Type: {selec_type}, Selector: {selector}."
                 logger.debug(
                     f"Invalid Selector Exception: Selector Type: {selec_type}, Selector: {selector}."
                 )
             except NoSuchElementException as err:
+                context.last_selector_error_detail = f"No Such Element Exception: Selector Type: {selec_type}, Selector: {selector}."
                 logger.debug(
                     f"No Such Element Exception: Selector Type: {selec_type}, Selector: {selector}."
                 )
