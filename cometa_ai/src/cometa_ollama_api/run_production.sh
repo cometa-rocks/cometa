@@ -10,7 +10,7 @@ python manage.py migrate --noinput
 
 # Collect static files
 echo "Collecting static files..."
-python manage.py collectstatic --noinput
+#python manage.py collectstatic --noinput
 
 # Initialize RAG system
 echo "Initializing RAG system..."
