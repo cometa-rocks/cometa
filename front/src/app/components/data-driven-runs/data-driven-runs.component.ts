@@ -85,6 +85,7 @@ interface UploadedFile {
   };
   mime?: string;
   type?: string;
+  file_type?: string;
 }
 
 interface DataDrivenRun {
