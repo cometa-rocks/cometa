@@ -27,7 +27,7 @@ from backend.utility.functions import *
 from io import BytesIO
 from backend.common import *
 import base64
-import json
+import json, math
 
 from backend.templatetags.humanize import *
 from backend.utility.config_handler import *
@@ -159,7 +159,7 @@ def convert_graph_to_blob_image(data_frame, group_by, figsize=(14, 4)):
             )
         })
 
-        logger.info(f"Successfully generated {len(graphs)} graphs")
+        logger.info(f"Successfully generated {len(graphs)} graphs") 
         return graphs
 
     except Exception as e:
@@ -168,6 +168,12 @@ def convert_graph_to_blob_image(data_frame, group_by, figsize=(14, 4)):
         return []
 
 
+def safe_float(value):
+    try:
+        val = float(f"{value:.2f}")
+        return val if not math.isnan(val) and not math.isinf(val) else None
+    except Exception:
+        return None
 
 @csrf_exempt
 def getStepResultsGraph(request, step_result_id):
@@ -241,20 +247,37 @@ def getStepResultsGraph(request, step_result_id):
             'success': False,
             'message':"No data available between selected dates"
         })
+        
     
-    # Calculate summary statistics
+
+    # Assuming df is your DataFrame and it contains 'execution_time', 'success', and 'status' columns
+
     summary = {
-        "total_execution_time": float(f"{df['execution_time'].sum():.2f}"),
-        "average_execution_time": float(f"{df['execution_time'].mean():.2f}"),
-        "min_execution_time": float(f"{df['execution_time'].min():.2f}"),
-        "max_execution_time": float(f"{df['execution_time'].max():.2f}"),
-        "median_execution_time": float(f"{df['execution_time'].median():.2f}"),
-        "standard_deviation": float(f"{df['execution_time'].std():.2f}"),
-        "total_tests": len(df),
-        "failed_tests": len(df[df['success'] == False]),
-        "success_rate": float(f"{(len(df[df['success'] == True]) / len(df) * 100):.2f}") if len(df) > 0 else 0,
-        "status_distribution": df['status'].value_counts().to_dict()
+        "total_execution_time": safe_float(df['execution_time'].sum()),
+        "average_execution_time": safe_float(df['execution_time'].mean()),
+        "min_execution_time": safe_float(df['execution_time'].min()),
+        "max_execution_time": safe_float(df['execution_time'].max()),
+        "median_execution_time": safe_float(df['execution_time'].median()),
+        "standard_deviation": safe_float(df['execution_time'].std()),
+        "total_tests": int(len(df)),
+        "failed_tests": int(len(df[df['success'] == False])),
+        "success_rate": safe_float((len(df[df['success'] == True]) / len(df) * 100)) if len(df) > 0 else 0.0,
+        "status_distribution": df['status'].value_counts(dropna=False).to_dict()
     }
+        
+    # # Calculate summary statistics
+    # summary = {
+    #     "total_execution_time": float(f"{df['execution_time'].sum():.2f}"),
+    #     "average_execution_time": float(f"{df['execution_time'].mean():.2f}"),
+    #     "min_execution_time": float(f"{df['execution_time'].min():.2f}"),
+    #     "max_execution_time": float(f"{df['execution_time'].max():.2f}"),
+    #     "median_execution_time": float(f"{df['execution_time'].median():.2f}"),
+    #     "standard_deviation": float(f"{df['execution_time'].std():.2f}"),
+    #     "total_tests": len(df),
+    #     "failed_tests": len(df[df['success'] == False]),
+    #     "success_rate": float(f"{(len(df[df['success'] == True]) / len(df) * 100):.2f}") if len(df) > 0 else 0,
+    #     "status_distribution": df['status'].value_counts().to_dict()
+    # }
     logger.debug("Calculated summary statistics")
 
     graphs = convert_graph_to_blob_image(data_frame=df, group_by=group_by)
