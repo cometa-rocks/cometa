@@ -1668,9 +1668,9 @@ def UpdateSchedule(request, feature_id, *args, **kwargs):
     return JsonResponse({'success': True})
 
 
-def uploadFilesThread(files, department_id, uploaded_by):
+def uploadFilesThread(files, department_id, uploaded_by, file_type='normal'):
     for file in files:
-        uploadFile = UploadFile(file, department_id, uploaded_by)
+        uploadFile = UploadFile(file, department_id, uploaded_by, file_type)
         print(uploadFile.proccessUploadFile())
 
 
@@ -1743,10 +1743,12 @@ class UploadViewSet(viewsets.ModelViewSet):
         if department_id == -1 or departmentExists(department_id) == -1:
             return JsonResponse({'success': False, 'error': "Department does not exist."})
 
+        file_type = request.POST.get('file_type', 'normal')
+
         try:
             # Spawn thread to upload files in background
             t = Thread(target=uploadFilesThread,
-                       args=(request.FILES.getlist('files'), department_id, request.session['user']['user_id']))
+                       args=(request.FILES.getlist('files'), department_id, request.session['user']['user_id'], file_type))
             t.start()
             return JsonResponse({'success': True})
         except Exception as e:
