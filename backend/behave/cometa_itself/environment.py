@@ -230,6 +230,7 @@ def before_all(context):
         "ok": 0,
         "nok": 0,
         "index": 0,
+        "step_sequence": 0,
         "pixel_diff": 0,
     }  # failed and skipped can be found from the junit summary.
     logger.debug("context.counters set to: {}".format(pformat(context.counters)))
@@ -961,6 +962,9 @@ def before_step(context, step):
     context.STEP_TYPE = 'BROWSER'
     context.LAST_STEP_DB_QUERY_RESULT = None
     context.LAST_STEP_VARIABLE_AND_VALUE = None
+    # this variable will be used to have executed step count,
+    # this is also used to save screenshot in async manner
+    context.counters['step_sequence'] += 1
 
     os.environ["current_step"] = str(context.counters["index"] + 1)
     # complete step name to let front know about the step that will be executed next
