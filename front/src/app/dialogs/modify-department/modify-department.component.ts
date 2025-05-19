@@ -100,7 +100,10 @@ export class ModifyDepartmentComponent {
         ],
       ],
       result_expire_days: [expireDays],
-      queue_name: [this.department.settings?.queue_name || '', Validators.required],
+      queue_name: [this.department.settings?.queue_name || ''],
+      validate_duplicate_feature_names: [
+        this.department.settings?.validate_duplicate_feature_names !== false,
+      ],
     });
     this.timeoutForm = this.fb.group({
       step_timeout_from: [
@@ -147,7 +150,8 @@ export class ModifyDepartmentComponent {
         result_expire_days: this.expireDaysChecked$.getValue()
           ? values.result_expire_days
           : null,
-          queue_name: values.queue_name,
+        queue_name: values.queue_name,
+        validate_duplicate_feature_names: values.validate_duplicate_feature_names,
       },
     };
     this._api.modifyDepartment(this.department_id, payload).subscribe(
