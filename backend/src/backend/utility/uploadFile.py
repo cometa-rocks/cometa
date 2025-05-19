@@ -144,13 +144,19 @@ def getFileContent(file: File, sheet_name=None):
     df.columns = df.columns.str.replace(" ", "_").str.lower()
 
     # check if feature id or feature name column is present
-    if 'feature_id' not in df.columns and 'feature_name' not in df.columns:
+    ddr_ready = 'feature_id' in df.columns or 'feature_name' in df.columns
+    
+    # Set the data-driven ready status in the file extras
+    if ddr_ready:
+        file.extras['ddr'] = {
+            'data-driven-ready': True
+        }
+    else:
         file.extras['ddr'] = {
             'data-driven-ready': False,
-            'reason': 'Missing \'feature_id\' or \'feature_name\' columns, please add one and re-upload.'
+            'reason': 'Missing \'feature_id\' or \'feature_name\' columns. This file can be viewed but not used for data-driven testing.'
         }
-        file.save()
-        raise Exception("Missing 'Feature id' or 'Feature Name' columns, please add one and re-try.")
+    file.save()
 
     # convert row to json
     json_data = df.to_json(orient='records', lines=True).splitlines()
@@ -167,11 +173,6 @@ def getFileContent(file: File, sheet_name=None):
             break
         file_data.extend(FileData.objects.bulk_create(batch, batch_size))
 
-    file.extras['ddr'] = {
-        'data-driven-ready': True
-    }
-    file.save()
-
     return file_data
 
 """
@@ -182,11 +183,12 @@ class UploadFile():
     """
     
     """
-    def __init__(self, file: TempUploadedFile, department_id: int, uploaded_by: int):
+    def __init__(self, file: TempUploadedFile, department_id: int, uploaded_by: int, file_type: str = 'normal'):
         logger.debug(f"Upload file request: {file.name} for department id {department_id} and uploaded by {uploaded_by}.")
         self.tempFile: TempUploadedFile = file
         self.department_id: int = department_id
         self.uploaded_by: int = uploaded_by
+        self.file_type: str = file_type
         self.filename = self.sanitize(self.tempFile.name) 
         self.finalPath = self.generateFinalPath()
         self.uploadPath = f"uploads/{self.filename}"
@@ -373,7 +375,8 @@ class UploadFile():
                 md5sum = md5sum,
                 department_id = self.department_id,
                 uploaded_by_id = self.uploaded_by,
-                status = "Unknown"
+                status = "Unknown",
+                file_type = self.file_type
             )
         except Exception as err:
             logger.error("Exception occured while trying to create an object...", err)

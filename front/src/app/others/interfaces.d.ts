@@ -615,6 +615,7 @@ interface UploadedFile {
   uploaded_by?: Uploader;
   error?: FileUploadError;
   extras?: FileExtras;
+  file_type?: string;
   status?:
     | 'Unknown'
     | 'Processing'
