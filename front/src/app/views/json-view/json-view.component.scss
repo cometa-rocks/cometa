@@ -8,6 +8,88 @@ hr {
   overflow: hidden;
 }
 
+.html-content {
+  height: 80%;
+  position: relative;
+  overflow: hidden;
+  
+  .report-container {
+    border: 1px solid rgba(220, 220, 220, 255);
+    background-color: rgba(248, 248, 248, 255);
+    padding: 20px;
+    max-height: 600px;
+    overflow: auto;
+    
+    h1, h2, h3 {
+      color: #2d6da9;
+    }
+    
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 20px;
+      
+      th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+      }
+      
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+    }
+    
+    ul {
+      padding-left: 20px;
+    }
+    
+    .scorecard {
+      display: flex;
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 20px 0;
+      
+      .score-circle {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin-right: 20px;
+        border: 1px solid #ddd;
+      }
+      
+      .stats {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+    }
+    
+    .green {
+      color: green;
+    }
+    
+    .orange {
+      color: orange;
+    }
+    
+    .red {
+      color: red;
+    }
+  }
+}
+
 #jq-form-container {
   display: flex;
   width: 100%;
@@ -53,6 +135,8 @@ hr {
 footer {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
 
   .extra-info {
     a {
@@ -74,6 +158,17 @@ footer {
 
       &:hover:before {
         width: 100%;
+      }
+    }
+  }
+  
+  .actions {
+    display: flex;
+    gap: 10px;
+    
+    button {
+      &:not(:last-child) {
+        margin-right: 8px;
       }
     }
   }

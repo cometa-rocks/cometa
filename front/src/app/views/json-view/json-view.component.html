@@ -1,37 +1,55 @@
-<h3 class="title" *ngIf="data.call">
+<h3 aria-label="API Call" class="title" *ngIf="data.call && !isHtmlContent">
   API Call - <b>{{ data.call.request.method }} {{ data.call.request.url }}</b>
 </h3>
-<h3 class="title" *ngIf="data.stepName != undefined">
+<h3 aria-label="Step Network Responses" class="title" *ngIf="data.stepName != undefined && !isHtmlContent">
   Step Network Responses - <b>{{ data.stepName }}</b>
 </h3>
-<h3 class="title" *ngIf="data.stepNameVar != undefined">
+<h3 aria-label="Variable Information" class="title" *ngIf="data.stepNameVar != undefined && !isHtmlContent">
   Variable Information - <b>{{ data.stepNameVar }}</b>
 </h3>
+<h3 aria-label="Accessibility Compliance Report" class="title" *ngIf="data.stepNameVar != undefined && isHtmlContent">
+  Accessibility Compliance Report - <b>{{ data.stepNameVar }}</b>
+</h3>
 <hr />
-<div id="jq-form-container">
-  <div class="json_content">
-    <ngx-json-viewer
-      [json]="data.call ? data.call : data.responses"
-      [expanded]="true"
-      [depth]="1"></ngx-json-viewer>
+
+<!-- HTML Content View - Only shown when isHtmlContent is true -->
+<div class="html-content" *ngIf="isHtmlContent">
+  <div aria-label="Accessibility Compliance Report" class="report-container" [innerHTML]="sanitizedHtml"></div>
+</div>
+
+<!-- JSON Content View - Only shown when isHtmlContent is false -->
+<ng-container *ngIf="!isHtmlContent">
+  <div id="jq-form-container">
+    <div class="json_content">
+      <ngx-json-viewer
+        [json]="data.call ? data.call : data.responses"
+        [expanded]="true"
+        [depth]="1"></ngx-json-viewer>
+    </div>
+    <textarea
+      aria-label="Result from the JQ filter will go here..."
+      #jqResult
+      name="jq-result"
+      id="jq-result"
+      placeholder="Result from the JQ filter will go here..."
+      disabled="true"></textarea>
   </div>
   <textarea
-    #jqResult
-    name="jq-result"
-    id="jq-result"
-    placeholder="Result from the JQ filter will go here..."
-    disabled="true"></textarea>
-</div>
-<textarea
-  placeholder="JQ Filter Example: .request.cookies[] | {(.name): .value}"
-  name="jq-filter"
-  id="jq-filter"
-  (keyup)="getJQResult($event)"></textarea>
+    aria-label="Enter JQ Filter"
+    placeholder="JQ Filter Example: .request.cookies[] | {(.name): .value}"
+    name="jq-filter"
+    id="jq-filter"
+    (keyup)="getJQResult($event)"></textarea>
+</ng-container>
+
 <footer>
   <div class="extra-info">
-    <a href="https://jqlang.github.io/jq/manual/" target="_blank"
-      >JQ Documentation</a
-    >
+    <a href="https://jqlang.github.io/jq/manual/" target="_blank" *ngIf="!isHtmlContent">
+      JQ Documentation
+    </a>
   </div>
-  <button color="warn" mat-stroked-button (click)="closeDialog()">Close</button>
+  <div class="actions">
+    <button *ngIf="isHtmlContent" aria-label="Print Report" color="primary" mat-stroked-button (click)="printReport()">Print Report</button>
+    <button aria-label="Close" color="warn" mat-stroked-button (click)="closeDialog()">Close</button>
+  </div>
 </footer>

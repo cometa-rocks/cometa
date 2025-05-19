@@ -346,16 +346,83 @@ export class StepViewComponent implements OnInit {
   }
 
   openStepNotes(item) {
-    const content = JSON.parse(item.notes.content);
-    this._dialog.open(JsonViewerComponent, {
-      data: {
-        responses: content,
-        stepNameVar: item.step_name
-      },
-      width: '100vw',
-      maxHeight: '90vh',
-      maxWidth: '85vw',
-      panelClass: 'rest-api-panel',
-    });
+    console.log(item.notes);
+    try {
+      // Parse the content - this will work for JSON content
+      const content = JSON.parse(item.notes.content);
+      
+      // Check if this is HTML content from accessibility report
+      // HTML content will be a string that starts with <html>, <body>, etc.
+      if (typeof content === 'string' && 
+          (content.trim().startsWith('<html') || 
+          content.trim().startsWith('<body') || 
+          content.trim().startsWith('<!DOCTYPE') || 
+          content.trim().startsWith('<div'))) {
+        // It's HTML content - open it directly in a new tab
+        this._dialog.open(JsonViewerComponent, {
+          data: {
+            responses: content,
+            stepNameVar: item.step_name,
+            openInNewTab: true
+          },
+          width: '100vw',
+          maxHeight: '90vh',
+          maxWidth: '85vw',
+          panelClass: 'rest-api-panel',
+        });
+      } else {
+        // It's regular JSON content - pass the parsed object
+        this._dialog.open(JsonViewerComponent, {
+          data: {
+            responses: content,
+            stepNameVar: item.step_name
+          },
+          width: '100vw',
+          maxHeight: '90vh',
+          maxWidth: '85vw',
+          panelClass: 'rest-api-panel',
+        });
+      }
+    } catch (e) {
+      // If JSON parsing fails, it might be a raw HTML string already
+      // Try to handle it as HTML directly
+      try {
+        const content = item.notes.content;
+        if (typeof content === 'string' && 
+            (content.trim().startsWith('<html') || 
+            content.trim().startsWith('<body') || 
+            content.trim().startsWith('<!DOCTYPE') || 
+            content.trim().startsWith('<div'))) {
+          // It's HTML content - open it directly in a new tab
+          this._dialog.open(JsonViewerComponent, {
+            data: {
+              responses: content,
+              stepNameVar: item.step_name,
+              openInNewTab: true
+            },
+            width: '100vw',
+            maxHeight: '90vh',
+            maxWidth: '85vw',
+            panelClass: 'rest-api-panel',
+          });
+        } else {
+          // Neither valid JSON nor recognized HTML
+          console.error('Failed to parse step notes content:', e);
+          // Still try to display it as-is
+          this._dialog.open(JsonViewerComponent, {
+            data: {
+              responses: content,
+              stepNameVar: item.step_name
+            },
+            width: '100vw',
+            maxHeight: '90vh',
+            maxWidth: '85vw',
+            panelClass: 'rest-api-panel',
+          });
+        }
+      } catch (err) {
+        console.error('Failed to handle step notes content:', err);
+      }
+    }
   }
 }
