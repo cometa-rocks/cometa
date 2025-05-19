@@ -235,9 +235,12 @@ function updateCrontab() {
 
 
 function initiate_config_dirs(){
-    debug "Init dirs"
-    ./init_dirs.sh
-    debug "Init dirs"
+    info "Initiating config dirs"
+    if ./init_dirs.sh; then
+        info "Initiating config dirs - DONE"
+    else
+        warning "Failed to initiate config dirs"
+    fi
 }
 
 
