@@ -57,7 +57,7 @@ from pathlib import Path
 from tools import expected_conditions as CEC
 import sys
 
-from utility.functions import toWebP
+from utility.functions import toWebP, toWebP_from_data
 from utility.encryption import *
 from tools.models import check_if_step_should_execute, get_step_status
 
@@ -82,32 +82,30 @@ def _async_post(url, headers=None, json=None):
             logger.error(f"Async POST to {url} failed: {e}")
     _executor.submit(_task)
 
-#
-# some usefull functions
-#
-def takeScreenshot(device_driver, screenshots_step_path):
-    screenshot_file_name = SCREENSHOT_PREFIX + "current.png"
-    logger.debug("Screenshot filename: %s" % screenshot_file_name)
-    final_screenshot_file = os.path.join(screenshots_step_path, screenshot_file_name)
-    logger.debug("Final screenshot filename and path: %s" % final_screenshot_file)
 
-    # check if an alert box exists
+def takeScreenshot(device_driver):
     try:
         device_driver.switch_to.alert
         logger.debug(
             "Alert found ... if we take a screenshot now the alert box will be ignored..."
         )
-        return None, None
+        return None
         
     except Exception as err:
         # create the screenshot
         logger.debug("Saving screenshot to file")
         try:
-            device_driver.save_screenshot(final_screenshot_file)
+            # device_driver.save_screenshot(final_screenshot_file)
+            return device_driver.get_screenshot_as_png()
         except Exception as err:
             logger.error(f"Unable to take screenshot ...{(str(err))}")
-
-        return final_screenshot_file, screenshot_file_name
+            return None
+#
+# some usefull functions
+#
+# def takeScreenshot(device_driver, screenshots_step_path):
+    # pass
+    
         
 
 def convert_image_to_decoded_bytes(image_path):
@@ -728,9 +726,12 @@ def take_screenshot_and_process(context, step_name, success, step_execution_sequ
             logger.debug("No driver found skipping screenshot")
             return
         
-
+        screenshot_file_name = SCREENSHOT_PREFIX + "current.png"
+        logger.debug("Screenshot filename: %s" % screenshot_file_name)
+        final_screenshot_file = os.path.join(screenshots_step_path, screenshot_file_name)
+        logger.debug("Final screenshot filename and path: %s" % final_screenshot_file)
         logger.debug(f"Screenshot taken for step")
-        final_screenshot_file, screenshot_file = takeScreenshot(current_step_device_driver, screenshots_step_path)  
+        screenshot_data = takeScreenshot(current_step_device_driver)  
       
         if final_screenshot_file is None:
             return
@@ -740,7 +741,8 @@ def take_screenshot_and_process(context, step_name, success, step_execution_sequ
                   step_execution_sequence, 
                   feature_result_id,
                   context.step_data["compare"],
-                  screenshot_file,
+                  screenshot_data,
+                  screenshot_file_name,
                   final_screenshot_file,
                   screenshots_step_path,
                   context.TEMPLATES_PATH,
@@ -765,6 +767,7 @@ def _async_process_screen_shot(
     step_execution_sequence,
     feature_result_id,
     compare,
+    screenshot_data,
     screenshot_file,
     final_screenshot_file,
     screenshots_step_path,
@@ -785,13 +788,11 @@ def _async_process_screen_shot(
             backend_screenshot_data = {}
             websocket_screenshot_data = {}
         
-        
             # time.sleep(0.1)
             logger.debug("Converting %s to webP" % final_screenshot_file)
             # Convert screenshot to WebP
-            toWebP(final_screenshot_file)
+            toWebP_from_data(screenshot_data, final_screenshot_file)
             logger.debug("Converting screenshot done")
-        
         
             if compare:
                 logger.debug("Starting the image comparison")

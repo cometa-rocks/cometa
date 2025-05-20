@@ -1,6 +1,8 @@
 import logging
 import logging.handlers
 import os.path
+from io import BytesIO
+import os
 import time
 import subprocess
 import requests
@@ -76,6 +78,46 @@ def toWebP(image):
         os.remove(image)
     else:
         logger.debug("Leaving PNG image as is because WEBP was not there")
+        
+        
+
+# Converts PNG image data in memory to WebP file on disk
+def toWebP_from_data(image_data, file_output_path):
+    compressed_image = file_output_path.replace(".png", ".webp")
+    compressed_image_path = f"{compressed_image}"
+    logger.debug("Converting in-memory PNG data to: %s" % compressed_image_path)
+
+    try:
+        im = Image.open(BytesIO(image_data))
+        im = im.convert("RGB")
+        im.save(compressed_image_path, format="WEBP", optimize=True, quality=70)
+    except Exception as err:
+        logger.error("Failed to convert screenshot to WebP")
+        logger.debug("Error: %s" % str(err))
+        return None
+
+    # Wait and verify file creation
+    # time.sleep(0.1)
+    if os.path.isfile(compressed_image_path):
+        logger.debug("File saved correctly: %s" % compressed_image_path)
+    else:
+        logger.debug("File was not saved, trying fallback with ImageMagick")
+        temp_png = f"{file_output_path}.png"
+        with open(temp_png, "wb") as f:
+            f.write(image_data)
+
+        cmd = f"convert {temp_png} -define webp:lossless=true {compressed_image_path}"
+        status = subprocess.call(cmd, shell=True, env={})
+        logger.debug("Fallback convert return code: %s" % status)
+
+        if os.path.isfile(compressed_image_path):
+            logger.debug("Fallback succeeded, removing temp PNG")
+            os.remove(temp_png)
+        else:
+            logger.debug("Fallback failed, keeping PNG")
+            return None
+
+    return compressed_image_path
 
 
 # Remove the given prefix from a string
