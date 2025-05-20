@@ -1,11 +1,9 @@
 @import 'color';
 
+ 
+
 :host {
-  display: flex;
-  width: 100%;
-  max-width: 400px;
-  height: 40px;
-  margin-bottom: 10px;
+  width: 100%  
 }
 
 .icon {
@@ -30,58 +28,10 @@
   }
 }
 
-.name {
-  flex: 1;
-  padding: 0 10px;
-  box-sizing: border-box;
-  input {
-    display: block;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    border: 0;
-    outline: 0;
-    line-height: 40px;
-    border: 2px solid transparent;
-    border-radius: 3px;
-    padding: 0 15px;
-    box-sizing: border-box;
-    // transition: border-color .2s ease-in-out;
-    // border-color: rgba(0,0,0,.3);
-    font-size: 16px;
-    color: rgba($color: $primary-color, $alpha: 1);
-  }
-}
-
-.modify {
-  flex: 0 0 40px;
-  padding: 0 10px;
-  box-sizing: border-box;
-  position: relative;
-  cursor: pointer;
-  &:hover:after {
-    transform: scale(1.2);
-  }
-  &:after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin: auto;
-    height: 15px;
-    width: 15px;
-    opacity: 0.8;
-    transition: transform 0.2s ease-in-out;
-    transform: scale(1);
-    background-image: url(^assets/play-button.svg);
-    background-size: contain;
-    background-repeat: no-repeat;
-  }
-  &.validate:after {
-    background-image: url(^assets/pause.svg);
-  }
+h2 {
+  margin: 50px 0 40px;
+  font-size: 12pt;
+  text-transform: uppercase;
 }
 
 .remove {
@@ -93,6 +43,7 @@
   &:hover:after {
     transform: scale(1.2);
   }
+  background: none;
   &:after {
     content: '';
     position: absolute;
@@ -110,4 +61,37 @@
     background-size: contain;
     background-repeat: no-repeat;
   }
+}
+
+
+.row {
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #7d781d;
+}
+
+
+.grid-table {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1px;
+  font-family: sans-serif;
+  margin: 20px auto;
+}
+
+.grid-table > div {
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+.header {
+  font-weight: bold;
+}
+
+.icon {
+  background-image: url('/assets/browser-icon.svg'); /* or dynamic with [ngStyle] */
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 32px;
 }

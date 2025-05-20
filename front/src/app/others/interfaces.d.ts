@@ -1126,6 +1126,7 @@ interface Container {
   created_by_name?: string;
   apk_file?: number | File;
   shared: boolean;
+  in_use: boolean;
   hostname:string;
   isPaused?: boolean;
   isTerminating?: boolean;
