@@ -33,7 +33,7 @@ import { HouseKeepingComponent } from './housekeeping/housekeeping.component';
 export class AdminOthersComponent implements OnInit {
   houseKeepingLogs: HouseKeepingLogs[];
   private subscription: Subscription;
- 
+  
   constructor(
     private _snack: MatSnackBar,
     private _store: Store,
@@ -101,7 +101,7 @@ export class AdminOthersComponent implements OnInit {
     fetch('/backend/parseCometaBrowsers/')
       .then(res => res.json())
       .then(success => { 
-        // Boolean value to check if the update was successful
+        // Boolean value to check if the update was successful 
         if (success) {
           this._snack.open('Cometa browsers updated successfully!', 'OK');
         } else {
@@ -114,5 +114,20 @@ export class AdminOthersComponent implements OnInit {
   }
   
   
+  triggerHouseKeeping() {
+    this.subscription = this._api.runHouseKeeping().subscribe(
+      (response:any) => {
+          console.log(response)
+          this.houseKeepingLogs = [response.house_keeping_logs, ...this.houseKeepingLogs];        
+          this.cdr.markForCheck();
+          this._snack.open(`In background housekeeping thread is running, refer log ID : ${response.house_keeping_logs.id}, please do not run again! `, 'OK');        
+      },
+      error => {
+        console.error('Error fetching logs:', error);
+        this._snack.open('An error occurred, please check django service logs', 'OK');
+      }
+    );
+  }
+
 
 }

@@ -62,7 +62,7 @@ class HouseKeepingViewSet(
             response = self.response_manager.response(
                 {
                     "success": house_keeping_thread.is_alive(),
-                    "logs_id": house_keeping_logs.id,
+                    "house_keeping_logs": self.serializer_class(house_keeping_logs, many=False).data,
                 }
             )
             logger.debug("Finished housekeeping")

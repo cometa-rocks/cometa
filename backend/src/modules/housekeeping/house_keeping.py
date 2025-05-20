@@ -8,6 +8,7 @@ from backend.models import Department, Feature_result, Step_result
 from backend.utility.classes import LogCommand
 from datetime import datetime, timedelta
 from .models import HouseKeepingLogs
+from modules.container_service.models import ContainerService
 import os, json
 import traceback
 from backend.utility.functions import getLogger
@@ -135,10 +136,16 @@ class HouseKeepingThread(LogCommand, Thread):
         )
         
         self.log("============================================")
-        self.log(
-            f"{len(housekeeping_enabled_departments)} departments with expire days configured"
-        )
+        self.log(f"Found {len(housekeeping_enabled_departments)} departments with expire days configured")
+        for department in housekeeping_enabled_departments:
+            self.log(
+                f"""Department ID: {department.department_id}\t Name: {department.department_name}, 
+                \t Result Expire Days: {department.settings["result_expire_days"]}""",
+                spacing=1,
+                )
+
         self.log("============================================")
+        self.log("\n")
         for department in housekeeping_enabled_departments:
             self.log(
                 f"Cleaning files in department [ID: {department.department_id}] [NAME: {department.department_name}]",
@@ -188,11 +195,37 @@ class HouseKeepingThread(LogCommand, Thread):
             except Exception as exception:
                 self.log(exception)
 
+    def check_container_service_and_clean(self):
+        # Get containers that are in use and created 3 hours ago
+        three_hours_ago = timezone.now() - timedelta(hours=3)
+        
+        # Filter for the containers which are use
+        container_services_to_clean = ContainerService.objects.filter(
+            in_use=True,
+            created_on__lte=three_hours_ago,
+            service_type="Browser"
+        )
+        
+        self.log("============================================")
+        self.log(f"Found {len(container_services_to_clean)} container to clean")
+        self.log("============================================")
+        for container in container_services_to_clean:
+            try:
+                container_id = container.id
+                self.log(f"""Deleting Container ID: {container.id}, Image: {container.image_name}:{container.image_version}, Type:  {container.service_type}, Created At : {container.created_on} """,
+                    spacing=1)
+                container.delete()
+                self.log(f"""Deleted Container ID: {container_id}""",
+                    spacing=1)
+            except Exception as exception:
+                self.log(exception)
+
     def run(self):
         logger.debug("Started selecting files for cleanup ")
         count_six_month_previous_logs = 0
         try:
             self.filter_and_delete_files()
+            self.check_container_service_and_clean()
             self.house_keeping_logs.success = True
             
             # Delete the Housekeeping logs itself when its 6 month older
