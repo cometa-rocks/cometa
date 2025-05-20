@@ -756,7 +756,8 @@ def step_impl(context, foldername):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")  # Format: YYYYMMDD_HHMMSS_microseconds
         screenshots_step_path = os.path.join(context.SCREENSHOTS_PATH, timestamp)
         logger.debug(f"step_screenshot_path : {screenshots_step_path} ")
-        takeScreenshot(context.browser, screenshots_step_path)
+        screenshot_data = takeScreenshot(context.browser, screenshots_step_path)
+        toWebP_from_data(screenshot_data, screenshots_step_path)
 
         # see if style is ready
         context.STYLE_IMAGE = context.SCREENSHOT_PATH + 'styles/' + SCREENSHOT_PREFIX + context.SCREENSHOT_PREFIX + '.png'
