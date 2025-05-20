@@ -135,10 +135,16 @@ class HouseKeepingThread(LogCommand, Thread):
         )
         
         self.log("============================================")
-        self.log(
-            f"{len(housekeeping_enabled_departments)} departments with expire days configured"
-        )
+        self.log(f"Found {len(housekeeping_enabled_departments)} departments with expire days configured")
+        for department in housekeeping_enabled_departments:
+            self.log(
+                f"""Department ID: {department.department_id}\t Name: {department.department_name}, 
+                \t Result Expire Days: {department.settings["result_expire_days"]}""",
+                spacing=1,
+                )
+
         self.log("============================================")
+        self.log("\n")
         for department in housekeeping_enabled_departments:
             self.log(
                 f"Cleaning files in department [ID: {department.department_id}] [NAME: {department.department_name}]",
