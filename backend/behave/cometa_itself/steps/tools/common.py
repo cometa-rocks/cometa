@@ -252,6 +252,25 @@ def send_step_details(context, text):
         'info': text
     })
 
+def send_step_screen_shot_details(feature_id, feature_result_id, user_id, browser_info, counters_index, step_data_belongs_to, websocket_screen_shot_details):
+    logger.debug('Sending websocket with screenshot details ... [%s] ' % websocket_screen_shot_details)
+    
+    data_to_send = {
+        "user_id": user_id,
+        'browser_info': json.dumps(browser_info),
+        "run_id": os.environ['feature_run'],
+        'step_index': counters_index,
+        'datetime': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+        'belongs_to': step_data_belongs_to,
+        'feature_result_id': feature_result_id,
+        'screenshots': json.dumps(websocket_screen_shot_details) if websocket_screen_shot_details else "{}"  
+    }
+    logger.debug(f"Sending data {data_to_send}")
+    
+    response = requests.post(f'{get_cometa_socket_url()}/feature/%s/stepDetail' % feature_id, data=data_to_send)
+    
+    logger.debug(f"response : {response} {response.text}")
+
 def click_element_by_css(context, selector):
     elem = waitSelector(context, "css", selector)
     for el in elem:

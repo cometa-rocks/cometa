@@ -961,4 +961,8 @@ export class ApiService {
     return this._http.post(`${this.api}container_service/`,body);
   }
 
+  runHouseKeeping() {
+    return this._http.delete(`${this.api}housekeeping/`);
+  }
+
 }
