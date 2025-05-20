@@ -5,7 +5,8 @@
         "fields": {
             "schedule": "1 1 * * *",
             "command": "curl --silent  -H \"Content-Type: application/json\" -H \"COMETA-ORIGIN: CRONTAB\" -H \"COMETA-USER: 2\" -X DELETE http://django:8000/api/housekeeping/",
-            "comment": "# This is added to schedule housekeeping in the backend"
+            "comment": "# This is added to schedule housekeeping in the backend",
+            "delete_after_days": 0
         }
     },
     {
@@ -14,7 +15,8 @@
         "fields": {
             "schedule": "1 1 * * *",
             "command": "curl --silent  -H \"Content-Type: application/json\" -H \"COMETA-ORIGIN: CRONTAB\" -H \"COMETA-USER: 2\" -X DELETE http://cometa-django-service:8000/api/housekeeping/",
-            "comment": "# This is added to schedule housekeeping in the backend"
+            "comment": "# This is added to schedule housekeeping in the backend",
+            "delete_after_days": 0
         }
     }
 ]

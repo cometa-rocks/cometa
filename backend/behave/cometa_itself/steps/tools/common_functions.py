@@ -57,7 +57,7 @@ from pathlib import Path
 from tools import expected_conditions as CEC
 import sys
 
-from utility.functions import toWebP
+from utility.functions import toWebP, toWebP_from_data
 from utility.encryption import *
 from tools.models import check_if_step_should_execute, get_step_status
 
@@ -82,47 +82,31 @@ def _async_post(url, headers=None, json=None):
             logger.error(f"Async POST to {url} failed: {e}")
     _executor.submit(_task)
 
-#
-# some usefull functions
-#
-def takeScreenshot(context):
-    # prepare a screenshot name
-    context.SCREENSHOT_FILE = SCREENSHOT_PREFIX + "current.png"
-    context.MOBILE_SCREENSHOT_FILE = "Mobile_"+SCREENSHOT_PREFIX + "current.png"
-    logger.debug("Screenshot filename: %s" % context.SCREENSHOT_FILE)
-    final_screenshot_file = os.path.join(context.SCREENSHOTS_STEP_PATH, context.SCREENSHOT_FILE)
-    logger.debug("Final screenshot filename and path: %s" % final_screenshot_file)
 
-    # check if an alert box exists
+def takeScreenshot(device_driver):
     try:
-        context.browser.switch_to.alert
+        device_driver.switch_to.alert
         logger.debug(
             "Alert found ... if we take a screenshot now the alert box will be ignored..."
         )
+        return None
+        
     except Exception as err:
         # create the screenshot
         logger.debug("Saving screenshot to file")
         try:
-            if context.STEP_TYPE=='MOBILE':
-               context.mobile['driver'].save_screenshot(final_screenshot_file)
-            else: 
-                context.browser.save_screenshot(final_screenshot_file)
-
+            # device_driver.save_screenshot(final_screenshot_file)
+            return device_driver.get_screenshot_as_png()
         except Exception as err:
-            logger.error("Unable to take screenshot ...")
-            logger.exception(err)
-
-    # transfer saved image name to context.COMPARE_IMAGE
-    context.COMPARE_IMAGE = final_screenshot_file
-    # sleep just 100ms so we can be sure the file has been created
-    time.sleep(0.1)
-    logger.debug("Converting %s to webP" % context.SCREENSHOT_FILE)
-    # Convert screenshot to WebP
-    toWebP(final_screenshot_file)
-    context.DB_CURRENT_SCREENSHOT = final_screenshot_file
-    logger.debug("Converting screenshot done")
-    return final_screenshot_file
-
+            logger.error(f"Unable to take screenshot ...{(str(err))}")
+            return None
+#
+# some usefull functions
+#
+# def takeScreenshot(device_driver, screenshots_step_path):
+    # pass
+    
+        
 
 def convert_image_to_decoded_bytes(image_path):
 
@@ -635,17 +619,15 @@ def saveToDatabase(
         "notes": notes_data,
         "database_query_result": context.LAST_STEP_DB_QUERY_RESULT,
         "current_step_variables_value": context.LAST_STEP_VARIABLE_AND_VALUE,
+        "step_execution_sequence": context.counters['step_sequence']
     }
     
-    try:
-        logger.debug("Processing in a screenshot")
-        values = take_screenshot_and_process(context=context,step_name=step_name,success=success)
-        logger.debug("updating the values after processing the screenshot")
-        data.update(values)
+    #     logger.debug("Updating the values after processing the screenshot")
+    #     data.update(values)
         
-    except Exception as e:
-        logger.exception("Exception while processing the screenshots",e)
-        traceback.print_exc()
+    # except Exception as e:
+    #     logger.exception("Exception while processing the screenshots",e)
+    #     traceback.print_exc()
         
     # add custom error if exists
     if "custom_error" in context.step_data:
@@ -687,130 +669,211 @@ def saveToDatabase(
         logger.exception(str(e))
         traceback.print_exc()
 
-        # Calculate and log total execution time
+    
+    take_screenshot_and_process(context=context, step_name=step_name, success=success, 
+                                             step_execution_sequence=context.counters['step_sequence'],
+                                             feature_result_id=feature_result_id
+                                             )         
+       
+    # Calculate and log total execution time
     total_time = (time.time() - start_time) * 1000  # Convert to milliseconds
     logger.debug(f"saveToDatabase took {total_time:.2f}ms to execute")
 
 
-def take_screenshot_and_process(context, step_name, success):
+# Get the device driver during step execution
+# Plan is to improve this method to execute this testcase when there is no browser/mobile required 
+# In that case do not take the screenshot 
+def get_device_driver(context):
+    
+    driver = None
+    if context.STEP_TYPE=='MOBILE':
+        if len(context.mobiles)>0:
+            driver = context.mobile['driver']
+    else: 
+        driver = context.browser
+        
+    return driver
+
+import os, shutil, requests, threading
+
+    
+# This method should not be called with async because we need to take the screenshot right after the step is executed
+# calling it with async makes next step to executed which takes the screenshot of other step
+def take_screenshot_and_process(context, step_name, success, step_execution_sequence, feature_result_id):
     # Some steps shouldn't be allowed to take screenshots and compare, as some can cause errors
     excluded = ["Close the browser"]
-    data_to_be_returned = {}
+    
+    start_time = time.time()  # Add timing start
+    logger.debug("Starting execution of saveToDatabase")
+    
     # Exclude banned steps
-    if step_name not in excluded:
+    if step_name in excluded:
+        return
+    
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")  # Format: YYYYMMDD_HHMMSS_microseconds
+    screenshots_step_path = os.path.join(context.SCREENSHOTS_PATH, timestamp)
+    logger.debug(f"step_screenshot_path : {screenshots_step_path} ")
+    # Check if feature needs screenshot - see #3014 for change to webp format
+    if context.step_data["screenshot"] or not success:
+        # Create current step result folder ... only create, if needed
+        Path(screenshots_step_path).mkdir(parents=True, exist_ok=True)
+        # Take actual screenshot
+        logger.debug(f"Taking screenshot for step")
+        # This step can be executed on Mobile or Browser get the driver accordingly
+        current_step_device_driver = get_device_driver(context=context)
         
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")  # Format: YYYYMMDD_HHMMSS_microseconds
-        context.SCREENSHOTS_STEP_PATH = os.path.join(context.SCREENSHOTS_PATH, timestamp)
+        if not current_step_device_driver:
+            logger.debug("No driver found skipping screenshot")
+            return
         
-        # Check if feature needs screenshot - see #3014 for change to webp format
-        if context.step_data["screenshot"] or not success:
-            # Create current step result folder ... only create, if needed
-            Path(context.SCREENSHOTS_STEP_PATH).mkdir(parents=True, exist_ok=True)
-            # Take actual screenshot
-            logger.debug(f"Taking screenshot for step")
-            takeScreenshot(context)
-            logger.debug(f"Screenshot taken for step")
+        screenshot_file_name = SCREENSHOT_PREFIX + "current.png"
+        logger.debug("Screenshot filename: %s" % screenshot_file_name)
+        final_screenshot_file = os.path.join(screenshots_step_path, screenshot_file_name)
+        logger.debug("Final screenshot filename and path: %s" % final_screenshot_file)
+        logger.debug(f"Screenshot taken for step")
+        screenshot_data = takeScreenshot(current_step_device_driver)  
+      
+        if final_screenshot_file is None:
+            return
+        
+        logger.debug(f"Started the screenshot prcessing step thread for step {context.counters['index']}")
+        _async_process_screen_shot(
+                  step_execution_sequence, 
+                  feature_result_id,
+                  context.step_data["compare"],
+                  screenshot_data,
+                  screenshot_file_name,
+                  final_screenshot_file,
+                  screenshots_step_path,
+                  context.TEMPLATES_PATH,
+                  context.SCREENSHOTS_ROOT,
+                  SCREENSHOT_PREFIX,
+                  context.counters["index"],
+                  context.feature_id,
+                  context.PROXY_USER["user_id"],
+                  context.browser_info,
+                  context.step_data["belongs_to"],
+                  context.browser_hash,
+                #   current_step_device_driver
+                ) 
+        
+    
+    # Calculate and log total execution time
+    total_time = (time.time() - start_time) * 1000  # Convert to milliseconds
+    logger.debug(f"take_screenshot_and_process took {total_time:.2f}ms to execute")
+    
 
-        # Check if feature needs compare
-        if context.step_data["compare"]:
-            # --------------------
-            # Compare images
-            # --------------------
-            # Construct current screenshot path
-            logger.debug("Starting the image comparision")
-            context.COMPARE_IMAGE = os.path.join(context.SCREENSHOTS_STEP_PATH, context.SCREENSHOT_FILE).replace(".png", ".webp")
-            # Construct template screenshot path
-            context.STYLE_IMAGE = (
-                context.TEMPLATES_PATH
-                + SCREENSHOT_PREFIX
-                + "template_%d.webp" % context.counters["index"]
+def _async_process_screen_shot(
+    step_execution_sequence,
+    feature_result_id,
+    compare,
+    screenshot_data,
+    screenshot_file,
+    final_screenshot_file,
+    screenshots_step_path,
+    templates_path,
+    screenshots_root,
+    screenshot_prefix,
+    index_counter,
+    feature_id, 
+    user_id,
+    browser_info, 
+    step_data_belongs_to, 
+    browser_hash,
+    # current_step_device_driver
+):
+    
+    def _task():
+        try:
+            backend_screenshot_data = {}
+            websocket_screenshot_data = {}
+        
+            # time.sleep(0.1)
+            logger.debug("Converting %s to webP" % final_screenshot_file)
+            # Convert screenshot to WebP
+            toWebP_from_data(screenshot_data, final_screenshot_file)
+            logger.debug("Converting screenshot done")
+        
+            if compare:
+                logger.debug("Starting the image comparison")
+                
+                compare_image = os.path.join(screenshots_step_path, screenshot_file).replace(".png", ".webp")
+                style_image = os.path.join(templates_path, f"{screenshot_prefix}template_{index_counter}.webp")
+                style_image_copy_to_show = os.path.join(screenshots_step_path, f"{screenshot_prefix}style.webp")
+                diff_image = os.path.join(screenshots_step_path, f"{screenshot_prefix}difference.png")
+
+                migrateOldStyles(feature_id, index_counter, browser_hash, screenshots_root, style_image)  # You may need to modify this helper too
+
+                if not os.path.isfile(style_image):
+                    logger.debug(f"StyleImage not found, copying {compare_image} to {style_image}")
+                    shutil.copy2(compare_image, style_image)
+
+                if not os.path.isfile(style_image_copy_to_show):
+                    logger.debug(f"StyleImageToShow not found - copying {style_image} to {style_image_copy_to_show}")
+                    shutil.copy2(style_image, style_image_copy_to_show)
+
+                logger.debug("Comparing image")
+                pixel_diff = highlight_pixel_differences(compare_image, style_image, diff_image)
+
+                if pixel_diff is None:
+                    raise CustomError("Compare tool returned NoneType")
+
+                toWebP(diff_image)
+                backend_screenshot_data["pixel_diff"] = pixel_diff
+                # pixel_diff_counter += pixel_diff
+            else:
+                # This when code executed and there is no baseline 
+                compare_image = os.path.join(screenshots_step_path, screenshot_file).replace(".png", ".webp")
+                style_image = style_image_copy_to_show = diff_image = None
+
+            db_current_screenshot = (
+                removePrefix(compare_image, screenshots_root).replace(".png", ".webp")
+                if compare_image else ""
             )
-            # Construct the style copy image path only for the user to see it
-            context.STYLE_IMAGE_COPY_TO_SHOW = os.path.join(context.SCREENSHOTS_STEP_PATH, SCREENSHOT_PREFIX + "style.webp")
-            context.DIFF_IMAGE = os.path.join(context.SCREENSHOTS_STEP_PATH, SCREENSHOT_PREFIX + "difference.png")
-            # Migrate old style images in disk
-            migrateOldStyles(context)
-            # Check if the style image already exists or not, if not, the current screenshot will be copied and used as style
-            if not os.path.isfile(context.STYLE_IMAGE):
-                # Check if we have
-                logger.debug(
-                    "StyleImage is not there ... copying %s to %s"
-                    % (context.COMPARE_IMAGE, context.STYLE_IMAGE)
+            
+            logger.debug(f"DB_CURRENT_SCREENSHOT {db_current_screenshot}")
+            
+            if db_current_screenshot:
+                backend_screenshot_data["screenshot_current"] = db_current_screenshot
+                
+                # FIXME Need to check how to avoid this
+                websocket_screenshot_data['current'] = db_current_screenshot
+
+                if style_image_copy_to_show:
+                    backend_screenshot_data["screenshot_style"] = (
+                        removePrefix(style_image_copy_to_show, screenshots_root).replace(".png", ".webp")
+                    )
+
+                if diff_image:
+                    backend_screenshot_data["screenshot_difference"] = (
+                        removePrefix(diff_image, screenshots_root).replace(".png", ".webp")
+                    )
+                    websocket_screenshot_data['difference'] = backend_screenshot_data["screenshot_difference"]
+
+                if style_image:
+                    backend_screenshot_data["screenshot_template"] = (
+                        removePrefix(style_image, screenshots_root)
+                    )
+                    websocket_screenshot_data['template'] = backend_screenshot_data["screenshot_template"]
+
+                addTimestampToImage(db_current_screenshot, path=screenshots_root)
+
+                logger.debug(f"Sending screenshot details to the backend {backend_screenshot_data}")
+
+                send_step_screen_shot_details(feature_id, feature_result_id, user_id, browser_info, index_counter, step_data_belongs_to, websocket_screenshot_data)
+                
+                requests.post(
+                    f"{get_cometa_backend_url()}/steps/{feature_result_id}/{step_execution_sequence}/update/",
+                    headers={"Host": "cometa.local"},
+                    json=backend_screenshot_data,
                 )
-                shutil.copy2(context.COMPARE_IMAGE, context.STYLE_IMAGE)
-            # Check if the template to show is there ... if not copy it
-            if not os.path.isfile(context.STYLE_IMAGE_COPY_TO_SHOW):
-                # shutil.copy2(context.COMPARE_IMAGE, context.STYLE_IMAGE_COPY_TO_SHOW) # this is the old value for show image it copies the actual images and saves it as the comparable image which results in on front end we see the same image on actual and the style image
-                logger.debug(
-                    "StyleImageToShow is not there - copying %s to %s"
-                    % (context.STYLE_IMAGE, context.STYLE_IMAGE_COPY_TO_SHOW)
-                )
-                shutil.copy2(context.STYLE_IMAGE, context.STYLE_IMAGE_COPY_TO_SHOW)
-            # Compare the screenshots ... will results in AMVARA_difference.png in png format
-            logger.debug("Comparing image")
-            # Example usage
-            pixel_diff = highlight_pixel_differences(context.COMPARE_IMAGE, context.STYLE_IMAGE, context.DIFF_IMAGE)
-                    
-            # Check compare image was successful
-            if pixel_diff is None:
-                raise CustomError("Compare tool returned NoneType")
+                
+        except Exception as e:
+            logger.exception(f"screenshot processing failed",e)
+    
+    _executor.submit(_task)
 
-            # Convert difference image to WebP
-            toWebP(context.DIFF_IMAGE)
-
-            data_to_be_returned["pixel_diff"]  = pixel_diff
-            # Save Pixel Difference for calculating Total in after_all
-            context.counters["pixel_diff"] += pixel_diff
-
-        # Format screenshots
-        context.DB_CURRENT_SCREENSHOT = (
-            removePrefix(context.COMPARE_IMAGE, context.SCREENSHOTS_ROOT).replace(
-                ".png", ".webp"
-            )
-            if hasattr(context, "COMPARE_IMAGE")
-            else ""
-        )
-        
-        logger.debug(f"DB_CURRENT_SCREENSHOT {context.DB_CURRENT_SCREENSHOT}")
-        
-        context.websocket_screen_shot_details = {}
-        
-        if context.DB_CURRENT_SCREENSHOT:
-            data_to_be_returned["screenshot_current"] = context.DB_CURRENT_SCREENSHOT          
-            context.websocket_screen_shot_details['current'] = context.DB_CURRENT_SCREENSHOT
-             
-            data_to_be_returned["screenshot_style"] = (
-                removePrefix(
-                    context.STYLE_IMAGE_COPY_TO_SHOW, context.SCREENSHOTS_ROOT
-                ).replace(".png", ".webp")
-                if hasattr(context, "STYLE_IMAGE_COPY_TO_SHOW")
-                else ""
-            )
-            
-            data_to_be_returned["screenshot_difference"] = (
-                removePrefix(context.DIFF_IMAGE, context.SCREENSHOTS_ROOT).replace(
-                    ".png", ".webp"
-                )
-                if hasattr(context, "DIFF_IMAGE")
-                else ""
-            )
-            context.websocket_screen_shot_details['difference'] = data_to_be_returned["screenshot_difference"]
-            
-            data_to_be_returned["screenshot_template"] =  (
-                removePrefix(context.STYLE_IMAGE, context.SCREENSHOTS_ROOT)
-                if hasattr(context, "STYLE_IMAGE")
-                else ""
-            )
-            context.websocket_screen_shot_details['template'] = data_to_be_returned["screenshot_template"]
-            
-            addTimestampToImage(
-                context.DB_CURRENT_SCREENSHOT, path=context.SCREENSHOTS_ROOT
-            )
-            
-            
-        logger.debug(f"data_to_be_returned : {data_to_be_returned}")
-    return data_to_be_returned
-
+    # return backend_screenshot_data, websocket_screenshot_data
 
 # add timestamp to the image using the imagemagic cli
 def addTimestampToImage(image, path=None):
@@ -824,30 +887,30 @@ def addTimestampToImage(image, path=None):
 # Automatically checks if there's still old styles and moves them to current path
 # Due to change in new images structure we have to check if the old style image is still there,
 # # if it is we copy it to style image path and delete the old one
-def migrateOldStyles(context):
+def migrateOldStyles(feature_id, counter_index, browser_hash, screenshot_root, style_image):
     # Second style format used with feature id, step index and browser hash
     old_style_2 = (
-        context.SCREENSHOTS_ROOT
+        screenshot_root
         + SCREENSHOT_PREFIX
         + "%s_%d_%s_style.png"
-        % (context.feature_id, context.counters["index"], context.browser_hash)
+        % (feature_id, counter_index, browser_hash)
     )
     # First style format used with only feature id and step index as key
     old_style_1 = (
-        context.SCREENSHOTS_ROOT
+        screenshot_root
         + SCREENSHOT_PREFIX
-        + "%s_%d_style.png" % (context.feature_id, context.counters["index"])
+        + "%s_%d_style.png" % (feature_id, counter_index)
     )
     # Check for existing second style first
     if os.path.isfile(old_style_2):
         # Old style was found with most recent format, move it as style image
-        shutil.move(old_style_2, context.STYLE_IMAGE)
+        shutil.move(old_style_2, style_image)
         # We still need to check if the old_style_1 exists, and delete it if exists as we no longer need it (we have old_style_2)
         if os.path.isfile(old_style_1):
             os.remove(old_style_1)
     elif os.path.isfile(old_style_1):
         # Old style was found with oldest format, move it as style image
-        shutil.move(old_style_1, context.STYLE_IMAGE)
+        shutil.move(old_style_1, style_image)
 
 
 # ----------- 
