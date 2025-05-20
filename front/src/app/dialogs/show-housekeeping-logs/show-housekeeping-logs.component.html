@@ -1,15 +1,20 @@
 <div class="house-keeping-logs" *ngIf="houseKeepingLog">
-  <h2 mat-dialog-title>Housekeeping Logs of [{{ houseKeepingLog.created_on | amParse | amDateFormat: 'dd MMM yyyy HH:mm:ss'}}]</h2>
+  <h2 mat-dialog-title>Housekeeping Logs | {{ houseKeepingLog.created_on | amParse | amDateFormat: 'dd MMM yyyy HH:mm:ss'}}</h2>
   <mat-dialog-content class="house-keeping-logs-content">
     <div [innerHTML]="logs">
     </div>
   </mat-dialog-content>
-  <mat-dialog-actions>
-    <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
-  </mat-dialog-actions>
 </div>
 <div *ngIf="!houseKeepingLog">
-  loading...
+  loading......
+  <ng-template>
+    <mat-spinner class="loading" diameter="35" color="primary"></mat-spinner>
+  </ng-template>
 </div>
+<mat-dialog-actions>
+  <button mat-stroked-button color="success" (click)="loadHouseKeepingLogs()">Refresh Logs</button>
+  <button mat-stroked-button color="warn" mat-dialog-close>Close</button>
+</mat-dialog-actions>
+
 
 
