@@ -752,7 +752,12 @@ def step_impl(context, foldername):
         time.sleep(1.5)
         # take a screenshot
         context.SCREENSHOT_PREFIX = context.active_environment[0]+"_"+context.active_environment[1]+"_"+foldername+"_AL_"+str(no_of_link)+"_"
-        takeScreenshot(context)
+        
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")  # Format: YYYYMMDD_HHMMSS_microseconds
+        screenshots_step_path = os.path.join(context.SCREENSHOTS_PATH, timestamp)
+        logger.debug(f"step_screenshot_path : {screenshots_step_path} ")
+        screenshot_data = takeScreenshot(context.browser, screenshots_step_path)
+        toWebP_from_data(screenshot_data, screenshots_step_path)
 
         # see if style is ready
         context.STYLE_IMAGE = context.SCREENSHOT_PATH + 'styles/' + SCREENSHOT_PREFIX + context.SCREENSHOT_PREFIX + '.png'
@@ -3632,6 +3637,235 @@ def scrollThroughLazyLoading(context, xpath, MaxScrolls, MaxTimeOfLife):
     await scrollToEnd(MaxNumberOfScrolls, MaxTimeOfWaiting);
     ''' % (xpath, MaxScrolls, MaxTimeOfLife))
 
+# This step reads the html source code of the current page, and looks for aria label attributes, it counts the number of occurrences of each aria label attribute, and displays the value in the options section of the step report.
+# Count the number of aria labels in the current page
+@step(u'Count the number of aria labels in the current page')
+@done(u'Count the number of aria labels in the current page')
+def count_aria_labels(context):
+    # Get the html source code of the current page
+    html_source = context.browser.page_source
+    # Count the number of aria labels in the html source code
+    aria_labels = re.findall(r'aria-label="([^"]+)"', html_source)
+    # Count the number of occurrences of each aria label
+    aria_label_counts = {}
+    for label in aria_labels:
+        aria_label_counts[label] = aria_label_counts.get(label, 0) + 1
+    # Display the value in the options section of the step report
+    context.step_data['notes'] = {
+        'title': "Aria Labels",
+        'content': json.dumps(aria_label_counts)  # Convert the dictionary to a JSON string
+    }
+
+# This step performs a basic accessibility check for aria-labels on the current page, providing a report on compliance with WCAG guidelines.
+# The report includes counts of elements with and without aria-labels, recommendations for improvement, and a basic compliance score.
+# Example: Check accessibility compliance for aria-labels on current page
+@step(u'Check accessibility compliance for aria-labels on current page')
+@done(u'Check accessibility compliance for aria-labels on current page')
+def check_aria_labels_accessibility(context):
+    # Get the html source code of the current page
+    html_source = context.browser.page_source
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(html_source, 'html.parser')
+    import datetime
+    import html
+
+    # Helper: does this element have an accessible name?
+    def has_accessible_name(elem):
+        if elem.has_attr('aria-label') and elem['aria-label'].strip():
+            return True
+        if elem.has_attr('aria-labelledby') and elem['aria-labelledby'].strip():
+            return True
+        if elem.name == 'img' and elem.has_attr('alt') and elem['alt'].strip():
+            return True
+        if elem.get_text(strip=True):
+            return True
+        return False
+
+    # 1. Only check non-semantic interactive elements (div, span, svg with role or onclick)
+    interactive_candidates = soup.find_all(
+        lambda tag: (
+            tag.name in ['div', 'span', 'svg']
+            and (tag.has_attr('onclick') or tag.has_attr('role'))
+        )
+    )
+
+    # 2. Find those missing accessible names
+    missing_aria_labels = []
+    for elem in interactive_candidates:
+        if not has_accessible_name(elem):
+            elem_str = str(elem)[:100] + ("..." if len(str(elem)) > 100 else "")
+            missing_aria_labels.append({
+                'element_type': elem.name,
+                'element': elem_str
+            })
+
+    # 3. Count all aria-labels (for reporting and linter)
+    elements_with_aria_label = soup.find_all(attrs={"aria-label": True})
+    aria_label_values = [elem.get('aria-label', '').strip() for elem in elements_with_aria_label if elem.get('aria-label', '').strip()]
+    aria_label_counts = {}
+    for label in aria_label_values:
+        aria_label_counts[label] = aria_label_counts.get(label, 0) + 1
+
+    # 4. Lint for non-descriptive labels
+    common_bad_labels = {'click here', 'button', 'link'}
+    bad_label_warnings = []
+    for label in aria_label_counts:
+        if label.lower() in common_bad_labels:
+            bad_label_warnings.append(f'Consider replacing generic aria-label "{label}" with a more descriptive label')
+
+    # 5. Report stats
+    total_checked = len(interactive_candidates)
+    total_missing = len(missing_aria_labels)
+    compliance_score = round(((total_checked - total_missing) / total_checked) * 100, 2) if total_checked > 0 else 100
+    if compliance_score >= 70:
+        compliance_status = "Good"
+        status_color = "green"
+    elif compliance_score >= 50:
+        compliance_status = "Average"
+        status_color = "orange"
+    else:
+        compliance_status = "Poor"
+        status_color = "red"
+
+    # 6. Recommendations
+    recommendations = []
+    if missing_aria_labels:
+        recommendations.append("Add aria-label, aria-labelledby, or visible text to interactive non-semantic elements (div/span/svg with role/onclick)")
+    if bad_label_warnings:
+        recommendations.extend(bad_label_warnings)
+    if len(aria_label_counts) < len(elements_with_aria_label):
+        recommendations.append("Avoid duplicate aria-labels for different functionality")
+
+    # 7. HTML report
+    html_report = f"""
+    <html>
+    <head>
+        <title>Accessibility Compliance Report: ARIA Labels</title>
+    </head>
+    <body>
+        <h1>Accessibility Compliance Report: ARIA Labels</h1>
+        <div class="scorecard">
+            <div class="score-circle">
+                <h2 class="{status_color}">{compliance_score}%</h2>
+                <div class="{status_color}">{compliance_status}</div>
+            </div>
+            <div class="stats">
+                <h3>Non-semantic Interactive Elements Checked</h3>
+                <p>Page tested: {context.browser.current_url}</p>
+                <p>Date: {datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+            </div>
+        </div>
+        <h2>Summary</h2>
+        <table>
+            <tr>
+                <th>Total Interactive Non-Semantic Elements</th>
+                <th>With Accessible Name</th>
+                <th>Without Accessible Name</th>
+                <th>Compliance Score</th>
+            </tr>
+            <tr>
+                <td>{total_checked}</td>
+                <td>{total_checked - total_missing}</td>
+                <td>{total_missing}</td>
+                <td class="{status_color}">{compliance_score}% ({compliance_status})</td>
+            </tr>
+        </table>
+        <h2>ARIA Label Usage</h2>
+        <table>
+            <tr>
+                <th>ARIA Label Text</th>
+                <th>Occurrences</th>
+            </tr>
+    """
+    for label, count in aria_label_counts.items():
+        html_report += f"""
+            <tr>
+                <td>{label}</td>
+                <td>{count}</td>
+            </tr>
+        """
+    html_report += """
+        </table>
+    """
+    if missing_aria_labels:
+        from collections import Counter
+
+        # Count element occurrences
+        element_counter = Counter(m['element'] for m in missing_aria_labels)
+
+        # Build a new list with annotated entries
+        annotated_missing = []
+        for m in missing_aria_labels:
+            elem_text = m['element']
+            count = element_counter[elem_text]
+            if count > 1:
+                annotated_elem = f"{elem_text} (repeated {count} times)"
+            else:
+                annotated_elem = elem_text
+
+            # Handle truly empty string (edge case)
+            if not annotated_elem.strip():
+                annotated_elem = "[Empty Element]"
+
+            annotated_missing.append({
+                'element_type': m['element_type'],
+                'element': annotated_elem
+            })
+
+        html_report += """
+        <h2>Missing Accessible Names (Examples)</h2>
+        <table>
+            <tr>
+                <th>Element Type</th>
+                <th>Element</th>
+            </tr>
+        """
+
+        for i, missing in enumerate(annotated_missing[:10]):
+            html_report += f"""
+                <tr>
+                    <td>{missing['element_type']}</td>
+                    <td><code>{html.escape(missing['element'])}</code></td>
+                </tr>
+            """
+
+        if len(annotated_missing) > 10:
+            html_report += f"""
+                <tr>
+                    <td colspan="2">And {len(annotated_missing) - 10} more...</td>
+                </tr>
+            """
+
+        html_report += """
+        </table>
+        """
+
+    if recommendations:
+        html_report += """
+        <h2>Recommendations</h2>
+        <ul>
+        """
+        for recommendation in recommendations:
+            html_report += f"""
+            <li>{recommendation}</li>
+            """
+        html_report += """
+        </ul>
+        """
+    html_report += """
+        <h2>Relevant WCAG Guidelines</h2>
+        <ul>
+            <li>WCAG 2.1 Success Criterion 1.1.1: Non-text Content (Level A)</li>
+            <li>WCAG 2.1 Success Criterion 2.4.4: Link Purpose (In Context) (Level A)</li>
+            <li>WCAG 2.1 Success Criterion 4.1.2: Name, Role, Value (Level A)</li>
+        </ul>
+    </body>
+    </html>
+    """
+    context.step_data['notes'] = {
+        'title': "Accessibility Compliance Report: ARIA Labels",
+        'content': html_report
+    }
 
 if __name__ != 'actions':
     sys.path.append('/opt/code/')

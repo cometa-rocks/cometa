@@ -14,9 +14,13 @@ import {
   AreYouSureData,
   AreYouSureDialog,
 } from '@dialogs/are-you-sure/are-you-sure.component';
-import { NgIf, NgClass, AsyncPipe } from '@angular/common';
+import { NgFor,NgIf, NgClass, AsyncPipe } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-
+import { OnInit, ChangeDetectorRef} from '@angular/core';
+import { SecondsToHumanReadablePipe } from '@pipes/seconds-to-human-readable.pipe';
+import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
+import { AmParsePipe } from '@pipes/am-parse.pipe';
+import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
 @Component({
   selector: 'stand-by-browser',
   templateUrl: './stand-by-browser.component.html',
@@ -33,12 +37,18 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
     NgIf,
     NgClass,
     AsyncPipe,
+    NgFor,
+    AmParsePipe,
+    AmDateFormatPipe,
+    SecondsToHumanReadablePipe,
+    FirstLetterUppercasePipe,
   ],
 })
-export class StandByBrowserComponent {
-  @Input() stand_by_browser: Container;
+export class StandByBrowserComponent{
+  @Input() stand_by_browsers:  Container[];
   inputFocus: boolean = false;
   @Output() browserRemoved = new EventEmitter<number>();
+  isLoading = true;
 
   constructor(
     private inputFocusService: InputFocusService,
@@ -46,6 +56,7 @@ export class StandByBrowserComponent {
     private _snack: MatSnackBar,
     private _dialog: MatDialog,
     private _store: Store,
+    private _cdr: ChangeDetectorRef,
   ) {}
 
   // Check if focused on input or textarea

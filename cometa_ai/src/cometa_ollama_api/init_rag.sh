@@ -20,7 +20,7 @@ retries = 0
 dbname = 'postgres'
 user = 'postgres'
 password = 'postgres'
-host = 'cometa.db.ai.dev'
+host = 'db.ai'
 port = '5432'
 
 while retries < max_retries:
