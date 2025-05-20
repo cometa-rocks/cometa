@@ -93,6 +93,17 @@
         (focus)="onInputFocus()"
         (blur)="onInputBlur()"/>
     </mat-form-field>
+    
+    <div class="description-option">
+      <mat-checkbox
+        color="primary"
+        formControlName="validate_duplicate_feature_names"
+        >Ask for confirmation when creating or cloning a feature with a repeated name in this department</mat-checkbox
+      >
+      <div class="description">
+        When enabled, users will be asked for confirmation before creating or cloning features with names that already exist in this department.
+      </div>
+    </div>
   </form>
   <br />
   <div class="integration-keys">
@@ -104,7 +115,7 @@
   <button
     mat-stroked-button
     color="primary"
-    [disabled]="!rForm.valid"
+    [disabled]="!rForm.valid || !rForm.dirty"
     (click)="modifyDepartment(rForm.value)"
     class="submit">
     Modify department
