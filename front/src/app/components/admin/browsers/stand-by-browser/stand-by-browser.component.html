@@ -1,14 +1,38 @@
-<div class="icon"></div>
-<div class="name">
-  <input
-    spellcheck="false"
-    readonly
-    disableAutocomplete
-    [value]="stand_by_browser | standByBrowserComboText"
-    (focus)="onInputFocus()"
-    (blur)="onInputBlur()"/>
-</div>
-<div
-  (click)="removeBrowserContainer(stand_by_browser.id)"
-  class="remove"></div>
 
+
+
+
+<h2>Manage Stand By browsers</h2>
+
+<div *ngIf="!stand_by_browsers">
+  Loading...
+</div>
+<div *ngIf="stand_by_browsers" >
+  <div *ngIf="stand_by_browsers.length === 0">
+    Please start your favourite browser to speed up your testing
+  </div>
+  <div class="grid-table">
+    <!-- Header Row -->
+    <div class="header">Icon</div>
+    <div class="header">Name</div>
+    <div class="header">Status</div>
+    <div class="header">Usage</div>
+    <div class="header">Created On</div>
+    <div class="header">Action</div>
+  
+    <!-- Data Rows -->
+    <ng-container *ngFor="let stand_by_browser of stand_by_browsers">
+      <div class="row icon"></div>
+      <div class="row name">{{ stand_by_browser | standByBrowserComboText }}</div>
+      <div class="row">{{ stand_by_browser.service_status }}</div>
+      <div class="row">{{ stand_by_browser.in_use ? 'Used' : 'Not Used' }}</div>
+      <div class="row">{{ stand_by_browser.created_on | amParse
+        | amDateFormat: "MMMM d yyyy',' HH:mm a"
+        | firstLetterUppercase  }}</div>
+      <div class="row">
+        <div (click)="removeBrowserContainer(stand_by_browser.id)" class="remove">
+        </div>
+      </div>
+    </ng-container>
+  </div>  
+</div>
