@@ -72,6 +72,7 @@ interface UploadedFile {
   };
   mime?: string;
   type?: string;
+  file_type?: string;
 }
 
 // Add interface for sheet information
@@ -132,6 +133,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   @Input() showPagination: boolean = true;
   @Input() fileColumns: MtxGridColumn[] = [];
   @Input() showPanel: boolean = true;
+  @Input() file_type: string = 'normal';
   
   // Output events
   @Output() fileUploaded = new EventEmitter<UploadedFile[]>();
@@ -393,6 +395,29 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       return;
     }
     
+    // Check for data-driven file type restrictions
+    if (this.file_type === 'datadriven') {
+      const invalidFiles = filesArray.filter(file => {
+        const name = file.name.toLowerCase();
+        return !(name.endsWith('.csv') || name.endsWith('.xls') || name.endsWith('.xlsx'));
+      });
+      
+      if (invalidFiles.length > 0) {
+        const invalidFileNames = invalidFiles.map(f => f.name).join(', ');
+        this._snackBar.open(
+          `Invalid file type(s) for data-driven uploads. Only CSV or Excel files (.csv, .xls, .xlsx) are allowed: ${invalidFileNames}`,
+          'OK',
+          {
+            duration: 10000,
+            panelClass: ['file-management-custom-snackbar']
+          }
+        );
+        
+        event.target.value = '';
+        return;
+      }
+    }
+    
     // Check for duplicate files
     if (this.department && this.department.files) {
       const existingFilenames = this.department.files
@@ -433,6 +458,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     }
     
     formData.append('department_id', this.department.department_id.toString());
+    formData.append('file_type', this.file_type);
     
     // Create a compatible department object with department_name
     const compatibleDepartment = {
@@ -1079,10 +1105,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     if (!row) return false;
     return (
       row.status === 'Done' &&
-      !row.is_removed &&
-      row.extras !== undefined &&
-      row.extras.ddr !== undefined &&
-      row.extras.ddr['data-driven-ready'] === true
+      !row.is_removed
     );
   }
   
@@ -1465,11 +1488,20 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     if (!this.department || !this.department.files) {
       this.allCurrentlyRelevantFiles = [];
     } else {
-      if (this.showRemovedFiles) {
-        this.allCurrentlyRelevantFiles = [...this.department.files];
-      } else {
-        this.allCurrentlyRelevantFiles = this.department.files.filter(file => !file.is_removed);
+      // First filter by removal status
+      let filteredFiles = this.showRemovedFiles 
+        ? [...this.department.files]
+        : this.department.files.filter(file => !file.is_removed);
+      
+      // Then filter by file_type if specified
+      if (this.file_type) {
+        filteredFiles = filteredFiles.filter(file => 
+          // Handle existing files that might not have file_type property
+          !file.file_type || file.file_type === this.file_type
+        );
       }
+      
+      this.allCurrentlyRelevantFiles = filteredFiles;
     }
     this._applySearchFilter();
   }

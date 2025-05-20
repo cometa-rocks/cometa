@@ -158,8 +158,8 @@ function build_project(){
 	cp -a /code/front/dist/. /usr/local/apache2/htdocs/ >> output.log 2>&1
 
 	# FIX me does not work in localhost
-	echo "Fixing user permissions, setting uid and gid to: ${UIDGID}"
-	chown -R ${UIDGID} /code/front
+	# echo "Fixing user permissions, setting uid and gid to: ${UIDGID}"
+	# chown -R ${UIDGID} /code/front
 }
 
 # #########

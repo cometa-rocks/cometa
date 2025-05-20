@@ -156,7 +156,7 @@ export class GraphViewComponent implements OnInit {
     }
 
     // Call the API with updated filters
-    this._api.getStepSummaryGraph(this.stepResultId, filter_data).subscribe((response: StepSummaryResponse) => {
+    this._api.getStepSummaryGraph(this.stepResultId, filter_data).subscribe((response: any) => {
       if (!response || response.success !== true) {
         let error_message = response?.message || "Error while fetching the graph data, please contact administrator";
         this.snack.open(error_message, 'Close', {

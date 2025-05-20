@@ -218,8 +218,8 @@ FILE_UPLOAD_HANDLERS = [
 LANGUAGE_CODE = 'en-us'
 USE_I18N = False
 USE_L10N = False
-USE_TZ = False
-
+USE_TZ = True
+TIME_ZONE = 'UTC'
 
 if ConfigurationManager.get_configuration('COMETA_EMAIL_ENABLED', 'False') == "True":
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
