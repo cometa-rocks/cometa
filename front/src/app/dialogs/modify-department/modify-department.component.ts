@@ -102,7 +102,7 @@ export class ModifyDepartmentComponent {
       result_expire_days: [expireDays],
       queue_name: [this.department.settings?.queue_name || ''],
       validate_duplicate_feature_names: [
-        this.department.settings?.validate_duplicate_feature_names !== false,
+        this.department.settings?.validate_duplicate_feature_names === true,
       ],
     });
     this.timeoutForm = this.fb.group({
