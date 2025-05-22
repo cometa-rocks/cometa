@@ -1,5 +1,5 @@
 {
-  "version": "3.0.50",
+  "version": "3.0.51",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.51",
+      "date": "2025-05-22",
+      "features": [
+        {
+          "title": "Fixed issue with API call body truncation and added the ability to send XML bodies",
+          "description": "Fixed an issue where the API call body was not being truncated correctly for XML bodies. Added the ability to send XML bodies."
+        }
+      ]
+    },
     {
       "version": "3.0.50",
       "date": "2025-05-20",

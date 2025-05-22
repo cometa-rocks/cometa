@@ -184,7 +184,7 @@
                 *ngIf="isApiCallStep(i) && !isEditingApiCall(i)"
                 class="collapsed-api-call"
                 (click)="expandApiCall(i)">
-                {{ getCollapsedApiCall(i) }}
+                {{ getCollapsedApiCall(i) | truncateApiBody }}
             </div>
             <textarea
               *ngIf="!isApiCallStep(i) || isEditingApiCall(i)"
