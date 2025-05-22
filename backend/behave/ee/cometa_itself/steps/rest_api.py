@@ -7,6 +7,7 @@ from behave import (
     use_step_matcher
 )
 import sys, requests, re, json
+import xmltodict
 sys.path.append('/opt/code/cometa_itself/steps')
 sys.path.append("/opt/code/behave_django")
 
@@ -33,10 +34,16 @@ def parse_cookie(cookie):
     return cookie_object
 
 def parse_content(response: requests.Response):
-
-    content_type = response.headers.get("content-type")
-    if content_type == "application/json":
+    content_type = response.headers.get("content-type", "").lower()
+    
+    if "application/json" in content_type:
         return response.json()
+    elif "application/xml" in content_type or "text/xml" in content_type:
+        try:
+            return xmltodict.parse(response.text)
+        except Exception as e:
+            logger.warning(f"Failed to parse XML response: {e}. Returning raw text.")
+            return response.text
     else:
         return response.text
 
@@ -62,7 +69,10 @@ def build_rest_api_object(session: requests.Session, response: requests.Response
     }
     # If request contain body then add it to rest_api_object
     if response.request.body: 
-        rest_api_object["request"]["data"] = response.request.body.decode()
+        if isinstance(response.request.body, bytes):
+            rest_api_object["request"]["data"] = response.request.body.decode()
+        else:
+            rest_api_object["request"]["data"] = response.request.body
 
     return rest_api_object
 
@@ -157,15 +167,38 @@ def api_call(context, method, endpoint, parameters, headers, body):
 def api_call(context, method, endpoint, parameters, headers, json_body, row_body):
     context.STEP_TYPE = "API"
 
-
     cookies = {
         cookie['name'] : cookie['value'] for cookie in context.browser.get_cookies()
         # TODO: Match Cookie Domain with the Endpoint Domain.
     }
 
+    # Parse headers to get content type
+    parsed_headers = parse_parameters(headers) if headers else {}
+    content_type = parsed_headers.get('Content-Type', '').lower()
+    accept_type = parsed_headers.get('Accept', '').lower()
+
+    # Handle body based on content type
     if json_body:
-        json_body = json.loads(json_body)
-        logger.debug(f"Request will be sent with body : {json_body}")
+        if 'application/json' in content_type:
+            try:
+                json_body = json.loads(json_body)
+                logger.debug(f"Request will be sent with JSON body: {json_body}")
+            except json.JSONDecodeError as e:
+                logger.warning(f"Failed to parse JSON body: {e}. Sending as raw body.")
+                json_body = json_body
+        elif 'application/xml' in content_type or 'text/xml' in content_type:
+            # For XML content type, send as raw string
+            logger.debug(f"Request will be sent with XML body: {json_body}")
+        else:
+            # If content type is not specified but body looks like XML, set XML content type
+            if json_body.strip().startswith('<?xml') or json_body.strip().startswith('<'):
+                parsed_headers['Content-Type'] = 'application/xml'
+                logger.debug(f"Auto-detected XML content, setting Content-Type to application/xml")
+            # If content type is not specified but body looks like JSON, set JSON content type
+            elif json_body.strip().startswith('{') or json_body.strip().startswith('['):
+                parsed_headers['Content-Type'] = 'application/json'
+                logger.debug(f"Auto-detected JSON content, setting Content-Type to application/json")
+            logger.debug(f"Request will be sent with raw body: {json_body}")
     
     logger.debug(context.browser.get_cookies())
     session = requests.Session()
@@ -185,20 +218,37 @@ def api_call(context, method, endpoint, parameters, headers, json_body, row_body
         "method":method,
         "url":endpoint,
         "params":parse_parameters(parameters),
-        "headers":parse_parameters(headers),
+        "headers":parsed_headers,
         "proxies":proxies,
         "verify":False 
     }
         
     if json_body:
-        request_parameters["json"] = json_body
-
+        if isinstance(json_body, dict):
+            request_parameters["json"] = json_body
+        else:
+            request_parameters["data"] = json_body
     elif row_body:
         request_parameters["data"] = row_body
     
     logger.debug(request_parameters)
     
     response = session.request(**request_parameters)
+
+    # Convert response content based on Accept header if not already handled
+    if accept_type and 'application/json' in accept_type:
+        try:
+            response._content = json.dumps(xmltodict.parse(response.text)).encode()
+            response.headers['Content-Type'] = 'application/json'
+        except Exception as e:
+            logger.warning(f"Failed to convert XML response to JSON: {e}")
+    elif accept_type and ('application/xml' in accept_type or 'text/xml' in accept_type):
+        try:
+            if isinstance(response.json(), dict):
+                response._content = xmltodict.unparse(response.json()).encode()
+                response.headers['Content-Type'] = 'application/xml'
+        except Exception as e:
+            logger.warning(f"Failed to convert JSON response to XML: {e}")
 
     api_call = build_rest_api_object(session, response)
 
