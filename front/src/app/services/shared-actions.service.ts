@@ -40,6 +40,7 @@ import {
   map,
   filter,
   tap,
+  catchError,
 } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { SocketService } from './socket.service';
@@ -348,6 +349,48 @@ export class SharedActionsService {
         feature_id: feature.feature_id,
       },
     });
+  }
+
+  deleteFeatureDirectly(featureId: number) {
+    const feature = this._store.selectSnapshot<Feature>(
+      CustomSelectors.GetFeatureInfo(featureId)
+    );
+    
+    return this._api
+      .deleteFeature(featureId, {
+        loading: 'translate:tooltips.deleting_feature',
+        skipErrorDialog: true
+      })
+      .pipe(
+        switchMap(res => {
+          if (res.success) {
+            // Primero removemos el feature del estado
+            return this._store.dispatch(new Features.RemoveFeature(featureId)).pipe(
+              // Luego actualizamos las carpetas
+              switchMap(() => this._store.dispatch(new Features.GetFolders())),
+              // Finalmente retornamos la respuesta original
+              map(() => res)
+            );
+          } else {
+            return of(res);
+          }
+        }),
+        tap(res => {
+          if (res.success) {
+            this._snackBar.open(
+              'Feature ' + feature.feature_name + ' removed.',
+              'OK'
+            );
+          } else if (!res.handled) {
+            this._snackBar.open('An error ocurred.', 'OK');
+          }
+        }),
+        catchError(error => {
+          console.error('Error deleting feature:', error);
+          this._snackBar.open('An error occurred while deleting the feature.', 'OK');
+          return of({ success: false, handled: true });
+        })
+      );
   }
 
   openDeleteConfirmationDialog(item: any) {

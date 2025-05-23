@@ -634,25 +634,20 @@ export class L1FeatureItemListComponent implements OnInit, OnDestroy {
       console.log('[Delete Check] Feature is marked for deletion, proceeding with deletion:', this.item?.id);
       
       try {
-        // Llamar directamente al API para eliminar el feature sin mostrar diálogo
-        console.log('[Delete Check] Calling API to delete feature:', this.item?.id);
-        this._api.deleteFeature(this.item.id).subscribe(
-          () => {
-            console.log('[Delete Check] API call successful, feature deleted:', this.item?.id);
-            this._snackBar.open(`Feature ${this.item.name} (ID: ${this.item.id}) has been deleted`, 'OK', { duration: 3000 });
-            // Actualizar la lista de features
-            console.log('[Delete Check] Dispatching GetFeatures to refresh the list');
-            this._store.dispatch(new Features.GetFeatures());
-          },
-          error => {
-            console.error('[Delete Check] API call failed to delete feature:', this.item?.id, error);
-            this._snackBar.open(`Error deleting feature ${this.item.name} (ID: ${this.item.id})`, 'OK', { duration: 3000 });
-          },
-          () => {
-            console.log('[Delete Check] API call completed, resetting isDeleting flag');
-            this.isDeleting = false;
-          }
-        );
+        // Esperar 10 segundos antes de eliminar el feature
+        setTimeout(() => {
+          console.log('[Delete Check] 10 seconds passed, deleting feature:', this.item?.id);
+          this._sharedActions.deleteFeatureDirectly(this.item.id).subscribe({
+            error: (error) => {
+              console.error('[Delete Check] Error deleting feature:', error);
+              this._snackBar.open(`Error deleting feature ${this.item.name} (ID: ${this.item.id})`, 'OK', { duration: 3000 });
+              this.isDeleting = false;
+            },
+            complete: () => {
+              this.isDeleting = false;
+            }
+          });
+        }, 10000); // 10 segundos
       } catch (error) {
         console.error('[Delete Check] Exception while trying to delete feature:', this.item?.id, error);
         this._snackBar.open(`Error deleting feature ${this.item.name} (ID: ${this.item.id})`, 'OK', { duration: 3000 });
