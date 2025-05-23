@@ -56,9 +56,9 @@ def start_if(context, value1, condition, value2):
     if condition == 'not equals':
         condition_result = value1!=value2
     elif condition == 'contains':
-        condition_result = value1.find(value2)>=0
+        condition_result = value2 in value1
     elif condition == 'not contains':
-        condition_result = value1.find(value2)>=0
+        condition_result = value2 not in value1
     elif condition == '>=':
         condition_result = float(value1)>=float(value2)
     elif condition == '<=':
@@ -74,6 +74,9 @@ def start_if(context, value1, condition, value2):
     
     condition = Condition(index=len(context.test_conditions_list))
     condition.set_condition(condition_result)
+    # Let condition know if it is running with in the loop
+    # This information will be used with condition will be used with in the if condition 
+    condition.set_condition_with_in_loop(context.insideLoop)
     context.test_conditions_list.append(condition)
     
 

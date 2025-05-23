@@ -263,6 +263,7 @@ def before_all(context):
     # set loop settings
     context.insideLoop = False  # meaning we are inside a loop
     context.break_loop = False
+    context.continue_loop = False
     context.current_loop = None
     context.websocket_screen_shot_details = {}
     context.jumpLoopIndex = (
