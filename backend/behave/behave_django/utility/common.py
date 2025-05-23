@@ -41,12 +41,11 @@ def get_logger():
     # setup logging
     logger = logging.getLogger(__name__)
     logger.setLevel(10)
-    # create a formatter for the logger
-    formatter = logging.Formatter(LOGGER_FORMAT, LOGGER_DATE_FORMAT)
-    # create a stream logger
-    streamLogger = logging.StreamHandler()
-    # set the format of streamLogger to formatter
-    streamLogger.setFormatter(formatter)
-    # add the stream handle to logger
-    logger.addHandler(streamLogger)
+    
+    if not logger.handlers:
+        # Only add handlers if they haven't been added yet
+        formatter = logging.Formatter(LOGGER_FORMAT, LOGGER_DATE_FORMAT)
+        streamLogger = logging.StreamHandler()
+        streamLogger.setFormatter(formatter)
+        logger.addHandler(streamLogger)
     return logger

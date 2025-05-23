@@ -279,8 +279,8 @@ def switch_mobile(context, variable_name):
     context.mobile = context.mobiles[variable_name]
 
 # Exemple: Install app "new_app.apk"
-@step('Install app "(?P<apk_file_path>.+?)"')
-@done('Install app "{apk_file_path}"')
+@step('Install app "(?P<apk_file_path>.+?)" on mobile')
+@done('Install app "{apk_file_path}" on mobile')
 def install_app(context, apk_file_path):
     context.STEP_TYPE = "MOBILE"
     # select the upload element to send the filenames to
@@ -299,8 +299,8 @@ def install_app(context, apk_file_path):
 
 
 # Exemple: Tap on element "//android.widget.TextView[@text="Next"]"
-@step('Tap on element "(?P<selector>.+?)"')
-@done('Tap on element "{selector}"')
+@step('Tap on mobile element "(?P<selector>.+?)"')
+@done('Tap on mobile element "{selector}"')
 def tap_on_element(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -324,8 +324,8 @@ def tap_on_element(context, selector):
 
 # Performs a long press on an element.
 # Example: Long press element "//*[@id='button']"
-@step('Long press element "(?P<selector>.+?)"(?: for "(?P<px>.*?)")?')
-@done('Long press element "{selector}"')
+@step('Long press mobile element "(?P<selector>.+?)"(?: for "(?P<px>.*?)")?')
+@done('Long press mobile element "{selector}"')
 def long_press_on_element(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -350,8 +350,8 @@ def long_press_on_element(context, selector):
 
 # Performs a double tap on an element.
 # Example: Double tap on element "//*[@id='button']"
-@step('Double tap on element "{selector}"')
-@done('Double tap on element "{selector}"')
+@step('Double tap on mobile element "{selector}"')
+@done('Double tap on mobile element "{selector}"')
 def double_tap_on_element(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -376,8 +376,8 @@ def double_tap_on_element(context, selector):
 
 # Performs a swipe to the right on an element.
 # Example: Swipe right on element "//*[@id='slider']" by "300"
-@step(u'Swipe right on element "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
-@done(u'Swipe right on element "{selector}" by "{default_200}"px')
+@step(u'Swipe right on mobile element "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
+@done(u'Swipe right on mobile element "{selector}" by "{default_200}"px')
 def swipe_right_on_element(context, selector, default_200=200):
     px = int(default_200) if default_200 else 200  # Set default swipe distance if `px` is not provided
     perform_swipe(context, selector, x_offset=px, y_offset=0, direction="right")
@@ -385,8 +385,8 @@ def swipe_right_on_element(context, selector, default_200=200):
 
 # Performs a swipe to the left on an element.
 # Example: Swipe left on element "//*[@id='slider']" by "300"
-@step(u'Swipe left on element "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
-@done(u'Swipe left on element "{selector}" by "{default_200}"px')
+@step(u'Swipe left on mobile element "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
+@done(u'Swipe left on mobile element "{selector}" by "{default_200}"px')
 def swipe_left_on_element(context, selector, default_200=200):
     px = int(default_200) if default_200 else 200
     perform_swipe(context, selector, x_offset=-px, y_offset=0, direction="left")
@@ -394,8 +394,8 @@ def swipe_left_on_element(context, selector, default_200=200):
 
 # Performs a swipe up on an element.
 # Example: Swipe up on element "//*[@id='list']" by "400"
-@step(u'Swipe up on element "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
-@done(u'Swipe up on element "{selector}" by "{default_200}"px')
+@step(u'Swipe up on mobile element "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
+@done(u'Swipe up on mobile element "{selector}" by "{default_200}"px')
 def swipe_up_on_element(context, selector, default_200=200):
     px = int(default_200) if default_200 else 200
     perform_swipe(context, selector, x_offset=0, y_offset=-px, direction="up")
@@ -403,8 +403,8 @@ def swipe_up_on_element(context, selector, default_200=200):
 
 # Performs a swipe down on an element.
 # Example: Swipe down on element "//*[@id='list']" by "400"
-@step(u'Swipe down on element "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
-@done(u'Swipe down on element "{selector}" by "{default_200}"px')
+@step(u'Swipe down on mobile element "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
+@done(u'Swipe down on mobile element "{selector}" by "{default_200}"px')
 def swipe_down_on_element(context, selector, default_200=200):
     px = int(default_200) if default_200 else 200
     perform_swipe(context, selector, x_offset=0, y_offset=px, direction="down")
@@ -412,8 +412,8 @@ def swipe_down_on_element(context, selector, default_200=200):
 
 # Performs a swipe between two specific coordinates.
 # Example: Swipe from coordinate "100,200" to "300,400"
-@step(u'Swipe from coordinate "(?P<start_x>.+?),(?P<start_y>.+?)" to "(?P<end_x>.+?),(?P<end_y>.+?)"')
-@done(u'Swipe from coordinate "{start_x},{start_y}" to "{end_x},{end_y}"')
+@step(u'Swipe from coordinate "(?P<start_x>.+?),(?P<start_y>.+?)" to "(?P<end_x>.+?),(?P<end_y>.+?)" on mobile')
+@done(u'Swipe from coordinate "{start_x},{start_y}" to "{end_x},{end_y}" on mobile')
 def swipe_using_coordinate(context, start_x,start_y, end_x, end_y):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -460,8 +460,8 @@ def set_value_on_element(context, text, selector):
 
 # Clears the content of a textbox identified by the provided selector.
 # Example: Clear textbox "//*[@id='input']"
-@step('Clear textbox "(?P<selector>.+?)"')
-@done('Clear textbox "{selector}"')
+@step('Clear mobile  textbox "(?P<selector>.+?)"')
+@done('Clear mobile textbox "{selector}"')
 def set_value_on_element(context, text, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -484,8 +484,8 @@ def set_value_on_element(context, text, selector):
 
 # Checks if an element is not visible on the screen.
 # Example: Check if element "//*[@id='popup']" is not visible
-@step('Check if element "(?P<selector>.+?)" is not visible')
-@done('Check if element "{selector}" is not visible')
+@step('Check if mobile element "(?P<selector>.+?)" is not visible')
+@done('Check if mobile element "{selector}" is not visible')
 def check_if_element_not_visible(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -512,8 +512,8 @@ def check_if_element_not_visible(context, selector):
 
 # Checks if an element is enabled on the screen.
 # Example: Check if element "//*[@id='submit']" is enabled
-@step('Check if element "(?P<selector>.+?)" is enabled')
-@done('Check if element "{selector}" is enabled')
+@step('Check if mobile element "(?P<selector>.+?)" is enabled')
+@done('Check if mobile element "{selector}" is enabled')
 def check_if_element_enabled(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -542,8 +542,8 @@ def check_if_element_enabled(context, selector):
 
 # Checks if an element is not enabled on the screen.
 # Example: Check if element "//*[@id='submit']" is not enabled
-@step('Check if element "(?P<selector>.+?)" is not enabled')
-@done('Check if element "{selector}" is not enabled')
+@step('Check if mobile element "(?P<selector>.+?)" is not enabled')
+@done('Check if mobile element "{selector}" is not enabled')
 def check_if_element_not_enabled(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -572,8 +572,8 @@ def check_if_element_not_enabled(context, selector):
 
 # Checks if an element contains the specified text.
 # Example: Check if element "//*[@id='message']" contains text "Welcome"
-@step('Check if element "(?P<selector>.+?)" contains text "(?P<text>.*?)"')
-@done('Check if element "{selector}" contains text "{text}"')
+@step('Check if mobile element "(?P<selector>.+?)" contains text "(?P<text>.*?)"')
+@done('Check if mobile element "{selector}" contains text "{text}"')
 def check_if_element_contains_text(context, selector, text):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -604,8 +604,8 @@ def check_if_element_contains_text(context, selector, text):
 
 # Checks if an element does not contain the specified text.
 # Example: Check if element "//*[@id='message']" does not contain text "Error"
-@step('Check if element "(?P<selector>.+?)" does not contain text "(?P<text>.*?)"')
-@done('Check if element "{selector}" does not contain text "{text}"')
+@step('Check if mobile element "(?P<selector>.+?)" does not contain text "(?P<text>.*?)"')
+@done('Check if mobile element "{selector}" does not contain text "{text}"')
 def check_if_element_not_contains_text(context, selector, text):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -635,8 +635,8 @@ def check_if_element_not_contains_text(context, selector, text):
 
 # Validates if the current screen contains the specified object (text or element).
 # Example: Validate if current screen contains "Welcome"
-@step('Validate if current screen contains "(?P<selector>.+?)"')
-@done('Validate if current screen contains "{object_name}"')
+@step('Validate if current mobile screen contains "(?P<selector>.+?)"') 
+@done('Validate if current mobile screen contains "{object_name}"')
 def validate_if_screen_contains_object(context, object_name):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, f"Validating if current screen contains '{object_name}'")
@@ -650,8 +650,8 @@ def validate_if_screen_contains_object(context, object_name):
 
 # Switches to the specified frame using its ID.
 # Example: Switch to frame with id "frame1"
-@step('Switch to frame with id "(?P<frame_id>.+?)"')
-@done('Switch to frame with id "{frame_id}"')
+@step('Switch to mobile frame with id "(?P<frame_id>.+?)"')
+@done('Switch to mobile frame with id "{frame_id}"')
 def switch_to_frame_by_id(context, frame_id):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, f"Switching to frame with id: {frame_id}")
@@ -722,8 +722,8 @@ def close_mobile_application(context, app_package):
 
 # Uninstalls the specified app from the device.
 # Example: Uninstall app "com.example.apk" with "Do not fail"
-@step('Uninstall app "(?P<app_package>.+?)"(?: with "(?P<option>.*?)")?')
-@done('Uninstall app "{app_package}" with {option}')
+@step('Uninstall app "(?P<app_package>.+?)"(?: with "(?P<option>.*?)")? from mobile')
+@done('Uninstall app "{app_package}" with "{option}" from mobile')
 def uninstall_app_from_device(context, app_package, option):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -744,8 +744,8 @@ def uninstall_app_from_device(context, app_package, option):
 
 # Taps on the given screen coordinates (x, y).
 # Example: Tap on coordinates "100, 200"
-@step(u'Tap on coordinates "(?P<x>.+?), (?P<y>.+?)"')
-@done(u'Tap on coordinates "{x}, {y}"')
+@step(u'Tap on coordinates "(?P<x>.+?), (?P<y>.+?)" on mobile')
+@done(u'Tap on coordinates "{x}, {y}" on mobile')
 def tap_on_coordinates(context, x, y):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, f"Tapping on coordinates {x}, {y}")
@@ -762,8 +762,8 @@ def tap_on_coordinates(context, x, y):
 
 # Pinches to zoom in on the element identified by the given selector.
 # Example: Pinch to zoom in on element with "//*[@id='zoomable-element']"
-@step(u'Pinch to zoom in on element with "(?P<selector>.+?)"')
-@done(u'Pinch to zoom in on element with "{selector}"')
+@step(u'Pinch to zoom in on mobile element with "(?P<selector>.+?)"')
+@done(u'Pinch to zoom in on mobile element with "{selector}"')
 def pinch_to_zoom_in(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, f"Pinch to zoom in on element with selector: {selector}")
@@ -795,8 +795,8 @@ def pinch_to_zoom_in(context, selector):
 
 # Pinches to zoom out on the element identified by the given selector.
 # Example: Pinch to zoom out on element with "//*[@id='zoomable-element']"
-@step(u'Pinch to zoom out on element with "(?P<selector>.+?)"')
-@done(u'Pinch to zoom out on element with "{selector}"')
+@step(u'Pinch to zoom out on mobile element with "(?P<selector>.+?)"')
+@done(u'Pinch to zoom out on mobile element with "{selector}"')
 def pinch_to_zoom_out(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, f"Pinch to zoom out on element with selector: {selector}")
@@ -828,8 +828,8 @@ def pinch_to_zoom_out(context, selector):
 
 # Rotates the mobile device screen to landscape mode.
 # Example: Rotate screen to landscape mode
-@step('Rotate screen to landscape mode')
-@done('Rotate screen to landscape mode')
+@step('Rotate mobile screen to landscape mode')
+@done('Rotate mobile screen to landscape mode')
 def rotate_screen_to_landscape(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Rotating screen to landscape mode")
@@ -842,8 +842,8 @@ def rotate_screen_to_landscape(context):
 
 # Rotates the mobile device screen to portrait mode.
 # Example: Rotate screen to portrait mode
-@step('Rotate screen to portrait mode')
-@done('Rotate screen to portrait mode')
+@step('Rotate mobile screen to portrait mode')
+@done('Rotate mobile screen to portrait mode')
 def rotate_screen_to_portrait(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Rotating screen to portrait mode")
@@ -856,8 +856,8 @@ def rotate_screen_to_portrait(context):
 
 # Checks if the specified app is installed on the given device.
 # Example: Check if app "com.example.apk" is installed on device "device_1"
-@step('Check if app "(?P<app_package>.+?)" is installed on device "(?P<device_name>.+?)"')
-@done('Check if app "{app_package}" is installed on device "{device_name}"')
+@step('Check if app "(?P<app_package>.+?)" is installed on mobile device "(?P<device_name>.+?)"')
+@done('Check if app "{app_package}" is installed on mobile device "{device_name}"')
 def check_if_app_installed(context, app_package, device_name):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -880,8 +880,8 @@ def check_if_app_installed(context, app_package, device_name):
 
 # Checks if the specified app is currently running on the given device.
 # Example: Check if app "com.example.app" is running on device "device_1"
-@step('Check if app "(?P<app_package>.+?)" is running on device "(?P<device_name>.+?)"')
-@done('Check if app "{app_package}" is running on device "{device_name}"')
+@step('Check if app "(?P<app_package>.+?)" is running on mobile device "(?P<device_name>.+?)"')
+@done('Check if app "{app_package}" is running on mobile device "{device_name}"')
 def check_if_app_running(context, app_package, device_name):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -917,8 +917,8 @@ def capture_logs_from_mobile_device(context, variable):
 
 # Get the current device orientation and store it in a specified variable.  
 # Example: Get current device orientation and store in the "orientation_variable"  
-@step('Get current device orientation and store in the "(?P<variable>.+?)"')
-@done('Get current device orientation and store in the "{variable}"')
+@step('Get mobile device orientation and store in the "(?P<variable>.+?)"')
+@done('Get mobile device orientation and store in the "{variable}"')
 def get_current_device_orientation(context, variable):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Getting current device orientation")
@@ -933,8 +933,8 @@ def get_current_device_orientation(context, variable):
   
 # Change the device orientation to the specified orientation (e.g., PORTRAIT or LANDSCAPE).  
 # Example: Change device orientation to "LANDSCAPE"
-@step('Change device orientation to "(?P<orientation>.+?)"')
-@done('Change device orientation to "{orientation}"')
+@step('Change mobile device orientation to "(?P<orientation>.+?)"')
+@done('Change mobile device orientation to "{orientation}"')
 def change_device_orientation(context, orientation):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, f"Changing device orientation to {orientation}")
@@ -950,8 +950,8 @@ def change_device_orientation(context, orientation):
   
 # Lock the mobile device screen.  
 # Example: Lock the screen
-@step('Lock the screen')
-@done('Lock the screen')
+@step('Lock the screen mobile')
+@done('Lock the screen mobile')
 def lock_screen(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Locking the screen")
@@ -965,8 +965,8 @@ def lock_screen(context):
 
 # Unlock the mobile device screen.  
 # Example: Unlock the screen 
-@step('Unlock the screen')
-@done('Unlock the screen')
+@step('Unlock the mobile screen')
+@done('Unlock the mobile screen')
 def unlock_screen(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Unlocking the screen")
@@ -1014,8 +1014,8 @@ def switch_to_mobile_app_context(context, app_context):
 
 # Simulate pressing the back button on the mobile device.  
 # Example: Go back  
-@step('Go back')
-@done('Go back')
+@step('Go back in mobile')
+@done('Go back in mobile')
 def go_back(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Going back")
@@ -1030,8 +1030,8 @@ def go_back(context):
  
 # Go to the home screen of the mobile device.  
 # Example: Go to Home
-@step('Go to Home')
-@done('Go to Home')
+@step('Go to Home in mobile')
+@done('Go to Home in mobile')
 def go_to_home(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Going back")
@@ -1045,8 +1045,8 @@ def go_to_home(context):
 
 # Open the recent apps screen on the mobile device.  
 # Example: Open recent apps 
-@step('Open recent apps')
-@done('Open recent apps')
+@step('Open recent apps in mobile')
+@done('Open recent apps in mobile')
 def go_to_home(context):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, "Going back")
@@ -1060,8 +1060,8 @@ def go_to_home(context):
 
 # Check if an element with a specific text is visible on the screen.  
 # Example: Check if element with text "Welcome" is visible 
-@step('Check if element with text "(?P<text>.+?)" is visible')
-@done('Check if element with text "{text}" is visible')
+@step('Check if mobile element with text "(?P<text>.+?)" is visible')
+@done('Check if mobile element with text "{text}" is visible')
 def check_if_element_with_text_is_visible(context, text):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, f"Checking if element with text '{text}' is visible")
@@ -1082,8 +1082,8 @@ def check_if_element_with_text_is_visible(context, text):
  
 # Perform a drag and drop action from a specified start element to an end element.  
 # Example: Perform drag and drop from "source_element_id" to "target_element_id" 
-@step('Perform drag and drop from "(?P<start_element>.+?)" to "(?P<end_element>.+?)"')
-@done('Perform drag and drop from "{start_element}" to "{end_element}"')
+@step('Perform drag and drop from "(?P<start_element>.+?)" to "(?P<end_element>.+?)" on mobile')
+@done('Perform drag and drop from "{start_element}" to "{end_element}" on mobile')
 def perform_drag_and_drop(context, start_element, end_element):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -1135,8 +1135,8 @@ def perform_drag_and_drop(context, start_element, end_element):
  
 # Wait for a specified element to appear on the mobile screen.  
 # Example: Wait for element "//android.widget.TextView[@text='Welcome']" to appear  
-@step('Wait for element "(?P<selector>.+?)" to appear')
-@done('Wait for element "{selector}" to appear')
+@step('Wait for mobile element "(?P<selector>.+?)" to appear')
+@done('Wait for mobile element "{selector}" to appear')
 def wait_for_element_to_appear(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -1160,8 +1160,8 @@ def wait_for_element_to_appear(context, selector):
  
 # Wait for a specified element to disappear from the mobile screen.  
 # Example: Wait for element "//android.widget.ProgressBar" to disappear 
-@step('Wait for element "(?P<selector>.+?)" to disappear')
-@done('Wait for element "{selector}" to disappear')
+@step('Wait for mobile element "(?P<selector>.+?)" to disappear')
+@done('Wait for mobile element "{selector}" to disappear')
 def wait_for_element_to_disappear(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
@@ -1244,8 +1244,8 @@ def fetch_mobile_device_details(context, variable):
 
 # Set the device geolocation to specific latitude and longitude coordinates.  
 # Example: Set geolocation to "37.7749, -122.4194" 
-@step('Set geolocation to "(?P<latitude>.+?), (?P<longitude>.+?)"')
-@done('Set geolocation to "{latitude}, {longitude}"')
+@step('Set mobile geolocation to "(?P<latitude>.+?), (?P<longitude>.+?)"')
+@done('Set mobile geolocation to "{latitude}, {longitude}"')
 def set_geolocation(context, latitude, longitude):
     context.STEP_TYPE = "MOBILE"
     send_step_details(context, f"Setting geolocation to {latitude}, {longitude}")
@@ -1283,8 +1283,8 @@ def set_mobile_timezone(context, timezone):
 
 # Check if a specific element is visible on the screen.  
 # Example: Check if element "//android.widget.Button[@text='Submit']" is visible
-@step('Check if element "(?P<selector>.+?)" is visible')
-@done('Check if element "{selector}" is visible')
+@step('Check if mobile element "(?P<selector>.+?)" is visible')
+@done('Check if mobile element "{selector}" is visible')
 def check_if_element_visible(context, selector):
     context.STEP_TYPE = "MOBILE"
     send_step_details(
