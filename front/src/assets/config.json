@@ -1,5 +1,5 @@
 {
-  "version": "3.0.50",
+  "version": "3.0.51",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.51",
+      "date": "2025-05-23",
+      "features": [
+        {
+          "title": "Aligned columns and icons in step-view (#6320)",
+          "description": "Fixed layout issues by aligning the columns and their icons in the step-view component to improve visual consistency."
+        }
+      ]
+    },    
     {
       "version": "3.0.50",
       "date": "2025-05-20",
