@@ -97,6 +97,7 @@ import { FeaturesState } from '@store/features.state';
 import { SharedActionsService } from '@services/shared-actions.service';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ApiTestingComponent } from '@components/api-testing/api-testing.component';
+import { TruncateApiBodyPipe } from '../../pipes/truncate-api-body.pipe';
 
 interface StepState {
   showLinkIcon: boolean;
@@ -135,6 +136,7 @@ interface StepState {
     FilterStepPipe,
     CheckDuplicatePipe,
     TranslateModule,
+    TruncateApiBodyPipe,
   ],
 })
 export class StepEditorComponent extends SubSinkAdapter implements OnInit {
@@ -1280,30 +1282,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   getCollapsedApiCall(index: number): string {
     const content = this.stepsForm.controls[index]?.get('step_content')?.value;
     if (!content) return '';
-
-    // Find the body part
-    const bodyMatch = content.match(/body:(\{[\s\S]*?\})"/);
-    if (!bodyMatch) return content;
-
-    // Create a shortened version of the body
-    const body = bodyMatch[1];
-    try {
-      const jsonObj = JSON.parse(body);
-      if (typeof jsonObj === 'object' && Object.keys(jsonObj).length > 3) {
-        const shortened = Object.entries(jsonObj)
-          .slice(0, 3)
-          .reduce((acc, [key, value]) => {
-            acc[key] = value;
-            return acc;
-          }, {} as any);
-        shortened['...'] = '...';
-        const shortenedBody = JSON.stringify(shortened);
-        return content.replace(body, shortenedBody);
-      }
-    } catch (e) {
-      // If parsing fails, just return the original content
-      return content;
-    }
     return content;
   }
 
