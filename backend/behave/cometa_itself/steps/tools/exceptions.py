@@ -22,3 +22,11 @@ class PromptValueEmpty(Exception):
 # ########################################################################## #
 class CustomError(Exception):
     pass
+
+# ########################################################################## #
+# CustomError exception #################################################### #
+# this will help us in case if we want to fail the step without ############ #
+# other exceptions ######################################################### #
+# ########################################################################## #
+class CometaElementNotFoundError(Exception):
+    pass
