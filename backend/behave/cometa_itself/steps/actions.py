@@ -84,6 +84,8 @@ ENCRYPTION_START = ConfigurationManager.get_configuration('COMETA_ENCRYPTION_STA
 logger = logging.getLogger('FeatureExecution')
 
 
+
+
 # Browse to an URL
 # Example: StartBrowser and call URL "https://prod.cometa.rocks/#/new"
 @step(u'StartBrowser and call URL "{url}"')
@@ -91,6 +93,14 @@ logger = logging.getLogger('FeatureExecution')
 def step_impl(context,url):
     send_step_details(context, 'Loading page')
     context.browser.get(url)
+
+# Browse to an URL
+# Example: StartBrowser and call URL "https://prod.cometa.rocks/#/new"
+@step(u'StartBrowser and call URL "{url}" with javascript')
+@done(u'StartBrowser and call URL "{url}" with javascript')
+def step_impl(context,url):
+    send_step_details(context, 'Loading page')
+    context.browser.execute_script(f"window.location.href = '{url}'")
 
 # Browse to an URL
 # Example: Goto URL "https://prod.cometa.rocks/#/new"

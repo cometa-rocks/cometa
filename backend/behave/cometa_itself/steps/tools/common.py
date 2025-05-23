@@ -7,7 +7,7 @@ from .variables import *
 from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException
+from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException, InvalidSelectorException, WebDriverException
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -40,7 +40,11 @@ class CometaMaxTimeoutReachedException(Exception):
 
 # timeout error
 # throws an CustomError exception letting user know about the issue
-def timeoutError(signum, frame, timeout=MAX_STEP_TIMEOUT, error=None):
+def timeoutError(signum, frame, context, timeout=MAX_STEP_TIMEOUT, error=None):
+    
+    if context.step_exception and isinstance(context.step_exception, CometaElementNotFoundError):
+        raise context.step_exception
+    
     if error is None:
         error = f"Step took more than configured time: {timeout}s."
     raise CometaTimeoutException(error)
@@ -82,6 +86,189 @@ def timeout(*_args, **_kwargs):
 
     return decorator
 
+# Helper function to detect selector type
+def detect_selector_type(selector):
+    # Remove leading/trailing whitespace
+    selector = selector.strip()
+    selector_type = None
+ 
+        # FIXME this regular expression needs to be implemented
+        # # Regular expressions for common selector patterns
+        # patterns = {
+        #     "id": r"^#[a-zA-Z0-9\-_:]+$",  # e.g., #login, #hello:world
+        #     "class": r"^\.[a-zA-Z0-9\-_]+$",  # e.g., .login-button
+        #     "css": r"^((\w+)?(\[.*\])|(\w+\.\w+)|(\w+ > \w+)|(\w+:.*)|(\w+\[.*\]))",  # Complex CSS: div.login, input[type='text'], div > p
+        #     "xpath": r"^//.*$",  # e.g., //div[@class='login']
+        #     "name": r"^name=[a-zA-Z0-9\-_]+$",  # e.g., name=username
+        #     "tag_name": r"^[a-zA-Z0-9]+$",  # e.g., div, button
+        #     "link_text": r"^[A-Za-z\s]+$",  # e.g., "Sign In" (text with letters and spaces)
+        #     "accessibility_id": r"^[a-zA-Z0-9\-_]+$",  # Mobile: alphanumeric with hyphens/underscores
+        #     "partial_text": r".*".encode('unicode_escape').decode('utf-8'),  # Mobile: any text for partial match
+        # }
+
+        # if not selector_type:
+        #     # Check each pattern to determine the selector type
+        #     for selector_type, pattern in patterns.items():
+        #         if re.match(pattern, selector):
+        #             # Special handling for class: remove leading dot
+        #             if selector_type == "class":
+        #                 return selector_type, selector.lstrip(".")
+        #             # Special handling for id: remove leading hash
+        #             elif selector_type == "id":
+        #                 return selector_type, selector.lstrip("#")
+        #             # For CSS, check if it looks like a single class (e.g., .login-button)
+        #             elif selector_type == "css" and selector.startswith("."):
+        #                 # If it looks like a single class, prefer class selector
+        #                 if re.match(r"^\.[a-zA-Z0-9\-_]+$", selector):
+        #                     return "class", selector.lstrip(".")
+        
+        # if selector_type: 
+            # selector_type = 
+        
+    
+    selectorWords = selector.split(" ")
+    
+    first_selector_word = selectorWords[0]
+    logger.debug(f"Found first word of locator {first_selector_word}")
+    
+    if (selector_type == "css" and first_selector_word.startswith("#") and ":" in first_selector_word):
+        # Remove hash
+        first_selector_word = first_selector_word.replace("#", "")
+        # Split using ':'
+        first_selector_word = first_selector_word.split(":")
+        # Map values to id safe attributes
+        orig = ""
+        for val in first_selector_word:
+            orig += '[id*="' + str(val) + '"]'
+        # Join values to string
+        first_selector_word = orig
+        selectorWords[0] = first_selector_word
+        selector = selectorWords[0].join(" ")
+        selector_type = By.CSS_SELECTOR
+        
+    elif first_selector_word.startswith("#"):
+        selector_type = By.ID
+        selector = selector[1:]
+    elif first_selector_word.startswith("."):
+        selector_type = By.CLASS_NAME
+    elif first_selector_word.startswith("//") or first_selector_word.startswith("(//"):
+        selector_type = By.XPATH
+    
+    if selector_type:
+        return selector_type, selector
+    
+    # If using above logic locator type was not found check if user have provided the locator using format 
+    # locator_type@@locator_value
+    selector_type_and_selector = selector.split("@@", 1)
+    
+    # if the value is gre
+    if len(selector_type_and_selector) > 1:
+        selector_type = selector_type_and_selector[0]
+        selector = selector_type_and_selector[1]
+    else:
+        return None, None
+    
+    if selector_type == "name":
+        selector_type = By.NAME
+    elif selector_type == "css":
+        selector_type = By.CSS_SELECTOR
+    elif selector_type == "id":
+        selector_type = By.ID
+    elif selector_type == "class":
+        selector_type = By.CLASS_NAME
+    elif selector_type == "xpath":
+        selector_type = By.XPATH
+    elif selector_type == "link_text":
+        selector_type = By.LINK_TEXT
+    elif selector_type == "partial_text":
+        selector_type = By.PARTIAL_LINK_TEXT
+    elif selector_type == "accessibility_id":
+        selector_type = By.ACCESSIBILITY_ID
+    elif selector_type == "tag_name":
+        selector_type = By.TAG_NAME
+    
+    # Default to CSS selector if no specific pattern matches
+    return selector_type, selector
+
+
+
+def waitSelector(context, selector_type, selector, max_timeout=None):
+    element = waitSelectorNew(context, selector, max_timeout)
+    if element:
+        return element
+    return waitSelectorOld(context, selector_type, selector, max_timeout)
+    
+
+
+"""
+    A new implementation of element waiting strategy that uses Selenium's WebDriverWait for more reliable element detection.
+    
+    This method:
+    1. Handles special cases for CSS selectors with IDs containing colons
+    2. Supports multiple selector types (ID, CLASS_NAME, XPATH, etc.)
+    3. Uses explicit waits for both presence and visibility of elements
+    4. Provides better timeout handling and logging
+    
+    Args:
+        context: Object containing the webdriver context (browser or mobile driver)
+        selector_type: Type of selector to use (css, id, xpath, etc.)
+        selector: The actual selector string to find the element
+        max_timeout: Maximum time to wait for the element in seconds (default: 7200s/2hours)
+    
+    Returns:
+        WebElement: The found element if successful
+        
+    Raises:
+        CometaTimeoutException: If element is not found within the timeout period
+        False: If selector type cannot be determined
+"""
+def waitSelectorNew(context, selector, max_timeout=None):
+    logger.debug("Checking with new selector strategy")
+    # max_timeout = max_timeout if max_timeout is not None else 7200
+  
+    start_time = time.time()
+    # max_timeout = start_time+max_timeout
+    if len(selector.strip())==0:
+        raise CustomError("Please provide valid selector")
+    
+    selector_type, selector = detect_selector_type(selector=selector)
+        
+    if selector_type is None:
+        logger.debug(f"Could not determine selector type with new method, will try with old")
+        return False
+    
+    device_driver = context.mobile["driver"] if context.STEP_TYPE == 'MOBILE' else context.browser
+    
+    if selector_type in [By.ID, By.NAME]:
+        method = device_driver.find_element
+    else:
+        method = device_driver.find_elements
+    
+    logger.debug(f"Trying to find element using selector_type '{selector_type}', selector '{selector}' max_timeout : {max_timeout}")
+    
+    while time.time() - start_time < max_timeout if max_timeout is not None else True:
+        logger.debug("running")
+        try:
+            elements = method(selector_type, selector)
+            # Check if it returned at least 1 element
+            # This if used when find_element is used
+            if isinstance(elements, WebElement):
+                return [elements]
+            # This if used when find_elements is used
+            if len(elements) > 0:
+                return elements
+            else:
+                raise CometaElementNotFoundError(f"Element not found for selector: {selector}")
+            
+        except Exception as err:
+            # Store exception in context so that it can be used with raising exception when step timeout happens
+            context.step_exception = err
+        
+        time.sleep(0.1)
+    
+    # raise actual exception after the timeout 
+    raise context.step_exception
+
 
 # ---
 # Wrapper function to wait until an element, selector, id, etc is present
@@ -94,7 +281,8 @@ def timeout(*_args, **_kwargs):
 # @param selector_type: string - Type of selector to use, see below code for possible types
 # @param selector: string - Selector to use
 # @timeout("Waited for <seconds> seconds but unable to find specified element.")
-def waitSelector(context, selector_type, selector, max_timeout=None):
+def waitSelectorOld(context, selector_type, selector, max_timeout=None):
+    logger.debug("Checking with old selector strategy")
     # set the start time for the step
     start_time = time.time()
     # 2288 - Split : id values into a valid css selector
@@ -131,6 +319,7 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
     }
     
     if context.STEP_TYPE == 'MOBILE':     
+        # FIXME Not By.ACCESSIBILITY_ID have some issue, need to investigate and fix 
         types["accessibility_id"] = f"context.mobile['driver'].find_element(By.ACCESSIBILITY_ID, selector)"
         value = f'//*[contains(@text,"{selector}")]'
         types["partial_text"] = f"context.mobile['driver'].find_element(By.XPATH, '{value}')"
@@ -189,8 +378,8 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
                 logger.debug(f"Selector Type: {selec_type}")
                 logger.exception(err)
         # give page some time to render the search
-        time.sleep(1)
-    logger.debug("Starting loop")
+        time.sleep(0.1)
+    logger.debug("Loop Over")
     raise CometaMaxTimeoutReachedException(
         f"Programmed to find the element in {max_timeout} seconds, max timeout reached."
     )
