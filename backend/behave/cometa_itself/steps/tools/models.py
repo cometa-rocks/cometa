@@ -65,9 +65,16 @@ class Condition:
         self._is_else_section_active = False
         self._is_condition_over = False
         self._sub_conditions: list[Condition]  = []
+        self._is_condition_with_in_loop: False
         
     def set_condition(self, condition_result):
         self._is_condition_true = condition_result
+    
+    def set_condition_with_in_loop(self, state):
+        self._is_condition_with_in_loop = state
+
+    def is_condition_with_in_loop(self):
+        return self._is_condition_with_in_loop
     
     # get the step status based on the conditions
     def get_condition_step_status(self, current_step_name):
