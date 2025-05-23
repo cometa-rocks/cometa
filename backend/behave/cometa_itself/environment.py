@@ -258,6 +258,7 @@ def before_all(context):
     connection_url = os.environ["CONNECTION_URL"]
     context.connection_url = os.environ["CONNECTION_URL"]
     context.websocket_url = None
+    context.step_exception = None
     context.playwright_browser = None
     # set loop settings
     context.insideLoop = False  # meaning we are inside a loop
@@ -962,6 +963,8 @@ def before_step(context, step):
     context.STEP_TYPE = 'BROWSER'
     context.LAST_STEP_DB_QUERY_RESULT = None
     context.LAST_STEP_VARIABLE_AND_VALUE = None
+    context.step_exception = None
+    
     # this variable will be used to have executed step count,
     # this is also used to save screenshot in async manner
     context.counters['step_sequence'] += 1
