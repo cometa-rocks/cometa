@@ -149,8 +149,6 @@ def getVariable(context, variable_name):
     return variable_value
 
 
-
-
 def is_valid_variable(value):
     """Check if value is a valid type (dict, list, number, string, bool, None)."""
     return isinstance(value, (dict, list, int, float, str, bool))
@@ -480,13 +478,13 @@ def done(*_args, **_kwargs):
                         % MAX_STEP_TIMEOUT
                     )
                     step_timeout = MAX_STEP_TIMEOUT
-
+                context = args[0]
                 # start the timeout
                 logger.debug(f"Setting timeout on step to: {step_timeout}")
                 signal.signal(
                     signal.SIGALRM,
-                    lambda signum, frame, timeout=step_timeout: timeoutError(
-                        signum, frame, timeout
+                    lambda signum, frame, timeout=step_timeout, ctx=context: timeoutError(
+                        signum, frame, ctx, timeout
                     ),
                 )
                 signal.alarm(step_timeout)
@@ -526,6 +524,8 @@ def done(*_args, **_kwargs):
                 signal.alarm(0)
                 # print stack trace
                 logger.exception(err, stack_info=True)
+                # Set step exception to be saved in the database, 
+                # As timeout exception does not give idea about what happed with the application
                 # set the error message to the step_error inside context so we can pass it through websockets!
                 args[0].step_error = logger.mask_values(str(err))
                 try:
