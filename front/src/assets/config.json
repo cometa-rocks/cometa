@@ -1,6 +1,6 @@
 {
-  "version": "3.0.52",
-  "version": "3.0.52",
+  "version": "3.0.51",
+  "version": "3.0.51",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,16 +237,6 @@
     "{Code is Poetry}"
   ],
   "changelog": [
-    {
-      "version": "3.0.52",
-      "date": "2025-05-23",
-      "features": [
-        {
-          "title": "Added timezone selection to schedule dialog - #6286",
-          "description": "Now when scheduling a feature, the user can select the timezone to be used for the schedule."
-        }
-      ]
-    },
     {
       "version": "3.0.51",
       "date": "2025-05-22",
