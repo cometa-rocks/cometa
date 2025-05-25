@@ -15,18 +15,6 @@
   }
 }
 
-.timezone-selection {
-  margin-bottom: 15px;
-  display: flex;
-  justify-content: center;
-  
-  mat-form-field {
-    width: 300px;
-  }
-
-  font-size: 14px;
-}
-
 .helpContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
