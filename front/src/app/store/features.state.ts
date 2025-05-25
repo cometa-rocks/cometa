@@ -1005,9 +1005,6 @@ export class FeaturesState {
 
       columns.browsers = feature.browsers; // List of browsers used to test the feature
       columns.schedule = feature.schedule; // Schedule to said feature
-      columns.original_cron = feature.original_cron; // Original cron expression as entered by user
-      columns.original_timezone = feature.original_timezone; // Original timezone
-      
       columns.depends_on_others = feature.depends_on_others;
       columns.modification = feature.last_edited_date; // Last modification date
       columns.modification_user_id = feature.last_edited?.user_id; // Id of the last modifier
