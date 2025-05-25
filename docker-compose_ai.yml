@@ -23,7 +23,7 @@ services:
     # container_name: cometa.ollama.ai
     ports:
       # - "8083:8083"  # Ollama port
-      - "8002:8000"  # Django port
+      - "8002:8002"  # Django port
     volumes:
       - ./cometa_ai:/app
       - ./data/ollama:/home/cometa/.ollama/models

@@ -200,6 +200,8 @@ interface Feature {
   browser_code: string;
   browser_name: string;
   schedule: string;
+  original_cron?: string;
+  original_timezone?: string;
   success?: boolean;
   screenshot: string;
   compare: string;
@@ -615,6 +617,7 @@ interface UploadedFile {
   uploaded_by?: Uploader;
   error?: FileUploadError;
   extras?: FileExtras;
+  file_type?: string;
   status?:
     | 'Unknown'
     | 'Processing'
@@ -1126,6 +1129,7 @@ interface Container {
   created_by_name?: string;
   apk_file?: number | File;
   shared: boolean;
+  in_use: boolean;
   hostname:string;
   isPaused?: boolean;
   isTerminating?: boolean;

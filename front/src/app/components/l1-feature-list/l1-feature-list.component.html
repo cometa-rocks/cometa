@@ -398,13 +398,7 @@ Author: dph000
     matTooltipPosition="below"
     *ngIf="row.schedule"
     >
-    {{ row.schedule}}
-    <!-- Old code checkbox -->
-    <!-- <mat-checkbox
-      *ngIf="row.schedule"
-      class="noPointerEvents"
-      [checked]="row.schedule.length > 0"
-      color="primary"></mat-checkbox> -->
+    {{ row.original_cron || row.schedule }}
   </div>
 </ng-template>
 
