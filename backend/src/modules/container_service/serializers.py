@@ -13,7 +13,7 @@ class ContainerServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContainerService
         # fields = '__all__'
-        fields = ['id', 'image', 'service_id','image_name','image_version', 'service_type', 'service_status', 'shared','apk_file', 'created_by',
+        fields = ['id', 'image', 'service_id','image_name','image_version', 'service_type', 'service_status', 'shared','apk_file', 'created_by', 'created_on',
                   'hostname', 'capabilities','running','department_id', 'created_by_name', 'in_use' ]
         extra_kwargs = {
             'image': {'required': False},
