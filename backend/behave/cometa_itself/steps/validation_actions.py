@@ -82,3 +82,40 @@ def validate_element_visibility(context, selector, time, variable):
     # Save the result to the variable
     addTestRuntimeVariable(context, variable, str(result))
     send_step_details(context, f"Visibility validation result for '{selector}' saved to variable '{variable}': {result}")
+
+# Validates if a selector is present in the browser within a given time and saves the result to a variable.
+# Example: Validate if "div#content" present in the browser in "5" seconds and save result in "$is_present"
+@step(u'Assert if "{selector}" present in the browser in "{time}" seconds')
+@done(u'Assert if "{selector}" present in the browser in "{time}" seconds')
+def assert_element_presence(context, selector, time):
+    send_step_details(context, f"Validating if selector '{selector}' is present within {time} seconds")
+    
+    try:
+        # Use waitSelector to get the element
+        element = waitSelector(context, "css", selector, max_timeout=int(time))
+        if type(element) == list:
+            element = element[0]
+
+        assert element is not None, f"selector {selector} not present in {time} seconds"   # If element is returned, it's present
+    except Exception as e:
+        assert False, f"selector {selector} not present in {time} seconds"  
+        
+
+
+# Validates if a selector is visible in the browser within a given time and saves the result to a variable.
+# Example: Validate if "button.submit" appeared in the browser in "10" seconds and save result in "$is_visible"
+@step(u'Assert if "{selector}" appeared in the browser in "{time}" seconds')
+@done(u'Assert if "{selector}" appeared in the browser in "{time}" seconds')
+def assert_element_visibility(context, selector, time):
+    send_step_details(context, f"Validating if selector '{selector}' appeared within {time} seconds")
+    
+    try:
+        # Use waitSelector to get the element
+        element = waitSelector(context, "css", selector, max_timeout=int(time))
+        if type(element) == list:
+            element = element[0]
+            
+        assert element.is_displayed(), f"selector {selector} did not appeared in {time} seconds" 
+    except Exception as e:
+        assert False, f"selector {selector} did not appeared in {time} seconds"  
+    
