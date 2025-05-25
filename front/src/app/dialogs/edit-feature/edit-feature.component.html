@@ -491,7 +491,74 @@
           >
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
-          <h5 (click)="openScheduleHelp()" class="schedule-help">
+          <div class="schedule-header-inline" *ngIf="featureForm.value.run_now">
+            <h5 (click)="openScheduleHelp()" class="schedule-help">
+              How to format a cron schedule (click)
+            </h5>
+            <div class="timezone-selection-inline">
+              <mat-form-field class="form-field-blue compact" appearance="fill">
+                <mat-label>Preview Timezone</mat-label>
+                <mat-select 
+                  [(ngModel)]="timezone" 
+                  [ngModelOptions]="{standalone: true}"
+                  (selectionChange)="onTimezoneChange($event)"
+                  (focus)="onInputFocus()"
+                  (blur)="onInputBlur()">
+                  
+                  <!-- UTC Options -->
+                  <mat-optgroup label="UTC">
+                    <mat-option value="UTC">UTC (UTC+0)</mat-option>
+                    <mat-option value="Etc/UTC">Etc/UTC (UTC+0)</mat-option>
+                    <mat-option value="Etc/GMT">Etc/GMT (UTC+0)</mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- All Americas Timezones -->
+                  <mat-optgroup label="Americas - All">
+                    <mat-option *ngFor="let tz of getTimezonesByContinent('America')" [value]="tz">
+                      {{ tz }} ({{ getTimezoneOffset(tz) }})
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- All Europe Timezones -->
+                  <mat-optgroup label="Europe - All">
+                    <mat-option *ngFor="let tz of getTimezonesByContinent('Europe')" [value]="tz">
+                      {{ tz }} ({{ getTimezoneOffset(tz) }})
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- All Asia Timezones -->
+                  <mat-optgroup label="Asia - All">
+                    <mat-option *ngFor="let tz of getTimezonesByContinent('Asia')" [value]="tz">
+                      {{ tz }} ({{ getTimezoneOffset(tz) }})
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- Africa Timezones -->
+                  <mat-optgroup label="Africa">
+                    <mat-option *ngFor="let tz of getTimezonesByContinent('Africa')" [value]="tz">
+                      {{ tz }} ({{ getTimezoneOffset(tz) }})
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- Australia & Oceania Timezones -->
+                  <mat-optgroup label="Australia & Oceania">
+                    <mat-option *ngFor="let tz of getTimezonesByContinent('Australia|Pacific')" [value]="tz">
+                      {{ tz }} ({{ getTimezoneOffset(tz) }})
+                    </mat-option>
+                  </mat-optgroup>
+                  
+                  <!-- User's Browser -->
+                  <mat-optgroup label="Your Location">
+                    <mat-option value="browser-timezone">{{ userTimezone }} ({{ getTimezoneOffset(userTimezone) }}) - Your Browser</mat-option>
+                  </mat-optgroup>
+                </mat-select>
+                <mat-hint>Preview timezone only</mat-hint>
+              </mat-form-field>
+            </div>
+          </div>
+          
+          <!-- Show help text when schedule is disabled -->
+          <h5 (click)="openScheduleHelp()" class="schedule-help" *ngIf="!featureForm.value.run_now">
             How to format a cron schedule (click)
           </h5>
           <div class="run-now">
@@ -509,7 +576,9 @@
                     matInput
                     [disabled]="!featureForm.value.schedule"
                     formControlName="minute"
-                    disableAutocomplete />
+                    disableAutocomplete 
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()" />
                   <mat-error
                     *ngIf="featureForm.get('minute').hasError('pattern')"
                     >Invalid format</mat-error
@@ -524,7 +593,9 @@
                     type="text"
                     [disabled]="!featureForm.value.schedule"
                     formControlName="hour"
-                    disableAutocomplete />
+                    disableAutocomplete 
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()" />
                   <mat-error *ngIf="featureForm.get('hour').hasError('pattern')"
                     >Invalid format</mat-error
                   >
@@ -538,7 +609,9 @@
                     type="text"
                     [disabled]="!featureForm.value.schedule"
                     formControlName="day_month"
-                    disableAutocomplete />
+                    disableAutocomplete 
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()" />
                   <mat-error
                     *ngIf="featureForm.get('day_month').hasError('pattern')"
                     >Invalid format</mat-error
@@ -553,7 +626,9 @@
                     type="text"
                     [disabled]="!featureForm.value.schedule"
                     formControlName="month"
-                    disableAutocomplete />
+                    disableAutocomplete 
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()" />
                   <mat-error
                     *ngIf="featureForm.get('month').hasError('pattern')"
                     >Invalid format</mat-error
@@ -568,10 +643,12 @@
                     type="text"
                     [disabled]="!featureForm.value.schedule"
                     formControlName="day_week"
-                    disableAutocomplete />
+                    disableAutocomplete 
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()" />
                   <mat-error
                     *ngIf="featureForm.get('day_week').hasError('pattern')"
-                    >Invalid format</mat-error
+                    >Invalid format. Use numbers (0-7) or day names (SUN, MON, TUE, etc.)</mat-error
                   >
                 </mat-form-field>
               </td>
@@ -581,11 +658,11 @@
             <ng-container *ngIf="!parseError.error">
               <p>
                 <strong>Note:</strong> Your feature will be scheduled in
-                <strong>UTC</strong> timezone.
+                <strong>"{{ getDisplayTimezone() }}"</strong> timezone.
               </p>
               <p>
                 Here are some executions (in
-                <strong>"{{ timezone }}"</strong> timezone) based on the crontab
+                <strong>"{{ getDisplayTimezone() }}"</strong> timezone) based on the crontab
                 expression:
               </p>
               <li *ngFor="let nextRun of nextRuns">

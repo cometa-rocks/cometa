@@ -1,12 +1,29 @@
+################################################################################
+#
+# This script initializes the directories for the project.
+# 
+# It will move the config files from old front/apache2 folder and move it to the centralized folder specified by BASE_DIR.
+#
+# The BASE_DIR is the directory where the project will be initialized. Leave it blank to use the default ./data directory.
+################################################################################
+
 #!/bin/bash
 #
 # source our nice logger
 #
+
+# get the script directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# get the project root directory
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# change to the project root directory
+cd "$PROJECT_ROOT" || exit 1
+
 HELPERS="helpers"
 # source logger function if not sourced already
 test `command -v log_wfr` || source "${HELPERS}/logger.sh" || exit
-
-cd .. 
 
 # Check if a directory path is provided
 if [ -n "$1" ]; then
