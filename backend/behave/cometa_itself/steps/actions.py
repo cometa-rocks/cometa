@@ -84,6 +84,8 @@ ENCRYPTION_START = ConfigurationManager.get_configuration('COMETA_ENCRYPTION_STA
 logger = logging.getLogger('FeatureExecution')
 
 
+
+
 # Browse to an URL
 # Example: StartBrowser and call URL "https://prod.cometa.rocks/#/new"
 @step(u'StartBrowser and call URL "{url}"')
@@ -91,6 +93,14 @@ logger = logging.getLogger('FeatureExecution')
 def step_impl(context,url):
     send_step_details(context, 'Loading page')
     context.browser.get(url)
+
+# Browse to an URL
+# Example: StartBrowser and call URL "https://prod.cometa.rocks/#/new"
+@step(u'StartBrowser and call URL "{url}" with javascript')
+@done(u'StartBrowser and call URL "{url}" with javascript')
+def step_impl(context,url):
+    send_step_details(context, 'Loading page')
+    context.browser.execute_script(f"window.location.href = '{url}'")
 
 # Browse to an URL
 # Example: Goto URL "https://prod.cometa.rocks/#/new"
@@ -3087,6 +3097,9 @@ def step_loop(context, x, index):
             params['index'] = i
             context.PARAMETERS = json.dumps(params)
             for step in steps:
+                if context.continue_loop:
+                    logger.debug("Loop is in continue state")
+                    continue
                 logger.debug("Executing step: {}".format(step))
                 # update steps executed
                 context.executedStepsInLoop += 1
@@ -3104,7 +3117,10 @@ def step_loop(context, x, index):
                 if context.break_loop:
                     logger.debug("Breaking step loop")
                     break
-
+                
+            # After step one iteration with loop change continue_loop = False
+            context.continue_loop = False
+            
             if context.break_loop:
                 logger.debug("Breaking iteration loop")
                 break
@@ -3114,6 +3130,7 @@ def step_loop(context, x, index):
         err_msg = error
 
     context.break_loop = False
+    context.continue_loop = False
     # update current step index to Loop again
     context.counters['index'] = currentStepIndex
     # set jumpLoop value to steps count
@@ -3150,7 +3167,33 @@ def step_endLoop(context):
 @done(u'Break Loop')
 def step_break_loop(context):
     send_step_details(context, "Breaking execution loop")
-    context.break_loop = True
+    
+    if len(context.test_conditions_list)>0 and context.test_conditions_list[-1].is_condition_with_in_loop():            
+        logger.debug("loop contains an if condition, closing it for this loop cycle")
+        last_condition = context.test_conditions_list.pop()    
+        last_condition.close_condition()
+    
+    if context.insideLoop:
+        context.break_loop = True
+    else:
+        raise CustomError("Flows is not inside loop, invalid use of step")
+    
+    
+# Example: Break the loop execution
+@step(u'Continue Loop')
+@done(u'Continue Loop')
+def step_break_loop(context):
+    send_step_details(context, "Continue this iteration of loop")
+    
+    if len(context.test_conditions_list)>0 and context.test_conditions_list[-1].is_condition_with_in_loop():            
+        logger.debug("loop contains an if condition, closing it for this loop cycle")
+        last_condition = context.test_conditions_list.pop()    
+        last_condition.close_condition()
+    
+    if context.insideLoop:
+        context.continue_loop = True
+    else:
+        raise CustomError("Flows is not inside loop, invalid use of step")
     
 
 
