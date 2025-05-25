@@ -164,133 +164,6 @@ a {
   margin: 20px 0 30px;
 }
 
-.schedule-header {
-  position: relative;
-  margin-bottom: 20px;
-  min-height: 40px;
-}
-
-.schedule-header-inline {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  min-height: 40px;
-  
-  .schedule-help {
-    margin: 0;
-    flex-grow: 1;
-  }
-}
-
-.timezone-selection-top-right {
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 10;
-  
-  .mat-form-field {
-    width: 200px;
-    font-size: 14px;
-    
-    &.compact {
-      .mat-form-field-wrapper {
-        padding-bottom: 0;
-      }
-      
-      .mat-form-field-infix {
-        border-top: 0;
-        padding: 0.5em 0;
-      }
-      
-      .mat-form-field-underline {
-        bottom: 0;
-      }
-    }
-    
-    ::ng-deep .mat-form-field-infix {
-      width: auto !important;
-      text-align: left;
-    }
-    
-    ::ng-deep .mat-hint {
-      font-size: 10px;
-      color: rgba(0, 0, 0, 0.6);
-      text-align: center;
-    }
-    
-    ::ng-deep .mat-form-field-label {
-      font-size: 12px;
-    }
-  }
-}
-
-.timezone-selection-inline {
-  flex-shrink: 0;
-  margin-left: 20px;
-  
-  .mat-form-field {
-    width: 180px;
-    font-size: 14px;
-    
-    &.compact {
-      .mat-form-field-wrapper {
-        padding-bottom: 0;
-      }
-      
-      .mat-form-field-infix {
-        border-top: 0;
-        padding: 0.5em 0;
-      }
-      
-      .mat-form-field-underline {
-        bottom: 0;
-      }
-    }
-    
-    ::ng-deep .mat-form-field-infix {
-      width: auto !important;
-      text-align: left;
-    }
-    
-    ::ng-deep .mat-hint {
-      font-size: 10px;
-      color: rgba(0, 0, 0, 0.6);
-      text-align: center;
-    }
-    
-    ::ng-deep .mat-form-field-label {
-      font-size: 12px;
-    }
-  }
-}
-
-.timezone-selection {
-  text-align: center;
-  margin: 20px 0 30px;
-  
-  .mat-form-field {
-    width: 250px;
-    max-width: 100%;
-    
-    ::ng-deep .mat-form-field-infix {
-      width: auto !important;
-      text-align: center;
-    }
-    
-    ::ng-deep .mat-hint {
-      font-size: 11px;
-      color: rgba(0, 0, 0, 0.6);
-      text-align: center;
-    }
-  }
-}
-
-.schedule {
-  width: 100%;
-}
-
 .edit-feature-loader {
   margin: 0 auto;
 }
@@ -380,6 +253,10 @@ button {
   .edit-env {
     flex: 1 20%;
   }
+}
+
+.schedule {
+  width: 100%;
 }
 
 .schedule::ng-deep .mat-form-field-infix {
