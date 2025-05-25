@@ -442,6 +442,7 @@ export class ResultsState {
       step_index,
       datetime,
       info,
+      screenshots,
     }: WebSockets.StepDetailedInfo
   ) {
     this.clearTimeout(feature_id, run_id, browser_info);
@@ -450,6 +451,22 @@ export class ResultsState {
         this.verifyAndFixMainKeys(ctx, feature_id, run_id, browser_info);
         const browserKey = getBrowserKey(browser_info);
         ctx[feature_id].results[run_id][browserKey].details[step_index] = info;
+        
+        // If screenshots are provided, update them in the step data
+        if (screenshots && Object.keys(screenshots).length > 0) {
+          const currentSteps = this.getSteps(ctx, feature_id, run_id, browser_info);
+          // Ensure the step exists
+          if (!currentSteps[step_index]) {
+            currentSteps[step_index] = this.mockStep(step_index, '', datetime);
+          }
+          // Update screenshots
+          currentSteps[step_index].screenshots = {
+            ...currentSteps[step_index].screenshots,
+            ...screenshots
+          };
+
+          ctx[feature_id].results[run_id][browserKey].steps = currentSteps;
+        }
       })
     );
   }

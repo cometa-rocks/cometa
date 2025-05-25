@@ -13,7 +13,7 @@ import {
   MatLegacyDialogModule,
 } from '@angular/material/legacy-dialog';
 import { MatLegacySnackBar as MatSnackBar } from '@angular/material/legacy-snack-bar';
-
+import { MatLegacyProgressSpinnerModule } from '@angular/material/legacy-progress-spinner';
 import { SortByPipe } from '@pipes/sort-by.pipe';
 import { AmDateFormatPipe } from '@pipes/am-date-format.pipe';
 import { AmParsePipe } from '@pipes/am-parse.pipe';
@@ -49,7 +49,7 @@ import { CommonModule } from '@angular/common';
     SortByPipe,
     AsyncPipe,
     KeyValuePipe,
-
+    MatLegacyProgressSpinnerModule,
   ],
 })
 export class ShowHousekeepingLogDialog implements OnInit {
@@ -65,33 +65,38 @@ export class ShowHousekeepingLogDialog implements OnInit {
     console.log(this.data);
   }
 
-
-
-  ngOnInit(): void {
+  loadHouseKeepingLogs()
+  {
+    this.houseKeepingLog = undefined;
+    this.cdr.markForCheck();
     this._api.getHouseKeepingLog(this.data.logId).subscribe(
-      res => {
-        console.log(res);
-        if (res) {
-          this.houseKeepingLog = res;  
-          for (let log of this.houseKeepingLog.house_keeping_logs){
-            const spaces = '&nbsp;&nbsp;&nbsp;&nbsp;'.repeat(log.spacing); // Generate the required number of non-breaking spaces
-            const logText = `${log.formatted_date} ${spaces}${log.value}`;
-            const logHtml = log.type === 'normal' 
-              ? `<p>${logText}</p>`
-              : `<p class="red-text">${logText}</p>`;
+    res => {
+      if (res) {
+        this.logs = "";
+        this.houseKeepingLog = res;
+        for (let log of this.houseKeepingLog.house_keeping_logs){
+          const spaces = '&nbsp;&nbsp;&nbsp;&nbsp;'.repeat(log.spacing); // Generate the required number of non-breaking spaces
+          const logText = `${log.formatted_date} ${spaces}${log.value}`;
+          const logHtml = log.type === 'normal' 
+            ? `<p>${logText}</p>`
+            : `<p class="red-text">${logText}</p>`;
 
-            this.logs=this.logs+logHtml;
-          }   
-          this.cdr.markForCheck();
-        } else {
-          this.dialogRef.close();
-          this.snack.open('Did not find logs or error ocurred', 'OK');
-        }
-      },
-      () => {
+          this.logs=this.logs+logHtml;
+        }   
+        this.cdr.markForCheck();
+      } else {
         this.dialogRef.close();
         this.snack.open('Did not find logs or error ocurred', 'OK');
       }
-    );
+    },
+    () => {
+      this.dialogRef.close();
+      this.snack.open('Did not find logs or error ocurred', 'OK');
+    }
+  );
+  }
+
+  ngOnInit(): void {
+    this.loadHouseKeepingLogs()
   }
 }

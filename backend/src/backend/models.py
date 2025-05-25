@@ -997,6 +997,7 @@ step_type_choices = (
 class Step_result(models.Model):
     step_result_id = models.AutoField(primary_key=True)
     feature_result_id = models.IntegerField()
+    step_execution_sequence = models.IntegerField(default=0)
     step_name = models.TextField()
     execution_time = models.IntegerField(default=0)
     relative_execution_time = models.IntegerField(default=0)
@@ -1359,6 +1360,8 @@ class Schedule(models.Model):
     feature = models.ForeignKey(Feature, on_delete=models.CASCADE, null=True, blank=True, related_name="schedules")
     parameters = models.JSONField(default=dict,null=True, blank=True)
     schedule = models.CharField(max_length=255)
+    original_cron = models.CharField(max_length=255, null=True, blank=True, help_text="Original cron expression as entered by user")
+    original_timezone = models.CharField(max_length=50, null=True, blank=True, help_text="Timezone in which the original cron was entered")
     command = models.CharField(max_length=255, blank=True, null=True)
     comment = models.CharField(max_length=255, blank=True, null=True)
     owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True,blank=True, related_name="schedule_owner")
@@ -1528,6 +1531,12 @@ class UsageInvoice(models.Model):
     modified_on = models.DateTimeField(auto_now=True, editable=True, null=False, blank=False, help_text='When was the latest modification')
     error = models.TextField(help_text='If there was an error during payment, it will appear here')
 
+file_types = (
+    ('datadriven','datadriven'),
+    ('normal','normal')
+    # ('property','property') 
+    )
+
 # stores uploaded files data
 class File(SoftDeletableModel):
     id = models.AutoField(primary_key=True)
@@ -1540,6 +1549,7 @@ class File(SoftDeletableModel):
     md5sum = models.CharField(max_length=255)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name="files")
     status = models.CharField(max_length=10, choices=file_status, default="Unknown")
+    file_type = models.CharField(max_length=20, choices=file_types, default="normal")
     uploaded_by = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True)
     extras = models.JSONField(default=dict)
     column_order = models.JSONField(default=list, null=True, help_text='Original column order from the file')

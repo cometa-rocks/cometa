@@ -66,6 +66,7 @@ from backend.utility.uploadFile import UploadFile, decryptFile
 from backend.utility.config_handler import *
 # from silk.profiling.profiler import silk_profile
 from modules.container_service.service_manager import DockerServiceManager, ServiceManager
+from backend.utility.timezone_utils import convert_cron_to_utc, recalculate_schedule_if_needed
 
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
@@ -1195,36 +1196,28 @@ def GetStepsByName(request):
 
 
 @csrf_exempt
-def UpdatePixelDifference(request, step_result_id):
+def updateStepScreenShotDetails(request, feature_result_id, step_execution_sequence):
     data = json.loads(request.body)
-    # Create dict for update payload
-    updateObj = {}
     # Try to retrieve params from POST
     pixel_diff = data.get('pixel_diff', None)
     if pixel_diff is not None:
-        updateObj['pixel_diff'] = int(float(pixel_diff))
+        data['pixel_diff'] = int(float(pixel_diff))
+        
     # template_name = data.get('template_name', None) # Template name was the old way for the front to know about the original style image
     diff = data.get('different_html', None)
     if diff is not None:
-        updateObj['diff'] = diff
+        data['diff'] = diff
+        
     # Update step result with retrieved parameters
-    Step_result.objects.filter(step_result_id=step_result_id).update(**updateObj)
-    if 'pixel_diff' in updateObj:
-        StepResult = Step_result.objects.get(step_result_id=step_result_id)
-        FeatureResult = Feature_result.objects.filter(feature_result_id=StepResult.feature_result_id)
-        FeatureResult.update(pixel_diff=FeatureResult.first().pixel_diff + updateObj['pixel_diff'])
-    return JsonResponse({'success': True})
+    step_result = Step_result.objects.filter(feature_result_id=feature_result_id, step_execution_sequence=step_execution_sequence)
+    if not step_result:
+        return JsonResponse({'success': False, 'message':f"feature_result_id = {feature_result_id} and step_execution_sequence = {step_execution_sequence} not found"})
 
+    step_result.update(**data)
+    if pixel_diff:
+        featureResult = Feature_result.objects.filter(feature_result_id=feature_result_id)
+        featureResult.update(pixel_diff=featureResult.first().pixel_diff + pixel_diff)
 
-@csrf_exempt
-def UpdateScreenshots(request, step_result_id):
-    data = json.loads(request.body)
-    Step_result.objects.filter(step_result_id=step_result_id).update(
-        screenshot_current=data.get('screenshot_current', ''),
-        screenshot_style=data.get('screenshot_style', ''),
-        screenshot_difference=data.get('screenshot_difference', ''),
-        screenshot_template=data.get('screenshot_template', '')
-    )
     return JsonResponse({'success': True})
 
 
@@ -1618,7 +1611,7 @@ def Contact(request):
     return JsonResponse({'success': True})
 
 
-def schedule_update(feature_id, schedule, user_id):
+def schedule_update(feature_id, schedule, user_id, original_cron=None, original_timezone=None):
     features = Feature.objects.filter(pk=feature_id)
     feature = features[0]
     current_schedule = feature.schedule
@@ -1631,6 +1624,8 @@ def schedule_update(feature_id, schedule, user_id):
             schedule_model = Schedule.objects.create(
                 feature_id=feature.pk,
                 schedule=schedule,
+                original_cron=original_cron,
+                original_timezone=original_timezone,
                 owner_id=user_id, 
                 delete_after_days=0
             )
@@ -1661,16 +1656,30 @@ def UpdateSchedule(request, feature_id, *args, **kwargs):
     feature = features[0]
 
     try:
-        schedule_update(feature.pk, schedule, request.session['user']['user_id'])
+        original_cron = schedule
+        original_timezone = data.get('original_timezone', None)
+        schedule_to_store = schedule
+        
+        # Convert to UTC if timezone is provided
+        if original_timezone and original_cron:
+            schedule_to_store = convert_cron_to_utc(original_cron, original_timezone)
+        
+        schedule_update(
+            feature.pk, 
+            schedule_to_store, 
+            request.session['user']['user_id'],
+            original_cron=original_cron,
+            original_timezone=original_timezone
+        )
     except Exception as err:
         return JsonResponse({'success': False, 'error': str(err)})
 
     return JsonResponse({'success': True})
 
 
-def uploadFilesThread(files, department_id, uploaded_by):
+def uploadFilesThread(files, department_id, uploaded_by, file_type='normal'):
     for file in files:
-        uploadFile = UploadFile(file, department_id, uploaded_by)
+        uploadFile = UploadFile(file, department_id, uploaded_by, file_type)
         print(uploadFile.proccessUploadFile())
 
 
@@ -1743,10 +1752,12 @@ class UploadViewSet(viewsets.ModelViewSet):
         if department_id == -1 or departmentExists(department_id) == -1:
             return JsonResponse({'success': False, 'error': "Department does not exist."})
 
+        file_type = request.POST.get('file_type', 'normal')
+
         try:
             # Spawn thread to upload files in background
             t = Thread(target=uploadFilesThread,
-                       args=(request.FILES.getlist('files'), department_id, request.session['user']['user_id']))
+                       args=(request.FILES.getlist('files'), department_id, request.session['user']['user_id'], file_type))
             t.start()
             return JsonResponse({'success': True})
         except Exception as e:
@@ -2750,7 +2761,21 @@ class FeatureViewSet(viewsets.ModelViewSet):
         """
         if 'schedule' in data:
             try:
-                newSchedule = schedule_update(feature.pk, data['schedule'], request.session['user']['user_id'])
+                original_cron = data['schedule']
+                original_timezone = data.get('original_timezone', None)
+                schedule_to_store = data['schedule']
+                
+                # Convert to UTC if timezone is provided
+                if original_timezone and original_cron:
+                    schedule_to_store = convert_cron_to_utc(original_cron, original_timezone)
+                
+                newSchedule = schedule_update(
+                    feature.pk, 
+                    schedule_to_store, 
+                    request.session['user']['user_id'],
+                    original_cron=original_cron,
+                    original_timezone=original_timezone
+                )
                 feature.schedule = newSchedule
             except Exception as err:
                 logger.error("Unable to save the schedule...")
@@ -3780,6 +3805,9 @@ class ScheduleViewSet(viewsets.ModelViewSet):
 
         # loop over all schedules and generate a line of crontab
         for schedule in schedules:
+            # Check if schedule needs DST recalculation
+            recalculate_schedule_if_needed(schedule)
+            
             cronString = "%s %s %s" % (schedule.schedule, schedule.command, schedule.comment)
             cronString = cronString.replace("<jobId>", str(schedule.id))
             cronSchedules.append(cronString)
@@ -3790,6 +3818,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         # get request payload
         data = json.loads(request.body)
+        
         # get the feature
         try:
             fid = int(data['feature'])
@@ -3799,6 +3828,21 @@ class ScheduleViewSet(viewsets.ModelViewSet):
         if not feature.exists():
             return JsonResponse({"success": False, "error": "No feature found with specified name."}, status=404)
         data['feature'] = feature[0]
+        
+        # Handle timezone conversion if timezone is provided
+        if 'original_timezone' in data and 'schedule' in data:
+            # Store original values
+            data['original_cron'] = data['schedule']
+            data['original_timezone'] = data['original_timezone']
+            
+            # Convert to UTC
+            utc_cron = convert_cron_to_utc(data['schedule'], data['original_timezone'])
+            data['schedule'] = utc_cron
+        elif 'schedule' in data:
+            # If no timezone provided, assume UTC and store as original
+            data['original_cron'] = data['schedule']
+            data['original_timezone'] = 'UTC'
+        
         # check if id exists in payload else throw error
         try:
             # update data with object recieved as payload
@@ -3814,6 +3858,21 @@ class ScheduleViewSet(viewsets.ModelViewSet):
         # check if id exists in payload else throw error
         if 'id' not in kwargs:
             return JsonResponse({"success": False, "error": "Missing id"}, status=404)
+        
+        # Handle timezone conversion if timezone is provided
+        if 'original_timezone' in data and 'schedule' in data:
+            # Store original values
+            data['original_cron'] = data['schedule']
+            data['original_timezone'] = data['original_timezone']
+            
+            # Convert to UTC
+            utc_cron = convert_cron_to_utc(data['schedule'], data['original_timezone'])
+            data['schedule'] = utc_cron
+        elif 'schedule' in data:
+            # If no timezone provided, assume UTC and store as original
+            data['original_cron'] = data['schedule']
+            data['original_timezone'] = 'UTC'
+        
         try:
             # update data with object recieved as payload
             Schedule.objects.filter(id=kwargs['id']).update(**data)
