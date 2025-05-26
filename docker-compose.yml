@@ -84,7 +84,7 @@ services:
 
   ws:
     container_name: cometa_socket
-    image: cometa/socket:1.2
+    image: cometa/socket:1.3
     platform: linux/amd64  # <-- Force AMD64
     environment:
       - NODE_ENV=production
