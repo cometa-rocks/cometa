@@ -539,7 +539,7 @@ def before_all(context):
 
     options.add_argument('--enable-logging')
     options.add_argument('--log-level=0')
-    options.add_argument("--window-size=1920,1080")
+    options.add_argument("--window-size=1920,1060")
     # proxy configuration
     if PROXY_ENABLED and PROXY:
         logger.debug(
