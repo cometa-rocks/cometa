@@ -55,7 +55,7 @@ def run_test(request):
     X_SERVER = request.POST['HTTP_X_SERVER'] # where the request is coming from
     logger.debug('X_SERVER: {}'.format(X_SERVER))
     VARIABLES = request.POST['variables'] # environments variables for feature department just in case feature is using variables in steps
-    logger.debug('Environment Variables: {}'.format(VARIABLES))
+    # logger.debug('Environment Variables: {}'.format(VARIABLES))
     PROXY_USER = request.POST['HTTP_PROXY_USER'] # user who executed the testcase
     logger.debug('Executed By: {}'.format(PROXY_USER))
     executions = json.loads(request.POST['browsers']) # browsers list of the feature
