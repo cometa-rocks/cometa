@@ -1329,6 +1329,11 @@ export class EditFeature implements OnInit, OnDestroy {
         }
         // Trigger change detection to ensure the dropdown updates
         this.cdr.detectChanges();
+        
+        if (this.featureForm.value.run_now) {
+          const { minute, hour, day_month, month, day_week } = this.featureForm.value;
+          this.parseSchedule({ minute, hour, day_month, month, day_week });
+        }
       }
       // Try to save all possible feature properties in the form using the same property names
       for (const key in featureInfo) {
