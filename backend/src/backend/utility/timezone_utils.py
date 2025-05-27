@@ -10,14 +10,19 @@ def convert_cron_to_utc(cron_expression: str, user_timezone_str: str) -> str | N
     Convert a cron expression's time components (hour, minute) from user's timezone to UTC.
     Uses the current day in the user's specified timezone as a reference for resolving DST.
     
+    Handles both simple times and complex patterns:
+    - Simple times (e.g., "0 14 * * *"): Converts hour/minute to UTC
+    - Mixed patterns (e.g., "*/1 3 * * *"): Converts specific hour to UTC, preserves minute pattern
+    - Full patterns (e.g., "*/5 * * * *"): Returns original (no specific time reference)
+    
     Args:
         cron_expression: The 5-part cron string (e.g., "0 13 * * *").
         user_timezone_str: The name of the user's timezone (e.g., "America/New_York").
 
     Returns:
         The UTC cron expression string if conversion is successful.
-        None if conversion is not possible (e.g., wildcard hour/minute, 
-        invalid timezone, non-existent local time due to DST).
+        The original cron expression for patterns with no specific time reference.
+        None if conversion is not possible (e.g., invalid timezone, non-existent local time due to DST).
     """
     try:
         parts = cron_expression.strip().split()
@@ -27,10 +32,22 @@ def convert_cron_to_utc(cron_expression: str, user_timezone_str: str) -> str | N
         
         minute_str, hour_str, day_month_str, month_str, weekday_str = parts
         
-        if hour_str == '*' or minute_str == '*':
-            logger.info(f"Cron with wildcard hour/minute cannot be timezone-converted: '{cron_expression}'.")
-            return None # Keep original if wildcards are used for H:M
-
+        # Check if fields are simple numbers
+        def is_simple_number(field_str):
+            return field_str.isdigit()
+        
+        def has_patterns(field_str):
+            return ('*' in field_str or '/' in field_str or '-' in field_str or ',' in field_str)
+        
+        minute_is_simple = is_simple_number(minute_str)
+        hour_is_simple = is_simple_number(hour_str)
+        
+        # If both hour and minute have patterns, no specific time reference to convert
+        if has_patterns(hour_str) and has_patterns(minute_str):
+            logger.info(f"Cron with patterns in both hour and minute - returning original: '{cron_expression}'.")
+            return cron_expression
+        
+        # Validate timezone
         try:
             user_tz = pytz.timezone(user_timezone_str)
         except pytz.exceptions.UnknownTimeZoneError:
@@ -38,69 +55,110 @@ def convert_cron_to_utc(cron_expression: str, user_timezone_str: str) -> str | N
             return None
 
         utc_tz = pytz.UTC
-        
-        # Get current date context in the user's specified timezone
-        # This is crucial for determining the correct DST offset for "today"
         now_in_user_tz = datetime.datetime.now(user_tz)
         
-        hour_val = int(hour_str)
-        minute_val = int(minute_str)
-        
-        # Create a naive datetime for the specified hour/minute on "today"
-        # This naive datetime will be localized to the user's timezone
-        naive_user_dt_on_ref_day = datetime.datetime(
-            now_in_user_tz.year, 
-            now_in_user_tz.month, 
-            now_in_user_tz.day, 
-            hour_val, 
-            minute_val
-        )
-
-        try:
-            # Localize the naive datetime.
-            # For ambiguous times (fall back), pytz defaults to is_dst=False (standard time, usually the second instance).
-            # For non-existent times (spring forward), it raises NonExistentTimeError.
-            localized_user_dt = user_tz.localize(naive_user_dt_on_ref_day, is_dst=None)
-        except pytz.exceptions.NonExistentTimeError:
-            logger.warning(
-                f"Local time {hour_str}:{minute_str} does not exist in {user_timezone_str} "
-                f"on {now_in_user_tz.date()} due to DST (spring forward). Cron: '{cron_expression}'."
-            )
-            return None # Indicates this local time is currently invalid
-        except pytz.exceptions.AmbiguousTimeError:
-            # Explicitly choose the standard time instance (is_dst=False), which is pytz's default for is_dst=None.
-            # This is typically the second occurrence of the ambiguous hour.
-            localized_user_dt = user_tz.localize(naive_user_dt_on_ref_day, is_dst=False)
-            logger.warning(
-                f"Local time {hour_str}:{minute_str} is ambiguous in {user_timezone_str} "
-                f"on {now_in_user_tz.date()} due to DST (fall back). Cron: '{cron_expression}'. "
-                f"Defaulting to standard time instance (UTC hour: {localized_user_dt.astimezone(utc_tz).hour})."
+        # Handle different scenarios
+        if hour_is_simple and minute_is_simple:
+            # Both are simple numbers - standard conversion
+            return _convert_simple_time_to_utc(
+                int(minute_str), int(hour_str), user_tz, utc_tz, now_in_user_tz,
+                day_month_str, month_str, weekday_str, cron_expression, user_timezone_str
             )
         
-        utc_dt = localized_user_dt.astimezone(utc_tz)
-        
-        utc_cron_parts = [str(utc_dt.minute), str(utc_dt.hour), day_month_str, month_str, weekday_str]
-        utc_cron = " ".join(utc_cron_parts)
-        
-        # Log only if a meaningful conversion happened (i.e., input wasn't already effectively UTC for H:M)
-        # or if it's different from the original due to timezone offset.
-        original_hm = f"{minute_str} {hour_str}"
-        utc_hm = f"{utc_dt.minute} {utc_dt.hour}"
-        if original_hm != utc_hm or user_timezone_str.upper() not in ["UTC", "GMT", "ETC/UTC", "ETC/GMT"]:
-             logger.info(
-                 f"Converted cron from '{cron_expression}' ({user_timezone_str}) to '{utc_cron}' (UTC) "
-                 f"using reference date {now_in_user_tz.date()}."
+        elif hour_is_simple and has_patterns(minute_str):
+            # Hour is specific, minute has patterns (e.g., "*/1 3 * * *")
+            return _convert_hour_preserve_minute_pattern(
+                minute_str, int(hour_str), user_tz, utc_tz, now_in_user_tz,
+                day_month_str, month_str, weekday_str, cron_expression, user_timezone_str
             )
-        return utc_cron
         
-    except ValueError: # Catches int(hour_str) or int(minute_str) if they are not numbers
-        logger.error(f"Invalid hour/minute value in cron: '{cron_expression}'.")
-        return None
+        elif has_patterns(hour_str) and minute_is_simple:
+            # Minute is specific, hour has patterns (e.g., "30 */2 * * *")
+            logger.info(f"Hour patterns with specific minute not fully supported - returning original: '{cron_expression}'.")
+            return cron_expression
+        
+        else:
+            logger.warning(f"Unexpected cron pattern: '{cron_expression}'.")
+            return cron_expression
+            
     except Exception as e:
         logger.error(
             f"Unexpected error converting cron '{cron_expression}' to UTC "
             f"for timezone '{user_timezone_str}': {e}", exc_info=True
         )
+        return None
+
+def _convert_simple_time_to_utc(minute_val, hour_val, user_tz, utc_tz, now_in_user_tz,
+                               day_month_str, month_str, weekday_str, cron_expression, user_timezone_str):
+    """Convert simple hour:minute to UTC"""
+    try:
+        naive_user_dt = datetime.datetime(
+            now_in_user_tz.year, now_in_user_tz.month, now_in_user_tz.day, 
+            hour_val, minute_val
+        )
+        
+        try:
+            localized_user_dt = user_tz.localize(naive_user_dt, is_dst=None)
+        except pytz.exceptions.NonExistentTimeError:
+            logger.warning(
+                f"Local time {hour_val}:{minute_val:02d} does not exist in {user_timezone_str} "
+                f"on {now_in_user_tz.date()} due to DST (spring forward). Cron: '{cron_expression}'."
+            )
+            return None
+        except pytz.exceptions.AmbiguousTimeError:
+            localized_user_dt = user_tz.localize(naive_user_dt, is_dst=False)
+            logger.warning(
+                f"Local time {hour_val}:{minute_val:02d} is ambiguous in {user_timezone_str} "
+                f"on {now_in_user_tz.date()} due to DST (fall back). Using standard time."
+            )
+        
+        utc_dt = localized_user_dt.astimezone(utc_tz)
+        utc_cron = f"{utc_dt.minute} {utc_dt.hour} {day_month_str} {month_str} {weekday_str}"
+        
+        logger.info(
+            f"Converted cron from '{cron_expression}' ({user_timezone_str}) to '{utc_cron}' (UTC)"
+        )
+        return utc_cron
+        
+    except ValueError as e:
+        logger.error(f"Invalid hour/minute value in cron: '{cron_expression}': {e}")
+        return None
+
+def _convert_hour_preserve_minute_pattern(minute_pattern, hour_val, user_tz, utc_tz, now_in_user_tz,
+                                        day_month_str, month_str, weekday_str, cron_expression, user_timezone_str):
+    """Convert specific hour to UTC while preserving minute pattern (e.g., */1 3 * * *)"""
+    try:
+        # Use minute 0 as reference for the hour conversion
+        naive_user_dt = datetime.datetime(
+            now_in_user_tz.year, now_in_user_tz.month, now_in_user_tz.day, 
+            hour_val, 0
+        )
+        
+        try:
+            localized_user_dt = user_tz.localize(naive_user_dt, is_dst=None)
+        except pytz.exceptions.NonExistentTimeError:
+            logger.warning(
+                f"Local time {hour_val}:00 does not exist in {user_timezone_str} "
+                f"on {now_in_user_tz.date()} due to DST (spring forward). Cron: '{cron_expression}'."
+            )
+            return None
+        except pytz.exceptions.AmbiguousTimeError:
+            localized_user_dt = user_tz.localize(naive_user_dt, is_dst=False)
+            logger.warning(
+                f"Local time {hour_val}:00 is ambiguous in {user_timezone_str} "
+                f"on {now_in_user_tz.date()} due to DST (fall back). Using standard time."
+            )
+        
+        utc_dt = localized_user_dt.astimezone(utc_tz)
+        utc_cron = f"{minute_pattern} {utc_dt.hour} {day_month_str} {month_str} {weekday_str}"
+        
+        logger.info(
+            f"Converted cron hour from '{cron_expression}' ({user_timezone_str}) to '{utc_cron}' (UTC), preserving minute pattern"
+        )
+        return utc_cron
+        
+    except ValueError as e:
+        logger.error(f"Invalid hour value in cron: '{cron_expression}': {e}")
         return None
 
 def recalculate_schedule_if_needed(schedule) -> bool:

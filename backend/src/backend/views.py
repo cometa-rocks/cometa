@@ -1662,7 +1662,9 @@ def UpdateSchedule(request, feature_id, *args, **kwargs):
         
         # Convert to UTC if timezone is provided
         if original_timezone and original_cron:
-            schedule_to_store = convert_cron_to_utc(original_cron, original_timezone)
+            converted_schedule = convert_cron_to_utc(original_cron, original_timezone)
+            if converted_schedule is not None:
+                schedule_to_store = converted_schedule
         
         schedule_update(
             feature.pk, 
@@ -2767,7 +2769,9 @@ class FeatureViewSet(viewsets.ModelViewSet):
                 
                 # Convert to UTC if timezone is provided
                 if original_timezone and original_cron:
-                    schedule_to_store = convert_cron_to_utc(original_cron, original_timezone)
+                    converted_schedule = convert_cron_to_utc(original_cron, original_timezone)
+                    if converted_schedule is not None:
+                        schedule_to_store = converted_schedule
                 
                 newSchedule = schedule_update(
                     feature.pk, 
@@ -3837,7 +3841,8 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             
             # Convert to UTC
             utc_cron = convert_cron_to_utc(data['schedule'], data['original_timezone'])
-            data['schedule'] = utc_cron
+            if utc_cron is not None:
+                data['schedule'] = utc_cron
         elif 'schedule' in data:
             # If no timezone provided, assume UTC and store as original
             data['original_cron'] = data['schedule']
@@ -3867,7 +3872,8 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             
             # Convert to UTC
             utc_cron = convert_cron_to_utc(data['schedule'], data['original_timezone'])
-            data['schedule'] = utc_cron
+            if utc_cron is not None:
+                data['schedule'] = utc_cron
         elif 'schedule' in data:
             # If no timezone provided, assume UTC and store as original
             data['original_cron'] = data['schedule']

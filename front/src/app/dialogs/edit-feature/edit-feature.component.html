@@ -491,6 +491,11 @@
           >
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
+          <div class="run-now">
+            <mat-checkbox formControlName="run_now" color="primary"
+              >Enable schedule</mat-checkbox
+            >
+          </div>
           <div class="schedule-header-inline" *ngIf="featureForm.value.run_now">
             <h5 (click)="openScheduleHelp()" class="schedule-help">
               How to format a cron schedule (click)
@@ -561,12 +566,6 @@
           <h5 (click)="openScheduleHelp()" class="schedule-help" *ngIf="!featureForm.value.run_now">
             How to format a cron schedule (click)
           </h5>
-          <div class="run-now">
-            <!-- The run_now values have been inverted as now the schedule checkbox behaviour will be the opposite from the previous version -->
-            <mat-checkbox formControlName="run_now" color="primary"
-              >Enable schedule</mat-checkbox
-            >
-          </div>
           <table *ngIf="featureForm.value.run_now" class="schedule">
             <tr>
               <td>
@@ -574,7 +573,7 @@
                   <mat-label>Minute</mat-label>
                   <input
                     matInput
-                    [disabled]="!featureForm.value.schedule"
+                    [disabled]="!featureForm.value.run_now"
                     formControlName="minute"
                     disableAutocomplete 
                     (focus)="onInputFocus()"
@@ -591,7 +590,7 @@
                   <input
                     matInput
                     type="text"
-                    [disabled]="!featureForm.value.schedule"
+                    [disabled]="!featureForm.value.run_now"
                     formControlName="hour"
                     disableAutocomplete 
                     (focus)="onInputFocus()"
@@ -607,7 +606,7 @@
                   <input
                     matInput
                     type="text"
-                    [disabled]="!featureForm.value.schedule"
+                    [disabled]="!featureForm.value.run_now"
                     formControlName="day_month"
                     disableAutocomplete 
                     (focus)="onInputFocus()"
@@ -624,7 +623,7 @@
                   <input
                     matInput
                     type="text"
-                    [disabled]="!featureForm.value.schedule"
+                    [disabled]="!featureForm.value.run_now"
                     formControlName="month"
                     disableAutocomplete 
                     (focus)="onInputFocus()"
@@ -641,7 +640,7 @@
                   <input
                     matInput
                     type="text"
-                    [disabled]="!featureForm.value.schedule"
+                    [disabled]="!featureForm.value.run_now"
                     formControlName="day_week"
                     disableAutocomplete 
                     (focus)="onInputFocus()"

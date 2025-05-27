@@ -65,6 +65,7 @@ def update_jobs(scheduler, jobs, called_by="Scheduler"):
     logger.info(f"Updating jobs, Called by {called_by}")
 
     # Add new jobs from fetched schedules
+    os.makedirs(os.path.dirname(JOB_LIST_FILE_PATH), exist_ok=True)
     job_file = open(JOB_LIST_FILE_PATH, "w")
     for job_info in jobs:
         job_file.writelines(job_info+"\n")
