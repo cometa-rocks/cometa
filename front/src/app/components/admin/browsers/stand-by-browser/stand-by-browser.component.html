@@ -13,19 +13,23 @@
   </div>
   <div class="grid-table">
     <!-- Header Row -->
-    <div class="header">Icon</div>
+    <div class="header">ID</div>
     <div class="header">Name</div>
+    <div class="header">Service ID</div>
     <div class="header">Status</div>
     <div class="header">Usage</div>
+    <div class="header">Info</div>
     <div class="header">Created On</div>
     <div class="header">Action</div>
   
     <!-- Data Rows -->
     <ng-container *ngFor="let stand_by_browser of stand_by_browsers">
-      <div class="row icon"></div>
+      <div class="row name">{{ stand_by_browser.id}}</div>
       <div class="row name">{{ stand_by_browser | standByBrowserComboText }}</div>
+      <div class="row name">{{ stand_by_browser.service_id }}</div>
       <div class="row">{{ stand_by_browser.service_status }}</div>
       <div class="row">{{ stand_by_browser.in_use ? 'Used' : 'Not Used' }}</div>
+      <div class="row"><pre>{{ stand_by_browser.labels | json}}</pre></div>
       <div class="row">{{ stand_by_browser.created_on | amParse
         | amDateFormat: "MMMM d yyyy',' HH:mm a"
         | firstLetterUppercase  }}</div>

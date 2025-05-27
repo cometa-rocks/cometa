@@ -239,15 +239,18 @@ def waitSelectorNew(context, selector, max_timeout=None):
     
     device_driver = context.mobile["driver"] if context.STEP_TYPE == 'MOBILE' else context.browser
     
+    if max_timeout == None:
+        max_timeout = context.step_data["timeout"]
+    
     if selector_type in [By.ID, By.NAME]:
         method = device_driver.find_element
     else:
         method = device_driver.find_elements
-    
-    logger.debug(f"Trying to find element using selector_type '{selector_type}', selector '{selector}' max_timeout : {max_timeout}")
-    
-    while time.time() - start_time < max_timeout if max_timeout is not None else True:
-        logger.debug("running")
+    retry_count = 0
+    while time.time() - start_time < max_timeout :
+        # Reduce logging, above condition will print every 1 seconds
+        if retry_count%10 == 0:
+            logger.debug(f"Trying to find element with selector_type '{selector_type}', selector '{selector}' max_timeout : {max_timeout}")
         try:
             elements = method(selector_type, selector)
             # Check if it returned at least 1 element
@@ -263,7 +266,7 @@ def waitSelectorNew(context, selector, max_timeout=None):
         except Exception as err:
             # Store exception in context so that it can be used with raising exception when step timeout happens
             context.step_exception = err
-        
+        retry_count+=1
         time.sleep(0.1)
     
     # raise actual exception after the timeout 
