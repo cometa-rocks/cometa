@@ -1,6 +1,5 @@
 {
-  "version": "3.0.51",
-  "version": "3.0.51",
+  "version": "3.0.52",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,6 +236,19 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.51",
+      "date": "2025-05-28",
+      "features": [
+        {
+          "title": "Network logging request tracking implemented #6334",
+          "description": "Feature implemented to fetch browser network requests and perform assertions"
+        },
+        {
+          "title": "Mobile step enhancements and renaming for better readability"
+        }
+      ]
+    },
     {
       "version": "3.0.51",
       "date": "2025-05-22",
