@@ -64,6 +64,7 @@ import { MtxGridModule } from '@ng-matero/extensions/grid';
 import { LetDirective } from '../../directives/ng-let.directive';
 import { map } from 'rxjs/operators';
 import { StarredService } from '@services/starred.service';
+import { Router } from '@angular/router';
 
 
 @Component({
@@ -111,7 +112,8 @@ export class L1FeatureListComponent implements OnInit {
     private _api: ApiService,
     private _snackBar: MatSnackBar,
     private log: LogService,
-    private _starred: StarredService
+    private _starred: StarredService,
+    private _router: Router
   ) {}
 
   @Input() data$: any; // Contains the new structure of the features / folders
@@ -131,6 +133,9 @@ export class L1FeatureListComponent implements OnInit {
   /**
    * Global variables
    */
+  finder = this._store.selectSnapshot<boolean>(
+    CustomSelectors.GetConfigProperty('openedSearch')
+  );
 
   /**
    * Default list of columns incase not saved in localstorage
@@ -455,5 +460,37 @@ export class L1FeatureListComponent implements OnInit {
   toggleStarred(event: Event, featureId: number, featureName: string): void {
     event.stopPropagation();
     this._sharedActions.toggleStarred(event, featureId, featureName);
+  }
+
+  /**
+   * Navigate to domain
+   * @param departmentId The department ID to navigate to
+   */
+  goToDomain(departmentId: number) {
+    this.log.msg('1', 'Navigating to domain...', 'feature-list');
+    this._router.navigate(['/department', departmentId]);
+  }
+
+  /**
+   * Navigate to folder
+   * @param featureId The feature ID
+   * @param route The route to navigate to
+   * @param isFeature Whether this is a feature or folder
+   */
+  featuresGoToFolder(featureId: number, route: string, isFeature: boolean) {
+    this.log.msg('1', 'Navigating to folder...', 'feature-list');
+    if (isFeature) {
+      this._sharedActions.goToFeature(featureId);
+    } else {
+      this.goFolder({ folder_id: featureId }, route);
+    }
+  }
+
+  /**
+   * Handle mouse over event for path navigation
+   * @param event The mouse event
+   */
+  handleMouseOver(event: MouseEvent) {
+    event.stopPropagation();
   }
 }

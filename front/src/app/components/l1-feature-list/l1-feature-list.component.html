@@ -74,6 +74,28 @@ Author: dph000
   </button>
   <!-- Menu to manage feature -->
   <mat-menu class="feature-options" #featureOptions="matMenu" xPosition="after">
+    <!-- Path navigation -->
+    <div *ngIf="finder" class="path-navigation">
+      <div class="absolute-path">
+        <div class="circle-domainIcon-2">
+          <mat-icon class="domainIcon-2"
+          (click)="goToDomain(row.reference.department_id)">domain</mat-icon>
+        </div>
+        <span (click)="goToDomain(row.reference.department_id)"> {{ row.department }} </span>
+        <mat-icon class="chevron">chevron_right</mat-icon>
+        <span> ... </span>
+        <mat-icon class="chevron">chevron_right</mat-icon>
+        <div class="circle-domainIcon-2">
+          <i
+          class="folder-go-to"
+          (click)="featuresGoToFolder(row.id, '', true)"></i>
+        </div>
+        <span (click)="featuresGoToFolder(row.id, '', true)">
+          {{ row.name }}
+        </span>
+      </div>
+    </div>
+    <mat-divider></mat-divider>
     <!-- Edit feature -->
     <button
       *ngIf="row.id | hasPermission: 'edit_feature' | async"
