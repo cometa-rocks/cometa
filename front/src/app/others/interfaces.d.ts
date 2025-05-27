@@ -1114,7 +1114,7 @@ interface IMobile {
 
 interface Container {
   id: number;
-  image: number | IMobile;
+  image: any;
   image_name?: string;
   image_version?: string;
   service_id: string;

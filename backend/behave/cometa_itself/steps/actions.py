@@ -896,6 +896,32 @@ def step_iml(context, keys):
     else:
         elem.send_keys(keys)
 
+
+@step(u'Clear value on "{selector}"')
+@done(u'Clear value on "{selector}"')
+def step_clear_textbox(context, selector):
+    send_step_details(context, 'Looking for selector')    
+    element = waitSelector(context, "css", selector)
+    for i in range(0, 10):
+        try:
+            elementInteractable = WebDriverWait(context.browser, 10).until(CEC.element_to_be_interactable(element[0]))
+            if elementInteractable:
+                send_step_details(context, 'Clearing the text box')
+                element[0].clear()
+                # Optionally, verify the box is empty
+                valueCleared = WebDriverWait(context.browser, 10).until(
+                    lambda driver: element[0].get_attribute("value") == ""
+                )
+                if valueCleared:
+                    return True
+        except ElementNotInteractableException:
+            logger.error("Element is not interactable yet, will wait.")
+            time.sleep(1)
+        except TimeoutException:
+            logger.error("Element was not clickable or value was unable to clear, will try again.")
+    raise CustomError("Unable to clear the value, maybe there is another element in front?")
+
+
 # Focus on element using a CSS selector
 # Example: Focus on element with "//div[contains(@class, 'search-container')]"
 @step(u'Focus on element with "{css_selector}"')
@@ -3698,6 +3724,183 @@ def count_aria_labels(context):
         'title': "Aria Labels",
         'content': json.dumps(aria_label_counts)  # Convert the dictionary to a JSON string
     }
+
+
+
+@step(u'Enable browser network logging')
+@done(u'Enable browser network logging')
+def fetch_all_network_requests(context):
+      # Enable Network tracking
+    context.browser.execute(
+        "executeCdpCommand",
+        {
+            "cmd": "Network.enable",
+            "params": {}
+        }
+    )
+
+@step(u'Disable browser network logging')
+@done(u'Disable browser network logging')
+def fetch_all_network_requests(context):
+      # Enable Network tracking
+    context.browser.execute(
+        "executeCdpCommand",
+        {
+            "cmd": "Network.enable",
+            "params": {}
+        }
+    )
+    
+
+@step(u'Get all browser network requests and save in "{variable}"')
+@done(u'Get all browser network requests and save in "{variable}"')
+def fetch_all_network_requests(context, variable):
+    # Dictionaries to store request and response info by requestId
+    requests = {}
+    responses = {}
+    logger.debug("fetching and processing network logs")
+
+    logs = context.browser.get_log('performance')
+    for entry in logs:
+        log = json.loads(entry['message'])['message']
+        method = log.get('method')
+        params = log.get('params', {})
+
+        # Collect request info
+        if method == 'Network.requestWillBeSent':
+            request_id = params['requestId']
+            request = params['request']
+            requests[request_id] = request
+                
+
+        # Collect response info
+        elif method == 'Network.responseReceived':
+            request_id = params['requestId']
+            response = params['response']
+            responses[request_id] = response
+
+    # For each request that has a response, get the response body
+    for request_id in responses:
+        # Get response body via CDP
+        try:
+            response_body = context.browser.execute(
+                "executeCdpCommand",
+                {
+                    "cmd": "Network.getResponseBody",
+                    "params": {"requestId": request_id}
+                }
+            )
+            responses[request_id]['body'] = response_body.get('value', {}).get('body')
+        except Exception:
+            responses[request_id]['body'] = None
+
+    all_requests_data = []
+    logger.debug("Combining the request and response")
+    # Combine and store info for all requests
+    for request_id in requests:
+        req = requests[request_id]
+        resp = responses.get(request_id)
+        entry = {
+            "request_id": request_id,
+            "url": req['url'],
+            "request_headers": req['headers'],
+            "request_body": req.get('body'),
+            "request_body": req.get('method'),
+        }
+        if resp:
+            entry.update({
+                "response_status": resp.get('status'),
+                "response_headers": resp.get('headers'),
+                "response_body": resp.get('body'),
+            })
+        else:
+            entry.update({
+                "response_status": None,
+                "response_headers": None,
+                "response_body": None,
+            })
+        all_requests_data.append(entry)
+    logger.debug(f"Total {len(all_requests_data)} requests found")
+    addTestRuntimeVariable(context, variable, all_requests_data, save_to_step_report=True)
+
+
+
+@step(u'Get browser network requests filter by "{url}" and save in the "{variable}"')
+@done(u'Get browser network requests filter by "{url}" and save in the "{variable}"')
+def fetch_network_requests_by_url(context, url,  variable):
+    # Dictionaries to store request and response info by requestId
+    logger.debug("fetching and processing network logs")
+    requests = {}
+    responses = {}
+
+    # Temporary map to link requestId to matching URLs
+    matching_request_ids = set()
+
+    logs = context.browser.get_log('performance')
+    for entry in logs:
+        log = json.loads(entry['message'])['message']
+        method = log.get('method')
+        params = log.get('params', {})
+
+        # Collect request info, filter by URL
+        if method == 'Network.requestWillBeSent':
+            request_id = params['requestId']
+            request = params['request']
+            if url in request['url']:
+                requests[request_id] = request
+                matching_request_ids.add(request_id)
+
+        # Collect response info only for matching requests
+        elif method == 'Network.responseReceived':
+            request_id = params['requestId']
+            if request_id in matching_request_ids:
+                response = params['response']
+                responses[request_id] = response
+
+    # For each request that has a response, get the response body
+    for request_id in responses:
+        try:
+            response_body = context.browser.execute(
+                "executeCdpCommand",
+                {
+                    "cmd": "Network.getResponseBody",
+                    "params": {"requestId": request_id}
+                }
+            )
+            responses[request_id]['body'] = response_body.get('value', {}).get('body')
+        except Exception:
+            responses[request_id]['body'] = None
+
+    all_requests_data = []
+    logger.debug("Combining the request and response")
+    # Combine and store info for all matching requests
+    for request_id in requests:
+        req = requests[request_id]
+        resp = responses.get(request_id)
+        entry = {
+            "request_id": request_id,
+            "url": req['url'],
+            "request_headers": req['headers'],
+            "request_body": req.get('body'),
+            "request_method": req.get('method'),
+        }
+        if resp:
+            entry.update({
+                "response_status": resp.get('status'),
+                "response_headers": resp.get('headers'),
+                "response_body": resp.get('body'),
+            })
+        else:
+            entry.update({
+                "response_status": None,
+                "response_headers": None,
+                "response_body": None,
+            })
+        all_requests_data.append(entry)
+    
+    logger.debug(f"Total {len(all_requests_data)} requests found")
+    addTestRuntimeVariable(context, variable, all_requests_data, save_to_step_report=True)
+
 
 # This step performs a basic accessibility check for aria-labels on the current page, providing a report on compliance with WCAG guidelines.
 # The report includes counts of elements with and without aria-labels, recommendations for improvement, and a basic compliance score.
