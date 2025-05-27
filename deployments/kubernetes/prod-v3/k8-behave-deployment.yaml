@@ -109,15 +109,15 @@ spec:
             cpu: "1"
             memory: "1Gi"
       hostAliases:
-      - ip: "***REMOVED***"
+      - ip: "172.29.57.233"
         hostnames:
-          - "***REMOVED***"
-      - ip: "***REMOVED***"
+          - "emprodev.mindeservices.com"
+      - ip: "172.29.55.176"
         hostnames:
-          - "***REMOVED***"
-      - ip: "***REMOVED***"
+          - "uatabani.motherson.com"
+      - ip: "172.29.57.207"
         hostnames:
-          - "***REMOVED***"
+          - "empro-dev.mindeservices.com"
         
       volumes:
       - name: cometa-volume

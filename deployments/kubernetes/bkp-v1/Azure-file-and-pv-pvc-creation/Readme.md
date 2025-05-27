@@ -13,4 +13,4 @@ export AZURE_STORAGE_CONNECTION_STRING=$(az storage account show-connection-stri
 
 
 # Add connection string and run command
-az storage share create -n cometa-pvc-share --connection-string "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=cometastorageaccount;AccountKey=***REMOVED***;BlobEndpoint=https://cometastorageaccount.blob.core.windows.net/"
+az storage share create -n cometa-pvc-share --connection-string "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=cometastorageaccount;AccountKey=bdz4Pfa0K8Iqt4bhivYWwKa4vIc/JmXPvFPmos+udt4kj6BMM9q8olgeWrwLnLjeT/OL8I8IT6k9+ASt65DRNQ==;BlobEndpoint=https://cometastorageaccount.blob.core.windows.net/"
