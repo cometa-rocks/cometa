@@ -1613,15 +1613,36 @@ def Contact(request):
 
 def schedule_update(feature_id, schedule, user_id, original_cron=None, original_timezone=None):
     features = Feature.objects.filter(pk=feature_id)
+    if not features.exists():
+        logger.error(f"Feature with id {feature_id} not found in schedule_update call.")
+        return None
     feature = features[0]
-    current_schedule = feature.schedule
-    schedule_model = current_schedule
-    if current_schedule and current_schedule.schedule == schedule:
-        logger.info("Same schedule found ... will not update.")
+    current_schedule_model = feature.schedule
+    
+    # Determine if an update is truly needed by comparing all relevant fields:
+    # UTC cron string, original (user-facing) cron string, and original timezone.
+    needs_database_update = True
+    if current_schedule_model:
+        if current_schedule_model.schedule == schedule and \
+           current_schedule_model.original_cron == original_cron and \
+           current_schedule_model.original_timezone == original_timezone:
+            needs_database_update = False
+            
+    if not needs_database_update:
+        logger.info(f"Schedule for feature {feature_id} (schedule ID: {current_schedule_model.id}) is effectively unchanged. "
+                    f"UTC: '{schedule}', Original: '{original_cron} {original_timezone}'. No database update performed.")
+        return current_schedule_model
     else:
-        # Check if new schedule is set
+        # If there's an old schedule model, it needs to be deleted as we're either replacing it or disabling the schedule.
+        if current_schedule_model:
+            logger.info(f"Deleting old schedule (ID: {current_schedule_model.id}) for feature {feature_id} as part of update/disable action.")
+            current_schedule_model.delete()
+
+        # Handle active new schedule: create a new Schedule instance.
         if schedule != 'now' and schedule != "":
-            schedule_model = Schedule.objects.create(
+            logger.info(f"Creating new schedule for feature {feature_id}. "
+                        f"UTC cron: '{schedule}', Original cron: '{original_cron}', Original timezone: '{original_timezone}'.")
+            new_schedule_instance = Schedule.objects.create(
                 feature_id=feature.pk,
                 schedule=schedule,
                 original_cron=original_cron,
@@ -1629,15 +1650,13 @@ def schedule_update(feature_id, schedule, user_id, original_cron=None, original_
                 owner_id=user_id, 
                 delete_after_days=0
             )
-            schedule_model.save()
-            features.update(schedule=schedule_model)
-        else:
+            features.update(schedule=new_schedule_instance)
+            logger.info(f"New schedule (ID: {new_schedule_instance.id}) created and assigned to feature {feature_id}.")
+            return new_schedule_instance
+        else: # Handle disabling of schedule (schedule is 'now' or empty).
+            logger.info(f"Disabling schedule for feature {feature_id} (input schedule string: '{schedule}').")
             features.update(schedule=None)
-            schedule_model = None
-
-        if current_schedule:
-            current_schedule.delete()
-    return schedule_model
+            return None
 
 
 @csrf_exempt
