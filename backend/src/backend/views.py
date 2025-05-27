@@ -1194,36 +1194,28 @@ def GetStepsByName(request):
 
 
 @csrf_exempt
-def UpdatePixelDifference(request, step_result_id):
+def updateStepScreenShotDetails(request, feature_result_id, step_execution_sequence):
     data = json.loads(request.body)
-    # Create dict for update payload
-    updateObj = {}
     # Try to retrieve params from POST
     pixel_diff = data.get('pixel_diff', None)
     if pixel_diff is not None:
-        updateObj['pixel_diff'] = int(float(pixel_diff))
+        data['pixel_diff'] = int(float(pixel_diff))
+        
     # template_name = data.get('template_name', None) # Template name was the old way for the front to know about the original style image
     diff = data.get('different_html', None)
     if diff is not None:
-        updateObj['diff'] = diff
+        data['diff'] = diff
+        
     # Update step result with retrieved parameters
-    Step_result.objects.filter(step_result_id=step_result_id).update(**updateObj)
-    if 'pixel_diff' in updateObj:
-        StepResult = Step_result.objects.get(step_result_id=step_result_id)
-        FeatureResult = Feature_result.objects.filter(feature_result_id=StepResult.feature_result_id)
-        FeatureResult.update(pixel_diff=FeatureResult.first().pixel_diff + updateObj['pixel_diff'])
-    return JsonResponse({'success': True})
+    step_result = Step_result.objects.filter(feature_result_id=feature_result_id, step_execution_sequence=step_execution_sequence)
+    if not step_result:
+        return JsonResponse({'success': False, 'message':f"feature_result_id = {feature_result_id} and step_execution_sequence = {step_execution_sequence} not found"})
 
+    step_result.update(**data)
+    if pixel_diff:
+        featureResult = Feature_result.objects.filter(feature_result_id=feature_result_id)
+        featureResult.update(pixel_diff=featureResult.first().pixel_diff + pixel_diff)
 
-@csrf_exempt
-def UpdateScreenshots(request, step_result_id):
-    data = json.loads(request.body)
-    Step_result.objects.filter(step_result_id=step_result_id).update(
-        screenshot_current=data.get('screenshot_current', ''),
-        screenshot_style=data.get('screenshot_style', ''),
-        screenshot_difference=data.get('screenshot_difference', ''),
-        screenshot_template=data.get('screenshot_template', '')
-    )
     return JsonResponse({'success': True})
 
 
@@ -1667,9 +1659,9 @@ def UpdateSchedule(request, feature_id, *args, **kwargs):
     return JsonResponse({'success': True})
 
 
-def uploadFilesThread(files, department_id, uploaded_by):
+def uploadFilesThread(files, department_id, uploaded_by, file_type='normal'):
     for file in files:
-        uploadFile = UploadFile(file, department_id, uploaded_by)
+        uploadFile = UploadFile(file, department_id, uploaded_by, file_type)
         print(uploadFile.proccessUploadFile())
 
 
@@ -1742,10 +1734,12 @@ class UploadViewSet(viewsets.ModelViewSet):
         if department_id == -1 or departmentExists(department_id) == -1:
             return JsonResponse({'success': False, 'error': "Department does not exist."})
 
+        file_type = request.POST.get('file_type', 'normal')
+
         try:
             # Spawn thread to upload files in background
             t = Thread(target=uploadFilesThread,
-                       args=(request.FILES.getlist('files'), department_id, request.session['user']['user_id']))
+                       args=(request.FILES.getlist('files'), department_id, request.session['user']['user_id'], file_type))
             t.start()
             return JsonResponse({'success': True})
         except Exception as e:

@@ -394,6 +394,7 @@
             [showPagination]="true"
             [fileColumns]="fileColumns"
             [showPanel]="false"
+            [file_type]="'normal'"
             (fileUploaded)="onFilesUploaded($event)"
             (fileDeleted)="onFileDeleted($event)"
             (fileDownloaded)="onFileDownloaded($event)"
@@ -677,7 +678,7 @@
           [disabled]="saving"
           mat-stroked-button
           class="submit"
-          (click)="data.mode === 'new' ? handleCreate() : editOrCreate()">
+          (click)="editOrCreate()">
           <ng-container *ngIf="data.mode === 'new'; else editText"
             >CREATE</ng-container
           >

@@ -227,8 +227,10 @@ app.post('/feature/:feature_id/stepDetail', (req, res) => {
     step_index: +req.body.step_index,
     datetime: req.body.datetime,
     user_id: +req.body.user_id,
-    info: req.body.info
+    info: req.body.info,
+    screenshots: req.body.screenshots ? JSON.parse(req.body.screenshots) : {},
   }
+  console.log(payload)
   io.emit('message', payload)
   // Add message to history
   const messages = constructRun(+req.params.feature_id, +req.body.run_id)

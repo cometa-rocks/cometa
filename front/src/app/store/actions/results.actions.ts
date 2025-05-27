@@ -123,7 +123,8 @@ export namespace WebSockets {
       public browser_info: BrowserstackBrowser,
       public step_index: number,
       public datetime: string,
-      public info: string
+      public info: string,
+      public screenshots: any = {}
     ) {}
   }
 

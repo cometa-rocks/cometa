@@ -615,6 +615,7 @@ interface UploadedFile {
   uploaded_by?: Uploader;
   error?: FileUploadError;
   extras?: FileExtras;
+  file_type?: string;
   status?:
     | 'Unknown'
     | 'Processing'
@@ -1126,6 +1127,7 @@ interface Container {
   created_by_name?: string;
   apk_file?: number | File;
   shared: boolean;
+  in_use: boolean;
   hostname:string;
   isPaused?: boolean;
   isTerminating?: boolean;

@@ -103,6 +103,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MtxGridColumn } from '@ng-matero/extensions/grid';
 import { FilesManagementComponent } from '@components/files-management/files-management.component';
 import { PageEvent } from '@angular/material/paginator';
+import { Departments } from '@store/actions/departments.actions';
 
 import { SureRemoveFeatureComponent } from '@dialogs/sure-remove-feature/sure-remove-feature.component';
 import { SharedActionsService } from '@services/shared-actions.service';
@@ -1266,6 +1267,31 @@ export class EditFeature implements OnInit, OnDestroy {
   async editOrCreate() {
     // Reset search before proceeding
     
+    // Trim whitespace from feature_name
+    const featureNameControl = this.featureForm.get('feature_name');
+    if (featureNameControl && featureNameControl.value) {
+      featureNameControl.setValue(featureNameControl.value.trim());
+    }
+
+    // For new or clone modes, check for duplicate feature names
+    if (this.data.mode === 'new' || this.data.mode === 'clone') {
+      if (!this.featureForm.get('feature_name').valid) {
+        setTimeout(() => {
+          this.highlightInput = true;
+          this.focusFormControl('feature_name');
+          this._snackBar.open('Feature info is incomplete: missing name', 'OK');
+        }, 0);
+        return;
+      }
+
+      // Check for duplicate feature name
+      const featureName = this.featureForm.get('feature_name').value;
+      const shouldProceed = await this.checkForDuplicateFeatureName(featureName);
+      if (!shouldProceed) {
+        return; // User chose to rename the feature
+      }
+    }
+    
     // Get current steps from Store
     let currentSteps = [];
     if (this.stepEditor) {
@@ -1785,7 +1811,90 @@ export class EditFeature implements OnInit, OnDestroy {
     // No additional action needed
   }
 
-  handleCreate() {
+  // Checking duplicate feature names
+  async checkForDuplicateFeatureName(featureName: string): Promise<boolean> {
+    // Refresh departments data from the server to ensure we have the latest settings
+    await this.refreshDepartments();
+    
+    // Get the department ID from the form
+    const departmentName = this.featureForm.get('department_name').value;
+    if (!departmentName) {
+      return true; // If no department is selected yet, allow the operation
+    }
+
+    // Find the department ID from the department name
+    const departmentData = this.departments$.find(
+      dep => dep.department_name === departmentName
+    );
+    
+    if (!departmentData) {
+      return true; // If department not found, allow the operation
+    }
+
+    const departmentId = departmentData.department_id;
+    
+    // Check if the department has validation for duplicate feature names disabled
+    if (departmentData.settings && departmentData.settings.validate_duplicate_feature_names === false) {
+      return true; // Skip validation if department has it disabled
+    }
+    
+    // Get all features from the store state
+    const allFeatures = this._store.selectSnapshot(FeaturesState.GetFeaturesAsArray);
+    
+    // Filter features to only include those from the same department
+    const sameDepartmentFeatures = allFeatures.filter(
+      feature => feature.department_id === departmentId
+    );
+    
+    // Check if any feature in the same department has the same name
+    const duplicateFeature = sameDepartmentFeatures.find(
+      (feature) => feature.feature_name.toLowerCase() === featureName.toLowerCase()
+    );
+    
+    // If a duplicate is found, open a confirmation dialog
+    if (duplicateFeature) {
+      const dialogRef = this._dialog.open(AreYouSureDialog, {
+        data: {
+          title: 'Duplicate Feature Name',
+          description: `A feature named "${featureName}" already exists in the "${departmentName}" department. Do you want to continue with this name anyway?`,
+        } as AreYouSureData,
+        minWidth: '400px',
+      });
+
+      // Wait for user decision
+      const result = await dialogRef.afterClosed().toPromise();
+      if (!result) {
+        // If user chooses to rename (clicks "No"), focus on the name field
+        this.highlightInput = true;
+        this.focusFormControl('feature_name');
+        setTimeout(() => {
+          this.highlightInput = false;
+          this.cdr.detectChanges();
+        }, 3000);
+      }
+      return result; // true if continue, false if rename
+    }
+    
+    return true; // No duplicate found, proceed
+  }
+
+  /**
+   * Refreshes the departments data from the server to ensure we have the latest settings
+   */
+  async refreshDepartments(): Promise<void> {
+    try {
+      // Dispatch the action to get the latest departments data
+      await this._store.dispatch(new Departments.GetAdminDepartments()).toPromise();
+      
+      // Update local departments array with freshly loaded data directly from DepartmentsState
+      this.departments$ = this._store.selectSnapshot(DepartmentsState);
+      
+    } catch (error) {
+      console.error('Error refreshing departments:', error);
+    }
+  }
+
+  async handleCreate() {
     if (!this.featureForm.get('feature_name').valid) {
       this.highlightInput = true;
       this.focusFormControl('feature_name');

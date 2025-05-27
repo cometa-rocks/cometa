@@ -1,5 +1,6 @@
 {
-  "version": "3.0.48",
+  "version": "3.0.51",
+  "version": "3.0.51",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +237,36 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.51",
+      "date": "2025-05-22",
+      "features": [
+        {
+          "title": "Fixed issue with API call body truncation and added the ability to send XML bodies",
+          "description": "Fixed an issue where the API call body was not being truncated correctly for XML bodies. Added the ability to send XML bodies."
+        }
+      ]
+    },
+    {
+      "version": "3.0.51",
+      "date": "2025-05-23",
+      "features": [
+        {
+          "title": "Aligned columns and icons in step-view (#6320)",
+          "description": "Fixed layout issues by aligning the columns and their icons in the step-view component to improve visual consistency."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.50",
+      "date": "2025-05-20",
+      "features": [
+        {
+          "title": "New Step: Check Accessibility compliance for aria-labels on current page",
+          "description": "This step performs a basic accessibility check for aria-labels on the current page, providing a report on compliance with WCAG guidelines."
+        }
+      ]
+    },
     {
       "version": "3.0.49",
       "date": "2025-05-09",

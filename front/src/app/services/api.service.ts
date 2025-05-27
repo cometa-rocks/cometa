@@ -974,5 +974,9 @@ export class ApiService {
   purgeBackupFiles() {
     return this._http.get(`${this.base}purge_backup_files/`);
   }
+  runHouseKeeping() {
+    return this._http.delete(`${this.api}housekeeping/`);
+  }
+
 }
   
