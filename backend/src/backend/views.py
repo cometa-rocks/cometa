@@ -2188,7 +2188,6 @@ class StepResultViewSet(viewsets.ModelViewSet):
         step_result = Step_result.objects.create(**data)
         logger.debug("Data saved to Step_result")
         response = StepResultSerializer(step_result, many=False).data
-        logger.debug(f"Response: {response}")
         return JsonResponse(response)
     
     @require_permissions("change_step_result_status")
