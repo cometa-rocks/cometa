@@ -258,11 +258,14 @@ def get_running_browser(request):
         image_version=data['image_version']
         filters = {'service_type':'Browser', 'image_name': image_name, 'image_version': image_version, 'in_use':False}
         container_service = ContainerService.objects.filter(**filters).first()
-            
+        
         if container_service:
                         
             def create_container_service(data):
-                ContainerService.objects.create(**data)
+                # Remove labels as this container will be used by some other test excution
+                new_data = data.copy()
+                new_data['labels'] = {}
+                ContainerService.objects.create(**new_data)
                 logger.debug("Standby container created")
                 
             logger.debug("Starting a thread to start the standby container")
@@ -273,6 +276,8 @@ def get_running_browser(request):
          
             logger.debug("Updating container state to in_use=True")
             container_service.in_use = True
+            # Update labels to already running tests
+            container_service.labels = data.get("labels",{})
             container_service.save()
             serializer = ContainerServiceSerializer(container_service, many=False)
             return response_manager.get_response(serializer.data)
