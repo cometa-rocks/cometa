@@ -198,6 +198,7 @@ export class EditFeature implements OnInit, OnDestroy {
   userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   // default to user's browser timezone
   timezone = 'browser-timezone';
+  private timezoneOffsetCache = new Map<string, string>();
 
   // Comprehensive list of timezones (based on tz database 2025b - canonical zones only)
   allTimezones = [
@@ -526,11 +527,6 @@ export class EditFeature implements OnInit, OnDestroy {
       route.length > 0 ? route[0].name : this.departments$[0].department_name;
     this.selected_application = this.applications$[0].app_name;
     this.selected_environment = this.environments$[0].environment_name;
-
-    this.featureForm.valueChanges.subscribe(values => {
-      const { minute, hour, day_month, month, day_week } = values;
-      this.parseSchedule({ minute, hour, day_month, month, day_week });
-    });
   }
 
   // Save the state of the expansion panel
@@ -705,11 +701,12 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   getTimezoneOffset(timezone: string): string {
+    if (this.timezoneOffsetCache.has(timezone)) {
+      return this.timezoneOffsetCache.get(timezone)!;
+    }
+    let result: string;
     try {
       const now = new Date();
-      const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-      const targetTime = new Date(utcTime + (this.getTimezoneOffsetInMinutes(timezone) * 60000));
-      
       const offsetMinutes = this.getTimezoneOffsetInMinutes(timezone);
       const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
       const offsetMins = Math.abs(offsetMinutes) % 60;
@@ -719,10 +716,14 @@ export class EditFeature implements OnInit, OnDestroy {
         ? `UTC${sign}${offsetHours}:${offsetMins.toString().padStart(2, '0')}`
         : `UTC${sign}${offsetHours}`;
       
-      return formattedOffset;
+      result = formattedOffset;
     } catch (error) {
-      return 'UTC';
+      result = 'UTC';
     }
+
+    // Cache the result
+    this.timezoneOffsetCache.set(timezone, result);
+    return result;
   }
 
   private getTimezoneOffsetInMinutes(timezone: string): number {
@@ -1250,6 +1251,33 @@ export class EditFeature implements OnInit, OnDestroy {
       this.variableState$.subscribe(data => {
         this.variables = this.getFilteredVariables(data);
       });
+    });
+
+    const scheduleControls = ['minute', 'hour', 'day_month', 'month', 'day_week'];
+    scheduleControls.forEach(controlName => {
+      this.featureForm.get(controlName).valueChanges.subscribe(value => {
+        if (this.featureForm.get('run_now').value) {
+          this.parseSchedule({
+            minute: this.featureForm.get('minute').value,
+            hour: this.featureForm.get('hour').value,
+            day_month: this.featureForm.get('day_month').value,
+            month: this.featureForm.get('month').value,
+            day_week: this.featureForm.get('day_week').value
+          });
+        }
+      });
+    });
+
+    this.featureForm.get('run_now').valueChanges.subscribe(isEnabled => {
+      if (isEnabled) {
+        this.parseSchedule({
+          minute: this.featureForm.get('minute').value,
+          hour: this.featureForm.get('hour').value,
+          day_month: this.featureForm.get('day_month').value,
+          month: this.featureForm.get('month').value,
+          day_week: this.featureForm.get('day_week').value
+        });
+      }
     });
 
     if (this.data.mode === 'edit' || this.data.mode === 'clone') {

@@ -293,7 +293,7 @@ export class EditSchedule {
 
   parseSchedule(expression) {
     // ignore if schedule is disabled
-    if (!this.schedule.enable) return;
+    if (!this.schedule.enabled) return;
 
     try {
       const cronExpression = Object.values(expression).join(' ');
