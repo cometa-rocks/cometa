@@ -7,6 +7,6 @@ import { getBrowserComboText } from '@services/tools';
 })
 export class StandByBrowserComboTextPipe implements PipeTransform {
   transform(browser: Container ): string {
-    return `${browser.image_name}:${browser.image_version}             ${browser.id}`;
+    return browser.image?browser.image_name:`${browser.image_name}:${browser.image_version}`;
   }
 }

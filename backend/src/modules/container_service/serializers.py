@@ -9,12 +9,13 @@ class ContainerServiceSerializer(serializers.ModelSerializer):
     capabilities = serializers.JSONField(source='image.capabilities', read_only=True)
     hostname = serializers.CharField(source='information.Config.Hostname', read_only=True)
     running = serializers.BooleanField(source='information.State.Running', read_only=True)
+    image_name = serializers.SerializerMethodField()
     
     class Meta:
         model = ContainerService
         # fields = '__all__'
         fields = ['id', 'image', 'service_id','image_name','image_version', 'service_type', 'service_status', 'shared','apk_file', 'created_by', 'created_on',
-                  'hostname', 'capabilities','running','department_id', 'created_by_name', 'in_use' ]
+                  'hostname', 'labels','capabilities','running','department_id', 'created_by_name', 'in_use' ]
         extra_kwargs = {
             'image': {'required': False},
             'service_id': {'required': False},
@@ -28,6 +29,10 @@ class ContainerServiceSerializer(serializers.ModelSerializer):
             'department_id': {'required': True},
         }
 
+    def get_image_name(self, obj):
+        if obj.image is not None:
+            return getattr(obj.image, 'mobile_image_name', None)
+        return obj.image_name
     # def create(self, validated_data):
     #     if 'container_image' not in validated_data or not validated_data['container_image']:
     #         raise serializers.ValidationError({"container_image": "This field is required."})
