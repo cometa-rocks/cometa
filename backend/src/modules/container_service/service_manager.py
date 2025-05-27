@@ -222,33 +222,98 @@ class DockerServiceManager:
             traceback.print_exc()
             return False, str(e)
 
-    def delete_service(self, service_name_or_id):
-        logger.info(
-            f"Deleting service with container_name_or_id : {service_name_or_id}"
-        )
-        try:
-            # Find the container
-            container = self.docker_client.containers.get(service_name_or_id)
-            # Stop the container if it's running
-            container.stop()
-            logger.info(
-                f"Container stopped with container_name_or_id : {service_name_or_id}"
-            )
+        
 
-            # Remove the container
-            container.remove()
-            logger.info(
-                f"Container removed with container_name_or_id : {service_name_or_id}"
-            )
-            return True, "Container removed"
-        except (NullResource, NotFound) as null_resource:
-            logger.info(
-                f"Can not delete service with container_name_or_id : {service_name_or_id}, error message {str(null_resource)}"
-            )
-            return True, str(null_resource)
-        except Exception as e:
-            traceback.print_exc()
-            return False, str(e)
+    def delete_service(self, service_name_or_id):
+        logger.info(f"Deleting service with container_name_or_id: {service_name_or_id}")
+
+        max_delete_attempts = 10
+        retry_delay = 2  # seconds between retries
+
+        for attempt in range(1, max_delete_attempts + 1):
+            logger.info(f"Delete attempt {attempt} for {service_name_or_id}")
+            try:
+                # Find the container
+                try:
+                    container = self.docker_client.containers.get(service_name_or_id)
+                except NotFound as not_found:
+                    logger.info(f"Container not found: {service_name_or_id}. Error: {str(not_found)}")
+                    return True, f"Container not found: {service_name_or_id}"
+
+                # Check container state
+                container.reload()  # Refresh state
+                state = container.attrs.get('State', {})
+                status = state.get('Status', 'unknown')
+                logger.info(f"Container {service_name_or_id} current state: {status}")
+
+                # Stop the container if it's running or restarting
+                if status in ['running', 'restarting']:
+                    logger.info(f"Stopping container {service_name_or_id} (state: {status})")
+                    container.stop(timeout=10)
+                    # Wait for container to stop
+                    for _ in range(5):
+                        container.reload()
+                        status = container.attrs.get('State', {}).get('Status', 'unknown')
+                        if status == 'exited':
+                            break
+                        time.sleep(1)
+                    logger.info(f"Container {service_name_or_id} stopped (state: {status})")
+                else:
+                    logger.info(f"Container {service_name_or_id} is not running (state: {status})")
+
+                # Remove the container
+                logger.info(f"Removing container {service_name_or_id}")
+                container.remove(force=True)
+                logger.info(f"Container {service_name_or_id} removed successfully")
+                return True, "Container removed"
+
+            except NotFound as not_found:
+                logger.info(f"Container not found during deletion: {service_name_or_id}. Error: {str(not_found)}")
+                return True, f"Container not found: {service_name_or_id}"
+            except Exception as e:
+                logger.error(f"Error deleting container {service_name_or_id} on attempt {attempt}: {str(e)}")
+                traceback.print_exc()
+                if attempt < max_delete_attempts:
+                    logger.info(f"Retrying deletion in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    logger.error(f"Max delete attempts reached for {service_name_or_id}. Giving up.")
+                    return False, f"Failed to delete container after {max_delete_attempts} attempts: {str(e)}"
+
+        
+    
+    # def delete_service(self, service_name_or_id):
+    #     logger.info(
+    #         f"Deleting service with container_name_or_id : {service_name_or_id}"
+    #     )
+        
+    #     max_delete_attampts = 10
+        
+        
+    #     def clean_up():
+    #         try:
+    #             # Find the container
+    #             container = self.docker_client.containers.get(service_name_or_id)
+    #             # Stop the container if it's running
+    #             container.stop()
+    #             logger.info(
+    #                 f"Container stopped with container_name_or_id : {service_name_or_id}"
+    #             )
+
+    #             # Remove the container
+    #             container.remove()
+    #             logger.info(
+    #                 f"Container removed with container_name_or_id : {service_name_or_id}"
+    #             )
+    #             return True, "Container removed"
+    #         except (NullResource, NotFound) as null_resource:
+    #             logger.info(
+    #                 f"Can not delete service with container_name_or_id : {service_name_or_id}, error message {str(null_resource)}"
+    #             )
+    #             return True, str(null_resource)
+    #         except Exception as e:
+    #             traceback.print_exc()
+    #             return False, str(e)
 
     def pull_image(self, image_name):
         try:
