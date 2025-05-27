@@ -14,11 +14,12 @@ alias dsdf="docker compose -f docker-compose-dev.yml up --force-recreate apache 
 alias ds="docker compose up --force-recreate"
 # Inspect docker containers
 
-# Follow standers d=docker, i=inspect, container first word
+# Follow standards d=docker, i=inspect, container first word
 alias dif="docker inspect cometa_front"
 alias did="docker inspect cometa_django"
 alias dib="docker inspect cometa_behave"
 alias dis="docker inspect cometa_socket"
+alias dis="docker inspect cometa_crontab"
 
 ######## Start Containers development mode ##############
 # start cometa_front angular in the development mode

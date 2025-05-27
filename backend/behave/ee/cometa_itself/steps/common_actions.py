@@ -279,7 +279,7 @@ use_step_matcher("re")
 # jq_pattern is a JSON path that can also be combined with conditions to perform assertions,
 @step(u'Fetch value using \"(?P<jq_pattern>.*?)\" from "(?P<variable_name>.+?)" and store in "(?P<new_variable_name>.+?)"')
 @done(u'Fetch value using "{jq_pattern}" from "{variable_name}" and store in "{new_variable_name}"')
-def assert_imp(context, jq_pattern, variable_name, new_variable_name):
+def fetch_value_from_json(context, jq_pattern, variable_name, new_variable_name):
     context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
 
     variable_value = getVariable(context, variable_name) 
@@ -298,8 +298,9 @@ def assert_imp(context, jq_pattern, variable_name, new_variable_name):
         logger.debug(parsed_value)
         addTestRuntimeVariable(context, new_variable_name, parsed_value, save_to_step_report=True)
     except Exception as err:
-        logger.error("Invalid JQ pattern", err)
-        raise CustomError(err)
+        logger.error(err)
+        traceback.print_exc()
+        raise CustomError(f"Invalid JQ pattern : {str(err)}")
 
 use_step_matcher("parse")
 

@@ -3,6 +3,12 @@
 HTTPD_FILE_SOURCE="/code/front/apache2/conf/httpd.conf"
 HTTPD_FILE_DESTINATION="/usr/local/apache2/cometa_conf/httpd.conf"
 
+# Check if destination is a directory and remove it if it is
+if [ -d "$HTTPD_FILE_DESTINATION" ]; then
+    rm -rf "$HTTPD_FILE_DESTINATION"
+    echo "Removed directory $HTTPD_FILE_DESTINATION"
+fi
+
 cp "$HTTPD_FILE_SOURCE" "$HTTPD_FILE_DESTINATION"
 if [ $? -ne 0 ]; then
 #   echo "ERROR: Failed to copy $HTTPD_FILE_SOURCE to $HTTPD_FILE_DESTINATION"
@@ -16,6 +22,13 @@ fi
 PATH_FILE_SOURCE="/code/front/apache2/conf/paths.conf"
 PATH_FILE_DESTINATION="/usr/local/apache2/cometa_conf/paths.conf"
 
+# Check if destination is a directory and remove it if it is
+if [ -d "$PATH_FILE_DESTINATION" ]; then
+    rm -rf "$PATH_FILE_DESTINATION"
+    echo "Removed directory $PATH_FILE_DESTINATION"
+fi
+
+
 cp "$PATH_FILE_SOURCE" "$PATH_FILE_DESTINATION"
 if [ $? -ne 0 ]; then
   echo -e "\e[31mERROR: Failed to copy $PATH_FILE_SOURCE to $PATH_FILE_DESTINATION\e[0m"
@@ -27,6 +40,13 @@ fi
 
 OPENIDC_SOURCE="/code/front/apache2/conf/openidc.conf"
 OPENIDC_DESTINATION="/usr/local/apache2/cometa_conf/openidc.conf"
+
+# Check if destination is a directory and remove it if it is
+if [ -d "$OPENIDC_DESTINATION" ]; then
+    rm -rf "$OPENIDC_DESTINATION"
+    echo "Removed directory $OPENIDC_DESTINATION"
+fi
+
 
 if [ ! -f "$OPENIDC_DESTINATION" ]; then
   echo "\e[1;33m$OPENIDC_DESTINATION not found. Attempting to copy from $OPENIDC_SOURCE...\e[0m"

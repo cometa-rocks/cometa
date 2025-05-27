@@ -441,8 +441,9 @@ def before_all(context):
         context.browser_hub_url = container_information['service_url']
         connection_url = f"http://{context.browser_hub_url}:4444/wd/hub"
         status_check_connection_url = f"http://{context.browser_hub_url}:4444/status"
-        context.service_manager.wait_for_selenium_hub_be_up(status_check_connection_url)
-    
+        is_running = context.service_manager.wait_for_selenium_hub_be_up(status_check_connection_url)
+        if not is_running:
+            return
     # video recording on or off
     context.record_video = data["video"] if "video" in data else True
     logger.debug(f"context.record_video {context.record_video }")
@@ -526,11 +527,11 @@ def before_all(context):
         # browser capabilities
         options.set_capability("selenoid:options", selenoid_capabilities)
         
+    options.set_capability(
+        "goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"}
+    )
         
     if context.browser_info["browser"] == "chrome" and context.network_logging_enabled:
-        options.set_capability(
-            "goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"}
-        )
         # If network logging enabled then fetch vulnerability headers info from server
         response =  requests.get(f'{get_cometa_backend_url()}/api/security/vulnerable_headers/', headers={'Host': 'cometa.local'})
         logger.info("vulnerable headers info received")

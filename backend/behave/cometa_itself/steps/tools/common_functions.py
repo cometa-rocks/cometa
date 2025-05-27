@@ -641,8 +641,12 @@ def saveToDatabase(
         data["files"] = json.dumps([])
 
     log_file = open("output.txt", "w")
+    # Since it contains the network logs data which sometime contains the images, logging image in the console make it very hard to read logs
+    # removing variables 
+    data_logger = data.copy()
+    data_logger['current_step_variables_value'] = {"variable_hidden_message":"Since it contains the network logs data which sometime contains the images, logging image in the console make it very hard to read logs, removing variables "}
     log_file.write("Data -> ")
-    log_file.write(str(data))
+    log_file.write(str(data_logger))
     log_file.write("\n")
     logger.debug("Saving data to feature_result")
     try:

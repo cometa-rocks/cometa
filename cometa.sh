@@ -294,11 +294,11 @@ function get_cometa_up_and_running() {
     #
     # Check client id has been replaced
     #
-    if grep -Rq "COMETA" "front/apache-conf/metadata/accounts.google.com.client"  ; then
-        warning "Found default string in accounts.google.com.client file - you must replace this before going forward."
+    if grep -Rq "COMETA" "front/apache2/metadata/accounts.google.com.client"  ; then
+        warning "Found default string in front/apache2/metadata/accounts.google.com.client file - you must replace this before going forward."
         read -n 1 -s -r -p "Press any key to continue"
-        if grep -Rq "GITCLIENTID" "front/apache-conf/metadata/git.amvara.de.client"  ; then
-            warning "Found default string in git.amvara.de.client file - you must replace this before going forward."
+        if grep -Rq "GITCLIENTID" "front/apache2/metadata/git.amvara.de.client"  ; then
+            warning "Found default string in front/apache2/metadata/git.amvara.de.client file - you must replace this before going forward."
             warning "If neither Google nor Gitlab is configured, you will not be able to login."
             warning "Going forward with installation does not make sense, until SSO is configured. Exiting."
             warning "Goto git.amvara.de, create an account. Goto Settings, Applications, add new Application and retrieve your access token."

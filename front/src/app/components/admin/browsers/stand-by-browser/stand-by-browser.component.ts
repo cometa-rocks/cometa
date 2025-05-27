@@ -10,6 +10,7 @@ import { Store, Select } from '@ngxs/store';
 import { UserState } from '@store/user.state';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Applications } from '@store/actions/applications.actions';
+import { JsonPipe } from '@angular/common';
 import {
   AreYouSureData,
   AreYouSureDialog,
@@ -42,6 +43,7 @@ import { FirstLetterUppercasePipe } from '@pipes/first-letter-uppercase.pipe';
     AmDateFormatPipe,
     SecondsToHumanReadablePipe,
     FirstLetterUppercasePipe,
+    JsonPipe
   ],
 })
 export class StandByBrowserComponent{
