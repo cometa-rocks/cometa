@@ -315,6 +315,7 @@ interface Action {
   compare?: boolean;
   text?: string;
   interpreted?: string;
+  step_type?: 'BROWSER' | 'MOBILE' | 'API' | 'DATABASE';
 }
 
 // Send Feature Information
