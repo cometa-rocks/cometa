@@ -206,6 +206,11 @@ export class L1FeatureListComponent implements OnInit {
       localStorage.setItem('co_features_pagination', value)
     );
 
+    // Subscribe to filter state
+    this._sharedActions.filterState$.subscribe(isActive => {
+      this.finder = isActive;
+    });
+
     // load column settings
     this.getSavedColumnSettings();
 
@@ -468,21 +473,181 @@ export class L1FeatureListComponent implements OnInit {
    */
   goToDomain(departmentId: number) {
     this.log.msg('1', 'Navigating to domain...', 'feature-list');
-    this._router.navigate(['/department', departmentId]);
+    const url = `/new/${departmentId}`;
+    this._router.navigate([url]);
   }
 
   /**
    * Navigate to folder
    * @param featureId The feature ID
-   * @param route The route to navigate to
+   * @param path The path to navigate to
    * @param isFeature Whether this is a feature or folder
    */
-  featuresGoToFolder(featureId: number, route: string, isFeature: boolean) {
-    this.log.msg('1', 'Navigating to folder...', 'feature-list');
+  featuresGoToFolder(featureId: number, path = '', isFeature: boolean): void {
+    console.log('featuresGoToFolder called with:', { featureId, path, isFeature });
+    
+    if (!this.finder) {
+      console.log('Not in search mode, ignoring navigation');
+      return;
+    }
+    
     if (isFeature) {
-      this._sharedActions.goToFeature(featureId);
+      // Get the department ID from the current row
+      const currentRow = this.data$.rows.find(row => row.id === featureId);
+      console.log('Current row:', currentRow);
+      const department_id = currentRow?.reference?.department_id;
+      console.log('Department ID from row:', department_id);
+      
+      if (!department_id) {
+        console.error('No department_id found for feature:', featureId);
+        return;
+      }
+
+      // For features, use goToDomain to navigate to the department
+      console.log('Navigating to department:', department_id);
+      this.goToDomain(department_id);
     } else {
-      this.goFolder({ folder_id: featureId }, route);
+      // For folders, use the same logic as in l1-feature-item-list
+      this._store.select(CustomSelectors.GetDepartmentFolders()).subscribe(
+        alldepartments => {
+          console.log('Got departments for folder:', alldepartments);
+          const { result, folderName, foldersToOpen } = this.findFolderAndNavigate(alldepartments, featureId, '', true);
+          console.log('findFolderAndNavigate result:', { result, folderName, foldersToOpen });
+          if (result) {
+            console.log('Opening folders in localStorage:', foldersToOpen);
+            this.openFolderInLocalStorage(foldersToOpen);
+            const url = `/new/${result}`;
+            console.log('Navigating to URL:', url);
+            this._router.navigate([url]);
+          } else {
+            console.log('No result found from findFolderAndNavigate');
+          }
+        },
+        error => {
+          console.error("Error obtaining Departments:", error);
+        }
+      );
+    }
+  }
+
+  findAndNavigate(departments: any[], feature_id: number, path: string): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
+    console.log('findAndNavigate called with:', { departments, feature_id, path });
+    for (const department of departments) {
+      console.log('Checking department:', department);
+      // First check if the feature is in the department's features
+      if (department.features && department.features.includes(feature_id)) {
+        console.log('Found feature in department:', department.name);
+        return { 
+          result: `:${department.folder_id}`, 
+          folderName: department.name, 
+          foldersToOpen: [department.name] 
+        };
+      }
+      // Then check in department's folders
+      if (department.folders) {
+        console.log('Checking department folders:', department.folders);
+        for (const subfolder of department.folders) {
+          const { result, folderName, foldersToOpen } = this.processSubfolder(subfolder, feature_id, path, subfolder.name);
+          if (result) {
+            console.log('Found feature in subfolder:', subfolder.name);
+            return { result, folderName, foldersToOpen: [department.name, ...foldersToOpen] };
+          }
+        }
+      }
+    }
+    console.log('Feature not found in any department or folder');
+    return { result: null, folderName: null, foldersToOpen: [] };
+  }
+
+  findFolderAndNavigate(departments: any[], folder_id: number, path: string, folderNameBoolean: boolean): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
+    console.log('findFolderAndNavigate called with:', { departments, folder_id, path, folderNameBoolean });
+    for (const department of departments) {
+      for (const folder of department.folders) {
+        if (folder.folder_id === folder_id) {
+          const finalFolderName = folderNameBoolean ? folder.name : department.name;
+          return { 
+            result: `:${department.folder_id}`, 
+            folderName: finalFolderName,  
+            foldersToOpen: [department.name, folder.name] 
+          };
+        }
+
+        const { result, folderName, foldersToOpen } = this.processFolder(folder, folder_id, path, folder.name, department.folder_id);
+        if (result) {
+          return { result, folderName, foldersToOpen: [department.name, ...foldersToOpen] };
+        }
+      }
+    }
+    return { result: null, folderName: null, foldersToOpen: [] };
+  }
+
+  processFolder(folder: any, folder_id: number, path: string, parentFolderName: string, department_id: number): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
+    console.log('processFolder called with:', { folder, folder_id, path, parentFolderName, department_id });
+    if (folder.folder_id === folder_id) {
+      return { 
+        result: `${path}:${folder.folder_id}`, 
+        folderName: parentFolderName,
+        foldersToOpen: [folder.name] 
+      };
+    }
+
+    for (const subfolder of folder.folders) {
+      const resultPath = `${path}:${folder.folder_id}`;
+      const { result, folderName, foldersToOpen } = this.processFolder(subfolder, folder_id, resultPath, folder.name, department_id);
+      if (result) {
+        return { result, folderName, foldersToOpen: [folder.name, ...foldersToOpen] };
+      }
+    }
+    return { result: null, folderName: null, foldersToOpen: [] };
+  }
+
+  processSubfolder(folder: any, feature_id: number, path: string, feature_directory: string): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
+    console.log('processSubfolder called with:', { folder, feature_id, path, feature_directory });
+    
+    // Check if this folder contains the feature
+    if (folder.features && folder.features.includes(feature_id)) {
+      console.log('Found feature in folder:', folder.name);
+      return { 
+        result: `${path}:${folder.folder_id}`, 
+        folderName: feature_directory,
+        foldersToOpen: [folder.name] 
+      };
+    }
+
+    // Check subfolders
+    if (folder.folders) {
+      console.log('Checking subfolders of:', folder.name, folder.folders);
+      for (const subfolder of folder.folders) {
+        const { result, folderName, foldersToOpen } = this.processSubfolder(
+          subfolder, 
+          feature_id, 
+          `${path}:${folder.folder_id}`, 
+          subfolder.name
+        );
+        if (result) {
+          console.log('Found feature in subfolder:', subfolder.name);
+          return { result, folderName, foldersToOpen: [folder.name, ...foldersToOpen] };
+        }
+      }
+    }
+
+    console.log('Feature not found in folder or its subfolders:', folder.name);
+    return { result: null, folderName: null, foldersToOpen: [] };
+  }
+
+  openFolderInLocalStorage(foldersToOpen: string[]): void {
+    const storedState = JSON.parse(localStorage.getItem('co_folderState')) || {};
+    let stateUpdated = false;
+
+    foldersToOpen.forEach(folder => {
+      if (!storedState[folder]?.open) {
+        storedState[folder] = { open: true };
+        stateUpdated = true;
+      }
+    });
+
+    if (stateUpdated) {
+      localStorage.setItem('co_folderState', JSON.stringify(storedState));
     }
   }
 
