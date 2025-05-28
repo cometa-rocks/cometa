@@ -75,15 +75,15 @@ Author: dph000
   <!-- Menu to manage feature -->
   <mat-menu class="feature-options" #featureOptions="matMenu" xPosition="after">
     <!-- Path navigation -->
-   
+
     <mat-divider *ngIf="finder"></mat-divider>
     <!-- Navigate to folder -->
     <button
       *ngIf="finder"
       (click)="featuresGoToFolder(row.id, '', row.type === 'feature')"
       mat-menu-item>
-      <mat-icon>{{ row.type === 'feature' ? 'domain' : 'folder' }}</mat-icon>
-      <span>{{ row.type === 'feature' ? 'Go to Department' : 'Go to Folder' }}</span>
+      <mat-icon>{{ row.type === 'feature' ? (isFeatureInDepartment(row.id) ? 'domain' : 'folder') : 'folder' }}</mat-icon>
+      <span>{{ row.type === 'feature' ? (isFeatureInDepartment(row.id) ? 'Go to Department' : 'Go to Folder') : 'Go to Folder' }}</span>
     </button>
     <mat-divider *ngIf="finder"></mat-divider>
     <!-- Edit feature -->
@@ -158,6 +158,16 @@ Author: dph000
   </mat-menu>
   <!-- Menu to manage folder -->
   <mat-menu class="folderOptionsMenu" #folderOptions="matMenu">
+    <mat-divider *ngIf="finder"></mat-divider>
+    <!-- Navigate to folder -->
+    <button
+      *ngIf="finder"
+      (click)="folderGoToFolder(row.id, true)"
+      mat-menu-item>
+      <mat-icon>folder</mat-icon>
+      <span>Go to Folder</span>
+    </button>
+    <mat-divider *ngIf="finder"></mat-divider>
     <!-- Run all features -->
     <div
       *ngIf="isAnyFeatureRunningMap.get(row.reference.folder_id) | async; else showRunAllButton"
@@ -182,7 +192,7 @@ Author: dph000
       </button>
     </ng-template>
     <mat-divider></mat-divider>
-    <!-- Open the folder -->
+    <!-- Open folder -->
     <button (click)="goFolder(row.reference, row.route)" mat-menu-item>
       <mat-icon>folder_open</mat-icon>
       <span>Open</span>

@@ -197,6 +197,15 @@ export class L1FeatureListComponent implements OnInit {
   isStarred$: Observable<boolean>;
   public isStarredMap: Map<number, Observable<boolean>> = new Map();
 
+  // Menu state
+  isMenuOpen: boolean = false;
+  folderName: string | null = null;
+  private hasHandledMouseOver = false;
+  private hasHandledMouseOverFolder = false;
+
+  // Map to store feature locations
+  private featureLocations: Map<number, { isInDepartment: boolean, departmentId: number }> = new Map();
+
   ngOnInit() {
     this.log.msg('1', 'Initializing component...', 'feature-list');
 
@@ -214,6 +223,9 @@ export class L1FeatureListComponent implements OnInit {
     // load column settings
     this.getSavedColumnSettings();
 
+    // Initialize feature locations
+    this.initializeFeatureLocations();
+
     this.data$.rows.forEach(row => {
       const folderId = row.reference.folder_id;
   
@@ -228,6 +240,90 @@ export class L1FeatureListComponent implements OnInit {
         this.isStarredMap.set(row.id, this._starred.isStarred(row.id));
       }
     });
+  }
+
+  private initializeFeatureLocations() {
+    this._store.select(CustomSelectors.GetDepartmentFolders()).subscribe(
+      departments => {
+        departments.forEach(department => {
+          // Check features directly in department
+          if (department.features) {
+            department.features.forEach(featureId => {
+              this.featureLocations.set(featureId, { 
+                isInDepartment: true, 
+                departmentId: department.folder_id 
+              });
+            });
+          }
+
+          // Check features in folders
+          if (department.folders) {
+            this.checkFeaturesInFolders(department.folders, department.folder_id);
+          }
+        });
+      }
+    );
+  }
+
+  private checkFeaturesInFolders(folders: any[], departmentId: number) {
+    folders.forEach(folder => {
+      if (folder.features) {
+        folder.features.forEach(featureId => {
+          this.featureLocations.set(featureId, { 
+            isInDepartment: false, 
+            departmentId: departmentId 
+          });
+        });
+      }
+      if (folder.folders) {
+        this.checkFeaturesInFolders(folder.folders, departmentId);
+      }
+    });
+  }
+
+  isFeatureInDepartment(featureId: number): boolean {
+    const currentRow = this.data$.rows.find(row => row.id === featureId);
+    if (!currentRow?.reference?.department_id) {
+      return false;
+    }
+
+    const departmentId = currentRow.reference.department_id;
+    const departments = this._store.selectSnapshot(CustomSelectors.GetDepartmentFolders());
+    const department = departments.find(d => d.folder_id === departmentId);
+
+    if (!department) {
+      return false;
+    }
+
+    // If the feature is directly in the department's features
+    const isInDepartment = department.features?.includes(featureId);
+
+    // If the feature is not in the department's features, check if it's in any folder
+    if (!isInDepartment) {
+      const isInFolder = this.checkFeatureInFolders(department.folders, featureId);
+      return !isInFolder; // If it's in a folder, it's not in the department
+    }
+
+    return isInDepartment;
+  }
+
+  private checkFeatureInFolders(folders: any[], featureId: number): boolean {
+    if (!folders) return false;
+    
+    for (const folder of folders) {
+      if (folder.features?.includes(featureId)) {
+        return true;
+      }
+      if (folder.folders) {
+        const foundInSubfolder = this.checkFeatureInFolders(folder.folders, featureId);
+        if (foundInSubfolder) return true;
+      }
+    }
+    return false;
+  }
+
+  getFeatureDepartmentId(featureId: number): number | undefined {
+    return this.featureLocations.get(featureId)?.departmentId;
   }
 
   /**
@@ -376,7 +472,13 @@ export class L1FeatureListComponent implements OnInit {
   // Go to the clicked folder
   goFolder(folder: Folder) {
     this.log.msg('1', 'Opening folder...', 'feature-list', folder);
-    return this._store.dispatch(new Features.NewAddFolderRoute(folder));
+    this._store.dispatch(new Features.SetFolderRoute([folder]));
+
+    // get absolute path of current route, including department
+    const currentRoute = this._store.snapshot().features.currentRouteNew;
+
+    // add clicked folder's id hierarchy to url params
+    this._sharedActions.set_url_folder_params(currentRoute);
   }
 
   // Modify the clicked folder
@@ -479,48 +581,51 @@ export class L1FeatureListComponent implements OnInit {
 
   /**
    * Navigate to folder
-   * @param featureId The feature ID
+   * @param feature_id The feature ID
    * @param path The path to navigate to
    * @param isFeature Whether this is a feature or folder
    */
-  featuresGoToFolder(featureId: number, path = '', isFeature: boolean): void {
-    console.log('featuresGoToFolder called with:', { featureId, path, isFeature });
-    
+  featuresGoToFolder(feature_id: number, path = '', isFeature: boolean): void {
     if (!this.finder) {
-      console.log('Not in search mode, ignoring navigation');
       return;
     }
     
     if (isFeature) {
       // Get the department ID from the current row
-      const currentRow = this.data$.rows.find(row => row.id === featureId);
-      console.log('Current row:', currentRow);
+      const currentRow = this.data$.rows.find(row => row.id === feature_id);
       const department_id = currentRow?.reference?.department_id;
-      console.log('Department ID from row:', department_id);
       
       if (!department_id) {
-        console.error('No department_id found for feature:', featureId);
         return;
       }
 
-      // For features, use goToDomain to navigate to the department
-      console.log('Navigating to department:', department_id);
-      this.goToDomain(department_id);
+      // For features, use the complete path from findAndNavigate
+      this._store.select(CustomSelectors.GetDepartmentFolders()).subscribe(
+        alldepartments => {
+          const { result, folderName, foldersToOpen } = this.findAndNavigate(alldepartments, feature_id, '');
+          if (result) {
+            this.openFolderInLocalStorage(foldersToOpen);
+            const url = `/new/${result}`;
+            this._router.navigate([url]);
+          } else {
+            // If not found in any folder, navigate directly to the department
+            const url = `/new/:${department_id}`;
+            this._router.navigate([url]);
+          }
+        },
+        error => {
+          console.error("Error obtaining Departments:", error);
+        }
+      );
     } else {
       // For folders, use the same logic as in l1-feature-item-list
       this._store.select(CustomSelectors.GetDepartmentFolders()).subscribe(
         alldepartments => {
-          console.log('Got departments for folder:', alldepartments);
-          const { result, folderName, foldersToOpen } = this.findFolderAndNavigate(alldepartments, featureId, '', true);
-          console.log('findFolderAndNavigate result:', { result, folderName, foldersToOpen });
+          const { result, folderName, foldersToOpen } = this.findFolderAndNavigate(alldepartments, feature_id, '', true);
           if (result) {
-            console.log('Opening folders in localStorage:', foldersToOpen);
             this.openFolderInLocalStorage(foldersToOpen);
             const url = `/new/${result}`;
-            console.log('Navigating to URL:', url);
             this._router.navigate([url]);
-          } else {
-            console.log('No result found from findFolderAndNavigate');
           }
         },
         error => {
@@ -531,12 +636,9 @@ export class L1FeatureListComponent implements OnInit {
   }
 
   findAndNavigate(departments: any[], feature_id: number, path: string): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
-    console.log('findAndNavigate called with:', { departments, feature_id, path });
     for (const department of departments) {
-      console.log('Checking department:', department);
       // First check if the feature is in the department's features
       if (department.features && department.features.includes(feature_id)) {
-        console.log('Found feature in department:', department.name);
         return { 
           result: `:${department.folder_id}`, 
           folderName: department.name, 
@@ -545,34 +647,71 @@ export class L1FeatureListComponent implements OnInit {
       }
       // Then check in department's folders
       if (department.folders) {
-        console.log('Checking department folders:', department.folders);
         for (const subfolder of department.folders) {
-          const { result, folderName, foldersToOpen } = this.processSubfolder(subfolder, feature_id, path, subfolder.name);
+          // If the feature is directly in this folder
+          if (subfolder.features && subfolder.features.includes(feature_id)) {
+            return {
+              result: `:${department.folder_id}:${subfolder.folder_id}`,
+              folderName: subfolder.name,
+              foldersToOpen: [department.name, subfolder.name]
+            };
+          }
+          // If not, search in subfolders
+          const { result, folderName, foldersToOpen } = this.processSubfolder(subfolder, feature_id, `:${department.folder_id}`, subfolder.name);
           if (result) {
-            console.log('Found feature in subfolder:', subfolder.name);
             return { result, folderName, foldersToOpen: [department.name, ...foldersToOpen] };
           }
         }
       }
     }
-    console.log('Feature not found in any department or folder');
     return { result: null, folderName: null, foldersToOpen: [] };
   }
 
+  /**
+   * Navigate to folder
+   * @param folderId The folder ID
+   * @param folderNameBoolean Whether to show folder name
+   */
+  folderGoToFolder(folderId: number, folderNameBoolean: boolean) {
+    
+    if (!this.finder) {
+      return;
+    }
+
+    this._store.select(CustomSelectors.GetDepartmentFolders()).subscribe(
+      alldepartments => {
+        const { result, folderName, foldersToOpen } = this.findFolderAndNavigate(alldepartments, folderId, '', folderNameBoolean);
+        
+        if (result && folderNameBoolean) {
+        
+          this.openFolderInLocalStorage(foldersToOpen);
+          const url = `/new/${result}`;
+          
+          this._router.navigate([url]);
+        }
+      },
+      error => {
+        console.error("Error obtaining Departments:", error);
+      }
+    );
+  }
+
   findFolderAndNavigate(departments: any[], folder_id: number, path: string, folderNameBoolean: boolean): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
-    console.log('findFolderAndNavigate called with:', { departments, folder_id, path, folderNameBoolean });
     for (const department of departments) {
       for (const folder of department.folders) {
         if (folder.folder_id === folder_id) {
           const finalFolderName = folderNameBoolean ? folder.name : department.name;
+          if(!folderNameBoolean){
+            this.folderName = department.name;
+          }
           return { 
-            result: `:${department.folder_id}`, 
+            result: `:${department.folder_id}:${folder.folder_id}`, 
             folderName: finalFolderName,  
             foldersToOpen: [department.name, folder.name] 
           };
         }
 
-        const { result, folderName, foldersToOpen } = this.processFolder(folder, folder_id, path, folder.name, department.folder_id);
+        const { result, folderName, foldersToOpen } = this.processFolder(folder, folder_id, `:${department.folder_id}`, folder.name, department.folder_id);
         if (result) {
           return { result, folderName, foldersToOpen: [department.name, ...foldersToOpen] };
         }
@@ -582,8 +721,9 @@ export class L1FeatureListComponent implements OnInit {
   }
 
   processFolder(folder: any, folder_id: number, path: string, parentFolderName: string, department_id: number): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
-    console.log('processFolder called with:', { folder, folder_id, path, parentFolderName, department_id });
+ 
     if (folder.folder_id === folder_id) {
+      this.folderName = parentFolderName;
       return { 
         result: `${path}:${folder.folder_id}`, 
         folderName: parentFolderName,
@@ -602,11 +742,9 @@ export class L1FeatureListComponent implements OnInit {
   }
 
   processSubfolder(folder: any, feature_id: number, path: string, feature_directory: string): { result: string | null, folderName: string | null, foldersToOpen: string[] } {
-    console.log('processSubfolder called with:', { folder, feature_id, path, feature_directory });
     
     // Check if this folder contains the feature
     if (folder.features && folder.features.includes(feature_id)) {
-      console.log('Found feature in folder:', folder.name);
       return { 
         result: `${path}:${folder.folder_id}`, 
         folderName: feature_directory,
@@ -616,8 +754,18 @@ export class L1FeatureListComponent implements OnInit {
 
     // Check subfolders
     if (folder.folders) {
-      console.log('Checking subfolders of:', folder.name, folder.folders);
+
       for (const subfolder of folder.folders) {
+        // If the feature is directly in this subfolder
+        if (subfolder.features && subfolder.features.includes(feature_id)) {
+
+          return {
+            result: `${path}:${folder.folder_id}:${subfolder.folder_id}`,
+            folderName: subfolder.name,
+            foldersToOpen: [folder.name, subfolder.name]
+          };
+        }
+        // If not, continue searching in deeper subfolders
         const { result, folderName, foldersToOpen } = this.processSubfolder(
           subfolder, 
           feature_id, 
@@ -625,13 +773,11 @@ export class L1FeatureListComponent implements OnInit {
           subfolder.name
         );
         if (result) {
-          console.log('Found feature in subfolder:', subfolder.name);
           return { result, folderName, foldersToOpen: [folder.name, ...foldersToOpen] };
         }
       }
     }
 
-    console.log('Feature not found in folder or its subfolders:', folder.name);
     return { result: null, folderName: null, foldersToOpen: [] };
   }
 
@@ -655,7 +801,19 @@ export class L1FeatureListComponent implements OnInit {
    * Handle mouse over event for path navigation
    * @param event The mouse event
    */
-  handleMouseOver(event: MouseEvent) {
-    event.stopPropagation();
+  handleMouseOver(event: MouseEvent, row: any): void {
+    if (this.hasHandledMouseOver) {
+      return;
+    }
+    this.hasHandledMouseOver = true;
+    this.featuresGoToFolder(row.id, '', false);
+  }
+
+  handleMouseOverFolder(event: MouseEvent, row: any): void {
+    if (this.hasHandledMouseOverFolder) {
+      return;
+    }
+    this.hasHandledMouseOverFolder = true;
+    this.folderGoToFolder(row.id, false);
   }
 }
