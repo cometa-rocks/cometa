@@ -227,11 +227,10 @@
 
     .code {
       display: flex;
-      $lineHeight: 25px;
       flex: 1;
       margin-bottom: 15px;
-      line-height: $lineHeight;
-      max-height: $lineHeight * 5;
+      height: auto;
+      min-height: 25px;
       box-sizing: border-box;
       border: 0;
       outline: 0;
@@ -239,7 +238,6 @@
       font-size: 1rem;
       font-family: 'Segoe UI', 'CorpoS';
       flex-direction: column;
-      min-height: 25px;
       width: 100%;
     }
   }
