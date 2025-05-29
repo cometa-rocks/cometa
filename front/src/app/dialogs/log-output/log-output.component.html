@@ -1,5 +1,5 @@
 <h2 mat-dialog-title>Feature Log Output</h2>
-<mat-dialog-content *ngIf="log$ | async as log; else loading">
+<mat-dialog-content *ngIf="log$ | async as log; else loading" class="dialog-content">
   <textarea class="logOutput" readonly>{{ log }}</textarea>
 </mat-dialog-content>
 <mat-dialog-actions>
