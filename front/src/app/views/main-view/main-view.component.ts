@@ -376,7 +376,7 @@ export class MainViewComponent implements OnInit {
   /**
    * Performs the overriding action through the Store
    */
-  setResultStatus(results: FeatureResult, status: 'Success' | 'Failed' | '') {
+  setResultStatus(results: FeatureResult, status: 'Success' | 'Failed' | 'Canceled' | '') {
     this._sharedActions.setResultStatus(results, status).subscribe(_ => {
       this.getResults();
       this.checkIfThereAreFailedSteps(); 

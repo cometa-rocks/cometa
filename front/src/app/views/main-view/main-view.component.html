@@ -99,8 +99,9 @@
       <div
         class="status-box failed"
         stopPropagation
-        [matMenuTriggerFor]="runStatus">
-        Failed
+        [matMenuTriggerFor]="runStatus"
+        [ngClass]="{'canceled': row.status === 'Canceled'}">
+        {{ row.status === 'Canceled' ? 'Canceled' : 'Failed' }}
       </div>
     </ng-template>
     <!-- Override feature result status -->
@@ -111,6 +112,9 @@
       </button>
       <button (click)="setResultStatus(row, 'Failed')" mat-menu-item>
         <div class="status-option failed">Failed</div>
+      </button>
+      <button (click)="setResultStatus(row, 'Canceled')" mat-menu-item>
+        <div class="status-option canceled">Canceled</div>
       </button>
       <mat-divider></mat-divider>
       <button (click)="setResultStatus(row, '')" mat-menu-item>
