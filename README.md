@@ -98,7 +98,7 @@ Imagine a world where testing isn't just about finding bugs. It's about creating
 > - Installation typically completes in 8 minutes. If you face any issues [contact us](#support)
 > - In corporate environments there are some things to know regarding Internet access as well as SSO provider setup.
 
-*Check our [Deployment guide](https://github.com/cometa-rocks/cometa_documentation/blob/main/docs/admin/deployment.md) for manual installation.*
+*Check our [Deployment guide](https://github.com/cometa-rocks/cometa_documentation/blob/main/docs/admin/deployment.md) for manual installation steps and corporate environments requirements.*
 
 ## Co.Meta Editions
 
