@@ -378,6 +378,7 @@ def double_tap_on_element(context, selector):
 @step(u'On mobile swipe right "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
 @done(u'On mobile swipe right "{selector}" by "{default_200}"px')
 def swipe_right_on_element(context, selector, default_200=200):
+    context.STEP_TYPE = "MOBILE"
     px = int(default_200) if default_200 else 200  # Set default swipe distance if `px` is not provided
     perform_swipe(context, selector, x_offset=px, y_offset=0, direction="right")
 
@@ -387,6 +388,7 @@ def swipe_right_on_element(context, selector, default_200=200):
 @step(u'On mobile swipe left "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
 @done(u'On mobile swipe left "{selector}" by "{default_200}"px')
 def swipe_left_on_element(context, selector, default_200=200):
+    context.STEP_TYPE = "MOBILE"
     px = int(default_200) if default_200 else 200
     perform_swipe(context, selector, x_offset=-px, y_offset=0, direction="left")
 
@@ -396,6 +398,7 @@ def swipe_left_on_element(context, selector, default_200=200):
 @step(u'On mobile swipe up "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
 @done(u'On mobile swipe up "{selector}" by "{default_200}"px')
 def swipe_up_on_element(context, selector, default_200=200):
+    context.STEP_TYPE = "MOBILE"
     px = int(default_200) if default_200 else 200
     perform_swipe(context, selector, x_offset=0, y_offset=-px, direction="up")
 
@@ -405,6 +408,7 @@ def swipe_up_on_element(context, selector, default_200=200):
 @step(u'On mobile swipe down "(?P<selector>.+?)"(?: by "(?P<default_200>.*?)"px)?')
 @done(u'On mobile swipe down "{selector}" by "{default_200}"px')
 def swipe_down_on_element(context, selector, default_200=200):
+    context.STEP_TYPE = "MOBILE"
     px = int(default_200) if default_200 else 200
     perform_swipe(context, selector, x_offset=0, y_offset=px, direction="down")
 
