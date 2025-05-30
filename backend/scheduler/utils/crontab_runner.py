@@ -35,6 +35,9 @@ def run_command(command: str):
                 request_body = None
 
             try:
+                logger.info(
+                    f"Sending HTTP request to {parsed_info['url']}, Request Method : {parsed_info.get('method')}, Request body : {request_body}"
+                )
                 response = requests.request(
                     method=parsed_info.get("method"),
                     json=request_body,
@@ -77,5 +80,5 @@ def update_jobs(scheduler, jobs, called_by="Scheduler"):
                               max_instances=100)
 
     # Add auto update job to the scheduler
-    scheduler.add_job(lambda: update_jobs(scheduler, get_schedules()), 'interval', minutes=1)
+    scheduler.add_job(lambda: update_jobs(scheduler, get_schedules()), 'interval', minutes=1, misfire_grace_time=10 )
     job_file.close()
