@@ -200,6 +200,8 @@ interface Feature {
   browser_code: string;
   browser_name: string;
   schedule: string;
+  original_cron?: string;
+  original_timezone?: string;
   success?: boolean;
   screenshot: string;
   compare: string;
