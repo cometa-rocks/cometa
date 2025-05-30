@@ -19,6 +19,7 @@
   min-height: 500px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .dialog-content {
@@ -37,11 +38,11 @@
   resize: none;
   padding: 16px;
   box-sizing: border-box;
-  font-family: monospace;
   overflow-x: hidden;
   white-space: pre-wrap;
   word-wrap: break-word;
   border-color: rgba(black, 0.2) !important;
+  border-radius: 5px;
 }
 
 .mat-spinner {

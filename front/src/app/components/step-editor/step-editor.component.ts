@@ -179,7 +179,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
     private logger: LogService,
-    private _sharedActions: SharedActionsService,
+    private _sharedActions: SharedActionsService
   ) {
     super();
     this.stepsForm = this._fb.array([]);
@@ -578,6 +578,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
     if (this.stepVariableData.strWithoutQuotes.includes('$')) {
+      // Do not display variables or the dialog if the step is "Run Javascript function"
+      if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
+        this.displayedVariables = [];
+        this.stepVariableData.currentStepIndex = null;
+        return;
+      }
+
       const filteredVariables = this.variables.filter(item =>
         item.variable_name.includes(
           this.stepVariableData.strWithoutQuotes.replace('$', '')
@@ -766,7 +773,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.showHideStepDocumentation = !this.showHideStepDocumentation
   }
 
-  @ViewChild(MatAutocompleteTrigger) autocompleteTrigger!: MatAutocompleteTrigger;
+  @ViewChildren(MatAutocompleteTrigger) autocompleteTriggers: QueryList<MatAutocompleteTrigger>;
 
 
   // @HostListener('document:keydown', ['$event'])
@@ -1012,8 +1019,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       timeout: stepToCopy.value.timeout,
     });
 
-
-
     this.stepsForm.insert(index, newStepToCopy);
 
     const stepFormGroup = this.stepsForm.at(index) as FormGroup;
@@ -1049,6 +1054,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       };
     }
     this._cdr.detectChanges();
+    
+    // Focus the new step
+    this.focusStep(index);
   }
 
   drop(event: CdkDragDrop<string[]>) {
@@ -1237,21 +1245,41 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   insertStep(event: KeyboardEvent, i: number){
     event.preventDefault();
+    // Cerrar el autocompletado
+    const autocompletePanel = document.querySelector('.mat-autocomplete-panel');
+    if (autocompletePanel) {
+        autocompletePanel.remove();
+    }
+    // También limpiar las variables mostradas
+    this.displayedVariables = [];
+    this.stepVariableData.currentStepIndex = null;
+    this.isAutocompleteOpened = false;
+    
     if(event.key == 'ArrowDown'){
-      this.addEmpty(i+1);
+        this.addEmpty(i+1);
     }
     else if (event.key == 'ArrowUp'){
-      this.addEmpty(i);
+        this.addEmpty(i);
     }
   }
 
   copyStep(event: KeyboardEvent, i: number){
     event.preventDefault();
+    // Cerrar el autocompletado
+    const autocompletePanel = document.querySelector('.mat-autocomplete-panel');
+    if (autocompletePanel) {
+        autocompletePanel.remove();
+    }
+    // También limpiar las variables mostradas
+    this.displayedVariables = [];
+    this.stepVariableData.currentStepIndex = null;
+    this.isAutocompleteOpened = false;
+    
     if(event.key == 'ArrowDown'){
-      this.copyItem(i+1, 'down');
+        this.copyItem(i+1, 'down');
     }
     else if (event.key == 'ArrowUp'){
-      this.copyItem(i, 'up');
+        this.copyItem(i, 'up');
     }
   }
 

@@ -203,7 +203,6 @@
               (keydown.alt.control.arrowdown)="copyStep($event, i)"
               class="code"
               spellcheck="false"
-              cdkTextareaAutosize
               autocomplete="off"
               formControlName="step_content"
               [matAutocomplete]="stepHelp"
@@ -235,7 +234,7 @@
                   <span class="var_value">={{ variable.variable_value }}</span>
                 </div>
                 <ng-template #noVariable>
-                  <div class="variable-wrapper">
+                  <div class="variable-wrapper" *ngIf="!step.get('step_content').value?.startsWith('Run Javascript function')">
                     <span class="no-variable">No variable with this name</span>
                   </div>
                 </ng-template>
