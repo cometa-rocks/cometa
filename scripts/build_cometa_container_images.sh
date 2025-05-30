@@ -1,6 +1,6 @@
 cd ..
-IMAGE_PATHS=("front" "backend/behave" "backend/src")
-IMAGE_NAMES=("cometa/front" "cometa/behave" "cometa/django")
+IMAGE_PATHS=("front" "backend/behave" "backend/src" "backend/scheduler" "backend/ws-server")
+IMAGE_NAMES=("cometa/front" "cometa/behave" "cometa/django" "cometa/scheduler" "cometa/socket")
 VERSION_PATHS=("front/src/assets/config.json" "backend/behave/version.json" "backend/src/version.json")
 for i in "${!IMAGE_PATHS[@]}"; do
   IMAGE_DIR="${IMAGE_PATHS[$i]}"

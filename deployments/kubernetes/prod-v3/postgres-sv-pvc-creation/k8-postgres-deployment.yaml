@@ -33,7 +33,7 @@ spec:
             value: "/var/lib/postgresql/data/pgdata"
           - name: POSTGRES_PASSWORD
             # Note: Please change the password before the deployment
-            value: ***REMOVED***
+            value: your_password
 
         volumeMounts:
           - name: cometa-db-volume

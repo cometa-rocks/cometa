@@ -76,7 +76,7 @@ _executor = ThreadPoolExecutor(max_workers=4)
 def _async_post(url, headers=None, json=None):
     def _task():
         try:
-            logger.debug(f"Async POST to {url} with headers: {headers} and json: {json}")
+            logger.debug(f"Async POST to {url} with headers: {headers}")
             requests.post(url, headers=headers, json=json)
         except Exception as e:
             logger.error(f"Async POST to {url} failed: {e}")
@@ -415,34 +415,63 @@ def done(*_args, **_kwargs):
                 # reset the step_error field in context
                 if hasattr(args[0], "step_error"):
                     del args[0].step_error
-
+                # logger.debug(f"Values of kwargs : {kwargs}")
                 # replace variables in kwargs
+                # Got here the parameter list
+                
                 for parameter in kwargs:
-                    if not kwargs[parameter]:
+                    parameter_value = kwargs[parameter]
+                    if not parameter_value:
                         continue
-                    # replace variables
-                    for key in env_variables:
-                        variable_name = key["variable_name"]
-                        variable_value = str(key["variable_value"])
-                        pattern = r"\${?%s(?:}|\b)" % variable_name
-                        if (
-                            args[0].text and "Loop" not in save_message
-                        ):  # we do not want to replace all the variables inside the loop sub-steps
-                            # Replace in step description for multiline step values
-                            args[0].text = re.sub(
-                                pattern, returnDecrypted(variable_value), args[0].text
-                            )
-                            # ###
-                            # variable was not being replaced correctly if variable contained another variable name in itself.
-                            # ###
-                            # args[0].text = args[0].text.replace(("$%s" % variable_name), returnDecrypted(variable_value))
-                        if re.search(pattern, kwargs[parameter]):
-                            # Replace in step content
-                            kwargs[parameter] = re.sub(
-                                pattern,
-                                returnDecrypted(variable_value),
-                                kwargs[parameter],
-                            )
+
+                    # Match $VAR, ${VAR}, and %index only
+                    found_vars = re.findall(r'(\$[a-zA-Z_][a-zA-Z0-9_]*|\$\{[a-zA-Z_][a-zA-Z0-9_]*\}|%index)', parameter_value)
+                    if args[0].text:
+                        found_vars_in_text = re.findall(r'(\$[a-zA-Z_][a-zA-Z0-9_]*|\$\{[a-zA-Z_][a-zA-Z0-9_]*\}|%index)', args[0].text)
+                        logger.debug(f"args[0].text {args[0].text}")
+                        found_vars.extend(found_vars_in_text)
+                    # logger.debug(f"Found variables for {parameter_value} value {found_vars}")
+                    for raw_var in found_vars:
+                        # logger.debug(f"Iterating for {raw_var}")
+                        if raw_var.startswith('%'):
+                            # Handle only %index
+                            if raw_var != '%index':
+                                continue
+                            variable_name = 'index'
+                        else:
+                            # Clean $VAR and ${VAR}
+                            variable_name = raw_var.strip('${}$')
+
+                        # Find the variable in the env_variables list
+                        # logger.debug(f"Trying to find value for variable {variable_name}")
+                        # logger.debug(f"env_variables {variable_name}")
+                        index = [
+                            i for i, _ in enumerate(env_variables)
+                            if _["variable_name"] == variable_name
+                        ]
+                        if not index:
+                          #   logger.debug(f"Variable not found {variable_name}")
+                            continue  # Variable not found
+
+                        env_var = env_variables[index[0]]
+                        # logger.debug(f"found variable {env_var}")
+
+                        decrypted_value = returnDecrypted(str(env_var["variable_value"]))
+
+                        # Regex pattern: match both $VAR and ${VAR}, or just %index
+                        if raw_var.startswith('%'):
+                            pattern = r'%index'
+                        else:
+                            pattern = r"\${?%s(?:}|\b)" % re.escape(variable_name)
+
+                        # Replace in args[0].text if not inside a loop
+                        if args[0].text and "Loop" not in save_message:
+                            args[0].text = re.sub(pattern, decrypted_value, args[0].text)
+
+                        # Replace in kwargs[parameter]
+                        if re.search(pattern, parameter_value):
+                            kwargs[parameter] = re.sub(pattern, decrypted_value, parameter_value)
+
                             # kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
                     # replace job parameters
                     for (
