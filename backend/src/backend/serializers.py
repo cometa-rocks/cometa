@@ -288,12 +288,14 @@ class FeatureSerializer(serializers.ModelSerializer, FeatureMixin):
     last_edited = BasicOIDCAccountSerializer(many=False)
     created_by = BasicOIDCAccountSerializer(many=False)
     schedule = serializers.CharField(source='schedule.schedule', allow_null=True, default="")
+    original_cron = serializers.CharField(source='schedule.original_cron', allow_null=True, default="")
+    original_timezone = serializers.CharField(source='schedule.original_timezone', allow_null=True, default="")
     last_edited_date = serializers.DateTimeField(format=datetimeTZFormat)
 
     class Meta:
         model = Feature
         fields = '__all__'
-        extra_fields = ('schedule', )
+        extra_fields = ('schedule', 'original_cron', 'original_timezone')
     def create(self, validated_data):
         return Feature.objects.create(**validated_data)
 
@@ -653,6 +655,8 @@ class AuthenticationProviderSerializer(serializers.Serializer):
 class ScheduleSerializer(serializers.ModelSerializer):
     created_on = serializers.DateTimeField(format=datetimeTZFormat)
     delete_on = serializers.DateTimeField(format=datetimeTZFormat)
+    original_cron = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
+    original_timezone = serializers.CharField(max_length=50, required=False, allow_blank=True, allow_null=True)
     class Meta:
         model = Schedule
         fields = '__all__'
