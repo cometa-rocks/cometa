@@ -41,6 +41,7 @@ import {
   forkJoin,
   Observable,
   of,
+  take,
 } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import {
@@ -260,7 +261,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
     if (clear) this.stepsForm.clear();
-    steps.forEach(step => {
+    steps.forEach((step, index) => {
       const formGroup = this._fb.group({
         enabled: step.enabled,
         screenshot: step.screenshot,
@@ -276,9 +277,49 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         timeout: step.timeout || this.department?.settings?.step_timeout || 60
       });
 
-
-
       this.stepsForm.push(formGroup);
+
+      // Procesar feature links al cargar los steps
+      if (step.step_content?.startsWith('Run feature with id') || step.step_content?.startsWith('Run feature with name')) {
+        const match = step.step_content.match(/"([^"]*)"/);
+        if (match) {
+          const searchValue = match[1];
+          if (step.step_content.startsWith('Run feature with id')) {
+            const featureId = parseInt(searchValue, 10);
+            if (!isNaN(featureId)) {
+              this.allFeatures$.pipe(take(1)).subscribe(features => {
+                const userDepartments = this.user.departments.map(dept => dept.department_id);
+                const feature = features.find(f => 
+                  f.feature_id === featureId && 
+                  userDepartments.includes(f.department_id)
+                );
+                if (feature) {
+                  this.stepStates[index] = {
+                    featureId: featureId,
+                    showLinkIcon: true
+                  };
+                  this._cdr.detectChanges();
+                }
+              });
+            }
+          } else {
+            this.allFeatures$.pipe(take(1)).subscribe(features => {
+              const userDepartments = this.user.departments.map(dept => dept.department_id);
+              const matchingFeature = features.find(f => 
+                f.feature_name === searchValue && 
+                userDepartments.includes(f.department_id)
+              );
+              if (matchingFeature) {
+                this.stepStates[index] = {
+                  featureId: matchingFeature.feature_id,
+                  showLinkIcon: true
+                };
+                this._cdr.detectChanges();
+              }
+            });
+          }
+        }
+      }
     });
     this._cdr.detectChanges();
   }
@@ -493,7 +534,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           this.allFeatures$.subscribe(features => {
             // Get user's departments
             const userDepartments = this.user.departments.map(dept => dept.department_id);
-            
             // Filter features by name and user's departments
             const matchingFeature = features.find(f => 
               f.feature_name === searchValue && 
