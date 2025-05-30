@@ -108,17 +108,12 @@ spec:
           requests:
             cpu: "1"
             memory: "1Gi"
-      hostAliases:
-      - ip: "***REMOVED***"
-        hostnames:
-          - "***REMOVED***"
-      - ip: "***REMOVED***"
-        hostnames:
-          - "***REMOVED***"
-      - ip: "***REMOVED***"
-        hostnames:
-          - "***REMOVED***"
-        
+      # hostAliases:
+      # - ip: "your_ip"
+      #   hostnames:
+      #     - "hostname1"
+      #     - "hostname2"
+     
       volumes:
       - name: cometa-volume
         persistentVolumeClaim:

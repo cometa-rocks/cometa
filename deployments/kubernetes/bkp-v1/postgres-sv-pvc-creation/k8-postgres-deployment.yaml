@@ -25,7 +25,7 @@ spec:
           - name: PGDATA
             value: "/var/lib/postgresql/data/pgdata"
           - name: POSTGRES_PASSWORD
-            value: ***REMOVED***
+            value: JrXQy46n8aS5DU2MniPS
 
         volumeMounts:
           - name: cometa-db-volume
