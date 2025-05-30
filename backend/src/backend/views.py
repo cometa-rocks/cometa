@@ -66,6 +66,7 @@ from backend.utility.uploadFile import UploadFile, decryptFile
 from backend.utility.config_handler import *
 # from silk.profiling.profiler import silk_profile
 from modules.container_service.service_manager import DockerServiceManager, ServiceManager
+from backend.utility.timezone_utils import convert_cron_to_utc, recalculate_schedule_if_needed
 
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
@@ -1610,31 +1611,52 @@ def Contact(request):
     return JsonResponse({'success': True})
 
 
-def schedule_update(feature_id, schedule, user_id):
+def schedule_update(feature_id, schedule, user_id, original_cron=None, original_timezone=None):
     features = Feature.objects.filter(pk=feature_id)
+    if not features.exists():
+        logger.error(f"Feature with id {feature_id} not found in schedule_update call.")
+        return None
     feature = features[0]
-    current_schedule = feature.schedule
-    schedule_model = current_schedule
-    if current_schedule and current_schedule.schedule == schedule:
-        logger.info("Same schedule found ... will not update.")
+    current_schedule_model = feature.schedule
+    
+    # Determine if an update is truly needed by comparing all relevant fields:
+    # UTC cron string, original (user-facing) cron string, and original timezone.
+    needs_database_update = True
+    if current_schedule_model:
+        if current_schedule_model.schedule == schedule and \
+           current_schedule_model.original_cron == original_cron and \
+           current_schedule_model.original_timezone == original_timezone:
+            needs_database_update = False
+            
+    if not needs_database_update:
+        logger.info(f"Schedule for feature {feature_id} (schedule ID: {current_schedule_model.id}) is effectively unchanged. "
+                    f"UTC: '{schedule}', Original: '{original_cron} {original_timezone}'. No database update performed.")
+        return current_schedule_model
     else:
-        # Check if new schedule is set
+        # If there's an old schedule model, it needs to be deleted as we're either replacing it or disabling the schedule.
+        if current_schedule_model:
+            logger.info(f"Deleting old schedule (ID: {current_schedule_model.id}) for feature {feature_id} as part of update/disable action.")
+            current_schedule_model.delete()
+
+        # Handle active new schedule: create a new Schedule instance.
         if schedule != 'now' and schedule != "":
-            schedule_model = Schedule.objects.create(
+            logger.info(f"Creating new schedule for feature {feature_id}. "
+                        f"UTC cron: '{schedule}', Original cron: '{original_cron}', Original timezone: '{original_timezone}'.")
+            new_schedule_instance = Schedule.objects.create(
                 feature_id=feature.pk,
                 schedule=schedule,
+                original_cron=original_cron,
+                original_timezone=original_timezone,
                 owner_id=user_id, 
                 delete_after_days=0
             )
-            schedule_model.save()
-            features.update(schedule=schedule_model)
-        else:
+            features.update(schedule=new_schedule_instance)
+            logger.info(f"New schedule (ID: {new_schedule_instance.id}) created and assigned to feature {feature_id}.")
+            return new_schedule_instance
+        else: # Handle disabling of schedule (schedule is 'now' or empty).
+            logger.info(f"Disabling schedule for feature {feature_id} (input schedule string: '{schedule}').")
             features.update(schedule=None)
-            schedule_model = None
-
-        if current_schedule:
-            current_schedule.delete()
-    return schedule_model
+            return None
 
 
 @csrf_exempt
@@ -1653,7 +1675,23 @@ def UpdateSchedule(request, feature_id, *args, **kwargs):
     feature = features[0]
 
     try:
-        schedule_update(feature.pk, schedule, request.session['user']['user_id'])
+        original_cron = schedule
+        original_timezone = data.get('original_timezone', None)
+        schedule_to_store = schedule
+        
+        # Convert to UTC if timezone is provided
+        if original_timezone and original_cron:
+            converted_schedule = convert_cron_to_utc(original_cron, original_timezone)
+            if converted_schedule is not None:
+                schedule_to_store = converted_schedule
+        
+        schedule_update(
+            feature.pk, 
+            schedule_to_store, 
+            request.session['user']['user_id'],
+            original_cron=original_cron,
+            original_timezone=original_timezone
+        )
     except Exception as err:
         return JsonResponse({'success': False, 'error': str(err)})
 
@@ -2743,7 +2781,23 @@ class FeatureViewSet(viewsets.ModelViewSet):
         """
         if 'schedule' in data:
             try:
-                newSchedule = schedule_update(feature.pk, data['schedule'], request.session['user']['user_id'])
+                original_cron = data['schedule']
+                original_timezone = data.get('original_timezone', None)
+                schedule_to_store = data['schedule']
+                
+                # Convert to UTC if timezone is provided
+                if original_timezone and original_cron:
+                    converted_schedule = convert_cron_to_utc(original_cron, original_timezone)
+                    if converted_schedule is not None:
+                        schedule_to_store = converted_schedule
+                
+                newSchedule = schedule_update(
+                    feature.pk, 
+                    schedule_to_store, 
+                    request.session['user']['user_id'],
+                    original_cron=original_cron,
+                    original_timezone=original_timezone
+                )
                 feature.schedule = newSchedule
             except Exception as err:
                 logger.error("Unable to save the schedule...")
@@ -3773,6 +3827,9 @@ class ScheduleViewSet(viewsets.ModelViewSet):
 
         # loop over all schedules and generate a line of crontab
         for schedule in schedules:
+            # Check if schedule needs DST recalculation
+            recalculate_schedule_if_needed(schedule)
+            
             cronString = "%s %s %s" % (schedule.schedule, schedule.command, schedule.comment)
             cronString = cronString.replace("<jobId>", str(schedule.id))
             cronSchedules.append(cronString)
@@ -3783,6 +3840,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         # get request payload
         data = json.loads(request.body)
+        
         # get the feature
         try:
             fid = int(data['feature'])
@@ -3792,6 +3850,22 @@ class ScheduleViewSet(viewsets.ModelViewSet):
         if not feature.exists():
             return JsonResponse({"success": False, "error": "No feature found with specified name."}, status=404)
         data['feature'] = feature[0]
+        
+        # Handle timezone conversion if timezone is provided
+        if 'original_timezone' in data and 'schedule' in data:
+            # Store original values
+            data['original_cron'] = data['schedule']
+            data['original_timezone'] = data['original_timezone']
+            
+            # Convert to UTC
+            utc_cron = convert_cron_to_utc(data['schedule'], data['original_timezone'])
+            if utc_cron is not None:
+                data['schedule'] = utc_cron
+        elif 'schedule' in data:
+            # If no timezone provided, assume UTC and store as original
+            data['original_cron'] = data['schedule']
+            data['original_timezone'] = 'UTC'
+        
         # check if id exists in payload else throw error
         try:
             # update data with object recieved as payload
@@ -3807,6 +3881,22 @@ class ScheduleViewSet(viewsets.ModelViewSet):
         # check if id exists in payload else throw error
         if 'id' not in kwargs:
             return JsonResponse({"success": False, "error": "Missing id"}, status=404)
+        
+        # Handle timezone conversion if timezone is provided
+        if 'original_timezone' in data and 'schedule' in data:
+            # Store original values
+            data['original_cron'] = data['schedule']
+            data['original_timezone'] = data['original_timezone']
+            
+            # Convert to UTC
+            utc_cron = convert_cron_to_utc(data['schedule'], data['original_timezone'])
+            if utc_cron is not None:
+                data['schedule'] = utc_cron
+        elif 'schedule' in data:
+            # If no timezone provided, assume UTC and store as original
+            data['original_cron'] = data['schedule']
+            data['original_timezone'] = 'UTC'
+        
         try:
             # update data with object recieved as payload
             Schedule.objects.filter(id=kwargs['id']).update(**data)
