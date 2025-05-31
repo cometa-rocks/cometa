@@ -65,6 +65,7 @@ import { InputFocusService } from '../../services/inputFocus.service';
   ],
 })
 export class EditSchedule {
+  static panelClass = 'no-resize-dialog';
   schedule: UntypedFormGroup;
 
   // formLayout is a variable to steer the layout of the schedule edit form

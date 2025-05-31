@@ -17,6 +17,8 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
   ],
 })
 export class SureRemoveFileComponent {
+  static panelClass = 'no-resize-dialog';
+
   constructor(
     public dialogRef: MatDialogRef<SureRemoveFileComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { fileName: string }
