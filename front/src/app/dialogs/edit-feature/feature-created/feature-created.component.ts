@@ -16,6 +16,8 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
   imports: [MatLegacyDialogModule, MatLegacyButtonModule],
 })
 export class FeatureCreated {
+  static panelClass = 'no-resize-dialog';
+
   constructor(
     public dialogRef: MatDialogRef<FeatureCreated>,
     @Inject(MAT_DIALOG_DATA) public data: any,

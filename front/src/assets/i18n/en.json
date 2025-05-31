@@ -237,6 +237,8 @@
     "all_screenshots": "Select all screenshots",
     "all_compare": "Select all compare",
     "compare_enabled": "Enabling compare automatically activates screenshot",
-    "screenshot_disabled": "Disabling this checkbox implies disabling the compare checkbox"
+    "screenshot_disabled": "Disabling this checkbox implies disabling the compare checkbox",
+    "feature_link_tooltip": "Click to navigate to the feature",
+    "feature_link_not_found": "Feature not found"
   }
 }

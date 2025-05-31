@@ -16,6 +16,8 @@ import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/lega
   ]
 })
 export class SureRemoveRunComponent {
+  static panelClass = 'no-resize-dialog';
+
   constructor(
     public dialogRef: MatDialogRef<SureRemoveRunComponent>
   ) {}
