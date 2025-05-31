@@ -154,7 +154,7 @@ export class SharedActionsService {
     )(featureId);
     this._dialog
       .open(EditSchedule, {
-        panelClass: 'edit-schedule-panel',
+        panelClass: 'no-resize-dialog',
         data: featureStore.feature_id,
       })
       .afterClosed()
