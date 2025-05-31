@@ -362,6 +362,12 @@ export class L1LandingComponent implements OnInit {
     // filter folders with the first id of params
     let folder = folders.filter(folder => folder.folder_id == folderIDS[0]);
 
+    // Check if folder was found
+    if (!folder || folder.length === 0) {
+      this.log.msg('1', `Folder with id ${folderIDS[0]} not found`, 'landing');
+      return;
+    }
+
     // array.prototype.filter returns an array, but we need to push an object in currentRoutes, so the final resut is array of objects, not array of arrays
     // thats why we dont push folder array itself, but first and only item it has
     currentRoute.push(folder[0]);
@@ -372,6 +378,13 @@ export class L1LandingComponent implements OnInit {
       folder = folder[0].folders.filter(
         folder => folder.folder_id == folderIDS[i]
       );
+      
+      // Check if subfolder was found
+      if (!folder || folder.length === 0) {
+        this.log.msg('1', `Subfolder with id ${folderIDS[i]} not found`, 'landing');
+        return;
+      }
+      
       currentRoute.push(folder[0]);
     }
 

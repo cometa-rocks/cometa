@@ -25,3 +25,5 @@ alias dis="docker inspect cometa_crontab"
 # start cometa_front angular in the development mode
 alias dsfd="docker exec -it cometa_front ./start.sh serve"
 
+alias dsfb="docker compose -f docker-compose-dev.yml up --force-recreate apache django -d"
+
