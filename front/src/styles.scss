@@ -640,6 +640,7 @@ h3 {
   .mat-dialog-container {
     resize: both;
     overflow: auto;
+    overflow-y: hidden;
   }
 }
 
@@ -656,7 +657,7 @@ h3 {
 }
 .mobile-emulator-panel {
   width: 80vw;
-  height: 81vh;
+  height: 85vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -762,6 +763,10 @@ h3 {
     background-color: $remove;
     border-bottom: 4px solid darken($remove, 10);
   }
+  &.canceled {
+    background-color: $orange;
+    border-bottom: 4px solid darken($orange, 10);
+  }
   &.running {
     background-color: $blue;
     border-bottom: 4px solid darken($blue, 10);
@@ -784,13 +789,16 @@ h3 {
   line-height: 15px;
   border-radius: 3px;
   height: 25px;
-  width: 62px;
+  width: 75px;
   text-align: center;
   &.passed {
     background-color: $good;
   }
   &.failed {
     background-color: $remove;
+  }
+  &.canceled {
+    background-color: $orange;
   }
   &.default {
     background-color: $step;
@@ -1100,4 +1108,8 @@ mat-dialog-container draggable-window{
 
 .mat-dialog-container {
   resize: both;
+}
+
+.no-resize-dialog .mat-dialog-container {
+  resize: none !important;
 }
