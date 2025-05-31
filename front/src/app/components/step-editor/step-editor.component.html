@@ -350,11 +350,14 @@
               (optionSelected)="selectFirstVariable($event, i)"
               (optionActivated)="onOptionActivated($event, i)"
               (closed)="closeAutocomplete(i)">
-          
-
-              <mat-option *ngFor="let action of actions | filterStep: step.value.step_content : false" [value]="action.action_name">
-                {{ action.action_name }}
-              </mat-option>
+              
+              <ng-container *ngFor="let group of filteredGroupedActions$ | async">
+                <mat-optgroup [label]="group.name">
+                  <mat-option *ngFor="let action of group.actions" [value]="action.action_name">
+                    {{ action.action_name }}
+                  </mat-option>
+                </mat-optgroup>
+              </ng-container>
 
             </mat-autocomplete>
           </div>

@@ -121,7 +121,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-left: 115px;
     margin-right: 40px;
     &::ng-deep .mat-select-value {
       font-size: 1rem;
@@ -502,6 +501,27 @@
   position: relative;
   overflow-y: auto;  
   max-height: 300px;
+}
+
+::ng-deep .mat-autocomplete-panel {
+  .mat-optgroup {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .mat-optgroup-label {
+      color: $blue;
+      font-weight: 500;
+      padding: 8px 16px;
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    .mat-option {
+      padding-left: 32px;
+    }
+  }
 }
 
 .fixed-autocomplete {
