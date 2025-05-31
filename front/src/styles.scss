@@ -640,6 +640,7 @@ h3 {
   .mat-dialog-container {
     resize: both;
     overflow: auto;
+    overflow-y: hidden;
   }
 }
 
@@ -656,7 +657,7 @@ h3 {
 }
 .mobile-emulator-panel {
   width: 80vw;
-  height: 81vh;
+  height: 85vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1107,4 +1108,8 @@ mat-dialog-container draggable-window{
 
 .mat-dialog-container {
   resize: both;
+}
+
+.no-resize-dialog .mat-dialog-container {
+  resize: none !important;
 }
