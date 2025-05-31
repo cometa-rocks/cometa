@@ -40,7 +40,7 @@ spec:
         - name: DATABASE_PORT
           value: "5432"
         - name: DATABASE_PASSWORD
-          value: "***REMOVED***"
+          value: "your_password"
         - name: FRONT_SERVER_HOST
           value: "cometa-front-service"
         - name: CRONTAB_SERVER_URL

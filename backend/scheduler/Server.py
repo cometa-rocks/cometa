@@ -31,7 +31,7 @@ scheduler = BackgroundScheduler()
 scheduler.start()
 
 # Create tmp directory if it doesn't exist
-os.makedirs('/app/tmp/', exist_ok=True)
+os.makedirs('/tmp/', exist_ok=True)
 
 # Initially fetch schedules and setup jobs
 jobs = get_schedules()
