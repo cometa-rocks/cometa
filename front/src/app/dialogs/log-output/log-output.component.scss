@@ -8,19 +8,50 @@
   width: 100%;
 }
 
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+::ng-deep .mat-dialog-container {
+  min-width: 600px;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 400px;
+  overflow: hidden;
+}
+
 .logOutput {
-  display: block;
-  width: 500px;
-  height: 500px;
-  padding: 10px;
-  margin-top: 5px;
+  min-width: 400px;
+  min-height: 400px;
+  width: 100%;
+  height: 100%;
+  resize: none;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  word-wrap: break-word;
   border-color: rgba(black, 0.2) !important;
-  border-width: 2px;
   border-radius: 5px;
-  outline: none;
 }
 
 .mat-spinner {
   display: block;
   margin: 0 auto;
+}
+
+mat-dialog-actions {
+  margin: 0;
+  padding: 0 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
