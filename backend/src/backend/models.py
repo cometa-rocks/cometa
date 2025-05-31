@@ -1360,6 +1360,8 @@ class Schedule(models.Model):
     feature = models.ForeignKey(Feature, on_delete=models.CASCADE, null=True, blank=True, related_name="schedules")
     parameters = models.JSONField(default=dict,null=True, blank=True)
     schedule = models.CharField(max_length=255)
+    original_cron = models.CharField(max_length=255, null=True, blank=True, help_text="Original cron expression as entered by user")
+    original_timezone = models.CharField(max_length=50, null=True, blank=True, help_text="Timezone in which the original cron was entered")
     command = models.CharField(max_length=255, blank=True, null=True)
     comment = models.CharField(max_length=255, blank=True, null=True)
     owner = models.ForeignKey(OIDCAccount, on_delete=models.SET_NULL, null=True,blank=True, related_name="schedule_owner")

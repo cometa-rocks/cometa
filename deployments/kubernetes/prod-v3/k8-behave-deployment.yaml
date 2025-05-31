@@ -108,17 +108,12 @@ spec:
           requests:
             cpu: "1"
             memory: "1Gi"
-      hostAliases:
-      - ip: "172.29.57.233"
-        hostnames:
-          - "emprodev.mindeservices.com"
-      - ip: "172.29.55.176"
-        hostnames:
-          - "uatabani.motherson.com"
-      - ip: "172.29.57.207"
-        hostnames:
-          - "empro-dev.mindeservices.com"
-        
+      # hostAliases:
+      # - ip: "your_ip"
+      #   hostnames:
+      #     - "hostname1"
+      #     - "hostname2"
+     
       volumes:
       - name: cometa-volume
         persistentVolumeClaim:

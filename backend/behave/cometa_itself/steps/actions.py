@@ -3746,7 +3746,7 @@ def fetch_all_network_requests(context):
     context.browser.execute(
         "executeCdpCommand",
         {
-            "cmd": "Network.enable",
+            "cmd": "Network.disable",
             "params": {}
         }
     )

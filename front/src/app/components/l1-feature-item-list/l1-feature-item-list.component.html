@@ -192,7 +192,7 @@ Author: dph000
                     matTooltipPosition="above">
                 <img alt="schedule url not found" class="my-icons schedule-image" src="assets/icons/calendar.svg">
                 <span>Schedule:&nbsp;</span>
-                <span>{{ item.schedule }}</span>
+                <span>{{ item.original_cron || item.schedule }}</span>
               </span>
             </ng-container>
 
@@ -201,7 +201,7 @@ Author: dph000
               matTooltipPosition="above" class="schedule-active">
                 <img alt="schedule url not found" class="schedule-image" src="assets/icons/calendar.svg">
                 <span>Schedule:&nbsp;</span>
-                <span>{{ item.schedule }}</span>
+                <span>{{ item.original_cron || item.schedule }}</span>
               </span>
             </ng-template>
           </p>
