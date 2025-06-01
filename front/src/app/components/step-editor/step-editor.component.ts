@@ -41,6 +41,7 @@ import {
   forkJoin,
   Observable,
   of,
+  take,
 } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import {
@@ -181,7 +182,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
     private logger: LogService,
-    private _sharedActions: SharedActionsService,
+    private _sharedActions: SharedActionsService
   ) {
     super();
     this.stepsForm = this._fb.array([]);
@@ -262,7 +263,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
     if (clear) this.stepsForm.clear();
-    steps.forEach(step => {
+    steps.forEach((step, index) => {
       const formGroup = this._fb.group({
         enabled: step.enabled,
         screenshot: step.screenshot,
@@ -278,9 +279,49 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         timeout: step.timeout || this.department?.settings?.step_timeout || 60
       });
 
-
-
       this.stepsForm.push(formGroup);
+
+      // Procesar feature links al cargar los steps
+      if (step.step_content?.startsWith('Run feature with id') || step.step_content?.startsWith('Run feature with name')) {
+        const match = step.step_content.match(/"([^"]*)"/);
+        if (match) {
+          const searchValue = match[1];
+          if (step.step_content.startsWith('Run feature with id')) {
+            const featureId = parseInt(searchValue, 10);
+            if (!isNaN(featureId)) {
+              this.allFeatures$.pipe(take(1)).subscribe(features => {
+                const userDepartments = this.user.departments.map(dept => dept.department_id);
+                const feature = features.find(f => 
+                  f.feature_id === featureId && 
+                  userDepartments.includes(f.department_id)
+                );
+                if (feature) {
+                  this.stepStates[index] = {
+                    featureId: featureId,
+                    showLinkIcon: true
+                  };
+                  this._cdr.detectChanges();
+                }
+              });
+            }
+          } else {
+            this.allFeatures$.pipe(take(1)).subscribe(features => {
+              const userDepartments = this.user.departments.map(dept => dept.department_id);
+              const matchingFeature = features.find(f => 
+                f.feature_name === searchValue && 
+                userDepartments.includes(f.department_id)
+              );
+              if (matchingFeature) {
+                this.stepStates[index] = {
+                  featureId: matchingFeature.feature_id,
+                  showLinkIcon: true
+                };
+                this._cdr.detectChanges();
+              }
+            });
+          }
+        }
+      }
     });
     this._cdr.detectChanges();
   }
@@ -508,7 +549,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           this.allFeatures$.subscribe(features => {
             // Get user's departments
             const userDepartments = this.user.departments.map(dept => dept.department_id);
-            
             // Filter features by name and user's departments
             const matchingFeature = features.find(f => 
               f.feature_name === searchValue && 
@@ -593,6 +633,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
     if (this.stepVariableData.strWithoutQuotes.includes('$')) {
+      // Do not display variables or the dialog if the step is "Run Javascript function"
+      if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
+        this.displayedVariables = [];
+        this.stepVariableData.currentStepIndex = null;
+        return;
+      }
+
       const filteredVariables = this.variables.filter(item =>
         item.variable_name.includes(
           this.stepVariableData.strWithoutQuotes.replace('$', '')
@@ -781,7 +828,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.showHideStepDocumentation = !this.showHideStepDocumentation
   }
 
-  @ViewChild(MatAutocompleteTrigger) autocompleteTrigger!: MatAutocompleteTrigger;
+  @ViewChildren(MatAutocompleteTrigger) autocompleteTriggers: QueryList<MatAutocompleteTrigger>;
 
 
   // @HostListener('document:keydown', ['$event'])
@@ -1027,8 +1074,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       timeout: stepToCopy.value.timeout,
     });
 
-
-
     this.stepsForm.insert(index, newStepToCopy);
 
     const stepFormGroup = this.stepsForm.at(index) as FormGroup;
@@ -1064,6 +1109,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       };
     }
     this._cdr.detectChanges();
+    
+    // Focus the new step
+    this.focusStep(index);
   }
 
   drop(event: CdkDragDrop<string[]>) {
@@ -1252,21 +1300,41 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   insertStep(event: KeyboardEvent, i: number){
     event.preventDefault();
+    // Cerrar el autocompletado
+    const autocompletePanel = document.querySelector('.mat-autocomplete-panel');
+    if (autocompletePanel) {
+        autocompletePanel.remove();
+    }
+    // También limpiar las variables mostradas
+    this.displayedVariables = [];
+    this.stepVariableData.currentStepIndex = null;
+    this.isAutocompleteOpened = false;
+    
     if(event.key == 'ArrowDown'){
-      this.addEmpty(i+1);
+        this.addEmpty(i+1);
     }
     else if (event.key == 'ArrowUp'){
-      this.addEmpty(i);
+        this.addEmpty(i);
     }
   }
 
   copyStep(event: KeyboardEvent, i: number){
     event.preventDefault();
+    // Cerrar el autocompletado
+    const autocompletePanel = document.querySelector('.mat-autocomplete-panel');
+    if (autocompletePanel) {
+        autocompletePanel.remove();
+    }
+    // También limpiar las variables mostradas
+    this.displayedVariables = [];
+    this.stepVariableData.currentStepIndex = null;
+    this.isAutocompleteOpened = false;
+    
     if(event.key == 'ArrowDown'){
-      this.copyItem(i+1, 'down');
+        this.copyItem(i+1, 'down');
     }
     else if (event.key == 'ArrowUp'){
-      this.copyItem(i, 'up');
+        this.copyItem(i, 'up');
     }
   }
 

@@ -1,5 +1,5 @@
 {
-  "version": "3.0.53",
+  "version": "3.0.54",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.54",
+      "date": "2025-05-30",
+      "features": [
+        {
+          "title": "Fix (UI) dialogs, step editor, and live steps, others - #6360",
+          "description": "Dialogs scaling, JS function ellipsis, editor resizing, variable name warning, and status display issues have all been resolved."
+        }
+      ]
+    },
     {
       "version": "3.0.53",
       "date": "2025-05-29",
