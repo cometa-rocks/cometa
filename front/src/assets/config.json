@@ -237,6 +237,20 @@
   ],
   "changelog": [
     {
+      "version": "3.0.52",
+      "date": "2025-05-28",
+      "features": [
+        {
+          "title": "Go to Department and Go to Folder buttons in feature list",
+          "description": "Added Go to Department and Go to Folder buttons in feature list to navigate to the department or folder where the feature is located."
+        },
+        {
+          "title": "Fixed the size of the buttons in administration section",
+          "description": "Fixed the size of the buttons in others section (administration) to be more visible and easier to use."
+        }
+      ]
+    },
+    {
       "version": "3.0.51",
       "date": "2025-05-28",
       "features": [
