@@ -503,6 +503,27 @@
   max-height: 300px;
 }
 
+::ng-deep .mat-autocomplete-panel {
+  .mat-optgroup {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .mat-optgroup-label {
+      color: $blue;
+      font-weight: 500;
+      padding: 8px 16px;
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+
+    .mat-option {
+      padding-left: 32px;
+    }
+  }
+}
+
 .fixed-autocomplete {
   position: relative !important;
   width: 100% !important;

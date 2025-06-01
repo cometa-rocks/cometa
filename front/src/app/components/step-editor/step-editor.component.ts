@@ -165,6 +165,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   private editingApiCallIndex: number | null = null;
 
+  filteredGroupedActions$ = new BehaviorSubject<{ name: string; actions: Action[] }[]>([]);
+
   constructor(
     private _dialog: MatDialog,
     private _api: ApiService,
@@ -332,6 +334,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // @ts-ignore
     if (!this.feature) this.feature = { feature_id: 0 };
     const featureId = this.mode === 'clone' ? 0 : this.feature.feature_id;
+    
+    // Initialize filteredGroupedActions$ with the grouped actions
+    this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
     
     this.subs.sink = this._store
       .select(CustomSelectors.GetFeatureSteps(featureId))
@@ -517,6 +522,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     const textarea = event.target as HTMLTextAreaElement;
     const textareaValue = textarea.value.trim();
+
+    // Filter actions based on input
+    if (textareaValue) {
+      const filteredActions = this.actions.filter(action => 
+        action.action_name.toLowerCase().includes(textareaValue.toLowerCase())
+      );
+      this.filteredGroupedActions$.next(this.getGroupedActions(filteredActions));
+    } else {
+      this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+    }
 
     // Check if step starts with "Run feature with id" or "Run feature with name"
     if (textareaValue.startsWith('Run feature with id') || textareaValue.startsWith('Run feature with name')) {
@@ -853,7 +868,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }, 400);
     this.snack.open('Text copied to clipboard', 'Close');
     }).catch(err => {
-      console.error('Error copying: ', err);
+      // Silently handle the error without logging to console
       this.snack.open('Error copying text', 'Close');
     });
   }
@@ -1434,6 +1449,41 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     
     // The "Select All" checkbox is marked as true only if the number of steps with compare is equal to the total number of steps
     return stepsWithCompare.length === totalSteps;
+  }
+
+  getGroupedActions(actions: Action[]): { name: string; actions: Action[] }[] {
+    const groups = {
+      'Browser Steps': [] as Action[],
+      'Mobile Steps': [] as Action[],
+      'API Steps': [] as Action[],
+      'Database Steps': [] as Action[],
+      'Other Steps': [] as Action[]
+    };
+
+    actions.forEach(action => {
+      const stepType = action.step_type?.toUpperCase() || '';
+      switch (stepType) {
+        case 'BROWSER':
+          groups['Browser Steps'].push(action);
+          break;
+        case 'MOBILE':
+          groups['Mobile Steps'].push(action);
+          break;
+        case 'API':
+          groups['API Steps'].push(action);
+          break;
+        case 'DATABASE':
+          groups['Database Steps'].push(action);
+          break;
+        default:
+          groups['Other Steps'].push(action);
+      }
+    });
+
+    // Return only non-empty groups
+    return Object.entries(groups)
+      .filter(([_, actions]) => actions.length > 0)
+      .map(([name, actions]) => ({ name, actions }));
   }
 
   onCompareChange(event: MatCheckboxChange, i: number) {
