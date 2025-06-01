@@ -1,5 +1,5 @@
 {
-  "version": "3.0.52",
+  "version": "3.0.53",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,15 +237,29 @@
   ],
   "changelog": [
     {
+      "version": "3.0.53",
+      "date": "2025-05-29",
+      "features": [
+        {
+          "title": "Show the user the different steps grouped by sections - #6328",
+          "description": "Steps section are grouped by category (browser, mobile, API, etc.)"
+        }
+      ]
+    },
+    {
       "version": "3.0.52",
       "date": "2025-05-28",
       "features": [
+        {
+          "title": "Go to Department and Go to Folder buttons in feature list - #6343",
+          "description": "Added Go to Department and Go to Folder buttons in feature list to navigate to the department or folder where the feature is located."
+        },
         {
           "title": "Go to Department and Go to Folder buttons in feature list",
           "description": "Added Go to Department and Go to Folder buttons in feature list to navigate to the department or folder where the feature is located."
         },
         {
-          "title": "Fixed the size of the buttons in administration section",
+          "title": "Fixed the size of the buttons in administration section - #6343",
           "description": "Fixed the size of the buttons in others section (administration) to be more visible and easier to use."
         }
       ]
