@@ -16,6 +16,7 @@ h2 {
 
 .button-row {
   margin: 2%, 3%;
+  width: 210px;
 }
 
 account:nth-child(2n + 2) {
@@ -27,6 +28,8 @@ account:nth-child(2n + 2) {
   font-size: 16px !important;
   font-weight: bold !important;
   margin-top: 20px !important;
+  width: 210px;
+  text-align: left;
 }
 
 ::ng-deep .mat-icon {
