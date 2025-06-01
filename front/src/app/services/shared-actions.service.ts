@@ -154,7 +154,7 @@ export class SharedActionsService {
     )(featureId);
     this._dialog
       .open(EditSchedule, {
-        panelClass: 'edit-schedule-panel',
+        panelClass: 'no-resize-dialog',
         data: featureStore.feature_id,
       })
       .afterClosed()
@@ -484,7 +484,7 @@ export class SharedActionsService {
   /**
    * Performs the overriding action through the Store
    */
-  setResultStatus(result: FeatureResult, status: 'Success' | 'Failed' | '') {
+  setResultStatus(result: FeatureResult, status: 'Success' | 'Failed' | 'Canceled' | '') {
     // Launch Store action to process it
     return this._api.patchFeatureResult(
       result.feature_result_id,

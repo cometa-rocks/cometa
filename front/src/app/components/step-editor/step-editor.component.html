@@ -203,7 +203,6 @@
               (keydown.alt.control.arrowdown)="copyStep($event, i)"
               class="code"
               spellcheck="false"
-              cdkTextareaAutosize
               autocomplete="off"
               formControlName="step_content"
               [matAutocomplete]="stepHelp"
@@ -235,7 +234,7 @@
                   <span class="var_value">={{ variable.variable_value }}</span>
                 </div>
                 <ng-template #noVariable>
-                  <div class="variable-wrapper">
+                  <div class="variable-wrapper" *ngIf="!step.get('step_content').value?.startsWith('Run Javascript function')">
                     <span class="no-variable">No variable with this name</span>
                   </div>
                 </ng-template>
@@ -350,11 +349,14 @@
               (optionSelected)="selectFirstVariable($event, i)"
               (optionActivated)="onOptionActivated($event, i)"
               (closed)="closeAutocomplete(i)">
-          
-
-              <mat-option *ngFor="let action of actions | filterStep: step.value.step_content : false" [value]="action.action_name">
-                {{ action.action_name }}
-              </mat-option>
+              
+              <ng-container *ngFor="let group of filteredGroupedActions$ | async">
+                <mat-optgroup [label]="group.name">
+                  <mat-option *ngFor="let action of group.actions" [value]="action.action_name">
+                    {{ action.action_name }}
+                  </mat-option>
+                </mat-optgroup>
+              </ng-container>
 
             </mat-autocomplete>
           </div>

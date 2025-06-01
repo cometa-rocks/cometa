@@ -11,6 +11,8 @@ import os.path
 import datetime
 import traceback
 import sys
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 from backend.utility.encryption import (
     decrypt,
     update_ENCRYPTION_START,
@@ -391,3 +393,29 @@ def load_configurations():
         )
 
         conf.close_db_connection()
+
+# this file name and path should be same as behave configuration FILE_NAME and CONFIGURATION_UPDATE_WATCHED_DIRECTORY
+FILE_NAME = "config_tracker.txt"
+CONFIGURATION_UPDATE_WATCHED_DIRECTORY = "/code/config"
+
+CONFIGURATION_UPDATE_WATCHED_FILE = os.path.join(CONFIGURATION_UPDATE_WATCHED_DIRECTORY, FILE_NAME)
+
+def update_config_tracker():
+    with open(CONFIGURATION_UPDATE_WATCHED_FILE, "w") as f:
+        time = datetime.datetime.utcnow().isoformat()
+        logger.debug(f"Updating configuration tracker at {time}")
+        f.write(time)
+
+class FileChangeHandler(FileSystemEventHandler):
+    def on_modified(self, event):
+        if event.src_path.endswith(FILE_NAME):
+            logger.debug(f"Change detected in {CONFIGURATION_UPDATE_WATCHED_FILE}, loading configurations")
+            load_configurations()
+
+def setup_config_file_watcher():
+    observer = Observer()
+    event_handler = FileChangeHandler()
+    observer.schedule(event_handler, path=CONFIGURATION_UPDATE_WATCHED_DIRECTORY, recursive=False)
+    observer.start()
+    logger.info(f"Configuration update watcher started, used file{CONFIGURATION_UPDATE_WATCHED_FILE}")
+    return observer

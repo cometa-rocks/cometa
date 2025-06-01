@@ -39,6 +39,7 @@ kubernetes = "31.0.0"
 matplotlib = "^3.10.1"
 seaborn = "^0.13.2"
 sqlalchemy = "^2.0.40"
+watchdog = "^6.0.0"
 
 [tool.poetry.dev-dependencies]
 

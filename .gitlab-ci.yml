@@ -141,6 +141,10 @@ stages:
     # - echo "If there are changes to docker-compose file it will recreate the container..."
     # - docker-compose up -d apache 2>&1 | grep -E "up-to-date|cometa_front.*?Running" && docker exec cometa_front bash -c "./start.sh $script_options" || ( timeout 360 docker-compose logs -f --tail=0 apache || true )
 
+    # ############## Update Crontab and Websocket ######################
+    # Since pull_policy is set to always it will pull image each time it deployed with "latest" tag
+    - docker compose up --force-recreate crontab ws
+
     #########################################################
     # RELOAD GUNICORNS
     #########################################################
