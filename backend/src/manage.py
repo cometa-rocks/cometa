@@ -18,8 +18,9 @@ if __name__ == "__main__":
         ) from exc
     
     # This load configurations from DB and set it to Configuration class
-    from backend.utility.configurations import load_configurations
+    from backend.utility.configurations import load_configurations, setup_config_file_watcher
     load_configurations()
+    setup_config_file_watcher()
     
     # This initiates migrations for the first time and creates __init__.py file in migrations folder
     from initiate.initiate_setups import initiate_migrations
