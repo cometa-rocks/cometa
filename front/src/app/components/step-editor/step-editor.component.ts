@@ -41,6 +41,7 @@ import {
   forkJoin,
   Observable,
   of,
+  take,
 } from 'rxjs';
 import { CustomSelectors } from '@others/custom-selectors';
 import {
@@ -164,6 +165,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   private editingApiCallIndex: number | null = null;
 
+  filteredGroupedActions$ = new BehaviorSubject<{ name: string; actions: Action[] }[]>([]);
+
   constructor(
     private _dialog: MatDialog,
     private _api: ApiService,
@@ -179,7 +182,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
     private logger: LogService,
-    private _sharedActions: SharedActionsService,
+    private _sharedActions: SharedActionsService
   ) {
     super();
     this.stepsForm = this._fb.array([]);
@@ -260,7 +263,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   setSteps(steps: FeatureStep[], clear: boolean = true) {
     if (clear) this.stepsForm.clear();
-    steps.forEach(step => {
+    steps.forEach((step, index) => {
       const formGroup = this._fb.group({
         enabled: step.enabled,
         screenshot: step.screenshot,
@@ -276,9 +279,49 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         timeout: step.timeout || this.department?.settings?.step_timeout || 60
       });
 
-
-
       this.stepsForm.push(formGroup);
+
+      // Procesar feature links al cargar los steps
+      if (step.step_content?.startsWith('Run feature with id') || step.step_content?.startsWith('Run feature with name')) {
+        const match = step.step_content.match(/"([^"]*)"/);
+        if (match) {
+          const searchValue = match[1];
+          if (step.step_content.startsWith('Run feature with id')) {
+            const featureId = parseInt(searchValue, 10);
+            if (!isNaN(featureId)) {
+              this.allFeatures$.pipe(take(1)).subscribe(features => {
+                const userDepartments = this.user.departments.map(dept => dept.department_id);
+                const feature = features.find(f => 
+                  f.feature_id === featureId && 
+                  userDepartments.includes(f.department_id)
+                );
+                if (feature) {
+                  this.stepStates[index] = {
+                    featureId: featureId,
+                    showLinkIcon: true
+                  };
+                  this._cdr.detectChanges();
+                }
+              });
+            }
+          } else {
+            this.allFeatures$.pipe(take(1)).subscribe(features => {
+              const userDepartments = this.user.departments.map(dept => dept.department_id);
+              const matchingFeature = features.find(f => 
+                f.feature_name === searchValue && 
+                userDepartments.includes(f.department_id)
+              );
+              if (matchingFeature) {
+                this.stepStates[index] = {
+                  featureId: matchingFeature.feature_id,
+                  showLinkIcon: true
+                };
+                this._cdr.detectChanges();
+              }
+            });
+          }
+        }
+      }
     });
     this._cdr.detectChanges();
   }
@@ -291,6 +334,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // @ts-ignore
     if (!this.feature) this.feature = { feature_id: 0 };
     const featureId = this.mode === 'clone' ? 0 : this.feature.feature_id;
+    
+    // Initialize filteredGroupedActions$ with the grouped actions
+    this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
     
     this.subs.sink = this._store
       .select(CustomSelectors.GetFeatureSteps(featureId))
@@ -477,6 +523,16 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     const textarea = event.target as HTMLTextAreaElement;
     const textareaValue = textarea.value.trim();
 
+    // Filter actions based on input
+    if (textareaValue) {
+      const filteredActions = this.actions.filter(action => 
+        action.action_name.toLowerCase().includes(textareaValue.toLowerCase())
+      );
+      this.filteredGroupedActions$.next(this.getGroupedActions(filteredActions));
+    } else {
+      this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+    }
+
     // Check if step starts with "Run feature with id" or "Run feature with name"
     if (textareaValue.startsWith('Run feature with id') || textareaValue.startsWith('Run feature with name')) {
       // Extract content between quotes
@@ -493,7 +549,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           this.allFeatures$.subscribe(features => {
             // Get user's departments
             const userDepartments = this.user.departments.map(dept => dept.department_id);
-            
             // Filter features by name and user's departments
             const matchingFeature = features.find(f => 
               f.feature_name === searchValue && 
@@ -578,6 +633,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     // if the string without quotes contains dollar char, removes it and then the rest of the string is used to filter variables by name
     if (this.stepVariableData.strWithoutQuotes.includes('$')) {
+      // Do not display variables or the dialog if the step is "Run Javascript function"
+      if (this.stepVariableData.stepValue.startsWith('Run Javascript function')) {
+        this.displayedVariables = [];
+        this.stepVariableData.currentStepIndex = null;
+        return;
+      }
+
       const filteredVariables = this.variables.filter(item =>
         item.variable_name.includes(
           this.stepVariableData.strWithoutQuotes.replace('$', '')
@@ -766,7 +828,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.showHideStepDocumentation = !this.showHideStepDocumentation
   }
 
-  @ViewChild(MatAutocompleteTrigger) autocompleteTrigger!: MatAutocompleteTrigger;
+  @ViewChildren(MatAutocompleteTrigger) autocompleteTriggers: QueryList<MatAutocompleteTrigger>;
 
 
   // @HostListener('document:keydown', ['$event'])
@@ -806,7 +868,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }, 400);
     this.snack.open('Text copied to clipboard', 'Close');
     }).catch(err => {
-      console.error('Error copying: ', err);
+      // Silently handle the error without logging to console
       this.snack.open('Error copying text', 'Close');
     });
   }
@@ -1012,8 +1074,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       timeout: stepToCopy.value.timeout,
     });
 
-
-
     this.stepsForm.insert(index, newStepToCopy);
 
     const stepFormGroup = this.stepsForm.at(index) as FormGroup;
@@ -1049,6 +1109,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       };
     }
     this._cdr.detectChanges();
+    
+    // Focus the new step
+    this.focusStep(index);
   }
 
   drop(event: CdkDragDrop<string[]>) {
@@ -1237,21 +1300,41 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   insertStep(event: KeyboardEvent, i: number){
     event.preventDefault();
+    // Cerrar el autocompletado
+    const autocompletePanel = document.querySelector('.mat-autocomplete-panel');
+    if (autocompletePanel) {
+        autocompletePanel.remove();
+    }
+    // También limpiar las variables mostradas
+    this.displayedVariables = [];
+    this.stepVariableData.currentStepIndex = null;
+    this.isAutocompleteOpened = false;
+    
     if(event.key == 'ArrowDown'){
-      this.addEmpty(i+1);
+        this.addEmpty(i+1);
     }
     else if (event.key == 'ArrowUp'){
-      this.addEmpty(i);
+        this.addEmpty(i);
     }
   }
 
   copyStep(event: KeyboardEvent, i: number){
     event.preventDefault();
+    // Cerrar el autocompletado
+    const autocompletePanel = document.querySelector('.mat-autocomplete-panel');
+    if (autocompletePanel) {
+        autocompletePanel.remove();
+    }
+    // También limpiar las variables mostradas
+    this.displayedVariables = [];
+    this.stepVariableData.currentStepIndex = null;
+    this.isAutocompleteOpened = false;
+    
     if(event.key == 'ArrowDown'){
-      this.copyItem(i+1, 'down');
+        this.copyItem(i+1, 'down');
     }
     else if (event.key == 'ArrowUp'){
-      this.copyItem(i, 'up');
+        this.copyItem(i, 'up');
     }
   }
 
@@ -1366,6 +1449,41 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     
     // The "Select All" checkbox is marked as true only if the number of steps with compare is equal to the total number of steps
     return stepsWithCompare.length === totalSteps;
+  }
+
+  getGroupedActions(actions: Action[]): { name: string; actions: Action[] }[] {
+    const groups = {
+      'Browser Steps': [] as Action[],
+      'Mobile Steps': [] as Action[],
+      'API Steps': [] as Action[],
+      'Database Steps': [] as Action[],
+      'Other Steps': [] as Action[]
+    };
+
+    actions.forEach(action => {
+      const stepType = action.step_type?.toUpperCase() || '';
+      switch (stepType) {
+        case 'BROWSER':
+          groups['Browser Steps'].push(action);
+          break;
+        case 'MOBILE':
+          groups['Mobile Steps'].push(action);
+          break;
+        case 'API':
+          groups['API Steps'].push(action);
+          break;
+        case 'DATABASE':
+          groups['Database Steps'].push(action);
+          break;
+        default:
+          groups['Other Steps'].push(action);
+      }
+    });
+
+    // Return only non-empty groups
+    return Object.entries(groups)
+      .filter(([_, actions]) => actions.length > 0)
+      .map(([name, actions]) => ({ name, actions }));
   }
 
   onCompareChange(event: MatCheckboxChange, i: number) {
