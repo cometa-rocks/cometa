@@ -307,6 +307,11 @@ class ActionAdmin(admin.ModelAdmin):
     list_display = ("action_id", "action_name", "step_type")
     list_filter = ('step_type',)
 
+class ScheduleAdmin(admin.ModelAdmin):
+    model = Schedule
+    # search_fields = ['action_name']
+    list_display = ("id", "schedule", "comment", "created_on", "delete_after_days")
+
   
 class InviteAdmin(admin.ModelAdmin):
     model = Invite
@@ -336,7 +341,7 @@ admin.site.register(Action, ActionAdmin)
 admin.site.register(Permissions, AdminPermissions)
 admin.site.register(Cloud, AdminCloud)
 admin.site.register(AuthenticationProvider)
-admin.site.register(Schedule)
+admin.site.register(Schedule,ScheduleAdmin)
 admin.site.register(Invite, InviteAdmin)
 admin.site.register(Integration, IntegrationAdmin)
 admin.site.register(IntegrationPayload)

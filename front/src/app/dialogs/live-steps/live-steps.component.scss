@@ -116,27 +116,30 @@ h2 {
   padding-right: 10px;
   box-sizing: border-box;
   scrollbar-gutter: stable;
-  overflow-y: scroll;
   & > div {
     flex: initial;
     &.text {
       flex: 1;
       margin-left: 34px !important;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     &.screenshot {
       flex: 0 75px;
       text-align: center;
     }
-    &:first-child {
+    &.index {
       margin-right: 5px;
       flex: 0 25px;
       text-align: center;
     }
-    &:last-child {
-      margin-left: 5px;
+    &:not(.index):not(.text):not(:last-child) {
+      margin-right: 5px;
     }
-    &:not(:first-child):not(:last-child) {
-      margin: 0 5px;
+    &:not(.index):not(.text):not(:first-child) {
+       margin-left: 5px;
     }
   }
 }
@@ -291,6 +294,9 @@ mat-label {
 
     .mobile-name {
       flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .mobile-status {
@@ -298,6 +304,7 @@ mat-label {
       align-items: center;
       gap: 4px;
       font-size: 12px;
+      white-space: nowrap;
       
       mat-icon {
         font-size: 8px;
@@ -334,12 +341,16 @@ mat-label {
       gap: 8px;
       font-size: 12px;
       color: rgba(0, 0, 0, 0.87);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
 
       mat-icon {
         font-size: 16px;
         width: 16px;
         height: 16px;
         color: rgba(0, 0, 0, 0.54);
+        flex-shrink: 0;
       }
     }
   }

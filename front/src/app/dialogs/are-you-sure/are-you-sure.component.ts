@@ -15,6 +15,7 @@ import { MatLegacyButtonModule } from '@angular/material/legacy-button';
   imports: [MatLegacyDialogModule, MatLegacyButtonModule],
 })
 export class AreYouSureDialog {
+  static panelClass = 'no-resize-dialog';
   translatePrefix = 'translate:';
 
   constructor(

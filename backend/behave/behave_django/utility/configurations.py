@@ -1,9 +1,14 @@
+# Behave Configuration Manager
+
 import os.path
 import traceback, requests
 import sys, time
 from .encryption import decrypt, update_ENCRYPTION_PASSPHRASE, update_ENCRYPTION_START, update_COMETA_UPLOAD_ENCRYPTION_PASSPHRASE
 import json
 from .common import get_logger
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import datetime
 
 logger = get_logger()
 
@@ -64,8 +69,7 @@ class ConfigurationManager:
 
 
 def load_configurations():
-
-
+    logger.debug("Loading configurations")
     if len(sys.argv) > 1:
         configuration_loaded = False
         
@@ -97,4 +101,31 @@ def load_configurations():
                 logger.error("Error in loading configurations, will retry in 5 seconds")
                 traceback.print_exc()
                 time.sleep(5)
-                
+
+# this file name and path should be same as src configuration FILE_NAME and CONFIGURATION_UPDATE_WATCHED_DIRECTORY
+FILE_NAME = "config_tracker.txt"
+CONFIGURATION_UPDATE_WATCHED_DIRECTORY = "/code/config"
+
+CONFIGURATION_UPDATE_WATCHED_FILE = os.path.join(CONFIGURATION_UPDATE_WATCHED_DIRECTORY, FILE_NAME)
+
+def update_config_tracker():
+    with open(CONFIGURATION_UPDATE_WATCHED_FILE, "w") as f:
+        time = datetime.datetime.utcnow().isoformat()
+        logger.debug(f"Updating configuration tracker at {time}")
+        f.write(time)
+
+class FileChangeHandler(FileSystemEventHandler):
+    def on_modified(self, event):
+        logger.info(f"Change detected in {event.src_path}")
+        if event.src_path.endswith(FILE_NAME):
+            logger.debug(f"Change detected in {CONFIGURATION_UPDATE_WATCHED_FILE}, loading configurations")
+            load_configurations()
+
+
+def setup_config_file_watcher():
+    observer = Observer()
+    event_handler = FileChangeHandler()
+    observer.schedule(event_handler, path=CONFIGURATION_UPDATE_WATCHED_DIRECTORY, recursive=False)
+    observer.start()
+    logger.info(f"Configuration update watcher started, used file{CONFIGURATION_UPDATE_WATCHED_FILE}")
+    return observer

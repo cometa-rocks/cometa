@@ -35,6 +35,9 @@ def run_command(command: str):
                 request_body = None
 
             try:
+                logger.info(
+                    f"Sending HTTP request to {parsed_info['url']}, Request Method : {parsed_info.get('method')}, Request body : {request_body}"
+                )
                 response = requests.request(
                     method=parsed_info.get("method"),
                     json=request_body,
@@ -65,6 +68,7 @@ def update_jobs(scheduler, jobs, called_by="Scheduler"):
     logger.info(f"Updating jobs, Called by {called_by}")
 
     # Add new jobs from fetched schedules
+    os.makedirs(os.path.dirname(JOB_LIST_FILE_PATH), exist_ok=True)
     job_file = open(JOB_LIST_FILE_PATH, "w")
     for job_info in jobs:
         job_file.writelines(job_info+"\n")
@@ -77,5 +81,5 @@ def update_jobs(scheduler, jobs, called_by="Scheduler"):
                               max_instances=100)
 
     # Add auto update job to the scheduler
-    scheduler.add_job(lambda: update_jobs(scheduler, get_schedules()), 'interval', minutes=1)
+    scheduler.add_job(lambda: update_jobs(scheduler, get_schedules()), 'interval', minutes=1, misfire_grace_time=10 )
     job_file.close()
