@@ -143,7 +143,7 @@ stages:
 
     # ############## Update Crontab and Websocket ######################
     # Since pull_policy is set to always it will pull image each time it deployed with "latest" tag
-    - docker compose up --force-recreate crontab ws
+    - docker compose up --force-recreate crontab ws -d
 
     #########################################################
     # RELOAD GUNICORNS
