@@ -1,5 +1,5 @@
 {
-  "version": "3.0.54",
+  "version": "3.0.55",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.55",
+      "date": "2025-06-01",
+      "features": [
+        {
+          "title": "Upgraded NodeJS version - #4229",
+          "description": "Upgraded NodeJS version to from v14 to v18" 
+        }
+      ]
+    },
     {
       "version": "3.0.54",
       "date": "2025-05-30",
