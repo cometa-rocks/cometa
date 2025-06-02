@@ -23,6 +23,33 @@ HELPERS="helpers"
 # source logger function if not sourced already
 test `command -v log_wfr` || source "${HELPERS}/logger.sh" || exit
 
+function SHOW_HELP() {
+    cat <<EOF
+Cometa Setup Script (version ${VERSION})
+Usage: $0 [OPTIONS]
+
+Options:
+  -h, --help                Show this help message and exit
+  -d, --debug               Enable debug mode (set -x)
+  -l, --logs [container]    Show logs for a container (selenoid|all)
+  -r, --restart [container] Restart and recreate a container (e.g. selenoid)
+  --root-mount-point        Use /data as the mount point instead of ./data
+  --remove-cometa           Backup data, stop and remove Cometa and Redis volume
+  --update-docker           (WIP) Update Docker and related components
+
+Description:
+  This script sets up and manages the Cometa test automation platform using Docker.
+  It checks system requirements, prepares configuration, and starts all necessary containers.
+
+Examples:
+  $0 --help
+  $0 --logs selenoid
+  $0 --restart front
+
+For more information, see the documentation or contact support.
+EOF
+}
+
 info "------------------------------------------------------------------------"
 info "This is $0 version ${VERSION} running for your convinience"
 info "------------------------------------------------------------------------"
@@ -436,6 +463,16 @@ do
         --root-mount-point)
             MOUNTPOINT="root"
             shift
+            ;;
+        --remove-cometa)
+            info "Backup data directory"
+            tar -czvf ../cometa_data.tgz data/
+            info "Stopping Cometa"
+            docker-compose down
+            info "Removing Cometa Redis volume"
+            docker volume rm cometa_redis_data
+            info "Cometa has been removed. You are save to delete this directory and start with a fresh clone."
+            exit 0
             ;;
     esac
 done
