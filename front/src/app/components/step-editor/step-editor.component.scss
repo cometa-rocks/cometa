@@ -125,12 +125,15 @@
     }
 
     // Safari
-    @media screen and (-webkit-min-device-pixel-ratio:0) { 
-      _::-webkit-full-page-media, _:future, :root .prefix {
-        margin-left: 135px;
-        margin-right: 40px;
+    @media not all and (min-resolution: 0.001dpcm) {
+      @supports (-webkit-appearance:none) {
+        .your-element {
+          margin-left: 135px;
+          margin-right: 40px;
+        }
       }
     }
+    
 
     // Edge
     @supports (-ms-ime-align:auto) {
