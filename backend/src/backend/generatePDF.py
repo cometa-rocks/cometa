@@ -183,6 +183,7 @@ class GeneratePDF(View):
     """
     def send_mail(self):
         feature = Feature.objects.get(feature_id=self.feature_id)
+        self.feature = feature
         should_send_the_email = True
         
         # if feature is set to check for notification on error 
@@ -574,7 +575,7 @@ class GeneratePDF(View):
 
         pdf_email_part = ""
 
-        if len(self.pdf.content) >= pdfFileSizeLimit and self.feature_result.attach_pdf_report_to_email:
+        if len(self.pdf.content) >= pdfFileSizeLimit and self.feature.attach_pdf_report_to_email:
            pdf_email_part = """
             PDF file size (%.2fMB) is over the threshold (%.2fMB) and will not be attached to the email, choose from options below to either download of view the pdf:
             <ul>
