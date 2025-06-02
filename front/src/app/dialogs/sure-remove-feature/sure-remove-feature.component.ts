@@ -28,6 +28,8 @@ import { LetDirective } from '../../directives/ng-let.directive';
   ],
 })
 export class SureRemoveFeatureComponent {
+  static panelClass = 'no-resize-dialog';
+
   constructor(
     private dialogRef: MatDialogRef<SureRemoveFeatureComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,

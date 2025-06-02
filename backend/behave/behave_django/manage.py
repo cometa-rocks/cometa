@@ -14,7 +14,8 @@ if __name__ == "__main__":
         ) from exc
     
     # This is Behave configuration reader, which read configuration values before django starts
-    from utility.configurations import load_configurations   
+    from utility.configurations import load_configurations,   setup_config_file_watcher
     load_configurations()
+    setup_config_file_watcher()
         
     execute_from_command_line(sys.argv)
