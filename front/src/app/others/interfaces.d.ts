@@ -226,6 +226,8 @@ interface Feature {
   steps_content?: FeatureStep[];
   continue_on_failure?: boolean;
   need_help: boolean;
+  send_notification?: boolean;
+  send_telegram_notification?: boolean;
   current_folder_id?: number;
 }
 
@@ -348,6 +350,8 @@ interface SendFeature {
   email_body: string;
   last_edited: number;
   video: boolean;
+  send_notification?: boolean;
+  send_telegram_notification?: boolean;
 }
 
 interface GroupContent {
@@ -510,6 +514,8 @@ interface SendSaveFeature {
   send_mail_on_error: boolean;
   last_edited: number;
   video: boolean;
+  send_notification?: boolean;
+  send_telegram_notification?: boolean;
 }
 
 interface Config {

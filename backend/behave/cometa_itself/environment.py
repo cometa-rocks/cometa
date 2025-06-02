@@ -881,7 +881,6 @@ def after_all(context):
     })
 
     if hasattr(context, "network_responses") and context.network_logging_enabled:
-
         network_response_count = 0
         vulnerable_response_count = 0
         logger.debug(
@@ -920,6 +919,92 @@ def after_all(context):
         sendemail = requests.get(f'{get_cometa_backend_url()}/pdf/?feature_result_id=%s' % os.environ['feature_result_id'],
                                 headers={'Host': 'cometa.local'})
         logger.debug('SendEmail status: ' + str(sendemail.status_code))
+        
+        # Send Telegram notification after all processing is complete
+        try:
+            from telegram_notifications import send_telegram_notification
+            
+            # Get feature data to check if Telegram notifications are enabled
+            feature_data = json.loads(os.environ["FEATURE_DATA"])
+            
+            # Check if the feature has Telegram notifications enabled
+            if feature_data.get('send_telegram_notification', False):
+                logger.info("Telegram notifications enabled for this feature, preparing to send...")
+                
+                # Get department chat IDs from feature data or fetch from API
+                department_chat_ids = feature_data.get('department_telegram_chat_ids', '')
+                
+                if not department_chat_ids:
+                    # Fallback: fetch department settings from API
+                    try:
+                        department_id = feature_data["department_id"]
+                        api_url = f'{get_cometa_backend_url()}/api/departments/{department_id}/'
+                        dept_response = requests.get(api_url, headers={'Host': 'cometa.local'})
+                        
+                        if dept_response.status_code == 200:
+                            dept_data = dept_response.json()
+                            
+                            # Handle case where API returns all departments in 'results' array
+                            if 'results' in dept_data:
+                                # Find our specific department in the results array
+                                target_dept = None
+                                for dept in dept_data['results']:
+                                    if dept.get('department_id') == department_id:
+                                        target_dept = dept
+                                        break
+                            if target_dept:
+                                dept_settings = target_dept.get('settings', {})
+                            else:
+                                logger.error(f"Department {department_id} not found in API results")
+                                dept_settings = {}
+                        else:
+                            # Handle case where API returns single department object
+                            dept_settings = dept_data.get('settings', {})
+                        
+                        department_chat_ids = dept_settings.get('telegram_chat_ids', '')
+                    except Exception as e:
+                        logger.error(f"Error fetching department settings for Telegram: {str(e)}")
+            
+            if department_chat_ids:
+                # Wait a bit for any remaining image processing to complete
+                import time
+                time.sleep(2)
+                
+                # Get the final feature result data which includes the correct pixel_diff
+                headers = {"Content-type": "application/json", "Host": "cometa.local"}
+                request_info = requests.get(f"{get_cometa_backend_url()}/api/feature_results/%s" % os.environ['feature_result_id'],
+                                        headers=headers)
+                final_result = request_info.json()['result']
+                
+                # Prepare feature result data for Telegram message
+                telegram_data = {
+                    'feature_name': feature_data.get('feature_name', 'Unknown Feature'),
+                    'app_name': feature_data.get('app_name', 'Unknown App'),
+                    'environment_name': feature_data.get('environment_name', 'Unknown Environment'),
+                    'department_name': feature_data.get('department_name', 'Unknown Department'),
+                    'total': final_result.get('total', 0),
+                    'ok': final_result.get('ok', 0),
+                    'fails': final_result.get('fails', 0),
+                    'skipped': final_result.get('skipped', 0),
+                    'success': final_result.get('success', False),
+                    'execution_time': final_result.get('execution_time', 0),
+                    'pixel_diff': final_result.get('pixel_diff', 0),
+                    'result_date': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+                }
+                
+                # Send Telegram notification
+                send_result = send_telegram_notification(telegram_data, department_chat_ids, os.environ['feature_result_id'])
+                if send_result:
+                    logger.info("Telegram notification sent successfully")
+                else:
+                    logger.warning("Failed to send Telegram notification")
+            else:
+                logger.warning("No Telegram chat IDs configured for this department")
+        except ImportError as ie:
+            logger.error(f"Telegram notifications module not found: {str(ie)}")
+        except Exception as e:
+            logger.error(f"Error sending Telegram notification: {str(e)}")
+        
         # remove download folder if no files where downloaded during the testcase
         downloadedFiles = glob.glob(context.downloadDirectoryOutsideSelenium + "/*")
         if len(downloadedFiles) == 0:
