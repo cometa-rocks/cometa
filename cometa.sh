@@ -23,6 +23,33 @@ HELPERS="helpers"
 # source logger function if not sourced already
 test `command -v log_wfr` || source "${HELPERS}/logger.sh" || exit
 
+function SHOW_HELP() {
+    cat <<EOF
+Cometa Setup Script (version ${VERSION})
+Usage: $0 [OPTIONS]
+
+Options:
+  -h, --help                Show this help message and exit
+  -d, --debug               Enable debug mode (set -x)
+  -l, --logs [container]    Show logs for a container (selenoid|all)
+  -r, --restart [container] Restart and recreate a container (e.g. selenoid)
+  --root-mount-point        Use /data as the mount point instead of ./data
+  --remove-cometa           Backup data, stop and remove Cometa and Redis volume
+  --update-docker           (WIP) Update Docker and related components
+
+Description:
+  This script sets up and manages the Cometa test automation platform using Docker.
+  It checks system requirements, prepares configuration, and starts all necessary containers.
+
+Examples:
+  $0 --help
+  $0 --logs selenoid
+  $0 --restart front
+
+For more information, see the documentation or contact support.
+EOF
+}
+
 info "------------------------------------------------------------------------"
 info "This is $0 version ${VERSION} running for your convinience"
 info "------------------------------------------------------------------------"
@@ -75,11 +102,11 @@ function checkDocker() {
     # Get the current ulimit value
     current_ulimit=$(ulimit -n)
     
-    info "Ulimit is to $current_ulimit."
+    info "Ulimit is: $current_ulimit."
     # Check if ulimit is less than 8192
-    if [ "$current_ulimit" -lt 8192 ]; then
-    error "Current ulimit is $current_ulimit which is not sufficient to run cometa."
-    cat <<EOF 
+    if [ "${current_ulimit}" -lt 8192 ]; then
+        error "Current ulimit is ${current_ulimit} which is not sufficient to run cometa."
+cat <<EOF
 
 Instructions to change ulimit :
     First Way
@@ -103,7 +130,7 @@ Exit installation ... Exited
 EOF
     exit 5;
     else
-        info "Ulimit is set to 8192. ulimit is sufficient to run cometa "
+        info "Ulimit is set to ${current_ulimit}. ulimit is sufficient to run cometa "
     fi
 
     
@@ -114,7 +141,7 @@ EOF
     # Get available disk space in gigabytes (using awk to extract the relevant information)
     if [[ "$(uname)" == "Darwin" ]]; then
         # macOS: check root disk
-        available_disk_space=$(df -h / | awk 'NR==2 { print $4 }' | sed 's/G//')
+        available_disk_space=$(df -h / | awk 'NR==2 { print $4 }' | sed 's/Gi//')
     else
         # Linux: check Docker's storage location
         available_disk_space=$(df -h /var/lib/docker | awk 'NR==2 { print $4 }' | sed 's/G//')
@@ -122,7 +149,7 @@ EOF
     # Extract only the numeric part (including decimal point)
     available_disk_space=$(echo "$available_disk_space" | sed 's/[^0-9.]//g')
     
-    info "Available disk space: $available_gb GB."
+    info "Available disk space: $available_disk_space GB."
 
     # Check if available disk space is less than the minimum required
     if (( available_disk_space < minimum_disk_space )); then
@@ -212,7 +239,7 @@ function checkRAMSpace() {
         info "Compared your RAM memory to be at least 8Gb."
         info "Your RAM memory is lower than 8Gb. Cometa may run into performance issues."
     else
-        info "Cometa will run smoothly."
+        info "Cometa will fit in there nicely."
     fi
 }
 
@@ -236,7 +263,7 @@ function updateCrontab() {
 
 function initiate_config_dirs(){
     info "Initiating config dirs"
-    if ./init_dirs.sh; then
+    if ./scripts/init_dirs.sh; then
         info "Initiating config dirs - DONE"
     else
         warning "Failed to initiate config dirs"
@@ -277,6 +304,7 @@ function get_cometa_up_and_running() {
     #
     # Calls updateCrontab to update browsers and restart gunicorn
     #
+    info "Updating crontab for housekeeping and gunicorn"
     updateCrontab "0 0 * * * cd $CURRENT_PATH/backend/scripts && ./housekeeping.sh" "housekeeping.sh"
     updateCrontab "0 0 * * * bash -c \"docker exec cometa_django fuser -k -HUP 8000/tcp\"" "gunicorn"
 
@@ -292,12 +320,21 @@ function get_cometa_up_and_running() {
     sed -i_template "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <outside_port> in docker-compose.yml with 80"
 
     #
+    # Check if data/front/apache2/metadata/accounts.google.com.client or data/front/apache2/metadata/git.amvara.de.client exists
+    #
+    if [ ! -f "data/front/apache2/metadata/accounts.google.com.client" ] && [ ! -f "data/front/apache2/metadata/git.amvara.de.client" ]; then
+        warning "data/front/apache2/metadata/accounts.google.com.client nor data/front/apache2/metadata/git.amvara.de.client file does not exist"
+        warning "Please create it and add your oAuth client credentials"
+        exit 5
+    fi
+
+    #
     # Check client id has been replaced
     #
-    if grep -Rq "COMETA" "front/apache2/metadata/accounts.google.com.client"  ; then
+    if grep -Rq "COMETA" "data/front/apache2/metadata/accounts.google.com.client"  ; then
         warning "Found default string in front/apache2/metadata/accounts.google.com.client file - you must replace this before going forward."
         read -n 1 -s -r -p "Press any key to continue"
-        if grep -Rq "GITCLIENTID" "front/apache2/metadata/git.amvara.de.client"  ; then
+        if grep -Rq "GITCLIENTID" "data/front/apache2/metadata/git.amvara.de.client"  ; then
             warning "Found default string in front/apache2/metadata/git.amvara.de.client file - you must replace this before going forward."
             warning "If neither Google nor Gitlab is configured, you will not be able to login."
             warning "Going forward with installation does not make sense, until SSO is configured. Exiting."
@@ -334,7 +371,7 @@ function get_cometa_up_and_running() {
     #
     if [ "${RUNSELENOIDSCRIPT:-false}" = "true" ]; then
         info "Downloading latest browser versions"
-        ./backend/selenoid/deploy_selenoid.sh -n 3 || warning "Something went wrong getting the latests browsers for the system"
+        ./backend/selenoid/deploy_selenoid.sh -n 1 || warning "Something went wrong getting the latests browsers for the system"
     fi
 
     #
@@ -349,14 +386,33 @@ function get_cometa_up_and_running() {
     # Total timeout
     TOTAL_TIMEOUT=$(($MAX_RETRIES*$WAIT_RETRY))
 
-    log_wfr "Waiting for parseBrowsers"
+    # Disable docker hints
+    export DOCKER_CLI_HINTS=false
+
+    info "Waiting for containers to become healthy (timeout: ${TOTAL_TIMEOUT} seconds)..."
+
+    # check if docker-compose contains django start command
+    if ! grep -qE '^\s*command:\s*bash start\.sh' docker-compose.yml; then
+        info "Django service command is NOT 'bash start.sh -dev'"
+        # your logic here
+    fi
+
+
+    # Check inside django container if gunicorn is running
+    log_wfr "Waiting for gunicorn to start "
+    docker exec -it cometa_django ps aux | grep gunicorn | grep -v grep > /dev/null 2>&1 && log_res "[done]" || { log_res "[failed]"; info "Starting cometa_django container"; docker exec cometa_django ./start.sh > /dev/null 2>&1 & }
+
+    # Wait for django to become healthy
+    log_wfr "Waiting for parseBrowsers "
     retry "docker exec -it cometa_django curl --fail http://localhost:8000/parseBrowsers/ -o /dev/null -s " && log_res "[done]" || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container django is not running"; }
 
-    log_wfr "Waiting for parseActions"
+    log_wfr "Waiting for parseActions "
     retry "docker exec -it cometa_django curl --fail http://localhost:8000/parseActions/ -o /dev/null -s " && log_res "[done]" || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container django is not running"; }
 
     log_wfr "Waiting for frontend to compile angular typescript into executable code "
     retry "curl --fail --insecure https://localhost/ -o /dev/null  -s -L" && log_res "[done] Feeling happy " || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container front is not running"; }
+
+    export DOCKER_CLI_HINTS=true
 
 } # end of function get_cometa_up_and_running
 
@@ -407,6 +463,16 @@ do
         --root-mount-point)
             MOUNTPOINT="root"
             shift
+            ;;
+        --remove-cometa)
+            info "Backup data directory"
+            tar -czvf ../cometa_data.tgz data/
+            info "Stopping Cometa"
+            docker-compose down
+            info "Removing Cometa Redis volume"
+            docker volume rm cometa_redis_data
+            info "Cometa has been removed. You are save to delete this directory and start with a fresh clone."
+            exit 0
             ;;
     esac
 done
