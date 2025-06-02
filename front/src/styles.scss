@@ -638,6 +638,8 @@ h3 {
   min-width: 95%;
   min-height: 60%;
   .mat-dialog-container {
+    max-height: 100dvh;
+    max-width: 100dvw;
     resize: both;
     overflow: auto;
     overflow-y: hidden;

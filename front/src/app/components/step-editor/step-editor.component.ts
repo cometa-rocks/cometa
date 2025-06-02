@@ -338,6 +338,12 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // Initialize filteredGroupedActions$ with the grouped actions
     this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
     
+    // Detect Safari and add class to body
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (isSafari) {
+      document.body.classList.add('safari-only');
+    }
+    
     this.subs.sink = this._store
       .select(CustomSelectors.GetFeatureSteps(featureId))
       .subscribe(steps => {
