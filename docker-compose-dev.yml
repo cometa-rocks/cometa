@@ -19,8 +19,7 @@ services:
     platform: linux/amd64
     logging:
       driver: json-file
-    command:  sleep infinity
-    # command: bash start.sh -dev
+    command: bash start.sh -dev
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/cometa:/data:rw
