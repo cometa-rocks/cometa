@@ -116,10 +116,29 @@
               <div class="hover-box">(D)</div>
             </div>
             <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox color="primary" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">
-                Send email on finish
-              </mat-checkbox>
-              <div class="hover-box">(M)</div>
+              <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
+              <div class="hover-box">(H)</div>
+            </div>
+            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+              <mat-checkbox color="primary" formControlName="send_notification" [matTooltip]="'Enable notifications (email and/or Telegram) when test finishes'" matTooltipPosition="above">Send notification on finish</mat-checkbox>
+              <div class="hover-box">(N)</div>
+            </div>
+            
+            <!-- Notification sub-options -->
+            <div class="notification-group" *ngIf="featureForm.value.send_notification">
+              <div class="vertical-divider"></div>
+              <div class="notification-options">
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <mat-checkbox color="primary" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">
+                    Email
+                  </mat-checkbox>
+                  <div class="hover-box">(M)</div>
+                </div>
+                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                  <mat-checkbox color="primary" formControlName="send_telegram_notification" [matTooltip]="'Send test results via Telegram notification'" matTooltipPosition="above">Telegram</mat-checkbox>
+                  <div class="hover-box">(T)</div>
+                </div>
+              </div>
             </div>
             <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
               <mat-checkbox color="primary" *ngIf="!featureForm.value.depends_on_others" formControlName="video" [matTooltip]="'edit_feature.record_video' | translate" matTooltipPosition="above">
@@ -135,7 +154,7 @@
                 [matTooltip]="'edit_feature.network_logging' | translate" matTooltipPosition="above">
                 Network Logging
               </mat-checkbox>
-              <div class="hover-box">(N)</div>
+              <div class="hover-box">(L)</div>
             </div>
             <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
               <mat-checkbox
@@ -154,10 +173,6 @@
                 </mat-checkbox>
                 <div class="hover-box">(F)</div>
               </ng-container>
-            </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
-              <div class="hover-box">(H)</div>
             </div>
             <ng-container *ngLet="(!featureForm.value.environment_name || !featureForm.value.department_name) as disableVariables">
               <div class="checkbox-container move-right">
@@ -206,7 +221,7 @@
       <!-- EMAIL -->
       <mat-expansion-panel
         *ngIf="
-          featureForm.value.send_mail && !featureForm.value.depends_on_others
+          featureForm.value.send_notification && featureForm.value.send_mail && !featureForm.value.depends_on_others
         "
         [expanded]="!config$.toggles.hideSendMail && features[0].panels[1].expanded"
         (opened)="onExpansionChange(featureId, '2', true); "
