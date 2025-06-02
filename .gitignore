@@ -10,3 +10,6 @@ data/
 .env
 cometa_ai/src/api/staticfiles/admin/
 cometa_ai/src/api/staticfiles/rest_framework/
+
+# ignore mac files
+.DS_Store
