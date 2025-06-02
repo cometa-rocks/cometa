@@ -277,6 +277,7 @@ function get_cometa_up_and_running() {
     #
     # Calls updateCrontab to update browsers and restart gunicorn
     #
+    info "Updating crontab for housekeeping and gunicorn"
     updateCrontab "0 0 * * * cd $CURRENT_PATH/backend/scripts && ./housekeeping.sh" "housekeeping.sh"
     updateCrontab "0 0 * * * bash -c \"docker exec cometa_django fuser -k -HUP 8000/tcp\"" "gunicorn"
 
@@ -292,12 +293,21 @@ function get_cometa_up_and_running() {
     sed -i_template "s|<outside_port>|80|g" docker-compose.yml && info "Replaced <outside_port> in docker-compose.yml with 80"
 
     #
+    # Check if data/front/apache2/metadata/accounts.google.com.client or data/front/apache2/metadata/git.amvara.de.client exists
+    #
+    if [ ! -f "data/front/apache2/metadata/accounts.google.com.client" ] && [ ! -f "data/front/apache2/metadata/git.amvara.de.client" ]; then
+        warning "data/front/apache2/metadata/accounts.google.com.client nor data/front/apache2/metadata/git.amvara.de.client file does not exist"
+        warning "Please create it and add your oAuth client credentials"
+        exit 5
+    fi
+
+    #
     # Check client id has been replaced
     #
-    if grep -Rq "COMETA" "front/apache2/metadata/accounts.google.com.client"  ; then
+    if grep -Rq "COMETA" "data/front/apache2/metadata/accounts.google.com.client"  ; then
         warning "Found default string in front/apache2/metadata/accounts.google.com.client file - you must replace this before going forward."
         read -n 1 -s -r -p "Press any key to continue"
-        if grep -Rq "GITCLIENTID" "front/apache2/metadata/git.amvara.de.client"  ; then
+        if grep -Rq "GITCLIENTID" "data/front/apache2/metadata/git.amvara.de.client"  ; then
             warning "Found default string in front/apache2/metadata/git.amvara.de.client file - you must replace this before going forward."
             warning "If neither Google nor Gitlab is configured, you will not be able to login."
             warning "Going forward with installation does not make sense, until SSO is configured. Exiting."
@@ -334,7 +344,7 @@ function get_cometa_up_and_running() {
     #
     if [ "${RUNSELENOIDSCRIPT:-false}" = "true" ]; then
         info "Downloading latest browser versions"
-        ./backend/selenoid/deploy_selenoid.sh -n 3 || warning "Something went wrong getting the latests browsers for the system"
+        ./backend/selenoid/deploy_selenoid.sh -n 1 || warning "Something went wrong getting the latests browsers for the system"
     fi
 
     #
@@ -349,14 +359,33 @@ function get_cometa_up_and_running() {
     # Total timeout
     TOTAL_TIMEOUT=$(($MAX_RETRIES*$WAIT_RETRY))
 
-    log_wfr "Waiting for parseBrowsers"
+    # Disable docker hints
+    export DOCKER_CLI_HINTS=false
+
+    info "Waiting for containers to become healthy (timeout: ${TOTAL_TIMEOUT} seconds)..."
+
+    # check if docker-compose contains django start command
+    if ! grep -qE '^\s*command:\s*bash start\.sh' docker-compose.yml; then
+        info "Django service command is NOT 'bash start.sh -dev'"
+        # your logic here
+    fi
+
+
+    # Check inside django container if gunicorn is running
+    log_wfr "Waiting for gunicorn to start "
+    docker exec -it cometa_django ps aux | grep gunicorn | grep -v grep > /dev/null 2>&1 && log_res "[done]" || { log_res "[failed]"; info "Starting cometa_django container"; docker exec cometa_django ./start.sh > /dev/null 2>&1 & }
+
+    # Wait for django to become healthy
+    log_wfr "Waiting for parseBrowsers "
     retry "docker exec -it cometa_django curl --fail http://localhost:8000/parseBrowsers/ -o /dev/null -s " && log_res "[done]" || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container django is not running"; }
 
-    log_wfr "Waiting for parseActions"
+    log_wfr "Waiting for parseActions "
     retry "docker exec -it cometa_django curl --fail http://localhost:8000/parseActions/ -o /dev/null -s " && log_res "[done]" || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container django is not running"; }
 
     log_wfr "Waiting for frontend to compile angular typescript into executable code "
     retry "curl --fail --insecure https://localhost/ -o /dev/null  -s -L" && log_res "[done] Feeling happy " || { log_res "[failed]"; warning "Waited for ${TOTAL_TIMEOUT} seconds, docker-container front is not running"; }
+
+    export DOCKER_CLI_HINTS=true
 
 } # end of function get_cometa_up_and_running
 
