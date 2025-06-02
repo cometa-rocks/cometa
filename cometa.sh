@@ -102,11 +102,11 @@ function checkDocker() {
     # Get the current ulimit value
     current_ulimit=$(ulimit -n)
     
-    info "Ulimit is to $current_ulimit."
+    info "Ulimit is: $current_ulimit."
     # Check if ulimit is less than 8192
-    if [ "$current_ulimit" -lt 8192 ]; then
-    error "Current ulimit is $current_ulimit which is not sufficient to run cometa."
-    cat <<EOF 
+    if [ "${current_ulimit}" -lt 8192 ]; then
+        error "Current ulimit is ${current_ulimit} which is not sufficient to run cometa."
+cat <<EOF
 
 Instructions to change ulimit :
     First Way
@@ -130,7 +130,7 @@ Exit installation ... Exited
 EOF
     exit 5;
     else
-        info "Ulimit is set to 8192. ulimit is sufficient to run cometa "
+        info "Ulimit is set to ${current_ulimit}. ulimit is sufficient to run cometa "
     fi
 
     
@@ -141,7 +141,7 @@ EOF
     # Get available disk space in gigabytes (using awk to extract the relevant information)
     if [[ "$(uname)" == "Darwin" ]]; then
         # macOS: check root disk
-        available_disk_space=$(df -h / | awk 'NR==2 { print $4 }' | sed 's/G//')
+        available_disk_space=$(df -h / | awk 'NR==2 { print $4 }' | sed 's/Gi//')
     else
         # Linux: check Docker's storage location
         available_disk_space=$(df -h /var/lib/docker | awk 'NR==2 { print $4 }' | sed 's/G//')
@@ -149,7 +149,7 @@ EOF
     # Extract only the numeric part (including decimal point)
     available_disk_space=$(echo "$available_disk_space" | sed 's/[^0-9.]//g')
     
-    info "Available disk space: $available_gb GB."
+    info "Available disk space: $available_disk_space GB."
 
     # Check if available disk space is less than the minimum required
     if (( available_disk_space < minimum_disk_space )); then
@@ -239,7 +239,7 @@ function checkRAMSpace() {
         info "Compared your RAM memory to be at least 8Gb."
         info "Your RAM memory is lower than 8Gb. Cometa may run into performance issues."
     else
-        info "Cometa will run smoothly."
+        info "Cometa will fit in there nicely."
     fi
 }
 
