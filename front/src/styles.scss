@@ -376,9 +376,9 @@ h3 {
   background-color: $blue !important;
 }
 
-.mat-dialog-content {
-  width: 500px;
-}
+// .mat-dialog-content {
+//   width: 500px;
+// }
 
 .enter-value-panel .mat-dialog-content {
   width: auto !important;
@@ -657,6 +657,7 @@ h3 {
   display: flex;
   flex-direction: column;
 }
+
 .mobile-emulator-panel {
   width: 80vw;
   height: 85vh;
