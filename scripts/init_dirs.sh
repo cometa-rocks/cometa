@@ -113,7 +113,7 @@ fi
 
 # Copy front/apache2/metadata
 if [ -d "./front/apache2/metadata" ]; then
-    cp -r "./front/apache2/metadata" "$BASE_DIR/front/apache2/"
+    rsync -a --update "./front/apache2/metadata" "$BASE_DIR/front/apache2/"
     info "Copied: ./front/apache2/metadata -> $BASE_DIR/front/apache2/metadata"
 else
     info "Source file not found - ./front/metadata"

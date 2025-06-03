@@ -101,6 +101,7 @@ export class ModifyDepartmentComponent {
       ],
       result_expire_days: [expireDays],
       queue_name: [this.department.settings?.queue_name || ''],
+      telegram_chat_ids: [this.department.settings?.telegram_chat_ids || ''],
       validate_duplicate_feature_names: [
         this.department.settings?.validate_duplicate_feature_names === true,
       ],
@@ -151,6 +152,7 @@ export class ModifyDepartmentComponent {
           ? values.result_expire_days
           : null,
         queue_name: values.queue_name,
+        telegram_chat_ids: values.telegram_chat_ids,
         validate_duplicate_feature_names: values.validate_duplicate_feature_names,
       },
     };
