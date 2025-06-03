@@ -281,6 +281,14 @@ class FeatureRunInfoSerializer(serializers.ModelSerializer):
 #############################
 # Feature model serializers #
 #############################
+class FeatureTelegramOptionsSerializer(serializers.ModelSerializer):
+    """
+    Serializer for FeatureTelegramOptions model
+    """
+    class Meta:
+        model = FeatureTelegramOptions
+        fields = '__all__'
+
 class FeatureSerializer(serializers.ModelSerializer, FeatureMixin):
 
     # get info about the latest feature result
@@ -291,6 +299,7 @@ class FeatureSerializer(serializers.ModelSerializer, FeatureMixin):
     original_cron = serializers.CharField(source='schedule.original_cron', allow_null=True, default="")
     original_timezone = serializers.CharField(source='schedule.original_timezone', allow_null=True, default="")
     last_edited_date = serializers.DateTimeField(format=datetimeTZFormat)
+    telegram_options = FeatureTelegramOptionsSerializer(many=False, read_only=True)
 
     class Meta:
         model = Feature

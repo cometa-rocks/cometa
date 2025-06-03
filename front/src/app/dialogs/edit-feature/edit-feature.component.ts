@@ -105,6 +105,7 @@ import { MtxGridColumn } from '@ng-matero/extensions/grid';
 import { FilesManagementComponent } from '@components/files-management/files-management.component';
 import { PageEvent } from '@angular/material/paginator';
 import { Departments } from '@store/actions/departments.actions';
+import { TelegramNotificationHelp } from './telegram-notification-help/telegram-notification-help.component';
 
 
 @Component({
@@ -148,7 +149,8 @@ import { Departments } from '@store/actions/departments.actions';
     TranslateModule,
     DraggableWindowModule,
     MobileListComponent,
-    FilesManagementComponent
+    FilesManagementComponent,
+    TelegramNotificationHelp
   ],
 })
 export class EditFeature implements OnInit, OnDestroy {
@@ -440,7 +442,7 @@ export class EditFeature implements OnInit, OnDestroy {
       {
         id: this.featureId,
         name: '',
-        panels: Array.from({ length: 6 }, (_, i) => ({ id: (i + 1).toString(), expanded: false }))
+        panels: Array.from({ length: 7 }, (_, i) => ({ id: (i + 1).toString(), expanded: false }))
       }
     ];
 
@@ -473,6 +475,25 @@ export class EditFeature implements OnInit, OnDestroy {
       generate_dataset: [false],
       need_help: [false],
       send_telegram_notification: [false],
+      telegram_options: this._fb.group({
+        include_department: [false],
+        include_application: [false],
+        include_environment: [false],
+        include_feature_name: [false],
+        include_datetime: [false],
+        include_execution_time: [false],
+        include_browser_timezone: [false],
+        include_browser: [false],
+        include_overall_status: [false],
+        include_step_results: [false],
+        include_pixel_diff: [false],
+        attach_pdf_report: [false],
+        attach_screenshots: [false],
+        custom_message: [''],
+        send_on_error: [false],
+        check_maximum_notification_on_error_telegram: [false],
+        maximum_notification_on_error_telegram: ['3']
+      }),
       send_mail_on_error: [false],
       check_maximum_notification_on_error: [false],
       maximum_notification_on_error: ['3'],
@@ -934,7 +955,7 @@ export class EditFeature implements OnInit, OnDestroy {
           break;
         case KEY_CODES.M:
           if(!event.ctrlKey && !this.inputFocus) {
-            // Send email
+            // Send notification on finish
             this.toggleDependsOnOthers(KeyPressed);
           }
           break;
@@ -957,12 +978,6 @@ export class EditFeature implements OnInit, OnDestroy {
           }
           break;
         case KEY_CODES.N:
-          if(!event.ctrlKey && !this.inputFocus) {
-            // Send notification on finish (parent control)
-            this.toggleDependsOnOthers(KeyPressed);
-          }
-          break;
-        case KEY_CODES.L:
           if(!event.ctrlKey && !this.inputFocus) {
             // Network logging
             this.toggleDependsOnOthers(KeyPressed);
@@ -1023,8 +1038,8 @@ export class EditFeature implements OnInit, OnDestroy {
       const dependsOnOthers = this.featureForm.get('depends_on_others').value;
       if(dependsOnOthers === false) {
         if(KeyPressed === KEY_CODES.M) {
-          const sendMail = this.featureForm.get('send_mail').value;
-          this.featureForm.get('send_mail').setValue(!sendMail);
+          const sendNotification = this.featureForm.get('send_notification').value;
+          this.featureForm.get('send_notification').setValue(!sendNotification);
         }
         else if (KeyPressed === KEY_CODES.R) {
           const video = this.featureForm.get('video').value;
@@ -1370,6 +1385,14 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       }
       
+      // Special handling for nested telegram_options FormGroup
+      if (featureInfo.telegram_options) {
+        const telegramOptionsGroup = this.featureForm.get('telegram_options') as UntypedFormGroup;
+        if (telegramOptionsGroup) {
+          telegramOptionsGroup.patchValue(featureInfo.telegram_options);
+        }
+      }
+      
       // Backward compatibility: Enable send_notification if send_mail or send_telegram_notification are enabled
       // but send_notification is not explicitly set
       if (featureInfo.send_notification === undefined || featureInfo.send_notification === null) {
@@ -1462,14 +1485,17 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   openEmailHelp() {
-    // this._dialog.open(EmailTemplateHelp);
-
-    // Close help dialog when pressing escape, but keep edit dialog open
-    const dialogRef = this._dialog.open(EmailTemplateHelp);
-    dialogRef.afterClosed().subscribe(() => {
-      // Dialog closed
+    this._dialog.open(EmailTemplateHelp, {
+      autoFocus: false,
+      panelClass: 'help-panel',
     });
+  }
 
+  openTelegramHelp() {
+    this._dialog.open(TelegramNotificationHelp, {
+      autoFocus: false,
+      panelClass: 'help-panel',
+    });
   }
 
   /**
@@ -2071,7 +2097,7 @@ export class EditFeature implements OnInit, OnDestroy {
   // Handle panel toggle events from files-management component
   onFilePanelToggled(isExpanded: boolean): void {
     // Update panel state if needed
-    this.onExpansionChange(this.featureId, '3', isExpanded);
+    this.onExpansionChange(this.featureId, '4', isExpanded);
   }
   
   // Handle pagination events from files-management component

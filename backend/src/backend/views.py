@@ -67,6 +67,7 @@ from backend.utility.config_handler import *
 # from silk.profiling.profiler import silk_profile
 from modules.container_service.service_manager import DockerServiceManager, ServiceManager
 from backend.utility.timezone_utils import convert_cron_to_utc, recalculate_schedule_if_needed
+import logging
 
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
@@ -2749,13 +2750,53 @@ class FeatureViewSet(viewsets.ModelViewSet):
         # Retrieve feature model fields
         fields = feature._meta.get_fields()
         # Make some exceptions
-        exceptions = ['feature_id', 'schedule']
+        exceptions = ['feature_id', 'schedule', 'telegram_options']
         # Iterate over each field of model
         for field in fields:
             # Check if the field exists in data payload
             if field.name in data and field.name not in exceptions:
                 # Set value into model field with default to previous value
                 setattr(feature, field.name, data.get(field.name, getattr(feature, field.name)))
+
+        # Handle telegram_options separately since it's a OneToOne relationship
+        if 'telegram_options' in data:
+            from backend.models import FeatureTelegramOptions
+            telegram_data = data['telegram_options']
+            
+            # Get or create telegram options for this feature
+            telegram_options, created = FeatureTelegramOptions.objects.get_or_create(
+                feature=feature,
+                defaults={
+                    'include_department': False,
+                    'include_application': False,
+                    'include_environment': False,
+                    'include_feature_name': False,
+                    'include_datetime': False,
+                    'include_execution_time': False,
+                    'include_browser_timezone': False,
+                    'include_browser': False,
+                    'include_overall_status': False,
+                    'include_step_results': False,
+                    'include_pixel_diff': False,
+                    'attach_pdf_report': False,
+                    'attach_screenshots': False,
+                    'custom_message': '',
+                    'send_on_error': False,
+                    'check_maximum_notification_on_error_telegram': False,
+                    'maximum_notification_on_error_telegram': 3,
+                    'number_notification_sent_telegram': 0
+                }
+            )
+            
+            # Update the telegram options with the provided data
+            for key, value in telegram_data.items():
+                if hasattr(telegram_options, key):
+                    setattr(telegram_options, key, value)
+            
+            # Save the telegram options
+            telegram_options.save()
+            
+            logger.debug(f"Updated telegram options for feature {feature.feature_id}: created={created}")
 
         """
         Update last edited fields
@@ -4197,6 +4238,61 @@ def CometaUsage(request):
     # 5. number of failed tests
     '''
 
+@csrf_exempt
+def send_telegram_notification_view(request):
+    """
+    Send Telegram notification for a completed feature result
+    
+    Expected GET parameters:
+    - feature_result_id: ID of the feature result to send notification for
+    
+    Returns:
+        JsonResponse with success status and message
+    """
+    logger = logging.getLogger("TelegramNotificationView")
+    
+    if request.method != 'GET':
+        logger.warning(f"Invalid request method: {request.method}")
+        return JsonResponse({'success': False, 'error': 'Only GET method allowed'})
+    
+    try:
+        feature_result_id = request.GET.get('feature_result_id')
+        logger.info(f"Received Telegram notification request for feature_result_id: {feature_result_id}")
+        
+        if not feature_result_id:
+            logger.error("Missing feature_result_id parameter")
+            return JsonResponse({'success': False, 'error': 'feature_result_id parameter is required'})
+        
+        # Get the feature result
+        try:
+            feature_result = Feature_result.objects.get(feature_result_id=feature_result_id)
+            logger.debug(f"Found feature result: {feature_result.feature_name} (ID: {feature_result_id})")
+        except Feature_result.DoesNotExist:
+            logger.error(f"Feature result not found for ID: {feature_result_id}")
+            return JsonResponse({'success': False, 'error': f'Feature result with ID {feature_result_id} not found'})
+        
+        # Create notification manager and send notification
+        from backend.utility.notification_manager import NotificationManger
+        try:
+            notification_manager = NotificationManger("telegram")
+            logger.debug("Created Telegram notification manager")
+            
+            success = notification_manager.send_message(feature_result)
+            
+            if success:
+                logger.info(f"Telegram notification sent successfully for feature_result_id: {feature_result_id}")
+                return JsonResponse({'success': True, 'message': 'Telegram notification sent successfully'})
+            else:
+                logger.warning(f"Telegram notification failed for feature_result_id: {feature_result_id}")
+                return JsonResponse({'success': False, 'message': 'Failed to send Telegram notification'})
+                
+        except Exception as e:
+            logger.error(f"Error in notification manager for feature_result_id {feature_result_id}: {str(e)}")
+            return JsonResponse({'success': False, 'error': f'Notification manager error: {str(e)}'})
+            
+    except Exception as e:
+        logger.error(f"Unexpected error in send_telegram_notification_view: {str(e)}")
+        return JsonResponse({'success': False, 'error': f'Unexpected error: {str(e)}'})
 
 # import EE Modules
 from backend.ee.modules.data_driven.views import (
