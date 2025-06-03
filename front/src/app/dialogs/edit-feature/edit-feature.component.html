@@ -119,24 +119,21 @@
               <mat-checkbox color="primary" formControlName="need_help" [matTooltip]="'edit_feature.explanation' | translate" matTooltipPosition="above">{{ 'need_help.ask_for' | translate }}</mat-checkbox>
               <div class="hover-box">(H)</div>
             </div>
-            <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
-              <mat-checkbox color="primary" formControlName="send_notification" [matTooltip]="'Enable notifications (email and/or Telegram) when test finishes'" matTooltipPosition="above">Send notification on finish</mat-checkbox>
-              <div class="hover-box">(N)</div>
-            </div>
-            
-            <!-- Notification sub-options -->
-            <div class="notification-group" *ngIf="featureForm.value.send_notification">
-              <div class="vertical-divider"></div>
-              <div class="notification-options">
-                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+            <div class="checkbox-container notification-parent" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+              <div class="main-checkbox-wrapper">
+                <mat-checkbox color="primary" formControlName="send_notification" [matTooltip]="'Enable notifications (email and/or Telegram) when test finishes'" matTooltipPosition="above">Send notification on finish</mat-checkbox>
+                <div class="hover-box">(M)</div>
+              </div>
+              
+              <!-- Notification sub-options -->
+              <div class="notification-sub-options" *ngIf="featureForm.value.send_notification">
+                <div class="checkbox-container sub-checkbox">
                   <mat-checkbox color="primary" formControlName="send_mail" [matTooltip]="'edit_feature.send_mail' | translate" matTooltipPosition="above">
                     Email
                   </mat-checkbox>
-                  <div class="hover-box">(M)</div>
                 </div>
-                <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
+                <div class="checkbox-container sub-checkbox">
                   <mat-checkbox color="primary" formControlName="send_telegram_notification" [matTooltip]="'Send test results via Telegram notification'" matTooltipPosition="above">Telegram</mat-checkbox>
-                  <div class="hover-box">(T)</div>
                 </div>
               </div>
             </div>
@@ -154,7 +151,7 @@
                 [matTooltip]="'edit_feature.network_logging' | translate" matTooltipPosition="above">
                 Network Logging
               </mat-checkbox>
-              <div class="hover-box">(L)</div>
+              <div class="hover-box">(N)</div>
             </div>
             <div class="checkbox-container" (mouseover)="onMouseOver()" (mouseout)="onMouseOut()">
               <mat-checkbox
@@ -327,19 +324,6 @@
               (blur)="onInputBlur()"
               ></textarea>
           </mat-form-field>
-          <mat-form-field appearance="fill" class="" *ngIf="featureForm.value.check_maximum_notification_on_error" >
-            <mat-label
-              > Maximum notifications on errors
-            </mat-label>
-            <input
-              type="number"
-              matInput
-              spellcheck="false"
-              formControlName="maximum_notification_on_error"
-              (focus)="onInputFocus()"
-              (blur)="onInputBlur()"
-              />
-          </mat-form-field>
           <br>
           <mat-radio-group formControlName="send_mail_on_error">
             When to send email:
@@ -351,28 +335,48 @@
             >
           </mat-radio-group>
 
-          <mat-checkbox
-            formControlName="check_maximum_notification_on_error"
-            aria-label="Screenshot"
-            color="primary"
-            [matTooltip]="'edit_feature.maximum_notification_on_error' | translate" matTooltipPosition="above"
-            class="screenshot checkbox-blue maximum-notifications-check"
-            > Set maximum notifications on errors </mat-checkbox>
-          <mat-checkbox
-            formControlName="do_not_use_default_template"
-            aria-label="Screenshot"
-            color="primary"
-            [matTooltip]="'edit_feature.default_template' | translate" matTooltipPosition="above"
-            class="screenshot checkbox-blue default_template"
-            > Do not use default template </mat-checkbox>
-
-          <mat-checkbox
-            formControlName="attach_pdf_report_to_email"
-            aria-label="Screenshot"
-            color="primary"
-            [matTooltip]="'edit_feature.attach_pdf' | translate" matTooltipPosition="above"
-            class="screenshot checkbox-blue report_to_email"
-            > Attach PDF report to email </mat-checkbox>
+          <!-- Group maximum notifications checkbox with its input -->
+          <div class="maximum-notifications-group">
+          <!-- Keep other checkboxes in a row -->
+            <mat-checkbox
+              formControlName="check_maximum_notification_on_error"
+              aria-label="Screenshot"
+              color="primary"
+              [matTooltip]="'edit_feature.maximum_notification_on_error' | translate" matTooltipPosition="above"
+              class="screenshot checkbox-blue maximum-notifications-check"
+              > Set maximum notifications on errors 
+            </mat-checkbox>
+            <mat-checkbox
+              formControlName="do_not_use_default_template"
+              aria-label="Screenshot"
+              color="primary"
+              [matTooltip]="'edit_feature.default_template' | translate" matTooltipPosition="above"
+              class="screenshot checkbox-blue default_template"
+              > Do not use default template 
+            </mat-checkbox>
+            <mat-checkbox
+              formControlName="attach_pdf_report_to_email"
+              aria-label="Screenshot"
+              color="primary"
+              [matTooltip]="'edit_feature.attach_pdf' | translate" matTooltipPosition="above"
+              class="screenshot checkbox-blue report_to_email"
+              > Attach PDF report to email </mat-checkbox>
+            <div class="maximum-notifications-input" *ngIf="featureForm.value.check_maximum_notification_on_error">
+              <mat-form-field appearance="fill" class="">
+                <mat-label
+                  > Maximum notifications on errors
+                </mat-label>
+                <input
+                  type="number"
+                  matInput
+                  spellcheck="false"
+                  formControlName="maximum_notification_on_error"
+                  (focus)="onInputFocus()"
+                  (blur)="onInputBlur()"
+                  />
+              </mat-form-field>
+            </div>
+          </div>
 
           <button
             type="button"
@@ -389,12 +393,132 @@
         </ng-template>
       </mat-expansion-panel>
 
+      <!-- TELEGRAM NOTIFICATION CONFIGURATION -->
+      <mat-expansion-panel
+        *ngIf="
+          featureForm.value.send_notification && featureForm.value.send_telegram_notification && !featureForm.value.depends_on_others
+        "
+        [expanded]="!config$.toggles.hideTelegramConfig && features[0].panels[2].expanded"
+        (opened)="onExpansionChange(featureId, '3', true); "
+        (closed)="onExpansionChange(featureId, '3', false); "
+        >
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Telegram notification</span>
+          </mat-panel-title>
+          <mat-panel-description>
+            Configure Telegram message content and format
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <ng-template matExpansionPanelContent>
+          <div class="telegram-config-section">
+            <h4>Telegram Notification Options</h4>
+            <div formGroupName="telegram_options">
+              <div class="telegram-options-grid">
+                <div class="telegram-option-group">
+                  <h5>Basic Information</h5>
+                  <mat-checkbox color="primary" formControlName="include_department">Include Department</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_application">Include Application</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_environment">Include Environment</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_feature_name">Include Feature Name</mat-checkbox>
+                </div>
+
+                <div class="telegram-option-group">
+                  <h5>Execution Details</h5>
+                  <mat-checkbox color="primary" formControlName="include_datetime">Include Date & Time</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_execution_time">Include Execution Time</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_browser_timezone">Include Browser Timezone</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_browser">Include Browser</mat-checkbox>
+                </div>
+
+                <div class="telegram-option-group">
+                  <h5>Test Results</h5>
+                  <mat-checkbox color="primary" formControlName="include_overall_status">Include Overall Status</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_step_results">Include Step Results</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_pixel_diff">Include Pixel Differences</mat-checkbox>
+                </div>
+
+                <div class="telegram-option-group">
+                  <h5>Attachments</h5>
+                  <mat-checkbox color="primary" formControlName="attach_pdf_report">Attach PDF Report</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="attach_screenshots">
+                    Attach Screenshots
+                    <span class="screenshot-limit-hint">(max 10 images)</span>
+                  </mat-checkbox>
+                </div>
+              </div>
+
+              <div class="telegram-custom-message">
+                <mat-form-field appearance="fill" class="full-width">
+                  <mat-label>Custom Message (Optional)</mat-label>
+                  <textarea
+                    matInput
+                    formControlName="custom_message"
+                    rows="3"
+                    placeholder="Add a custom message that will appear at the top of your notification..."
+                    (focus)="onInputFocus()"
+                    (blur)="onInputBlur()">
+                  </textarea>
+                  <mat-hint>This message will be displayed at the beginning of your Telegram notification</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <mat-radio-group formControlName="send_on_error">
+                When to send notification:
+                <mat-radio-button color="primary" [value]="false">Always</mat-radio-button>
+                <mat-radio-button color="primary" [value]="true">On error only</mat-radio-button>
+              </mat-radio-group>
+
+              <!-- Group maximum notifications checkbox with its input -->
+              <div class="maximum-notifications-group-telegram">
+                <mat-checkbox
+                  formControlName="check_maximum_notification_on_error_telegram"
+                  aria-label="Maximum Telegram notifications"
+                  color="primary"
+                  [matTooltip]="'Set maximum number of Telegram notifications when errors occur'" matTooltipPosition="above"
+                  class="screenshot checkbox-blue maximum-notifications-check-telegram"
+                  > Set maximum notifications on errors </mat-checkbox>
+
+                <div class="maximum-notifications-input-telegram" *ngIf="featureForm.value.telegram_options?.check_maximum_notification_on_error_telegram">
+                  <mat-form-field appearance="fill" class="">
+                    <mat-label
+                      > Maximum Telegram notifications on errors
+                    </mat-label>
+                    <input
+                      type="number"
+                      matInput
+                      spellcheck="false"
+                      formControlName="maximum_notification_on_error_telegram"
+                      (focus)="onInputFocus()"
+                      (blur)="onInputBlur()"
+                      />
+                  </mat-form-field>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="openTelegramHelp()"
+            stopPropagation
+            [matTooltip]="'Telegram notification help'"
+            matTooltipPosition="left"
+            class="edit-feature-help-icon"
+            color="primary"
+            mat-icon-button>
+            <mat-icon>help_outline</mat-icon>
+          </button>
+
+        </ng-template>
+      </mat-expansion-panel>
+
       <!-- FILE UPLOAD -->
       <mat-expansion-panel
         #uploadPanel
-        [expanded]="!config$.toggles.hideUploadedFiles && features[0].panels[2].expanded"
-        (opened)="onExpansionChange(featureId, '3', true); "
-        (closed)="onExpansionChange(featureId, '3', false); ">
+        [expanded]="!config$.toggles.hideUploadedFiles && features[0].panels[3].expanded"
+        (opened)="onExpansionChange(featureId, '4', true); "
+        (closed)="onExpansionChange(featureId, '4', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Files</span>
@@ -423,9 +547,9 @@
       <!-- BROWSERS -->
       <mat-expansion-panel
         *ngIf="!featureForm.value.depends_on_others"
-        [expanded]="data.mode == 'new' || !config$.toggles.hideBrowsers && features[0].panels[3].expanded"
-        (opened)="onExpansionChange(featureId, '4', true); "
-        (closed)="onExpansionChange(featureId, '4', false); ">
+        [expanded]="data.mode == 'new' || !config$.toggles.hideBrowsers && features[0].panels[4].expanded"
+        (opened)="onExpansionChange(featureId, '5', true); "
+        (closed)="onExpansionChange(featureId, '5', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Browser selection</span>
@@ -458,9 +582,9 @@
 
       <!-- STEPS -->
       <mat-expansion-panel 
-        [expanded]="data.mode == 'new' || !config$.toggles.hideSteps && features[0].panels[4].expanded"
-        (opened)="onExpansionChange(featureId, '5', true); "
-        (closed)="onExpansionChange(featureId, '5', false); ">
+        [expanded]="data.mode == 'new' || !config$.toggles.hideSteps && features[0].panels[5].expanded"
+        (opened)="onExpansionChange(featureId, '6', true); "
+        (closed)="onExpansionChange(featureId, '6', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Steps definition</span>
@@ -494,9 +618,9 @@
 
       <!-- SCHEDULE -->
       <mat-expansion-panel 
-        [expanded]="!config$.toggles.hideSchedule && features[0].panels[5].expanded"
-        (opened)="onExpansionChange(featureId, '6', true); "
-        (closed)="onExpansionChange(featureId, '6', false); ">
+        [expanded]="!config$.toggles.hideSchedule && features[0].panels[6].expanded"
+        (opened)="onExpansionChange(featureId, '7', true); "
+        (closed)="onExpansionChange(featureId, '7', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Schedule</span>

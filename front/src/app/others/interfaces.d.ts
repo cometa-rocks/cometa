@@ -228,6 +228,25 @@ interface Feature {
   need_help: boolean;
   send_notification?: boolean;
   send_telegram_notification?: boolean;
+  telegram_options?: {
+    include_department: boolean;
+    include_application: boolean;
+    include_environment: boolean;
+    include_feature_name: boolean;
+    include_datetime: boolean;
+    include_execution_time: boolean;
+    include_browser_timezone: boolean;
+    include_browser: boolean;
+    include_overall_status: boolean;
+    include_step_results: boolean;
+    include_pixel_diff: boolean;
+    attach_pdf_report: boolean;
+    attach_screenshots: boolean;
+    custom_message: string;
+    send_on_error: boolean;
+    check_maximum_notification_on_error_telegram: boolean;
+    maximum_notification_on_error_telegram: string;
+  };
   current_folder_id?: number;
 }
 
