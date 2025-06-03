@@ -94,6 +94,25 @@
         (blur)="onInputBlur()"/>
     </mat-form-field>
     
+    <div class="telegram-chat-ids">
+      <h4>Telegram Notifications</h4>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Telegram Chat IDs (comma-separated)</mat-label>
+        <textarea
+          matInput
+          placeholder="Enter chat IDs separated by commas: 123456789, 987654321, ..."
+          formControlName="telegram_chat_ids"
+          rows="2"
+          (focus)="onInputFocus()"
+          (blur)="onInputBlur()"></textarea>
+        <mat-hint>Enter the Telegram chat IDs where test results should be sent for features in this department</mat-hint>
+      </mat-form-field>
+      <div class="description">
+        Features in this department with "Send result via Telegram" enabled will send notifications to these chat IDs.
+      </div>
+    </div>
+    <br />
+    
     <div class="description-option">
       <mat-checkbox
         color="primary"
