@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'command_log.apps.ManagementCommandLogConfig',
     'backend.ee.modules.security',
     'backend.ee.modules.mobile',
+    'backend.ee.modules.notification',
     'modules.housekeeping',
     'modules.configuration',
     'modules.container_service',
@@ -91,6 +92,7 @@ MIGRATION_MODULES = {
     'housekeeping': 'migrations.housekeeping',
     'security': 'migrations.security',
     'token_authentication': 'migrations.token_authentication',
+    'notification': 'migrations.notification',
 } 
  
 MIDDLEWARE = [

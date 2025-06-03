@@ -136,8 +136,6 @@ urlpatterns = [
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
     url(r'^api/chat/completion/', ai_chat.chat_completion),
-    # Notifications
-    url(r'^send_telegram_notification/', views.send_telegram_notification_view),
     
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) 
 

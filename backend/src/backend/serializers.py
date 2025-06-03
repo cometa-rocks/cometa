@@ -11,8 +11,8 @@ from backend.payments import get_user_subscriptions, get_requires_payment
 from backend.utility.functions import getLogger
 from backend.utility.config_handler import *
 from backend.utility.configurations import ConfigurationManager
-
-# logger information
+from backend.ee.modules.notification.serializers import FeatureTelegramOptionsSerializer
+# logger informationf
 logger = getLogger()
 
 ##################################
@@ -281,13 +281,6 @@ class FeatureRunInfoSerializer(serializers.ModelSerializer):
 #############################
 # Feature model serializers #
 #############################
-class FeatureTelegramOptionsSerializer(serializers.ModelSerializer):
-    """
-    Serializer for FeatureTelegramOptions model
-    """
-    class Meta:
-        model = FeatureTelegramOptions
-        fields = '__all__'
 
 class FeatureSerializer(serializers.ModelSerializer, FeatureMixin):
 

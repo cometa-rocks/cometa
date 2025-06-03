@@ -69,6 +69,8 @@ from modules.container_service.service_manager import DockerServiceManager, Serv
 from backend.utility.timezone_utils import convert_cron_to_utc, recalculate_schedule_if_needed
 import logging
 
+from backend.ee.modules.notification.models import FeatureTelegramOptions
+
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
 BROWSERSTACK_PASSWORD = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_PASSWORD', '')
@@ -2760,7 +2762,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
 
         # Handle telegram_options separately since it's a OneToOne relationship
         if 'telegram_options' in data:
-            from backend.models import FeatureTelegramOptions
+            
             telegram_data = data['telegram_options']
             
             # Get or create telegram options for this feature
@@ -4238,63 +4240,6 @@ def CometaUsage(request):
     # 5. number of failed tests
     '''
 
-@csrf_exempt
-def send_telegram_notification_view(request):
-    """
-    Send Telegram notification for a completed feature result
-    
-    Expected GET parameters:
-    - feature_result_id: ID of the feature result to send notification for
-    
-    Returns:
-        JsonResponse with success status and message
-    """
-    logger = logging.getLogger("TelegramNotificationView")
-    
-    if request.method != 'GET':
-        logger.warning(f"Invalid request method: {request.method}")
-        return JsonResponse({'success': False, 'error': 'Only GET method allowed'})
-    
-    try:
-        feature_result_id = request.GET.get('feature_result_id')
-        logger.info(f"Received Telegram notification request for feature_result_id: {feature_result_id}")
-        
-        if not feature_result_id:
-            logger.error("Missing feature_result_id parameter")
-            return JsonResponse({'success': False, 'error': 'feature_result_id parameter is required'})
-        
-        # Get the feature result
-        try:
-            feature_result = Feature_result.objects.get(feature_result_id=feature_result_id)
-            logger.debug(f"Found feature result: {feature_result.feature_name} (ID: {feature_result_id})")
-        except Feature_result.DoesNotExist:
-            logger.error(f"Feature result not found for ID: {feature_result_id}")
-            return JsonResponse({'success': False, 'error': f'Feature result with ID {feature_result_id} not found'})
-        
-        # Create notification manager and send notification
-        from backend.utility.notification_manager import NotificationManger
-        try:
-            notification_manager = NotificationManger("telegram")
-            logger.debug("Created Telegram notification manager")
-            
-            success = notification_manager.send_message(feature_result)
-            
-            if success:
-                logger.info(f"Telegram notification sent successfully for feature_result_id: {feature_result_id}")
-                return JsonResponse({'success': True, 'message': 'Telegram notification sent successfully'})
-            else:
-                logger.warning(f"Telegram notification failed for feature_result_id: {feature_result_id}")
-                return JsonResponse({'success': False, 'message': 'Failed to send Telegram notification'})
-                
-        except Exception as e:
-            logger.error(f"Error in notification manager for feature_result_id {feature_result_id}: {str(e)}")
-            return JsonResponse({'success': False, 'error': f'Notification manager error: {str(e)}'})
-            
-    except Exception as e:
-        logger.error(f"Unexpected error in send_telegram_notification_view: {str(e)}")
-        return JsonResponse({'success': False, 'error': f'Unexpected error: {str(e)}'})
-
-# import EE Modules
 from backend.ee.modules.data_driven.views import (
     DataDrivenViewset,
     DataDrivenFileViewset,

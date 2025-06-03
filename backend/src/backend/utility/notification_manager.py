@@ -10,7 +10,13 @@ from django.conf import settings
 from backend.utility.config_handler import get_cometa_backend_url
 from .configurations import ConfigurationManager
 from backend.models import Department
-from backend.models import FeatureTelegramOptions
+from backend.ee.modules.notification.models import FeatureTelegramOptions
+from backend.models import Feature_result
+
+from backend.utility.functions import getLogger
+
+logger = getLogger()
+
 
 # TODO: Implement Discord notification manager
 # class DiscordNotificationManger:
@@ -34,10 +40,11 @@ from backend.models import FeatureTelegramOptions
 
 class TelegramNotificationManger:
     
-    def __init__(self):
-        self.logger = logging.getLogger("TelegramNotificationManager")
-    
-    def send_message(self, feature_result):
+    def __init__(self, pdf_generated):
+        self.pdf_generated = pdf_generated
+        self.feature_result:Feature_result = None
+        
+    def send_message(self, feature_result:Feature_result):
         """
         Send Telegram notification for a feature result
         
@@ -47,22 +54,23 @@ class TelegramNotificationManger:
         Returns:
             bool: True if notification sent successfully, False otherwise
         """
+        self.feature_result = feature_result
         try:
-            self.logger.info(f"Starting Telegram notification process for feature_result_id: {feature_result.feature_result_id}")
+            logger.info(f"Starting Telegram notification process for feature_result_id: {feature_result.feature_result_id}")
             
             # Check if Telegram notifications are enabled and get bot token
             telegram_enabled = ConfigurationManager.get_configuration('COMETA_TELEGRAM_ENABLED', False)
             bot_token = ConfigurationManager.get_configuration('COMETA_TELEGRAM_BOT_TOKEN', None)
             
             if not telegram_enabled or not bot_token:
-                self.logger.warning(f"Telegram notifications disabled or bot token not configured. Enabled: {telegram_enabled}, Token: {'***' if bot_token else 'Not set'}")
+                logger.warning(f"Telegram notifications disabled or bot token not configured. Enabled: {telegram_enabled}, Token: {'***' if bot_token else 'Not set'}")
                 return False
             
             # Check if feature has Telegram notifications enabled
             feature_telegram_enabled = getattr(feature_result.feature_id, 'send_telegram_notification', False)
-            self.logger.debug(f"Feature Telegram enabled setting: {feature_telegram_enabled}")
+            logger.debug(f"Feature Telegram enabled setting: {feature_telegram_enabled}")
             if not feature_telegram_enabled:
-                self.logger.debug(f"Telegram notifications disabled for feature {feature_result.feature_id.feature_id}")
+                logger.debug(f"Telegram notifications disabled for feature {feature_result.feature_id.feature_id}")
                 return False
             
             # Get or create telegram options for this feature
@@ -94,7 +102,7 @@ class TelegramNotificationManger:
             should_send_notification = True
             
             if telegram_options.check_maximum_notification_on_error_telegram:
-                self.logger.debug("Checking for maximum Telegram notifications on error")
+                logger.debug("Checking for maximum Telegram notifications on error")
                 
                 # Check if current feature_result is successful
                 if feature_result.success and not telegram_options.send_on_error:
@@ -122,7 +130,7 @@ class TelegramNotificationManger:
             telegram_options.save()
             
             if not should_send_notification:
-                self.logger.info(f"Skipping Telegram notification due to maximum notification limit or configuration")
+                logger.info(f"Skipping Telegram notification due to maximum notification limit or configuration")
                 return True  # Return True because this is expected behavior, not an error
             
             # Get department chat IDs - need to fetch Department object manually since Feature doesn't have FK
@@ -130,30 +138,30 @@ class TelegramNotificationManger:
                 department = Department.objects.get(department_id=feature_result.feature_id.department_id)
                 department_settings = department.settings or {}
                 department_chat_ids = department_settings.get('telegram_chat_ids', '')
-                self.logger.debug(f"Department chat IDs: {department_chat_ids}")
+                logger.debug(f"Department chat IDs: {department_chat_ids}")
             except Department.DoesNotExist:
-                self.logger.warning(f"Department {feature_result.feature_id.department_id} not found")
+                logger.warning(f"Department {feature_result.feature_id.department_id} not found")
                 return False
             
             if not department_chat_ids or not department_chat_ids.strip():
-                self.logger.warning(f"No Telegram chat IDs configured for department {feature_result.department_name}")
+                logger.warning(f"No Telegram chat IDs configured for department {feature_result.department_name}")
                 return False
             
             # Parse chat IDs
             chat_ids = [chat_id.strip() for chat_id in department_chat_ids.split(',') if chat_id.strip()]
             if not chat_ids:
-                self.logger.warning("No valid Telegram chat IDs found")
+                logger.warning("No valid Telegram chat IDs found")
                 return False
             
-            self.logger.info(f"Found {len(chat_ids)} chat IDs to send notifications to")
+            logger.info(f"Found {len(chat_ids)} chat IDs to send notifications to")
             
             # Build message
             message = self._build_message(feature_result, telegram_options)
-            self.logger.debug("Message built successfully")
+            logger.debug("Message built successfully")
             
             # Check if message should be sent (could be None if send_on_error is true and test passed)
             if message is None:
-                self.logger.info("Message was None, skipping notification")
+                logger.info("Message was None, skipping notification")
                 return True
             
             # Try to get PDF report if feature has PDF attachment enabled
@@ -162,30 +170,30 @@ class TelegramNotificationManger:
             try:
                 # Check PDF attachment setting from the already fetched telegram_options
                 if telegram_options.attach_pdf_report:
-                    pdf_file_path = self._get_pdf_report(feature_result.feature_result_id)
+                    pdf_file_path = self._get_pdf_report()
                     if pdf_file_path:
-                        self.logger.debug(f"PDF report obtained: {pdf_file_path}")
+                        logger.debug(f"PDF report obtained: {pdf_file_path}")
                     else:
-                        self.logger.debug("No PDF report obtained, will send text-only message")
+                        logger.debug("No PDF report obtained, will send text-only message")
                 else:
-                    self.logger.debug("PDF attachment disabled in telegram options")
+                    logger.debug("PDF attachment disabled in telegram options")
                 
                 # Try to get screenshots if feature has screenshot attachment enabled
                 if telegram_options.attach_screenshots:
                     screenshot_files = self._get_screenshots(feature_result.feature_result_id)
                     if screenshot_files:
-                        self.logger.debug(f"Screenshots obtained: {len(screenshot_files)} files")
+                        logger.debug(f"Screenshots obtained: {len(screenshot_files)} files")
                     else:
-                        self.logger.debug("No screenshots obtained")
+                        logger.debug("No screenshots obtained")
                 else:
-                    self.logger.debug("Screenshot attachment disabled in telegram options")
+                    logger.debug("Screenshot attachment disabled in telegram options")
             except Exception as e:
-                self.logger.warning(f"Failed to generate/get PDF report or screenshots: {str(e)}")
+                logger.warning(f"Failed to generate/get PDF report or screenshots: {str(e)}")
             
             # Send to all chat IDs
             success_count = 0
             for chat_id in chat_ids:
-                self.logger.debug(f"Sending notification to chat ID: {chat_id}")
+                logger.debug(f"Sending notification to chat ID: {chat_id}")
                 
                 # Determine what to send based on available attachments
                 has_pdf = pdf_file_path and os.path.exists(pdf_file_path)
@@ -197,53 +205,53 @@ class TelegramNotificationManger:
                     screenshot_success = self._send_screenshots_as_media_group(bot_token, chat_id, screenshot_files)
                     if pdf_success and screenshot_success:
                         success_count += 1
-                        self.logger.debug(f"Successfully sent PDF and screenshots to chat ID: {chat_id}")
+                        logger.debug(f"Successfully sent PDF and screenshots to chat ID: {chat_id}")
                     else:
-                        self.logger.error(f"Failed to send PDF and/or screenshots to chat ID: {chat_id}")
+                        logger.error(f"Failed to send PDF and/or screenshots to chat ID: {chat_id}")
                 elif has_pdf:
                     # Send PDF only
                     if self._send_document_to_chat(bot_token, chat_id, message, pdf_file_path):
                         success_count += 1
-                        self.logger.debug(f"Successfully sent PDF to chat ID: {chat_id}")
+                        logger.debug(f"Successfully sent PDF to chat ID: {chat_id}")
                     else:
-                        self.logger.error(f"Failed to send PDF to chat ID: {chat_id}")
+                        logger.error(f"Failed to send PDF to chat ID: {chat_id}")
                 elif has_screenshots:
                     # Send screenshots as media group with caption
                     if self._send_screenshots_as_media_group(bot_token, chat_id, screenshot_files, message):
                         success_count += 1
-                        self.logger.debug(f"Successfully sent screenshots to chat ID: {chat_id}")
+                        logger.debug(f"Successfully sent screenshots to chat ID: {chat_id}")
                     else:
-                        self.logger.error(f"Failed to send screenshots to chat ID: {chat_id}")
+                        logger.error(f"Failed to send screenshots to chat ID: {chat_id}")
                 else:
                     # Send text-only message
                     if self._send_message_to_chat(bot_token, chat_id, message):
                         success_count += 1
-                        self.logger.debug(f"Successfully sent message to chat ID: {chat_id}")
+                        logger.debug(f"Successfully sent message to chat ID: {chat_id}")
                     else:
-                        self.logger.error(f"Failed to send message to chat ID: {chat_id}")
+                        logger.error(f"Failed to send message to chat ID: {chat_id}")
             
             # Clean up temporary files
             if pdf_file_path and os.path.exists(pdf_file_path) and '/tmp/' in pdf_file_path:
                 try:
                     os.remove(pdf_file_path)
-                    self.logger.debug(f"Cleaned up temporary PDF file: {pdf_file_path}")
+                    logger.debug(f"Cleaned up temporary PDF file: {pdf_file_path}")
                 except Exception as e:
-                    self.logger.warning(f"Failed to clean up temporary PDF file: {str(e)}")
+                    logger.warning(f"Failed to clean up temporary PDF file: {str(e)}")
             
             for screenshot_file in screenshot_files:
                 if os.path.exists(screenshot_file['path']) and '/tmp/' in screenshot_file['path']:
                     try:
                         os.remove(screenshot_file['path'])
-                        self.logger.debug(f"Cleaned up temporary screenshot file: {screenshot_file['path']}")
+                        logger.debug(f"Cleaned up temporary screenshot file: {screenshot_file['path']}")
                     except Exception as e:
-                        self.logger.warning(f"Failed to clean up temporary screenshot file: {str(e)}")
+                        logger.warning(f"Failed to clean up temporary screenshot file: {str(e)}")
             
             final_success = success_count == len(chat_ids)
-            self.logger.info(f"Telegram notification process completed. Success: {final_success} ({success_count}/{len(chat_ids)} sent)")
+            logger.info(f"Telegram notification process completed. Success: {final_success} ({success_count}/{len(chat_ids)} sent)")
             return final_success
             
         except Exception as e:
-            self.logger.error(f"Error sending Telegram notification: {str(e)}")
+            logger.error(f"Error sending Telegram notification: {str(e)}")
             return False
     
     def _build_message(self, feature_result, telegram_options):
@@ -258,11 +266,11 @@ class TelegramNotificationManger:
             str: Formatted message for Telegram
         """
         try:
-            self.logger.debug(f"Using telegram options for feature {feature_result.feature_id.feature_id}")
+            logger.debug(f"Using telegram options for feature {feature_result.feature_id.feature_id}")
             
             # Check if we should send notification based on error setting
             if telegram_options.send_on_error and feature_result.success:
-                self.logger.debug("Telegram configured for error-only and test passed, skipping notification")
+                logger.debug("Telegram configured for error-only and test passed, skipping notification")
                 return None
             
             # Build the message with proper formatting
@@ -382,12 +390,12 @@ class TelegramNotificationManger:
             return message
             
         except Exception as e:
-            self.logger.error(f"Error building Telegram message: {str(e)}")
+            logger.error(f"Error building Telegram message: {str(e)}")
             # Fallback to basic message
             status_emoji = "✅" if feature_result.success else "❌"
             return f"{status_emoji} <b>Test Execution Complete</b>\n\n🧪 <b>Feature:</b> {feature_result.feature_name}\n🎯 <b>Status:</b> {'PASSED' if feature_result.success else 'FAILED'}"
 
-    def _get_pdf_report(self, feature_result_id):
+    def _get_pdf_report(self):
         """
         Get the PDF report for a feature result
         
@@ -397,28 +405,33 @@ class TelegramNotificationManger:
         Returns:
             str: Path to the PDF file, or None if failed
         """
+        
+        if self.pdf_generated:
+            logger.debug("PDF is already generated will skip generating again")
+            return os.path.join("/code/behave/pdf",self.feature_result.pdf_result_file_path)
+        
         try:
             # Request PDF generation/retrieval from the backend
-            pdf_url = f'{get_cometa_backend_url()}/pdf/?feature_result_id={feature_result_id}&download=true'
+            pdf_url = f'{get_cometa_backend_url()}/pdf/?feature_result_id={self.feature_result.feature_result_id}&download=true'
             headers = {'Host': 'cometa.local'}
             
-            self.logger.debug(f"Requesting PDF from: {pdf_url}")
+            logger.debug(f"Requesting PDF from: {pdf_url}")
             response = requests.get(pdf_url, headers=headers, timeout=60)
             
             if response.status_code == 200:
                 # Create a temporary file to store the PDF
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf', prefix=f'cometa_report_{feature_result_id}_') as temp_file:
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf', prefix=f'cometa_report_{self.feature_result.feature_result_id}_') as temp_file:
                     temp_file.write(response.content)
                     pdf_file_path = temp_file.name
                 
-                self.logger.debug(f"PDF report saved to: {pdf_file_path}")
+                logger.debug(f"PDF report saved to: {pdf_file_path}")
                 return pdf_file_path
             else:
-                self.logger.error(f"Failed to get PDF report. Status code: {response.status_code}")
+                logger.error(f"Failed to get PDF report. Status code: {response.status_code}")
                 return None
                 
         except Exception as e:
-            self.logger.error(f"Error getting PDF report: {str(e)}")
+            logger.error(f"Error getting PDF report: {str(e)}")
             return None
 
     def _get_screenshots(self, feature_result_id):
@@ -441,7 +454,7 @@ class TelegramNotificationManger:
                 screenshot_current__exact=''
             ).order_by('step_result_id')
             
-            self.logger.debug(f"Found {step_results.count()} step results with screenshots")
+            logger.debug(f"Found {step_results.count()} step results with screenshots")
             
             screenshots = []
             screenshot_count = 0
@@ -449,7 +462,7 @@ class TelegramNotificationManger:
             
             for step_result in step_results:
                 if screenshot_count >= max_screenshots:
-                    self.logger.debug(f"Reached maximum screenshot limit of {max_screenshots}")
+                    logger.debug(f"Reached maximum screenshot limit of {max_screenshots}")
                     break
                 
                 # Process current screenshot (main screenshot)
@@ -462,9 +475,9 @@ class TelegramNotificationManger:
                             'type': 'current'
                         })
                         screenshot_count += 1
-                        self.logger.debug(f"Added current screenshot: {screenshot_path}")
+                        logger.debug(f"Added current screenshot: {screenshot_path}")
                     else:
-                        self.logger.warning(f"Screenshot file not found: {screenshot_path}")
+                        logger.warning(f"Screenshot file not found: {screenshot_path}")
                 
                 # Break if we've reached the limit
                 if screenshot_count >= max_screenshots:
@@ -480,7 +493,7 @@ class TelegramNotificationManger:
                             'type': 'style'
                         })
                         screenshot_count += 1
-                        self.logger.debug(f"Added style screenshot: {style_path}")
+                        logger.debug(f"Added style screenshot: {style_path}")
                 
                 # Optionally include difference screenshots if there were visual differences
                 if step_result.screenshot_difference and screenshot_count < max_screenshots and step_result.pixel_diff > 0:
@@ -492,13 +505,13 @@ class TelegramNotificationManger:
                             'type': 'difference'
                         })
                         screenshot_count += 1
-                        self.logger.debug(f"Added difference screenshot: {diff_path}")
+                        logger.debug(f"Added difference screenshot: {diff_path}")
             
-            self.logger.info(f"Retrieved {len(screenshots)} screenshots for feature_result_id: {feature_result_id}")
+            logger.info(f"Retrieved {len(screenshots)} screenshots for feature_result_id: {feature_result_id}")
             return screenshots
             
         except Exception as e:
-            self.logger.error(f"Error getting screenshots: {str(e)}")
+            logger.error(f"Error getting screenshots: {str(e)}")
             return []
 
     def _format_number(self, number):
@@ -564,23 +577,23 @@ class TelegramNotificationManger:
                 
                 result = response.json()
                 if result.get('ok'):
-                    self.logger.debug(f"Telegram document sent successfully to chat ID: {chat_id}")
+                    logger.debug(f"Telegram document sent successfully to chat ID: {chat_id}")
                     return True
                 else:
-                    self.logger.error(f"Telegram API error for document to chat ID {chat_id}: {result.get('description', 'Unknown error')}")
+                    logger.error(f"Telegram API error for document to chat ID {chat_id}: {result.get('description', 'Unknown error')}")
                     return False
                     
         except FileNotFoundError:
-            self.logger.error(f"Document file not found: {document_path}")
+            logger.error(f"Document file not found: {document_path}")
             return False
         except requests.exceptions.RequestException as e:
-            self.logger.error(f"Request error sending Telegram document to chat ID {chat_id}: {str(e)}")
+            logger.error(f"Request error sending Telegram document to chat ID {chat_id}: {str(e)}")
             return False
         except json.JSONDecodeError as e:
-            self.logger.error(f"JSON decode error for Telegram document response (chat ID {chat_id}): {str(e)}")
+            logger.error(f"JSON decode error for Telegram document response (chat ID {chat_id}): {str(e)}")
             return False
         except Exception as e:
-            self.logger.error(f"Unexpected error sending Telegram document to chat ID {chat_id}: {str(e)}")
+            logger.error(f"Unexpected error sending Telegram document to chat ID {chat_id}: {str(e)}")
             return False
 
     def _send_message_to_chat(self, bot_token, chat_id, message):
@@ -610,20 +623,20 @@ class TelegramNotificationManger:
             
             result = response.json()
             if result.get('ok'):
-                self.logger.debug(f"Telegram message sent successfully to chat ID: {chat_id}")
+                logger.debug(f"Telegram message sent successfully to chat ID: {chat_id}")
                 return True
             else:
-                self.logger.error(f"Telegram API error for chat ID {chat_id}: {result.get('description', 'Unknown error')}")
+                logger.error(f"Telegram API error for chat ID {chat_id}: {result.get('description', 'Unknown error')}")
                 return False
                 
         except requests.exceptions.RequestException as e:
-            self.logger.error(f"Request error sending Telegram message to chat ID {chat_id}: {str(e)}")
+            logger.error(f"Request error sending Telegram message to chat ID {chat_id}: {str(e)}")
             return False
         except json.JSONDecodeError as e:
-            self.logger.error(f"JSON decode error for Telegram response (chat ID {chat_id}): {str(e)}")
+            logger.error(f"JSON decode error for Telegram response (chat ID {chat_id}): {str(e)}")
             return False
         except Exception as e:
-            self.logger.error(f"Unexpected error sending Telegram message to chat ID {chat_id}: {str(e)}")
+            logger.error(f"Unexpected error sending Telegram message to chat ID {chat_id}: {str(e)}")
             return False
 
     def _send_screenshots_as_media_group(self, bot_token, chat_id, screenshots, caption=None):
@@ -643,7 +656,7 @@ class TelegramNotificationManger:
         
         try:
             if not screenshots:
-                self.logger.warning("No screenshots provided to send")
+                logger.warning("No screenshots provided to send")
                 return False
             
             # Limit to 10 photos (Telegram's limit for media groups)
@@ -654,7 +667,7 @@ class TelegramNotificationManger:
             
             for i, screenshot in enumerate(screenshots):
                 if not os.path.exists(screenshot['path']):
-                    self.logger.warning(f"Screenshot file not found: {screenshot['path']}")
+                    logger.warning(f"Screenshot file not found: {screenshot['path']}")
                     continue
                 
                 # Create a unique attachment name for each photo
@@ -677,7 +690,7 @@ class TelegramNotificationManger:
                 media_group.append(media_item)
             
             if not media_group:
-                self.logger.warning("No valid screenshots found to send")
+                logger.warning("No valid screenshots found to send")
                 return False
             
             data = {
@@ -685,7 +698,7 @@ class TelegramNotificationManger:
                 'media': json.dumps(media_group)
             }
             
-            self.logger.debug(f"Sending {len(media_group)} screenshots to chat ID: {chat_id}")
+            logger.debug(f"Sending {len(media_group)} screenshots to chat ID: {chat_id}")
             response = requests.post(url, data=data, files=files, timeout=60)
             
             # Close all file handles
@@ -696,14 +709,14 @@ class TelegramNotificationManger:
             
             result = response.json()
             if result.get('ok'):
-                self.logger.debug(f"Telegram screenshots sent successfully to chat ID: {chat_id}")
+                logger.debug(f"Telegram screenshots sent successfully to chat ID: {chat_id}")
                 return True
             else:
-                self.logger.error(f"Telegram API error for screenshots to chat ID {chat_id}: {result.get('description', 'Unknown error')}")
+                logger.error(f"Telegram API error for screenshots to chat ID {chat_id}: {result.get('description', 'Unknown error')}")
                 return False
                 
         except Exception as e:
-            self.logger.error(f"Error sending screenshots to chat ID {chat_id}: {str(e)}")
+            logger.error(f"Error sending screenshots to chat ID {chat_id}: {str(e)}")
             # Ensure file handles are closed in case of error
             try:
                 for file_handle in files.values():
@@ -719,11 +732,11 @@ class NotificationManger:
     Currently only Telegram is implemented
     """
 
-    def __init__(self, notification_provider) -> None:
+    def __init__(self, notification_provider, pdf_generated) -> None:
         self.notification_provider = notification_provider
 
         if notification_provider == "telegram":
-            self.notification_manger = TelegramNotificationManger()
+            self.notification_manger = TelegramNotificationManger(pdf_generated)
         elif notification_provider == "discord":
             # TODO: Implement Discord notification manager
             raise NotImplementedError("Discord notifications not implemented yet")
