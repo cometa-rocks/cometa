@@ -1,5 +1,5 @@
 {
-  "version": "3.0.54",
+  "version": "3.0.55",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.55",
+      "date": "2025-06-03",
+      "features": [
+        {
+          "title": "Integrated Telegram notifications from Cometa test reports - #6365",
+          "description": "Telegram chat bots are configurable department wise to receive the notifications in Telegram"
+        }
+      ]
+    },
     {
       "version": "3.0.54",
       "date": "2025-05-30",
