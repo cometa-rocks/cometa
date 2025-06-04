@@ -1,5 +1,5 @@
 {
-  "version": "3.0.55",
+  "version": "3.0.56",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,12 +237,22 @@
   ],
   "changelog": [
     {
-      "version": "3.0.55",
+      "version": "3.0.56",
       "date": "2025-06-04",
       "features": [
         {
           "title": "Fix (UI) dialogs, edit-variable, step-editor, others - #6352",
           "description": "Made modifications to the dialogs and fixed bugs in the edit-variables, step editor, main-view components."
+        }
+      ]
+    },
+    {
+      "version": "3.0.55",
+      "date": "2025-06-03",
+      "features": [
+        {
+          "title": "Integrated Telegram notifications from Cometa test reports - #6365",
+          "description": "Telegram chat bots are configurable department wise to receive the notifications in Telegram"
         }
       ]
     },

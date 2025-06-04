@@ -8,8 +8,8 @@ SQLAlchemy is a powerful Python library that provides an Object Relational Mappe
 ## ✅ Supported Databases
 SQLAlchemy works with the following databases:
 
-| **Database** | **SQL-92 Support** | **SQLAlchemy Driver** | **Connection String Format** |
-|-------------|------------------|-----------------|----------------------------------|
+| **Database** | **SQL-92 Support** | **SQLAlchemy Driver** |
+|-------------|------------------|-----------------|
 | **MySQL** ✅ | ✅ Yes | `mysql+pymysql://` or `mysql+mysqlconnector://` |
 | **PostgreSQL** ✅ | ✅ Yes | `postgresql+psycopg2://` |
 | **SQLite** ✅ | ✅ Yes | `sqlite:///database.db` |
@@ -17,7 +17,6 @@ SQLAlchemy works with the following databases:
 | **Oracle** ✅ | ✅ Yes | `oracle+cx_oracle://` |
 | **MariaDB** ✅ | ✅ Yes | `mysql+pymysql://` |
 | **IBM Db2** ✅ | ✅ Yes | `ibm_db_sa://` |
-| **Firebird** ✅ | ✅ Yes | `firebird+fdb://` |
 
 ---
 

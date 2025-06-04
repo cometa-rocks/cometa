@@ -47,10 +47,6 @@
   margin-left: 2%;
 }
 
-.maximum-notifications-check {
-  margin-left: 3%;
-}
-
 .report_to_email {
   margin-left: 2%;
 }
@@ -323,7 +319,7 @@ a {
   flex-wrap: wrap;
   @include for-tablet-portrait-up {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     .mat-checkbox:not(:first-child) {
       margin-left: 20px;
     }
@@ -390,6 +386,8 @@ button {
 .mat-radio-button {
   display: block;
   margin-top: 15px;
+  margin-left: 0;
+  text-align: left;
   @include for-tablet-portrait-up {
     display: inline-block;
     margin-top: 0;
@@ -478,21 +476,292 @@ button {
   }
 }
 
-// ::ng-deep .mobile-emulator-panel {
-//   .mat-dialog-container {
-//     width: 80vw !important;
-//     min-height: 85vh !important;
-//     min-width: 80vw !important;
-//     max-width: 150dvw !important;
-//     max-height: 100dvh !important;
-//   }
-// }
+// Notification group styles for vertical divider layout
+.notification-group {
+  display: flex;
+  align-items: stretch;
+  margin-top: 8px;
+  margin-bottom: 10px;
+}
 
-// ::ng-deep .mat-dialog-container {
-//   width: 80vw;
-//   height: 85dvh;
-//   min-height: 85vh;
-//   min-width: 80vw;
-//   max-width: 150dvw;
-//   max-height: 100dvh;
-// }
+.vertical-divider {
+  width: 1px;
+  background: gray;
+  margin-right: 15px;
+  min-height: 80px;
+  position: relative;
+  
+}
+
+.notification-options {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  
+  .checkbox-container {
+    margin-bottom: 5px;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Telegram notification configuration styles
+.telegram-config-section {
+  padding: 1rem 0;
+
+  h4 {
+    color: $blue;
+    margin-bottom: 1rem;
+  }
+
+  .telegram-options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+
+    @include for-tablet-portrait-up {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .telegram-option-group {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+
+    h5 {
+      margin: 0 0 0.75rem 0;
+      color: #495057;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    mat-checkbox {
+      display: block;
+      margin-bottom: 0.5rem;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .mat-checkbox-checked .mat-checkbox-background {
+        background-color: $blue !important;
+      }
+
+      .mat-checkbox-indeterminate .mat-checkbox-background {
+        background-color: $blue !important;
+      }
+
+      .mat-checkbox-checked .mat-checkbox-checkmark-path {
+        stroke: white !important;
+      }
+
+      .mat-checkbox-checked .mat-checkbox-mixedmark {
+        background-color: white !important;
+      }
+
+      .mat-checkbox-ripple .mat-ripple-element {
+        background-color: rgba($blue, 0.12) !important;
+      }
+
+      .mat-checkbox-focused .mat-checkbox-frame {
+        border-color: $blue !important;
+      }
+    }
+  }
+
+  .telegram-custom-message {
+    margin: 1.5rem 0;
+  }
+
+  .telegram-settings-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+
+    .radio-group-label {
+      font-weight: 500;
+      min-width: 140px;
+    }
+
+    mat-radio-group {
+      display: flex;
+      gap: 1rem;
+    }
+  }
+}
+
+// Notification parent container that contains main checkbox and sub-options
+.checkbox-container.notification-parent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  margin-right: 15px;
+  margin-bottom: 10px;
+  
+  .main-checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+}
+
+// Indented notification sub-options styles
+.notification-sub-options {
+  position: relative;
+  top: 100%;
+  left: 0;
+  padding-left: 5px;
+  border-left: 2px solid #e0e0e0;
+  margin-left: 5px;
+  margin-top: 5px;
+  min-width: 120px;
+  
+  .checkbox-container {
+    &.sub-checkbox {
+      margin-bottom: 5px;
+      margin-left: 5px;
+      margin-right: 0;
+    }
+  }
+}
+
+.maximum-notifications-input {
+  display: block;
+  width: 100%;
+  margin-top: 15px;
+  clear: both;
+  
+  .mat-form-field {
+    width: 300px;
+    max-width: 100%;
+  }
+}
+
+.maximum-notifications-group {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  
+  .maximum-notifications-input {
+    margin-top: 10px;
+  }
+}
+
+.email-checkbox-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 10px;
+  
+  mat-checkbox {
+    margin-left: 0;
+  }
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 10px;
+    
+    mat-checkbox {
+      margin-left: 0;
+    }
+  }
+}
+
+.maximum-notifications-check-telegram {
+  margin-top: 20px;
+  margin-left: 1%;
+}
+
+.maximum-notifications-input-telegram {
+  display: block;
+  width: 100%;
+  margin-top: 15px;
+  clear: both;
+  
+  .mat-form-field {
+    width: 300px;
+    max-width: 100%;
+  }
+}
+
+// Mobile alignment fixes for checkboxes and radio buttons
+@media (max-width: 768px) {
+  .mat-radio-button,
+  .mat-checkbox {
+    margin-left: 0 !important;
+    text-align: left;
+    display: block;
+    width: 100%;
+    
+    // Ensure the radio/checkbox content aligns to the left
+    ::ng-deep .mat-radio-label,
+    ::ng-deep .mat-checkbox-label {
+      text-align: left;
+      justify-content: flex-start;
+    }
+    
+    // Fix for radio button alignment
+    ::ng-deep .mat-radio-container {
+      margin-right: 8px;
+    }
+    
+    // Fix for checkbox alignment  
+    ::ng-deep .mat-checkbox-inner-container {
+      margin-right: 8px;
+    }
+  }
+  
+  // Specific fixes for radio groups
+  mat-radio-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 0;
+    
+    .mat-radio-button {
+      margin-bottom: 8px;
+      margin-left: 0;
+    }
+  }
+  
+  // Fix for telegram options grid in mobile
+  .telegram-options-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    
+    .telegram-option-group {
+      mat-checkbox {
+        margin-left: 0;
+        text-align: left;
+      }
+    }
+  }
+  
+  // Fix for notification sub-options
+  .notification-sub-options {
+    margin-left: 0;
+    padding-left: 15px;
+    
+    .checkbox-container {
+      margin-left: 0;
+      
+      mat-checkbox {
+        margin-left: 0;
+      }
+    }
+  }
+  
+  // Fix for maximum notification inputs
+  .maximum-notifications-check,
+  .maximum-notifications-check-telegram {
+    margin-left: 0 !important;
+  }
+}

@@ -11,8 +11,8 @@ from backend.payments import get_user_subscriptions, get_requires_payment
 from backend.utility.functions import getLogger
 from backend.utility.config_handler import *
 from backend.utility.configurations import ConfigurationManager
-
-# logger information
+from backend.ee.modules.notification.serializers import FeatureTelegramOptionsSerializer
+# logger informationf
 logger = getLogger()
 
 ##################################
@@ -281,6 +281,7 @@ class FeatureRunInfoSerializer(serializers.ModelSerializer):
 #############################
 # Feature model serializers #
 #############################
+
 class FeatureSerializer(serializers.ModelSerializer, FeatureMixin):
 
     # get info about the latest feature result
@@ -291,6 +292,7 @@ class FeatureSerializer(serializers.ModelSerializer, FeatureMixin):
     original_cron = serializers.CharField(source='schedule.original_cron', allow_null=True, default="")
     original_timezone = serializers.CharField(source='schedule.original_timezone', allow_null=True, default="")
     last_edited_date = serializers.DateTimeField(format=datetimeTZFormat)
+    telegram_options = FeatureTelegramOptionsSerializer(many=False, read_only=True)
 
     class Meta:
         model = Feature
