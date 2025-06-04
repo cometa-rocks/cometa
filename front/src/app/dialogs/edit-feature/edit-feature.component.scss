@@ -478,25 +478,21 @@ button {
   }
 }
 
-::ng-deep .mobile-emulator-panel {
-  min-height: 85vh;
-  min-width: 80vw;
-  width: 80vw !important;
-  max-width: 150dvw;
-  max-height: 100dvh;
-  
-  .mat-dialog-container {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow: hidden;
-    padding: 0;
-    margin: 0;
-  }
+// ::ng-deep .mobile-emulator-panel {
+//   .mat-dialog-container {
+//     width: 80vw !important;
+//     min-height: 85vh !important;
+//     min-width: 80vw !important;
+//     max-width: 150dvw !important;
+//     max-height: 100dvh !important;
+//   }
+// }
 
-  .mat-dialog-content {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0;
-    padding: 0;
-  }
-}
+// ::ng-deep .mat-dialog-container {
+//   width: 80vw;
+//   height: 85dvh;
+//   min-height: 85vh;
+//   min-width: 80vw;
+//   max-width: 150dvw;
+//   max-height: 100dvh;
+// }

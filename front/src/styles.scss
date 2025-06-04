@@ -400,7 +400,7 @@ h3 {
   width: 100%;
   position: relative !important;
   @media (max-width: 600px) {
-    //width: 95vw;
+    width: 95vw;
     width: 100%;
   }
 }
@@ -658,16 +658,51 @@ h3 {
   flex-direction: column;
 }
 
+// .mobile-emulator-panel {
+//   width: 80vw;
+//   height: 85vh;
+//   display: flex;
+//   justify-content: center;
+//   align-items: center;
+//   .mat-dialog-container {
+//     overflow: hidden;
+//   }
+// }
+
 .mobile-emulator-panel {
-  width: 80vw;
-  height: 85vh;
+  background-color: $bg-mat-dialog-container;
+  min-width: 80vw;
+  min-height: 85vh;
   display: flex;
   justify-content: center;
   align-items: center;
   .mat-dialog-container {
+    max-height: 100dvh;
+    max-width: 100dvw;
     overflow: hidden;
   }
 }
+
+.mobile-emulator-panel-dialog {
+  background-color: $bg-mat-dialog-container;
+  // width: 80vw;
+  // height: 85vh;
+  min-width: 80vw;
+  min-height: 85vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .mat-dialog-container {
+    max-height: 100dvh;
+    max-width: 100dvw;
+    overflow: hidden;
+  }
+}
+
+// .mat-dialog-content {
+//   width: 500px;
+// }
+
 
 .mat-menu-item {
   span {
@@ -767,8 +802,8 @@ h3 {
     border-bottom: 4px solid darken($remove, 10);
   }
   &.canceled {
-    background-color: $orange;
-    border-bottom: 4px solid darken($orange, 10);
+    background-color: $grey;
+    border-bottom: 4px solid darken($grey, 10);
   }
   &.running {
     background-color: $blue;
@@ -801,7 +836,7 @@ h3 {
     background-color: $remove;
   }
   &.canceled {
-    background-color: $orange;
+    background-color: $grey;
   }
   &.default {
     background-color: $step;

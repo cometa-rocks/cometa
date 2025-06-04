@@ -55,9 +55,9 @@
           }
         }
         &.canceled {
-          background-color: $orange;
+          background-color: $grey;
           .triangle {
-            border-bottom-color: $orange;
+            border-bottom-color: $grey;
           }
         }
         &.failed {

@@ -843,9 +843,7 @@ export class EditFeature implements OnInit, OnDestroy {
           department_id: departmentId,
           uploadedAPKsList: uploadedAPKsList
         },
-        panelClass: ['mobile-emulator-panel'],
-        width: '80vw',
-        maxWidth: '150dvw'
+        panelClass: 'mobile-emulator-panel',
       })
       .afterClosed()
       .subscribe(res => {
