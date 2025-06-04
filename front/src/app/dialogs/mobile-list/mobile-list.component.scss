@@ -18,9 +18,9 @@ h2, h3{
   margin-left: 20px;
 }
 
-::ng-deep .mobile-emulator-panel {
-  background-color: $bg-mat-dialog-container;
-}
+// ::ng-deep .mobile-emulator-panel {
+//   background-color: $bg-mat-dialog-container;
+// }
 
 @keyframes slideDown {
   from {
@@ -88,6 +88,7 @@ h2, h3{
 .dialog-footer {
   position: relative;
   bottom: -75px;
+
 }
 
 .dialog-footer-nolicense {
@@ -100,8 +101,10 @@ h2, h3{
 
 mat-dialog-content {
   width: 100%;
-  height: calc(100% - 60px);
-  margin-bottom: 60px;
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+  margin-bottom: 0;
+  padding-bottom: 65px;
 }
 
 .mobiles {
@@ -1171,15 +1174,15 @@ mobile-list {
   z-index: 999;
 }
 
-::ng-deep .mobile-emulator-panel-dialog {
-  min-height: 85vh;
-  min-width: 80vw;
-  max-width: 100dvw;
-  max-height: 100dvh;
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: $bg-mat-dialog-container;
-}
+// ::ng-deep .mobile-emulator-panel-dialog {
+//   min-height: 85vh;
+//   min-width: 80vw;
+//   max-width: 100dvw;
+//   max-height: 100dvh;
+//   border-radius: 8px;
+//   overflow: hidden;
+//   background-color: $bg-mat-dialog-container;
+// }
 
 // Menu more vert emulator feature
 .startMenu, .restartMenu, .pauseMenu, .modifyMenu, .closeMenu {
@@ -1346,9 +1349,9 @@ mobile-list {
   background-color: $bg-mat-dialog-container;
 }
 
-::ng-deep .mobile-emulator-panel-dialog {
-  width: 80vw;
-}
+// ::ng-deep .mobile-emulator-panel-dialog {
+//   width: 80vw;
+// }
 
 ::ng-deep div mat-slide-toggle button {
   transform: scale(0.8);
@@ -1406,7 +1409,9 @@ mat-slide-toggle {
   margin: 0;
   padding: 8px 0;
   width: 100%;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
   z-index: 1;
   height: 60px;
+  display: flex;
+  justify-content: flex-end;
+  background-color: $bg-mat-dialog-container;
 }
