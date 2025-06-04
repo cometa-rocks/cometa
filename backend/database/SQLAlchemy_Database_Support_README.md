@@ -17,7 +17,6 @@ SQLAlchemy works with the following databases:
 | **Oracle** ✅ | ✅ Yes | `oracle+cx_oracle://` |
 | **MariaDB** ✅ | ✅ Yes | `mysql+pymysql://` |
 | **IBM Db2** ✅ | ✅ Yes | `ibm_db_sa://` |
-| **Firebird** ✅ | ✅ Yes | `firebird+fdb://` |
 
 ---
 
