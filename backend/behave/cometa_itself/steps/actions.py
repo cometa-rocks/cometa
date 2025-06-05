@@ -231,6 +231,128 @@ def step_impl(context, x, selector):
         # let the page breathe a bit
         time.sleep(0.5)
 
+
+from selenium.common.exceptions import ElementNotInteractableException
+
+# Closes the first IBM Cognos View in the drop down selector
+# Example: I can close the current IBM Cognos report view "Sales Report Q4"
+@step(u'Wait for "{selector}" to be clickable')
+@done(u'Wait for "{selector}" to be clickable')
+def step_impl(context, selector):
+    end_time = time.time() + context.step_data["timeout"]
+    element = waitSelector(context, "css", selector)
+    while time.time() < end_time-0.2:
+        try:
+            if element[0].is_displayed() and element[0].is_enabled():
+                return element[0]
+        except ElementNotInteractableException:
+            pass
+        time.sleep(0.5)
+    raise TimeoutError("Element not clickable after waiting.")
+
+from selenium.webdriver.common.action_chains import ActionChains
+
+# Closes the first IBM Cognos View in the drop down selector
+# Example: I can close the current IBM Cognos report view "Sales Report Q4"
+@step(u'Click using "{x}" and "{y}" coordinates')
+@done(u'Click using "{x}" and "{y}" coordinates')
+def step_impl(context, x, y):
+    actions = ActionChains(context.browser)
+    actions.move_by_offset(x, y).click().perform()
+
+
+
+@step(u'Click on canvas {id} and click on "{x}" and "{y}" coordinates')
+@step(u'Click on canvas {id} and click on "{x}" and "{y}" coordinates')
+def step_impl(context, id, x , y):
+    
+    send_step_details(context, 'Clicking to can')
+    
+    script  = """     
+        // Get the canvas element
+        const canvas = document.getElementById('%s');
+        const mouse_x = %d;
+        const mouse_y = %d
+        // Function to simulate mouse movement to specific canvas coordinates
+        function moveMouseToCanvasCoordinates(x, y) {
+            // Get the canvas's bounding rectangle to calculate its position on the page
+            const rect = canvas.getBoundingClientRect();
+
+            // Adjust coordinates to account for canvas position, borders, and scaling
+            const scaleX = canvas.width / rect.width; // Adjust for canvas scaling
+            const scaleY = canvas.height / rect.height;
+            const canvasX = x * scaleX; // Canvas-internal X coordinate
+            const canvasY = y * scaleY; // Canvas-internal Y coordinate
+
+            // Calculate screen coordinates (relative to the viewport)
+            const screenX = rect.left + x + window.scrollX;
+            const screenY = rect.top + y + window.scrollY;
+
+            // Create a mouse move event
+            const mouseMoveEvent = new MouseEvent('mousemove', {
+                view: window,
+                bubbles: true,
+                cancelable: true,
+                clientX: screenX, // Screen X position
+                clientY: screenY, // Screen Y position
+                // Optional: Include canvas-relative coordinates for event handlers
+                offsetX: x,
+                offsetY: y
+            });
+
+            // Dispatch the event to the canvas
+            canvas.dispatchEvent(mouseMoveEvent);
+        }
+
+        // Example: Add a listener to track mouse movement (for testing)
+        canvas.addEventListener('mouse move', (event) => {
+            console.log(`Mouse moved to canvas coords: (${event.offsetX}, ${event.offsetY})`);
+        });
+
+        // Optional: Simulate a click at the same coordinates
+        function simulateClickAtCanvasCoordinates(x, y) {
+            const rect = canvas.getBoundingClientRect();
+            const screenX = rect.left + x + window.scrollX;
+            const screenY = rect.top + y + window.scrollY;
+
+            const mouseDownEvent = new MouseEvent('mousedown', {
+                view: window,
+                bubbles: true,
+                cancelable: true,
+                clientX: screenX,
+                clientY: screenY,
+                offsetX: x,
+                offsetY: y
+            });
+
+            const mouseUpEvent = new MouseEvent('mouseup', {
+                view: window,
+                bubbles: true,
+                cancelable: true,
+                clientX: screenX,
+                clientY: screenY,
+                offsetX: x,
+                offsetY: y
+            });
+
+            canvas.dispatchEvent(mouseDownEvent);
+            canvas.dispatchEvent(mouseUpEvent);
+        }
+
+        // Example: Move the mouse to canvas coordinates (100, 50)
+        moveMouseToCanvasCoordinates(mouse_x, mouse_y);
+        // Test: Simulate a click at (100, 50)
+        simulateClickAtCanvasCoordinates(mouse_x, mouse_y);
+                                    
+        """% (id, x, y)
+            
+    logger.debug(f"Executing script \n {script}")
+    
+    context.browser.execute_script(script)
+
+        
+    
+
 # Set Environment ID
 # Example: Environment "Default"
 @step('Environment "{env}"')
