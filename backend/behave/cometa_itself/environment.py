@@ -914,12 +914,12 @@ def after_all(context):
     
     import threading       
     # FIXME This code seems not working need to verify
-    def clean_up_and_mail():
+    def clean_up_and_notification():
         
-        telegram_url = f'{get_cometa_backend_url()}/send_notifications/?feature_result_id={os.environ["feature_result_id"]}'
+        notifications_url = f'{get_cometa_backend_url()}/send_notifications/?feature_result_id={os.environ["feature_result_id"]}'
         headers = {'Host': 'cometa.local'}
-        logger.debug(f"Sending notification request on URL : {telegram_url}")
-        response = requests.get(telegram_url, headers=headers, timeout=30)
+        logger.debug(f"Sending notification request on URL : {notifications_url}")
+        response = requests.get(notifications_url, headers=headers)
         
   
         
@@ -951,7 +951,7 @@ def after_all(context):
 
     
     # Create a thread to run the clean_up_and_mail function
-    notification_and_cleanup_thread = threading.Thread(target=clean_up_and_mail)
+    notification_and_cleanup_thread = threading.Thread(target=clean_up_and_notification)
     notification_and_cleanup_thread.daemon = True
     notification_and_cleanup_thread.start() 
     
