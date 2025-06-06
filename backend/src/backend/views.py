@@ -4249,3 +4249,27 @@ from backend.ee.modules.data_driven.views import (
     DataDrivenResultsViewset
 )
 
+
+def health_check(request):
+    """
+    This method checks if the service is up and running.
+    It does so by trying to connect to the database and executing a simple query.
+    If the connection is successful, it returns a JSON response with status "healthy".
+    Otherwise, it returns a JSON response with status "broken" and an error message.
+    """
+    from django.db import connection    
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            row = cursor.fetchone()
+        return JsonResponse({ 
+            'status': 'healthy' if row else 'broken',
+            'message': 'Service is up and running.'
+        }, status=200 if row else 500) 
+        
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return JsonResponse({ 
+            'status': 'broken', 
+            'message': 'Database connection failed.' 
+        }, status=500)
