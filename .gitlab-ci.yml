@@ -48,7 +48,7 @@ stages:
 # redundancy.
 .deployment_script: &deployment_script
   stage: deploy
-  script:    
+  script:
     #########################################################
     # REPLACE
     #########################################################
@@ -157,8 +157,15 @@ stages:
     - docker exec cometa_behave bash -c "supervisorctl restart django-rq:"
     - echo -e "\e[0Ksection_end:`date +%s`:reloading_gunicorn\r\e[0K"
 
+# main script anchor to avoid code
+# redundancy. 
+.kubernetes_deployment_script: &kubernetes_deployment_script
+  stage: deploy
+  script:
+    bash scripts/kubernetes_cicd_deployment.sh
+
 # create a deploy job for amvara2 for branch stage
-deploy:amvara2.stage:
+deploy:amvara2.stage: 
   <<: *deployment_script
   extends: .amvara2.stage
 
@@ -166,6 +173,11 @@ deploy:amvara2.stage:
 deploy:amvara3.prod:
   <<: *deployment_script
   extends: .amvara3.prod
+
+# create a deploy job for amvara3 for branch prod
+deploy:kubernetes.client1.prod:
+  <<: *kubernetes_deployment_script
+
 
 # # create a deploy job for client01 for branch prod
 # deploy:client01.int:
