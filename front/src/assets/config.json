@@ -1,5 +1,5 @@
 {
-  "version": "3.0.55",
+  "version": "3.0.56",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.56",
+      "date": "2025-06-04",
+      "features": [
+        {
+          "title": "Fix (UI) dialogs, edit-variable, step-editor, others - #6352",
+          "description": "Made modifications to the dialogs and fixed bugs in the edit-variables, step editor, main-view components."
+        }
+      ]
+    },
     {
       "version": "3.0.55",
       "date": "2025-06-03",
