@@ -238,11 +238,15 @@
   "changelog": [
     {
       "version": "3.0.55",
-      "date": "2025-06-01",
+      "date": "2025-06-03",
       "features": [
         {
           "title": "Upgraded NodeJS version - #4229",
           "description": "Upgraded NodeJS version to from v14 to v18" 
+        },
+        {
+          "title": "Integrated Telegram notifications from Cometa test reports - #6365",
+          "description": "Telegram chat bots are configurable department wise to receive the notifications in Telegram"
         }
       ]
     },

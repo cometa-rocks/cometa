@@ -813,6 +813,7 @@ class Feature(models.Model):
     generate_dataset = models.BooleanField(default=False)
     continue_on_failure = models.BooleanField(default=False)
     need_help = models.BooleanField(default=False)
+    send_telegram_notification = models.BooleanField(default=False)
     info = models.ForeignKey('Feature_Runs', on_delete=models.SET_NULL, null=True, default=None, related_name='info')
     readonly_fields=('feature_id',)
     def __str__( self ):

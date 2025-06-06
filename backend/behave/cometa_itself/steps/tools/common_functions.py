@@ -402,7 +402,7 @@ def done(*_args, **_kwargs):
 
             # get EnvironmentVariables
             env_variables = json.loads(args[0].VARIABLES)
-            # job parametes
+            # job parameters
             job_parameters = json.loads(args[0].PARAMETERS)
 
             # message that will be saved in database once the code has been executed!

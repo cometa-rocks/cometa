@@ -881,7 +881,6 @@ def after_all(context):
     })
 
     if hasattr(context, "network_responses") and context.network_logging_enabled:
-
         network_response_count = 0
         vulnerable_response_count = 0
         logger.debug(
@@ -915,11 +914,24 @@ def after_all(context):
     
     import threading       
     # FIXME This code seems not working need to verify
-    def clean_up_and_mail():
-        # send mail
-        sendemail = requests.get(f'{get_cometa_backend_url()}/pdf/?feature_result_id=%s' % os.environ['feature_result_id'],
-                                headers={'Host': 'cometa.local'})
-        logger.debug('SendEmail status: ' + str(sendemail.status_code))
+    def clean_up_and_notification():
+        
+        notifications_url = f'{get_cometa_backend_url()}/send_notifications/?feature_result_id={os.environ["feature_result_id"]}'
+        headers = {'Host': 'cometa.local'}
+        logger.debug(f"Sending notification request on URL : {notifications_url}")
+        response = requests.get(notifications_url, headers=headers)
+        
+  
+        
+        if response.status_code == 200:
+            response_data = response.json()
+            if response_data.get('success', False):
+                logger.info("Notification sent successfully")
+            else:
+                logger.warning(f"Notification failed: {response_data.get('message', 'Unknown error')}")
+        else:
+            logger.error(f"Notification request failed with status {response.status_code}: {response.text}")
+    
         # remove download folder if no files where downloaded during the testcase
         downloadedFiles = glob.glob(context.downloadDirectoryOutsideSelenium + "/*")
         if len(downloadedFiles) == 0:
@@ -936,12 +948,12 @@ def after_all(context):
                     f"Something went wrong while trying to delete temp file: {tempfile}"
                 )
                 logger.exception(err)
-       
+
     
-    # Create a thread to run the remove_services function
-    thread = threading.Thread(target=clean_up_and_mail)
-    thread.daemon = True
-    thread.start() 
+    # Create a thread to run the clean_up_and_mail function
+    notification_and_cleanup_thread = threading.Thread(target=clean_up_and_notification)
+    notification_and_cleanup_thread.daemon = True
+    notification_and_cleanup_thread.start() 
     
     # call update task to delete a task with pid.
     task = {
@@ -954,8 +966,11 @@ def after_all(context):
     response = requests.post(f'{get_cometa_backend_url()}/updateTask/', headers={'Host': 'cometa.local'},
                             data=json.dumps(task))
 
-    total_time = (time.time() - context.start_time) * 1000  # Convert to milliseconds
+    total_time = (time.time() - context.start_time) * 1000  # Convert to milliseconds    
     logger.debug(f"Step execution took {total_time:.2f}ms to execute")
+    
+    # Wait for cleanup thread to complete before exiting
+    notification_and_cleanup_thread.join()
 
 @error_handling()
 def before_step(context, step):

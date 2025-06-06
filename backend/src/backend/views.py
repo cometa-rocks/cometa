@@ -67,6 +67,9 @@ from backend.utility.config_handler import *
 # from silk.profiling.profiler import silk_profile
 from modules.container_service.service_manager import DockerServiceManager, ServiceManager
 from backend.utility.timezone_utils import convert_cron_to_utc, recalculate_schedule_if_needed
+import logging
+
+from backend.ee.modules.notification.models import FeatureTelegramOptions
 
 SCREENSHOT_PREFIX = ConfigurationManager.get_configuration('COMETA_SCREENSHOT_PREFIX', '')
 BROWSERSTACK_USERNAME = ConfigurationManager.get_configuration('COMETA_BROWSERSTACK_USERNAME', '')
@@ -2749,13 +2752,16 @@ class FeatureViewSet(viewsets.ModelViewSet):
         # Retrieve feature model fields
         fields = feature._meta.get_fields()
         # Make some exceptions
-        exceptions = ['feature_id', 'schedule']
+        exceptions = ['feature_id', 'schedule', 'telegram_options']
         # Iterate over each field of model
         for field in fields:
             # Check if the field exists in data payload
             if field.name in data and field.name not in exceptions:
                 # Set value into model field with default to previous value
                 setattr(feature, field.name, data.get(field.name, getattr(feature, field.name)))
+
+        # Handle telegram_options separately since it's a OneToOne relationship
+        
 
         """
         Update last edited fields
@@ -2776,6 +2782,46 @@ class FeatureViewSet(viewsets.ModelViewSet):
             # Save without steps
             result = feature.save()  
 
+        if 'telegram_options' in data:
+            
+            telegram_data = data['telegram_options']
+            
+            # Get or create telegram options for this feature
+            telegram_options, created = FeatureTelegramOptions.objects.get_or_create(
+                feature=feature,
+                defaults={
+                    'include_department': False,
+                    'include_application': False,
+                    'include_environment': False,
+                    'include_feature_name': False,
+                    'include_datetime': False,
+                    'include_execution_time': False,
+                    'include_browser_timezone': False,
+                    'include_browser': False,
+                    'include_overall_status': False,
+                    'include_step_results': False,
+                    'include_pixel_diff': False,
+                    'attach_pdf_report': False,
+                    'attach_screenshots': False,
+                    'custom_message': '',
+                    'send_on_error': False,
+                    'check_maximum_notification_on_error_telegram': False,
+                    'maximum_notification_on_error_telegram': 3,
+                    'number_notification_sent_telegram': 0
+                }
+            )
+            
+            # Update the telegram options with the provided data
+            for key, value in telegram_data.items():
+                if hasattr(telegram_options, key):
+                    setattr(telegram_options, key, value)
+            
+            # Save the telegram options
+            telegram_options.save()
+            
+            logger.debug(f"Updated telegram options for feature {feature.feature_id}: created={created}")
+
+        
         """
         Process schedule if requested
         """
@@ -4197,8 +4243,6 @@ def CometaUsage(request):
     # 5. number of failed tests
     '''
 
-
-# import EE Modules
 from backend.ee.modules.data_driven.views import (
     DataDrivenViewset,
     DataDrivenFileViewset,
