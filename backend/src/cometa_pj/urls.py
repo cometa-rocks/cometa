@@ -136,6 +136,7 @@ urlpatterns = [
     # Reporting
     url(r'^cometausage/', views.CometaUsage),
     url(r'^api/chat/completion/', ai_chat.chat_completion),
+    url(r'^health', views.health_check),
     
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) 
 

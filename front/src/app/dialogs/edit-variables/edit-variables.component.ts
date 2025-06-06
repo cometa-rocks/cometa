@@ -402,6 +402,10 @@ export class EditVariablesComponent implements OnInit, OnDestroy {
   // determines which columns filter must be applied to
   applyFilterPredicate() {
     this.dataSource.filterPredicate = (row: VariablePair, filter: string) => {
+      // Always show new rows (id = 0)
+      if (row.id === 0) {
+        return true;
+      }
       return (
         row.variable_name.toLocaleLowerCase().includes(filter) ||
         row.based.toLocaleLowerCase().includes(filter) ||

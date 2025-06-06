@@ -23,16 +23,13 @@ from backend.models import Feature_result
 from backend.utility.notification_manager import NotificationManger
 
 logger = getLogger()
-
+import threading
 
 from backend.generatePDF import PDFAndEmailManager
 
+
 def send_notifications(request):
-    
-    pdf_email_manager = PDFAndEmailManager()
-    # prepares the PDF and send the email
-    pdf_email_manager.prepare_the_get(request=request)
-    
+
     if request.method != 'GET':
         logger.warning(f"Invalid request method: {request.method}")
         return JsonResponse({'success': False, 'error': 'Only GET method allowed'})
@@ -45,35 +42,80 @@ def send_notifications(request):
             logger.error("Missing feature_result_id parameter")
             return JsonResponse({'success': False, 'error': 'feature_result_id parameter is required'})
         
-        # Get the feature result
-        try:
-            feature_result = Feature_result.objects.get(feature_result_id=feature_result_id)
-            logger.debug(f"Found feature result: {feature_result.feature_name} (ID: {feature_result_id})")
-        except Feature_result.DoesNotExist:
-            logger.error(f"Feature result not found for ID: {feature_result_id}")
-            return JsonResponse({'success': False, 'error': f'Feature result with ID {feature_result_id} not found'})
+        # Create a thread to run the clean_up_and_mail function
+        notification = threading.Thread(target=notification_handler,args=(request, feature_result_id))
+        notification.daemon = True
+        notification.start() 
         
-        # Create notification manager and send notification
-        try:
-            notification_manager = NotificationManger("telegram", pdf_email_manager.is_pdf_generated() )
-            logger.debug("Created Telegram notification manager")
-            
-            success = notification_manager.send_message(feature_result )
-            
-            if success:
-                logger.info(f"Telegram notification sent successfully for feature_result_id: {feature_result_id}")
-                return JsonResponse({'success': True, 'message': 'Telegram notification sent successfully'})
-            else:
-                logger.warning(f"Telegram notification failed for feature_result_id: {feature_result_id}")
-                return JsonResponse({'success': False, 'message': 'Failed to send Telegram notification'})
-                
-        except Exception as e:
-            logger.error(f"Error in notification manager for feature_result_id {feature_result_id}: {str(e)}")
-            return JsonResponse({'success': False, 'error': f'Notification manager error: {str(e)}'})
+        logger.info(f"Notification thread is in progress feature_result_id: {feature_result_id}")
+        return JsonResponse({'success': True, 'message': 'Notification thread is in progress'})
            
     except Exception as e:
         logger.error(f"Unexpected error in send_telegram_notification_view: {str(e)}")
         return JsonResponse({'success': False, 'error': f'Unexpected error: {str(e)}'})
+
+    
+
+def notification_handler(request, feature_result_id):
+
+    pdf_email_manager = PDFAndEmailManager()
+    # prepares the PDF and send the email
+    pdf_email_manager.prepare_the_get(request=request)
+    # Get the feature result
+    feature_result = Feature_result.objects.get(feature_result_id=feature_result_id)
+
+    notification_manager = NotificationManger("telegram", pdf_email_manager.is_pdf_generated() )
+    logger.debug("Created Telegram notification manager")
+    
+    notification_manager.send_message(feature_result )
+
+    
+    
+    # pdf_email_manager = PDFAndEmailManager()
+    # # prepares the PDF and send the email
+    # pdf_email_manager.prepare_the_get(request=request)
+    
+    # if request.method != 'GET':
+    #     logger.warning(f"Invalid request method: {request.method}")
+    #     return JsonResponse({'success': False, 'error': 'Only GET method allowed'})
+    
+    # try:
+    #     feature_result_id = request.GET.get('feature_result_id')
+    #     logger.info(f"Received Telegram notification request for feature_result_id: {feature_result_id}")
+        
+    #     if not feature_result_id:
+    #         logger.error("Missing feature_result_id parameter")
+    #         return JsonResponse({'success': False, 'error': 'feature_result_id parameter is required'})
+        
+    #     # Get the feature result
+    #     try:
+    #         feature_result = Feature_result.objects.get(feature_result_id=feature_result_id)
+    #         logger.debug(f"Found feature result: {feature_result.feature_name} (ID: {feature_result_id})")
+    #     except Feature_result.DoesNotExist:
+    #         logger.error(f"Feature result not found for ID: {feature_result_id}")
+    #         return JsonResponse({'success': False, 'error': f'Feature result with ID {feature_result_id} not found'})
+        
+    #     # Create notification manager and send notification
+    #     try:
+    #         notification_manager = NotificationManger("telegram", pdf_email_manager.is_pdf_generated() )
+    #         logger.debug("Created Telegram notification manager")
+            
+    #         success = notification_manager.send_message(feature_result )
+            
+    #         if success:
+    #             logger.info(f"Telegram notification sent successfully for feature_result_id: {feature_result_id}")
+    #             return JsonResponse({'success': True, 'message': 'Telegram notification sent successfully'})
+    #         else:
+    #             logger.warning(f"Telegram notification failed for feature_result_id: {feature_result_id}")
+    #             return JsonResponse({'success': False, 'message': 'Failed to send Telegram notification'})
+                
+    #     except Exception as e:
+    #         logger.error(f"Error in notification manager for feature_result_id {feature_result_id}: {str(e)}")
+    #         return JsonResponse({'success': False, 'error': f'Notification manager error: {str(e)}'})
+           
+    # except Exception as e:
+    #     logger.error(f"Unexpected error in send_telegram_notification_view: {str(e)}")
+    #     return JsonResponse({'success': False, 'error': f'Unexpected error: {str(e)}'})
 
     
     

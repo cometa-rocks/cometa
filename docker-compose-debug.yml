@@ -81,7 +81,7 @@ services:
 
   ws:
     container_name: cometa_socket
-    image: node:14
+    image: node:22
     working_dir: /home/node/app
     logging:
       driver: json-file
