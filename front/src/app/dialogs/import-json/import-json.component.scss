@@ -1,13 +1,61 @@
 @import 'color';
 
-.mat-form-field {
+.import-json-dialog {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   width: 100%;
+
+  .mat-form-field {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mat-dialog-title {
+    color: $blue;
+    padding: 20px 24px;
+  }
+
+  textarea {
+    min-height: 360px;
+    height: 100%;
+    flex: 1;
+  }
 }
 
-.mat-dialog-title {
-  color: $blue;
+::ng-deep .cdk-overlay-pane.import-json-dialog-container {
+  .mat-dialog-container {
+    min-width: 600px !important;
+    max-width: 100dvw !important;
+    max-height: 100dvh !important;
+    min-height: 600px !important;
+    overflow: hidden;
+    padding: 0;
+  }
 }
 
-textarea {
-  min-height: 200px;
+::ng-deep .mat-dialog-actions {
+  padding: 8px 24px;
+  margin: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.import-json-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 400px;
+  overflow: auto;
+  width: 100%;
+  margin: 0;
+  padding: 0 24px;
+  box-sizing: border-box;
+  flex-shrink: 1;
+  min-height: 80%;
 }

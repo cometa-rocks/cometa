@@ -112,17 +112,61 @@
     }
   }
   .prefix {
-    // @include for-tablet-portrait-up {
-    //   margin-left: 125px;
-    //   margin-right: 25px;
-    // }
     flex: 0 0 80px;
     height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
-    &::ng-deep .mat-select-value {
-      font-size: 1rem;
+
+    // Firefox
+    @-moz-document url-prefix() {
+      margin-left: 120px;
+      margin-right: 40px;
+    }
+
+    // Safari
+    @media not all and (min-resolution: 0.001dpcm) {
+      @supports (-webkit-appearance:none) {
+        .your-element {
+          margin-left: 135px;
+          margin-right: 40px;
+        }
+      }
+    }
+    
+
+    // Edge
+    @supports (-ms-ime-align:auto) {
+      margin-left: 135px;
+      margin-right: 40px;
+    }
+
+    &::ng-deep {
+      .mat-select {
+        width: 100%;
+        min-width: 60px;
+        
+        .mat-select-value {
+          font-size: 1rem;
+          line-height: 1.5;
+          padding: 0 8px;
+        }
+        
+        .mat-select-arrow {
+          margin-right: 8px;
+        }
+      }
+      
+      .mat-select-panel {
+        min-width: 80px !important;
+        
+        .mat-option {
+          font-size: 1rem;
+          line-height: 1.5;
+          height: 36px;
+          padding: 0 16px;
+        }
+      }
     }
   }
   &:hover .move-row {

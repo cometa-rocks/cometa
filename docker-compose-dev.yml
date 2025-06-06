@@ -86,7 +86,7 @@ services:
 
   ws:
     container_name: cometa_socket
-    image: node:14
+    image: node:22
     # platform hint for running on apple silicon
     platform: linux/amd64
     working_dir: /home/node/app
