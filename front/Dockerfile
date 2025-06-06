@@ -2,10 +2,10 @@
 FROM node:18 AS build
 
 WORKDIR /app
-
+RUN apt-get update 
 COPY package*.json ./
-RUN npm ci
 COPY . ./
+RUN npm ci --legacy-peer-deps 
 RUN npx ng build -c production 
 
 # Stage 1: This stage to download the appium inspector and build the code to get html files

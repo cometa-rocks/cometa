@@ -21,6 +21,7 @@ from schedules.views import (
     kill_task,
     update_configuration_in_memory,
     updated_step_actions,
+    health_check,
 )
 from django.conf.urls import include
 
@@ -30,6 +31,7 @@ urlpatterns = [
     re_path("kill_task/(?P<pid>[0-9]+)/", kill_task),
     path("update_configurations", update_configuration_in_memory),
     path("updated_step_actions", updated_step_actions),
+    path("health", health_check),
     # Django RQ URLS
     path("django-rq/", include("django_rq.urls")),
 ]

@@ -35,14 +35,18 @@ services:
       - ./backend:/code
       - ./backend/src:/opt/code:rw
     working_dir: /opt/code
+    healthcheck:
+      test: ["CMD", "curl", "-s", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     environment:
       - PYTHONUNBUFFERED=1
     expose:
       - "8000"
     depends_on:
       - db
-    links:
-      - behave:cometabehave.local
     networks:
      - testing
     restart: always
