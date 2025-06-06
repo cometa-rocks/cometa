@@ -135,7 +135,7 @@ class ContainerService(models.Model):
 
             if kwargs.get("apk_file", "") != "":
                 file = File.objects.get(id=kwargs["apk_file"])
-                file_name = service_manager.upload_file(
+                file_name = service_manager.upload_file( 
                     service_name_or_id=self.service_id, file_path=file.path
                 )
                 if not file_name:

@@ -578,7 +578,7 @@
     background-color: $bad;
   }
   &.canceled {
-    background-color: $orange;
+    background-color: $grey;
   }
 }
 
@@ -597,7 +597,7 @@
     color: $bad;
   }
   &.canceled {
-    color: $orange;
+    color: $grey;
   }
   &.default {
     color: inherit;

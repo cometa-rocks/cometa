@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: cometa-db-volume-claim
+  name: cometa-db-volume-claim-disk
   namespace: cometa
 spec:
   accessModes:
-    - ReadWriteMany # Match the PV access mode
+    - ReadWriteOnce # Match the PV access mode
   resources:
     requests:
-      storage: 80Gi # Request 500GB of storage
-  storageClassName: cometa-azure-file-db-sc # Match the StorageClass name
+      storage: 80Gi # Request 80GB of storage
+  storageClassName: cometa-azure-disk-db-sc # Match the StorageClass name
   

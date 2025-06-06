@@ -2761,6 +2761,27 @@ class FeatureViewSet(viewsets.ModelViewSet):
                 setattr(feature, field.name, data.get(field.name, getattr(feature, field.name)))
 
         # Handle telegram_options separately since it's a OneToOne relationship
+        
+
+        """
+        Update last edited fields
+        """
+        feature.last_edited_id = request.session['user']['user_id']
+        feature.last_edited_date = datetime.datetime.utcnow()
+
+        """
+        Save submitted feature steps
+        """
+        # Save feature into database
+        if 'steps' in data and 'steps_content' in data.get('steps', {}):
+            # Save with steps
+            steps = data['steps']['steps_content'] or []
+            feature.steps = len([x for x in steps if x['enabled'] == True])
+            result = feature.save(steps=steps)
+        else:
+            # Save without steps
+            result = feature.save()  
+
         if 'telegram_options' in data:
             
             telegram_data = data['telegram_options']
@@ -2800,25 +2821,7 @@ class FeatureViewSet(viewsets.ModelViewSet):
             
             logger.debug(f"Updated telegram options for feature {feature.feature_id}: created={created}")
 
-        """
-        Update last edited fields
-        """
-        feature.last_edited_id = request.session['user']['user_id']
-        feature.last_edited_date = datetime.datetime.utcnow()
-
-        """
-        Save submitted feature steps
-        """
-        # Save feature into database
-        if 'steps' in data and 'steps_content' in data.get('steps', {}):
-            # Save with steps
-            steps = data['steps']['steps_content'] or []
-            feature.steps = len([x for x in steps if x['enabled'] == True])
-            result = feature.save(steps=steps)
-        else:
-            # Save without steps
-            result = feature.save()  
-
+        
         """
         Process schedule if requested
         """
@@ -4246,3 +4249,27 @@ from backend.ee.modules.data_driven.views import (
     DataDrivenResultsViewset
 )
 
+
+def health_check(request):
+    """
+    This method checks if the service is up and running.
+    It does so by trying to connect to the database and executing a simple query.
+    If the connection is successful, it returns a JSON response with status "healthy".
+    Otherwise, it returns a JSON response with status "broken" and an error message.
+    """
+    from django.db import connection    
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            row = cursor.fetchone()
+        return JsonResponse({ 
+            'status': 'healthy' if row else 'broken',
+            'message': 'Service is up and running.'
+        }, status=200 if row else 500) 
+        
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return JsonResponse({ 
+            'status': 'broken', 
+            'message': 'Database connection failed.' 
+        }, status=500)
