@@ -238,8 +238,12 @@
   "changelog": [
     {
       "version": "3.0.56",
-      "date": "2025-06-04",
+      "date": "2025-06-05",
       "features": [
+        {
+          "title": "Integrated variables in email templates",
+          "description": "Variables now can be used in email templates message body"
+        },
         {
           "title": "Fix (UI) dialogs, edit-variable, step-editor, others - #6352",
           "description": "Made modifications to the dialogs and fixed bugs in the edit-variables, step editor, main-view components."
