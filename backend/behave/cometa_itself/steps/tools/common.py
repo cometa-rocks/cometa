@@ -277,7 +277,7 @@ def waitSelectorNew(context, selector, max_timeout=None):
 # Wrapper function to wait until an element, selector, id, etc is present
 # ... if first try for defined selector is not found
 # ... then it starts looping over the 6 different selectors type (e.g. css, id, xpath, ... )
-# ... until found or max trys is reached, between each loop wait for 1 second
+# ... until found or max tries is reached, between each loop wait for 1 second
 # ---
 # @author Alex Barba
 # @param context - Object containing the webdriver context

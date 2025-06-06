@@ -209,7 +209,6 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       this.stepVisible[index] = true;
 
       const stepFormGroup = this.stepsForm.at(index) as FormGroup;
-
       const stepAction = stepFormGroup.get('step_action')?.value;
       const stepContent = stepFormGroup.get('step_content')?.value;
 
@@ -221,6 +220,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         return;
       }
 
+      // Buscar la acción correspondiente
       const activatedAction = this.actions.find(action =>
         action.action_name === stepAction
       );
@@ -244,13 +244,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         }
 
         // Actualizar la documentación del paso correspondiente
-        const currentIndex = this.stepsForm.value.findIndex(step => step.step_action === stepAction);
-        if (currentIndex !== -1) {
-          this.stepsDocumentation[currentIndex] = {
-            description: this.descriptionText,
-            examples: this.examplesText
-          };
-        }
+        this.stepsDocumentation[index] = {
+          description: this.descriptionText,
+          examples: this.examplesText
+        };
 
         this._cdr.detectChanges();
       }
@@ -280,6 +277,36 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       });
 
       this.stepsForm.push(formGroup);
+
+      // Load documentation for the step
+      if (step.step_action) {
+        const activatedAction = this.actions.find(action =>
+          action.action_name === step.step_action
+        );
+
+        if (activatedAction) {
+          // Clean <br> tags from description
+          const cleanDescription = activatedAction.description.replace(/<br\s*\/?>/gi, '');
+
+          // Separate description and examples
+          let descriptionText = '';
+          let examplesText = '';
+          if (cleanDescription.includes("Example")) {
+            const parts = cleanDescription.split("Example:");
+            descriptionText = parts[0].trim();
+            examplesText = parts[1]?.trim() || '';
+          } else {
+            descriptionText = cleanDescription;
+            examplesText = '';
+          }
+
+          // Store documentation for this step
+          this.stepsDocumentation[index] = {
+            description: descriptionText,
+            examples: examplesText
+          };
+        }
+      }
 
       // Procesar feature links al cargar los steps
       if (step.step_content?.startsWith('Run feature with id') || step.step_content?.startsWith('Run feature with name')) {
@@ -338,15 +365,60 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     // Initialize filteredGroupedActions$ with the grouped actions
     this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
     
+    // Detect Safari and add class to body
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (isSafari) {
+      document.body.classList.add('safari-only');
+    }
+    
+    // Subscribe to steps changes
     this.subs.sink = this._store
       .select(CustomSelectors.GetFeatureSteps(featureId))
       .subscribe(steps => {
-        // Ensure compare is disabled initially
-        const stepsWithCompareDisabled = steps.map(step => ({
-          ...step,
-          compare: step.screenshot ? step.compare : false // Only allow compare if there is screenshot
-        }));
-        this.setSteps(stepsWithCompareDisabled);
+        if (steps) {
+          // Ensure compare is disabled initially
+          const stepsWithCompareDisabled = steps.map(step => ({
+            ...step,
+            compare: step.screenshot ? step.compare : false // Only allow compare if there is screenshot
+          }));
+          
+          // Set the steps
+          this.setSteps(stepsWithCompareDisabled);
+
+          // After setting steps, load documentation for each step
+          stepsWithCompareDisabled.forEach((step, index) => {
+            if (step.step_action) {
+              const activatedAction = this.actions.find(action =>
+                action.action_name === step.step_action
+              );
+
+              if (activatedAction) {
+                // Clean <br> tags from description
+                const cleanDescription = activatedAction.description.replace(/<br\s*\/?>/gi, '');
+
+                // Separate description and examples
+                let descriptionText = '';
+                let examplesText = '';
+                if (cleanDescription.includes("Example")) {
+                  const parts = cleanDescription.split("Example:");
+                  descriptionText = parts[0].trim();
+                  examplesText = parts[1]?.trim() || '';
+                } else {
+                  descriptionText = cleanDescription;
+                  examplesText = '';
+                }
+
+                // Store documentation for this step
+                this.stepsDocumentation[index] = {
+                  description: descriptionText,
+                  examples: examplesText
+                };
+              }
+            }
+          });
+
+          this._cdr.detectChanges();
+        }
       });
 
     // When steps$ is changed do the rollup of duplicated steps

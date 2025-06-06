@@ -459,6 +459,77 @@ class PDFAndEmailManager:
                 variable_text = '<br />'.join(str(info[key]).splitlines())
                 # Replace variable value with key
                 text = text.replace("$%s" % str(key), str(variable_text))
+        
+        # Handle user-created variables from the feature execution
+        try:
+            from backend.models import Variable
+            import html
+            
+            user_variables = Variable.objects.filter(
+                feature=self.feature_result.feature_id,
+                environment=self.feature_result.feature_id.environment_id,
+                department=self.feature_result.feature_id.department_id
+            )
+            
+            if not user_variables.exists():
+                return text
+                
+            # Only log once per PDFAndEmailManager instance to avoid repetition
+            if not hasattr(self, '_variables_processed'):
+                self.my_logger.debug(f"Processing {user_variables.count()} user variables for email replacement")
+                self._variables_processed = True
+            
+            replacements_made = []
+            security_issues = []
+            
+            for variable in user_variables:
+                variable_name = variable.variable_name
+                variable_value = variable.variable_value
+                
+                # Security validations
+                if any(char in variable_name for char in ['\n', '\r', '<', '>']):
+                    security_issues.append(f"{variable_name} (suspicious characters)")
+                    continue
+                    
+                if variable_value and len(str(variable_value)) > 100000:  # 100KB limit
+                    security_issues.append(f"{variable_name} (size limit exceeded)")
+                    variable_value = str(variable_value)[:100000] + "... [TRUNCATED]"
+                
+                # Decrypt if encrypted
+                if variable.encrypted and variable_value:
+                    from backend.utility.encryption import decrypt
+                    from backend.utility.configurations import ConfigurationManager
+                    ENCRYPTION_START = ConfigurationManager.get_configuration('COMETA_ENCRYPTION_START', '')
+                    
+                    if ENCRYPTION_START and str(variable_value).startswith(ENCRYPTION_START):
+                        try:
+                            variable_value = decrypt(variable_value)
+                        except Exception:
+                            self.my_logger.error(f"Failed to decrypt variable: {variable_name}")
+                            continue
+                
+                # Sanitize and replace
+                variable_text = '<br />'.join(html.escape(str(variable_value)).splitlines())
+                original_text = text
+                
+                # Try replacement (handle both with and without $ prefix)
+                if variable_name.startswith('$'):
+                    text = text.replace(variable_name, variable_text)
+                else:
+                    text = text.replace(f"${variable_name}", variable_text)
+                
+                # Track successful replacements
+                if text != original_text:
+                    replacements_made.append(variable_name)
+            
+            if replacements_made:
+                self.my_logger.debug(f"Replaced variables: {', '.join(replacements_made)}")
+            if security_issues:
+                self.my_logger.warning(f"Security issues with variables: {', '.join(security_issues)}")
+                    
+        except Exception as e:
+            self.my_logger.error(f"Error processing user variables for email: {e}")
+            
         return text
 
     """

@@ -26,4 +26,7 @@ alias dis="docker inspect cometa_crontab"
 alias dsfd="docker exec -it cometa_front ./start.sh serve"
 
 alias dsfb="docker compose -f docker-compose-dev.yml up --force-recreate apache django -d"
+# Install django containers dependencies for debugging mode and start server
+alias dsd="docker exec -it cometa_django ./start.sh"
+
 

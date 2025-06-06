@@ -3752,8 +3752,8 @@ def fetch_all_network_requests(context):
     )
     
 
-@step(u'Get all browser network requests and save in "{variable}"')
-@done(u'Get all browser network requests and save in "{variable}"')
+@step(u'Get all browser network requests and save in variable "{variable}"')
+@done(u'Get all browser network requests and save in variable "{variable}"')
 def fetch_all_network_requests(context, variable):
     # Dictionaries to store request and response info by requestId
     requests = {}
@@ -3825,8 +3825,8 @@ def fetch_all_network_requests(context, variable):
 
 
 
-@step(u'Get browser network requests filter by "{url}" and save in the "{variable}"')
-@done(u'Get browser network requests filter by "{url}" and save in the "{variable}"')
+@step(u'Get browser network requests filter by "{url}" and save in the variable "{variable}"')
+@done(u'Get browser network requests filter by "{url}" and save in the variable "{variable}"')
 def fetch_network_requests_by_url(context, url,  variable):
     # Dictionaries to store request and response info by requestId
     logger.debug("fetching and processing network logs")

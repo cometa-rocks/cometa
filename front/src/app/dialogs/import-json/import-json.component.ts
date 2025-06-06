@@ -24,7 +24,9 @@ import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
   ],
 })
 export class ImportJSONComponent {
-  constructor(public dialogRef: MatDialogRef<ImportJSONComponent>) {}
+  constructor(public dialogRef: MatDialogRef<ImportJSONComponent>) {
+    dialogRef.addPanelClass('import-json-dialog-container');
+  }
 
   json = '';
 
