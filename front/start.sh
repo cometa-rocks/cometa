@@ -44,8 +44,8 @@ function install_essentials(){
 	echo -e "\e[32mOK\e[0m"
 
 	echo -e "\e[37mInstalling NodeJS & NPM...\e[0m"
-	curl -sL https://deb.nodesource.com/setup_14.x | bash - >> output.log 2>&1
-	apt-get install -y nodejs >> output.log 2>&1
+	curl -sL https://deb.nodesource.com/setup_18.x | bash - >> output.log 2>&1
+	apt-get install -y nodejs=18.* >> output.log 2>&1
 	echo -e "\e[32mOK\e[0m"
 
 	# create lbtest1.html just in case we are running behind a LB
@@ -75,9 +75,8 @@ function install_angular(){
 	# echo -e "\e[37mInstalling @angular/cli...\e[0m"
 	npm install -g @angular/cli@15.2.9 >> output.log 2>&1
 	# echo -e "\e[32mOK\e[0m"
-	npm config set unsafe-perm true
 	echo -e "\e[37mInstalling npm packages...\e[0m"
-	npm ci >> output.log 2>&1
+	npm ci --legacy-peer-deps >> output.log 2>&1
 	# sed -i "s/CanvasPathMethods/CanvasPath/g" /code/front/node_modules/\@types/d3-shape/index.d.ts
 	echo -e "\e[32mOK\e[0m"
 }
