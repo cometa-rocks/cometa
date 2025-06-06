@@ -1,0 +1,32 @@
+# file-transfer-pod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: transfer-pod
+  namespace: cometa
+spec:
+  tolerations:
+  - key: "architecture"
+    operator: "Equal"
+    value: "amd"
+    effect: "NoSchedule"
+
+  containers:
+  - name: filecopy
+    image: ubuntu
+    command: ["/bin/bash", "-c", "--"]
+    args: ["while true; do sleep 30; done;"]
+    # restartPolicy: Never
+    volumeMounts:
+    - name: cometa-db-volume
+      mountPath: /mnt/azurefile
+    - name: cometa-db-volume-disk
+      mountPath: /mnt/azuredisk
+
+  volumes:
+    - name: cometa-db-volume-disk
+      persistentVolumeClaim:
+        claimName: cometa-db-volume-claim-disk
+    - name: cometa-db-volume
+      persistentVolumeClaim:
+        claimName: cometa-db-volume-claim
