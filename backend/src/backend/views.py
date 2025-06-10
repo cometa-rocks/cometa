@@ -2801,10 +2801,13 @@ class FeatureViewSet(viewsets.ModelViewSet):
                     'include_overall_status': False,
                     'include_step_results': False,
                     'include_pixel_diff': False,
+                    'include_feature_url': False,
+                    'include_failed_step_details': False,
                     'attach_pdf_report': False,
                     'attach_screenshots': False,
                     'custom_message': '',
                     'send_on_error': False,
+                    'do_not_use_default_template': False,
                     'check_maximum_notification_on_error_telegram': False,
                     'maximum_notification_on_error_telegram': 3,
                     'number_notification_sent_telegram': 0

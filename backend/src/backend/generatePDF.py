@@ -447,90 +447,8 @@ class PDFAndEmailManager:
         Replaces the feature variables for the given text
     """
     def replaceFeatureVariables(self, text):
-        # Transform feature object to dict
-        info = model_to_dict(self.feature_result)
-        # Provide some custom keys
-        info['status'] = 'PASSED' if info['success'] else 'FAILED'
-        # Iterate over each property
-        for key in info:
-            # Filter by allowed key type
-            if isinstance(info[key], (int, str, datetime.datetime, bool)):
-                # Replace new lines with <br>
-                variable_text = '<br />'.join(str(info[key]).splitlines())
-                # Replace variable value with key
-                text = text.replace("$%s" % str(key), str(variable_text))
-        
-        # Handle user-created variables from the feature execution
-        try:
-            from backend.models import Variable
-            import html
-            
-            user_variables = Variable.objects.filter(
-                feature=self.feature_result.feature_id,
-                environment=self.feature_result.feature_id.environment_id,
-                department=self.feature_result.feature_id.department_id
-            )
-            
-            if not user_variables.exists():
-                return text
-                
-            # Only log once per PDFAndEmailManager instance to avoid repetition
-            if not hasattr(self, '_variables_processed'):
-                self.my_logger.debug(f"Processing {user_variables.count()} user variables for email replacement")
-                self._variables_processed = True
-            
-            replacements_made = []
-            security_issues = []
-            
-            for variable in user_variables:
-                variable_name = variable.variable_name
-                variable_value = variable.variable_value
-                
-                # Security validations
-                if any(char in variable_name for char in ['\n', '\r', '<', '>']):
-                    security_issues.append(f"{variable_name} (suspicious characters)")
-                    continue
-                    
-                if variable_value and len(str(variable_value)) > 100000:  # 100KB limit
-                    security_issues.append(f"{variable_name} (size limit exceeded)")
-                    variable_value = str(variable_value)[:100000] + "... [TRUNCATED]"
-                
-                # Decrypt if encrypted
-                if variable.encrypted and variable_value:
-                    from backend.utility.encryption import decrypt
-                    from backend.utility.configurations import ConfigurationManager
-                    ENCRYPTION_START = ConfigurationManager.get_configuration('COMETA_ENCRYPTION_START', '')
-                    
-                    if ENCRYPTION_START and str(variable_value).startswith(ENCRYPTION_START):
-                        try:
-                            variable_value = decrypt(variable_value)
-                        except Exception:
-                            self.my_logger.error(f"Failed to decrypt variable: {variable_name}")
-                            continue
-                
-                # Sanitize and replace
-                variable_text = '<br />'.join(html.escape(str(variable_value)).splitlines())
-                original_text = text
-                
-                # Try replacement (handle both with and without $ prefix)
-                if variable_name.startswith('$'):
-                    text = text.replace(variable_name, variable_text)
-                else:
-                    text = text.replace(f"${variable_name}", variable_text)
-                
-                # Track successful replacements
-                if text != original_text:
-                    replacements_made.append(variable_name)
-            
-            if replacements_made:
-                self.my_logger.debug(f"Replaced variables: {', '.join(replacements_made)}")
-            if security_issues:
-                self.my_logger.warning(f"Security issues with variables: {', '.join(security_issues)}")
-                    
-        except Exception as e:
-            self.my_logger.error(f"Error processing user variables for email: {e}")
-            
-        return text
+        from backend.utility.variable_replacement import replace_feature_variables
+        return replace_feature_variables(text, self.feature_result, use_html_breaks=True)
 
     """
         Email Subject Building, if there is no subject, a default one will be created.
@@ -637,11 +555,41 @@ class PDFAndEmailManager:
 
         return new_email_body, email_multi_alternatives
 
+    def _get_failed_steps_for_email(self):
+        """Get HTML formatted failed steps information for email"""
+        if self.feature_result.success or self.feature_result.fails <= 0:
+            return ""
+        
+        failed_steps = [step for step in self.steps if not step.success]
+        if not failed_steps:
+            return ""
+        
+        html = "<br><strong>Failed Steps:</strong><br><ul>"
+        for step in failed_steps:
+            step_name = step.step_name or f"Step {step.step_execution_sequence}"
+            error = (step.error or "No error message").strip()
+            if len(error) > 200:
+                error = error[:200] + "..."
+            html += f"<li><strong>Step {step.step_execution_sequence}: {step_name}</strong><br><em>{error}</em></li>"
+        html += "</ul><br>"
+        return html
+
     def BuildEmailBody(self):
         date_time = self.feature_result.result_date.replace(tzinfo=ZoneInfo('UTC'))
         utc_date =  date_time.astimezone(pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S %Z')
-        cet_date =  date_time.astimezone(pytz.timezone('Europe/Berlin')).strftime('%Y-%m-%d %H:%M:%S %Z')
-        ist_date =  date_time.astimezone(pytz.timezone('Asia/Kolkata')).strftime('%Y-%m-%d %H:%M:%S %Z')
+        
+        # Get browser selected timezone
+        browser_info = self.feature_result.browser
+        browser_timezone = browser_info.get('selectedTimeZone', 'UTC') if browser_info else 'UTC'
+        
+        # Format browser timezone if different from UTC
+        browser_date = ""
+        if browser_timezone != 'UTC':
+            try:
+                browser_date = date_time.astimezone(pytz.timezone(browser_timezone)).strftime('%Y-%m-%d %H:%M:%S %Z')
+            except Exception as e:
+                self.my_logger.warning(f"Invalid browser timezone '{browser_timezone}': {e}")
+                browser_date = f"Browser timezone: {browser_timezone}"
 
         pdf_email_part = ""
 
@@ -670,6 +618,11 @@ class PDFAndEmailManager:
                 %s<br><br>
                 """ % str(self.feature_template.email_body)
             
+        # Get failed steps information
+        failed_steps_section = self._get_failed_steps_for_email()
+        
+        # Build feature URL for frontend
+        feature_url = f"https://{DOMAIN}/#/{self.feature_result.department_name}/{self.feature_result.app_name}/{self.feature_result.feature_id.feature_id}"
 
         email_body = """
             Dear user!<br><br>
@@ -682,17 +635,15 @@ class PDFAndEmailManager:
                 <tr><td><strong>App:</strong></td><td>%s</td></tr>
                 <tr><td><strong>Environment:</strong></td><td>%s</td></tr>
                 <tr><td><strong>Test:</strong></td><td>%s</td></tr>
+                <tr><td><strong>Feature URL:</strong></td><td><a href="%s">Open in Co.meta</a></td></tr>
                 <tr><td><strong>Date + Time:<br><br><br></strong></td>
                             <td>
-                                %s
-                                <br>
-                                %s
-                                <br>
                                 %s
                             </td>
                 </tr>
                 <tr><td><strong>Pixel Difference:</strong></td><td>%s</td></tr>
             </table>
+            %s
             $[[[CUSTOM_EMAIL_DATA]]]
             %s
             <br><p>
@@ -708,10 +659,10 @@ class PDFAndEmailManager:
             self.feature_result.app_name,
             self.feature_result.environment_name,
             self.feature_result.feature_name,
-            utc_date,
-            cet_date,
-            ist_date,
+            feature_url,
+            utc_date if browser_date == "" else f"{utc_date}<br>{browser_date}",
             str(self.feature_result.pixel_diff),
+            failed_steps_section,
             pdf_email_part
         )
         # Replace variables of feature
