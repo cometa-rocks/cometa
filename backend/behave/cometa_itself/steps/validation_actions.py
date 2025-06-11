@@ -54,7 +54,7 @@ def validate_element_presence(context, selector, time, variable):
         logger.debug(f"Exception while checking presence of '{selector}': {e}")
     
     # Save the result to the variable
-    addTestRuntimeVariable(context, variable, str(result))
+    addTestRuntimeVariable(context, variable, str(result),  save_to_step_report=True)
     send_step_details(context, f"Presence validation result for '{selector}' saved to variable '{variable}': {result}")
 
 
@@ -80,7 +80,7 @@ def validate_element_visibility(context, selector, time, variable):
         logger.debug(f"Exception while checking visibility of '{selector}': {e}")
     
     # Save the result to the variable
-    addTestRuntimeVariable(context, variable, str(result))
+    addTestRuntimeVariable(context, variable, str(result), save_to_step_report=True)
     send_step_details(context, f"Visibility validation result for '{selector}' saved to variable '{variable}': {result}")
 
 # Validates if a selector is present in the browser within a given time and saves the result to a variable.
