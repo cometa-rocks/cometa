@@ -9,9 +9,11 @@ import pytz
 from django.conf import settings
 from backend.utility.config_handler import get_cometa_backend_url
 from .configurations import ConfigurationManager
+from .variable_replacement import replace_feature_variables
 from backend.models import Department
 from backend.ee.modules.notification.models import FeatureTelegramOptions
 from backend.models import Feature_result
+from backend.utility.configurations import ConfigurationManager
 
 from backend.utility.functions import getLogger
 
@@ -60,10 +62,10 @@ class TelegramNotificationManger:
             
             # Check if Telegram notifications are enabled and get bot token
             telegram_enabled = ConfigurationManager.get_configuration('COMETA_TELEGRAM_ENABLED', False)
-            bot_token = ConfigurationManager.get_configuration('COMETA_TELEGRAM_BOT_TOKEN', None)
+            global_bot_token = ConfigurationManager.get_configuration('COMETA_TELEGRAM_BOT_TOKEN', None)
             
-            if not telegram_enabled or not bot_token:
-                logger.warning(f"Telegram notifications disabled or bot token not configured. Enabled: {telegram_enabled}, Token: {'***' if bot_token else 'Not set'}")
+            if not telegram_enabled:
+                logger.warning(f"Telegram notifications globally disabled")
                 return False
             
             # Check if feature has Telegram notifications enabled
@@ -88,13 +90,20 @@ class TelegramNotificationManger:
                     'include_overall_status': False,
                     'include_step_results': False,
                     'include_pixel_diff': False,
+                    'include_feature_url': False,
+                    'include_failed_step_details': False,
                     'attach_pdf_report': False,
                     'attach_screenshots': False,
                     'custom_message': '',
                     'send_on_error': False,
+                    'do_not_use_default_template': False,
                     'check_maximum_notification_on_error_telegram': False,
                     'maximum_notification_on_error_telegram': 3,
-                    'number_notification_sent_telegram': 0
+                    'number_notification_sent_telegram': 0,
+                    'override_telegram_settings': False,
+                    'override_bot_token': '',
+                    'override_chat_ids': '',
+                    'override_message_thread_id': None
                 }
             )
             
@@ -133,25 +142,65 @@ class TelegramNotificationManger:
                 logger.info(f"Skipping Telegram notification due to maximum notification limit or configuration")
                 return True  # Return True because this is expected behavior, not an error
             
-            # Get department chat IDs - need to fetch Department object manually since Feature doesn't have FK
-            try:
-                department = Department.objects.get(department_id=feature_result.feature_id.department_id)
-                department_settings = department.settings or {}
-                department_chat_ids = department_settings.get('telegram_chat_ids', '')
-                logger.debug(f"Department chat IDs: {department_chat_ids}")
-            except Department.DoesNotExist:
-                logger.warning(f"Department {feature_result.feature_id.department_id} not found")
-                return False
-            
-            if not department_chat_ids or not department_chat_ids.strip():
-                logger.warning(f"No Telegram chat IDs configured for department {feature_result.department_name}")
-                return False
-            
-            # Parse chat IDs
-            chat_ids = [chat_id.strip() for chat_id in department_chat_ids.split(',') if chat_id.strip()]
-            if not chat_ids:
-                logger.warning("No valid Telegram chat IDs found")
-                return False
+            # Determine bot token and chat IDs based on override settings
+            if telegram_options.override_telegram_settings:
+                logger.debug("Using override Telegram settings for this feature")
+                
+                # Use override bot token if provided, otherwise fall back to global
+                bot_token = telegram_options.override_bot_token.strip() if telegram_options.override_bot_token else global_bot_token
+                if not bot_token:
+                    logger.warning("No bot token available (neither override nor global)")
+                    return False
+                
+                # Use override chat IDs if provided
+                override_chat_ids = telegram_options.override_chat_ids.strip() if telegram_options.override_chat_ids else ''
+                if not override_chat_ids:
+                    logger.warning("Override Telegram settings enabled but no override chat IDs provided")
+                    return False
+                
+                # Parse override chat IDs
+                chat_ids = [chat_id.strip() for chat_id in override_chat_ids.split(',') if chat_id.strip()]
+                if not chat_ids:
+                    logger.warning("No valid override Telegram chat IDs found")
+                    return False
+                
+                logger.debug(f"Using override chat IDs: {chat_ids}")
+                
+                # Store thread ID for later use (can be None)
+                message_thread_id = telegram_options.override_message_thread_id
+                logger.debug(f"Message thread ID: {message_thread_id}")
+                
+            else:
+                logger.debug("Using global Telegram settings")
+                
+                # Use global bot token
+                bot_token = global_bot_token
+                if not bot_token:
+                    logger.warning("Global bot token not configured")
+                    return False
+                
+                # Get department chat IDs - need to fetch Department object manually since Feature doesn't have FK
+                try:
+                    department = Department.objects.get(department_id=feature_result.feature_id.department_id)
+                    department_settings = department.settings or {}
+                    department_chat_ids = department_settings.get('telegram_chat_ids', '')
+                    logger.debug(f"Department chat IDs: {department_chat_ids}")
+                except Department.DoesNotExist:
+                    logger.warning(f"Department {feature_result.feature_id.department_id} not found")
+                    return False
+                
+                if not department_chat_ids or not department_chat_ids.strip():
+                    logger.warning(f"No Telegram chat IDs configured for department {feature_result.department_name}")
+                    return False
+                
+                # Parse chat IDs
+                chat_ids = [chat_id.strip() for chat_id in department_chat_ids.split(',') if chat_id.strip()]
+                if not chat_ids:
+                    logger.warning("No valid Telegram chat IDs found")
+                    return False
+                
+                # No thread ID for department-level chats
+                message_thread_id = None
             
             logger.info(f"Found {len(chat_ids)} chat IDs to send notifications to")
             
@@ -200,31 +249,38 @@ class TelegramNotificationManger:
                 has_screenshots = len(screenshot_files) > 0
                 
                 if has_pdf and has_screenshots:
-                    # Send PDF first, then screenshots as media group
-                    pdf_success = self._send_document_to_chat(bot_token, chat_id, message, pdf_file_path)
-                    screenshot_success = self._send_screenshots_as_media_group(bot_token, chat_id, screenshot_files)
-                    if pdf_success and screenshot_success:
+                    # Send message first, then PDF with simple caption, then screenshots
+                    message_success = self._send_message_to_chat(bot_token, chat_id, message, message_thread_id)
+                    pdf_caption = f"📄 Test Report - {feature_result.feature_name}"
+                    pdf_success = self._send_document_to_chat(bot_token, chat_id, pdf_caption, pdf_file_path, message_thread_id)
+                    screenshot_success = self._send_screenshots_as_media_group(bot_token, chat_id, screenshot_files, "📸 Test Screenshots", message_thread_id)
+                    if message_success and pdf_success and screenshot_success:
                         success_count += 1
-                        logger.debug(f"Successfully sent PDF and screenshots to chat ID: {chat_id}")
+                        logger.debug(f"Successfully sent message, PDF and screenshots to chat ID: {chat_id}")
                     else:
-                        logger.error(f"Failed to send PDF and/or screenshots to chat ID: {chat_id}")
+                        logger.error(f"Failed to send some components to chat ID: {chat_id}")
                 elif has_pdf:
-                    # Send PDF only
-                    if self._send_document_to_chat(bot_token, chat_id, message, pdf_file_path):
+                    # Send message first, then PDF with simple caption
+                    message_success = self._send_message_to_chat(bot_token, chat_id, message, message_thread_id)
+                    pdf_caption = f"📄 Test Report - {feature_result.feature_name}"
+                    pdf_success = self._send_document_to_chat(bot_token, chat_id, pdf_caption, pdf_file_path, message_thread_id)
+                    if message_success and pdf_success:
                         success_count += 1
-                        logger.debug(f"Successfully sent PDF to chat ID: {chat_id}")
+                        logger.debug(f"Successfully sent message and PDF to chat ID: {chat_id}")
                     else:
-                        logger.error(f"Failed to send PDF to chat ID: {chat_id}")
+                        logger.error(f"Failed to send message and/or PDF to chat ID: {chat_id}")
                 elif has_screenshots:
-                    # Send screenshots as media group with caption
-                    if self._send_screenshots_as_media_group(bot_token, chat_id, screenshot_files, message):
+                    # Send screenshots as media group with truncated caption
+                    # Truncate message to fit Telegram's 1024 character caption limit
+                    caption = message[:1000] + "..." if len(message) > 1000 else message
+                    if self._send_screenshots_as_media_group(bot_token, chat_id, screenshot_files, caption, message_thread_id):
                         success_count += 1
                         logger.debug(f"Successfully sent screenshots to chat ID: {chat_id}")
                     else:
                         logger.error(f"Failed to send screenshots to chat ID: {chat_id}")
                 else:
                     # Send text-only message
-                    if self._send_message_to_chat(bot_token, chat_id, message):
+                    if self._send_message_to_chat(bot_token, chat_id, message, message_thread_id):
                         success_count += 1
                         logger.debug(f"Successfully sent message to chat ID: {chat_id}")
                     else:
@@ -273,13 +329,47 @@ class TelegramNotificationManger:
                 logger.debug("Telegram configured for error-only and test passed, skipping notification")
                 return None
             
+            # Check if we should only send custom message (no default template)
+            if telegram_options.do_not_use_default_template:
+                logger.debug("Using custom message only (default template disabled)")
+                if telegram_options.custom_message and telegram_options.custom_message.strip():
+                    try:
+                        # Replace variables in custom message (use_html_breaks=False for Telegram)
+                        processed_custom_message = replace_feature_variables(
+                            telegram_options.custom_message.strip(), 
+                            feature_result, 
+                            use_html_breaks=False
+                        )
+                        logger.debug("Custom-only message processed with variable replacement")
+                        return processed_custom_message
+                    except Exception as e:
+                        logger.error(f"Error processing custom message variables: {e}")
+                        # Fallback to original message without variable replacement
+                        return telegram_options.custom_message.strip()
+                else:
+                    logger.warning("Default template disabled but no custom message provided")
+                    return None
+            
             # Build the message with proper formatting
             message_parts = []
             
-            # Add custom message if provided
+            # Add custom message if provided (with variable replacement)
             if telegram_options.custom_message and telegram_options.custom_message.strip():
-                message_parts.append(f"Custom Message:\n{telegram_options.custom_message.strip()}")
-                message_parts.append("")  # Add blank line after custom message
+                try:
+                    # Replace variables in custom message (use_html_breaks=False for Telegram)
+                    processed_custom_message = replace_feature_variables(
+                        telegram_options.custom_message.strip(), 
+                        feature_result, 
+                        use_html_breaks=False
+                    )
+                    message_parts.append(f"📝 Custom Message:\n{processed_custom_message}")
+                    message_parts.append("")  # Add blank line after custom message
+                    logger.debug("Custom message processed with variable replacement")
+                except Exception as e:
+                    logger.error(f"Error processing custom message variables: {e}")
+                    # Fallback to original message without variable replacement
+                    message_parts.append(f"📝 Custom Message:\n{telegram_options.custom_message.strip()}")
+                    message_parts.append("")  # Add blank line after custom message
             
             # Status line with emoji
             status_emoji = "✅" if feature_result.success else "❌"
@@ -296,6 +386,13 @@ class TelegramNotificationManger:
                 basic_info_parts.append(f"🌍 Environment: {feature_result.environment_name}")
             if telegram_options.include_feature_name:
                 basic_info_parts.append(f"🧪 Feature: {feature_result.feature_name}")
+            
+            # Add feature URL (only if enabled)
+            if telegram_options.include_feature_url:
+                DOMAIN = ConfigurationManager.get_configuration('COMETA_DOMAIN', '')
+                if DOMAIN:
+                    feature_url = f"https://{DOMAIN}/#/{feature_result.department_name}/{feature_result.app_name}/{feature_result.feature_id.feature_id}"
+                    basic_info_parts.append(f"🔗 Open in Co.meta: {feature_url}")
             
             if basic_info_parts:
                 message_parts.extend(basic_info_parts)
@@ -314,17 +411,21 @@ class TelegramNotificationManger:
                 utc_formatted = utc_time.strftime("%Y-%m-%d %H:%M:%S UTC")
                 message_parts.append(utc_formatted)
                 
-                # Add CEST (Central European Summer Time)
-                cest_tz = ZoneInfo("Europe/Berlin")
-                cest_time = utc_time.astimezone(cest_tz)
-                cest_formatted = cest_time.strftime("%Y-%m-%d %H:%M:%S CEST")
-                message_parts.append(cest_formatted)
+                # Add browser selected timezone
+                browser_info = feature_result.browser
+                browser_timezone = browser_info.get('selectedTimeZone', 'UTC') if browser_info else 'UTC'
                 
-                # Add IST (India Standard Time)
-                ist_tz = ZoneInfo("Asia/Kolkata")
-                ist_time = utc_time.astimezone(ist_tz)
-                ist_formatted = ist_time.strftime("%Y-%m-%d %H:%M:%S IST")
-                message_parts.append(ist_formatted)
+                # Only add browser timezone if it's different from UTC
+                if browser_timezone != 'UTC':
+                    try:
+                        browser_tz = ZoneInfo(browser_timezone)
+                        browser_time = utc_time.astimezone(browser_tz)
+                        browser_formatted = browser_time.strftime(f"%Y-%m-%d %H:%M:%S {browser_timezone}")
+                        message_parts.append(browser_formatted)
+                    except Exception as e:
+                        logger.warning(f"Invalid browser timezone '{browser_timezone}': {e}")
+                        # Fallback to showing the timezone name even if we can't format it
+                        message_parts.append(f"Browser timezone: {browser_timezone}")
                 
                 message_parts.append("")  # Add blank line after datetime
             
@@ -363,10 +464,36 @@ class TelegramNotificationManger:
                 if telegram_options.include_step_results:
                     message_parts.append("📊 Results:")
                     message_parts.append(f"• Total Steps: {self._format_number(feature_result.total)}")
-                    message_parts.append(f"• Passed: {self._format_number(feature_result.ok)} ✅")
-                    message_parts.append(f"• Failed: {self._format_number(feature_result.fails)} ❌")
-                    message_parts.append(f"• Skipped: {self._format_number(feature_result.skipped)} ⏭️")
+                    message_parts.append(f"• Passed: {self._format_number(feature_result.ok)}")
+                    message_parts.append(f"• Failed: {self._format_number(feature_result.fails)}")
+                    message_parts.append(f"• Skipped: {self._format_number(feature_result.skipped)}")
                     message_parts.append("")  # Add blank line after results
+            
+            # Failed Steps Details section (show when test failed and explicitly enabled)
+            if not feature_result.success and telegram_options.include_failed_step_details and feature_result.fails > 0:
+                failed_steps = self._get_failed_steps(feature_result.feature_result_id)
+                if failed_steps:
+                    message_parts.append("❌ Failed Steps:")
+                    for i, failed_step in enumerate(failed_steps, 1):
+                        step_info = f"{i}. Step {failed_step['sequence']}: {failed_step['name']}"
+                        if len(step_info) > 80:  # Truncate long step names
+                            step_info = step_info[:77] + "..."
+                        message_parts.append(step_info)
+                        
+                        if failed_step['error']:
+                            # Truncate long error messages and clean them up
+                            error_msg = failed_step['error'].strip()
+                            if len(error_msg) > 200:
+                                error_msg = error_msg[:197] + "..."
+                            # Remove multiple whitespaces and newlines for cleaner display
+                            error_msg = ' '.join(error_msg.split())
+                            message_parts.append(f"   💬 {error_msg}")
+                        
+                        # Add spacing between failed steps (but not after the last one)
+                        if i < len(failed_steps):
+                            message_parts.append("")
+                    
+                    message_parts.append("")  # Add blank line after failed steps
             
             # Final details section (pixel diff, execution time, overall status)
             final_details = []
@@ -375,7 +502,7 @@ class TelegramNotificationManger:
                 final_details.append(f"🖼️ Pixel Difference: {pixel_diff_formatted}")
             
             if telegram_options.include_execution_time:
-                execution_time_str = f"{feature_result.execution_time}s" if feature_result.execution_time else "N/A"
+                execution_time_str = f"{self._format_number(feature_result.execution_time)}ms" if feature_result.execution_time else "N/A"
                 final_details.append(f"⏱️ Execution Time: {execution_time_str}")
             
             if telegram_options.include_overall_status:
@@ -433,6 +560,42 @@ class TelegramNotificationManger:
         except Exception as e:
             logger.error(f"Error getting PDF report: {str(e)}")
             return None
+
+    def _get_failed_steps(self, feature_result_id):
+        """
+        Get information about failed steps for a feature result
+        
+        Args:
+            feature_result_id (int): The feature result ID
+        
+        Returns:
+            list: List of failed step dictionaries with 'sequence', 'name', and 'error' keys
+        """
+        try:
+            from backend.models import Step_result
+            
+            # Get all failed step results for this feature result
+            failed_step_results = Step_result.objects.filter(
+                feature_result_id=feature_result_id,
+                success=False
+            ).order_by('step_execution_sequence')
+            
+            logger.debug(f"Found {failed_step_results.count()} failed steps for feature_result_id: {feature_result_id}")
+            
+            failed_steps = []
+            for step_result in failed_step_results:
+                failed_step = {
+                    'sequence': step_result.step_execution_sequence,
+                    'name': step_result.step_name or 'Unnamed Step',
+                    'error': step_result.error or 'No error message available'
+                }
+                failed_steps.append(failed_step)
+            
+            return failed_steps
+            
+        except Exception as e:
+            logger.error(f"Error getting failed steps: {str(e)}")
+            return []
 
     def _get_screenshots(self, feature_result_id):
         """
@@ -538,7 +701,7 @@ class TelegramNotificationManger:
             # Fallback to string representation if formatting fails
             return str(number) if number is not None else "0"
 
-    def _send_document_to_chat(self, bot_token, chat_id, caption, document_path):
+    def _send_document_to_chat(self, bot_token, chat_id, caption, document_path, message_thread_id=None):
         """
         Send a document (PDF) to a specific Telegram chat with caption
         
@@ -547,6 +710,7 @@ class TelegramNotificationManger:
             chat_id (str): Telegram chat ID
             caption (str): Caption/message to send with the document
             document_path (str): Path to the document file
+            message_thread_id (int, optional): Thread ID for group chats with topics
         
         Returns:
             bool: True if document sent successfully, False otherwise
@@ -572,15 +736,29 @@ class TelegramNotificationManger:
                     'parse_mode': 'HTML'
                 }
                 
-                response = requests.post(url, data=data, files=files, timeout=30)
-                response.raise_for_status()
+                # Add message thread ID if provided
+                if message_thread_id is not None:
+                    data['message_thread_id'] = message_thread_id
                 
-                result = response.json()
-                if result.get('ok'):
+                response = requests.post(url, data=data, files=files, timeout=30)
+                
+                # Parse JSON response first to get actual Telegram error details
+                try:
+                    result = response.json()
+                except json.JSONDecodeError:
+                    result = None
+                
+                if response.status_code == 200 and result and result.get('ok'):
                     logger.debug(f"Telegram document sent successfully to chat ID: {chat_id}")
                     return True
                 else:
-                    logger.error(f"Telegram API error for document to chat ID {chat_id}: {result.get('description', 'Unknown error')}")
+                    # Log detailed error information
+                    if result:
+                        error_description = result.get('description', 'Unknown error')
+                        error_code = result.get('error_code', 'Unknown code')
+                        logger.error(f"Telegram API error for document to chat ID {chat_id}: {error_description} (Error code: {error_code}) | HTTP Status: {response.status_code}")
+                    else:
+                        logger.error(f"Telegram API error for document to chat ID {chat_id}: HTTP {response.status_code} - {response.text[:200]}")
                     return False
                     
         except FileNotFoundError:
@@ -596,7 +774,7 @@ class TelegramNotificationManger:
             logger.error(f"Unexpected error sending Telegram document to chat ID {chat_id}: {str(e)}")
             return False
 
-    def _send_message_to_chat(self, bot_token, chat_id, message):
+    def _send_message_to_chat(self, bot_token, chat_id, message, message_thread_id=None):
         """
         Send a message to a specific Telegram chat
         
@@ -604,6 +782,7 @@ class TelegramNotificationManger:
             bot_token (str): Telegram bot token
             chat_id (str): Telegram chat ID
             message (str): Message to send
+            message_thread_id (int, optional): Thread ID for group chats with topics
         
         Returns:
             bool: True if message sent successfully, False otherwise
@@ -616,6 +795,10 @@ class TelegramNotificationManger:
             'text': message,
             'parse_mode': 'HTML'
         }
+        
+        # Add message thread ID if provided
+        if message_thread_id is not None:
+            payload['message_thread_id'] = message_thread_id
         
         try:
             response = requests.post(url, data=payload, timeout=10)
@@ -639,7 +822,7 @@ class TelegramNotificationManger:
             logger.error(f"Unexpected error sending Telegram message to chat ID {chat_id}: {str(e)}")
             return False
 
-    def _send_screenshots_as_media_group(self, bot_token, chat_id, screenshots, caption=None):
+    def _send_screenshots_as_media_group(self, bot_token, chat_id, screenshots, caption=None, message_thread_id=None):
         """
         Send multiple screenshots as a media group to a specific Telegram chat
         
@@ -648,6 +831,7 @@ class TelegramNotificationManger:
             chat_id (str): Telegram chat ID
             screenshots (list): List of screenshot dictionaries with 'path' and 'caption' keys
             caption (str): Optional caption for the media group
+            message_thread_id (int, optional): Thread ID for group chats with topics
         
         Returns:
             bool: True if screenshots sent successfully, False otherwise
@@ -697,6 +881,10 @@ class TelegramNotificationManger:
                 'chat_id': chat_id,
                 'media': json.dumps(media_group)
             }
+            
+            # Add message thread ID if provided
+            if message_thread_id is not None:
+                data['message_thread_id'] = message_thread_id
             
             logger.debug(f"Sending {len(media_group)} screenshots to chat ID: {chat_id}")
             response = requests.post(url, data=data, files=files, timeout=60)
