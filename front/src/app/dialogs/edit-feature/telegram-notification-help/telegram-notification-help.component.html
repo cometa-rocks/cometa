@@ -93,6 +93,27 @@
         <li>Mentioning specific team members with @username</li>
         <li>Adding deployment or release information</li>
       </ul>
+      
+      <div class="variable-support">
+        <h5>📝 Variable Support</h5>
+        <p>You can use variables in your custom message to include dynamic values:</p>
+        <ul>
+          <li><strong>Database Variables:</strong> Use variables created through the variable management interface (e.g., <code>$userNumber_var2</code>, <code>$mobile</code>, <code>$apiKey</code>)</li>
+          <li><strong>Step Variables:</strong> Use variables created during test execution (e.g., <code>$order_id</code>, <code>$timestamp</code>)</li>
+          <li><strong>Built-in Variables:</strong> Use feature properties (e.g., <code>$feature_name</code>, <code>$environment_name</code>, <code>$status</code>)</li>
+          <li><strong>Direct Links:</strong> Use <code>$url</code> to include a direct link to open the feature in Co.meta interface</li>
+        </ul>
+        
+        <div class="variable-example">
+          <p><strong>Example Custom Message with Variables:</strong></p>
+          <code>🚀 Test Alert for Order: $order_id<br>
+          User ID: $userNumber_var2<br>
+          Mobile: $mobile<br>
+          Environment: $environment_name<br>
+          Test Status: $status<br><br>
+          View Results: $url</code>
+        </div>
+      </div>
     </div>
 
     <div class="help-section">
@@ -106,11 +127,39 @@
       </ul>
     </div>
 
+    <div class="help-section">
+      <h4>Template Options</h4>
+      <p>You have two options for how your Telegram notification is formatted:</p>
+      
+      <div class="subsection">
+        <h5>Default Template:</h5>
+        <ul>
+          <li>Your custom message appears at the top with a "📝 Custom Message:" label</li>
+          <li>Followed by the standard Cometa notification template with test details</li>
+          <li>Provides comprehensive information about the test execution</li>
+        </ul>
+      </div>
+      
+      <div class="subsection">
+        <h5>Custom Message Only:</h5>
+        <ul>
+          <li>Check "Do not use default template" to send only your custom message</li>
+          <li>No additional Cometa template information will be included</li>
+          <li>You have complete control over the message content and format</li>
+          <li>Variables are still supported and will be replaced with actual values</li>
+        </ul>
+      </div>
+      
+      <div class="note">
+        <strong>Important:</strong> If you enable "Do not use default template" but don't provide a custom message, no notification will be sent.
+      </div>
+    </div>
+
     <div class="help-section example">
       <h4>Example Notification</h4>
       <div class="example-message">
-        <p><strong>Custom Message:</strong><br>
-        🚀 Nightly regression test completed</p>
+        <p><strong>📝 Custom Message:</strong><br>
+        🚀 Nightly regression test completed for user: 12345<br></p>
         
         <p><strong>✅ Test Execution Complete</strong></p>
         

@@ -466,11 +466,17 @@ def done(*_args, **_kwargs):
 
                         # Replace in args[0].text if not inside a loop
                         if args[0].text and "Loop" not in save_message:
-                            args[0].text = re.sub(pattern, decrypted_value, args[0].text)
+                            # Escape backslashes for regex safety, but preserve unicode sequences (\uXXXX)
+                            # Then use lambda to avoid re.sub interpreting escape sequences
+                            safe_value = re.sub(r'\\(?!u[0-9a-fA-F]{4})', r'\\\\', decrypted_value)
+                            args[0].text = re.sub(pattern, lambda m: safe_value, args[0].text)
 
                         # Replace in kwargs[parameter]
                         if re.search(pattern, parameter_value):
-                            kwargs[parameter] = re.sub(pattern, decrypted_value, parameter_value)
+                            # Escape backslashes for regex safety, but preserve unicode sequences (\uXXXX)
+                            # Then use lambda to avoid re.sub interpreting escape sequences
+                            safe_value = re.sub(r'\\(?!u[0-9a-fA-F]{4})', r'\\\\', decrypted_value)
+                            kwargs[parameter] = re.sub(pattern, lambda m: safe_value, parameter_value)
 
                             # kwargs[parameter] = kwargs[parameter].replace(("$%s" % variable_name), returnDecrypted(variable_value))
                     # replace job parameters
@@ -480,9 +486,13 @@ def done(*_args, **_kwargs):
                         job_parameters.keys()
                     ):  # we do not want to replace all the parameters inside the loop sub-steps
                         if args[0].text and "Loop" not in save_message:
+                            # Escape backslashes for regex safety, but preserve unicode sequences (\uXXXX)
+                            # Then use lambda to avoid re.sub interpreting escape sequences
+                            param_value = returnDecrypted(str(job_parameters[parameter_key]))
+                            safe_param_value = re.sub(r'\\(?!u[0-9a-fA-F]{4})', r'\\\\', param_value)
                             args[0].text = re.sub(
                                 r"%%%s\b" % parameter_key,
-                                returnDecrypted(str(job_parameters[parameter_key])),
+                                lambda m: safe_param_value,
                                 args[0].text,
                             )
                         if re.search(r"%%%s\b" % parameter_key, kwargs[parameter]):

@@ -1,5 +1,5 @@
 {
-  "version": "3.0.56",
+  "version": "3.0.57",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,20 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.57",
+      "date": "2025-06-09",
+      "features": [
+        {
+          "title": "Integration of variables in telegram notifications",
+          "description": "Variables now can be used in telegram custom message body e.g. $var_name (will display actual value in message)."
+        },
+        {
+          "title": "Override telegram notification settings per feature", 
+          "description": "Now you can override the telegram notification settings per feature. This is useful if you want to use a different chatbot_token, chat_id and message_thread_id."
+        }
+      ]
+    },
     {
       "version": "3.0.56",
       "date": "2025-06-05",

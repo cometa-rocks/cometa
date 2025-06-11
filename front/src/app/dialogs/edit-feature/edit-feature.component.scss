@@ -595,6 +595,44 @@ button {
       gap: 1rem;
     }
   }
+
+  // Override settings section
+  .telegram-override-section {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dadce0;
+
+    mat-checkbox {
+      font-weight: 500;
+    }
+  }
+
+  .telegram-override-inputs {
+    margin-top: 1rem;
+    
+    .override-inputs-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+      
+      @include for-tablet-portrait-up {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      
+      .override-field {
+        .mat-form-field-label {
+          font-weight: 500;
+        }
+        
+        .mat-hint {
+          font-size: 0.8rem;
+          color: #666;
+        }
+      }
+    }
+  }
 }
 
 // Notification parent container that contains main checkbox and sub-options
