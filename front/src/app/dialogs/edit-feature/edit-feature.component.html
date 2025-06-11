@@ -414,6 +414,59 @@
           <div class="telegram-config-section">
             <h4>Telegram Notification Options</h4>
             <div formGroupName="telegram_options">
+              
+              <!-- Override Settings Section -->
+              <div class="telegram-override-section">
+                <mat-checkbox 
+                  color="primary" 
+                  formControlName="override_telegram_settings"
+                  [matTooltip]="'Override global Telegram settings for this feature only'" 
+                  matTooltipPosition="above">
+                  Override Telegram Notification Settings
+                </mat-checkbox>
+                
+                <!-- Override Input Fields -->
+                <div class="telegram-override-inputs" *ngIf="featureForm.value.telegram_options?.override_telegram_settings">
+                  <div class="override-inputs-row">
+                    <mat-form-field appearance="fill" class="override-field">
+                      <mat-label>Chatbot Token</mat-label>
+                      <input
+                        matInput
+                        formControlName="override_bot_token"
+                        placeholder="Enter bot token for this feature"
+                        type="password"
+                        (focus)="onInputFocus()"
+                        (blur)="onInputBlur()">
+                      <mat-hint>Override the global bot token for this feature</mat-hint>
+                    </mat-form-field>
+                    
+                    <mat-form-field appearance="fill" class="override-field">
+                      <mat-label>Chat IDs</mat-label>
+                      <input
+                        matInput
+                        formControlName="override_chat_ids"
+                        placeholder="123456789,987654321"
+                        (focus)="onInputFocus()"
+                        (blur)="onInputBlur()">
+                      <mat-hint>Overrides department settings</mat-hint>
+                    </mat-form-field>
+                    
+                    <mat-form-field appearance="fill" class="override-field">
+                      <mat-label>Message Thread ID</mat-label>
+                      <input
+                        matInput
+                        formControlName="override_message_thread_id"
+                        placeholder="Optional thread ID"
+                        type="number"
+                        (focus)="onInputFocus()"
+                        (blur)="onInputBlur()">
+                      <mat-hint>Optional: Send to specific thread in group chat</mat-hint>
+                    </mat-form-field>
+                  </div>
+                </div>
+              </div>
+
+              <mat-divider *ngIf="featureForm.value.telegram_options?.override_telegram_settings"></mat-divider>
               <div class="telegram-options-grid">
                 <div class="telegram-option-group">
                   <h5>Basic Information</h5>
@@ -421,6 +474,7 @@
                   <mat-checkbox color="primary" formControlName="include_application">Include Application</mat-checkbox>
                   <mat-checkbox color="primary" formControlName="include_environment">Include Environment</mat-checkbox>
                   <mat-checkbox color="primary" formControlName="include_feature_name">Include Feature Name</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_feature_url">Include Feature URL</mat-checkbox>
                 </div>
 
                 <div class="telegram-option-group">
@@ -436,6 +490,7 @@
                   <mat-checkbox color="primary" formControlName="include_overall_status">Include Overall Status</mat-checkbox>
                   <mat-checkbox color="primary" formControlName="include_step_results">Include Step Results</mat-checkbox>
                   <mat-checkbox color="primary" formControlName="include_pixel_diff">Include Pixel Differences</mat-checkbox>
+                  <mat-checkbox color="primary" formControlName="include_failed_step_details">Include Failed Step Details</mat-checkbox>
                 </div>
 
                 <div class="telegram-option-group">
@@ -459,14 +514,14 @@
                     (focus)="onInputFocus()"
                     (blur)="onInputBlur()">
                   </textarea>
-                  <mat-hint>This message will be displayed at the beginning of your Telegram notification</mat-hint>
+                  <mat-hint>This message will be displayed at the beginning of your Telegram notification. You can use variables like $var_name, $var_name2, $var_name3, etc.</mat-hint>
                 </mat-form-field>
               </div>
 
               <mat-radio-group formControlName="send_on_error">
                 When to send notification:
                 <mat-radio-button color="primary" [value]="false">Always</mat-radio-button>
-                <mat-radio-button color="primary" [value]="true">On error only</mat-radio-button>
+                <mat-radio-button color="primary" [value]="true">On error</mat-radio-button>
               </mat-radio-group>
 
               <!-- Group maximum notifications checkbox with its input -->
@@ -478,6 +533,14 @@
                   [matTooltip]="'Set maximum number of Telegram notifications when errors occur'" matTooltipPosition="above"
                   class="screenshot checkbox-blue maximum-notifications-check-telegram"
                   > Set maximum notifications on errors </mat-checkbox>
+
+                <mat-checkbox
+                  formControlName="do_not_use_default_template"
+                  aria-label="Do not use default Telegram template"
+                  color="primary"
+                  [matTooltip]="'When checked, only the custom message will be sent (no default template)'" matTooltipPosition="above"
+                  class="screenshot checkbox-blue default_template"
+                  > Do not use default template </mat-checkbox>
 
                 <div class="maximum-notifications-input-telegram" *ngIf="featureForm.value.telegram_options?.check_maximum_notification_on_error_telegram">
                   <mat-form-field appearance="fill" class="">
