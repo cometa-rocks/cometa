@@ -240,12 +240,18 @@ interface Feature {
     include_overall_status: boolean;
     include_step_results: boolean;
     include_pixel_diff: boolean;
+    include_feature_url: boolean;
+    include_failed_step_details: boolean;
     attach_pdf_report: boolean;
     attach_screenshots: boolean;
     custom_message: string;
     send_on_error: boolean;
     check_maximum_notification_on_error_telegram: boolean;
     maximum_notification_on_error_telegram: string;
+    override_telegram_settings: boolean;
+    override_bot_token: string;
+    override_chat_ids: string;
+    override_message_thread_id: number;
   };
   current_folder_id?: number;
 }
