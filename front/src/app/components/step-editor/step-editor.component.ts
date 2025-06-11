@@ -513,8 +513,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   // when escape is clicked, prevent parent dialog from closing and removes variable flyout
   onStepEscape(event: Event) {
-    event.stopImmediatePropagation();
-    this.stepVariableData.currentStepIndex = null;
+    // Autocomplete panels are handled by the global ESC listener, no need to close them here
   }
 
   onStepFocusOut(event: FocusEvent): void {
@@ -902,13 +901,31 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   @ViewChildren(MatAutocompleteTrigger) autocompleteTriggers: QueryList<MatAutocompleteTrigger>;
 
+  @HostListener('document:keydown', ['$event'])
+  handleGlobalKeyDown(event: KeyboardEvent): void {
+    const isEscape = event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27;
+    if (!isEscape) {
+      return;
+    }
 
-  // @HostListener('document:keydown', ['$event'])
-  // handleKeydown(event: KeyboardEvent): void {
-  //   if (event.keyCode === KEY_CODES.ESCAPE) {
-  //     this.closeAutocomplete();
-  //   }
-  // }
+    // Attempt to close autocomplete panels
+    let panelClosed = false;
+    this.autocompleteTriggers?.forEach(trigger => {
+      if (trigger.panelOpen) {
+        trigger.closePanel();
+        panelClosed = true;
+      }
+    });
+
+    if (panelClosed) {
+      event.stopImmediatePropagation();
+      event.preventDefault();
+      this.isAutocompleteOpened = false;
+      this.displayedVariables = [];
+      this.stepVariableData.currentStepIndex = null;
+      this._cdr.detectChanges();
+    }
+  }
 
   iconPosition = { top: 0, left: 0 };
 
