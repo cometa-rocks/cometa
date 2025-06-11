@@ -30,6 +30,7 @@ export class EmailTemplateHelp {
     ['Basic Information','app_name', 'Application name'],
     ['Basic Information','environment_name', 'Environment name'],
     ['Basic Information','department_name', 'Department name'],
+    ['Basic Information','url', 'Direct link to open the feature in Co.meta interface'],
     ['Feature Execution Result','total', 'Total steps of result'],
     ['Feature Execution Result','fails', 'Fails of result'],
     ['Feature Execution Result','ok', 'Success steps of result'],

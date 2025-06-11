@@ -2782,7 +2782,8 @@ class FeatureViewSet(viewsets.ModelViewSet):
             # Save without steps
             result = feature.save()  
 
-        if 'telegram_options' in data:
+        # Only process telegram_options if feature save was successful and feature exists in database
+        if result['success'] and 'telegram_options' in data and feature.feature_id is not None:
             
             telegram_data = data['telegram_options']
             
@@ -2801,10 +2802,13 @@ class FeatureViewSet(viewsets.ModelViewSet):
                     'include_overall_status': False,
                     'include_step_results': False,
                     'include_pixel_diff': False,
+                    'include_feature_url': False,
+                    'include_failed_step_details': False,
                     'attach_pdf_report': False,
                     'attach_screenshots': False,
                     'custom_message': '',
                     'send_on_error': False,
+                    'do_not_use_default_template': False,
                     'check_maximum_notification_on_error_telegram': False,
                     'maximum_notification_on_error_telegram': 3,
                     'number_notification_sent_telegram': 0
@@ -2814,6 +2818,12 @@ class FeatureViewSet(viewsets.ModelViewSet):
             # Update the telegram options with the provided data
             for key, value in telegram_data.items():
                 if hasattr(telegram_options, key):
+                    # Handle empty strings for integer fields - convert to None
+                    if key in ['override_message_thread_id', 'maximum_notification_on_error_telegram', 'number_notification_sent_telegram']:
+                        if value == '' or value is None:
+                            value = None
+                        elif isinstance(value, str) and value.strip() == '':
+                            value = None
                     setattr(telegram_options, key, value)
             
             # Save the telegram options
@@ -2823,9 +2833,9 @@ class FeatureViewSet(viewsets.ModelViewSet):
 
         
         """
-        Process schedule if requested
+        Process schedule if requested - only if feature save was successful and feature exists in database
         """
-        if 'schedule' in data:
+        if result['success'] and 'schedule' in data and feature.feature_id is not None:
             try:
                 original_cron = data['schedule']
                 original_timezone = data.get('original_timezone', None)
