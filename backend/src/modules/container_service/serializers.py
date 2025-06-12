@@ -4,12 +4,17 @@
 
 from .models import ContainerService
 from rest_framework import serializers
+from backend.utility.functions import getLogger
+
+logger = getLogger()
+
+
 class ContainerServiceSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.name', read_only=True)
     capabilities = serializers.JSONField(source='image.capabilities', read_only=True)
     hostname = serializers.CharField(source='information.Config.Hostname', read_only=True)
     running = serializers.BooleanField(source='information.State.Running', read_only=True)
-    image_name = serializers.SerializerMethodField()
+    image_name = serializers.CharField(required=False)
     
     class Meta:
         model = ContainerService
@@ -29,10 +34,14 @@ class ContainerServiceSerializer(serializers.ModelSerializer):
             'department_id': {'required': True},
         }
 
-    def get_image_name(self, obj):
-        if obj.image is not None:
-            return getattr(obj.image, 'mobile_image_name', None)
-        return obj.image_name
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        # Compute image_name for output
+        if instance.image is not None:
+            rep['image_name'] = getattr(instance.image, 'mobile_image_name', None)
+        else:
+            rep['image_name'] = instance.image_name
+        return rep
     # def create(self, validated_data):
     #     if 'container_image' not in validated_data or not validated_data['container_image']:
     #         raise serializers.ValidationError({"container_image": "This field is required."})

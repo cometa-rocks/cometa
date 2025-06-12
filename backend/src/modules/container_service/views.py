@@ -91,7 +91,7 @@ class ContainerServiceViewSet(viewsets.ModelViewSet):
 
     # @require_permissions("manage_house_keeping_logs")
     def create(self, request, *args, **kwargs):
-        request.data["created_by"] = request.session["user"]["user_id"]
+        request.data["created_by"] = request.session["user"]["user_id"]        
         return super().create(request, args, kwargs)
 
     def destroy(self, request, *args, **kwargs):
