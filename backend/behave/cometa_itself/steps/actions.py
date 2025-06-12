@@ -3414,6 +3414,44 @@ def drag_n_drop(context, element_selector, destination_selector):
 
     ActionChains(context.browser).click_and_hold(element).move_to_element(destination).release(destination).perform()
 
+# This step simulates selecting a checkbox if it's not already selected.
+@step(u'Enable checkbox "{selector}"')
+@done(u'Enable checkbox "{selector}"')
+def select_checkbox(context, selector):
+    checkbox = waitSelector(context, "xpath", selector)
+    send_step_details(context, "Enabling checkbox")
+    # Handle if returned as a list (some frameworks wrap in lists)
+    if isinstance(checkbox, list) and len(checkbox) > 0:
+        checkbox = checkbox[0]
+
+    # Ensure checkbox is only clicked if not already selected
+    if not checkbox.is_selected():
+        checkbox.click()
+
+
+@step(u'Disable checkbox "{selector}"')
+@done(u'Disable checkbox "{selector}"')
+def unselect_checkbox(context, selector):
+    checkbox = waitSelector(context, "xpath", selector)
+    send_step_details(context, "Disabling checkbox")
+    if isinstance(checkbox, list) and len(checkbox) > 0:
+        checkbox = checkbox[0]
+
+    if checkbox.is_selected():
+        checkbox.click()        
+
+@step(u'Validate if checkbox "{selector}" is enabled save result in "{variable}"')
+@done(u'Validate if checkbox "{selector}" is enabled save result in "{variable}"')
+def unselect_checkbox(context, selector, variable):
+    checkbox = waitSelector(context, "xpath", selector)
+    send_step_details(context, "Validate if checkbox is enabled")
+    if isinstance(checkbox, list) and len(checkbox) > 0:
+        checkbox = checkbox[0]
+
+    # Save the result to the variable
+    addTestRuntimeVariable(context, variable, str(checkbox.is_selected()),  save_to_step_report=True)
+        
+        
 # This step fetches the HTML source code of the current browser page and attaches it to the feature result as notes
 # Example: Fetch HTML Source of current Browser page and attach it to the feature result
 @step(u'Fetch HTML Source of current Browser page and attach it to the feature result')
