@@ -209,8 +209,8 @@ export class StepViewComponent implements OnInit {
   clickStepResult: number = null;
   test$: Observable<FeatureResult>;
 
-  @Select(UserState.GetPermission('change_step_result_status'))
-  canChangeStepResultStatus$: Observable<boolean>;
+  @Select(UserState.GetPermission('change_result_status'))
+  canChangeResultStatus$: Observable<boolean>;
  
   stepResultsUrl$: Observable<string>;
 
