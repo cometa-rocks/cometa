@@ -1,5 +1,5 @@
 {
-  "version": "3.0.57",
+  "version": "3.0.58",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.58",
+      "date": "2025-06-13",
+      "features": [
+        {
+          "title": "Added feature report to be editable assigned person only #6175",
+          "description": "User role can be created to make sure reports are editable by assigned person only. This is useful to prevent other users from changing the report status."
+        }
+      ]
+    },
     {
       "version": "3.0.57",
       "date": "2025-06-09",
