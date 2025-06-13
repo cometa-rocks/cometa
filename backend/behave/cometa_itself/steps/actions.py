@@ -838,6 +838,18 @@ def step_iml(context, amount, selector):
     elements = waitSelector(context, "css", selector)
     context.browser.execute_script("arguments[0].scrollTo(0,%s)" % amount, elements[0])
 
+# Scrolls to a given amount of pixels in the Y axis inside a specific element using a CSS selector
+# Example: Scroll element "//div[@class='dual-scrollable-container']" by "200"px on x-axis and "-50"px on y-axis
+@step(u'Scroll element "{selector}" by "{x_amount}"px on x-axis and "{y_amount}"px on y-axis')
+@done(u'Scroll element "{selector}" by "{x_amount}"px on x-axis and "{y_amount}"px on y-axis')
+def step_iml(context, x_amount, y_amount, selector):
+    logger.debug(f"Scrolling element {selector} by {x_amount}px on x-axis and {y_amount}px on y-axis")
+    logger.debug(f"Searching for element {selector} ")
+    elements = waitSelector(context, "css", selector)
+    logger.debug(f"Element found: {elements}")
+    context.browser.execute_script("arguments[0].scrollBy(%s,%s)" % (x_amount, y_amount), elements[0])
+    logger.debug(f"Element has been scrolled")
+
 # Set a value on an element, normally used for inputs
 # Example: Set value "Rock&Roll" on "(//input[@formcontrolname="address_to_add"])[1]"
 @step(u'Set value "{text}" on "{selector}"')
@@ -1066,6 +1078,7 @@ def step_impl(context):
 # @timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
 def step_impl(context,iframe_id):
     while True:
+        logger.debug("Switching to iFrame with id: %s" % iframe_id)
         try:
             # Try getting iframe by iframe_id as text
             iframe = context.browser.find_element(By.ID,  iframe_id )
@@ -3532,6 +3545,7 @@ def step_impl(context, selector, variable_name, option):
     try:
         # Get the tag value (text content)
         tag_value = elements[0].text
+        logger.debug(f"Tag value found: {tag_value}")
 
         # Process the tag value based on the given option
         if option.lower() == "trim the spaces":
