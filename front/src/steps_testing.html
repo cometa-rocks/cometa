@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>COMETA TESTING</title>
+    <title>COMETA TESTING!</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
@@ -29,13 +29,49 @@
       .scrollable {
         height: 150px;
         overflow-x: hidden;
-        width: 400px;
       }
       .scrollable > * {
         height: 30px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+      .dual-scroll {
+        height: 200px;
+        width: 300px;
+        overflow: auto;
+        border: 2px solid #333;
+        padding: 10px;
+      }
+      .dual-scroll-content {
+        width: 600px;
+        height: 400px;
+        background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+                    linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+                    linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+        background-size: 20px 20px;
+        position: relative;
+      }
+      .dual-scroll-content::before {
+        content: "This content requires both horizontal and vertical scrolling to view completely. Try scrolling in both directions!";
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 250px;
+      }
+      .dual-scroll-content::after {
+        content: "Bottom-right corner content that requires scrolling to reach!";
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px;
+        border-radius: 5px;
+        max-width: 200px;
       }
     </style>
   </head>
@@ -78,7 +114,7 @@
         </div>
         <div>What the Road Said</div>
         <div>Eyes That Kiss in the Corners</div>
-        <div>Rowley Jefferson’s Awesome Friendly Spooky Stories</div>
+        <div>Rowley Jefferson's Awesome Friendly Spooky Stories</div>
         <div>Time for School, Little Blue Truck</div>
         <div>Everyone's Table: Global Recipes for Modern Health</div>
         <div>Getaway: Food & Drink to Transport You</div>
@@ -102,10 +138,16 @@
         </div>
         <div>What the Road Said</div>
         <div>Eyes That Kiss in the Corners</div>
-        <div>Rowley Jefferson’s Awesome Friendly Spooky Stories</div>
+        <div>Rowley Jefferson's Awesome Friendly Spooky Stories</div>
         <div>Time for School, Little Blue Truck</div>
         <div>Everyone's Table: Global Recipes for Modern Health</div>
         <div>Getaway: Food & Drink to Transport You</div>
+      </div>
+    </section>
+    <section id="dual_scrolling">
+      <h2>Element with both horizontal and vertical scrolling</h2>
+      <div class="dual-scroll">
+        <div class="dual-scroll-content">This element has dual scroll</div>
       </div>
     </section>
     <section id="set_value_on">
