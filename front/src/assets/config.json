@@ -241,7 +241,7 @@
       "date": "2025-06-13",
       "features": [
         {
-          "title": "Added feature report to be editable assigned person only #6175",
+          "title": "Feature reports should be editable by assigned person only #6175",
           "description": "User role can be created to make sure reports are editable by assigned person only. This is useful to prevent other users from changing the report status."
         }
       ]
