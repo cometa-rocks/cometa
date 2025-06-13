@@ -2058,6 +2058,7 @@ class FeatureResultViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ('result_date',)
 
+    @require_permissions("change_result_status")
     def patch(self, request, *args, **kwargs):
         # Primary option is from URL param
         feature_result_id = self.kwargs.get('feature_result_id', None)
@@ -2231,7 +2232,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
         response = StepResultSerializer(step_result, many=False).data
         return JsonResponse(response)
     
-    @require_permissions("change_step_result_status")
+    @require_permissions("change_result_status")
     def patch(self, request, *args, **kwargs):
         # Get StepResult ID from the passed URL
         step_result_id = self.kwargs.get('step_result_id', None)
