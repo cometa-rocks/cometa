@@ -150,7 +150,7 @@
             <table>
                 <tr>
                     <th> STEP </th>
-                    <th> RESULT </th>
+                    <th> STATUS </th>
                     <th> TIME </th>
                     <th> REL. TIME </th>
                     <th> PIXEL DIFF. </th>
@@ -172,10 +172,14 @@
                         </div>
                     </td>
 
-                    {% if step.success == True %}
-                        <td style="color: #00a99d; font-weight: bold;"> OK </td>
+                    {% if step.status == 'Success' %}
+                        <td style="color: #00a99d; font-weight: bold;"> {{step.status}} </td>
                     {% else %}
-                        <td style="color: #d4145a; font-weight: bold;"> NOK </td>
+                        {% if step.status == 'Failed' %}
+                            <td style="color: #00a99d; font-weight: bold;"> {{step.status}} </td>
+                        {% else %}
+                            <td style="color: #e1bb49; font-weight: bold;"> {{step.status}} </td>
+                        {% endif %}
                     {% endif %}
 
                     <td style="color: #d4145a; font-weight: bold;"> 
@@ -190,6 +194,27 @@
                     {% else %}
                         <td> {{ step.pixel_diff | FormatNumber }}</td>
                     {% endif %}
+                </tr>
+
+            {% endfor %}
+            </table>
+            <div>
+                <pdf:nextpage />
+            </div>
+            <h2 style="width: 100%; border:0px; text-align: left">Step Variable Values</h2>
+            <table>
+                <tr>
+                    <th> VARIABLE NAME</th>
+                    <th> VARIABLE VALUE</th>
+                </tr>
+            {% for step in step_variable_values %}
+                <tr>
+                    <td width="25%" class="firsttd">                        
+                        {{step.variable_name}}
+                    </td>
+                    <td width="75%" class="firsttd">                        
+                        {{step.variable_value}}
+                    </td>
                 </tr>
 
             {% endfor %}
