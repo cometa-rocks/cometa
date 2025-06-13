@@ -1078,6 +1078,7 @@ def step_impl(context):
 # @timeout("Waited for <seconds> seconds but was unable to find specified iFrame element.")
 def step_impl(context,iframe_id):
     while True:
+        logger.debug("Switching to iFrame with id: %s" % iframe_id)
         try:
             # Try getting iframe by iframe_id as text
             iframe = context.browser.find_element(By.ID,  iframe_id )
@@ -3544,6 +3545,7 @@ def step_impl(context, selector, variable_name, option):
     try:
         # Get the tag value (text content)
         tag_value = elements[0].text
+        logger.debug(f"Tag value found: {tag_value}")
 
         # Process the tag value based on the given option
         if option.lower() == "trim the spaces":
