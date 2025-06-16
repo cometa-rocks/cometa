@@ -1,5 +1,5 @@
 {
-  "version": "3.0.58",
+  "version": "3.0.59",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.59",
+      "date": "2025-06-14",
+      "features": [
+        {
+          "title": "Small improvements made to step editor",
+          "description": "Step list now can be closed with 'ESC' key & fixed bug when filtering actions in step editor."
+        }
+      ]
+    },
     {
       "version": "3.0.58",
       "date": "2025-06-13",
