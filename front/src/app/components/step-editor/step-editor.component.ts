@@ -203,9 +203,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       return;
     }
 
-    // Esto hace que aparezca o desaparezca la guía de IA
+    // Toggle AI guidance overlay visibility
     if (isFocused) {
-      // Hacer visible el paso en la UI
+      // Make the step visible in the UI
       this.stepVisible[index] = true;
 
       const stepFormGroup = this.stepsForm.at(index) as FormGroup;
@@ -213,27 +213,27 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       const stepContent = stepFormGroup.get('step_content')?.value;
 
       if (stepContent === undefined) {
-        // Limpiar la descripción y ejemplos si el contenido está vacío
+        // Clear description and examples if content is empty
         this.descriptionText = '';
         this.examplesText = '';
         this._cdr.detectChanges();
         return;
       }
 
-      // Buscar la acción correspondiente
+      // Find the corresponding action
       const activatedAction = this.actions.find(action =>
         action.action_name === stepAction
       );
 
       if (activatedAction) {
-        // Asignar título y descripción de la acción seleccionada
+        // Assign title and description of the selected action
         this.selectedActionTitle = activatedAction.action_name;
         this.selectedActionDescription = activatedAction.description;
 
-        // Limpiar las etiquetas <br> de la descripción
+        // Remove <br> tags from the description
         this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
 
-        // Separar la descripción y ejemplos si es necesario
+        // Separate description and examples if necessary
         if (this.selectedActionDescription.includes("Example")) {
           const parts = this.selectedActionDescription.split("Example:");
           this.descriptionText = parts[0].trim();
@@ -243,7 +243,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           this.examplesText = '';
         }
 
-        // Actualizar la documentación del paso correspondiente
+        // Update documentation for this step
         this.stepsDocumentation[index] = {
           description: this.descriptionText,
           examples: this.examplesText
@@ -308,7 +308,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         }
       }
 
-      // Procesar feature links al cargar los steps
+      // Process feature links when loading steps
       if (step.step_content?.startsWith('Run feature with id') || step.step_content?.startsWith('Run feature with name')) {
         const match = step.step_content.match(/"([^"]*)"/);
         if (match) {
@@ -530,12 +530,25 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   
 
   onTextareaFocus(event: FocusEvent, index: number): void {
-    // If this is an API call step, expand it for editing
+    // Inform parent of focus first
+    this.sendTextareaFocusToParent(true, index);
+    
     if (this.isApiCallStep(index)) {
       this.editingApiCallIndex = index;
       this._cdr.detectChanges();
     }
-    this.sendTextareaFocusToParent(true, index);
+    
+    // Re-filter action suggestions based on this step's current content
+    const contentControl = this.stepsForm.at(index).get('step_content');
+    const text = contentControl?.value?.trim() || '';
+    if (text) {
+      const filtered = this.actions.filter(action =>
+        action.action_name.toLowerCase().includes(text.toLowerCase())
+      );
+      this.filteredGroupedActions$.next(this.getGroupedActions(filtered));
+    } else {
+      this.filteredGroupedActions$.next(this.getGroupedActions(this.actions));
+    }
   }
 
   // removes variable flyout on current step row, when keydown TAB event is fired
@@ -810,14 +823,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       // Update the value of "step_action" in the FormGroup
       stepFormGroup.patchValue({ step_action: activatedAction.action_name });
 
-      // Update the documentation for this step
+      // Assign values for the selected action
       this.selectedActionTitle = activatedAction.action_name;
       this.selectedActionDescription = activatedAction.description;
 
-      // Clean the <br> tags from the description
+      // Remove <br> tags from the description
       this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
 
-      // Separate the description and examples if necessary
+      // Separate description and examples if necessary
       if (this.selectedActionDescription.includes("Example")) {
         const parts = this.selectedActionDescription.split("Example:");
         this.descriptionText = parts[0].trim();
@@ -862,14 +875,14 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
       const activatedAction = this.actions.find(action => action.action_name === activatedActionName);
       if (activatedAction) {
-        // Asignar los valores de la acción seleccionada
+        // Assign values for the selected action
         this.selectedActionTitle = activatedAction.action_name;
         this.selectedActionDescription = activatedAction.description;
 
-        // Limpiar las etiquetas <br> de la descripción
+        // Remove <br> tags from the description
         this.selectedActionDescription = this.selectedActionDescription.replace(/<br\s*\/?>/gi, '');
 
-        // Separar la descripción y los ejemplos si es necesario
+        // Separate description and examples if necessary
         if (this.selectedActionDescription.includes("Example")) {
           const parts = this.selectedActionDescription.split("Example:");
 
@@ -882,8 +895,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           this.examplesText = '';
         }
 
-        // Aquí puedes agregar la actualización de la documentación para este paso
-        // Si tienes un arreglo de `stepsDocumentation`, puedes almacenarlo aquí también
+        // Here you can add documentation update for this step
+        // If you have a `stepsDocumentation` array, you can store it here as well
         this.stepsDocumentation[index] = {
           description: this.descriptionText,
           examples: this.examplesText
@@ -916,6 +929,13 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         panelClosed = true;
       }
     });
+
+    // Close variable fly-out (step list) if it is open
+    if (this.displayedVariables.length > 0) {
+      this.displayedVariables = [];
+      this.stepVariableData.currentStepIndex = null;
+      panelClosed = true;
+    }
 
     if (panelClosed) {
       event.stopImmediatePropagation();
@@ -1115,7 +1135,37 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
 
+  /**
+   * Closes every assistive panel (autocomplete or variable fly-out) ensuring
+   * that only one can be visible at any time – used before inserting / copying
+   * steps to avoid multiple overlapping panels.
+   */
+  private closeAssistPanels(): void {
+    this.autocompleteTriggers?.forEach(trigger => {
+      if (trigger.panelOpen) {
+        trigger.closePanel();
+      }
+    });
+
+    // Remove any stale overlay DOM left behind (failsafe, O(1))
+    const overlay = document.querySelector('.mat-autocomplete-panel');
+    if (overlay) {
+      overlay.remove();
+    }
+
+    // Reset variable fly-out state
+    if (this.displayedVariables.length) {
+      this.displayedVariables = [];
+      this.stepVariableData.currentStepIndex = null;
+    }
+
+    this.isAutocompleteOpened = false;
+  }
+
   addEmpty(index: number = -1) {
+    // Ensure no assistive panel from other textarea remains open
+    this.closeAssistPanels();
+
     const template = this._fb.group({
       enabled: [true],
       screenshot: [false],
@@ -1144,6 +1194,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   copyItem(index: number, position: string) {
+    // Close assistive panels before duplicating
+    this.closeAssistPanels();
+
     const stepToCopy =
       position === 'up'
         ? this.stepsForm.controls[index]
