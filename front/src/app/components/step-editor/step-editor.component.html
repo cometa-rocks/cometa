@@ -284,6 +284,14 @@
             (click)="navigateToFeature(stepStates[i]?.featureId)">
             link
           </i>
+          <i 
+            class="doc-link-sign material-icons"
+            [style.display]="step.get('step_action').value ? 'flex' : 'none'"
+            matTooltip="View documentation"
+            matTooltipPosition="above"
+            (click)="openDocumentation(step.get('step_content').value)">
+            description
+          </i>
         </div>
         <!-- Step Options Menu -->
         <mat-menu class="step-options-menu" #stepOptions="matMenu">

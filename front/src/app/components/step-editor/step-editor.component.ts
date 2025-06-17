@@ -1489,6 +1489,168 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
   }
 
+  /**
+   * Opens the documentation for a specific action in a new tab.
+   * Maps step patterns to their corresponding documentation sections.
+   */
+  openDocumentation(stepContent: string) {
+    if (!stepContent) return;
+    
+    // Map of step patterns to documentation sections
+    const stepToDocMap: { [key: string]: string } = {
+      // Browser actions
+      'StartBrowser and call URL': 'browser-actions',
+      'Goto URL': 'browser-actions',
+      'Click on element': 'browser-actions',
+      'Type text': 'browser-actions',
+      'Select option': 'browser-actions',
+      'Wait for element': 'browser-actions',
+      'Assert element': 'browser-actions',
+      'Clear text': 'browser-actions',
+      'Scroll to element': 'browser-actions',
+      'Hover over element': 'browser-actions',
+      'Double click on element': 'browser-actions',
+      'Right click on element': 'browser-actions',
+      'Drag and drop': 'browser-actions',
+      'Switch to frame': 'browser-actions',
+      'Switch to window': 'browser-actions',
+      'Accept alert': 'browser-actions',
+      'Dismiss alert': 'browser-actions',
+      'Get alert text': 'browser-actions',
+      'Execute JavaScript': 'browser-actions',
+      'Take screenshot': 'browser-actions',
+      'Compare screenshots': 'browser-actions',
+
+      // API actions
+      'Make an API call': 'api-actions',
+      'Save last API Call property': 'api-actions',
+      'Assert last API Call property': 'api-actions',
+
+      // AI actions
+      'AI Generate': 'ai-actions',
+      'AI Analyze': 'ai-actions',
+      'AI Compare': 'ai-actions',
+
+      // Conditional actions
+      'If': 'conditional-actions',
+      'Else': 'conditional-actions',
+      'End If': 'conditional-actions',
+      'While': 'conditional-actions',
+      'End While': 'conditional-actions',
+      'For each': 'conditional-actions',
+      'End For': 'conditional-actions',
+
+      // Validation actions
+      'Assert': 'validation-actions',
+      'Verify': 'validation-actions',
+      'Check': 'validation-actions',
+      'Validate': 'validation-actions',
+
+      // CSS selectors actions
+      'Find element by CSS': 'css-selectors-actions',
+      'Find elements by CSS': 'css-selectors-actions',
+
+      // Feature actions
+      'Run feature with': 'feature-actions',
+      'Run feature with id': 'feature-actions',
+      'Run feature with name': 'feature-actions',
+
+      // Mobile actions
+      'Start mobile': 'mobile-actions',
+      'Connect to mobile': 'mobile-actions',
+      'Switch mobile to': 'mobile-actions',
+      'Install app': 'mobile-actions',
+      'Tap on mobile element': 'mobile-actions',
+      'Long press mobile element': 'mobile-actions',
+      'Double tap on mobile element': 'mobile-actions',
+      'Swipe right on mobile element': 'mobile-actions',
+      'Swipe left on mobile element': 'mobile-actions',
+      'Swipe up on mobile element': 'mobile-actions',
+      'Swipe down on mobile element': 'mobile-actions',
+      'Swipe from coordinate': 'mobile-actions',
+      'Set value': 'mobile-actions',
+      'Clear mobile textbox': 'mobile-actions',
+      'Check if mobile element': 'mobile-actions',
+      'Validate if current mobile screen contains': 'mobile-actions',
+      'Switch to mobile frame with id': 'mobile-actions',
+      'Tap element': 'mobile-actions',
+      'Long press element': 'mobile-actions',
+      'Swipe from element': 'mobile-actions',
+      'Swipe screen': 'mobile-actions',
+      'Install APK': 'mobile-actions',
+      'Uninstall app': 'mobile-actions',
+      'Check element is visible': 'mobile-actions',
+      'Check element is not visible': 'mobile-actions',
+      'Check element is enabled': 'mobile-actions',
+      'Check element is not enabled': 'mobile-actions',
+      'Check element contains text': 'mobile-actions',
+      'Check element does not contain text': 'mobile-actions',
+      'Validate screen contains object': 'mobile-actions',
+      'Switch to frame by ID': 'mobile-actions',
+      'Check if app': 'mobile-actions',
+      'Capture logs from mobile device': 'mobile-actions',
+      'Get mobile device orientation': 'mobile-actions',
+      'Change mobile device orientation': 'mobile-actions',
+
+      // Mouse actions
+      'Scroll to': 'mouse-actions',
+      'I can click on button': 'mouse-actions',
+      'I select option': 'mouse-actions',
+      'I click on element with classname': 'mouse-actions',
+      'Scroll the opened folder': 'mouse-actions',
+      'click on element with xpath': 'mouse-actions',
+      'I can Control Click at': 'mouse-actions',
+      'Download a file by clicking on': 'mouse-actions',
+      'Drag': 'mouse-actions',
+      'Scroll to the last position': 'mouse-actions',
+      'Scroll to element with': 'mouse-actions',
+
+      // Keyboard actions
+      'Send keys': 'keyboard-actions',
+      'Press Enter': 'keyboard-actions',
+      'I can do a basic auth with': 'keyboard-actions',
+      'Press the following set of keys': 'keyboard-actions',
+
+      // IBM actions
+      'Test IBM Cognos Cube Dimension': 'ibm-actions',
+      'I can test current IBM Cognos folder': 'ibm-actions',
+      'I can go to IBM Cognos folder': 'ibm-actions',
+      'I can test current IBM Cognos folder using parameters': 'ibm-actions',
+
+      // IBM Cognos QueryStudio actions
+      'I can sort QueryStudio table column': 'ibm-cognos-querystudio-actions',
+      'I can add an column': 'ibm-cognos-querystudio-actions',
+      'I can add an filter': 'ibm-cognos-querystudio-actions',
+      'I can add an filter to column': 'ibm-cognos-querystudio-actions',
+      'I can set not to the filter': 'ibm-cognos-querystudio-actions',
+      'I can remove the filter': 'ibm-cognos-querystudio-actions',
+      'I can delete QueryStudio table column': 'ibm-cognos-querystudio-actions',
+      'I can cut QueryStudio table column': 'ibm-cognos-querystudio-actions',
+
+      // Excel actions
+      'Edit': 'editing-excel-files',
+      'Open Excel from': 'editing-excel-files',
+      'Open "': 'editing-excel-files',
+
+      // File actions
+      'Attach the': 'uploading-and-downloading-files',
+      'Download a file by': 'uploading-and-downloading-files',
+      'Upload a file by clicking on': 'uploading-and-downloading-files'
+    };
+
+    // Find the matching documentation section
+    let docSection = 'other-actions'; // Default section
+    for (const [pattern, section] of Object.entries(stepToDocMap)) {
+      if (stepContent.startsWith(pattern)) {
+        docSection = section;
+        break;
+      }
+    }
+    
+    // Open documentation in new tab with the correct section
+    window.open(`https://github.com/cometa-rocks/cometa_documentation/blob/main/docs/user/cometa_actions.md#${docSection}`, '_blank');
+  }
+
   stepStates: { [key: number]: StepState } = {};
   isApiCallStep(index: number): boolean {
     const content = this.stepsForm.controls[index]?.get('step_content')?.value;

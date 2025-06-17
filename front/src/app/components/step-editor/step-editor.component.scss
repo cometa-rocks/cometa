@@ -773,9 +773,33 @@ textarea {
   }
 
   .feature-link-sign {
-    color: $blue;
+    cursor: pointer;
+    font-size: 18px;
+    margin-left: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 1 !important;
+    }
   }
 
+  .doc-link-sign {
+    cursor: pointer;
+    font-size: 18px;
+    margin-left: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #000;
+    }
+  }
 }
 
 .disabled-menu-item {
