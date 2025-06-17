@@ -571,87 +571,108 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Save the state of the expansion panel
-  savePanelState(panelId: string, isExpanded: boolean) {
-    // Don't save state if we're in 'new' mode
-    if (this.data.mode === 'new') {
-      console.log('Not saving panel state in new mode');
-      return;
-    }
-
-    console.log('savePanelState called:', { panelId, isExpanded });
-    const savedStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
-    console.log('Current panelStates:', savedStates);
-
-    // Save the state for this specific panel
-    savedStates[panelId] = isExpanded;
-    
-    // Update all features' panels with the same panelId
-    this.features.forEach(feature => {
-      const panel = feature.panels.find(p => p.id === panelId);
-      if (panel) {
-        console.log('Updating panel expanded state to:', isExpanded, 'for feature:', feature.id);
-        panel.expanded = isExpanded;
-      }
-    });
-    
-    console.log('Updated panelStates:', savedStates);
-    localStorage.setItem('co_mat_expansion_states', JSON.stringify(savedStates));
-  }
-
-  loadPanelStates() {
-    console.log('loadPanelStates called');
-    const savedStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
-    console.log('Loaded savedStates:', savedStates);
-  
-    const userSettingsMap = {
-      'hideBrowsers': this.user.settings.hideBrowsers,
-      'hideInformation': this.user.settings.hideInformation,
-      'hideSendMail': this.user.settings.hideSendMail,
-      'hideSteps': this.user.settings.hideSteps,
-      'hideSchedule': this.user.settings.hideSchedule,
-      'hideUploadedFiles': this.user.settings.hideUploadedFiles,
-      'hideTelegramConfig': this.user.settings.hideTelegramConfig
-    };
-    console.log('User settings:', userSettingsMap);
-  
-    this.features.forEach(feature => {
-      feature.panels.forEach(panel => {
-        const settingKey = this.getPanelSettingKey(parseInt(panel.id));
-        const userSetting = userSettingsMap[settingKey];
-        console.log('Panel:', panel.id, 'SettingKey:', settingKey, 'UserSetting:', userSetting);
-        
-        // Check if we have a saved state for this panel type
-        if (savedStates[panel.id] !== undefined) {
-          // Use the saved state
-          console.log('Using saved state for panel type', panel.id, ':', savedStates[panel.id]);
-          panel.expanded = savedStates[panel.id];
-        } else {
-          // If no saved state exists, use the profile setting
-          console.log('No saved state, using profile setting for panel', panel.id, ':', userSetting !== true);
-          panel.expanded = userSetting !== true;
+  savePanelState(featureId: number, panelId: string, isExpanded: boolean) {
+    try {
+      // Get existing states or initialize with default structure
+      let panelStates = {};
+      const savedStates = localStorage.getItem('co_mat_expansion_states');
+      
+      if (savedStates) {
+        try {
+          panelStates = JSON.parse(savedStates);
+          // Ensure panelStates is an object
+          if (typeof panelStates !== 'object' || panelStates === null) {
+            panelStates = {};
+          }
+        } catch (e) {
+          panelStates = {};
         }
-      });
-    });
+      }
+
+      // Initialize feature object if it doesn't exist
+      if (!panelStates[featureId] || typeof panelStates[featureId] !== 'object') {
+        panelStates[featureId] = {};
+      }
+
+      // Save the state of the panel
+      panelStates[featureId][panelId] = isExpanded;
+      
+      // Save back to localStorage
+      localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
+    } catch (error) {
+      console.error('Error saving panel state:', error);
+    }
   }
 
-  // When the expansion panel changes, save
-  onExpansionChange(panelId: string, isExpanded: boolean) {
-    console.log('onExpansionChange called:', { panelId, isExpanded });
-    this.savePanelState(panelId, isExpanded);
-  }
-
-  getPanelSettingKey(panelId: number): string {
-    const panelMap: { [key: number]: string } = {
-      1: 'hideInformation',
-      2: 'hideSendMail',
-      3: 'hideTelegramConfig',
-      4: 'hideUploadedFiles',
-      5: 'hideBrowsers',
-      6: 'hideSteps',
-      7: 'hideSchedule'
+  // Get the setting key for a panel ID
+  getPanelSettingKey(panelId: string): string {
+    const panelMap = {
+      '1': 'hideInformation',
+      '2': 'hideSendMail',
+      '3': 'hideTelegramConfig',
+      '4': 'hideUploadedFiles',
+      '5': 'hideBrowsers',
+      '6': 'hideSteps',
+      '7': 'hideSchedule'
     };
-  
-    return panelMap[panelId];
+    
+    return panelMap[panelId] || '';
+  }
+
+  // Load panel states from localStorage and user settings
+  loadPanelStates() {
+    try {
+      const savedStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
+      
+      // Map of panel IDs to their corresponding user settings
+      const userSettingsMap = {
+        '1': this.user.settings?.hideInformation,
+        '2': this.user.settings?.hideSendMail,
+        '3': this.user.settings?.hideTelegramConfig,
+        '4': this.user.settings?.hideUploadedFiles,
+        '5': this.user.settings?.hideBrowsers,
+        '6': this.user.settings?.hideSteps,
+        '7': this.user.settings?.hideSchedule
+      };
+
+      this.features.forEach(feature => {
+        if (!feature.id) return;
+
+        feature.panels.forEach(panel => {
+          const userSetting = userSettingsMap[panel.id];
+          
+          // If user setting is explicitly true, force panel closed
+          if (userSetting === true) {
+            panel.expanded = false;
+          } else {
+            // Otherwise use saved state or default to open
+            const savedState = savedStates[feature.id]?.[panel.id];
+            panel.expanded = typeof savedState === 'boolean' ? savedState : true;
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error loading panel states:', error);
+    }
+  }
+
+  // Handle panel expansion changes
+  onExpansionChange(featureId: number, panelId: string, isExpanded: boolean) {
+    try {
+      // Save the panel state
+      this.savePanelState(featureId, panelId, isExpanded);
+      
+      // Update the panel state in the features array
+      const feature = this.features.find(f => f.id === featureId);
+      if (feature) {
+        const panel = feature.panels.find(p => p.id === panelId);
+        if (panel) {
+          panel.expanded = isExpanded;
+        }
+      }
+    } catch (error) {
+      console.error('Error handling expansion change:', error);
+    }
   }
 
   // // Check if the create button should be disabled
@@ -1276,7 +1297,7 @@ export class EditFeature implements OnInit, OnDestroy {
     // Initialize localStorage with a comment if it doesn't exist
     if (!localStorage.getItem('co_mat_expansion_states')) {
       localStorage.setItem('co_mat_expansion_states', JSON.stringify({
-        "comment": "Panel expansion states",
+        "comment": "Panel expansion states per feature",
         "Default": {}
       }));
     }
@@ -2112,7 +2133,7 @@ export class EditFeature implements OnInit, OnDestroy {
   // Handle panel toggle events from files-management component
   onFilePanelToggled(isExpanded: boolean): void {
     // Update panel state if needed
-    this.onExpansionChange('4', isExpanded);
+    this.onExpansionChange(this.featureId, '4', isExpanded);
   }
   
   // Handle pagination events from files-management component
