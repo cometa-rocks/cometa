@@ -1,5 +1,5 @@
 {
-  "version": "3.0.59",
+  "version": "3.0.60",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.60",
+      "date": "2025-06-17",
+      "features": [
+        {
+          "title": "Enhanced files management with a new menu #6082",
+          "description": "Enhanced files management with a new menu to manage files and data driven files."
+        }
+      ]
+    },
     {
       "version": "3.0.59",
       "date": "2025-06-17",
