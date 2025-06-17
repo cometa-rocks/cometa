@@ -243,9 +243,13 @@
         {
           "title": "Improve variable view for JQ path designing #6451",
           "description": "Enhanced variable view, to avoid of adding .variable_value while creating jq pattern in the JSON variable view"
+        },
+        {
+          "title": "Small improvements made to step editor",
+          "description": "Step list now can be closed with 'ESC' key & fixed bug when filtering actions in step editor."
         }
       ]
-    },   
+    },
     {
       "version": "3.0.58",
       "date": "2025-06-13",
