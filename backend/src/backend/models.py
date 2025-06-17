@@ -594,7 +594,7 @@ class Permissions(models.Model):
     
     # Step_result related
     remove_screenshot = models.BooleanField(default=False)
-    change_step_result_status = models.BooleanField(default=False)
+    change_result_status = models.BooleanField(default=False)
     
     # Feature_result related
     remove_feature_result = models.BooleanField(default=False)

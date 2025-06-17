@@ -137,7 +137,7 @@
             </div>
             <div class="status"  >
               <!-- Status Box -->
-              <div *ngIf="!(canChangeStepResultStatus$ | async)"
+              <div *ngIf="!(canChangeResultStatus$ | async)"
                 class="status-box {{item.status.toLowerCase()}}"
                 #statusBar
                 stopPropagation
@@ -145,7 +145,7 @@
                 {{ item.status=='Success'?'Passed':item.status }}
               </div>
               <div
-                *ngIf="canChangeStepResultStatus$ | async"
+                *ngIf="canChangeResultStatus$ | async"
                 class="status-box {{item.status.toLowerCase()}}"
                 #statusBar
                 stopPropagation

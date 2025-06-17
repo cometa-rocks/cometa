@@ -45,7 +45,7 @@
             "delete_variable": true,            
             "manage_house_keeping_logs": true,
             "manage_configurations": true,
-            "change_step_result_status": true
+            "change_result_status": true
         }
     },
     {
@@ -111,7 +111,7 @@
             "download_result_files": true,
             "create_folder":true,
             "delete_folder":true,
-            "change_step_result_status":true
+            "change_result_status":true
         }
     }
 ]

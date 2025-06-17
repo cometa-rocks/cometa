@@ -242,6 +242,11 @@
   }
 }
 
+.success {
+  background-color: $good;
+}
+
+
 :host::ng-deep .status-bar {
   flex: 0 5px;
   max-width: 5px;

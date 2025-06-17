@@ -56,6 +56,7 @@ class PDFAndEmailManager:
     def prepare_the_get(self, request):
         # Get the request
         self.request = request
+        self.__step_variable_values = []
 
         #  logger assignment
         self.my_logger = logger
@@ -74,8 +75,7 @@ class PDFAndEmailManager:
 
 
         # Get the steps from the executed feature.
-        steps = Step_result.objects.filter(feature_result_id=self.feature_result_id).order_by("step_result_id")
-        self.steps = steps
+        self.steps = Step_result.objects.filter(feature_result_id=self.feature_result_id).order_by("step_result_id")
 
         # Get the feature result screenshots.
         self.screenshots_array = self.GetStepsAndScreenshots()
@@ -344,6 +344,21 @@ class PDFAndEmailManager:
         for step in self.steps:
             # Create photos list
             listphotos = []
+            
+            if isinstance(step.current_step_variables_value, dict):
+                variable_info = {}
+                variable_value = step.current_step_variables_value.get('variable_value', None)
+                variable_info['variable_name'] = step.current_step_variables_value.get('variable_name', None)
+                if isinstance(variable_value, dict) or isinstance(variable_value, list):
+                    # If variable_value is a dict, we need to convert it to a list
+                    variable_info['variable_value'] = json.dumps(variable_value)
+                else:
+                    variable_info['variable_value'] = step.current_step_variables_value.get('variable_value')
+                        
+                self.__step_variable_values.append(variable_info)
+            
+            
+            
             # Count to enumerate steps, as django templates language cannot modify variables
             step.count = count
             count = count + 1
@@ -379,7 +394,7 @@ class PDFAndEmailManager:
                             photo = base64.b64encode(file.read()).decode('utf-8')
                             # Push it to list of photos
                             listphotos.append(photo)
-                    
+                     
             # Build the steps array. This array contains the images sorted, and all steps data to use for the images and screenshot generation
             screenshots_array[step.step_result_id] = []
             screenshots_array[step.step_result_id].append({'step_name': step.step_name})
@@ -391,6 +406,7 @@ class PDFAndEmailManager:
             screenshots_array[step.step_result_id].append({'photo3': None})
             screenshots_array[step.step_result_id].append({'count' : step.count})
             screenshots_array[step.step_result_id].append({'error': step.error})
+            screenshots_array[step.step_result_id].append({'variables_value': step.current_step_variables_value})
             # Change the images from None to the base64 string, only if the image exists. We use i+4 because screenshots are located in indexs 4 5 and 6
             for i in range(0, len(listphotos)):
                 index = i+4
@@ -422,6 +438,7 @@ class PDFAndEmailManager:
             "cet_date": cet_date,
             "ist_date": ist_date,
             "stepsarray": self.steps,
+            "step_variable_values": self.__step_variable_values,
             "domain": domain,
             "featureinfo": self.feature_result,
             "percentok": self.percentok,
@@ -738,8 +755,7 @@ class GeneratePDF(View, PDFAndEmailManager):
     2020-06-18 PEH - Last changes and code review
     2020-07-28 ABP - Add download parameter and behavior
 
-    """
-    
+    """    
     
       # Initialization. This is the main function, this executes all the class. We get here from URL /pdf/.
     # All of the steps are functions from this class. Each function has information about it before being declared.
