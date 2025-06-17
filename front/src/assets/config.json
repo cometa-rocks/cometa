@@ -1,5 +1,5 @@
 {
-  "version": "3.0.58",
+  "version": "3.0.59",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.59",
+      "date": "2025-06-17",
+      "features": [
+        {
+          "title": "Improve variable view for JQ path designing #6451",
+          "description": "Enhanced variable view, to avoid of adding .variable_value while creating jq pattern in the JSON variable view"
+        }
+      ]
+    },   
     {
       "version": "3.0.58",
       "date": "2025-06-13",
