@@ -572,6 +572,12 @@ export class EditFeature implements OnInit, OnDestroy {
 
   // Save the state of the expansion panel
   savePanelState(panelId: string, isExpanded: boolean) {
+    // Don't save state if we're in 'new' mode
+    if (this.data.mode === 'new') {
+      console.log('Not saving panel state in new mode');
+      return;
+    }
+
     console.log('savePanelState called:', { panelId, isExpanded });
     const savedStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
     console.log('Current panelStates:', savedStates);
