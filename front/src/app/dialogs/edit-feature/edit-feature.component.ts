@@ -571,38 +571,31 @@ export class EditFeature implements OnInit, OnDestroy {
   }
 
   // Save the state of the expansion panel
-  savePanelState(featureId: number, panelId: string, isExpanded: boolean) {
-    // This object stores the expansion state of panels for each feature
-    // Format: { "comment": "Panel expansion states per feature", "featureId": { "panelId": boolean } }
-    const panelStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{"comment": "Panel expansion states per feature"}');
+  savePanelState(panelId: string, isExpanded: boolean) {
+    console.log('savePanelState called:', { panelId, isExpanded });
+    const savedStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
+    console.log('Current panelStates:', savedStates);
 
-    if (!panelStates[featureId]) {
-      panelStates[featureId] = {};
-    }
-
-    // Save the state of the panel
-    panelStates[featureId][panelId] = isExpanded;
-    localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
-  }
-
-  // Load the state of the expansion panel
-
-
-  getPanelSettingKey(panelId: number): string {
-    const panelMap: { [key: number]: string } = {
-      1: 'hideInformation',
-      2: 'hideSendEmail',
-      3: 'hideUploadedFiles',
-      4: 'hideBrowsers',
-      5: 'hideSteps',
-      6: 'hideSchedule'
-    };
-  
-    return panelMap[panelId];
+    // Save the state for this specific panel
+    savedStates[panelId] = isExpanded;
+    
+    // Update all features' panels with the same panelId
+    this.features.forEach(feature => {
+      const panel = feature.panels.find(p => p.id === panelId);
+      if (panel) {
+        console.log('Updating panel expanded state to:', isExpanded, 'for feature:', feature.id);
+        panel.expanded = isExpanded;
+      }
+    });
+    
+    console.log('Updated panelStates:', savedStates);
+    localStorage.setItem('co_mat_expansion_states', JSON.stringify(savedStates));
   }
 
   loadPanelStates() {
+    console.log('loadPanelStates called');
     const savedStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
+    console.log('Loaded savedStates:', savedStates);
   
     const userSettingsMap = {
       'hideBrowsers': this.user.settings.hideBrowsers,
@@ -611,40 +604,49 @@ export class EditFeature implements OnInit, OnDestroy {
       'hideSteps': this.user.settings.hideSteps,
       'hideSchedule': this.user.settings.hideSchedule,
       'hideUploadedFiles': this.user.settings.hideUploadedFiles,
+      'hideTelegramConfig': this.user.settings.hideTelegramConfig
     };
+    console.log('User settings:', userSettingsMap);
   
     this.features.forEach(feature => {
-      if (!feature.id) return;
-  
       feature.panels.forEach(panel => {
-        //map panel.id to the appropriate setting key:
-        const settingKey = this.getPanelSettingKey(panel.id);
+        const settingKey = this.getPanelSettingKey(parseInt(panel.id));
         const userSetting = userSettingsMap[settingKey];
-        // If setting is explicitly true, force it closed
-        if (userSetting === true) {
-          panel.expanded = false;
+        console.log('Panel:', panel.id, 'SettingKey:', settingKey, 'UserSetting:', userSetting);
+        
+        // Check if we have a saved state for this panel type
+        if (savedStates[panel.id] !== undefined) {
+          // Use the saved state
+          console.log('Using saved state for panel type', panel.id, ':', savedStates[panel.id]);
+          panel.expanded = savedStates[panel.id];
         } else {
-          // otherwise, use saved state or default to open
-          panel.expanded = savedStates[feature.id]?.[panel.id] ?? true;
+          // If no saved state exists, use the profile setting
+          console.log('No saved state, using profile setting for panel', panel.id, ':', userSetting !== true);
+          panel.expanded = userSetting !== true;
         }
       });
     });
   }
 
   // When the expansion panel changes, save
-  onExpansionChange(featureId: number, panelId: string, isExpanded: boolean) {
-    this.savePanelState(featureId, panelId, isExpanded);
-
-    // Expand only one panel at a time
-    const feature = this.features.find(f => f.id === featureId);
-    if (feature) {
-      const panel = feature.panels.find(p => p.id === panelId);
-      if (panel) {
-        panel.expanded = isExpanded;
-      }
-    }
+  onExpansionChange(panelId: string, isExpanded: boolean) {
+    console.log('onExpansionChange called:', { panelId, isExpanded });
+    this.savePanelState(panelId, isExpanded);
   }
 
+  getPanelSettingKey(panelId: number): string {
+    const panelMap: { [key: number]: string } = {
+      1: 'hideInformation',
+      2: 'hideSendMail',
+      3: 'hideTelegramConfig',
+      4: 'hideUploadedFiles',
+      5: 'hideBrowsers',
+      6: 'hideSteps',
+      7: 'hideSchedule'
+    };
+  
+    return panelMap[panelId];
+  }
 
   // // Check if the create button should be disabled
   // ngAfterViewInit() {
@@ -1268,7 +1270,7 @@ export class EditFeature implements OnInit, OnDestroy {
     // Initialize localStorage with a comment if it doesn't exist
     if (!localStorage.getItem('co_mat_expansion_states')) {
       localStorage.setItem('co_mat_expansion_states', JSON.stringify({
-        "comment": "Panel expansion states per feature",
+        "comment": "Panel expansion states",
         "Default": {}
       }));
     }
@@ -2104,7 +2106,7 @@ export class EditFeature implements OnInit, OnDestroy {
   // Handle panel toggle events from files-management component
   onFilePanelToggled(isExpanded: boolean): void {
     // Update panel state if needed
-    this.onExpansionChange(this.featureId, '4', isExpanded);
+    this.onExpansionChange('4', isExpanded);
   }
   
   // Handle pagination events from files-management component
