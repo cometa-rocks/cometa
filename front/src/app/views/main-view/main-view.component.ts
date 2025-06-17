@@ -49,6 +49,7 @@ import { LogService } from '@services/log.service';
 import { CommonModule } from '@angular/common';
 import { MatSelectModule } from '@angular/material/select';
 import { MatBadgeModule } from '@angular/material/badge';
+import { UserState } from '@store/user.state';
 
 @UntilDestroy()
 @Component({
@@ -89,6 +90,9 @@ import { MatBadgeModule } from '@angular/material/badge';
 export class MainViewComponent implements OnInit {
   @Select(CustomSelectors.GetConfigProperty('internal.showArchived'))
   showArchived$: Observable<boolean>;
+  
+  @Select(UserState.GetPermission('change_result_status'))
+  canChangeResultStatus$: Observable<boolean>;
 
   columns: MtxGridColumn[] = [
     {
@@ -256,6 +260,8 @@ export class MainViewComponent implements OnInit {
       ],
     },
   ];
+
+  
 
   results = [];
   total = 0;

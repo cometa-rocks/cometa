@@ -209,8 +209,8 @@ export class StepViewComponent implements OnInit {
   clickStepResult: number = null;
   test$: Observable<FeatureResult>;
 
-  @Select(UserState.GetPermission('change_step_result_status'))
-  canChangeStepResultStatus$: Observable<boolean>;
+  @Select(UserState.GetPermission('change_result_status'))
+  canChangeResultStatus$: Observable<boolean>;
  
   stepResultsUrl$: Observable<string>;
 
@@ -346,7 +346,6 @@ export class StepViewComponent implements OnInit {
   }
 
   openStepNotes(item) {
-    console.log(item.notes);
     try {
       // Parse the content - this will work for JSON content
       const content = JSON.parse(item.notes.content);

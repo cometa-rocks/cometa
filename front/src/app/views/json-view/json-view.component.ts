@@ -36,7 +36,9 @@ export class JsonViewerComponent implements OnInit {
   @ViewChild('jqResult') jq_result: ElementRef<HTMLTextAreaElement>;
   jq_filter$ = new Subject<string>();
   isHtmlContent: boolean = false;
+  isStepVariableContent: boolean = false;
   sanitizedHtml: SafeHtml;
+  dataToProcess: any;
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -68,6 +70,20 @@ export class JsonViewerComponent implements OnInit {
       }
     }
 
+    // If the content is a step variable, show it accordingly in the dialog
+    this.isStepVariableContent = this.data.responses.variable_name !== undefined;
+      
+    // If it's a step variable, use the variable value as a data
+    if (this.isStepVariableContent) {
+      this.dataToProcess = this.data.responses.variable_value;
+    }
+    else if (this.data.call) {  
+      this.dataToProcess = this.data.call;
+    }
+    else {
+      this.dataToProcess = this.data.responses || {};
+    }
+
     this.jq_filter$
       .pipe(
         debounceTime(500),
@@ -81,7 +97,8 @@ export class JsonViewerComponent implements OnInit {
           if (this.data.id !== undefined) {
             return this._api.getParsedJQFilter(filter, this.data.id);
           } else {
-            return this._api.getParsedJQFilter_content(filter, this.data.call ? this.data.call : this.data.responses);
+            // Fallback to getParsedJQFilter_content if no id is available
+            return this._api.getParsedJQFilter_content(filter, this.dataToProcess);
           }
         })
       )
