@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import {
   UntypedFormBuilder,
@@ -27,6 +27,7 @@ import { DisableAutocompleteDirective } from '../../directives/disable-autocompl
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { InputFocusService } from '@services/inputFocus.service';
+import { KEY_CODES } from '@others/enums';
 
 @Component({
   selector: 'modify-user',
@@ -101,5 +102,15 @@ export class ModifyUserComponent {
 
   onInputBlur() {
     this.inputFocusService.setInputFocus(false);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (event.keyCode === KEY_CODES.ENTER && event.ctrlKey) {
+      event.preventDefault();
+      if (this.rForm.valid) {
+        this.modifyUser(this.rForm.value);
+      }
+    }
   }
 }

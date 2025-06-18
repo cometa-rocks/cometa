@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
@@ -15,6 +15,7 @@ import { DisableAutocompleteDirective } from '../../directives/disable-autocompl
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { InputFocusService } from '@services/inputFocus.service';
+import { KEY_CODES } from '@others/enums';
 
 @Component({
   selector: 'enter-value',
@@ -56,6 +57,11 @@ export class EnterValueComponent {
   }
 
   submit(form) {
+    // Validate form before submission
+    if (!form.value.value || form.value.value.length === 0) {
+      return; // Don't submit if form is empty
+    }
+
     // encrypt the password/pin with AES encrypt
     if (this.isSecret(this.data.word)) {
       this._api.encrypt(form.value).subscribe(res => {
@@ -83,5 +89,23 @@ export class EnterValueComponent {
 
   onInputBlur() {
     this.inputFocusService.setInputFocus(false);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    // Handle Ctrl + Enter to submit the form
+    if (event.keyCode === KEY_CODES.ENTER && event.ctrlKey) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.handleFormSubmit();
+    }
+  }
+
+  // Method to handle form submission from keyboard events
+  handleFormSubmit() {
+    const formValue = this.rForm.value.value;
+    if (formValue && formValue.length > 0) {
+      this.submit(this.rForm);
+    }
   }
 }

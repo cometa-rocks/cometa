@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import {
   UntypedFormGroup,
   UntypedFormBuilder,
@@ -31,6 +31,7 @@ import { DisableAutocompleteDirective } from '../../directives/disable-autocompl
 import { MatLegacyInputModule } from '@angular/material/legacy-input';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { InputFocusService } from '../../services/inputFocus.service';
+import { KEY_CODES } from '@others/enums';
 
 @Component({
   selector: 'modify-department',
@@ -179,5 +180,15 @@ export class ModifyDepartmentComponent {
 
   onInputBlur() {
     this.inputFocusService.setInputFocus(false);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeyDown(event: KeyboardEvent) {
+    if (event.keyCode === KEY_CODES.ENTER && event.ctrlKey) {
+      event.preventDefault();
+      if (!this.loading && this.rForm.valid) {
+        this.modifyDepartment(this.rForm.value);
+      }
+    }
   }
 }
