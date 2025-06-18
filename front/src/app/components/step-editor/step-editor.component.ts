@@ -1537,20 +1537,20 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       'Validate if': 'validation-actions',
       'Assert': 'validation-actions',
 
-      // CSS selectors actions
+      // CSS selectors actions - More specific patterns first
+      'Scroll to element with css selector': 'css-selectors-actions',
       'I move mouse to': 'css-selectors-actions',
       'I move mouse over': 'css-selectors-actions',
       'Focus on element with': 'css-selectors-actions',
       'I can click on element with css selector': 'css-selectors-actions',
       'I can see element with css selector': 'css-selectors-actions',
       'Check if': 'css-selectors-actions',
-      'Scroll to element with css selector': 'css-selectors-actions',
       'There is no coincidence with css selector': 'css-selectors-actions',
       'Save': 'css-selectors-actions',
       'Save selector': 'css-selectors-actions',
       'Save list values in selector': 'css-selectors-actions',
       'Set value': 'css-selectors-actions',
-      'Scroll to': 'css-selectors-actions',
+      'Scroll to': 'css-selectors-actions', // This will match "Scroll to {amount}px on element {selector}"
       'I use selector': 'css-selectors-actions',
       'I can select option': 'css-selectors-actions',
       'Test list of': 'css-selectors-actions',
@@ -1611,8 +1611,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       'Set mobile geolocation': 'mobile-actions',
       'Set mobile timezone': 'mobile-actions',
 
-      // Mouse actions
-      'Scroll to': 'mouse-actions',
+      // Mouse actions - More specific patterns first
+      'Scroll to the last position': 'mouse-actions',
+      'Scroll to element with': 'mouse-actions',
       'I can click on button': 'mouse-actions',
       'I select option': 'mouse-actions',
       'I click on element with classname': 'mouse-actions',
@@ -1620,9 +1621,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       'click on element with xpath': 'mouse-actions',
       'I can Control Click at': 'mouse-actions',
       'Download a file by clicking on': 'mouse-actions',
-      'Drag': 'mouse-actions',
-      'Scroll to the last position': 'mouse-actions',
-      'Scroll to element with': 'mouse-actions',
+      'Drag': 'mouse-actions', // This will match "Scroll to {amount}px"
 
       // Keyboard actions
       'Send keys': 'keyboard-actions',
@@ -1659,10 +1658,19 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
     // Find the matching documentation section
     let docSection = 'other-actions'; // Default section
-    for (const [pattern, section] of Object.entries(stepToDocMap)) {
-      if (stepContent.startsWith(pattern)) {
-        docSection = section;
-        break;
+    
+    // Check for specific scroll patterns first to avoid conflicts
+    if (stepContent.includes('Scroll to') && stepContent.includes('on element')) {
+      docSection = 'css-selectors-actions';
+    } else if (stepContent.includes('Scroll to') && !stepContent.includes('on element')) {
+      docSection = 'mouse-actions';
+    } else {
+      // Check other patterns
+      for (const [pattern, section] of Object.entries(stepToDocMap)) {
+        if (stepContent.startsWith(pattern)) {
+          docSection = section;
+          break;
+        }
       }
     }
     
