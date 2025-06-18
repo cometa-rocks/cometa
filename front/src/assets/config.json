@@ -1,5 +1,5 @@
 {
-  "version": "3.0.59",
+  "version": "3.0.60",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.60",
+      "date": "2025-06-18",
+      "features": [
+        {
+          "title": "Fix mat-expansion-panel expansion state - #6442",
+          "description": "Fixed the expansion state of the mat-expansion-panel in the Edit Feature dialog, add telegram in user settings"
+        }
+      ]
+    },
     {
       "version": "3.0.59",
       "date": "2025-06-17",
