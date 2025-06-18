@@ -19,7 +19,7 @@
 
       <!-- INFORMATION -->
       <mat-expansion-panel
-        [expanded]="getPanelExpansionState('1', data.mode == 'new')"
+        [expanded]="data.mode == 'new' ? getPanelExpansionState('1', true) : getPanelExpansionState('1', false)"
         (opened)="onExpansionChange('1', true);"
         (closed)="onExpansionChange('1', false);">
         <mat-expansion-panel-header>
@@ -392,7 +392,7 @@
         </ng-template>
       </mat-expansion-panel>
 
-      <!-- TELEGRAM NOTIFICATION CONFIGURATION -->
+      <!-- TELEGRAM -->
       <mat-expansion-panel
         *ngIf="
           featureForm.value.send_notification && featureForm.value.send_telegram_notification && !featureForm.value.depends_on_others
@@ -574,7 +574,7 @@
         </ng-template>
       </mat-expansion-panel>
 
-      <!-- FILE UPLOAD -->
+      <!-- UPLOADED FILES -->
       <mat-expansion-panel
         #uploadPanel
         [expanded]="getPanelExpansionState('4')"
@@ -608,7 +608,7 @@
       <!-- BROWSERS -->
       <mat-expansion-panel
         *ngIf="!featureForm.value.depends_on_others"
-        [expanded]="getPanelExpansionState('5', data.mode == 'new')"
+        [expanded]="data.mode == 'new' ? getPanelExpansionState('5', true) : getPanelExpansionState('5', false)"
         (opened)="onExpansionChange('5', true); "
         (closed)="onExpansionChange('5', false); ">
         <mat-expansion-panel-header>
@@ -643,7 +643,7 @@
 
       <!-- STEPS -->
       <mat-expansion-panel 
-        [expanded]="getPanelExpansionState('6', data.mode == 'new')"
+        [expanded]="data.mode == 'new' ? getPanelExpansionState('6', true) : getPanelExpansionState('6', false)"
         (opened)="onExpansionChange('6', true); "
         (closed)="onExpansionChange('6', false); ">
         <mat-expansion-panel-header>
