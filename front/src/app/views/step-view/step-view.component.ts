@@ -346,7 +346,6 @@ export class StepViewComponent implements OnInit {
   }
 
   openStepNotes(item) {
-    console.log(item.notes);
     try {
       // Parse the content - this will work for JSON content
       const content = JSON.parse(item.notes.content);
