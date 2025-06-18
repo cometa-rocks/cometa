@@ -622,6 +622,17 @@ export class EditFeature implements OnInit, OnDestroy {
   getPanelExpansionState(panelId: string, isNewMode: boolean = false): boolean {
     const panelSettingKey = this.getPanelSettingKey(panelId);
     
+    // EXCEPTION: For new mode, force open certain panels regardless of user settings
+    if (this.data.mode === 'new') {
+      // Define which panels should be open by default in new mode
+      const panelsToOpenInNewMode = ['1', '5', '6']; // Information, Browsers, Steps
+      
+      if (panelsToOpenInNewMode.includes(panelId)) {
+        this.logger.msg('4', `Panel ${panelId} (NEW MODE EXCEPTION): FORCED OPEN for new feature creation`, 'Panel States');
+        return true; // Force open these panels in new mode
+      }
+    }
+    
     // For new mode, show panels only if user explicitly shows them (default to closed)
     if (isNewMode) {
       // If user setting is explicitly false (show panel), return true (open)
@@ -706,10 +717,16 @@ export class EditFeature implements OnInit, OnDestroy {
     try {
       this.logger.msg('4', `Panel ${panelId} expansion changed to: ${isExpanded ? 'OPEN' : 'CLOSED'}`, 'Panel States');
       
-      // Save the panel state globally
+      // EXCEPTION: For new mode, don't save any panel states or modify user settings
+      if (this.data.mode === 'new') {
+        this.logger.msg('4', `Panel ${panelId} (NEW MODE): Skipping all state saves and user setting modifications`, 'Panel States');
+        return; // Exit early without saving anything
+      }
+      
+      // Save the panel state globally (only for edit/clone modes)
       this.savePanelState(panelId, isExpanded);
       
-      // Update the panel state in all features
+      // Update the panel state in all features (only for edit/clone modes)
       this.features.forEach(feature => {
         if (feature.panels) {
           const panel = feature.panels.find(p => p.id === panelId);
@@ -719,34 +736,27 @@ export class EditFeature implements OnInit, OnDestroy {
         }
       });
 
-      // Sync with user settings when panel is toggled
-      // This ensures that user settings are updated when panels are manually expanded/collapsed
-      // Only sync for edit/clone modes, not for new features
-      if (this.data.mode !== 'new') {
-        const panelSettingKey = this.getPanelSettingKey(panelId);
-        if (panelSettingKey) {
-          // Update user settings to reflect the current state
-          // Note: We invert the logic because hideInformation=true means panel is closed
-          const shouldHide = !isExpanded;
+      // Sync with user settings when panel is toggled (only for edit/clone modes)
+      const panelSettingKey = this.getPanelSettingKey(panelId);
+      if (panelSettingKey) {
+        // Update user settings to reflect the current state
+        // Note: We invert the logic because hideInformation=true means panel is closed
+        const shouldHide = !isExpanded;
+        
+        // Only update if the current user setting is different
+        const currentUserSetting = this.user.settings?.[panelSettingKey];
+        if (currentUserSetting !== shouldHide) {
+          this.logger.msg('4', `Updating user setting ${panelSettingKey} from ${currentUserSetting} to ${shouldHide}`, 'Panel States');
           
-          // Only update if the current user setting is different
-          const currentUserSetting = this.user.settings?.[panelSettingKey];
-          if (currentUserSetting !== shouldHide) {
-            this.logger.msg('4', `Updating user setting ${panelSettingKey} from ${currentUserSetting} to ${shouldHide}`, 'Panel States');
-            
-            // Update user settings in the store
-            this._store.dispatch(new User.SetSetting({ [panelSettingKey]: shouldHide }));
-            
-            // Also update config toggles to keep everything in sync
-            this._store.dispatch(new Configuration.ToggleCollapsible(panelSettingKey, shouldHide));
-            
-            console.log(`Synchronized panel ${panelId} expansion (${isExpanded}) with user setting ${panelSettingKey} (${shouldHide})`);
-          } else {
-            this.logger.msg('4', `User setting ${panelSettingKey} already matches current state (${shouldHide})`, 'Panel States');
-          }
+          // Update user settings in the store
+          this._store.dispatch(new User.SetSetting({ [panelSettingKey]: shouldHide }));
+          
+          // Also update config toggles to keep everything in sync
+          this._store.dispatch(new Configuration.ToggleCollapsible(panelSettingKey, shouldHide));
+          
+        } else {
+          this.logger.msg('4', `User setting ${panelSettingKey} already matches current state (${shouldHide})`, 'Panel States');
         }
-      } else {
-        this.logger.msg('4', `Skipping user settings sync for new mode`, 'Panel States');
       }
     } catch (error) {
       console.error('Error handling expansion change:', error);
