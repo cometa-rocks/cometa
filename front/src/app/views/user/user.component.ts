@@ -237,7 +237,50 @@ export class UserComponent implements OnInit {
     let toggleSetting = {};
     toggleSetting[prop] = event.checked;
 
+    // Map user setting keys to panel IDs for localStorage sync
+    const panelIdMap = {
+      'hideInformation': '1',
+      'hideSendMail': '2', 
+      'hideTelegramConfig': '3',
+      'hideUploadedFiles': '4',
+      'hideBrowsers': '5',
+      'hideSteps': '6',
+      'hideSchedule': '7'
+    };
+
+    // Update localStorage panel states to sync with features
+    const panelId = panelIdMap[prop];
+    if (panelId) {
+      try {
+        // Get existing panel states
+        let panelStates = {};
+        const savedStates = localStorage.getItem('co_mat_expansion_states');
+        
+        if (savedStates) {
+          try {
+            panelStates = JSON.parse(savedStates);
+            if (typeof panelStates !== 'object' || panelStates === null) {
+              panelStates = {};
+            }
+          } catch (e) {
+            panelStates = {};
+          }
+        }
+
+        // Update panel state based on toggle
+        // If toggle is checked (hide=true), panel should be closed (expanded=false)
+        // If toggle is unchecked (hide=false), panel should be open (expanded=true)
+        panelStates[panelId] = !event.checked;
+        
+        // Save back to localStorage
+        localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
+      } catch (error) {
+        console.error('Error updating panel states:', error);
+      }
+    }
+
     // save toggle settings in user settings and send it to backend to make it persistent
+    // This will affect all features since they now prioritize user.settings over config$.toggles
     return this._store.dispatch([
       new User.SetSetting(toggleSetting),
       new Configuration.ToggleCollapsible(prop, event.checked),
