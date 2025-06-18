@@ -5,7 +5,8 @@
   Step Network Responses - <b>{{ data.stepName }}</b>
 </h3>
 <h3 aria-label="Variable Information" class="title" *ngIf="data.stepNameVar != undefined && !isHtmlContent">
-  Variable Name - <b>{{ data.responses.variable_name }}</b> | Variable type - <b>{{ data.responses.variable_type }}</b>
+  <span *ngIf="!isStepVariableContent">Step <b>{{ data.stepNameVar }}</b> Variable Values</span>
+  <span *ngIf="isStepVariableContent">Step Variable Information | Variable Name - <b>{{ data.responses.variable_name }}</b> | Variable type - <b>{{ data.responses.variable_type }}</b></span>
 </h3>
 <h3 aria-label="Accessibility Compliance Report" class="title" *ngIf="data.stepNameVar != undefined && isHtmlContent">
   Accessibility Compliance Report - <b>{{ data.stepNameVar }}</b>
