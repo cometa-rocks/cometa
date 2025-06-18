@@ -919,8 +919,9 @@ export class EditFeature implements OnInit, OnDestroy {
     const apiScreenOpen = document.querySelector('.api-testing-container') as HTMLElement;
     const emailTemplateHelpOpen = document.querySelector('cometa-email-template-help') as HTMLElement;
     const scheduleHelpOpen = document.querySelector('schedule-help') as HTMLElement;
+    const areYouSureOpen = document.querySelector('are-you-sure') as HTMLElement;
     
-    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null){
+    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null && areYouSureOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
@@ -931,6 +932,7 @@ export class EditFeature implements OnInit, OnDestroy {
                   title: 'translate:you_sure.quit_title',
                   description: 'translate:you_sure.quit_desc',
                 } as AreYouSureData,
+                autoFocus: true,
               })
               .afterClosed()
               .subscribe(exit => {
@@ -939,6 +941,14 @@ export class EditFeature implements OnInit, OnDestroy {
               });
           } else {
             this.dialogRef.close();
+          }
+          break;
+        case KEY_CODES.ENTER:
+          // Check if Ctrl key is pressed for Ctrl+Enter
+          if (event.ctrlKey) {
+            // Trigger save button click
+            this.editOrCreate();
+            event.preventDefault();
           }
           break;
         case KEY_CODES.V:
@@ -1515,6 +1525,7 @@ export class EditFeature implements OnInit, OnDestroy {
         description:
           'Are you sure you want to save this feature? One or more steps contain errors.',
       } as AreYouSureData,
+      autoFocus: true,
     });
 
     return dialogRef
@@ -1533,6 +1544,7 @@ export class EditFeature implements OnInit, OnDestroy {
           title: 'translate:you_sure.quit_title',
           description: 'translate:you_sure.quit_desc',
         } as AreYouSureData,
+        autoFocus: true,
       });
 
       const result = await dialogRef.afterClosed().toPromise();
@@ -2161,6 +2173,7 @@ export class EditFeature implements OnInit, OnDestroy {
           description: `A feature named "${featureName}" already exists in the "${departmentName}" department. Do you want to continue with this name anyway?`,
         } as AreYouSureData,
         minWidth: '400px',
+        autoFocus: true,
       });
 
       // Wait for user decision

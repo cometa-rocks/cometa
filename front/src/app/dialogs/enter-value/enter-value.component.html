@@ -23,9 +23,10 @@
   <mat-dialog-actions>
     <button mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
     <button
+      type="submit"
       mat-stroked-button
       color="primary"
-      [disabled]="rForm.value.value.length === 0">
+      [disabled]="!rForm.value.value || rForm.value.value.length === 0">
       OK
     </button>
   </mat-dialog-actions>

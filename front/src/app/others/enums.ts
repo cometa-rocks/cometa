@@ -7,6 +7,7 @@ export enum KEY_CODES {
   CTRL = 17,       
   D = 68,
   E = 69,
+  ENTER = 13,
   ESCAPE = 27,
   F = 70,
   G = 71,
