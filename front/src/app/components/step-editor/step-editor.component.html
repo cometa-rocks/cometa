@@ -284,14 +284,6 @@
             (click)="navigateToFeature(stepStates[i]?.featureId)">
             link
           </i>
-          <i 
-            class="doc-link-sign material-icons"
-            [style.display]="step.get('step_action').value ? 'flex' : 'none'"
-            matTooltip="View documentation"
-            matTooltipPosition="above"
-            (click)="openDocumentation(step.get('step_content').value)">
-            description
-          </i>
         </div>
         <!-- Step Options Menu -->
         <mat-menu class="step-options-menu" #stepOptions="matMenu">
@@ -400,7 +392,15 @@
                 </i>
               </div>
               <div class="contentCopy">
-                <a
+                <i  
+                  class="linkToSteps material-icons"
+                  [style.display]="step.get('step_action').value ? 'flex' : 'none'"
+                  matTooltip="View documentation"
+                  matTooltipPosition="above"
+                  (click)="openDocumentation(step.get('step_content').value)">
+                  description
+                </i>
+                <!-- <a
                   class="linkTo"
                   href="https://github.com/cometa-rocks/cometa_documentation/blob/main/cometa_actions.md"
                   target="_blank"
@@ -411,7 +411,7 @@
                     class="material-icons linkToSteps">
                     link
                   </i>
-                </a>
+                </a> -->
               </div>
               <div class="contentCopy">
                 <div class="containerVisibility" (click)="sendTextareaFocusToParent(false, i)">
