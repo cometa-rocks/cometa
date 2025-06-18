@@ -154,7 +154,7 @@ services:
       DEBUG_LEVEL: 10
     volumes:
       - ./backend/scheduler:/app:rw
-    command: sleep infinity
+    # command: sleep infinity
     networks:
       - testing
     restart: always

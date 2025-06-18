@@ -212,6 +212,37 @@ def read_excel_step(context, file_path, sheet_name, row_number):
         logger.error("Error reading Excel file", exc_info=True)
         raise CustomError(f"Error reading Excel file: {err}")
 
+@step(u'Read all rows from Excel file "{file_path}" sheet "{sheet_name}" and store in "{variable_name}"')
+@done(u'Read all rows from Excel file "{file_path}" sheet "{sheet_name}" and store in "{variable_name}"')
+def read_all_excel_rows_step(context, file_path, sheet_name, variable_name):
+
+    context.STEP_TYPE = context.PREVIOUS_STEP_TYPE
+
+    try:
+        # Resolve the uploaded Excel file path
+        excelFilePath = uploadFileTarget(context, file_path)
+        logger.debug(f"Opening Excel file: {excelFilePath}")
+
+        # Load the Excel sheet into a DataFrame
+        df = pd.read_excel(excelFilePath, sheet_name=sheet_name, engine='openpyxl')
+
+        if df.empty:
+            raise CustomError(f"The Excel sheet '{sheet_name}' is empty.")
+
+        # Convert DataFrame to a list of row dictionaries (list[dict])
+        rows_as_dict_list = df.to_dict(orient="records")
+        
+        logger.debug(f"Storing sheet data in variable '{variable_name}': total rows {len(rows_as_dict_list)}")
+
+        # Store in runtime variable
+        addTestRuntimeVariable(context, variable_name, rows_as_dict_list, save_to_step_report=True)
+
+    except Exception as err:
+        logger.error("Error reading Excel file", exc_info=True)
+        raise CustomError(f"Error reading Excel file: {err}")
+
+
+
 
 @step(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" considering header row "{header_row_number}" value row "{value_row_number}" and store in runtime variables')
 @done(u'Read data from Excel file "{file_path}" sheet "{sheet_name}" considering header row "{header_row_number}" value row "{value_row_number}" and store in runtime variables')
