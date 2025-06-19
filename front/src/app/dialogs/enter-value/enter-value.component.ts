@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, HostListener, ChangeDetectorRef } from '@angular/core';
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
@@ -40,7 +40,8 @@ export class EnterValueComponent {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private fb: UntypedFormBuilder,
     private _api: ApiService,
-    private inputFocusService: InputFocusService
+    private inputFocusService: InputFocusService,
+    private cdr: ChangeDetectorRef
   ) {
     this.rForm = this.fb.group({
       value: [data.value || ''],
@@ -56,19 +57,19 @@ export class EnterValueComponent {
     };
   }
 
-  submit(form) {
-    // Validate form before submission
-    if (!form.value.value || form.value.value.length === 0) {
-      return; // Don't submit if form is empty
+  submit(formValue: any) {
+    // Ensure we have a value
+    if (!formValue || !formValue.value) {
+      return;
     }
 
     // encrypt the password/pin with AES encrypt
     if (this.isSecret(this.data.word)) {
-      this._api.encrypt(form.value).subscribe(res => {
+      this._api.encrypt(formValue.value).subscribe(res => {
         this.dialogRef.close({ word: this.data.word, value: res.result });
       });
     } else {
-      this.dialogRef.close({ word: this.data.word, value: form.value });
+      this.dialogRef.close({ word: this.data.word, value: formValue.value });
     }
   }
 
@@ -93,19 +94,15 @@ export class EnterValueComponent {
 
   @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
-    // Handle Ctrl + Enter to submit the form
     if (event.keyCode === KEY_CODES.ENTER && event.ctrlKey) {
       event.preventDefault();
       event.stopPropagation();
-      this.handleFormSubmit();
-    }
-  }
-
-  // Method to handle form submission from keyboard events
-  handleFormSubmit() {
-    const formValue = this.rForm.value.value;
-    if (formValue && formValue.length > 0) {
-      this.submit(this.rForm);
+      
+      const value = this.rForm.value;
+      if (value && value.value && value.value.length > 0) {
+        this.submit(value);
+        this.cdr.detectChanges(); // Ensure changes are detected
+      }
     }
   }
 }
