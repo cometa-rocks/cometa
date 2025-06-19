@@ -6,36 +6,36 @@
       <mat-form-field floatLabel="always">
         <mat-label>Minute</mat-label>
         <input formControlName="minute" disableAutocomplete matInput (focus)="onInputFocus()" (blur)="onInputBlur()" />
-        <mat-error *ngIf="schedule.get('minute').hasError('pattern')"
-          >Invalid format</mat-error
+        <mat-error *ngIf="schedule.get('minute').hasError('cronInvalid')"
+          >Invalid cron expression</mat-error
         >
       </mat-form-field>
       <mat-form-field floatLabel="always">
         <mat-label>Hour</mat-label>
         <input formControlName="hour" disableAutocomplete matInput (focus)="onInputFocus()" (blur)="onInputBlur()" />
-        <mat-error *ngIf="schedule.get('hour').hasError('pattern')"
-          >Invalid format</mat-error
+        <mat-error *ngIf="schedule.get('hour').hasError('cronInvalid')"
+          >Invalid cron expression</mat-error
         >
       </mat-form-field>
       <mat-form-field floatLabel="always">
         <mat-label>Day</mat-label>
         <input formControlName="day" disableAutocomplete matInput (focus)="onInputFocus()" (blur)="onInputBlur()" />
-        <mat-error *ngIf="schedule.get('day').hasError('pattern')"
-          >Invalid format</mat-error
+        <mat-error *ngIf="schedule.get('day').hasError('cronInvalid')"
+          >Invalid cron expression</mat-error
         >
       </mat-form-field>
       <mat-form-field floatLabel="always">
         <mat-label>Month</mat-label>
         <input formControlName="month" disableAutocomplete matInput (focus)="onInputFocus()" (blur)="onInputBlur()" />
-        <mat-error *ngIf="schedule.get('month').hasError('pattern')"
-          >Invalid format</mat-error
+        <mat-error *ngIf="schedule.get('month').hasError('cronInvalid')"
+          >Invalid cron expression</mat-error
         >
       </mat-form-field>
       <mat-form-field floatLabel="always">
         <mat-label>Day of week</mat-label>
         <input formControlName="dayWeek" disableAutocomplete matInput (focus)="onInputFocus()" (blur)="onInputBlur()" />
-        <mat-error *ngIf="schedule.get('dayWeek').hasError('pattern')"
-          >Invalid format. Use numbers (0-7) or day names (SUN, MON, TUE, etc.)</mat-error
+        <mat-error *ngIf="schedule.get('dayWeek').hasError('cronInvalid')"
+          >Invalid cron expression</mat-error
         >
       </mat-form-field>
     </div>
@@ -46,8 +46,8 @@
           <mat-form-field floatLabel="always">
             <mat-label>Minute</mat-label>
             <input formControlName="minute" disableAutocomplete matInput (focus)="onInputFocus()" (blur)="onInputBlur()" />
-            <mat-error *ngIf="schedule.get('minute').hasError('pattern')"
-              >Invalid format</mat-error
+            <mat-error *ngIf="schedule.get('minute').hasError('cronInvalid')"
+              >Invalid cron expression</mat-error
             >
           </mat-form-field>
         </div>
@@ -61,8 +61,8 @@
           <mat-form-field floatLabel="always">
             <mat-label>Hour</mat-label>
             <input formControlName="hour" disableAutocomplete matInput (focus)="onInputFocus()" (blur)="onInputBlur()" />
-            <mat-error *ngIf="schedule.get('hour').hasError('pattern')"
-              >Invalid format</mat-error
+            <mat-error *ngIf="schedule.get('hour').hasError('cronInvalid')"
+              >Invalid cron expression</mat-error
             >
           </mat-form-field>
         </div>
@@ -77,8 +77,8 @@
           <mat-form-field floatLabel="always">
             <mat-label>Day of Month</mat-label>
             <input formControlName="day" disableAutocomplete matInput (focus)="onInputFocus()" (blur)="onInputBlur()" />
-            <mat-error *ngIf="schedule.get('day').hasError('pattern')"
-              >Invalid format</mat-error
+            <mat-error *ngIf="schedule.get('day').hasError('cronInvalid')"
+              >Invalid cron expression</mat-error
             >
           </mat-form-field>
         </div>
@@ -92,8 +92,8 @@
           <mat-form-field floatLabel="always">
             <mat-label>Month</mat-label>
             <input formControlName="month" disableAutocomplete matInput (focus)="onInputFocus()" (blur)="onInputBlur()" />
-            <mat-error *ngIf="schedule.get('month').hasError('pattern')"
-              >Invalid format</mat-error
+            <mat-error *ngIf="schedule.get('month').hasError('cronInvalid')"
+              >Invalid cron expression</mat-error
             >
           </mat-form-field>
         </div>
@@ -108,8 +108,8 @@
           <mat-form-field floatLabel="always">
             <mat-label>Day of week</mat-label>
             <input formControlName="dayWeek" disableAutocomplete matInput (focus)="onInputFocus()" (blur)="onInputBlur()" />
-            <mat-error *ngIf="schedule.get('dayWeek').hasError('pattern')"
-              >Invalid format. Use numbers (0-7) or day names (SUN, MON, TUE, etc.)</mat-error
+            <mat-error *ngIf="schedule.get('dayWeek').hasError('cronInvalid')"
+              >Invalid cron expression</mat-error
             >
           </mat-form-field>
         </div>
