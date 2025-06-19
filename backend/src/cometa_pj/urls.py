@@ -102,6 +102,7 @@ urlpatterns = [
     url(r'^killTaskPID/(?P<pid>[0-9]+)/', views.KillTaskPID),
     url(r'^stepsByName/', views.GetStepsByName),
     url(r'^schedule/(?P<feature_id>.+)/', views.UpdateSchedule),
+    url(r'^validateCron/', views.ValidateCron),
     url(r'^exectest/', views.runTest),
     url(r'^exec_batch/', views.runBatch),
     url(r'^info/', views.GetInfo),
