@@ -311,6 +311,9 @@ export class EditFeature implements OnInit, OnDestroy {
   @ViewChild(EditSchedule, { static: false })
   EditSch: EditSchedule;
 
+  @ViewChild(FilesManagementComponent, { static: false })
+  filesManagement: FilesManagementComponent;
+
   inputFocus: boolean = false;
 
   private inputFocusSubscription: Subscription;
@@ -693,7 +696,9 @@ export class EditFeature implements OnInit, OnDestroy {
 
   parseSchedule(expression) {
     // ignore if schedule is disabled
-    if (!this.featureForm.value.run_now) return;
+    if (!this.featureForm.value.run_now) {
+      return;
+    }
 
     try {
       const cronExpression = Object.values(expression).join(' ');
@@ -725,12 +730,35 @@ export class EditFeature implements OnInit, OnDestroy {
           second: '2-digit'
         }));
       }
+      // Trigger change detection to update UI immediately for success case
+      this.cdr.detectChanges();
+
+      // Add backend validation to catch mismatches
+      this._api.validateCron(cronExpression).subscribe({
+        next: (response) => {
+          if (response.success && !response.valid) {
+            // Frontend parsing succeeded but backend validation failed
+            this.parseError = {
+              error: true,
+              msg: `Backend Validation Error: This cron pattern (${cronExpression}) will be rejected when saving. Please use a valid pattern.`,
+            };
+            // Trigger change detection to update UI immediately
+            this.cdr.detectChanges();
+          }
+        },
+        error: (error) => {
+          // Don't show error to user for backend validation failures
+        }
+      });
+
     } catch (error) {
       this.nextRuns = [];
       this.parseError = {
         error: true,
         msg: error.message,
       };
+      // Trigger change detection to update UI immediately for frontend error
+      this.cdr.detectChanges();
     }
   }
 
@@ -915,6 +943,14 @@ export class EditFeature implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
+    // If the FilesManagement context menu is visible, let it handle ESC and skip processing here
+    if (event.key === 'Escape') {
+      const contextMenuEl = document.querySelector('.ngx-contextmenu') as HTMLElement | null;
+      if (contextMenuEl && contextMenuEl.style.display !== 'none') {
+        // A context menu is open – don't process ESC in EditFeature
+        return;
+      }
+    }
     // If true... return | only execute switch case if input focus is false
     let KeyPressed = event.keyCode;
     const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
@@ -923,8 +959,9 @@ export class EditFeature implements OnInit, OnDestroy {
     const emailTemplateHelpOpen = document.querySelector('cometa-email-template-help') as HTMLElement;
     const scheduleHelpOpen = document.querySelector('schedule-help') as HTMLElement;
     const areYouSureOpen = document.querySelector('are-you-sure') as HTMLElement;
+    const contextMenuOpen = this.filesManagement?.contextMenuOpen || false;
     
-    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null && areYouSureOpen == null){
+    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null && !contextMenuOpen && areYouSureOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
@@ -1249,7 +1286,6 @@ export class EditFeature implements OnInit, OnDestroy {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
-
     // Initialize department if there's already a value in the form
     if (this.featureForm.get('department_name').value) {
       this.allDepartments$.subscribe(data => {

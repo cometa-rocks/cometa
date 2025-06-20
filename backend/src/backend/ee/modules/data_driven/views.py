@@ -235,6 +235,20 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
         # Include the column_order field from the file model if available
         if hasattr(file, 'column_order') and file.column_order:
             response_data['columns_ordered'] = [h.lower().replace(' ', '_') for h in file.column_order]
+            # Also include a mapping from field names to original headers
+            response_data['column_headers'] = {h.lower().replace(' ', '_'): h for h in file.column_order}
+        else:
+            # Fallback: If no column_order is available, extract column names from the first data row
+            # and create a mapping where processed names map to themselves (for consistency)
+            if serialized_data and len(serialized_data) > 0:
+                first_data = serialized_data[0].get('data', {})
+                if isinstance(first_data, dict) and first_data:
+                    columns_from_data = list(first_data.keys())
+                    response_data['columns_ordered'] = columns_from_data
+                    # For consistency, map field names to themselves (no original names available)
+                    response_data['column_headers'] = {col: col for col in columns_from_data}
+                    logger.info(f"Using fallback column extraction for file {file.id}: {columns_from_data}")
+        
         if hasattr(file, 'sheet_names') and file.sheet_names:
             response_data['sheet_names'] = file.sheet_names
         # Return the modified response
@@ -260,6 +274,11 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
         file_data_rows = request_data.get('data', None)
         if not file_data_rows:
             return JsonResponse({ 'success': False, 'error': 'Missing data in request.' }, status=400)
+        
+        # Get the column order from the request if provided
+        column_order = request_data.get('column_order', None)
+        if column_order:
+            logger.info(f"Received column order for file {file_id}: {column_order}")
         
         try:
             # Get the file and check permissions
@@ -304,23 +323,65 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
                     logger.info("Ensuring feature_id is properly formatted")
                     df['feature_id'] = pd.to_numeric(df['feature_id'], errors='coerce').fillna(0).astype(int)
                 
-                # Get the original column names if available
-                original_columns = file.column_order
-                
-                # If there are original columns, reorder to match them
-                if original_columns:
-                    # Create a dict to map lowercase_no_spaces to original
-                    column_mapping = {col.lower().replace(' ', '_'): col for col in original_columns}
+                # Handle column ordering and renaming
+                if column_order:
+                    logger.info(f"Processing column order: {column_order}")
                     
-                    # Rename columns back to their original format for the file output
-                    df_columns = df.columns
+                    # Create mapping from field names (lowercase with underscores) to display headers
+                    field_to_header_map = {}
+                    header_to_field_map = {}
+                    
+                    for header in column_order:
+                        field_name = header.lower().replace(' ', '_')
+                        field_to_header_map[field_name] = header
+                        header_to_field_map[header] = field_name
+                    
+                    logger.info(f"Field to header mapping: {field_to_header_map}")
+                    
+                    # Reorder DataFrame columns to match the desired order
+                    ordered_columns = []
+                    df_columns = df.columns.tolist()
+                    
+                    # First, add columns in the order specified by column_order
+                    for header in column_order:
+                        field_name = header.lower().replace(' ', '_')
+                        if field_name in df_columns:
+                            ordered_columns.append(field_name)
+                            df_columns.remove(field_name)
+                    
+                    # Then add any remaining columns that weren't in column_order
+                    ordered_columns.extend(df_columns)
+                    
+                    logger.info(f"Reordering DataFrame columns to: {ordered_columns}")
+                    df = df[ordered_columns]
+                    
+                    # Rename columns for file output using the display headers
                     rename_dict = {}
-                    for col in df_columns:
-                        if col in column_mapping:
-                            rename_dict[col] = column_mapping[col]
+                    for field_name in df.columns:
+                        if field_name in field_to_header_map:
+                            rename_dict[field_name] = field_to_header_map[field_name]
                     
                     if rename_dict:
+                        logger.info(f"Renaming columns for file output: {rename_dict}")
                         df = df.rename(columns=rename_dict)
+                else:
+                    # Fallback to original logic if no column_order provided
+                    original_columns = file.column_order
+                    
+                    # If there are original columns, reorder to match them
+                    if original_columns:
+                        # Create a dict to map lowercase_no_spaces to original
+                        column_mapping = {col.lower().replace(' ', '_'): col for col in original_columns}
+                        
+                        # Rename columns back to their original format for the file output
+                        df_columns = df.columns
+                        rename_dict = {}
+                        for col in df_columns:
+                            if col in column_mapping:
+                                rename_dict[col] = column_mapping[col]
+                        
+                        if rename_dict:
+                            df = df.rename(columns=rename_dict)
                 
                 # Create a temporary file with the correct extension
                 # Determine original file extension to save in same format
@@ -515,15 +576,20 @@ class DataDrivenFileViewset(viewsets.ModelViewSet):
                             
                             # For non-Excel files or Excel files without sheet specification
                             # We delete all existing data and replace with the new data
-                        FileData.objects.filter(file=file).delete()
-                        
-                        # Create new file data objects
-                        new_file_data = []
-                        for row_data in file_data_rows:
-                            new_file_data.append(FileData(file=file, data=row_data))
+                            FileData.objects.filter(file=file).delete()
+                            
+                            # Create new file data objects
+                            new_file_data = []
+                            for row_data in file_data_rows:
+                                new_file_data.append(FileData(file=file, data=row_data))
                     
                     # Bulk create the new data
                     created_data = FileData.objects.bulk_create(new_file_data)
+                    
+                    # Update the column order if provided
+                    if column_order:
+                        file.column_order = column_order
+                        logger.info(f"Updated column order for file {file_id}: {column_order}")
                     
                     # Update file extras to ensure it's marked as data-driven-ready
                     file.extras['ddr'] = {
