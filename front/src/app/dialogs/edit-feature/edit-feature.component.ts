@@ -311,6 +311,9 @@ export class EditFeature implements OnInit, OnDestroy {
   @ViewChild(EditSchedule, { static: false })
   EditSch: EditSchedule;
 
+  @ViewChild(FilesManagementComponent, { static: false })
+  filesManagement: FilesManagementComponent;
+
   inputFocus: boolean = false;
 
   private inputFocusSubscription: Subscription;
@@ -937,6 +940,14 @@ export class EditFeature implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
+    // If the FilesManagement context menu is visible, let it handle ESC and skip processing here
+    if (event.key === 'Escape') {
+      const contextMenuEl = document.querySelector('.ngx-contextmenu') as HTMLElement | null;
+      if (contextMenuEl && contextMenuEl.style.display !== 'none') {
+        // A context menu is open – don't process ESC in EditFeature
+        return;
+      }
+    }
     // If true... return | only execute switch case if input focus is false
     let KeyPressed = event.keyCode;
     const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
@@ -944,8 +955,9 @@ export class EditFeature implements OnInit, OnDestroy {
     const apiScreenOpen = document.querySelector('.api-testing-container') as HTMLElement;
     const emailTemplateHelpOpen = document.querySelector('cometa-email-template-help') as HTMLElement;
     const scheduleHelpOpen = document.querySelector('schedule-help') as HTMLElement;
+    const contextMenuOpen = this.filesManagement?.contextMenuOpen || false;
     
-    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null){
+    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null && !contextMenuOpen){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
