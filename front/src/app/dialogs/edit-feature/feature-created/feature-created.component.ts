@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   MatLegacyDialogRef as MatDialogRef,
@@ -23,6 +23,14 @@ export class FeatureCreated {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private router: Router
   ) {}
+
+  // Listen for Ctrl+Enter and trigger go()
+  @HostListener('document:keydown', ['$event'])
+  handleCtrlEnter(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key === 'Enter') {
+      this.go();
+    }
+  }
 
   onNoClick() {
     this.dialogRef.close();

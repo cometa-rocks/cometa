@@ -457,7 +457,10 @@ export class EditFeature implements OnInit, OnDestroy {
       environment_name: ['', Validators.required],
       feature_name: [
         '',
-        Validators.compose([Validators.required, noWhitespaceValidator]),
+        // Best way to angular 
+        [Validators.required, noWhitespaceValidator],
+        // Old validator
+        // Validators.compose([Validators.required, noWhitespaceValidator]),
       ],
       description: [''],
       schedule: [''],
@@ -1443,6 +1446,13 @@ export class EditFeature implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         });
       });
+
+    // Auto-focus the name input when creating a new feature
+    if (this.data.mode === 'new') {
+      setTimeout(() => {
+        this.focusFormControl('feature_name');
+      }, 300); // Delay to ensure input is rendered
+    }
   }
 
   /**

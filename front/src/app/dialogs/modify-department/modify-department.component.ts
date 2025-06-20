@@ -143,6 +143,10 @@ export class ModifyDepartmentComponent {
   };
 
   modifyDepartment(values) {
+    // Prevent submit if form is invalid or not dirty
+    if (!this.rForm.valid || !this.rForm.dirty) {
+      return;
+    }
     const payload = {
       department_name: values.department_name,
       settings: {
@@ -186,7 +190,8 @@ export class ModifyDepartmentComponent {
   handleKeyDown(event: KeyboardEvent) {
     if (event.keyCode === KEY_CODES.ENTER && event.ctrlKey) {
       event.preventDefault();
-      if (!this.loading && this.rForm.valid) {
+      if (!this.loading) {
+        // Call the modifyDepartment function with the form values
         this.modifyDepartment(this.rForm.value);
       }
     }

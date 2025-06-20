@@ -9,6 +9,7 @@
   <mat-dialog-content>
     <mat-form-field appearance="outline" class="enter-value">
       <mat-label>{{ data.word }}</mat-label>
+      <!-- Reference for ViewChild in TS -->
       <input
         formControlName="value"
         disableAutocomplete
@@ -17,7 +18,9 @@
         matInput
         placeholder="Value" 
         (focus)="onInputFocus()"
-        (blur)="onInputBlur()"/>
+        (blur)="onInputBlur()"
+        #valueInput
+      />
     </mat-form-field>
   </mat-dialog-content>
   <mat-dialog-actions>
