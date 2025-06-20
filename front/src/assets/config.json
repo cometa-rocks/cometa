@@ -241,7 +241,7 @@
       "date": "2025-06-20",
       "features": [
         {
-          "title": "Fixed issues in the edit-feature dialog, admin components, main view, etc. (#6458)",
+          "title": "Fixed issues in the edit-feature dialog, admin components, main view, etc. #6458",
           "description": "Added auto-focus to the name input when creating a new feature, highlighted the 'No' button in confirmation dialogs, added Ctrl + Enter shortcut to submit, and more."
         }
       ]
