@@ -150,6 +150,10 @@ export class BrowserSelectionComponent implements OnInit {
 
   // Used to hold all browsers but only for internal purposes
   categoriesInternal;
+  
+  // Get user timezone from browser
+  userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  
   // Default timezone for browser container [Test execution environment]
   selectedTimeZone: string = 'Etc/UTC';
   rippleColor = 'rgba(0,0,0,0.05)';
@@ -160,15 +164,24 @@ export class BrowserSelectionComponent implements OnInit {
   browsersSelected = new BehaviorSubject<BrowserstackBrowser[]>([]);
 
   ngOnInit() {
+    // Auto-detect user's timezone if available in the list
+    if (this.listOfTimeZones.includes(this.userTimezone)) {
+      this.selectedTimeZone = this.userTimezone;
+    }
+    
+    // Set the initial timezone value in the form control
+    this.testing_timezone.setValue(this.selectedTimeZone);
 
     try {
       this.browsersSelected.next(this.feature.browsers);
-      // If feature has browser and contains selectedTimeZone the get the timezone value
+      // If feature has browser and contains selectedTimeZone the get the timezone value (this overrides auto-detection)
       if (
         this.feature.browsers.length > 0 &&
         this.feature.browsers[0].selectedTimeZone != undefined
       ) {
         this.selectedTimeZone = this.feature.browsers[0].selectedTimeZone;
+        // Update the form control to reflect the feature's timezone
+        this.testing_timezone.setValue(this.selectedTimeZone);
       }
     } catch (err) {
       this.browsersSelected.next([]);
