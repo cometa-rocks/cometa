@@ -278,7 +278,6 @@ export class UserComponent implements OnInit {
         // Save back to localStorage
         localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
         
-        console.log(`Synchronized toggle ${prop} (${event.checked}) with localStorage panel ${panelId} (${!event.checked})`);
       } catch (error) {
         console.error('Error updating panel states:', error);
       }
@@ -331,14 +330,12 @@ export class UserComponent implements OnInit {
         // Only update if the setting is different from what it should be
         if (currentSettings[settingKey] !== shouldHide) {
           settingsToUpdate[settingKey] = shouldHide;
-          console.log(`Synchronizing localStorage panel ${panelId} (${panelExpanded}) with user setting ${settingKey} (${shouldHide})`);
         }
       });
 
       // Update user settings if there are changes
       if (Object.keys(settingsToUpdate).length > 0) {
         this._store.dispatch(new User.SetSetting(settingsToUpdate));
-        console.log('Synchronized localStorage panel states with user settings:', settingsToUpdate);
       }
     } catch (error) {
       console.error('Error synchronizing localStorage with user settings:', error);
