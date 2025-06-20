@@ -4284,3 +4284,47 @@ def health_check(request):
             'status': 'broken', 
             'message': 'Database connection failed.' 
         }, status=500)
+
+
+@csrf_exempt
+def ValidateCron(request, *args, **kwargs):
+    """
+    Validate cron expression using backend CronSlices library.
+    This ensures frontend validation matches backend validation.
+    """
+    try:
+        data = json.loads(request.body)
+        cron_expression = data.get('cron_expression', None)
+        
+        if cron_expression is None:
+            return JsonResponse({
+                'success': False, 
+                'valid': False,
+                'error': 'Cron expression not provided.'
+            })
+        
+        # Import CronSlices here since it's used in Schedule model
+        from crontab import CronSlices
+        
+        # Validate using the same method as Schedule model
+        is_valid = CronSlices.is_valid(cron_expression)
+        
+        return JsonResponse({
+            'success': True,
+            'valid': is_valid,
+            'cron_expression': cron_expression
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'valid': False,
+            'error': 'Invalid JSON payload.'
+        })
+    except Exception as err:
+        logger.error(f"Error validating cron expression: {err}")
+        return JsonResponse({
+            'success': False,
+            'valid': False,
+            'error': str(err)
+        })
