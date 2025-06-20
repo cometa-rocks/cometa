@@ -11,7 +11,8 @@ import {
   ElementRef, 
   TemplateRef,
   ChangeDetectionStrategy,
-  ChangeDetectorRef
+  ChangeDetectorRef,
+  HostListener
 } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
@@ -23,7 +24,7 @@ import { FileUploadService } from '@services/file-upload.service';
 import { InputFocusService } from '@services/inputFocus.service';
 import { LogService } from '@services/log.service';
 import { Subscription, Subject } from 'rxjs';
-import { finalize, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { finalize, debounceTime, distinctUntilChanged, take } from 'rxjs/operators';
 import { SureRemoveFileComponent } from '@dialogs/sure-remove-file/sure-remove-file.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -33,7 +34,6 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatLegacyButtonModule } from '@angular/material/legacy-button';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatLegacyMenuModule } from '@angular/material/legacy-menu';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -41,6 +41,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatInputModule } from '@angular/material/input';
+import { ContextMenuModule } from '@perfectmemory/ngx-contextmenu';
 
 // Directives
 import { StopPropagationDirective } from '@directives/stop-propagation.directive';
@@ -95,6 +96,9 @@ interface FileUploadDepartment {
   files: any[];
 }
 
+// Add import for AddColumnNameDialogComponent
+import { AddColumnNameDialogComponent } from '@dialogs/add-column-name/add-column-name.component';
+
 @Component({
   selector: 'app-files-management',
   templateUrl: './files-management.component.html',
@@ -108,7 +112,6 @@ interface FileUploadDepartment {
     MatIconModule,
     MatLegacyButtonModule,
     MatDividerModule,
-    MatLegacyMenuModule,
     MatExpansionModule,
     MatFormFieldModule,
     MatSelectModule,
@@ -124,6 +127,8 @@ interface FileUploadDepartment {
     AmDateFormatPipe,
     LoadingSpinnerComponent,
     MatInputModule,
+    ContextMenuModule,
+    AddColumnNameDialogComponent,
   ]
 })
 export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
@@ -146,8 +151,11 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   
   // View children for templates
   @ViewChild('editInput') editInput: ElementRef;
+
   @ViewChild('dynamicEditableCellTpl') dynamicEditableCellTpl: TemplateRef<any>;
-  @ViewChild('actionsColumnTpl') actionsColumnTpl: TemplateRef<any>;
+  
+  @ViewChild('cellContextMenu') cellContextMenu: any;
+
   
   // Component properties
   isLoadingFiles: boolean = false;
@@ -173,6 +181,17 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   
   private focusSubscription: Subscription;
   private searchSubscription: Subscription;
+
+  contextMenuFileId: number | null = null;
+  contextMenuRowIndex: number | null = null;
+  contextMenuColumnField: string | null = null;
+  contextMenuOpen: boolean = false;
+  
+  // Keep original column definitions for cancel operation
+  private original_columns: Record<number, MtxGridColumn[]> = {};
+  
+  // Debouncing for save operations to prevent spam
+  private saveDebounceTimers: Record<number, any> = {};
   
   constructor(
     private cdRef: ChangeDetectorRef,
@@ -184,6 +203,32 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     private _snackBar: MatSnackBar,
     private log: LogService
   ) {}
+
+  // Handle ESC key when context menu is open
+  @HostListener('document:keydown.escape', ['$event'])
+  handleEscapeKey(event: KeyboardEvent): void {
+    // Check if context menu is actually visible in DOM (more reliable than our state tracking)
+    const contextMenuElement = document.querySelector('.ngx-contextmenu') as HTMLElement;
+    const isContextMenuVisible = contextMenuElement && contextMenuElement.style.display !== 'none';
+    
+    // Use DOM check as the primary indicator, with fallback to our state tracking
+    if ((isContextMenuVisible || this.contextMenuOpen) && this.cellContextMenu) {
+      // Close context menu and prevent event propagation
+      this.cellContextMenu.hide();
+      this.contextMenuOpen = false;
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  }
+
+  // Context menu event handlers
+  onContextMenuShow(): void {
+    this.contextMenuOpen = true;
+  }
+
+  onContextMenuHide(): void {
+    this.contextMenuOpen = false;
+  }
   
   ngOnInit(): void {
     // Initialize displayFiles from department.files but respect the showRemovedFiles setting
@@ -242,6 +287,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         if (Array.isArray(parsedIds)) {
           this.expandedFileIds = new Set(parsedIds);
           this.log.msg('4', `Loaded expanded file IDs from localStorage: ${parsedIds.length}`, 'Init');
+
           
           // Save the expanded file IDs back to localStorage to ensure consistency
           this.saveExpandedFileIds();
@@ -276,6 +322,19 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     if (this.searchSubscription) {
       this.searchSubscription.unsubscribe();
     }
+    
+    // Clean up debounce timers to prevent memory leaks
+    Object.values(this.saveDebounceTimers).forEach(timer => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    });
+    this.saveDebounceTimers = {};
+    
+    // Clear any remaining fullDatasets to free memory
+    Object.keys(this.file_data).forEach(fileId => {
+      this._clearFullDataset(Number(fileId));
+    });
   }
   
   // Initialize default file columns
@@ -540,10 +599,25 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       this.file_data[fileId].params.page = event.pageIndex;
       this.file_data[fileId].params.size = event.pageSize;
       
-      // Fetch data with new pagination
-      this.getFileData(file);
-    } else {
-      this.log.msg('3', 'Pagination event without valid file reference', 'Pagination');
+      // Check if the file has unsaved changes
+      if (this.isDirty[fileId]) {
+        // Check if we need to fetch complete dataset first
+        if (!this.file_data[fileId].fullDataset) {
+          const hasAllData = !this.file_data[fileId].showPagination || 
+                           (this.file_data[fileId].total === this.file_data[fileId].file_data.length);
+          
+          if (!hasAllData && this.file_data[fileId].showPagination) {
+            this._fetchCompleteDatasetForDirtyFile(fileId, file);
+            return; // Exit early, _fetchCompleteDatasetForDirtyFile will handle pagination
+          }
+        }
+        
+        // Implement client-side pagination for dirty data
+        this._applyClientSidePagination(fileId);
+      } else {
+        // Fetch fresh data from server only if no unsaved changes
+        this.getFileData(file);
+      }
     }
   }
   
@@ -595,7 +669,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     const isExcel = this.isExcelFile(file.name);
     
     // Try to get the saved sheet for Excel files
-    let savedSheet = null;
+    let savedSheet: string | null = null;
     if (isExcel) {
       savedSheet = localStorage.getItem(`co_excel_sheet_${fileId}`);
       this.log.msg('4', `Looking for saved sheet for file ${fileId}: ${savedSheet || 'none found'}`, 'GetData');
@@ -643,7 +717,6 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     // If this is an Excel file and we have a selected sheet, include it in the request
     if (isExcel && this.file_data[fileId].sheets && this.file_data[fileId].sheets.current) {
       params.sheet = this.file_data[fileId].sheets.current;
-      this.log.msg('4', `Using sheet parameter for Excel file ${fileId}: ${params.sheet}`, 'GetData');
     }
     
     const apiUrl = `/api/data_driven/file/${file.id}`;
@@ -687,7 +760,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
             }
             
             // For direct CSV API response that might provide 'data' instead of 'results'
-            let results = [];
+            let results: any[] = [];
             if (resp) {
               if (Array.isArray(resp)) {
                 results = resp; // Case when API returns a direct array
@@ -702,22 +775,13 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
             }
             
             const fetchedData = Array.isArray(results) ? 
-              (results.length > 0 && results[0] && results[0].data ? results.map(d => d.data) : results) : 
+              (results.length > 0 && results[0] && results[0].data ? results.map((d: any) => d.data) : results) : 
               [];
             
             this.log.msg('4', `Fetched data for file ${fileId}: count=${fetchedData.length}`, 'GetData');
               
             if (fetchedData.length > 0) {
               const columns: MtxGridColumn[] = [];
-              
-              // Add actions column as the first column
-              columns.unshift({
-                header: 'Actions',
-                field: 'actions',
-                width: '80px',
-                cellTemplate: this.actionsColumnTpl,
-                class: `file-${fileId}`
-              });
               
               // For CSV files, typically the first row has the column names
               const firstRow = fetchedData[0];
@@ -728,9 +792,16 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
                 resp.columns_ordered : 
                 (firstRow ? Object.keys(firstRow) : []);
                 
+              // Get the column headers mapping if available
+              const columnHeaders = resp && resp.column_headers ? resp.column_headers : {};
+                
               this.log.msg('4', `Column keys for file ${fileId}: ${columnKeys.join(', ')}`, 'GetData');
               
               columnKeys.forEach(key => {
+                // Always use the processed field name as the display header
+                // This shows consistent lowercase_with_underscores format in the UI
+                // The original names are preserved in the backend for file downloads
+                
                 columns.push({
                   header: key,
                   field: key,
@@ -803,7 +874,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   }
   
   startEdit(fileId: number, rowIndex: number, columnField: string, currentValue: any): void {
-    // Finish any existing edit first
+    // Finish any existing cell edit first
     if (this.editingCell) {
       this.saveEdit(
         this.editingCell.fileId,
@@ -836,7 +907,33 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       
       // Update the value if it changed
       if (this.editValue !== null && this.editValue !== oldValue) {
+        // Update the visible data
         this.file_data[fileId].file_data[rowIndex][columnField] = this.editValue;
+        
+        // If we have a fullDataset, also update that
+        if (this.file_data[fileId].fullDataset) {
+          // Calculate the actual index in the full dataset
+          const pageIndex = this.file_data[fileId].params?.page || 0;
+          const pageSize = this.file_data[fileId].params?.size || 10;
+          const actualIndex = (pageIndex * pageSize) + rowIndex;
+          
+          if (this.file_data[fileId].fullDataset[actualIndex]) {
+            this.file_data[fileId].fullDataset[actualIndex][columnField] = this.editValue;
+          }
+        } else {
+          // First time making this file dirty, store the full dataset
+          // Only create fullDataset if we have all the data (not paginated) or if total matches current data length
+          const hasAllData = !this.file_data[fileId].showPagination || 
+                           (this.file_data[fileId].total === this.file_data[fileId].file_data.length);
+          
+          if (hasAllData) {
+            this.file_data[fileId].fullDataset = [...this.file_data[fileId].file_data];
+            this.file_data[fileId].total = this.file_data[fileId].file_data.length;
+          } else {
+            // We don't create fullDataset here because we don't have complete data
+            // The pagination logic will need to handle this case
+          }
+        }
         
         // Check if the file data is dirty by comparing with original
         this.isDirty[fileId] = JSON.stringify(this.file_data[fileId].file_data) !== 
@@ -857,6 +954,17 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
   
   saveAllChanges(fileId: number): void {
     if (!this.isDirty[fileId] || !this.file_data[fileId]) return;
+
+    // Debounce save operations to prevent spam clicking
+    if (this.saveDebounceTimers[fileId]) {
+      clearTimeout(this.saveDebounceTimers[fileId]);
+    }
+    
+    // If already loading, don't start another save operation
+    if (this.file_data[fileId].isLoading) {
+      this.log.msg('3', `Save operation already in progress for file ${fileId}`, 'SaveChanges');
+      return;
+    }
 
     this.file_data[fileId].isLoading = true;
     this.cdRef.markForCheck();
@@ -883,7 +991,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       
       if (currentSheet && sheetNames.includes(currentSheet)) {
         this.log.msg('4', `Saving changes to Excel file ${fileId}, sheet: ${currentSheet}`, 'SaveChanges');
-      } else if (sheetNames.length > 0) {
+            } else if (sheetNames.length > 0) {
         // If no valid sheet is selected but we have sheets, use the first one
         const firstSheet = sheetNames[0];
         this.log.msg('3', `Excel file ${fileId} has invalid or missing sheet selection. Using first sheet: ${firstSheet}`, 'SaveChanges');
@@ -907,16 +1015,12 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         const sheetNames = this.getSheetNames(fileId);
         if (sheetNames && sheetNames.length > 0) {
           params.sheet = sheetNames[0]; // Use first sheet as default
-          this.log.msg('4', `Using first available sheet: ${params.sheet}`, 'SaveChanges');
         }
       }
-    } else {
-      this.log.msg('4', `Saving changes to non-Excel file ${fileId}`, 'SaveChanges');
     }
     
     // If we only have a subset of data due to pagination, retrieve all data for the current sheet
     if (this.file_data[fileId].showPagination && this.file_data[fileId].total > this.file_data[fileId].file_data.length) {
-      this.log.msg('4', `File has pagination with total ${this.file_data[fileId].total} rows but only ${this.file_data[fileId].file_data.length} loaded. Retrieving full data...`, 'SaveChanges');
       
       // Create temp params to get all data for this sheet/file
       const retrieveParams = { ...params };
@@ -933,7 +1037,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
         )
         .subscribe({
           next: (resp: any) => {
-            let allData = [];
+            let allData: any[] = [];
             
             if (resp) {
               if (Array.isArray(resp)) {
@@ -946,16 +1050,15 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
             }
             
             const allFetchedData = Array.isArray(allData) ? 
-              (allData.length > 0 && allData[0] && allData[0].data ? allData.map(d => d.data) : allData) : 
+              (allData.length > 0 && allData[0] && allData[0].data ? allData.map((d: any) => d.data) : allData) : 
               [];
             
             // Apply the edits from the current data to the full data set
-            const editedData = this.file_data[fileId].file_data;
+            const editedData = this.file_data[fileId].fullDataset || this.file_data[fileId].file_data;
             const currentPageParams = this.file_data[fileId].params;
             
             // If there are no rows to update, just save what we have (unlikely)
             if (allFetchedData.length === 0 || editedData.length === 0) {
-              this.log.msg('3', 'No complete data retrieved or no edited data. Saving current data only.', 'SaveChanges');
               this._saveFileData(fileId, editedData, params);
               return;
             }
@@ -998,37 +1101,46 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
             }
             
             // Now save the complete dataset with edits applied
-            this.log.msg('4', `Retrieved all ${fullDatasetWithEdits.length} rows, applied edits from page ${pageIndex}, and saving.`, 'SaveChanges');
             this._saveFileData(fileId, fullDatasetWithEdits, params);
           },
           error: (error) => {
-            this.log.msg('2', 'Error retrieving complete data, saving only current page', 'SaveChanges', error);
             // Fall back to saving just the current data
             this._saveFileData(fileId, this.file_data[fileId].file_data, params);
           }
         });
     } else {
       // No pagination or all data already loaded, save as is
-      this._saveFileData(fileId, this.file_data[fileId].file_data, params);
+      // If we have a fullDataset (dirty file with client-side pagination), save that instead
+      const dataToSave = this.file_data[fileId].fullDataset || this.file_data[fileId].file_data;
+      this._saveFileData(fileId, dataToSave, params);
     }
   }
   
   // Helper method to perform the actual save operation
   private _saveFileData(fileId: number, data: any[], params: any): void {
-    // Clone and clean the data to avoid modifying the original
-    const dataToSave = JSON.parse(JSON.stringify(data)).map(row => {
-      // Create a new object without UI-specific fields
-      const cleanRow = {...row};
-      
-      // Remove Excel UI fields
-      delete cleanRow.rowNumber;
-      delete cleanRow._rowIndex;
-      
-      return cleanRow;
-    });
+    // Validate input data
+    if (!Array.isArray(data) || data.length === 0) {
+      this.log.msg('2', `Invalid data provided for saving file ${fileId}`, 'SaveData');
+      this._resetFileToConsistentState(fileId, new Error('Invalid data'));
+      return;
+    }
     
-    // Use the API service's updateDataDrivenFile method
-    this._api.updateDataDrivenFile(fileId, dataToSave, params)
+    // Clone and clean the data to avoid modifying the original
+    const dataToSave = this._cloneAndCleanData(data);
+    
+    // Get the current column order from the file data (excluding special columns)
+    const currentColumns = this.file_data[fileId]?.columns || [];
+    const dataColumns = currentColumns.filter(col => col.field !== 'rowNumber');
+    const columnOrder = dataColumns.map(col => col.header || col.field); // Use headers for column order
+    
+    // Include column order in the request data
+    const requestData = {
+      data: dataToSave,
+      column_order: columnOrder
+    };
+    
+    // Use the API service's updateDataDrivenFile method with the enhanced request data
+    this._api.updateDataDrivenFile(fileId, requestData, params)
       .subscribe({
         next: (response) => {
           this._snackBar.open('File data updated successfully', 'Close', {
@@ -1036,31 +1148,78 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
             panelClass: ['file-management-custom-snackbar']
           });
           
-          // Update original data
-          this.original_file_data[fileId] = JSON.parse(JSON.stringify(this.file_data[fileId].file_data));
+          // Clear dirty state and full dataset since we're refreshing from server
           this.isDirty[fileId] = false;
-          this.file_data[fileId].isLoading = false;
-          this.cdRef.markForCheck();
+          this._clearFullDataset(fileId);
+          
+          // Find the original file to refresh the data
+          const file = this.department?.files?.find(f => f.id === fileId);
+          if (file) {
+            // Refresh the file data from server to ensure we have the latest state
+            this.getFileData(file);
+          } else {
+            // If we can't find the original file, just mark as not loading
+            this.file_data[fileId].isLoading = false;
+            this.log.msg('2', `Cannot find original file with ID ${fileId} to refresh data after save`, 'SaveData');
+            this.cdRef.markForCheck();
+          }
         },
         error: (error) => {
-          this.log.msg('2', 'Error updating file data', 'SaveChanges', error);
-          this._snackBar.open('Error updating file data', 'Close', {
+          this.log.msg('2', `Error saving file data for file ${fileId}`, 'SaveData', error);
+          
+          // Reset to consistent state on error
+          this._resetFileToConsistentState(fileId, error);
+          
+          this._snackBar.open('Error updating file data. Changes have been reverted.', 'Close', {
             duration: 5000,
             panelClass: ['file-management-custom-snackbar']
           });
-          this.file_data[fileId].isLoading = false;
-          this.cdRef.markForCheck();
         }
       });
   }
   
   cancelAllChanges(fileId: number): void {
-    if (!this.isDirty[fileId] || !this.original_file_data[fileId]) return;
-    
-    // Reset to original data
-    this.file_data[fileId].file_data = JSON.parse(JSON.stringify(this.original_file_data[fileId]));
+    if (!this.isDirty[fileId]) return;
+
+    // Cancel any active editing
+    if (this.editingCell && this.editingCell.fileId === fileId) {
+      this.cancelEdit();
+    }
+ 
+    // Revert rows if snapshot exists
+    if (this.original_file_data[fileId]) {
+      this.file_data[fileId].file_data = JSON.parse(JSON.stringify(this.original_file_data[fileId]));
+    }
+
+    // Clear any fullDataset (client-side pagination data)
+    this._clearFullDataset(fileId);
+ 
+    // Revert columns if snapshot exists
+    if (this.original_columns[fileId]) {
+      // Deep copy to avoid side-effects, but filter out any actions columns
+      const originalColumns = this.original_columns[fileId]
+        .filter(col => col.field !== 'actions')
+        .map(col => ({ 
+          ...col
+        }));
+      
+      // Force grid to re-render by clearing and resetting columns (same as rename)
+      this.file_data[fileId].columns = [];
+      this.cdRef.detectChanges();
+      
+      // Set the original columns back after a micro-task
+      setTimeout(() => {
+        this.file_data[fileId].columns = originalColumns;
+        this.file_data = { ...this.file_data };
+        this.cdRef.detectChanges();
+      }, 0);
+    } else {
+      // If no column snapshot, just refresh the reference
+      this.file_data = { ...this.file_data };
+      this.cdRef.markForCheck();
+    }
+ 
     this.isDirty[fileId] = false;
-    this.cdRef.markForCheck();
   }
   
   // Utility functions
@@ -1135,7 +1294,6 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           this.log.msg('4', 'Found execute button, ensuring correct handler', 'Init');
           const originalClick = button.click;
           button.click = (file: UploadedFile) => {
-            this.log.msg('4', `Execute button clicked with file: ${file.id}`, 'Button');
             this.fileExecute.emit(file);
           };
           
@@ -1157,7 +1315,6 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           this.log.msg('4', 'Found download button, ensuring correct handler', 'Init');
           const originalClick = button.click;
           button.click = (file: UploadedFile) => {
-            this.log.msg('4', `Download button clicked with file: ${file.id}`, 'Button');
             this.onDownloadFile(file);
           };
           
@@ -1179,7 +1336,6 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           this.log.msg('4', 'Found delete button, ensuring correct handler', 'Init');
           const originalClick = button.click;
           button.click = (file: UploadedFile) => {
-            this.log.msg('4', `Delete button clicked with file: ${file.id}`, 'Button');
             this.onDeleteFile(file);
           };
           
@@ -1272,7 +1428,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     const emptyRow = {};
     const columns = this.file_data[fileId].columns || [];
     
-    // Skip the first column (Actions column)
+    // Skip the first column (Row Number column)
     for (let i = 1; i < columns.length; i++) {
       const column = columns[i];
       if (column.field) {
@@ -1280,19 +1436,45 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
     
-    // Create a new array with the new row inserted
-    const newFileData = [...this.file_data[fileId].file_data];
-    newFileData.splice(rowIndex, 0, emptyRow);
-    
-    // Update with the new array reference
-    this.file_data[fileId].file_data = newFileData;
+    // If we have a fullDataset (dirty file), work with that and the visible data
+    if (this.file_data[fileId].fullDataset) {
+      // Calculate the actual index in the full dataset
+      const pageIndex = this.file_data[fileId].params?.page || 0;
+      const pageSize = this.file_data[fileId].params?.size || 10;
+      const actualIndex = (pageIndex * pageSize) + rowIndex;
+      
+      // Add to full dataset
+      const newFullData = [...this.file_data[fileId].fullDataset];
+      newFullData.splice(actualIndex, 0, emptyRow);
+      this.file_data[fileId].fullDataset = newFullData;
+      this.file_data[fileId].total = newFullData.length;
+      
+      // Re-apply pagination to update visible data
+      this._applyClientSidePagination(fileId);
+    } else {
+      // Standard behavior - either not dirty yet, or not paginated
+      const newFileData = [...this.file_data[fileId].file_data];
+      newFileData.splice(rowIndex, 0, emptyRow);
+      this.file_data[fileId].file_data = newFileData;
+      
+             // Update total if not paginated
+       if (!this.file_data[fileId].showPagination) {
+         this.file_data[fileId].total = newFileData.length;
+       } else {
+         // For paginated files, we need to increment the total count
+         this.file_data[fileId].total = (this.file_data[fileId].total || 0) + 1;
+       }
+      
+      // Refresh row numbers for Excel-style display
+      this._refreshRowNumbers(fileId);
+      
+      // Force UI update
+      this.file_data = {...this.file_data};
+      this.cdRef.detectChanges();
+    }
     
     // Mark as dirty
     this.isDirty[fileId] = true;
-    
-    // Force UI update
-    this.file_data = {...this.file_data};
-    this.cdRef.detectChanges();
     
     this.log.msg('4', `Added row above index ${rowIndex} in file ${fileId}`, 'AddRow');
   }
@@ -1307,7 +1489,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     const emptyRow = {};
     const columns = this.file_data[fileId].columns || [];
     
-    // Skip the first column (Actions column)
+    // Skip the first column (Row Number column)
     for (let i = 1; i < columns.length; i++) {
       const column = columns[i];
       if (column.field) {
@@ -1315,21 +1497,111 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
     
-    // Create a new array with the new row inserted
-    const newFileData = [...this.file_data[fileId].file_data];
-    newFileData.splice(rowIndex + 1, 0, emptyRow);
-    
-    // Update with the new array reference
-    this.file_data[fileId].file_data = newFileData;
+    // If we have a fullDataset (dirty file), work with that and the visible data
+    if (this.file_data[fileId].fullDataset) {
+      // Calculate the actual index in the full dataset
+      const pageIndex = this.file_data[fileId].params?.page || 0;
+      const pageSize = this.file_data[fileId].params?.size || 10;
+      const actualIndex = (pageIndex * pageSize) + rowIndex + 1;
+      
+      // Add to full dataset
+      const newFullData = [...this.file_data[fileId].fullDataset];
+      newFullData.splice(actualIndex, 0, emptyRow);
+      this.file_data[fileId].fullDataset = newFullData;
+      this.file_data[fileId].total = newFullData.length;
+      
+      // Re-apply pagination to update visible data
+      this._applyClientSidePagination(fileId);
+    } else {
+      // Standard behavior - either not dirty yet, or not paginated
+      const newFileData = [...this.file_data[fileId].file_data];
+      newFileData.splice(rowIndex + 1, 0, emptyRow);
+      this.file_data[fileId].file_data = newFileData;
+      
+      // Update total count
+      if (!this.file_data[fileId].showPagination) {
+        this.file_data[fileId].total = newFileData.length;
+      } else {
+        // For paginated files, increment the total count
+        this.file_data[fileId].total = (this.file_data[fileId].total || 0) + 1;
+      }
+      
+      // Refresh row numbers for Excel-style display
+      this._refreshRowNumbers(fileId);
+      
+      // Force UI update
+      this.file_data = {...this.file_data};
+      this.cdRef.detectChanges();
+    }
     
     // Mark as dirty
     this.isDirty[fileId] = true;
     
-    // Force UI update
-    this.file_data = {...this.file_data};
-    this.cdRef.detectChanges();
-    
     this.log.msg('4', `Added row below index ${rowIndex} in file ${fileId}`, 'AddRow');
+  }
+
+  cloneRow(fileId: number, rowIndex: number): void {
+    if (!this.file_data[fileId] || !this.file_data[fileId].file_data) {
+      this.log.msg('2', 'Cannot clone row, file data not found', 'CloneRow');
+      return;
+    }
+    
+    // Get the source row to clone
+    const sourceRow = this.file_data[fileId].file_data[rowIndex];
+    if (!sourceRow) {
+      this.log.msg('2', 'Cannot clone row, source row not found', 'CloneRow');
+      return;
+    }
+    
+    // Create a deep copy of the source row (excluding rowNumber and _rowIndex)
+    const clonedRow = {};
+    Object.keys(sourceRow).forEach(key => {
+      if (key !== 'rowNumber' && key !== '_rowIndex') {
+        clonedRow[key] = sourceRow[key];
+      }
+    });
+    
+    // If we have a fullDataset (dirty file), work with that and the visible data
+    if (this.file_data[fileId].fullDataset) {
+      // Calculate the actual index in the full dataset
+      const pageIndex = this.file_data[fileId].params?.page || 0;
+      const pageSize = this.file_data[fileId].params?.size || 10;
+      const actualIndex = (pageIndex * pageSize) + rowIndex + 1;
+      
+      // Add to full dataset
+      const newFullData = [...this.file_data[fileId].fullDataset];
+      newFullData.splice(actualIndex, 0, clonedRow);
+      this.file_data[fileId].fullDataset = newFullData;
+      this.file_data[fileId].total = newFullData.length;
+      
+      // Re-apply pagination to update visible data
+      this._applyClientSidePagination(fileId);
+    } else {
+      // Standard behavior - either not dirty yet, or not paginated
+      const newFileData = [...this.file_data[fileId].file_data];
+      newFileData.splice(rowIndex + 1, 0, clonedRow);
+      this.file_data[fileId].file_data = newFileData;
+      
+      // Update total count
+      if (!this.file_data[fileId].showPagination) {
+        this.file_data[fileId].total = newFileData.length;
+      } else {
+        // For paginated files, increment the total count
+        this.file_data[fileId].total = (this.file_data[fileId].total || 0) + 1;
+      }
+      
+      // Refresh row numbers for Excel-style display
+      this._refreshRowNumbers(fileId);
+      
+      // Force UI update
+      this.file_data = {...this.file_data};
+      this.cdRef.detectChanges();
+    }
+    
+    // Mark as dirty
+    this.isDirty[fileId] = true;
+    
+    this.log.msg('4', `Cloned row at index ${rowIndex} in file ${fileId}`, 'CloneRow');
   }
   
   deleteRow(fileId: number, rowIndex: number): void {
@@ -1338,8 +1610,13 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       return;
     }
     
+    // Check total row count (use fullDataset if available, otherwise current data)
+    const totalRows = this.file_data[fileId].fullDataset ? 
+      this.file_data[fileId].fullDataset.length : 
+      this.file_data[fileId].file_data.length;
+    
     // Don't delete if it's the last row
-    if (this.file_data[fileId].file_data.length <= 1) {
+    if (totalRows <= 1) {
       this._snackBar.open('Cannot delete the last row', 'Close', {
         duration: 3000,
         panelClass: ['file-management-custom-snackbar']
@@ -1347,19 +1624,45 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       return;
     }
     
-    // Create a new array without the deleted row
-    const newFileData = [...this.file_data[fileId].file_data];
-    newFileData.splice(rowIndex, 1);
-    
-    // Update with the new array reference
-    this.file_data[fileId].file_data = newFileData;
+    // If we have a fullDataset (dirty file), work with that and the visible data
+    if (this.file_data[fileId].fullDataset) {
+      // Calculate the actual index in the full dataset
+      const pageIndex = this.file_data[fileId].params?.page || 0;
+      const pageSize = this.file_data[fileId].params?.size || 10;
+      const actualIndex = (pageIndex * pageSize) + rowIndex;
+      
+      // Remove from full dataset
+      const newFullData = [...this.file_data[fileId].fullDataset];
+      newFullData.splice(actualIndex, 1);
+      this.file_data[fileId].fullDataset = newFullData;
+      this.file_data[fileId].total = newFullData.length;
+      
+      // Re-apply pagination to update visible data
+      this._applyClientSidePagination(fileId);
+    } else {
+      // Standard behavior - either not dirty yet, or not paginated
+      const newFileData = [...this.file_data[fileId].file_data];
+      newFileData.splice(rowIndex, 1);
+      this.file_data[fileId].file_data = newFileData;
+      
+      // Update total count
+      if (!this.file_data[fileId].showPagination) {
+        this.file_data[fileId].total = newFileData.length;
+      } else {
+        // For paginated files, decrement the total count
+        this.file_data[fileId].total = Math.max(0, (this.file_data[fileId].total || 0) - 1);
+      }
+      
+      // Refresh row numbers for Excel-style display
+      this._refreshRowNumbers(fileId);
+      
+      // Force UI update
+      this.file_data = {...this.file_data};
+      this.cdRef.detectChanges();
+    }
     
     // Mark as dirty
     this.isDirty[fileId] = true;
-    
-    // Force UI update
-    this.file_data = {...this.file_data};
-    this.cdRef.detectChanges();
     
     this.log.msg('4', `Deleted row at index ${rowIndex} from file ${fileId}`, 'DeleteRow');
   }
@@ -1402,9 +1705,9 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       return;
     }
     
-    // Get editable columns (exclude actions column)
+    // Get editable columns (exclude row number column)
     const allColumns = fileData.columns;
-    const editableColumns = allColumns.filter(col => col.field !== 'actions');
+    const editableColumns = allColumns.filter(col => col.field !== 'rowNumber');
     
     // Find the current editable column index
     let currentEditableColIndex = editableColumns.findIndex(col => col.field === columnField);
@@ -1605,8 +1908,8 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
           }
         });
         
-        // Trigger change detection
-        this.cdRef.markForCheck();
+        // Refresh reference for change detection
+        this.file_data[fileId].columns = [...this.file_data[fileId].columns];
       }
     }
   }
@@ -1730,7 +2033,7 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
     
     this.log.msg('4', `Adding Excel-style row numbers and column letters for file ${fileId}`, 'Excel');
     
-    // Add row number column as the first column (before actions column)
+    // Add row number column as the first column
     const rowNumberColumn: MtxGridColumn = {
       header: '#',
       field: 'rowNumber',
@@ -1753,21 +2056,8 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       class: 'excel-row-number'
     };
     
-    // Add row number column as first column (before actions)
+    // Add row number column as first column
     columns.unshift(rowNumberColumn);
-    
-    // Update column headers to include Excel-style column letters (A, B, C, etc.)
-    // Skip row number column (index 0) and actions column (index 1)
-    for (let i = 2; i < columns.length; i++) {
-      const colIndex = i - 1; // Adjust for the row number column
-      const excelColName = this.getExcelColumnName(colIndex);
-      // Keep the original header but prefix with the Excel column letter
-      if (columns[i].header) {
-        columns[i].header = `${excelColName}: ${columns[i].header}`;
-      } else {
-        columns[i].header = excelColName;
-      }
-    }
     
     // Add row numbers to the data
     const pageIndex = this.file_data[fileId]?.params?.page || 0;
@@ -1778,6 +2068,648 @@ export class FilesManagementComponent implements OnInit, OnDestroy, OnChanges {
       // Store both display row number (1-based) and actual row index for reference
       row.rowNumber = startRowNumber + idx + 1; // 1-based row numbers like Excel
       row._rowIndex = startRowNumber + idx; // 0-based index for internal reference
+    });
+  }
+
+  addColumnLeft(): void {
+    if (this.contextMenuFileId == null || !this.contextMenuColumnField) return;
+    this.promptAndAddColumn(this.contextMenuFileId, this.contextMenuColumnField, 'left');
+  }
+
+  addColumnRight(): void {
+    if (this.contextMenuFileId == null || !this.contextMenuColumnField) return;
+    this.promptAndAddColumn(this.contextMenuFileId, this.contextMenuColumnField, 'right');
+  }
+
+  /** Opens a dialog to ask for the new column name and then adds the column */
+  private promptAndAddColumn(fileId: number, referenceField: string, position: 'left' | 'right'): void {
+    const dialogRef = this._dialog.open(AddColumnNameDialogComponent, {
+      width: '320px',
+      data: { title: 'Add Column', placeholder: 'Column Name' },
+      panelClass: 'no-resize-dialog'
+    });
+
+    dialogRef.afterClosed().pipe(take(1)).subscribe((name: string | undefined) => {
+      if (name && name.trim()) {
+        this._addColumn(fileId, referenceField, position, name.trim());
+      }
+    });
+  }
+
+  private _addColumn(fileId: number, referenceField: string, position: 'left' | 'right', name: string): void {
+    const fileDatum = this.file_data[fileId];
+    if (!fileDatum || !fileDatum.columns) {
+      this.log.msg('2', 'Cannot add column – file data missing', 'AddColumn');
+      return;
+    }
+
+    // Sanitize and validate column name
+    const sanitizedName = this._sanitizeColumnName(name);
+    if (!sanitizedName) {
+      this._snackBar.open('Invalid column name. Use only letters, numbers, spaces, and basic punctuation.', 'Close', {
+        duration: 5000,
+        panelClass: ['file-management-custom-snackbar']
+      });
+      return;
+    }
+
+    // Snapshot columns before modification (once)
+    if (!this.original_columns[fileId]) {
+      this.original_columns[fileId] = fileDatum.columns
+        .filter(col => col.field !== 'actions')
+        .map(col => ({ ...col }));
+    }
+
+    const refIndex = fileDatum.columns.findIndex(c => c.field === referenceField);
+    if (refIndex === -1) {
+      this.log.msg('2', 'Reference column not found', 'AddColumn', referenceField);
+      return;
+    }
+
+    const insertIndex = position === 'left' ? refIndex : refIndex + 1;
+
+    // Create field name using backend logic (lowercase with underscores)
+    // but keep the original name as the display header
+    let baseName = sanitizedName.toLowerCase().replace(/\s+/g, '_');
+    if (!baseName) {
+      baseName = 'new_column';
+    }
+    let uniqueField = baseName;
+    let suffix = 1;
+    while (fileDatum.columns.some(col => col.field === uniqueField)) {
+      uniqueField = `${baseName}_${suffix++}`;
+    }
+
+    // Use the processed name as both header and field for consistency in the UI
+    const newColumn: MtxGridColumn = {
+      header: uniqueField,  // Use processed name as header for consistent UI display
+      field: uniqueField,   // Use processed name as field for data consistency
+      sortable: true,
+      cellTemplate: this.dynamicEditableCellTpl,
+      class: `file-${fileId}`
+    };
+
+    fileDatum.columns.splice(insertIndex, 0, newColumn);
+    fileDatum.columns = [...fileDatum.columns];
+
+    // add property to each row
+    fileDatum.file_data.forEach(row => {
+      row[uniqueField] = '';
+    });
+
+    this.isDirty[fileId] = true;
+    this.log.msg('4', `Added column '${name}' (field: '${uniqueField}') ${position} of ${referenceField} in file ${fileId}`, 'AddColumn');
+    this.cdRef.markForCheck();
+  }
+
+  // Add helper method to refresh row numbers for Excel-style display
+  private _refreshRowNumbers(fileId: number): void {
+    if (!this.file_data[fileId] || !this.file_data[fileId].file_data) {
+      this.log.msg('2', 'Cannot refresh row numbers, file data not found', 'RefreshRowNumbers');
+      return;
+    }
+    
+    const pageIndex = this.file_data[fileId].params?.page || 0;
+    const pageSize = this.file_data[fileId].params?.size || 10;
+    const startRowNumber = pageIndex * pageSize;
+    
+    this.file_data[fileId].file_data.forEach((row, idx) => {
+      row.rowNumber = startRowNumber + idx + 1; // 1-based row numbers like Excel
+      row._rowIndex = startRowNumber + idx; // 0-based index for internal reference
+    });
+  }
+
+  /**
+   * Applies client-side pagination when the file has dirty changes.
+   * This avoids losing changes by paginating the local dataset instead of fetching from server.
+   */
+  private _applyClientSidePagination(fileId: number): void {
+    if (!this.file_data[fileId] || !this.file_data[fileId].file_data) {
+      return;
+    }
+
+    const pageIndex = this.file_data[fileId].params?.page || 0;
+    const pageSize = this.file_data[fileId].params?.size || 10;
+    
+    
+    // For dirty files, we need to store the full dataset separately and paginate it client-side
+    // First, check if we have the full dataset stored
+    if (!this.file_data[fileId].fullDataset) {
+      
+      // Check if we have all the data or just a paginated subset
+      const hasAllData = !this.file_data[fileId].showPagination || 
+                       (this.file_data[fileId].total === this.file_data[fileId].file_data.length);
+      
+      if (hasAllData) {
+        // We have all the data, safe to create fullDataset
+        this.file_data[fileId].fullDataset = [...this.file_data[fileId].file_data];
+        this.file_data[fileId].total = this.file_data[fileId].file_data.length;
+      } else {
+        // We only have partial data due to pagination, can't implement client-side pagination properly
+        // Fall back to keeping the existing behavior but warn about potential data loss
+        
+        // For now, we'll create fullDataset from current data, but this might lose changes on other pages
+        this.file_data[fileId].fullDataset = [...this.file_data[fileId].file_data];
+        // Don't update total since we know we don't have complete data
+      }
+    }
+    
+    const fullData = this.file_data[fileId].fullDataset;
+    const startIndex = pageIndex * pageSize;
+    const endIndex = startIndex + pageSize;
+    
+    
+    // Slice the full dataset for the current page
+    const paginatedData = fullData.slice(startIndex, endIndex);
+    
+    
+    // Update the displayed data
+    this.file_data[fileId].file_data = paginatedData;
+    
+    // Refresh row numbers for the paginated data
+    this._refreshRowNumbers(fileId);
+    
+    // Force UI update
+    this.file_data = {...this.file_data};
+    this.cdRef.detectChanges();
+    
+  }
+
+  /**
+   * Fetches the complete dataset for a dirty file to enable proper client-side pagination.
+   * This merges the current changes with the complete server data.
+   */
+  private _fetchCompleteDatasetForDirtyFile(fileId: number, file: UploadedFile): void {
+    if (!this.file_data[fileId]) {
+      return;
+    }
+
+    const isExcel = this.isExcelFile(file.name);
+    const currentSheet = isExcel ? this.getCurrentSheet(fileId) : null;
+    
+    // Create params to get ALL data for this sheet/file
+    const params: any = {
+      page: 1,
+      size: this.file_data[fileId].total || 1000, // Request all rows
+    };
+    
+    if (isExcel && currentSheet) {
+      params.sheet = currentSheet;
+    }
+    
+    
+    // Set loading state
+    this.file_data[fileId].isLoading = true;
+    this.cdRef.markForCheck();
+    
+    this._http.get(`/api/data_driven/file/${fileId}`, { params })
+      .pipe(
+        finalize(() => {
+          this.file_data[fileId].isLoading = false;
+          this.cdRef.markForCheck();
+        })
+      )
+      .subscribe({
+        next: (resp: any) => {
+          let allData: any[] = [];
+          if (resp) {
+            if (Array.isArray(resp)) {
+              allData = resp;
+            } else if (resp.results && Array.isArray(resp.results)) {
+              allData = resp.results;
+            } else if (resp.data && Array.isArray(resp.data)) {
+              allData = resp.data;
+            }
+          }
+          
+          const completeData = Array.isArray(allData) ? 
+            (allData.length > 0 && allData[0] && allData[0].data ? allData.map((d: any) => d.data) : allData) : 
+            [];
+          
+          // Now we need to merge the changes from the current dirty data into the complete dataset
+          this._mergeChangesIntoCompleteDataset(fileId, completeData);
+          
+          // Now apply pagination with the complete dataset
+          this._applyClientSidePagination(fileId);
+        },
+        error: (error) => {
+          this.log.msg('2', 'Error fetching complete dataset for dirty file', 'FetchComplete', error);
+          
+          // Fall back to basic client-side pagination with limited data
+          this._applyClientSidePagination(fileId);
+        }
+      });
+  }
+
+  /**
+   * Merges the current dirty changes into the complete dataset fetched from server.
+   */
+  private _mergeChangesIntoCompleteDataset(fileId: number, completeData: any[]): void {
+    const currentPageParams = this.file_data[fileId].params;
+    const pageIndex = currentPageParams.page || 0;
+    const pageSize = currentPageParams.size || 10;
+    const startIdx = pageIndex * pageSize;
+    
+    // Create a copy of the complete dataset to modify
+    const mergedData = [...completeData];
+    
+    // Apply changes from the current dirty data to the corresponding rows in complete dataset
+    const dirtyData = this.file_data[fileId].file_data;
+    
+    for (let i = 0; i < dirtyData.length; i++) {
+      const mergedRowIndex = startIdx + i;
+      
+      // Only apply if we're within bounds of the complete dataset
+      if (mergedRowIndex < mergedData.length) {
+        const originalRow = mergedData[mergedRowIndex];
+        const dirtyRow = dirtyData[i];
+        
+        // Merge the dirty row data into the original row
+        const allKeys = new Set([
+          ...Object.keys(originalRow || {}), 
+          ...Object.keys(dirtyRow || {})
+        ]);
+        
+        allKeys.forEach(key => {
+          // Skip UI-specific fields
+          if (key !== 'rowNumber' && key !== '_rowIndex' && dirtyRow && key in dirtyRow) {
+            originalRow[key] = dirtyRow[key];
+          }
+        });
+      } else {
+        // This is a new row added beyond the original dataset
+        const newRow = {...dirtyData[i]};
+        // Remove UI-specific fields
+        delete newRow.rowNumber;
+        delete newRow._rowIndex;
+        mergedData.push(newRow);
+      }
+    }
+    
+    // Store the merged dataset as our fullDataset
+    this.file_data[fileId].fullDataset = mergedData;
+    this.file_data[fileId].total = mergedData.length;
+  }
+
+  /** Context menu wrapper to add a row above the selected row */
+  addRowAboveContext(): void {
+    if (this.contextMenuFileId == null || this.contextMenuRowIndex == null) return;
+    this.addRowAbove(this.contextMenuFileId, this.contextMenuRowIndex);
+  }
+
+  /** Context menu wrapper to add a row below the selected row */
+  addRowBelowContext(): void {
+    if (this.contextMenuFileId == null || this.contextMenuRowIndex == null) return;
+    this.addRowBelow(this.contextMenuFileId, this.contextMenuRowIndex);
+  }
+
+  /** Context menu wrapper to clone the selected row */
+  cloneRowContext(): void {
+    if (this.contextMenuFileId == null || this.contextMenuRowIndex == null) return;
+    this.cloneRow(this.contextMenuFileId, this.contextMenuRowIndex);
+  }
+
+  /** Context menu wrapper to delete the selected row */
+  deleteRowContext(): void {
+    if (this.contextMenuFileId == null || this.contextMenuRowIndex == null) return;
+    this.deleteRow(this.contextMenuFileId, this.contextMenuRowIndex);
+  }
+
+  /** Context menu wrapper to rename the selected column */
+  renameColumnContext(): void {
+    if (this.contextMenuFileId == null || !this.contextMenuColumnField) return;
+    this._renameColumn(this.contextMenuFileId, this.contextMenuColumnField);
+  }
+
+  /** Context menu wrapper to delete the selected column */
+  deleteColumnContext(): void {
+    if (this.contextMenuFileId == null || !this.contextMenuColumnField) return;
+    this._deleteColumn(this.contextMenuFileId, this.contextMenuColumnField);
+  }
+
+  /**
+   * Deletes a column from the file data and grid definition, with safety checks.
+   * @param fileId      The ID of the file whose column should be removed
+   * @param field       The field name (column key) to remove
+   */
+  private _deleteColumn(fileId: number, field: string): void {
+    const fileDatum = this.file_data[fileId];
+    if (!fileDatum || !fileDatum.columns) {
+      this.log.msg('2', 'Cannot delete column – file data missing', 'DeleteColumn');
+      return;
+    }
+
+    // Prevent deleting special columns
+    if (field === 'rowNumber') {
+      this._snackBar.open('Cannot delete row number column', 'Close', {
+        duration: 3000,
+        panelClass: ['file-management-custom-snackbar']
+      });
+      return;
+    }
+
+    // Don't delete if it would leave zero data columns (excluding rowNumber)
+    const dataColumns = fileDatum.columns.filter(col => col.field !== 'rowNumber');
+    if (dataColumns.length <= 1) {
+      this._snackBar.open('Cannot delete the last column', 'Close', {
+        duration: 3000,
+        panelClass: ['file-management-custom-snackbar']
+      });
+      return;
+    }
+
+    // Snapshot columns before modification (once)
+    if (!this.original_columns[fileId]) {
+      this.original_columns[fileId] = fileDatum.columns
+        .filter(col => col.field !== 'actions')
+        .map(col => ({ ...col }));
+    }
+
+    // Remove column definition
+    const colIndex = fileDatum.columns.findIndex(c => c.field === field);
+    if (colIndex === -1) {
+      this.log.msg('2', 'Column not found for deletion', 'DeleteColumn', field);
+      return;
+    }
+    fileDatum.columns.splice(colIndex, 1);
+    fileDatum.columns = [...fileDatum.columns];
+
+    // Remove property from each row
+    fileDatum.file_data.forEach(row => {
+      delete row[field];
+    });
+
+    this.isDirty[fileId] = true;
+    this.log.msg('4', `Deleted column '${field}' from file ${fileId}`, 'DeleteColumn');
+    this.cdRef.markForCheck();
+  }
+
+  /**
+   * Safely clones and cleans data for saving, preserving types where possible
+   * @param data The data array to clone and clean
+   * @returns Cleaned data array
+   */
+  private _cloneAndCleanData(data: any[]): any[] {
+    try {
+      return data.map(row => {
+        if (!row || typeof row !== 'object') {
+          return {};
+        }
+        
+        // Create a clean object without UI-specific fields
+        const cleanRow: any = {};
+        
+        for (const [key, value] of Object.entries(row)) {
+          // Skip UI-specific fields
+          if (key === 'rowNumber' || key === '_rowIndex') {
+            continue;
+          }
+          
+          // Preserve data types where possible
+          if (value === null || value === undefined) {
+            cleanRow[key] = value;
+          } else if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            cleanRow[key] = value;
+          } else {
+            // For complex types, convert to string for safety
+            cleanRow[key] = String(value);
+          }
+        }
+        
+        return cleanRow;
+      });
+    } catch (error) {
+      this.log.msg('2', 'Failed to clone and clean data, using fallback method', 'SaveData', error);
+      // Fallback to simple JSON clone if anything goes wrong
+      return JSON.parse(JSON.stringify(data)).map(row => {
+        const cleanRow = {...row};
+        delete cleanRow.rowNumber;
+        delete cleanRow._rowIndex;
+        return cleanRow;
+      });
+    }
+  }
+
+  /**
+   * Resets file to consistent state after an error
+   * @param fileId The file ID to reset
+   * @param error The error that occurred
+   */
+  private _resetFileToConsistentState(fileId: number, error: any): void {
+    if (!this.file_data[fileId]) return;
+    
+    // Stop loading state
+    this.file_data[fileId].isLoading = false;
+    
+    // Clear dirty state and revert to original data if available
+    if (this.original_file_data[fileId]) {
+      this.file_data[fileId].file_data = JSON.parse(JSON.stringify(this.original_file_data[fileId]));
+      this.isDirty[fileId] = false;
+    }
+    
+    // Clear any client-side pagination data
+    this._clearFullDataset(fileId);
+    
+    // Cancel any active editing
+    if (this.editingCell && this.editingCell.fileId === fileId) {
+      this.cancelEdit();
+    }
+    
+    // Force UI update
+    this.cdRef.markForCheck();
+    
+    this.log.msg('4', `Reset file ${fileId} to consistent state after error`, 'ErrorRecovery');
+  }
+
+  /**
+   * Safely clears fullDataset and resets memory usage
+   * @param fileId The file ID to clear dataset for
+   */
+  private _clearFullDataset(fileId: number): void {
+    if (this.file_data[fileId]?.fullDataset) {
+      // Log memory usage for debugging large files
+      const datasetSize = this.file_data[fileId].fullDataset.length;
+      if (datasetSize > 1000) {
+        this.log.msg('4', `Clearing large fullDataset with ${datasetSize} rows for file ${fileId}`, 'Memory');
+      }
+      
+      // Clear the dataset and reset total
+      delete this.file_data[fileId].fullDataset;
+      this.file_data[fileId].total = this.file_data[fileId].file_data.length;
+      
+      // Force garbage collection hint (modern browsers)
+      if (datasetSize > 5000) {
+        try {
+          // TypeScript-safe way to access gc() if available
+          const anyWindow = window as any;
+          if (typeof anyWindow.gc === 'function') {
+            anyWindow.gc();
+          }
+        } catch (e) {
+          // gc() is only available in development or with special flags
+        }
+      }
+    }
+  }
+
+  /**
+   * Sanitizes column names to prevent injection attacks and ensure compatibility
+   * @param name The column name to sanitize
+   * @returns Sanitized name or empty string if invalid
+   */
+  private _sanitizeColumnName(name: string): string {
+    if (!name || typeof name !== 'string') return '';
+    
+    // Remove potentially dangerous characters while preserving readability
+    // Allow: letters, numbers, spaces, hyphens, underscores, periods, parentheses
+    const sanitized = name.replace(/[^a-zA-Z0-9\s\-_().]/g, '').trim();
+    
+    // Ensure it's not empty and not too long
+    if (!sanitized || sanitized.length === 0 || sanitized.length > 50) {
+      return '';
+    }
+    
+    // Ensure it doesn't start with a number or special character
+    if (!/^[a-zA-Z]/.test(sanitized)) {
+      return '';
+    }
+    
+    return sanitized;
+  }
+
+  /**
+   * Renames a column by updating its header while keeping the same field key
+   * @param fileId The ID of the file whose column should be renamed
+   * @param field The field name (column key) to rename
+   */
+  private _renameColumn(fileId: number, field: string): void {
+    const fileDatum = this.file_data[fileId];
+    if (!fileDatum || !fileDatum.columns) {
+      this.log.msg('2', 'Cannot rename column – file data missing', 'RenameColumn');
+      return;
+    }
+
+    // Prevent renaming special columns
+    if (field === 'rowNumber') {
+      this._snackBar.open('Cannot rename row number column', 'Close', {
+        duration: 3000,
+        panelClass: ['file-management-custom-snackbar']
+      });
+      return;
+    }
+
+    // Find the column to rename
+    const columnIndex = fileDatum.columns.findIndex(c => c.field === field);
+    if (columnIndex === -1) {
+      this.log.msg('2', 'Column not found for renaming', 'RenameColumn', field);
+      return;
+    }
+
+    // Capture snapshot BEFORE modification (once)
+    if (!this.original_columns[fileId]) {
+      this.original_columns[fileId] = fileDatum.columns
+        .filter(col => col.field !== 'actions')
+        .map(col => ({ ...col }));
+    }
+
+    const currentColumn = fileDatum.columns[columnIndex];
+    const currentHeader = currentColumn.header || field;
+
+    // Open dialog with current header name pre-filled
+    const dialogRef = this._dialog.open(AddColumnNameDialogComponent, {
+      width: '320px',
+      data: { 
+        title: 'Rename Column', 
+        placeholder: 'Column Name',
+        currentValue: currentHeader 
+      },
+      panelClass: 'no-resize-dialog'
+    });
+
+    dialogRef.afterClosed().pipe(take(1)).subscribe((newName: string | undefined) => {
+      if (newName && newName.trim() && newName.trim() !== currentHeader) {
+        const trimmedName = newName.trim();
+        
+        // Sanitize and validate column name
+        const sanitizedName = this._sanitizeColumnName(trimmedName);
+        if (!sanitizedName) {
+          this._snackBar.open('Invalid column name. Use only letters, numbers, spaces, and basic punctuation.', 'Close', {
+            duration: 5000,
+            panelClass: ['file-management-custom-snackbar']
+          });
+          return;
+        }
+        
+        // Convert the new header to a field name (same logic as backend)
+        const newFieldName = sanitizedName.toLowerCase().replace(/\s+/g, '_');
+        
+        // Check if the new field name conflicts with existing fields
+        const existingFields = fileDatum.columns.map(col => col.field);
+        if (existingFields.includes(newFieldName) && newFieldName !== field) {
+          this._snackBar.open(`Column name conflicts with existing field: ${newFieldName}`, 'Close', {
+            duration: 5000,
+            panelClass: ['file-management-custom-snackbar']
+          });
+          return;
+        }
+        
+        // Update column definition with new header and field
+        const oldColumn = fileDatum.columns[columnIndex];
+        fileDatum.columns[columnIndex] = {
+          ...oldColumn,
+          header: trimmedName,
+          field: newFieldName
+        };
+        
+        // Atomic update: prepare all changes first, then apply them all at once
+        try {
+          // Validate that we can perform the operation on all datasets
+          const datasetsToUpdate: any[][] = [fileDatum.file_data];
+          if (fileDatum.fullDataset) {
+            datasetsToUpdate.push(fileDatum.fullDataset);
+          }
+          
+          // Pre-validate all rows have the field
+          for (const dataset of datasetsToUpdate) {
+            for (const row of dataset) {
+              if (!row.hasOwnProperty(field)) {
+                throw new Error(`Field ${field} not found in all rows`);
+              }
+            }
+          }
+          
+          // If validation passed, perform atomic update
+          for (const dataset of datasetsToUpdate) {
+            for (const row of dataset) {
+              row[newFieldName] = row[field];
+              delete row[field];
+            }
+          }
+          
+        } catch (error) {
+          this.log.msg('2', `Failed to rename column ${field}: ${error}`, 'RenameColumn');
+          this._snackBar.open('Failed to rename column. Please try again.', 'Close', {
+            duration: 5000,
+            panelClass: ['file-management-custom-snackbar']
+          });
+          return;
+        }
+
+        // Efficiently update grid with minimal re-renders
+        const updatedColumns = [...fileDatum.columns];
+        
+        // Use a single update instead of multiple forced renders
+        this.file_data[fileId] = {
+          ...fileDatum,
+          columns: updatedColumns
+        };
+        
+        // Single change detection cycle
+        this.cdRef.markForCheck();
+
+        this.isDirty[fileId] = true;
+        this.log.msg('4', `Renamed column '${field}' to '${trimmedName}' (field: '${newFieldName}') in file ${fileId}`, 'RenameColumn');
+      }
     });
   }
 } 
