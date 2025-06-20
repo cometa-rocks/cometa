@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy, HostListener, ChangeDetectorRef } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, HostListener, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
@@ -34,6 +34,9 @@ import { KEY_CODES } from '@others/enums';
 })
 export class EnterValueComponent {
   inputFocus: boolean = false;
+
+  // Reference to the input element
+  @ViewChild('valueInput') valueInput: ElementRef<HTMLInputElement>;
 
   constructor(
     private dialogRef: MatDialogRef<EnterValueComponent>,
@@ -97,11 +100,19 @@ export class EnterValueComponent {
     if (event.keyCode === KEY_CODES.ENTER && event.ctrlKey) {
       event.preventDefault();
       event.stopPropagation();
-      
       const value = this.rForm.value;
+      // If the value is valid, submit as usual
       if (value && value.value && value.value.length > 0) {
         this.submit(value);
         this.cdr.detectChanges(); // Ensure changes are detected
+      } else {
+        // If the button is disabled, focus the input and mark as touched for error
+        // Focus the input element if available
+        this.valueInput?.nativeElement.focus(); // Safe focus
+        // Mark the control as touched to show validation error (safe navigation)
+        this.rForm.get('value')?.markAsTouched();
+        // Optionally, trigger change detection
+        this.cdr.detectChanges();
       }
     }
   }

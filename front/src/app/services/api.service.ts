@@ -398,6 +398,7 @@ export class ApiService {
                       title: 'translate:you_sure.budget_exceeded_title',
                       description: 'translate:you_sure.budget_exceeded_desc',
                     } as AreYouSureData,
+                    autoFocus: true,
                   })
                   .afterClosed();
                 break;
@@ -409,6 +410,7 @@ export class ApiService {
                       title: 'translate:you_sure.budget_ahead_title',
                       description: 'translate:you_sure.budget_ahead_desc',
                     } as AreYouSureData,
+                    autoFocus: true,
                   })
                   .afterClosed();
                 break;
