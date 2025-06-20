@@ -590,6 +590,7 @@
         </mat-expansion-panel-header>
         <ng-template matExpansionPanelContent>
           <app-files-management
+            #filesManagement
             *ngIf="department"
             [department]="department"
             [isExpanded]="true"
