@@ -690,7 +690,9 @@ export class EditFeature implements OnInit, OnDestroy {
 
   parseSchedule(expression) {
     // ignore if schedule is disabled
-    if (!this.featureForm.value.run_now) return;
+    if (!this.featureForm.value.run_now) {
+      return;
+    }
 
     try {
       const cronExpression = Object.values(expression).join(' ');
@@ -722,12 +724,35 @@ export class EditFeature implements OnInit, OnDestroy {
           second: '2-digit'
         }));
       }
+      // Trigger change detection to update UI immediately for success case
+      this.cdr.detectChanges();
+
+      // Add backend validation to catch mismatches
+      this._api.validateCron(cronExpression).subscribe({
+        next: (response) => {
+          if (response.success && !response.valid) {
+            // Frontend parsing succeeded but backend validation failed
+            this.parseError = {
+              error: true,
+              msg: `Backend Validation Error: This cron pattern (${cronExpression}) will be rejected when saving. Please use a valid pattern.`,
+            };
+            // Trigger change detection to update UI immediately
+            this.cdr.detectChanges();
+          }
+        },
+        error: (error) => {
+          // Don't show error to user for backend validation failures
+        }
+      });
+
     } catch (error) {
       this.nextRuns = [];
       this.parseError = {
         error: true,
         msg: error.message,
       };
+      // Trigger change detection to update UI immediately for frontend error
+      this.cdr.detectChanges();
     }
   }
 
@@ -1236,7 +1261,6 @@ export class EditFeature implements OnInit, OnDestroy {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
-
     // Initialize department if there's already a value in the form
     if (this.featureForm.get('department_name').value) {
       this.allDepartments$.subscribe(data => {

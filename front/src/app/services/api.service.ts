@@ -576,6 +576,17 @@ export class ApiService {
     });
   }
 
+  /**
+   * Validate cron expression using backend CronSlices library
+   * @param cronExpression The cron expression to validate  
+   * @returns Observable with validation result
+   */
+  validateCron(cronExpression: string) {
+    return this._http.post<{success: boolean, valid: boolean, cron_expression: string, error?: string}>(`${this.base}validateCron/`, {
+      cron_expression: cronExpression,
+    });
+  }
+
   getLyridBrowsers() {
     return this._http.get<BrowserstackBrowsersResponse>(
       `${this.base}browsers/lyrid`

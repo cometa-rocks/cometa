@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, HostListener, ChangeDetectorRef } from '@angular/core';
 import {
   MatLegacyDialogRef as MatDialogRef,
   MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA,
@@ -195,7 +195,8 @@ export class EditSchedule {
     private _store: Store,
     private _fb: UntypedFormBuilder,
     private log: LogService,
-    private inputFocusService: InputFocusService
+    private inputFocusService: InputFocusService,
+    private cdr: ChangeDetectorRef
   ) {
     this.log.msg('1', 'Edit Schedule Constuctor', 'edit-schedule');
 
@@ -214,19 +215,12 @@ export class EditSchedule {
     this.schedule = this._fb.group({});
     // Iterate each cron field and add control in form
     for (const field of this.fields) {
-      // Use different validation patterns for different fields
-      let pattern = '^[0-9,-/*]+$'; // Default pattern for most fields
-      if (field === 'dayWeek') {
-        // Allow letters for day names (SUN, MON, TUE, etc.) in addition to numbers
-        pattern = '^[0-9A-Za-z,-/*]+$';
-      }
-      
       const control = this._fb.control(
         '',
         Validators.compose([
           Validators.required,
           Validators.minLength(1),
-          Validators.pattern(pattern),
+          this.cronValidator.bind(this),
         ])
       );
       this.schedule.addControl(field, control);
@@ -288,13 +282,65 @@ export class EditSchedule {
     });
   }
 
+  cronValidator(control: any) {
+    if (!control.value) {
+      return null;
+    }
+    
+    // Build a test cron expression with default values for other fields
+    const testValues = {
+      minute: '0',
+      hour: '0', 
+      day: '*',
+      month: '*',
+      dayWeek: '*'
+    };
+    
+    // Get the current form values and override with the control being validated
+    const currentValues = this.schedule?.getRawValue() || {};
+    const fieldName = Object.keys(this.schedule?.controls || {}).find(
+      key => this.schedule.get(key) === control
+    );
+    
+    if (fieldName) {
+      testValues[fieldName] = control.value;
+      // Use current form values for other fields if available
+      Object.keys(testValues).forEach(key => {
+        if (currentValues[key] && key !== fieldName) {
+          testValues[key] = currentValues[key];
+        }
+      });
+    }
+    
+    try {
+      const cronExpression = Object.values(testValues).join(' ');
+      parseExpression(cronExpression);
+      return null; // Valid
+    } catch (error) {
+      return { cronInvalid: true };
+    }
+  }
+
+  getFormErrors() {
+    const errors = {};
+    Object.keys(this.schedule.controls).forEach(key => {
+      const control = this.schedule.get(key);
+      if (control && control.errors) {
+        errors[key] = control.errors;
+      }
+    });
+    return errors;
+  }
+
   getHelp() {
     this._dialog.open(ScheduleHelp, { panelClass: 'help-schedule-panel' });
   }
 
   parseSchedule(expression) {
     // ignore if schedule is disabled
-    if (!this.schedule.enabled) return;
+    if (!this.enableSchedule.getValue()) {
+      return;
+    }
 
     try {
       const cronExpression = Object.values(expression).join(' ');
@@ -325,6 +371,27 @@ export class EditSchedule {
           second: '2-digit'
         }));
       }
+
+      // Add backend validation to catch mismatches
+      this._api.validateCron(cronExpression).subscribe({
+        next: (response) => {
+          if (response.success && !response.valid) {
+            // Frontend parsing succeeded but backend validation failed
+            this.parseError = {
+              error: true,
+              msg: `Backend Validation Error: This cron pattern (${cronExpression}) will be rejected when saving. Please use a valid pattern.`,
+            };
+            // Clear next runs since the expression is invalid
+            this.nextRuns = [];
+            // Trigger change detection to update UI immediately
+            this.cdr.detectChanges();
+          }
+        },
+        error: (error) => {
+          // Don't show error to user for backend validation failures
+        }
+      });
+
     } catch (error) {
       this.nextRuns = [];
       this.parseError = {
