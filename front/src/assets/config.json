@@ -243,6 +243,10 @@
         {
           "title": "Enhanced files management with a new menu #6082",
           "description": "Enhanced files management with a new menu to manage files and data driven files."
+        },
+        {
+          "title": "Fixed error validation for scheduling features #6286",
+          "description": "Cron expression validation error fixed in the scheduling feature"
         }
       ]
     },
