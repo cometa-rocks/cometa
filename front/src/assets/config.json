@@ -1,5 +1,5 @@
 {
-  "version": "3.0.60",
+  "version": "3.0.61",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,8 +237,18 @@
   ],
   "changelog": [
     {
+      "version": "3.0.61",
+      "date": "2025-06-19",
+      "features": [
+        {
+          "title": "Auto detect user timezone #6460",
+          "description": "Auto detect user timezone and set it as default timezone for browser container"
+        }
+      ]
+    },
+    {
       "version": "3.0.60",
-      "date": "2025-06-17",
+      "date": "2025-06-18",
       "features": [
         {
           "title": "Enhanced files management with a new menu #6082",
