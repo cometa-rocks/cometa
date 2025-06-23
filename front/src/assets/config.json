@@ -251,12 +251,8 @@
       "date": "2025-06-18",
       "features": [
         {
-          "title": "Enhanced files management with a new menu #6082",
-          "description": "Enhanced files management with a new menu to manage files and data driven files."
-        },
-        {
-          "title": "Fixed error validation for scheduling features #6286",
-          "description": "Cron expression validation error fixed in the scheduling feature"
+          "title": "Fix mat-expansion-panel expansion state - #6442",
+          "description": "Fixed the expansion state of the mat-expansion-panel in the Edit Feature dialog, add telegram in user settings"
         }
       ]
     },
@@ -271,6 +267,14 @@
         {
           "title": "Small improvements made to step editor",
           "description": "Step list now can be closed with 'ESC' key & fixed bug when filtering actions in step editor."
+        },
+        {
+          "title": "Enhanced files management with a new menu #6082",
+          "description": "Enhanced files management with a new menu to manage files and data driven files."
+        },
+        {
+          "title": "Fixed error validation for scheduling features #6286",
+          "description": "Cron expression validation error fixed in the scheduling feature"
         }
       ]
     },
