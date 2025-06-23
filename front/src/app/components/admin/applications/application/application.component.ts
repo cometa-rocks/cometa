@@ -73,6 +73,7 @@ export class ApplicationComponent {
           title: 'translate:you_sure.delete_item_title',
           description: 'translate:you_sure.delete_item_desc',
         } as AreYouSureData,
+        autoFocus: true,
       })
       .afterClosed()
       .subscribe(answer => {
