@@ -181,7 +181,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     @Host() public readonly _editFeature: EditFeature,
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
-    private logger: LogService,
+    private log: LogService,
     private _sharedActions: SharedActionsService
   ) {
     super();
@@ -351,6 +351,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       }
     });
     this._cdr.detectChanges();
+    setTimeout(() => this.applyResizeClasses(), 0);
   }
 
   getSteps(): FeatureStep[] {
@@ -430,6 +431,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (this.feature.feature_id === 0) {
       this.insertDefaultStep();
     }
+
+    setTimeout(() => this.applyResizeClasses(), 0);
   }
 
   /**
@@ -1366,6 +1369,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       }
     };
     reader.readAsText(file);
+    setTimeout(() => this.applyResizeClasses(), 0);
   }
 
   importClipboard() {
@@ -1636,6 +1640,65 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
     // We don't unmark screenshot if compare is unchecked, only activate it when marking compare
     this._cdr.detectChanges();
+  }
+
+  // Returns true if the step_content at the given index contains a newline (i.e., more than one line)
+  shouldShowResizeByContent(index: number): boolean {
+    const value = this.stepsForm.at(index)?.get('step_content')?.value || '';
+    return value.includes('\n');
+  }
+
+  @ViewChildren('stepTextarea') stepTextareas!: QueryList<ElementRef<HTMLTextAreaElement>>;
+
+  ngAfterViewInit() {
+    this.log.msg('1', `[ngAfterViewInit] stepTextareas: ${this.stepTextareas?.length}`, 'step-editor');
+    this.stepTextareas.changes.subscribe(() => {
+      this.log.msg('1', '[stepTextareas.changes] Detected change', 'step-editor');
+      setTimeout(() => this.applyResizeClasses(), 0);
+    });
+    setTimeout(() => this.applyResizeClasses(), 0);
+  }
+
+  private lastStepsCount = 0;
+
+  ngAfterViewChecked() {
+    if (this.stepTextareas && this.stepTextareas.length !== this.lastStepsCount) {
+      this.log.msg('1', `[ngAfterViewChecked] stepTextareas changed: ${this.stepTextareas.length}`, 'step-editor');
+      this.lastStepsCount = this.stepTextareas.length;
+      setTimeout(() => this.applyResizeClasses(), 0);
+    }
+  }
+
+  applyResizeClasses() {
+    if (this.stepTextareas && this.stepsForm) {
+      this.log.msg('1', `[Resize] Number of textareas: ${this.stepTextareas.length}`, 'step-editor');
+      this.stepTextareas.forEach((textareaRef, idx) => {
+        const textarea = textareaRef.nativeElement;
+        const value = this.stepsForm.at(idx)?.get('step_content')?.value || '';
+        this.log.msg('1', `[Resize] Textarea #${idx} value: ${value}`, 'step-editor');
+        // Adjust height automatically based on content
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+        this.log.msg('1', `[Resize] Textarea #${idx} new height: ${textarea.style.height}`, 'step-editor');
+        // Apply classes based on content or if the text wraps
+        if (value.includes('\n') || textarea.scrollHeight > textarea.clientHeight) {
+          textarea.classList.remove('no-resize');
+          textarea.classList.add('resize-active');
+        } else {
+          textarea.classList.add('no-resize');
+          textarea.classList.remove('resize-active');
+        }
+      });
+    } else {
+      this.log.msg('1', '[Resize] No textareas or stepsForm found', 'step-editor');
+    }
+  }
+
+
+  autoGrowTextarea(event: Event) {
+    const textarea = event.target as HTMLTextAreaElement;
+    textarea.style.height = 'auto'; // Reset height
+    textarea.style.height = textarea.scrollHeight + 'px'; // Set to scrollHeight
   }
 
 }
