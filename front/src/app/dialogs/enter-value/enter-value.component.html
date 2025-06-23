@@ -9,6 +9,7 @@
   <mat-dialog-content>
     <mat-form-field appearance="outline" class="enter-value">
       <mat-label>{{ data.word }}</mat-label>
+      <!-- Reference for ViewChild in TS -->
       <input
         formControlName="value"
         disableAutocomplete
@@ -17,15 +18,18 @@
         matInput
         placeholder="Value" 
         (focus)="onInputFocus()"
-        (blur)="onInputBlur()"/>
+        (blur)="onInputBlur()"
+        #valueInput
+      />
     </mat-form-field>
   </mat-dialog-content>
   <mat-dialog-actions>
-    <button mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
+    <button type="button" mat-stroked-button color="warn" mat-dialog-close>Cancel</button>
     <button
+      type="submit"
       mat-stroked-button
       color="primary"
-      [disabled]="rForm.value.value.length === 0">
+      [disabled]="!rForm.value.value || rForm.value.value.length === 0">
       OK
     </button>
   </mat-dialog-actions>

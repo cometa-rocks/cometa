@@ -388,6 +388,7 @@ export class MobileListComponent implements OnInit, OnDestroy {
           title: 'translate:you_sure.mobile_title',
           description: 'translate:you_sure.mobile_description',
         } as AreYouSureData,
+        autoFocus: true,
       })
       .afterClosed()
       .subscribe((exit: boolean) => {
