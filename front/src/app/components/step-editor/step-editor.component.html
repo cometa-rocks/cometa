@@ -187,8 +187,9 @@
                 {{ getCollapsedApiCall(i) | truncateApiBody }}
             </div>
             <textarea
+              #stepTextarea
               *ngIf="!isApiCallStep(i) || isEditingApiCall(i)"
-              (input)="onStepChange($event, i)"
+              (input)="onStepChange($event, i); autoGrowTextarea($event)"
               (blur)="fixStep($event, i)"
               (click)="
                 stepVariableData['currentStepIndex'] === i
@@ -207,7 +208,8 @@
               formControlName="step_content"
               [matAutocomplete]="stepHelp"
               placeholder="Step Code"
-              (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
+              (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)"
+              [ngClass]="{'no-resize': !shouldShowResizeByContent(i), 'resize-active': shouldShowResizeByContent(i)}">
             </textarea>
             <mat-list
               class="var_name_autoComplete"

@@ -4,7 +4,7 @@
 :host {
   display: block;
   height: 100%;
-  overflow: hidden;
+  // overflow: hidden;
 }
 
 :host::ng-deep .mat-progress-spinner {
@@ -284,6 +284,14 @@
       flex-direction: column;
       min-height: 25px;
       width: 100%;
+    }
+    .code.no-resize {
+      resize: none !important;
+    }
+    // When resize is enabled, increase min-height to 4x for better usability
+    .code.resize-active {
+      height: 100px;
+      resize: vertical;
     }
   }
   
