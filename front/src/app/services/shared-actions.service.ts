@@ -450,6 +450,7 @@ export class SharedActionsService {
           title: 'translate:you_sure.delete_item_title',
           description: 'translate:you_sure.delete_item_desc',
         } as AreYouSureData,
+        autoFocus: true,
       })
       .afterClosed()
       .pipe(
@@ -469,6 +470,7 @@ export class SharedActionsService {
           title: 'translate:you_sure.delete_item_title',
           description: 'translate:you_sure.delete_item_desc',
         } as AreYouSureData,
+        autoFocus: true,
       })
       .afterClosed()
       .pipe(

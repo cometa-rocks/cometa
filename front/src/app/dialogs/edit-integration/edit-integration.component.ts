@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Inject,
   OnInit,
+  HostListener
 } from '@angular/core';
 import {
   UntypedFormBuilder,
@@ -146,6 +147,14 @@ export class EditIntegrationDialog implements OnInit {
 
   onInputBlur() {
     this.inputFocusService.setInputFocus(false);
+  }
+
+  // Listen for Ctrl+Enter and trigger createOrEdit if form is valid
+  @HostListener('document:keydown', ['$event'])
+  handleCtrlEnter(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key === 'Enter' && this.intForm?.valid) {
+      this.createOrEdit(this.intForm.value);
+    }
   }
 }
 
