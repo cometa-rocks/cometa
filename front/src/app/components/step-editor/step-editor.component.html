@@ -208,8 +208,7 @@
               formControlName="step_content"
               [matAutocomplete]="stepHelp"
               placeholder="Step Code"
-              (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)"
-              [ngClass]="{'no-resize': !shouldShowResizeByContent(i), 'resize-active': shouldShowResizeByContent(i)}">
+              (focus)="sendTextareaFocusToParent(true, i); onTextareaFocus($event, i)">
             </textarea>
             <mat-list
               class="var_name_autoComplete"
