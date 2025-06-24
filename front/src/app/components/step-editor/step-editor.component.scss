@@ -271,10 +271,7 @@
       display: flex;
       $lineHeight: 25px;
       flex: 1;
-      margin-bottom: 15px;
       line-height: $lineHeight;
-      // max-height: $lineHeight * 5;
-      height: 25px;
       box-sizing: border-box;
       border: 0;
       outline: 0;
@@ -282,8 +279,27 @@
       font-size: 1rem;
       font-family: 'Segoe UI', 'CorpoS';
       flex-direction: column;
-      min-height: 25px;
       width: 100%;
+      min-height: 25px;
+
+      // Default state: fixed height, no resize handle
+      height: $lineHeight;
+      resize: none;
+      overflow: hidden;
+
+      // Active state: when content wraps or has newlines
+      &.allow-resize {
+        height: 100px; // 4 times the min-height
+        resize: vertical;
+        overflow: visible;
+      }
+    }
+    .code.multi-line {
+      resize: none !important;
+    }
+    // When resize is enabled, increase min-height to 4x for better usability
+    .code.multi-line-active {
+      height: 100px;
     }
   }
   
