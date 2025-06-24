@@ -1,5 +1,5 @@
 {
-  "version": "3.0.62",
+  "version": "3.0.63",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.63",
+      "date": "2025-06-24",
+      "features": [
+        {
+          "title": "Resizable steps with multiline support #6461",
+          "description": "Made steps with more than one line resizable. If a step contains multiple lines, its default height is now set to 4x the normal height."
+        }
+      ]
+    },    
     {
       "version": "3.0.62",
       "date": "2025-06-20",
