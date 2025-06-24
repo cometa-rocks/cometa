@@ -68,8 +68,8 @@ class AdminStep_result(admin.ModelAdmin):
 
 class AdminFeature(admin.ModelAdmin):
     model = Feature
-    search_fields = ['feature_name', 'app_name', 'environment_name', 'department_name', 'description', 'browsers']
-    list_display = ('feature_name', 'app_name', 'environment_name', 'steps', 'department_name', 'depends_on_others', 'cloud')
+    search_fields = ['feature_id','feature_name', 'app_name', 'environment_name', 'department_name', 'description', 'browsers']
+    list_display = ('feature_id','feature_name', 'app_name', 'environment_name', 'steps', 'department_name', 'depends_on_others', 'cloud')
     list_filter = ('depends_on_others','cloud')
     readonly_fields = ('browsers_prettified', )
     exclude = ('browsers', )

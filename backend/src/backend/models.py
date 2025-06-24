@@ -821,7 +821,10 @@ class Feature(models.Model):
     def save(self, *args, **kwargs):
         new_feature = True
         self.slug = slugify(self.feature_name)
-        
+        # Make sure that emails should not contain the spaces, If feature_id is None, it means it is a new feature
+        self.email_address = [email.strip() for email in self.email_address if email.strip()]
+        self.email_cc_address = [email.strip() for email in self.email_cc_address if email.strip()]
+        self.email_bcc_address = [email.strip() for email in self.email_bcc_address if email.strip()]
         # create backup only if feature is being modified
         if self.feature_id is not None:
             new_feature = False
