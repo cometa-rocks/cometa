@@ -19,9 +19,9 @@
 
       <!-- INFORMATION -->
       <mat-expansion-panel
-        [expanded]="data.mode == 'new' || (!config$.toggles.hideInformation && features[0].panels[0].expanded)"
-        (opened)="onExpansionChange(featureId, '1', true);"
-        (closed)="onExpansionChange(featureId, '1', false);">
+        [expanded]="data.mode == 'new' ? getPanelExpansionState('1', true) : getPanelExpansionState('1', false)"
+        (opened)="onExpansionChange('1', true);"
+        (closed)="onExpansionChange('1', false);">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Information</span>
@@ -220,10 +220,9 @@
         *ngIf="
           featureForm.value.send_notification && featureForm.value.send_mail && !featureForm.value.depends_on_others
         "
-        [expanded]="!config$.toggles.hideSendMail && features[0].panels[1].expanded"
-        (opened)="onExpansionChange(featureId, '2', true); "
-        (closed)="onExpansionChange(featureId, '2', false); "
-        >
+        [expanded]="getPanelExpansionState('2')"
+        (opened)="onExpansionChange('2', true); "
+        (closed)="onExpansionChange('2', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Email template</span>
@@ -393,15 +392,14 @@
         </ng-template>
       </mat-expansion-panel>
 
-      <!-- TELEGRAM NOTIFICATION CONFIGURATION -->
+      <!-- TELEGRAM -->
       <mat-expansion-panel
         *ngIf="
           featureForm.value.send_notification && featureForm.value.send_telegram_notification && !featureForm.value.depends_on_others
         "
-        [expanded]="!config$.toggles.hideTelegramConfig && features[0].panels[2].expanded"
-        (opened)="onExpansionChange(featureId, '3', true); "
-        (closed)="onExpansionChange(featureId, '3', false); "
-        >
+        [expanded]="getPanelExpansionState('3')"
+        (opened)="onExpansionChange('3', true); "
+        (closed)="onExpansionChange('3', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Telegram notification</span>
@@ -576,12 +574,12 @@
         </ng-template>
       </mat-expansion-panel>
 
-      <!-- FILE UPLOAD -->
+      <!-- UPLOADED FILES -->
       <mat-expansion-panel
         #uploadPanel
-        [expanded]="!config$.toggles.hideUploadedFiles && features[0].panels[3].expanded"
-        (opened)="onExpansionChange(featureId, '4', true); "
-        (closed)="onExpansionChange(featureId, '4', false); ">
+        [expanded]="getPanelExpansionState('4')"
+        (opened)="onExpansionChange('4', true); "
+        (closed)="onExpansionChange('4', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Files</span>
@@ -611,9 +609,9 @@
       <!-- BROWSERS -->
       <mat-expansion-panel
         *ngIf="!featureForm.value.depends_on_others"
-        [expanded]="data.mode == 'new' || !config$.toggles.hideBrowsers && features[0].panels[4].expanded"
-        (opened)="onExpansionChange(featureId, '5', true); "
-        (closed)="onExpansionChange(featureId, '5', false); ">
+        [expanded]="data.mode == 'new' ? getPanelExpansionState('5', true) : getPanelExpansionState('5', false)"
+        (opened)="onExpansionChange('5', true); "
+        (closed)="onExpansionChange('5', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Browser selection</span>
@@ -646,9 +644,9 @@
 
       <!-- STEPS -->
       <mat-expansion-panel 
-        [expanded]="data.mode == 'new' || !config$.toggles.hideSteps && features[0].panels[5].expanded"
-        (opened)="onExpansionChange(featureId, '6', true); "
-        (closed)="onExpansionChange(featureId, '6', false); ">
+        [expanded]="data.mode == 'new' ? getPanelExpansionState('6', true) : getPanelExpansionState('6', false)"
+        (opened)="onExpansionChange('6', true); "
+        (closed)="onExpansionChange('6', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Steps definition</span>
@@ -682,9 +680,9 @@
 
       <!-- SCHEDULE -->
       <mat-expansion-panel 
-        [expanded]="!config$.toggles.hideSchedule && features[0].panels[6].expanded"
-        (opened)="onExpansionChange(featureId, '7', true); "
-        (closed)="onExpansionChange(featureId, '7', false); ">
+        [expanded]="getPanelExpansionState('7')"
+        (opened)="onExpansionChange('7', true); "
+        (closed)="onExpansionChange('7', false); ">
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Schedule</span>

@@ -724,7 +724,9 @@ class PDFAndEmailManager:
         try:
             email.send()
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Email sent. Additional info: ")
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to (next line): ")
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to mail: "+ str(self.feature.email_address))
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to CC mail: "+ str(self.feature.email_cc_address))
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to BCC mail: "+ str(self.feature.email_bcc_address))
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Subject: "+ str(self.subject))
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent by email account: "+ str(settings.EMAIL_HOST_USER))
             # return HttpResponse("200 OK")
