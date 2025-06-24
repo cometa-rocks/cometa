@@ -1,5 +1,5 @@
 {
-  "version": "3.0.63",
+  "version": "3.0.64",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,6 +237,16 @@
   ],
   "changelog": [
     {
+      "version": "3.0.64",
+      "date": "2025-06-24",
+      "features": [
+        {
+          "title": "Refactored user component panel state handling #6491",
+          "description": "Removed try-catch and simplified localStorage sync for panel visibility."
+        }
+      ]
+    },
+    {
       "version": "3.0.63",
       "date": "2025-06-24",
       "features": [
@@ -245,7 +255,7 @@
           "description": "Made steps with more than one line resizable. If a step contains multiple lines, its default height is now set to 4x the normal height."
         }
       ]
-    },    
+    },   
     {
       "version": "3.0.62",
       "date": "2025-06-20",
