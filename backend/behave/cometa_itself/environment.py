@@ -1131,6 +1131,7 @@ def after_step(context, step):
         step_error = context.step_data["custom_error"]
     elif hasattr(context, "step_error"):
         step_error = context.step_error
+        logger.debug(f"Step error: {step_error}")
     # send websocket to front to let front know about the step
 
     logger.debug("Running Mobiles")
