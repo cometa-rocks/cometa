@@ -181,7 +181,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     @Host() public readonly _editFeature: EditFeature,
     private renderer: Renderer2,
     private inputFocusService: InputFocusService,
-    private logger: LogService,
+    private log: LogService,
     private _sharedActions: SharedActionsService
   ) {
     super();
@@ -351,6 +351,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       }
     });
     this._cdr.detectChanges();
+
   }
 
   getSteps(): FeatureStep[] {
@@ -430,6 +431,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (this.feature.feature_id === 0) {
       this.insertDefaultStep();
     }
+
   }
 
   /**
@@ -605,6 +607,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     this.stepVariableData = {};
 
     const textarea = event.target as HTMLTextAreaElement;
+    this.updateTextareaResize(index); // Update resize state on input
     const textareaValue = textarea.value.trim();
 
     // Filter actions based on input
@@ -945,6 +948,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       this.stepVariableData.currentStepIndex = null;
       this._cdr.detectChanges();
     }
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.updateAllTextareasResize();
   }
 
   iconPosition = { top: 0, left: 0 };
@@ -1636,6 +1644,55 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     }
     // We don't unmark screenshot if compare is unchecked, only activate it when marking compare
     this._cdr.detectChanges();
+  }
+
+  @ViewChildren('stepTextarea') stepTextareas!: QueryList<ElementRef<HTMLTextAreaElement>>;
+
+  ngAfterViewInit() {
+    // When the view is ready, update all textareas to set their initial resize state.
+    this.updateAllTextareasResize();
+
+    // Subscribe to changes in the list of textareas (e.g., when steps are added/removed)
+    // and update their state accordingly.
+    this.subs.sink = this.stepTextareas.changes.subscribe(() => {
+        this.updateAllTextareasResize();
+    });
+  }
+
+  /**
+   * Iterates through all step textareas and updates their resize state.
+   * Uses a timeout to ensure the DOM is stable before measuring.
+   */
+  private updateAllTextareasResize(): void {
+    setTimeout(() => {
+      this.stepsForm.controls.forEach((_, index) => {
+        this.updateTextareaResize(index);
+      });
+    }, 0);
+  }
+
+  /**
+   * Checks a specific textarea's content and adds or removes the 'allow-resize'
+   * class to enable or disable the vertical resize handle.
+   * @param index The index of the step to update.
+   */
+  private updateTextareaResize(index: number): void {
+    const textareaRef = this.stepTextareas?.toArray()[index];
+    if (!textareaRef) return;
+
+    const textarea = textareaRef.nativeElement;
+    const value = this.stepsForm.at(index)?.get('step_content')?.value || '';
+    
+    // To get an accurate measurement, we first reset the state.
+    this.renderer.removeClass(textarea, 'allow-resize');
+
+    // Enable resize if there's an explicit newline or if the content visually wraps.
+    const hasExplicitNewline = value.includes('\n');
+    const isVisuallyWrapped = textarea.scrollHeight > textarea.clientHeight;
+
+    if (hasExplicitNewline || isVisuallyWrapped) {
+      this.renderer.addClass(textarea, 'allow-resize');
+    }
   }
 
 }
