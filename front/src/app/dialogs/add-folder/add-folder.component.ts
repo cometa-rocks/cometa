@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
@@ -28,6 +28,7 @@ import { NgIf, NgFor } from '@angular/common';
 import { InputFocusService } from '@services/inputFocus.service';
 import { Subject } from 'rxjs';
 import { MatLegacyTooltipModule } from '@angular/material/legacy-tooltip';
+import { KEY_CODES } from '@others/enums';
 
 @Component({
   selector: 'add-folder',
@@ -183,5 +184,15 @@ export class AddFolderComponent {
 
   onInputBlur() {
     this.inputFocusService.setInputFocus(false);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeyDown(event: KeyboardEvent) {
+    if (event.keyCode === KEY_CODES.ENTER && event.ctrlKey) {
+      event.preventDefault();
+      if (!this.isSubmitting && this.rForm.valid) {
+        this.submit(this.rForm.value);
+      }
+    }
   }
 }

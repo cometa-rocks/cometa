@@ -1,5 +1,5 @@
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { Component, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, HostListener } from '@angular/core';
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
@@ -133,5 +133,13 @@ export class InviteUserDialog implements OnInit {
 
   onInputBlur() {
     this.inputFocusService.setInputFocus(false);
+  }
+
+  // Listen for Ctrl+Enter and trigger sendInvites if form is valid
+  @HostListener('document:keydown', ['$event'])
+  handleCtrlEnter(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key === 'Enter' && this.inviteForm.valid) {
+      this.sendInvites(this.inviteForm.value);
+    }
   }
 }
