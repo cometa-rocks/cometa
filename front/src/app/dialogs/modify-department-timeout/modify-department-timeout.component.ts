@@ -1,4 +1,4 @@
-import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import {
   UntypedFormBuilder,
   UntypedFormGroup,
@@ -57,6 +57,16 @@ export class ModifyDepartmentTimeoutComponent {
         ]),
       ],
     });
+  }
+
+  // Listen for Ctrl+Enter and trigger applyGlobalTimeout
+  @HostListener('document:keydown', ['$event'])
+  handleCtrlEnter(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key === 'Enter') {
+      // Create a synthetic event to pass to applyGlobalTimeout
+      const fakeEvent = { preventDefault: () => {} } as Event;
+      this.applyGlobalTimeout(fakeEvent);
+    }
   }
 
   applyGlobalTimeout(ev: Event) {

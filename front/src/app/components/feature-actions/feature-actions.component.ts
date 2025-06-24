@@ -140,10 +140,12 @@ export class FeatureActionsComponent implements OnInit {
     // - E: Edit test
     // - S: Schedule test
     // - N: Toggle notifications
-    // Only if no dialog is opened
+    // Only if no dialog is opened and no modifier keys are pressed
     const isAnyDialogOpened =
       document.querySelectorAll('.mat-dialog-container').length > 0;
-    if (!isAnyDialogOpened && !this._sharedActions.dialogActive) {
+    const hasModifierKeys = event.ctrlKey || event.altKey || event.metaKey || event.shiftKey;
+    
+    if (!isAnyDialogOpened && !this._sharedActions.dialogActive && !hasModifierKeys) {
       let hotkeyFound = true;
       switch (event.keyCode) {
         case KEY_CODES.SPACE:

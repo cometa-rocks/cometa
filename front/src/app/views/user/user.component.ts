@@ -160,6 +160,9 @@ export class UserComponent implements OnInit {
     //   this.inputFocus = isFocused;
     // });
 
+    // Synchronize localStorage panel states with user settings
+    this.syncLocalStorageWithUserSettings();
+
     this.details$ = this._api.getUserDetails();
     this.invoices$ = this._api.getInvoices();
   }
@@ -237,11 +240,106 @@ export class UserComponent implements OnInit {
     let toggleSetting = {};
     toggleSetting[prop] = event.checked;
 
+    // Map user setting keys to panel IDs for localStorage sync
+    const panelIdMap = {
+      'hideInformation': '1',
+      'hideSendMail': '2', 
+      'hideTelegramConfig': '3',
+      'hideUploadedFiles': '4',
+      'hideBrowsers': '5',
+      'hideSteps': '6',
+      'hideSchedule': '7'
+    };
+
+    // Update localStorage panel states to sync with features
+    const panelId = panelIdMap[prop];
+    if (panelId) {
+      try {
+        // Get existing panel states
+        let panelStates = {};
+        const savedStates = localStorage.getItem('co_mat_expansion_states');
+        
+        if (savedStates) {
+          try {
+            panelStates = JSON.parse(savedStates);
+            if (typeof panelStates !== 'object' || panelStates === null) {
+              panelStates = {};
+            }
+          } catch (e) {
+            panelStates = {};
+          }
+        }
+
+        // Update panel state based on toggle
+        // If toggle is checked (hide=true), panel should be closed (expanded=false)
+        // If toggle is unchecked (hide=false), panel should be open (expanded=true)
+        panelStates[panelId] = !event.checked;
+        
+        // Save back to localStorage
+        localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
+        
+      } catch (error) {
+        console.error('Error updating panel states:', error);
+      }
+    }
+
     // save toggle settings in user settings and send it to backend to make it persistent
+    // This will affect all features since they now prioritize user.settings over config$.toggles
     return this._store.dispatch([
       new User.SetSetting(toggleSetting),
       new Configuration.ToggleCollapsible(prop, event.checked),
     ]);
+  }
+
+  /**
+   * Synchronize localStorage panel states with user settings on component load
+   * This ensures that if localStorage has panel states, they are reflected in user settings
+   */
+  syncLocalStorageWithUserSettings() {
+    try {
+      const savedStates = localStorage.getItem('co_mat_expansion_states');
+      if (!savedStates) return;
+
+      const panelStates = JSON.parse(savedStates);
+      if (typeof panelStates !== 'object' || panelStates === null) return;
+
+      // Map panel IDs to user setting keys
+      const panelToSettingMap = {
+        '1': 'hideInformation',
+        '2': 'hideSendMail',
+        '3': 'hideTelegramConfig',
+        '4': 'hideUploadedFiles',
+        '5': 'hideBrowsers',
+        '6': 'hideSteps',
+        '7': 'hideSchedule'
+      };
+
+      // Get current user settings
+      const currentSettings = this._store.selectSnapshot(UserState.RetrieveSettings);
+      let settingsToUpdate = {};
+
+      // Check each panel state and update user settings if needed
+      Object.keys(panelToSettingMap).forEach(panelId => {
+        const settingKey = panelToSettingMap[panelId];
+        const panelExpanded = panelStates[panelId];
+        
+        // If panel is expanded (true), setting should be false (not hidden)
+        // If panel is collapsed (false), setting should be true (hidden)
+        const shouldHide = !panelExpanded;
+        
+        // Only update if the setting is different from what it should be
+        if (currentSettings[settingKey] !== shouldHide) {
+          settingsToUpdate[settingKey] = shouldHide;
+        }
+      });
+
+      // Update user settings if there are changes
+      if (Object.keys(settingsToUpdate).length > 0) {
+        this._store.dispatch(new User.SetSetting(settingsToUpdate));
+      }
+    } catch (error) {
+      console.error('Error synchronizing localStorage with user settings:', error);
+    }
   }
 
   preselectSave(prop: string, value: string) {
