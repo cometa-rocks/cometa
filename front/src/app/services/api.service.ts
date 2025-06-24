@@ -398,6 +398,7 @@ export class ApiService {
                       title: 'translate:you_sure.budget_exceeded_title',
                       description: 'translate:you_sure.budget_exceeded_desc',
                     } as AreYouSureData,
+                    autoFocus: true,
                   })
                   .afterClosed();
                 break;
@@ -409,6 +410,7 @@ export class ApiService {
                       title: 'translate:you_sure.budget_ahead_title',
                       description: 'translate:you_sure.budget_ahead_desc',
                     } as AreYouSureData,
+                    autoFocus: true,
                   })
                   .afterClosed();
                 break;
@@ -573,6 +575,17 @@ export class ApiService {
   updateSchedule(FeatureID: number, schedule: string) {
     return this._http.patch<Success>(`${this.base}schedule/${FeatureID}/`, {
       schedule: schedule,
+    });
+  }
+
+  /**
+   * Validate cron expression using backend CronSlices library
+   * @param cronExpression The cron expression to validate  
+   * @returns Observable with validation result
+   */
+  validateCron(cronExpression: string) {
+    return this._http.post<{success: boolean, valid: boolean, cron_expression: string, error?: string}>(`${this.base}validateCron/`, {
+      cron_expression: cronExpression,
     });
   }
 
@@ -789,11 +802,11 @@ export class ApiService {
   /**
    * Updates the data in a data-driven file
    * @param fileId The ID of the file to update
-   * @param data The updated data rows array
+   * @param dataOrRequest Either the updated data rows array (legacy) or an object with data and column_order
    * @param params Optional parameters, including sheet name for Excel files
    * @returns An observable with the response from the server
    */
-  updateDataDrivenFile(fileId: number, data: any[], params?: any) {
+  updateDataDrivenFile(fileId: number, dataOrRequest: any[] | {data: any[], column_order?: string[]}, params?: any) {
     // Create base params with skipInterceptor
     const apiParams = new InterceptorParams({
       skipInterceptor: true,
@@ -814,16 +827,26 @@ export class ApiService {
       });
     } else {
       // Merge all params if no sheet parameter
-    if (params) {
-      Object.keys(params).forEach(key => {
-        apiParams.set(key, params[key]);
-      });
+      if (params) {
+        Object.keys(params).forEach(key => {
+          apiParams.set(key, params[key]);
+        });
       }
+    }
+    
+    // Determine the request body format
+    let requestBody: any;
+    if (Array.isArray(dataOrRequest)) {
+      // Legacy format: just the data array
+      requestBody = { data: dataOrRequest };
+    } else {
+      // New format: object with data and optional column_order
+      requestBody = dataOrRequest;
     }
     
     return this._http.put<any>(
       url,
-      { data },
+      requestBody,
       {
         params: apiParams
       }

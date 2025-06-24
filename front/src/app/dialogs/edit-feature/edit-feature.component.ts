@@ -106,6 +106,7 @@ import { FilesManagementComponent } from '@components/files-management/files-man
 import { PageEvent } from '@angular/material/paginator';
 import { Departments } from '@store/actions/departments.actions';
 import { TelegramNotificationHelp } from './telegram-notification-help/telegram-notification-help.component';
+import { User } from '@store/actions/user.actions';
 
 
 @Component({
@@ -311,6 +312,9 @@ export class EditFeature implements OnInit, OnDestroy {
   @ViewChild(EditSchedule, { static: false })
   EditSch: EditSchedule;
 
+  @ViewChild(FilesManagementComponent, { static: false })
+  filesManagement: FilesManagementComponent;
+
   inputFocus: boolean = false;
 
   private inputFocusSubscription: Subscription;
@@ -318,6 +322,7 @@ export class EditFeature implements OnInit, OnDestroy {
   isExpanded: boolean = false;
   
   private notificationSubscription: Subscription;
+  private configSubscriptions: Subscription[] = [];
 
   // COTEMP -- Used to check the state data status
   @Select(FeaturesState.GetStateDAta) state$: Observable<
@@ -457,7 +462,10 @@ export class EditFeature implements OnInit, OnDestroy {
       environment_name: ['', Validators.required],
       feature_name: [
         '',
-        Validators.compose([Validators.required, noWhitespaceValidator]),
+        // Best way to angular 
+        [Validators.required, noWhitespaceValidator],
+        // Old validator
+        // Validators.compose([Validators.required, noWhitespaceValidator]),
       ],
       description: [''],
       schedule: [''],
@@ -570,81 +578,196 @@ export class EditFeature implements OnInit, OnDestroy {
     });
   }
 
-  // Save the state of the expansion panel
-  savePanelState(featureId: number, panelId: string, isExpanded: boolean) {
-    // This object stores the expansion state of panels for each feature
-    // Format: { "comment": "Panel expansion states per feature", "featureId": { "panelId": boolean } }
-    const panelStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{"comment": "Panel expansion states per feature"}');
-
-    if (!panelStates[featureId]) {
-      panelStates[featureId] = {};
-    }
-
-    // Save the state of the panel
-    panelStates[featureId][panelId] = isExpanded;
-    localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
-  }
-
-  // Load the state of the expansion panel
-
-
-  getPanelSettingKey(panelId: number): string {
-    const panelMap: { [key: number]: string } = {
-      1: 'hideInformation',
-      2: 'hideSendEmail',
-      3: 'hideUploadedFiles',
-      4: 'hideBrowsers',
-      5: 'hideSteps',
-      6: 'hideSchedule'
-    };
-  
-    return panelMap[panelId];
-  }
-
-  loadPanelStates() {
-    const savedStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
-  
-    const userSettingsMap = {
-      'hideBrowsers': this.user.settings.hideBrowsers,
-      'hideInformation': this.user.settings.hideInformation,
-      'hideSendMail': this.user.settings.hideSendMail,
-      'hideSteps': this.user.settings.hideSteps,
-      'hideSchedule': this.user.settings.hideSchedule,
-      'hideUploadedFiles': this.user.settings.hideUploadedFiles,
-    };
-  
-    this.features.forEach(feature => {
-      if (!feature.id) return;
-  
-      feature.panels.forEach(panel => {
-        //map panel.id to the appropriate setting key:
-        const settingKey = this.getPanelSettingKey(panel.id);
-        const userSetting = userSettingsMap[settingKey];
-        // If setting is explicitly true, force it closed
-        if (userSetting === true) {
-          panel.expanded = false;
-        } else {
-          // otherwise, use saved state or default to open
-          panel.expanded = savedStates[feature.id]?.[panel.id] ?? true;
+  // Save the state of the expansion panel - Now generic for all features
+  // This method saves panel states globally instead of per-feature, so all features
+  // will have the same panel expansion state
+  savePanelState(panelId: string, isExpanded: boolean) {
+    try {
+      // Get existing states or initialize with default structure
+      let panelStates = {};
+      const savedStates = localStorage.getItem('co_mat_expansion_states');
+      
+      if (savedStates) {
+        try {
+          panelStates = JSON.parse(savedStates);
+          // Ensure panelStates is an object
+          if (typeof panelStates !== 'object' || panelStates === null) {
+            panelStates = {};
+          }
+        } catch (e) {
+          panelStates = {};
         }
-      });
-    });
+      }
+
+      // Save the state of the panel globally (not per feature)
+      panelStates[panelId] = isExpanded;
+      
+      // Save back to localStorage
+      localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
+    } catch (error) {
+      console.error('Error saving panel state:', error);
+    }
   }
 
-  // When the expansion panel changes, save
-  onExpansionChange(featureId: number, panelId: string, isExpanded: boolean) {
-    this.savePanelState(featureId, panelId, isExpanded);
+  // Get the setting key for a panel ID
+  getPanelSettingKey(panelId: string): string {
+    const panelMap = {
+      '1': 'hideInformation',
+      '2': 'hideSendMail',
+      '3': 'hideTelegramConfig',
+      '4': 'hideUploadedFiles',
+      '5': 'hideBrowsers',
+      '6': 'hideSteps',
+      '7': 'hideSchedule'
+    };
+    
+    return panelMap[panelId] || '';
+  }
 
-    // Expand only one panel at a time
-    const feature = this.features.find(f => f.id === featureId);
-    if (feature) {
-      const panel = feature.panels.find(p => p.id === panelId);
-      if (panel) {
-        panel.expanded = isExpanded;
+  // Helper method to get panel expansion state prioritizing user settings
+  getPanelExpansionState(panelId: string, isNewMode: boolean = false): boolean {
+    const panelSettingKey = this.getPanelSettingKey(panelId);
+    
+    // EXCEPTION: For new mode, force open certain panels regardless of user settings
+    if (this.data.mode === 'new') {
+      // Define which panels should be open by default in new mode
+      const panelsToOpenInNewMode = ['1', '5', '6']; // Information, Browsers, Steps
+      
+      if (panelsToOpenInNewMode.includes(panelId)) {
+        this.logger.msg('4', `Panel ${panelId} (NEW MODE EXCEPTION): FORCED OPEN for new feature creation`, 'Panel States');
+        return true; // Force open these panels in new mode
       }
     }
+    
+    // For new mode, show panels only if user explicitly shows them (default to closed)
+    if (isNewMode) {
+      // If user setting is explicitly false (show panel), return true (open)
+      // If user setting is true (hide panel) or undefined (no setting), return false (closed)
+      const result = this.user.settings?.[panelSettingKey] === false;
+      this.logger.msg('4', `Panel ${panelId} (NEW MODE): ${result ? 'OPEN' : 'CLOSED'} (user setting: ${this.user.settings?.[panelSettingKey]})`, 'Panel States');
+      return result;
+    }
+    
+    // For edit/clone modes, use a consistent priority order:
+    // 1. User settings (highest priority)
+    // 2. Config$.toggles (fallback)
+    // 3. localStorage (fallback)
+    // 4. Default to false (closed) - Changed from true to false
+    
+    // Check user settings first (priority)
+    const userSetting = this.user.settings?.[panelSettingKey];
+    if (userSetting === true) {
+      this.logger.msg('4', `Panel ${panelId} (USER SETTING): CLOSED (user setting: ${userSetting})`, 'Panel States');
+      return false; // Panel is hidden by user setting
+    }
+    
+    // If user setting is false or undefined, check config$.toggles
+    const configToggleKey = panelSettingKey;
+    const configSetting = this.config$.toggles?.[configToggleKey];
+    if (configSetting === true) {
+      this.logger.msg('4', `Panel ${panelId} (CONFIG SETTING): CLOSED (config setting: ${configSetting})`, 'Panel States');
+      return false; // Panel is hidden by config setting
+    }
+    
+    // If config setting is false or undefined, check localStorage state
+    try {
+      const savedStates = JSON.parse(localStorage.getItem('co_mat_expansion_states') || '{}');
+      const savedState = savedStates[panelId];
+      
+      // Return saved state if available, otherwise default to false (closed) - Changed from true to false
+      const result = typeof savedState === 'boolean' ? savedState : false;
+      this.logger.msg('4', `Panel ${panelId} (LOCALSTORAGE): ${result ? 'OPEN' : 'CLOSED'} (saved state: ${savedState})`, 'Panel States');
+      return result;
+    } catch (error) {
+      // If localStorage parsing fails, default to false (closed) - Changed from true to false
+      this.logger.msg('4', `Panel ${panelId} (DEFAULT): CLOSED (localStorage error)`, 'Panel States');
+      return false;
+    }
   }
 
+  // Load panel states from localStorage and user settings - Now generic
+  // This method loads panel states globally and applies them to all features
+  // instead of loading per-feature states
+  loadPanelStates() {
+    try {
+      this.logger.msg('4', `Loading panel states for feature ${this.featureId}, mode: ${this.data.mode}`, 'Panel States');
+      
+      // Update all features with the same panel states using the helper method
+      this.features.forEach(feature => {
+        if (!feature.id) return;
+
+        feature.panels.forEach(panel => {
+          // Use the helper method to get the correct expansion state
+          // For main panels (Information, Browsers, Steps): use special new mode logic when data.mode == 'new', otherwise use normal logic
+          // For optional panels (Email, Telegram, Uploaded Files, Schedule): always use normal logic
+          const isMainPanel = ['1', '5', '6'].includes(panel.id);
+          const isNewMode = isMainPanel && this.data.mode === 'new';
+          
+          // Get the expansion state using the helper method
+          const expansionState = this.getPanelExpansionState(panel.id, isNewMode);
+          panel.expanded = expansionState;
+          
+          // Log the state for debugging
+          this.logger.msg('4', `Panel ${panel.id} (${this.getPanelSettingKey(panel.id)}): ${expansionState ? 'OPEN' : 'CLOSED'} (isMainPanel: ${isMainPanel}, isNewMode: ${isNewMode})`, 'Panel States');
+        });
+      });
+    } catch (error) {
+      console.error('Error loading panel states:', error);
+    }
+  }
+
+  // Handle panel expansion changes - Now generic
+  // This method now handles panel expansion changes globally for all features
+  // instead of being specific to individual features
+  onExpansionChange(panelId: string, isExpanded: boolean) {
+    try {
+      this.logger.msg('4', `Panel ${panelId} expansion changed to: ${isExpanded ? 'OPEN' : 'CLOSED'}`, 'Panel States');
+      
+      // EXCEPTION: For new mode, don't save any panel states or modify user settings
+      if (this.data.mode === 'new') {
+        this.logger.msg('4', `Panel ${panelId} (NEW MODE): Skipping all state saves and user setting modifications`, 'Panel States');
+        return; // Exit early without saving anything
+      }
+      
+      // Save the panel state globally (only for edit/clone modes)
+      this.savePanelState(panelId, isExpanded);
+      
+      // Update the panel state in all features (only for edit/clone modes)
+      this.features.forEach(feature => {
+        if (feature.panels) {
+          const panel = feature.panels.find(p => p.id === panelId);
+          if (panel) {
+            panel.expanded = isExpanded;
+          }
+        }
+      });
+
+      // Sync with user settings when panel is toggled (only for edit/clone modes)
+      const panelSettingKey = this.getPanelSettingKey(panelId);
+      if (panelSettingKey) {
+        // Update user settings to reflect the current state
+        // Note: We invert the logic because hideInformation=true means panel is closed
+        const shouldHide = !isExpanded;
+        
+        // Only update if the current user setting is different
+        const currentUserSetting = this.user.settings?.[panelSettingKey];
+        if (currentUserSetting !== shouldHide) {
+          this.logger.msg('4', `Updating user setting ${panelSettingKey} from ${currentUserSetting} to ${shouldHide}`, 'Panel States');
+          
+          // Update user settings in the store
+          this._store.dispatch(new User.SetSetting({ [panelSettingKey]: shouldHide }));
+          
+          // Also update config toggles to keep everything in sync
+          this._store.dispatch(new Configuration.ToggleCollapsible(panelSettingKey, shouldHide));
+          
+        } else {
+          this.logger.msg('4', `User setting ${panelSettingKey} already matches current state (${shouldHide})`, 'Panel States');
+        }
+      }
+    } catch (error) {
+      console.error('Error handling expansion change:', error);
+    }
+  }
 
   // // Check if the create button should be disabled
   // ngAfterViewInit() {
@@ -686,11 +809,16 @@ export class EditFeature implements OnInit, OnDestroy {
     if (this.notificationSubscription) {
       this.notificationSubscription.unsubscribe();
     }
+    // Clean up config subscriptions
+    this.configSubscriptions.forEach(sub => sub.unsubscribe());
+    this.configSubscriptions = [];
   }
 
   parseSchedule(expression) {
     // ignore if schedule is disabled
-    if (!this.featureForm.value.run_now) return;
+    if (!this.featureForm.value.run_now) {
+      return;
+    }
 
     try {
       const cronExpression = Object.values(expression).join(' ');
@@ -722,12 +850,35 @@ export class EditFeature implements OnInit, OnDestroy {
           second: '2-digit'
         }));
       }
+      // Trigger change detection to update UI immediately for success case
+      this.cdr.detectChanges();
+
+      // Add backend validation to catch mismatches
+      this._api.validateCron(cronExpression).subscribe({
+        next: (response) => {
+          if (response.success && !response.valid) {
+            // Frontend parsing succeeded but backend validation failed
+            this.parseError = {
+              error: true,
+              msg: `Backend Validation Error: This cron pattern (${cronExpression}) will be rejected when saving. Please use a valid pattern.`,
+            };
+            // Trigger change detection to update UI immediately
+            this.cdr.detectChanges();
+          }
+        },
+        error: (error) => {
+          // Don't show error to user for backend validation failures
+        }
+      });
+
     } catch (error) {
       this.nextRuns = [];
       this.parseError = {
         error: true,
         msg: error.message,
       };
+      // Trigger change detection to update UI immediately for frontend error
+      this.cdr.detectChanges();
     }
   }
 
@@ -912,6 +1063,14 @@ export class EditFeature implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event']) handleKeyboardEvent(
     event: KeyboardEvent
   ) {
+    // If the FilesManagement context menu is visible, let it handle ESC and skip processing here
+    if (event.key === 'Escape') {
+      const contextMenuEl = document.querySelector('.ngx-contextmenu') as HTMLElement | null;
+      if (contextMenuEl && contextMenuEl.style.display !== 'none') {
+        // A context menu is open – don't process ESC in EditFeature
+        return;
+      }
+    }
     // If true... return | only execute switch case if input focus is false
     let KeyPressed = event.keyCode;
     const editVarOpen = document.querySelector('edit-variables') as HTMLElement;
@@ -919,8 +1078,10 @@ export class EditFeature implements OnInit, OnDestroy {
     const apiScreenOpen = document.querySelector('.api-testing-container') as HTMLElement;
     const emailTemplateHelpOpen = document.querySelector('cometa-email-template-help') as HTMLElement;
     const scheduleHelpOpen = document.querySelector('schedule-help') as HTMLElement;
+    const areYouSureOpen = document.querySelector('are-you-sure') as HTMLElement;
+    const contextMenuOpen = this.filesManagement?.contextMenuOpen || false;
     
-    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null){
+    if(editVarOpen == null && startEmulatorOpen == null && apiScreenOpen == null && emailTemplateHelpOpen == null && scheduleHelpOpen == null && !contextMenuOpen && areYouSureOpen == null){
       switch (event.keyCode) {
         case KEY_CODES.ESCAPE:
           // Check if form has been modified before closing
@@ -931,6 +1092,7 @@ export class EditFeature implements OnInit, OnDestroy {
                   title: 'translate:you_sure.quit_title',
                   description: 'translate:you_sure.quit_desc',
                 } as AreYouSureData,
+                autoFocus: true,
               })
               .afterClosed()
               .subscribe(exit => {
@@ -939,6 +1101,14 @@ export class EditFeature implements OnInit, OnDestroy {
               });
           } else {
             this.dialogRef.close();
+          }
+          break;
+        case KEY_CODES.ENTER:
+          // Check if Ctrl key is pressed for Ctrl+Enter
+          if (event.ctrlKey) {
+            // Trigger save button click
+            this.editOrCreate();
+            event.preventDefault();
           }
           break;
         case KEY_CODES.V:
@@ -1236,7 +1406,6 @@ export class EditFeature implements OnInit, OnDestroy {
   configValueBoolean: boolean = false;
 
   ngOnInit() {
-
     // Initialize department if there's already a value in the form
     if (this.featureForm.get('department_name').value) {
       this.allDepartments$.subscribe(data => {
@@ -1265,13 +1434,44 @@ export class EditFeature implements OnInit, OnDestroy {
         });
       });
 
-    // Initialize localStorage with a comment if it doesn't exist
-    if (!localStorage.getItem('co_mat_expansion_states')) {
-      localStorage.setItem('co_mat_expansion_states', JSON.stringify({
-        "comment": "Panel expansion states per feature",
-        "Default": {}
-      }));
+    // Subscribe to config changes to react to toggle changes from account-settings
+    // Only apply this for edit/clone modes, not for new features
+    if (this.data.mode !== 'new') {
+      this.config$.toggles && Object.keys(this.config$.toggles).forEach(toggleKey => {
+        // Create a subscription to watch for changes in each toggle
+        const subscription = this._store.select(state => state.config.toggles[toggleKey]).subscribe(value => {
+          if (value !== undefined) {
+            // Map toggle key to panel ID
+            const panelIdMap = {
+              'hideInformation': '1',
+              'hideSendMail': '2', 
+              'hideTelegramConfig': '3',
+              'hideUploadedFiles': '4',
+              'hideBrowsers': '5',
+              'hideSteps': '6',
+              'hideSchedule': '7'
+            };
+            
+            const panelId = panelIdMap[toggleKey];
+            if (panelId) {
+              // Update panel state based on toggle change
+              const shouldExpand = !value; // If hide=true, panel should be closed
+              this.onExpansionChange(panelId, shouldExpand);
+              this.cdr.markForCheck();
+            }
+          }
+        });
+        
+        // Store subscription for cleanup
+        this.configSubscriptions.push(subscription);
+      });
     }
+
+    // Initialize localStorage with consistent structure
+    this.initializeLocalStorage();
+
+    // Synchronize user settings with localStorage panel states
+    this.syncUserSettingsWithLocalStorage();
 
     // Show panel expansion states from localstorage
     this.logger.msg('4', 'Localstorage panel expansion states', localStorage.getItem('co_mat_expansion_states'));
@@ -1433,6 +1633,13 @@ export class EditFeature implements OnInit, OnDestroy {
           this.cdr.detectChanges();
         });
       });
+
+    // Auto-focus the name input when creating a new feature
+    if (this.data.mode === 'new') {
+      setTimeout(() => {
+        this.focusFormControl('feature_name');
+      }, 300); // Delay to ensure input is rendered
+    }
   }
 
   /**
@@ -1515,6 +1722,7 @@ export class EditFeature implements OnInit, OnDestroy {
         description:
           'Are you sure you want to save this feature? One or more steps contain errors.',
       } as AreYouSureData,
+      autoFocus: true,
     });
 
     return dialogRef
@@ -1533,6 +1741,7 @@ export class EditFeature implements OnInit, OnDestroy {
           title: 'translate:you_sure.quit_title',
           description: 'translate:you_sure.quit_desc',
         } as AreYouSureData,
+        autoFocus: true,
       });
 
       const result = await dialogRef.afterClosed().toPromise();
@@ -2104,7 +2313,7 @@ export class EditFeature implements OnInit, OnDestroy {
   // Handle panel toggle events from files-management component
   onFilePanelToggled(isExpanded: boolean): void {
     // Update panel state if needed
-    this.onExpansionChange(this.featureId, '4', isExpanded);
+    this.onExpansionChange('4', isExpanded);
   }
   
   // Handle pagination events from files-management component
@@ -2161,6 +2370,7 @@ export class EditFeature implements OnInit, OnDestroy {
           description: `A feature named "${featureName}" already exists in the "${departmentName}" department. Do you want to continue with this name anyway?`,
         } as AreYouSureData,
         minWidth: '400px',
+        autoFocus: true,
       });
 
       // Wait for user decision
@@ -2211,6 +2421,107 @@ export class EditFeature implements OnInit, OnDestroy {
       return;
     }
     this.editOrCreate();
+  }
+
+  // Initialize localStorage with consistent structure
+  initializeLocalStorage() {
+    try {
+      const savedStates = localStorage.getItem('co_mat_expansion_states');
+      if (!savedStates) {
+        // Initialize with default structure - Changed all defaults to false (closed)
+        const defaultStates = {
+          "comment": "Global panel expansion states (applies to all features)",
+          "1": false,  // Information - default closed
+          "2": false,  // Email - default closed
+          "3": false,  // Telegram - default closed
+          "4": false,  // Uploaded Files - default closed
+          "5": false,  // Browsers - default closed
+          "6": false,  // Steps - default closed
+          "7": false   // Schedule - default closed
+        };
+        localStorage.setItem('co_mat_expansion_states', JSON.stringify(defaultStates));
+        this.logger.msg('4', 'Initialized localStorage with default panel states (all closed)', 'Panel States');
+      } else {
+        // Validate existing structure
+        try {
+          const parsed = JSON.parse(savedStates);
+          if (typeof parsed !== 'object' || parsed === null) {
+            throw new Error('Invalid structure');
+          }
+          this.logger.msg('4', 'Using existing localStorage panel states', 'Panel States');
+        } catch (e) {
+          // If invalid, reinitialize
+          this.initializeLocalStorage();
+        }
+      }
+    } catch (error) {
+      console.error('Error initializing localStorage:', error);
+    }
+  }
+
+  /**
+   * Synchronize user settings with localStorage panel states
+   * This ensures that user settings are reflected in localStorage when the component loads
+   */
+  syncUserSettingsWithLocalStorage() {
+    try {
+      // Map user setting keys to panel IDs
+      const settingToPanelMap = {
+        'hideInformation': '1',
+        'hideSendMail': '2',
+        'hideTelegramConfig': '3',
+        'hideUploadedFiles': '4',
+        'hideBrowsers': '5',
+        'hideSteps': '6',
+        'hideSchedule': '7'
+      };
+
+      // Get current user settings
+      const userSettings = this.user.settings;
+      if (!userSettings) return;
+
+      // Get existing localStorage states
+      let panelStates = {};
+      const savedStates = localStorage.getItem('co_mat_expansion_states');
+      
+      if (savedStates) {
+        try {
+          panelStates = JSON.parse(savedStates);
+          if (typeof panelStates !== 'object' || panelStates === null) {
+            panelStates = {};
+          }
+        } catch (e) {
+          panelStates = {};
+        }
+      }
+
+      let hasChanges = false;
+
+      // Update localStorage based on user settings
+      Object.keys(settingToPanelMap).forEach(settingKey => {
+        const panelId = settingToPanelMap[settingKey];
+        const userSetting = userSettings[settingKey];
+        
+        // If user setting is true (hide), panel should be closed (false)
+        // If user setting is false (show), panel should be open (true)
+        const shouldExpand = userSetting === false;
+        
+        // Only update if the localStorage state is different
+        if (panelStates[panelId] !== shouldExpand) {
+          panelStates[panelId] = shouldExpand;
+          hasChanges = true;
+          this.logger.msg('4', `Synchronizing user setting ${settingKey} (${userSetting}) with localStorage panel ${panelId} (${shouldExpand})`, 'Panel States');
+        }
+      });
+
+      // Save back to localStorage if there are changes
+      if (hasChanges) {
+        localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
+        this.logger.msg('4', 'Synchronized user settings with localStorage panel states', 'Panel States');
+      }
+    } catch (error) {
+      console.error('Error synchronizing user settings with localStorage:', error);
+    }
   }
 
 }

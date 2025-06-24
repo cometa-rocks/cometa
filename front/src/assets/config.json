@@ -1,5 +1,5 @@
 {
-  "version": "3.0.59",
+  "version": "3.0.64",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -237,6 +237,56 @@
   ],
   "changelog": [
     {
+      "version": "3.0.64",
+      "date": "2025-06-24",
+      "features": [
+        {
+          "title": "Refactored user component panel state handling #6491",
+          "description": "Removed try-catch and simplified localStorage sync for panel visibility."
+        }
+      ]
+    },
+    {
+      "version": "3.0.63",
+      "date": "2025-06-24",
+      "features": [
+        {
+          "title": "Resizable steps with multiline support #6461",
+          "description": "Made steps with more than one line resizable. If a step contains multiple lines, its default height is now set to 4x the normal height."
+        }
+      ]
+    },   
+    {
+      "version": "3.0.62",
+      "date": "2025-06-20",
+      "features": [
+        {
+          "title": "Fixed issues in the edit-feature dialog, admin components, main view, etc. #6458",
+          "description": "Added auto-focus to the name input when creating a new feature, highlighted the 'No' button in confirmation dialogs, added Ctrl + Enter shortcut to submit, and more."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.61",
+      "date": "2025-06-19",
+      "features": [
+        {
+          "title": "Auto detect user timezone #6460",
+          "description": "Auto detect user timezone and set it as default timezone for browser container"
+        }
+      ]
+    },
+    {
+      "version": "3.0.60",
+      "date": "2025-06-18",
+      "features": [
+        {
+          "title": "Fix mat-expansion-panel expansion state - #6442",
+          "description": "Fixed the expansion state of the mat-expansion-panel in the Edit Feature dialog, add telegram in user settings"
+        }
+      ]
+    },
+    {
       "version": "3.0.59",
       "date": "2025-06-17",
       "features": [
@@ -247,6 +297,14 @@
         {
           "title": "Small improvements made to step editor",
           "description": "Step list now can be closed with 'ESC' key & fixed bug when filtering actions in step editor."
+        },
+        {
+          "title": "Enhanced files management with a new menu #6082",
+          "description": "Enhanced files management with a new menu to manage files and data driven files."
+        },
+        {
+          "title": "Fixed error validation for scheduling features #6286",
+          "description": "Cron expression validation error fixed in the scheduling feature"
         }
       ]
     },

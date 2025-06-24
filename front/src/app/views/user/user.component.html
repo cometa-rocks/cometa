@@ -300,6 +300,15 @@
             <mat-slide-toggle
               color="primary"
               labelPosition="after"
+              [checked]="account.settings?.hideTelegramConfig"
+              (change)="handleToggle($event, 'hideTelegramConfig')"
+              >Telegram Configuration</mat-slide-toggle
+            >
+          </li>
+          <li>
+            <mat-slide-toggle
+              color="primary"
+              labelPosition="after"
               [checked]="account.settings?.hideBrowsers"
               (change)="handleToggle($event, 'hideBrowsers')"
               >Browser selection</mat-slide-toggle

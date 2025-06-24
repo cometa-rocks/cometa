@@ -280,6 +280,7 @@ class PDFAndEmailManager:
         # This is done to protect user from sending emails to unwanted directions.
         bad_emails = []
         for email in self.feature_template.email_address or []:
+            email = email.strip()
             try:
                 validate_email(email)
                 self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Valid e-mail ("+email+")")
@@ -295,6 +296,7 @@ class PDFAndEmailManager:
         # This is done to protect user from sending emails to unwanted directions.
         bad_cc_emails = []
         for email in self.feature_template.email_cc_address or []:
+            email = email.strip()
             try:
                 validate_email(email)
                 self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Valid e-mail ("+email+")")
@@ -312,6 +314,7 @@ class PDFAndEmailManager:
         # This is done to protect user from sending emails to unwanted directions.
         bad_bcc_emails = []
         for email in self.feature_template.email_bcc_address or []:
+            email = email.strip()
             try:
                 validate_email(email)
                 self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Valid e-mail ("+email+")")
@@ -724,7 +727,9 @@ class PDFAndEmailManager:
         try:
             email.send()
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Email sent. Additional info: ")
-            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to (next line): ")
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to mail: "+ str(self.feature.email_address))
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to CC mail: "+ str(self.feature.email_cc_address))
+            self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent to BCC mail: "+ str(self.feature.email_bcc_address))
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Subject: "+ str(self.subject))
             self.my_logger.debug("[GeneratePDF] "+str(self.feature_result.feature_id)+" | Sent by email account: "+ str(settings.EMAIL_HOST_USER))
             # return HttpResponse("200 OK")
