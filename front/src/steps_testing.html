@@ -73,12 +73,15 @@
         border-radius: 5px;
         max-width: 200px;
       }
+      section {
+        margin-bottom: 50px;
+      }
     </style>
   </head>
   <body>
     <section>
       <h1>COMETA TESTING</h1>
-      <p>This page tests every single step in Cometa Behave.</p>
+      <p>This page can be used for testing steps and their results using Cometa.</p>
     </section>
     <section id="mouse_mouse_and_click">
       <h2>I move mouse to "{css_selector}" and click</h2>
@@ -191,6 +194,7 @@
       </h2>
       <input type="text" value="PE:1269;CO:01;AC:01" />
     </section>
+
     <section id="download_file">
       <h2>Download a file by clicking on "{linktext}"</h2>
       <a download href="/welcome.html">Download file</a>
@@ -213,27 +217,105 @@
       </a>
     </section>
 
-    <section id="Load_with_Delays">
-      <h2>5 Buttons will be loaded with delay of 5, 10, 20, 30 and 40</h2>
-      <br />
-      <div id="5_Second"></div>
-      <br />
-      <div id="10_Second"></div>
-      <br />
-      <div id="20_Second"></div>
-      <br />
-      <div id="30_Second"></div>
-      <br />
-      <div id="40_Second"></div>
-      <br />
-      <h2>This button has show/hide functionality</h2>
-      <div>
-        <button id="show_hide_in_10_10_Secs" style="display: none">
-          This button will shown after 10 seconds of page load, and will be hide
-          in next 10 seconds
-        </button>
-      </div>
-    </section>
+    <div style="position: relative; overflow: hidden; min-height: 800px; border: 1px solid #ddd; padding: 20px; margin-bottom: 30px;">
+      <section id="element_interaction_errors">
+        <h2>Test Element Interaction Errors</h2>
+        <p>These elements are designed to provoke "element not interactable: has no size and location" errors</p>
+        
+        <h3>1. Zero-size element (no width/height) - #zero_size_button</h3>
+        <div id="zero_size_element" style="width: 0; height: 0; overflow: hidden;">
+          <button id="zero_size_button">This button has zero size</button>
+        </div>
+        
+        <h3>2. Element with negative position (off-screen) - #negative_position_button</h3>
+        <div id="negative_position_element" style="position: absolute; left: -9999px; top: -9999px;">
+          <button id="negative_position_button">This button is positioned off-screen</button>
+        </div>
+        
+        <h3>3. Element with zero opacity (invisible) - #zero_opacity_button</h3>
+        <div id="zero_opacity_element" style="opacity: 0;">
+          <button id="zero_opacity_button">This button is invisible</button>
+        </div>
+        
+        <h3>4. Element with display: none - #hidden_button</h3>
+        <div id="hidden_element" style="display: none;">
+          <button id="hidden_button">This button is hidden</button>
+        </div>
+        
+        <h3>5. Element with visibility: hidden - #invisible_button</h3>
+        <div id="invisible_element" style="visibility: hidden;">
+          <button id="invisible_button">This button is invisible</button>
+        </div>
+        
+        <h3>6. Element that appears after delay (initially has no size) - #delayed_button</h3>
+        <div id="delayed_element" style="width: 0; height: 0; transition: all 2s ease;">
+          <button id="delayed_button">This button appears after 3 seconds</button>
+        </div>
+        
+        <h3>7. Element inside collapsed container - #collapsed_button</h3>
+        <div id="collapsed_container" style="height: 0; overflow: hidden;">
+          <button id="collapsed_button">This button is in a collapsed container</button>
+        </div>
+        
+        <h3>8. Element with transform scale(0) - #scaled_button</h3>
+        <div id="scaled_element" style="transform: scale(0);">
+          <button id="scaled_button">This button is scaled to zero</button>
+        </div>
+        
+        <h3>9. Element that becomes interactable after 5 seconds - #becomes_interactable_button</h3>
+        <div id="becomes_interactable" style="width: 0; height: 0; opacity: 0; transition: all 1s ease;">
+          <button id="becomes_interactable_button">This button becomes interactable after 5 seconds</button>
+        </div>
+        
+        <h3>10. Element with pointer-events: none - #no_pointer_events_button</h3>
+        <div id="no_pointer_events" style="pointer-events: none;">
+          <button id="no_pointer_events_button">This button ignores pointer events</button>
+        </div>
+        
+        <h3>11. Element with z-index: -1 (behind other elements) - #behind_element</h3>
+        <div style="position: relative;width: 250px; height: 150px;">
+          <div style="position: absolute; width: 100px; height: 100px; background: red; z-index: 1;"></div>
+          <button id="behind_element" style="position: absolute; z-index: -1;">This button is behind another element</button>
+        </div>
+        
+        <h3>12. Element that changes size dynamically - #dynamic_size_button</h3>
+        <div id="dynamic_size_element" style="width: 250px; height: 150px;width: 0; height: 0; transition: all 0.5s ease;">
+          <button id="dynamic_size_button">This button changes size every 2 seconds</button>
+        </div>
+      </section>
+    </div>
+
+    <hr>
+    <br><p></p>
+
+    <div>
+      <section id="Load_with_Delays">
+        <h2>5 Buttons will be loaded with delay of 5, 10, 20, 30 and 40</h2>
+        <br />
+        <div id="5_Second"></div>
+        <br />
+        <div id="10_Second"></div>
+        <br />
+        <div id="20_Second"></div>
+        <br />
+        <div id="30_Second"></div>
+        <br />
+        <div id="40_Second"></div>
+        <br />
+        <h2>This button has show/hide functionality</h2>
+        <div>
+          <button id="show_hide_in_10_10_Secs" style="display: none">
+            This button will shown after 10 seconds of page load, and will be hiden
+            in next 10 seconds
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <hr>
+    <br><p></p>
+
+    
     <section id="lazy_loading">
       <h2>Scroll through a lazy loading table</h2>
       <table>
@@ -382,5 +464,39 @@
     setTimeout(function () {
       document.getElementById('show_hide_in_10_10_Secs').style.display = 'none';
     }, 20000);
+
+
+    setTimeout(function () {
+      document.getElementById('show_hide_in_10_10_Secs').style.display = 'none';
+    }, 20000);
+    
+    // Element interaction error testing
+    setTimeout(function () {
+      const delayedElement = document.getElementById('delayed_element');
+      delayedElement.style.width = '200px';
+      delayedElement.style.height = '50px';
+    }, 3000);
+    
+    setTimeout(function () {
+      const becomesInteractable = document.getElementById('becomes_interactable');
+      becomesInteractable.style.width = '300px';
+      becomesInteractable.style.height = '50px';
+      becomesInteractable.style.opacity = '1';
+    }, 5000);
+    
+    // Dynamic size element that changes every 2 seconds
+    let dynamicSizeToggle = false;
+    setInterval(function () {
+      const dynamicElement = document.getElementById('dynamic_size_element');
+      if (dynamicSizeToggle) {
+        dynamicElement.style.width = '0';
+        dynamicElement.style.height = '0';
+      } else {
+        dynamicElement.style.width = '250px';
+        dynamicElement.style.height = '50px';
+      }
+      dynamicSizeToggle = !dynamicSizeToggle;
+    }, 2000);
+
   </script>
 </html>
