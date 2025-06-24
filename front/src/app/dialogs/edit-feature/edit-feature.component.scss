@@ -428,19 +428,21 @@ button {
 
 /* ########## Only for Edt feature ########## */
 
-::ng-deep .edit-feature-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100dvh; 
-  max-height: 100dvh;
-  resize: both;
-  overflow: hidden;
-}
+// ::ng-deep .edit-feature-panel {
+//   display: flex;
+//   flex-direction: column;
+//   height: 100dvh; 
+//   max-height: 100dvh;
+//   min-height: 90%;
+//   min-width: 90%;
+//   resize: both;
+//   overflow: hidden;
+// }
 
-::ng-deep .mat-dialog-content.editFeatureContent {
-  flex-grow: 1; 
-  max-height: calc(91dvh - 64px);
-}
+// ::ng-deep .mat-dialog-content.editFeatureContent {
+//   // flex-grow: 1; 
+//   // max-height: calc(91dvh - 64px);
+// }
 
 :host::ng-deep .mtx-grid-icon {
   width: 24px !important;
@@ -803,3 +805,50 @@ button {
     margin-left: 0 !important;
   }
 }
+
+// :host ::ng-deep .mat-dialog-container {
+//   display: flex;
+//   flex-direction: column;
+//   max-height: 90vh;
+//   min-width: 600px;
+// }
+
+.editFeatureContent, mat-dialog-content.editFeatureContent {
+  // overflow-y: auto;
+  // flex-grow: 1;
+  // padding-bottom: 16px;
+  // max-height: 70vh;
+}
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 95dvh;
+  width: 100%;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+mat-dialog-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  max-height: none;
+}
+
+mat-dialog-actions {
+  flex-shrink: 0;
+  border-top: 1px solid #eee;
+  padding: 16px 24px;
+  margin: 0;
+}
+
+// .last-edition {
+// position: sticky;
+// bottom: 65px;
+// }

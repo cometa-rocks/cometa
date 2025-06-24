@@ -10,7 +10,9 @@ import {
   Renderer2,
   ɵɵtrustConstantResourceUrl,
   ViewChildren,
-  QueryList
+  QueryList,
+  ElementRef,
+  AfterViewInit
 } from '@angular/core';
 import { ApiService } from '@services/api.service';
 import { FileUploadService } from '@services/file-upload.service';
@@ -154,7 +156,7 @@ import { User } from '@store/actions/user.actions';
     TelegramNotificationHelp
   ],
 })
-export class EditFeature implements OnInit, OnDestroy {
+export class EditFeature implements OnInit, OnDestroy, AfterViewInit {
   displayedColumns: string[] = [
     'name',
     'type',
@@ -166,6 +168,8 @@ export class EditFeature implements OnInit, OnDestroy {
   ];
   // Get all expansion panels
   @ViewChildren(MatExpansionPanel) expansionPanels!: QueryList<MatExpansionPanel>;
+  @ViewChild('dialogActions') dialogActions: ElementRef<HTMLElement>;
+  private resizeObserver: ResizeObserver;
 
   @ViewSelectSnapshot(ConfigState) config$!: Config;
   /**
@@ -439,6 +443,8 @@ export class EditFeature implements OnInit, OnDestroy {
     @Inject(API_URL) public api_url: string,
     private inputFocusService: InputFocusService,
     private logger: LogService,
+    private renderer: Renderer2,
+    private el: ElementRef<HTMLElement>
   ) {
 
     this.featureId = this.data.feature.feature_id;
@@ -578,34 +584,70 @@ export class EditFeature implements OnInit, OnDestroy {
     });
   }
 
+  ngAfterViewInit(): void {
+    this.resizeObserver = new ResizeObserver(() => {
+      this.adjustContentHeight();
+    });
+
+    // We observe the dialog container, which is a parent of our component's host element
+    const dialogContainer = this.el.nativeElement.closest('.mat-dialog-container');
+    if (dialogContainer) {
+      this.resizeObserver.observe(dialogContainer);
+    }
+    // Initial adjustment
+    this.adjustContentHeight();
+  }
+
+  private adjustContentHeight(): void {
+    // We need to wait for the view to be stable before making calculations
+    setTimeout(() => {
+      const dialogContainer = this.el.nativeElement.closest('.mat-dialog-container');
+      if (dialogContainer && this.dialogActions) {
+        const totalHeight = dialogContainer.clientHeight;
+        const actionsHeight = this.dialogActions.nativeElement.offsetHeight;
+        
+        // Find the mat-dialog-content element
+        const contentElement = this.el.nativeElement.querySelector('mat-dialog-content');
+        if (contentElement) {
+          // Set the max-height of the content area
+          const contentHeight = totalHeight - actionsHeight;
+          this.renderer.setStyle(contentElement, 'max-height', `${contentHeight}px`);
+        }
+      }
+    }, 0);
+  }
+
   // Save the state of the expansion panel - Now generic for all features
   // This method saves panel states globally instead of per-feature, so all features
   // will have the same panel expansion state
   savePanelState(panelId: string, isExpanded: boolean) {
-    try {
-      // Get existing states or initialize with default structure
-      let panelStates = {};
-      const savedStates = localStorage.getItem('co_mat_expansion_states');
-      
-      if (savedStates) {
-        try {
-          panelStates = JSON.parse(savedStates);
-          // Ensure panelStates is an object
-          if (typeof panelStates !== 'object' || panelStates === null) {
+    if (this.user.settings?.remember_expansion_panel_state) {
+      const key = this.getPanelSettingKey(panelId);
+      try {
+        // Get existing states or initialize with default structure
+        let panelStates = {};
+        const savedStates = localStorage.getItem('co_mat_expansion_states');
+        
+        if (savedStates) {
+          try {
+            panelStates = JSON.parse(savedStates);
+            // Ensure panelStates is an object
+            if (typeof panelStates !== 'object' || panelStates === null) {
+              panelStates = {};
+            }
+          } catch (e) {
             panelStates = {};
           }
-        } catch (e) {
-          panelStates = {};
         }
-      }
 
-      // Save the state of the panel globally (not per feature)
-      panelStates[panelId] = isExpanded;
-      
-      // Save back to localStorage
-      localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
-    } catch (error) {
-      console.error('Error saving panel state:', error);
+        // Save the state of the panel globally (not per feature)
+        panelStates[key] = isExpanded;
+        
+        // Save back to localStorage
+        localStorage.setItem('co_mat_expansion_states', JSON.stringify(panelStates));
+      } catch (error) {
+        console.error('Error saving panel state:', error);
+      }
     }
   }
 
@@ -812,6 +854,9 @@ export class EditFeature implements OnInit, OnDestroy {
     // Clean up config subscriptions
     this.configSubscriptions.forEach(sub => sub.unsubscribe());
     this.configSubscriptions = [];
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
   }
 
   parseSchedule(expression) {

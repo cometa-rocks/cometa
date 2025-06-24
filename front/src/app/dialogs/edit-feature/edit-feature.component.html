@@ -888,7 +888,7 @@
       <b>Last edit by:</b> {{ edition.name }}
     </div>
   </mat-dialog-content>
-  <mat-dialog-actions>
+  <mat-dialog-actions #dialogActions>
     <div class="right">
       <ng-container *ngLet="saving$ | async as saving">
         <button
