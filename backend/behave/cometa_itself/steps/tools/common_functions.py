@@ -607,10 +607,16 @@ def done(*_args, **_kwargs):
                         "Not failing on %s because continue on failure is checked."
                         % args[0].step_data["step_content"]
                     )
-                    logger.error("Error: %s" % str(err))
+                    # Use improved error formatting
+                    formatted_error = format_error_message(
+                        err,
+                        step_name=args[0].step_data.get("step_content"),
+                        context=args[0]
+                    )
+                    logger.error(formatted_error)
                 else:
-                    # fail the feature
-                    raise AssertionError(str(err))
+                    # fail the feature with better error message
+                    raise AssertionError(format_error_message(err, step_name=args[0].step_data.get("step_content"),context=args[0]))
             finally:
                 # reset element highligh is any
                 reset_element_highlight(args[0])
@@ -1202,3 +1208,74 @@ def getVariableType(variable):
         # Remove prefix
         variable = variable[6:]
     return variable
+
+def format_error_message(error, step_name=None, context=None):
+    """
+    Format error messages with proper stacktrace and context information
+    """
+    import traceback
+
+    logger.debug(f"Formatting error message for step: {step_name}")
+
+    # Base error message
+    error_parts = []
+
+    if step_name:
+        error_parts.append(f"Step: {step_name}")
+
+    error_parts.append(f"Error Type: {type(error).__name__}")
+    logger.debug(f"Error Type: {type(error).__name__}")
+
+    # Store the shortest possible error message in context.step_error
+    if context:
+        # Just use the error type name for the shortest possible message
+        context.step_error = type(error).__name__
+        logger.debug(f"Stored short error message in context.step_error: {context.step_error}")
+
+
+    # Extract only the meaningful part of Selenium errors
+    error_message = str(error)
+
+    # Remove starting "Message: " from the error message
+    if error_message.startswith('Message: '):
+        error_message = error_message.strip('Message: ')
+
+    # For Selenium errors, extract only the main message (before the stacktrace)
+    if 'element not interactable' in error_message.lower():
+        # Extract just the main error message
+        main_message = error_message.split('\n')[0]  # Take only the first line
+        error_parts.append(f"Error Message: {main_message}")
+    else:
+        # For other errors, clean the message
+        cleaned_message = re.sub(r'#\d+\s+0x[0-9a-f]+\s+<unknown>.*?\n?', '', error_message).strip()
+        error_parts.append(f"Error Message: {cleaned_message}")
+        logger.debug(f"Cleaned error message: {cleaned_message}")
+
+    # Add stacktrace if available
+    if hasattr(error, '__traceback__') and error.__traceback__:
+        stacktrace = ''.join(traceback.format_tb(error.__traceback__))
+        # Clean up the stacktrace to remove internal framework calls
+        cleaned_stacktrace = []
+        for line in stacktrace.split('\n'):
+            if line.strip() and not any(skip in line for skip in [
+                'selenium', 'webdriver', 'behave', 'cometa_itself/steps'
+            ]):
+                logger.debug(f"Working on Line: {line}")
+                cleaned_stacktrace.append(line)
+
+        if cleaned_stacktrace:
+            error_parts.append("Stacktrace:")
+            error_parts.extend(cleaned_stacktrace[:10])  # Limit to first 10 lines
+
+    # Add context information if available
+    if context and hasattr(context, 'browser_info'):
+        error_parts.append(f"Browser: {context.browser_info.get('browser', 'Unknown')}")
+
+    final_error_message =  '\n-------------------------------------------------\n'
+    final_error_message += '\n   Quickly Formatted Error Message Details\n'
+    final_error_message += '\n-------------------------------------------------\n'
+    final_error_message += '\n'.join(error_parts)
+    final_error_message += '\n-------------------------------------------------\n'
+    logger.debug(f"Final error message: \n{final_error_message}")
+
+    return final_error_message
