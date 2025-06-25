@@ -2266,6 +2266,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
         # that user wants all the step_results related to the feature_result_id
         feature_result_id = self.kwargs.get('feature_result_id', None)
         if feature_result_id:
+            logger.debug(f"StepResultViewSet: Getting list of step results for feature result {feature_result_id}")
             # if feature_result_id was found in the url
             # find all the step_results related to specified feature_result
             queryset = Step_result.objects.filter(feature_result_id=feature_result_id).order_by('step_result_id')
@@ -2293,6 +2294,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
         # that user wants to only see that particular step_result
         step_result_id = self.kwargs.get('step_result_id', None)
         if step_result_id:
+            logger.debug(f"StepResultViewSet: Getting details for step result {step_result_id}")
             # if step_result_id was found in the url
             # find the step_result that related to specified step_result_id
             step_result = Step_result.objects.filter(step_result_id=step_result_id)
@@ -2324,6 +2326,7 @@ class StepResultViewSet(viewsets.ModelViewSet):
                 "success": True,
                 "results": StepResultRegularSerializer(step_result, many=False).data
             }
+            logger.debug(f"StepResultViewSet: Sending response for step result {data}")
             # send the response to user.
             return Response(data)
 
