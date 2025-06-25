@@ -100,27 +100,27 @@ services:
     pull_policy: always
     restart: always
 
-  selenoid:
-    # Please use ./selenoid/deploy_selenoid.sh to create necessary files of Selenoid
-    image: aerokube/selenoid:1.11.2
-    platform: linux/amd64  # <-- Force AMD64
-    container_name: cometa_selenoid
-    logging:
-      driver: json-file
-    ports:
-      - 4444:4444
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./backend/selenoid/:/etc/selenoid/:rw
-      - ./data/cometa/config/images:/code/config/images:rw
-      - ./data/cometa/videos:/opt/selenoid/video
-    environment:
-      TZ: Europe/Berlin
-      OVERRIDE_VIDEO_OUTPUT_DIR: ${PWD}/data/cometa/videos
-    networks:
-      - testing
-    restart: always
-    entrypoint: sh /etc/selenoid/start.sh
+  # selenoid:
+  #   # Please use ./selenoid/deploy_selenoid.sh to create necessary files of Selenoid
+  #   image: aerokube/selenoid:1.11.2
+  #   platform: linux/amd64  # <-- Force AMD64
+  #   container_name: cometa_selenoid
+  #   logging:
+  #     driver: json-file
+  #   ports:
+  #     - 4444:4444
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./backend/selenoid/:/etc/selenoid/:rw
+  #     - ./data/cometa/config/images:/code/config/images:rw
+  #     - ./data/cometa/videos:/opt/selenoid/video
+  #   environment:
+  #     TZ: Europe/Berlin
+  #     OVERRIDE_VIDEO_OUTPUT_DIR: ${PWD}/data/cometa/videos
+  #   networks:
+  #     - testing
+  #   restart: always
+  #   entrypoint: sh /etc/selenoid/start.sh
 
   novnc:
     image: cometa/novnc:1.6

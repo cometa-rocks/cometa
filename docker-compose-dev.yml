@@ -110,28 +110,28 @@ services:
      - testing
     restart: always
 
-  selenoid:
-    # Please use ./selenoid/deploy_selenoid.sh to create necessary files of Selenoid
-    image: aerokube/selenoid:1.11.2
-    # platform hint for running on apple silicon
-    platform: linux/amd64
-    container_name: cometa_selenoid
-    logging:
-      driver: json-file
-    ports:
-      - 4444:4444
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./backend/selenoid/:/etc/selenoid/:rw
-      - ./data/cometa/config/images:/code/config/images:rw
-      - ./data/cometa/videos:/opt/selenoid/video
-    environment:
-      TZ: Europe/Berlin
-      OVERRIDE_VIDEO_OUTPUT_DIR: ${PWD}/data/cometa/videos
-    networks:
-      - testing
-    restart: always
-    entrypoint: sh /etc/selenoid/start.sh
+  # selenoid:
+  #   # Please use ./selenoid/deploy_selenoid.sh to create necessary files of Selenoid
+  #   image: aerokube/selenoid:1.11.2
+  #   # platform hint for running on apple silicon
+  #   platform: linux/amd64
+  #   container_name: cometa_selenoid
+  #   logging:
+  #     driver: json-file
+  #   ports:
+  #     - 4444:4444
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./backend/selenoid/:/etc/selenoid/:rw
+  #     - ./data/cometa/config/images:/code/config/images:rw
+  #     - ./data/cometa/videos:/opt/selenoid/video
+  #   environment:
+  #     TZ: Europe/Berlin
+  #     OVERRIDE_VIDEO_OUTPUT_DIR: ${PWD}/data/cometa/videos
+  #   networks:
+  #     - testing
+  #   restart: always
+  #   entrypoint: sh /etc/selenoid/start.sh
 
   novnc:
     image: cometa/novnc:1.6
@@ -183,6 +183,8 @@ services:
     volumes:
       - ./front:/code/front
       - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
+      #  cometa configurations are mounted to /usr/local/apache2/cometa_conf to issue of avoid file getting mounted as folder 
+      #  and save mime configuration files with in the apache folder
       - ./data/front/apache2/conf:/usr/local/apache2/cometa_conf
       - ./data/front/apache2/certs:/share/apache2/certs
       - ./data/front/apache2/certs:/share/apache2/certs
@@ -192,7 +194,7 @@ services:
     ports:
       - "443:443"
       - "4200:4200"
-    command: bash /code/front/start.sh openidc basic angular compile
+    command: bash /code/front/start.sh openidc basic angular compile serve
     # command: bash /code/start.sh compile 
     environment:
       - DJANGO_SERVER_URL=django
