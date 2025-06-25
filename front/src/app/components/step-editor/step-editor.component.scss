@@ -484,7 +484,7 @@
   border-top: 1px $blue solid;
   border-bottom: 1px $blue solid;
   border-radius: 4px;
-  padding: 15px;
+  padding: 15px 0 15px 0;
   margin-top: 10px;
   margin-bottom: 10px;
   transition: opacity 0.3s ease-in-out;
@@ -501,21 +501,33 @@
   width: 100%;
 }
 
+// Documentation row fake columns: match header widths
+.fake-drop {
+  @include for-tablet-portrait-up {
+    flex: 0 0 30px;
+  }
+  flex: 0 0 30px;
+}
+.fake-dots {
+  @include for-tablet-portrait-up {
+    flex: 0 0 30px;
+  }
+  flex: 0 0 30px;
+}
+.fake-enable,
+.fake-screenshot,
+.fake-compare,
+.fake-hash {
+  @include for-tablet-portrait-up {
+    flex: 0 0 90px;
+  }
+  flex: 0 0 75px;
+  text-align: center;
+  font-weight: bold;
+}
+
 .stepDescriptionExample{
-  flex: 3;
-  margin-left: 325px;
-}
-
-.stepDocumentationIcons {
   flex: 1;
-}
-
-.columnOfIcons {
-  flex: 0.2;
-}
-
-.columnOfIcons {
-  flex: 0.2;
 }
 
 .columnOfIcons {
@@ -523,6 +535,8 @@
   display: flex;
   flex-direction: column;
   cursor: pointer;
+  align-items: center;
+  flex: 0 0 100px;
 }
 
 .stepDescription {
@@ -539,23 +553,6 @@
   color: $blue;
   font-weight: bold;
 }
-
-// .cdk-overlay-container {
-//   position: relative;
-// }
-
-// ::ng-deep .mat-autocomplete-panel {
-//   position: absolute !important;
-//   bottom: 100% !important;
-//   top: auto !important;
-//   transform: translateY(-40px);
-//   z-index: 1000;
-// }
-
-// .autocomplete-container {
-//   display: flex;
-//   align-items: center;
-// }
 
 .autocomplete-container {
   position: relative;
@@ -833,3 +830,12 @@ textarea {
     font-style: italic;
   }
 }
+
+// .fake-hash {
+//   @include for-tablet-portrait-up {
+//     flex: 0 0 40px;
+//   }
+//   flex: 0 0 20px;
+//   text-align: center;
+//   font-weight: bold;
+// }
