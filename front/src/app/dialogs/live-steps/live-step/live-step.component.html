@@ -89,4 +89,7 @@
     <div class="screenshot">-</div>
   </ng-template>
 </div>
-<div class="error-row" *ngIf="error$ | async as error">Error: {{ error }}</div>
+<div class="error-row" *ngIf="error$ | async as error">
+  <div class="error-header">Error Details:</div>
+  <div class="error-message">{{ error }}</div>
+</div>
