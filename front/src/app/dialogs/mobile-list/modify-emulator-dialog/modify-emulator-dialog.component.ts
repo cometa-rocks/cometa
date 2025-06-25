@@ -145,6 +145,7 @@ export class ModifyEmulatorDialogComponent {
     const selectedApp = event.value;
     if (selectedApp && !this.selectedApks.some(apk => apk.id === selectedApp.id)) {
       this.selectedApks.push(selectedApp);
+      this.editMobileForm.get('selectedApp')?.reset();
     }
   }
 

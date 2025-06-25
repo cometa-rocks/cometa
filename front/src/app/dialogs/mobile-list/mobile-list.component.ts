@@ -70,6 +70,7 @@ import {
 } from '@angular/forms';
 import { takeUntil } from 'rxjs/operators';
 import { interval } from 'rxjs';
+import { Departments } from '@store/actions/departments.actions';
 
 
 /**
@@ -613,37 +614,42 @@ export class MobileListComponent implements OnInit, OnDestroy {
   }
 
   openModifyEmulatorDialog(mobile: IMobile, runningContainer: Container) {
+    // Refresca los departamentos antes de abrir el diálogo
+    this._store.dispatch(new Departments.GetAdminDepartments()).subscribe(() => {
+      // Busca el departamento actualizado en el store
+      const department = this._store.selectSnapshot<any[]>(state => state.departments)
+        .find(dep => dep.department_id === this.selectedDepartment?.id);
 
-    let uploadedApksList = this.departments
-    .filter(department => department.department_id === this.selectedDepartment?.id)
-    .map(department => department.files || []) // Extract the files array
-    .reduce((acc, files) => acc.concat(files), []) // Flatten the array
-    .filter(file => file.name?.toLowerCase().endsWith('.apk') || file.mime === 'application/vnd.android.package-archive');
+      let uploadedApksList = (department?.files || [])
+        .filter(file => file.name?.toLowerCase().endsWith('.apk') || file.mime === 'application/vnd.android.package-archive');
 
-    let departmentName = this.departments.filter(
-      department => department.department_id === this.selectedDepartment?.id)
-      .map(department => department.department_name || []);
+      // (Opcional) deduplicar por nombre
+      // const seen = new Map();
+      // uploadedApksList.forEach(apk => seen.set(apk.name, apk));
+      // uploadedApksList = Array.from(seen.values());
 
-    this._dialog
-      .open(ModifyEmulatorDialogComponent, {
-        data: {
-          department_name: departmentName,
-          department_id: this.selectedDepartment.id,
-          uploadedAPKsList: uploadedApksList,
-          mobile,
-          runningContainer
-        },
-        panelClass: 'mobile-emulator-panel-dialog',
-        disableClose: false,
-      })
-      .afterClosed()
-      .subscribe(result => {
-        if (result?.updatedContainer) {
-          // Update both shared status and apk_file
-          runningContainer.shared = result.updatedContainer.shared;
-          runningContainer.apk_file = result.updatedContainer.apk_file;
-          this._cdr.detectChanges();
-        }
+      let departmentName = department?.department_name || '';
+
+      this._dialog
+        .open(ModifyEmulatorDialogComponent, {
+          data: {
+            department_name: departmentName,
+            department_id: department?.department_id,
+            uploadedAPKsList: uploadedApksList,
+            mobile,
+            runningContainer
+          },
+          panelClass: 'mobile-emulator-panel-dialog',
+          disableClose: false,
+        })
+        .afterClosed()
+        .subscribe(result => {
+          if (result?.updatedContainer) {
+            runningContainer.shared = result.updatedContainer.shared;
+            runningContainer.apk_file = result.updatedContainer.apk_file;
+            this._cdr.detectChanges();
+          }
+        });
     });
   }
 
