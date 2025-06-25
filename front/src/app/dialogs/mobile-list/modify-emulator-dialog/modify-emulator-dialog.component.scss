@@ -156,3 +156,20 @@ h2, h3 {
  :host::ng-deep .mdc-switch--selected .mdc-switch__shadow {
    background-color: $blue;
  }
+
+// Asegura que el panel del dropdown sea lo suficientemente ancho y permita ver todo el texto
+::ng-deep .mat-select-panel {
+  min-width: 400px !important; // o el valor que prefieras
+  max-width: none !important;
+  width: auto !important;
+  white-space: normal !important;
+  overflow-x: auto !important;
+}
+
+// Opciones: que el texto nunca se corte
+::ng-deep .mat-select-panel .mat-option {
+  white-space: normal !important;
+  text-overflow: unset !important;
+  overflow: visible !important;
+  max-width: none !important;
+}
