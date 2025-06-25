@@ -50,15 +50,22 @@
     </div> -->
     <div class="shortcuts-tables">
       <div class="shortcuts-table">
-        <h2 class="shortcuts-h2">Main page</h2>
-        <mtx-grid [data]="listMainPage"
+        <h2 class="shortcuts-h2">Administration</h2>
+        <mtx-grid [data]="listAdministration"
                   [columns]="columns"
                   [trackBy]="trackByName">
         </mtx-grid>
       </div>
       <div class="shortcuts-table">
-        <h2 class="shortcuts-h2">Main View Feature</h2>
-        <mtx-grid [data]="listMainViewFeature"
+        <h2 class="shortcuts-h2">Create Folder</h2>
+        <mtx-grid [data]="listCreateFolder"
+                  [columns]="columns"
+                  [trackBy]="trackByName">
+        </mtx-grid>
+      </div>
+      <div class="shortcuts-table">
+        <h2 class="shortcuts-h2">Create/Edit Feature</h2>
+        <mtx-grid [data]="listCreateEditFeature"
                   [columns]="columns"
                   [trackBy]="trackByName">
         </mtx-grid>
@@ -71,8 +78,15 @@
         </mtx-grid>
       </div>
       <div class="shortcuts-table">
-        <h2 class="shortcuts-h2">Create/Edit Feature</h2>
-        <mtx-grid [data]="listCreateEditFeature"
+        <h2 class="shortcuts-h2">Main page</h2>
+        <mtx-grid [data]="listMainPage"
+                  [columns]="columns"
+                  [trackBy]="trackByName">
+        </mtx-grid>
+      </div>
+      <div class="shortcuts-table">
+        <h2 class="shortcuts-h2">Main View Feature</h2>
+        <mtx-grid [data]="listMainViewFeature"
                   [columns]="columns"
                   [trackBy]="trackByName">
         </mtx-grid>
