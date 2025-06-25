@@ -566,7 +566,7 @@ def done(*_args, **_kwargs):
                 # Set step exception to be saved in the database, 
                 # As timeout exception does not give idea about what happed with the application
                 # set the error message to the step_error inside context so we can pass it through websockets!
-                args[0].step_error = logger.mask_values(str(err))
+                args[0].step_error = format_error_message(logger.mask_values(str(err)),step_name=args[0].step_data.get("step_name"), context=args[0])
                 try:
                     # save the result to databse as False since the step failed
                     saveToDatabase(
@@ -1271,8 +1271,6 @@ def format_error_message(error, step_name=None, context=None):
         error_parts.append(f"Browser: {context.browser_info.get('browser', 'Unknown')}")
 
     final_error_message =  '\n-------------------------------------------------\n'
-    final_error_message += '\n   Quickly Formatted Error Message Details\n'
-    final_error_message += '\n-------------------------------------------------\n'
     final_error_message += '\n'.join(error_parts)
     final_error_message += '\n-------------------------------------------------\n'
     logger.debug(f"Final error message: \n{final_error_message}")
