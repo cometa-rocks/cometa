@@ -126,11 +126,11 @@ hr {
   justify-content: space-between;
   align-items: center;
   padding: 0 50px;
-  margin-bottom: 50px;
+  margin: 0px auto 0px;
   box-sizing: border-box;
   @include for-tablet-portrait-up {
     max-width: 800px;
-    margin: 0 auto 50px;
+    margin: 0 auto 0px;
     padding: 0 20px;
     flex-wrap: nowrap;
   }
@@ -178,7 +178,7 @@ hr {
       font-size: 45pt;
       display: inline-block;
       font-weight: bold;
-      color: #d4145a;
+      color: $text-pink;
       text-transform: uppercase;
     }
     .total_pixel_diff {
@@ -345,7 +345,6 @@ hr {
   flex-direction: column;
   justify-content: flex-start;
   margin: 15px 20px 0;
-  height: 85px;
   @include for-tablet-portrait-up-plus30 {
     flex-direction: row;
   }
@@ -387,7 +386,7 @@ hr {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  margin: 32px auto 0 auto;
+  margin: 0px auto 0 auto;
   max-width: 600px;
   background: $low-white;
   border: 1.5px solid $bad;
@@ -427,4 +426,18 @@ hr {
   white-space: pre-wrap;
   word-break: break-word;
   border: 1px solid $low-white;
+}
+
+/* Surrounds the stats-diff-box - top most box in the detail view */
+.section-box {
+  background: $pure-white;
+  border-radius: 4px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  padding: 32px 40px 24px 40px;
+  margin: 32px auto 0 auto;
+  max-width: 80%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
 }
