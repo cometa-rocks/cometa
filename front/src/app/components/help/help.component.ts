@@ -30,6 +30,8 @@ export class HelpComponent {
   @Select(ActionsState) actions$: Observable<Action[]>;
   @Select(ConfigState) config$: Observable<Config>;
 
+  // Main View Feature
+
   ShortMainViewFeature: Shortcut[] = [
     { position: 1, key: 'ESC', description: 'Quit the window' },
     { position: 2, key: 'SPACE', description: 'Run Feature' },
@@ -41,6 +43,8 @@ export class HelpComponent {
     { position: 6, key: 'S', description: 'Edit Schedule' },
 
   ];
+
+  // Main Page
 
   ShortMainPage: Shortcut[] = [
     { position: 1, key: '+', description: '[+ Add] button: Add from side nav' },
@@ -54,10 +58,20 @@ export class HelpComponent {
     { position: 9, key: 'Shift + Alt + X', description: 'Remove all the filters'},
   ];
 
+  // Data Driven Test
+
   ShortDataDriven: Shortcut[] = [
     { position: 1, key: 'S', description: "[Columns Shown] button: Show table header's checkboxes" },
     { position: 2, key: 'T', description: '[Data Driven Test] button: Execution of tests based on the variables provided by the excel sheet' },
   ];
+
+  // Create Folder
+
+  ShortCreateFolder: Shortcut[] = [
+    { position: 1, key: 'CTRL+ENTER', description: 'Button: OK' },
+  ];
+
+  // Create Edit Feature
 
   ShortCreateEditFeature: Shortcut[] = [
     { position: 1, key: 'D', description: 'Checkbox: Depends on other feature' },
@@ -69,8 +83,14 @@ export class HelpComponent {
     { position: 7, key: 'R', description: 'Checkbox: Record video' },
     { position: 8, key: 'V', description: 'Button: Edit Variables' },
     { position: 9, key: 'S', description: 'Button: Open Mobiles' },
-    { position: 10, key: 'CTRL+UP/DOWN', description: 'Textarea: Insert new step above or below' },
-    { position: 11, key: 'CTRL+ALT+UP/DOWN', description: 'Textarea: Copy the step above or below of the reference step' },
+    { position: 10, key: 'CTRL+ENTER', description: 'Button: CREATE/SAVE' },
+    { position: 11, key: 'CTRL+UP/DOWN', description: 'Textarea: Insert new step above or below' },
+    { position: 12, key: 'CTRL+ALT+UP/DOWN', description: 'Textarea: Copy the step above or below of the reference step' },
+  ];
+
+  // Administration
+  ShortAdministration: Shortcut[] = [
+    { position: 10, key: 'CTRL+ENTER', description: 'Button: OK/CREATE/MODIFY/' },
   ];
 
   columns: MtxGridColumn[] = [
@@ -82,6 +102,8 @@ export class HelpComponent {
   listMainPage = this.ShortMainPage;
   listDataDriven = this.ShortDataDriven;
   listCreateEditFeature = this.ShortCreateEditFeature;
+  listAdministration = this.ShortAdministration;
+  listCreateFolder = this.ShortCreateFolder;
 
   trackByName(index: number, item: any) {
     return item.name;
