@@ -424,4 +424,13 @@ export class StepViewComponent implements OnInit {
       }
     }
   }
+
+  onStepRowClick(event: MouseEvent, stepId: number) {
+    // If user is selecting text, do not navigate
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0) {
+      return;
+    }
+    this.goToDetail(stepId);
+  }
 }

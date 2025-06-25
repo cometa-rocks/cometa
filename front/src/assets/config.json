@@ -237,6 +237,16 @@
   ],
   "changelog": [
     {
+      "version": "3.0.65",
+      "date": "2025-06-25",
+      "features": [
+        {
+          "title": "Help Shortcuts Table Improvements (#6496)",
+          "description": "Added 'Administration' and 'Create Folder' shortcut tables, unified table width, and sorted tables alphabetically in the help section."
+        }
+      ]
+    },
+    {
       "version": "3.0.64",
       "date": "2025-06-24",
       "features": [
