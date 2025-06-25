@@ -192,7 +192,7 @@ services:
     ports:
       - "443:443"
       - "4200:4200"
-    command: bash /code/front/start.sh openidc basic angular compile
+    command: bash /code/front/start.sh openidc basic angular compile serve
     # command: bash /code/start.sh compile 
     environment:
       - DJANGO_SERVER_URL=django
