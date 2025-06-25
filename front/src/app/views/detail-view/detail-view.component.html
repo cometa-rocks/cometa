@@ -49,7 +49,12 @@
         <i class="pixels"></i>
       </div>
     </div>
-    <hr />
+    <div *ngIf="stepResult.error" class="stats step-error">
+      <span class="error-label">CUSTOM ERROR:</span>
+      <pre class="error-content">{{ stepResult.error }}</pre>
+      <div></div>
+    </div>
+    <br><p></p>
     <div class="graphs-reports">
         <graph-view></graph-view>
     </div>
