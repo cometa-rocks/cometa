@@ -183,6 +183,8 @@ services:
     volumes:
       - ./front:/code/front
       - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
+      #  cometa configurations are mounted to /usr/local/apache2/cometa_conf to issue of avoid file getting mounted as folder 
+      #  and save mime configuration files with in the apache folder
       - ./data/front/apache2/conf:/usr/local/apache2/cometa_conf
       - ./data/front/apache2/certs:/share/apache2/certs
       - ./data/front/apache2/certs:/share/apache2/certs

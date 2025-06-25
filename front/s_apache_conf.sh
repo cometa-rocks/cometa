@@ -1,4 +1,13 @@
 #!/bin/bash
+# #########################################
+# AMVARA CONSULTING S.L. - 2025
+# #########################################
+# Motivation: 
+# This file contains common script and imported in to start_server.sh and start.sh
+# There are configuration folder level validations 
+# Which needs to be performed while doing development setup and production deployment
+# It used to maintain common validation code for both environment
+
 
 HTTPD_FILE_SOURCE="/code/front/apache2/conf/httpd.conf"
 HTTPD_FILE_DESTINATION="/usr/local/apache2/cometa_conf/httpd.conf"
