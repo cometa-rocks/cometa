@@ -90,7 +90,7 @@ export class HelpComponent {
 
   // Administration
   ShortAdministration: Shortcut[] = [
-    { position: 10, key: 'CTRL+ENTER', description: 'Button: OK/CREATE/MODIFY/' },
+    { position: 10, key: 'CTRL+ENTER', description: 'Button: OK/CREATE/MODIFY' },
   ];
 
   columns: MtxGridColumn[] = [
