@@ -115,7 +115,7 @@ Imagine a world where testing isn't just about finding bugs. It's about creating
 
 | Category | Technologies |
 |----------|-------------|
-| **Testing Core** | [![Behave](https://img.shields.io/badge/Behave-000000?style=for-the-badge&logo=python&logoColor=white)](https://behave.readthedocs.io/en/stable/) [![Selenium](https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=selenium&logoColor=white)](https://selenium.dev/) [![Appium](https://img.shields.io/badge/Appium-000000?style=for-the-badge&logo=appium&logoColor=white)](https://appium.io/) |
+| **Testing Core** | [![Behave](https://img.shields.io/badge/Behave-000000?style=for-the-badge&logo=python&logoColor=white)](https://behave.readthedocs.io/en/stable/) [![Selenium](https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=selenium&logoColor=white)](https://selenium.dev/) [![Appium](https://img.shields.io/badge/Appium-000000?style=for-the-badge&logo=appium&logoColor=white)](https://appium.io/) [![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev/) |
 | **Core Language** | [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org) |
 | **Backend** | [![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/) |
 | **Database** | [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/) |
