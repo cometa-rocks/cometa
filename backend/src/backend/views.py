@@ -3880,7 +3880,7 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
 
         # get all schedules whom delete date is not due yet
-        schedules = Schedule.objects.filter(Q(delete_on__gt=datetime.datetime.now()) | Q(delete_on=None))
+        schedules = Schedule.objects.filter(Q(delete_on__gt=timezone.now()) | Q(delete_on=None))
 
         # save all schedules here
         cronSchedules = []
