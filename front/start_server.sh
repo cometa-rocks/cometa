@@ -1,7 +1,10 @@
 #!/bin/bash
 # #########################################
-# AMVARA CONSULTING S.L. - 2024
+# AMVARA CONSULTING S.L. - 2025
 # #########################################
+# Motivation: 
+# This file is used in production environments to start the apache server 
+# This is kept separate to avoid the building angular code in the server
 
 source ./s_apache_conf.sh
 

@@ -566,7 +566,7 @@ def done(*_args, **_kwargs):
                 # Set step exception to be saved in the database, 
                 # As timeout exception does not give idea about what happed with the application
                 # set the error message to the step_error inside context so we can pass it through websockets!
-                args[0].step_error = logger.mask_values(str(err))
+                args[0].step_error = format_error_message(logger.mask_values(str(err)),step_name=args[0].step_data.get("step_name"), context=args[0])
                 try:
                     # save the result to databse as False since the step failed
                     saveToDatabase(
@@ -607,10 +607,16 @@ def done(*_args, **_kwargs):
                         "Not failing on %s because continue on failure is checked."
                         % args[0].step_data["step_content"]
                     )
-                    logger.error("Error: %s" % str(err))
+                    # Use improved error formatting
+                    formatted_error = format_error_message(
+                        err,
+                        step_name=args[0].step_data.get("step_content"),
+                        context=args[0]
+                    )
+                    logger.error(formatted_error)
                 else:
-                    # fail the feature
-                    raise AssertionError(str(err))
+                    # fail the feature with better error message
+                    raise AssertionError(format_error_message(err, step_name=args[0].step_data.get("step_content"),context=args[0]))
             finally:
                 # reset element highligh is any
                 reset_element_highlight(args[0])
@@ -1202,3 +1208,179 @@ def getVariableType(variable):
         # Remove prefix
         variable = variable[6:]
     return variable
+
+def format_error_message(error, step_name=None, context=None):
+    """
+    Format error messages with proper stacktrace and context information
+    """
+    import traceback
+
+    logger.debug(f"Formatting error message for step: {step_name}")
+
+    # Base error message
+    error_parts = []
+
+    if step_name:
+        error_parts.append(f"Step: {step_name}")
+
+    error_parts.append(f"Error Type: {type(error).__name__}")
+    logger.debug(f"Error Type: {type(error).__name__}")
+
+    # Extract only the meaningful part of Selenium errors
+    error_message = str(error)
+
+    # Remove starting "Message: " from the error message
+    if error_message.startswith('Message: '):
+        error_message = error_message.strip('Message: ')
+
+    # For Selenium errors, extract only the main message (before the stacktrace)
+    if 'element not interactable' in error_message.lower():
+        # Extract just the main error message
+        main_message = error_message.split('\n')[0]  # Take only the first line
+        error_parts.append(f"Error Message: {main_message}")
+    else:
+        # For other errors, clean the message
+        cleaned_message = re.sub(r'#\d+\s+0x[0-9a-f]+\s+<unknown>.*?\n?', '', error_message).strip()
+        error_parts.append(f"Error Message: {cleaned_message}")
+        logger.debug(f"Cleaned error message: {cleaned_message}")
+
+    # Store the shortest possible error message in context.step_error
+    if context:
+        # Just use the error type name for the shortest possible message
+        context.step_error = cleaned_message
+        logger.debug(f"Stored short error message in context.step_error: {context.step_error}")
+
+            # Add stacktrace if available
+    if hasattr(error, '__traceback__') and error.__traceback__:
+        stacktrace = ''.join(traceback.format_tb(error.__traceback__))
+        # Clean up the stacktrace to remove internal framework calls
+        cleaned_stacktrace = []
+        for line in stacktrace.split('\n'):
+            if line.strip() and not any(skip in line for skip in [
+                'selenium', 'webdriver', 'behave', 'cometa_itself/steps'
+            ]):
+                logger.debug(f"Working on Line: {line}")
+                cleaned_stacktrace.append(line)
+
+        if cleaned_stacktrace:
+            error_parts.append("Stacktrace:")
+            error_parts.extend(cleaned_stacktrace[:10])  # Limit to first 10 lines
+
+    # Add context information if available
+    if context and hasattr(context, 'browser_info'):
+        error_parts.append(f"Browser: {context.browser_info.get('browser', 'Unknown')}")
+
+    final_error_message =  '\n-------------------------------------------------\n'
+    final_error_message += '\n'.join(error_parts)
+    final_error_message += '\n-------------------------------------------------\n'
+    logger.debug(f"Final error message: \n{final_error_message}")
+
+    context.step_error += final_error_message
+
+    return final_error_message
+
+
+def inspect_context_complete(context, logger=None, max_depth=2, current_depth=0):
+    """
+    Comprehensive function to inspect context and all its contents, including bound methods
+    Usage: inspect_context_complete(context, logger)
+    """
+    if logger is None:
+        import logging
+        logger = logging.getLogger(__name__)
+    
+    indent = "  " * current_depth
+    
+    if current_depth == 0:
+        logger.info("=== COMPLETE CONTEXT INSPECTION ===")
+        logger.info(f"Context type: {type(context)}")
+        logger.info(f"Context object: {context}")
+    
+    # Get all attributes
+    attributes = dir(context)
+    public_attrs = [attr for attr in attributes if not attr.startswith('_')]
+    
+    for attr in public_attrs:
+        try:
+            value = getattr(context, attr)
+            value_type = type(value)
+            
+            logger.info(f"{indent}context.{attr} = {value}")
+            logger.info(f"{indent}  Type: {value_type}")
+            
+            # Handle bound methods
+            if hasattr(value, '__self__') and hasattr(value, '__func__'):
+                logger.info(f"{indent}  *** BOUND METHOD DETECTED ***")
+                logger.info(f"{indent}  Method name: {value.__name__}")
+                logger.info(f"{indent}  Method qualname: {value.__qualname__}")
+                logger.info(f"{indent}  Method module: {value.__module__}")
+                
+                # Get function signature
+                import inspect
+                try:
+                    func = value.__func__
+                    sig = inspect.signature(func)
+                    logger.info(f"{indent}  Function signature: {sig}")
+                    
+                    # Show docstring if available
+                    if func.__doc__:
+                        doc_lines = func.__doc__.strip().split('\n')
+                        logger.info(f"{indent}  Docstring:")
+                        for line in doc_lines:
+                            logger.info(f"{indent}    {line.strip()}")
+                    
+                    # Show function defaults
+                    if func.__defaults__:
+                        logger.info(f"{indent}  Defaults: {func.__defaults__}")
+                    if func.__kwdefaults__:
+                        logger.info(f"{indent}  Keyword defaults: {func.__kwdefaults__}")
+                        
+                except Exception as e:
+                    logger.info(f"{indent}  Could not inspect function: {e}")
+                
+                # Show what it's bound to
+                bound_instance = value.__self__
+                logger.info(f"{indent}  Bound to: {bound_instance}")
+                logger.info(f"{indent}  Bound instance type: {type(bound_instance)}")
+            
+            # Handle other callable objects
+            elif callable(value) and not isinstance(value, (type, type(None))):
+                logger.info(f"{indent}  *** CALLABLE OBJECT ***")
+                logger.info(f"{indent}  Callable type: {value_type}")
+                
+                import inspect
+                try:
+                    sig = inspect.signature(value)
+                    logger.info(f"{indent}  Signature: {sig}")
+                except Exception as e:
+                    logger.info(f"{indent}  Could not get signature: {e}")
+            
+            # Handle complex objects (dict, list, etc.)
+            elif isinstance(value, (dict, list, tuple, set)) and len(str(value)) > 100:
+                logger.info(f"{indent}  *** COMPLEX OBJECT ***")
+                logger.info(f"{indent}  Length: {len(value)}")
+                if isinstance(value, dict):
+                    logger.info(f"{indent}  Keys: {list(value.keys())[:10]}...")  # Show first 10 keys
+                elif isinstance(value, (list, tuple)):
+                    logger.info(f"{indent}  First few items: {value[:5]}...")  # Show first 5 items
+            
+            # Recursively inspect objects if not too deep
+            elif (current_depth < max_depth and 
+                  hasattr(value, '__dict__') and 
+                  not isinstance(value, (str, int, float, bool, type(None)))):
+                
+                logger.info(f"{indent}  *** RECURSIVE INSPECTION ***")
+                try:
+                    # Only inspect if it's not the same object (avoid infinite recursion)
+                    if value is not context:
+                        inspect_context_complete(value, logger, max_depth, current_depth + 1)
+                except Exception as e:
+                    logger.info(f"{indent}  Recursive inspection failed: {e}")
+                    
+        except Exception as e:
+            logger.info(f"{indent}context.{attr} = <Error accessing: {e}>")
+    
+    if current_depth == 0:
+        logger.info("=== END COMPLETE CONTEXT INSPECTION ===")
+
+

@@ -21,94 +21,106 @@
         <div class="return-text">{{ stepResult.step_name }}</div>
       </div>
     </div>
-    <div class="stats">
-      <!-- Previous and Next actions -->
-      <div
-        *ngIf="stepResult.previous"
-        (click)="previous()"
-        class="direction-box previous"></div>
-      <div
-        *ngIf="stepResult.next"
-        (click)="next()"
-        class="direction-box next"></div>
-      <div class="col result" [ngClass]="stepResult.success ? 'ok' : 'nok'">
-        <i class="tick"></i>
-        <span class="tick">{{ stepResult.success ? 'OK' : 'NOK' }}</span>
+    <div class="section-box">
+      <div class="stats">
+        <!-- Previous and Next actions -->
+        <div
+          *ngIf="stepResult.previous"
+          (click)="previous()"
+          class="direction-box previous"></div>
+        <div
+          *ngIf="stepResult.next"
+          (click)="next()"
+          class="direction-box next"></div>
+        <div class="col result" [ngClass]="stepResult.success ? 'ok' : 'nok'">
+          <i class="tick"></i>
+          <span class="tick">{{ stepResult.success ? 'OK' : 'NOK' }}</span>
+        </div>
+        <div class="col time">
+          <i class="time"></i>
+          <span class="time">{{
+            stepResult.execution_time | secondsToHumanReadable
+          }}</span>
+        </div>
+        <div class="col pixels">
+          <span class="pixel_diff">{{
+            (stepResult.pixel_diff | numeral) || 0
+          }}</span>
+          <div class="total_pixel_diff">TOTAL PIXEL DIFFERENCE</div>
+          <i class="pixels"></i>
+        </div>
       </div>
-      <div class="col time">
-        <i class="time"></i>
-        <span class="time">{{
-          stepResult.execution_time | secondsToHumanReadable
-        }}</span>
+      <div *ngIf="stepResult.error" class="step-error">
+        <span class="error-label">CUSTOM ERROR:</span>
+        <pre class="error-content">{{ stepResult.error }}</pre>
+        <div></div>
       </div>
-      <div class="col pixels">
-        <span class="pixel_diff">{{
-          (stepResult.pixel_diff | numeral) || 0
-        }}</span>
-        <div class="total_pixel_diff">TOTAL PIXEL DIFFERENCE</div>
-        <i class="pixels"></i>
-      </div>
-    </div>
-    <hr />
-    <div class="graphs-reports">
-        <graph-view></graph-view>
     </div>
 
-    <div class="content">
-      <div
-        class="col red"
-        *ngIf="
-          stepResult.screenshots.current ||
-          stepResult.screenshot_current as image
-        "
-        [@image1]="ready | async">
-        <div class="image-type">Actual Screenshot</div>
-        <div class="image" [style.backgroundImage]="image | screenshotBg">
-          <div class="image-actions" *ngIf="image !== 'removed'">
-            <i class="action-btn zoom" (click)="makeZoom(image)"></i>
-            <i
-              *ngIf="canDeleteScreenshot"
-              (click)="removeScreenshot('current')"
-              class="action-btn remove"></i>
+    <div class="section-box">
+      <div class="graphs-reports">
+        <graph-view></graph-view>
+      </div>
+    </div>
+
+    <div class="section-box">
+      <div class="content">
+        <div
+          class="col red"
+          *ngIf="
+            stepResult.screenshots.current ||
+            stepResult.screenshot_current as image
+          "
+          [@image1]="ready | async">
+          <div class="image-type">Actual Screenshot</div>
+          <div class="image" [style.backgroundImage]="image | screenshotBg">
+            <div class="image-actions" *ngIf="image !== 'removed'">
+              <i class="action-btn zoom" (click)="makeZoom(image)"></i>
+              <i
+                *ngIf="canDeleteScreenshot"
+                (click)="removeScreenshot('current')"
+                class="action-btn remove"></i>
+            </div>
+          </div>
+        </div>
+        <div
+          class="col orange"
+          *ngIf="
+            stepResult.screenshots.template ||
+            stepResult.screenshot_style as image
+          "
+          [@image2]="ready | async">
+          <div class="image-type">Screenshot Template</div>
+          <div class="image" [style.backgroundImage]="image | screenshotBg">
+            <div class="image-actions" *ngIf="image !== 'removed'">
+              <i class="action-btn zoom" (click)="makeZoom(image)"></i>
+              <i
+                *ngIf="canDeleteScreenshot"
+                (click)="removeScreenshot('style')"
+                class="action-btn remove"></i>
+            </div>
+          </div>
+        </div>
+        <div
+          class="col green"
+          *ngIf="
+            stepResult.screenshots.difference ||
+            stepResult.screenshot_difference as image
+          "
+          [@image3]="ready | async">
+          <div class="image-type">Screenshot difference</div>
+          <div class="image" [style.backgroundImage]="image | screenshotBg">
+            <div class="image-actions" *ngIf="image !== 'removed'">
+              <i class="action-btn zoom" (click)="makeZoom(image)"></i>
+              <i
+                *ngIf="canDeleteScreenshot"
+                (click)="removeScreenshot('difference')"
+                class="action-btn remove"></i>
+            </div>
           </div>
         </div>
       </div>
-      <div
-        class="col orange"
-        *ngIf="
-          stepResult.screenshots.template ||
-          stepResult.screenshot_style as image
-        "
-        [@image2]="ready | async">
-        <div class="image-type">Screenshot Template</div>
-        <div class="image" [style.backgroundImage]="image | screenshotBg">
-          <div class="image-actions" *ngIf="image !== 'removed'">
-            <i class="action-btn zoom" (click)="makeZoom(image)"></i>
-            <i
-              *ngIf="canDeleteScreenshot"
-              (click)="removeScreenshot('style')"
-              class="action-btn remove"></i>
-          </div>
-        </div>
-      </div>
-      <div
-        class="col green"
-        *ngIf="
-          stepResult.screenshots.difference ||
-          stepResult.screenshot_difference as image
-        "
-        [@image3]="ready | async">
-        <div class="image-type">Screenshot difference</div>
-        <div class="image" [style.backgroundImage]="image | screenshotBg">
-          <div class="image-actions" *ngIf="image !== 'removed'">
-            <i class="action-btn zoom" (click)="makeZoom(image)"></i>
-            <i
-              *ngIf="canDeleteScreenshot"
-              (click)="removeScreenshot('difference')"
-              class="action-btn remove"></i>
-          </div>
-        </div>
-      </div>
+  
     </div>
   </ng-container>
 </ng-container>

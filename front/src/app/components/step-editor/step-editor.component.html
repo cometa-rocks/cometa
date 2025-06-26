@@ -187,8 +187,9 @@
                 {{ getCollapsedApiCall(i) | truncateApiBody }}
             </div>
             <textarea
+              #stepTextarea
               *ngIf="!isApiCallStep(i) || isEditingApiCall(i)"
-              (input)="onStepChange($event, i)"
+              (input)="onStepChange($event, i); autoGrowTextarea($event)"
               (blur)="fixStep($event, i)"
               (click)="
                 stepVariableData['currentStepIndex'] === i
@@ -364,8 +365,20 @@
       </div>
       <div *ngIf="!showHideStepDocumentation">
         <div *ngIf="stepVisible[i]" class="stepContainerDocumentation">
-
+          
           <div class="containerFather">
+            <div class="fake-drop">
+            </div>
+            <div class="fake-dots">
+            </div>
+            <div class="fake-hash">
+            </div>
+            <div class="fake-enable">
+            </div>
+            <div class="fake-screenshot">
+            </div>
+            <div class="fake-compare">
+            </div>
             <div class="stepDescriptionExample">
               <p class="stepDescriptionPar">
                 <span class="bluetext">Description:</span> <br>

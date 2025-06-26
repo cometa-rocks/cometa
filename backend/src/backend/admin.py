@@ -68,8 +68,8 @@ class AdminStep_result(admin.ModelAdmin):
 
 class AdminFeature(admin.ModelAdmin):
     model = Feature
-    search_fields = ['feature_name', 'app_name', 'environment_name', 'department_name', 'description', 'browsers']
-    list_display = ('feature_name', 'app_name', 'environment_name', 'steps', 'department_name', 'depends_on_others', 'cloud')
+    search_fields = ['feature_id','feature_name', 'app_name', 'environment_name', 'department_name', 'description', 'browsers']
+    list_display = ('feature_id','feature_name', 'app_name', 'environment_name', 'steps', 'department_name', 'depends_on_others', 'cloud')
     list_filter = ('depends_on_others','cloud')
     readonly_fields = ('browsers_prettified', )
     exclude = ('browsers', )
@@ -297,8 +297,8 @@ class AdminFile(admin.ModelAdmin):
 
 class AdminDepartment(admin.ModelAdmin):
     model = Department
-    search_fields = ['department_name']
-    list_display = ("department_name", "created_on")
+    search_fields = ["department_id",'department_name']
+    list_display = ("department_id","department_name", 'slug',"created_on")
     list_filter = ('created_on',)
 
 class ActionAdmin(admin.ModelAdmin):
