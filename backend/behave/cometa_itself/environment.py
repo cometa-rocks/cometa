@@ -402,11 +402,12 @@ def before_all(context):
             "environment_id": str(context.feature_info["environment_id"])
         }
         container_configuration = {
-            "image_name":context.browser_info["browser"],
-            "image_version":context.browser_info["browser_version"],
+            "image_name": context.browser_info["browser"],
+            "image_version": context.browser_info["browser_version"],
             "service_type": "Browser",
             "labels": browser_container_labels,
-            "devices_time_zone" : devices_time_zone
+            "devices_time_zone": devices_time_zone,
+            "department_id": context.department["department_id"]
         }
         
         # service_details = context.service_manager.prepare_browser_service_configuration(

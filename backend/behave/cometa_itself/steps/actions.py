@@ -2135,6 +2135,7 @@ def downloadFileFromURL(url, dest_folder, filename):
 @step(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
 @done(u'Upload a file by clicking on "{file_input_selector}" using file "{filename}"')
 def step_imp(context, file_input_selector, filename):
+    logger.debug(f"Uploading file: {filename} on {file_input_selector}")
     # save the old file detector
     old_file_detector = context.browser.file_detector
     # set the new file detector to LocalFileDetector

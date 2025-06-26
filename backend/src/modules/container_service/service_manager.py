@@ -440,6 +440,10 @@ class ServiceManager(service_manager):
         volume_mounts :list = info['HostConfig']['Binds']
         return [volume for volume in volume_mounts if volume.find("/data/videos") >= 0][0].split(":")[0]
 
+    def get_uploads_volume(self):
+        info = self.inspect_service("cometa_behave")
+        volume_mounts :list = info['HostConfig']['Binds']
+        return [volume for volume in volume_mounts if volume.find("/data/test/uploads") >= 0][0].split(":")[0]
 
     def prepare_emulator_service_configuration(self, image):
         host_mappings = self.get_host_name_mapping()
@@ -452,8 +456,9 @@ class ServiceManager(service_manager):
         ]
         
         if super().deployment_type == "docker":
-            video_volume = self.get_video_volume()
             logger.debug("Preparing service emulator service configuration for docker")
+            video_volume = self.get_video_volume()
+            logger.debug(f"Video volume: {video_volume}")
             self.__service_configuration = {
                 "image": image,  # Replace with your desired image name
                 "detach": True,  # Run the container in the background
@@ -480,7 +485,7 @@ class ServiceManager(service_manager):
             pass
         return self.__service_configuration
 
-    def prepare_browser_service_configuration(self, browser="chrome", version="131.0", labels={}, devices_time_zone=None):
+    def prepare_browser_service_configuration(self, browser="chrome", version="131.0", labels={}, devices_time_zone=None, department_id=None):
         # Generate a random UUID
         random_uuid = str(uuid.uuid4())
         container_image = f"cometa/{browser}:{version}"
@@ -492,6 +497,13 @@ class ServiceManager(service_manager):
         
         if super().deployment_type == "docker":        
             video_volume = self.get_video_volume()
+            logger.debug(f"Video volume: {video_volume}")
+            uploads_volume = self.get_uploads_volume()
+            logger.debug(f"Uploads volume: {uploads_volume}")
+            # Create department-specific uploads path
+            department_uploads_path = f"{uploads_volume}/{department_id}" if department_id else uploads_volume
+            logger.debug(f"Department uploads path: {department_uploads_path}")
+            
             # Flatten the host mappings for `extra_hosts`
             extra_hosts = [
                 f"{hostname}:{entry['ip']}"
@@ -519,6 +531,7 @@ class ServiceManager(service_manager):
                 "restart_policy": {"Name": "unless-stopped"},
                 "volumes":[
                     f"{video_volume}:/video",
+                    f"{department_uploads_path}:/home/seluser/Downloads/uploads",
                     # FIXME this should relative path, adding this for the demo
                     # "/development/cometa/backend/browsers/scripts/video_recorder.sh:/opt/scripts/video_recorder.sh" 
 
@@ -589,15 +602,15 @@ class ServiceManager(service_manager):
                                 {"containerPort": 5900, "protocol": "TCP"}
                             ],
                             "volumeMounts": [
-                                # {
-                                #     "name": "cometa-volume",
-                                #     "mountPath": "/opt/scripts/video_recorder.sh",
-                                #     "subPath": "./scripts/video_recorder.sh"
-                                # }, 
                                 {
                                     "name": "cometa-volume",
                                     "mountPath": "/video",
                                     "subPath": "data/cometa/videos"
+                                },
+                                {
+                                    "name": "cometa-volume",
+                                    "mountPath": f"/data/test/uploads/{department_id}",
+                                    "subPath": f"data/cometa/uploads/{department_id}"
                                 },
                             ]
                         }

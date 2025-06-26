@@ -38,10 +38,10 @@ RUN mkdir -p /migration
 
 
 RUN mkdir -p /data/screenshots
-RUN mkdir -p /code/behave/videos
-RUN mkdir -p /code/behave/pdf
-RUN mkdir -p /code/behave/downloads
-RUN mkdir -p /code/behave/department_data
+RUN mkdir -p /data/videos
+RUN mkdir -p /data/pdf
+RUN mkdir -p /data/downloads
+RUN mkdir -p /data/department_data
 RUN mkdir -p /var/log/cron /var/spool/cron/crontabs /var/run/clamav /run/clamav
 RUN mkdir -p /dev/log
 
@@ -83,11 +83,7 @@ RUN chmod -R 755 /var/spool/rsyslog
 RUN chmod -R 755 /migration
 
 # Copy backend application files
-# COPY --chown=cometa:cometa ./src /code/src
-# COPY --chown=cometa:cometa ./behave /code/behave
-# COPY --chown=cometa:cometa . /code
 COPY --chown=cometa:cometa . /opt/code
-# COPY --chown=cometa:cometa ./crontabs/cometa_django_crontab /etc/cron.d/crontab
 COPY --chown=cometa:cometa ./rsyslog/rsyslog.conf /etc/rsyslog.conf
 COPY --chown=cometa:cometa ./rsyslog/rsyslog.service /lib/systemd/system/rsyslog.service
 WORKDIR /opt/code
@@ -102,7 +98,6 @@ RUN usermod -aG cometa clamav
 # Switch to non-root user
 USER cometa
 # Install Poetry under the `cometa` user's local directory and configure it
-
 RUN pip install poetry
 RUN poetry config virtualenvs.create false
 

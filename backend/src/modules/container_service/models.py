@@ -100,6 +100,7 @@ class ContainerService(models.Model):
                     version=self.image_version,
                     labels=self.labels if self.labels else {},
                     devices_time_zone=self.devices_time_zone if self.devices_time_zone else '',
+                    department_id=self.department_id,
                 )
                 
             service_details = service_manager.create_service()

@@ -567,25 +567,28 @@ def uploadFileTarget(context, source):
     files = source.split(";")
     processedFiles = []
     for file in files:
-        # throw error in case no downloads is found
-        if "downloads" not in file.lower() and "uploads" not in file.lower():
-            raise CustomError(
-                "Unknown file path, please use uploads/ or downloads/ to define where the file is located at."
-            )
+        logger.debug(f"File: {file}")
 
         logger.debug(f"Getting complete path for {file}")
-        filePath = re.sub(
-            "(?:D|d)ownloads\/", f"{context.downloadDirectoryOutsideSelenium}/", file
-        )
+        # filePath = re.sub(
+        #     "(?:D|d)ownloads\/", f"{context.downloadDirectoryOutsideSelenium}/", file
+        # )
         filePath = re.sub(
             "(?:U|u)ploads\/", f"{context.uploadDirectoryOutsideSelenium}/", filePath
         )
+        logger.debug(f"Context upload directory outside selenium: {context.uploadDirectoryOutsideSelenium}")
         logger.debug(f"Final path for {file}: {filePath}")
+
+        # throw error in case no downloads is found
+#        if "downloads" not in file.lower() and "uploads" not in file.lower():
+#            raise CustomError(
+#                "Unknown file path, please use uploads/ or downloads/ to define where the file is located at."
+#            )
 
         # check if file exists
         if not os.path.exists(filePath):
             raise CustomError(
-                f"{file} does not exist, if this error persists please contact an administrator."
+                f"The path {filePath} does not exist, if this error persists please contact an administrator."
             )
 
         if "downloads" in filePath:
