@@ -27,6 +27,7 @@ from django.http import HttpResponse, JsonResponse, Http404, HttpResponseBadRequ
 from django.shortcuts import redirect, render
 from django.template.loader import get_template
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 from backend.payments import SubscriptionPublicSerializer, ForbiddenBrowserCloud, check_browser_access, \
     get_browsers_by_cloud, get_requires_payment, has_subscription_by_cloud, get_subscriptions_from_request, \
     get_user_usage_money, BudgetAhead, check_user_will_exceed_budget, check_enabled_budget
@@ -3023,7 +3024,7 @@ class DatasetViewset(viewsets.ModelViewSet):
 
         logger.info("Added dataset to workbook")
         logger.info("Getting time for file name")
-        file_name_date = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        file_name_date = timezone.now().strftime("%Y%m%d-%H%M%S")
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         response['Content-Disposition'] = f'attachment; filename=Dataset_{file_name_date}.xlsx'
         # Attach workbook to reponse
