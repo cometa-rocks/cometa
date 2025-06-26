@@ -97,7 +97,7 @@ def backup_feature_steps(feature):
     feature_dir = get_feature_path(feature.feature_id)
     file = feature_dir['featureFileName']
     path = feature_dir['path'] + 'features/'
-    time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    time = timezone.now().strftime("%Y-%m-%d_%H-%M-%S")
     # Make sure backups folder exists
     backupsFolder = '/code/backups/features/'
     Path(backupsFolder).mkdir(parents=True, exist_ok=True)
@@ -119,7 +119,7 @@ def backup_feature_info(feature):
     feature_dir = get_feature_path(feature.feature_id)
     file = feature_dir['featureFileName']
     path = feature_dir['path'] + 'features/'
-    time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    time = timezone.now().strftime("%Y-%m-%d_%H-%M-%S")
     # Make sure backups folder exists
     backupsFolder = '/code/backups/features/'
     Path(backupsFolder).mkdir(parents=True, exist_ok=True)
@@ -821,7 +821,10 @@ class Feature(models.Model):
     def save(self, *args, **kwargs):
         new_feature = True
         self.slug = slugify(self.feature_name)
-        
+        # Make sure that emails should not contain the spaces, If feature_id is None, it means it is a new feature
+        self.email_address = [email.strip() for email in self.email_address if email.strip()]
+        self.email_cc_address = [email.strip() for email in self.email_cc_address if email.strip()]
+        self.email_bcc_address = [email.strip() for email in self.email_bcc_address if email.strip()]
         # create backup only if feature is being modified
         if self.feature_id is not None:
             new_feature = False
@@ -1392,10 +1395,10 @@ class Schedule(models.Model):
 
         # check if schedule has a <today> and <tomorrow> in string
         if "<today>" in self.schedule:
-            today = datetime.datetime.now().strftime("%d")
+            today = timezone.now().strftime("%d")
             self.schedule = self.schedule.replace("<today>", today)
         if "<tomorrow>" in self.schedule:
-            tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
+            tomorrow = timezone.now() + datetime.timedelta(days=1)
             tomorrow = tomorrow.strftime("%d")
             self.schedule = self.schedule.replace("<tomorrow>", tomorrow)
 

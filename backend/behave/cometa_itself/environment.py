@@ -420,6 +420,9 @@ def before_all(context):
         
         response = requests.post(f'{get_cometa_backend_url()}/get_browser_container', headers={'Host': 'cometa.local'},
                              data=json.dumps(container_configuration))
+        if response.status_code != 200:
+            raise Exception("Error while starting browser, Please contact administrator")    
+
         logger.debug(response.json())
         if not response or not response.json()['success'] == True:
             raise Exception("Error while starting browser, Please contact administrator")    
@@ -1131,6 +1134,7 @@ def after_step(context, step):
         step_error = context.step_data["custom_error"]
     elif hasattr(context, "step_error"):
         step_error = context.step_error
+        logger.debug(f"Step error: {step_error}")
     # send websocket to front to let front know about the step
 
     logger.debug("Running Mobiles")
