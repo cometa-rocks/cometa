@@ -297,8 +297,8 @@ class AdminFile(admin.ModelAdmin):
 
 class AdminDepartment(admin.ModelAdmin):
     model = Department
-    search_fields = ['department_name']
-    list_display = ("department_name", "created_on")
+    search_fields = ["department_id",'department_name']
+    list_display = ("department_id","department_name", 'slug',"created_on")
     list_filter = ('created_on',)
 
 class ActionAdmin(admin.ModelAdmin):
