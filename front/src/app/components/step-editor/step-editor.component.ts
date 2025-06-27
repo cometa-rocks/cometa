@@ -167,14 +167,10 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   filteredGroupedActions$ = new BehaviorSubject<{ name: string; actions: Action[] }[]>([]);
 
-  // State to track last clicked index for shift+click selection
-  private lastEnableClickedIndex: number | null = null;
-  private lastScreenshotClickedIndex: number | null = null;
-  private lastCompareClickedIndex: number | null = null;
-  // Flags to track if shift was pressed on last click
-  private enableShiftFlag: boolean = false;
-  private screenshotShiftFlag: boolean = false;
-  private compareShiftFlag: boolean = false;
+  // Track last checked index for multi-selection
+  private lastEnableCheckedIndex: number | null = null;
+  private lastScreenshotCheckedIndex: number | null = null;
+  private lastCompareCheckedIndex: number | null = null;
 
   constructor(
     private _dialog: MatDialog,
@@ -1705,71 +1701,51 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
   }
 
   /**
-   * Handles shift+click selection for enable checkboxes
+   * Handles click on Enable checkbox, supporting shift+click multi-selection.
+   * @param event MouseEvent
+   * @param index Index of the clicked checkbox
    */
   onEnableCheckboxClick(event: MouseEvent, index: number) {
-    this.enableShiftFlag = event.shiftKey;
-    this.lastEnableClickedIndex = index;
-  }
-
-  /**
-   * Applies range selection for enable checkboxes on change
-   */
-  onEnableCheckboxChange(event: any, index: number) {
-    if (this.enableShiftFlag && this.lastEnableClickedIndex !== null && this.lastEnableClickedIndex !== index) {
-      const start = Math.min(this.lastEnableClickedIndex, index);
-      const end = Math.max(this.lastEnableClickedIndex, index);
-      const checked = event.checked;
+    if (event.shiftKey && this.lastEnableCheckedIndex !== null) {
+      // Always set checked to true for shift+click multi-select
+      const checked = true;
+      const [start, end] = [this.lastEnableCheckedIndex, index].sort((a, b) => a - b);
       for (let i = start; i <= end; i++) {
         this.stepsForm.at(i).get('enabled')?.setValue(checked);
       }
-      this._cdr.detectChanges();
+      event.preventDefault(); // Prevent default click behavior
     }
-    this.enableShiftFlag = false;
-    this.lastEnableClickedIndex = index;
+    this.lastEnableCheckedIndex = index;
   }
 
   /**
-   * Records shift+click for screenshot checkboxes
+   * Handles click on Screenshot checkbox, supporting shift+click multi-selection.
+   * @param event MouseEvent
+   * @param index Index of the clicked checkbox
    */
   onScreenshotCheckboxClick(event: MouseEvent, index: number) {
-    this.screenshotShiftFlag = event.shiftKey;
-    this.lastScreenshotClickedIndex = index;
-  }
-
-  /**
-   * Applies range selection for screenshot checkboxes on change
-   */
-  onScreenshotCheckboxChange(event: any, index: number) {
-    if (this.screenshotShiftFlag && this.lastScreenshotClickedIndex !== null && this.lastScreenshotClickedIndex !== index) {
-      const start = Math.min(this.lastScreenshotClickedIndex, index);
-      const end = Math.max(this.lastScreenshotClickedIndex, index);
-      const checked = event.checked;
+    if (event.shiftKey && this.lastScreenshotCheckedIndex !== null) {
+      // Always set checked to true for shift+click multi-select
+      const checked = true;
+      const [start, end] = [this.lastScreenshotCheckedIndex, index].sort((a, b) => a - b);
       for (let i = start; i <= end; i++) {
         this.stepsForm.at(i).get('screenshot')?.setValue(checked);
       }
-      this._cdr.detectChanges();
+      event.preventDefault();
     }
-    this.screenshotShiftFlag = false;
-    this.lastScreenshotClickedIndex = index;
+    this.lastScreenshotCheckedIndex = index;
   }
 
   /**
-   * Records shift+click for compare checkboxes
+   * Handles click on Compare checkbox, supporting shift+click multi-selection.
+   * @param event MouseEvent
+   * @param index Index of the clicked checkbox
    */
   onCompareCheckboxClick(event: MouseEvent, index: number) {
-    this.compareShiftFlag = event.shiftKey;
-    this.lastCompareClickedIndex = index;
-  }
-
-  /**
-   * Applies range selection for compare checkboxes on change
-   */
-  onCompareCheckboxChange(event: any, index: number) {
-    if (this.compareShiftFlag && this.lastCompareClickedIndex !== null && this.lastCompareClickedIndex !== index) {
-      const start = Math.min(this.lastCompareClickedIndex, index);
-      const end = Math.max(this.lastCompareClickedIndex, index);
-      const checked = event.checked;
+    if (event.shiftKey && this.lastCompareCheckedIndex !== null) {
+      // Always set checked to true for shift+click multi-select
+      const checked = true;
+      const [start, end] = [this.lastCompareCheckedIndex, index].sort((a, b) => a - b); 
       for (let i = start; i <= end; i++) {
         this.stepsForm.at(i).get('compare')?.setValue(checked);
         // If compare is checked, ensure screenshot is also checked
@@ -1777,10 +1753,9 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
           this.stepsForm.at(i).get('screenshot')?.setValue(true);
         }
       }
-      this._cdr.detectChanges();
+      event.preventDefault();
     }
-    this.compareShiftFlag = false;
-    this.lastCompareClickedIndex = index;
+    this.lastCompareCheckedIndex = index;
   }
 
 }

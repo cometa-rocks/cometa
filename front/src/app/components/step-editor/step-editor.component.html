@@ -140,7 +140,6 @@
                 color="primary"
                 class="enable checkbox-blue"
                 (click)="onEnableCheckboxClick($event, i)"
-                (change)="onEnableCheckboxChange($event, i)"
                 >
               </mat-checkbox>
               <mat-checkbox
@@ -149,7 +148,7 @@
                 color="primary"
                 class="screenshot checkbox-blue"
                 (click)="onScreenshotCheckboxClick($event, i)"
-                (change)="onScreenshotCheckboxChange($event, i)"
+                (change)="screenshotChange($event, i)"
                 [matTooltip]="'step_editor.screenshot_disabled' | translate"
                 matTooltipPosition="above"></mat-checkbox>
               <mat-checkbox
@@ -158,7 +157,7 @@
                 color="primary"
                 class="compare checkbox-blue"
                 (click)="onCompareCheckboxClick($event, i)"
-                (change)="onCompareCheckboxChange($event, i)"
+                (change)="onCompareChange($event, i)"
                 [matTooltip]="'step_editor.compare_enabled' | translate"
                 matTooltipPosition="above"></mat-checkbox>
             </div>
