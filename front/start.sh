@@ -308,7 +308,7 @@ do
 		shift
 		;;
 	serve-auto)
-		SERVE-AUTO=TRUE
+		SERVEAUTO=TRUE
 		shift
 		;;
 	no-restart)
@@ -337,7 +337,7 @@ test "${BASIC:-FALSE}" == "TRUE" && install_essentials
 test "${ANGULAR:-FALSE}" == "TRUE" && install_angular
 test "${COMPILE:-FALSE}" == "TRUE" && build_project
 test "${SERVE:-FALSE}" == "TRUE" && serve_project
-test "${SERVE-AUTO:-FALSE}" == "TRUE" && serve_project_auto
+test "${SERVEAUTO:-FALSE}" == "TRUE" && serve_project_auto
 
 echo -e "\e[32mSuccessful\e[0m"
 
