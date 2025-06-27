@@ -254,8 +254,8 @@ OPTIONS:
 	angular						installs angular and all the node_modules packages.
 	compile						compiles the angular project and copies the content to the apache's htdocs
 	serve						serves the app on port 4200 and reverse proxies it to /debug/
-	serve						serves the app on port 4200 and reverse proxies it to /debug/
-
+	serve-auto					starts serving when a dev environment starts on port 4200 and reverse proxies it to /debug/
+	
 EXAMPLES:
 	* Fresh install / Complete Deployment
 	${0} openidc basic angular compile
