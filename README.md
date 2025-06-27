@@ -60,7 +60,7 @@ Imagine a world where testing isn't just about finding bugs. It's about creating
 | Database Testing | ✔️ | Comprehensive database testing capabilities | [Watch Demo](https://www.youtube.com/watch?v=uGRXoUh3aFA) |
 | E2E | ✔️ | End-to-end testing across multiple platforms | Coming Soon |
 | Mobile | ✔️ | Mobile application testing | Coming Soon |
-| Windows | ✔️ | Native Windows application testing | [Watch Demo](https://youtu.be/9AqaR4W2Z1Y) |
+| Windows| ✔️ | Native Windows application testing (in PoC phase) | [Watch Demo](https://youtu.be/9AqaR4W2Z1Y) |
 | Monitoring | ✔️ | Real-time test monitoring and reporting | Coming Soon |
 | Load Testing | ✔️ | Performance and load testing capabilities | [Watch Demo](https://www.youtube.com/watch?v=hWAyx6iBbU4) |
 | Basic Security | ✔️ | Basic security testing features | Coming Soon |
