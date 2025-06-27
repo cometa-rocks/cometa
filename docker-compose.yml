@@ -166,6 +166,13 @@ services:
       - "<outside_port>:80"
       - "443:443"
     entrypoint: bash /code/front/start_server.sh
+    healthcheck:
+      test: ["CMD", "curl", "-s", "-k", "https://localhost/lb_test.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 6s
+
     environment:
       - DJANGO_SERVER_URL=django
       - DJANGO_SERVER_PORT=8000
