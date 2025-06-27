@@ -138,13 +138,18 @@
                 formControlName="enabled"
                 aria-label="Enable"
                 color="primary"
-                class="enable checkbox-blue"></mat-checkbox>
+                class="enable checkbox-blue"
+                (click)="onEnableCheckboxClick($event, i)"
+                (change)="onEnableCheckboxChange($event, i)"
+                >
+              </mat-checkbox>
               <mat-checkbox
                 formControlName="screenshot"
                 aria-label="Screenshot"
                 color="primary"
                 class="screenshot checkbox-blue"
-                (change)="screenshotChange($event, i)"
+                (click)="onScreenshotCheckboxClick($event, i)"
+                (change)="onScreenshotCheckboxChange($event, i)"
                 [matTooltip]="'step_editor.screenshot_disabled' | translate"
                 matTooltipPosition="above"></mat-checkbox>
               <mat-checkbox
@@ -152,7 +157,8 @@
                 aria-label="Compare"
                 color="primary"
                 class="compare checkbox-blue"
-                (change)="onCompareChange($event, i)"
+                (click)="onCompareCheckboxClick($event, i)"
+                (change)="onCompareCheckboxChange($event, i)"
                 [matTooltip]="'step_editor.compare_enabled' | translate"
                 matTooltipPosition="above"></mat-checkbox>
             </div>
