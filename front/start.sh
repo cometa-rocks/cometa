@@ -169,6 +169,21 @@ function build_project(){
 # @params:
 # #########
 function serve_project() {
+	# kill all processes running "ng serve"
+	ps aux | grep "ng serve" | grep -v grep | awk '{print $2}' | xargs -r kill -9
+	# replace baseHref inside index.html before serving
+	sed -i 's#<base href="/" />#<base href="/debug/" />#' /code/front/src/index.html
+	# serve the project
+	npx ng serve
+}
+
+# #########
+# This function will serve the angular project
+# on port 4200 but will be accessible from /debug/
+# if the configuration in apache is activated.
+# @params:
+# #########
+function serve_project_auto() {
 	# replace baseHref inside index.html before serving
 	sed -i 's#<base href="/" />#<base href="/debug/" />#' /code/front/src/index.html
 	# serve the project
@@ -185,7 +200,7 @@ function install_openidc(){
 	# install some oidc feature before starting httpd service
 	cd /tmp
 	apt-get update
-	apt-get install -y pkg-config make gcc gdb lcov valgrind vim curl iputils-ping wget
+	apt-get install -y pkg-config make gcc gdb lcov valgrind vim curl iputils-ping wget procps
 	apt-get install -y autoconf automake libtool
 	apt-get install -y libssl-dev libjansson-dev libcurl4-openssl-dev check
 	apt-get install -y libpcre3-dev zlib1g-dev libcjose0 libcjose-dev 
@@ -217,7 +232,7 @@ function install_appium_inspector() {
         echo "Appium Inspector files successfully copied to Apache server."
 
         # Return to the previous directory
-        cd -
+        # cd -
     else
         echo "Appium Inspector build not found, skipping appium-inspector installation."
     fi
@@ -238,6 +253,7 @@ OPTIONS:
 	basic						installs basic packages to start angular like node.
 	angular						installs angular and all the node_modules packages.
 	compile						compiles the angular project and copies the content to the apache's htdocs
+	serve						serves the app on port 4200 and reverse proxies it to /debug/
 	serve						serves the app on port 4200 and reverse proxies it to /debug/
 
 EXAMPLES:
@@ -291,6 +307,10 @@ do
 		SERVE=TRUE
 		shift
 		;;
+	serve-auto)
+		SERVE-AUTO=TRUE
+		shift
+		;;
 	no-restart)
 		NORESTART=TRUE
 		shift
@@ -317,6 +337,7 @@ test "${BASIC:-FALSE}" == "TRUE" && install_essentials
 test "${ANGULAR:-FALSE}" == "TRUE" && install_angular
 test "${COMPILE:-FALSE}" == "TRUE" && build_project
 test "${SERVE:-FALSE}" == "TRUE" && serve_project
+test "${SERVE-AUTO:-FALSE}" == "TRUE" && serve_project_auto
 
 echo -e "\e[32mSuccessful\e[0m"
 
