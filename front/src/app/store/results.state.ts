@@ -509,6 +509,7 @@ export class ResultsState {
       feature_result_id,
       vulnerable_headers_count,
       mobiles_info,
+      healing_data,
     }: WebSockets.StepFinished
   ) {
     this.clearTimeout(feature_id, run_id, browser_info);
@@ -545,9 +546,12 @@ export class ResultsState {
           datetime: datetime,
           error: error,
           step_time: step_time,
-          screenshots: screenshots,
+          screenshots: (screenshots && Object.keys(screenshots).length > 0)
+            ? screenshots
+            : currentSteps[step_index].screenshots,
           vulnerable_headers_count: vulnerable_headers_count,
           mobiles_info: mobiles_info,
+          healing_data: healing_data,
         };
         this.modifySteps(
           ctx,

@@ -52,6 +52,44 @@ import { TruncateApiBodyPipe } from '@pipes/truncate-api-body.pipe';
         ),
       ]),
     ]),
+    trigger('healingDetailsAnimation', [
+      transition(':enter', [
+        style({ 
+          opacity: 0, 
+          transform: 'translateY(-10px) scaleY(0.8)', 
+          transformOrigin: 'top',
+          maxHeight: 0,
+          paddingTop: 0,
+          paddingBottom: 0,
+          marginTop: 0
+        }),
+        animate(
+          '300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          style({ 
+            opacity: 1, 
+            transform: 'translateY(0) scaleY(1)', 
+            maxHeight: '300px',
+            paddingTop: '12px',
+            paddingBottom: '12px',
+            marginTop: '4px'
+          })
+        ),
+      ]),
+      transition(':leave', [
+        animate(
+          '250ms cubic-bezier(0.4, 0, 0.2, 1)',
+          style({ 
+            opacity: 0, 
+            transform: 'translateY(-10px) scaleY(0.8)', 
+            transformOrigin: 'top',
+            maxHeight: 0,
+            paddingTop: 0,
+            paddingBottom: 0,
+            marginTop: 0
+          })
+        ),
+      ]),
+    ]),
   ],
   standalone: true,
   imports: [
@@ -70,6 +108,10 @@ export class LiveStepComponent implements OnInit {
   status$ = new BehaviorSubject<string>('waiting');
 
   error$ = new BehaviorSubject<string>('');
+  
+  healingData$ = new BehaviorSubject<HealeniumData | undefined>(undefined);
+  
+  showHealingDetails = false;
 
   constructor(
     private _store: Store,
@@ -135,6 +177,13 @@ export class LiveStepComponent implements OnInit {
           this.screenshots = steps[this.index].screenshots;
           if (steps[this.index].error)
             this.error$.next(steps[this.index].error);
+          // Update healing data
+          if (steps[this.index].healing_data) {
+            this.healingData$.next(steps[this.index].healing_data);
+          } else if (steps[this.index].info && steps[this.index].info.healing_data) {
+            // Check if healing data is nested in info
+            this.healingData$.next(steps[this.index].info.healing_data);
+          }
         } else {
           this.status$.next('waiting');
         }
@@ -171,5 +220,17 @@ export class LiveStepComponent implements OnInit {
         });
       });
     }
+  }
+  
+  toggleHealingDetails() {
+    this.showHealingDetails = !this.showHealingDetails;
+  }
+  
+  getHealingTooltip(healingData: HealeniumData): string {
+    return `Self-healed element (${healingData.confidence_score}%)
+Original: ${healingData.original_selector}
+Healed: ${healingData.healed_selector}
+Method: ${healingData.healing_method}
+Time: +${healingData.healing_duration_ms}ms`;
   }
 }

@@ -132,6 +132,15 @@ interface StepRequirements {
   page_size?: number;
 }
 
+interface HealeniumData {
+  was_healed: boolean;
+  original_selector: string;
+  healed_selector: string;
+  confidence_score: number;
+  healing_duration_ms: number;
+  healing_method: string;
+}
+
 interface StepResult {
   belongs_to?: BelongsTo;
   step_result_id: number;
@@ -155,6 +164,7 @@ interface StepResult {
   screenshot_template: string;
   error: null | string;
   rest_api: number;
+  healing_data?: HealeniumData;
 }
 
 interface BelongsTo {
@@ -965,6 +975,7 @@ interface StepStatus {
   screenshots: any;
   vulnerable_headers_count: number;
   mobiles_info?: any[];
+  healing_data?: HealeniumData;
 }
 
 interface IRunsState {

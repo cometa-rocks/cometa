@@ -190,6 +190,7 @@
                     ">
                     <div class="headers">
                       <div class="index">#</div>
+                      <div class="status"></div>
                       <div class="text">Step definition</div>
                       <div class="screenshot">Screenshot</div>
                       <div class="screenshot">Compare</div>
@@ -219,6 +220,79 @@
             </mat-tab>
           </ng-template>
         </ng-container>
+        <!-- Healing Summary Tab (only shown when healing data exists) -->
+        <mat-tab *ngIf="getHealingSummary(run_id)">
+          <ng-template mat-tab-label>
+            <mat-icon class="healing-tab-icon">healing</mat-icon>
+            Healing Summary
+          </ng-template>
+            <div class="healing-summary-container">
+              <ng-container *ngIf="getHealingSummary(run_id) as summary">
+                <div class="healing-summary-header">
+                  <h3>Self-Healing Statistics</h3>
+                  <div class="healing-stats">
+                    <div class="stat-item">
+                      <mat-icon>check_circle</mat-icon>
+                      <span class="stat-label">Total Healed Steps:</span>
+                      <span class="stat-value">{{ summary.totalHealed }}</span>
+                    </div>
+                    <div class="stat-item">
+                      <mat-icon>trending_up</mat-icon>
+                      <span class="stat-label">Average Confidence:</span>
+                      <span class="stat-value">{{ summary.averageConfidence }}%</span>
+                    </div>
+                    <div class="stat-item">
+                      <mat-icon>timer</mat-icon>
+                      <span class="stat-label">Total Healing Time:</span>
+                      <span class="stat-value">{{ summary.totalHealingTime }}ms</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="healing-summary-list">
+                  <h4>Healed Elements</h4>
+                  <div class="healed-step" *ngFor="let healedStep of summary.healedSteps">
+                    <div class="healed-step-header">
+                      <span class="step-index">Step {{ healedStep.stepIndex + 1 }}:</span>
+                      <span class="step-name">{{ healedStep.stepName }}</span>
+                      <span class="browser-info">
+                        <i
+                          class="browser-icon-small"
+                          [style.backgroundImage]="healedStep.browser | browserIcon"
+                        ></i>
+                        {{ healedStep.browser | browserComboText }}
+                      </span>
+                    </div>
+                    <div class="healed-step-details">
+                      <div class="selector-change">
+                        <mat-icon class="change-icon">arrow_forward</mat-icon>
+                        <code class="old-selector">{{ healedStep.originalSelector }}</code>
+                        <mat-icon class="arrow-icon">arrow_right_alt</mat-icon>
+                        <code class="new-selector">{{ healedStep.healedSelector }}</code>
+                      </div>
+                      <div class="healing-metadata">
+                        <span class="metadata-item">
+                          <mat-icon>speed</mat-icon>
+                          Confidence: {{ healedStep.confidence }}%
+                        </span>
+                        <span class="metadata-item">
+                          <mat-icon>timer</mat-icon>
+                          Time: {{ healedStep.healingTime }}ms
+                        </span>
+                        <span class="metadata-item">
+                          <mat-icon>build</mat-icon>
+                          Method: {{ healedStep.method }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="no-healing" *ngIf="summary.healedSteps.length === 0">
+                    <mat-icon>info</mat-icon>
+                    <p>No elements required healing during this test run.</p>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </mat-tab>
       </mat-tab-group>
     </ng-container>
   </mat-dialog-content>

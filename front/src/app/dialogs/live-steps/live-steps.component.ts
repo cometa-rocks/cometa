@@ -201,12 +201,22 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
         untilDestroyed(this), // Stop emitting events after LiveSteps is closed
         // Filter only by NGXS actions which trigger step index changing
         ofActionCompleted(WebSockets.StepStarted, WebSockets.StepFinished),
-        map(event => event.action),
-        filter(action => action.feature_id === this.feature_id),
+        map((event) => event.action),
+        filter((action) => action.feature_id === this.feature_id),
+        tap(action => {
+          // Use a type guard to check if the action is StepFinished
+          if ('step_result_info' in action) {
+            if (action.healing_data) {
+              this.logger.msg('4', 'Healing data received in live-steps:', 'live-steps', {
+                step_index: action.step_index,
+                healing_data: action.healing_data
+              });
+            }
+          }
+        }),
         distinctUntilKeyChanged('step_index'),
         // Switch current observable to scroll option value
-        filter(_ => !!this.autoScroll)
-        // Then filter stream by truthy values
+        filter((_) => !!this.autoScroll)
       )
       .subscribe(action => {
         const index = action.step_index;
@@ -303,6 +313,51 @@ export class LiveStepsComponent implements OnInit, OnDestroy {
 
   updateMobile(data: any) {
     this.mobiles[data.feature_run_id] = data.mobiles_info
+  }
+
+  getHealingSummary(runId: number) {
+    const results = this._store.selectSnapshot(CustomSelectors.GetFeatureResults(this.feature_id));
+    if (!results || !results.results || !results.results[runId]) {
+      return null;
+    }
+
+    const healedSteps: any[] = [];
+    let totalConfidence = 0;
+    let totalHealingTime = 0;
+
+    // Iterate through all browser results for this run
+    Object.entries(results.results[runId]).forEach(([browserKey, browserResult]: [string, any]) => {
+      const steps = browserResult.steps || [];
+      
+      steps.forEach((step: StepStatus, index: number) => {
+        if (step.healing_data && step.healing_data.was_healed) {
+          healedSteps.push({
+            stepIndex: index,
+            stepName: step.name,
+            browser: browserResult.browser_info,
+            originalSelector: step.healing_data.original_selector,
+            healedSelector: step.healing_data.healed_selector,
+            confidence: step.healing_data.confidence_score,
+            healingTime: step.healing_data.healing_duration_ms,
+            method: step.healing_data.healing_method
+          });
+          totalConfidence += step.healing_data.confidence_score;
+          totalHealingTime += step.healing_data.healing_duration_ms;
+        }
+      });
+    });
+
+    // Only return summary if there are actually healed steps
+    if (healedSteps.length === 0) {
+      return null;
+    }
+
+    return {
+      totalHealed: healedSteps.length,
+      averageConfidence: healedSteps.length > 0 ? Math.round(totalConfidence / healedSteps.length) : 0,
+      totalHealingTime: totalHealingTime,
+      healedSteps: healedSteps
+    };
   }
 
 }

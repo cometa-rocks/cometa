@@ -48,6 +48,12 @@ default_cometa_configurations = {
     "COMETA_FEEDBACK_MAIL": "cometa@amvara.de",
     "COMETA_SENTRY_DJANGO": "",
     "COMETA_STRIPE_LIVE_KEY": "",
+    "COMETA_FEATURE_HEALENIUM": False,
+    "COMETA_HEALENIUM_DB_HOST": "cometa_hlm_db",
+    "COMETA_HEALENIUM_DB_PORT": "5432",
+    "COMETA_HEALENIUM_DB_NAME": "healenium",
+    "COMETA_HEALENIUM_DB_USER": "healenium_user",
+    "COMETA_HEALENIUM_DB_PASSWORD": "",
     "COMETA_PROD_ENABLE_PAYMENT": False,
     "COMETA_ENCRYPTION_PASSPHRASE": "$RANDOM_ENCRYPTION_PASSPHRASE",
     "COMETA_UPLOAD_ENCRYPTION_PASSPHRASE": "$RANDOM_UPLOAD_ENCRYPTION_PASSPHRASE",
@@ -97,7 +103,7 @@ default_cometa_configurations = {
     "OLLAMA_AI_HOST":"ollama.ai",
     "OLLAMA_AI_PORT":"8002",
     "OLLAMA_AI_SECRET_ID":"",
-    "OLLAMA_AI_SECRET_KEY":""
+    "OLLAMA_AI_SECRET_KEY":"",
 }
 
 public_configuraion_values = [

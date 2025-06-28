@@ -138,6 +138,7 @@ urlpatterns = [
     url(r'^cometausage/', views.CometaUsage),
     url(r'^api/chat/completion/', ai_chat.chat_completion),
     url(r'^health', views.health_check),
+    path('api/healenium/', include('healenium.urls')),
     
 ] + static('/static/', document_root=STATIC_ADMIN_FILES) 
 

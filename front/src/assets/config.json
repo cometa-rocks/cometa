@@ -1,5 +1,5 @@
 {
-  "version": "3.0.66",
+  "version": "3.0.67",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,16 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.67",
+      "date": "2025-06-28",
+      "features": [
+        {
+          "title": "Added auto healing feature #6487",
+          "description": "When there's a healing step, the live viewer will display healing data."
+        }
+      ]
+    }, 
     {
       "version": "3.0.66",
       "date": "2025-06-25",

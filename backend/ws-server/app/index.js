@@ -21,6 +21,10 @@ const dataDrivenRunStatus = {};
 // Save client information for each SocketID
 const clients = {};
 
+// Cache for healing data deduplication
+const healingCache = new Map();
+const HEALING_CACHE_TTL = 300000; // 5 minutes
+
 /**
  * Automatically constructs the messages structure for a given feature and run id
  * @param featureId Feature ID
@@ -274,6 +278,27 @@ app.post('/feature/:feature_id/stepFinished', (req, res) => {
     screenshots: req.body.screenshots ? JSON.parse(req.body.screenshots) : {},
     vulnerable_headers_count:req.body.vulnerable_headers_count,
     mobiles_info: req.body.mobiles_info? req.body.mobiles_info : [],
+    healing_data: (() => {
+      const raw = req.body.healing_data;
+
+      if (!raw) return null;
+      return typeof raw === 'string' ? JSON.parse(raw) : raw;
+    })()
+  }
+
+  // Deduplicate healing data to reduce bandwidth
+  if (payload.healing_data) {
+    const cacheKey = `${payload.feature_id}:${payload.run_id}:${payload.browser_info.browser}:${payload.step_index}`;
+    const cachedData = healingCache.get(cacheKey);
+    
+    if (cachedData && JSON.stringify(cachedData) === JSON.stringify(payload.healing_data)) {
+      // Skip sending duplicate healing data, but still send the step update
+      payload.healing_data = { ...payload.healing_data, cached: true };
+    } else {
+      // Cache new healing data with TTL
+      healingCache.set(cacheKey, payload.healing_data);
+      setTimeout(() => healingCache.delete(cacheKey), HEALING_CACHE_TTL);
+    }
   }
 
   io.emit('message', payload)

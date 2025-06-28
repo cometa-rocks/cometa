@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'modules.configuration',
     'modules.container_service',
     'modules.token_authentication',
+    'healenium',
 ]
 
 MIGRATION_MODULES = {
@@ -93,6 +94,7 @@ MIGRATION_MODULES = {
     'security': 'migrations.security',
     'token_authentication': 'migrations.token_authentication',
     'notification': 'migrations.notification',
+    'healenium': 'migrations.healenium',
 } 
  
 MIDDLEWARE = [

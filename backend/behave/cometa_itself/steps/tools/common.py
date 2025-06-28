@@ -1,18 +1,29 @@
 import time
 import signal
 import logging
+import requests
+import json
+import os
+import datetime
+import sys
+import subprocess
+import re
+import shutil
 
-from .exceptions import *
-from .variables import *
 from functools import wraps
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import InvalidSelectorException, NoSuchElementException, InvalidSelectorException, WebDriverException
-from selenium.common.exceptions import TimeoutException, WebDriverException
+from selenium.common.exceptions import (
+    InvalidSelectorException, 
+    NoSuchElementException, 
+    WebDriverException,
+    TimeoutException
+)
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-import time, requests, json, os, datetime, sys, subprocess, re, shutil
+
+from .exceptions import *
+from .variables import *
 
 sys.path.append("/opt/code/behave_django")
 
@@ -28,6 +39,121 @@ logger = logging.getLogger("FeatureExecution")
 """
 Python library with common utility functions
 """
+
+# Lazy imports for Healenium to avoid circular dependencies
+_healenium_imports = {}
+
+def _lazy_import_healenium():
+    """Lazy import Healenium modules to avoid startup overhead"""
+    global _healenium_imports
+    if not _healenium_imports:
+        try:
+            parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+            
+            from cometa_itself.healenium_client import (
+                HealeniumClient, 
+                healenium_context
+            )
+            _healenium_imports = {
+                'HealeniumClient': HealeniumClient,
+                'healenium_context': healenium_context
+            }
+        except ImportError:
+            _healenium_imports = None
+    return _healenium_imports
+
+
+def _handle_healing_check(context, selector_type, selector, find_start_time):
+    """Handle healing check after successful element find"""
+    # Check if Healenium is enabled
+    # This ensures healing data is captured regardless of proxy strategy
+    if not getattr(context, 'healenium_enabled', False):
+        return
+    
+    # Also check if we have a healenium_client available
+    if not hasattr(context, 'healenium_client') or not context.healenium_client:
+        return
+    
+    healenium = _lazy_import_healenium()
+    if not healenium:
+        return
+        
+    try:
+        # Use the existing healenium_client from context
+        client = context.healenium_client
+        
+        # Handle both By enum and string selector types
+        if hasattr(selector_type, 'name'):
+            # It's a By enum
+            selector_type_str = selector_type.name.lower()
+        else:
+            # It's already a string
+            selector_type_str = str(selector_type).lower()
+            
+        healing_info = client.get_healing_data_from_db(
+            selector_type_str, 
+            selector, 
+            find_start_time - 5
+        )
+        if healing_info:
+            context.healing_data = healing_info
+            context.last_healed_element = healing_info  # Ensure it's available in after_step
+            logger.info(f"Captured healing data: {selector} -> {healing_info['healed_selector']['value']} (score: {healing_info['score']})")
+            
+            # Save healing data to database via API call
+            try:
+                # Get current step info from context
+                step_name = f"{context.CURRENT_STEP.keyword} {context.CURRENT_STEP.name}" if hasattr(context, 'CURRENT_STEP') else "Unknown step"
+                step_index = context.counters.get('index', 0) if hasattr(context, 'counters') else 0
+                
+                # Parse selector types from healing info
+                original_selector = healing_info.get('original_selector', '')
+                healed_selector = healing_info.get('healed_selector', '')
+                
+                # Extract selector types
+                selector_type_from = 'unknown'
+                selector_type_to = 'unknown'
+                if 'By.' in original_selector:
+                    selector_type_from = original_selector.split('By.')[1].split('(')[0]
+                if 'By.' in healed_selector:
+                    selector_type_to = healed_selector.split('By.')[1].split('(')[0]
+                
+                # Prepare data for API call
+                healing_save_data = {
+                    'feature_result_id': int(os.environ.get('feature_result_id', 0)),
+                    'step_result_id': None,  # Will be set later in after_step
+                    'step_name': step_name,
+                    'step_index': step_index,
+                    'original_selector': original_selector,
+                    'healed_selector': healed_selector,
+                    'selector_type_from': selector_type_from,
+                    'selector_type_to': selector_type_to,
+                    'confidence_score': healing_info.get('confidence_score', 0) / 100.0,  # Convert to 0-1 range
+                    'healing_duration_ms': healing_info.get('healing_duration_ms', 0),
+                    'healing_session_id': context.browser.session_id
+                }
+                
+                # Import get_cometa_backend_url from common utilities
+                from utility.common import get_cometa_backend_url
+                
+                # Make API call to save healing result
+                response = requests.post(
+                    f'{get_cometa_backend_url()}/api/healenium/results/',
+                    json=healing_save_data,
+                    headers={'Host': 'cometa.local'}
+                )
+                
+                if response.status_code == 201:
+                    logger.debug("Successfully saved Healenium result from DB check")
+                else:
+                    logger.debug(f"Failed to save Healenium result: {response.status_code}")
+                    
+            except Exception as e:
+                logger.debug(f"Failed to save Healenium result from DB check: {str(e)}")
+    except Exception as e:
+        logger.debug(f"Failed to check for healing: {str(e)}")
 
 
 class CometaTimeoutException(Exception):
@@ -161,12 +287,28 @@ def detect_selector_type(selector):
     # locator_type@@locator_value
     selector_type_and_selector = selector.split("@@", 1)
     
-    # if the value is gre
+    # if the value is greater than 1, process the selector type
     if len(selector_type_and_selector) > 1:
-        selector_type = selector_type_and_selector[0]
+        selector_type_str = selector_type_and_selector[0].lower()
         selector = selector_type_and_selector[1]
-    else:
-        return None, None
+        
+        # Map string selector types to By enums
+        type_mapping = {
+            'id': By.ID,
+            'css': By.CSS_SELECTOR,
+            'xpath': By.XPATH,
+            'name': By.NAME,
+            'class': By.CLASS_NAME,
+            'tag_name': By.TAG_NAME,
+            'link_text': By.LINK_TEXT,
+            'partial_link_text': By.PARTIAL_LINK_TEXT
+        }
+        
+        selector_type = type_mapping.get(selector_type_str)
+        if selector_type:
+            return selector_type, selector
+    
+    return None, None
     
     if selector_type == "name":
         selector_type = By.NAME
@@ -224,52 +366,72 @@ def waitSelector(context, selector_type, selector, max_timeout=None):
 """
 def waitSelectorNew(context, selector, max_timeout=None):
     logger.debug("Checking with new selector strategy")
-    # max_timeout = max_timeout if max_timeout is not None else 7200
-  
     start_time = time.time()
-    # max_timeout = start_time+max_timeout
-    if len(selector.strip())==0:
+
+    if not selector.strip():
         raise CustomError("Please provide valid selector")
     
     selector_type, selector = detect_selector_type(selector=selector)
-        
     if selector_type is None:
-        logger.debug(f"Could not determine selector type with new method, will try with old")
+        logger.debug("Could not determine selector type with new method, will try with old")
         return False
     
     device_driver = context.mobile["driver"] if context.STEP_TYPE == 'MOBILE' else context.browser
+    max_timeout = max_timeout or context.step_data["timeout"]
     
-    if max_timeout == None:
-        max_timeout = context.step_data["timeout"]
+    # Determine find method based on selector type
+    use_find_element = selector_type in [By.ID, By.NAME]
     
-    if selector_type in [By.ID, By.NAME]:
-        method = device_driver.find_element
-    else:
-        method = device_driver.find_elements
     retry_count = 0
-    while time.time() - start_time < max_timeout :
-        # Reduce logging, above condition will print every 1 seconds
-        if retry_count%10 == 0:
+    healing_attempted = False
+    healed_selector = None
+    healed_selector_type = None
+    
+    while time.time() - start_time < max_timeout:
+        if retry_count % 10 == 0:
             logger.debug(f"Trying to find element with selector_type '{selector_type}', selector '{selector}' max_timeout : {max_timeout}")
+        
         try:
-            elements = method(selector_type, selector)
-            # Check if it returned at least 1 element
-            # This if used when find_element is used
-            if isinstance(elements, WebElement):
-                return [elements]
-            # This if used when find_elements is used
-            if len(elements) > 0:
-                return elements
+            # Use healed selector if available
+            current_selector = healed_selector or selector
+            current_selector_type = healed_selector_type or selector_type
+            
+            # Update method if using healed selector
+            if healed_selector and healed_selector_type:
+                use_find_element = healed_selector_type in [By.ID, By.NAME]
+            
+            # Find element(s)
+            find_start_time = time.time()
+            method = device_driver.find_element if use_find_element else device_driver.find_elements
+            elements = method(current_selector_type, current_selector)
+            
+            # Check if element(s) found
+            if isinstance(elements, WebElement) or (isinstance(elements, list) and elements):
+                # Check for healing
+                _handle_healing_check(context, selector_type, selector, find_start_time)
+                
+                # Return elements in consistent format
+                return [elements] if isinstance(elements, WebElement) else elements
             else:
-                raise CometaElementNotFoundError(f"Element not found for selector: {selector}")
+                raise CometaElementNotFoundError(f"Element not found for selector: {current_selector}")
             
         except Exception as err:
-            # Store exception in context so that it can be used with raising exception when step timeout happens
             context.step_exception = err
-        retry_count+=1
+            
+            # Log healing status on repeated failures
+            if (not healing_attempted and 
+                getattr(context, 'healenium_enabled', False) and 
+                hasattr(context, 'healenium_client') and
+                context.healenium_client.is_proxy_ready() and
+                retry_count > 10):  # After 10 failed attempts (1 second)
+                
+                logger.info(f"Element '{selector}' not found after {retry_count} attempts - Healenium proxy is active and should heal if possible")
+                healing_attempted = True
+        
+        retry_count += 1
         time.sleep(0.1)
     
-    # raise actual exception after the timeout 
+    # Raise the exception
     raise context.step_exception
 
 
