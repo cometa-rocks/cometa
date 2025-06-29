@@ -359,6 +359,7 @@ if [[ "${NORESTART:-FALSE}" == "FALSE" ]]; then
 	# #########################################
 	# Restart apache server
 	# #########################################
+	# This path is provided so that we do not override the apache conf directory
 	httpd -f /usr/local/apache2/cometa_conf/httpd.conf -k restart
 
 	find /proc -mindepth 2 -maxdepth 2 -name exe -exec ls -lh {} \; 2>/dev/null  | grep -q "/usr/bin/tail" || tail -f /usr/local/apache2/logs/error_log /usr/local/apache2/logs/access.log /usr/local/apache2/angular_serve.logs
