@@ -167,6 +167,11 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
 
   filteredGroupedActions$ = new BehaviorSubject<{ name: string; actions: Action[] }[]>([]);
 
+  /**
+   * Clipboard for storing copied steps.
+   */
+  clipboardSteps: any[] = [];
+
   constructor(
     private _dialog: MatDialog,
     private _api: ApiService,
@@ -273,7 +278,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
         step_action: step.step_action || '',
         step_type: step.step_type,
         continue_on_failure: step.continue_on_failure,
-        timeout: step.timeout || this.department?.settings?.step_timeout || 60
+        timeout: step.timeout || this.department?.settings?.step_timeout || 60,
+        selected: false
       });
 
       this.stepsForm.push(formGroup);
@@ -1183,7 +1189,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       step_action: [''],
       step_type: [''],
       continue_on_failure: [false],
-      timeout: [this.department?.settings?.step_timeout || 60]
+      timeout: [this.department?.settings?.step_timeout || 60],
+      selected: [false]
     });
 
 
@@ -1222,6 +1229,7 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       enabled: stepToCopy.value.enabled,
       continue_on_failure: stepToCopy.value.continue_on_failure,
       timeout: stepToCopy.value.timeout,
+      selected: false  // Add the selected FormControl, always start as false for new copies
     });
 
     this.stepsForm.insert(index, newStepToCopy);
@@ -1441,7 +1449,8 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
       ],
       step_action: [''],
       continue_on_failure: [false],
-      timeout: [this.department?.settings?.step_timeout || 60]
+      timeout: [this.department?.settings?.step_timeout || 60],
+      selected: [false]
     });
 
 
@@ -1693,6 +1702,94 @@ export class StepEditorComponent extends SubSinkAdapter implements OnInit {
     if (hasExplicitNewline || isVisuallyWrapped) {
       this.renderer.addClass(textarea, 'allow-resize');
     }
+  }
+
+  /**
+   * Toggle selection of all steps.
+   */
+  toggleSelectAllSteps(event: MatCheckboxChange) {
+    const checked = event.checked;
+    this.stepsForm.controls.forEach(control => {
+      control.get('selected')?.setValue(checked);
+    });
+    this._cdr.detectChanges();
+  }
+
+  /**
+   * Returns true if all steps are selected.
+   */
+  areAllStepsSelected(): boolean {
+    return this.stepsForm.controls.length > 0 && 
+           this.stepsForm.controls.every(control => control.get('selected')?.value);
+  }
+
+  /**
+   * Returns true if some (but not all) steps are selected.
+   */
+  areSomeStepsSelected(): boolean {
+    const selectedCount = this.stepsForm.controls.filter(control => control.get('selected')?.value).length;
+    return selectedCount > 0 && selectedCount < this.stepsForm.controls.length;
+  }
+
+  /**
+   * Returns true if there is at least one selected step.
+   */
+  hasSelectedSteps(): boolean {
+    return this.stepsForm.controls.some(control => control.get('selected')?.value);
+  }
+
+  /**
+   * Copies the selected steps to the clipboardSteps array.
+   */
+  copySelectedSteps() {
+    this.clipboardSteps = this.stepsForm.controls
+      .map((control, idx) => control.get('selected')?.value ? control.getRawValue() : null)
+      .filter(step => step !== null);
+  }
+
+  /**
+   * Returns true if there are steps in the clipboard to paste.
+   */
+  canPasteSteps(): boolean {
+    return this.clipboardSteps && this.clipboardSteps.length > 0;
+  }
+
+  /**
+   * Pastes the steps from clipboardSteps after the last selected step, or at the end if none selected.
+   */
+  pasteSteps() {
+    // Find the last selected index, or -1 if none
+    let lastSelectedIndex = -1;
+    this.stepsForm.controls.forEach((control, index) => {
+      if (control.get('selected')?.value) {
+        lastSelectedIndex = index;
+      }
+    });
+    
+    const insertIndex = lastSelectedIndex >= 0 ? lastSelectedIndex + 1 : this.stepsForm.length;
+    // Insert each step from clipboardSteps
+    this.clipboardSteps.forEach((step, i) => {
+      const formGroup = this._fb.group({
+        enabled: step.enabled,
+        screenshot: step.screenshot,
+        step_keyword: step.step_keyword,
+        compare: step.screenshot ? step.compare : false,
+        step_content: [step.step_content, CustomValidators.StepAction.bind(this)],
+        step_action: step.step_action || '',
+        step_type: step.step_type,
+        continue_on_failure: step.continue_on_failure,
+        timeout: step.timeout || this.department?.settings?.step_timeout || 60,
+        selected: false  // Add the selected FormControl, pasted steps start unselected
+      });
+      this.stepsForm.insert(insertIndex + i, formGroup);
+    });
+    // Clear clipboard after pasting
+    this.clipboardSteps = [];
+    // Clear selection
+    this.stepsForm.controls.forEach(control => {
+      control.get('selected')?.setValue(false);
+    });
+    this._cdr.detectChanges();
   }
 
 }

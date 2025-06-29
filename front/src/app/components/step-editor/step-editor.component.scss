@@ -391,7 +391,8 @@
   .enable,
   .screenshot,
   .compare,
-  .warnings {
+  .warnings,
+  .select-step {
     @include for-tablet-portrait-up {
       flex: 0 0 80px;
     }
@@ -414,10 +415,6 @@
       align-items: center;
       justify-content: center;
     }
-
-    // .select-text {
-    //   margin-top: 32px;
-    // }
   }
   .enable {
     @include for-tablet-portrait-up {
@@ -448,7 +445,7 @@
     flex: 0 0 40px;
   }
 
-  .enable, .screenshot, .compare {
+  .enable, .screenshot, .compare, .select-all {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -838,4 +835,35 @@ textarea {
 //   flex: 0 0 20px;
 //   text-align: center;
 //   font-weight: bold;
+// }
+
+// .select-step {
+//   display: flex;
+//   flex-direction: column;
+//   align-items: center;
+//   justify-content: center;
+//   min-width: 80px;
+//   max-width: 100px;
+//   flex: 0 0 80px;
+//   height: 50px;
+//   @include for-tablet-portrait-up {
+//     min-width: 80px;
+//     max-width: 100px;
+//     flex: 0 0 80px;
+//   }
+//   span.desktop {
+//     display: inline-block;
+//     font-weight: 500;
+//     margin-bottom: 2px;
+//     margin-right: 0;
+//   }
+//   span.mobile {
+//     display: none;
+//   }
+//   .mat-checkbox {
+//     margin: 0 auto;
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//   }
 // }
