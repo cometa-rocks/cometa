@@ -11,6 +11,33 @@
        * Run URL checks before loading anything.
        */
 
+      // Check current URL for port and store backend URI in localStorage
+      function checkAndStoreBackendURI() {
+        const currentUrl = window.location.href;
+        const urlObj = new URL(currentUrl);
+        
+        // Check if the URL contains a port
+        if (urlObj.port) {
+          console.log('Port detected in URL:', urlObj.port);
+          
+          // Create the full backend URI with protocol, hostname, port, and /backend/ path
+          const fullBackendURI = `${urlObj.protocol}//${urlObj.hostname}:${urlObj.port}/backend/`;
+          
+          // Create the host:port version
+          const hostPortURI = `${urlObj.hostname}:${urlObj.port}`;
+          
+          // Store both values in localStorage
+          localStorage.setItem('co_backend_uri', fullBackendURI);
+          localStorage.setItem('socket_url', hostPortURI);
+          
+          console.log('Stored co_backend_uri:', fullBackendURI);
+          console.log('Stored socket_url:', hostPortURI);
+        }
+      }
+      
+      // Run the check immediately
+      checkAndStoreBackendURI();
+
       // check if query parameters contain target_link_uri if not redirect to /
       if (
         !window.location.search.includes('target_link_uri') &&
