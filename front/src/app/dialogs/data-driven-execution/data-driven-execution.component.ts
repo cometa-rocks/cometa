@@ -3,6 +3,7 @@ import {
   Component,
   HostListener,
   OnInit,
+  Inject
 } from '@angular/core';
 import { Select, Store } from '@ngxs/store';
 import { Observable, finalize } from 'rxjs';
@@ -34,6 +35,7 @@ import { MatLegacySelectModule } from '@angular/material/legacy-select';
 import { MatLegacyFormFieldModule } from '@angular/material/legacy-form-field';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
+import { API_BASE } from 'app/tokens';
 
 @Component({
   selector: 'data-driven-execution',
@@ -136,7 +138,9 @@ export class DataDrivenExecution implements OnInit {
     private cdRef: ChangeDetectorRef,
     private _store: Store,
     private _dialog: MatDialog,
-    public dialogRef: MatDialogRef<DataDrivenExecution>
+    public dialogRef: MatDialogRef<DataDrivenExecution>,
+    @Inject(API_BASE) private _api_base: string
+
   ) {}
 
   ngOnInit() {
@@ -303,7 +307,7 @@ export class DataDrivenExecution implements OnInit {
   execute_data_driven(file: UploadedFile, parent) {
     this._http
       .post(
-        '/backend/exec_data_driven/',
+        `${this._api_base}exec_data_driven/`,
         {
           file_id: file.id,
         },

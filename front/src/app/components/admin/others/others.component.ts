@@ -3,6 +3,7 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  Inject
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { NgFor, NgIf, AsyncPipe } from '@angular/common';
@@ -15,6 +16,8 @@ import { ApiService } from '@services/api.service';
 import { Observable } from 'rxjs';
 import { Subscription } from 'rxjs';
 import { HouseKeepingComponent } from './housekeeping/housekeeping.component';
+import { API_BASE } from 'app/tokens';
+
 @Component({
   selector: 'admin-others',
   templateUrl: './others.component.html',
@@ -33,12 +36,13 @@ import { HouseKeepingComponent } from './housekeeping/housekeeping.component';
 export class AdminOthersComponent implements OnInit {
   houseKeepingLogs: HouseKeepingLogs[];
   private subscription: Subscription;
-  
+   
   constructor(
     private _snack: MatSnackBar,
     private _store: Store,
     private _api: ApiService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    @Inject(API_BASE) private _api_base: string
   ) {}
 
   ngOnInit() {
@@ -60,7 +64,9 @@ export class AdminOthersComponent implements OnInit {
   }
 
   updateBrowsers() {
-    fetch('/backend/parseBrowsers/').then(res => {
+
+    // `url(${this.api_base}screenshot/${screenshot}/)`
+    fetch(`${this._api_base}parseBrowsers/`).then(res => {
       if (res.status == 200) {
         this._store.dispatch(new Browsers.GetBrowsers());
         this._snack.open('Browsers updated successfully!', 'OK');
@@ -71,7 +77,7 @@ export class AdminOthersComponent implements OnInit {
   }
 
   updateActions() {
-    fetch('/backend/parseActions/').then(res => {
+    fetch(`${this._api_base}parseActions/`).then(res => {
       if (res.status == 200) {
         this._store.dispatch(new Actions.GetActions());
         this._snack.open('Step Actions updated successfully!', 'OK');
@@ -83,7 +89,7 @@ export class AdminOthersComponent implements OnInit {
 
   // Update the mobile list
   updateMobilesList() {
-    fetch('/backend/parse_mobiles/')
+    fetch(`${this._api_base}parse_mobiles/`)
       .then(res => res.json()) 
       .then(data => {
         // Update the mobiles list
@@ -98,7 +104,7 @@ export class AdminOthersComponent implements OnInit {
   
   // Update the cometa browsers
   updateCometaBrowsers() {
-    fetch('/backend/parseCometaBrowsers/')
+    fetch(`${this._api_base}parseCometaBrowsers/`)
       .then(res => res.json())
       .then(success => { 
         // Boolean value to check if the update was successful 
