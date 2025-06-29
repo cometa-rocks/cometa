@@ -323,6 +323,7 @@ do
     esac
 done
 
+
 # #########
 # Execute function depending on what is found on cmd
 # #########
@@ -334,6 +335,17 @@ test "${OPENIDC:-FALSE}" == "TRUE" && install_openidc
 check_ssl_certificate
 
 test "${BASIC:-FALSE}" == "TRUE" && install_essentials
+
+# This done for show initial loading screen, and let develop know that it's loading in the background	
+if [[ "${NORESTART:-FALSE}" == "FALSE" && "${SERVE:-FALSE}" == "FALSE" ]]; then
+	# #########################################
+	# Restart apache server
+	# #########################################
+	cp -f /code/front/src/server_starting.html /usr/local/apache2/htdocs/welcome.html
+	cp -r /code/front/src/assets /usr/local/apache2/htdocs/
+	httpd -f /usr/local/apache2/cometa_conf/httpd.conf -k restart
+fi
+
 test "${ANGULAR:-FALSE}" == "TRUE" && install_angular
 test "${COMPILE:-FALSE}" == "TRUE" && build_project
 test "${SERVE:-FALSE}" == "TRUE" && serve_project
