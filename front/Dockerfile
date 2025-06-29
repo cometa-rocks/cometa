@@ -49,7 +49,7 @@ RUN mkdir -p /code /screenshots /code/front /usr/local/apache2/conf \
     && chmod -R 755 /code /screenshots /usr/local/apache2 /share/apache2/conf
 
 # # Copy build artifacts and configuration files
-# COPY --chown=cometa:cometa --from=build /app/dist/ /usr/local/apache2/htdocs
+# COPY --chown=cometa:cometa --from=build /app/dist/ /usr/local/apache2/htdocs 
 # # COPY --chown=cometa:cometa apache-conf/ /usr/local/apache2/conf/
 # COPY --chown=cometa:cometa apache-conf/mod_auth_openidc.so /usr/local/apache2/modules/
 # COPY --chown=cometa:cometa start_server.sh /code/front/start_server.sh
@@ -57,11 +57,11 @@ RUN mkdir -p /code /screenshots /code/front /usr/local/apache2/conf \
 WORKDIR /code/front
 
 # Copy the Angular build output to the Nginx HTML directory
-COPY --from=build --chown=cometa:cometa /app/dist/ /usr/local/apache2/htdocs
-COPY --chown=cometa:cometa ./apache2/conf /code/front/apache2/cometa_conf
-COPY --chown=cometa:cometa ./apache2/conf /code/front/apache2/conf
-COPY --chown=cometa:cometa ./apache2/metadata /code/front/apache2/metadata
-COPY --chown=cometa:cometa ./apache2/modules /code/front/apache2/modules
+COPY --chown=cometa:cometa --from=build /app/dist/ /usr/local/apache2/htdocs
+# COPY --from=build --chown=cometa:cometa /app/dist/ /usr/local/apache2/htdocs 
+COPY --chown=cometa:cometa ./apache2/conf/*.conf /usr/local/apache2/conf
+COPY --chown=cometa:cometa ./apache2/metadata/* /code/front/apache2/metadata
+COPY --chown=cometa:cometa ./apache2/modules /usr/local/apache2/modules
 
 RUN mkdir -p /usr/local/apache2/htdocs/mobile/inspector
 # Copy appium Inspector code from inspector build
