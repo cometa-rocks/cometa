@@ -152,6 +152,8 @@ services:
     container_name: cometa_front
     volumes:
       - ./data/front/apache2/metadata:/usr/local/apache2/conf/metadata
+      # httpd.conf file and paths.conf file are kept during build, 
+      # cometa_conf folder is only mapped for openidc.conf file
       - ./data/front/apache2/conf:/usr/local/apache2/cometa_conf
       - ./data/front/apache2/certs:/share/apache2/certs
       - ./data/cometa/screenshots:/screenshots

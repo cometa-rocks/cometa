@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-postgres-deployment
+  namespace: cometa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cometa-postgres-pod
+  template:
+    metadata:
+      labels:
+        app: cometa-postgres-pod
+    spec:
+      tolerations:
+      - key: "architecture"
+        operator: "Equal"
+        value: "amd"
+        effect: "NoSchedule"
+
+      securityContext:
+        fsGroup: 999
+
+      containers:
+      - name: postgres
+        image: postgres:latest
+        ports:
+        - containerPort: 5432
+        # command: ["/bin/bash", "-c", "sleep infinity"]
+        env:
+          - name: PGDATA
+            value: "/var/lib/postgresql/data/pgdata"
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef: 
+                name: cometa-secrets
+                key: DATABASE_PASSWORD
+            
+        volumeMounts:
+          - name: cometa-db-volume
+            mountPath: /var/lib/postgresql/data/
+            subPath: ./db_data2
+
+
+      volumes:
+        - name: cometa-db-volume
+          persistentVolumeClaim:
+            claimName: cometa-db-volume-claim-disk
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: cometa
+spec:
+  selector:
+    app: cometa-postgres-pod
+  ports:
+  - port: 5432
+    targetPort: 5432
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-network-policy
+  namespace: cometa
+spec:
+  podSelector:
+    matchLabels:
+      app: cometa-postgres-pod
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: cometa-django-pod
+      namespaceSelector:
+        matchLabels:
+          name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+    ports:
+    - protocol: TCP
+      port: 5432
