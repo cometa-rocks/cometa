@@ -405,7 +405,7 @@ def before_all(context):
     context.USE_COMETA_BROWSER_IMAGES = USE_COMETA_BROWSER_IMAGES
     
     # Initialize Healenium configuration
-    ENABLE_HEALENIUM = ConfigurationManager.get_configuration("COMETA_FEATURE_HEALENIUM", True)
+    ENABLE_HEALENIUM = ConfigurationManager.get_configuration("COMETA_FEATURE_HEALENIUM", False)
     
     # Normalize to boolean (handle str/None)
     if isinstance(ENABLE_HEALENIUM, str):
@@ -738,13 +738,6 @@ def before_all(context):
     })
 
     logger.info("Processing done ... will continue with the steps.")
-    
-    # Log Healenium status after browser creation
-    if context.healenium_enabled and hasattr(context, 'healenium_client'):
-        if getattr(context, 'healenium_proxy_switched', False):
-            logger.info("Browser created through Healenium proxy - self-healing is active")
-        else:
-            logger.info("Browser created with direct connection - Healenium is disabled for this session")
 
 
 # Get video url with context of browser
