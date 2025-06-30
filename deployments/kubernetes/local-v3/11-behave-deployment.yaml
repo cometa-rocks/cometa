@@ -1,0 +1,192 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cometa-behave-deployment
+  namespace: cometa  # Specify the namespace
+  labels:
+    app: cometa-behave-pod
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cometa-behave-pod
+  template:
+    metadata:
+      labels:
+        app: cometa-behave-pod
+    spec:
+      serviceAccountName: pod-manager
+      tolerations:
+      - key: "architecture"
+        operator: "Equal"
+        value: "amd"
+        effect: "NoSchedule"
+        
+      securityContext:
+        fsGroup: 472
+        runAsGroup: 472
+        runAsNonRoot: true
+        runAsUser: 472
+      
+      containers:
+      - name: cometa-behave-container
+        image: cometa/behave:latest
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsGroup: 472
+          runAsUser: 472
+          seccompProfile:
+            type: RuntimeDefault
+        ports:
+        - containerPort: 8001
+        volumeMounts:
+        - name: cometa-volume
+          mountPath: /data/screenshots
+          subPath: ./data/cometa/screenshots
+        - name: cometa-volume
+          mountPath: /data/department_data
+          subPath: ./data/department_data
+        - name: cometa-volume
+          mountPath: /code/config
+          subPath: ./data/cometa/config
+        - name: cometa-volume
+          mountPath: /data/test/html
+          subPath: ./data/html
+        - name: cometa-volume
+          mountPath: /data/test/downloads
+          subPath: ./data/cometa/downloads
+        - name: cometa-volume
+          mountPath: /data/test/uploads
+          subPath: ./data/cometa/uploads
+        - name: cometa-volume
+          mountPath: /data/logs
+          subPath: ./share/code/behave/logs
+        - name: cometa-volume
+          mountPath: /share/certs
+          subPath: ./data/redis/certs
+        # command: ["/bin/bash","-c"]
+        # args: ['sleep infinity']
+
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: REDIS_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap        
+              key: REDIS_SERVER 
+        - name: REDIS_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap        
+              key: REDIS_PORT 
+        - name: REDIS_WORKERS
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap        
+              key: REDIS_WORKERS 
+        - name: THREADS
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap        
+              key: THREADS 
+        - name: CRONTAB_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap        
+              key: CRONTAB_SERVER_URL 
+        - name: CRONTAB_SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap        
+              key: CRONTAB_SERVER_PORT 
+        - name: SOCKET_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap        
+              key: SOCKET_SERVER_URL 
+        - name: SOCKET_SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap        
+              key: SOCKET_SERVER_PORT 
+        - name: DJANGO_SERVER_URL
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap        
+              key: DJANGO_SERVER_URL 
+        - name: DJANGO_SERVER_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap        
+              key: DJANGO_SERVER_PORT 
+        - name: BROWSERS
+          valueFrom:
+            configMapKeyRef:
+              name: cometa-configmap        
+              key: BROWSERS 
+
+        resources:
+          limits:
+            cpu: "4"
+            memory: "6Gi"
+          requests:
+            cpu: "1"
+            memory: "1Gi"
+      # hostAliases:
+      # - ip: "your_ip"
+      #   hostnames:
+      #     - "hostname1"
+      #     - "hostname2"
+     
+      volumes:
+      - name: cometa-volume
+        persistentVolumeClaim:
+          claimName: cometa-data-volume-claim
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cometa-behave-service
+  namespace: cometa  # Specify the namespace
+spec:
+  selector:
+    app: cometa-behave-pod
+  ports:
+    - protocol: TCP
+      port: 8001
+      targetPort: 8001
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: behave-allow-from-django
+  namespace: cometa  # Ensure this is applied within the 'cometa' namespace
+spec:
+  podSelector:
+    matchLabels:
+      app: cometa-behave-pod  # This selects the pods that the policy applies to
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: cometa-django-pod  # Only allow pods with this label
+      namespaceSelector:
+        matchLabels:
+          name: cometa  # Restrict ingress to pods in the 'cometa' namespace
+
+    ports:
+    - protocol: TCP
+      port: 8001  # Assuming traffic comes on port 8001

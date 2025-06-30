@@ -1,0 +1,65 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  creationTimestamp: "2025-06-26T21:03:55Z"
+  name: developer
+  namespace: cometa
+  resourceVersion: "285815"
+  uid: 264ff08f-3881-488d-a8fd-82d511eed536
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  - pods
+  - services
+  - persistentvolumeclaims
+  - persistentvolumes
+  - networkpolicies
+  - serviceaccounts
+  - '*'
+  verbs:
+  - '*'
+  - get
+  - log
+  - create
+  - update
+  - watch
+  - delete
+  - list
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - replicasets
+  verbs:
+  - get
+  - create
+  - update
+  - watch
+  - delete
+  - list
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  - ingresses
+  verbs:
+  - get
+  - create
+  - update
+  - watch
+  - delete
+  - list
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  - rolebindings
+  verbs:
+  - get
+  - create
+  - update
+  - watch
+  - delete
+  - list
