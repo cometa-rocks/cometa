@@ -15,6 +15,10 @@ import uuid, time, sys, json
 from kubernetes import client, config
 from kubernetes.client import ApiException
 
+
+from backend.utility.functions import detect_deployment_environment
+
+
 # src container/django container service_manager.py 
 
 class KubernetesServiceManager:
@@ -387,17 +391,7 @@ class DockerServiceManager:
     def inspect_service(self,service_name_or_id):
         return self.docker_client.containers.get(service_name_or_id).attrs
 
-# Select ServiceManager Parent class based on the deployment 
-service_manager = DockerServiceManager
-
-IS_KUBERNETES_DEPLOYMENT = ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker") == "kubernetes"
-
-if IS_KUBERNETES_DEPLOYMENT:
-    service_manager = KubernetesServiceManager
-    logger.debug(
-        f'Deployment type is {ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT","docker")}'
-    )
-
+service_manager = DockerServiceManager if detect_deployment_environment() == 'docker' else KubernetesServiceManager
 
 class ServiceManager(service_manager):
     def __init__(self, *args, **kwargs):

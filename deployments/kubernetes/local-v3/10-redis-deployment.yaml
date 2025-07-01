@@ -111,6 +111,10 @@ spec:
     - namespaceSelector:
         matchLabels:
           name: cometa  # Allow ingress from pods within the 'cometa' namespace
+      podSelector:
+        matchLabels:
+          app: cometa-behave-pod
+      
     ports:
     - protocol: TCP
       port: 6379  # Only allow TCP traffic on port 6379

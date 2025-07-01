@@ -169,7 +169,7 @@ services:
       - "443:443"
     entrypoint: bash /code/front/start_server.sh
     healthcheck:
-      test: ["CMD", "curl", "-s", "-k", "https://localhost/lb_test.html"]
+      test: ["CMD", "curl", "-s", "-k", "https://localhost/welcome.html"]
       interval: 10s
       timeout: 5s
       retries: 3
