@@ -28,6 +28,7 @@ spec:
         runAsNonRoot: true
         runAsUser: 472
       
+     
       containers:
       - name: cometa-behave-container
         image: cometa/behave:latest
@@ -42,8 +43,28 @@ spec:
           runAsUser: 472
           seccompProfile:
             type: RuntimeDefault
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          
         ports:
         - containerPort: 8001
+          name: http
+
         volumeMounts:
         - name: cometa-volume
           mountPath: /data/screenshots

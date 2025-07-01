@@ -37,6 +37,25 @@ spec:
         command: ["/bin/bash","-c"]
         args: ['/code/front/start_server.sh']
         # args: ['sleep infinity']
+        
+        livenessProbe:
+          httpGet:
+            path: /welcome.html
+            port: https
+            scheme: HTTPS
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /welcome.html
+            port: https
+            scheme: HTTPS
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
 
         env:
         - name: DJANGO_SERVER_URL
