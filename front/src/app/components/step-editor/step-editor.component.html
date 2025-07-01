@@ -43,6 +43,18 @@
       color="primary"
       class="select-all checkbox-blue"></mat-checkbox>
   </div>
+  <div class="select-step">
+    <span class="desktop">Select</span>
+    <span class="mobile"><i></i></span>
+    <mat-checkbox
+      (change)="toggleSelectAllSteps($event)"
+      color="primary"
+      class="select-all checkbox-blue"
+      aria-label="Select all steps"
+      [matTooltip]="'step_editor.select_all_steps' | translate"
+      matTooltipPosition="above">
+    </mat-checkbox>
+  </div>
   <div class="step">Step Description</div>
   <div class="warnings">
     <div class="desktop">Status</div>
@@ -132,18 +144,21 @@
               <mat-icon>more_vert</mat-icon>
             </button>
             <div class="step-extras">
-
               <div class="index">{{ i + 1 }}</div>
               <mat-checkbox
                 formControlName="enabled"
                 aria-label="Enable"
                 color="primary"
-                class="enable checkbox-blue"></mat-checkbox>
+                class="enable checkbox-blue"
+                (click)="onEnableCheckboxClick($event, i)"
+                >
+              </mat-checkbox>
               <mat-checkbox
                 formControlName="screenshot"
                 aria-label="Screenshot"
                 color="primary"
                 class="screenshot checkbox-blue"
+                (click)="onScreenshotCheckboxClick($event, i)"
                 (change)="screenshotChange($event, i)"
                 [matTooltip]="'step_editor.screenshot_disabled' | translate"
                 matTooltipPosition="above"></mat-checkbox>
@@ -152,9 +167,15 @@
                 aria-label="Compare"
                 color="primary"
                 class="compare checkbox-blue"
+                (click)="onCompareCheckboxClick($event, i)"
                 (change)="onCompareChange($event, i)"
                 [matTooltip]="'step_editor.compare_enabled' | translate"
                 matTooltipPosition="above"></mat-checkbox>
+              <mat-checkbox
+                formControlName="selected"
+                color="primary"
+                class="select-step checkbox-blue"
+                aria-label="Select step"></mat-checkbox>
             </div>
             <div class="prefix">
               <mat-select formControlName="step_keyword">
@@ -365,8 +386,20 @@
       </div>
       <div *ngIf="!showHideStepDocumentation">
         <div *ngIf="stepVisible[i]" class="stepContainerDocumentation">
-
+          
           <div class="containerFather">
+            <div class="fake-drop">
+            </div>
+            <div class="fake-dots">
+            </div>
+            <div class="fake-hash">
+            </div>
+            <div class="fake-enable">
+            </div>
+            <div class="fake-screenshot">
+            </div>
+            <div class="fake-compare">
+            </div>
             <div class="stepDescriptionExample">
               <p class="stepDescriptionPar">
                 <span class="bluetext">Description:</span> <br>
@@ -425,6 +458,28 @@
 </div>
 <div class="button-actions">
   <div class="left">
+    <button
+      type="button"
+      color="primary"
+      (click)="copySelectedSteps()"
+      [disabled]="!hasSelectedSteps()"
+      mat-stroked-button
+      class="copy_selected_steps"
+      [matTooltip]="'step_editor.copy_selected_steps' | translate"
+      matTooltipPosition="above">
+      COPY SELECTED STEPS
+    </button>
+    <button
+      *ngIf="canPasteSteps()"
+      type="button"
+      color="primary"
+      (click)="pasteSteps()"
+      mat-stroked-button
+      class="paste_steps"
+      [matTooltip]="'step_editor.paste_steps_here' | translate"
+      matTooltipPosition="above">
+      PASTE STEPS HERE
+    </button>
     <button
       type="button"
       color="primary"

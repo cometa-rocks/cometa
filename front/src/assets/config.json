@@ -1,5 +1,5 @@
 {
-  "version": "3.0.64",
+  "version": "3.0.68",
   "language": "en",
   "appTitle": "co.meta",
   "scenario": "dev",
@@ -236,6 +236,46 @@
     "{Code is Poetry}"
   ],
   "changelog": [
+    {
+      "version": "3.0.68",
+      "date": "2025-06-30",
+      "features": [
+        {
+          "title": "Copy and paste steps functionality",
+          "description": "Added the ability to copy and paste steps in the Step Editor."
+        }
+      ]
+    },
+    {
+      "version": "3.0.67",
+      "date": "2025-06-27",
+      "features": [
+        {
+          "title": "Enable multi-selection of checkboxes via Shift + Click #6514",
+          "description": "Implemented support for selecting multiple checkboxes by holding the Shift key and clicking on another checkbox."
+        }
+      ]
+    },
+    {
+      "version": "3.0.66",
+      "date": "2025-06-25",
+      "features": [
+        {
+          "title": "Enhance step editor layout with new fake columns for documentation #6464",
+          "description": "Adjusted styling for better alignment, including updated padding and flex properties in SCSS for improved responsiveness."
+        }
+      ]
+    },    
+    {
+      "version": "3.0.65",
+      "date": "2025-06-25",
+      "features": [
+        {
+          "title": "Help Shortcuts Table Improvements (#6496)",
+          "description": "Added 'Administration' and 'Create Folder' shortcut tables, unified table width, and sorted tables alphabetically in the help section."
+        }
+      ]
+    },
     {
       "version": "3.0.64",
       "date": "2025-06-24",

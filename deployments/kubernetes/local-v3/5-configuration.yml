@@ -1,0 +1,51 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: cometa-configmap
+  namespace: cometa
+data:
+  # Database server configuration
+  DATABASE_SERVER: "postgres-service"
+  DATABASE_PORT: "5432"
+  
+  # Django server configuration
+  DJANGO_SERVER_URL: "cometa-django-service"
+  DJANGO_SERVER_PORT: "8000"
+
+  # Redis server configuration
+  REDIS_SERVER_URL: "redis-service"
+  REDIS_SERVER_PORT: "6379"
+
+  # Socket server configuration
+  SOCKET_SERVER_URL: "cometa-socket-service"
+  SOCKET_SERVER_PORT: "3001"
+
+  # Novnc server configuration
+  NOVNC_SERVER_URL: "cometa-novnc-service"
+  NOVNC_SERVER_PORT: "8080"
+
+  # Scheduler server configuration
+  CRONTAB_SERVER_URL: "cometa-scheduler-service"
+  CRONTAB_SERVER_PORT: "8080"
+
+  # Front server configuration
+  FRONT_SERVER_HOST: "cometa-front-service"
+  FRONT_SERVER_PORT: "8080"
+  FRONT_SERVER_PROTOCOL: "https"
+  FRONT_SERVER_CERT: "/share/apache2/certs/cert.pem"
+  FRONT_SERVER_KEY: "/share/apache2/certs/key.pem"
+
+  # Behave server configuration
+  BEHAVE_SERVER_URL: "cometa-behave-service"
+  BEHAVE_SERVER_PORT: "8001"
+
+  # Redis server configuration
+  REDIS_SERVER: "cometa-redis-service"   
+  REDIS_PORT: "6379" 
+
+  # Parallel Browsers configuration in behave
+  BROWSERS: "10"
+  # Redis workers configuration in behave
+  REDIS_WORKERS: "10"
+  # Threads configuration in behave
+  THREADS: "10"

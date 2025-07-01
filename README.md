@@ -39,7 +39,7 @@
 
 ## Why Co.Meta?
 
-Co.Meta is a cutting-edge, open-source meta-test product with an enterprise-grade architecture and security. Built with love for DevOps, SDET, and QA engineers, offering both Codeless & Coding approaches.
+In today's landscape where AI and open source are rapidly advancing, robust software security is not optional. Co.Meta is a cutting-edge, open-source meta-test product with an enterprise-grade architecture and security. Built with love for DevOps, SDET, and QA engineers, offering both Codeless & Coding approaches.
 
 ## One More Thing...
 Imagine a world where testing isn't just about finding bugs. It's about creating perfect user experiences, across every system, every time. Where you choose Codeless simplicity or full-code power — effortlessly. That world is here.
@@ -52,18 +52,18 @@ Imagine a world where testing isn't just about finding bugs. It's about creating
 | Feature | Status | Description | Video |
 |---------|--------|-------------|-------|
 | Accessibility | ✔️ | Automated accessibility testing compliant with European Accessibility Act | [Watch Demo](https://www.youtube.com/watch?v=04bZhh2188Y) |
-| AI | ✔️ | AI-powered test automation and analysis | [Watch Demo](https://www.loom.com/share/1d5cdb0681ab46308ddf96de0b824e10?sid=5cb1df8b-04ac-4dcd-96e5-47e2a96565b6) |
+| AI & Automation | ✔️ | AI-powered test automation and analysis | [Watch Demo](https://www.loom.com/share/1d5cdb0681ab46308ddf96de0b824e10?sid=5cb1df8b-04ac-4dcd-96e5-47e2a96565b6) |
 | API | ✔️ | Advanced API testing with header and payload management | [Watch Demo](https://youtu.be/plC8qag08ZQ) |
 | Automation | ✔️ | REST API automation with JSON and XML support | [Watch Demo](https://www.youtube.com/watch?v=QQf6nrAP-Sw) |
 | CI/CD Integration | ✔️ | Seamless integration with major CI/CD platforms | [Part 1](https://youtu.be/TFsZSmyM4wU) + [Part 2](https://youtu.be/TD9U_cbM_JA) |
 | Data-Driven | ✔️ | Advanced file handling and data-driven testing | [Watch Demo](https://youtu.be/f-3PxxhrIGY) |
-| Database | ✔️ | Comprehensive database testing capabilities | [Watch Demo](https://www.youtube.com/watch?v=uGRXoUh3aFA) |
+| Database Testing | ✔️ | Comprehensive database testing capabilities | [Watch Demo](https://www.youtube.com/watch?v=uGRXoUh3aFA) |
 | E2E | ✔️ | End-to-end testing across multiple platforms | Coming Soon |
 | Mobile | ✔️ | Mobile application testing | Coming Soon |
-| Windows | ✔️ | Native Windows application testing | [Watch Demo](https://youtu.be/9AqaR4W2Z1Y) |
+| Windows| ✔️ | Native Windows application testing (in PoC phase) | [Watch Demo](https://youtu.be/9AqaR4W2Z1Y) |
 | Monitoring | ✔️ | Real-time test monitoring and reporting | Coming Soon |
 | Load Testing | ✔️ | Performance and load testing capabilities | [Watch Demo](https://www.youtube.com/watch?v=hWAyx6iBbU4) |
-| Security | ✔️ | Basic security testing features | Coming Soon |
+| Basic Security | ✔️ | Basic security testing features | Coming Soon |
 
 </details>
 
@@ -115,7 +115,7 @@ Imagine a world where testing isn't just about finding bugs. It's about creating
 
 | Category | Technologies |
 |----------|-------------|
-| **Testing Core** | [![Behave](https://img.shields.io/badge/Behave-000000?style=for-the-badge&logo=python&logoColor=white)](https://behave.readthedocs.io/en/stable/) [![Selenium](https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=selenium&logoColor=white)](https://selenium.dev/) [![Appium](https://img.shields.io/badge/Appium-000000?style=for-the-badge&logo=appium&logoColor=white)](https://appium.io/) |
+| **Testing Core** | [![Behave](https://img.shields.io/badge/Behave-000000?style=for-the-badge&logo=python&logoColor=white)](https://behave.readthedocs.io/en/stable/) [![Selenium](https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=selenium&logoColor=white)](https://selenium.dev/) [![Appium](https://img.shields.io/badge/Appium-000000?style=for-the-badge&logo=appium&logoColor=white)](https://appium.io/) [![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev/) |
 | **Core Language** | [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org) |
 | **Backend** | [![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/) |
 | **Database** | [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/) |

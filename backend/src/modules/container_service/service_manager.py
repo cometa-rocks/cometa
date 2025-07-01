@@ -15,6 +15,10 @@ import uuid, time, sys, json
 from kubernetes import client, config
 from kubernetes.client import ApiException
 
+
+from backend.utility.functions import detect_deployment_environment
+
+
 # src container/django container service_manager.py 
 
 class KubernetesServiceManager:
@@ -149,9 +153,15 @@ class DockerServiceManager:
 
     # This method will create the container base on the environment
     def create_service(self, configuration) -> dict:
-        logger.info(f"Creating container with configuration : {configuration}")
-        container = self.docker_client.containers.run(**configuration)
-        return container.attrs
+        try:
+            logger.info(f"Creating container with configuration : {configuration}")
+            container = self.docker_client.containers.run(**configuration)
+            return container.attrs
+        except docker.errors.NotFound:
+            return {"error": f"Image {configuration['image']} not found"}
+        except Exception as e:
+            return {"error": f"{str(e)}"}
+        
 
     def get_service_name(self, uuid):
         return self.inspect_service(uuid)['Config']['Hostname']           
@@ -381,17 +391,7 @@ class DockerServiceManager:
     def inspect_service(self,service_name_or_id):
         return self.docker_client.containers.get(service_name_or_id).attrs
 
-# Select ServiceManager Parent class based on the deployment 
-service_manager = DockerServiceManager
-
-IS_KUBERNETES_DEPLOYMENT = ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT", "docker") == "kubernetes"
-
-if IS_KUBERNETES_DEPLOYMENT:
-    service_manager = KubernetesServiceManager
-    logger.debug(
-        f'Deployment type is {ConfigurationManager.get_configuration("COMETA_DEPLOYMENT_ENVIRONMENT","docker")}'
-    )
-
+service_manager = DockerServiceManager if detect_deployment_environment() == 'docker' else KubernetesServiceManager
 
 class ServiceManager(service_manager):
     def __init__(self, *args, **kwargs):
