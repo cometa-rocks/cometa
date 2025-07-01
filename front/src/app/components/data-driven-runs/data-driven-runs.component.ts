@@ -8,6 +8,7 @@ import {
   ViewChild,
   ElementRef,
   TemplateRef,
+  Inject
 } from '@angular/core';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { PageEvent } from '@angular/material/paginator';
@@ -64,6 +65,8 @@ import { CommonModule } from '@angular/common';
 import * as _ from 'lodash';
 import { LogService } from '@services/log.service';
 import { FilesManagementComponent } from '@components/files-management/files-management.component';
+import { API_BASE } from 'app/tokens';
+
 
 // Add interfaces to fix type errors
 interface Department {
@@ -259,7 +262,8 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
     private _snackBar: MatSnackBar,
     private _store: Store,
     private actions$: Actions,
-    private log: LogService
+    private log: LogService,
+    @Inject(API_BASE) private _api_base: string
   ) {
 
     this.focusSubscription = this.inputFocusService.inputFocus$.subscribe((inputFocused) => {
@@ -834,7 +838,7 @@ export class DataDrivenRunsComponent implements OnInit, OnDestroy {
   execute_data_driven(file: UploadedFile, parent) {
     this._http
       .post(
-        '/backend/exec_data_driven/',
+        `${this._api_base}exec_data_driven/`,
         {
           file_id: file.id,
         },

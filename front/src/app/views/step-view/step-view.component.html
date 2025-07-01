@@ -103,7 +103,7 @@
             item.status === 'Success' || 
             (!item.status && item.success) as passed
           ">
-          <div #nameElement class="step-row" (click)="goToDetail(item.step_result_id)">
+          <div #nameElement class="step-row" (click)="onStepRowClick($event, item.step_result_id)">
             <div
               class="status-bar"
               [ngClass]="passed ? 'success' : 'failed'"></div>
@@ -130,9 +130,10 @@
                   </div>
                 </ng-container>
                 <div class="step-name">{{ item?.step_name | truncateApiBody }}</div>
-                <small *ngIf="item?.error" class="step-error" [id]="'row-' + item.step_result_id" #stepError>
-                  Custom error: {{ item?.error }}
-                </small>                                       
+                <div *ngIf="item?.error" class="step-error" [id]="'row-' + item.step_result_id" #stepError>
+                  <span class="error-label">CUSTOM ERROR:</span>
+                  <pre class="error-content">{{ item?.error }}</pre>
+                </div>
               </div>
             </div>
             <div class="status"  >
