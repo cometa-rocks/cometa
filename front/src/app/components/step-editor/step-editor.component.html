@@ -43,6 +43,18 @@
       color="primary"
       class="select-all checkbox-blue"></mat-checkbox>
   </div>
+  <div class="select-step">
+    <span class="desktop">Select</span>
+    <span class="mobile"><i></i></span>
+    <mat-checkbox
+      (change)="toggleSelectAllSteps($event)"
+      color="primary"
+      class="select-all checkbox-blue"
+      aria-label="Select all steps"
+      [matTooltip]="'step_editor.select_all_steps' | translate"
+      matTooltipPosition="above">
+    </mat-checkbox>
+  </div>
   <div class="step">Step Description</div>
   <div class="warnings">
     <div class="desktop">Status</div>
@@ -132,7 +144,6 @@
               <mat-icon>more_vert</mat-icon>
             </button>
             <div class="step-extras">
-
               <div class="index">{{ i + 1 }}</div>
               <mat-checkbox
                 formControlName="enabled"
@@ -160,6 +171,11 @@
                 (change)="onCompareChange($event, i)"
                 [matTooltip]="'step_editor.compare_enabled' | translate"
                 matTooltipPosition="above"></mat-checkbox>
+              <mat-checkbox
+                formControlName="selected"
+                color="primary"
+                class="select-step checkbox-blue"
+                aria-label="Select step"></mat-checkbox>
             </div>
             <div class="prefix">
               <mat-select formControlName="step_keyword">
@@ -442,6 +458,28 @@
 </div>
 <div class="button-actions">
   <div class="left">
+    <button
+      type="button"
+      color="primary"
+      (click)="copySelectedSteps()"
+      [disabled]="!hasSelectedSteps()"
+      mat-stroked-button
+      class="copy_selected_steps"
+      [matTooltip]="'step_editor.copy_selected_steps' | translate"
+      matTooltipPosition="above">
+      COPY SELECTED STEPS
+    </button>
+    <button
+      *ngIf="canPasteSteps()"
+      type="button"
+      color="primary"
+      (click)="pasteSteps()"
+      mat-stroked-button
+      class="paste_steps"
+      [matTooltip]="'step_editor.paste_steps_here' | translate"
+      matTooltipPosition="above">
+      PASTE STEPS HERE
+    </button>
     <button
       type="button"
       color="primary"
